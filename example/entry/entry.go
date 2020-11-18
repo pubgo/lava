@@ -19,5 +19,12 @@ func GetEntry() golug_entry.Entry {
 		return ctx.Next()
 	})
 
+	ent.Group("/api", func(r fiber.Router) {
+		r.Get("/", func(ctx *fiber.Ctx) error {
+			fmt.Println("ok")
+			return ctx.Next()
+		})
+	})
+
 	return ent
 }

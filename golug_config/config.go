@@ -56,6 +56,9 @@ func DefaultFlags() *pflag.FlagSet {
 }
 
 func GetCfg() *Config {
+	if cfg == nil {
+		xerror.Panic(xerror.New("config should be init"))
+	}
 	return cfg
 }
 

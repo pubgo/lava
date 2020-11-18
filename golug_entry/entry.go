@@ -19,20 +19,28 @@ import (
 var _ Entry = (*httpEntry)(nil)
 
 type httpEntry struct {
-	app  *fiber.App
-	opts Options
+	app      *fiber.App
+	opts     Options
+	handlers []func()
 }
 
 func (t *httpEntry) Group(prefix string, fn func(r fiber.Router)) {
-	t.app.Group(prefix)
+	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
 }
 
 func (t *httpEntry) Options() Options {
-	panic("implement me")
+	return t.opts
 }
 
 func (t *httpEntry) Use(handler ...fiber.Handler) {
-	panic("implement me")
+	for i := range handler {
+		if handler[i] == nil {
+			continue
+		}
+
+		i := i
+		t.handlers = append(t.handlers, func() { t.app.Use(handler[i]) })
+	}
 }
 
 func (t *httpEntry) Init() (err error) {
@@ -50,6 +58,9 @@ func (t *httpEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化routes
+	for i := range t.handlers {
+		t.handlers[i]()
+	}
 
 	cancel := xprocess.Go(func(ctx context.Context) (err error) {
 		defer xerror.RespErr(&err)

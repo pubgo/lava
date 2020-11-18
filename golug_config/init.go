@@ -40,6 +40,8 @@ func Init() (err error) {
 	}
 
 	{
+		cfg = &Config{Viper: viper.GetViper()}
+
 		// 配置viper
 		initViperEnv(Domain)
 
