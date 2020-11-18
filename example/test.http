@@ -1,0 +1,3 @@
+### example测试
+GET http://localhost:8080/api
+Content-Type: application/json
