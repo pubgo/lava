@@ -6,18 +6,18 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_abc"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
 
-func Start(ent golug_abc.Entry) (err error) {
+func Start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(ent.Init())
+	xerror.Panic(ent.(golug_entry.RunEntry).Init())
 
 	// 启动配置, 初始化组件, 初始化插件
 	plugins := golug_plugin.List(golug_plugin.Module(ent.Options().Name))
@@ -28,23 +28,23 @@ func Start(ent golug_abc.Entry) (err error) {
 	}
 
 	xerror.Panic(dix_run.BeforeStart())
-	xerror.Panic(ent.Start())
+	xerror.Panic(ent.(golug_entry.RunEntry).Start())
 	xerror.Panic(dix_run.AfterStart())
 
 	return
 }
 
-func Stop(ent golug_abc.Entry) (err error) {
+func Stop(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(dix_run.BeforeStop())
-	xerror.Panic(ent.Stop())
+	xerror.Panic(ent.(golug_entry.RunEntry).Stop())
 	xerror.Panic(dix_run.AfterStop())
 
 	return nil
 }
 
-func Run(entries ...golug_abc.Entry) (err error) {
+func Run(entries ...golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	if len(entries) == 0 {

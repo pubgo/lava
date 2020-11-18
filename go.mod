@@ -9,7 +9,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/pubgo/dix v0.1.3
-	github.com/pubgo/xerror v0.2.12
+	github.com/pubgo/xerror v0.2.13
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.3
 	github.com/spf13/cobra v1.1.1

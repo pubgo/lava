@@ -1,13 +1,14 @@
 package golug_plugin
 
 import (
-	"github.com/pubgo/golug/golug_abc"
+	"encoding/json"
+
+	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-// Manager is the internal_plugin manager which stores plugins and allows them to be retrieved.
-// This is used by all the components of micro.
 type Manager interface {
 	Plugins(...ManagerOption) []Plugin
 	Register(Plugin, ...ManagerOption) error
@@ -25,11 +26,14 @@ type Response struct {
 	Revision int64
 }
 
-// Plugin is the interface for plugins to micro. It differs from go-micro in that it's for
-// the micro API, Web, Sidecar, CLI. It's a method of building middleware for the HTTP side.
+func (t *Response) Decode(val interface{}) (err error) {
+	defer xerror.RespErr(&err)
+	return xerror.Wrap(json.Unmarshal(t.Value, val))
+}
+
 type Plugin interface {
 	Watch(r *Response) error
-	Init(ent golug_abc.Entry) error
+	Init(ent golug_entry.Entry) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	String() string

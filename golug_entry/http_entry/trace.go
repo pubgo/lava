@@ -1,7 +1,8 @@
-package golug_entry
+package http_entry
 
 import (
 	"fmt"
+
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_util"

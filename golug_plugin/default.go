@@ -27,7 +27,3 @@ func Register(plugin Plugin, opts ...ManagerOption) error {
 func IsRegistered(plugin Plugin, opts ...ManagerOption) bool {
 	return defaultManager.isRegistered(plugin, opts...)
 }
-
-func Of(pl ...Plugin) []Plugin {
-	return pl
-}

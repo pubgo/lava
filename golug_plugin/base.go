@@ -2,8 +2,8 @@ package golug_plugin
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/golug_abc"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -15,14 +15,14 @@ var _ Plugin = (*Base)(nil)
 type Base struct {
 	Name       string
 	Enabled    bool `yaml:"enabled" json:"enabled" toml:"enabled"`
-	OnInit     func(ent golug_abc.Entry)
+	OnInit     func(ent golug_entry.Entry)
 	OnWatch    func(r *Response)
 	OnCommands func(cmd *cobra.Command)
 	OnHandler  func() fiber.Handler
 	OnFlags    func(flags *pflag.FlagSet)
 }
 
-func (p *Base) Init(ent golug_abc.Entry) (err error) {
+func (p *Base) Init(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(golug_config.Decode(p.Name, p))

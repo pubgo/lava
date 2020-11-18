@@ -1,14 +1,12 @@
 package golug_config
 
 import (
-	"path/filepath"
-	"reflect"
-	"strings"
-
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"path/filepath"
+	"reflect"
 )
 
 // 默认的全局配置
@@ -22,7 +20,6 @@ var (
 	Mode    = "dev"
 	IsBlock = true
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
-	CfgPath = filepath.Join(Home, "config", "config.yaml")
 	cfg     *Config
 )
 
@@ -101,12 +98,4 @@ func Decode(name string, fn interface{}) (err error) {
 	}
 
 	return
-}
-
-// initViperEnv
-// sets to use Env variables if set.
-func initViperEnv(prefix string) {
-	viper.SetEnvPrefix(prefix)
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
-	viper.AutomaticEnv()
 }

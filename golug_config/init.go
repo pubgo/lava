@@ -31,19 +31,17 @@ func Init() (err error) {
 	golug_env.Get(&Project, "project", "name")
 	golug_env.Get(&Mode, "mode", "run")
 
-	CfgPath = filepath.Join(Home, "config", "config.yaml")
 	if !golug_util.PathExist(Home) {
 		xerror.Panic(xerror.Fmt("home path [%s] not exists", Home))
-	}
-	if !golug_util.PathExist(CfgPath) {
-		xerror.Panic(xerror.Fmt("config path [%s] not exists", CfgPath))
 	}
 
 	{
 		cfg = &Config{Viper: viper.GetViper()}
 
 		// 配置viper
-		initViperEnv(Domain)
+		viper.SetEnvPrefix(Domain)
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
+		viper.AutomaticEnv()
 
 		// 配置文件名字和类型
 		viper.SetConfigType(CfgType)
@@ -61,9 +59,7 @@ func Init() (err error) {
 		viper.AddConfigPath(filepath.Join(_home, "."+Project, CfgName))
 
 		// 检查配置文件是否存在
-		if err := viper.ReadInConfig(); err != nil && !strings.Contains(err.Error(), "not found") {
-			xerror.ExitF(err, "read config failed")
-		}
+		xerror.PanicF(viper.ReadInConfig(), "read config failed")
 
 		// 获取配置文件所在目录
 		Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
