@@ -1,0 +1,20 @@
+# Binaries for programs and internal_plugin
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+.DS_Store
+.idea
+*.log
+*.out
+*.dot
+*.svg
+
+# Test binary, built with `go test -c`
+*.test
+
+# Dependency directories (remove the comment below to include it)
+vendor
+main
+home/pidfile
