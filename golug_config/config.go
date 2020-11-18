@@ -1,12 +1,13 @@
 package golug_config
 
 import (
+	"path/filepath"
+	"reflect"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"path/filepath"
-	"reflect"
 )
 
 // 默认的全局配置

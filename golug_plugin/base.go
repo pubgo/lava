@@ -1,7 +1,6 @@
 package golug_plugin
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
@@ -18,7 +17,6 @@ type Base struct {
 	OnInit     func(ent golug_entry.Entry)
 	OnWatch    func(r *Response)
 	OnCommands func(cmd *cobra.Command)
-	OnHandler  func() fiber.Handler
 	OnFlags    func(flags *pflag.FlagSet)
 }
 
@@ -60,6 +58,8 @@ func (p *Base) Watch(r *Response) (err error) {
 }
 
 func (p *Base) Commands() *cobra.Command {
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), xlog.Any("err", "command error")) })
+
 	if !p.Enabled {
 		return nil
 	}
@@ -72,22 +72,13 @@ func (p *Base) Commands() *cobra.Command {
 	return nil
 }
 
-func (p *Base) Handler() fiber.Handler {
-	if !p.Enabled {
-		return nil
-	}
-
-	if p.OnHandler != nil {
-		return p.OnHandler()
-	}
-	return nil
-}
-
 func (p *Base) String() string {
 	return p.Name
 }
 
 func (p *Base) Flags() *pflag.FlagSet {
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), xlog.Any("err", "flags error")) })
+
 	if !p.Enabled {
 		return nil
 	}
