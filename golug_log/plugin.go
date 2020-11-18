@@ -1,8 +1,9 @@
 package golug_log
 
 import (
+	"encoding/json"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/golug/golug_types"
+	"github.com/pubgo/golug/golug_abc"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xlog/xlog_config"
@@ -32,12 +33,12 @@ func init() {
 		OnFlags: func(flags *pflag.FlagSet) {
 			flags.StringVar(&config.Level, "level", config.Level, "log level")
 		},
-		OnInit: func(r golug_types.CfgValue) {
-			xerror.Panic(r.Decode(&config))
+		OnInit: func(ent golug_abc.Entry) {
+			xerror.Panic(golug_config.Decode("log", &config))
 			xerror.Panic(initLog(config))
 		},
-		OnWatch: func(r golug_types.CfgValue) {
-			xerror.Panic(r.Decode(&config))
+		OnWatch: func(r *golug_plugin.Response) {
+			xerror.Panic(json.Unmarshal(r.Value, &config))
 			xerror.Panic(initLog(config))
 		},
 	}))

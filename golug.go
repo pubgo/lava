@@ -1,6 +1,7 @@
 package golug
 
 import (
+	"github.com/pubgo/golug/golug_abc"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
@@ -15,12 +16,12 @@ func Init() (err error) {
 	return nil
 }
 
-func Run(entries ...golug_entry.Entry) (err error) {
+func Run(entries ...golug_abc.Entry) (err error) {
 	defer xerror.RespErr(&err)
 	xerror.Panic(golug_app.Run(entries...))
 	return nil
 }
 
-func NewEntry(name string) golug_entry.Entry {
+func NewEntry(name string) golug_abc.Entry {
 	return golug_entry.New(name)
 }

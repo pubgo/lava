@@ -1,4 +1,4 @@
-package golug_entry
+package golug_abc
 
 import (
 	"github.com/gofiber/fiber/v2"

@@ -6,15 +6,15 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_abc"
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
 
-func Start(ent golug_entry.Entry) (err error) {
+func Start(ent golug_abc.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(ent.Init())
@@ -23,10 +23,8 @@ func Start(ent golug_entry.Entry) (err error) {
 	plugins := golug_plugin.List(golug_plugin.Module(ent.Options().Name))
 	for _, pg := range append(golug_plugin.List(), plugins...) {
 		key := pg.String()
-
 		xerror.PanicF(err, "plugin [%s] load error", key)
-		xerror.PanicF(pg.Init(golug_config.GetCfg().GetStringMap(key)), "plugin [%s] init error", key)
-		ent.Use(pg.Handler())
+		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 	}
 
 	xerror.Panic(dix_run.BeforeStart())
@@ -36,7 +34,7 @@ func Start(ent golug_entry.Entry) (err error) {
 	return
 }
 
-func Stop(ent golug_entry.Entry) (err error) {
+func Stop(ent golug_abc.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(dix_run.BeforeStop())
@@ -46,7 +44,7 @@ func Stop(ent golug_entry.Entry) (err error) {
 	return nil
 }
 
-func Run(entries ...golug_entry.Entry) (err error) {
+func Run(entries ...golug_abc.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	if len(entries) == 0 {

@@ -1,10 +1,9 @@
 package golug_plugin
 
 import (
-	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_types"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/golug/golug_abc"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -16,14 +15,14 @@ var _ Plugin = (*Base)(nil)
 type Base struct {
 	Name       string
 	Enabled    bool `yaml:"enabled" json:"enabled" toml:"enabled"`
-	OnInit     func(r golug_types.CfgValue)
-	OnWatch    func(r golug_types.CfgValue)
+	OnInit     func(ent golug_abc.Entry)
+	OnWatch    func(r *Response)
 	OnCommands func(cmd *cobra.Command)
 	OnHandler  func() fiber.Handler
 	OnFlags    func(flags *pflag.FlagSet)
 }
 
-func (p *Base) Init(r golug_types.CfgValue) (err error) {
+func (p *Base) Init(ent golug_abc.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(golug_config.Decode(p.Name, p))
@@ -41,12 +40,12 @@ func (p *Base) Init(r golug_types.CfgValue) (err error) {
 
 	if p.OnInit != nil {
 		xlog.Debugf("[%s] start init", p.Name)
-		p.OnInit(r)
+		p.OnInit(ent)
 	}
 	return nil
 }
 
-func (p *Base) Watch(r golug_types.CfgValue) (err error) {
+func (p *Base) Watch(r *Response) (err error) {
 	defer xerror.RespErr(&err)
 
 	if !p.Enabled {

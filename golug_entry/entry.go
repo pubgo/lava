@@ -3,6 +3,7 @@ package golug_entry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/golug/golug_abc"
 	"net/http"
 	"strings"
 
@@ -16,11 +17,11 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var _ Entry = (*httpEntry)(nil)
+var _ golug_abc.Entry = (*httpEntry)(nil)
 
 type httpEntry struct {
 	app      *fiber.App
-	opts     Options
+	opts     golug_abc.Options
 	handlers []func()
 }
 
@@ -28,7 +29,7 @@ func (t *httpEntry) Group(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
 }
 
-func (t *httpEntry) Options() Options {
+func (t *httpEntry) Options() golug_abc.Options {
 	return t.opts
 }
 
@@ -158,7 +159,7 @@ func newEntry(name string) *httpEntry {
 	rootCmd.AddCommand(runCmd)
 
 	ent := &httpEntry{
-		opts: Options{
+		opts: golug_abc.Options{
 			RestCfg:    fiber.New().Config(),
 			Name:       name,
 			RestAddr:   ":8080",

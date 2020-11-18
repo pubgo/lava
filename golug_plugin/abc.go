@@ -1,8 +1,7 @@
 package golug_plugin
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/golug_types"
+	"github.com/pubgo/golug/golug_abc"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -19,14 +18,20 @@ type ManagerOptions struct {
 	Module string
 }
 
+type Response struct {
+	Event    string
+	Key      []byte
+	Value    []byte
+	Revision int64
+}
+
 // Plugin is the interface for plugins to micro. It differs from go-micro in that it's for
 // the micro API, Web, Sidecar, CLI. It's a method of building middleware for the HTTP side.
 type Plugin interface {
-	Watch(r golug_types.CfgValue) error
-	Init(r golug_types.CfgValue) error
+	Watch(r *Response) error
+	Init(ent golug_abc.Entry) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
-	Handler() fiber.Handler
 	String() string
 }
 
