@@ -1,0 +1,93 @@
+app:
+  enabled: true
+  name: "golug"
+  version: "v0.0.1"
+  home: ""
+  debug: "true"
+golug_debug:
+  enabled: true
+recovery:
+  enabled: true
+server:
+  enabled: true
+  prefork: false
+  server_header: ''
+  strict_routing: false
+  case_sensitive: false
+  immutable: false
+  unescape_path: false
+  etag: false
+  body_limit: 4194304
+  concurrency: 262144
+  read_timeout: 0
+  write_timeout: 0
+  idle_timeout: 0
+  read_buffer_size: 4096
+  write_buffer_size: 4096
+  compressed_file_suffix: .fiber.gz
+  proxy_header: ''
+  get_only: false
+  disable_keepalive: false
+  disable_default_date: false
+  disable_default_content_type: false
+  disable_header_normalizing: false
+  disable_startup_message: false
+  reduce_memory_usage: false
+watcher:
+  enabled: true
+  address:
+    - "127.0.0.1:2379"
+etcd:
+  enabled: true
+  default:
+    - "127.0.0.1:2379"
+    - "127.0.0.1:2389"
+redis:
+  enabled: true
+  codis:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisSale:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisApiBusinessTwo:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redlock_0:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+mongodb:
+  enabled: true
+  default:
+    url: "mongodb://localhost:8080"
+log:
+  enabled: true
+  level: debug
+  development: true
+  disableCaller: false
+  disableStacktrace: false
+  sampling: null
+  encoding: console
+  encoderConfig:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: 'N'
+    callerKey: C
+    stacktraceKey: S
+    lineEnding: |+
+    levelEncoder: capitalColor
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: default
+    nameEncoder: ''
+  outputPaths:
+    - stderr
+  errorOutputPaths:
+    - stderr
+  initialFields:
+    name: test

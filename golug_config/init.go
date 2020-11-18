@@ -48,17 +48,14 @@ func Init() (err error) {
 		viper.SetConfigName(CfgName)
 
 		// 监控默认配置
-		viper.AddConfigPath(Home)
 		viper.AddConfigPath(filepath.Join(Home, CfgName))
 
 		// 监控当前工作目录
 		_pwd := xerror.PanicStr(filepath.Abs(filepath.Dir("")))
-		viper.AddConfigPath(_pwd)
 		viper.AddConfigPath(filepath.Join(_pwd, CfgName))
 
 		// 监控Home工作目录
 		_home := xerror.PanicErr(homedir.Dir()).(string)
-		viper.AddConfigPath(filepath.Join(_home, "."+Project))
 		viper.AddConfigPath(filepath.Join(_home, "."+Project, CfgName))
 
 		// 检查配置文件是否存在
@@ -67,7 +64,7 @@ func Init() (err error) {
 		}
 
 		// 获取配置文件所在目录
-		Home = filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed())))
+		Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
 	}
 
 	//_, err = cfg.Load("watcher")

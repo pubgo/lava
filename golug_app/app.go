@@ -94,7 +94,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 			if golug_config.IsBlock {
 				ch := make(chan os.Signal, 1)
-				signal.Notify(ch, append(Shutdown(), syscall.SIGHUP)...)
+				signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 				<-ch
 			}
 
@@ -104,11 +104,4 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		rootCmd.AddCommand(cmd)
 	}
 	return xerror.Wrap(rootCmd.Execute())
-}
-
-// ShutDownSignals returns all the signals that are being watched for to shut down services.
-func Shutdown() []os.Signal {
-	return []os.Signal{
-		syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL,
-	}
 }

@@ -16,6 +16,7 @@ type Entry interface {
 	Commands(commands ...*cobra.Command) error
 	Options() Options
 	Use(handler ...fiber.Handler)
+	Group(prefix string, fn func(r fiber.Router))
 }
 
 type Option func(o *Options)

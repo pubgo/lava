@@ -20,3 +20,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 	xerror.Panic(golug_app.Run(entries...))
 	return nil
 }
+
+func NewEntry(name string) golug_entry.Entry {
+	return golug_entry.New(name)
+}

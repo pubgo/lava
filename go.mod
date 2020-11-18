@@ -8,7 +8,6 @@ require (
 	github.com/imdario/mergo v0.3.11
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.3
-	github.com/pubgo/catdog v0.0.4
 	github.com/pubgo/dix v0.1.3
 	github.com/pubgo/xerror v0.2.12
 	github.com/pubgo/xlog v0.0.10
