@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog/xlog_config"
 	"github.com/spf13/pflag"
+	"net/http"
 )
 
 var cfg = xlog_config.NewDevConfig()
@@ -19,6 +20,13 @@ func init() {
 			flags.StringVar(&cfg.Level, "level", cfg.Level, "log level")
 		},
 		OnInit: func(ent golug_entry.Entry) {
+			ent.Use1(func(handlerFunc http.HandlerFunc) http.HandlerFunc {
+				return func(writer http.ResponseWriter, request *http.Request) {
+
+					handlerFunc(writer, request)
+				}
+			})
+
 			xerror.Panic(golug_config.Decode(name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},

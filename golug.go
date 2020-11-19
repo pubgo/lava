@@ -22,6 +22,6 @@ func Run(entries ...golug_entry.Entry) (err error) {
 	return nil
 }
 
-func NewEntry(name string) golug_entry.Entry {
+func NewHttpEntry(name string) golug_entry.HttpEntry {
 	return http_entry.New(name)
 }

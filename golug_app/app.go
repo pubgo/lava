@@ -17,10 +17,10 @@ import (
 func Start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(ent.(golug_entry.RunEntry).Init())
+	xerror.Panic(ent.Run().Init())
 
 	// 启动配置, 初始化组件, 初始化插件
-	plugins := golug_plugin.List(golug_plugin.Module(ent.Options().Name))
+	plugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
 	for _, pg := range append(golug_plugin.List(), plugins...) {
 		key := pg.String()
 		xerror.PanicF(err, "plugin [%s] load error", key)
@@ -28,7 +28,7 @@ func Start(ent golug_entry.Entry) (err error) {
 	}
 
 	xerror.Panic(dix_run.BeforeStart())
-	xerror.Panic(ent.(golug_entry.RunEntry).Start())
+	xerror.Panic(ent.Run().Start())
 	xerror.Panic(dix_run.AfterStart())
 
 	return
@@ -38,7 +38,7 @@ func Stop(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(dix_run.BeforeStop())
-	xerror.Panic(ent.(golug_entry.RunEntry).Stop())
+	xerror.Panic(ent.Run().Stop())
 	xerror.Panic(dix_run.AfterStop())
 
 	return nil
@@ -56,7 +56,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 			return xerror.New("[ent] should not be nil")
 		}
 
-		opt := ent.Options()
+		opt := ent.Run().Options()
 		if opt.Name == "" || opt.Version == "" {
 			return xerror.New("neither [name] nor [version] can be empty")
 		}
@@ -68,7 +68,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 	for _, ent := range entries {
 		ent := ent
-		cmd := ent.Options().Command
+		cmd := ent.Run().Options().Command
 
 		// 检查Command是否注册
 		for _, c := range rootCmd.Commands() {
@@ -78,13 +78,13 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		}
 
 		// 注册plugin的command和flags
-		entPlugins := golug_plugin.List(golug_plugin.Module(ent.Options().Name))
+		entPlugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
 		for _, pl := range append(golug_plugin.List(), entPlugins...) {
 			cmd.PersistentFlags().AddFlagSet(pl.Flags())
 			xerror.Panic(ent.Commands(pl.Commands()))
 		}
 
-		runCmd := ent.Options().RunCommand
+		runCmd := ent.Run().Options().RunCommand
 		runCmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 

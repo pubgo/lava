@@ -16,11 +16,13 @@ func init() {
 		Enabled: true,
 		Name:    name,
 		OnInit: func(ent golug_entry.Entry) {
-			ent.Use(func(ctx *fiber.Ctx) error {
-				rid := ctx.Get(RequestId, xerror.PanicStr(uuid.GenerateUUID()))
-				ctx.Set(RequestId, rid)
-				return xerror.Wrap(ctx.Next())
-			})
+			xerror.Panic(ent.UnWrap(func(entry golug_entry.HttpEntry) {
+				entry.Use(func(ctx *fiber.Ctx) error {
+					rid := ctx.Get(RequestId, xerror.PanicStr(uuid.GenerateUUID()))
+					ctx.Set(RequestId, rid)
+					return xerror.Wrap(ctx.Next())
+				})
+			}))
 		},
 	}))
 }
