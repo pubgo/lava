@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/xerror"
@@ -19,13 +18,13 @@ type baseEntry struct {
 	handlers []func()
 }
 
-func (t *baseEntry) Run() RunEntry { panic("implement me") }
-
 func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
 	golug_config.Project = t.Options().Name
 	return nil
 }
+
+func (t *baseEntry) Run() RunEntry { panic("implement me") }
 
 func (t *baseEntry) Start() error { panic("implement me") }
 
@@ -33,9 +32,7 @@ func (t *baseEntry) Stop() error { panic("implement me") }
 
 func (t *baseEntry) UnWrap(fn interface{}) error { panic("implement me") }
 
-func (t *baseEntry) Options() Options {
-	return t.opts
-}
+func (t *baseEntry) Options() Options { return t.opts }
 
 func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) (err error) {
 	defer xerror.RespErr(&err)
@@ -86,6 +83,12 @@ func (t *baseEntry) Commands(commands ...*cobra.Command) error {
 	return nil
 }
 
+func (t *baseEntry) initFlags() {
+	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
+		flags.StringVar(&t.opts.Addr, "addr", t.opts.Addr, "the server address")
+	}))
+}
+
 func newEntry(name string) *baseEntry {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -98,13 +101,14 @@ func newEntry(name string) *baseEntry {
 
 	ent := &baseEntry{
 		opts: Options{
-			RestCfg:    fiber.New().Config(),
 			Name:       name,
 			Addr:       ":8080",
 			RunCommand: runCmd,
 			Command:    rootCmd,
 		},
 	}
+
+	ent.initFlags()
 
 	return ent
 }

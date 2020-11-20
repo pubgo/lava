@@ -8,7 +8,7 @@ import (
 
 func (t *grpcEntry) trace() {
 	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
-		if !golug_config.Trace || !t.opts.Initialized {
+		if !golug_config.Trace || !t.Options().Initialized {
 			return
 		}
 

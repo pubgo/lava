@@ -18,10 +18,12 @@ var _ golug_entry.HttpEntry = (*httpEntry)(nil)
 
 type httpEntry struct {
 	golug_entry.Entry
+	cfg      Cfg
 	app      *fiber.App
-	opts     golug_entry.Options
 	handlers []func()
 }
+
+func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 
 func (t *httpEntry) Run() golug_entry.RunEntry { return t }
 
@@ -45,12 +47,12 @@ func (t *httpEntry) Use(handler ...fiber.Handler) {
 func (t *httpEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	t.opts.Initialized = true
-	golug_config.Project = t.Options().Name
 	xerror.Panic(t.Entry.Run().Init())
 
+	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+
 	// 初始化app
-	t.app = fiber.New(t.opts.RestCfg)
+	t.app = fiber.New(t.cfg)
 	return nil
 }
 
@@ -65,7 +67,7 @@ func (t *httpEntry) Start() (err error) {
 	cancel := xprocess.Go(func(ctx context.Context) (err error) {
 		defer xerror.RespErr(&err)
 
-		addr := t.Options().Addr
+		addr := t.Entry.Run().Options().Addr
 		log.Infof("Server [http] Listening on http://%s", addr)
 		xerror.Panic(t.app.Listen(addr))
 		log.Infof("Server [http] Closed OK")
@@ -87,14 +89,9 @@ func (t *httpEntry) Stop() (err error) {
 	return nil
 }
 
-func (t *httpEntry) initCfg() {
-	xerror.Panic(golug_config.Decode("server", &t.opts.RestCfg))
-}
-
 func (t *httpEntry) initFlags() {
 	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
-		flags.StringVar(&t.opts.Addr, "http_addr", t.opts.Addr, "the http server address")
-		flags.BoolVar(&t.opts.RestCfg.DisableStartupMessage, "disable_startup_message", t.opts.RestCfg.DisableStartupMessage, "print out the http server art and listening address")
+		flags.BoolVar(&t.cfg.DisableStartupMessage, "disable_startup_message", t.cfg.DisableStartupMessage, "print out the http server art and listening address")
 	}))
 }
 
@@ -103,7 +100,6 @@ func newEntry(name string) *httpEntry {
 		Entry: golug_entry.New(name),
 	}
 	ent.initFlags()
-	ent.initCfg()
 	ent.trace()
 
 	return ent
