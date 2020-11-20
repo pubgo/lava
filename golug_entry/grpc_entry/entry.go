@@ -48,7 +48,7 @@ func (t *grpcEntry) Register(ss interface{}) {
 	t.handlers = append(t.handlers, ss)
 }
 
-func (t *grpcEntry) WithUnaryServer(interceptors ...golug_entry.UnaryServerInterceptor) {
+func (t *grpcEntry) UnaryServer(interceptors ...golug_entry.UnaryServerInterceptor) {
 	var interceptors1 []grpc.UnaryServerInterceptor
 	for i := range interceptors {
 		interceptors1 = append(interceptors1, func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -60,7 +60,7 @@ func (t *grpcEntry) WithUnaryServer(interceptors ...golug_entry.UnaryServerInter
 	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors1...)
 }
 
-func (t *grpcEntry) WithStreamServer(interceptors ...golug_entry.StreamServerInterceptor) {
+func (t *grpcEntry) StreamServer(interceptors ...golug_entry.StreamServerInterceptor) {
 	var interceptors1 []grpc.StreamServerInterceptor
 	for i := range interceptors {
 		interceptors1 = append(interceptors1, func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {

@@ -22,7 +22,7 @@ func httpRequestId(ctx *fiber.Ctx) error {
 	return xerror.Wrap(ctx.Next())
 }
 
-func unaryServer(ctx context.Context, info *grpc.UnaryServerInfo) context.Context {
+func grpcUnaryServer(ctx context.Context, info *grpc.UnaryServerInfo) context.Context {
 	rid := RequestIdFromCtx(ctx)
 	if rid != "" {
 		return ctx
@@ -31,7 +31,7 @@ func unaryServer(ctx context.Context, info *grpc.UnaryServerInfo) context.Contex
 	return context.WithValue(ctx, xRequestId, requestId(rid))
 }
 
-func streamServer(ss grpc.ServerStream, info *grpc.StreamServerInfo) context.Context {
+func grpcStreamServer(ss grpc.ServerStream, info *grpc.StreamServerInfo) context.Context {
 	rid := RequestIdFromCtx(ss.Context())
 	if rid != "" {
 		return ss.Context()

@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func GetEntry() golug_entry.HttpEntry {
+func GetEntry() golug_entry.Entry {
 	ent := golug.NewHttpEntry("entry")
 	xerror.Panic(ent.Version("v0.0.1"))
 	xerror.Panic(ent.Description("entry http test"))

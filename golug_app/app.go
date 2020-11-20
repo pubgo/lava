@@ -93,7 +93,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 			if golug_config.IsBlock {
 				ch := make(chan os.Signal, 1)
 				signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-				<-ch
+				golug_config.Signal = <-ch
 			}
 
 			xerror.Panic(Stop(ent))

@@ -19,6 +19,7 @@ func Init() (err error) {
 
 func Run(entries ...golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
+
 	xerror.Panic(golug_app.Run(entries...))
 	return nil
 }

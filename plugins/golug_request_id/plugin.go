@@ -13,8 +13,8 @@ func init() {
 		OnInit: func(ent golug_entry.Entry) {
 			xerror.Panic(ent.UnWrap(func(entry golug_entry.HttpEntry) { entry.Use(httpRequestId) }))
 			xerror.Panic(ent.UnWrap(func(entry golug_entry.GrpcEntry) {
-				entry.WithUnaryServer(unaryServer)
-				entry.WithStreamServer(streamServer)
+				entry.UnaryServer(grpcUnaryServer)
+				entry.StreamServer(grpcStreamServer)
 			}))
 		},
 	}))

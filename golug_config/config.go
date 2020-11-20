@@ -1,6 +1,7 @@
 package golug_config
 
 import (
+	"os"
 	"path/filepath"
 	"reflect"
 
@@ -22,6 +23,7 @@ var (
 	IsBlock = true
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
 	cfg     *Config
+	Signal  os.Signal
 )
 
 // RunMode 项目运行模式
