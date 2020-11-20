@@ -23,14 +23,12 @@ func GetDefaultServerOpts() []grpc.ServerOption {
 		grpc.KeepaliveEnforcementPolicy(kaep),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
-			TimeoutUnaryServerInterceptor(defaultUnaryTimeout),
 			grpc_opentracing.UnaryServerInterceptor(),
 			ratelimit.UnaryServerInterceptor(defaultRateLimiter),
 			grpc_auth.UnaryServerInterceptor(defaultAuthFunc),
 		)),
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
-			TimeoutStreamServerInterceptor(defaultStreamTimeout),
 			grpc_opentracing.StreamServerInterceptor(),
 			ratelimit.StreamServerInterceptor(defaultRateLimiter),
 			grpc_auth.StreamServerInterceptor(defaultAuthFunc),

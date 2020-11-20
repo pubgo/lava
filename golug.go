@@ -4,6 +4,7 @@ import (
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/grpc_entry"
 	"github.com/pubgo/golug/golug_entry/http_entry"
 	"github.com/pubgo/xerror"
 )
@@ -24,4 +25,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 func NewHttpEntry(name string) golug_entry.HttpEntry {
 	return http_entry.New(name)
+}
+
+func NewGrpcEntry(name string) golug_entry.GrpcEntry {
+	return grpc_entry.New(name)
 }

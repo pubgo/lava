@@ -2,6 +2,7 @@ package grpc_entry
 
 import (
 	"context"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"net"
 
 	"github.com/pubgo/dix/dix_run"
@@ -47,12 +48,32 @@ func (t *grpcEntry) Register(ss interface{}) {
 	t.handlers = append(t.handlers, ss)
 }
 
-func (t *grpcEntry) WithUnaryServer(interceptors ...grpc.UnaryServerInterceptor) {
-	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors...)
+func (t *grpcEntry) WithUnaryServer(interceptors ...golug_entry.UnaryServerInterceptor) {
+	var interceptors1 []grpc.UnaryServerInterceptor
+	for i := range interceptors {
+		interceptors1 = append(interceptors1, func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+			defer xerror.RespErr(&err)
+			return handler(interceptors[i](ctx, info), req)
+		})
+	}
+
+	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors1...)
 }
 
-func (t *grpcEntry) WithStreamServer(interceptors ...grpc.StreamServerInterceptor) {
-	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
+func (t *grpcEntry) WithStreamServer(interceptors ...golug_entry.StreamServerInterceptor) {
+	var interceptors1 []grpc.StreamServerInterceptor
+	for i := range interceptors {
+		interceptors1 = append(interceptors1, func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+			defer xerror.RespErr(&err)
+
+			return handler(srv, &grpc_middleware.WrappedServerStream{
+				ServerStream:   ss,
+				WrappedContext: interceptors[i](ss, info),
+			})
+		})
+	}
+
+	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors1...)
 }
 
 func (t *grpcEntry) Start() (err error) {

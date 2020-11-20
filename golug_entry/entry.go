@@ -1,6 +1,7 @@
 package golug_entry
 
 import (
+	"context"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,11 +11,22 @@ import (
 	"google.golang.org/grpc"
 )
 
+func init1(fn func(ctx context.Context, info *grpc.UnaryServerInfo) error) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		fn(ctx, info)
+
+		return handler(ctx, req)
+	}
+}
+
+type UnaryServerInterceptor func(ctx context.Context, info *grpc.UnaryServerInfo) context.Context
+type StreamServerInterceptor func(ss grpc.ServerStream, info *grpc.StreamServerInfo) context.Context
+
 type GrpcEntry interface {
 	Entry
 	Register(ss interface{})
-	WithUnaryServer(interceptors ...grpc.UnaryServerInterceptor)
-	WithStreamServer(interceptors ...grpc.StreamServerInterceptor)
+	WithUnaryServer(interceptors ...UnaryServerInterceptor)
+	WithStreamServer(interceptors ...StreamServerInterceptor)
 }
 
 type HttpEntry interface {
@@ -28,7 +40,6 @@ type RunEntry interface {
 	Start() error
 	Stop() error
 	Options() Options
-	UnWrap(fn interface{}) error
 }
 
 type Entry interface {
@@ -37,6 +48,7 @@ type Entry interface {
 	Flags(fn func(flags *pflag.FlagSet)) error
 	Commands(commands ...*cobra.Command) error
 	Run() RunEntry
+	UnWrap(fn interface{}) error
 }
 
 type Option func(o *Options)
