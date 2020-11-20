@@ -2,11 +2,11 @@ package golug_log
 
 import (
 	"fmt"
-	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_util"
+	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
 
@@ -16,7 +16,7 @@ func init() {
 			return
 		}
 
-		xlog.Debug("log trace")
+		xlog.Debug("log config trace")
 		fmt.Println(golug_util.MarshalIndent(cfg))
 		fmt.Println()
 	}))

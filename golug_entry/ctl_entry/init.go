@@ -1,4 +1,4 @@
-package http_entry
+package ctl_entry
 
 import (
 	"github.com/pubgo/golug/golug_log"
@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-const Name = "http_entry"
+const Name = "ctl_entry"
 
 var log xlog.XLog
 

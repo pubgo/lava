@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"syscall"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
@@ -23,7 +24,7 @@ var (
 	IsBlock = true
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
 	cfg     *Config
-	Signal  os.Signal
+	Signal  os.Signal = syscall.Signal(0)
 )
 
 // RunMode 项目运行模式

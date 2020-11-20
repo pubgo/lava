@@ -4,11 +4,9 @@ app:
   version: "v0.0.1"
   home: ""
   debug: "true"
-golug_debug:
-  enabled: true
 recovery:
   enabled: true
-server:
+http_entry:
   enabled: true
   prefork: false
   server_header: ''

@@ -19,6 +19,6 @@ var defaultStreamInterceptor = grpc_middleware.ChainStreamClient(grpc_opentracin
 
 func init() {
 	timeoutCtx, _ := context.WithTimeout(context.Background(), 0)
-	conn, err := grpc.DialContext(timeoutCtx, golug_config.Project, grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
+	_, _ = grpc.DialContext(timeoutCtx, golug_config.Project, grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
 		grpc.WithChainStreamInterceptor(defaultStreamInterceptor))
 }

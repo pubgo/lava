@@ -2,7 +2,6 @@ package http_entry
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,14 +32,17 @@ func (t *httpEntry) Group(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
 }
 
+func (t *httpEntry) use(handler fiber.Handler) {
+	if handler == nil {
+		return
+	}
+
+	t.handlers = append(t.handlers, func() { t.app.Use(handler) })
+}
+
 func (t *httpEntry) Use(handler ...fiber.Handler) {
 	for i := range handler {
-		if handler[i] == nil {
-			continue
-		}
-
-		i := i
-		t.handlers = append(t.handlers, func() { t.app.Use(handler[i]) })
+		t.use(handler[i])
 	}
 }
 
@@ -51,13 +53,14 @@ func (t *httpEntry) Init() (err error) {
 
 	xerror.Panic(golug_config.Decode(Name, &t.cfg))
 
-	// 初始化app
-	t.app = fiber.New(t.cfg)
 	return nil
 }
 
 func (t *httpEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
+
+	// 初始化app
+	t.app = fiber.New(t.cfg)
 
 	// 初始化routes
 	for i := range t.handlers {
@@ -67,11 +70,14 @@ func (t *httpEntry) Start() (err error) {
 	cancel := xprocess.Go(func(ctx context.Context) (err error) {
 		defer xerror.RespErr(&err)
 
-		addr := t.Entry.Run().Options().Addr
+		addr := t.Options().Addr
 		log.Infof("Server [http] Listening on http://%s", addr)
-		xerror.Panic(t.app.Listen(addr))
-		log.Infof("Server [http] Closed OK")
+		if err := t.app.Listen(addr); err != nil && err != http.ErrServerClosed {
+			log.Error(xerror.Parse(err).Stack(true))
+			return nil
+		}
 
+		log.Infof("Server [http] Closed OK")
 		return nil
 	})
 
@@ -84,8 +90,10 @@ func (t *httpEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	if err := t.app.Shutdown(); err != nil && err != http.ErrServerClosed {
-		fmt.Println(xerror.Parse(err).Println())
+		log.Error(xerror.Parse(err).Stack(true))
+		return nil
 	}
+
 	return nil
 }
 
@@ -96,12 +104,9 @@ func (t *httpEntry) initFlags() {
 }
 
 func newEntry(name string) *httpEntry {
-	ent := &httpEntry{
-		Entry: golug_entry.New(name),
-	}
+	ent := &httpEntry{Entry: golug_entry.New(name), cfg: fiber.New().Config()}
 	ent.initFlags()
 	ent.trace()
-
 	return ent
 }
 

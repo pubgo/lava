@@ -4,6 +4,7 @@ import (
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/ctl_entry"
 	"github.com/pubgo/golug/golug_entry/grpc_entry"
 	"github.com/pubgo/golug/golug_entry/http_entry"
 	"github.com/pubgo/xerror"
@@ -30,4 +31,8 @@ func NewHttpEntry(name string) golug_entry.HttpEntry {
 
 func NewGrpcEntry(name string) golug_entry.GrpcEntry {
 	return grpc_entry.New(name)
+}
+
+func NewCtlEntry(name string) golug_entry.CtlEntry {
+	return ctl_entry.New(name)
 }

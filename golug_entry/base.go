@@ -24,11 +24,11 @@ func (t *baseEntry) Init() error {
 	return nil
 }
 
-func (t *baseEntry) Run() RunEntry { panic("implement me") }
+func (t *baseEntry) Run() RunEntry { return t }
 
-func (t *baseEntry) Start() error { panic("implement me") }
+func (t *baseEntry) Start() error { return nil }
 
-func (t *baseEntry) Stop() error { panic("implement me") }
+func (t *baseEntry) Stop() error { return nil }
 
 func (t *baseEntry) UnWrap(fn interface{}) error { panic("implement me") }
 

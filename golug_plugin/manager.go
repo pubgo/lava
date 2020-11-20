@@ -67,6 +67,9 @@ func (m *manager) Register(pg Plugin, opts ...ManagerOption) error {
 	}
 
 	name := pg.String()
+	if name == "" {
+		return xerror.New("plugin.name is null")
+	}
 
 	m.Lock()
 	defer m.Unlock()

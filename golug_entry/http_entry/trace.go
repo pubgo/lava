@@ -16,7 +16,7 @@ func (t *httpEntry) trace() {
 			return
 		}
 
-		xlog.Debug("http rest trace")
+		xlog.Debug("http rest router trace")
 		for _, stacks := range t.app.Stack() {
 			for _, stack := range stacks {
 				if stack.Path == "/" {
