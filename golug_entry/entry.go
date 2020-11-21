@@ -1,49 +1,12 @@
 package golug_entry
 
 import (
-	"context"
 	"reflect"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"google.golang.org/grpc"
 )
-
-type ClientInfo struct {
-	Method string
-	Conn   *grpc.ClientConn
-	Desc   *grpc.StreamDesc
-}
-
-type UnaryServerInterceptor func(ctx context.Context, info *grpc.UnaryServerInfo) context.Context
-type StreamServerInterceptor func(ss grpc.ServerStream, info *grpc.StreamServerInfo) context.Context
-type UnaryClientInterceptor func(ctx context.Context, info *ClientInfo, opts ...grpc.CallOption)
-type StreamClientInterceptor func(ctx context.Context, info *ClientInfo, opts ...grpc.CallOption)
-
-type TaskEntry interface {
-	Entry
-	Main(func())
-}
-
-type CtlEntry interface {
-	Entry
-	Main(func())
-}
-
-type GrpcEntry interface {
-	Entry
-	Register(ss interface{})
-	UnaryServer(interceptors ...UnaryServerInterceptor)
-	StreamServer(interceptors ...StreamServerInterceptor)
-}
-
-type HttpEntry interface {
-	Entry
-	Use(handler ...fiber.Handler)
-	Group(prefix string, fn func(r fiber.Router))
-}
 
 type RunEntry interface {
 	Init() error

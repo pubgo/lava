@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var _ golug_entry.CtlEntry = (*taskEntry)(nil)
+var _ golug_entry.TaskEntry = (*taskEntry)(nil)
 
 type taskEntry struct {
 	golug_entry.Entry
