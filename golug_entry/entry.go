@@ -22,6 +22,11 @@ type StreamServerInterceptor func(ss grpc.ServerStream, info *grpc.StreamServerI
 type UnaryClientInterceptor func(ctx context.Context, info *ClientInfo, opts ...grpc.CallOption)
 type StreamClientInterceptor func(ctx context.Context, info *ClientInfo, opts ...grpc.CallOption)
 
+type TaskEntry interface {
+	Entry
+	Main(func())
+}
+
 type CtlEntry interface {
 	Entry
 	Main(func())
