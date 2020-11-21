@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+// 绑定手机号
+package login;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+// 绑定手机号
+service BindTelephone {
+    // 检查是否可以绑定
+    rpc Check (CheckRequest) returns (CheckResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/check"
+          body: "*"
+        };
+    }
+    // 通过验证码,校验手机号是否可以接收验证码
+    rpc BindVerify (BindVerifyRequest) returns (BindVerifyResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/bind-verify"
+          body: "*"
+        };
+    }
+    // 通过验证码,进行手机号绑定,换绑
+    rpc BindChange (BindChangeRequest) returns (BindChangeResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/bind-change"
+          body: "*"
+        };
+    }
+    // 手机号绑定,不通过验证码
+    rpc AutomaticBind (AutomaticBindRequest) returns (AutomaticBindResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/automatic-bind"
+          body: "*"
+        };
+    }
+    // 绑定手机号解析，通过第三方小程序code换取手机号
+    rpc BindPhoneParse (BindPhoneParseRequest) returns (BindPhoneParseResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/bind-phone-parse"
+          body: "*"
+        };
+    }
+    // 绑定手机号解析，通过阿里一键
+    rpc BindPhoneParseByOneClick (BindPhoneParseByOneClickRequest) returns (BindPhoneParseByOneClickResponse) {
+        option (google.api.http) = {
+          post: "/user/bind-telephone/bind-phone-parse-by-one-click"
+          body: "*"
+        };
+    }
+}
+
+message CheckRequest {
+    // 区号
+    string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+    // 手机号
+    string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+    // uid
+    int64 uid = 3 [(gogoproto.jsontag) = "uid"];
+    // 前缀,通常为空,抖音必须为DY-
+    string origin = 4 [(gogoproto.jsontag) = "origin"];
+}
+
+message CheckResponse {
+    // code,不为0为错误
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 错误信息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message BindVerifyRequest {
+    // 区号
+    string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+    // 手机号
+    string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+    // uid
+    int64 uid = 3 [(gogoproto.jsontag) = "uid"];
+    // 验证码
+    string code = 4 [(gogoproto.jsontag) = "code"];
+    // 前缀,通常为空,抖音必须为DY-
+    string origin = 5 [(gogoproto.jsontag) = "origin"];
+}
+
+message BindVerifyResponse {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 消息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message BindData {
+    // uid
+    int64 bindId = 1 [(gogoproto.jsontag) = "bindId"];
+}
+
+message BindChangeRequest {
+    // 区号
+    string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+    // 手机号
+    string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+    // uid
+    int64 uid = 3 [(gogoproto.jsontag) = "uid"];
+    // 验证码
+    string code = 4 [(gogoproto.jsontag) = "code"];
+    // 前缀,通常为空,抖音必须为DY-
+    string origin = 5 [(gogoproto.jsontag) = "origin"];
+}
+
+message BindChangeResponse {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // msg
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    BindData data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message AutomaticBindRequest {
+    // 区号
+    string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+    // 手机号
+    string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+    // uid
+    int64 uid = 3 [(gogoproto.jsontag) = "uid"];
+    // 前缀,通常为空,抖音必须为DY-
+    string origin = 4 [(gogoproto.jsontag) = "origin"];
+}
+
+message AutomaticBindResponse {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 消息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    BindData data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message BindPhoneParseRequest {
+    // 用于解析手机号加密数据
+    string code = 1 [(gogoproto.jsontag) = "code"];
+    // 用于解析手机号加密数据
+    string encryptedData = 2 [(gogoproto.jsontag) = "encryptedData"];
+    // 用于解析手机号加密数据
+    string iv = 3 [(gogoproto.jsontag) = "iv"];
+    // platformId
+    int64 platformId = 4 [(gogoproto.jsontag) = "platformId"];
+    // uid，有uid的情况下不使用code
+    int64 uid = 5 [(gogoproto.jsontag) = "uid"];
+}
+
+message BindPhoneParseResponse {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 消息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message BindPhoneParseByOneClickRequest {
+    // 用于解析手机号加密数据
+    string code = 1 [(gogoproto.jsontag) = "code"];
+    // platformId
+    int64 platformId = 2 [(gogoproto.jsontag) = "platformId"];
+    // telephone 有手机号即验证手机号
+    string telephone = 3 [(gogoproto.jsontag) = "telephone"];
+}
+
+message BindPhoneParseByOneClickResponse {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 消息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+}
+

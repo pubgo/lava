@@ -31,3 +31,36 @@ release:
 .PHONY: test
 test:
 	@go test -race -v ./... -cover
+
+.PHONY: proto
+proto: clear gen
+	protoc -I. \
+   -I/usr/local/include \
+   -I${GOPATH}/src \
+   -I${GOPATH}/src/github.com/googleapis/googleapis \
+   -I${GOPATH}/src/github.com/gogo/protobuf \
+   --go_out=plugins=grpc:. \
+   --golug_out=. \
+	example/proto/hello/*
+
+	protoc -I. \
+   -I/usr/local/include \
+   -I${GOPATH}/src \
+   -I${GOPATH}/src/github.com/googleapis/googleapis \
+   -I${GOPATH}/src/github.com/gogo/protobuf \
+   --go_out=plugins=grpc:. \
+   --golug_out=. \
+	example/proto/login/*
+
+.PHONY: clear
+clear:
+	rm -rf example/proto/*.go
+	rm -rf example/proto/**/*.go
+
+.PHONY: gen
+gen:
+	cd cmd/protoc-gen-golug && go install .
+
+.PHONY: example
+example:
+	go build example/main.go

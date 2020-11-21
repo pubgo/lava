@@ -1,4 +1,4 @@
-package entry
+package http_entry
 
 import (
 	"fmt"

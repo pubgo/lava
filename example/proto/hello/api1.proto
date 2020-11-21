@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package hello;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+message TestReq {
+  string input = 1 [(gogoproto.jsontag) = "input"];
+}
+
+message TestApiData {
+  string version = 1 [(gogoproto.jsontag) = "ApiVer"];
+  string srvVersion = 2 [(gogoproto.jsontag) = "SrvVer"];
+}
+
+message TestApiOutput {
+  int32 code = 1 [(gogoproto.jsontag) = "code"];
+  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  TestApiData data = 4 [(gogoproto.jsontag) = "data"];
+}

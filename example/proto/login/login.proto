@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+// 统一登录入口
+package login;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+// 统一登录入口
+service Login {
+    // 登录注册获取凭证,cookie,token
+    rpc Login (LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+          post: "/user/login/login"
+          body: "*"
+        };
+    }
+    // 使用凭证获取用户信息
+    rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {
+        option (google.api.http) = {
+          post: "/user/login/authenticate"
+          body: "*"
+        };
+    }
+}
+
+message AuthenticateRequest {
+    // 凭证,cookie:string or token:sting
+    map<string, string> credentials = 1 [(gogoproto.jsontag) = "credentials"];
+}
+
+message AuthenticateResponse {
+    // 错误码,0 为正常
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 错误信息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 请求响应时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    Data data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+
+message Data {
+    // userinfoId
+    int64 uid = 1 [(gogoproto.jsontag) = "userinfoId"];
+    // uri
+    string uri = 2 [(gogoproto.jsontag) = "uri"];
+    // 个人昵称,没有店铺昵称覆盖逻辑
+    string nickname = 3 [(gogoproto.jsontag) = "nickname"];
+    // 个人头像,没有店铺头像覆盖逻辑
+    string headImgUrl = 4 [(gogoproto.jsontag) = "headimgurl"];
+    // 签名
+    string signature = 5 [(gogoproto.jsontag) = "signature"];
+    // 性别, 性别 0未知,1男,2女
+    int64 sex = 6 [(gogoproto.jsontag) = "sex"];
+    // 区域
+    string region = 7 [(gogoproto.jsontag) = "region"];
+    // 国家
+    string country = 8 [(gogoproto.jsontag) = "country"];
+    // 省市
+    string province = 9 [(gogoproto.jsontag) = "province"];
+    // 城市
+    string city = 10 [(gogoproto.jsontag) = "city"];
+    // 语言类型,默认 ""
+    string lang = 11 [(gogoproto.jsontag) = "lang"];
+    // 注册时间戳
+    int64 createTime = 12 [(gogoproto.jsontag) = "createTime"];
+    // 更新时间戳
+    int64 modifyTime = 13 [(gogoproto.jsontag) = "modifyTime"];
+    // 当前登录平台id ,对应 center 表 type 字段
+    int64 currentlyLoggedPlatformId = 14 [(gogoproto.jsontag) = "currentlyLoggedPlatformId"];
+}
+
+
+message LoginRequest {
+    // 平台id ,对应 center 表 type 字段
+    int64 platformId = 1 [(gogoproto.jsontag) = "platformId"];
+    // 登录相关信息,json,手机号登录参数
+    // UserType      int64  `json:"userType"`
+    //	VerifyType    string `json:"verifyType"`
+    //	NationCode    string `json:"nationCode"`
+    //	Telephone     string `json:"telephone"`
+    //	Code          string `json:"code"`
+    //	LoginToken    string `json:"loginToken"`
+    //	DeviceId      string `json:"deviceId"`
+    //	SysMessageNum int64  `json:"sysMessageNum"`
+    map<string, string> data = 2 [(gogoproto.jsontag) = "data"];
+    // 凭据类型,普通用户 base, 特权?超级? super
+    string scope = 3 [(gogoproto.jsontag) = "scope"];
+}
+
+message LoginResponse {
+    // 错误码,0 为正常
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // 错误信息
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 请求响应时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    Credentials data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+message Credentials {
+    // userinfoId 对应 bindId
+    int64 uid = 1 [(gogoproto.jsontag) = "userinfoId"];
+    // uri
+    string uri = 2 [(gogoproto.jsontag) = "uri"];
+    // openid
+    string openid = 3 [(gogoproto.jsontag) = "openid"];
+    // isNew
+    bool isNew = 4 [(gogoproto.jsontag) = "isNew"];
+    // 是否首次注册
+    bool isFirstRegister = 5 [(gogoproto.jsontag) = "isFirstRegister"];
+    // 是否绑定手机号
+    bool isBindTelephone = 6 [(gogoproto.jsontag) = "isBindTelephone"];
+    // platformId
+    PlatformInfo platformInfo = 7 [(gogoproto.jsontag) = "platformInfo"];
+}
+
+message PlatformInfo {
+    // platformId
+    int64 platformId = 1 [(gogoproto.jsontag) = "platformId"];
+    // originalId 原始ID,platformId 对应的user
+    int64 originalUid = 2 [(gogoproto.jsontag) = "originalUid"];
+    // originalUri 原始uri,platformId 对应的user
+    string originalUri = 3 [(gogoproto.jsontag) = "originalUri"];
+    // originalOpenid 原始openid,platformId 对应的user
+    string originalOpenid = 4 [(gogoproto.jsontag) = "originalOpenid"];
+}

@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+// 账户合并相关
+package login;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+// 账户合并
+service Merge {
+    // 手机号合并,换绑,手机号更换
+    rpc Telephone (TelephoneRequest) returns (Reply) {
+        option (google.api.http) = {
+          post: "/user/merge/telephone"
+          body: "*"
+        };
+    }
+    // 手机号账户合并检查
+    rpc TelephoneCheck (TelephoneRequest) returns (Reply) {
+        option (google.api.http) = {
+          post: "/user/merge/telephone-check"
+          body: "*"
+        };
+    }
+    // 微信账户绑定
+    rpc WeChat (WeChatRequest) returns (Reply) {
+        option (google.api.http) = {
+          post: "/user/merge/we-chat"
+          body: "*"
+        };
+    }
+    // 微信合并检查
+    rpc WeChatCheck (WeChatRequest) returns (Reply) {
+        option (google.api.http) = {
+          post: "/user/merge/we-chat-check"
+          body: "*"
+        };
+    }
+    // 解除微信绑定, 必须拥有手机号
+    rpc WeChatUnMerge (WeChatUnMergeRequest) returns (Reply) {
+        option (google.api.http) = {
+          post: "/user/merge/we-chat-un-merge"
+          body: "*"
+        };
+    }
+}
+
+message TelephoneRequest {
+    // 登陆用户
+    int64 uid = 1 [(gogoproto.jsontag) = "uid"];
+    // 新手机号
+    string targetTelephone = 2 [(gogoproto.jsontag) = "targetTelephone"];
+    // 是否走新流程
+    bool isNewProcess = 3 [(gogoproto.jsontag) = "isNewProcess"];
+}
+
+message WeChatRequest {
+    // 登陆用户
+    int64 uid = 1 [(gogoproto.jsontag) = "uid"];
+    // 要合并的用户
+    int64 targetUid = 2 [(gogoproto.jsontag) = "targetUid"];
+}
+
+message WeChatUnMergeRequest {
+    // 登陆用户
+    int64 uid = 1 [(gogoproto.jsontag) = "uid"];
+}
+
+message Reply {
+    // code
+    int64 code = 1 [(gogoproto.jsontag) = "code"];
+    // msg
+    string msg = 2 [(gogoproto.jsontag) = "msg"];
+    // 时间戳
+    int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+    // 数据
+    map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+}
+
+

@@ -22,7 +22,7 @@ func register(server *grpc.Server, handler interface{}) (err error) {
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for _, v := range golug_data.List() {
 		v1 := reflect.TypeOf(v)
-		if v1.NumIn() < 2 {
+		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
 			continue
 		}
 

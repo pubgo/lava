@@ -86,9 +86,8 @@ func UnWrap(t interface{}, fn interface{}) (err error) {
 		return xerror.Fmt("[fn] input num should be one, now:%d", _fn.Type().NumIn())
 	}
 
-	_in := _fn.Type().In(0).Elem()
 	_t := reflect.TypeOf(t)
-	if !_t.Implements(_in) {
+	if !_t.Implements(_fn.Type().In(0)) {
 		return nil
 	}
 
