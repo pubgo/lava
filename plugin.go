@@ -3,7 +3,6 @@ package golug
 import (
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_plugin"
-	_ "github.com/pubgo/golug/plugins/golug_request_id"
 	"github.com/pubgo/xerror"
 )
 

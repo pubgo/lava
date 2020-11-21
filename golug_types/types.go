@@ -7,8 +7,8 @@ import (
 
 type CfgValue map[string]interface{}
 
-func (t CfgValue) Decode(fn interface{}) (err error) {
-	defer xerror.RespErr(&err)
+func (t CfgValue) Decode(fn interface{}) (gErr error) {
+	defer xerror.RespErr(&gErr)
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName:          "json",

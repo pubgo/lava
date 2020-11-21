@@ -1,10 +1,11 @@
 package golug_tracing
 
 import (
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	"net/http"
 	"runtime"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 )
 
 // StartSpan will start a new span with no parent span.

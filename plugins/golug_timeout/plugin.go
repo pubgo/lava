@@ -1,15 +1,32 @@
 package golug_timeout
 
 import (
+	"context"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"strconv"
-	"time"
 )
 
+var defaultTimeOut = time.Second
+
+func init() {
+	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
+		Name: name,
+		OnInit: func(ent golug_entry.Entry) {
+			xerror.Panic(ent.UnWrap(func(entry golug_entry.GrpcEntry) {
+			}))
+		},
+	}))
+}
+
 func TimeoutUnaryServerInterceptor(t time.Duration) grpc.UnaryServerInterceptor {
-	defaultTimeOut := t
 	if t := os.Getenv("GRPC_UNARY_TIMEOUT"); t != "" {
 		if s, err := strconv.Atoi(t); err == nil && s > 0 {
 			defaultTimeOut = time.Duration(s) * time.Second

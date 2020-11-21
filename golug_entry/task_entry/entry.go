@@ -10,26 +10,27 @@ var _ golug_entry.TaskEntry = (*taskEntry)(nil)
 
 type taskEntry struct {
 	golug_entry.Entry
-	cfg     Cfg
-	handler func()
+	cfg      Cfg
+	handlers []golug_entry.TaskHandler
+}
+
+func (t *taskEntry) Register(handler golug_entry.TaskHandler, opts ...golug_entry.TaskOption) error {
+	t.handlers = append(t.handlers, handler)
+	return nil
 }
 
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
-	golug_config.IsBlock = false
-	t.handler()
 	return nil
 }
 
 func (t *taskEntry) Stop() error { return nil }
 
-func (t *taskEntry) Main(f func()) { t.handler = f }
-
 func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 
 func (t *taskEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *taskEntry) UnWrap(fn interface{}) error { return nil }
+func (t *taskEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
 
 func (t *taskEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
