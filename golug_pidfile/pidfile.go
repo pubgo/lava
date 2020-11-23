@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 )
@@ -30,7 +31,7 @@ func SavePid() error {
 }
 
 func GetPidPath() string {
-	return filepath.Join(golug_config.Home, "pidfile", golug_config.Domain+"."+golug_config.Project+".pid")
+	return filepath.Join(golug_config.Home, "pidfile", golug_env.Domain+"."+golug_config.Project+".pid")
 }
 
 func init() {

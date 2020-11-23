@@ -40,7 +40,7 @@ func (t *grpcEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *grpcEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
 
-func (t *grpcEntry) Register(ss interface{}) {
+func (t *grpcEntry) Register(ss interface{}, opts ...golug_entry.GrpcOption) {
 	if ss == nil {
 		xerror.Panic(xerror.New("[ss] should not be nil"))
 	}

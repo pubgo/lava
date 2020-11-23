@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -16,10 +17,8 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Domain  = "golug"
 	Project = "golug"
 	Debug   = true
-	Trace   = false
 	Mode    = "dev"
 	IsBlock = true
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
@@ -51,7 +50,7 @@ func DefaultFlags() *pflag.FlagSet {
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
 	flags.StringVarP(&Home, "home", "c", Home, "project config home dir")
 	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable debug")
-	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
+	flags.BoolVarP(&golug_env.Trace, "trace", "t", golug_env.Trace, "enable trace")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	return flags
 }

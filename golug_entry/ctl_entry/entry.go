@@ -23,7 +23,7 @@ func (t *ctlEntry) Start() (err error) {
 
 func (t *ctlEntry) Stop() error { return nil }
 
-func (t *ctlEntry) Main(f func()) { t.handler = f }
+func (t *ctlEntry) Main(f func(), opts ...golug_entry.CtlOption) { t.handler = f }
 
 func (t *ctlEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 

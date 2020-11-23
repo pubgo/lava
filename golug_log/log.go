@@ -3,6 +3,7 @@ package golug_log
 import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xlog/xlog_config"
@@ -14,8 +15,8 @@ func initLog(cfg xlog_config.Config) (err error) {
 
 	zapL := xerror.PanicErr(xlog_config.NewZapLoggerFromConfig(cfg)).(*zap.Logger)
 	log := xlog.New(zapL.WithOptions(xlog.AddCaller(), xlog.AddCallerSkip(1)))
-	xerror.Panic(xlog.SetDefault(log.Named(golug_config.Domain, xlog.AddCallerSkip(1))))
-	xerror.Panic(dix.Dix(log.Named(golug_config.Domain)))
+	xerror.Panic(xlog.SetDefault(log.Named(golug_env.Domain, xlog.AddCallerSkip(1))))
+	xerror.Panic(dix.Dix(log.Named(golug_env.Domain)))
 	return nil
 }
 

@@ -17,14 +17,11 @@ func Init() (err error) {
 
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	golug_env.Get(&Domain, "golug", "golug_domain", "golug_prefix", "env_prefix")
-	if Domain = strings.TrimSpace(strings.ToLower(Domain)); Domain == "" {
-		Domain = "golug"
-		xlog.Warnf("[domain] prefix should be set, default: %s", Domain)
+	golug_env.Get(&golug_env.Domain, "golug", "golug_domain", "golug_prefix", "env_prefix")
+	if golug_env.Domain = strings.TrimSpace(strings.ToLower(golug_env.Domain)); golug_env.Domain == "" {
+		golug_env.Domain = "golug"
+		xlog.Warnf("[domain] prefix should be set, default: %s", golug_env.Domain)
 	}
-
-	// 设置系统环境变量前缀
-	golug_env.Prefix(Domain)
 
 	// 使用前缀获取系统环境变量
 	golug_env.Get(&Home, "home", "dir")
@@ -39,7 +36,7 @@ func Init() (err error) {
 		cfg = &Config{Viper: viper.GetViper()}
 
 		// 配置viper
-		viper.SetEnvPrefix(Domain)
+		viper.SetEnvPrefix(golug_env.Domain)
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
 		viper.AutomaticEnv()
 

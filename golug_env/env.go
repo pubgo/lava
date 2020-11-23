@@ -7,29 +7,32 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var prefix string
-
-func Prefix(p string) {
-	prefix = p
-}
+var trim = strings.TrimSpace
+var upper = strings.ToUpper
 
 func withPrefix(key string) string {
-	if prefix != "" {
-		key = prefix + "_" + key
+	if Domain != "" {
+		key = Domain + "_" + key
 	}
 	return key
 }
 
 func Set(key, value string) error {
 	key = withPrefix(key)
-	return xerror.Wrap(os.Setenv(strings.ToUpper(key), value))
+	return xerror.Wrap(os.Setenv(upper(key), value))
+}
+
+func GetEnv(names ...string) string {
+	var val string
+	Get(&val, names...)
+	return val
 }
 
 func Get(val *string, names ...string) {
 	for _, name := range names {
 		name = withPrefix(name)
-		env, ok := os.LookupEnv(strings.ToUpper(name))
-		env = strings.TrimSpace(env)
+		env, ok := os.LookupEnv(upper(name))
+		env = trim(env)
 		if ok && env != "" {
 			*val = env
 		}
