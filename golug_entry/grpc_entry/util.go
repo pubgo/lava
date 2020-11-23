@@ -3,11 +3,10 @@ package grpc_entry
 import (
 	"github.com/pubgo/golug/golug_data"
 	"github.com/pubgo/xerror"
-	"google.golang.org/grpc"
 	"reflect"
 )
 
-func register(server *grpc.Server, handler interface{}) (err error) {
+func register(server *entryServerWrapper, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	if handler == nil {

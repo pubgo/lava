@@ -8,5 +8,5 @@ func init() {
 	golug_data.Add("example/proto/login/login.proto.RegisterLoginServer", RegisterLoginServer)
 }
 func init() {
-	golug_data.Add("example/proto/login/login.proto.Login", `{"Authenticate":{"client_stream":false,"method":"POST","path":"/user/login/authenticate","server_streams":false},"Login":{"client_stream":false,"method":"POST","path":"/user/login/login","server_streams":false}}`)
+	golug_data.Add("example/proto/login/login.proto.login.Login", `{"Authenticate":{"client_stream":false,"method":"POST","path":"/user/login/authenticate","server_streams":false},"Login":{"client_stream":false,"method":"POST","path":"/user/login/login","server_streams":false}}`)
 }

@@ -14,7 +14,7 @@ func main() {
 		log.Println("params:", key, "=", value)
 	})
 
-	xerror.Exit(m.Init(func(fd *gen.FileDescriptor) {
+	xerror.Exit(m.Gen(func(fd *gen.FileDescriptor) {
 		fd.Set("fdName", fd.GetName())
 
 		j := fd.Jen
@@ -42,7 +42,7 @@ import "github.com/pubgo/golug/golug_data"
 
 			ss.Set("data", "`"+golug_util.Marshal(data)+"`")
 			j.Id(ss.P(`func init() {golug_data.Add("{{.fdName}}.Register{{.srv}}Server",Register{{.srv}}Server)}`))
-			j.Id(ss.P(`func init() {golug_data.Add("{{.fdName}}.{{.srv}}",{{.data}})}`))
+			j.Id(ss.P(`func init() {golug_data.Add("{{.fdName}}.{{.pkg}}.{{.srv}}",{{.data}})}`))
 		}
 	}))
 }

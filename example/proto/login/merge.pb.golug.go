@@ -8,5 +8,5 @@ func init() {
 	golug_data.Add("example/proto/login/merge.proto.RegisterMergeServer", RegisterMergeServer)
 }
 func init() {
-	golug_data.Add("example/proto/login/merge.proto.Merge", `{"Telephone":{"client_stream":false,"method":"POST","path":"/user/merge/telephone","server_streams":false},"TelephoneCheck":{"client_stream":false,"method":"POST","path":"/user/merge/telephone-check","server_streams":false},"WeChat":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat","server_streams":false},"WeChatCheck":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-check","server_streams":false},"WeChatUnMerge":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-un-merge","server_streams":false}}`)
+	golug_data.Add("example/proto/login/merge.proto.login.Merge", `{"Telephone":{"client_stream":false,"method":"POST","path":"/user/merge/telephone","server_streams":false},"TelephoneCheck":{"client_stream":false,"method":"POST","path":"/user/merge/telephone-check","server_streams":false},"WeChat":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat","server_streams":false},"WeChatCheck":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-check","server_streams":false},"WeChatUnMerge":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-un-merge","server_streams":false}}`)
 }

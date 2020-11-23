@@ -8,5 +8,5 @@ func init() {
 	golug_data.Add("example/proto/hello/transport.proto.RegisterTransportServer", RegisterTransportServer)
 }
 func init() {
-	golug_data.Add("example/proto/hello/transport.proto.Transport", `{"TestStream":{"client_stream":true,"method":"POST","path":"hello_transport/test_stream","server_streams":true},"TestStream1":{"client_stream":true,"method":"POST","path":"hello_transport/test_stream1","server_streams":false},"TestStream2":{"client_stream":false,"method":"POST","path":"hello_transport/test_stream2","server_streams":true},"TestStream3":{"client_stream":false,"method":"POST","path":"hello_transport/test_stream3","server_streams":false}}`)
+	golug_data.Add("example/proto/hello/transport.proto.hello.Transport", `{"TestStream":{"client_stream":true,"method":"POST","path":"/hello_transport/test_stream","server_streams":true},"TestStream1":{"client_stream":true,"method":"POST","path":"/hello_transport/test_stream1","server_streams":false},"TestStream2":{"client_stream":false,"method":"POST","path":"/hello_transport/test_stream2","server_streams":true},"TestStream3":{"client_stream":false,"method":"POST","path":"/hello_transport/test_stream3","server_streams":false}}`)
 }

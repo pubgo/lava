@@ -16,9 +16,8 @@ func Update(key string, value interface{}) {
 	data.Store(key, value)
 }
 
-func Get(key string) interface{} {
-	val, _ := data.Load(key)
-	return val
+func Get(key string) (interface{}, bool) {
+	return data.Load(key)
 }
 
 func List() map[string]interface{} {

@@ -17,7 +17,7 @@ var _ golug_entry.GrpcEntry = (*grpcEntry)(nil)
 type grpcEntry struct {
 	golug_entry.Entry
 	cfg                      Cfg
-	server                   *grpc.Server
+	server                   *entryServerWrapper
 	handlers                 []interface{}
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
@@ -79,11 +79,10 @@ func (t *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化server
-	t.server = grpc.NewServer(
-		append(t.opts,
-			grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
-			grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...,
-	)
+	t.server = &entryServerWrapper{Server: grpc.NewServer(append(t.opts,
+		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
+		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...,
+	)}
 
 	// 初始化routes
 	for i := range t.handlers {

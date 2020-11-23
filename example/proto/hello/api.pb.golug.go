@@ -8,11 +8,11 @@ func init() {
 	golug_data.Add("example/proto/hello/api.proto.RegisterTestApiServer", RegisterTestApiServer)
 }
 func init() {
-	golug_data.Add("example/proto/hello/api.proto.TestApi", `{"Version":{"client_stream":false,"method":"POST","path":"hello_test_api/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"test","path":"/v1/example/versiontest","server_streams":false}}`)
+	golug_data.Add("example/proto/hello/api.proto.hello.TestApi", `{"Version":{"client_stream":false,"method":"POST","path":"/hello_test_api/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"test","path":"/v1/example/versiontest","server_streams":false}}`)
 }
 func init() {
 	golug_data.Add("example/proto/hello/api.proto.RegisterTestApiV2Server", RegisterTestApiV2Server)
 }
 func init() {
-	golug_data.Add("example/proto/hello/api.proto.TestApiV2", `{"Version":{"client_stream":false,"method":"POST","path":"/v2/example/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"POST","path":"/v2/example/versiontest","server_streams":false}}`)
+	golug_data.Add("example/proto/hello/api.proto.hello.TestApiV2", `{"Version":{"client_stream":false,"method":"POST","path":"/v2/example/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"POST","path":"/v2/example/versiontest","server_streams":false}}`)
 }

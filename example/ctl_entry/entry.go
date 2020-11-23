@@ -2,10 +2,10 @@ package ctl_entry
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/golug_plugin"
 
 	"github.com/pubgo/golug"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
 )
 

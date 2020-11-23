@@ -3,8 +3,8 @@ module github.com/pubgo/golug
 go 1.14
 
 require (
+	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
-	github.com/dave/jennifer v1.4.0 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/gofiber/fiber/v2 v2.2.0
 	github.com/gogo/protobuf v1.3.1
@@ -21,18 +21,18 @@ require (
 	github.com/pubgo/xerror v0.2.13
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.3
-	github.com/pubgo/xprotogen v0.0.2
+	github.com/pubgo/xprotogen v0.0.3
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	github.com/streadway/amqp v1.0.0
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.16.0
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
+	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0
 	vitess.io/vitess v0.7.0
