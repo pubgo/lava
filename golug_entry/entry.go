@@ -18,6 +18,7 @@ type RunEntry interface {
 type Entry interface {
 	Description(description ...string) error
 	Version(v string) error
+	Decode(name string, fn interface{}) (err error)
 	Flags(fn func(flags *pflag.FlagSet)) error
 	Commands(commands ...*cobra.Command) error
 	Run() RunEntry
@@ -26,6 +27,7 @@ type Entry interface {
 
 type Option func(o *Options)
 type Options struct {
+	Cfg         interface{}
 	Initialized bool
 	Addr        string
 	Name        string

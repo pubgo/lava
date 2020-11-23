@@ -36,7 +36,7 @@ func (t *ctlEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 
-	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+	xerror.Panic(t.Decode(Name, &t.cfg))
 
 	return nil
 }

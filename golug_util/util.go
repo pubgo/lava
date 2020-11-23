@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
 )
 
@@ -21,4 +22,22 @@ func MarshalIndent(v interface{}) string {
 
 func Marshal(v interface{}) string {
 	return string(xerror.PanicBytes(json.Marshal(v)))
+}
+
+func Decode(val map[string]interface{}, fn interface{}) (gErr error) {
+	defer xerror.RespErr(&gErr)
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName:          "json",
+		Metadata:         nil,
+		Result:           fn,
+		WeaklyTypedInput: true,
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		),
+	})
+	xerror.Panic(err)
+
+	return xerror.Wrap(decoder.Decode(val))
 }

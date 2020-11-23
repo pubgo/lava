@@ -1,7 +1,6 @@
 package golug_plugin
 
 import (
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -23,7 +22,7 @@ type Base struct {
 func (p *Base) Init(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(golug_config.Decode(p.Name, p))
+	xerror.Panic(ent.Decode(p.Name, p))
 
 	var status = "disabled"
 	if p.Enabled {

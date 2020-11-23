@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
@@ -51,7 +50,7 @@ func (t *httpEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 
-	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+	xerror.Panic(t.Decode(Name, &t.cfg))
 
 	return nil
 }

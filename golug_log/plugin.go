@@ -2,7 +2,6 @@ package golug_log
 
 import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
@@ -24,7 +23,7 @@ func init() {
 				entry.Use(logger.New(logger.Config{Format: "${pid} - ${time} ${status} - ${latency} ${method} ${path}\n"}))
 			}))
 
-			xerror.Panic(golug_config.Decode(name, &cfg))
+			xerror.Panic(ent.Decode(name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(r *golug_plugin.Response) {

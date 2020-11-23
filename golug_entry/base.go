@@ -18,9 +18,14 @@ type baseEntry struct {
 	handlers []func()
 }
 
+func (t *baseEntry) Decode(name string, fn interface{}) (err error) {
+	return xerror.Wrap(golug_config.Decode(name, fn))
+}
+
 func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
 	golug_config.Project = t.Options().Name
+
 	return nil
 }
 

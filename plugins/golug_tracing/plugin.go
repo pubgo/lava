@@ -86,7 +86,9 @@ func init() {
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
 		Name: name,
 		OnInit: func(ent golug_entry.Entry) {
-			xerror.Panic(golug_config.Decode(name, cfg))
+			xerror.Panic(ent.Decode(name, cfg))
+
+			xerror.Panic(ent.UnWrap(func(entry golug_entry.HttpEntry) { entry.Use(Middleware) }))
 
 			factory := jaegerProm.New()
 
@@ -106,7 +108,6 @@ func init() {
 			xerror.Panic(err)
 			xerror.Panic(dix_run.WithAfterStop(func(ctx *dix_run.AfterStopCtx) { xerror.Panic(closer.Close()) }))
 
-			ent.Use(Middleware)
 		},
 	}))
 }

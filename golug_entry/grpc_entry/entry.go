@@ -2,11 +2,10 @@ package grpc_entry
 
 import (
 	"context"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"net"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
@@ -29,7 +28,7 @@ func (t *grpcEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+	xerror.Panic(t.Decode(Name, &t.cfg))
 
 	return nil
 }

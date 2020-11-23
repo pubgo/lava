@@ -1,7 +1,6 @@
 package ctl_entry
 
 import (
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 )
@@ -37,7 +36,7 @@ func (t *taskEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 
-	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+	xerror.Panic(t.Decode(Name, &t.cfg))
 
 	return nil
 }

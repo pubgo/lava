@@ -3,7 +3,6 @@ package golug_rabbitmq
 import (
 	"fmt"
 
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
@@ -18,7 +17,7 @@ func init() {
 
 			//get or update redis client
 			var rabbitConfig RabbitConfig
-			xerror.Panic(golug_config.Decode(name, &rabbitConfig))
+			xerror.Panic(ent.Decode(name, &rabbitConfig))
 			xerror.Panic(initRabbitPool(name, &rabbitConfig))
 		},
 	}))
