@@ -6,7 +6,6 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
@@ -23,15 +22,6 @@ func Init() (err error) {
 		xlog.Warnf("[domain] prefix should be set, default: %s", golug_env.Domain)
 	}
 
-	// 使用前缀获取系统环境变量
-	golug_env.Get(&Home, "home", "dir")
-	golug_env.Get(&Project, "project", "name")
-	golug_env.Get(&Mode, "mode", "run")
-
-	if !golug_util.PathExist(Home) {
-		xerror.Panic(xerror.Fmt("home path [%s] not exists", Home))
-	}
-
 	{
 		cfg = &Config{Viper: viper.GetViper()}
 
@@ -45,7 +35,7 @@ func Init() (err error) {
 		viper.SetConfigName(CfgName)
 
 		// 监控默认配置
-		viper.AddConfigPath(filepath.Join(Home, CfgName))
+		viper.AddConfigPath(filepath.Join(golug_env.Home, CfgName))
 
 		// 监控当前工作目录
 		_pwd := xerror.PanicStr(filepath.Abs(filepath.Dir("")))
@@ -53,13 +43,13 @@ func Init() (err error) {
 
 		// 监控Home工作目录
 		_home := xerror.PanicErr(homedir.Dir()).(string)
-		viper.AddConfigPath(filepath.Join(_home, "."+Project, CfgName))
+		viper.AddConfigPath(filepath.Join(_home, "."+golug_env.Project, CfgName))
 
 		// 检查配置文件是否存在
 		xerror.PanicF(viper.ReadInConfig(), "read config failed")
 
 		// 获取配置文件所在目录
-		Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
+		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
 	}
 
 	//_, err = cfg.Load("watcher")

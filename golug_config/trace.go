@@ -37,20 +37,4 @@ func init() {
 		fmt.Println(golug_util.MarshalIndent(data))
 		fmt.Println()
 	}))
-
-	// 运行环境检查
-	xerror.Panic(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
-		var m = RunMode
-		switch Mode {
-		case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
-		default:
-			xerror.Panic(xerror.Fmt("running mode does not match, mode: %s", Mode))
-		}
-
-		// 判断debug模式
-		switch Mode {
-		case RunMode.Dev, RunMode.Test, "":
-			Debug = true
-		}
-	}))
 }

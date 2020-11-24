@@ -31,7 +31,7 @@ func SavePid() error {
 }
 
 func GetPidPath() string {
-	return filepath.Join(golug_config.Home, "pidfile", golug_env.Domain+"."+golug_config.Project+".pid")
+	return filepath.Join(golug_env.Home, "pidfile", golug_env.Domain+"."+golug_config.Project+".pid")
 }
 
 func init() {
@@ -44,7 +44,5 @@ func init() {
 	}))
 
 	// 保存pid到文件当中
-	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
-		xerror.Panic(SavePid())
-	}))
+	//xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) { xerror.Panic(SavePid()) }))
 }

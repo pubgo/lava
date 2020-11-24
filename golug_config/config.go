@@ -2,7 +2,6 @@ package golug_config
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"syscall"
 
@@ -17,29 +16,11 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Project = "golug"
 	Debug   = true
-	Mode    = "dev"
 	IsBlock = true
-	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
 	cfg     *Config
 	Signal  os.Signal = syscall.Signal(0)
 )
-
-// RunMode 项目运行模式
-var RunMode = struct {
-	Dev     string
-	Test    string
-	Stag    string
-	Prod    string
-	Release string
-}{
-	Dev:     "dev",
-	Test:    "test",
-	Stag:    "stag",
-	Prod:    "prod",
-	Release: "release",
-}
 
 type Config struct {
 	*viper.Viper
@@ -47,8 +28,8 @@ type Config struct {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
-	flags.StringVarP(&Home, "home", "c", Home, "project config home dir")
+	flags.StringVarP(&golug_env.Mode, "mode", "m", golug_env.Mode, "running mode(dev|test|stag|prod|release)")
+	flags.StringVarP(&golug_env.Home, "home", "c", golug_env.Home, "project config home dir")
 	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable debug")
 	flags.BoolVarP(&golug_env.Trace, "trace", "t", golug_env.Trace, "enable trace")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
