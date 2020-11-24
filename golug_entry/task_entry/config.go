@@ -1,9 +1,9 @@
 package task_entry
 
-import (
-	"github.com/pubgo/golug/golug_entry"
-)
-
 type Cfg struct {
-	c golug_entry.Consumer
+	Enabled   bool `yaml:"enabled" json:"enabled" toml:"enabled"`
+	Consumers []struct {
+		Driver string `json:"driver"`
+		Name   string `json:"name"`
+	} `json:"consumers"`
 }

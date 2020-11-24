@@ -1,9 +1,9 @@
 package golug_util
 
 import (
-	"encoding/json"
 	"os"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
 )
@@ -17,11 +17,11 @@ func PathExist(path string) bool {
 }
 
 func MarshalIndent(v interface{}) string {
-	return string(xerror.PanicBytes(json.MarshalIndent(v, "", "  ")))
+	return string(xerror.PanicBytes(jsoniter.MarshalIndent(v, "", "  ")))
 }
 
 func Marshal(v interface{}) string {
-	return string(xerror.PanicBytes(json.Marshal(v)))
+	return string(xerror.PanicBytes(jsoniter.Marshal(v)))
 }
 
 func Decode(val map[string]interface{}, fn interface{}) (gErr error) {

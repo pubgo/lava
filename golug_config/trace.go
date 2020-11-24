@@ -24,6 +24,7 @@ func init() {
 		//fmt.Println()
 
 		xlog.Debug("config trace")
+
 		fmt.Println(golug_util.MarshalIndent(GetCfg().AllSettings()))
 		fmt.Println()
 

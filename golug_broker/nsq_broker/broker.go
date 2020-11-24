@@ -1,14 +1,19 @@
 package nsq_broker
 
 import (
+	"sync"
+
 	"github.com/pubgo/golug/golug_broker"
 	"github.com/pubgo/golug/plugins/golug_nsq"
 	"github.com/pubgo/xerror"
 	"github.com/segmentio/nsq-go"
-	"sync"
 )
 
 var _ golug_broker.Broker = (*nsqBroker)(nil)
+
+func NewBroker(name string) golug_broker.Broker {
+	return &nsqBroker{name: name}
+}
 
 type nsqBroker struct {
 	name string
@@ -53,6 +58,7 @@ func (t *nsqBroker) Subscribe(topic string, handler golug_broker.Handler, opts .
 			Timestamp: msg.Timestamp.Unix(),
 			Attempts:  msg.Attempts,
 		}))
+		msg.Finish()
 	}
 
 	return nil

@@ -31,6 +31,7 @@ type SubOptions struct {
 	Topic   string
 	Queue   string
 	AutoAck bool
+	Broker  Broker
 }
 
 type Handler func(*Message) error

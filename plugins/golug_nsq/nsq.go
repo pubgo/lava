@@ -1,11 +1,11 @@
 package golug_nsq
 
 import (
-	"github.com/pubgo/golug/golug_consts"
 	"sync"
 	"time"
 
 	"github.com/imdario/mergo"
+	"github.com/pubgo/golug/golug_consts"
 	"github.com/pubgo/xerror"
 	nsq "github.com/segmentio/nsq-go"
 )

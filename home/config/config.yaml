@@ -13,13 +13,13 @@ nsq:
     lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
 task_entry:
   enabled: true
-  consumer:
-    - dependent: nsq
-      name: "default"
+  consumers:
+    - driver: nsq
+      name: default
 http_entry:
   enabled: true
   prefork: false
-  server_header: ''
+  server_header: ""
   strict_routing: false
   case_sensitive: false
   immutable: false

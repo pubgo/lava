@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
+	github.com/json-iterator/go v1.1.9
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/opentracing/opentracing-go v1.2.0

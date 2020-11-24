@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_broker"
+	"github.com/pubgo/golug/golug_broker/nsq_broker"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
@@ -13,18 +15,19 @@ import (
 var _ golug_entry.TaskEntry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
-	handler golug_entry.TaskHandler
-	opts    golug_entry.TaskCallOptions
+	handler golug_broker.Handler
+	opts    golug_broker.SubOptions
 }
 
 type taskEntry struct {
 	golug_entry.Entry
 	cfg      Cfg
+	broker   golug_broker.Broker
 	handlers []entryTaskHandler
 }
 
-func (t *taskEntry) Register(topic string, handler golug_entry.TaskHandler, opts ...golug_entry.TaskCallOption) error {
-	var _opts golug_entry.TaskCallOptions
+func (t *taskEntry) Register(topic string, handler golug_broker.Handler, opts ...golug_broker.SubOption) error {
+	var _opts golug_broker.SubOptions
 	for i := range opts {
 		opts[i](&_opts)
 	}
@@ -39,13 +42,13 @@ func (t *taskEntry) Start() (err error) {
 
 	for i := range t.handlers {
 		handler := t.handlers[i]
-		consumer := t.cfg.c
-		if handler.opts.Consumer != nil {
-			consumer = handler.opts.Consumer
+		broker := t.broker
+		if handler.opts.Broker != nil {
+			broker = handler.opts.Broker
 		}
 
 		cancel := xprocess.Go(func(ctx context.Context) error {
-			return xerror.Wrap(consumer.Subscribe(ctx, handler.opts.Topic, handler.handler))
+			return xerror.Wrap(broker.Subscribe(handler.opts.Topic, handler.handler))
 		})
 		xerror.Panic(dix_run.WithAfterStop(func(ctx *dix_run.AfterStopCtx) { xerror.Panic(cancel()) }))
 	}
@@ -67,6 +70,14 @@ func (t *taskEntry) Init() (err error) {
 	xerror.Panic(t.Entry.Run().Init())
 
 	xerror.Panic(t.Decode(Name, &t.cfg))
+
+	for _, c := range t.cfg.Consumers {
+		switch c.Driver {
+		case "nsq":
+			t.broker = nsq_broker.NewBroker(c.Name)
+			break
+		}
+	}
 
 	return nil
 }
