@@ -19,8 +19,13 @@ func register(server *entryServerWrapper, handler interface{}) (err error) {
 
 	var vRegister reflect.Value
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
-	for _, v := range golug_data.List() {
-		v1 := reflect.TypeOf(v)
+	for v := range golug_data.List() {
+		v, ok := v.(reflect.Value)
+		if !ok {
+			continue
+		}
+
+		v1 := v.Type()
 		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
 			continue
 		}

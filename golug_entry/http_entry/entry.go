@@ -2,7 +2,11 @@ package http_entry
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/pubgo/golug/golug_data"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"net/http"
+	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
@@ -12,6 +16,20 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const defaultContentType = "application/json"
+
+var httpMethods = map[string]struct{}{
+	http.MethodGet:     {},
+	http.MethodHead:    {},
+	http.MethodPost:    {},
+	http.MethodPut:     {},
+	http.MethodPatch:   {},
+	http.MethodDelete:  {},
+	http.MethodConnect: {},
+	http.MethodOptions: {},
+	http.MethodTrace:   {},
+}
+
 var _ golug_entry.HttpEntry = (*httpEntry)(nil)
 
 type httpEntry struct {
@@ -19,6 +37,62 @@ type httpEntry struct {
 	cfg      Cfg
 	app      *fiber.App
 	handlers []func()
+}
+
+func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption) {
+	var vRegister reflect.Value
+	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
+	for v, data := range golug_data.List() {
+		v, ok := v.(reflect.Value)
+		if !ok {
+			continue
+		}
+
+		v1 := v.Type()
+		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
+			continue
+		}
+
+		if !hd.Implements(v1.In(1)) {
+			continue
+		}
+
+		vRegister = reflect.ValueOf(v)
+		if !vRegister.IsValid() || vRegister.IsNil() {
+			xerror.Panic(xerror.Fmt("[%#v, %#v] 没有找到匹配的interface", handler, vRegister.Interface()))
+		}
+
+		var handlers []golug_entry.GrpcRestHandler
+		xerror.PanicF(json.Unmarshal([]byte(data.(string)), &handlers), "data:%#v", data)
+
+		vh := reflect.ValueOf(handler)
+		for _, h := range handlers {
+			if h.ServerStreams || h.ClientStream {
+				continue
+			}
+
+			h := h
+			t.handlers = append(t.handlers, func() {
+				mth := vh.MethodByName(h.Name)
+				mthInType := mth.Type().In(1)
+
+				t.app.Add(h.Method, h.Path, func(view *fiber.Ctx) error {
+					mthIn := reflect.New(mthInType.Elem())
+					ret := reflect.ValueOf(view.BodyParser).Call([]reflect.Value{mthIn})
+					if !ret[0].IsNil() {
+						return xerror.Wrap(ret[0].Interface().(error))
+					}
+
+					ret = mth.Call([]reflect.Value{reflect.ValueOf(view.Context().UserValue("ctx").(context.Context)), mthIn})
+					if !ret[1].IsNil() {
+						return xerror.Wrap(ret[1].Interface().(error))
+					}
+
+					return xerror.Wrap(view.JSON(ret[0].Interface()))
+				})
+			})
+		}
+	}
 }
 
 func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
@@ -103,7 +177,7 @@ func (t *httpEntry) initFlags() {
 }
 
 func newEntry(name string) *httpEntry {
-	ent := &httpEntry{Entry: golug_entry.New(name), cfg: fiber.New().Config()}
+	ent := &httpEntry{Entry: base_entry.New(name), cfg: fiber.New().Config()}
 	ent.initFlags()
 	ent.trace()
 	return ent

@@ -2,11 +2,12 @@
 // source: example/proto/hello/transport.proto
 package hello
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 
 func init() {
-	golug_data.Add("example/proto/hello/transport.proto.RegisterTransportServer", RegisterTransportServer)
-}
-func init() {
-	golug_data.Add("example/proto/hello/transport.proto.hello.Transport", `{"TestStream":{"client_stream":true,"method":"POST","path":"/hello_transport/test_stream","server_streams":true},"TestStream1":{"client_stream":true,"method":"POST","path":"/hello_transport/test_stream1","server_streams":false},"TestStream2":{"client_stream":false,"method":"POST","path":"/hello_transport/test_stream2","server_streams":true},"TestStream3":{"client_stream":false,"method":"POST","path":"/hello_transport/test_stream3","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterTransportServer), `[{"method":"POST","name":"TestStream","path":"/hello_transport/test_stream","client_stream":true,"server_streams":true},{"method":"POST","name":"TestStream1","path":"/hello_transport/test_stream1","client_stream":true,"server_streams":false},{"method":"POST","name":"TestStream2","path":"/hello_transport/test_stream2","client_stream":false,"server_streams":true},{"method":"POST","name":"TestStream3","path":"/hello_transport/test_stream3","client_stream":false,"server_streams":false}]`)
 }

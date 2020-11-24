@@ -27,7 +27,6 @@ type Entry interface {
 
 type Option func(o *Options)
 type Options struct {
-	Cfg         interface{}
 	Initialized bool
 	Addr        string
 	Name        string

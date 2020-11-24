@@ -2,6 +2,7 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"net"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -114,7 +115,7 @@ func (t *grpcEntry) Stop() (err error) {
 
 func newEntry(name string) *grpcEntry {
 	ent := &grpcEntry{
-		Entry: golug_entry.New(name),
+		Entry: base_entry.New(name),
 	}
 	ent.trace()
 

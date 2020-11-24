@@ -2,11 +2,12 @@
 // source: example/proto/login/merge.proto
 package login
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 
 func init() {
-	golug_data.Add("example/proto/login/merge.proto.RegisterMergeServer", RegisterMergeServer)
-}
-func init() {
-	golug_data.Add("example/proto/login/merge.proto.login.Merge", `{"Telephone":{"client_stream":false,"method":"POST","path":"/user/merge/telephone","server_streams":false},"TelephoneCheck":{"client_stream":false,"method":"POST","path":"/user/merge/telephone-check","server_streams":false},"WeChat":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat","server_streams":false},"WeChatCheck":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-check","server_streams":false},"WeChatUnMerge":{"client_stream":false,"method":"POST","path":"/user/merge/we-chat-un-merge","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterMergeServer), `[{"method":"POST","name":"Telephone","path":"/user/merge/telephone","client_stream":false,"server_streams":false},{"method":"POST","name":"TelephoneCheck","path":"/user/merge/telephone-check","client_stream":false,"server_streams":false},{"method":"POST","name":"WeChat","path":"/user/merge/we-chat","client_stream":false,"server_streams":false},{"method":"POST","name":"WeChatCheck","path":"/user/merge/we-chat-check","client_stream":false,"server_streams":false},{"method":"POST","name":"WeChatUnMerge","path":"/user/merge/we-chat-un-merge","client_stream":false,"server_streams":false}]`)
 }

@@ -3,6 +3,7 @@ package ctl_entry
 import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
 )
 
@@ -23,7 +24,7 @@ func (t *ctlEntry) Start() (err error) {
 
 func (t *ctlEntry) Stop() error { return nil }
 
-func (t *ctlEntry) Main(f func(), opts ...golug_entry.CtlOption) { t.handler = f }
+func (t *ctlEntry) Register(f func(), opts ...golug_entry.CtlOption) { t.handler = f }
 
 func (t *ctlEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 
@@ -42,7 +43,7 @@ func (t *ctlEntry) Init() (err error) {
 }
 
 func newEntry(name string) *ctlEntry {
-	ent := &ctlEntry{Entry: golug_entry.New(name)}
+	ent := &ctlEntry{Entry: base_entry.New(name)}
 	ent.trace()
 	return ent
 }

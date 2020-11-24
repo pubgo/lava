@@ -4,26 +4,26 @@ import "sync"
 
 var data sync.Map
 
-func Add(key string, value interface{}) {
+func Add(key, value interface{}) {
 	data.Store(key, value)
 }
 
-func Delete(key string) {
+func Delete(key interface{}) {
 	data.Delete(key)
 }
 
-func Update(key string, value interface{}) {
+func Update(key interface{}, value interface{}) {
 	data.Store(key, value)
 }
 
-func Get(key string) (interface{}, bool) {
+func Get(key interface{}) (interface{}, bool) {
 	return data.Load(key)
 }
 
-func List() map[string]interface{} {
-	dt := make(map[string]interface{})
+func List() map[interface{}]interface{} {
+	dt := make(map[interface{}]interface{})
 	data.Range(func(key, value interface{}) bool {
-		dt[key.(string)] = value
+		dt[key] = value
 		return true
 	})
 	return dt

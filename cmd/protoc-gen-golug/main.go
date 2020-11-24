@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
-
+	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprotogen/gen"
+	"log"
 )
 
 func main() {
@@ -26,23 +26,27 @@ func main() {
 		}
 
 		j.Id(`
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 `)
 
 		for _, ss := range fd.GetService() {
-			var data = make(map[string]interface{})
+			var mths []golug_entry.GrpcRestHandler
 			for _, m := range ss.GetMethod() {
-				data[m.GetName()] = map[string]interface{}{
-					"method":         m.P("{{.http_method}}"),
-					"path":           m.P("{{.http_path}}"),
-					"client_stream":  m.P("{{.cs}}") == "true",
-					"server_streams": m.P("{{.ss}}") == "true",
-				}
+				mths = append(mths, golug_entry.GrpcRestHandler{
+					Name:          m.GetName(),
+					Method:        m.P("{{.http_method}}"),
+					Path:          m.P("{{.http_path}}"),
+					ClientStream:  m.P("{{.cs}}") == "true",
+					ServerStreams: m.P("{{.ss}}") == "true",
+				})
 			}
 
-			ss.Set("data", "`"+golug_util.Marshal(data)+"`")
-			j.Id(ss.P(`func init() {golug_data.Add("{{.fdName}}.Register{{.srv}}Server",Register{{.srv}}Server)}`))
-			j.Id(ss.P(`func init() {golug_data.Add("{{.fdName}}.{{.pkg}}.{{.srv}}",{{.data}})}`))
+			ss.Set("data", "`"+golug_util.Marshal(mths)+"`")
+			j.Id(ss.P(`func init() {golug_data.Add(reflect.ValueOf(Register{{.srv}}Server),{{.data}})}`))
 		}
 	}))
 }

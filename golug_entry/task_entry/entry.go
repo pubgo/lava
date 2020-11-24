@@ -2,6 +2,7 @@ package ctl_entry
 
 import (
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
 )
 
@@ -42,7 +43,7 @@ func (t *taskEntry) Init() (err error) {
 }
 
 func newEntry(name string) *taskEntry {
-	ent := &taskEntry{Entry: golug_entry.New(name)}
+	ent := &taskEntry{Entry: base_entry.New(name)}
 	ent.trace()
 	return ent
 }

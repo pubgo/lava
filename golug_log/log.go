@@ -15,12 +15,16 @@ func initLog(cfg xlog_config.Config) (err error) {
 
 	zapL := xerror.PanicErr(xlog_config.NewZapLoggerFromConfig(cfg)).(*zap.Logger)
 	log := xlog.New(zapL.WithOptions(xlog.AddCaller(), xlog.AddCallerSkip(1)))
+
+	// 全局log设置
 	xerror.Panic(xlog.SetDefault(log.Named(golug_env.Domain, xlog.AddCallerSkip(1))))
+	// log 变更通知
 	xerror.Panic(dix.Dix(log.Named(golug_env.Domain)))
 	return nil
 }
 
-func GetDevLog() xlog.XLog {
+// getDevLog dev 模式
+func getDevLog() xlog.XLog {
 	zl, err := xlog_config.NewZapLoggerFromConfig(xlog_config.NewDevConfig())
 	if err != nil {
 		xerror.Panic(err)
@@ -30,7 +34,9 @@ func GetDevLog() xlog.XLog {
 	return xlog.New(zl)
 }
 
+// Watch
+//
 func Watch(fn func(logs xlog.XLog)) error {
-	fn(GetDevLog())
+	fn(getDevLog())
 	return xerror.Wrap(dix.Dix(fn))
 }

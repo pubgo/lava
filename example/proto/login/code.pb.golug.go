@@ -2,9 +2,12 @@
 // source: example/proto/login/code.proto
 package login
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
 
-func init() { golug_data.Add("example/proto/login/code.proto.RegisterCodeServer", RegisterCodeServer) }
+	"github.com/pubgo/golug/golug_data"
+)
+
 func init() {
-	golug_data.Add("example/proto/login/code.proto.login.Code", `{"GetSendStatus":{"client_stream":false,"method":"POST","path":"/user/code/get-send-status","server_streams":false},"IsCheckImageCode":{"client_stream":false,"method":"POST","path":"/user/code/is-check-image-code","server_streams":false},"SendCode":{"client_stream":false,"method":"POST","path":"/user/code/send-code","server_streams":false},"Verify":{"client_stream":false,"method":"POST","path":"/user/code/verify","server_streams":false},"VerifyImageCode":{"client_stream":false,"method":"POST","path":"/user/code/verify-image-code","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterCodeServer), `[{"method":"POST","name":"SendCode","path":"/user/code/send-code","client_stream":false,"server_streams":false},{"method":"POST","name":"Verify","path":"/user/code/verify","client_stream":false,"server_streams":false},{"method":"POST","name":"IsCheckImageCode","path":"/user/code/is-check-image-code","client_stream":false,"server_streams":false},{"method":"POST","name":"VerifyImageCode","path":"/user/code/verify-image-code","client_stream":false,"server_streams":false},{"method":"POST","name":"GetSendStatus","path":"/user/code/get-send-status","client_stream":false,"server_streams":false}]`)
 }

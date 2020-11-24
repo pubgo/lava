@@ -6,6 +6,7 @@ import (
 
 type HttpEntry interface {
 	Entry
+	Register(handler interface{}, opts ...GrpcOption)
 	Use(handler ...fiber.Handler)
 	Group(prefix string, fn func(r fiber.Router))
 }

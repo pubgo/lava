@@ -29,7 +29,7 @@ func (t *httpEntry) trace() {
 		fmt.Println()
 
 		xlog.Debugf("http server config trace")
-		fmt.Println(golug_util.MarshalIndent(t.app.Config()))
+		fmt.Println(golug_util.MarshalIndent(t.cfg))
 		fmt.Println()
 	}))
 }

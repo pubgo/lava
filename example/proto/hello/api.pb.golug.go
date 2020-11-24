@@ -2,17 +2,15 @@
 // source: example/proto/hello/api.proto
 package hello
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 
 func init() {
-	golug_data.Add("example/proto/hello/api.proto.RegisterTestApiServer", RegisterTestApiServer)
+	golug_data.Add(reflect.ValueOf(RegisterTestApiServer), `[{"method":"POST","name":"Version","path":"/hello_test_api/version","client_stream":false,"server_streams":false},{"method":"test","name":"VersionTest","path":"/v1/example/versiontest","client_stream":false,"server_streams":false}]`)
 }
 func init() {
-	golug_data.Add("example/proto/hello/api.proto.hello.TestApi", `{"Version":{"client_stream":false,"method":"POST","path":"/hello_test_api/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"test","path":"/v1/example/versiontest","server_streams":false}}`)
-}
-func init() {
-	golug_data.Add("example/proto/hello/api.proto.RegisterTestApiV2Server", RegisterTestApiV2Server)
-}
-func init() {
-	golug_data.Add("example/proto/hello/api.proto.hello.TestApiV2", `{"Version":{"client_stream":false,"method":"POST","path":"/v2/example/version","server_streams":false},"VersionTest":{"client_stream":false,"method":"POST","path":"/v2/example/versiontest","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterTestApiV2Server), `[{"method":"POST","name":"Version","path":"/v2/example/version","client_stream":false,"server_streams":false},{"method":"POST","name":"VersionTest","path":"/v2/example/versiontest","client_stream":false,"server_streams":false}]`)
 }

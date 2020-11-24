@@ -1,4 +1,4 @@
-package golug_entry
+package base_entry
 
 import (
 	"fmt"
@@ -6,15 +6,16 @@ import (
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
-var _ Entry = (*baseEntry)(nil)
+var _ golug_entry.Entry = (*baseEntry)(nil)
 
 type baseEntry struct {
-	opts     Options
+	opts     golug_entry.Options
 	handlers []func()
 }
 
@@ -29,7 +30,7 @@ func (t *baseEntry) Init() error {
 	return nil
 }
 
-func (t *baseEntry) Run() RunEntry { return t }
+func (t *baseEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *baseEntry) Start() error { return nil }
 
@@ -37,7 +38,7 @@ func (t *baseEntry) Stop() error { return nil }
 
 func (t *baseEntry) UnWrap(fn interface{}) error { panic("implement me") }
 
-func (t *baseEntry) Options() Options { return t.opts }
+func (t *baseEntry) Options() golug_entry.Options { return t.opts }
 
 func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) (err error) {
 	defer xerror.RespErr(&err)
@@ -105,7 +106,7 @@ func newEntry(name string) *baseEntry {
 	rootCmd.AddCommand(runCmd)
 
 	ent := &baseEntry{
-		opts: Options{
+		opts: golug_entry.Options{
 			Name:       name,
 			Addr:       ":8080",
 			RunCommand: runCmd,

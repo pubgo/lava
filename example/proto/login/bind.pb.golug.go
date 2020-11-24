@@ -2,11 +2,12 @@
 // source: example/proto/login/bind.proto
 package login
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 
 func init() {
-	golug_data.Add("example/proto/login/bind.proto.RegisterBindTelephoneServer", RegisterBindTelephoneServer)
-}
-func init() {
-	golug_data.Add("example/proto/login/bind.proto.login.BindTelephone", `{"AutomaticBind":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/automatic-bind","server_streams":false},"BindChange":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/bind-change","server_streams":false},"BindPhoneParse":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/bind-phone-parse","server_streams":false},"BindPhoneParseByOneClick":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/bind-phone-parse-by-one-click","server_streams":false},"BindVerify":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/bind-verify","server_streams":false},"Check":{"client_stream":false,"method":"POST","path":"/user/bind-telephone/check","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterBindTelephoneServer), `[{"method":"POST","name":"Check","path":"/user/bind-telephone/check","client_stream":false,"server_streams":false},{"method":"POST","name":"BindVerify","path":"/user/bind-telephone/bind-verify","client_stream":false,"server_streams":false},{"method":"POST","name":"BindChange","path":"/user/bind-telephone/bind-change","client_stream":false,"server_streams":false},{"method":"POST","name":"AutomaticBind","path":"/user/bind-telephone/automatic-bind","client_stream":false,"server_streams":false},{"method":"POST","name":"BindPhoneParse","path":"/user/bind-telephone/bind-phone-parse","client_stream":false,"server_streams":false},{"method":"POST","name":"BindPhoneParseByOneClick","path":"/user/bind-telephone/bind-phone-parse-by-one-click","client_stream":false,"server_streams":false}]`)
 }

@@ -2,11 +2,12 @@
 // source: example/proto/login/login.proto
 package login
 
-import "github.com/pubgo/golug/golug_data"
+import (
+	"reflect"
+
+	"github.com/pubgo/golug/golug_data"
+)
 
 func init() {
-	golug_data.Add("example/proto/login/login.proto.RegisterLoginServer", RegisterLoginServer)
-}
-func init() {
-	golug_data.Add("example/proto/login/login.proto.login.Login", `{"Authenticate":{"client_stream":false,"method":"POST","path":"/user/login/authenticate","server_streams":false},"Login":{"client_stream":false,"method":"POST","path":"/user/login/login","server_streams":false}}`)
+	golug_data.Add(reflect.ValueOf(RegisterLoginServer), `[{"method":"POST","name":"Login","path":"/user/login/login","client_stream":false,"server_streams":false},{"method":"POST","name":"Authenticate","path":"/user/login/authenticate","client_stream":false,"server_streams":false}]`)
 }

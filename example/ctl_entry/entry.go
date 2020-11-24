@@ -14,7 +14,7 @@ func GetEntry() golug_entry.Entry {
 	xerror.Panic(ent.Version("v0.0.1"))
 	xerror.Panic(ent.Description("entry http test"))
 
-	ent.Main(func() {
+	ent.Register(func() {
 		fmt.Println("ok")
 	})
 
