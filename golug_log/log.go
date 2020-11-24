@@ -2,7 +2,6 @@ package golug_log
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -30,7 +29,7 @@ func getDevLog() xlog.XLog {
 		xerror.Panic(err)
 	}
 
-	zl = zl.WithOptions(zap.AddCaller(), zap.AddCallerSkip(1)).Named(golug_config.Project)
+	zl = zl.WithOptions(zap.AddCaller(), zap.AddCallerSkip(1)).Named(golug_env.Project)
 	return xlog.New(zl)
 }
 

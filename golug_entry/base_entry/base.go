@@ -7,6 +7,7 @@ import (
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -25,7 +26,7 @@ func (t *baseEntry) Decode(name string, fn interface{}) (err error) {
 
 func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
-	golug_config.Project = t.Options().Name
+	golug_env.Project = t.Options().Name
 
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_env"
 	"google.golang.org/grpc"
 )
 
@@ -19,6 +19,6 @@ var defaultStreamInterceptor = grpc_middleware.ChainStreamClient(grpc_opentracin
 
 func init() {
 	timeoutCtx, _ := context.WithTimeout(context.Background(), 0)
-	_, _ = grpc.DialContext(timeoutCtx, golug_config.Project, grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
+	_, _ = grpc.DialContext(timeoutCtx, golug_env.Project, grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
 		grpc.WithChainStreamInterceptor(defaultStreamInterceptor))
 }
