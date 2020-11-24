@@ -3,9 +3,19 @@ app:
   name: "golug"
   version: "v0.0.1"
   home: ""
-  debug: "true"
+  debug: true
 recovery:
   enabled: true
+nsq:
+  enabled: true
+  default:
+    address: "localhost:4150"
+    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+task_entry:
+  enabled: true
+  consumer:
+    - dependent: nsq
+      name: "default"
 http_entry:
   enabled: true
   prefork: false

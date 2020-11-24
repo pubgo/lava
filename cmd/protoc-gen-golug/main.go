@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprotogen/gen"
-	"log"
 )
 
 func main() {

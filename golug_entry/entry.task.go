@@ -1,22 +1,34 @@
 package golug_entry
 
-import "context"
+import (
+	"context"
+)
 
 type Message struct {
 	ID        []byte
 	Body      []byte
 	Timestamp int64
 	Attempts  uint16
+	Priority  uint8
+	ReplyTo   string
 	Header    map[string]string
 }
 
-type TaskOptions struct {
-	Ctx context.Context
+type Consumer interface {
+	Subscribe(ctx context.Context, topic string, handler TaskHandler) error
 }
 
-type TaskOption func(opts *TaskOptions)
-type TaskHandler func(topic string, data *Message) error
+type TaskCallOptions struct {
+	Topic    string
+	Queue    string
+	Ctx      context.Context
+	AutoAck  bool
+	Consumer Consumer
+}
+
+type TaskCallOption func(*TaskCallOptions)
+type TaskHandler func(data *Message) error
 type TaskEntry interface {
 	Entry
-	Register(handler TaskHandler, opts ...TaskOption) error
+	Register(topic string, handler TaskHandler, opts ...TaskCallOption) error
 }

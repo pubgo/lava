@@ -1,4 +1,4 @@
-package task_entry
+package golug_nsq
 
 import (
 	"github.com/pubgo/golug/golug_log"
@@ -6,12 +6,9 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-const Name = "task_entry"
-
+var name = "nsq"
 var log xlog.XLog
 
 func init() {
-	xerror.Exit(golug_log.Watch(func(logs xlog.XLog) {
-		log = logs.Named(Name)
-	}))
+	xerror.Panic(golug_log.Watch(func(logs xlog.XLog) { log = logs.Named(name) }))
 }

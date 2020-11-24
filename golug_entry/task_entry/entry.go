@@ -1,26 +1,55 @@
-package ctl_entry
+package task_entry
 
 import (
+	"context"
+
+	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xprocess"
 )
 
 var _ golug_entry.TaskEntry = (*taskEntry)(nil)
 
+type entryTaskHandler struct {
+	handler golug_entry.TaskHandler
+	opts    golug_entry.TaskCallOptions
+}
+
 type taskEntry struct {
 	golug_entry.Entry
 	cfg      Cfg
-	handlers []golug_entry.TaskHandler
+	handlers []entryTaskHandler
 }
 
-func (t *taskEntry) Register(handler golug_entry.TaskHandler, opts ...golug_entry.TaskOption) error {
-	t.handlers = append(t.handlers, handler)
+func (t *taskEntry) Register(topic string, handler golug_entry.TaskHandler, opts ...golug_entry.TaskCallOption) error {
+	var _opts golug_entry.TaskCallOptions
+	for i := range opts {
+		opts[i](&_opts)
+	}
+	_opts.Topic = topic
+
+	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: _opts})
 	return nil
 }
 
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
+
+	for i := range t.handlers {
+		handler := t.handlers[i]
+		consumer := t.cfg.c
+		if handler.opts.Consumer != nil {
+			consumer = handler.opts.Consumer
+		}
+
+		cancel := xprocess.Go(func(ctx context.Context) error {
+			return xerror.Wrap(consumer.Subscribe(ctx, handler.opts.Topic, handler.handler))
+		})
+		xerror.Panic(dix_run.WithAfterStop(func(ctx *dix_run.AfterStopCtx) { xerror.Panic(cancel()) }))
+	}
+
 	return nil
 }
 
