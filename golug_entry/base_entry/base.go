@@ -2,12 +2,16 @@ package base_entry
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -89,6 +93,35 @@ func (t *baseEntry) Commands(commands ...*cobra.Command) error {
 	return nil
 }
 
+func (t *baseEntry) pluginCmd() *cobra.Command {
+	cmd := &cobra.Command{Use: "plugin", Short: "plugin info"}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		for k, plugins := range golug_plugin.All() {
+			fmt.Println("plugin namespace:", k)
+			for _, p := range plugins {
+				fmt.Println("plugin:", p.String(), reflect.TypeOf(p).PkgPath())
+			}
+		}
+	}
+	return cmd
+}
+
+func (t *baseEntry) configCmd() *cobra.Command {
+	cmd := &cobra.Command{Use: "cfg", Short: "config info"}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		fmt.Println(golug_util.MarshalIndent(golug_config.GetCfg().AllSettings()))
+	}
+	return cmd
+}
+
+func (t *baseEntry) dixCmd() *cobra.Command {
+	cmd := &cobra.Command{Use: "dix", Short: "dix dependency graph"}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		fmt.Println(dix.Graph())
+	}
+	return cmd
+}
+
 func (t *baseEntry) initFlags() {
 	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
 		flags.StringVar(&t.opts.Addr, "addr", t.opts.Addr, "the server address")
@@ -101,18 +134,19 @@ func newEntry(name string) *baseEntry {
 		xerror.Panic(xerror.New("the [name] parameter should not be empty"))
 	}
 
-	rootCmd := &cobra.Command{Use: name}
-	runCmd := &cobra.Command{Use: "run", Short: "run as a service"}
-	rootCmd.AddCommand(runCmd)
-
 	ent := &baseEntry{
 		opts: golug_entry.Options{
 			Name:       name,
 			Addr:       ":8080",
-			RunCommand: runCmd,
-			Command:    rootCmd,
+			Command:    &cobra.Command{Use: name},
+			RunCommand: &cobra.Command{Use: "run", Short: "run as a service"},
 		},
 	}
+
+	xerror.Panic(ent.Commands(ent.opts.RunCommand))
+	xerror.Panic(ent.Commands(ent.pluginCmd()))
+	xerror.Panic(ent.Commands(ent.configCmd()))
+	xerror.Panic(ent.Commands(ent.dixCmd()))
 
 	ent.initFlags()
 
