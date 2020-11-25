@@ -15,3 +15,12 @@ func GetEntry() golug_entry.Entry {
 	ent.Register(handler.NewTestAPIHandler())
 	return ent
 }
+
+func GetHttpEntry() golug_entry.Entry {
+	ent := golug.NewHttpEntry("grpc_api")
+	xerror.Panic(ent.Version("v0.0.1"))
+	xerror.Panic(ent.Description("entry http test"))
+
+	xerror.Panic(ent.Register(handler.NewTestAPIHandler()))
+	return ent
+}

@@ -3,14 +3,14 @@ package http_entry
 import (
 	"context"
 	"encoding/json"
-	"github.com/pubgo/golug/golug_data"
-	"github.com/pubgo/golug/golug_entry/base_entry"
 	"net/http"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_data"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
@@ -39,8 +39,7 @@ type httpEntry struct {
 	handlers []func()
 }
 
-func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption) {
-	var vRegister reflect.Value
+func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption) error {
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v, data := range golug_data.List() {
 		v, ok := v.(reflect.Value)
@@ -57,17 +56,16 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 			continue
 		}
 
-		vRegister = reflect.ValueOf(v)
-		if !vRegister.IsValid() || vRegister.IsNil() {
-			xerror.Panic(xerror.Fmt("[%#v, %#v] 没有找到匹配的interface", handler, vRegister.Interface()))
-		}
-
 		var handlers []golug_entry.GrpcRestHandler
 		xerror.PanicF(json.Unmarshal([]byte(data.(string)), &handlers), "data:%#v", data)
 
 		vh := reflect.ValueOf(handler)
 		for _, h := range handlers {
 			if h.ServerStreams || h.ClientStream {
+				continue
+			}
+
+			if _, ok := httpMethods[h.Method]; !ok {
 				continue
 			}
 
@@ -83,7 +81,7 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 						return xerror.Wrap(ret[0].Interface().(error))
 					}
 
-					ret = mth.Call([]reflect.Value{reflect.ValueOf(view.Context().UserValue("ctx").(context.Context)), mthIn})
+					ret = mth.Call([]reflect.Value{reflect.ValueOf(view.Context()), mthIn})
 					if !ret[1].IsNil() {
 						return xerror.Wrap(ret[1].Interface().(error))
 					}
@@ -92,7 +90,11 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 				})
 			})
 		}
+
+		return nil
 	}
+
+	return xerror.Fmt("[%#v] 没有找到匹配的interface", handler)
 }
 
 func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }

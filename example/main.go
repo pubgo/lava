@@ -14,5 +14,6 @@ func main() {
 		http_entry.GetEntry(),
 		ctl_entry.GetEntry(),
 		grpc_entry.GetEntry(),
+		grpc_entry.GetHttpEntry(),
 	))
 }
