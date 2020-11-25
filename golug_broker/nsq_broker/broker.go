@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/pubgo/golug/golug_broker"
-	"github.com/pubgo/golug/plugins/golug_nsq"
+	"github.com/pubgo/golug/golug_plugin/plugins/golug_nsq"
 	"github.com/pubgo/xerror"
 	"github.com/segmentio/nsq-go"
 )

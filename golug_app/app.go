@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
-	"github.com/pubgo/golug/golug_version"
+	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -63,7 +63,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		}
 	}
 
-	var rootCmd = &cobra.Command{Use: golug_env.Domain, Version: golug_version.Version}
+	var rootCmd = &cobra.Command{Use: golug_env.Domain, Version: version.Version}
 	rootCmd.PersistentFlags().AddFlagSet(golug_config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 

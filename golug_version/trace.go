@@ -2,12 +2,12 @@ package golug_version
 
 import (
 	"fmt"
-	"github.com/pubgo/xlog"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 )
 
 func init() {

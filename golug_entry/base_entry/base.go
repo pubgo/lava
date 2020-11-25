@@ -2,6 +2,7 @@ package base_entry
 
 import (
 	"fmt"
+	"github.com/pubgo/golug/golug_version"
 	"reflect"
 	"strings"
 
@@ -122,6 +123,16 @@ func (t *baseEntry) dixCmd() *cobra.Command {
 	return cmd
 }
 
+func (t *baseEntry) verCmd() *cobra.Command {
+	cmd := &cobra.Command{Use: "ver", Short: "version info"}
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		for name, v := range golug_version.List() {
+			fmt.Println(name, golug_util.MarshalIndent(v))
+		}
+	}
+	return cmd
+}
+
 func (t *baseEntry) initFlags() {
 	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
 		flags.StringVar(&t.opts.Addr, "addr", t.opts.Addr, "the server address")
@@ -147,6 +158,7 @@ func newEntry(name string) *baseEntry {
 	xerror.Panic(ent.Commands(ent.pluginCmd()))
 	xerror.Panic(ent.Commands(ent.configCmd()))
 	xerror.Panic(ent.Commands(ent.dixCmd()))
+	xerror.Panic(ent.Commands(ent.verCmd()))
 
 	ent.initFlags()
 

@@ -5,12 +5,12 @@ GoROOT=$(shell go env GOROOT)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse HEAD)
 LDFLAGS=-ldflags " \
--X '${Project}/version.GoROOT=${GoROOT}' \
--X '${Project}/version.BuildTime=${BuildTime}' \
--X '${Project}/version.GoPath=${GOPath}' \
--X '${Project}/version.CommitID=${CommitID}' \
--X '${Project}/version.Project=${Project}' \
--X '${Project}/version.Version=${Version:-v0.0.1}' \
+-X '${Project}/golug_version.GoROOT=${GoROOT}' \
+-X '${Project}/golug_version.BuildTime=${BuildTime}' \
+-X '${Project}/golug_version.GoPath=${GOPath}' \
+-X '${Project}/golug_version.CommitID=${CommitID}' \
+-X '${Project}/golug_version.Project=${Project}' \
+-X '${Project}/golug_version.Version=${Version:-v0.0.1}' \
 "
 
 .PHONY: build
@@ -63,4 +63,4 @@ gen:
 
 .PHONY: example
 example:
-	go build example/main.go
+	go build ${LDFLAGS} -mod vendor -v -o main example/main.go
