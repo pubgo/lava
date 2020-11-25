@@ -11,10 +11,10 @@ func init() {
 		Enabled: true,
 		Name:    name,
 		OnInit: func(ent golug_entry.Entry) {
-			xerror.Panic(ent.UnWrap(func(entry golug_entry.HttpEntry) { entry.Use(httpRequestId) }))
+			xerror.Panic(ent.UnWrap(func(entry golug_entry.HttpEntry) { entry.Use(httpRequestId()) }))
 			xerror.Panic(ent.UnWrap(func(entry golug_entry.GrpcEntry) {
-				entry.UnaryServer(grpcUnaryServer)
-				entry.StreamServer(grpcStreamServer)
+				entry.UnaryServer(grpcUnaryServer())
+				entry.StreamServer(grpcStreamServer())
 			}))
 		},
 	}))

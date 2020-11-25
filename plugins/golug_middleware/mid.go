@@ -12,6 +12,7 @@ import (
 )
 
 func GetDefaultServerOpts() []grpc.ServerOption {
+
 	_ = []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(1),
 		grpc.MaxSendMsgSize(1),

@@ -1,6 +1,7 @@
 package golug_config
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -21,18 +22,22 @@ func Init() (err error) {
 		golug_env.Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", golug_env.Domain)
 	}
+	golug_env.Get(&golug_env.Project, "project", "name", "server_name")
 
 	{
-		cfg = &Config{Viper: viper.GetViper()}
 
-		// 配置viper
-		viper.SetEnvPrefix(golug_env.Domain)
-		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
-		viper.AutomaticEnv()
-
+		v := viper.New()
 		// 配置文件名字和类型
-		viper.SetConfigType(CfgType)
-		viper.SetConfigName(CfgName)
+		v.SetConfigType(CfgType)
+		v.SetConfigName(CfgName)
+
+		// config 路径
+		v.AddConfigPath(".")
+		v.AddConfigPath(fmt.Sprintf("/etc/%s/%s/", golug_env.Domain, golug_env.Project))
+		v.AddConfigPath(fmt.Sprintf("$HOME/.%s/%s", golug_env.Domain, golug_env.Project))
+		v.SetEnvPrefix(golug_env.Domain)
+		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
+		v.AutomaticEnv()
 
 		// 监控默认配置
 		viper.AddConfigPath(filepath.Join(golug_env.Home, CfgName))
@@ -50,6 +55,8 @@ func Init() (err error) {
 
 		// 获取配置文件所在目录
 		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
+
+		cfg = &Config{Viper: v}
 	}
 
 	//_, err = cfg.Load("watcher")

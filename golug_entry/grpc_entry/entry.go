@@ -2,15 +2,15 @@ package grpc_entry
 
 import (
 	"context"
-	"github.com/pubgo/golug/golug_entry/base_entry"
 	"net"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var _ golug_entry.GrpcEntry = (*grpcEntry)(nil)
@@ -23,6 +23,14 @@ type grpcEntry struct {
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
+}
+
+func (t *grpcEntry) UnaryServer(interceptors ...grpc.UnaryServerInterceptor) {
+	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors...)
+}
+
+func (t *grpcEntry) StreamServer(interceptors ...grpc.StreamServerInterceptor) {
+	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
 }
 
 func (t *grpcEntry) Init() (err error) {
@@ -48,42 +56,15 @@ func (t *grpcEntry) Register(ss interface{}, opts ...golug_entry.GrpcOption) {
 	t.handlers = append(t.handlers, ss)
 }
 
-func (t *grpcEntry) UnaryServer(interceptors ...golug_entry.UnaryServerInterceptor) {
-	var interceptors1 []grpc.UnaryServerInterceptor
-	for i := range interceptors {
-		interceptors1 = append(interceptors1, func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-			defer xerror.RespErr(&err)
-			return handler(interceptors[i](ctx, info), req)
-		})
-	}
-
-	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors1...)
-}
-
-func (t *grpcEntry) StreamServer(interceptors ...golug_entry.StreamServerInterceptor) {
-	var interceptors1 []grpc.StreamServerInterceptor
-	for i := range interceptors {
-		interceptors1 = append(interceptors1, func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-			defer xerror.RespErr(&err)
-
-			return handler(srv, &grpc_middleware.WrappedServerStream{
-				ServerStream:   ss,
-				WrappedContext: interceptors[i](ss, info),
-			})
-		})
-	}
-
-	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors1...)
-}
-
 func (t *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化server
-	t.server = &entryServerWrapper{Server: grpc.NewServer(append(t.opts,
+	t.server = &entryServerWrapper{Server: grpc.NewServer(append(
+		t.opts,
 		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
-		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...,
-	)}
+		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...)}
+	reflection.Register(t.server.Server)
 
 	// 初始化routes
 	for i := range t.handlers {

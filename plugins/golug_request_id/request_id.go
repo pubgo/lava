@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/hashicorp/go-uuid"
+	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
@@ -12,32 +13,40 @@ import (
 const name = "request_id"
 const xRequestId = "X-Request-Id"
 
-func httpRequestId(ctx *fiber.Ctx) error {
-	rid := RequestIdFromCtx(ctx.Context())
-	if rid != "" {
-		return nil
-	}
+func httpRequestId() func(ctx *fiber.Ctx) error {
+	return func(ctx *fiber.Ctx) error {
+		rid := RequestIdFromCtx(ctx.Context())
+		if rid != "" {
+			return nil
+		}
 
-	ctx.Context().SetUserValue(xRequestId, requestId(rid))
-	return xerror.Wrap(ctx.Next())
+		ctx.Context().SetUserValue(xRequestId, requestId(rid))
+		return xerror.Wrap(ctx.Next())
+	}
 }
 
-func grpcUnaryServer(ctx context.Context, info *grpc.UnaryServerInfo) context.Context {
-	rid := RequestIdFromCtx(ctx)
-	if rid != "" {
-		return ctx
-	}
+func grpcUnaryServer() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		rid := RequestIdFromCtx(ctx)
+		if rid == "" {
+			ctx = context.WithValue(ctx, xRequestId, requestId(rid))
+		}
 
-	return context.WithValue(ctx, xRequestId, requestId(rid))
+		return handler(ctx, req)
+	}
 }
 
-func grpcStreamServer(ss grpc.ServerStream, info *grpc.StreamServerInfo) context.Context {
-	rid := RequestIdFromCtx(ss.Context())
-	if rid != "" {
-		return ss.Context()
-	}
+func grpcStreamServer() grpc.StreamServerInterceptor {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		wss := golug_entry.WrapServerStream(ss)
 
-	return context.WithValue(ss.Context(), xRequestId, requestId(rid))
+		rid := RequestIdFromCtx(ss.Context())
+		if rid == "" {
+			wss.WrappedContext = context.WithValue(wss.WrappedContext, xRequestId, requestId(rid))
+		}
+
+		return handler(srv, wss)
+	}
 }
 
 func requestId(rid string) string {
