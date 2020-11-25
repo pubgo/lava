@@ -15,7 +15,7 @@ func init() {
 			return
 		}
 
-		xlog.Debug("plugin trace")
+		xlog.Debug("trace [plugin]")
 		fmt.Println(String())
 		fmt.Println()
 	}))

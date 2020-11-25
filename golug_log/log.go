@@ -9,6 +9,14 @@ import (
 	"go.uber.org/zap"
 )
 
+func init() {
+	zapL := xerror.PanicErr(xlog_config.NewZapLoggerFromConfig(xlog_config.NewDevConfig())).(*zap.Logger)
+	log := xlog.New(zapL.WithOptions(xlog.AddCaller(), xlog.AddCallerSkip(1)))
+
+	// 全局log设置
+	xerror.Panic(xlog.SetDefault(log.Named(golug_env.Domain, xlog.AddCallerSkip(1))))
+}
+
 func initLog(cfg xlog_config.Config) (err error) {
 	defer xerror.RespErr(&err)
 

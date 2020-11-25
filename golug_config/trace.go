@@ -23,16 +23,15 @@ func init() {
 		//fmt.Println(tag)
 		//fmt.Println()
 
-		xlog.Debug("config trace")
-
+		xlog.Debug("trace [config]")
 		fmt.Println(golug_util.MarshalIndent(GetCfg().AllSettings()))
 		fmt.Println()
 
-		xlog.Debug("deps trace")
+		xlog.Debug("trace [deps]")
 		fmt.Println(dix.Graph())
 		fmt.Println()
 
-		xlog.Debug("goroutine trace")
+		xlog.Debug("trace [goroutine]")
 		data := make(map[string]interface{})
 		xerror.Panic(json.Unmarshal([]byte(xprocess.Stack()), &data))
 		fmt.Println(golug_util.MarshalIndent(data))

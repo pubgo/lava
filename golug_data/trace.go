@@ -15,9 +15,9 @@ func init() {
 			return
 		}
 
-		xlog.Debug("data trace")
+		xlog.Debug("trace [data]")
 		for k, v := range List() {
-			fmt.Printf("%s: %#v\n", k, v)
+			fmt.Printf("%#v: \n\t%#v\n\n", k, v)
 		}
 		fmt.Println()
 	}))

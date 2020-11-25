@@ -29,14 +29,14 @@ func (p *Base) Init(ent golug_entry.Entry) (err error) {
 		status = "enabled"
 	}
 
-	xlog.Debugf("plugin [%s] init, status: %s", p.Name, status)
+	xlog.Debugf("plugin [%s] status: %s", p.Name, status)
 
 	if !p.Enabled {
 		return nil
 	}
 
 	if p.OnInit != nil {
-		xlog.Debugf("[%s] start init", p.Name)
+		xlog.Debugf("plugin [%s] init", p.Name)
 		p.OnInit(ent)
 	}
 	return nil

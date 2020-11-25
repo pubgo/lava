@@ -18,7 +18,7 @@ var _ golug_entry.GrpcEntry = (*grpcEntry)(nil)
 type grpcEntry struct {
 	golug_entry.Entry
 	cfg                      Cfg
-	server                   *entryServerWrapper
+	server                   *grpc.Server
 	handlers                 []interface{}
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
@@ -60,11 +60,13 @@ func (t *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化server
-	t.server = &entryServerWrapper{Server: grpc.NewServer(append(
+	t.server = grpc.NewServer(append(
 		t.opts,
 		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
-		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...)}
-	reflection.Register(t.server.Server)
+		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...)
+
+	// 方便grpcurl调用和调试
+	reflection.Register(t.server)
 
 	// 初始化routes
 	for i := range t.handlers {
@@ -74,7 +76,7 @@ func (t *grpcEntry) Start() (err error) {
 	cancel := xprocess.Go(func(ctx context.Context) (err error) {
 		defer xerror.RespErr(&err)
 
-		ts := xerror.PanicErr(net.Listen("tcp", t.Entry.Run().Options().Addr)).(net.Listener)
+		ts := xerror.PanicErr(net.Listen("tcp", t.Options().Addr)).(net.Listener)
 		log.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			log.Error(err.Error())

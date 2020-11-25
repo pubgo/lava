@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/gofiber/fiber/v2 v2.2.0
 	github.com/gogo/protobuf v1.3.1
@@ -13,6 +14,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
+	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.9
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.3
@@ -33,8 +35,9 @@ require (
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.16.0
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
-	google.golang.org/grpc v1.29.1
+	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
 	vitess.io/vitess v0.7.0
 )

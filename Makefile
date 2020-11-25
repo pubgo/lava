@@ -15,7 +15,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -race -v -o main main.go
+	@go build ${LDFLAGS} -mod vendor -race -v -o main cmd/golug/main.go
 
 build_hello_test:
 	go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go

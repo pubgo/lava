@@ -30,7 +30,7 @@ func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
 	flags.StringVarP(&golug_env.Mode, "mode", "m", golug_env.Mode, "running mode(dev|test|stag|prod|release)")
 	flags.StringVarP(&golug_env.Home, "home", "c", golug_env.Home, "project config home dir")
-	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable debug")
+	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable log debug level")
 	flags.BoolVarP(&golug_env.Trace, "trace", "t", golug_env.Trace, "enable trace")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	return flags

@@ -40,21 +40,21 @@ func Init() (err error) {
 		v.AutomaticEnv()
 
 		// 监控默认配置
-		viper.AddConfigPath(filepath.Join(golug_env.Home, CfgName))
+		v.AddConfigPath(filepath.Join(golug_env.Home, CfgName))
 
 		// 监控当前工作目录
 		_pwd := xerror.PanicStr(filepath.Abs(filepath.Dir("")))
-		viper.AddConfigPath(filepath.Join(_pwd, CfgName))
+		v.AddConfigPath(filepath.Join(_pwd, CfgName))
 
 		// 监控Home工作目录
 		_home := xerror.PanicErr(homedir.Dir()).(string)
-		viper.AddConfigPath(filepath.Join(_home, "."+golug_env.Project, CfgName))
+		v.AddConfigPath(filepath.Join(_home, "."+golug_env.Project, CfgName))
 
 		// 检查配置文件是否存在
-		xerror.PanicF(viper.ReadInConfig(), "read config failed")
+		xerror.PanicF(v.ReadInConfig(), "read config failed")
 
 		// 获取配置文件所在目录
-		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(viper.ConfigFileUsed()))))
+		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(v.ConfigFileUsed()))))
 
 		cfg = &Config{Viper: v}
 	}

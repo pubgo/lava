@@ -1,4 +1,4 @@
-package golug_log
+package golug_nsq
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ func init() {
 			return
 		}
 
-		xlog.Debug("trace [log] config")
+		xlog.Debug("nsq client trace")
 		fmt.Println(golug_util.MarshalIndent(cfg))
 		fmt.Println()
 	}))

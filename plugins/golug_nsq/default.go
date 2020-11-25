@@ -2,15 +2,12 @@ package golug_nsq
 
 import (
 	"sync"
-	"time"
 
 	"github.com/imdario/mergo"
 	"github.com/pubgo/golug/golug_consts"
 	"github.com/pubgo/xerror"
 	nsq "github.com/segmentio/nsq-go"
 )
-
-var nsqM sync.Map
 
 func GetNsq(names ...string) (*nsqClient, error) {
 	var name = golug_consts.Default
@@ -27,11 +24,11 @@ func GetNsq(names ...string) (*nsqClient, error) {
 
 type nsqClient struct {
 	mu   sync.Mutex
-	cfg  Cfg
+	cfg  NsqCfg
 	stop []func()
 }
 
-func initNsq(name string, cfg Cfg) {
+func initNsq(name string, cfg NsqCfg) {
 	nsqM.Store(name, &nsqClient{cfg: cfg})
 }
 
@@ -85,18 +82,4 @@ func (t *nsqClient) Producer(topic string) (p *nsq.Producer, err error) {
 
 	t.stop = append(t.stop, producer.Stop)
 	return producer, nil
-}
-
-type Cfg struct {
-	Enabled        bool          `yaml:"enabled" json:"enabled" toml:"enabled"`
-	Topic          string        `json:"topic"`
-	Channel        string        `json:"channel"`
-	Address        string        `json:"address"`
-	Lookup         []string      `json:"lookup"`
-	MaxInFlight    int           `json:"max_in_flight"`
-	MaxConcurrency int           `json:"max_concurrency"`
-	DialTimeout    time.Duration `json:"dial_timeout"`
-	ReadTimeout    time.Duration `json:"read_timeout"`
-	WriteTimeout   time.Duration `json:"write_timeout"`
-	DrainTimeout   time.Duration `json:"drain_timeout"`
 }

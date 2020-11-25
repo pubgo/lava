@@ -2,22 +2,12 @@ package golug_broker
 
 import (
 	"context"
-	"crypto/tls"
 )
 
 type Broker interface {
-	Options() Options
 	Publish(topic string, msg *Message, opts ...PubOption) error
 	Subscribe(topic string, handler Handler, opts ...SubOption) error
 	String() string
-}
-
-type Option func(*Options)
-type Options struct {
-	Addrs     []string
-	Secure    bool
-	TLSConfig *tls.Config
-	Context   context.Context
 }
 
 type PubOption func(*PubOptions)

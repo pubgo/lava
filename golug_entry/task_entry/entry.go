@@ -1,15 +1,11 @@
 package task_entry
 
 import (
-	"context"
-
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_broker"
 	"github.com/pubgo/golug/golug_broker/nsq_broker"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xprocess"
 )
 
 var _ golug_entry.TaskEntry = (*taskEntry)(nil)
@@ -17,6 +13,7 @@ var _ golug_entry.TaskEntry = (*taskEntry)(nil)
 type entryTaskHandler struct {
 	handler golug_broker.Handler
 	opts    golug_broker.SubOptions
+	optList []golug_broker.SubOption
 }
 
 type taskEntry struct {
@@ -33,7 +30,7 @@ func (t *taskEntry) Register(topic string, handler golug_broker.Handler, opts ..
 	}
 	_opts.Topic = topic
 
-	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: _opts})
+	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: _opts, optList: opts})
 	return nil
 }
 
@@ -47,10 +44,7 @@ func (t *taskEntry) Start() (err error) {
 			broker = handler.opts.Broker
 		}
 
-		cancel := xprocess.Go(func(ctx context.Context) error {
-			return xerror.Wrap(broker.Subscribe(handler.opts.Topic, handler.handler))
-		})
-		xerror.Panic(dix_run.WithAfterStop(func(ctx *dix_run.AfterStopCtx) { xerror.Panic(cancel()) }))
+		xerror.Panic(broker.Subscribe(handler.opts.Topic, handler.handler, handler.optList...))
 	}
 
 	return nil
@@ -72,10 +66,12 @@ func (t *taskEntry) Init() (err error) {
 	xerror.Panic(t.Decode(Name, &t.cfg))
 
 	for _, c := range t.cfg.Consumers {
-		switch c.Driver {
-		case "nsq":
+		driver := c.Driver
+		if driver == "nsq" {
 			t.broker = nsq_broker.NewBroker(c.Name)
 			break
+		} else {
+			return xerror.Fmt("%s not found", c.Driver)
 		}
 	}
 

@@ -16,7 +16,7 @@ func init() {
 			return
 		}
 
-		xlog.Debug("env trace")
+		xlog.Debug("trace [env]")
 		for _, env := range os.Environ() {
 			if strings.HasPrefix(env, Domain) {
 				fmt.Println(env)

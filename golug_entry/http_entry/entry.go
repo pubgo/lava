@@ -188,5 +188,3 @@ func newEntry(name string) *httpEntry {
 func New(name string) *httpEntry {
 	return newEntry(name)
 }
-
-//"#${pid} - ${time} ${status} - ${latency} ${method} ${path}\n"

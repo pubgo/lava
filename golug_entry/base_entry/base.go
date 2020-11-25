@@ -16,8 +16,7 @@ import (
 var _ golug_entry.Entry = (*baseEntry)(nil)
 
 type baseEntry struct {
-	opts     golug_entry.Options
-	handlers []func()
+	opts golug_entry.Options
 }
 
 func (t *baseEntry) Decode(name string, fn interface{}) (err error) {

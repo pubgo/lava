@@ -17,17 +17,22 @@ func NewBroker(name string) golug_broker.Broker {
 
 type nsqBroker struct {
 	name string
-	pMap sync.Map
-}
-
-func (t *nsqBroker) Options() golug_broker.Options {
-	return golug_broker.Options{}
+	mu   sync.Mutex
+	sap  sync.Map
 }
 
 func (t *nsqBroker) Publish(topic string, msg *golug_broker.Message, opts ...golug_broker.PubOption) (err error) {
 	defer xerror.RespErr(&err)
 
-	val, ok := t.pMap.Load(topic)
+	val, ok := t.sap.Load(topic)
+	if ok {
+		return xerror.WrapF(val.(*nsq.Producer).PublishTo(topic, msg.Body), "topic:%s", topic)
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	val, ok = t.sap.Load(topic)
 	if ok {
 		xerror.Panic(val.(*nsq.Producer).PublishTo(topic, msg.Body))
 		return nil
@@ -37,7 +42,7 @@ func (t *nsqBroker) Publish(topic string, msg *golug_broker.Message, opts ...gol
 	xerror.Panic(_err)
 
 	p := xerror.PanicErr(n.Producer(topic)).(*nsq.Producer)
-	t.pMap.Store(topic, p)
+	t.sap.Store(topic, p)
 
 	xerror.Panic(p.PublishTo(topic, msg.Body))
 
@@ -47,10 +52,15 @@ func (t *nsqBroker) Publish(topic string, msg *golug_broker.Message, opts ...gol
 func (t *nsqBroker) Subscribe(topic string, handler golug_broker.Handler, opts ...golug_broker.SubOption) (err error) {
 	defer xerror.RespErr(&err)
 
+	var _opts golug_broker.SubOptions
+	for _, opt := range opts {
+		opt(&_opts)
+	}
+
 	n, _err := golug_nsq.GetNsq(t.name)
 	xerror.Panic(_err)
 
-	c := xerror.PanicErr(n.Consumer(topic, "")).(*nsq.Consumer)
+	c := xerror.PanicErr(n.Consumer(topic, _opts.Queue)).(*nsq.Consumer)
 	for msg := range c.Messages() {
 		xerror.Panic(handler(&golug_broker.Message{
 			ID:        []byte(msg.ID.String()),
