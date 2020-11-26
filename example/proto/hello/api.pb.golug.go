@@ -12,5 +12,5 @@ func init() {
 	golug_data.Add(reflect.ValueOf(RegisterTestApiServer), `[{"method":"POST","name":"Version","path":"/hello_test_api/version","client_stream":false,"server_streams":false},{"method":"test","name":"VersionTest","path":"/v1/example/versiontest","client_stream":false,"server_streams":false}]`)
 }
 func init() {
-	golug_data.Add(reflect.ValueOf(RegisterTestApiV2Server), `[{"method":"POST","name":"Version","path":"/v2/example/version","client_stream":false,"server_streams":false},{"method":"POST","name":"VersionTest","path":"/v2/example/versiontest","client_stream":false,"server_streams":false}]`)
+	golug_data.Add(reflect.ValueOf(RegisterTestApiV2Server), `[{"method":"POST","name":"Version1","path":"/v2/example/version","client_stream":false,"server_streams":false},{"method":"POST","name":"VersionTest1","path":"/v2/example/versiontest","client_stream":false,"server_streams":false}]`)
 }

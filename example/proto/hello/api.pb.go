@@ -48,19 +48,19 @@ var file_example_proto_hello_api_proto_rawDesc = []byte{
 	0x70, 0x69, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0x2a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x24,
 	0x3a, 0x01, 0x2a, 0x42, 0x1f, 0x0a, 0x04, 0x74, 0x65, 0x73, 0x74, 0x12, 0x17, 0x2f, 0x76, 0x31,
 	0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
-	0x74, 0x65, 0x73, 0x74, 0x32, 0xb5, 0x01, 0x0a, 0x09, 0x54, 0x65, 0x73, 0x74, 0x41, 0x70, 0x69,
-	0x56, 0x32, 0x12, 0x4f, 0x0a, 0x07, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x0e, 0x2e,
-	0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e,
-	0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x41, 0x70, 0x69, 0x4f, 0x75, 0x74,
-	0x70, 0x75, 0x74, 0x22, 0x1e, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x22, 0x13, 0x2f, 0x76, 0x32,
-	0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
-	0x3a, 0x01, 0x2a, 0x12, 0x57, 0x0a, 0x0b, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x54, 0x65,
-	0x73, 0x74, 0x12, 0x0e, 0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x52,
-	0x65, 0x71, 0x1a, 0x14, 0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x41,
-	0x70, 0x69, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0x22, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1c,
-	0x22, 0x17, 0x2f, 0x76, 0x32, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x76, 0x65,
-	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x74, 0x65, 0x73, 0x74, 0x3a, 0x01, 0x2a, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x65, 0x73, 0x74, 0x32, 0xb7, 0x01, 0x0a, 0x09, 0x54, 0x65, 0x73, 0x74, 0x41, 0x70, 0x69,
+	0x56, 0x32, 0x12, 0x50, 0x0a, 0x08, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x31, 0x12, 0x0e,
+	0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x14,
+	0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x41, 0x70, 0x69, 0x4f, 0x75,
+	0x74, 0x70, 0x75, 0x74, 0x22, 0x1e, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x22, 0x13, 0x2f, 0x76,
+	0x32, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6e, 0x3a, 0x01, 0x2a, 0x12, 0x58, 0x0a, 0x0c, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x54,
+	0x65, 0x73, 0x74, 0x31, 0x12, 0x0e, 0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73,
+	0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73,
+	0x74, 0x41, 0x70, 0x69, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0x22, 0x82, 0xd3, 0xe4, 0x93,
+	0x02, 0x1c, 0x22, 0x17, 0x2f, 0x76, 0x32, 0x2f, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f,
+	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x74, 0x65, 0x73, 0x74, 0x3a, 0x01, 0x2a, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var file_example_proto_hello_api_proto_goTypes = []interface{}{
@@ -70,12 +70,12 @@ var file_example_proto_hello_api_proto_goTypes = []interface{}{
 var file_example_proto_hello_api_proto_depIdxs = []int32{
 	0, // 0: hello.TestApi.Version:input_type -> hello.TestReq
 	0, // 1: hello.TestApi.VersionTest:input_type -> hello.TestReq
-	0, // 2: hello.TestApiV2.Version:input_type -> hello.TestReq
-	0, // 3: hello.TestApiV2.VersionTest:input_type -> hello.TestReq
+	0, // 2: hello.TestApiV2.Version1:input_type -> hello.TestReq
+	0, // 3: hello.TestApiV2.VersionTest1:input_type -> hello.TestReq
 	1, // 4: hello.TestApi.Version:output_type -> hello.TestApiOutput
 	1, // 5: hello.TestApi.VersionTest:output_type -> hello.TestApiOutput
-	1, // 6: hello.TestApiV2.Version:output_type -> hello.TestApiOutput
-	1, // 7: hello.TestApiV2.VersionTest:output_type -> hello.TestApiOutput
+	1, // 6: hello.TestApiV2.Version1:output_type -> hello.TestApiOutput
+	1, // 7: hello.TestApiV2.VersionTest1:output_type -> hello.TestApiOutput
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -228,8 +228,8 @@ var _TestApi_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TestApiV2Client interface {
-	Version(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
-	VersionTest(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
+	Version1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
+	VersionTest1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
 }
 
 type testApiV2Client struct {
@@ -240,18 +240,18 @@ func NewTestApiV2Client(cc grpc.ClientConnInterface) TestApiV2Client {
 	return &testApiV2Client{cc}
 }
 
-func (c *testApiV2Client) Version(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
+func (c *testApiV2Client) Version1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApiV2/Version", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.TestApiV2/Version1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *testApiV2Client) VersionTest(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
+func (c *testApiV2Client) VersionTest1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApiV2/VersionTest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.TestApiV2/VersionTest1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -260,57 +260,57 @@ func (c *testApiV2Client) VersionTest(ctx context.Context, in *TestReq, opts ...
 
 // TestApiV2Server is the server API for TestApiV2 service.
 type TestApiV2Server interface {
-	Version(context.Context, *TestReq) (*TestApiOutput, error)
-	VersionTest(context.Context, *TestReq) (*TestApiOutput, error)
+	Version1(context.Context, *TestReq) (*TestApiOutput, error)
+	VersionTest1(context.Context, *TestReq) (*TestApiOutput, error)
 }
 
 // UnimplementedTestApiV2Server can be embedded to have forward compatible implementations.
 type UnimplementedTestApiV2Server struct {
 }
 
-func (*UnimplementedTestApiV2Server) Version(context.Context, *TestReq) (*TestApiOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Version not implemented")
+func (*UnimplementedTestApiV2Server) Version1(context.Context, *TestReq) (*TestApiOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Version1 not implemented")
 }
-func (*UnimplementedTestApiV2Server) VersionTest(context.Context, *TestReq) (*TestApiOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method VersionTest not implemented")
+func (*UnimplementedTestApiV2Server) VersionTest1(context.Context, *TestReq) (*TestApiOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VersionTest1 not implemented")
 }
 
 func RegisterTestApiV2Server(s *grpc.Server, srv TestApiV2Server) {
 	s.RegisterService(&_TestApiV2_serviceDesc, srv)
 }
 
-func _TestApiV2_Version_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TestApiV2_Version1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TestReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TestApiV2Server).Version(ctx, in)
+		return srv.(TestApiV2Server).Version1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApiV2/Version",
+		FullMethod: "/hello.TestApiV2/Version1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TestApiV2Server).Version(ctx, req.(*TestReq))
+		return srv.(TestApiV2Server).Version1(ctx, req.(*TestReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TestApiV2_VersionTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TestApiV2_VersionTest1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TestReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TestApiV2Server).VersionTest(ctx, in)
+		return srv.(TestApiV2Server).VersionTest1(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApiV2/VersionTest",
+		FullMethod: "/hello.TestApiV2/VersionTest1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TestApiV2Server).VersionTest(ctx, req.(*TestReq))
+		return srv.(TestApiV2Server).VersionTest1(ctx, req.(*TestReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -320,12 +320,12 @@ var _TestApiV2_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*TestApiV2Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Version",
-			Handler:    _TestApiV2_Version_Handler,
+			MethodName: "Version1",
+			Handler:    _TestApiV2_Version1_Handler,
 		},
 		{
-			MethodName: "VersionTest",
-			Handler:    _TestApiV2_VersionTest_Handler,
+			MethodName: "VersionTest1",
+			Handler:    _TestApiV2_VersionTest1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

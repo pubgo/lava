@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/fasthttp/websocket v1.4.3
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/go-redis/redis/v7 v7.4.0
@@ -17,6 +18,7 @@ require (
 	github.com/imdario/mergo v0.3.11
 	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.9
+	github.com/lucas-clemente/quic-go v0.13.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/opentracing/opentracing-go v1.2.0
@@ -35,6 +37,7 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible
+	github.com/valyala/fasthttp v1.17.0
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974

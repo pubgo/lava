@@ -18,13 +18,13 @@ service TestApi {
 }
 
 service TestApiV2 {
-  rpc Version(hello.TestReq) returns (hello.TestApiOutput){
+  rpc Version1(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       post: "/v2/example/version"
       body: "*"
     };
   }
-  rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){
+  rpc VersionTest1(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       post: "/v2/example/versiontest"
       body: "*"

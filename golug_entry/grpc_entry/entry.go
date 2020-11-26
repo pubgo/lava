@@ -65,13 +65,13 @@ func (t *grpcEntry) Start() (err error) {
 		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
 		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...)
 
-	// 方便grpcurl调用和调试
-	reflection.Register(t.server)
-
 	// 初始化routes
 	for i := range t.handlers {
 		xerror.Panic(register(t.server, t.handlers[i]))
 	}
+
+	// 方便grpcurl调用和调试
+	reflection.Register(t.server)
 
 	cancel := xprocess.Go(func(ctx context.Context) (err error) {
 		defer xerror.RespErr(&err)

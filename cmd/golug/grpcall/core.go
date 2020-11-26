@@ -569,19 +569,6 @@ func BlockingDial(ctx context.Context, address string, opts ...grpc.DialOption) 
 		}
 	}
 
-	dialer := func(address string, timeout time.Duration) (net.Conn, error) {
-		ctx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
-
-		conn, err := (&net.Dialer{Cancel: ctx.Done()}).Dial("tcp", address)
-		if err != nil {
-			writeResult(err)
-			return nil, err
-		}
-
-		return conn, nil
-	}
-
 	// Even with grpc.FailOnNonTempDialError, this call will usually timeout in
 	// the face of TLS handshake errors. So we can't rely on grpc.WithBlock() to
 	// know when we're done. So we run it in a goroutine and then use result
@@ -590,7 +577,18 @@ func BlockingDial(ctx context.Context, address string, opts ...grpc.DialOption) 
 		opts = append(opts,
 			grpc.WithBlock(),
 			grpc.FailOnNonTempDialError(true),
-			grpc.WithDialer(dialer),
+			grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+				ctx, cancel := context.WithTimeout(ctx, time.Second)
+				defer cancel()
+
+				conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", address)
+				if err != nil {
+					writeResult(err)
+					return nil, err
+				}
+
+				return conn, nil
+			}),
 			grpc.WithInsecure(), // we are handling TLS, so tell grpc not to
 		)
 		conn, err := grpc.DialContext(ctx, address, opts...)

@@ -5,11 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -22,221 +19,24 @@ import (
 	reflectpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
-var (
-	callMaxTime = 60 * time.Second
-
-	descSourceController = NewDescSourceEntry()
-)
-
-const (
-	ProtoSetMode     = iota // 0
-	ProtoFilesMode          // 1
-	ProtoReflectMode        // 2
-)
-
-type DescSourceEntry struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-
-	descSource   DescriptorSource
-	descMode     int
-	descLastTime time.Time
-
-	protoset    multiString
-	protoFiles  multiString
-	importPaths multiString
-}
-
-func NewDescSourceEntry() *DescSourceEntry {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	desc := &DescSourceEntry{
-		ctx:    ctx,
-		cancel: cancel,
-	}
-
-	return desc
-}
-
-func SetProtoSetFiles(fileName string) (string, error) {
-	data, err := fileReadByte(fileName)
-	if err != nil {
-		return "", err
-	}
-
-	descSourceController.SetProtoSetFiles(fileName)
-	return makeHexMD5(data), nil
-}
-
-func SetProtoFiles(importPath string, protoFile string) {
-	descSourceController.SetProtoFiles(importPath, protoFile)
-}
-
-func SetMode(mode int) {
-	descSourceController.SetMode(mode)
-}
-
-func GetDescSource() (DescriptorSource, error) {
-	return descSourceController.GetDescSource()
-}
-
-func GetRemoteDescSource(target string) error {
-	// parse proto by grpc reflet api
-	return nil
-}
-
-func InitDescSource() error {
-	return descSourceController.InitDescSource()
-}
-
-func AysncNotifyDesc() {
-	descSourceController.AysncNotifyDesc()
-}
-
-func (d *DescSourceEntry) SetProtoSetFiles(fileName string) {
-	d.protoset.Set(fileName)
-}
-
-func (d *DescSourceEntry) SetProtoFiles(importPath string, protoFile string) {
-	d.importPaths.Set(importPath)
-	d.protoFiles.Set(protoFile)
-}
-
-func (d *DescSourceEntry) SetMode(mode int) {
-	d.descMode = mode
-}
-
-func (d *DescSourceEntry) GetDescSource() (DescriptorSource, error) {
-	switch descSourceController.descMode {
-	case ProtoSetMode:
-		return descSourceController.descSource, nil
-
-	case ProtoFilesMode:
-		return descSourceController.descSource, nil
-
-	default:
-		return descSourceController.descSource, errors.New("only eq ProtoSetMode and ProtoFilesMode")
-	}
-}
-
-func (d *DescSourceEntry) InitDescSource() error {
-	var err error
-	var desc DescriptorSource
-
-	switch descSourceController.descMode {
-	case ProtoSetMode:
-		// parse proto by protoset
-
-		if descSourceController.protoset.IsEmpty() {
-			return errors.New("protoset null")
-		}
-
-		for _, f := range descSourceController.protoset {
-			ok := pathExists(f)
-			if !ok {
-				return errors.New("protoset file not exist")
-			}
-		}
-
-		desc, err = DescriptorSourceFromProtoSets(descSourceController.protoset...)
-		if err != nil {
-			return errors.New("Failed to process proto descriptor sets")
-		}
-
-		descSourceController.descSource = desc
-
-	case ProtoFilesMode:
-		// parse proto by protoFiles
-		descSourceController.descSource, err = DescriptorSourceFromProtoFiles(
-			descSourceController.importPaths,
-			descSourceController.protoFiles...,
-		)
-		if err != nil {
-			return errors.New("Failed to process proto source files")
-		}
-
-	default:
-		return errors.New("only eq ProtoSetMode and ProtoFilesMode")
-	}
-
-	return nil
-}
-
-func (d *DescSourceEntry) AysncNotifyDesc() {
-	go func() {
-		q := make(chan os.Signal, 1)
-		signal.Notify(q, syscall.SIGUSR1)
-
-		for {
-			select {
-			case <-q:
-				d.InitDescSource()
-
-			case <-d.ctx.Done():
-				return
-			}
-		}
-	}()
-}
-
-func (d *DescSourceEntry) Close() {
-	d.cancel()
-}
-
 type EngineHandler struct {
 	// grpc clients
 	clients     map[string]*grpc.ClientConn
 	clientsLock sync.RWMutex
 
 	eventHandler InvocationEventHandler
-	descCtl      *DescSourceEntry
 	invokeCtl    *InvokeHandler
 
 	dialTime      time.Duration
 	keepAliveTime time.Duration
 	typeCacher    *protoTypesCache
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx        context.Context
+	cancel     context.CancelFunc
+	descSource DescriptorSource
 }
 
 type Option func(*EngineHandler) error
-
-func SetDialTime(val time.Duration) Option {
-	return func(o *EngineHandler) error {
-		o.dialTime = val
-		return nil
-	}
-}
-
-func SetKeepAliveTime(val time.Duration) Option {
-	return func(o *EngineHandler) error {
-		o.keepAliveTime = val
-		return nil
-	}
-}
-
-func SetCtx(val context.Context, cancel context.CancelFunc) Option {
-	return func(o *EngineHandler) error {
-		o.ctx = val
-		o.cancel = cancel
-		return nil
-	}
-}
-
-func SetDescSourceCtl(val *DescSourceEntry) Option {
-	return func(o *EngineHandler) error {
-		o.descCtl = val
-		return nil
-	}
-}
-
-func SetHookHandler(handler InvocationEventHandler) Option {
-	return func(o *EngineHandler) error {
-		o.eventHandler = handler
-		return nil
-	}
-}
 
 func New(options ...Option) (*EngineHandler, error) {
 	e := new(EngineHandler)
@@ -246,7 +46,6 @@ func New(options ...Option) (*EngineHandler, error) {
 	e.dialTime = 10 * time.Second
 	e.keepAliveTime = 64 * time.Second
 	e.eventHandler = defaultInEventHooker
-	e.descCtl = descSourceController
 	e.clients = make(map[string]*grpc.ClientConn, 10)
 	e.typeCacher = newProtoTypeCache()
 
@@ -291,24 +90,6 @@ func (e *EngineHandler) DoConnect(target string) (*grpc.ClientConn, error) {
 }
 
 func (e *EngineHandler) Init() error {
-	var err error
-
-	err = e.InitFormater()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *EngineHandler) InitFormater() error {
-	formater, err := ParseFormatterByDesc(descSourceController.descSource, true)
-	if err != nil {
-		return err
-	}
-
-	inEventHandler := SetDefaultEventHandler(descSourceController.descSource, formater)
-	e.invokeCtl = newInvokeHandler(inEventHandler, e.eventHandler)
 	return nil
 }
 
@@ -379,19 +160,15 @@ func (e *EngineHandler) invokeCall(ctx context.Context, gclient *grpc.ClientConn
 		descSource DescriptorSource
 	)
 
-	descSource = descSourceController.descSource
-
 	// parse proto by grpc reflet api
-	if descSourceController.descMode == ProtoReflectMode {
-		md := MetadataFromHeaders(append(addlHeaders, reflHeaders...))
-		refCtx := metadata.NewOutgoingContext(e.ctx, md)
-		cc, connErr = e.DoConnect(target)
-		if connErr != nil {
-			return nil, connErr
-		}
-		refClient = grpcreflect.NewClient(refCtx, reflectpb.NewServerReflectionClient(cc))
-		descSource = DescriptorSourceFromServer(e.ctx, refClient)
+	md := MetadataFromHeaders(append(addlHeaders, reflHeaders...))
+	refCtx := metadata.NewOutgoingContext(e.ctx, md)
+	cc, connErr = e.DoConnect(target)
+	if connErr != nil {
+		return nil, connErr
 	}
+	refClient = grpcreflect.NewClient(refCtx, reflectpb.NewServerReflectionClient(cc))
+	descSource = DescriptorSourceFromServer(e.ctx, refClient)
 
 	if gclient == nil {
 		cc, connErr = e.DoConnect(target)
@@ -417,11 +194,11 @@ func (e *EngineHandler) invokeCall(ctx context.Context, gclient *grpc.ClientConn
 }
 
 func (e *EngineHandler) ListServices() ([]string, error) {
-	return descSourceController.descSource.ListServices()
+	return e.descSource.ListServices()
 }
 
 func (e *EngineHandler) ListMethods(svc string) ([]string, error) {
-	return ListMethods(descSourceController.descSource, svc)
+	return ListMethods(e.descSource, svc)
 }
 
 type ServMethodModel struct {
@@ -469,10 +246,6 @@ func (e *EngineHandler) ListServiceAndMethods() (map[string][]ServMethodModel, e
 }
 
 func (e *EngineHandler) ExtractProtoType(svc, mth string) (proto.Message, proto.Message, error) {
-	var (
-		descSource DescriptorSource
-	)
-
 	// get types from cache
 	key := e.typeCacher.makeKey(svc, mth)
 	model, ok := e.typeCacher.get(key)
@@ -480,8 +253,7 @@ func (e *EngineHandler) ExtractProtoType(svc, mth string) (proto.Message, proto.
 		return model.reqType, model.respType, nil
 	}
 
-	descSource = descSourceController.descSource
-	dsc, err := descSource.FindSymbol(svc)
+	dsc, err := e.descSource.FindSymbol(svc)
 	if err != nil {
 		if isNotFoundError(err) {
 			return nil, nil, errors.New("not find service in pb descriptor")
@@ -502,11 +274,11 @@ func (e *EngineHandler) ExtractProtoType(svc, mth string) (proto.Message, proto.
 
 	var ext dynamic.ExtensionRegistry
 	alreadyFetched := map[string]bool{}
-	if err = fetchAllExtensions(descSource, &ext, mtd.GetInputType(), alreadyFetched); err != nil {
+	if err = fetchAllExtensions(e.descSource, &ext, mtd.GetInputType(), alreadyFetched); err != nil {
 		return nil, nil, fmt.Errorf("error resolving server extensions for message %s: %v", mtd.GetInputType().GetFullyQualifiedName(), err)
 	}
 
-	if err = fetchAllExtensions(descSource, &ext, mtd.GetOutputType(), alreadyFetched); err != nil {
+	if err = fetchAllExtensions(e.descSource, &ext, mtd.GetOutputType(), alreadyFetched); err != nil {
 		return nil, nil, fmt.Errorf("error resolving server extensions for message %s: %v", mtd.GetOutputType().GetFullyQualifiedName(), err)
 	}
 

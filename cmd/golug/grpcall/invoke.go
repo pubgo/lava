@@ -424,56 +424,6 @@ func (in *InvokeHandler) invokeServerStream(pctx context.Context, stub grpcdynam
 	return result, nil
 }
 
-// func (in *InvokeHandler) invokeClientStream(ctx context.Context, stub grpcdynamic.Stub, md *desc.MethodDescriptor, handler InvocationEventHandler,
-// 	requestData RequestSupplier, req proto.Message) error {
-
-// 	// invoke the RPC!
-// 	str, err := stub.InvokeRpcClientStream(ctx, md)
-
-// 	// Upload each request message in the stream
-// 	var resp proto.Message
-// 	for err == nil {
-// 		err = requestData(req)
-// 		if err == io.EOF {
-// 			resp, err = str.CloseAndReceive()
-// 			break
-// 		}
-// 		if err != nil {
-// 			return fmt.Errorf("error getting request data: %v", err)
-// 		}
-
-// 		err = str.SendMsg(req)
-// 		if err == io.EOF {
-// 			// We get EOF on send if the server says "go away"
-// 			// We have to use CloseAndReceive to get the actual code
-// 			resp, err = str.CloseAndReceive()
-// 			break
-// 		}
-
-// 		req.Reset()
-// 	}
-
-// 	// finally, process response data
-// 	stat, ok := status.FromError(err)
-// 	if !ok {
-// 		// Error codes sent from the server will get printed differently below.
-// 		// So just bail for other kinds of errors here.
-// 		return fmt.Errorf("grpc call for %q failed: %v", md.GetFullyQualifiedName(), err)
-// 	}
-
-// 	if respHeaders, err := str.Header(); err == nil {
-// 		handler.OnReceiveHeaders(respHeaders)
-// 	}
-
-// 	if stat.Code() == codes.OK {
-// 		handler.OnReceiveResponse(resp)
-// 	}
-
-// 	// handler.OnReceiveTrailers(stat, str.Trailer())
-
-// 	return nil
-// }
-
 type notFoundError string
 
 func notFound(kind, name string) error {
