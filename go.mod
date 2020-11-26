@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/gofiber/fiber/v2 v2.2.0
@@ -25,6 +26,7 @@ require (
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.3
 	github.com/pubgo/xprotogen v0.0.3
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v1.1.1

@@ -61,6 +61,6 @@ clear:
 gen:
 	cd cmd/protoc-gen-golug && go install .
 
-.PHONY: example
-example:
+.PHONY: build-example
+build-example:
 	go build ${LDFLAGS} -mod vendor -v -o main example/main.go
