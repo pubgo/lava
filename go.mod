@@ -27,7 +27,7 @@ require (
 	github.com/pubgo/xerror v0.2.13
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.3
-	github.com/pubgo/xprotogen v0.0.3
+	github.com/pubgo/xprotogen v0.0.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/smartystreets/goconvey v1.6.4
@@ -43,6 +43,7 @@ require (
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
 	google.golang.org/grpc v1.33.2
+	google.golang.org/grpc/examples v0.0.0-20201125005357-44e408dab41e // indirect
 	google.golang.org/protobuf v1.25.0
 	vitess.io/vitess v0.7.0
 )
