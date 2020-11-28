@@ -39,9 +39,6 @@ func (w YomoFrameworkStreamWriter) Write(b []byte) (c int, e error) {
 	}()
 
 	var (
-		err    error = nil
-		value  interface{}
-		result interface{}
 		num    = 0
 		sum    = 0
 	)

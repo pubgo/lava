@@ -1,4 +1,4 @@
-package golug_app
+package golug_cmd
 
 import (
 	"os"
