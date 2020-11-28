@@ -1,5 +1,65 @@
-# golug
-一个高度集成的go web框架
+# [golug](https://www.notion.so/barrylog/golug-96142de3b0444b6c905886efac96eeb0)
 
-## grpcurl
-https://github.com/fullstorydev/grpcurl
+1. golug是一个高度抽象和集成的微服务框架
+2. golug集成了config, log, command, plugin, grpc, http(fiber), task, broker等组件
+3. golug使用方便, 统一入口
+4. golug把http, grpc等server抽象成统一的entry, 统一使用习惯
+5. golug统一运行入口, 让多个服务同时集成和运行
+6. golug对grpc的protobuf进行定制处理, 让grpc server register更加方便
+7. golug 抽象plugin, 跟随config的动态化加载,
+
+## example
+
+```go
+package http_entry
+
+import (
+	"fmt"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/golug"
+	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/xerror"
+)
+
+func GetEntry() golug_entry.Entry {
+	ent := golug.NewHttpEntry("http")
+	xerror.Panic(ent.Version("v0.0.1"))
+	xerror.Panic(ent.Description("entry http test"))
+
+	ent.Use(func(ctx *fiber.Ctx) error {
+		fmt.Println("ok")
+
+		return ctx.Next()
+	})
+
+	ent.Group("/api", func(r fiber.Router) {
+		r.Get("/", func(ctx *fiber.Ctx) error {
+			_, err := ctx.WriteString("ok")
+			return err
+		})
+	})
+
+	return ent
+}
+```
+
+```go
+import (
+	"github.com/pubgo/golug"
+	"github.com/pubgo/golug/example/ctl_entry"
+	"github.com/pubgo/golug/example/grpc_entry"
+	"github.com/pubgo/golug/example/http_entry"
+	"github.com/pubgo/xerror"
+)
+
+func main() {
+	xerror.Exit(golug.Init())
+	xerror.Exit(golug.Run(
+		http_entry.GetEntry(),
+		ctl_entry.GetEntry(),
+		grpc_entry.GetEntry(),
+		grpc_entry.GetHttpEntry(),
+	))
+}
+```
