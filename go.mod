@@ -24,6 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/olekukonko/tablewriter v0.0.5-0.20200416053754-163badb3bac6
 	github.com/opentracing/opentracing-go v1.2.0
+	github.com/panjf2000/gnet v1.3.2
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.3
 	github.com/pubgo/xerror v0.2.13
@@ -40,7 +41,7 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	github.com/valyala/fasthttp v1.17.0
-	go.uber.org/atomic v1.6.0
+	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	golang.org/x/tools v0.0.0-20200904185747-39188db58858
