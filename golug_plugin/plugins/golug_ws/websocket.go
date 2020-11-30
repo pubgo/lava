@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io"
 	"sync"
-	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -12,39 +11,11 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Config ...
-type Config struct {
-	// Filter defines a function to skip middleware.
-	// Optional. Default: nil
-	Filter func(*fiber.Ctx) bool
-
-	// HandshakeTimeout specifies the duration for the handshake to complete.
-	HandshakeTimeout time.Duration
-
-	// Subprotocols specifies the client's requested subprotocols.
-	Subprotocols []string
-
-	// Allowed Origin's based on the Origin header, this validate the request origin to
-	// prevent cross-site request forgery. Everything is allowed if left empty.
-	Origins []string
-
-	// ReadBufferSize and WriteBufferSize specify I/O buffer sizes in bytes. If a buffer
-	// size is zero, then a useful default size is used. The I/O buffer sizes
-	// do not limit the size of the messages that can be sent or received.
-	ReadBufferSize, WriteBufferSize int
-
-	// EnableCompression specifies if the client should attempt to negotiate
-	// per message compression (RFC 7692). Setting this value to true does not
-	// guarantee that compression will be supported. Currently only "no context
-	// takeover" modes are supported.
-	EnableCompression bool
-}
-
 // New returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
-func NewWS(handler func(*Conn), config ...Config) fiber.Handler {
+func NewWS(handler func(*Conn), config ...WsCfg) fiber.Handler {
 	// Init config
-	var cfg Config
+	var cfg WsCfg
 	if len(config) > 0 {
 		cfg = config[0]
 	}
@@ -57,17 +28,17 @@ func NewWS(handler func(*Conn), config ...Config) fiber.Handler {
 	if cfg.WriteBufferSize == 0 {
 		cfg.WriteBufferSize = 1024
 	}
-	var upgrader = websocket.FastHTTPUpgrader{
+	var upGrader = websocket.FastHTTPUpgrader{
 		HandshakeTimeout:  cfg.HandshakeTimeout,
-		Subprotocols:      cfg.Subprotocols,
+		Subprotocols:      cfg.SubProtocols,
 		ReadBufferSize:    cfg.ReadBufferSize,
 		WriteBufferSize:   cfg.WriteBufferSize,
 		EnableCompression: cfg.EnableCompression,
-		CheckOrigin: func(fctx *fasthttp.RequestCtx) bool {
+		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool {
 			if cfg.Origins[0] == "*" {
 				return true
 			}
-			origin := utils.GetString(fctx.Request.Header.Peek("Origin"))
+			origin := utils.GetString(ctx.Request.Header.Peek("Origin"))
 			for i := range cfg.Origins {
 				if cfg.Origins[i] == origin {
 					return true
@@ -99,7 +70,7 @@ func NewWS(handler func(*Conn), config ...Config) fiber.Handler {
 			conn.cookies[string(key)] = string(value)
 		})
 
-		if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
+		if err := upGrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
 			conn.Conn = fconn
 			defer releaseConn(conn)
 			handler(conn)

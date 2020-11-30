@@ -71,6 +71,11 @@ watcher:
   enabled: true
   address:
     - "127.0.0.1:2379"
+ws:
+  enabled: true
+  configs:
+    default:
+      origins: ["*"]
 etcd:
   enabled: true
   default:
