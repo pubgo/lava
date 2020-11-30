@@ -23,6 +23,7 @@ type Entry interface {
 	Commands(commands ...*cobra.Command) error
 	Run() RunEntry
 	UnWrap(fn interface{}) error
+	Dix(data ...interface{}) error
 }
 
 type Option func(o *Options)

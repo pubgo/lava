@@ -24,6 +24,11 @@ type baseEntry struct {
 	opts golug_entry.Options
 }
 
+func (t *baseEntry) Dix(data ...interface{}) (err error) {
+	defer xerror.RespErr(&err)
+	return xerror.Wrap(dix.Dix(data...))
+}
+
 func (t *baseEntry) Decode(name string, fn interface{}) (err error) {
 	return xerror.Wrap(golug_config.Decode(name, fn))
 }
