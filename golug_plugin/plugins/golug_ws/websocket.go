@@ -1,4 +1,4 @@
-package ws_entry
+package golug_ws
 
 import (
 	"errors"

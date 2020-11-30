@@ -1,4 +1,4 @@
-package quic_entry
+package golug_quic
 
 import (
 	"bytes"

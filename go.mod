@@ -5,6 +5,8 @@ go 1.14
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/aliyun/aliyun-oss-go-sdk v2.1.5+incompatible
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/facebook/ent v0.5.0
 	github.com/fasthttp/websocket v1.4.3
 	github.com/fsnotify/fsnotify v1.4.9
@@ -24,7 +26,6 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/olekukonko/tablewriter v0.0.5-0.20200416053754-163badb3bac6
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/panjf2000/gnet v1.3.2
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.3
 	github.com/pubgo/xerror v0.2.13

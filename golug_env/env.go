@@ -39,6 +39,22 @@ func Get(val *string, names ...string) {
 	}
 }
 
+func GetSysEnv(names ...string) string {
+	var val string
+	GetSys(&val, names...)
+	return val
+}
+
+func GetSys(val *string, names ...string) {
+	for _, name := range names {
+		env, ok := os.LookupEnv(upper(name))
+		env = trim(env)
+		if ok && env != "" {
+			*val = env
+		}
+	}
+}
+
 // Expand
 // replaces ${var} or $var in the string according to the values
 // of the current environment variables. References to undefined

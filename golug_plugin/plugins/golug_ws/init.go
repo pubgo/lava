@@ -1,4 +1,4 @@
-package ws_entry
+package golug_ws
 
 import (
 	"github.com/pubgo/golug/golug_log"
@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-const Name = "ws_entry"
+const Name = "ws"
 
 var log xlog.XLog
 
