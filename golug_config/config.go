@@ -2,6 +2,7 @@ package golug_config
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"syscall"
 
@@ -18,6 +19,7 @@ var (
 	CfgName = "config"
 	Debug   = true
 	IsBlock = true
+	CfgPath = filepath.Join(golug_env.Home, "config.yaml")
 	cfg     *Config
 	Signal  os.Signal = syscall.Signal(0)
 )
@@ -29,7 +31,7 @@ type Config struct {
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
 	flags.StringVarP(&golug_env.Mode, "mode", "m", golug_env.Mode, "running mode(dev|test|stag|prod|release)")
-	flags.StringVarP(&golug_env.Home, "home", "c", golug_env.Home, "project config home dir")
+	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "project config path")
 	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable log debug level")
 	flags.BoolVarP(&golug_env.Trace, "trace", "t", golug_env.Trace, "enable trace")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
