@@ -6,13 +6,6 @@ app:
   debug: true
 recovery:
   enabled: true
-nsq:
-  enabled: true
-  configs:
-    default:
-      enabled: true
-      address: "localhost:4150"
-      lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
 task_entry:
   enabled: true
   consumers:
@@ -103,30 +96,12 @@ mongodb:
   enabled: true
   default:
     url: "mongodb://localhost:8080"
-log:
+nsq:
   enabled: true
-  level: debug
-  development: true
-  disableCaller: false
-  disableStacktrace: false
-  sampling: null
-  encoding: console
-  encoderConfig:
-    messageKey: M
-    levelKey: L
-    timeKey: T
-    nameKey: 'N'
-    callerKey: C
-    stacktraceKey: S
-    lineEnding: |+
-    levelEncoder: capitalColor
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: default
-    nameEncoder: ''
-  outputPaths:
-    - stderr
-  errorOutputPaths:
-    - stderr
-  initialFields:
-    name: test
+  configs:
+    default:
+      address: "localhost:4150"
+      lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+    test_shanghai:
+      address: "localhost:4150"
+      lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]

@@ -1,0 +1,10 @@
+enabled: true
+configs:
+  default:
+    enabled: true
+    address: "localhost:4150"
+    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+  test_shanghai:
+    enabled: true
+    address: "localhost:4150"
+    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]

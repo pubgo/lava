@@ -1,9 +1,13 @@
 package golug_config
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"syscall"
+	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/golug_env"
@@ -42,6 +46,18 @@ func GetCfg() *Config {
 		xerror.Panic(xerror.New("config should be init"))
 	}
 	return cfg
+}
+
+//go:linkname unMarshalReader github.com/spf13/viper.(*Viper).unmarshalReader
+func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
+
+func UnMarshal(v *viper.Viper, path string) map[string]interface{} {
+	dt, err := ioutil.ReadFile(path)
+	xerror.ExitF(err, path)
+
+	var c = make(map[string]interface{})
+	xerror.ExitF(unMarshalReader(v, bytes.NewBuffer(dt), c), path)
+	return c
 }
 
 // Decode

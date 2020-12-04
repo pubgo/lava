@@ -2,9 +2,11 @@ package golug_config
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
@@ -25,14 +27,16 @@ func Init() (err error) {
 	golug_env.Get(&golug_env.Project, "project", "name", "server_name")
 
 	{
-		v := viper.New()
+		cfg = &Config{Viper: viper.New()}
+		v := cfg.Viper
+
 		if CfgPath != "" {
 			CfgPath = xerror.PanicStr(filepath.Abs(CfgPath))
 			CfgPath = xerror.PanicStr(filepath.EvalSymlinks(CfgPath))
 			CfgType = filepath.Ext(CfgPath)
 			CfgName = strings.TrimRight(filepath.Base(CfgPath), "."+CfgType)
 			v.SetConfigFile(CfgPath)
-			golug_env.Home = filepath.Dir(CfgPath)
+			golug_env.Home = filepath.Dir(filepath.Dir(CfgPath))
 		}
 
 		// 配置文件名字和类型
@@ -64,7 +68,35 @@ func Init() (err error) {
 		// 获取配置文件所在目录
 		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(v.ConfigFileUsed()))))
 
-		cfg = &Config{Viper: v}
+		xerror.Exit(filepath.Walk(filepath.Join(golug_env.Home, "config"), func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return xerror.Wrap(err)
+			}
+
+			if !strings.HasSuffix(info.Name(), CfgType) {
+				return nil
+			}
+
+			if info.Name() == CfgName+"."+CfgType {
+				return nil
+			}
+
+			ns := strings.Split(info.Name(), ".")
+			if len(ns) != 3 {
+				xerror.Exit(xerror.Fmt("config name error, %s", info.Name()))
+			}
+
+			name := ns[1]
+			val := v.GetStringMap(name)
+			val1 := UnMarshal(v, path)
+			if val != nil {
+				xerror.Panic(mergo.Map(&val, val1, mergo.WithOverwriteWithEmptyValue, mergo.WithTypeCheck))
+				val1 = val
+			}
+			v.Set(name, val1)
+
+			return nil
+		}))
 	}
 
 	//_, err = cfg.Load("watcher")
