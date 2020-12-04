@@ -27,9 +27,12 @@ func Init() (err error) {
 	{
 		v := viper.New()
 		if CfgPath != "" {
+			CfgPath = xerror.PanicStr(filepath.Abs(CfgPath))
+			CfgPath = xerror.PanicStr(filepath.EvalSymlinks(CfgPath))
 			CfgType = filepath.Ext(CfgPath)
 			CfgName = strings.TrimRight(filepath.Base(CfgPath), "."+CfgType)
 			v.SetConfigFile(CfgPath)
+			golug_env.Home = filepath.Dir(CfgPath)
 		}
 
 		// 配置文件名字和类型
