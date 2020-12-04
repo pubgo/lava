@@ -12,14 +12,54 @@ import (
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "Check",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/check",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "BindVerify",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/bind-verify",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "BindChange",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/bind-change",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "AutomaticBind",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/automatic-bind",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "BindPhoneParse",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/bind-phone-parse",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "BindPhoneParseByOneClick",
+		Method:        "POST",
+		Path:          "/user/bind-telephone/bind-phone-parse-by-one-click",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterBindTelephoneServer), _mth)
 }

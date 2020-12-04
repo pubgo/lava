@@ -12,28 +12,44 @@ import (
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "Version",
+		Method:        "POST",
+		Path:          "/hello_test_api/version",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "VersionTest",
+		Method:        "test",
+		Path:          "/v1/example/versiontest",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterTestApiServer), _mth)
 }
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "Version1",
+		Method:        "POST",
+		Path:          "/v2/example/version",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "VersionTest1",
+		Method:        "POST",
+		Path:          "/v2/example/versiontest",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterTestApiV2Server), _mth)
 }

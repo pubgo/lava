@@ -2,7 +2,6 @@ package http_entry
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"reflect"
 
@@ -56,8 +55,7 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 			continue
 		}
 
-		var handlers []golug_entry.GrpcRestHandler
-		xerror.PanicF(json.Unmarshal([]byte(data.(string)), &handlers), "data:%#v", data)
+		var handlers = data.([]golug_entry.GrpcRestHandler)
 
 		vh := reflect.ValueOf(handler)
 		for _, h := range handlers {

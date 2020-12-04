@@ -12,14 +12,46 @@ import (
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "Telephone",
+		Method:        "POST",
+		Path:          "/user/merge/telephone",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "TelephoneCheck",
+		Method:        "POST",
+		Path:          "/user/merge/telephone-check",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "WeChat",
+		Method:        "POST",
+		Path:          "/user/merge/we-chat",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "WeChatCheck",
+		Method:        "POST",
+		Path:          "/user/merge/we-chat-check",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "WeChatUnMerge",
+		Method:        "POST",
+		Path:          "/user/merge/we-chat-un-merge",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterMergeServer), _mth)
 }

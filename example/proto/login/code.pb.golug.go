@@ -12,14 +12,46 @@ import (
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "SendCode",
+		Method:        "POST",
+		Path:          "/user/code/send-code",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "Verify",
+		Method:        "POST",
+		Path:          "/user/code/verify",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "IsCheckImageCode",
+		Method:        "POST",
+		Path:          "/user/code/is-check-image-code",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "VerifyImageCode",
+		Method:        "POST",
+		Path:          "/user/code/verify-image-code",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "GetSendStatus",
+		Method:        "POST",
+		Path:          "/user/code/get-send-status",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterCodeServer), _mth)
 }

@@ -12,14 +12,38 @@ import (
 
 func init() {
 	var _mth []golug_entry.GrpcRestHandler
-	for _, m := range ss.GetMethod() {
-		_mth = append(_mth, golug_entry.GrpcRestHandler{
-			Name:          m.GetName(),
-			Method:        m.HttpMethod,
-			Path:          m.HttpPath,
-			ClientStream:  m.CS,
-			ServerStreams: m.SS,
-		})
-	}
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "TestStream",
+		Method:        "POST",
+		Path:          "/hello_transport/test_stream",
+		ClientStream:  "True" == "True",
+		ServerStreams: "True" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "TestStream1",
+		Method:        "POST",
+		Path:          "/hello_transport/test_stream1",
+		ClientStream:  "True" == "True",
+		ServerStreams: "False" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "TestStream2",
+		Method:        "POST",
+		Path:          "/hello_transport/test_stream2",
+		ClientStream:  "False" == "True",
+		ServerStreams: "True" == "True",
+	})
+
+	_mth = append(_mth, golug_entry.GrpcRestHandler{
+		Name:          "TestStream3",
+		Method:        "POST",
+		Path:          "/hello_transport/test_stream3",
+		ClientStream:  "False" == "True",
+		ServerStreams: "False" == "True",
+	})
+
 	golug_data.Add(reflect.ValueOf(RegisterTransportServer), _mth)
 }

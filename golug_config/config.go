@@ -2,7 +2,6 @@ package golug_config
 
 import (
 	"os"
-	"path/filepath"
 	"reflect"
 	"syscall"
 
@@ -19,7 +18,7 @@ var (
 	CfgName = "config"
 	Debug   = true
 	IsBlock = true
-	CfgPath = filepath.Join(golug_env.Home, "config.yaml")
+	CfgPath = ""
 	cfg     *Config
 	Signal  os.Signal = syscall.Signal(0)
 )

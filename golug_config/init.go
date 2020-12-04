@@ -26,15 +26,15 @@ func Init() (err error) {
 
 	{
 		v := viper.New()
+		if CfgPath != "" {
+			CfgType = filepath.Ext(CfgPath)
+			CfgName = strings.TrimRight(filepath.Base(CfgPath), "."+CfgType)
+			v.SetConfigFile(CfgPath)
+		}
+
 		// 配置文件名字和类型
 		v.SetConfigType(CfgType)
 		v.SetConfigName(CfgName)
-
-
-		v.SetConfigFile()
-
-		ext := filepath.Ext(CfgPath)
-		cfg := strings.TrimRight(filepath.Base(CfgPath), "."+ext)
 
 		// config 路径
 		v.AddConfigPath(".")

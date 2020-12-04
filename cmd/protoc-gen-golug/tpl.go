@@ -16,18 +16,18 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 )
 
-{% for s in fd.GetService() %}
+{% for ss in fd.GetService() %}
 	func init() {
 		var _mth []golug_entry.GrpcRestHandler
-		for _, m := range ss.GetMethod() {
+		{% for m in ss.GetMethod() %}
 			_mth = append(_mth, golug_entry.GrpcRestHandler{
-				Name:          m.GetName(),
-				Method:        m.HttpMethod,
-				Path:          m.HttpPath,
-				ClientStream:  m.CS,
-				ServerStreams: m.SS,
+				Name:         "{{m.GetName()}}",
+				Method:       "{{m.HttpMethod}}",
+				Path:          "{{m.HttpPath}}",
+				ClientStream:  "{{m.CS}}"=="True",
+				ServerStreams: "{{m.SS}}"=="True",
 			})
-		}
-		golug_data.Add(reflect.ValueOf(Register{{s.Srv}}Server),_mth)
+		{% endfor %}
+		golug_data.Add(reflect.ValueOf(Register{{ss.Srv}}Server),_mth)
 	}
 {% endfor %}`
