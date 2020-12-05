@@ -2,14 +2,14 @@ module github.com/pubgo/golug
 
 go 1.14
 
+replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
+
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.5+incompatible
 	github.com/andybalholm/brotli v1.0.1 // indirect
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
-	github.com/coreos/etcd v3.3.25+incompatible
-	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/facebook/ent v0.5.0
 	github.com/fasthttp/websocket v1.4.3
 	github.com/fsnotify/fsnotify v1.4.9
@@ -22,7 +22,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
-	github.com/improbable-eng/grpc-web v0.13.0 // indirect
 	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.10
 	github.com/klauspost/compress v1.11.3 // indirect
@@ -59,9 +58,9 @@ require (
 	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20200904185747-39188db58858
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
-    google.golang.org/grpc v1.27.0
-    google.golang.org/protobuf v1.25.0
+	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154
+	google.golang.org/grpc v1.31.0
+	github.com/coreos/etcd v3.3.25+incompatible
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

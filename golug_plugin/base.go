@@ -2,6 +2,7 @@ package golug_plugin
 
 import (
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ type Base struct {
 	Name       string
 	Enabled    bool `yaml:"enabled" json:"enabled" toml:"enabled"`
 	OnInit     func(ent golug_entry.Entry)
-	OnWatch    func(r *Response)
+	OnWatch    func(r *golug_watcher.Response)
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 }
@@ -42,7 +43,7 @@ func (p *Base) Init(ent golug_entry.Entry) (err error) {
 	return nil
 }
 
-func (p *Base) Watch(r *Response) (err error) {
+func (p *Base) Watch(r *golug_watcher.Response) (err error) {
 	defer xerror.RespErr(&err)
 
 	if !p.Enabled {

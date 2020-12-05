@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog/xlog_config"
 	"github.com/spf13/pflag"
@@ -26,7 +27,7 @@ func init() {
 			xerror.Panic(ent.Decode(name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},
-		OnWatch: func(r *golug_plugin.Response) {
+		OnWatch: func(r *golug_watcher.Response) {
 			xerror.Panic(r.Decode(&cfg))
 			xerror.Panic(initLog(cfg))
 		},

@@ -2,6 +2,7 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/xlog"
 	"net"
 
 	"github.com/pubgo/dix/dix_run"
@@ -73,18 +74,20 @@ func (t *grpcEntry) Start() (err error) {
 	// 方便grpcurl调用和调试
 	reflection.Register(t.server)
 
-	cancel := xprocess.Go(func(ctx context.Context) (err error) {
-		defer xerror.RespErr(&err)
+	cancel := xprocess.Go(func(ctx context.Context) {
+		defer xerror.Resp(func(err xerror.XErr) {
+			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
+		})
 
 		ts := xerror.PanicErr(net.Listen("tcp", t.Options().Addr)).(net.Listener)
 		log.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			log.Error(err.Error())
 		}
-		return nil
+		return
 	})
 
-	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { xerror.Panic(cancel()) }))
+	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { cancel() }))
 
 	return nil
 }

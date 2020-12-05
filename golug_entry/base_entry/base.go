@@ -2,7 +2,6 @@ package base_entry
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/golug_version"
 	"reflect"
 	"strings"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_util"
+	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

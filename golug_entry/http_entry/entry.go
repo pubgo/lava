@@ -140,21 +140,21 @@ func (t *httpEntry) Start() (err error) {
 		t.handlers[i]()
 	}
 
-	cancel := xprocess.Go(func(ctx context.Context) (err error) {
+	cancel := xprocess.Go(func(ctx context.Context) {
 		defer xerror.RespErr(&err)
 
 		addr := t.Options().Addr
 		log.Infof("Server [http] Listening on http://%s", addr)
 		if err := t.app.Listen(addr); err != nil && err != http.ErrServerClosed {
 			log.Error(xerror.Parse(err).Stack(true))
-			return nil
+			return
 		}
 
 		log.Infof("Server [http] Closed OK")
-		return nil
+		return
 	})
 
-	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { xerror.Panic(cancel()) }))
+	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { cancel() }))
 
 	return nil
 }
