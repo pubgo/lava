@@ -27,8 +27,6 @@ import (
 
 	// Register gzip compressor so compressed responses will work
 	_ "google.golang.org/grpc/encoding/gzip"
-	// Register xds so xds and xds-experimental resolver schemes work
-	_ "google.golang.org/grpc/xds"
 )
 
 // To avoid confusion between program error codes and the gRPC resonse
