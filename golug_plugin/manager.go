@@ -2,6 +2,7 @@ package golug_plugin
 
 import (
 	"encoding/json"
+	"github.com/pubgo/golug/golug_watcher"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -89,8 +90,9 @@ func (m *manager) Register(pg Plugin, opts ...ManagerOption) error {
 	} else {
 		m.plugins[options.Module] = append(m.plugins[options.Module], pg)
 	}
+
+	golug_watcher.Watch(name, pg.Watch)
 	return nil
-	//return xerror.Wrap(golug_watcher.Watch(name, pg.Watch))
 }
 
 func (m *manager) isRegistered(plg Plugin, opts ...ManagerOption) bool {

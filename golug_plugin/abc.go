@@ -1,10 +1,8 @@
 package golug_plugin
 
 import (
-	"encoding/json"
-
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -19,20 +17,8 @@ type ManagerOptions struct {
 	Module string
 }
 
-type Response struct {
-	Event    string
-	Key      []byte
-	Value    []byte
-	Revision int64
-}
-
-func (t *Response) Decode(val interface{}) (err error) {
-	defer xerror.RespErr(&err)
-	return xerror.Wrap(json.Unmarshal(t.Value, val))
-}
-
 type Plugin interface {
-	Watch(r *Response) error
+	Watch(r *golug_watcher.Response) error
 	Init(ent golug_entry.Entry) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command

@@ -73,6 +73,10 @@ func Init() (err error) {
 				return xerror.Wrap(err)
 			}
 
+			if info.IsDir() {
+				return nil
+			}
+
 			if !strings.HasSuffix(info.Name(), CfgType) {
 				return nil
 			}
@@ -98,11 +102,6 @@ func Init() (err error) {
 			return nil
 		}))
 	}
-
-	//_, err = cfg.Load("watcher")
-	//if err != nil {
-	//	xlog.Debugf("config [watcher] is error: %v", err)
-	//}
 
 	return nil
 }
