@@ -65,6 +65,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 	var rootCmd = &cobra.Command{Use: golug_env.Domain, Version: version.Version}
 	rootCmd.PersistentFlags().AddFlagSet(golug_config.DefaultFlags())
+	rootCmd.PersistentFlags().AddFlagSet(golug_env.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for _, ent := range entries {
@@ -91,10 +92,10 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 			xerror.Panic(Start(ent))
 
-			if golug_config.IsBlock {
+			if golug_env.IsBlock {
 				ch := make(chan os.Signal, 1)
 				signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-				golug_config.Signal = <-ch
+				golug_env.Signal = <-ch
 			}
 
 			xerror.Panic(Stop(ent))

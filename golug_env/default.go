@@ -1,21 +1,27 @@
 package golug_env
 
 import (
+	"os"
 	"path/filepath"
 	"strconv"
+	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
+	"github.com/spf13/pflag"
 )
 
 // 默认的全局配置
 var (
-	Domain  = "golug"
-	Trace   = false
-	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
-	Project = "golug"
-	Mode    = "dev"
+	Debug             = true
+	IsBlock           = true
+	Domain            = "golug"
+	Trace             = false
+	Home              = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	Project           = "golug"
+	Mode              = "dev"
+	Signal  os.Signal = syscall.Signal(0)
 	// RunMode 项目运行模式
 	RunMode = struct {
 		Dev     string
@@ -79,4 +85,13 @@ func init() {
 			xerror.Panic(xerror.Fmt("running mode does not match, mode: %s", Mode))
 		}
 	}))
+}
+
+func DefaultFlags() *pflag.FlagSet {
+	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
+	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
+	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable log debug level")
+	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
+	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
+	return flags
 }

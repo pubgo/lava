@@ -4,13 +4,10 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"os"
 	"reflect"
-	"syscall"
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -20,11 +17,8 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Debug   = true
-	IsBlock = true
 	CfgPath = ""
 	cfg     *Config
-	Signal  os.Signal = syscall.Signal(0)
 )
 
 type Config struct {
@@ -33,11 +27,7 @@ type Config struct {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&golug_env.Mode, "mode", "m", golug_env.Mode, "running mode(dev|test|stag|prod|release)")
 	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "project config path")
-	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable log debug level")
-	flags.BoolVarP(&golug_env.Trace, "trace", "t", golug_env.Trace, "enable trace")
-	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	return flags
 }
 

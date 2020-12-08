@@ -1,9 +1,9 @@
 package ctl_entry
 
 import (
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 )
 
@@ -17,7 +17,7 @@ type ctlEntry struct {
 
 func (t *ctlEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
-	golug_config.IsBlock = false
+	golug_env.IsBlock = false
 	t.handler()
 	return nil
 }
