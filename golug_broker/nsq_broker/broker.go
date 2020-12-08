@@ -38,7 +38,7 @@ func (t *nsqBroker) Publish(topic string, msg *golug_broker.Message, opts ...gol
 		return nil
 	}
 
-	n, _err := golug_nsq.GetNsq(t.name)
+	n, _err := golug_nsq.GetClient(t.name)
 	xerror.Panic(_err)
 
 	p := xerror.PanicErr(n.Producer(topic)).(*nsq.Producer)
@@ -57,7 +57,7 @@ func (t *nsqBroker) Subscribe(topic string, handler golug_broker.Handler, opts .
 		opt(&_opts)
 	}
 
-	n, _err := golug_nsq.GetNsq(t.name)
+	n, _err := golug_nsq.GetClient(t.name)
 	xerror.Panic(_err)
 
 	c := xerror.PanicErr(n.Consumer(topic, _opts.Queue)).(*nsq.Consumer)

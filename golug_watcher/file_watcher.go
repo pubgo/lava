@@ -2,14 +2,12 @@ package golug_watcher
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -17,24 +15,6 @@ import (
 )
 
 var _ Watcher = (*fileWatcher)(nil)
-
-func init() {
-	w := newFileWatcher()
-	xerror.Exit(filepath.Walk(filepath.Join(golug_env.Home, "config"), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return xerror.Wrap(err)
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		xerror.Panic(w.watcher.Add(path))
-		return nil
-	}))
-
-	watchers = append(watchers, w)
-}
 
 func newFileWatcher() *fileWatcher {
 	watcher, err := fsnotify.NewWatcher()
@@ -59,7 +39,7 @@ func (t *fileWatcher) Start() (err error) {
 		select {
 		case event, ok := <-t.watcher.Events:
 			if !ok {
-				return
+				xerror.Done()
 			}
 
 			name := filepath.Base(event.Name)

@@ -3,10 +3,10 @@ package golug_nsq
 import "time"
 
 type Cfg struct {
-	Configs map[string]NsqCfg `yaml:"configs" json:"configs" toml:"configs"`
+	Configs map[string]ClientCfg `yaml:"configs" json:"configs" toml:"configs"`
 }
 
-type NsqCfg struct {
+type ClientCfg struct {
 	Enabled        bool          `yaml:"enabled" json:"enabled" toml:"enabled"`
 	Topic          string        `json:"topic"`
 	Channel        string        `json:"channel"`

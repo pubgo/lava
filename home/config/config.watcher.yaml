@@ -1,0 +1,7 @@
+enabled: true
+configs:
+  file:
+    enabled: true
+  etcd:
+    enabled: true
+    driver: "default"

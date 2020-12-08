@@ -53,9 +53,8 @@ func (w *etcdWatcher) Start() error {
 	rch := w.client.Watch(context.Background(), w.path, clientv3.WithRev(w.revision+1), clientv3.WithPrefix())
 	w.cancel = xprocess.GoLoop(func(ctx context.Context) {
 		resp, ok := <-rch
-
 		if !ok {
-			return
+			xerror.Done()
 		}
 
 		if err := resp.Err(); err != nil {
@@ -64,22 +63,22 @@ func (w *etcdWatcher) Start() error {
 		}
 
 		var wg = xprocess.NewGroup()
+		defer wg.Wait()
 		for _, event := range resp.Events {
 			val, ok := w.data.Load(handleKey(string(event.Kv.Key)))
 			if !ok {
 				continue
 			}
 
-			xerror.Panic(wg.Go(func(ctx context.Context) error {
-				return xerror.Wrap(val.(CallBack)(&Response{
+			wg.Go(func(ctx context.Context) {
+				xerror.Panic(val.(CallBack)(&Response{
 					Event:    event.Type.String(),
 					Key:      handleKey(string(event.Kv.Key)),
 					Value:    event.Kv.Value,
 					Revision: event.Kv.ModRevision,
 				}))
-			}))
+			})
 		}
-		wg.Wait()
 	})
 	return nil
 }

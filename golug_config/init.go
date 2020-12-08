@@ -77,19 +77,22 @@ func Init() (err error) {
 				return nil
 			}
 
+			// 配置文件类型检查
 			if !strings.HasSuffix(info.Name(), CfgType) {
 				return nil
 			}
 
+			// 文件名字检查
 			if info.Name() == CfgName+"."+CfgType {
 				return nil
 			}
 
 			ns := strings.Split(info.Name(), ".")
 			if len(ns) != 3 {
-				xerror.Exit(xerror.Fmt("config name error, %s", info.Name()))
+				xerror.Exit(xerror.Fmt("config name error, %s", path))
 			}
 
+			// 合并所有的配置文件到内存当中
 			name := ns[1]
 			val := v.GetStringMap(name)
 			val1 := UnMarshal(v, path)

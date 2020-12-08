@@ -77,7 +77,7 @@ func (p *Base) String() string {
 }
 
 func (p *Base) Flags() *pflag.FlagSet {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), xlog.Any("err", "flags error")) })
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", xlog.Any("err", err)) })
 
 	if !p.Enabled {
 		return nil

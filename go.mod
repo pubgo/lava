@@ -34,9 +34,9 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.3
-	github.com/pubgo/xerror v0.2.13
+	github.com/pubgo/xerror v0.3.1
 	github.com/pubgo/xlog v0.0.10
-	github.com/pubgo/xprocess v0.0.5
+	github.com/pubgo/xprocess v0.0.8
 	github.com/pubgo/xprotogen v0.0.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/nsq-go v1.2.4

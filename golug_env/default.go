@@ -32,6 +32,26 @@ var (
 	}
 )
 
+func IsDev() bool {
+	return Mode == RunMode.Dev
+}
+
+func IsTest() bool {
+	return Mode == RunMode.Test
+}
+
+func IsStag() bool {
+	return Mode == RunMode.Stag
+}
+
+func IsProd() bool {
+	return Mode == RunMode.Prod
+}
+
+func IsRelease() bool {
+	return Mode == RunMode.Release
+}
+
 func init() {
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等

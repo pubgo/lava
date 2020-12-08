@@ -1,4 +1,4 @@
-package golug_nsq
+package golug_etcd
 
 import (
 	"github.com/pubgo/golug/golug_entry"

@@ -9,12 +9,12 @@ import (
 	nsq "github.com/segmentio/nsq-go"
 )
 
-func GetNsq(names ...string) (*nsqClient, error) {
+func GetClient(names ...string) (*nsqClient, error) {
 	var name = golug_consts.Default
 	if len(names) > 0 {
 		name = names[0]
 	}
-	val, ok := nsqM.Load(name)
+	val, ok := clientM.Load(name)
 	if !ok {
 		return nil, xerror.Fmt("%s not found", name)
 	}
@@ -24,16 +24,16 @@ func GetNsq(names ...string) (*nsqClient, error) {
 
 type nsqClient struct {
 	mu   sync.Mutex
-	cfg  NsqCfg
+	cfg  ClientCfg
 	stop []func()
 }
 
-func initNsq(name string, cfg NsqCfg) {
-	nsqM.Store(name, &nsqClient{cfg: cfg})
+func initClient(name string, cfg ClientCfg) {
+	clientM.Store(name, &nsqClient{cfg: cfg})
 }
 
-func delNsq(name string) {
-	n, _ := GetNsq(name)
+func delClient(name string) {
+	n, _ := GetClient(name)
 	if n == nil {
 		return
 	}
@@ -43,7 +43,7 @@ func delNsq(name string) {
 	for i := range n.stop {
 		n.stop[i]()
 	}
-	nsqM.Delete(name)
+	clientM.Delete(name)
 }
 
 func (t *nsqClient) Consumer(topic string, channel string) (c *nsq.Consumer, err error) {
