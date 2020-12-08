@@ -5,7 +5,9 @@ import (
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 )
 
 func init() {
@@ -15,6 +17,8 @@ func init() {
 			return
 		}
 
+		xlog.Debug("trace [log] config")
+		fmt.Println(golug_util.MarshalIndent(List()))
 		fmt.Println()
 	}))
 }
