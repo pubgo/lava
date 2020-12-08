@@ -15,6 +15,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/go-redis/redis/v7 v7.4.0
+	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
@@ -27,6 +28,7 @@ require (
 	github.com/klauspost/compress v1.11.3 // indirect
 	github.com/lucas-clemente/quic-go v0.13.1
 	github.com/magiconair/properties v1.8.4 // indirect
+	github.com/mattn/go-sqlite3 v1.14.4
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/olekukonko/tablewriter v0.0.5-0.20200416053754-163badb3bac6
@@ -65,4 +67,5 @@ require (
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	vitess.io/vitess v0.7.0
+	xorm.io/xorm v1.0.5
 )

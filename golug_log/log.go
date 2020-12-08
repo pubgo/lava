@@ -43,7 +43,7 @@ func getDevLog() xlog.XLog {
 
 // Watch
 //
-func Watch(fn func(logs xlog.XLog)) error {
+func Watch(fn func(logs xlog.XLog)) {
 	fn(getDevLog())
-	return xerror.Wrap(dix.Dix(fn))
+	xerror.Next().Exit(dix.Dix(fn))
 }

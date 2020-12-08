@@ -7,6 +7,7 @@
 5. golug统一运行入口, 让多个服务同时集成和运行
 6. golug对grpc的protobuf进行定制处理, 让grpc server register更加方便
 7. golug 抽象plugin, 跟随config的动态化加载,
+8. golug config和watcher分离, config从本地文件加载, watcher可以从远程的任何的组件watch, 比如etcd
 
 ## example
 
