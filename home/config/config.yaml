@@ -69,11 +69,6 @@ ws:
   configs:
     default:
       origins: ["*"]
-etcd:
-  enabled: true
-  default:
-    - "127.0.0.1:2379"
-    - "127.0.0.1:2389"
 redis:
   enabled: true
   codis:

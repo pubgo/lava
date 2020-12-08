@@ -1,19 +1,20 @@
-package golug_watcher
+package etcd
 
 import (
 	"context"
 	"strings"
 	"sync"
 
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
 	"go.etcd.io/etcd/clientv3"
 )
 
-var _ Watcher = (*etcdWatcher)(nil)
+var _ golug_watcher.Watcher = (*etcdWatcher)(nil)
 
-func newEtcdWatcher(prefix string, client *clientv3.Client) Watcher {
+func NewWatcher(prefix string, client *clientv3.Client) golug_watcher.Watcher {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	resp, err := client.Get(context.Background(), prefix, clientv3.WithPrefix())
@@ -30,7 +31,6 @@ func newEtcdWatcher(prefix string, client *clientv3.Client) Watcher {
 }
 
 type etcdWatcher struct {
-	data   sync.Map
 	cancel context.CancelFunc
 
 	mu     sync.Mutex
@@ -65,13 +65,13 @@ func (w *etcdWatcher) Start() error {
 		var wg = xprocess.NewGroup()
 		defer wg.Wait()
 		for _, event := range resp.Events {
-			val, ok := w.data.Load(handleKey(string(event.Kv.Key)))
-			if !ok {
+			val := golug_watcher.GetCallBack(handleKey(string(event.Kv.Key)))
+			if val == nil {
 				continue
 			}
 
 			wg.Go(func(ctx context.Context) {
-				xerror.Panic(val.(CallBack)(&Response{
+				xerror.Panic(val(&golug_watcher.Response{
 					Event:    event.Type.String(),
 					Key:      handleKey(string(event.Kv.Key)),
 					Value:    event.Kv.Value,
@@ -80,22 +80,6 @@ func (w *etcdWatcher) Start() error {
 			})
 		}
 	})
-	return nil
-}
-
-func (w *etcdWatcher) List() []string {
-	var data []string
-	w.data.Range(func(key, _ interface{}) bool { data = append(data, key.(string)); return true })
-	return data
-}
-
-func (w *etcdWatcher) Watch(name string, h CallBack) (err error) {
-	w.data.Store(name, h)
-	return nil
-}
-
-func (w *etcdWatcher) Remove(name string) (err error) {
-	w.data.Delete(name)
 	return nil
 }
 

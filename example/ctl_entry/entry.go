@@ -2,6 +2,7 @@ package ctl_entry
 
 import (
 	"fmt"
+	"github.com/pubgo/xlog"
 
 	"github.com/pubgo/golug"
 	"github.com/pubgo/golug/golug_entry"
@@ -15,7 +16,7 @@ func GetEntry() golug_entry.Entry {
 	xerror.Panic(ent.Description("entry http test"))
 
 	ent.Register(func() {
-		fmt.Println("ok")
+		xlog.Info("ctl ok")
 	})
 
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{

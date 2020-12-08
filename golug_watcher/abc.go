@@ -11,9 +11,6 @@ type Watcher interface {
 	String() string
 	Start() error
 	Close() error
-	List() []string
-	Watch(name string, h CallBack) (err error)
-	Remove(name string) (err error)
 }
 
 type CallBack func(event *Response) error

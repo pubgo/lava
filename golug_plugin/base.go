@@ -12,8 +12,8 @@ import (
 var _ Plugin = (*Base)(nil)
 
 type Base struct {
-	Name       string
-	Enabled    bool `yaml:"enabled" json:"enabled" toml:"enabled"`
+	Name       string `yaml:"-" json:"-"`
+	Enabled    bool   `yaml:"enabled" json:"enabled"`
 	OnInit     func(ent golug_entry.Entry)
 	OnWatch    func(r *golug_watcher.Response)
 	OnCommands func(cmd *cobra.Command)

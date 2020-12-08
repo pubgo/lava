@@ -8,10 +8,16 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/golug_plugin/plugins/golug_etcd"
+	"github.com/pubgo/golug/golug_watcher"
+	"github.com/pubgo/golug/golug_watcher/watchers/etcd"
+	"github.com/pubgo/golug/golug_watcher/watchers/file"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
+	"go.etcd.io/etcd/clientv3"
 )
 
 func Init() (err error) {
@@ -97,7 +103,7 @@ func Init() (err error) {
 			val := v.GetStringMap(name)
 			val1 := UnMarshal(v, path)
 			if val != nil {
-				xerror.Panic(mergo.Map(&val, val1, mergo.WithOverwriteWithEmptyValue, mergo.WithTypeCheck))
+				xerror.Panic(mergo.Map(&val, val1, mergo.WithOverride, mergo.WithTypeCheck))
 				val1 = val
 			}
 			v.Set(name, val1)
@@ -107,4 +113,30 @@ func Init() (err error) {
 	}
 
 	return nil
+}
+
+func init() {
+	// watch
+	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
+		GetCfg().WatchConfig()
+
+		if golug_env.IsDev() || golug_env.IsTest() {
+			golug_watcher.AddWatcher(file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} {
+				return UnMarshal(GetCfg().Viper, path)
+			}))
+		}
+
+		if GetCfg().GetBool("watcher.configs.etcd.enabled") {
+			name := GetCfg().GetString("watcher.configs.etcd.driver")
+			cfg, ok := golug_etcd.GetCfg().Configs[name]
+			if ok && cfg.Enabled {
+				c := xerror.PanicErr(golug_etcd.GetClient(name)).(*clientv3.Client)
+				golug_watcher.AddWatcher(etcd.NewWatcher(golug_env.Project, c))
+			}
+		}
+
+		golug_watcher.Start()
+	}))
+
+	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { golug_watcher.Close() }))
 }

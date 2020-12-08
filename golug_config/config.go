@@ -65,7 +65,7 @@ func UnMarshal(v *viper.Viper, path string) map[string]interface{} {
 func Decode(name string, fn interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
-	if viper.Get(name) == nil {
+	if GetCfg().Get(name) == nil {
 		return nil
 	}
 
@@ -81,7 +81,7 @@ func Decode(name string, fn interface{}) (err error) {
 		}
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := reflect.ValueOf(viper.UnmarshalKey).Call(
+		ret := reflect.ValueOf(GetCfg().UnmarshalKey).Call(
 			[]reflect.Value{
 				reflect.ValueOf(name), mthIn,
 				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) { cfg.TagName = CfgType }),
@@ -93,7 +93,7 @@ func Decode(name string, fn interface{}) (err error) {
 
 		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.Wrap(viper.UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = CfgType }))
+		return xerror.Wrap(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = CfgType }))
 	default:
 		return xerror.Fmt("[fn] type error, type:%#v", fn)
 	}

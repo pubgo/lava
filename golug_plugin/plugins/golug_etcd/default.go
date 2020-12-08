@@ -1,12 +1,16 @@
 package golug_etcd
 
 import (
-	"github.com/imdario/mergo"
+	"context"
 	"github.com/pubgo/golug/golug_consts"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 )
+
+func GetCfg() Cfg {
+	return cfg
+}
 
 func GetClient(names ...string) (*clientv3.Client, error) {
 	var name = golug_consts.Default
@@ -27,6 +31,16 @@ func initClient(name string, cfg ClientCfg) {
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}
 
-	xerror.Panic(mergo.Map(&_cfg, cfg, mergo.WithOverride, mergo.WithAppendSlice))
-	clientM.Store(name, xerror.PanicErr(clientv3.New(_cfg)).(*clientv3.Client))
+	_cfg.Endpoints = cfg.Endpoints
+	_cfg.AutoSyncInterval = cfg.AutoSyncInterval
+	_cfg.DialTimeout = cfg.DialTimeout
+	_cfg.DialKeepAliveTime = cfg.DialKeepAliveTime
+	_cfg.DialKeepAliveTimeout = cfg.DialKeepAliveTimeout
+	_cfg.Username = cfg.Username
+	_cfg.Password = cfg.Password
+	_cfg.RejectOldCluster = cfg.RejectOldCluster
+	_cfg.PermitWithoutStream = cfg.PermitWithoutStream
+	c := xerror.PanicErr(clientv3.New(_cfg)).(*clientv3.Client)
+	clientM.Store(name, c)
+	xerror.PanicErr(c.AuthStatus(context.Background()))
 }

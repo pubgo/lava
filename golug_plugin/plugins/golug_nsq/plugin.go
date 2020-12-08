@@ -14,6 +14,10 @@ func init() {
 			xerror.Panic(ent.Decode(name, &cfg))
 
 			for k, v := range cfg.Configs {
+				if !v.Enabled {
+					continue
+				}
+
 				initClient(k, v)
 			}
 		},
