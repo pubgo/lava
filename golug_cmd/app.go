@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/cmd/golug/grpcall"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
@@ -102,5 +103,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		}
 		rootCmd.AddCommand(cmd)
 	}
+
+	rootCmd.AddCommand(grpcall.GetCmd())
 	return xerror.Wrap(rootCmd.Execute())
 }

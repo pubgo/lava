@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/pubgo/golug/cmd/golug/entc"
 	"github.com/pubgo/golug/cmd/golug/goimportdot"
 	"github.com/pubgo/golug/cmd/golug/golug"
 	"github.com/pubgo/golug/cmd/golug/gomod"
@@ -21,6 +20,5 @@ func main() {
 	rootCmd.AddCommand(gomod.GetCmd())
 	rootCmd.AddCommand(goimportdot.GetCmd())
 	rootCmd.AddCommand(grpcall.GetCmd())
-	rootCmd.AddCommand(entc.GetCmd())
 	xerror.Exit(rootCmd.Execute())
 }

@@ -11,7 +11,6 @@ require (
 	github.com/andybalholm/brotli v1.0.1 // indirect
 	github.com/apache/thrift v0.13.0
 	github.com/dgraph-io/badger/v2 v2.2007.2
-	github.com/facebook/ent v0.5.1
 	github.com/fasthttp/websocket v1.4.3
 	github.com/fatedier/frp v0.34.3
 	github.com/fatedier/golib v0.2.0
@@ -35,7 +34,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/olekukonko/tablewriter v0.0.5-0.20200416053754-163badb3bac6
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.3
@@ -58,12 +56,12 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible
 	github.com/valyala/fasthttp v1.17.0
+	github.com/valyala/fasttemplate v1.0.1
 	github.com/vmihailenco/msgpack/v5 v5.0.0-rc.2
 	go.etcd.io/etcd v0.0.0-20201125193152-8a03d2e9614b
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
-	golang.org/x/tools v0.0.0-20200904185747-39188db58858
 	google.golang.org/genproto v0.0.0-20201204160425-06b3db808446
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0

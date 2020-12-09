@@ -8,9 +8,11 @@ import (
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/valyala/fasttemplate"
 )
 
 // 默认的全局配置
@@ -89,4 +91,29 @@ func Decode(name string, fn interface{}) (err error) {
 	}
 
 	return
+}
+
+func Fmt(template string) string {
+	t := fasttemplate.New(template, "{{", "}}")
+	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		switch tag {
+		case "home":
+			return w.Write([]byte(golug_env.Home))
+		case "trace":
+			if golug_env.Trace {
+				return w.Write([]byte("true"))
+			}
+			return w.Write([]byte("false"))
+		case "project":
+			return w.Write([]byte(golug_env.Project))
+		case "domain":
+			return w.Write([]byte(golug_env.Domain))
+		case "mode":
+			return w.Write([]byte(golug_env.Mode))
+		case "config":
+			return w.Write([]byte(CfgName + "." + CfgType))
+		default:
+			return w.Write([]byte(GetCfg().GetString(tag)))
+		}
+	})
 }
