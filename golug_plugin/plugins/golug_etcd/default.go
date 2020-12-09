@@ -1,7 +1,6 @@
 package golug_etcd
 
 import (
-	"context"
 	"github.com/pubgo/golug/golug_consts"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
@@ -42,5 +41,4 @@ func initClient(name string, cfg ClientCfg) {
 	_cfg.PermitWithoutStream = cfg.PermitWithoutStream
 	c := xerror.PanicErr(clientv3.New(_cfg)).(*clientv3.Client)
 	clientM.Store(name, c)
-	xerror.PanicErr(c.AuthStatus(context.Background()))
 }

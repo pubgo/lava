@@ -2,6 +2,7 @@ package oss
 
 import (
 	"fmt"
+	"google.golang.org/grpc"
 	"os"
 	"testing"
 
@@ -23,6 +24,8 @@ func TestName(t *testing.T) {
 	for _, bucket := range lsRes.Buckets {
 		fmt.Println("Buckets:", bucket.Name)
 	}
+
+	grpc.DialContext()
 }
 
 func TestName1(t *testing.T) {

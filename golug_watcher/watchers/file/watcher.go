@@ -8,8 +8,8 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/golug/golug_watcher"
+	"github.com/pubgo/golug/pkg/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"

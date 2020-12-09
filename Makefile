@@ -64,3 +64,8 @@ gen:
 .PHONY: build-example
 build-example:
 	go build ${LDFLAGS} -mod vendor -v -o main example/main.go
+
+
+.PHONY: ossync
+ossync:
+	cd cmd/ossync && go install ${LDFLAGS} -v .

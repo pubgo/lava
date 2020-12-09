@@ -5,7 +5,7 @@ import (
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/golug_util"
+	"github.com/pubgo/golug/pkg/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )

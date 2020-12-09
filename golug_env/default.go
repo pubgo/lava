@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 )
@@ -62,11 +61,7 @@ func init() {
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
 	Get(&Domain, "env_prefix")
-
 	Get(&Home, "home", "dir")
-	if !golug_util.PathExist(Home) {
-		xerror.Panic(xerror.Fmt("home path [%s] not exists", Home))
-	}
 
 	// 使用前缀获取系统环境变量
 	Get(&Project, "project", "name")
