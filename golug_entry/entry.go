@@ -16,11 +16,11 @@ type RunEntry interface {
 }
 
 type Entry interface {
-	Description(description ...string) error
-	Version(v string) error
+	Description(description ...string)
+	Version(v string)
 	Decode(name string, fn interface{}) (err error)
-	Flags(fn func(flags *pflag.FlagSet)) error
-	Commands(commands ...*cobra.Command) error
+	Flags(fn func(flags *pflag.FlagSet))
+	Commands(commands ...*cobra.Command)
 	Run() RunEntry
 	UnWrap(fn interface{}) error
 	Dix(data ...interface{}) error
@@ -32,7 +32,6 @@ type Options struct {
 	Addr        string
 	Name        string
 	Version     string
-	RunCommand  *cobra.Command
 	Command     *cobra.Command
 }
 

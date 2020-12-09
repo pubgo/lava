@@ -101,7 +101,7 @@ func (t *httpEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *httpEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
 
-func (t *httpEntry) Group(prefix string, fn func(r fiber.Router)) {
+func (t *httpEntry) Router(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
 }
 
@@ -171,9 +171,9 @@ func (t *httpEntry) Stop() (err error) {
 }
 
 func (t *httpEntry) initFlags() {
-	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
+	t.Flags(func(flags *pflag.FlagSet) {
 		flags.BoolVar(&t.cfg.DisableStartupMessage, "disable_startup_message", t.cfg.DisableStartupMessage, "print out the http server art and listening address")
-	}))
+	})
 }
 
 func newEntry(name string) *httpEntry {

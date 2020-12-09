@@ -37,7 +37,6 @@ func GetEntry() golug_entry.Entry {
 			os.Getenv("oss_sk"),
 		)
 		xerror.Panic(err)
-
 		kk := xerror.PanicErr(client.Bucket("kooksee")).(*oss.Bucket)
 
 		opts := badger.DefaultOptions(filepath.Join(golug_env.Home, "db"))
@@ -66,6 +65,7 @@ func GetEntry() golug_entry.Entry {
 		run("${HOME}/Documents")
 		run("${HOME}/Downloads")
 		run("${HOME}/git/docs")
+		select {}
 	})
 
 	return ent

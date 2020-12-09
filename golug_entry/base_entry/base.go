@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/golug/pkg/golug_util"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -50,13 +51,12 @@ func (t *baseEntry) UnWrap(fn interface{}) error { panic("implement me") }
 
 func (t *baseEntry) Options() golug_entry.Options { return t.opts }
 
-func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) (err error) {
-	defer xerror.RespErr(&err)
+func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) {
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("baseEntry.Flags", xlog.Any("err", err)) })
 	fn(t.opts.Command.PersistentFlags())
-	return nil
 }
 
-func (t *baseEntry) Description(description ...string) error {
+func (t *baseEntry) Description(description ...string) {
 	t.opts.Command.Short = fmt.Sprintf("This is a %s service", t.opts.Name)
 
 	if len(description) > 0 {
@@ -69,21 +69,22 @@ func (t *baseEntry) Description(description ...string) error {
 		t.opts.Command.Example = description[2]
 	}
 
-	return nil
+	return
 }
 
-func (t *baseEntry) Version(v string) error {
+func (t *baseEntry) Version(v string) {
 	t.opts.Version = strings.TrimSpace(v)
 	if t.opts.Version == "" {
-		return xerror.New("[version] should not be null")
+		return
 	}
 
 	t.opts.Command.Version = v
 	_, err := ver.NewVersion(v)
-	return xerror.WrapF(err, "[v] version format error")
+	xerror.Next().Panic(err)
+	return
 }
 
-func (t *baseEntry) Commands(commands ...*cobra.Command) error {
+func (t *baseEntry) Commands(commands ...*cobra.Command) {
 	rootCmd := t.opts.Command
 	for _, cmd := range commands {
 		if cmd == nil {
@@ -91,12 +92,12 @@ func (t *baseEntry) Commands(commands ...*cobra.Command) error {
 		}
 
 		if rootCmd.Name() == cmd.Name() {
-			return xerror.Fmt("command(%s) already exists", cmd.Name())
+			return
 		}
 
 		rootCmd.AddCommand(cmd)
 	}
-	return nil
+	return
 }
 
 func (t *baseEntry) pluginCmd() *cobra.Command {
@@ -139,9 +140,17 @@ func (t *baseEntry) verCmd() *cobra.Command {
 }
 
 func (t *baseEntry) initFlags() {
-	xerror.Panic(t.Flags(func(flags *pflag.FlagSet) {
+	t.Flags(func(flags *pflag.FlagSet) {
 		flags.StringVar(&t.opts.Addr, "addr", t.opts.Addr, "the server address")
-	}))
+	})
+}
+
+func handleCmdName(name string) string {
+	if !strings.Contains(name, "_") {
+		return name
+	}
+
+	return strings.Join(strings.Split(name, "_")[1:], "_")
 }
 
 func newEntry(name string) *baseEntry {
@@ -152,18 +161,18 @@ func newEntry(name string) *baseEntry {
 
 	ent := &baseEntry{
 		opts: golug_entry.Options{
-			Name:       name,
-			Addr:       ":8080",
-			Command:    &cobra.Command{Use: name},
-			RunCommand: &cobra.Command{Use: "run", Short: "run as a service"},
+			Name:    name,
+			Addr:    ":8080",
+			Command: &cobra.Command{Use: handleCmdName(name)},
 		},
 	}
 
-	xerror.Panic(ent.Commands(ent.opts.RunCommand))
-	xerror.Panic(ent.Commands(ent.pluginCmd()))
-	xerror.Panic(ent.Commands(ent.configCmd()))
-	xerror.Panic(ent.Commands(ent.dixCmd()))
-	xerror.Panic(ent.Commands(ent.verCmd()))
+	if golug_env.IsDev() || golug_env.IsTest() {
+		ent.Commands(ent.pluginCmd())
+		ent.Commands(ent.configCmd())
+		ent.Commands(ent.dixCmd())
+		ent.Commands(ent.verCmd())
+	}
 
 	ent.initFlags()
 

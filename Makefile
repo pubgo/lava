@@ -69,3 +69,7 @@ build-example:
 .PHONY: ossync
 ossync:
 	cd cmd/ossync && go install ${LDFLAGS} -v .
+
+.PHONY: tickrun
+tickrun:
+	cd cmd/tickrun && go install ${LDFLAGS} -v .

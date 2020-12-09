@@ -34,7 +34,7 @@ func GetCmd() *cobra.Command {
 					Short: "initialize an environment with zero or more schemas",
 					Example: examples(
 						"entc init Example",
-						"entc init --target entv1/schema User Group",
+						"entc init --target entv1/schema User Router",
 					),
 					Args: func(_ *cobra.Command, names []string) error {
 						for _, name := range names {

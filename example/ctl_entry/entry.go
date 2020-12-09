@@ -12,8 +12,8 @@ import (
 
 func GetEntry() golug_entry.Entry {
 	ent := golug.NewCtlEntry("ctl")
-	xerror.Panic(ent.Version("v0.0.1"))
-	xerror.Panic(ent.Description("entry http test"))
+	ent.Version("v0.0.1")
+	ent.Description("entry http test")
 
 	ent.Register(func() {
 		xlog.Info("ctl ok")

@@ -83,11 +83,10 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		entPlugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
 		for _, pl := range append(golug_plugin.List(), entPlugins...) {
 			cmd.PersistentFlags().AddFlagSet(pl.Flags())
-			xerror.Panic(ent.Commands(pl.Commands()))
+			ent.Commands(pl.Commands())
 		}
 
-		runCmd := ent.Run().Options().RunCommand
-		runCmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
+		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
 			xerror.Panic(Start(ent))
