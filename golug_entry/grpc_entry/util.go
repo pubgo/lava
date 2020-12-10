@@ -3,7 +3,7 @@ package grpc_entry
 import (
 	"reflect"
 
-	"github.com/pubgo/golug/golug_data"
+	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
@@ -20,12 +20,7 @@ func register(server *grpc.Server, handler interface{}) (err error) {
 	}
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
-	for v := range golug_data.List() {
-		v, ok := v.(reflect.Value)
-		if !ok {
-			continue
-		}
-
+	for v := range golug_xgen.List() {
 		v1 := v.Type()
 		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
 			continue

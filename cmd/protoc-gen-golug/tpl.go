@@ -12,7 +12,7 @@ package {{pkg}}
 import (
 	"reflect"
 
-	"github.com/pubgo/golug/golug_data"
+	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/golug_entry"
 )
 
@@ -28,6 +28,6 @@ import (
 				ServerStreams: "{{m.SS}}"=="True",
 			})
 		{% endfor %}
-		golug_data.Add(reflect.ValueOf(Register{{ss.Srv}}Server),_mth)
+		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),_mth)
 	}
 {% endfor %}`

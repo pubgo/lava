@@ -10,14 +10,11 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/golug_plugin/plugins/golug_etcd"
 	"github.com/pubgo/golug/golug_watcher"
-	"github.com/pubgo/golug/golug_watcher/watchers/etcd"
 	"github.com/pubgo/golug/golug_watcher/watchers/file"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
-	"go.etcd.io/etcd/clientv3"
 )
 
 func Init() (err error) {
@@ -124,15 +121,6 @@ func init() {
 			golug_watcher.AddWatcher(file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} {
 				return UnMarshal(GetCfg().Viper, path)
 			}))
-		}
-
-		if GetCfg().GetBool("watcher.configs.etcd.enabled") {
-			name := GetCfg().GetString("watcher.configs.etcd.driver")
-			cfg, ok := golug_etcd.GetCfg().Configs[name]
-			if ok && cfg.Enabled {
-				c := xerror.PanicErr(golug_etcd.GetClient(name)).(*clientv3.Client)
-				golug_watcher.AddWatcher(etcd.NewWatcher(golug_env.Project, c))
-			}
 		}
 
 		golug_watcher.Start()

@@ -2,7 +2,6 @@ package task_entry
 
 import (
 	"github.com/pubgo/golug/golug_broker"
-	"github.com/pubgo/golug/golug_broker/nsq_broker"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
@@ -68,7 +67,6 @@ func (t *taskEntry) Init() (err error) {
 	for _, c := range t.cfg.Consumers {
 		driver := c.Driver
 		if driver == "nsq" {
-			t.broker = nsq_broker.NewBroker(c.Name)
 			break
 		} else {
 			return xerror.Fmt("%s not found", c.Driver)

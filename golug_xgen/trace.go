@@ -1,11 +1,10 @@
-package golug_ws
+package golug_xgen
 
 import (
 	"fmt"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/pkg/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
@@ -16,8 +15,10 @@ func init() {
 			return
 		}
 
-		xlog.Debug("ws trace")
-		fmt.Println(golug_util.MarshalIndent(cfg))
+		xlog.Debug("trace [data]")
+		for k, v := range List() {
+			fmt.Printf("%#v: \n\t%#v\n\n", k, v)
+		}
 		fmt.Println()
 	}))
 }

@@ -7,9 +7,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_data"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
@@ -40,12 +40,7 @@ type httpEntry struct {
 
 func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption) error {
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
-	for v, data := range golug_data.List() {
-		v, ok := v.(reflect.Value)
-		if !ok {
-			continue
-		}
-
+	for v, data := range golug_xgen.List() {
 		v1 := v.Type()
 		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
 			continue
@@ -55,7 +50,7 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 			continue
 		}
 
-		var handlers = data.([]golug_entry.GrpcRestHandler)
+		var handlers = data
 
 		vh := reflect.ValueOf(handler)
 		for _, h := range handlers {
