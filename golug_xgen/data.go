@@ -9,7 +9,7 @@ import (
 
 var data sync.Map
 
-func Add(key reflect.Value, value ...golug_entry.GrpcRestHandler) {
+func Add(key reflect.Value, value []golug_entry.GrpcRestHandler) {
 	data.Store(key, value)
 }
 
