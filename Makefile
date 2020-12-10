@@ -73,3 +73,7 @@ ossync:
 .PHONY: tickrun
 tickrun:
 	cd cmd/tickrun && go install ${LDFLAGS} -v .
+
+.PHONY: lug
+lug:
+	cd cmd/golug && go install ${LDFLAGS} -v .
