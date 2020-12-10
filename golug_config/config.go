@@ -43,12 +43,12 @@ func GetCfg() *Config {
 //go:linkname unMarshalReader github.com/spf13/viper.(*Viper).unmarshalReader
 func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
 
-func UnMarshal(v *viper.Viper, path string) map[string]interface{} {
+func UnMarshal(path string) map[string]interface{} {
 	dt, err := ioutil.ReadFile(path)
 	xerror.ExitF(err, path)
 
 	var c = make(map[string]interface{})
-	xerror.ExitF(unMarshalReader(v, bytes.NewBuffer(dt), c), path)
+	xerror.ExitF(unMarshalReader(GetCfg().Viper, bytes.NewBuffer(dt), c), path)
 	return c
 }
 

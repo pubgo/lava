@@ -98,7 +98,7 @@ func Init() (err error) {
 			// 合并所有的配置文件到内存当中
 			name := ns[1]
 			val := v.GetStringMap(name)
-			val1 := UnMarshal(v, path)
+			val1 := UnMarshal(path)
 			if val != nil {
 				xerror.Panic(mergo.Map(&val, val1, mergo.WithOverride, mergo.WithTypeCheck))
 				val1 = val
@@ -119,7 +119,7 @@ func init() {
 
 		if golug_env.IsDev() || golug_env.IsTest() {
 			golug_watcher.AddWatcher(file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} {
-				return UnMarshal(GetCfg().Viper, path)
+				return UnMarshal(path)
 			}))
 		}
 

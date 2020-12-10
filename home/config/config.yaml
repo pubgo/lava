@@ -4,6 +4,8 @@ app:
   version: "v0.0.1"
   home: ""
   debug: true
+config:
+  watcher: ["default"]
 recovery:
   enabled: true
 task_entry:

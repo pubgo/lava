@@ -1,7 +1,3 @@
-enabled: true
-configs:
-  file:
-    enabled: true
-  etcd:
-    enabled: true
-    driver: "default"
+etcd_test:
+  driver: "etcd"
+  name: "default"

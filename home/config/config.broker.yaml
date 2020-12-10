@@ -1,0 +1,6 @@
+nsq1:
+  driver: "nsq"
+  name: "default"
+etcd:
+  enabled: true
+  driver: "default"
