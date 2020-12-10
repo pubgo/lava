@@ -11,11 +11,11 @@ import (
 )
 
 var cfg = xlog_config.NewDevConfig()
-var name = "log"
+var Name = "log"
 
 func init() {
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
-		Name: name,
+		Name: Name,
 		OnFlags: func(flags *pflag.FlagSet) {
 			flags.StringVar(&cfg.Level, "level", cfg.Level, "log level")
 		},
@@ -24,7 +24,7 @@ func init() {
 				entry.Use(logger.New(logger.Config{Format: "${pid} - ${time} ${status} - ${latency} ${method} ${path}\n"}))
 			}))
 
-			xerror.Panic(ent.Decode(name, &cfg))
+			xerror.Panic(ent.Decode(Name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(r *golug_watcher.Response) {
