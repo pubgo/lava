@@ -1,6 +1,9 @@
 package golug_broker
 
-import "sync"
+import (
+	"github.com/pubgo/xerror"
+	"sync"
+)
 
 var data sync.Map
 
@@ -13,6 +16,8 @@ func Get(name string) Broker {
 	if ok {
 		return val.(Broker)
 	}
+
+	xerror.Next().Panic(xerror.Fmt("%s not found", name))
 	return nil
 }
 

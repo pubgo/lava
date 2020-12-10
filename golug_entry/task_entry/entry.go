@@ -36,6 +36,7 @@ func (t *taskEntry) Register(topic string, handler golug_broker.Handler, opts ..
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
+	t.broker = golug_broker.Get(t.cfg.Broker)
 	for i := range t.handlers {
 		handler := t.handlers[i]
 		broker := t.broker
@@ -63,15 +64,6 @@ func (t *taskEntry) Init() (err error) {
 	xerror.Panic(t.Entry.Run().Init())
 
 	xerror.Panic(t.Decode(Name, &t.cfg))
-
-	for _, c := range t.cfg.Consumers {
-		driver := c.Driver
-		if driver == "nsq" {
-			break
-		} else {
-			return xerror.Fmt("%s not found", c.Driver)
-		}
-	}
 
 	return nil
 }

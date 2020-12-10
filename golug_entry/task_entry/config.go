@@ -1,9 +1,10 @@
 package task_entry
 
 type Cfg struct {
-	Enabled   bool `yaml:"enabled" json:"enabled" toml:"enabled"`
+	Enabled   bool   `yaml:"enabled" json:"enabled" toml:"enabled"`
+	Broker    string `yaml:"broker"`
 	Consumers []struct {
-		Driver string `json:"driver"`
-		Name   string `json:"name"`
-	} `json:"consumers"`
+		Driver string `json:"driver" yaml:"driver"`
+		Name   string `json:"name" yaml:"name"`
+	} `json:"consumers" yaml:"consumers"`
 }

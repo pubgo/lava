@@ -8,6 +8,7 @@ recovery:
   enabled: true
 task_entry:
   enabled: true
+  broker: "nsq"
   consumers:
     - driver: nsq
       name: default
