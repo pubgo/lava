@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/golug/golug_entry/grpc_entry"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
@@ -30,7 +31,7 @@ var httpMethods = map[string]struct{}{
 	http.MethodTrace:   {},
 }
 
-var _ HttpEntry = (*httpEntry)(nil)
+var _ Entry = (*httpEntry)(nil)
 
 type httpEntry struct {
 	golug_entry.Entry
@@ -39,7 +40,7 @@ type httpEntry struct {
 	handlers []func()
 }
 
-func (t *httpEntry) Register(handler interface{}, opts ...grpc_entry.GrpcOption) {
+func (t *httpEntry) Register(handler interface{}, opts ...grpc_entry.Option) {
 	defer xerror.RespExit()
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
@@ -95,7 +96,7 @@ func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *httpEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *httpEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
+func (t *httpEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
 
 func (t *httpEntry) Router(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })

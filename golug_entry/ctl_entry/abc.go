@@ -2,9 +2,9 @@ package ctl_entry
 
 import "github.com/pubgo/golug/golug_entry"
 
-type CtlOptions struct{}
-type CtlOption func(opts *CtlOptions)
-type CtlEntry interface {
+type Options struct{}
+type Option func(opts *Options)
+type Entry interface {
 	golug_entry.Entry
-	Register(fn func(), opts ...CtlOption)
+	Register(fn func(), opts ...Option)
 }

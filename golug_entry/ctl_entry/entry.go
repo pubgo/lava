@@ -4,10 +4,11 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 )
 
-var _ CtlEntry = (*ctlEntry)(nil)
+var _ Entry = (*ctlEntry)(nil)
 
 type ctlEntry struct {
 	golug_entry.Entry
@@ -24,13 +25,13 @@ func (t *ctlEntry) Start() (err error) {
 
 func (t *ctlEntry) Stop() error { return nil }
 
-func (t *ctlEntry) Register(f func(), opts ...CtlOption) { t.handler = f }
+func (t *ctlEntry) Register(f func(), opts ...Option) { t.handler = f }
 
 func (t *ctlEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 
 func (t *ctlEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *ctlEntry) UnWrap(fn interface{}) error { return nil }
+func (t *ctlEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
 
 func (t *ctlEntry) Init() (err error) {
 	defer xerror.RespErr(&err)

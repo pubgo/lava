@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
@@ -14,7 +15,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-var _ GrpcEntry = (*grpcEntry)(nil)
+var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
 	golug_entry.Entry
@@ -47,9 +48,9 @@ func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *grpcEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *grpcEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
+func (t *grpcEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
 
-func (t *grpcEntry) Register(ss interface{}, opts ...GrpcOption) {
+func (t *grpcEntry) Register(ss interface{}, opts ...Option) {
 	if ss == nil {
 		xerror.Panic(xerror.New("[ss] should not be nil"))
 	}

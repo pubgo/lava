@@ -6,11 +6,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GrpcOptions struct{}
-type GrpcOption func(opts *GrpcOptions)
-type GrpcEntry interface {
+type Options struct{}
+type Option func(opts *Options)
+type Entry interface {
 	golug_entry.Entry
-	Register(handler interface{}, opts ...GrpcOption)
+	Register(handler interface{}, opts ...Option)
 	UnaryServer(interceptors ...grpc.UnaryServerInterceptor)
 	StreamServer(interceptors ...grpc.StreamServerInterceptor)
 }

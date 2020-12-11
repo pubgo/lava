@@ -4,10 +4,11 @@ import (
 	"github.com/pubgo/golug/golug_broker"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 )
 
-var _ TaskEntry = (*taskEntry)(nil)
+var _ Entry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
 	handler golug_broker.Handler
@@ -56,7 +57,7 @@ func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *taskEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *taskEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
+func (t *taskEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
 
 func (t *taskEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
