@@ -1,13 +1,18 @@
 package golug_broker
 
 import (
-	"github.com/pubgo/xerror"
 	"sync"
+
+	"github.com/pubgo/xerror"
 )
 
 var data sync.Map
 
 func Register(name string, broker Broker) {
+	if broker == nil {
+		xerror.Next().Panic(xerror.Fmt("[broker] %s is nil", name))
+	}
+
 	data.Store(name, broker)
 }
 

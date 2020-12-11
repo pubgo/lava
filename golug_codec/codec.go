@@ -1,4 +1,4 @@
-package codec
+package golug_codex
 
 import (
 	"bytes"

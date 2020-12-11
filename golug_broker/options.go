@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// PublishContext set context
-func PublishContext(ctx context.Context) PubOption {
+// WithPublishCtx set context
+func WithPublishCtx(ctx context.Context) PubOption {
 	return func(o *PubOptions) {
 		o.Context = ctx
 	}
@@ -21,15 +21,15 @@ func NewSubscribeOptions(opts ...SubOption) SubOptions {
 	return opt
 }
 
-// Queue sets the name of the queue to share messages on
-func Queue(name string) SubOption {
+// WithQueue sets the name of the queue to share messages on
+func WithQueue(name string) SubOption {
 	return func(o *SubOptions) {
 		o.Queue = name
 	}
 }
 
-// SubscribeContext set context
-func SubscribeContext(ctx context.Context) SubOption {
+// WithSubscribeCtx set context
+func WithSubscribeCtx(ctx context.Context) SubOption {
 	return func(o *SubOptions) {
 		o.Ctx = ctx
 	}
