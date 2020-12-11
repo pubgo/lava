@@ -19,3 +19,9 @@ func GetCfg() (cfg map[string]ClientCfg) {
 	xerror.Next().Panic(golug_config.Decode(Name, &cfg))
 	return
 }
+
+func GetDefaultCfg() ClientCfg {
+	return ClientCfg{
+
+	}
+}

@@ -21,8 +21,6 @@ func Get(name string) Codec {
 	if ok {
 		return val.(Codec)
 	}
-
-	xerror.Next().Panic(xerror.Fmt("%s not found", name))
 	return nil
 }
 

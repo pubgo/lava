@@ -10,7 +10,6 @@ import (
 )
 
 var cfg = xlog_config.NewDevConfig()
-var Name = "log"
 
 func init() {
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
@@ -19,10 +18,6 @@ func init() {
 			flags.StringVar(&cfg.Level, "level", cfg.Level, "log level")
 		},
 		OnInit: func(ent golug_entry.Entry) {
-			//xerror.Panic(ent.UnWrap(func(entry http_entry.HttpEntry) {
-			//	entry.Use(logger.New(logger.Config{Format: "${pid} - ${time} ${status} - ${latency} ${method} ${path}\n"}))
-			//}))
-
 			xerror.Panic(ent.Decode(Name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},

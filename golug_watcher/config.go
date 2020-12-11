@@ -1,11 +1,11 @@
-package golug_codex
+package golug_watcher
 
 import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/xerror"
 )
 
-var Name = "codex"
+var Name = "watcher"
 
 type Cfg map[string]ClientCfg
 
@@ -22,6 +22,5 @@ func GetCfg() (cfg map[string]ClientCfg) {
 
 func GetDefaultCfg() ClientCfg {
 	return ClientCfg{
-
 	}
 }

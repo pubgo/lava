@@ -1,11 +1,11 @@
-package golug_codex
+package golug_log
 
 import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/xerror"
 )
 
-var Name = "codex"
+var Name = "log"
 
 type Cfg map[string]ClientCfg
 

@@ -11,7 +11,7 @@ func WithPubCtx(ctx context.Context) PubOption {
 	}
 }
 
-func NewSubscribeOptions(opts ...SubOption) SubOptions {
+func NewSubOptions(opts ...SubOption) SubOptions {
 	opt := SubOptions{}
 
 	for _, o := range opts {

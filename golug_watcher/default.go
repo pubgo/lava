@@ -10,7 +10,7 @@ var dataCallback sync.Map
 
 func Watch(name string, h CallBack) {
 	if h == nil {
-		xerror.Next().Panic(xerror.New("[CallBack] is nil"))
+		xerror.Next().Panic(xerror.New("[watcher] h is nil"))
 	}
 
 	dataCallback.Store(name, h)

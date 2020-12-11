@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/pkg/golug_util"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )

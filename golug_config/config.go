@@ -15,14 +15,6 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-// 默认的全局配置
-var (
-	CfgType = "yaml"
-	CfgName = "config"
-	CfgPath = ""
-	cfg     *Config
-)
-
 type Config struct {
 	*viper.Viper
 }
@@ -35,7 +27,7 @@ func DefaultFlags() *pflag.FlagSet {
 
 func GetCfg() *Config {
 	if cfg == nil {
-		xerror.Panic(xerror.New("config should be init"))
+		xerror.Panic(xerror.New("[config] should be init"))
 	}
 	return cfg
 }
@@ -93,7 +85,7 @@ func Decode(name string, fn interface{}) (err error) {
 	return
 }
 
-func Fmt(template string) string {
+func Template(template string) string {
 	t := fasttemplate.New(template, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		switch tag {

@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_version"
-	"github.com/pubgo/golug/pkg/golug_util"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"

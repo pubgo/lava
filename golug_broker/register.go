@@ -21,8 +21,6 @@ func Get(name string) Broker {
 	if ok {
 		return val.(Broker)
 	}
-
-	xerror.Next().Panic(xerror.Fmt("%s not found", name))
 	return nil
 }
 

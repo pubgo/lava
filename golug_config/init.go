@@ -8,16 +8,20 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/golug_watcher"
-	"github.com/pubgo/golug/golug_watcher/watchers/file"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
 )
 
-var Name = "config"
+// 默认的全局配置
+var (
+	Name    = "config"
+	CfgType = "yaml"
+	CfgName = "config"
+	CfgPath = ""
+	cfg     *Config
+)
 
 var trim = strings.TrimSpace
 var lower = strings.ToLower
@@ -116,24 +120,4 @@ func Init() (err error) {
 	}
 
 	return nil
-}
-
-func init() {
-	// watch file
-	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
-		if golug_env.IsDev() || golug_env.IsTest() {
-			w := file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} { return UnMarshal(path) })
-			golug_watcher.Register("file", w)
-		}
-
-		for _, w := range golug_watcher.List() {
-			xerror.ExitF(w.Start(), w.String())
-		}
-	}))
-
-	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) {
-		for _, w := range golug_watcher.List() {
-			xerror.ExitF(w.Close(), w.String())
-		}
-	}))
 }

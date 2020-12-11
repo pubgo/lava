@@ -1,0 +1,6 @@
+default:
+  driver: "nsq"
+  name: "default"
+nats:
+  driver: "nats"
+  name: "default"

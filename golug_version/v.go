@@ -22,7 +22,7 @@ func init() {
 	}
 
 	xerror.ExitErr(ver.NewVersion(Version))
-	xerror.Exit(Register("golug_version", M{
+	Register("golug_version", M{
 		"build_time": BuildTime,
 		"version":    Version,
 		"go_version": GoVersion,
@@ -30,5 +30,5 @@ func init() {
 		"go_root":    GoROOT,
 		"commit_id":  CommitID,
 		"project":    Project,
-	}))
+	})
 }

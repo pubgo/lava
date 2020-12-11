@@ -9,6 +9,9 @@ import (
 var register sync.Map
 
 func Register(name string, w Watcher) {
+	if w == nil {
+		xerror.Next().Panic(xerror.Fmt("[watcher] %s is nil", name))
+	}
 	register.Store(name, w)
 }
 
@@ -17,8 +20,6 @@ func Get(name string) Watcher {
 	if ok {
 		return val.(Watcher)
 	}
-
-	xerror.Next().Panic(xerror.Fmt("%s not found", name))
 	return nil
 }
 
