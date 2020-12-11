@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Check",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/check",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "BindVerify",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-verify",
@@ -30,7 +28,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "BindChange",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-change",
@@ -38,7 +36,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "AutomaticBind",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/automatic-bind",
@@ -46,7 +44,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "BindPhoneParse",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-phone-parse",
@@ -54,7 +52,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "BindPhoneParseByOneClick",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-phone-parse-by-one-click",
@@ -62,7 +60,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
 }
 
 func GetBindTelephoneClient(srv string) BindTelephoneClient {

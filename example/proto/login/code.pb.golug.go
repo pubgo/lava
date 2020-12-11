@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "SendCode",
 		Method:        "POST",
 		Path:          "/user/code/send-code",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Verify",
 		Method:        "POST",
 		Path:          "/user/code/verify",
@@ -30,7 +28,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "IsCheckImageCode",
 		Method:        "POST",
 		Path:          "/user/code/is-check-image-code",
@@ -38,7 +36,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "VerifyImageCode",
 		Method:        "POST",
 		Path:          "/user/code/verify-image-code",
@@ -46,7 +44,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "GetSendStatus",
 		Method:        "POST",
 		Path:          "/user/code/get-send-status",
@@ -54,7 +52,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
 }
 
 func GetCodeClient(srv string) CodeClient {

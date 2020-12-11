@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// WithPublishCtx set context
-func WithPublishCtx(ctx context.Context) PubOption {
+// WithPubCtx set context
+func WithPubCtx(ctx context.Context) PubOption {
 	return func(o *PubOptions) {
 		o.Context = ctx
 	}
@@ -28,8 +28,8 @@ func WithQueue(name string) SubOption {
 	}
 }
 
-// WithSubscribeCtx set context
-func WithSubscribeCtx(ctx context.Context) SubOption {
+// WithSubCtx set context
+func WithSubCtx(ctx context.Context) SubOption {
 	return func(o *SubOptions) {
 		o.Ctx = ctx
 	}

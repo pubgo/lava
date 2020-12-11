@@ -17,13 +17,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+var Name = "config"
+
+var trim = strings.TrimSpace
+var lower = strings.ToLower
+var trimRight = strings.TrimRight
+
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
 	golug_env.Get(&golug_env.Domain, "golug", "golug_domain", "golug_prefix", "env_prefix")
-	if golug_env.Domain = strings.TrimSpace(strings.ToLower(golug_env.Domain)); golug_env.Domain == "" {
+	if golug_env.Domain = trim(lower(golug_env.Domain)); golug_env.Domain == "" {
 		golug_env.Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", golug_env.Domain)
 	}
@@ -37,7 +43,7 @@ func Init() (err error) {
 			CfgPath = xerror.PanicStr(filepath.Abs(CfgPath))
 			CfgPath = xerror.PanicStr(filepath.EvalSymlinks(CfgPath))
 			CfgType = filepath.Ext(CfgPath)
-			CfgName = strings.TrimRight(filepath.Base(CfgPath), "."+CfgType)
+			CfgName = trimRight(filepath.Base(CfgPath), "."+CfgType)
 			v.SetConfigFile(CfgPath)
 			golug_env.Home = filepath.Dir(filepath.Dir(CfgPath))
 		}
@@ -113,18 +119,21 @@ func Init() (err error) {
 }
 
 func init() {
-	// watch
+	// watch file
 	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
-		GetCfg().WatchConfig()
-
 		if golug_env.IsDev() || golug_env.IsTest() {
-			golug_watcher.AddWatcher(file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} {
-				return UnMarshal(path)
-			}))
+			w := file.NewWatcher(CfgType, CfgName, func(path string) map[string]interface{} { return UnMarshal(path) })
+			golug_watcher.Register("file", w)
 		}
 
-		golug_watcher.Start()
+		for _, w := range golug_watcher.List() {
+			xerror.ExitF(w.Start(), w.String())
+		}
 	}))
 
-	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { golug_watcher.Close() }))
+	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) {
+		for _, w := range golug_watcher.List() {
+			xerror.ExitF(w.Close(), w.String())
+		}
+	}))
 }

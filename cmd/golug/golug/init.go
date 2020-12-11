@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/tikdog/tikdog_util"
+	"github.com/pubgo/golug/pkg/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func NewInit() *cobra.Command {
 		fmt.Println("config home:", home)
 
 		cfgPath := filepath.Join(home, "config.yaml")
-		if !tikdog_util.IsNotExist(cfgPath) {
+		if golug_util.PathExist(cfgPath) {
 			return
 		}
 

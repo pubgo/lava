@@ -9,7 +9,7 @@ import (
 var register sync.Map
 
 func Register(name string, w Watcher) {
-	data.Store(name, w)
+	register.Store(name, w)
 }
 
 func Get(name string) Watcher {

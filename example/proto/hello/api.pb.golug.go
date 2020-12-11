@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Version",
 		Method:        "POST",
 		Path:          "/hello_test_api/version",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "VersionTest",
 		Method:        "test",
 		Path:          "/v1/example/versiontest",
@@ -30,17 +28,12 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiServer), _mth)
-}
-
-func GetTestApiClient(srv string) TestApiClient {
-	return &testApiClient{grpclient.GetClient(srv)}
+	golug_xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
 }
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Version1",
 		Method:        "POST",
 		Path:          "/v2/example/version",
@@ -48,7 +41,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "VersionTest1",
 		Method:        "POST",
 		Path:          "/v2/example/versiontest",
@@ -56,7 +49,11 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+}
+
+func GetTestApiClient(srv string) TestApiClient {
+	return &testApiClient{grpclient.GetClient(srv)}
 }
 
 func GetTestApiV2Client(srv string) TestApiV2Client {

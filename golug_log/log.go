@@ -43,6 +43,7 @@ func getDevLog() xlog.XLog {
 
 // Watch
 func Watch(fn func(logs xlog.XLog)) {
+	defer xerror.RespExit()
 	fn(getDevLog())
-	xerror.Next().Exit(dix.Dix(fn))
+	xerror.Next().Panic(dix.Dix(fn))
 }

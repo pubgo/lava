@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var _ golug_entry.CtlEntry = (*ctlEntry)(nil)
+var _ CtlEntry = (*ctlEntry)(nil)
 
 type ctlEntry struct {
 	golug_entry.Entry
@@ -24,7 +24,7 @@ func (t *ctlEntry) Start() (err error) {
 
 func (t *ctlEntry) Stop() error { return nil }
 
-func (t *ctlEntry) Register(f func(), opts ...golug_entry.CtlOption) { t.handler = f }
+func (t *ctlEntry) Register(f func(), opts ...CtlOption) { t.handler = f }
 
 func (t *ctlEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 

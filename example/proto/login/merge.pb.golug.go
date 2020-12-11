@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Telephone",
 		Method:        "POST",
 		Path:          "/user/merge/telephone",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "TelephoneCheck",
 		Method:        "POST",
 		Path:          "/user/merge/telephone-check",
@@ -30,7 +28,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "WeChat",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat",
@@ -38,7 +36,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "WeChatCheck",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat-check",
@@ -46,7 +44,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "WeChatUnMerge",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat-un-merge",
@@ -54,7 +52,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterMergeServer), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
 }
 
 func GetMergeClient(srv string) MergeClient {

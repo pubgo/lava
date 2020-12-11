@@ -1,0 +1,6 @@
+default:
+  driver: "etcd"
+  name: "default"
+prod:
+  driver: "k8s"
+  name: "default"

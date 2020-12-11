@@ -1,6 +1,7 @@
 service1:
-  driver: "nsq"
-  name: "default"
+  insecure: false
+  block: true
+  max_recv_msg_size: 1024
 service2:
-  enabled: true
-  driver: "default"
+service3:
+service4:

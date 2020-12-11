@@ -2,9 +2,9 @@ package golug_plugin
 
 import (
 	"encoding/json"
-	"github.com/pubgo/golug/golug_watcher"
 	"sync"
 
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_util"
 )

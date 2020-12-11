@@ -6,36 +6,20 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var data sync.Map
-
-func Start() {
-	for _, w := range List() {
-		xerror.ExitF(w.Start(), w.String())
-	}
-}
-
-func Close() {
-	for _, w := range List() {
-		xerror.ExitF(w.Close(), w.String())
-	}
-}
+var dataCallback sync.Map
 
 func Watch(name string, h CallBack) {
 	if h == nil {
-		panic(xerror.New("[CallBack] is nil"))
+		xerror.Next().Panic(xerror.New("[CallBack] is nil"))
 	}
 
-	data.Store(name, h)
+	dataCallback.Store(name, h)
 }
 
 func GetCallBack(name string) CallBack {
-	val, ok := data.Load(name)
+	val, ok := dataCallback.Load(name)
 	if ok {
 		return val.(CallBack)
 	}
 	return nil
-}
-
-func Remove(name string) {
-	data.Delete(name)
 }

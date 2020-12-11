@@ -53,7 +53,7 @@ func UnMarshal(path string) map[string]interface{} {
 }
 
 // Decode
-// decode config data
+// decode config dataCallback
 func Decode(name string, fn interface{}) (err error) {
 	defer xerror.RespErr(&err)
 

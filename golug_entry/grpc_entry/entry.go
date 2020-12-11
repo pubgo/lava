@@ -2,19 +2,19 @@ package grpc_entry
 
 import (
 	"context"
-	"github.com/pubgo/xlog"
 	"net"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-var _ golug_entry.GrpcEntry = (*grpcEntry)(nil)
+var _ GrpcEntry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
 	golug_entry.Entry
@@ -49,7 +49,7 @@ func (t *grpcEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *grpcEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_entry.UnWrap(t, fn)) }
 
-func (t *grpcEntry) Register(ss interface{}, opts ...golug_entry.GrpcOption) {
+func (t *grpcEntry) Register(ss interface{}, opts ...GrpcOption) {
 	if ss == nil {
 		xerror.Panic(xerror.New("[ss] should not be nil"))
 	}
@@ -80,9 +80,9 @@ func (t *grpcEntry) Start() (err error) {
 		})
 
 		ts := xerror.PanicErr(net.Listen("tcp", t.Options().Addr)).(net.Listener)
-		log.Infof("Server [grpc] Listening on %s", ts.Addr().String())
+		xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
-			log.Error(err.Error())
+			xlog.Error(err.Error())
 		}
 		return
 	})
@@ -95,7 +95,7 @@ func (t *grpcEntry) Start() (err error) {
 func (t *grpcEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 	t.server.GracefulStop()
-	log.Infof("Server [grpc] Closed OK")
+	xlog.Infof("Server [grpc] Closed OK")
 	return nil
 }
 

@@ -7,10 +7,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-func GetCfg() Cfg {
-	return cfg
-}
-
 func GetClient1(name string) grpc.ClientConnInterface {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultClientDialTimeout)
 	defer cancel()

@@ -28,9 +28,9 @@ func Run(entries ...golug_entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_cmd.Run(entries...))
 }
-func NewHttpEntry(name string) golug_entry.HttpEntry { return http_entry.New(name) }
-func NewGrpcEntry(name string) golug_entry.GrpcEntry { return grpc_entry.New(name) }
-func NewCtlEntry(name string) golug_entry.CtlEntry   { return ctl_entry.New(name) }
+func NewHttpEntry(name string) http_entry.HttpEntry { return http_entry.New(name) }
+func NewGrpcEntry(name string) grpc_entry.GrpcEntry { return grpc_entry.New(name) }
+func NewCtlEntry(name string) ctl_entry.CtlEntry    { return ctl_entry.New(name) }
 func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOption) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_plugin.Register(plugin, opts...))

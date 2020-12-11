@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Login",
 		Method:        "POST",
 		Path:          "/user/login/login",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "Authenticate",
 		Method:        "POST",
 		Path:          "/user/login/authenticate",
@@ -30,7 +28,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
 }
 
 func GetLoginClient(srv string) LoginClient {

@@ -14,14 +14,13 @@ import (
 
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/golug_entry"
 )
 
 {% for ss in fd.GetService() %}
 	func init() {
-		var _mth []golug_entry.GrpcRestHandler
-		{% for m in ss.GetMethod() %}
-			_mth = append(_mth, golug_entry.GrpcRestHandler{
+		var mthList []golug_xgen.GrpcRestHandler
+		{%- for m in ss.GetMethod() %}
+			mthList = append(mthList, golug_xgen.GrpcRestHandler{
 				Name:         "{{m.GetName()}}",
 				Method:       "{{m.HttpMethod}}",
 				Path:          "{{m.HttpPath}}",
@@ -29,9 +28,11 @@ import (
 				ServerStreams: "{{m.SS}}"=="True",
 			})
 		{% endfor %}
-		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),_mth)
+		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
 	}
+{% endfor %}
 
+{% for ss in fd.GetService() %}
 	func Get{{ss.Srv}}Client(srv string) {{ss.Srv}}Client {
 		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv)}
 	}

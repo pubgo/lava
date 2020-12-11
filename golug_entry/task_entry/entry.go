@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var _ golug_entry.TaskEntry = (*taskEntry)(nil)
+var _ TaskEntry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
 	handler golug_broker.Handler

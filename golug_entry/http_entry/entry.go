@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_entry/grpc_entry"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprocess"
@@ -29,7 +30,7 @@ var httpMethods = map[string]struct{}{
 	http.MethodTrace:   {},
 }
 
-var _ golug_entry.HttpEntry = (*httpEntry)(nil)
+var _ HttpEntry = (*httpEntry)(nil)
 
 type httpEntry struct {
 	golug_entry.Entry
@@ -38,7 +39,9 @@ type httpEntry struct {
 	handlers []func()
 }
 
-func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption) error {
+func (t *httpEntry) Register(handler interface{}, opts ...grpc_entry.GrpcOption) {
+	defer xerror.RespExit()
+
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v, data := range golug_xgen.List() {
 		v1 := v.Type()
@@ -84,10 +87,8 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_entry.GrpcOption
 			})
 		}
 
-		return nil
+		return
 	}
-
-	return xerror.Fmt("[%#v] 没有找到匹配的interface", handler)
 }
 
 func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }

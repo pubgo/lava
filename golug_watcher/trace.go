@@ -19,7 +19,7 @@ func init() {
 
 		xlog.Debug("trace [log] config")
 		var dt []string
-		data.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
+		dataCallback.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
 		fmt.Println(golug_util.MarshalIndent(dt))
 		fmt.Println()
 	}))

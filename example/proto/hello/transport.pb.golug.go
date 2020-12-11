@@ -7,14 +7,12 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_client/grpclient"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
 func init() {
-	var _mth []golug_entry.GrpcRestHandler
-
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	var mthList []golug_xgen.GrpcRestHandler
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "TestStream",
 		Method:        "POST",
 		Path:          "/hello_transport/test_stream",
@@ -22,7 +20,7 @@ func init() {
 		ServerStreams: "True" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "TestStream1",
 		Method:        "POST",
 		Path:          "/hello_transport/test_stream1",
@@ -30,7 +28,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "TestStream2",
 		Method:        "POST",
 		Path:          "/hello_transport/test_stream2",
@@ -38,7 +36,7 @@ func init() {
 		ServerStreams: "True" == "True",
 	})
 
-	_mth = append(_mth, golug_entry.GrpcRestHandler{
+	mthList = append(mthList, golug_xgen.GrpcRestHandler{
 		Name:          "TestStream3",
 		Method:        "POST",
 		Path:          "/hello_transport/test_stream3",
@@ -46,7 +44,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), _mth)
+	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
 }
 
 func GetTransportClient(srv string) TransportClient {
