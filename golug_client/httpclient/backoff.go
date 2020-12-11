@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient/httpclient"
+	"github.com/pubgo/golug/golug_client/httpclient/httpclient"
 )
 
 // Backoff interface defines contract for backoff strategies

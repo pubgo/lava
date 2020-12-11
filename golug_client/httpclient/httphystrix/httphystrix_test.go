@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient"
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient/httphystrix"
+	"github.com/pubgo/golug/golug_client/httpclient"
+	"github.com/pubgo/golug/golug_client/httpclient/httphystrix"
 	"github.com/smartystreets/goconvey/convey"
 )
 

@@ -12,6 +12,7 @@ package {{pkg}}
 import (
 	"reflect"
 
+	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/golug_entry"
 )
@@ -29,5 +30,9 @@ import (
 			})
 		{% endfor %}
 		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),_mth)
+	}
+
+	func Get{{ss.Srv}}Client(srv string) {{ss.Srv}}Client {
+		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv)}
 	}
 {% endfor %}`

@@ -11,7 +11,7 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient"
+	"github.com/pubgo/golug/golug_client/httpclient"
 	"github.com/smartystreets/goconvey/convey"
 )
 

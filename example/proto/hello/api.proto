@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package hello;
+
+import "google/api/annotations.proto";
+import "example/proto/hello/api1.proto";
+
+service TestApi {
+  rpc Version(hello.TestReq) returns (hello.TestApiOutput){
+  }
+
+  rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){
+    option (google.api.http) = {
+      custom: {kind:"test",path:"/v1/example/versiontest"}
+      body: "*"
+    };
+  }
+}
+
+service TestApiV2 {
+  rpc Version1(hello.TestReq) returns (hello.TestApiOutput){
+    option (google.api.http) = {
+      post: "/v2/example/version"
+      body: "*"
+    };
+  }
+  rpc VersionTest1(hello.TestReq) returns (hello.TestApiOutput){
+    option (google.api.http) = {
+      post: "/v2/example/versiontest"
+      body: "*"
+    };
+  }
+}
+

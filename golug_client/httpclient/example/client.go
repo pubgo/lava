@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient"
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient/httphystrix"
+	"github.com/pubgo/golug/golug_client/httpclient"
+	"github.com/pubgo/golug/golug_client/httpclient/httphystrix"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pubgo/golug/golug_entry/http_entry/httpclient/httpclient"
+	"github.com/pubgo/golug/golug_client/httpclient/httpclient"
 )
 
 const (

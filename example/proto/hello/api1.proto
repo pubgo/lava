@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package hello;
+
+message TestReq {
+  string input = 1;
+}
+
+message TestApiData {
+  string version = 1;
+  string srvVersion = 2;
+}
+
+message TestApiOutput {
+  int32 code = 1;
+  string msg = 2;
+  int64 nowTime = 3;
+  TestApiData data = 4;
+}
