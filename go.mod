@@ -5,12 +5,11 @@ go 1.14
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 require (
-	github.com/fsnotify/fsnotify v1.4.9
+	github.com/fasthttp/websocket v1.4.3
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
-	github.com/golang/snappy v0.0.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
@@ -26,6 +25,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/valyala/fasthttp v1.17.0
 	github.com/valyala/fasttemplate v1.0.1
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb

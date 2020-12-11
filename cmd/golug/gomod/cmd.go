@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 
-	"github.com/pubgo/golug/pkg/sh_wrap"
+	"github.com/pubgo/golug/internal/sh_wrap"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
