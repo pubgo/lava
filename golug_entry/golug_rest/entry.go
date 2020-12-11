@@ -1,4 +1,4 @@
-package golug_http
+package golug_rest
 
 import (
 	"context"
