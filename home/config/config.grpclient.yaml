@@ -1,0 +1,6 @@
+service1:
+  driver: "nsq"
+  name: "default"
+service2:
+  enabled: true
+  driver: "default"
