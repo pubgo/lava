@@ -1,9 +1,9 @@
-package task_entry
+package golug_entry_task
 
 import (
 	"github.com/pubgo/golug/golug_broker"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_entry/golug_entry_base"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 )
@@ -70,7 +70,7 @@ func (t *taskEntry) Init() (err error) {
 }
 
 func newEntry(name string) *taskEntry {
-	ent := &taskEntry{Entry: base_entry.New(name)}
+	ent := &taskEntry{Entry: golug_entry_base.New(name)}
 	ent.trace()
 	return ent
 }

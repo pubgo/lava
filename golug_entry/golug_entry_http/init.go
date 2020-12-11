@@ -1,4 +1,4 @@
-package http_entry
+package golug_entry_http
 
 import (
 	"github.com/pubgo/golug/golug_log"

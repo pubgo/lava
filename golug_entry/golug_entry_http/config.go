@@ -1,4 +1,4 @@
-package http_entry
+package golug_entry_http
 
 import "github.com/gofiber/fiber/v2"
 

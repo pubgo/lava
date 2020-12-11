@@ -1,4 +1,4 @@
-package grpc_entry
+package golug_entry_grpc
 
 type Cfg struct {
 	Codec                 string `json:"codec"`

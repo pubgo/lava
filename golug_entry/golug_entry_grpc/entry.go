@@ -1,4 +1,4 @@
-package grpc_entry
+package golug_entry_grpc
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_entry/golug_entry_base"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -102,7 +102,7 @@ func (t *grpcEntry) Stop() (err error) {
 
 func newEntry(name string) *grpcEntry {
 	ent := &grpcEntry{
-		Entry: base_entry.New(name),
+		Entry: golug_entry_base.New(name),
 	}
 	ent.trace()
 

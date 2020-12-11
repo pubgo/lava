@@ -1,8 +1,8 @@
-package ctl_entry
+package golug_entry_ctl
 
 import (
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/base_entry"
+	"github.com/pubgo/golug/golug_entry/golug_entry_base"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
@@ -44,7 +44,7 @@ func (t *ctlEntry) Init() (err error) {
 }
 
 func newEntry(name string) *ctlEntry {
-	ent := &ctlEntry{Entry: base_entry.New(name)}
+	ent := &ctlEntry{Entry: golug_entry_base.New(name)}
 	ent.trace()
 	return ent
 }

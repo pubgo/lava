@@ -1,4 +1,4 @@
-package base_entry
+package golug_entry_base
 
 import (
 	"fmt"

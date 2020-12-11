@@ -1,4 +1,4 @@
-package ctl_entry
+package golug_entry_task
 
 import (
 	"fmt"
@@ -10,13 +10,13 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-func (t *ctlEntry) trace() {
+func (t *taskEntry) trace() {
 	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
 		if !golug_env.Trace || !t.Options().Initialized {
 			return
 		}
 
-		xlog.Debugf("ctl config trace")
+		xlog.Debugf("task config trace")
 		fmt.Println(golug_util.MarshalIndent(t.cfg))
 		fmt.Println()
 	}))

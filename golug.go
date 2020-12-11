@@ -5,9 +5,9 @@ import (
 	"github.com/pubgo/golug/golug_cmd"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/ctl_entry"
-	"github.com/pubgo/golug/golug_entry/grpc_entry"
-	"github.com/pubgo/golug/golug_entry/http_entry"
+	"github.com/pubgo/golug/golug_entry/golug_entry_ctl"
+	"github.com/pubgo/golug/golug_entry/golug_entry_grpc"
+	"github.com/pubgo/golug/golug_entry/golug_entry_http"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
 )
@@ -28,9 +28,9 @@ func Run(entries ...golug_entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_cmd.Run(entries...))
 }
-func NewHttpEntry(name string) http_entry.Entry { return http_entry.New(name) }
-func NewGrpcEntry(name string) grpc_entry.Entry { return grpc_entry.New(name) }
-func NewCtlEntry(name string) ctl_entry.Entry       { return ctl_entry.New(name) }
+func NewHttpEntry(name string) golug_entry_http.Entry { return golug_entry_http.New(name) }
+func NewGrpcEntry(name string) golug_entry_grpc.Entry { return golug_entry_grpc.New(name) }
+func NewCtlEntry(name string) golug_entry_ctl.Entry   { return golug_entry_ctl.New(name) }
 func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOption) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_plugin.Register(plugin, opts...))
