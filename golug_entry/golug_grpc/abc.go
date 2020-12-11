@@ -1,4 +1,4 @@
-package golug_entry_grpc
+package golug_grpc
 
 import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"

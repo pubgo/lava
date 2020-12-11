@@ -1,4 +1,4 @@
-package golug_entry_ctl
+package golug_ctl
 
 import (
 	"fmt"

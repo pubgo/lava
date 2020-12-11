@@ -1,3 +1,3 @@
-package golug_entry_ctl
+package golug_ctl
 
 const Name = "ctl_entry"

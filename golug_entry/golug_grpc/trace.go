@@ -1,4 +1,4 @@
-package golug_entry_grpc
+package golug_grpc
 
 import (
 	"github.com/pubgo/dix/dix_run"

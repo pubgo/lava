@@ -1,4 +1,4 @@
-package golug_entry_task
+package golug_task
 
 import (
 	"github.com/pubgo/golug/golug_broker"

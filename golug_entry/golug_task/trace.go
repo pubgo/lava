@@ -1,4 +1,4 @@
-package golug_entry_task
+package golug_task
 
 import (
 	"fmt"

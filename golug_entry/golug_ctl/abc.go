@@ -1,4 +1,4 @@
-package golug_entry_ctl
+package golug_ctl
 
 import "github.com/pubgo/golug/golug_entry"
 

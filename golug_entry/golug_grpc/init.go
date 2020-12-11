@@ -1,3 +1,3 @@
-package golug_entry_grpc
+package golug_grpc
 
 const Name = "grpcEntry"

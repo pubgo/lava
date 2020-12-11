@@ -1,3 +1,3 @@
-package golug_entry_task
+package golug_task
 
 const Name = "task_entry"

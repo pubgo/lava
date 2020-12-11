@@ -1,4 +1,4 @@
-package golug_entry_http
+package golug_http
 
 import (
 	"fmt"

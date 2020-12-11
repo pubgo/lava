@@ -1,4 +1,4 @@
-package golug_entry_task
+package golug_task
 
 type Cfg struct {
 	Enabled   bool   `yaml:"enabled" json:"enabled" toml:"enabled"`

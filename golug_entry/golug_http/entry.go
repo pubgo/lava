@@ -1,4 +1,4 @@
-package golug_entry_http
+package golug_http
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/golug_entry_base"
-	"github.com/pubgo/golug/golug_entry/golug_entry_grpc"
+	"github.com/pubgo/golug/golug_entry/golug_base"
+	"github.com/pubgo/golug/golug_entry/golug_grpc"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
@@ -40,7 +40,7 @@ type httpEntry struct {
 	handlers []func()
 }
 
-func (t *httpEntry) Register(handler interface{}, opts ...golug_entry_grpc.Option) {
+func (t *httpEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
 	defer xerror.RespExit()
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
@@ -174,7 +174,7 @@ func (t *httpEntry) initFlags() {
 }
 
 func newEntry(name string) *httpEntry {
-	ent := &httpEntry{Entry: golug_entry_base.New(name), cfg: fiber.New().Config()}
+	ent := &httpEntry{Entry: golug_base.New(name), cfg: fiber.New().Config()}
 	ent.initFlags()
 	ent.trace()
 	return ent
