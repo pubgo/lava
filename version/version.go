@@ -1,4 +1,4 @@
 package version
 
-const BuildTime = "2020-12-11 00:02:45"
-const Version = "v0.0.5"
+const BuildTime = "2020-12-11 22:24:41"
+const Version = "v0.0.6"
