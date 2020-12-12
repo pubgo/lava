@@ -8,8 +8,9 @@ import (
 var Name = "watcher"
 
 type ClientCfg struct {
-	Driver string
-	Name   string
+	Project string
+	Driver  string
+	Name    string
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {

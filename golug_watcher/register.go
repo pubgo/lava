@@ -15,14 +15,6 @@ func Register(name string, w Watcher) {
 	register.Store(name, w)
 }
 
-func Get(name string) Watcher {
-	val, ok := register.Load(name)
-	if ok {
-		return val.(Watcher)
-	}
-	return nil
-}
-
 func List() map[string]Watcher {
 	var dt = make(map[string]Watcher)
 	register.Range(func(key, value interface{}) bool {
