@@ -17,9 +17,9 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pubgo/dix v0.1.3
-	github.com/pubgo/xerror v0.3.1
+	github.com/pubgo/xerror v0.3.2
 	github.com/pubgo/xlog v0.0.10
-	github.com/pubgo/xprocess v0.0.9
+	github.com/pubgo/xprocess v0.0.10
 	github.com/pubgo/xprotogen v0.0.4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
