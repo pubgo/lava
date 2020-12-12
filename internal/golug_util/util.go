@@ -4,10 +4,16 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/imdario/mergo"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
 )
+
+func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) {
+	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
+	xerror.Next().Panic(mergo.Map(dst, src, opts...))
+}
 
 func PathExist(path string) bool {
 	_, err := os.Stat(path)

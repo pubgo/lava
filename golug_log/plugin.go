@@ -5,11 +5,8 @@ import (
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog/xlog_config"
 	"github.com/spf13/pflag"
 )
-
-var cfg = xlog_config.NewDevConfig()
 
 func init() {
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
