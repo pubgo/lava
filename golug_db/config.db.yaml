@@ -1,0 +1,3 @@
+default:
+  driver: "sqlite3_custom"
+  source: "{{home}}/db/sqlite.db"

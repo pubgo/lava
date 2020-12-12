@@ -1,6 +1,0 @@
-enabled: true
-configs:
-  default:
-    enabled: true
-    driver: "sqlite3_custom"
-    source: "{{home}}/db/sqlite.db"
