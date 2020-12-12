@@ -7,8 +7,6 @@ import (
 
 var Name = "watcher"
 
-type Cfg map[string]ClientCfg
-
 type ClientCfg struct {
 	Driver string
 	Name   string
