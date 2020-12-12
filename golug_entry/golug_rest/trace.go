@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-func (t *httpEntry) trace() {
+func (t *restEntry) trace() {
 	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
 		if !golug_env.Trace || !t.Options().Initialized {
 			return
@@ -23,7 +23,7 @@ func (t *httpEntry) trace() {
 					continue
 				}
 
-				log.Debugf("%s %s", stack.Method, stack.Path)
+				xlog.Debugf("%s %s", stack.Method, stack.Path)
 			}
 		}
 		fmt.Println()

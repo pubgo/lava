@@ -3,6 +3,7 @@ package golug_grpc
 import (
 	"context"
 	"net"
+	"time"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_entry"
@@ -75,7 +76,7 @@ func (t *grpcEntry) Start() (err error) {
 	// 方便grpcurl调用和调试
 	reflection.Register(t.server)
 
-	cancel := xprocess.Go(func(ctx context.Context) {
+	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
 		})

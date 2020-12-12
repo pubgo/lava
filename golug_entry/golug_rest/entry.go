@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
@@ -13,6 +14,7 @@ import (
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
 )
@@ -31,16 +33,16 @@ var httpMethods = map[string]struct{}{
 	http.MethodTrace:   {},
 }
 
-var _ Entry = (*httpEntry)(nil)
+var _ Entry = (*restEntry)(nil)
 
-type httpEntry struct {
+type restEntry struct {
 	golug_entry.Entry
 	cfg      Cfg
 	app      *fiber.App
 	handlers []func()
 }
 
-func (t *httpEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
+func (t *restEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
 	defer xerror.RespExit()
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
@@ -92,17 +94,17 @@ func (t *httpEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
 	}
 }
 
-func (t *httpEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
+func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 
-func (t *httpEntry) Run() golug_entry.RunEntry { return t }
+func (t *restEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *httpEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
+func (t *restEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
 
-func (t *httpEntry) Router(prefix string, fn func(r fiber.Router)) {
+func (t *restEntry) Router(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
 }
 
-func (t *httpEntry) use(handler fiber.Handler) {
+func (t *restEntry) use(handler fiber.Handler) {
 	if handler == nil {
 		return
 	}
@@ -110,13 +112,13 @@ func (t *httpEntry) use(handler fiber.Handler) {
 	t.handlers = append(t.handlers, func() { t.app.Use(handler) })
 }
 
-func (t *httpEntry) Use(handler ...fiber.Handler) {
+func (t *restEntry) Use(handler ...fiber.Handler) {
 	for i := range handler {
 		t.use(handler[i])
 	}
 }
 
-func (t *httpEntry) Init() (err error) {
+func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
@@ -126,7 +128,7 @@ func (t *httpEntry) Init() (err error) {
 	return nil
 }
 
-func (t *httpEntry) Start() (err error) {
+func (t *restEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化app
@@ -137,17 +139,19 @@ func (t *httpEntry) Start() (err error) {
 		t.handlers[i]()
 	}
 
-	cancel := xprocess.Go(func(ctx context.Context) {
-		defer xerror.RespErr(&err)
+	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
+		defer xerror.Resp(func(err xerror.XErr) {
+			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
+		})
 
 		addr := t.Options().Addr
-		log.Infof("Server [http] Listening on http://%s", addr)
+		xlog.Infof("Server [http] Listening on http://%s", addr)
 		if err := t.app.Listen(addr); err != nil && err != http.ErrServerClosed {
-			log.Error(xerror.Parse(err).Stack(true))
+			xlog.Error(xerror.Parse(err).Stack(true))
 			return
 		}
 
-		log.Infof("Server [http] Closed OK")
+		xlog.Infof("Server [http] Closed OK")
 		return
 	})
 
@@ -156,30 +160,30 @@ func (t *httpEntry) Start() (err error) {
 	return nil
 }
 
-func (t *httpEntry) Stop() (err error) {
+func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	if err := t.app.Shutdown(); err != nil && err != http.ErrServerClosed {
-		log.Error(xerror.Parse(err).Stack(true))
+		xlog.Error(xerror.Parse(err).Stack(true))
 		return nil
 	}
 
 	return nil
 }
 
-func (t *httpEntry) initFlags() {
+func (t *restEntry) initFlags() {
 	t.Flags(func(flags *pflag.FlagSet) {
 		flags.BoolVar(&t.cfg.DisableStartupMessage, "disable_startup_message", t.cfg.DisableStartupMessage, "print out the http server art and listening address")
 	})
 }
 
-func newEntry(name string) *httpEntry {
-	ent := &httpEntry{Entry: golug_base.New(name), cfg: fiber.New().Config()}
+func newEntry(name string) *restEntry {
+	ent := &restEntry{Entry: golug_base.New(name), cfg: fiber.New().Config()}
 	ent.initFlags()
 	ent.trace()
 	return ent
 }
 
-func New(name string) *httpEntry {
+func New(name string) *restEntry {
 	return newEntry(name)
 }

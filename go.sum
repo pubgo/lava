@@ -369,8 +369,8 @@ github.com/pubgo/xlog v0.0.3/go.mod h1:/sn3GEkeEBWXDGPEfmI+rxr8upg/vcF9z3mwxRyuZ
 github.com/pubgo/xlog v0.0.7/go.mod h1:ncnCsQgtfaxIjjYyToKO+97j87gBgsJaKUcnPB44xBs=
 github.com/pubgo/xlog v0.0.10 h1:Lt/4uyGZzwgLXe0oCxUHzMl/OLrZR0h0/DeJXHxVvos=
 github.com/pubgo/xlog v0.0.10/go.mod h1:qZURdwFKstck0ygidDX8q1GTZ/pGM+Qp5bYOjXSxRu0=
-github.com/pubgo/xprocess v0.0.8 h1:UVy9cAIsJFgao25VVy+Zv4P1UQ/+yJKSblVxKPJQAks=
-github.com/pubgo/xprocess v0.0.8/go.mod h1:wEgkdaXsjDS4GivtQdjJu3tTTfQNr6tc4GWF2iTJrtQ=
+github.com/pubgo/xprocess v0.0.9 h1:W1qCJRJqKMWEMqdWIxZuay3ULLoWmrzPjtdevtL70Xw=
+github.com/pubgo/xprocess v0.0.9/go.mod h1:wEgkdaXsjDS4GivtQdjJu3tTTfQNr6tc4GWF2iTJrtQ=
 github.com/pubgo/xprotogen v0.0.4 h1:rlRgMR3KuGAEVoqhTUP+YXB1/KW/3rxSwMPuQLylWNM=
 github.com/pubgo/xprotogen v0.0.4/go.mod h1:zCRp8HMUKKyNCutBFPPG96CZtteLKJQ383Wo7MWddto=
 github.com/pubgo/xtest v0.1.5/go.mod h1:JJQoEy17r2diuHe3PVXqTxp3Zf5mOOBrxSRCy05Gs6M=
