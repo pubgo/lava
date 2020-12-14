@@ -3,7 +3,6 @@ package golug
 import (
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_cmd"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_ctl"
 	"github.com/pubgo/golug/golug_entry/golug_grpc"
@@ -12,10 +11,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func Init() {
-	defer xerror.RespExit()
-	xerror.Next().Panic(golug_config.Init())
-}
+func Init() {}
 func Start(ent golug_entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_cmd.Start(ent))
@@ -30,7 +26,7 @@ func Run(entries ...golug_entry.Entry) {
 }
 func NewRestEntry(name string) golug_rest.Entry { return golug_rest.New(name) }
 func NewGrpcEntry(name string) golug_grpc.Entry { return golug_grpc.New(name) }
-func NewCtlEntry(name string) golug_ctl.Entry         { return golug_ctl.New(name) }
+func NewCtlEntry(name string) golug_ctl.Entry   { return golug_ctl.New(name) }
 func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOption) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_plugin.Register(plugin, opts...))

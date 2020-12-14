@@ -37,8 +37,7 @@ func (t *baseEntry) Decode(name string, fn interface{}) (err error) {
 func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
 	golug_env.Project = t.Options().Name
-
-	return nil
+	return xerror.Wrap(golug_config.Init())
 }
 
 func (t *baseEntry) Run() golug_entry.RunEntry { return t }
