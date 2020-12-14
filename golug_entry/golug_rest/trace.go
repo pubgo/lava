@@ -16,7 +16,7 @@ func (t *restEntry) trace() {
 			return
 		}
 
-		xlog.Debug("http rest router trace")
+		xlog.Debug("rest server router trace")
 		for _, stacks := range t.app.Stack() {
 			for _, stack := range stacks {
 				if stack.Path == "/" {
@@ -28,8 +28,8 @@ func (t *restEntry) trace() {
 		}
 		fmt.Println()
 
-		xlog.Debugf("http server config trace")
-		fmt.Println(golug_util.MarshalIndent(t.cfg))
+		xlog.Debugf("rest server config trace")
+		fmt.Println(golug_util.MarshalIndent(cfg))
 		fmt.Println()
 	}))
 }

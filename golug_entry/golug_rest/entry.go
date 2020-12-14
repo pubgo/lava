@@ -19,8 +19,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const defaultContentType = "application/json"
-
 var httpMethods = map[string]struct{}{
 	http.MethodGet:     {},
 	http.MethodHead:    {},
@@ -37,7 +35,6 @@ var _ Entry = (*restEntry)(nil)
 
 type restEntry struct {
 	golug_entry.Entry
-	cfg      Cfg
 	app      *fiber.App
 	handlers []func()
 }
@@ -123,7 +120,7 @@ func (t *restEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 
-	xerror.Panic(t.Decode(Name, &t.cfg))
+	xerror.Panic(t.Decode(Name, &cfg))
 
 	return nil
 }
@@ -132,7 +129,7 @@ func (t *restEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化app
-	t.app = fiber.New(t.cfg)
+	t.app = fiber.New(cfg)
 
 	// 初始化routes
 	for i := range t.handlers {
@@ -173,12 +170,12 @@ func (t *restEntry) Stop() (err error) {
 
 func (t *restEntry) initFlags() {
 	t.Flags(func(flags *pflag.FlagSet) {
-		flags.BoolVar(&t.cfg.DisableStartupMessage, "disable_startup_message", t.cfg.DisableStartupMessage, "print out the http server art and listening address")
+		flags.BoolVar(&cfg.DisableStartupMessage, "disable_startup_message", cfg.DisableStartupMessage, "print out the http server art and listening address")
 	})
 }
 
 func newEntry(name string) *restEntry {
-	ent := &restEntry{Entry: golug_base.New(name), cfg: fiber.New().Config()}
+	ent := &restEntry{Entry: golug_base.New(name)}
 	ent.initFlags()
 	ent.trace()
 	return ent

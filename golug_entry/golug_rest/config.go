@@ -1,13 +1,17 @@
 package golug_rest
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 const Name = "rest_entry"
 
-type Cfg = fiber.Config
+var cfg = GetDefaultCfg()
 
+func GetCfg() fiber.Config {
+	return cfg
+}
 
-
-//xerror.Panic(ent.UnWrap(func(entry http_entry.Entry) {
-//	entry.Use(logger.New(logger.Config{Format: "${pid} - ${time} ${status} - ${latency} ${method} ${path}\n"}))
-//}))
+func GetDefaultCfg() fiber.Config {
+	return fiber.New().Config()
+}
