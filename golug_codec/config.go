@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var Name = "codex"
+var Name = "codec"
 
 type Cfg map[string]ClientCfg
 

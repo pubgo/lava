@@ -21,13 +21,13 @@ type Config struct {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "project config path")
+	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
 	return flags
 }
 
 func GetCfg() *Config {
 	if cfg == nil {
-		xerror.Panic(xerror.New("[config] should be init"))
+		xerror.Next().Panic(xerror.New("[config] should be init"))
 	}
 	return cfg
 }
@@ -37,10 +37,10 @@ func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) err
 
 func UnMarshal(path string) map[string]interface{} {
 	dt, err := ioutil.ReadFile(path)
-	xerror.ExitF(err, path)
+	xerror.Next().ExitF(err, path)
 
 	var c = make(map[string]interface{})
-	xerror.ExitF(unMarshalReader(GetCfg().Viper, bytes.NewBuffer(dt), c), path)
+	xerror.Next().ExitF(unMarshalReader(GetCfg().Viper, bytes.NewBuffer(dt), c), path)
 	return c
 }
 

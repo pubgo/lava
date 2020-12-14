@@ -15,7 +15,7 @@ func GetEntry() golug_entry.Entry {
 }
 
 func GetHttpEntry() golug_entry.Entry {
-	ent := golug.NewHttpEntry("grpc_api")
+	ent := golug.NewRestEntry("grpc_api")
 	ent.Version("v0.0.1")
 	ent.Description("entry grpc api test")
 	ent.Register(handler.NewTestAPIHandler())

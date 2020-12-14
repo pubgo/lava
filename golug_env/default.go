@@ -13,7 +13,6 @@ import (
 
 // 默认的全局配置
 var (
-	Debug             = true
 	IsBlock           = true
 	Domain            = "golug"
 	Trace             = false
@@ -72,7 +71,7 @@ func init() {
 	}
 
 	// 运行环境检查
-	xerror.Panic(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
+	xerror.Exit(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
 		var m = RunMode
 		switch Mode {
 		case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
@@ -85,8 +84,8 @@ func init() {
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
-	flags.BoolVarP(&Debug, "debug", "d", Debug, "enable log debug level")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
+	flags.StringVarP(&Project, "project", "p", Project, "project name")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	return flags
 }

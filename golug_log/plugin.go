@@ -12,7 +12,7 @@ func init() {
 	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnFlags: func(flags *pflag.FlagSet) {
-			flags.StringVar(&cfg.Level, "level", cfg.Level, "log level")
+			flags.StringVarP(&cfg.Level, "level", cfg.Level, "l", "log level")
 		},
 		OnInit: func(ent golug_entry.Entry) {
 			xerror.Panic(ent.Decode(Name, &cfg))

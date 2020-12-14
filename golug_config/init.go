@@ -2,11 +2,11 @@ package golug_config
 
 import (
 	"fmt"
+	"github.com/pubgo/golug/internal/golug_util"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
@@ -110,7 +110,7 @@ func Init() (err error) {
 			val := v.GetStringMap(name)
 			val1 := UnMarshal(path)
 			if val != nil {
-				xerror.Panic(mergo.Map(&val, val1, mergo.WithOverride, mergo.WithTypeCheck))
+				golug_util.Mergo(&val, val1)
 				val1 = val
 			}
 			v.Set(name, val1)

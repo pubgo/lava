@@ -1,4 +1,4 @@
-package http_entry
+package rest_entry
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewHttpEntry("http")
+	ent := golug.NewRestEntry("http")
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 
