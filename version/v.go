@@ -1,15 +1,13 @@
-package golug_version
+package version
 
 import (
 	"runtime"
 
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/golug/version"
+	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/xerror"
 )
 
-var BuildTime = version.BuildTime
-var Version = version.Version
 var GoVersion = runtime.Version()
 var GoPath = ""
 var GoROOT = ""
@@ -22,7 +20,7 @@ func init() {
 	}
 
 	xerror.ExitErr(ver.NewVersion(Version))
-	Register("golug_version", M{
+	golug_version.Register("golug_version", golug_version.M{
 		"build_time": BuildTime,
 		"version":    Version,
 		"go_version": GoVersion,

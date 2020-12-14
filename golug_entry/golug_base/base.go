@@ -2,6 +2,7 @@ package golug_base
 
 import (
 	"fmt"
+	"github.com/pubgo/golug/golug_version"
 	"reflect"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
-	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
