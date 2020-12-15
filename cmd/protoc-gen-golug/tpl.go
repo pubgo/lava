@@ -30,10 +30,4 @@ import (
 		{% endfor %}
 		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
 	}
-{% endfor %}
-
-{% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv string) {{ss.Srv}}Client {
-		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv)}
-	}
 {% endfor %}`

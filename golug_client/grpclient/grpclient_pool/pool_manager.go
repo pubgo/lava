@@ -187,8 +187,6 @@ func (m *poolManager) create(opts ...grpc.DialOption) (*ClientConn, error) {
 // backoff 计算一个连接平均值，防止一直在某个时间点全部失效
 func (m *poolManager) backoff(cc *grpc.ClientConn) time.Time {
 	p := uint(uintptr(unsafe.Pointer(cc))) % randCreatedIn
-
-
 	return time.Now().Add(time.Second * time.Duration(p))
 }
 

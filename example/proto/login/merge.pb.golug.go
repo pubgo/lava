@@ -54,7 +54,3 @@ func init() {
 
 	golug_xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
 }
-
-func GetMergeClient(srv string) MergeClient {
-	return &mergeClient{grpclient.GetClient(srv)}
-}

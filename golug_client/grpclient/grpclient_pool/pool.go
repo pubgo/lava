@@ -37,9 +37,9 @@ type ClientConn struct {
 }
 
 func NewPool(size int, ttl time.Duration) *Pool {
-	ttls := int64(ttl.Seconds())
-	if ttls < 0 {
-		ttls = minTTL
+	ttlList := int64(ttl.Seconds())
+	if ttlList < 0 {
+		ttlList = minTTL
 	}
 
 	if size < 0 {
@@ -48,7 +48,7 @@ func NewPool(size int, ttl time.Duration) *Pool {
 
 	pool := &Pool{
 		size:     size,
-		ttl:      ttls,
+		ttl:      ttlList,
 		connList: make(map[string]*poolManager),
 	}
 
