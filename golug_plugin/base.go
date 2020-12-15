@@ -23,7 +23,7 @@ type Base struct {
 func (p *Base) Init(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(ent.Decode(p.Name, p))
+	ent.Decode(p.Name, p)
 
 	var status = "disabled"
 	if p.Enabled {

@@ -13,14 +13,14 @@ type RunEntry interface {
 }
 
 type Entry interface {
-	Description(description ...string)
-	Version(v string)
-	Decode(name string, fn interface{}) (err error)
-	Flags(fn func(flags *pflag.FlagSet))
-	Commands(commands ...*cobra.Command)
 	Run() RunEntry
+	Version(v string)
 	UnWrap(fn interface{}) error
 	Dix(data ...interface{}) error
+	Description(description ...string)
+	Decode(name string, fn interface{})
+	Flags(fn func(flags *pflag.FlagSet))
+	Commands(commands ...*cobra.Command)
 }
 
 type Option func(o *Options)

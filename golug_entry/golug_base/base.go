@@ -2,7 +2,6 @@ package golug_base
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/golug_version"
 	"reflect"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -30,8 +30,8 @@ func (t *baseEntry) Dix(data ...interface{}) (err error) {
 	return xerror.Wrap(dix.Dix(data...))
 }
 
-func (t *baseEntry) Decode(name string, fn interface{}) (err error) {
-	return xerror.Wrap(golug_config.Decode(name, fn))
+func (t *baseEntry) Decode(name string, fn interface{}) {
+	xerror.Next().Panic(golug_config.Decode(name, fn))
 }
 
 func (t *baseEntry) Init() error {

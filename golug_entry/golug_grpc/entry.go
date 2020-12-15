@@ -40,7 +40,7 @@ func (t *grpcEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	xerror.Panic(t.Decode(Name, &t.cfg))
+	t.Decode(Name, &t.cfg)
 
 	return nil
 }

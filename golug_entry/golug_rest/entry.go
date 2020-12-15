@@ -120,7 +120,7 @@ func (t *restEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 
-	xerror.Panic(t.Decode(Name, &cfg))
+	t.Decode(Name, &cfg)
 
 	return nil
 }
