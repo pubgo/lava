@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
+	"strings"
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
@@ -88,6 +89,11 @@ func Decode(name string, fn interface{}) (err error) {
 func Template(template string) string {
 	t := fasttemplate.New(template, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		if strings.HasPrefix(tag, "env_") {
+			tag = strings.TrimPrefix(tag, "env_")
+			return w.Write([]byte(golug_env.GetEnv(tag)))
+		}
+
 		switch tag {
 		case "home":
 			return w.Write([]byte(golug_env.Home))
