@@ -3,7 +3,7 @@ package golug_env
 import (
 	"os"
 	"path/filepath"
-	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
@@ -13,62 +13,32 @@ import (
 
 // 默认的全局配置
 var (
-	IsBlock           = true
-	Domain            = "golug"
-	Trace             = false
-	Home              = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
-	Project           = "golug"
-	Mode              = "dev"
-	Signal  os.Signal = syscall.Signal(0)
-	// RunMode 项目运行模式
-	RunMode = struct {
-		Dev     string
-		Test    string
-		Stag    string
-		Prod    string
-		Release string
-	}{
-		Dev:     "dev",
-		Test:    "test",
-		Stag:    "stag",
-		Prod:    "prod",
-		Release: "release",
-	}
+	IsBlock       = true
+	Domain        = "golug"
+	Trace         = false
+	Home          = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	Project       = "golug"
+	Mode          = "dev"
+	Signal        = syscall.Signal(0)
+	replacer      = strings.NewReplacer("-", "_", ".", "_", "/", "_")
+	DefaultSecret = "zpCjWPsbqK@@^hR01qLDmZcXhKRIZgjHfxSG2KA%J#bFp!7YQVSmzXGc!sE!^qSM7@&d%oXHQtpR7K*8eRTdhRKjaxF#t@bd#A!"
+	RunMode       = RunEnvMode{Dev: "dev", Test: "test", Stag: "stag", Prod: "prod", Release: "release"}
 )
 
-func IsDev() bool {
-	return Mode == RunMode.Dev
-}
-
-func IsTest() bool {
-	return Mode == RunMode.Test
-}
-
-func IsStag() bool {
-	return Mode == RunMode.Stag
-}
-
-func IsProd() bool {
-	return Mode == RunMode.Prod
-}
-
-func IsRelease() bool {
-	return Mode == RunMode.Release
-}
-
 func init() {
+	handleEnv()
+
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	Get(&Domain, "env_prefix")
+	GetSys(&Domain, "env_prefix")
 	Get(&Home, "home", "dir")
 
 	// 使用前缀获取系统环境变量
 	Get(&Project, "project", "name")
 	Get(&Mode, "mode", "run")
+	Get(&DefaultSecret, "secret", "token", "app_secret", "app_token")
 
-	if trace := trim(GetEnv("trace")); trace != "" {
-		Trace, _ = strconv.ParseBool(trace)
-	}
+	Trace = IsTrue(trim(GetEnv("trace")))
 
 	// 运行环境检查
 	xerror.Exit(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
@@ -88,4 +58,15 @@ func DefaultFlags() *pflag.FlagSet {
 	flags.StringVarP(&Project, "project", "p", Project, "project name")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	return flags
+}
+
+func handleEnv() {
+	// 环境变量处理, 大写
+	for _, env := range os.Environ() {
+		if _envs := strings.SplitN(env, "=", 2); len(_envs) == 2 && trim(_envs[0]) != "" {
+			_ = os.Unsetenv(_envs[0])
+			key := replacer.Replace(upper(trim(_envs[0])))
+			_ = os.Setenv(key, _envs[1])
+		}
+	}
 }

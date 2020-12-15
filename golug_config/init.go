@@ -61,7 +61,7 @@ func Init() (err error) {
 		v.AddConfigPath(fmt.Sprintf("/etc/%s/%s/", golug_env.Domain, golug_env.Project))
 		v.AddConfigPath(fmt.Sprintf("$HOME/.%s/%s", golug_env.Domain, golug_env.Project))
 		v.SetEnvPrefix(golug_env.Domain)
-		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "/"))
+		v.SetEnvKeyReplacer(strings.NewReplacer("_", ".", "-", ".", "/", "."))
 		v.AutomaticEnv()
 
 		// 监控默认配置
