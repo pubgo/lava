@@ -38,7 +38,9 @@ grpc_entry:
   connection_timeout: 2s
   max_header_list_size: 2
   header_table_size: 1
-http_entry:
+log:
+  level: "debug"
+rest_entry:
   enabled: true
   prefork: false
   server_header: ""
@@ -63,6 +65,9 @@ http_entry:
   disable_header_normalizing: false
   disable_startup_message: false
   reduce_memory_usage: false
+  views:
+    dir: ""
+    ext: ".html"
 watcher:
   enabled: true
   address:

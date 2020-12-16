@@ -1,10 +1,11 @@
 package golug_rest
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/xerror"
 )
 
 const Name = "rest_entry"
@@ -45,7 +46,9 @@ func GetCfg() Config {
 	return cfg
 }
 
-func GetDefaultCfg() (cfg Config) {
-	golug_util.Mergo(&cfg, fiber.New().Config())
-	return
+func GetDefaultCfg() Config {
+	var cfg = Config{}
+	dt := xerror.PanicBytes(json.Marshal(fiber.New().Config()))
+	xerror.Panic(json.Unmarshal(dt, &cfg))
+	return cfg
 }

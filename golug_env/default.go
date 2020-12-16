@@ -53,7 +53,7 @@ func init() {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
+	//flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
 	flags.StringVarP(&Project, "project", "p", Project, "project name")
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")

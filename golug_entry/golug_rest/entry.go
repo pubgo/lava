@@ -123,9 +123,16 @@ func (t *restEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 	golug_config.Decode(Name, &cfg)
-	golug_util.Mergo(&t.cfg, cfg)
 
-	t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)
+	dm := golug_config.GetCfg().GetStringMap(Name)
+	delete(dm, "views")
+
+	golug_util.Mergo(&t.cfg, dm)
+
+	if cfg.Views.Dir != "" && cfg.Views.Ext != "" {
+		t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)
+	}
+
 	return nil
 }
 
