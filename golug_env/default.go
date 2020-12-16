@@ -13,16 +13,16 @@ import (
 
 // 默认的全局配置
 var (
-	IsBlock       = true
-	Domain        = "golug"
-	Trace         = false
-	Home          = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
-	Project       = "golug"
-	Mode          = "dev"
-	Signal        = syscall.Signal(0)
-	replacer      = strings.NewReplacer("-", "_", ".", "_", "/", "_")
-	DefaultSecret = "zpCjWPsbqK@@^hR01qLDmZcXhKRIZgjHfxSG2KA%J#bFp!7YQVSmzXGc!sE!^qSM7@&d%oXHQtpR7K*8eRTdhRKjaxF#t@bd#A!"
-	RunMode       = RunEnvMode{Dev: "dev", Test: "test", Stag: "stag", Prod: "prod", Release: "release"}
+	IsBlock                 = true
+	Domain                  = "golug"
+	Trace                   = false
+	Home                    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	Project                 = "golug"
+	Mode                    = "dev"
+	Signal        os.Signal = syscall.Signal(0)
+	replacer                = strings.NewReplacer("-", "_", ".", "_", "/", "_")
+	DefaultSecret           = "zpCjWPsbqK@@^hR01qLDmZcXhKRIZgjHfxSG2KA%J#bFp!7YQVSmzXGc!sE!^qSM7@&d%oXHQtpR7K*8eRTdhRKjaxF#t@bd#A!"
+	RunMode                 = RunEnvMode{Dev: "dev", Test: "test", Stag: "stag", Prod: "prod", Release: "release"}
 )
 
 func init() {
