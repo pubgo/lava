@@ -2,6 +2,7 @@ package golug_config
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"reflect"
@@ -89,6 +90,10 @@ func Decode(name string, fn interface{}) {
 func Template(template string) string {
 	t := fasttemplate.New(template, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		tag = trim(tag)
+
+		fmt.Println(tag)
+
 		// 处理环境变量, env_前缀的为环境变量
 		if strings.HasPrefix(tag, "env_") {
 			tag = strings.TrimPrefix(tag, "env_")
