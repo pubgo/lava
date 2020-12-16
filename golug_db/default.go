@@ -40,7 +40,7 @@ func initClient(name string, cfg ClientCfg) {
 		}
 	}
 
-	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, cfg.Source)).(*xorm.Engine)
+	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
 	if golug_env.IsDev() {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
