@@ -6,17 +6,18 @@ import (
 )
 
 type RunEntry interface {
-	Init() error
+	InitEntry() error
 	Start() error
 	Stop() error
 	Options() Options
 }
 
 type Entry interface {
+	Init(func())
 	Run() RunEntry
 	Version(v string)
-	UnWrap(fn interface{}) error
-	Dix(data ...interface{}) error
+	UnWrap(fn interface{})
+	Dix(data ...interface{})
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
@@ -24,6 +25,7 @@ type Entry interface {
 
 type Option func(o *Options)
 type Options struct {
+	Init        func()
 	Initialized bool
 	Addr        string
 	Name        string

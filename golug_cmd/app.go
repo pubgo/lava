@@ -19,7 +19,7 @@ import (
 func Start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(ent.Run().Init())
+	xerror.Panic(ent.Run().InitEntry())
 
 	// 启动配置, 初始化组件, 初始化插件
 	plugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))

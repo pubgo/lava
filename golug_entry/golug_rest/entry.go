@@ -98,7 +98,7 @@ func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *restEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *restEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
+func (t *restEntry) UnWrap(fn interface{}) { return }
 
 func (t *restEntry) Router(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
@@ -118,10 +118,10 @@ func (t *restEntry) Use(handler ...fiber.Handler) {
 	}
 }
 
-func (t *restEntry) Init() (err error) {
+func (t *restEntry) InitEntry() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().Init())
+	xerror.Panic(t.Entry.Run().InitEntry())
 	golug_config.Decode(Name, &cfg)
 
 	dm := golug_config.GetCfg().GetStringMap(Name)
@@ -131,6 +131,9 @@ func (t *restEntry) Init() (err error) {
 
 	if cfg.Views.Dir != "" && cfg.Views.Ext != "" {
 		t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)
+	}
+	if i := t.Options().Init; i != nil {
+		i()
 	}
 
 	return nil

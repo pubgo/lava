@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
-	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 )
 
@@ -58,13 +57,16 @@ func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *taskEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *taskEntry) UnWrap(fn interface{}) error { return xerror.Wrap(golug_util.UnWrap(t, fn)) }
+func (t *taskEntry) UnWrap(fn interface{}) { return }
 
-func (t *taskEntry) Init() (err error) {
+func (t *taskEntry) InitEntry() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().Init())
-	xerror.Panic(golug_config.Decode(Name, &t.cfg))
+	xerror.Panic(t.Entry.Run().InitEntry())
+	golug_config.Decode(Name, &t.cfg)
+	if i := t.Options().Init; i != nil {
+		i()
+	}
 
 	return nil
 }
