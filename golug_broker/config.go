@@ -3,7 +3,6 @@ package golug_broker
 import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
-	"github.com/pubgo/xerror"
 )
 
 var Name = "broker"
@@ -16,7 +15,7 @@ type ClientCfg struct {
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {
-	xerror.Next().Panic(golug_config.Decode(Name, &cfg))
+	golug_config.Decode(Name, &cfg)
 	return
 }
 
