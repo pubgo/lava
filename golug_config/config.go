@@ -94,7 +94,7 @@ func Template(template string) string {
 		// 处理环境变量, env_前缀的为环境变量
 		if strings.HasPrefix(tag, "env_") {
 			tag = strings.TrimPrefix(tag, "env_")
-			return w.Write([]byte(golug_env.GetEnv(tag)))
+			return w.Write([]byte(golug_env.GetSysEnv(tag)))
 		}
 
 		// 处理特殊变量
