@@ -30,8 +30,8 @@ func (t *baseEntry) Dix(data ...interface{}) (err error) {
 	return xerror.Wrap(dix.Dix(data...))
 }
 
-func (t *baseEntry) Decode(name string, fn interface{}) {
-	xerror.Next().Panic(golug_config.Decode(name, fn))
+func (t *baseEntry) Decode(fn interface{}) {
+	xerror.Next().Panic(golug_config.Decode(t.opts.Name, fn))
 }
 
 func (t *baseEntry) Init() error {
