@@ -14,7 +14,6 @@ type ClientCfg struct {
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {
-	defer xerror.RespExit()
 	xerror.Next().Panic(golug_config.Decode(Name, &cfg))
 	return
 }
