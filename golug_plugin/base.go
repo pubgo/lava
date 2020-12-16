@@ -12,8 +12,7 @@ import (
 var _ Plugin = (*Base)(nil)
 
 type Base struct {
-	Name       string `yaml:"-" json:"-"`
-	Enabled    bool   `yaml:"enabled" json:"enabled"`
+	Name       string
 	OnInit     func(ent golug_entry.Entry)
 	OnWatch    func(r *golug_watcher.Response)
 	OnCommands func(cmd *cobra.Command)
@@ -22,19 +21,6 @@ type Base struct {
 
 func (p *Base) Init(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
-
-	ent.Decode(p.Name, p)
-
-	var status = "disabled"
-	if p.Enabled {
-		status = "enabled"
-	}
-
-	xlog.Debugf("plugin [%s] status: %s", p.Name, status)
-
-	if !p.Enabled {
-		return nil
-	}
 
 	if p.OnInit != nil {
 		xlog.Debugf("plugin [%s] init", p.Name)
@@ -46,10 +32,6 @@ func (p *Base) Init(ent golug_entry.Entry) (err error) {
 func (p *Base) Watch(r *golug_watcher.Response) (err error) {
 	defer xerror.RespErr(&err)
 
-	if !p.Enabled {
-		return nil
-	}
-
 	if p.OnWatch != nil {
 		xlog.Debugf("[%s] start watch", p.Name)
 		p.OnWatch(r)
@@ -59,10 +41,6 @@ func (p *Base) Watch(r *golug_watcher.Response) (err error) {
 
 func (p *Base) Commands() *cobra.Command {
 	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), xlog.Any("err", "command error")) })
-
-	if !p.Enabled {
-		return nil
-	}
 
 	if p.OnCommands != nil {
 		cmd := &cobra.Command{Use: p.Name}
@@ -78,10 +56,6 @@ func (p *Base) String() string {
 
 func (p *Base) Flags() *pflag.FlagSet {
 	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", xlog.Any("err", err)) })
-
-	if !p.Enabled {
-		return nil
-	}
 
 	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
 	if p.OnFlags != nil {

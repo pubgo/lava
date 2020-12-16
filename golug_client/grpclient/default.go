@@ -2,6 +2,7 @@ package grpclient
 
 import (
 	"context"
+
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
@@ -17,8 +18,8 @@ func GetClient1(name string) grpc.ClientConnInterface {
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(DefaultMaxRecvMsgSize),
 			grpc.MaxCallSendMsgSize(DefaultMaxSendMsgSize)),
-		grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
-		grpc.WithChainStreamInterceptor(defaultStreamInterceptor))
+		grpc.WithChainUnaryInterceptor(unaryInterceptor, defaultUnaryInterceptor),
+		grpc.WithChainStreamInterceptor(streamInterceptor, defaultStreamInterceptor))
 	xerror.Panic(err)
 	return cc
 }
@@ -38,8 +39,8 @@ func createConn(addr string, ) *grpc.ClientConn {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultClientDialTimeout)
 	defer cancel()
 	cc, err := grpc.DialContext(ctx, addr, grpc.WithInsecure(), grpc.WithBlock(),
-		grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
-		grpc.WithChainStreamInterceptor(defaultStreamInterceptor),
+		grpc.WithChainUnaryInterceptor(unaryInterceptor, defaultUnaryInterceptor),
+		grpc.WithChainStreamInterceptor(streamInterceptor, defaultStreamInterceptor),
 	)
 	xerror.Next().Panic(err)
 	return cc

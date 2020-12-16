@@ -6,7 +6,6 @@ package login
 import (
 	"reflect"
 
-	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 )
 

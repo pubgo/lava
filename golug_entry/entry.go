@@ -18,7 +18,6 @@ type Entry interface {
 	UnWrap(fn interface{}) error
 	Dix(data ...interface{}) error
 	Description(description ...string)
-	Decode(fn interface{})
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
 }

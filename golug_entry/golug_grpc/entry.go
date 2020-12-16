@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/golug/internal/golug_util"
@@ -40,7 +41,7 @@ func (t *grpcEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	t.Decode(Name, &t.cfg)
+	xerror.Panic(golug_config.Decode(Name, &t.cfg))
 
 	return nil
 }

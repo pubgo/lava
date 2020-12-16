@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-
 var clientM sync.Map
 var connPool sync.Map
 
@@ -36,10 +35,10 @@ var ka = keepalive.ClientParameters{
 }
 
 // middleware for grpc unary calls
-var defaultUnaryInterceptor = grpc_middleware.ChainUnaryClient(unaryInterceptor, grpc_opentracing.UnaryClientInterceptor())
+var defaultUnaryInterceptor = grpc_middleware.ChainUnaryClient(grpc_opentracing.UnaryClientInterceptor())
 
 // middleware for grpc stream calls
-var defaultStreamInterceptor = grpc_middleware.ChainStreamClient(streamInterceptor, grpc_opentracing.StreamClientInterceptor())
+var defaultStreamInterceptor = grpc_middleware.ChainStreamClient(grpc_opentracing.StreamClientInterceptor())
 
 func unaryInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	// select grpc conn from grpc client pool

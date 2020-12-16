@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/golug/golug_entry/golug_grpc"
@@ -37,6 +39,7 @@ type restEntry struct {
 	golug_entry.Entry
 	app      *fiber.App
 	handlers []func()
+	cfg      fiber.Config
 }
 
 func (t *restEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
@@ -119,9 +122,10 @@ func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
+	xerror.Panic(golug_config.Decode(Name, &cfg))
+	golug_util.Mergo(&t.cfg, cfg)
 
-	t.Decode(Name, &cfg)
-
+	t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)
 	return nil
 }
 
@@ -129,7 +133,7 @@ func (t *restEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化app
-	t.app = fiber.New(cfg)
+	t.app = fiber.New(t.cfg)
 
 	// 初始化routes
 	for i := range t.handlers {

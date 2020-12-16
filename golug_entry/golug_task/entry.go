@@ -2,6 +2,7 @@ package golug_task
 
 import (
 	"github.com/pubgo/golug/golug_broker"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/golug/internal/golug_util"
@@ -63,8 +64,7 @@ func (t *taskEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-
-	xerror.Panic(t.Decode(Name, &t.cfg))
+	xerror.Panic(golug_config.Decode(Name, &t.cfg))
 
 	return nil
 }

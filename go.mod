@@ -7,6 +7,7 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 require (
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/gofiber/fiber/v2 v2.2.3
+	github.com/gofiber/template v1.6.6
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -25,6 +26,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/valyala/fasttemplate v1.0.1
+	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb
 	google.golang.org/genproto v0.0.0-20201204160425-06b3db808446

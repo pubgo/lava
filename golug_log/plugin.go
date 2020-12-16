@@ -1,6 +1,7 @@
 package golug_log
 
 import (
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
@@ -15,7 +16,7 @@ func init() {
 			flags.StringVarP(&cfg.Level, "level", cfg.Level, "l", "log level")
 		},
 		OnInit: func(ent golug_entry.Entry) {
-			ent.Decode(Name, &cfg)
+			xerror.Panic(golug_config.Decode(Name, &cfg))
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(r *golug_watcher.Response) {
