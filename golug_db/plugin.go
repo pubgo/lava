@@ -1,6 +1,7 @@
 package golug_db
 
 import (
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/internal/golug_util"
@@ -11,7 +12,7 @@ func init() {
 	xerror.Panic(golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnInit: func(ent golug_entry.Entry) {
-			ent.Decode(Name, &cfg)
+			golug_config.Decode(Name, &cfg)
 
 			for k, v := range cfg {
 				_cfg := GetDefaultCfg()
