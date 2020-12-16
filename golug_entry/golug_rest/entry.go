@@ -98,7 +98,7 @@ func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *restEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *restEntry) UnWrap(fn interface{}) { return }
+func (t *restEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_util.UnWrap(t, fn)) }
 
 func (t *restEntry) Router(prefix string, fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })

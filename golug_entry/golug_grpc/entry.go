@@ -2,6 +2,7 @@ package golug_grpc
 
 import (
 	"context"
+	"github.com/pubgo/golug/internal/golug_util"
 	"net"
 	"time"
 
@@ -52,7 +53,7 @@ func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *grpcEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *grpcEntry) UnWrap(fn interface{}) { return }
+func (t *grpcEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_util.UnWrap(t, fn)) }
 
 func (t *grpcEntry) Register(ss interface{}, opts ...Option) {
 	if ss == nil {
