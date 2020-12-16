@@ -48,23 +48,21 @@ func UnMarshal(path string) map[string]interface{} {
 
 // Decode
 // decode config dataCallback
-func Decode(name string, fn interface{}) (err error) {
-	defer xerror.RespErr(&err)
-
+func Decode(name string, fn interface{}) {
 	if GetCfg().Get(name) == nil {
 		xlog.Warnf("%s not found", name)
-		return nil
+		return
 	}
 
 	if fn == nil {
-		return xerror.New("[fn] should not be nil")
+		xerror.Panic(xerror.New("[fn] should not be nil"))
 	}
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {
 	case reflect.Func: // func(cfg *Config)
 		if vfn.Type().NumIn() != 1 {
-			return xerror.New("[fn] input num should be one")
+			xerror.Panic(xerror.New("[fn] input num should be one"))
 		}
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
@@ -75,17 +73,15 @@ func Decode(name string, fn interface{}) (err error) {
 			},
 		)
 		if !ret[0].IsNil() {
-			return xerror.WrapF(ret[0].Interface().(error), "%s config decode error", name)
+			xerror.PanicF(ret[0].Interface().(error), "%s config decode error", name)
 		}
 
 		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.Wrap(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
+		xerror.Panic(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
 	default:
-		return xerror.Fmt("[fn] type error, type:%#v", fn)
+		xerror.Panic(xerror.Fmt("[fn] type error, type:%#v", fn))
 	}
-
-	return
 }
 
 func Template(template string) string {

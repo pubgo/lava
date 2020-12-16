@@ -122,7 +122,7 @@ func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	xerror.Panic(golug_config.Decode(Name, &cfg))
+	golug_config.Decode(Name, &cfg)
 	golug_util.Mergo(&t.cfg, cfg)
 
 	t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)

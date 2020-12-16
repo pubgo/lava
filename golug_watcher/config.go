@@ -2,7 +2,6 @@ package golug_watcher
 
 import (
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/xerror"
 )
 
 var Name = "watcher"
@@ -14,7 +13,7 @@ type ClientCfg struct {
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {
-	xerror.Next().Panic(golug_config.Decode(Name, &cfg))
+	golug_config.Decode(Name, &cfg)
 	return
 }
 

@@ -16,7 +16,7 @@ func init() {
 			flags.StringVarP(&cfg.Level, "level", cfg.Level, "l", "log level")
 		},
 		OnInit: func(ent golug_entry.Entry) {
-			xerror.Panic(golug_config.Decode(Name, &cfg))
+			golug_config.Decode(Name, &cfg)
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(r *golug_watcher.Response) {

@@ -30,10 +30,6 @@ func (t *baseEntry) Dix(data ...interface{}) (err error) {
 	return xerror.Wrap(dix.Dix(data...))
 }
 
-func (t *baseEntry) Decode(fn interface{}) {
-	xerror.Next().Panic(golug_config.Decode(t.opts.Name, fn))
-}
-
 func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
 	golug_env.Project = t.Options().Name
