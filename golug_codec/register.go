@@ -1,4 +1,4 @@
-package golug_codex
+package golug_codec
 
 import (
 	"sync"
@@ -13,7 +13,9 @@ func Register(name string, codec Codec) {
 		xerror.Next().Panic(xerror.Fmt("[codec] %s is nil", name))
 	}
 
-	data.Store(name, codec)
+	if _, ok := data.LoadOrStore(name, codec); ok {
+		xerror.Next().Panic(xerror.Fmt("[codec] %s already exists", name))
+	}
 }
 
 func Get(name string) Codec {

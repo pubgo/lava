@@ -1,4 +1,4 @@
-package golug_codex
+package golug_codec
 
 // Codec defines the interface that decode/encode payload.
 type Codec interface {

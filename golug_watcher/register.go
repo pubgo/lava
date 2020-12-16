@@ -12,7 +12,10 @@ func Register(name string, w Watcher) {
 	if w == nil {
 		xerror.Next().Panic(xerror.Fmt("[watcher] %s is nil", name))
 	}
-	register.Store(name, w)
+
+	if _, ok := register.LoadOrStore(name, w); ok {
+		xerror.Next().Panic(xerror.Fmt("[watcher] %s already exists", name))
+	}
 }
 
 func List() map[string]Watcher {

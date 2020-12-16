@@ -11,6 +11,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
@@ -51,16 +52,17 @@ func Decode(name string, fn interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	if GetCfg().Get(name) == nil {
+		xlog.Warnf("%s not found", name)
 		return nil
 	}
 
 	if fn == nil {
-		return xerror.New("fn should not be nil")
+		return xerror.New("[fn] should not be nil")
 	}
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {
-	case reflect.Func:
+	case reflect.Func: // func(cfg *Config)
 		if vfn.Type().NumIn() != 1 {
 			return xerror.New("[fn] input num should be one")
 		}
@@ -69,16 +71,16 @@ func Decode(name string, fn interface{}) (err error) {
 		ret := reflect.ValueOf(GetCfg().UnmarshalKey).Call(
 			[]reflect.Value{
 				reflect.ValueOf(name), mthIn,
-				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) { cfg.TagName = CfgType }),
+				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
 			},
 		)
 		if !ret[0].IsNil() {
-			return xerror.WrapF(ret[0].Interface().(error), "config decode error")
+			return xerror.WrapF(ret[0].Interface().(error), "%s config decode error", name)
 		}
 
 		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.Wrap(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = CfgType }))
+		return xerror.Wrap(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
 	default:
 		return xerror.Fmt("[fn] type error, type:%#v", fn)
 	}
@@ -89,11 +91,13 @@ func Decode(name string, fn interface{}) (err error) {
 func Template(template string) string {
 	t := fasttemplate.New(template, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		// 处理环境变量, env_前缀的为环境变量
 		if strings.HasPrefix(tag, "env_") {
 			tag = strings.TrimPrefix(tag, "env_")
 			return w.Write([]byte(golug_env.GetEnv(tag)))
 		}
 
+		// 处理特殊变量
 		switch tag {
 		case "home":
 			return w.Write([]byte(golug_env.Home))

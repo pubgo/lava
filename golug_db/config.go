@@ -3,8 +3,6 @@ package golug_db
 import (
 	"time"
 
-	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/xerror"
 	"xorm.io/xorm/names"
 )
 
@@ -21,9 +19,7 @@ type ClientCfg struct {
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {
-	defer xerror.RespExit()
-	xerror.Next().Panic(golug_config.Decode(Name, &cfg))
-	return
+	return cfg
 }
 
 func GetDefaultCfg() ClientCfg {

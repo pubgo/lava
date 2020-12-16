@@ -10,10 +10,12 @@ var dataCallback sync.Map
 
 func Watch(name string, h CallBack) {
 	if h == nil {
-		xerror.Next().Panic(xerror.New("[watcher] h is nil"))
+		xerror.Next().Panic(xerror.Fmt("[watcher] %s is nil", name))
 	}
 
-	dataCallback.Store(name, h)
+	if _, ok := dataCallback.LoadOrStore(name, h); ok {
+		xerror.Next().Panic(xerror.Fmt("[watcher] %s already exists", name))
+	}
 }
 
 func GetCallBack(name string) CallBack {

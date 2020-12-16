@@ -11,7 +11,7 @@ func init() {
 	xerror.Panic(golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnInit: func(ent golug_entry.Entry) {
-			xerror.Panic(ent.Decode(Name, &cfg))
+			ent.Decode(Name, &cfg)
 
 			for k, v := range cfg {
 				_cfg := GetDefaultCfg()

@@ -8,9 +8,9 @@ import (
 var Name = "watcher"
 
 type ClientCfg struct {
-	Project string
-	Driver  string
-	Name    string
+	Project string `json:"project"`
+	Driver  string `json:"driver"`
+	Name    string `json:"name"`
 }
 
 func GetCfg() (cfg map[string]ClientCfg) {
@@ -20,6 +20,5 @@ func GetCfg() (cfg map[string]ClientCfg) {
 }
 
 func GetDefaultCfg() ClientCfg {
-	return ClientCfg{
-	}
+	return ClientCfg{}
 }

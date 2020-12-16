@@ -13,7 +13,9 @@ func Register(name string, broker Broker) {
 		xerror.Next().Panic(xerror.Fmt("[broker] %s is nil", name))
 	}
 
-	data.Store(name, broker)
+	if _, ok := data.LoadOrStore(name, broker); ok {
+		xerror.Next().Panic(xerror.Fmt("[broker] %s already exists", name))
+	}
 }
 
 func Get(name string) Broker {

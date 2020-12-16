@@ -2,13 +2,13 @@ package golug_config
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/internal/golug_util"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
@@ -32,7 +32,7 @@ func Init() (err error) {
 
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	golug_env.Get(&golug_env.Domain, "golug", "golug_domain", "golug_prefix", "env_prefix")
+	golug_env.GetSys(&golug_env.Domain, "golug", "golug_domain", "golug_prefix", "env_prefix")
 	if golug_env.Domain = trim(lower(golug_env.Domain)); golug_env.Domain == "" {
 		golug_env.Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", golug_env.Domain)
@@ -81,7 +81,7 @@ func Init() (err error) {
 		// 获取配置文件所在目录
 		golug_env.Home = filepath.Dir(filepath.Dir(xerror.PanicStr(filepath.Abs(v.ConfigFileUsed()))))
 
-		xerror.Exit(filepath.Walk(filepath.Join(golug_env.Home, "config"), func(path string, info os.FileInfo, err error) error {
+		xerror.Exit(filepath.Walk(filepath.Dir(v.ConfigFileUsed()), func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return xerror.Wrap(err)
 			}
@@ -107,9 +107,12 @@ func Init() (err error) {
 
 			// 合并所有的配置文件到内存当中
 			name := ns[1]
+			// 获取config中默认的配置
 			val := v.GetStringMap(name)
+			// 从自定义文件中解析配置
 			val1 := UnMarshal(path)
 			if val != nil {
+				// 合并配置
 				golug_util.Mergo(&val, val1)
 				val1 = val
 			}
