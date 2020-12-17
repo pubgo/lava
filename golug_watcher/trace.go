@@ -1,20 +1,17 @@
 package golug_watcher
 
 import (
-	"fmt"
+	"expvar"
 
-	"github.com/pubgo/golug/golug_trace"
-	"github.com/pubgo/golug/internal/golug_util"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	// debug and trace
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
-		xlog.Debug("trace [watcher] config")
-		var dt []string
-		dataCallback.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
-		fmt.Println(golug_util.MarshalIndent(dt))
-		fmt.Println()
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
+		expvar.Publish("envs", expvar.Func(func() interface{} {
+			var dt []string
+			dataCallback.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
+			return dt
+		}))
 	})
 }

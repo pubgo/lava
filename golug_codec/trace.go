@@ -1,17 +1,13 @@
 package golug_codec
 
 import (
-	"fmt"
+	"expvar"
 
-	"github.com/pubgo/golug/golug_trace"
-	"github.com/pubgo/golug/internal/golug_util"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
-		xlog.Debug("trace [codec] config")
-		fmt.Println(golug_util.MarshalIndent(List()))
-		fmt.Println()
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
+		expvar.Publish(Name, expvar.Func(func() interface{} { return List() }))
 	})
 }

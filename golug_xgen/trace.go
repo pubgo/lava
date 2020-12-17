@@ -1,18 +1,13 @@
 package golug_xgen
 
 import (
-	"fmt"
+	"expvar"
 
-	"github.com/pubgo/golug/golug_trace"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
-		xlog.Debug("trace [data]")
-		for k, v := range List() {
-			fmt.Printf("%#v: \n\t%#v\n\n", k, v)
-		}
-		fmt.Println()
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
+		expvar.Publish("envs", expvar.Func(func() interface{} { return List() }))
 	})
 }

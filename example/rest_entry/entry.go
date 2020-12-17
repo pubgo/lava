@@ -2,14 +2,14 @@ package rest_entry
 
 import (
 	"fmt"
-	
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug"
 	"github.com/pubgo/golug/golug_entry"
 )
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewRestEntry("http")
+	ent := golug.NewRestEntry("http", nil)
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 

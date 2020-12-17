@@ -1,16 +1,13 @@
 package golug_plugin
 
 import (
-	"fmt"
+	"expvar"
 
-	"github.com/pubgo/golug/golug_trace"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
-		xlog.Debug("trace [plugin]")
-		fmt.Println(String())
-		fmt.Println()
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
+		expvar.Publish("plugin", expvar.Func(func() interface{} { return All() }))
 	})
 }

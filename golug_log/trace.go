@@ -1,17 +1,13 @@
 package golug_log
 
 import (
-	"fmt"
+	"expvar"
 
-	"github.com/pubgo/golug/golug_trace"
-	"github.com/pubgo/golug/internal/golug_util"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
-		xlog.Debug("trace [log] config")
-		fmt.Println(golug_util.MarshalIndent(cfg))
-		fmt.Println()
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
+		expvar.Publish("envs", expvar.Func(func() interface{} { return cfg }))
 	})
 }
