@@ -100,8 +100,8 @@ func (t *restEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *restEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_util.UnWrap(t, fn)) }
 
-func (t *restEntry) Router(prefix string, fn func(r fiber.Router)) {
-	t.handlers = append(t.handlers, func() { fn(t.app.Group(prefix)) })
+func (t *restEntry) Router(fn func(r fiber.Router)) {
+	t.handlers = append(t.handlers, func() { fn(t.app) })
 }
 
 func (t *restEntry) use(handler fiber.Handler) {

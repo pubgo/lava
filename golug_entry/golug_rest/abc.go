@@ -10,5 +10,5 @@ type Entry interface {
 	golug_entry.Entry
 	Register(handler interface{}, opts ...golug_grpc.Option)
 	Use(handler ...fiber.Handler)
-	Router(prefix string, fn func(r fiber.Router))
+	Router(fn func(r fiber.Router))
 }

@@ -25,7 +25,7 @@ func GetEntry() golug_entry.Entry {
 	//	go http.Serve(l, nil)
 	//})
 
-	ent.Router("/", func(r fiber.Router) {
+	ent.Router(func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {
 			_, err := ctx.WriteString("ok")
 			return err
