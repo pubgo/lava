@@ -34,15 +34,11 @@ func (t *ctlEntry) Run() golug_entry.RunEntry { return t }
 
 func (t *ctlEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_util.UnWrap(t, fn)) }
 
-func (t *ctlEntry) InitEntry() (err error) {
+func (t *ctlEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().InitEntry())
+	xerror.Panic(t.Entry.Run().Init())
 	golug_config.Decode(Name, &t.cfg)
-	if i := t.Options().Init; i != nil {
-		i()
-	}
-
 	return nil
 }
 

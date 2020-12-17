@@ -25,15 +25,11 @@ type baseEntry struct {
 	opts golug_entry.Options
 }
 
-func (t *baseEntry) Init(f func()) {
-	t.opts.Init = f
-}
-
 func (t *baseEntry) Dix(data ...interface{}) {
 	xerror.Next().Panic(dix.Dix(data...))
 }
 
-func (t *baseEntry) InitEntry() error {
+func (t *baseEntry) Init() error {
 	t.opts.Initialized = true
 	golug_env.Project = t.Options().Name
 	return xerror.Wrap(golug_config.Init())

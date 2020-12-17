@@ -6,14 +6,13 @@ import (
 )
 
 type RunEntry interface {
-	InitEntry() error
+	Init() error
 	Start() error
 	Stop() error
 	Options() Options
 }
 
 type Entry interface {
-	Init(func())
 	Run() RunEntry
 	Version(v string)
 	UnWrap(fn interface{})
@@ -25,7 +24,6 @@ type Entry interface {
 
 type Option func(o *Options)
 type Options struct {
-	Init        func()
 	Initialized bool
 	Addr        string
 	Name        string

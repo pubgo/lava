@@ -57,7 +57,7 @@ func NewPool(size int, ttl time.Duration) *Pool {
 	return pool
 }
 
-// InitEntry modify the pool configurations.
+// Init modify the pool configurations.
 // This configurations will represent on the managers create after this action.
 func (p *Pool) Init(size int, ttl time.Duration) {
 	p.Lock()

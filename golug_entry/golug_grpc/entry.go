@@ -37,15 +37,11 @@ func (t *grpcEntry) StreamServer(interceptors ...grpc.StreamServerInterceptor) {
 	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
 }
 
-func (t *grpcEntry) InitEntry() (err error) {
+func (t *grpcEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().InitEntry())
+	xerror.Panic(t.Entry.Run().Init())
 	golug_config.Decode(Name, &t.cfg)
-	if i := t.Options().Init; i != nil {
-		i()
-	}
-
 	return nil
 }
 

@@ -118,10 +118,10 @@ func (t *restEntry) Use(handler ...fiber.Handler) {
 	}
 }
 
-func (t *restEntry) InitEntry() (err error) {
+func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().InitEntry())
+	xerror.Panic(t.Entry.Run().Init())
 	golug_config.Decode(Name, &cfg)
 
 	dm := golug_config.GetCfg().GetStringMap(Name)
@@ -132,10 +132,6 @@ func (t *restEntry) InitEntry() (err error) {
 	if cfg.Views.Dir != "" && cfg.Views.Ext != "" {
 		t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)
 	}
-	if i := t.Options().Init; i != nil {
-		i()
-	}
-
 	return nil
 }
 
