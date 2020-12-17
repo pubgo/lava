@@ -101,15 +101,15 @@ func (t *grpcEntry) Stop() (err error) {
 	return nil
 }
 
-func newEntry(name string) *grpcEntry {
+func newEntry(name string, cfg interface{}) *grpcEntry {
 	ent := &grpcEntry{
-		Entry: golug_base.New(name),
+		Entry: golug_base.New(name, cfg),
 	}
 	ent.trace()
 
 	return ent
 }
 
-func New(name string) *grpcEntry {
-	return newEntry(name)
+func New(name string, cfg interface{}) *grpcEntry {
+	return newEntry(name, cfg)
 }

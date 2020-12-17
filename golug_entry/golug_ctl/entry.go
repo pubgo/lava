@@ -42,12 +42,12 @@ func (t *ctlEntry) Init() (err error) {
 	return nil
 }
 
-func newEntry(name string) *ctlEntry {
-	ent := &ctlEntry{Entry: golug_base.New(name)}
+func newEntry(name string, cfg interface{}) *ctlEntry {
+	ent := &ctlEntry{Entry: golug_base.New(name, cfg)}
 	ent.trace()
 	return ent
 }
 
-func New(name string) *ctlEntry {
-	return newEntry(name)
+func New(name string, cfg interface{}) *ctlEntry {
+	return newEntry(name, cfg)
 }

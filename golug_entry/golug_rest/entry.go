@@ -184,13 +184,13 @@ func (t *restEntry) initFlags() {
 	})
 }
 
-func newEntry(name string) *restEntry {
-	ent := &restEntry{Entry: golug_base.New(name)}
+func newEntry(name string, cfg interface{}) *restEntry {
+	ent := &restEntry{Entry: golug_base.New(name, cfg)}
 	ent.initFlags()
 	ent.trace()
 	return ent
 }
 
-func New(name string) *restEntry {
-	return newEntry(name)
+func New(name string, cfg interface{}) *restEntry {
+	return newEntry(name, cfg)
 }

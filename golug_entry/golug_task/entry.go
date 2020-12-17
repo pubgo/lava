@@ -65,19 +65,15 @@ func (t *taskEntry) Init() (err error) {
 
 	xerror.Panic(t.Entry.Run().Init())
 	golug_config.Decode(Name, &t.cfg)
-	if i := t.Options().Init; i != nil {
-		i()
-	}
-
 	return nil
 }
 
-func newEntry(name string) *taskEntry {
-	ent := &taskEntry{Entry: golug_base.New(name)}
+func newEntry(name string, cfg interface{}) *taskEntry {
+	ent := &taskEntry{Entry: golug_base.New(name, cfg)}
 	ent.trace()
 	return ent
 }
 
-func New(name string) *taskEntry {
-	return newEntry(name)
+func New(name string, cfg interface{}) *taskEntry {
+	return newEntry(name, cfg)
 }

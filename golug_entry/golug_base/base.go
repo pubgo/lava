@@ -22,6 +22,7 @@ import (
 var _ golug_entry.Entry = (*baseEntry)(nil)
 
 type baseEntry struct {
+	cfg  interface{}
 	opts golug_entry.Options
 }
 
@@ -29,10 +30,13 @@ func (t *baseEntry) Dix(data ...interface{}) {
 	xerror.Next().Panic(dix.Dix(data...))
 }
 
-func (t *baseEntry) Init() error {
+func (t *baseEntry) Init() (err error) {
+	defer xerror.RespErr(&err)
 	t.opts.Initialized = true
 	golug_env.Project = t.Options().Name
-	return xerror.Wrap(golug_config.Init())
+	xerror.Panic(golug_config.Init())
+	golug_config.Decode(golug_env.Project, t.cfg)
+	return
 }
 
 func (t *baseEntry) Run() golug_entry.RunEntry { return t }
@@ -147,13 +151,14 @@ func handleCmdName(name string) string {
 	return strings.Join(strings.Split(name, "_")[1:], "_")
 }
 
-func newEntry(name string) *baseEntry {
+func newEntry(name string, cfg interface{}) *baseEntry {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		xerror.Panic(xerror.New("the [name] parameter should not be empty"))
 	}
 
 	ent := &baseEntry{
+		cfg: cfg,
 		opts: golug_entry.Options{
 			Name:    name,
 			Addr:    ":8080",
@@ -173,6 +178,6 @@ func newEntry(name string) *baseEntry {
 	return ent
 }
 
-func New(name string) *baseEntry {
-	return newEntry(name)
+func New(name string, cfg interface{}) *baseEntry {
+	return newEntry(name, cfg)
 }
