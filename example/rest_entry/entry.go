@@ -2,7 +2,7 @@ package rest_entry
 
 import (
 	"fmt"
-
+	
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug"
 	"github.com/pubgo/golug/golug_entry"
@@ -18,6 +18,12 @@ func GetEntry() golug_entry.Entry {
 
 		return ctx.Next()
 	})
+
+	//golug.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
+	//	l, err := net.Listen("tcp", ":8081")
+	//	xerror.Panic(err)
+	//	go http.Serve(l, nil)
+	//})
 
 	ent.Router("/", func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {
