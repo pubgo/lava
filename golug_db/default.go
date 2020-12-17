@@ -20,7 +20,7 @@ var clientM sync.Map
 
 func GetClient(names ...string) *xorm.Engine {
 	var name = golug_consts.Default
-	if len(names) > 0 {
+	if len(names) > 0 && names[0] != "" {
 		name = names[0]
 	}
 
