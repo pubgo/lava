@@ -44,19 +44,19 @@ func unaryInterceptor(ctx context.Context, method string, req, reply interface{}
 	// select grpc conn from grpc client pool
 	service := cc.Target()
 	cc1 := selectConn(service)
-	defer releaseConn(service, cc1)
-	return invoker(ctx, method, req, reply, cc, opts...)
+	defer releaseConn(cc1)
+	return invoker(ctx, method, req, reply, cc1.conn, opts...)
 }
 
 func streamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	// select grpc conn from grpc client pool
 	service := cc.Target()
 	cc1 := selectConn(service)
-	defer releaseConn(service, cc1)
+	defer releaseConn(cc1)
 	return streamer(ctx, desc, cc1.conn, method, opts...)
 }
 
-func isConnValid(conn *grpcConn) bool {
+func isConnInvalid(conn *grpcConn) bool {
 	return conn.closed ||
 		conn.conn.GetState() == connectivity.Shutdown ||
 		conn.conn.GetState() == connectivity.TransientFailure
@@ -77,22 +77,24 @@ func selectConn(service string) *grpcConn {
 	pool := val.(*grpcPool)
 	pool.connMap.Range(func(key, value interface{}) bool {
 		conn = key.(*grpcConn)
-		if isValid = isConnValid(conn); isValid {
+		if isConnInvalid(conn) {
 			return true
 		}
+
+		isValid = true
 		return false
 	})
 
 	isOkRef := conn.connRef.Load() <= maxConnRef
-	if !isValid && isOkRef {
+	if isValid && isOkRef {
 		return conn
 	}
 
 	// 创建新的grpc conn
 	cc := createConn(service)
 
-	if isValid {
-		conn.closed = true
+	if !isValid {
+		conn.closed = false
 		conn.conn = cc
 	}
 
@@ -106,15 +108,11 @@ func selectConn(service string) *grpcConn {
 }
 
 // when grpc call is finished, release the grpc Conn
-func releaseConn(service string, conn *grpcConn) {
-	val, _ := connPool.Load(service)
-	val1, _ := val.(*grpcPool).connMap.Load(conn)
-	val1.(*atomic.Uint32).Dec()
+func releaseConn(conn *grpcConn) {
+	conn.connRef.Dec()
 }
 
 type grpcPool struct {
-	sync.Mutex
-
 	// 最大连接引用数
 	maxConnRef int32
 
@@ -129,15 +127,6 @@ type grpcPool struct {
 	// 管理当前可选的连接
 	connList []*grpcConn
 	connMap  sync.Map
-
-	// 真实 Pool 的大小，也就是最大池子长度
-	size int
-
-	// 连接有效期
-	ttl int64
-
-	// 最后使用时间
-	updatedAt time.Time
 }
 
 type grpcConn struct {

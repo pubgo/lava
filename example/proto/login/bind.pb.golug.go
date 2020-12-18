@@ -6,6 +6,7 @@ package login
 import (
 	"reflect"
 
+	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
@@ -60,4 +61,8 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
+}
+
+func InitBindTelephoneClient(srv string) BindTelephoneClient {
+	return &bindTelephoneClient{grpclient.Init(srv)}
 }

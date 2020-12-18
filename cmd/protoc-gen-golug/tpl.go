@@ -13,6 +13,7 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/golug_client/grpclient"
 )
 
 {% for ss in fd.GetService() %}
@@ -28,5 +29,12 @@ import (
 			})
 		{% endfor %}
 		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+	}
+{% endfor %}
+
+
+{% for ss in fd.GetService() %}
+	func Init{{ss.Srv}}Client(srv string) {{ss.Srv}}Client {
+		return &{{unExport(ss.Srv)}}Client{grpclient.Init(srv)}
 	}
 {% endfor %}`

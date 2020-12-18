@@ -6,6 +6,7 @@ package hello
 import (
 	"reflect"
 
+	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
@@ -44,4 +45,8 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
+}
+
+func InitTransportClient(srv string) TransportClient {
+	return &transportClient{grpclient.Init(srv)}
 }

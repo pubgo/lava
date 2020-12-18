@@ -6,6 +6,7 @@ package login
 import (
 	"reflect"
 
+	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
@@ -52,4 +53,8 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
+}
+
+func InitCodeClient(srv string) CodeClient {
+	return &codeClient{grpclient.Init(srv)}
 }

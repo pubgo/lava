@@ -1,0 +1,25 @@
+### list task
+GET http://localhost:8080/api/tasks
+Accept: application/json
+
+### get task
+GET http://localhost:8080/api/task/1
+Accept: application/json
+
+### post task
+POST http://localhost:8080/api/task
+Content-Type: application/json
+
+{
+  "task_id": "e16a99a8-392d-11eb-b9c5-acde48001122",
+  "service": "Test",
+  "attempts": 0,
+  "priority": 1,
+  "timestamp": 1607415478,
+  "status": 0,
+  "method": "CheckMod",
+  "body": "eyJoZWxsbyI6Im9rIn0=",
+  "header": {
+    "format": "json"
+  }
+}

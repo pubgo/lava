@@ -6,6 +6,7 @@ package hello
 import (
 	"reflect"
 
+	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 )
 
@@ -49,4 +50,12 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+}
+
+func InitTestApiClient(srv string) TestApiClient {
+	return &testApiClient{grpclient.Init(srv)}
+}
+
+func InitTestApiV2Client(srv string) TestApiV2Client {
+	return &testApiV2Client{grpclient.Init(srv)}
 }

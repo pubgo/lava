@@ -35,12 +35,15 @@ func Init(name string) grpc.ClientConnInterface {
 	return cc
 }
 
-func createConn(addr string, ) *grpc.ClientConn {
+func createConn(addr string) *grpc.ClientConn {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultClientDialTimeout)
 	defer cancel()
-	cc, err := grpc.DialContext(ctx, addr, grpc.WithInsecure(), grpc.WithBlock(),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor, defaultUnaryInterceptor),
-		grpc.WithChainStreamInterceptor(streamInterceptor, defaultStreamInterceptor),
+	cc, err := grpc.DialContext(ctx, addr,
+		grpc.WithInsecure(), grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(unaryInterceptor),
+		grpc.WithStreamInterceptor(streamInterceptor),
+		grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor),
+		grpc.WithChainStreamInterceptor(defaultStreamInterceptor),
 	)
 	xerror.Next().Panic(err)
 	return cc
