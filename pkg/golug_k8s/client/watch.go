@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/pubgo/golug/internal/pkg/k8s/api"
+	"github.com/pubgo/golug/pkg/golug_k8s/api"
 	"net/http"
 )
 

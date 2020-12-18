@@ -2,7 +2,7 @@ package gomod
 
 import (
 	"bytes"
-	"github.com/pubgo/golug/internal/golug_sh"
+	"github.com/pubgo/golug/pkg/golug_sh"
 	"io/ioutil"
 	"strings"
 

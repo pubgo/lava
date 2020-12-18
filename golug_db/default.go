@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
@@ -35,7 +35,7 @@ func GetClient(names ...string) *xorm.Engine {
 func initClient(name string, cfg ClientCfg) {
 	source := golug_config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
-		if _dir := filepath.Dir(source); !golug_util.PathExist(_dir) {
+		if _dir := filepath.Dir(source); !golug_utils.PathExist(_dir) {
 			_ = os.MkdirAll(_dir, 0755)
 		}
 	}

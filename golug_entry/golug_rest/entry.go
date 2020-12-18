@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/golug/golug_entry/golug_grpc"
 	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
@@ -98,7 +98,7 @@ func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options
 
 func (t *restEntry) Run() golug_entry.RunEntry { return t }
 
-func (t *restEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_util.UnWrap(t, fn)) }
+func (t *restEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 
 func (t *restEntry) Router(fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app) })
@@ -127,7 +127,7 @@ func (t *restEntry) Init() (err error) {
 	dm := golug_config.GetCfg().GetStringMap(Name)
 	delete(dm, "views")
 
-	golug_util.Mergo(&t.cfg, dm)
+	golug_utils.Mergo(&t.cfg, dm)
 
 	if cfg.Views.Dir != "" && cfg.Views.Ext != "" {
 		t.cfg.Views = html.New(cfg.Views.Dir, cfg.Views.Ext)

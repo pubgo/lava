@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"errors"
-	"github.com/pubgo/golug/internal/pkg/k8s/api"
+	"github.com/pubgo/golug/pkg/golug_k8s/api"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"io"

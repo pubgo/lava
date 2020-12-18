@@ -1,4 +1,4 @@
-package golug_util
+package golug_utils
 
 import (
 	"bytes"

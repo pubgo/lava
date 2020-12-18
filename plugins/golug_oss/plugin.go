@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 )
 
@@ -16,7 +16,7 @@ func init() {
 
 			for k, v := range cfg {
 				_cfg := GetDefaultCfg()
-				golug_util.Mergo(&_cfg, v)
+				golug_utils.Mergo(&_cfg, v)
 
 				initClient(k, _cfg)
 				cfg[k] = _cfg

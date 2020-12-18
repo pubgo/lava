@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/golug/internal/golug_sh"
+	"github.com/pubgo/golug/pkg/golug_sh"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )

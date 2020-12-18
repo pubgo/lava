@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
@@ -113,7 +113,7 @@ func Init() (err error) {
 			val1 := UnMarshal(path)
 			if val != nil {
 				// 合并配置
-				golug_util.Mergo(&val, val1)
+				golug_utils.Mergo(&val, val1)
 				val1 = val
 			}
 			v.Set(name, val1)

@@ -1,7 +1,6 @@
 package golug_pidfile
 
 import (
-	"github.com/pubgo/golug/internal/golug_util"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 )
 
@@ -37,7 +37,7 @@ func init() {
 	// 检查存放pid的目录是否存在, 不存在就创建
 	xerror.Panic(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
 		pidPath := filepath.Dir(GetPidPath())
-		if !golug_util.PathExist(pidPath) {
+		if !golug_utils.PathExist(pidPath) {
 			xerror.Exit(os.MkdirAll(pidPath, pidPerm))
 		}
 	}))

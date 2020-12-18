@@ -2,18 +2,18 @@ package golug_base
 
 import (
 	"fmt"
-	"github.com/pubgo/dix/dix_envs"
 	"reflect"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/dix_envs"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_version"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -122,7 +122,7 @@ func (t *baseEntry) pluginCmd() *cobra.Command {
 func (t *baseEntry) configCmd() *cobra.Command {
 	cmd := &cobra.Command{Use: "cfg", Short: "config info"}
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		fmt.Println(golug_util.MarshalIndent(golug_config.GetCfg().AllSettings()))
+		fmt.Println(golug_utils.MarshalIndent(golug_config.GetCfg().AllSettings()))
 	}
 	return cmd
 }
@@ -139,7 +139,7 @@ func (t *baseEntry) verCmd() *cobra.Command {
 	cmd := &cobra.Command{Use: "ver", Short: "version info"}
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		for name, v := range golug_version.List() {
-			fmt.Println(name, golug_util.MarshalIndent(v))
+			fmt.Println(name, golug_utils.MarshalIndent(v))
 		}
 	}
 	return cmd

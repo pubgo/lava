@@ -2,10 +2,10 @@ package golug_websocket
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/internal/golug_util"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
@@ -17,7 +17,7 @@ func init() {
 		}
 
 		xlog.Debug("ws trace")
-		fmt.Println(golug_util.MarshalIndent(cfg))
+		fmt.Println(golug_utils.MarshalIndent(cfg))
 		fmt.Println()
 	}))
 }

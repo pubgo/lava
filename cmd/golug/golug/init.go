@@ -8,7 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/golug/golug_env"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func NewInit() *cobra.Command {
 		fmt.Println("config home:", home)
 
 		cfgPath := filepath.Join(home, "config.yaml")
-		if golug_util.PathExist(cfgPath) {
+		if golug_utils.PathExist(cfgPath) {
 			return
 		}
 

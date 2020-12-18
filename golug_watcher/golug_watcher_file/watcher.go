@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_watcher"
-	"github.com/pubgo/golug/internal/golug_util"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
@@ -94,7 +94,7 @@ func (t *fileWatcher) Start() (err error) {
 
 			op := event.Op
 			if op&fsnotify.Write == fsnotify.Write || op&fsnotify.Create == fsnotify.Create {
-				val := []byte(golug_util.Marshal(t.callback(event.Name)))
+				val := []byte(golug_utils.Marshal(t.callback(event.Name)))
 				resp := &golug_watcher.Response{Key: ns[1], Value: val, Event: "PUT"}
 				if err := fn(resp); err != nil {
 					xlog.Errorf("%s handle error", xlog.Any("err", err))
