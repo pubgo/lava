@@ -70,7 +70,6 @@ func (t *taskEntry) Init() (err error) {
 
 func newEntry(name string, cfg interface{}) *taskEntry {
 	ent := &taskEntry{Entry: golug_base.New(name, cfg)}
-	ent.trace()
 	return ent
 }
 

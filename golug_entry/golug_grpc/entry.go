@@ -105,7 +105,6 @@ func newEntry(name string, cfg interface{}) *grpcEntry {
 	ent := &grpcEntry{
 		Entry: golug_base.New(name, cfg),
 	}
-	ent.trace()
 
 	return ent
 }

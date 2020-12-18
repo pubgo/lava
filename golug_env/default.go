@@ -6,7 +6,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 )
@@ -39,16 +38,6 @@ func init() {
 	Get(&DefaultSecret, "secret", "token", "app_secret", "app_token")
 
 	Trace = IsTrue(trim(GetEnv("trace")))
-
-	// 运行环境检查
-	xerror.Exit(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
-		var m = RunMode
-		switch Mode {
-		case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
-		default:
-			xerror.Panic(xerror.Fmt("running mode does not match, mode: %s", Mode))
-		}
-	}))
 }
 
 func DefaultFlags() *pflag.FlagSet {

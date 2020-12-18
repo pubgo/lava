@@ -17,7 +17,7 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/pubgo/dix v0.1.5
+	github.com/pubgo/dix v0.1.6
 	github.com/pubgo/xerror v0.3.4
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.11

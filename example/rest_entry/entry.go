@@ -2,6 +2,10 @@ package rest_entry
 
 import (
 	"fmt"
+	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/xerror"
+	"net"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug"
@@ -19,11 +23,11 @@ func GetEntry() golug_entry.Entry {
 		return ctx.Next()
 	})
 
-	//golug.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
-	//	l, err := net.Listen("tcp", ":8081")
-	//	xerror.Panic(err)
-	//	go http.Serve(l, nil)
-	//})
+	golug.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
+		l, err := net.Listen("tcp", ":8081")
+		xerror.Panic(err)
+		go http.Serve(l, nil)
+	})
 
 	ent.Router(func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {

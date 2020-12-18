@@ -44,7 +44,6 @@ func (t *ctlEntry) Init() (err error) {
 
 func newEntry(name string, cfg interface{}) *ctlEntry {
 	ent := &ctlEntry{Entry: golug_base.New(name, cfg)}
-	ent.trace()
 	return ent
 }
 

@@ -8,6 +8,6 @@ import (
 
 func init() {
 	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish("envs", expvar.Func(func() interface{} { return List() }))
+		expvar.Publish("golug_version", expvar.Func(func() interface{} { return List() }))
 	})
 }

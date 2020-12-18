@@ -2,6 +2,7 @@ package golug_base
 
 import (
 	"fmt"
+	"github.com/pubgo/dix/dix_envs"
 	"reflect"
 	"strings"
 
@@ -32,10 +33,17 @@ func (t *baseEntry) Dix(data ...interface{}) {
 
 func (t *baseEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
+	if golug_env.Trace {
+		dix_envs.SetTrace()
+	}
+
 	t.opts.Initialized = true
 	golug_env.Project = t.Options().Name
 	xerror.Panic(golug_config.Init())
-	golug_config.Decode(golug_env.Project, t.cfg)
+	if t.cfg != nil {
+		golug_config.Decode(golug_env.Project, t.cfg)
+	}
+
 	return
 }
 
@@ -174,6 +182,7 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 	}
 
 	ent.initFlags()
+	ent.trace()
 
 	return ent
 }

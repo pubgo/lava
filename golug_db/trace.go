@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/golug/golug_trace"
+	"github.com/pubgo/dix/dix_trace"
 	"github.com/pubgo/golug/internal/golug_util"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	golug_trace.Log(func(_ *golug_trace.LogCtx) {
+	dix_trace.With(func(_ *dix_trace.TraceCtx) {
 		xlog.Debugf("%s client trace", Name)
 		fmt.Println(golug_util.MarshalIndent(cfg))
 		clientM.Range(func(key, value interface{}) bool {

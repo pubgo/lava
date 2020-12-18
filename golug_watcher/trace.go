@@ -8,7 +8,7 @@ import (
 
 func init() {
 	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish("envs", expvar.Func(func() interface{} {
+		expvar.Publish(Name, expvar.Func(func() interface{} {
 			var dt []string
 			dataCallback.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
 			return dt
