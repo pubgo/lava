@@ -8,7 +8,6 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.0.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.5+incompatible
-	github.com/apache/thrift v0.13.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.2
 	github.com/fasthttp/websocket v1.4.3-beta.4
@@ -17,7 +16,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/go-redis/redis/v7 v7.4.0
-	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6
 	github.com/gogo/protobuf v1.3.1
@@ -32,7 +30,6 @@ require (
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.9 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
-	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/mmcloughlin/avo v0.0.0-20201216231306-039ef47f4f69 // indirect
