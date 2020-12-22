@@ -52,10 +52,10 @@ func init() {
 	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
 }
 
-func GetTestApiClient(srv string) TestApiClient {
-	return &testApiClient{grpclient.GetClient(srv)}
+func GetTestApiClient(srv grpclient.Client) TestApiClient {
+	return &testApiClient{grpclient.GetClient(srv.Name())}
 }
 
-func GetTestApiV2Client(srv string) TestApiV2Client {
-	return &testApiV2Client{grpclient.GetClient(srv)}
+func GetTestApiV2Client(srv grpclient.Client) TestApiV2Client {
+	return &testApiV2Client{grpclient.GetClient(srv.Name())}
 }

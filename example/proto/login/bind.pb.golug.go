@@ -63,6 +63,6 @@ func init() {
 	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
 }
 
-func GetBindTelephoneClient(srv string) BindTelephoneClient {
-	return &bindTelephoneClient{grpclient.GetClient(srv)}
+func GetBindTelephoneClient(srv grpclient.Client) BindTelephoneClient {
+	return &bindTelephoneClient{grpclient.GetClient(srv.Name())}
 }

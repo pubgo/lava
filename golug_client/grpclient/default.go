@@ -25,15 +25,22 @@ func GetClient(name string) grpc.ClientConnInterface {
 	return cc
 }
 
-func Init(name string) grpc.ClientConnInterface {
+type Client interface {
+	Name() string
+}
+
+type baseClient struct {
+	name string
+}
+
+func (t baseClient) Name() string { return t.name }
+
+func Init(name string) Client {
 	_, ok := connPool.LoadOrStore(name, &grpcPool{})
 	if ok {
 		xerror.Next().Exit(xerror.Fmt("%s already exists", name))
 	}
-
-	cc := createConn(name)
-	defer cc.conn.Close()
-	return cc.conn
+	return baseClient{name: name}
 }
 
 func createConn(addr string) *grpcConn {

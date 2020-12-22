@@ -34,7 +34,7 @@ import (
 
 
 {% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv string) {{ss.Srv}}Client {
-		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv)}
+	func Get{{ss.Srv}}Client(srv grpclient.Client) {{ss.Srv}}Client {
+		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv.Name())}
 	}
 {% endfor %}`

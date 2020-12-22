@@ -47,6 +47,6 @@ func init() {
 	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
 }
 
-func GetTransportClient(srv string) TransportClient {
-	return &transportClient{grpclient.GetClient(srv)}
+func GetTransportClient(srv grpclient.Client) TransportClient {
+	return &transportClient{grpclient.GetClient(srv.Name())}
 }
