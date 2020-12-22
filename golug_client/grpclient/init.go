@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcOpentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/xerror"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -14,7 +14,15 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-var clientM sync.Map
+const (
+	// 闲时每个连接处理的请求
+	requestPerConn = 8
+	// 多久可以清理连接
+	cleanupDuration = time.Minute * 30
+	// 随机打散的范围
+	randCreatedIn = 60
+)
+
 var connPool sync.Map
 
 // DefaultMaxRecvMsgSize maximum message that client can receive
@@ -35,23 +43,21 @@ var ka = keepalive.ClientParameters{
 }
 
 // middleware for grpc unary calls
-var defaultUnaryInterceptor = grpc_middleware.ChainUnaryClient(grpc_opentracing.UnaryClientInterceptor())
+var defaultUnaryInterceptor = grpcMiddleware.ChainUnaryClient(grpcOpentracing.UnaryClientInterceptor())
 
 // middleware for grpc stream calls
-var defaultStreamInterceptor = grpc_middleware.ChainStreamClient(grpc_opentracing.StreamClientInterceptor())
+var defaultStreamInterceptor = grpcMiddleware.ChainStreamClient(grpcOpentracing.StreamClientInterceptor())
 
 func unaryInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	// select grpc conn from grpc client pool
-	service := cc.Target()
-	cc1 := selectConn(service)
+	cc1 := selectConn(cc.Target())
 	defer releaseConn(cc1)
 	return invoker(ctx, method, req, reply, cc1.conn, opts...)
 }
 
 func streamInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	// select grpc conn from grpc client pool
-	service := cc.Target()
-	cc1 := selectConn(service)
+	cc1 := selectConn(cc.Target())
 	defer releaseConn(cc1)
 	return streamer(ctx, desc, cc1.conn, method, opts...)
 }
@@ -91,15 +97,13 @@ func selectConn(service string) *grpcConn {
 	}
 
 	// 创建新的grpc conn
-	cc := createConn(service)
+	conn = createConn(service)
 
 	if !isValid {
 		conn.closed = false
-		conn.conn = cc
 	}
 
 	if !isOkRef {
-		conn = &grpcConn{conn: cc}
 		pool.connList = append(pool.connList, conn)
 		pool.connMap.Store(conn, struct{}{})
 	}
@@ -130,6 +134,8 @@ type grpcPool struct {
 }
 
 type grpcConn struct {
+	updated time.Time
+	service string
 	connRef atomic.Uint32
 	conn    *grpc.ClientConn
 	closed  bool

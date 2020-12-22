@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
-	"github.com/pubgo/golug/golug_entry/golug_grpc"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
@@ -42,7 +41,7 @@ type restEntry struct {
 	cfg      fiber.Config
 }
 
-func (t *restEntry) Register(handler interface{}, opts ...golug_grpc.Option) {
+func (t *restEntry) Register(handler interface{}, opts ...Option) {
 	defer xerror.RespExit()
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()

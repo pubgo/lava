@@ -55,6 +55,6 @@ func init() {
 	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
 }
 
-func InitCodeClient(srv string) CodeClient {
-	return &codeClient{grpclient.Init(srv)}
+func GetCodeClient(srv string) CodeClient {
+	return &codeClient{grpclient.GetClient(srv)}
 }

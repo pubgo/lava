@@ -1,7 +1,6 @@
 package golug_xgen
 
 import (
-	"expvar"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -11,8 +10,8 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish("xgen", expvar.Func(func() interface{} {
+	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+		ctx.Func("xgen", func() interface{} {
 			dt := make(map[string][]GrpcRestHandler)
 			data.Range(func(key, value interface{}) bool {
 				var _e = runtime.FuncForPC(key.(reflect.Value).Pointer())
@@ -32,6 +31,6 @@ func init() {
 				return true
 			})
 			return dt
-		}))
+		})
 	})
 }

@@ -1,7 +1,7 @@
 package golug_grpc
 
 import (
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/golug/golug_entry"
 	"google.golang.org/grpc"
 )
@@ -15,10 +15,10 @@ type Entry interface {
 	StreamServer(interceptors ...grpc.StreamServerInterceptor)
 }
 
-type WrappedServerStream = grpc_middleware.WrappedServerStream
+type WrappedServerStream = grpcMiddleware.WrappedServerStream
 
 func WrapServerStream(stream grpc.ServerStream) *WrappedServerStream {
-	return grpc_middleware.WrapServerStream(stream)
+	return grpcMiddleware.WrapServerStream(stream)
 }
 
 type ClientInfo struct {

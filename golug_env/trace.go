@@ -1,7 +1,6 @@
 package golug_env
 
 import (
-	"expvar"
 	"os"
 	"strings"
 
@@ -9,8 +8,8 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish("envs", expvar.Func(func() interface{} {
+	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+		ctx.Func("envs", func() interface{} {
 			var data []string
 			for _, env := range os.Environ() {
 				if strings.HasPrefix(env, Domain) {
@@ -18,6 +17,6 @@ func init() {
 				}
 			}
 			return data
-		}))
+		})
 	})
 }

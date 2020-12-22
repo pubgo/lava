@@ -2,13 +2,14 @@ package grpclient
 
 import (
 	"context"
+	"time"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
-func GetClient1(name string) grpc.ClientConnInterface {
+func GetClient(name string) grpc.ClientConnInterface {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultClientDialTimeout)
 	defer cancel()
 	cc, err := grpc.DialContext(ctx, name,
@@ -25,17 +26,17 @@ func GetClient1(name string) grpc.ClientConnInterface {
 }
 
 func Init(name string) grpc.ClientConnInterface {
-	_, ok := clientM.LoadOrStore(name, &grpcPool{})
+	_, ok := connPool.LoadOrStore(name, &grpcPool{})
 	if ok {
 		xerror.Next().Exit(xerror.Fmt("%s already exists", name))
 	}
 
 	cc := createConn(name)
-	defer cc.Close()
-	return cc
+	defer cc.conn.Close()
+	return cc.conn
 }
 
-func createConn(addr string) *grpc.ClientConn {
+func createConn(addr string) *grpcConn {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultClientDialTimeout)
 	defer cancel()
 	cc, err := grpc.DialContext(ctx, addr,
@@ -46,7 +47,7 @@ func createConn(addr string) *grpc.ClientConn {
 		grpc.WithChainStreamInterceptor(defaultStreamInterceptor),
 	)
 	xerror.Next().Panic(err)
-	return cc
+	return &grpcConn{service: addr, conn: cc, updated: time.Now()}
 }
 
 func init() {
@@ -58,7 +59,7 @@ func init() {
 
 			// idleNum
 			for i := 5; i > 0; i-- {
-				cc := &grpcConn{conn: createConn(name)}
+				cc := createConn(name)
 				pool.connList = append(pool.connList, cc)
 				pool.connMap.Store(cc, struct{}{})
 			}

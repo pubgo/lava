@@ -102,10 +102,7 @@ func (t *grpcEntry) Stop() (err error) {
 }
 
 func newEntry(name string, cfg interface{}) *grpcEntry {
-	ent := &grpcEntry{
-		Entry: golug_base.New(name, cfg),
-	}
-
+	ent := &grpcEntry{Entry: golug_base.New(name, cfg)}
 	return ent
 }
 

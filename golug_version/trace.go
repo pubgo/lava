@@ -1,13 +1,11 @@
 package golug_version
 
 import (
-	"expvar"
-
 	"github.com/pubgo/dix/dix_trace"
 )
 
 func init() {
-	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish("golug_version", expvar.Func(func() interface{} { return List() }))
+	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+		ctx.Func("golug_version", func() interface{} { return List() })
 	})
 }

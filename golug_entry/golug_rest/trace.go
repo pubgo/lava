@@ -1,13 +1,12 @@
 package golug_rest
 
 import (
-	"expvar"
 	"github.com/pubgo/dix/dix_trace"
 )
 
 func (t *restEntry) trace() {
-	dix_trace.With(func(_ *dix_trace.TraceCtx) {
-		expvar.Publish(t.Options().Name+"_rest_router", expvar.Func(func() interface{} {
+	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+		ctx.Func(t.Options().Name+"_rest_router", func() interface{} {
 			var data []map[string]string
 			if t.app == nil {
 				return nil
@@ -27,6 +26,6 @@ func (t *restEntry) trace() {
 				}
 			}
 			return data
-		}))
+		})
 	})
 }

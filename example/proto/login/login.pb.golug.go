@@ -31,6 +31,6 @@ func init() {
 	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
 }
 
-func InitLoginClient(srv string) LoginClient {
-	return &loginClient{grpclient.Init(srv)}
+func GetLoginClient(srv string) LoginClient {
+	return &loginClient{grpclient.GetClient(srv)}
 }

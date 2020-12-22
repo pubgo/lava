@@ -21,15 +21,22 @@ type RunEnvMode struct {
 var trim = strings.TrimSpace
 var upper = strings.ToUpper
 
-func withPrefix(key string) string {
-	if Domain != "" {
+func WithPrefix(key string) string {
+	if Domain != "" && !strings.HasPrefix(key, Domain) {
 		key = Domain + "_" + key
 	}
 	return key
 }
 
+func TrimPrefix(key string) string {
+	if key != "" && strings.HasPrefix(key, Domain) {
+		key = strings.TrimPrefix(key, Domain+"_")
+	}
+	return key
+}
+
 func Set(key, value string) error {
-	key = withPrefix(key)
+	key = WithPrefix(key)
 	return xerror.Wrap(os.Setenv(upper(key), value))
 }
 
@@ -41,7 +48,7 @@ func GetEnv(names ...string) string {
 
 func Get(val *string, names ...string) {
 	for _, name := range names {
-		name = withPrefix(name)
+		name = WithPrefix(name)
 		env, ok := os.LookupEnv(upper(name))
 		env = trim(env)
 		if ok && env != "" {
@@ -71,7 +78,7 @@ func GetSys(val *string, names ...string) {
 // of the current environment variables. References to undefined
 // variables are replaced by the empty string.
 func Expand(data string) string {
-	return os.Expand(data, func(s string) string { return withPrefix(s) })
+	return os.Expand(data, func(s string) string { return WithPrefix(s) })
 }
 
 func Clear() {
@@ -79,12 +86,12 @@ func Clear() {
 }
 
 func Lookup(key string) (string, bool) {
-	key = withPrefix(key)
+	key = WithPrefix(key)
 	return os.LookupEnv(key)
 }
 
 func Unsetenv(key string) error {
-	key = withPrefix(key)
+	key = WithPrefix(key)
 	return os.Unsetenv(key)
 }
 
