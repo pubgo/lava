@@ -7,12 +7,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-var data sync.Map
+var interceptorMap sync.Map
 
 func RegisterUnary(interceptor grpc.UnaryClientInterceptor) {
-	data.Store(xerror_util.CallerWithFunc(interceptor), interceptor)
+	interceptorMap.Store(xerror_util.CallerWithFunc(interceptor), interceptor)
 }
 
 func RegisterStream(interceptor grpc.StreamClientInterceptor) {
-	data.Store(xerror_util.CallerWithFunc(interceptor), interceptor)
+	interceptorMap.Store(xerror_util.CallerWithFunc(interceptor), interceptor)
 }

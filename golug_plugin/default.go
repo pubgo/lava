@@ -1,5 +1,7 @@
 package golug_plugin
 
+import "github.com/pubgo/xerror"
+
 const defaultModule = "__golug"
 
 var defaultManager = newManager()
@@ -18,8 +20,8 @@ func List(opts ...ManagerOption) []Plugin {
 }
 
 // Register registers a global plugins
-func Register(plugin Plugin, opts ...ManagerOption) error {
-	return defaultManager.Register(plugin, opts...)
+func Register(plugin Plugin, opts ...ManagerOption) {
+	xerror.Next().Panic(defaultManager.Register(plugin, opts...))
 }
 
 // IsRegistered check plugin whether registered global.

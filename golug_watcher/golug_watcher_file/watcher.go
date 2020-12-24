@@ -18,19 +18,24 @@ import (
 
 var _ golug_watcher.Watcher = (*fileWatcher)(nil)
 
-func newWatcher() *fileWatcher {
-	cfgType := golug_config.CfgType
-	cfgName := golug_config.CfgName
-	callback := golug_config.UnMarshal
-
+func newWatcher(name string) *fileWatcher {
 	watcher, err := fsnotify.NewWatcher()
 	xerror.Exit(err)
+	return &fileWatcher{name: name, watcher: watcher, callback: golug_config.UnMarshal}
+}
 
-	if callback == nil {
-		panic(xerror.New("[callback] is nil"))
-	}
+// fileWatcher ...
+type fileWatcher struct {
+	name     string
+	callback func(path string) map[string]interface{}
+	watcher  *fsnotify.Watcher
+	cancel   context.CancelFunc
+}
 
-	w := &fileWatcher{watcher: watcher, callback: callback}
+func (t *fileWatcher) init() {
+	cfgType := golug_config.CfgType
+	cfgName := golug_config.CfgName
+
 	xerror.Exit(filepath.Walk(filepath.Join(golug_env.Home, "config"), func(path string, info os.FileInfo, err error) error {
 		xerror.Panic(err)
 
@@ -52,18 +57,9 @@ func newWatcher() *fileWatcher {
 			panic(xerror.Fmt("config name error, %s", path))
 		}
 
-		xerror.Panic(w.watcher.Add(path))
+		xerror.Panic(t.watcher.Add(path))
 		return nil
 	}))
-
-	return w
-}
-
-// fileWatcher ...
-type fileWatcher struct {
-	callback func(path string) map[string]interface{}
-	watcher  *fsnotify.Watcher
-	cancel   context.CancelFunc
 }
 
 func (t *fileWatcher) String() string {
@@ -72,6 +68,9 @@ func (t *fileWatcher) String() string {
 
 func (t *fileWatcher) Start() (err error) {
 	defer xerror.RespErr(&err)
+
+	t.init()
+
 	t.cancel = xprocess.GoLoop(func(ctx context.Context) error {
 		select {
 		case event, ok := <-t.watcher.Events:

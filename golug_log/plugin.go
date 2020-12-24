@@ -16,7 +16,7 @@ func init() {
 		cfg = xlog_config.NewDevConfig()
 	}
 
-	xerror.Exit(golug_plugin.Register(&golug_plugin.Base{
+	golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnFlags: func(flags *pflag.FlagSet) {
 			flags.StringVarP(&cfg.Level, "level", "l", cfg.Level, "log level")
@@ -29,5 +29,5 @@ func init() {
 			xerror.Panic(r.Decode(&cfg))
 			xerror.Panic(initLog(cfg))
 		},
-	}))
+	})
 }

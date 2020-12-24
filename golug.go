@@ -29,7 +29,7 @@ func NewGrpcEntry(name string, cfg interface{}) golug_grpc.Entry { return golug_
 func NewCtlEntry(name string, cfg interface{}) golug_ctl.Entry   { return golug_ctl.New(name, cfg) }
 func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOption) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(golug_plugin.Register(plugin, opts...))
+	golug_plugin.Register(plugin, opts...)
 }
 func WithBeforeStart(fn func(ctx *dix_run.BeforeStartCtx)) {
 	defer xerror.RespExit()
