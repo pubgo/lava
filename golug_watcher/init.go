@@ -11,6 +11,10 @@ func init() {
 	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
 		for _, w := range List() {
 			wc := w()
+			if wc == nil {
+				continue
+			}
+
 			watchers = append(watchers, wc)
 			xerror.ExitF(wc.Start(), wc.String())
 		}

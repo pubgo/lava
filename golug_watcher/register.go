@@ -21,6 +21,10 @@ func Register(name string, w func() Watcher) {
 func List() map[string]func() Watcher {
 	var dt = make(map[string]func() Watcher)
 	registerMap.Range(func(key, value interface{}) bool {
+		if value.(func() Watcher) == nil {
+			return true
+		}
+
 		dt[key.(string)] = value.(func() Watcher)
 		return true
 	})
