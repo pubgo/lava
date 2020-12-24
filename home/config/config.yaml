@@ -1,4 +1,5 @@
 app:
+  project: "golug"
   enabled: true
   name: "golug"
   version: "v0.0.1"

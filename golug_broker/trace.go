@@ -6,6 +6,12 @@ import (
 
 func init() {
 	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
-		ctx.Func(Name, func() interface{} { return List() })
+		ctx.Func(Name, func() interface{} {
+			var data = make(map[string]string)
+			for k, v := range List() {
+				data[k] = v.Name()
+			}
+			return data
+		})
 	})
 }

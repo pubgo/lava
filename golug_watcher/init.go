@@ -16,14 +16,14 @@ func init() {
 			}
 
 			watchers = append(watchers, wc)
-			xerror.ExitF(wc.Start(), wc.String())
+			xerror.ExitF(wc.Start(), wc.Name())
 		}
 	}))
 
 	// 停止服务之后, 关闭配置的监控
 	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) {
 		for _, w := range watchers {
-			xerror.ExitF(w.Close(), w.String())
+			xerror.ExitF(w.Close(), w.Name())
 		}
 	}))
 }

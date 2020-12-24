@@ -6,11 +6,11 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/cmd/golug/grpcall"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -19,14 +19,16 @@ import (
 func Start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
+	// 初始化框架, 加载环境变量, 加载本地配置
 	xerror.Panic(ent.Run().Init())
 
-	// 启动配置, 初始化组件, 初始化插件
+	// 初始化组件, 初始化插件
 	plugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
-	for _, pg := range append(golug_plugin.List(), plugins...) {
+	plugins = append(golug_plugin.List(), plugins...)
+	for _, pg := range plugins {
 		key := pg.String()
-		xerror.PanicF(err, "plugin [%s] load error", key)
 		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
+		golug_watcher.Watch(key, pg.Watch)
 	}
 
 	xerror.Panic(dix_run.BeforeStart())
@@ -104,6 +106,5 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		rootCmd.AddCommand(cmd)
 	}
 
-	rootCmd.AddCommand(grpcall.GetCmd())
 	return xerror.Wrap(rootCmd.Execute())
 }

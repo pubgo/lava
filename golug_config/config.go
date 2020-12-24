@@ -24,6 +24,7 @@ type Config struct {
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
 	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
+	flags.StringVarP(&golug_env.Project, "project", "p", golug_env.Project, "project name")
 	return flags
 }
 
@@ -47,7 +48,7 @@ func UnMarshal(path string) map[string]interface{} {
 }
 
 // Decode
-// decode config dataCallback
+// decode config
 func Decode(name string, fn interface{}) {
 	defer xerror.RespRaise("name:%s", name)
 

@@ -23,5 +23,5 @@ func GetCallBack(name string) CallBack {
 	if ok {
 		return val.(CallBack)
 	}
-	return nil
+	return func(event *Response) error { return nil }
 }

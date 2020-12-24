@@ -9,7 +9,7 @@ import (
 var data sync.Map
 
 func Register(name string, codec Codec) {
-	if codec == nil {
+	if codec == nil || name == "" {
 		xerror.Next().Panic(xerror.Fmt("[codec] %s is nil", name))
 	}
 

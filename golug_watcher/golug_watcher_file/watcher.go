@@ -62,7 +62,7 @@ func (t *fileWatcher) init() {
 	}))
 }
 
-func (t *fileWatcher) String() string {
+func (t *fileWatcher) Name() string {
 	return "file"
 }
 

@@ -8,7 +8,7 @@ import (
 
 // Watcher ...
 type Watcher interface {
-	String() string
+	Name() string
 	Start() error
 	Close() error
 }
@@ -22,6 +22,5 @@ type Response struct {
 }
 
 func (t *Response) Decode(val interface{}) (err error) {
-	defer xerror.RespErr(&err)
-	return xerror.Wrap(json.Unmarshal(t.Value, val))
+	return xerror.Try(func() { xerror.Panic(json.Unmarshal(t.Value, val)) })
 }

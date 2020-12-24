@@ -8,6 +8,7 @@ import (
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/dix/dix_envs"
+	"github.com/pubgo/golug/cmd/golug/grpcall"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_env"
@@ -179,6 +180,7 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 		ent.Commands(ent.configCmd())
 		ent.Commands(ent.dixCmd())
 		ent.Commands(ent.verCmd())
+		ent.Commands(grpcall.GetCmd())
 	}
 
 	ent.initFlags()

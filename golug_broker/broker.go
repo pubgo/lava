@@ -8,7 +8,7 @@ type Broker interface {
 	Init() error
 	Publish(topic string, msg *Message, opts ...PubOption) error
 	Subscribe(topic string, handler Handler, opts ...SubOption) error
-	String() string
+	Name() string
 }
 
 type PubOption func(*PubOptions)
