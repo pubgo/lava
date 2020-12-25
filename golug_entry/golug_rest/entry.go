@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
@@ -39,6 +38,7 @@ type restEntry struct {
 	app      *fiber.App
 	handlers []func()
 	cfg      fiber.Config
+	cancel   context.CancelFunc
 }
 
 func (t *restEntry) Register(handler interface{}, opts ...Option) {
@@ -94,11 +94,8 @@ func (t *restEntry) Register(handler interface{}, opts ...Option) {
 }
 
 func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-
-func (t *restEntry) Run() golug_entry.RunEntry { return t }
-
-func (t *restEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
-
+func (t *restEntry) Run() golug_entry.RunEntry    { return t }
+func (t *restEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *restEntry) Router(fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app) })
 }
@@ -145,7 +142,8 @@ func (t *restEntry) Start() (err error) {
 		t.handlers[i]()
 	}
 
-	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
+	// 启动server后等待1s
+	t.cancel = xprocess.GoDelay(time.Second, func(ctx context.Context) {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
 		})
@@ -158,10 +156,7 @@ func (t *restEntry) Start() (err error) {
 		}
 
 		xlog.Infof("Server [http] Closed OK")
-		return
 	})
-
-	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { cancel() }))
 
 	return nil
 }
@@ -173,6 +168,8 @@ func (t *restEntry) Stop() (err error) {
 		xlog.Error(xerror.Parse(err).Stack(true))
 		return nil
 	}
+
+	t.cancel()
 
 	return nil
 }

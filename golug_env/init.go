@@ -6,7 +6,6 @@ import (
 )
 
 func init() {
-
 	// 环境变量处理, key转大写
 	replacer := strings.NewReplacer("-", "_", ".", "_", "/", "_")
 	for _, env := range os.Environ() {
