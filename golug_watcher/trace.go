@@ -12,12 +12,10 @@ func init() {
 			dataCallback.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
 			return dt
 		})
+
 		ctx.Func(Name+"_watcher", func() interface{} {
 			var dt = make(map[string]string)
-			registerMap.Range(func(key, val interface{}) bool {
-				dt[key.(string)] = xerror_util.CallerWithFunc(val)
-				return true
-			})
+			registerMap.Range(func(key, val interface{}) bool { dt[key.(string)] = xerror_util.CallerWithFunc(val); return true })
 			return dt
 		})
 	})

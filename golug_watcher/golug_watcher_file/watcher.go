@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
@@ -36,7 +36,7 @@ func (t *fileWatcher) init() {
 	cfgType := golug_config.CfgType
 	cfgName := golug_config.CfgName
 
-	xerror.Exit(filepath.Walk(filepath.Join(golug_env.Home, "config"), func(path string, info os.FileInfo, err error) error {
+	xerror.Exit(filepath.Walk(filepath.Join(golug_app.Home, "config"), func(path string, info os.FileInfo, err error) error {
 		xerror.Panic(err)
 
 		if info.IsDir() {

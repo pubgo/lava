@@ -2,6 +2,8 @@ package golug_grpc
 
 const Name = "grpc_entry"
 
+var cfg Cfg
+
 type Cfg struct {
 	Codec                 string `json:"codec"`
 	ConnectionTimeout     string `json:"connection_timeout"`

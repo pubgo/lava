@@ -3,6 +3,7 @@ package golug_utils
 import (
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/imdario/mergo"
 	jsoniter "github.com/json-iterator/go"
@@ -76,4 +77,14 @@ func UnWrap(t interface{}, fn interface{}) (err error) {
 
 	_fn.Call([]reflect.Value{reflect.ValueOf(t)})
 	return nil
+}
+
+// IsTrue true
+func IsTrue(data string) bool {
+	switch strings.ToUpper(data) {
+	case "TRUE", "T", "1", "OK", "GOOD", "REAL", "ACTIVE", "ENABLED":
+		return true
+	default:
+		return false
+	}
 }

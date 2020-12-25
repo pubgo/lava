@@ -2,6 +2,8 @@ package golug_task
 
 const Name = "task_entry"
 
+var cfg Cfg
+
 type Cfg struct {
 	Enabled   bool   `yaml:"enabled" json:"enabled" toml:"enabled"`
 	Broker    string `yaml:"broker"`

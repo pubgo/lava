@@ -9,9 +9,9 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/dix/dix_envs"
 	"github.com/pubgo/golug/cmd/golug/grpcall"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/golug/pkg/golug_utils"
@@ -34,15 +34,35 @@ func (t *baseEntry) Dix(data ...interface{}) {
 
 func (t *baseEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
-	if golug_env.Trace {
-		dix_envs.SetTrace()
+	t.opts.Initialized = true
+
+	golug_app.Project = t.Options().Name
+
+	if !golug_config.IsExist() {
+		xerror.Panic(golug_config.InitProject())
 	}
 
-	t.opts.Initialized = true
-	golug_env.Project = t.Options().Name
-	xerror.Panic(golug_config.Init())
+	if !golug_config.IsExist() {
+		if golug_config.CfgPath != "" {
+			xerror.Panic(golug_config.InitWithCfgPath())
+		}
+	}
+
+	if !golug_config.IsExist() {
+		xerror.PanicF(golug_config.GetCfg().ReadInConfig(), "read config failed")
+	}
+
+	xerror.Panic(golug_config.InitOtherConfig())
+
+	golug_app.CheckMod()
+
 	if t.cfg != nil {
-		golug_config.Decode(golug_env.Project, t.cfg)
+		golug_config.Decode(golug_app.Project, t.cfg)
+	}
+
+	// 开启trace
+	if golug_app.Trace {
+		dix_envs.SetTrace()
 	}
 
 	return
@@ -175,7 +195,7 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 		},
 	}
 
-	if golug_env.IsDev() || golug_env.IsTest() {
+	if golug_app.IsDev() || golug_app.IsTest() {
 		ent.Commands(ent.pluginCmd())
 		ent.Commands(ent.configCmd())
 		ent.Commands(ent.dixCmd())

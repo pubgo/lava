@@ -5,11 +5,10 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/pkg/golug_utils"
-	"github.com/pubgo/xerror"
 )
 
 func init() {
-	xerror.Panic(golug_plugin.Register(&golug_plugin.Base{
+	golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnInit: func(ent golug_entry.Entry) {
 			golug_config.Decode(Name, &cfg)
@@ -22,5 +21,5 @@ func init() {
 				cfg[k] = _cfg
 			}
 		},
-	}))
+	})
 }

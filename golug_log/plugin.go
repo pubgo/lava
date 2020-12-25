@@ -1,9 +1,9 @@
 package golug_log
 
 import (
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	if golug_env.IsDev() || golug_env.IsTest() {
+	if golug_app.IsDev() || golug_app.IsTest() {
 		cfg = xlog_config.NewDevConfig()
 	}
 

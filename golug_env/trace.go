@@ -12,7 +12,7 @@ func init() {
 		ctx.Func("envs", func() interface{} {
 			var data []string
 			for _, env := range os.Environ() {
-				if strings.HasPrefix(env, Domain) {
+				if strings.HasPrefix(env, Prefix) {
 					data = append(data, env)
 				}
 			}

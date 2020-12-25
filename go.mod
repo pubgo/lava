@@ -35,7 +35,7 @@ require (
 	github.com/mmcloughlin/avo v0.0.0-20201216231306-039ef47f4f69 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.7
+	github.com/pubgo/dix v0.1.8
 	github.com/pubgo/xerror v0.3.4
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.0.11

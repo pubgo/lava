@@ -9,34 +9,32 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-// RunEnvMode 项目运行模式
-type RunEnvMode struct {
-	Dev     string
-	Test    string
-	Stag    string
-	Prod    string
-	Release string
-}
+const DefaultSecret = "zpCjWPsbqK@@^hR01qLDmZcXhKRIZgjHfxSG2KA%J#bFp!7YQVSmzXGc!sE!^qSM7@&d%oXHQtpR7K*8eRTdhRKjaxF#t@bd#A!"
 
+var Prefix = ""
 var trim = strings.TrimSpace
 var upper = strings.ToUpper
 
 func WithPrefix(key string) string {
-	if Domain != "" && !strings.HasPrefix(key, Domain) {
-		key = Domain + "_" + key
+	if Prefix != "" && !strings.HasPrefix(key, Prefix) {
+		key = Prefix + "_" + key
 	}
 	return key
 }
 
 func TrimPrefix(key string) string {
-	if key != "" && strings.HasPrefix(key, Domain) {
-		key = strings.TrimPrefix(key, Domain+"_")
+	if key != "" && strings.HasPrefix(key, Prefix) {
+		key = strings.TrimPrefix(key, Prefix+"_")
 	}
 	return key
 }
 
 func Set(key, value string) error {
 	key = WithPrefix(key)
+	return xerror.Wrap(os.Setenv(upper(key), value))
+}
+
+func SetSys(key, value string) error {
 	return xerror.Wrap(os.Setenv(upper(key), value))
 }
 
@@ -148,34 +146,4 @@ func myXorDecrypt(text string, key []byte) []byte {
 		_text[i] ^= key[i*i*i%_lk]
 	}
 	return _text
-}
-
-// IsTrue true
-func IsTrue(data string) bool {
-	switch upper(data) {
-	case "TRUE", "T", "1", "OK", "GOOD", "REAL", "ACTIVE", "ENABLED":
-		return true
-	default:
-		return false
-	}
-}
-
-func IsDev() bool {
-	return Mode == RunMode.Dev
-}
-
-func IsTest() bool {
-	return Mode == RunMode.Test
-}
-
-func IsStag() bool {
-	return Mode == RunMode.Stag
-}
-
-func IsProd() bool {
-	return Mode == RunMode.Prod
-}
-
-func IsRelease() bool {
-	return Mode == RunMode.Release
 }

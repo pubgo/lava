@@ -52,19 +52,15 @@ func (t *taskEntry) Start() (err error) {
 	return nil
 }
 
-func (t *taskEntry) Stop() error { return nil }
-
+func (t *taskEntry) Stop() error                  { return nil }
 func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-
-func (t *taskEntry) Run() golug_entry.RunEntry { return t }
-
-func (t *taskEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
-
+func (t *taskEntry) Run() golug_entry.RunEntry    { return t }
+func (t *taskEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *taskEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	golug_config.Decode(Name, &t.cfg)
+	golug_config.Decode(Name, &cfg)
 	return nil
 }
 

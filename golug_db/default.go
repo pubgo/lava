@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"
@@ -41,11 +41,17 @@ func initClient(name string, cfg ClientCfg) {
 	}
 
 	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
+	engine.SetMaxOpenConns(cfg.MaxConnOpen)
+	engine.SetMaxIdleConns(cfg.MaxConnIdle)
+	engine.SetConnMaxLifetime(cfg.MaxConnTime)
+
 	engine.Logger().SetLevel(xl.LOG_WARNING)
-	if golug_env.IsDev() {
+	if golug_app.IsDev() || golug_app.IsTest() {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
 	}
+
 	xerror.Panic(engine.DB().Ping())
 	engine.SetMapper(names.LintGonicMapper)
+
 	clientM.Store(name, engine)
 }

@@ -2,7 +2,7 @@ package golug_log
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xlog/xlog_config"
@@ -14,7 +14,7 @@ func init() {
 	log := xlog.New(zapL.WithOptions(xlog.AddCaller(), xlog.AddCallerSkip(1)))
 
 	// 全局log设置
-	xerror.Panic(xlog.SetDefault(log.Named(golug_env.Domain, xlog.AddCallerSkip(1))))
+	xerror.Panic(xlog.SetDefault(log.Named(golug_app.Domain, xlog.AddCallerSkip(1))))
 }
 
 func initLog(cfg xlog_config.Config) (err error) {
@@ -24,9 +24,9 @@ func initLog(cfg xlog_config.Config) (err error) {
 	log := xlog.New(zapL.WithOptions(xlog.AddCaller(), xlog.AddCallerSkip(1)))
 
 	// 全局log设置
-	xerror.Panic(xlog.SetDefault(log.Named(golug_env.Domain, xlog.AddCallerSkip(1))))
+	xerror.Panic(xlog.SetDefault(log.Named(golug_app.Domain, xlog.AddCallerSkip(1))))
 	// log 变更通知
-	xerror.Panic(dix.Dix(log.Named(golug_env.Domain)))
+	xerror.Panic(dix.Dix(log.Named(golug_app.Domain)))
 	return nil
 }
 
@@ -37,7 +37,7 @@ func getDevLog() xlog.XLog {
 		xerror.Panic(err)
 	}
 
-	zl = zl.WithOptions(zap.AddCaller(), zap.AddCallerSkip(1)).Named(golug_env.Project)
+	zl = zl.WithOptions(zap.AddCaller(), zap.AddCallerSkip(1)).Named(golug_app.Project)
 	return xlog.New(zl)
 }
 

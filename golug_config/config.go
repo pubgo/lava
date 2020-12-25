@@ -9,23 +9,16 @@ import (
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
 )
 
 type Config struct {
 	*viper.Viper
-}
-
-func DefaultFlags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
-	flags.StringVarP(&golug_env.Project, "project", "p", golug_env.Project, "project name")
-	return flags
 }
 
 func GetCfg() *Config {
@@ -38,6 +31,8 @@ func GetCfg() *Config {
 //go:linkname unMarshalReader github.com/spf13/viper.(*Viper).unmarshalReader
 func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
 
+// UnMarshal
+// UnMarshal config to map
 func UnMarshal(path string) map[string]interface{} {
 	dt, err := ioutil.ReadFile(path)
 	xerror.ExitF(err, path)
@@ -87,8 +82,8 @@ func Decode(name string, fn interface{}) {
 	}
 }
 
-func Template(template string) string {
-	t := fasttemplate.New(template, "{{", "}}")
+func Template(format string) string {
+	t := fasttemplate.New(format, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		tag = trim(tag)
 
@@ -101,18 +96,18 @@ func Template(template string) string {
 		// 处理特殊变量
 		switch tag {
 		case "home":
-			return w.Write([]byte(golug_env.Home))
+			return w.Write([]byte(golug_app.Home))
 		case "trace":
-			if golug_env.Trace {
+			if golug_app.Trace {
 				return w.Write([]byte("true"))
 			}
 			return w.Write([]byte("false"))
 		case "project":
-			return w.Write([]byte(golug_env.Project))
+			return w.Write([]byte(golug_app.Project))
 		case "domain":
-			return w.Write([]byte(golug_env.Domain))
+			return w.Write([]byte(golug_app.Domain))
 		case "mode":
-			return w.Write([]byte(golug_env.Mode))
+			return w.Write([]byte(golug_app.Mode))
 		case "config":
 			return w.Write([]byte(CfgName + "." + CfgType))
 		default:

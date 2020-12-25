@@ -1,25 +1,50 @@
 package golug_cmd
 
 import (
+	"github.com/pubgo/golug/golug_config"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 )
+
+func handleSignal() {
+	if golug_app.CatchSigpipe {
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGPIPE)
+		go func() {
+			<-sigChan
+			xlog.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
+			signal.Ignore(syscall.SIGPIPE)
+		}()
+	}
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
+	golug_app.Signal = <-ch
+}
 
 func Start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
+	// 配置顺序, 默认值->环境变量->配置文件->flag->配置文件
+	// 配置文件中可以设置环境变量
+	// flag可以指定配置文件位置
+	// 始化配置文件
+	xerror.Panic(golug_config.Init())
+
 	// 初始化框架, 加载环境变量, 加载本地配置
+	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
+	// 剩下的就是获取配置了
 	xerror.Panic(ent.Run().Init())
 
 	// 初始化组件, 初始化插件
@@ -66,9 +91,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		}
 	}
 
-	var rootCmd = &cobra.Command{Use: golug_env.Domain, Version: version.Version}
-	rootCmd.PersistentFlags().AddFlagSet(golug_config.DefaultFlags())
-	rootCmd.PersistentFlags().AddFlagSet(golug_env.DefaultFlags())
+	var rootCmd = &cobra.Command{Use: golug_app.Domain, Version: version.Version}
+	rootCmd.PersistentFlags().AddFlagSet(golug_app.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for _, ent := range entries {
@@ -94,10 +118,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 			xerror.Panic(Start(ent))
 
-			if golug_env.IsBlock {
-				ch := make(chan os.Signal, 1)
-				signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-				golug_env.Signal = <-ch
+			if golug_app.IsBlock {
+				handleSignal()
 			}
 
 			xerror.Panic(Stop(ent))

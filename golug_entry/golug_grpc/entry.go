@@ -41,7 +41,7 @@ func (t *grpcEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	golug_config.Decode(Name, &t.cfg)
+	golug_config.Decode(Name, &cfg)
 	return nil
 }
 

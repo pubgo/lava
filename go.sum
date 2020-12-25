@@ -877,8 +877,8 @@ github.com/pubgo/dix v0.0.7/go.mod h1:vQ+Wkn4CPr5DQhh4Brj5YZPThQx6zebaGADOV3Y4mT
 github.com/pubgo/dix v0.0.9/go.mod h1:L+pXM/onEmgY54AAxXfqsg5mebf9oWj5a4QzPU3uk5o=
 github.com/pubgo/dix v0.1.0/go.mod h1:oUARJ67WzXnsukEFPQ/eB9txJl3sfuFFx/bAv+5I+kE=
 github.com/pubgo/dix v0.1.5/go.mod h1:d/ui/cV+3JxMfW/MBGKsRJXrCFEdx1oSwfaNpqJLwFA=
-github.com/pubgo/dix v0.1.7 h1:L+0d0MoHw4PgmBxNQHPSvqepwwdJ6K+FsdVhr7KXjgQ=
-github.com/pubgo/dix v0.1.7/go.mod h1:d/ui/cV+3JxMfW/MBGKsRJXrCFEdx1oSwfaNpqJLwFA=
+github.com/pubgo/dix v0.1.8 h1:IMjmW3QCcPmqreOIjxJIdsoCBXWs4DMHaauhUU7dkJ0=
+github.com/pubgo/dix v0.1.8/go.mod h1:d/ui/cV+3JxMfW/MBGKsRJXrCFEdx1oSwfaNpqJLwFA=
 github.com/pubgo/xerror v0.1.7/go.mod h1:mH9VLp7gamZt025tetPFAiKwY2ggNRp6/OV8PGAvnp4=
 github.com/pubgo/xerror v0.1.9/go.mod h1:dWUHV0DkrH0PoP0dEV3H+h5mFb7ktHXLtBwynjdblzc=
 github.com/pubgo/xerror v0.2.8/go.mod h1:T+GqIt/kRrAb8c+d601l0uXOzbydnRGPVn402QcSldQ=

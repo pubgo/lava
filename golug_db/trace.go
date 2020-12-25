@@ -1,7 +1,6 @@
 package golug_db
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/pubgo/dix/dix_trace"
@@ -14,15 +13,16 @@ func init() {
 	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
 		ctx.Func(Name+"_cfg", func() interface{} { return cfg })
 
-		var dbMetas = make(map[string][]*schemas.Table)
-		ctx.Func(Name+"_dbMetas", func() interface{} { return dbMetas })
-		clientM.Range(func(key, value interface{}) bool {
-			engine := value.(*xorm.Engine)
-			dbMetas[key.(string)] = xerror.PanicErr(engine.DBMetas()).([]*schemas.Table)
-			engine.ShowSQL(true)
-			xerror.Panic(engine.DumpAll(os.Stdout))
-			return true
+		ctx.Func(Name+"_dbMetas", func() interface{} {
+			var dbMetas = make(map[string][]*schemas.Table)
+			clientM.Range(func(key, value interface{}) bool {
+				engine := value.(*xorm.Engine)
+				dbMetas[key.(string)] = xerror.PanicErr(engine.DBMetas()).([]*schemas.Table)
+				engine.ShowSQL(true)
+				xerror.Panic(engine.DumpAll(os.Stdout))
+				return true
+			})
+			return dbMetas
 		})
-		fmt.Println()
 	})
 }
