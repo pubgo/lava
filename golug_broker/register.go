@@ -7,18 +7,14 @@ import (
 )
 
 var data sync.Map
-var registerData = make(map[string]func() Broker)
-
-func Register(name string, broker func() Broker) {
+func Register(name string, broker Broker) {
 	if broker == nil {
 		xerror.Next().Panic(xerror.Fmt("[broker] %s is nil", name))
 	}
 
-	if registerData[name] != nil {
+	if _, ok := data.LoadOrStore(name, broker); ok {
 		xerror.Next().Panic(xerror.Fmt("[broker] %s already exists", name))
 	}
-
-	registerData[name] = broker
 }
 
 func Get(name string) Broker {

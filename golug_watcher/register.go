@@ -8,7 +8,7 @@ import (
 
 var registerMap sync.Map
 
-func Register(name string, w func() Watcher) {
+func Register(name string, w Watcher) {
 	if w == nil {
 		xerror.Next().Panic(xerror.Fmt("[watcher] %s is nil", name))
 	}
@@ -18,14 +18,14 @@ func Register(name string, w func() Watcher) {
 	}
 }
 
-func List() map[string]func() Watcher {
-	var dt = make(map[string]func() Watcher)
+func List() map[string]Watcher {
+	var dt = make(map[string]Watcher)
 	registerMap.Range(func(key, value interface{}) bool {
 		if value.(func() Watcher) == nil {
 			return true
 		}
 
-		dt[key.(string)] = value.(func() Watcher)
+		dt[key.(string)] = value.(Watcher)
 		return true
 	})
 	return dt

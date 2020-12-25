@@ -142,5 +142,5 @@ func IsExist() bool {
 
 type Ctx struct{ dix.Model }
 
-func Trigger() error         { return xerror.Wrap(dix.Dix(Ctx{})) }
-func With(fn func(ctx *Ctx)) { xerror.Next().Panic(dix.Dix(fn)) }
+func Trigger() error     { return xerror.Wrap(dix.Dix(Ctx{})) }
+func On(fn func(_ *Ctx)) { xerror.Next().Panic(dix.Dix(fn)) }
