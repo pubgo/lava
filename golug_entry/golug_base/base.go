@@ -65,6 +65,8 @@ func (t *baseEntry) Init() (err error) {
 		dix_envs.SetTrace()
 	}
 
+	xerror.Panic(golug_config.Trigger())
+
 	return
 }
 

@@ -2,6 +2,7 @@ package golug_config
 
 import (
 	"fmt"
+	"github.com/pubgo/dix"
 	"os"
 	"path/filepath"
 	"strings"
@@ -138,3 +139,8 @@ func Init() (err error) {
 func IsExist() bool {
 	return GetCfg().ReadInConfig() != nil
 }
+
+type Ctx struct{ dix.Model }
+
+func Trigger() error         { return xerror.Wrap(dix.Dix(Ctx{})) }
+func With(fn func(ctx *Ctx)) { xerror.Next().Panic(dix.Dix(fn)) }

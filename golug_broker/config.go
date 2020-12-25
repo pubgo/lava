@@ -1,22 +1,19 @@
 package golug_broker
 
 import (
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
 )
 
 var Name = "broker"
-
-type Cfg map[string]ClientCfg
+var cfg = make(map[string]ClientCfg)
 
 type ClientCfg struct {
 	Driver string `json:"driver"`
 	Name   string `json:"name"`
 }
 
-func GetCfg() (cfg map[string]ClientCfg) {
-	golug_config.Decode(Name, &cfg)
-	return
+func GetCfg() map[string]ClientCfg {
+	return cfg
 }
 
 func GetDefaultCfg() ClientCfg {
