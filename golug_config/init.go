@@ -2,12 +2,12 @@ package golug_config
 
 import (
 	"fmt"
-	"github.com/pubgo/dix"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
@@ -24,7 +24,6 @@ var (
 )
 
 var trim = strings.TrimSpace
-var trimRight = strings.TrimRight
 
 func InitWithCfgPath() (err error) {
 	defer xerror.RespErr(&err)
@@ -32,7 +31,7 @@ func InitWithCfgPath() (err error) {
 	CfgPath = xerror.PanicStr(filepath.Abs(CfgPath))
 	CfgPath = xerror.PanicStr(filepath.EvalSymlinks(CfgPath))
 	CfgType = filepath.Ext(CfgPath)
-	CfgName = trimRight(filepath.Base(CfgPath), "."+CfgType)
+	CfgName = strings.TrimSuffix(filepath.Base(CfgPath), "."+CfgType)
 	GetCfg().SetConfigFile(CfgPath)
 	golug_app.Home = filepath.Dir(filepath.Dir(CfgPath))
 	return nil
@@ -71,6 +70,7 @@ func InitOtherConfig() (err error) {
 			return nil
 		}
 
+		fmt.Println(info.Name(), CfgName+"."+CfgType)
 		// 文件名字检查
 		if info.Name() == CfgName+"."+CfgType {
 			return nil
@@ -137,7 +137,7 @@ func Init() (err error) {
 }
 
 func IsExist() bool {
-	return GetCfg().ReadInConfig() != nil
+	return GetCfg().ReadInConfig() == nil
 }
 
 type Ctx struct{ dix.Model }
