@@ -21,7 +21,7 @@ func Register(name string, w Watcher) {
 func List() map[string]Watcher {
 	var dt = make(map[string]Watcher)
 	registerMap.Range(func(key, value interface{}) bool {
-		if value.(func() Watcher) == nil {
+		if value.(Watcher) == nil {
 			return true
 		}
 
