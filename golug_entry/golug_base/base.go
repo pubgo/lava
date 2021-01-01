@@ -49,7 +49,7 @@ func (t *baseEntry) Init() (err error) {
 	}
 
 	if !golug_config.IsExist() {
-		xerror.PanicF(golug_config.GetCfg().ReadInConfig(), "read config failed")
+		xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
 	}
 
 	xerror.Panic(golug_config.InitOtherConfig())

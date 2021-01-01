@@ -2,6 +2,7 @@ package golug_config
 
 import (
 	"fmt"
+	"github.com/spf13/pflag"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,13 @@ var (
 
 var trim = strings.TrimSpace
 
+func DefaultFlags() *pflag.FlagSet {
+	flags := pflag.NewFlagSet("cfg", pflag.PanicOnError)
+	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
+	return flags
+}
+
+// 指定配置文件路径
 func InitWithCfgPath() (err error) {
 	defer xerror.RespErr(&err)
 
@@ -42,15 +50,17 @@ func InitProject() (err error) {
 
 	v := GetCfg()
 
-	v.AddConfigPath(fmt.Sprintf("/etc/%s/%s/", golug_app.Domain, golug_app.Project))
-	v.AddConfigPath(fmt.Sprintf("$HOME/.%s/%s", golug_app.Domain, golug_app.Project))
+	// etc目录
+	v.AddConfigPath(filepath.Join("/etc", golug_app.Domain, golug_app.Project, CfgName))
 
 	// 监控Home工作目录
 	_home := xerror.PanicErr(homedir.Dir()).(string)
 	v.AddConfigPath(filepath.Join(_home, "."+golug_app.Project, CfgName))
+	v.AddConfigPath(filepath.Join(_home, "."+golug_app.Domain, golug_app.Project, CfgName))
 	return nil
 }
 
+// 监控配置中的其他配置文件
 func InitOtherConfig() (err error) {
 	defer xerror.RespErr(&err)
 
@@ -108,22 +118,18 @@ func Init() (err error) {
 	v.SetConfigType(CfgType)
 	v.SetConfigName(CfgName)
 
-	// config 路径
-	v.AddConfigPath(".")
+	// env 处理
 	v.SetEnvPrefix(golug_app.Domain)
 	v.SetEnvKeyReplacer(strings.NewReplacer("_", ".", "-", ".", "/", "."))
 	v.AutomaticEnv()
 
-	// 监控默认配置
-	v.AddConfigPath(filepath.Join(golug_app.Home, CfgName))
-
-	// 监控当前工作目录
-	_pwd := xerror.PanicStr(filepath.Abs(filepath.Dir("")))
-	v.AddConfigPath(filepath.Join(_pwd, CfgName))
+	// config 路径
+	// 当前目录
+	v.AddConfigPath(filepath.Join("home", CfgName))
 
 	// 检查配置文件是否存在
 	if err := v.ReadInConfig(); err != nil {
-		if strings.Contains(err.Error(), "Not Found") {
+		if strings.Contains(strings.ToLower(err.Error()), "not found") {
 			return nil
 		}
 		return xerror.WrapF(err, "read config failed")
