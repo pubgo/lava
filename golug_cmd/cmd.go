@@ -1,13 +1,13 @@
 package golug_cmd
 
 import (
-	"github.com/pubgo/golug/golug_config"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_app"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
@@ -93,6 +93,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 	var rootCmd = &cobra.Command{Use: golug_app.Domain, Version: version.Version}
 	rootCmd.PersistentFlags().AddFlagSet(golug_app.DefaultFlags())
+	rootCmd.PersistentFlags().AddFlagSet(golug_config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for _, ent := range entries {
