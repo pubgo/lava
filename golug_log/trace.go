@@ -5,5 +5,5 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) { ctx.Func(Name, func() interface{} { return cfg }) })
+	dix_trace.With(func(ctx *dix_trace.Ctx) { ctx.Func(Name, func() interface{} { return cfg }) })
 }

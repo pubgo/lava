@@ -62,7 +62,7 @@ func (t *baseEntry) Init() (err error) {
 
 	// 开启trace
 	if golug_app.Trace {
-		dix_envs.SetTrace()
+		dix_envs.Enable()
 	}
 
 	xerror.Panic(golug_config.Trigger())

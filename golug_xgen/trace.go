@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func("xgen", func() interface{} {
 			dt := make(map[string][]GrpcRestHandler)
 			for k, v := range List() {

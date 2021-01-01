@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func(Name, func() interface{} {
 			var dt []string
 			data.Range(func(key, value interface{}) bool {

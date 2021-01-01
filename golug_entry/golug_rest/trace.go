@@ -5,7 +5,7 @@ import (
 )
 
 func (t *restEntry) trace() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func(t.Options().Name+"_rest_router", func() interface{} {
 			if t.app == nil {
 				return nil

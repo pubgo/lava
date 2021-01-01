@@ -45,7 +45,7 @@ func UnMarshal(path string) map[string]interface{} {
 // Decode
 // decode config
 func Decode(name string, fn interface{}) {
-	defer xerror.RespRaise("name:%s", name)
+	defer xerror.RespRaise(func(err xerror.XErr) error { return xerror.WrapF(err, "name:%s", name) })
 
 	if GetCfg().Get(name) == nil {
 		xlog.Warnf("%s not found", name)

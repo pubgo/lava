@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/pubgo/golug/golug_env"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ func NewInit() *cobra.Command {
 	var cmd = &cobra.Command{Use: "init"}
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		home := filepath.Join(xerror.PanicStr(homedir.Dir()), "."+golug_env.Project, "config")
+		home := filepath.Join(xerror.PanicStr(homedir.Dir()), "."+golug_app.Project, "config")
 		xerror.Panic(os.MkdirAll(home, 0755))
 
 		fmt.Println("config home:", home)

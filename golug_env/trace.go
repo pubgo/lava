@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func("envs", func() interface{} {
 			var data []string
 			for _, env := range os.Environ() {

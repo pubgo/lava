@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.TraceCtx) {
+	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func(Name+"_cfg", func() interface{} { return cfg })
 		ctx.Func(Name+"_interceptor", func() interface{} {
 			var interceptors []string

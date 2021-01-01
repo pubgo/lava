@@ -9,6 +9,6 @@ import (
 func init() {
 	// trace启动检查
 	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
-		xerror.Next().Panic(dix_trace.Trace())
+		xerror.Next().Panic(dix_trace.Trigger())
 	}))
 }
