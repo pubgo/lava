@@ -2,6 +2,7 @@ package golug_base
 
 import (
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -53,6 +54,8 @@ func (t *baseEntry) Init() (err error) {
 	}
 
 	xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
+	golug_config.CfgPath = golug_config.GetCfg().ConfigFileUsed()
+	golug_app.Home = filepath.Dir(filepath.Dir(golug_config.CfgPath))
 
 	xerror.Panic(golug_config.InitOtherConfig())
 
