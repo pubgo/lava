@@ -52,9 +52,7 @@ func (t *baseEntry) Init() (err error) {
 		xerror.Exit(xerror.New("config file not found"))
 	}
 
-	if !golug_config.IsExist() {
-		xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
-	}
+	xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
 
 	xerror.Panic(golug_config.InitOtherConfig())
 
