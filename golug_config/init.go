@@ -2,7 +2,6 @@ package golug_config
 
 import (
 	"fmt"
-	"github.com/spf13/pflag"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -147,6 +147,8 @@ func IsExist() bool {
 }
 
 type Ctx struct{ dix.Model }
+
+func (ctx Ctx) GetCfg() *Config { return GetCfg() }
 
 func Trigger() error     { return xerror.Wrap(dix.Dix(Ctx{})) }
 func On(fn func(_ *Ctx)) { xerror.Next().Panic(dix.Dix(fn)) }
