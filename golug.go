@@ -31,19 +31,19 @@ func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOpti
 	defer xerror.RespExit()
 	golug_plugin.Register(plugin, opts...)
 }
-func WithBeforeStart(fn func(ctx *dix_run.BeforeStartCtx)) {
+func BeforeStart(fn func(ctx *dix_run.BeforeStartCtx)) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(dix_run.WithBeforeStart(fn))
 }
-func WithAfterStart(fn func(ctx *dix_run.AfterStartCtx)) {
+func AfterStart(fn func(ctx *dix_run.AfterStartCtx)) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(dix_run.WithAfterStart(fn))
 }
-func WithBeforeStop(fn func(ctx *dix_run.BeforeStopCtx)) {
+func BeforeStop(fn func(ctx *dix_run.BeforeStopCtx)) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(dix_run.WithBeforeStop(fn))
 }
-func WithAfterStop(fn func(ctx *dix_run.AfterStopCtx)) {
+func AfterStop(fn func(ctx *dix_run.AfterStopCtx)) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(dix_run.WithAfterStop(fn))
 }
