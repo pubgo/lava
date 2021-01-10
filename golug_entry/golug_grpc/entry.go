@@ -81,6 +81,16 @@ func (t *grpcEntry) Start() (err error) {
 			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
 		})
 
+		//server_addr, err := net.ResolveUnixAddr("unix", server_file)
+		//if err != nil {
+		//	log.Fatal("fialed to resolve unix addr")
+		//}
+		//
+		//lis, err := net.ListenUnix("unix", server_addr)
+		//if err != nil {
+		//	log.Fatal("failed to listen: %v", err)
+		//}
+
 		ts := xerror.PanicErr(net.Listen("tcp", t.Options().Addr)).(net.Listener)
 		xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
@@ -108,4 +118,10 @@ func newEntry(name string, cfg interface{}) *grpcEntry {
 
 func New(name string, cfg interface{}) *grpcEntry {
 	return newEntry(name, cfg)
+}
+
+func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
+	unix_addr, err := net.ResolveUnixAddr("unix", "")
+	conn, err := net.DialUnix("unix", nil, unix_addr)
+	return conn, err
 }

@@ -5,12 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
-	"strings"
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/golug_app"
-	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
@@ -22,9 +20,7 @@ type Config struct {
 }
 
 func GetCfg() *Config {
-	if cfg == nil {
-		xerror.Panic(xerror.New("[config] should be init"))
-	}
+	xerror.Assert(cfg == nil, "[config] should be init")
 	return cfg
 }
 
@@ -86,12 +82,6 @@ func Template(format string) string {
 	t := fasttemplate.New(format, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		tag = trim(tag)
-
-		// 处理环境变量, env_前缀的为环境变量
-		if strings.HasPrefix(tag, "env_") {
-			tag = strings.TrimPrefix(tag, "env_")
-			return w.Write([]byte(golug_env.GetSysEnv(golug_env.WithPrefix(tag), golug_env.TrimPrefix(tag))))
-		}
 
 		// 处理特殊变量
 		switch tag {

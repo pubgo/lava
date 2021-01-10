@@ -26,7 +26,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.10
+	github.com/pubgo/dix v0.1.12
 	github.com/pubgo/xerror v0.3.10
 	github.com/pubgo/xlog v0.0.10
 	github.com/pubgo/xprocess v0.1.1
@@ -34,6 +34,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.18.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1
 	go.uber.org/atomic v1.7.0

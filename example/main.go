@@ -9,6 +9,7 @@ import (
 
 func main() {
 	golug.Init()
+
 	golug.Run(
 		rest_entry.GetEntry(),
 		ctl_entry.GetEntry(),

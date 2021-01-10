@@ -38,12 +38,11 @@ var (
 func init() {
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	golug_env.GetSys(&Domain, "env_prefix", "golug", "golug_domain", "golug_prefix")
+	golug_env.Get(&Domain, "env_prefix", "golug", "golug_domain", "golug_prefix")
 	if Domain = trim(lower(Domain)); Domain == "" {
 		Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", Domain)
 	}
-	golug_env.Prefix = Domain
 
 	golug_env.Get(&Home, "home", "dir")
 
@@ -57,13 +56,15 @@ func init() {
 
 // CheckMod
 // 运行环境检查
-func CheckMod() {
+func CheckMod() error {
 	var m = RunMode
 	switch Mode {
 	case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
 	default:
-		xerror.Panic(xerror.Fmt("running mode does not match, mode: %s", Mode))
+		return xerror.Fmt("running mode does not match, mode: %s", Mode)
 	}
+
+	return nil
 }
 
 func DefaultFlags() *pflag.FlagSet {

@@ -54,9 +54,9 @@ func InitProject() (err error) {
 	v.AddConfigPath(filepath.Join("/etc", golug_app.Domain, golug_app.Project, CfgName))
 
 	// 监控Home工作目录
-	_home := xerror.PanicErr(homedir.Dir()).(string)
-	v.AddConfigPath(filepath.Join(_home, "."+golug_app.Project, CfgName))
-	v.AddConfigPath(filepath.Join(_home, "."+golug_app.Domain, golug_app.Project, CfgName))
+	home := xerror.PanicErr(homedir.Dir()).(string)
+	v.AddConfigPath(filepath.Join(home, "."+golug_app.Project, CfgName))
+	v.AddConfigPath(filepath.Join(home, "."+golug_app.Domain, golug_app.Project, CfgName))
 	return nil
 }
 
@@ -146,9 +146,5 @@ func IsExist() bool {
 	return GetCfg().ReadInConfig() == nil
 }
 
-type Ctx struct{ dix.Model }
-
-func (ctx Ctx) GetCfg() *Config { return GetCfg() }
-
-func Trigger() error     { return xerror.Wrap(dix.Dix(Ctx{})) }
-func On(fn func(_ *Ctx)) { xerror.Next().Panic(dix.Dix(fn)) }
+func Trigger() error          { return xerror.Wrap(dix.Dix(GetCfg())) }
+func On(fn func(cfg *Config)) { xerror.Next().Panic(dix.Dix(fn)) }

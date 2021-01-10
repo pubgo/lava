@@ -2,14 +2,12 @@ package golug_base
 
 import (
 	"fmt"
-	"path/filepath"
 	"reflect"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/dix/dix_envs"
-	"github.com/pubgo/golug/cmd/golug/grpcall"
+	"github.com/pubgo/dix/dix_trace"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
@@ -35,31 +33,10 @@ func (t *baseEntry) Dix(data ...interface{}) {
 
 func (t *baseEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
+
+	xerror.Assert(golug_app.Project != t.Options().Name, "please set project flag")
+
 	t.opts.Initialized = true
-
-	golug_app.Project = t.Options().Name
-
-	if !golug_config.IsExist() {
-		xerror.Panic(golug_config.InitProject())
-	}
-
-	if !golug_config.IsExist() {
-		if golug_config.CfgPath != "" {
-			xerror.Panic(golug_config.InitWithCfgPath())
-		}
-	}
-
-	if golug_config.GetCfg().ConfigFileUsed() == "" {
-		xerror.Exit(xerror.New("config file not found"))
-	}
-
-	xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
-	golug_config.CfgPath = golug_config.GetCfg().ConfigFileUsed()
-	golug_app.Home = filepath.Dir(filepath.Dir(golug_config.CfgPath))
-
-	xerror.Panic(golug_config.InitOtherConfig())
-
-	golug_app.CheckMod()
 
 	if t.cfg != nil {
 		golug_config.Decode(golug_app.Project, t.cfg)
@@ -67,11 +44,8 @@ func (t *baseEntry) Init() (err error) {
 
 	// 开启trace
 	if golug_app.Trace {
-		dix_envs.Enable()
+		xerror.Panic(dix_trace.Trigger())
 	}
-
-	xerror.Panic(golug_config.Trigger())
-
 	return
 }
 
@@ -180,18 +154,23 @@ func (t *baseEntry) initFlags() {
 }
 
 func handleCmdName(name string) string {
-	if !strings.Contains(name, "_") {
+	if !strings.Contains(name, ".") {
 		return name
 	}
 
-	return strings.Join(strings.Split(name, "_")[1:], "_")
+	names := strings.Split(name, ".")
+	return names[len(names)-1]
 }
 
 func newEntry(name string, cfg interface{}) *baseEntry {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		xerror.Panic(xerror.New("the [name] parameter should not be empty"))
+	xerror.Assert(name == "", "the [name] parameter should not be empty")
+	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
+	if cfg != nil {
+		xerror.Assert(reflect.TypeOf(cfg).Kind() != reflect.Ptr, "[cfg] type kind should be ptr")
 	}
+
+	golug_app.Project = name
 
 	ent := &baseEntry{
 		cfg: cfg,
@@ -207,7 +186,6 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 		ent.Commands(ent.configCmd())
 		ent.Commands(ent.dixCmd())
 		ent.Commands(ent.verCmd())
-		ent.Commands(grpcall.GetCmd())
 	}
 
 	ent.initFlags()

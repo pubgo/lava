@@ -11,7 +11,10 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func Init() {}
+func Init() {
+	defer xerror.RespExit()
+	xerror.Next().Panic(golug_cmd.Init())
+}
 func Start(ent golug_entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_cmd.Start(ent))

@@ -9,7 +9,7 @@ var Name = "file"
 
 func init() {
 	// watch file
-	golug_config.On(func(_ *golug_config.Ctx) {
+	golug_config.On(func(cfg *golug_config.Config) {
 		for name, w := range golug_watcher.GetCfg() {
 			if w.Driver != Name {
 				continue
