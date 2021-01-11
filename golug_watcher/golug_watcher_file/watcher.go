@@ -71,24 +71,24 @@ func (t *fileWatcher) Start() (err error) {
 
 	t.init()
 
-	t.cancel = xprocess.GoLoop(func(ctx context.Context) error {
+	t.cancel = xprocess.GoLoop(func(ctx context.Context) {
 		select {
 		case event, ok := <-t.watcher.Events:
 			if !ok {
-				return xprocess.Break
+				xprocess.Break()
 			}
 
 			name := filepath.Base(event.Name)
 			ns := strings.Split(name, ".")
 			if len(ns) != 3 {
 				xlog.Errorf("config name format error, name:%s", event.Name)
-				return nil
+				return
 			}
 
 			fn := golug_watcher.GetCallBack(ns[1])
 			if fn == nil {
 				xlog.Errorf("[CallBack] is nil, name:%s", event.Name)
-				return nil
+				return
 			}
 
 			op := event.Op
@@ -97,19 +97,19 @@ func (t *fileWatcher) Start() (err error) {
 				resp := &golug_watcher.Response{Key: ns[1], Value: val, Event: "PUT"}
 				if err := fn(resp); err != nil {
 					xlog.Errorf("%s handle error", xlog.Any("err", err))
-					return nil
+					return
 				}
 			}
 		case err, ok := <-t.watcher.Errors:
 			if !ok {
-				return xprocess.Break
+				xprocess.Break()
 			}
 
 			if err != nil {
 				xlog.Errorf("watcher error", xlog.Any("err", err))
 			}
 		}
-		return nil
+		return
 	})
 
 	return nil
