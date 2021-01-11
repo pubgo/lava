@@ -34,7 +34,7 @@ func (t *baseEntry) Dix(data ...interface{}) {
 func (t *baseEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(golug_app.Project != t.Options().Name, "please set project flag")
+	xerror.Assert(golug_app.Project != t.Options().Name, "project name not match(%s, %s)", golug_app.Project, t.Options().Name)
 
 	t.opts.Initialized = true
 

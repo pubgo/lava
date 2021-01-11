@@ -161,6 +161,10 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
+			golug_app.Project = cmd.Name()
+
+			xerror.Panic(ent.Run().Init())
+
 			// 初始化组件, 初始化插件
 			plugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
 			plugins = append(golug_plugin.List(), plugins...)
