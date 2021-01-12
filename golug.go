@@ -11,22 +11,16 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func Init() {
+func Init(domains ...string) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(golug_cmd.Init())
+	xerror.Next().Panic(golug_cmd.Init(domains...))
 }
-func Start(ent golug_entry.Entry) {
-	defer xerror.RespExit()
-	xerror.Next().Panic(golug_cmd.Start(ent))
-}
-func Stop(ent golug_entry.Entry) {
-	defer xerror.RespExit()
-	xerror.Next().Panic(golug_cmd.Stop(ent))
-}
+
 func Run(entries ...golug_entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Next().Panic(golug_cmd.Run(entries...))
 }
+
 func NewRestEntry(name string, cfg interface{}) golug_rest.Entry { return golug_rest.New(name, cfg) }
 func NewGrpcEntry(name string, cfg interface{}) golug_grpc.Entry { return golug_grpc.New(name, cfg) }
 func NewCtlEntry(name string, cfg interface{}) golug_ctl.Entry   { return golug_ctl.New(name, cfg) }

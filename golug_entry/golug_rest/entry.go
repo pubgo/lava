@@ -2,8 +2,10 @@ package golug_rest
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -142,21 +144,29 @@ func (t *restEntry) Start() (err error) {
 		t.handlers[i]()
 	}
 
+	port := t.Options().Port
+
 	// 启动server后等待1s
 	t.cancel = xprocess.GoDelay(time.Second, func(ctx context.Context) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
+			xlog.Error("restEntry.Start error", xlog.Any("err", err))
 		})
 
-		addr := t.Options().Addr
-		xlog.Infof("Server [http] Listening on http://%s", addr)
-		if err := t.app.Listen(addr); err != nil && err != http.ErrServerClosed {
-			xlog.Error(xerror.Parse(err).Stack(true))
-			return
+		for {
+			if err := t.app.Listen(fmt.Sprintf(":%d", port)); err != nil && err != http.ErrServerClosed {
+				if strings.Contains(err.Error(), "address already in use") {
+					port += 1
+					continue
+				}
+
+				xlog.Error(xerror.Parse(err).Stack(true))
+			}
+			break
 		}
 
 		xlog.Infof("Server [http] Closed OK")
 	})
+	xlog.Infof("Server [http] Listening on http://%d", port)
 
 	return nil
 }

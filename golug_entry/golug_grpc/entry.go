@@ -2,6 +2,7 @@ package golug_grpc
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -91,7 +92,7 @@ func (t *grpcEntry) Start() (err error) {
 		//	log.Fatal("failed to listen: %v", err)
 		//}
 
-		ts := xerror.PanicErr(net.Listen("tcp", t.Options().Addr)).(net.Listener)
+		ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
 		xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())

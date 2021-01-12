@@ -149,7 +149,7 @@ func (t *baseEntry) verCmd() *cobra.Command {
 
 func (t *baseEntry) initFlags() {
 	t.Flags(func(flags *pflag.FlagSet) {
-		flags.StringVar(&t.opts.Addr, "addr", t.opts.Addr, "the server address")
+		flags.UintVar(&t.opts.Port, "addr", t.opts.Port, "the server address")
 	})
 }
 
@@ -170,13 +170,11 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 		xerror.Assert(reflect.TypeOf(cfg).Kind() != reflect.Ptr, "[cfg] type kind should be ptr")
 	}
 
-	golug_app.Project = name
-
 	ent := &baseEntry{
 		cfg: cfg,
 		opts: golug_entry.Options{
 			Name:    name,
-			Addr:    ":8080",
+			Port:    8080,
 			Command: &cobra.Command{Use: handleCmdName(name)},
 		},
 	}

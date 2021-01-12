@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	golug.Init()
+	golug.Init("test")
 
 	golug.Run(
 		rest_entry.GetEntry(),

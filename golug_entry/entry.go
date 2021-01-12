@@ -25,7 +25,7 @@ type Entry interface {
 type Option func(o *Options)
 type Options struct {
 	Initialized bool
-	Addr        string
+	Port        uint
 	Name        string
 	Version     string
 	Command     *cobra.Command
