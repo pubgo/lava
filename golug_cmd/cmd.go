@@ -30,6 +30,7 @@ func Init(domains ...string) (err error) {
 	xerror.Assert(initialized.HasFired(), "had initialized")
 	initialized.Fire()
 
+	// 跳过help flag和命令
 	for i := range os.Args {
 		switch os.Args[i] {
 		case "-h", "--help", "help":
@@ -37,15 +38,18 @@ func Init(domains ...string) (err error) {
 		}
 	}
 
+	// 全局的domain设置
 	if len(domains) > 0 {
 		golug_app.Domain = domains[0]
 	}
 	rootCmd.Use = golug_app.Domain
 
+	// 项目名字设置, 项目名字是第一个子命令的名字
 	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
 		golug_app.Project = os.Args[1]
 	}
 
+	// 项目名字设置, 项目名字是domains的第二个值
 	if len(domains) > 1 {
 		golug_app.Project = domains[1]
 	}
@@ -69,6 +73,7 @@ func Init(domains ...string) (err error) {
 		xerror.Panic(golug_config.InitProject())
 	}
 
+	// 指定配置文件
 	if !golug_config.IsExist() && golug_config.CfgPath != "" {
 		xerror.Panic(golug_config.InitWithCfgPath())
 	}
@@ -137,7 +142,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
 		opt := ent.Run().Options()
-		xerror.Assert(opt.Name == "" || opt.Version == "", "neither [name] nor [version] can be empty")
+		xerror.Assert(opt.Name == "" || opt.Version == "", "[name], [version] should not be empty")
 	}
 
 	rootCmd.PersistentFlags().AddFlagSet(golug_app.DefaultFlags())
@@ -183,6 +188,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 			xerror.Panic(stop(ent))
 			return nil
 		}
+
 		rootCmd.AddCommand(cmd)
 	}
 

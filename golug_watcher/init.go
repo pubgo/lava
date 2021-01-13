@@ -9,14 +9,14 @@ func init() {
 	// 服务启动后, 启动配置监控
 	xerror.Exit(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) {
 		for _, w := range List() {
-			xerror.ExitF(w.Start(), w.Name())
+			xerror.ExitF(w.Start(), "watcher %s start error", w.Name())
 		}
 	}))
 
 	// 停止服务之后, 关闭配置的监控
 	xerror.Exit(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) {
 		for _, w := range List() {
-			xerror.ExitF(w.Close(), w.Name())
+			xerror.ExitF(w.Close(), "watcher %s close error", w.Name())
 		}
 	}))
 }

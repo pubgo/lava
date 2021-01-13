@@ -6,6 +6,8 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/coreos/etcd v3.3.13+incompatible
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
@@ -16,14 +18,19 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.1
 	github.com/google/go-cmp v0.5.3 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-version v1.2.1
+	github.com/hashicorp/memberlist v0.1.3
 	github.com/imdario/mergo v0.3.11
 	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.10
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
+	github.com/micro/mdns v0.3.0
+	github.com/miekg/dns v1.1.3
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.12
@@ -48,6 +55,7 @@ require (
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gotest.tools v2.2.0+incompatible
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	xorm.io/xorm v1.0.5
 )

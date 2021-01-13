@@ -16,7 +16,7 @@ import (
 	"xorm.io/xorm/names"
 )
 
-var clientM sync.Map
+var clientMap sync.Map
 
 func GetClient(names ...string) *xorm.Engine {
 	var name = golug_consts.Default
@@ -24,15 +24,13 @@ func GetClient(names ...string) *xorm.Engine {
 		name = names[0]
 	}
 
-	val, ok := clientM.Load(name)
-	if !ok {
-		xerror.Next().Panic(xerror.Fmt("[db] %s not found", name))
-	}
+	val, ok := clientMap.Load(name)
+	xerror.Assert(ok,"[db] %s not found", name)
 
 	return val.(*xorm.Engine)
 }
 
-func initClient(name string, cfg ClientCfg) {
+func initClient(name string, cfg Cfg) {
 	source := golug_config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if _dir := filepath.Dir(source); !golug_utils.PathExist(_dir) {
@@ -53,5 +51,5 @@ func initClient(name string, cfg ClientCfg) {
 	xerror.Panic(engine.DB().Ping())
 	engine.SetMapper(names.LintGonicMapper)
 
-	clientM.Store(name, engine)
+	clientMap.Store(name, engine)
 }

@@ -6,22 +6,20 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var dataCallback sync.Map
+var callbackMap sync.Map
 
 func Watch(name string, h CallBack) {
-	if h == nil {
-		xerror.Next().Panic(xerror.Fmt("[watcher] %s is nil", name))
-	}
+	xerror.Assert(name == "" || h == nil, "[name], [callback] should not be null")
 
-	if _, ok := dataCallback.LoadOrStore(name, h); ok {
-		xerror.Next().Panic(xerror.Fmt("[watcher] %s already exists", name))
+	if _, ok := callbackMap.LoadOrStore(name, h); ok {
+		xerror.Assert(ok, "[callback] %s already exists", name)
 	}
 }
 
-func GetCallBack(name string) CallBack {
-	val, ok := dataCallback.Load(name)
-	if ok {
-		return val.(CallBack)
+func GetWatch(name string) CallBack {
+	val, ok := callbackMap.Load(name)
+	if !ok {
+		return nil
 	}
-	return func(event *Response) error { return nil }
+	return val.(CallBack)
 }

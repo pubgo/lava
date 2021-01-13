@@ -15,7 +15,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -race -v -o main cmd/golug/main.go
+	@go build ${LDFLAGS} -mod vendor -race -v -o main cmds/golug/main.go
 
 build_hello_test:
 	go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
@@ -59,7 +59,7 @@ clear:
 
 .PHONY: gen
 gen:
-	cd cmd/protoc-gen-golug && go install .
+	cd cmds/protoc-gen-golug && go install .
 
 .PHONY: example
 example:
@@ -68,12 +68,12 @@ example:
 
 .PHONY: ossync
 ossync:
-	cd cmd/ossync && go install ${LDFLAGS} -v .
+	cd cmds/ossync && go install ${LDFLAGS} -v .
 
 .PHONY: tickrun
 tickrun:
-	cd cmd/tickrun && go install ${LDFLAGS} -v .
+	cd cmds/tickrun && go install ${LDFLAGS} -v .
 
 .PHONY: lug
 lug:
-	cd cmd/golug && go install ${LDFLAGS} -v .
+	cd cmds/golug && go install ${LDFLAGS} -v .

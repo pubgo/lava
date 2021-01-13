@@ -6,17 +6,17 @@ import (
 
 var Name = "watcher"
 
-type ClientCfg struct {
+type Cfg struct {
 	Project string `json:"project"`
 	Driver  string `json:"driver"`
 	Name    string `json:"name"`
 }
 
-func GetCfg() (cfg map[string]ClientCfg) {
+func GetCfg() (cfg map[string]Cfg) {
 	golug_config.Decode(Name, &cfg)
 	return
 }
 
-func GetDefaultCfg() ClientCfg {
-	return ClientCfg{}
+func GetDefaultCfg() Cfg {
+	return Cfg{}
 }

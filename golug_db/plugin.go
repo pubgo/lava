@@ -11,14 +11,14 @@ func init() {
 	golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnInit: func(ent golug_entry.Entry) {
-			golug_config.Decode(Name, &cfg)
+			golug_config.Decode(Name, &cfgMap)
 
-			for k, v := range cfg {
-				_cfg := GetDefaultCfg()
-				golug_utils.Mergo(&_cfg, v)
+			for k, v := range cfgMap {
+				cfg := GetDefaultCfg()
+				golug_utils.Mergo(&cfg, v)
 
-				initClient(k, _cfg)
-				cfg[k] = _cfg
+				initClient(k, cfg)
+				cfgMap[k] = cfg
 			}
 		},
 	})

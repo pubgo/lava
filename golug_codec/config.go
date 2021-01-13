@@ -6,17 +6,15 @@ import (
 
 var Name = "codec"
 
-type Cfg map[string]ClientCfg
-
-type ClientCfg struct {
+type Cfg struct {
 }
 
-func GetCfg() (cfg map[string]ClientCfg) {
+func GetCfg() (cfg map[string]Cfg) {
 	golug_config.Decode(Name, &cfg)
 	return
 }
 
-func GetDefaultCfg() ClientCfg {
-	return ClientCfg{
+func GetDefaultCfg() Cfg {
+	return Cfg{
 	}
 }

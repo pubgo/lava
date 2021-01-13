@@ -9,21 +9,19 @@ import (
 var data sync.Map
 
 func Register(name string, codec Codec) {
-	if codec == nil || name == "" {
-		xerror.Next().Panic(xerror.Fmt("[codec] %s is nil", name))
-	}
+	xerror.Assert(codec == nil || name == "", "[codec] %s is nil", name)
 
 	if _, ok := data.LoadOrStore(name, codec); ok {
-		xerror.Next().Panic(xerror.Fmt("[codec] %s already exists", name))
+		xerror.Assert(ok, "[codec] %s already exists", name)
 	}
 }
 
 func Get(name string) Codec {
 	val, ok := data.Load(name)
-	if ok {
-		return val.(Codec)
+	if !ok {
+		return nil
 	}
-	return nil
+	return val.(Codec)
 }
 
 func List() map[string]Codec {

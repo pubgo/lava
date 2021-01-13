@@ -20,7 +20,7 @@ var _ golug_watcher.Watcher = (*fileWatcher)(nil)
 
 func newWatcher(name string) *fileWatcher {
 	watcher, err := fsnotify.NewWatcher()
-	xerror.Exit(err)
+	xerror.ExitF(err, "file watcher init, name: %s", name)
 	return &fileWatcher{name: name, watcher: watcher, callback: golug_config.UnMarshal}
 }
 
@@ -62,9 +62,7 @@ func (t *fileWatcher) init() {
 	}))
 }
 
-func (t *fileWatcher) Name() string {
-	return "file"
-}
+func (t *fileWatcher) Name() string { return Name }
 
 func (t *fileWatcher) Start() (err error) {
 	defer xerror.RespErr(&err)
@@ -85,9 +83,9 @@ func (t *fileWatcher) Start() (err error) {
 				return
 			}
 
-			fn := golug_watcher.GetCallBack(ns[1])
+			fn := golug_watcher.GetWatch(ns[1])
 			if fn == nil {
-				xlog.Errorf("[CallBack] is nil, name:%s", event.Name)
+				xlog.Errorf("watcher callback is nil, name:%s", event.Name)
 				return
 			}
 
@@ -116,7 +114,8 @@ func (t *fileWatcher) Start() (err error) {
 }
 
 func (t *fileWatcher) Close() error {
-	_ = t.watcher.Close()
-	t.cancel()
-	return nil
+	return xerror.Try(func() {
+		t.cancel()
+		xerror.Panic(t.watcher.Close())
+	})
 }
