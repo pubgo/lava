@@ -1,9 +1,9 @@
 package golug_registry
 
 import (
-	"github.com/pubgo/xerror"
-	"net/url"
 	"sync"
+
+	"github.com/pubgo/xerror"
 )
 
 var registries sync.Map
@@ -14,16 +14,6 @@ func Register(name string, r Registry) {
 
 	_, ok := registries.LoadOrStore(name, r)
 	xerror.Assert(ok, "registry %s is exists", name)
-}
-
-func Init(rawUrl string) {
-	url1, err := url.Parse(rawUrl)
-	xerror.PanicF(err, "url %s parse error", rawUrl)
-
-	xerror.Assert(Get(scheme) == nil, "registry [%s] not exists", scheme)
-
-	Default = Get(scheme)
-	xerror.PanicF(Default.Init(opts...), "[%s] init error", scheme)
 }
 
 func Get(name string) Registry {

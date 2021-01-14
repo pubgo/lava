@@ -12,7 +12,6 @@ import (
 // {consul, etcd, zookeeper, ...}
 type Registry interface {
 	Init(cfg Cfg) error
-	Options() Cfg
 	Register(*Service, ...RegisterOption) error
 	Deregister(*Service) error
 	GetService(string) ([]*Service, error)
