@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-type p2cBalancer baseBalancer
+type builder struct{}
 
-func (t *p2cBalancer) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
+func (t *builder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
 	if len(readySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
@@ -22,16 +22,16 @@ func (t *p2cBalancer) Build(readySCs map[resolver.Address]balancer.SubConn) bala
 		npa.Add(subConn)
 	}
 
-	return &p2cPicker{
+	return &picker{
 		pickerAgl: npa,
 	}
 }
 
-type p2cPicker struct {
+type picker struct {
 	pickerAgl xalg.P2c
 }
 
-func (p2c *p2cPicker) Pick(ctx context.Context, info balancer.PickInfo) (
+func (p2c *picker) Pick(ctx context.Context, info balancer.PickInfo) (
 	conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
 	item, done := p2c.pickerAgl.Next()
 	if item == nil {

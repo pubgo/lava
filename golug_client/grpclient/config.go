@@ -3,12 +3,31 @@ package grpclient
 import (
 	"sync"
 	"time"
+
+	"github.com/pubgo/golug/golug_balancer/p2c"
+	"google.golang.org/grpc"
 )
 
 var Name = "grpc_client"
-var cfg = make(map[string]ClientCfg)
-var connPool sync.Map
-var maxConnRef = uint32(50)
+var cfg Cfg = GetDefaultCfg()
+var timeout = 3 * time.Second
+var clients sync.Map
+var defaultDialOpts = []grpc.DialOption{
+	grpc.WithInsecure(),
+	grpc.WithBlock(),
+	grpc.WithBalancerName(p2c.Name),
+	grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(DefaultMaxRecvMsgSize),
+		grpc.MaxCallSendMsgSize(DefaultMaxSendMsgSize)),
+}
+
+// DefaultMaxRecvMsgSize maximum message that client can receive
+// (4 MB).
+var DefaultMaxRecvMsgSize = 1024 * 1024 * 4
+
+// DefaultMaxSendMsgSize maximum message that client can send
+// (4 MB).
+var DefaultMaxSendMsgSize = 1024 * 1024 * 4
 
 const (
 	// 闲时每个连接处理的请求
@@ -56,7 +75,8 @@ type ConnectParams struct {
 }
 
 // WithContextDialer
-type ClientCfg struct {
+type Cfg struct {
+	Registry   string `json:"registry"`
 	MaxMsgSize int
 	// grpc.encoding
 	Codec                string
@@ -90,12 +110,8 @@ type ClientCfg struct {
 	Call                 Call             `json:"call"`
 }
 
-func GetCfg() map[string]ClientCfg {
-	return cfg
-}
-
-func GetDefaultCfg() ClientCfg {
-	return ClientCfg{
+func GetDefaultCfg() Cfg {
+	return Cfg{
 		DialTimeout: 2 * time.Second,
 		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
 		MaxRecvMsgSize: 1024 * 1024 * 4,

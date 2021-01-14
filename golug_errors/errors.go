@@ -35,8 +35,8 @@ func New(id, detail string, code int32) error {
 // fails, it will set the given string as the error detail.
 func Parse(err string) *Error {
 	e := new(Error)
-	errr := json.Unmarshal([]byte(err), e)
-	if errr != nil {
+	err1 := json.Unmarshal([]byte(err), e)
+	if err1 != nil {
 		e.Detail = err
 	}
 	return e

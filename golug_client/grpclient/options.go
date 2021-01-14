@@ -1,4 +1,4 @@
-package client
+package grpclient
 
 import (
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
@@ -12,17 +12,19 @@ var defaultUnaryInterceptor = []grpc.UnaryClientInterceptor{grpc_opentracing.Una
 var defaultStreamInterceptor = []grpc.StreamClientInterceptor{grpc_opentracing.StreamClientInterceptor()}
 
 func getDialOption() []grpc.DialOption {
-	dialOpts := append(defaultDialOpts,
+	dialOpts := append(
+		defaultDialOpts,
 		grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor...),
-		grpc.WithChainStreamInterceptor(defaultStreamInterceptor...))
+		grpc.WithChainStreamInterceptor(defaultStreamInterceptor...),
+	)
 
 	return dialOpts
 }
 
-func AddUnaryInterceptor(interceptors ...grpc.UnaryClientInterceptor) {
+func RegisterUnaryInterceptor(interceptors ...grpc.UnaryClientInterceptor) {
 	defaultUnaryInterceptor = append(defaultUnaryInterceptor, interceptors...)
 }
 
-func AddStreamInterceptor(interceptors ...grpc.StreamClientInterceptor) {
+func RegisterStreamInterceptor(interceptors ...grpc.StreamClientInterceptor) {
 	defaultStreamInterceptor = append(defaultStreamInterceptor, interceptors...)
 }

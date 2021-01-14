@@ -7,18 +7,18 @@ import (
 
 var Name = "broker"
 
-type ClientCfg struct {
+type Cfg struct {
 	Driver string `json:"driver"`
 	Name   string `json:"name"`
 }
 
-func GetCfg() (cfg map[string]ClientCfg) {
+func GetCfg() (cfg map[string]Cfg) {
 	golug_config.Decode(Name, &cfg)
 	return cfg
 }
 
-func GetDefaultCfg() ClientCfg {
-	return ClientCfg{
+func GetDefaultCfg() Cfg {
+	return Cfg{
 		Driver: "nsq",
 		Name:   golug_consts.Default,
 	}

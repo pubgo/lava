@@ -24,7 +24,7 @@ func (msc *mockSubConn) UpdateAddresses([]resolver.Address) {
 }
 
 func TestP2cPick_Nil(t *testing.T) {
-	p2b := new(p2cBalancer)
+	p2b := new(builder)
 	picker := p2b.Build(nil)
 	_, _, err := picker.Pick(context.Background(), balancer.PickInfo{
 		FullMethodName: "/",
@@ -58,7 +58,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 			t.Parallel()
 
 			const total = 100000
-			p2b := new(p2cBalancer)
+			p2b := new(builder)
 			ready := make(map[resolver.Address]balancer.SubConn)
 			for i := 0; i < test.count; i++ {
 				ready[resolver.Address{

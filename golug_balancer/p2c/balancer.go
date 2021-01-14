@@ -8,7 +8,5 @@ import (
 const Name = "p2c"
 
 func init() {
-	balancer.Register(base.NewBalancerBuilderWithConfig(Name, &p2cBalancer{}, base.Config{HealthCheck: true}))
+	balancer.Register(base.NewBalancerBuilderWithConfig(Name, &builder{}, base.Config{HealthCheck: true}))
 }
-
-type baseBalancer struct{}
