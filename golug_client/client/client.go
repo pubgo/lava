@@ -3,8 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-
-	"github.com/pubgo/golug/golug_balancer/p2c"
 	"github.com/pubgo/golug/golug_balancer/resolver"
 	registry "github.com/pubgo/golug/golug_registry"
 
@@ -12,22 +10,27 @@ import (
 	"google.golang.org/grpc"
 )
 
-func init() {
-	resolver.RegisterResolver()
-	p2c.RegisterBalancer()
-}
-
 func buildTarget(services []string) []string {
+	// 注册中心为nil
+	// 走直连模式
 	if registry.Default == nil {
 		return []string{resolver.BuildDirectTarget(services)}
 	}
 
-	var targets = make([]string, len(services))
+	var targets = make([]string, 0, len(services))
 	for i := range services {
 		targets = append(targets, resolver.BuildDiscovTarget([]string{registry.Default.String()}, services[i]))
 	}
 
 	return targets
+}
+
+func GetClient(name string) *grpc.ClientConn {
+	val, ok := clients.Load(name)
+	if !ok {
+		return nil
+	}
+	return val.(*grpc.ClientConn)
 }
 
 // InitClient
@@ -37,9 +40,10 @@ func InitClient(services []string, opts ...grpc.DialOption) error {
 		if err != nil {
 			return err
 		}
+
 		_, ok := clients.LoadOrStore(services[i], conn)
 		if ok {
-			return fmt.Errorf("%s had existed", services[i])
+			return fmt.Errorf("%s already exists", services[i])
 		}
 	}
 	return nil
@@ -53,7 +57,7 @@ func InitClientWithName(name string, service []string, opts ...grpc.DialOption) 
 	}
 	_, ok := clients.LoadOrStore(name, conn)
 	if ok {
-		return fmt.Errorf("%s had existed", name)
+		return fmt.Errorf("%s already exists", name)
 	}
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 
 const Name = "p2c"
 
-func RegisterBalancer() {
+func init() {
 	balancer.Register(base.NewBalancerBuilderWithConfig(Name, &p2cBalancer{}, base.Config{HealthCheck: true}))
 }
 

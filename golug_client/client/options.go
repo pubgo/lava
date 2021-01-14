@@ -12,28 +12,17 @@ var defaultUnaryInterceptor = []grpc.UnaryClientInterceptor{grpc_opentracing.Una
 var defaultStreamInterceptor = []grpc.StreamClientInterceptor{grpc_opentracing.StreamClientInterceptor()}
 
 func getDialOption() []grpc.DialOption {
-	dialOpts := append(defaultDialOpts, grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor...),
-		grpc.WithChainStreamInterceptor(defaultStreamInterceptor...),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(DefaultMaxRecvMsgSize),
-			grpc.MaxCallSendMsgSize(DefaultMaxSendMsgSize)))
+	dialOpts := append(defaultDialOpts,
+		grpc.WithChainUnaryInterceptor(defaultUnaryInterceptor...),
+		grpc.WithChainStreamInterceptor(defaultStreamInterceptor...))
+
 	return dialOpts
 }
 
-func AppendUnaryInterceptor(unaryInterceptor ...grpc.UnaryClientInterceptor) {
-	defaultUnaryInterceptor = append(defaultUnaryInterceptor, unaryInterceptor...)
+func AddUnaryInterceptor(interceptors ...grpc.UnaryClientInterceptor) {
+	defaultUnaryInterceptor = append(defaultUnaryInterceptor, interceptors...)
 }
 
-func AppendStreamInterceptor(streamInterceptor ...grpc.StreamClientInterceptor) {
-	defaultStreamInterceptor = append(defaultStreamInterceptor, streamInterceptor...)
-}
-
-func WithStreamInterceptors(streamInterceptor ...grpc.StreamClientInterceptor) grpc.DialOption {
-	AppendStreamInterceptor(streamInterceptor...)
-	return grpc.EmptyDialOption{}
-}
-
-func WithUnaryInterceptors(unaryInterceptor ...grpc.UnaryClientInterceptor) grpc.DialOption {
-	AppendUnaryInterceptor(unaryInterceptor...)
-	return grpc.EmptyDialOption{}
+func AddStreamInterceptor(interceptors ...grpc.StreamClientInterceptor) {
+	defaultStreamInterceptor = append(defaultStreamInterceptor, interceptors...)
 }

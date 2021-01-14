@@ -3,7 +3,6 @@ package golug_registry
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"time"
 )
@@ -12,26 +11,14 @@ import (
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, ...}
 type Registry interface {
-	Init(...Option) error
-	Options() Options
+	Init(cfg Cfg) error
+	Options() Cfg
 	Register(*Service, ...RegisterOption) error
 	Deregister(*Service) error
 	GetService(string) ([]*Service, error)
 	ListServices() ([]*Service, error)
 	Watch(...WatchOption) (Watcher, error)
 	String() string
-}
-
-type Options struct {
-	Prefix    string
-	Addrs     []string
-	Timeout   time.Duration
-	Secure    bool
-	TTL       time.Duration
-	TLSConfig *tls.Config
-	// Other options for implementations of the interface
-	// can be stored in a context
-	Context context.Context
 }
 
 type RegisterOptions struct {
@@ -49,8 +36,6 @@ type WatchOptions struct {
 	// can be stored in a context
 	Context context.Context
 }
-
-type Option func(*Options)
 
 type RegisterOption func(*RegisterOptions)
 

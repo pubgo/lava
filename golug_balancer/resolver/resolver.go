@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -21,7 +22,7 @@ var (
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
 )
 
-func RegisterResolver() {
+func init() {
 	//register resolver to global map
 	resolver.Register(&directBuilder{})
 	resolver.Register(&discovBuilder{})
@@ -35,7 +36,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {
-	log.Fatal("do nothing here")
+	xlog.Fatal("do nothing here")
 }
 
 func BuildDirectTarget(endpoints []string) string {

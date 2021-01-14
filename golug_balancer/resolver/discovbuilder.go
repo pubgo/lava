@@ -3,6 +3,7 @@ package resolver
 import (
 	"fmt"
 	registry "github.com/pubgo/golug/golug_registry"
+	"github.com/pubgo/xlog"
 
 	"google.golang.org/grpc/resolver"
 )
@@ -58,7 +59,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			}
 
 			if err != nil {
-				log.Error(err)
+				xlog.Error(err.Error())
 				continue
 			}
 
