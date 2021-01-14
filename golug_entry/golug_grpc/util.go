@@ -3,17 +3,15 @@ package golug_grpc
 import (
 	"context"
 	"github.com/pubgo/golug/golug_errors"
+	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/xerror"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
 	"os"
 	"reflect"
-	"sync"
-
-	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/xerror"
-	"google.golang.org/grpc"
 )
 
 func register(server *grpc.Server, handler interface{}) (err error) {
@@ -71,17 +69,6 @@ func convertCode(err error) codes.Code {
 		return codes.PermissionDenied
 	}
 	return codes.Unknown
-}
-
-func wait(ctx context.Context) *sync.WaitGroup {
-	if ctx == nil {
-		return nil
-	}
-	wg, ok := ctx.Value("wait").(*sync.WaitGroup)
-	if !ok {
-		return nil
-	}
-	return wg
 }
 
 func microError(err *golug_errors.Error) codes.Code {

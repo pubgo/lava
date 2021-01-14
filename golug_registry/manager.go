@@ -2,12 +2,13 @@ package golug_registry
 
 import (
 	"fmt"
-	"github.com/pubgo/xerror"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pubgo/xerror"
 )
 
 var registries sync.Map

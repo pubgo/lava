@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	"github.com/pubgo/golug/golug_balancer/p2c"
 	"github.com/pubgo/golug/golug_balancer/resolver"
 	registry "github.com/pubgo/golug/golug_registry"

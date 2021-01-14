@@ -1,7 +1,12 @@
 // Package registry is an interface for service discovery
 package golug_registry
 
-import "errors"
+import (
+	"context"
+	"crypto/tls"
+	"errors"
+	"time"
+)
 
 // The registry provides an interface for service discovery
 // and an abstraction over varying implementations
@@ -15,6 +20,34 @@ type Registry interface {
 	ListServices() ([]*Service, error)
 	Watch(...WatchOption) (Watcher, error)
 	String() string
+}
+
+type Options struct {
+	Prefix    string
+	Addrs     []string
+	Timeout   time.Duration
+	Secure    bool
+	TTL       time.Duration
+	TLSConfig *tls.Config
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
+}
+
+type RegisterOptions struct {
+	TTL time.Duration
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
+}
+
+type WatchOptions struct {
+	// Specify a service to watch
+	// If blank, the watch is for all services
+	Service string
+	// Other options for implementations of the interface
+	// can be stored in a context
+	Context context.Context
 }
 
 type Option func(*Options)
