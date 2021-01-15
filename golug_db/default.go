@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
@@ -25,7 +26,7 @@ func GetClient(names ...string) *xorm.Engine {
 	}
 
 	val, ok := clientMap.Load(name)
-	xerror.Assert(ok,"[db] %s not found", name)
+	xerror.Assert(ok, "[db] %s not found", name)
 
 	return val.(*xorm.Engine)
 }
@@ -52,4 +53,7 @@ func initClient(name string, cfg Cfg) {
 	engine.SetMapper(names.LintGonicMapper)
 
 	clientMap.Store(name, engine)
+
+	// 初始化完毕之后, 更新到对象管理系统
+	xerror.Panic(dix.Dix(map[string]*xorm.Engine{name: engine}))
 }
