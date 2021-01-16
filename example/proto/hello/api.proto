@@ -11,7 +11,7 @@ service TestApi {
 
   rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
-      custom: {kind:"test",path:"/v1/example/versiontest"}
+      get: "/v1/example/versiontest"
       body: "*"
     };
   }

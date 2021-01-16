@@ -4,15 +4,20 @@
 package login
 
 import (
+	"context"
 	"reflect"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Login",
 		Name:          "Login",
 		Method:        "POST",
 		Path:          "/user/login/login",
@@ -21,6 +26,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Login",
 		Name:          "Authenticate",
 		Method:        "POST",
 		Path:          "/user/login/authenticate",
@@ -29,8 +35,43 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
+	golug_xgen.Add(reflect.ValueOf(RegisterLoginGateway), struct{}{})
 }
 
-func GetLoginClient(srv grpclient.Client) LoginClient {
-	return &loginClient{grpclient.GetClient(srv.Name())}
+func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
+	c, err := grpclient.New(srv, opts...)
+	return &loginClient{c}, err
+}
+
+func RegisterLoginGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+	c, err := GetLoginClient(srv, opts...)
+	if err != nil {
+		return err
+	}
+	g.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req LoginRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req AuthenticateRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
 }

@@ -11,8 +11,8 @@ type Option func(opts *Options)
 type Entry interface {
 	golug_entry.Entry
 	Register(handler interface{}, opts ...Option)
-	UnaryServer(interceptors ...grpc.UnaryServerInterceptor)
-	StreamServer(interceptors ...grpc.StreamServerInterceptor)
+	RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
+	RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }
 
 type WrappedServerStream = grpcMiddleware.WrappedServerStream

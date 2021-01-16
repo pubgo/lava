@@ -1,20 +1,23 @@
 package golug_grpc
 
 import (
+	"context"
 	"crypto/tls"
-	registry "github.com/pubgo/golug/golug_registry"
 	"time"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"github.com/pubgo/xlog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/status"
 )
 
 const (
-	// DefaultMaxMsgSize define maximum message size that server can send
+	// DefaultMaxMsgSize define maximum message size that srv can send
 	// or receive.  Default value is 4MB.
 	DefaultMaxMsgSize = 1024 * 1024 * 4
 
@@ -55,24 +58,37 @@ var (
 	RegisterInterval = time.Second * 30
 )
 
-func New() *GrpcServer {
-	s := &grpcServer{
-		exit:        make(chan chan error),
-		registryMap: make(map[string][]*registry.Endpoint),
-		opts:        GetDefaultServerOpts(),
-		unaryInterceptors: []grpc.UnaryServerInterceptor{
-			grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
-			serverinterceptors.UnaryServerInterceptor(defaultUnaryTimeout),
-			grpc_opentracing.UnaryServerInterceptor(),
-			ratelimit.UnaryServerInterceptor(defaultRateLimiter),
-			grpc_auth.UnaryServerInterceptor(defaultAuthFunc)},
-		streamInterceptors: []grpc.StreamServerInterceptor{
-			grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
-			serverinterceptors.StreamServerInterceptor(defaultStreamTimeout),
-			grpc_opentracing.StreamServerInterceptor(),
-			ratelimit.StreamServerInterceptor(defaultRateLimiter),
-			grpc_auth.StreamServerInterceptor(defaultAuthFunc)},
-	}
+var streamInterceptors = []grpc.StreamServerInterceptor{
+	grpc_recovery.StreamServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
+	grpc_opentracing.StreamServerInterceptor(),
+	ratelimit.StreamServerInterceptor(defaultRateLimiter),
+	grpc_auth.StreamServerInterceptor(defaultAuthFunc)}
 
-	return &GrpcServer{s}
+var unaryInterceptors = []grpc.UnaryServerInterceptor{
+	grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandlerContext(defaultRecoveryHandler)),
+	grpc_opentracing.UnaryServerInterceptor(),
+	ratelimit.UnaryServerInterceptor(defaultRateLimiter),
+	grpc_auth.UnaryServerInterceptor(defaultAuthFunc)}
+
+func GetDefaultServerOpts() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(DefaultMaxMsgSize),
+		grpc.MaxSendMsgSize(DefaultMaxMsgSize),
+		grpc.KeepaliveEnforcementPolicy(kaep),
+	}
+}
+
+type RateLimit struct{}
+
+func (r RateLimit) Limit() bool {
+	return false
+}
+
+func Auth(ctx context.Context) (context.Context, error) {
+	return ctx, nil
+}
+
+func recoveryHandler(ctx context.Context, p interface{}) (err error) {
+	xlog.Errorf("handler is panic: %v", p)
+	return status.Errorf(codes.Internal, "%s", p)
 }

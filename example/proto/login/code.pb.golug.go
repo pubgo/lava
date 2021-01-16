@@ -4,15 +4,20 @@
 package login
 
 import (
+	"context"
 	"reflect"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Code",
 		Name:          "SendCode",
 		Method:        "POST",
 		Path:          "/user/code/send-code",
@@ -21,6 +26,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Code",
 		Name:          "Verify",
 		Method:        "POST",
 		Path:          "/user/code/verify",
@@ -29,6 +35,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Code",
 		Name:          "IsCheckImageCode",
 		Method:        "POST",
 		Path:          "/user/code/is-check-image-code",
@@ -37,6 +44,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Code",
 		Name:          "VerifyImageCode",
 		Method:        "POST",
 		Path:          "/user/code/verify-image-code",
@@ -45,6 +53,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Code",
 		Name:          "GetSendStatus",
 		Method:        "POST",
 		Path:          "/user/code/get-send-status",
@@ -53,8 +62,82 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
+	golug_xgen.Add(reflect.ValueOf(RegisterCodeGateway), struct{}{})
 }
 
-func GetCodeClient(srv grpclient.Client) CodeClient {
-	return &codeClient{grpclient.GetClient(srv.Name())}
+func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
+	c, err := grpclient.New(srv, opts...)
+	return &codeClient{c}, err
+}
+
+func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+	c, err := GetCodeClient(srv, opts...)
+	if err != nil {
+		return err
+	}
+	g.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req SendCodeRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req VerifyRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req IsCheckImageCodeRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req VerifyImageCodeRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req GetSendStatusRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
 }

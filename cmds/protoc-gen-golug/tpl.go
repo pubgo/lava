@@ -11,7 +11,11 @@ const tpl = `
 package {{pkg}}
 import (
 	"reflect"
+	"context"
 
+	"google.golang.org/grpc/metadata"
+	"github.com/gofiber/fiber/v2"
+	"google.golang.org/grpc"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/golug_client/grpclient"
 )
@@ -21,6 +25,7 @@ import (
 		var mthList []golug_xgen.GrpcRestHandler
 		{%- for m in ss.GetMethod() %}
 			mthList = append(mthList, golug_xgen.GrpcRestHandler{
+				Service:      "{{pkg}}.{{ss.Name}}",
 				Name:         "{{m.GetName()}}",
 				Method:       "{{m.HttpMethod}}",
 				Path:          "{{m.HttpPath}}",
@@ -29,12 +34,50 @@ import (
 			})
 		{% endfor %}
 		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Gateway), struct{}{})
+	}
+{% endfor %}
+
+{% for ss in fd.GetService() %}
+	func Get{{ss.Srv}}Client(srv string, opts ...grpc.DialOption) ({{ss.Srv}}Client,error) {
+		c,err:=grpclient.New(srv, opts...)
+		return &{{unExport(ss.Srv)}}Client{c},err
 	}
 {% endfor %}
 
 
 {% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv grpclient.Client) {{ss.Srv}}Client {
-		return &{{unExport(ss.Srv)}}Client{grpclient.GetClient(srv.Name())}
+	func Register{{ss.Srv}}Gateway(srv string, g fiber.Router,opts ...grpc.DialOption) error {
+		c, err := Get{{ss.Srv}}Client(srv, opts...)
+		if err!=nil{
+			return err
+		}
+
+		{%- for m in ss.GetMethod() %}
+			{%- if !m.CS and !m.SS and (m.HttpMethod=="POST" or m.HttpMethod=="GET" or m.HttpMethod=="PUT") %}
+				g.Add("{{m.HttpMethod}}", "{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
+					p := metadata.Pairs()
+					ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+					var req {{m.GetInputType()}}					
+					{%- if m.HttpMethod=="POST" or m.HttpMethod=="PUT" %}
+						if err:=ctx.BodyParser(&req);err!=nil{
+							return err
+						}
+					{%- else %}
+						var data = make(map[string]interface{})
+						ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[string(key)] = string(value) })
+						if err := golug_utils.Decode(data, &req); err != nil {
+							return err
+						}
+					{%- endif %}
+
+					resp,err:=c.{{m.GetName()}}(metadata.NewIncomingContext(ctx.Context(), p),req)
+					return ctx.JSON(resp)
+				})
+			{%- endif %}
+		{% endfor %}
 	}
-{% endfor %}`
+{% endfor %}
+
+`

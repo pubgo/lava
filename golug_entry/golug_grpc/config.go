@@ -1,10 +1,17 @@
 package golug_grpc
 
+import "github.com/pubgo/golug/golug_config"
+
 const Name = "grpc_entry"
 
 var cfg Cfg
 
+func init() {
+	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &cfg) })
+}
+
 type Cfg struct {
+	GwAddr                string `json:"gw_addr"`
 	Codec                 string `json:"codec"`
 	ConnectionTimeout     string `json:"connection_timeout"`
 	Cp                    string `json:"cp"`

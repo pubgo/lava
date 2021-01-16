@@ -4,15 +4,20 @@
 package login
 
 import (
+	"context"
 	"reflect"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Merge",
 		Name:          "Telephone",
 		Method:        "POST",
 		Path:          "/user/merge/telephone",
@@ -21,6 +26,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Merge",
 		Name:          "TelephoneCheck",
 		Method:        "POST",
 		Path:          "/user/merge/telephone-check",
@@ -29,6 +35,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Merge",
 		Name:          "WeChat",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat",
@@ -37,6 +44,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Merge",
 		Name:          "WeChatCheck",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat-check",
@@ -45,6 +53,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.Merge",
 		Name:          "WeChatUnMerge",
 		Method:        "POST",
 		Path:          "/user/merge/we-chat-un-merge",
@@ -53,8 +62,82 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
+	golug_xgen.Add(reflect.ValueOf(RegisterMergeGateway), struct{}{})
 }
 
-func GetMergeClient(srv grpclient.Client) MergeClient {
-	return &mergeClient{grpclient.GetClient(srv.Name())}
+func GetMergeClient(srv string, opts ...grpc.DialOption) (MergeClient, error) {
+	c, err := grpclient.New(srv, opts...)
+	return &mergeClient{c}, err
+}
+
+func RegisterMergeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+	c, err := GetMergeClient(srv, opts...)
+	if err != nil {
+		return err
+	}
+	g.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req TelephoneRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.Telephone(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req TelephoneRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.TelephoneCheck(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req WeChatRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.WeChat(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req WeChatRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.WeChatCheck(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req WeChatUnMergeRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.WeChatUnMerge(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
 }

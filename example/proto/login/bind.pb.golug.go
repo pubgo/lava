@@ -4,15 +4,20 @@
 package login
 
 import (
+	"context"
 	"reflect"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "Check",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/check",
@@ -21,6 +26,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "BindVerify",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-verify",
@@ -29,6 +35,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "BindChange",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-change",
@@ -37,6 +44,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "AutomaticBind",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/automatic-bind",
@@ -45,6 +53,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "BindPhoneParse",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-phone-parse",
@@ -53,6 +62,7 @@ func init() {
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "login.BindTelephone",
 		Name:          "BindPhoneParseByOneClick",
 		Method:        "POST",
 		Path:          "/user/bind-telephone/bind-phone-parse-by-one-click",
@@ -61,8 +71,95 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
+	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), struct{}{})
 }
 
-func GetBindTelephoneClient(srv grpclient.Client) BindTelephoneClient {
-	return &bindTelephoneClient{grpclient.GetClient(srv.Name())}
+func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {
+	c, err := grpclient.New(srv, opts...)
+	return &bindTelephoneClient{c}, err
+}
+
+func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+	c, err := GetBindTelephoneClient(srv, opts...)
+	if err != nil {
+		return err
+	}
+	g.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req CheckRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.Check(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req BindVerifyRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.BindVerify(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req BindChangeRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.BindChange(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req AutomaticBindRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.AutomaticBind(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req BindPhoneParseRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.BindPhoneParse(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
+	g.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req BindPhoneParseByOneClickRequest
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.BindPhoneParseByOneClick(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
 }

@@ -1,22 +1,46 @@
 package golug_grpc
 
 import (
+	"reflect"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"reflect"
 )
+
+func registerGw(srv string, g fiber.Router, opts ...grpc.DialOption) (err error) {
+	defer xerror.RespErr(&err)
+
+	xerror.Assert(g == nil, "[g] should not be nil")
+	xerror.Assert(srv == "", "[srv] should not be null")
+
+	var paramsIn = []reflect.Value{reflect.ValueOf(srv), reflect.ValueOf(g)}
+	for i := range opts {
+		paramsIn = append(paramsIn, reflect.ValueOf(opts[i]))
+	}
+
+	for v := range golug_xgen.List() {
+		v1 := v.Type()
+		if v1.Kind() != reflect.Func || v1.NumIn() < 3 {
+			continue
+		}
+
+		// TODO check
+		if v.Type().In(1).String() != "fiber.Router" {
+			continue
+		}
+
+		v.Call(paramsIn)
+	}
+	return nil
+}
 
 func register(server *grpc.Server, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
-	if handler == nil {
-		return xerror.New("[handler] should not be nil")
-	}
-
-	if server == nil {
-		return xerror.New("[server] should not be nil")
-	}
+	xerror.Assert(handler == nil, "[handler] should not be nil")
+	xerror.Assert(server == nil, "[server] should not be nil")
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v := range golug_xgen.List() {

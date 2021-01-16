@@ -4,78 +4,101 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
+	registry "github.com/pubgo/golug/golug_registry"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
+	"github.com/spf13/pflag"
+	"go.uber.org/atomic"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/reflection"
 )
 
 var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
+	mu sync.RWMutex
 	golug_entry.Entry
 	cfg                      Cfg
-	server                   *grpc.Server
+	registry                 registry.Registry
+	registryMap              map[string][]*registry.Endpoint
+	registered               atomic.Bool
 	handlers                 []interface{}
+	endpoints                []*registry.Endpoint
+	srv                      *grpc.Server
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
 }
 
-func (t *grpcEntry) UnaryServer(interceptors ...grpc.UnaryServerInterceptor) {
+// EnableDebug
+// https://github.com/grpc/grpc-experiments/tree/master/gdebug
+func (t *grpcEntry) EnableDebug() { service.RegisterChannelzServiceToServer(t.srv) }
+func (t *grpcEntry) RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors...)
 }
 
-func (t *grpcEntry) StreamServer(interceptors ...grpc.StreamServerInterceptor) {
+func (t *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
 }
 
-func (t *grpcEntry) Init() (err error) {
-	defer xerror.RespErr(&err)
+func (t *grpcEntry) Init() (err error)            { return xerror.Wrap(t.Entry.Run().Init()) }
+func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
+func (t *grpcEntry) Run() golug_entry.RunEntry    { return t }
+func (t *grpcEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
+func (t *grpcEntry) Register(handler interface{}, opts ...Option) {
+	xerror.Assert(handler == nil, "[handler] should not be nil")
 
-	xerror.Panic(t.Entry.Run().Init())
-	golug_config.Decode(Name, &cfg)
-	return nil
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.handlers = append(t.handlers, handler)
 }
 
-func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-
-func (t *grpcEntry) Run() golug_entry.RunEntry { return t }
-
-func (t *grpcEntry) UnWrap(fn interface{}) { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
-
-func (t *grpcEntry) Register(ss interface{}, opts ...Option) {
-	if ss == nil {
-		xerror.Panic(xerror.New("[ss] should not be nil"))
+// 开启api网关模式
+func (t *grpcEntry) startGw() (err error) {
+	if t.cfg.GwAddr == "" {
+		return nil
 	}
 
-	t.handlers = append(t.handlers, ss)
+	app := fiber.New()
+
+	// 开启api网关模式
+	return registerGw(t.cfg.GwAddr, app.Group("/"))
 }
 
 func (t *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化server
-	t.server = grpc.NewServer(append(
-		t.opts,
+	t.srv = grpc.NewServer(append(t.opts,
 		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
-		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...)
+		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...,
+	)
 
+	t.endpoints = t.endpoints[:0]
 	// 初始化routes
 	for i := range t.handlers {
-		xerror.Panic(register(t.server, t.handlers[i]))
+		t.endpoints = append(t.endpoints, newRpcHandler(t.handlers[i])...)
+		xerror.Panic(register(t.srv, t.handlers[i]))
 	}
 
 	// 方便grpcurl调用和调试
-	reflection.Register(t.server)
+	reflection.Register(t.srv)
 
 	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
 		defer xerror.Resp(func(err xerror.XErr) {
@@ -94,7 +117,7 @@ func (t *grpcEntry) Start() (err error) {
 
 		ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
 		xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
-		if err := t.server.Serve(ts); err != nil && err != grpc.ErrServerStopped {
+		if err := t.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())
 		}
 		return
@@ -107,13 +130,23 @@ func (t *grpcEntry) Start() (err error) {
 
 func (t *grpcEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
-	t.server.GracefulStop()
+	t.srv.GracefulStop()
 	xlog.Infof("Server [grpc] Closed OK")
 	return nil
 }
 
+func (t *grpcEntry) initFlags() {
+	t.Flags(func(flags *pflag.FlagSet) {
+		flags.StringVar(&t.cfg.GwAddr, "gw", t.cfg.GwAddr, "set addr and enable gateway mode")
+	})
+}
+
 func newEntry(name string, cfg interface{}) *grpcEntry {
 	ent := &grpcEntry{Entry: golug_base.New(name, cfg)}
+	ent.initFlags()
+
+	// 服务启动后, 启动网关
+	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) { xerror.Panic(ent.startGw()) }))
 	return ent
 }
 

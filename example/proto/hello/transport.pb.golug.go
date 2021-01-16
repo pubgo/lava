@@ -6,47 +6,77 @@ package hello
 import (
 	"reflect"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "hello.Transport",
 		Name:          "TestStream",
 		Method:        "POST",
-		Path:          "/hello_transport/test_stream",
+		Path:          "/hello/transport/test_stream",
 		ClientStream:  "True" == "True",
 		ServerStreams: "True" == "True",
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "hello.Transport",
 		Name:          "TestStream1",
 		Method:        "POST",
-		Path:          "/hello_transport/test_stream1",
+		Path:          "/hello/transport/test_stream1",
 		ClientStream:  "True" == "True",
 		ServerStreams: "False" == "True",
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "hello.Transport",
 		Name:          "TestStream2",
 		Method:        "POST",
-		Path:          "/hello_transport/test_stream2",
+		Path:          "/hello/transport/test_stream2",
 		ClientStream:  "False" == "True",
 		ServerStreams: "True" == "True",
 	})
 
 	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+		Service:       "hello.Transport",
 		Name:          "TestStream3",
 		Method:        "POST",
-		Path:          "/hello_transport/test_stream3",
+		Path:          "/hello/transport/test_stream3",
 		ClientStream:  "False" == "True",
 		ServerStreams: "False" == "True",
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
+	golug_xgen.Add(reflect.ValueOf(RegisterTransportGateway), struct{}{})
 }
 
-func GetTransportClient(srv grpclient.Client) TransportClient {
-	return &transportClient{grpclient.GetClient(srv.Name())}
+func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, error) {
+	c, err := grpclient.New(srv, opts...)
+	return &transportClient{c}, err
+}
+
+func RegisterTransportGateway(srv string, g *fiber.Group, opts ...grpc.DialOption) error {
+	c, err := GetTransportClient(srv, opts...)
+	if err != nil {
+		return err
+	}
+
+	g.Add("POST", "/hello/transport/test_stream3", func(ctx *fiber.Ctx) error {
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
+
+		var req Message
+		if err := ctx.BodyParser(&req); err != nil {
+			return err
+		}
+
+		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), req)
+		return ctx.JSON(resp)
+	})
+
 }
