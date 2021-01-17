@@ -9,7 +9,6 @@ type Options struct{}
 type Option func(opts *Options)
 type Entry interface {
 	golug_entry.Entry
-	Register(handler interface{}, opts ...Option)
 	Use(handler ...fiber.Handler)
 	Router(fn func(r fiber.Router))
 }

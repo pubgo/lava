@@ -27,14 +27,14 @@ func (t *ctlEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Run().Init())
-	golug_config.Decode(Name, &cfg)
 	golug_app.IsBlock = false
 	return nil
 }
 
 func newEntry(name string) *ctlEntry {
 	ent := &ctlEntry{Entry: golug_base.New(name)}
+	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg) })
 	return ent
-}
 
+}
 func New(name string) *ctlEntry { return newEntry(name) }

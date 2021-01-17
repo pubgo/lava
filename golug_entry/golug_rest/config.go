@@ -10,9 +10,7 @@ import (
 
 const Name = "rest_entry"
 
-var cfg = GetDefaultCfg()
-
-type Config struct {
+type Cfg struct {
 	Prefork       bool   `json:"prefork"`
 	ServerHeader  string `json:"server_header"`
 	StrictRouting bool   `json:"strict_routing"`
@@ -42,12 +40,8 @@ type Config struct {
 	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
 }
 
-func GetCfg() Config {
-	return cfg
-}
-
-func GetDefaultCfg() Config {
-	var cfg = Config{}
+func GetDefaultCfg() Cfg {
+	var cfg = Cfg{}
 	dt := xerror.PanicBytes(json.Marshal(fiber.New().Config()))
 	xerror.Panic(json.Unmarshal(dt, &cfg))
 	return cfg

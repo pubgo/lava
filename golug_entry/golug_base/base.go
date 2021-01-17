@@ -2,7 +2,6 @@ package golug_base
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
@@ -10,9 +9,6 @@ import (
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_plugin"
-	"github.com/pubgo/golug/golug_version"
-	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -30,10 +26,6 @@ func (t *baseEntry) OnCfg(fn interface{}) {
 	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(t.opts.Name, fn) })
 }
 
-func (t *baseEntry) Dix(data ...interface{}) {
-	xerror.Next().Panic(dix.Dix(data...))
-}
-
 func (t *baseEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
@@ -42,11 +34,11 @@ func (t *baseEntry) Init() (err error) {
 	t.opts.Initialized = true
 	return
 }
-
-func (t *baseEntry) Run() golug_entry.RunEntry { return t }
-func (t *baseEntry) Start() error { return nil }
-func (t *baseEntry) Stop() error { return nil }
-func (t *baseEntry) UnWrap(fn interface{}) { panic("implement me") }
+func (t *baseEntry) Dix(data ...interface{})      { xerror.Next().Panic(dix.Dix(data...)) }
+func (t *baseEntry) Run() golug_entry.RunEntry    { return t }
+func (t *baseEntry) Start() error                 { return nil }
+func (t *baseEntry) Stop() error                  { return nil }
+func (t *baseEntry) UnWrap(fn interface{})        { panic("implement me") }
 func (t *baseEntry) Options() golug_entry.Options { return t.opts }
 func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) {
 	defer xerror.RespExit()
@@ -96,45 +88,6 @@ func (t *baseEntry) Commands(commands ...*cobra.Command) {
 	}
 }
 
-func (t *baseEntry) pluginCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "plugin", Short: "plugin info"}
-	cmd.Run = func(cmd *cobra.Command, args []string) {
-		for k, plugins := range golug_plugin.All() {
-			fmt.Println("plugin namespace:", k)
-			for _, p := range plugins {
-				fmt.Println("plugin:", p.String(), reflect.TypeOf(p).PkgPath())
-			}
-		}
-	}
-	return cmd
-}
-
-func (t *baseEntry) configCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "cfg", Short: "config info"}
-	cmd.Run = func(cmd *cobra.Command, args []string) {
-		fmt.Println(golug_utils.MarshalIndent(golug_config.GetCfg().AllSettings()))
-	}
-	return cmd
-}
-
-func (t *baseEntry) dixCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "dix", Short: "dix dependency graph"}
-	cmd.Run = func(cmd *cobra.Command, args []string) {
-		fmt.Println(dix.Graph())
-	}
-	return cmd
-}
-
-func (t *baseEntry) verCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "ver", Short: "version info"}
-	cmd.Run = func(cmd *cobra.Command, args []string) {
-		for name, v := range golug_version.List() {
-			fmt.Println(name, golug_utils.MarshalIndent(v))
-		}
-	}
-	return cmd
-}
-
 func (t *baseEntry) initFlags() {
 	t.Flags(func(flags *pflag.FlagSet) {
 		flags.UintVar(&t.opts.Port, "port", t.opts.Port, "the server port")
@@ -161,13 +114,6 @@ func newEntry(name string) *baseEntry {
 			Port:    8080,
 			Command: &cobra.Command{Use: handleCmdName(name)},
 		},
-	}
-
-	if golug_app.IsDev() || golug_app.IsTest() {
-		ent.Commands(ent.pluginCmd())
-		ent.Commands(ent.configCmd())
-		ent.Commands(ent.dixCmd())
-		ent.Commands(ent.verCmd())
 	}
 
 	ent.initFlags()

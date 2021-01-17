@@ -2,8 +2,6 @@ package golug_task
 
 const Name = "task_entry"
 
-var cfg Cfg
-
 type Cfg struct {
 	Broker    string `yaml:"broker"`
 	Consumers []struct {

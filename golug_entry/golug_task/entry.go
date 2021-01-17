@@ -25,13 +25,13 @@ type taskEntry struct {
 }
 
 func (t *taskEntry) Register(topic string, handler golug_broker.Handler, opts ...golug_broker.SubOption) error {
-	var _opts golug_broker.SubOptions
+	var opts1 golug_broker.SubOptions
 	for i := range opts {
-		opts[i](&_opts)
+		opts[i](&opts1)
 	}
-	_opts.Topic = topic
+	opts1.Topic = topic
 
-	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: _opts, optList: opts})
+	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: opts1, optList: opts})
 	return nil
 }
 
@@ -56,19 +56,12 @@ func (t *taskEntry) Stop() error                  { return nil }
 func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 func (t *taskEntry) Run() golug_entry.RunEntry    { return t }
 func (t *taskEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
-func (t *taskEntry) Init() (err error) {
-	defer xerror.RespErr(&err)
-
-	xerror.Panic(t.Entry.Run().Init())
-	golug_config.Decode(Name, &cfg)
-	return nil
-}
+func (t *taskEntry) Init() (err error)            { return t.Entry.Run().Init() }
 
 func newEntry(name string) *taskEntry {
 	ent := &taskEntry{Entry: golug_base.New(name)}
+	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg) })
 	return ent
-}
 
-func New(name string) *taskEntry {
-	return newEntry(name)
 }
+func New(name string) *taskEntry { return newEntry(name) }

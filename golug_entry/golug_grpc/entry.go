@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/dix_run"
+	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	registry "github.com/pubgo/golug/golug_registry"
@@ -98,7 +99,6 @@ func (t *grpcEntry) startGw() (err error) {
 	}
 	fmt.Printf("%#v\n", data)
 
-
 	return app.Listen(t.cfg.GwAddr)
 }
 
@@ -169,12 +169,11 @@ func newEntry(name string) *grpcEntry {
 
 	// 服务启动后, 启动网关
 	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) { xerror.Panic(ent.startGw()) }))
+	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg) })
 	return ent
 }
 
-func New(name string) *grpcEntry {
-	return newEntry(name)
-}
+func New(name string) *grpcEntry { return newEntry(name) }
 
 func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
 	unix_addr, err := net.ResolveUnixAddr("unix", "")
