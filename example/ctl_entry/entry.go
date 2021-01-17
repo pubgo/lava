@@ -10,7 +10,7 @@ import (
 )
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewCtlEntry("ctl", nil)
+	ent := golug.NewCtlEntry("ctl")
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 

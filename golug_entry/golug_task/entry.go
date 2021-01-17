@@ -64,11 +64,11 @@ func (t *taskEntry) Init() (err error) {
 	return nil
 }
 
-func newEntry(name string, cfg interface{}) *taskEntry {
-	ent := &taskEntry{Entry: golug_base.New(name, cfg)}
+func newEntry(name string) *taskEntry {
+	ent := &taskEntry{Entry: golug_base.New(name)}
 	return ent
 }
 
-func New(name string, cfg interface{}) *taskEntry {
-	return newEntry(name, cfg)
+func New(name string) *taskEntry {
+	return newEntry(name)
 }

@@ -78,7 +78,28 @@ func (t *grpcEntry) startGw() (err error) {
 	app := fiber.New()
 
 	// 开启api网关模式
-	return registerGw(t.cfg.GwAddr, app.Group("/"))
+	if err := registerGw(fmt.Sprintf("localhost:%d", t.Options().Port), app.Group("/")); err != nil {
+		return err
+	}
+
+	var data []map[string]string
+	for i, stacks := range app.Stack() {
+		data = append(data, make(map[string]string))
+		for _, stack := range stacks {
+			if stack == nil {
+				continue
+			}
+
+			if stack.Path == "/" {
+				continue
+			}
+			data[i][stack.Method] = stack.Path
+		}
+	}
+	fmt.Printf("%#v\n", data)
+
+
+	return app.Listen(t.cfg.GwAddr)
 }
 
 func (t *grpcEntry) Start() (err error) {
@@ -100,6 +121,9 @@ func (t *grpcEntry) Start() (err error) {
 	// 方便grpcurl调用和调试
 	reflection.Register(t.srv)
 
+	ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
+	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
+
 	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
@@ -115,8 +139,6 @@ func (t *grpcEntry) Start() (err error) {
 		//	log.Fatal("failed to listen: %v", err)
 		//}
 
-		ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
-		xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 		if err := t.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())
 		}
@@ -141,8 +163,8 @@ func (t *grpcEntry) initFlags() {
 	})
 }
 
-func newEntry(name string, cfg interface{}) *grpcEntry {
-	ent := &grpcEntry{Entry: golug_base.New(name, cfg)}
+func newEntry(name string) *grpcEntry {
+	ent := &grpcEntry{Entry: golug_base.New(name)}
 	ent.initFlags()
 
 	// 服务启动后, 启动网关
@@ -150,8 +172,8 @@ func newEntry(name string, cfg interface{}) *grpcEntry {
 	return ent
 }
 
-func New(name string, cfg interface{}) *grpcEntry {
-	return newEntry(name, cfg)
+func New(name string) *grpcEntry {
+	return newEntry(name)
 }
 
 func UnixConnect(addr string, t time.Duration) (net.Conn, error) {

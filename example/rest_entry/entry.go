@@ -8,7 +8,7 @@ import (
 )
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewRestEntry("http", nil)
+	ent := golug.NewRestEntry("http")
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 

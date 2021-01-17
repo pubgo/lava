@@ -17,6 +17,7 @@ type Entry interface {
 	Version(v string)
 	UnWrap(fn interface{})
 	Dix(data ...interface{})
+	OnCfg(fn interface{})
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)

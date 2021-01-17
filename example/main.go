@@ -8,8 +8,6 @@ import (
 )
 
 func main() {
-	golug.Init("test")
-
 	golug.Run(
 		rest_entry.GetEntry(),
 		ctl_entry.GetEntry(),

@@ -4,15 +4,17 @@
 package login
 
 import (
-	"context"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+var _ = golug_utils.Decode
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
@@ -71,7 +73,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), nil)
 }
 
 func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {
@@ -79,7 +81,7 @@ func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneC
 	return &bindTelephoneClient{c}, err
 }
 
-func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetBindTelephoneClient(srv, opts...)
 	if err != nil {
 		return err
@@ -93,7 +95,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.Check(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Check(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -106,7 +111,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.BindVerify(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.BindVerify(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -119,7 +127,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.BindChange(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.BindChange(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -132,7 +143,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.AutomaticBind(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.AutomaticBind(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -145,7 +159,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.BindPhoneParse(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.BindPhoneParse(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -158,8 +175,12 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Group, opts ...grpc.DialOp
 			return err
 		}
 
-		resp, err := c.BindPhoneParseByOneClick(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.BindPhoneParseByOneClick(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }

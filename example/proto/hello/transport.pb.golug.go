@@ -9,9 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+var _ = golug_utils.Decode
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
@@ -52,7 +55,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterTransportGateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterTransportGateway), nil)
 }
 
 func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, error) {
@@ -60,7 +63,7 @@ func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, e
 	return &transportClient{c}, err
 }
 
-func RegisterTransportGateway(srv string, g *fiber.Group, opts ...grpc.DialOption) error {
+func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetTransportClient(srv, opts...)
 	if err != nil {
 		return err
@@ -75,8 +78,12 @@ func RegisterTransportGateway(srv string, g *fiber.Group, opts ...grpc.DialOptio
 			return err
 		}
 
-		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }

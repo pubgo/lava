@@ -11,14 +11,16 @@ const tpl = `
 package {{pkg}}
 import (
 	"reflect"
-	"context"
 
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc/metadata"
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/golug_client/grpclient"
 )
+
+var _=golug_utils.Decode
 
 {% for ss in fd.GetService() %}
 	func init() {
@@ -34,7 +36,7 @@ import (
 			})
 		{% endfor %}
 		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
-		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Gateway), struct{}{})
+		golug_xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Gateway), nil)
 	}
 {% endfor %}
 
@@ -72,11 +74,15 @@ import (
 						}
 					{%- endif %}
 
-					resp,err:=c.{{m.GetName()}}(metadata.NewIncomingContext(ctx.Context(), p),req)
+					resp,err:=c.{{m.GetName()}}(metadata.NewIncomingContext(ctx.Context(), p),&req)
+					if err!=nil{
+						return err
+					}
 					return ctx.JSON(resp)
 				})
 			{%- endif %}
 		{% endfor %}
+		return nil
 	}
 {% endfor %}
 

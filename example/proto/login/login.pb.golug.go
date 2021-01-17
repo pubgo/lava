@@ -4,15 +4,17 @@
 package login
 
 import (
-	"context"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+var _ = golug_utils.Decode
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
@@ -35,7 +37,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterLoginGateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterLoginGateway), nil)
 }
 
 func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
@@ -43,7 +45,7 @@ func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
 	return &loginClient{c}, err
 }
 
-func RegisterLoginGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetLoginClient(srv, opts...)
 	if err != nil {
 		return err
@@ -57,7 +59,10 @@ func RegisterLoginGateway(srv string, g fiber.Group, opts ...grpc.DialOption) er
 			return err
 		}
 
-		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -70,8 +75,12 @@ func RegisterLoginGateway(srv string, g fiber.Group, opts ...grpc.DialOption) er
 			return err
 		}
 
-		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }

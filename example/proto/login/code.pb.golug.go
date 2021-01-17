@@ -4,15 +4,17 @@
 package login
 
 import (
-	"context"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+var _ = golug_utils.Decode
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
@@ -62,7 +64,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterCodeGateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterCodeGateway), nil)
 }
 
 func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
@@ -70,7 +72,7 @@ func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
 	return &codeClient{c}, err
 }
 
-func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetCodeClient(srv, opts...)
 	if err != nil {
 		return err
@@ -84,7 +86,10 @@ func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) err
 			return err
 		}
 
-		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -97,7 +102,10 @@ func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) err
 			return err
 		}
 
-		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -110,7 +118,10 @@ func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) err
 			return err
 		}
 
-		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -123,7 +134,10 @@ func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) err
 			return err
 		}
 
-		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -136,8 +150,12 @@ func RegisterCodeGateway(srv string, g fiber.Group, opts ...grpc.DialOption) err
 			return err
 		}
 
-		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }

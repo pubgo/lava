@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/pubgo/dix/dix_run"
@@ -16,48 +15,13 @@ import (
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xprocess"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 var rootCmd = &cobra.Command{Use: golug_app.Domain, Version: version.Version}
-var initialized = xprocess.NewEvent()
 
-func Init(domains ...string) (err error) {
+func Init() (err error) {
 	defer xerror.RespErr(&err)
-
-	xerror.Assert(initialized.HasFired(), "had initialized")
-	initialized.Fire()
-
-	// 跳过help flag和命令
-	for i := range os.Args {
-		switch os.Args[i] {
-		case "-h", "--help", "help":
-			return nil
-		}
-	}
-
-	// 全局的domain设置
-	if len(domains) > 0 {
-		golug_app.Domain = domains[0]
-	}
-	rootCmd.Use = golug_app.Domain
-
-	// 项目名字设置, 项目名字是第一个子命令的名字
-	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
-		golug_app.Project = os.Args[1]
-	}
-
-	// 项目名字设置, 项目名字是domains的第二个值
-	if len(domains) > 1 {
-		golug_app.Project = domains[1]
-	}
-
-	var flags = pflag.NewFlagSet("", pflag.PanicOnError)
-	flags.AddFlagSet(golug_app.DefaultFlags())
-	flags.AddFlagSet(golug_config.DefaultFlags())
-	xerror.Panic(flags.Parse(os.Args[1:]))
 
 	// 处理所有的配置,环境变量和flag
 	// 配置顺序, 默认值->环境变量->配置文件->flag->配置文件
@@ -111,8 +75,6 @@ func handleSignal() {
 func start(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(!initialized.HasFired(), "please init first")
-
 	xerror.Panic(dix_run.BeforeStart())
 	xerror.Panic(ent.Run().Start())
 	xerror.Panic(dix_run.AfterStart())
@@ -122,8 +84,6 @@ func start(ent golug_entry.Entry) (err error) {
 
 func stop(ent golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
-
-	xerror.Assert(!initialized.HasFired(), "please init first")
 
 	xerror.Panic(dix_run.BeforeStop())
 	xerror.Panic(ent.Run().Stop())
@@ -135,7 +95,6 @@ func stop(ent golug_entry.Entry) (err error) {
 func Run(entries ...golug_entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(!initialized.HasFired(), "please init first")
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
 
 	for _, ent := range entries {
@@ -168,6 +127,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
+			golug_app.Project = ent.Run().Options().Name
+			xerror.Panic(Init())
 			xerror.Panic(ent.Run().Init())
 
 			// 初始化组件, 初始化插件

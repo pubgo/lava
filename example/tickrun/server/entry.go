@@ -13,7 +13,7 @@ import (
 var name = "tickrun_server"
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewRestEntry(name, nil)
+	ent := golug.NewRestEntry(name)
 	ent.Version("v0.0.1")
 	ent.Description("api server")
 	ent.Router(router.Api)

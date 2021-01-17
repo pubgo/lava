@@ -7,7 +7,6 @@ import (
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/dix/dix_trace"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
@@ -15,7 +14,6 @@ import (
 	"github.com/pubgo/golug/golug_version"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -23,8 +21,13 @@ import (
 var _ golug_entry.Entry = (*baseEntry)(nil)
 
 type baseEntry struct {
-	cfg  interface{}
 	opts golug_entry.Options
+}
+
+func (t *baseEntry) OnCfg(fn interface{}) {
+	xerror.Assert(fn == nil, "[fn] is null")
+
+	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(t.opts.Name, fn) })
 }
 
 func (t *baseEntry) Dix(data ...interface{}) {
@@ -37,30 +40,16 @@ func (t *baseEntry) Init() (err error) {
 	xerror.Assert(golug_app.Project != t.Options().Name, "project name not match(%s, %s)", golug_app.Project, t.Options().Name)
 
 	t.opts.Initialized = true
-
-	if t.cfg != nil {
-		golug_config.Decode(golug_app.Project, t.cfg)
-	}
-
-	// 开启trace
-	if golug_app.Trace {
-		xerror.Panic(dix_trace.Trigger())
-	}
 	return
 }
 
 func (t *baseEntry) Run() golug_entry.RunEntry { return t }
-
 func (t *baseEntry) Start() error { return nil }
-
 func (t *baseEntry) Stop() error { return nil }
-
 func (t *baseEntry) UnWrap(fn interface{}) { panic("implement me") }
-
 func (t *baseEntry) Options() golug_entry.Options { return t.opts }
-
 func (t *baseEntry) Flags(fn func(flags *pflag.FlagSet)) {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("baseEntry.Flags", xlog.Any("err", err)) })
+	defer xerror.RespExit()
 	fn(t.opts.Command.PersistentFlags())
 }
 
@@ -105,7 +94,6 @@ func (t *baseEntry) Commands(commands ...*cobra.Command) {
 
 		rootCmd.AddCommand(cmd)
 	}
-	return
 }
 
 func (t *baseEntry) pluginCmd() *cobra.Command {
@@ -149,7 +137,7 @@ func (t *baseEntry) verCmd() *cobra.Command {
 
 func (t *baseEntry) initFlags() {
 	t.Flags(func(flags *pflag.FlagSet) {
-		flags.UintVar(&t.opts.Port, "addr", t.opts.Port, "the server address")
+		flags.UintVar(&t.opts.Port, "port", t.opts.Port, "the server port")
 	})
 }
 
@@ -162,16 +150,12 @@ func handleCmdName(name string) string {
 	return names[len(names)-1]
 }
 
-func newEntry(name string, cfg interface{}) *baseEntry {
+func newEntry(name string) *baseEntry {
 	name = strings.TrimSpace(name)
 	xerror.Assert(name == "", "the [name] parameter should not be empty")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
-	if cfg != nil {
-		xerror.Assert(reflect.TypeOf(cfg).Kind() != reflect.Ptr, "[cfg] type kind should be ptr")
-	}
 
 	ent := &baseEntry{
-		cfg: cfg,
 		opts: golug_entry.Options{
 			Name:    name,
 			Port:    8080,
@@ -187,11 +171,10 @@ func newEntry(name string, cfg interface{}) *baseEntry {
 	}
 
 	ent.initFlags()
-	ent.trace()
 
 	return ent
 }
 
-func New(name string, cfg interface{}) *baseEntry {
-	return newEntry(name, cfg)
+func New(name string) *baseEntry {
+	return newEntry(name)
 }

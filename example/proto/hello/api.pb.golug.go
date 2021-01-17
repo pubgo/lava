@@ -9,9 +9,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/golug_client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+var _ = golug_utils.Decode
 
 func init() {
 	var mthList []golug_xgen.GrpcRestHandler
@@ -34,7 +37,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiGateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterTestApiGateway), nil)
 }
 
 func init() {
@@ -58,7 +61,7 @@ func init() {
 	})
 
 	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Gateway), struct{}{})
+	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Gateway), nil)
 }
 
 func GetTestApiClient(srv string, opts ...grpc.DialOption) (TestApiClient, error) {
@@ -71,7 +74,7 @@ func GetTestApiV2Client(srv string, opts ...grpc.DialOption) (TestApiV2Client, e
 	return &testApiV2Client{c}, err
 }
 
-func RegisterTestApiGateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetTestApiClient(srv, opts...)
 	if err != nil {
 		return err
@@ -85,7 +88,10 @@ func RegisterTestApiGateway(srv string, g fiber.Group, opts ...grpc.DialOption) 
 			return err
 		}
 
-		resp, err := c.Version(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Version(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -100,13 +106,17 @@ func RegisterTestApiGateway(srv string, g fiber.Group, opts ...grpc.DialOption) 
 			return err
 		}
 
-		resp, err := c.VersionTest(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.VersionTest(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }
 
-func RegisterTestApiV2Gateway(srv string, g fiber.Group, opts ...grpc.DialOption) error {
+func RegisterTestApiV2Gateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	c, err := GetTestApiV2Client(srv, opts...)
 	if err != nil {
 		return err
@@ -120,7 +130,10 @@ func RegisterTestApiV2Gateway(srv string, g fiber.Group, opts ...grpc.DialOption
 			return err
 		}
 
-		resp, err := c.Version1(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.Version1(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
@@ -133,8 +146,12 @@ func RegisterTestApiV2Gateway(srv string, g fiber.Group, opts ...grpc.DialOption
 			return err
 		}
 
-		resp, err := c.VersionTest1(metadata.NewIncomingContext(ctx.Context(), p), req)
+		resp, err := c.VersionTest1(metadata.NewIncomingContext(ctx.Context(), p), &req)
+		if err != nil {
+			return err
+		}
 		return ctx.JSON(resp)
 	})
 
+	return nil
 }
