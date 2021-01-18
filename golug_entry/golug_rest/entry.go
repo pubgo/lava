@@ -32,7 +32,6 @@ type restEntry struct {
 
 func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 func (t *restEntry) Run() golug_entry.RunEntry    { return t }
-func (t *restEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *restEntry) Router(fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app) })
 }

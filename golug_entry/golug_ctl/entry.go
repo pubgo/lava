@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
-	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 )
 
@@ -22,7 +21,6 @@ func (t *ctlEntry) Stop() error                       { return nil }
 func (t *ctlEntry) Register(f func(), opts ...Option) { t.handler = f }
 func (t *ctlEntry) Options() golug_entry.Options      { return t.Entry.Run().Options() }
 func (t *ctlEntry) Run() golug_entry.RunEntry         { return t }
-func (t *ctlEntry) UnWrap(fn interface{})             { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *ctlEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 

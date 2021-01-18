@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
-	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 )
 
@@ -55,7 +54,6 @@ func (t *taskEntry) Start() (err error) {
 func (t *taskEntry) Stop() error                  { return nil }
 func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 func (t *taskEntry) Run() golug_entry.RunEntry    { return t }
-func (t *taskEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *taskEntry) Init() (err error)            { return t.Entry.Run().Init() }
 
 func newEntry(name string) *taskEntry {

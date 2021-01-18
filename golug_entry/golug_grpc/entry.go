@@ -13,7 +13,6 @@ import (
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	registry "github.com/pubgo/golug/golug_registry"
-	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
@@ -61,7 +60,6 @@ func (t *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerI
 func (t *grpcEntry) Init() (err error)            { return xerror.Wrap(t.Entry.Run().Init()) }
 func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
 func (t *grpcEntry) Run() golug_entry.RunEntry    { return t }
-func (t *grpcEntry) UnWrap(fn interface{})        { xerror.Next().Panic(golug_utils.UnWrap(t, fn)) }
 func (t *grpcEntry) Register(handler interface{}, opts ...Option) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
