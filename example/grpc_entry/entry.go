@@ -13,11 +13,3 @@ func GetEntry() golug_entry.Entry {
 	ent.Register(handler.NewTestAPIHandler())
 	return ent
 }
-
-func GetHttpEntry() golug_entry.Entry {
-	ent := golug.NewRestEntry("grpc_api")
-	ent.Version("v0.0.1")
-	ent.Description("entry grpc api test")
-	ent.Register(handler.NewTestAPIHandler())
-	return ent
-}
