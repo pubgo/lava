@@ -8,10 +8,7 @@ func init() {
 	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func(Name, func() interface{} {
 			var dt []string
-			data.Range(func(key, value interface{}) bool {
-				dt = append(dt, key.(string))
-				return true
-			})
+			data.Each(func(key string) { dt = append(dt, key) })
 			return dt
 		})
 	})

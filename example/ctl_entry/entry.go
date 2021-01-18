@@ -20,7 +20,7 @@ func GetEntry() golug_entry.Entry {
 
 	golug.RegisterPlugin(&golug_plugin.Base{
 		Name: "hello",
-		OnInit: func(ent golug_entry.Entry) {
+		OnInit: func(fn interface{}) {
 			fmt.Println("hello plugin")
 		},
 	})

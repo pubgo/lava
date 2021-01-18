@@ -15,12 +15,11 @@ func init() {
 
 		ctx.Func(Name+"_dbMetas", func() interface{} {
 			var dbMetas = make(map[string][]*schemas.Table)
-			clientMap.Range(func(key, value interface{}) bool {
+			clientMap.Each(func(key, value interface{}) {
 				engine := value.(*xorm.Engine)
 				dbMetas[key.(string)] = xerror.PanicErr(engine.DBMetas()).([]*schemas.Table)
 				engine.ShowSQL(true)
 				xerror.Panic(engine.DumpAll(os.Stdout))
-				return true
 			})
 			return dbMetas
 		})

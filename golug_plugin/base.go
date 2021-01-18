@@ -1,7 +1,6 @@
 package golug_plugin
 
 import (
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -13,13 +12,13 @@ var _ Plugin = (*Base)(nil)
 
 type Base struct {
 	Name       string
-	OnInit     func(ent golug_entry.Entry)
+	OnInit     func(ent interface{})
 	OnWatch    func(r *golug_watcher.Response)
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 }
 
-func (p *Base) Init(ent golug_entry.Entry) (err error) {
+func (p *Base) Init(ent interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	if p.OnInit != nil {

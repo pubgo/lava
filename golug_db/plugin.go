@@ -13,6 +13,8 @@ func init() {
 		OnInit: func(ent golug_entry.Entry) {
 			golug_config.Decode(Name, &cfgMap)
 
+
+
 			for k, v := range cfgMap {
 				cfg := GetDefaultCfg()
 				golug_utils.Mergo(&cfg, v)

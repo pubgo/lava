@@ -1,7 +1,6 @@
 package golug_plugin
 
 import (
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -19,7 +18,7 @@ type ManagerOptions struct {
 
 type Plugin interface {
 	Watch(r *golug_watcher.Response) error
-	Init(ent golug_entry.Entry) error
+	Init(ent interface{}) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	String() string

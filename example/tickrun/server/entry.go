@@ -19,7 +19,7 @@ func GetEntry() golug_entry.Entry {
 	ent.Router(router.Api)
 
 	golug.BeforeStart(func(ctx *dix_run.BeforeStartCtx) {
-		db := golug_db.GetClient()
+		db := golug_db.Get()
 		xerror.Exit(db.Sync2(
 			new(models.Task),
 		))

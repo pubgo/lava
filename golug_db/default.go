@@ -4,12 +4,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_consts"
+	"github.com/pubgo/golug/golug_types"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"
@@ -17,9 +17,9 @@ import (
 	"xorm.io/xorm/names"
 )
 
-var clientMap sync.Map
+var clientMap = golug_types.NewSyncMap()
 
-func GetClient(names ...string) *xorm.Engine {
+func Get(names ...string) *xorm.Engine {
 	var name = golug_consts.Default
 	if len(names) > 0 && names[0] != "" {
 		name = names[0]
@@ -31,11 +31,17 @@ func GetClient(names ...string) *xorm.Engine {
 	return val.(*xorm.Engine)
 }
 
+func List() map[string]*xorm.Engine {
+	var data = make(map[string]*xorm.Engine)
+	clientMap.Each(func(key string, value *xorm.Engine) { data[key] = value })
+	return data
+}
+
 func initClient(name string, cfg Cfg) {
 	source := golug_config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if _dir := filepath.Dir(source); !golug_utils.PathExist(_dir) {
-			_ = os.MkdirAll(_dir, 0755)
+			_ = os.MkdirAll(_dir, 0644)
 		}
 	}
 
@@ -52,8 +58,12 @@ func initClient(name string, cfg Cfg) {
 	xerror.Panic(engine.DB().Ping())
 	engine.SetMapper(names.LintGonicMapper)
 
-	clientMap.Store(name, engine)
+	clientMap.Set(name, engine)
 
 	// 初始化完毕之后, 更新到对象管理系统
+	updateEngine(name, engine)
+}
+
+func updateEngine(name string, engine *xorm.Engine) {
 	xerror.Panic(dix.Dix(map[string]*xorm.Engine{name: engine}))
 }

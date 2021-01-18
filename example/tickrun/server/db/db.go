@@ -6,5 +6,5 @@ import (
 )
 
 func GetDb() *xorm.Engine {
-	return golug_db.GetClient()
+	return golug_db.Get()
 }

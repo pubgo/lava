@@ -2,53 +2,93 @@ package resolver
 
 import (
 	"fmt"
-	
+	"sync"
+
+	"github.com/pkg/errors"
 	registry "github.com/pubgo/golug/golug_registry"
 	"github.com/pubgo/xlog"
-
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
-func updateState(cc resolver.ClientConn, services []string) {
-	var addrs []resolver.Address
-	for _, val := range reshuffle(services, subsetSize) {
-		addrs = append(addrs, resolver.Address{Addr: val})
-	}
-	cc.UpdateState(resolver.State{Addresses: addrs})
+type discovBuilder struct {
+	// node.Id -> resolver.Address
+	services sync.Map
 }
 
-type discovBuilder struct{}
-
-func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
-	var r = registry.Get(target.Authority)
-	if r == nil {
-		return nil, fmt.Errorf("registry %s not exists", target.Authority)
-	}
-
-	if services, err := r.GetService(target.Endpoint); err != nil {
-		panic(err)
-	} else {
-		var addrs []string
-		for _, service := range services {
-			for _, node := range service.Nodes {
-				addr := node.Address
-				if node.Port > 0 {
-					addr = fmt.Sprintf("%s:%d", node.Address, node.Port)
-				}
-				addrs = append(addrs, addr)
+// 删除服务
+func (d *discovBuilder) delService(services ...*registry.Service) {
+	for i := range services {
+		for _, n := range services[i].Nodes {
+			for j := 0; j < Replica; j++ {
+				d.services.Delete(fmt.Sprintf("%s-%d", n.Id, j))
 			}
 		}
-
-		if len(addrs) == 0 {
-			return nil, fmt.Errorf("service none available")
-		}
-
-		updateState(cc, addrs)
 	}
+}
+
+// 更新服务
+func (d *discovBuilder) updateService(services ...*registry.Service) {
+	for i := range services {
+		for _, n := range services[i].Nodes {
+			for j := 0; j < Replica; j++ {
+				addr := n.Address
+				// 如果port不存在, 那么addr中包含port
+				if n.Port > 0 {
+					addr = fmt.Sprintf("%s:%d", n.Address, n.Port)
+				}
+
+				res := &resolver.Address{Addr: addr, Attributes: attributes.New(), ServerName: services[i].Name}
+				val, ok := d.services.LoadOrStore(fmt.Sprintf("%s-%d", n.Id, j), res)
+				if ok {
+					val.(*resolver.Address).Addr = addr
+					val.(*resolver.Address).ServerName = services[i].Name
+				}
+			}
+		}
+	}
+}
+
+// 获取服务地址
+func (d *discovBuilder) getAddrs() []resolver.Address {
+	var addrs []resolver.Address
+	d.services.Range(func(_, value interface{}) bool {
+		addrs = append(addrs, *value.(*resolver.Address))
+		return true
+	})
+	return addrs
+}
+
+// discovBuilder discov://wpt.etcd/service_name
+func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+	// target.Authority得到注册中心的地址
+	// 当然也可以直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
+	var r = registry.Get(target.Authority)
+	if r == nil {
+		return nil, fmt.Errorf("registry %s not exists\n", target.Authority)
+	}
+
+	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
+	// GetService根据服务名字获取注册中心该项目所有服务
+	services, err := r.GetService(target.Endpoint)
+	if err != nil {
+		return nil, errors.Wrap(err, "registry GetService error\n")
+	}
+
+	// 启动后，更新服务地址
+	d.updateService(services...)
+
+	var addrs = d.getAddrs()
+
+	if len(addrs) == 0 {
+		return nil, fmt.Errorf("service none available")
+	}
+
+	cc.UpdateState(resolver.State{Addresses: addrs})
 
 	w, err := r.Watch(registry.WatchService(target.Endpoint))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "target.Endpoint:%s\n", target.Endpoint)
 	}
 
 	go func() {
@@ -60,25 +100,22 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			}
 
 			if err != nil {
-				xlog.Error(err.Error())
+				xlog.Error("registry.Watch", xlog.Any("err", err))
 				continue
 			}
 
-			var addrs []string
-			for _, node := range res.Service.Nodes {
-				addr := node.Address
-				if node.Port > 0 {
-					addr = fmt.Sprintf("%s:%d", node.Address, node.Port)
-				}
-				addrs = append(addrs, addr)
+			// 注册中心删除服务
+			if res.Action == "delete" {
+				d.delService(res.Service)
+			} else {
+				d.updateService(res.Service)
 			}
-			updateState(cc, addrs)
+
+			cc.UpdateState(resolver.State{Addresses: d.getAddrs()})
 		}
 	}()
 
-	return &baseResolver{cc: cc}, nil
+	return &baseResolver{cc: cc, r: w}, nil
 }
 
-func (d *discovBuilder) Scheme() string {
-	return DiscovScheme
-}
+func (d *discovBuilder) Scheme() string { return DiscovScheme }

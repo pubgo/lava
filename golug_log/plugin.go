@@ -3,7 +3,6 @@ package golug_log
 import (
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
 	"github.com/pubgo/xerror"
@@ -21,7 +20,7 @@ func init() {
 		OnFlags: func(flags *pflag.FlagSet) {
 			flags.StringVarP(&cfg.Level, "level", "l", cfg.Level, "log level")
 		},
-		OnInit: func(ent golug_entry.Entry) {
+		OnInit: func(ent interface{}) {
 			golug_config.Decode(Name, &cfg)
 			xerror.Panic(initLog(cfg))
 		},
