@@ -1,19 +1,17 @@
 package golug_broker
 
 import (
-	"sync"
-
+	"github.com/pubgo/golug/golug_types"
 	"github.com/pubgo/xerror"
 )
 
-var brokerMap sync.Map
+var brokerMap = golug_types.NewSyncMap()
 
 func Register(name string, broker Broker) {
 	xerror.Assert(name == "" || broker == nil, "[broker], [name] should not be null")
+	xerror.Assert(brokerMap.Has(name), "[broker] %s already exists", name)
 
-	if _, ok := brokerMap.LoadOrStore(name, broker); ok {
-		xerror.Assert(ok, "[broker] %s already exists", name)
-	}
+	brokerMap.Set(name, broker)
 }
 
 func Get(name string) Broker {
@@ -24,8 +22,4 @@ func Get(name string) Broker {
 	return val.(Broker)
 }
 
-func List() map[string]Broker {
-	var dt = make(map[string]Broker)
-	brokerMap.Range(func(key, value interface{}) bool { dt[key.(string)] = value.(Broker); return true })
-	return dt
-}
+func List() (dt map[string]Broker) { brokerMap.Map(&dt); return }

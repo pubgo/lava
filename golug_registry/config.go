@@ -14,6 +14,7 @@ type Cfg struct {
 	Name    string        `json:"name"`
 	Prefix  string        `json:"prefix"`
 	TTL     time.Duration `json:"ttl"`
+	Timeout time.Duration `json:"timeout"`
 }
 
 func GetDefaultCfg() Cfg {
