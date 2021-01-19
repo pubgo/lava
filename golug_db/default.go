@@ -41,7 +41,7 @@ func initClient(name string, cfg Cfg) {
 	source := golug_config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if _dir := filepath.Dir(source); !golug_utils.PathExist(_dir) {
-			_ = os.MkdirAll(_dir, 0644)
+			_ = os.MkdirAll(_dir, 0755)
 		}
 	}
 
