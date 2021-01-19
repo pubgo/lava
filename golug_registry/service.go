@@ -1,29 +1,29 @@
 package golug_registry
 
 type Service struct {
-	Name      string            `json:"name"`
-	Version   string            `json:"version"`
-	Metadata  map[string]string `json:"metadata"`
-	Endpoints []*Endpoint       `json:"endpoints"`
-	Nodes     []*Node           `json:"nodes"`
+	Name      string            `json:"name,omitempty"`
+	Version   string            `json:"version,omitempty"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	Endpoints []*Endpoint       `json:"endpoints,omitempty"`
+	Nodes     []*Node           `json:"nodes,omitempty"`
 }
 
 type Node struct {
-	Id       string            `json:"id"`
-	Address  string            `json:"address"`
-	Port     int               `json:"port"`
-	Metadata map[string]string `json:"metadata"`
+	Id       string            `json:"id,omitempty"`
+	Address  string            `json:"address,omitempty"`
+	Port     int               `json:"port,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 type Endpoint struct {
-	Name     string            `json:"name"`
-	Request  *Value            `json:"request"`
-	Response *Value            `json:"response"`
-	Metadata map[string]string `json:"metadata"`
+	Name     string            `json:"name,omitempty"`
+	Request  *Value            `json:"request,omitempty"`
+	Response *Value            `json:"response,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 type Value struct {
-	Name   string   `json:"name"`
-	Type   string   `json:"type"`
-	Values []*Value `json:"values"`
+	Name   string   `json:"name,omitempty"`
+	Type   string   `json:"type,omitempty"`
+	Values []*Value `json:"values,omitempty"`
 }

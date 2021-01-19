@@ -1,12 +1,12 @@
 package p2c
 
 import (
-	"github.com/pubgo/golug/golug_balancer/xalg"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/pubgo/golug/golug_balancer/xalg"
 	"google.golang.org/grpc/balancer"
 )
 

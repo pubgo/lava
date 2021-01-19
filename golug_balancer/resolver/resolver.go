@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	registry "github.com/pubgo/golug/golug_registry"
+	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -37,7 +38,9 @@ func (r *baseResolver) Close() {
 	}
 }
 
-func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {}
+func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {
+	xlog.Infof("[grpc] ResolveNow")
+}
 
 func BuildDirectTarget(endpoints []string) string {
 	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
@@ -48,7 +51,7 @@ func BuildDiscovTarget(endpoints []string, key string) string {
 }
 
 //对targets打散
-func reshuffle(targets []string) []string {
+func reshuffle(targets []resolver.Address) []resolver.Address {
 	rand.Shuffle(len(targets), func(i, j int) { targets[i], targets[j] = targets[j], targets[i] })
 	return targets
 }

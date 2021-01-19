@@ -87,7 +87,7 @@ func InitOtherConfig() (err error) {
 
 		ns := strings.Split(info.Name(), ".")
 		if len(ns) != 3 {
-			xerror.Exit(xerror.Fmt("config name error, %s", path))
+			return nil
 		}
 
 		// 合并所有的配置文件到内存当中

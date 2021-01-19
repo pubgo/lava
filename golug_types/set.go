@@ -1,11 +1,11 @@
 package golug_types
 
 import (
-	"go.uber.org/atomic"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_util"
+	"go.uber.org/atomic"
 )
 
 func NewSet(val ...interface{}) *Set {

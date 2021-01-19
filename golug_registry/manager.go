@@ -24,8 +24,4 @@ func Get(name string) Registry {
 	return val.(Registry)
 }
 
-func List() map[string]Registry {
-	var data = make(map[string]Registry)
-	registries.Each(func(key string, value Registry) { data[key] = value })
-	return data
-}
+func List() (dt map[string]Registry) { registries.Map(&dt); return }

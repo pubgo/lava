@@ -1,10 +1,10 @@
 package weightround
 
 import (
-	"github.com/pubgo/golug/golug_balancer/xalg"
-	"github.com/pubgo/xlog"
 	"sync"
 
+	"github.com/pubgo/golug/golug_balancer/xalg"
+	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/balancer"
 )
 

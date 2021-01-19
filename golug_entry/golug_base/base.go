@@ -6,10 +6,13 @@ import (
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xerror/xerror_abc"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -18,6 +21,27 @@ var _ golug_entry.Entry = (*baseEntry)(nil)
 
 type baseEntry struct {
 	opts golug_entry.Options
+}
+
+func (t *baseEntry) WithBeforeStart(f func(_ *golug_entry.BeforeStart)) {
+	xerror.Next().Panic(dix_run.WithBeforeStart(f))
+}
+
+func (t *baseEntry) WithAfterStart(f func(_ *golug_entry.AfterStart)) {
+	xerror.Next().Panic(dix_run.WithAfterStart(f))
+}
+
+func (t *baseEntry) WithBeforeStop(f func(_ *golug_entry.BeforeStop)) {
+	xerror.Next().Panic(dix_run.WithBeforeStop(f))
+}
+
+func (t *baseEntry) WithAfterStop(f func(_ *golug_entry.AfterStop)) {
+	xerror.Next().Panic(dix_run.WithAfterStop(f))
+}
+
+func (t *baseEntry) Plugin(plugin golug_plugin.Plugin) {
+	defer xerror.RespRaise(func(err xerror_abc.XErr) error { return xerror.Wrap(err, "baseEntry.Plugin") })
+	golug_plugin.Register(plugin, golug_plugin.Module(t.opts.Name))
 }
 
 func (t *baseEntry) OnCfg(fn interface{}) {
@@ -95,12 +119,17 @@ func (t *baseEntry) initFlags() {
 }
 
 func handleCmdName(name string) string {
-	if !strings.Contains(name, ".") {
-		return name
+	if strings.Contains(name, "-") {
+		names := strings.Split(name, "-")
+		name = names[len(names)-1]
 	}
 
-	names := strings.Split(name, ".")
-	return names[len(names)-1]
+	if strings.Contains(name, ".") {
+		names := strings.Split(name, ".")
+		name = names[len(names)-1]
+	}
+
+	return name
 }
 
 func newEntry(name string) *baseEntry {

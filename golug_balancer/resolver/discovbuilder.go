@@ -56,7 +56,7 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 		addrs = append(addrs, *value.(*resolver.Address))
 		return true
 	})
-	return addrs
+	return reshuffle(addrs)
 }
 
 // discovBuilder discov://wpt.etcd/service_name

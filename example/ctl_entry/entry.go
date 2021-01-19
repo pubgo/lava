@@ -9,8 +9,10 @@ import (
 	"github.com/pubgo/xlog"
 )
 
+var name = "test-ctl"
+
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewCtlEntry("ctl")
+	ent := golug.NewCtlEntry(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 

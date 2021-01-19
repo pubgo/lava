@@ -27,7 +27,7 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		}
 	}
 
-	cc.UpdateState(resolver.State{Addresses: addrs})
+	cc.UpdateState(resolver.State{Addresses: reshuffle(addrs)})
 	return &baseResolver{cc: cc}, nil
 }
 

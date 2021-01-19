@@ -9,13 +9,15 @@ func init() {
 	dix_trace.With(func(ctx *dix_trace.Ctx) {
 		ctx.Func(Name+"_watcher_callback", func() interface{} {
 			var dt []string
-			callbackMap.Range(func(key, _ interface{}) bool { dt = append(dt, key.(string)); return true })
+			callbackMap.Each(func(key string) { dt = append(dt, key) })
 			return dt
 		})
 
 		ctx.Func(Name+"_watcher", func() interface{} {
 			var dt = make(map[string]string)
-			watcherMap.Range(func(key, val interface{}) bool { dt[key.(string)] = xerror_util.CallerWithFunc(val); return true })
+			for k, v := range List() {
+				dt[k] = xerror_util.CallerWithFunc(v)
+			}
 			return dt
 		})
 	})

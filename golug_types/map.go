@@ -35,8 +35,16 @@ func (t *SyncMap) Each(fn interface{}) {
 func (t *SyncMap) Map(data interface{}) {
 	defer xerror.RespExit("SyncMap.Map")
 
-
 	vd := reflect.ValueOf(data)
+	if vd.Kind() == reflect.Ptr {
+		vd = vd.Elem()
+		vd.Set(reflect.MakeMap(vd.Type()))
+	}
+
+	// var data = make(map[string]int); Map(data)
+	// var data map[string]int; Map(&data)
+	xerror.Assert(!vd.IsValid() || vd.IsNil(), "[data] type error")
+
 	t.data.Range(func(key, value interface{}) bool {
 		vd.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(value))
 		return true

@@ -1,19 +1,17 @@
 package golug_watcher
 
 import (
-	"sync"
-
+	"github.com/pubgo/golug/golug_types"
 	"github.com/pubgo/xerror"
 )
 
-var callbackMap sync.Map
+var callbackMap = golug_types.NewSyncMap()
 
 func Watch(name string, h CallBack) {
 	xerror.Assert(name == "" || h == nil, "[name], [callback] should not be null")
+	xerror.Assert(callbackMap.Has(name), "[callback] %s already exists", name)
 
-	if _, ok := callbackMap.LoadOrStore(name, h); ok {
-		xerror.Assert(ok, "[callback] %s already exists", name)
-	}
+	callbackMap.Set(name, h)
 }
 
 func GetWatch(name string) CallBack {
