@@ -10,7 +10,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
 )
@@ -44,7 +43,6 @@ func Decode(name string, fn interface{}) {
 	defer xerror.RespRaise(func(err xerror.XErr) error { return xerror.WrapF(err, "name:%s", name) })
 
 	if GetCfg().Get(name) == nil {
-		xlog.Warnf("%s not found", name)
 		return
 	}
 
