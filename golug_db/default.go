@@ -25,17 +25,11 @@ func Get(names ...string) *xorm.Engine {
 		name = names[0]
 	}
 
-	val, ok := clientMap.Load(name)
-	xerror.Assert(ok, "[db] %s not found", name)
-
-	return val.(*xorm.Engine)
+	xerror.Assert(!clientMap.Has(name), "[db] %s not found", name)
+	return clientMap.Get(name).(*xorm.Engine)
 }
 
-func List() map[string]*xorm.Engine {
-	var data = make(map[string]*xorm.Engine)
-	clientMap.Each(func(key string, value *xorm.Engine) { data[key] = value })
-	return data
-}
+func List() (dt map[string]*xorm.Engine) { clientMap.Map(&dt); return }
 
 func initClient(name string, cfg Cfg) {
 	source := golug_config.Template(cfg.Source)
@@ -49,14 +43,17 @@ func initClient(name string, cfg Cfg) {
 	engine.SetMaxOpenConns(cfg.MaxConnOpen)
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
-
+	engine.SetMapper(names.LintGonicMapper)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
 	if golug_app.IsDev() || golug_app.IsTest() {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
 	}
 
 	xerror.Panic(engine.DB().Ping())
-	engine.SetMapper(names.LintGonicMapper)
+
+	if val, ok := clientMap.Load(name); ok {
+		_ = val.(*xorm.Engine).Close()
+	}
 
 	clientMap.Set(name, engine)
 
