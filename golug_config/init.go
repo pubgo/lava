@@ -1,7 +1,6 @@
 package golug_config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -66,7 +65,8 @@ func InitOtherConfig() (err error) {
 
 	v := GetCfg()
 
-	return xerror.Wrap(filepath.Walk(filepath.Dir(v.ConfigFileUsed()), func(path string, info os.FileInfo, err error) error {
+	// 处理独立的组件的配置, config.nsq.yaml, config.mysql.yaml
+	xerror.Panic(filepath.Walk(filepath.Dir(v.ConfigFileUsed()), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return xerror.Wrap(err)
 		}
@@ -80,7 +80,6 @@ func InitOtherConfig() (err error) {
 			return nil
 		}
 
-		fmt.Println(info.Name(), CfgName+"."+CfgType)
 		// 文件名字检查
 		if info.Name() == CfgName+"."+CfgType {
 			return nil
@@ -106,6 +105,15 @@ func InitOtherConfig() (err error) {
 
 		return nil
 	}))
+
+	// 处理独立的app配置, app配置是使用方的自定义配置, config里面的是默认配置
+	var appFile = filepath.Join(filepath.Dir(v.ConfigFileUsed()), "app."+CfgType)
+	if golug_utils.PathExist(appFile) {
+		for key, val := range UnMarshal(appFile) {
+			v.Set(key, val)
+		}
+	}
+	return nil
 }
 
 func Init() (err error) {
