@@ -25,6 +25,7 @@ func (p *Base) Init(ent interface{}) (err error) {
 		xlog.Debugf("plugin [%s] init", p.Name)
 		p.OnInit(ent)
 	}
+
 	return nil
 }
 

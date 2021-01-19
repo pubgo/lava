@@ -41,6 +41,8 @@ grpc_entry:
   header_table_size: 1
 log:
   level: "debug"
+  encoderConfig:
+    callerEncoder: full
 rest_entry:
   enabled: true
   prefork: false
