@@ -14,7 +14,7 @@ var name = "test-ctl"
 func GetEntry() golug_entry.Entry {
 	ent := golug.NewCtlEntry(name)
 	ent.Version("v0.0.1")
-	ent.Description("entry http test")
+	ent.Description("entry ctl test")
 
 	ent.Register(func() {
 		xlog.Info("ctl ok")

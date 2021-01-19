@@ -10,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
@@ -22,7 +21,7 @@ import (
 var _ Entry = (*restEntry)(nil)
 
 type restEntry struct {
-	golug_entry.Entry
+	*golug_base.Entry
 	app      *fiber.App
 	handlers []func()
 	cfg1     Cfg
@@ -30,11 +29,10 @@ type restEntry struct {
 	cancel   context.CancelFunc
 }
 
-func (t *restEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-func (t *restEntry) Run() golug_entry.RunEntry    { return t }
 func (t *restEntry) Router(fn func(r fiber.Router)) {
 	t.handlers = append(t.handlers, func() { fn(t.app) })
 }
+
 func (t *restEntry) use(handler fiber.Handler) {
 	if handler == nil {
 		return
@@ -52,7 +50,7 @@ func (t *restEntry) Use(handler ...fiber.Handler) {
 func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(t.Entry.Run().Init())
+	xerror.Panic(t.Entry.Init())
 	dm := golug_config.GetCfg().GetStringMap(Name)
 	delete(dm, "views")
 
@@ -125,9 +123,8 @@ func newEntry(name string) *restEntry {
 	ent := &restEntry{Entry: golug_base.New(name), cfg1: GetDefaultCfg()}
 	ent.initFlags()
 	ent.trace()
-
-	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg1) })
+	ent.OnCfgWithName(Name, &ent.cfg1)
 	return ent
 }
 
-func New(name string) *restEntry { return newEntry(name) }
+func New(name string) Entry { return newEntry(name) }

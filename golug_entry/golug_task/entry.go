@@ -2,8 +2,6 @@ package golug_task
 
 import (
 	"github.com/pubgo/golug/golug_broker"
-	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	"github.com/pubgo/xerror"
 )
@@ -17,7 +15,7 @@ type entryTaskHandler struct {
 }
 
 type taskEntry struct {
-	golug_entry.Entry
+	*golug_base.Entry
 	cfg      Cfg
 	broker   golug_broker.Broker
 	handlers []entryTaskHandler
@@ -51,15 +49,10 @@ func (t *taskEntry) Start() (err error) {
 	return nil
 }
 
-func (t *taskEntry) Stop() error                  { return nil }
-func (t *taskEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-func (t *taskEntry) Run() golug_entry.RunEntry    { return t }
-func (t *taskEntry) Init() (err error)            { return t.Entry.Run().Init() }
-
 func newEntry(name string) *taskEntry {
 	ent := &taskEntry{Entry: golug_base.New(name)}
-	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg) })
+	ent.OnCfgWithName(Name, &ent.cfg)
 	return ent
 
 }
-func New(name string) *taskEntry { return newEntry(name) }
+func New(name string) Entry { return newEntry(name) }

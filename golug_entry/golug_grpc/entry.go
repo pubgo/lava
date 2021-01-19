@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/dix/dix_run"
-	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	registry "github.com/pubgo/golug/golug_registry"
@@ -26,8 +24,8 @@ import (
 var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
-	mu sync.RWMutex
-	golug_entry.Entry
+	*golug_base.Entry
+	mu                       sync.RWMutex
 	cfg                      Cfg
 	registry                 registry.Registry
 	registryMap              map[string][]*registry.Endpoint
@@ -57,9 +55,6 @@ func (t *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerI
 	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
 }
 
-func (t *grpcEntry) Init() (err error)            { return xerror.Wrap(t.Entry.Run().Init()) }
-func (t *grpcEntry) Options() golug_entry.Options { return t.Entry.Run().Options() }
-func (t *grpcEntry) Run() golug_entry.RunEntry    { return t }
 func (t *grpcEntry) Register(handler interface{}, opts ...Option) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
@@ -123,19 +118,7 @@ func (t *grpcEntry) Start() (err error) {
 	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 
 	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
-		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err))
-		})
-
-		//server_addr, err := net.ResolveUnixAddr("unix", server_file)
-		//if err != nil {
-		//	log.Fatal("fialed to resolve unix addr")
-		//}
-		//
-		//lis, err := net.ListenUnix("unix", server_addr)
-		//if err != nil {
-		//	log.Fatal("failed to listen: %v", err)
-		//}
+		defer xerror.Resp(func(err xerror.XErr) { xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err)) })
 
 		if err := t.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())
@@ -143,7 +126,7 @@ func (t *grpcEntry) Start() (err error) {
 		return
 	})
 
-	xerror.Panic(dix_run.WithBeforeStop(func(ctx *dix_run.BeforeStopCtx) { cancel() }))
+	t.WithBeforeStop(func(_ *golug_entry.BeforeStop) { cancel() })
 
 	return nil
 }
@@ -166,15 +149,9 @@ func newEntry(name string) *grpcEntry {
 	ent.initFlags()
 
 	// 服务启动后, 启动网关
-	xerror.Panic(dix_run.WithAfterStart(func(ctx *dix_run.AfterStartCtx) { xerror.Panic(ent.startGw()) }))
-	golug_config.On(func(cfg *golug_config.Config) { golug_config.Decode(Name, &ent.cfg) })
+	ent.WithAfterStart(func(_ *golug_entry.AfterStart) { xerror.Panic(ent.startGw()) })
+	ent.OnCfgWithName(Name, &ent.cfg)
 	return ent
 }
 
-func New(name string) *grpcEntry { return newEntry(name) }
-
-func UnixConnect(addr string, t time.Duration) (net.Conn, error) {
-	unix_addr, err := net.ResolveUnixAddr("unix", "")
-	conn, err := net.DialUnix("unix", nil, unix_addr)
-	return conn, err
-}
+func New(name string) Entry { return newEntry(name) }

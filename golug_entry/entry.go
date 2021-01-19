@@ -15,7 +15,6 @@ type RunEntry interface {
 }
 
 type Entry interface {
-	Run() RunEntry
 	Version(v string)
 	Dix(data ...interface{})
 	OnCfg(fn interface{})

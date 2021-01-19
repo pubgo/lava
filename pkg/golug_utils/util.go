@@ -1,6 +1,7 @@
 package golug_utils
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/xerror"
+	"golang.org/x/crypto/scrypt"
 )
 
 func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) {
@@ -87,4 +89,9 @@ func IsTrue(data string) bool {
 	default:
 		return false
 	}
+}
+
+func EncodePassword(unencoded string) string {
+	newPasswd, _ := scrypt.Key([]byte(unencoded), []byte("!#@FDEWREWR&*("), 16384, 8, 1, 64)
+	return fmt.Sprintf("%x", newPasswd)
 }

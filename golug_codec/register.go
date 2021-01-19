@@ -23,8 +23,4 @@ func Get(name string) Codec {
 	return val.(Codec)
 }
 
-func List() map[string]Codec {
-	var dt = make(map[string]Codec)
-	data.Each(func(key string, value Codec) { dt[key] = value })
-	return dt
-}
+func List() (dt map[string]Codec) { data.Map(&dt); return }

@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/golug/golug_entry/golug_ctl"
 	"github.com/pubgo/golug/golug_entry/golug_grpc"
 	"github.com/pubgo/golug/golug_entry/golug_rest"
+	"github.com/pubgo/golug/golug_entry/golug_task"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/xerror"
 )
@@ -16,6 +17,7 @@ func Run(entries ...golug_entry.Entry) {
 	xerror.Next().Panic(golug_cmd.Run(entries...))
 }
 
+func NewTaskEntry(name string) golug_task.Entry { return golug_task.New(name) }
 func NewRestEntry(name string) golug_rest.Entry { return golug_rest.New(name) }
 func NewGrpcEntry(name string) golug_grpc.Entry { return golug_grpc.New(name) }
 func NewCtlEntry(name string) golug_ctl.Entry   { return golug_ctl.New(name) }

@@ -72,21 +72,21 @@ func handleSignal() {
 	golug_app.Signal = <-ch
 }
 
-func start(ent golug_entry.Entry) (err error) {
+func start(ent golug_entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(dix_run.BeforeStart())
-	xerror.Panic(ent.Run().Start())
+	xerror.Panic(ent.Start())
 	xerror.Panic(dix_run.AfterStart())
 
 	return
 }
 
-func stop(ent golug_entry.Entry) (err error) {
+func stop(ent golug_entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(dix_run.BeforeStop())
-	xerror.Panic(ent.Run().Stop())
+	xerror.Panic(ent.Stop())
 	xerror.Panic(dix_run.AfterStop())
 
 	return nil
@@ -100,7 +100,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 	for _, ent := range entries {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
-		opt := ent.Run().Options()
+		entRun := ent.(golug_entry.RunEntry)
+		opt := entRun.Options()
 		xerror.Assert(opt.Name == "" || opt.Version == "", "[name], [version] should not be empty")
 	}
 
@@ -109,8 +110,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for _, ent := range entries {
-		ent := ent
-		cmd := ent.Run().Options().Command
+		entRun := ent.(golug_entry.RunEntry)
+		cmd := entRun.Options().Command
 
 		// 检查Command是否注册
 		for _, c := range rootCmd.Commands() {
@@ -118,7 +119,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		}
 
 		// 注册plugin的command和flags
-		entPlugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
+		entPlugins := golug_plugin.List(golug_plugin.Module(entRun.Options().Name))
 		for _, pl := range append(golug_plugin.List(), entPlugins...) {
 			cmd.PersistentFlags().AddFlagSet(pl.Flags())
 			ent.Commands(pl.Commands())
@@ -127,12 +128,12 @@ func Run(entries ...golug_entry.Entry) (err error) {
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
-			golug_app.Project = ent.Run().Options().Name
+			golug_app.Project = entRun.Options().Name
 			xerror.Panic(Init())
-			xerror.Panic(ent.Run().Init())
+			xerror.Panic(entRun.Init())
 
 			// 初始化组件, 初始化插件
-			plugins := golug_plugin.List(golug_plugin.Module(ent.Run().Options().Name))
+			plugins := golug_plugin.List(golug_plugin.Module(entRun.Options().Name))
 			plugins = append(golug_plugin.List(), plugins...)
 			for _, pg := range plugins {
 				key := pg.String()
@@ -140,13 +141,13 @@ func Run(entries ...golug_entry.Entry) (err error) {
 				golug_watcher.Watch(key, pg.Watch)
 			}
 
-			xerror.Panic(start(ent))
+			xerror.Panic(start(entRun))
 
 			if golug_app.IsBlock {
 				handleSignal()
 			}
 
-			xerror.Panic(stop(ent))
+			xerror.Panic(stop(entRun))
 			return nil
 		}
 
