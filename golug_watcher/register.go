@@ -8,8 +8,8 @@ import (
 var watcherMap = golug_types.NewSyncMap()
 
 func Register(name string, w Watcher) {
-	xerror.Assert(name == "" || w == nil, "[name], [watcher] should not be null", name)
-	xerror.Assert(watcherMap.Has(name), "[watcher] %s already exists", name)
+	xerror.Assert(name == "" || w == nil, "[watcher:%s] should not be null", name)
+	xerror.Assert(watcherMap.Has(name), "[watcher:%s] already exists", name)
 
 	watcherMap.Set(name, w)
 }

@@ -177,7 +177,6 @@ func ConnectServer(protocol string, addr string) (c net.Conn, err error) {
 			return
 		}
 		kcpConn.SetStreamMode(true)
-		kcpConn.SetWriteDelay(true)
 		kcpConn.SetNoDelay(1, 20, 2, 1)
 		kcpConn.SetWindowSize(128, 512)
 		kcpConn.SetMtu(1350)

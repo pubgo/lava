@@ -94,7 +94,7 @@ func (t *fileWatcher) Start() (err error) {
 				val := []byte(golug_utils.Marshal(t.callback(event.Name)))
 				resp := &golug_watcher.Response{Key: ns[1], Value: val, Event: "PUT"}
 				if err := fn(resp); err != nil {
-					xlog.Errorf("%s handle error", xlog.Any("err", err))
+					xlog.Error("watcher handle error", xlog.Any("err", err))
 					return
 				}
 			}
@@ -104,7 +104,7 @@ func (t *fileWatcher) Start() (err error) {
 			}
 
 			if err != nil {
-				xlog.Errorf("watcher error", xlog.Any("err", err))
+				xlog.Error("watcher error", xlog.Any("err", err))
 			}
 		}
 		return
