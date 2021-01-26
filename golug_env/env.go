@@ -32,9 +32,8 @@ func Get(val *string, names ...string) {
 	}
 }
 
-func Lookup(key string) (string, bool) { return os.LookupEnv(key) }
-
-func Unsetenv(key string) error { return os.Unsetenv(key) }
+func Lookup(key string) (string, bool) { return os.LookupEnv(upper(key)) }
+func Unsetenv(key string) error        { return os.Unsetenv(upper(key)) }
 
 // ExpandEnv returns value of convert with environment variable.
 // Return environment variable if value start with "${" and end with "}".
