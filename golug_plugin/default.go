@@ -21,7 +21,7 @@ func List(opts ...ManagerOption) []Plugin {
 
 // Register registers a global plugins
 func Register(plugin Plugin, opts ...ManagerOption) {
-	xerror.Next().Panic(defaultManager.Register(plugin, opts...))
+	xerror.Panic(defaultManager.Register(plugin, opts...))
 }
 
 // IsRegistered check plugin whether registered global.

@@ -36,5 +36,5 @@ func initLog(cfg xlog_config.Config) (err error) {
 func Watch(fn func(logs xlog.XLog)) {
 	defer xerror.RespExit()
 	fn(xlog.With())
-	xerror.Next().Panic(dix.Dix(fn))
+	xerror.Panic(dix.Dix(fn))
 }

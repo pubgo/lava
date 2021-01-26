@@ -14,7 +14,7 @@ import (
 
 func Run(entries ...golug_entry.Entry) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(golug_cmd.Run(entries...))
+	xerror.Panic(golug_cmd.Run(entries...))
 }
 
 func NewTaskEntry(name string) golug_task.Entry { return golug_task.New(name) }
@@ -28,20 +28,20 @@ func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOpti
 
 func BeforeStart(fn func(ctx *golug_entry.BeforeStart)) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(dix_run.WithBeforeStart(fn))
+	xerror.Panic(dix_run.WithBeforeStart(fn))
 }
 
 func AfterStart(fn func(ctx *golug_entry.AfterStart)) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(dix_run.WithAfterStart(fn))
+	xerror.Panic(dix_run.WithAfterStart(fn))
 }
 
 func BeforeStop(fn func(ctx *golug_entry.BeforeStop)) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(dix_run.WithBeforeStop(fn))
+	xerror.Panic(dix_run.WithBeforeStop(fn))
 }
 
 func AfterStop(fn func(ctx *golug_entry.AfterStop)) {
 	defer xerror.RespExit()
-	xerror.Next().Panic(dix_run.WithAfterStop(fn))
+	xerror.Panic(dix_run.WithAfterStop(fn))
 }

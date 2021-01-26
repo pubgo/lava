@@ -29,10 +29,10 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.12
-	github.com/pubgo/xerror v0.3.15
+	github.com/pubgo/dix v0.1.13
+	github.com/pubgo/xerror v0.3.23
 	github.com/pubgo/xlog v0.0.10
-	github.com/pubgo/xprocess v0.1.2
+	github.com/pubgo/xprocess v0.1.3
 	github.com/pubgo/xprotogen v0.0.5
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
@@ -51,7 +51,6 @@ require (
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gotest.tools v2.2.0+incompatible // indirect
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	xorm.io/xorm v1.0.5
 )

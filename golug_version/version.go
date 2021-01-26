@@ -14,7 +14,7 @@ type M = map[string]string
 func Register(name string, data M) {
 	_, ok := versions.LoadOrStore(name, data)
 	if ok {
-		xerror.Next().Panic(xerror.Fmt("%s already exists", name))
+		xerror.Panic(xerror.Fmt("%s already exists", name))
 	}
 }
 

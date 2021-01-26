@@ -24,19 +24,19 @@ type Entry struct {
 }
 
 func (t *Entry) WithBeforeStart(f func(_ *golug_entry.BeforeStart)) {
-	xerror.Next().Panic(dix_run.WithBeforeStart(f))
+	xerror.Panic(dix_run.WithBeforeStart(f))
 }
 
 func (t *Entry) WithAfterStart(f func(_ *golug_entry.AfterStart)) {
-	xerror.Next().Panic(dix_run.WithAfterStart(f))
+	xerror.Panic(dix_run.WithAfterStart(f))
 }
 
 func (t *Entry) WithBeforeStop(f func(_ *golug_entry.BeforeStop)) {
-	xerror.Next().Panic(dix_run.WithBeforeStop(f))
+	xerror.Panic(dix_run.WithBeforeStop(f))
 }
 
 func (t *Entry) WithAfterStop(f func(_ *golug_entry.AfterStop)) {
-	xerror.Next().Panic(dix_run.WithAfterStop(f))
+	xerror.Panic(dix_run.WithAfterStop(f))
 }
 
 func (t *Entry) Plugin(plugin golug_plugin.Plugin) {
@@ -64,7 +64,7 @@ func (t *Entry) Init() (err error) {
 	t.opts.Initialized = true
 	return
 }
-func (t *Entry) Dix(data ...interface{})      { xerror.Next().Panic(dix.Dix(data...)) }
+func (t *Entry) Dix(data ...interface{})      { xerror.Panic(dix.Dix(data...)) }
 func (t *Entry) Start() error                 { return nil }
 func (t *Entry) Stop() error                  { return nil }
 func (t *Entry) Options() golug_entry.Options { return t.opts }
@@ -97,7 +97,7 @@ func (t *Entry) Version(v string) {
 
 	t.opts.Command.Version = v
 	_, err := ver.NewVersion(v)
-	xerror.Next().Panic(err)
+	xerror.Panic(err)
 	return
 }
 

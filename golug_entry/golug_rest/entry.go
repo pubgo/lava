@@ -76,7 +76,7 @@ func (t *restEntry) Start() (err error) {
 	port := t.Options().Port
 
 	// 启动server后等待1s
-	t.cancel = xprocess.GoDelay(time.Second, func(ctx context.Context) {
+	xerror.Panic(xprocess.GoDelay(time.Second, func() {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("restEntry.Start error", xlog.Any("err", err))
 		})
@@ -94,7 +94,7 @@ func (t *restEntry) Start() (err error) {
 		}
 
 		xlog.Infof("Server [http] Closed OK")
-	})
+	}))
 	xlog.Infof("Server [http] Listening on http://%d", port)
 
 	return nil
@@ -107,8 +107,6 @@ func (t *restEntry) Stop() (err error) {
 		xlog.Error(xerror.Parse(err).Stack(true))
 		return nil
 	}
-
-	t.cancel()
 
 	return nil
 }

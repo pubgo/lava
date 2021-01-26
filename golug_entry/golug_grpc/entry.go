@@ -1,7 +1,6 @@
 package golug_grpc
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"sync"
@@ -117,16 +116,14 @@ func (t *grpcEntry) Start() (err error) {
 	ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
 	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 
-	cancel := xprocess.GoDelay(time.Second, func(ctx context.Context) {
+	xerror.Panic(xprocess.GoDelay(time.Second, func() {
 		defer xerror.Resp(func(err xerror.XErr) { xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err)) })
 
 		if err := t.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())
 		}
 		return
-	})
-
-	t.WithBeforeStop(func(_ *golug_entry.BeforeStop) { cancel() })
+	}))
 
 	return nil
 }

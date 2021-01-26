@@ -10,9 +10,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ErrorGrpcCode converts a standard Go error into its canonical code. Note that
+// ConvertGrpcCode
+// converts a standard Go error into its canonical code. Note that
 // this is only used to translate the error returned by the server applications.
-func ErrorGrpcCode(err error) codes.Code {
+func ConvertGrpcCode(err error) codes.Code {
 	switch err {
 	case nil:
 		return codes.OK
@@ -27,6 +28,7 @@ func ErrorGrpcCode(err error) codes.Code {
 	case context.DeadlineExceeded:
 		return codes.DeadlineExceeded
 	}
+
 	switch {
 	case os.IsExist(err):
 		return codes.AlreadyExists
@@ -38,7 +40,7 @@ func ErrorGrpcCode(err error) codes.Code {
 	return codes.Unknown
 }
 
-func HttpErrorGrpcCode(err *Error) codes.Code {
+func Http2GrpcCode(err *Error) codes.Code {
 	switch err {
 	case nil:
 		return codes.OK
@@ -72,7 +74,7 @@ func HttpErrorGrpcCode(err *Error) codes.Code {
 	return codes.Unknown
 }
 
-func Acceptable(err error) bool {
+func GrpcAcceptable(err error) bool {
 	switch status.Code(err) {
 	case codes.DeadlineExceeded, codes.Internal, codes.Unavailable, codes.DataLoss:
 		return false

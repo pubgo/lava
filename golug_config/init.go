@@ -155,4 +155,4 @@ func IsExist() bool {
 }
 
 func Trigger() error          { return xerror.Wrap(dix.Dix(GetCfg())) }
-func On(fn func(cfg *Config)) { xerror.Next().Panic(dix.Dix(fn)) }
+func On(fn func(cfg *Config)) { xerror.Panic(dix.Dix(fn)) }
