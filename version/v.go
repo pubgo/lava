@@ -15,10 +15,6 @@ var CommitID = ""
 var Project = ""
 
 func init() {
-	if Version == "" {
-		Version = "v0.0.1"
-	}
-
 	xerror.ExitErr(ver.NewVersion(Version))
 	golug_version.Register("golug_version", golug_version.M{
 		"build_time": BuildTime,
