@@ -6,17 +6,18 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+
+	"github.com/pubgo/xerror"
 )
 
-var buf = &sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBufferString("")
-	},
-}
+var bufPool = &sync.Pool{New: func() interface{} { return bytes.NewBufferString("") }}
+
+func getBuffer() *bytes.Buffer    { return bufPool.Get().(*bytes.Buffer) }
+func putBuffer(buf *bytes.Buffer) { buf.Reset(); bufPool.Put(buf) }
 
 func Run(args ...string) (string, error) {
-	b := buf.Get().(*bytes.Buffer)
-	defer buf.Put(b)
+	b := getBuffer()
+	defer putBuffer(b)
 
 	cmd := Shell(args...)
 	cmd.Stdout = b
@@ -46,7 +47,8 @@ func GoList() (string, error) {
 func GraphViz(in, out string) (err error) {
 	ret, err := Run("dot", "-Tsvg", in)
 	if err != nil {
-		return err
+		return xerror.WrapF(err, "in:%s, out:%s", in, out)
 	}
+
 	return ioutil.WriteFile(out, []byte(ret), 0600)
 }

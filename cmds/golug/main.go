@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/golug/cmds/golug/golist"
 	"github.com/pubgo/golug/cmds/golug/golug"
 	"github.com/pubgo/golug/cmds/golug/gomod"
-	"github.com/pubgo/golug/cmds/golug/grpcall"
 	"github.com/pubgo/golug/cmds/golug/grpcurl"
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
@@ -20,7 +19,6 @@ func main() {
 	rootCmd.AddCommand(grpcurl.GetCmd())
 	rootCmd.AddCommand(gomod.GetCmd())
 	rootCmd.AddCommand(goimportdot.GetCmd())
-	rootCmd.AddCommand(grpcall.GetCmd())
 	rootCmd.AddCommand(golist.GetCmd())
 	xerror.Exit(rootCmd.Execute())
 }

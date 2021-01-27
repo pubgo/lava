@@ -16,7 +16,7 @@ func init() {
 
 	xerror.Panic(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
 		for k, v := range List() {
-			xerror.Panic(v.Init(cfg), "registry %s init error", k)
+			xerror.PanicF(v.Init(cfg), "registry %s init error", k)
 			// 注册中心只有一个, 所以可以使用Default, 否着需要使用Get()
 			Default = v
 		}
