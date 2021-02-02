@@ -2,7 +2,7 @@ package golug_watcher
 
 import (
 	"github.com/pubgo/dix/dix_trace"
-	"github.com/pubgo/xerror/xerror_util"
+	"github.com/pubgo/xprocess/xutil"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 		ctx.Func(Name+"_watcher", func() interface{} {
 			var dt = make(map[string]string)
 			for k, v := range List() {
-				dt[k] = xerror_util.CallerWithFunc(v)
+				dt[k] = xutil.FuncStack(v)
 			}
 			return dt
 		})

@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xerror/xerror_util"
+	"github.com/pubgo/xprocess/xutil"
 	"go.uber.org/atomic"
 )
 
@@ -36,6 +36,6 @@ func (t *Set) List() (val []interface{}) {
 func (t *Set) Each(fn interface{}) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 
-	vfn := xerror_util.FuncRaw(fn)
+	vfn := xutil.FuncRaw(fn)
 	t.m.Range(func(key, value interface{}) bool { _ = vfn(key); return true })
 }

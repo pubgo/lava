@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
+	"go.uber.org/zap"
 )
 
 var _ golug_watcher.Watcher = (*fileWatcher)(nil)
@@ -94,7 +95,7 @@ func (t *fileWatcher) Start() (err error) {
 				val := []byte(golug_utils.Marshal(t.callback(event.Name)))
 				resp := &golug_watcher.Response{Key: ns[1], Value: val, Event: "PUT"}
 				if err := fn(resp); err != nil {
-					xlog.Error("watcher handle error", xlog.Any("err", err))
+					xlog.Error("watcher handle error", zap.Any("err", err))
 					return
 				}
 			}
@@ -104,7 +105,7 @@ func (t *fileWatcher) Start() (err error) {
 			}
 
 			if err != nil {
-				xlog.Error("watcher error", xlog.Any("err", err))
+				xlog.Error("watcher error", zap.Any("err", err))
 			}
 		}
 		return
