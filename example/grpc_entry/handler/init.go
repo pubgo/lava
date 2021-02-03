@@ -1,14 +1,13 @@
 package handler
 
 import (
-	"github.com/pubgo/golug/golug_log"
 	"github.com/pubgo/xlog"
 )
 
-var log xlog.XLog
+var log xlog.Xlog
 
 func init() {
-	golug_log.Watch(func(logs xlog.XLog) {
+	xlog.Watch(func(logs xlog.Xlog) {
 		log = logs.Named("hello.handler")
 	})
 }

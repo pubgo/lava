@@ -31,8 +31,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.13
 	github.com/pubgo/xerror v0.3.25
-	github.com/pubgo/xlog v0.0.14
-	github.com/pubgo/xprocess v0.1.8
+	github.com/pubgo/xlog v0.0.16
+	github.com/pubgo/xprocess v0.1.9
 	github.com/pubgo/xprotogen v0.0.5
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5

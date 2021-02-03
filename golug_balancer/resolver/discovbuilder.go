@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -100,7 +101,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			}
 
 			if err != nil {
-				xlog.Error("registry.Watch", xlog.Any("err", err))
+				xlog.Error("registry.Watch", zap.Any("err", err))
 				continue
 			}
 

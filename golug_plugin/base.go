@@ -6,6 +6,7 @@ import (
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 )
 
 var _ Plugin = (*Base)(nil)
@@ -40,7 +41,7 @@ func (p *Base) Watch(r *golug_watcher.Response) (err error) {
 }
 
 func (p *Base) Commands() *cobra.Command {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), xlog.Any("err", "command error")) })
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), zap.Any("err", "command error")) })
 
 	if p.OnCommands != nil {
 		cmd := &cobra.Command{Use: p.Name}
@@ -55,7 +56,7 @@ func (p *Base) String() string {
 }
 
 func (p *Base) Flags() *pflag.FlagSet {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", xlog.Any("err", err)) })
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", zap.Any("err", err)) })
 
 	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
 	if p.OnFlags != nil {
