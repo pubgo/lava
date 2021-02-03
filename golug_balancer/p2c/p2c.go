@@ -2,40 +2,37 @@ package p2c
 
 import (
 	"context"
-	"github.com/pubgo/golug/golug_balancer/xalg"
-	"github.com/pubgo/golug/golug_balancer/xalg/p2c"
 
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
 )
 
-type builder struct{}
+type p2cBalancer struct{}
 
-func (t *builder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
+func (p2c *p2cBalancer) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker { //nolint:staticcheck
 	if len(readySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
-	npa := p2c.NewP2cAgl()
+	// 创建一个新的负载均衡器
+	npa := NewP2cAgl()
 	for _, subConn := range readySCs {
 		npa.Add(subConn)
 	}
 
-	return &picker{
-		pickerAgl: npa,
-	}
+	return &p2cPicker{pickerAgl: npa}
 }
 
-type picker struct {
-	pickerAgl xalg.P2c
+type p2cPicker struct {
+	pickerAgl *loadAggregate
 }
 
-func (p2c *picker) Pick(ctx context.Context, info balancer.PickInfo) (
-	conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
+func (p2c *p2cPicker) Pick(ctx context.Context, info balancer.PickInfo) (conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
 	item, done := p2c.pickerAgl.Next()
 	if item == nil {
 		return nil, nil, balancer.ErrNoSubConnAvailable
 	}
+
 	return item.(balancer.SubConn), done, nil
 }

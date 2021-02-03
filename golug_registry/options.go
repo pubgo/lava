@@ -1,12 +1,15 @@
 package golug_registry
 
 import (
+	"github.com/pubgo/xerror"
 	"time"
 )
 
-func TTL(t time.Duration) RegisterOption {
+func TTL(t string) RegisterOption {
 	return func(o *RegisterOptions) {
-		o.TTL = t
+		dur, err := time.ParseDuration(t)
+		xerror.Panic(err)
+		o.TTL = dur
 	}
 }
 

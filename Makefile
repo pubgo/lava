@@ -18,11 +18,11 @@ build:
 	@go build ${LDFLAGS} -mod vendor -race -v -o main cmds/golug/main.go
 
 build_hello_test:
-	go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
+	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
 
 .PHONY: install
 install:
-	@go install ${LDFLAGS} .
+	@cd cmds/golug && go install ${LDFLAGS} .
 
 .PHONY: release
 release:

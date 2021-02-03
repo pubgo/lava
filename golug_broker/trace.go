@@ -1,17 +1,15 @@
 package golug_broker
 
 import (
-	"github.com/pubgo/dix/dix_trace"
+	"github.com/pubgo/golug/golug_trace"
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.Ctx) {
-		ctx.Func(Name, func() interface{} {
-			var data = make(map[string]string)
-			for k, v := range List() {
-				data[k] = v.Name()
-			}
-			return data
-		})
+	golug_trace.Watch(Name, func() interface{} {
+		var data = make(map[string]string)
+		for k, v := range List() {
+			data[k] = v.Name()
+		}
+		return data
 	})
 }

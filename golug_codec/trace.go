@@ -1,15 +1,13 @@
 package golug_codec
 
 import (
-	"github.com/pubgo/dix/dix_trace"
+	"github.com/pubgo/golug/golug_trace"
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.Ctx) {
-		ctx.Func(Name, func() interface{} {
-			var dt []string
-			data.Each(func(key string) { dt = append(dt, key) })
-			return dt
-		})
+	golug_trace.Watch(Name, func() interface{} {
+		var dt []string
+		data.Each(func(key string) { dt = append(dt, key) })
+		return dt
 	})
 }

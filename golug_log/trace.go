@@ -1,9 +1,9 @@
 package golug_log
 
 import (
-	"github.com/pubgo/dix/dix_trace"
+	"github.com/pubgo/golug/golug_trace"
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.Ctx) { ctx.Func(Name, func() interface{} { return cfg }) })
+	golug_trace.Watch(Name, func() interface{} { return cfg })
 }

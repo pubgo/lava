@@ -1,11 +1,9 @@
 package golug_version
 
 import (
-	"github.com/pubgo/dix/dix_trace"
+	"github.com/pubgo/golug/golug_trace"
 )
 
 func init() {
-	dix_trace.With(func(ctx *dix_trace.Ctx) {
-		ctx.Func("golug_version", func() interface{} { return List() })
-	})
+	golug_trace.Watch("golug_version", func() interface{} { return List() })
 }

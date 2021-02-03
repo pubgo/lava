@@ -2,71 +2,67 @@ package grpclient
 
 import (
 	"context"
-
+	
 	"github.com/pubgo/golug/golug_balancer/resolver"
 	registry "github.com/pubgo/golug/golug_registry"
-	"github.com/pubgo/xerror"
+
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
-func initOption(cfg Cfg) {
+func buildTarget(service string) string {
+	// 注册中心为nil走直连模式
+	if registry.Default == nil {
+		return resolver.BuildDirectTarget([]string{service})
+	}
 
+	return resolver.BuildDiscovTarget([]string{registry.Default.String()}, service)
 }
 
-func buildTarget(services []string) []string {
-	// 注册中心为nil
-	// 走直连模式
-	var targets = make([]string, 0, len(services))
-	for i := range services {
-		target := resolver.BuildDirectTarget([]string{services[i]})
-		if registry.Get(cfg.Registry) != nil {
-			target = resolver.BuildDiscovTarget([]string{registry.Default.String()}, services[i])
-		}
-		targets = append(targets, target)
+func New(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	target := buildTarget(service)
+	conn, err := dial(target, append(defaultDialOpts, opts...)...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "dial %s error\n", target)
 	}
-
-	return targets
+	return conn, nil
 }
 
-func New(service string, opts ...grpc.DialOption) (grpc.ClientConnInterface, error) {
-	val, ok := clients.Load(service)
-	if ok {
-		return val.(grpc.ClientConnInterface), nil
-	}
-
-	if err := Init([]string{service}, opts...); err != nil {
-		return nil, xerror.Wrap(err)
-	}
-
-	return New(service, opts...)
-}
-
-// Init
-func Init(services []string, opts ...grpc.DialOption) error {
-	for i, target := range buildTarget(services) {
-		service := services[i]
-		_, ok := clients.Load(service)
-		if ok {
-			continue
+// Get new grpc client
+func Get(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	if val, ok := clients.Load(service); ok {
+		if val.(*grpc.ClientConn).GetState() == connectivity.Ready {
+			return val.(*grpc.ClientConn), nil
 		}
-
-		conn, err := dial(target, opts...)
-		if err != nil {
-			return xerror.Wrap(err)
-		}
-
-		clients.Store(service, conn)
 	}
-	return nil
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// 双检, 避免多次创建
+	if val, ok := clients.Load(service); ok {
+		if val.(*grpc.ClientConn).GetState() == connectivity.Ready {
+			return val.(*grpc.ClientConn), nil
+		}
+	}
+
+	conn, err := New(service, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	clients.Store(service, conn)
+	return conn, nil
 }
 
 func dial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	options := getDialOption()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, target, append(options, opts...)...)
+
+	conn, err := grpc.DialContext(ctx, target, opts...)
 	if err != nil {
-		return nil, xerror.WrapF(err, "target:%s DialContext error:%s", target, err.Error())
+		return nil, errors.Wrapf(err, "DialContext error, target:%s\n", target)
 	}
 	return conn, nil
 }

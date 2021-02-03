@@ -3,13 +3,18 @@ package golug_grpc
 import (
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	registry "github.com/pubgo/golug/golug_registry"
+	"github.com/pubgo/golug/pkg/golug_utils/addr"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xprocess"
@@ -24,54 +29,227 @@ var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
 	*golug_base.Entry
+	exit                     chan chan error
+	name                     string
 	mu                       sync.RWMutex
 	cfg                      Cfg
-	registry                 registry.Registry
-	registryMap              map[string][]*registry.Endpoint
 	registered               atomic.Bool
+	srv                      *grpc.Server
+	registryMap              map[string][]*registry.Endpoint
 	handlers                 []interface{}
 	endpoints                []*registry.Endpoint
-	srv                      *grpc.Server
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
 }
 
+func (g *grpcEntry) Options(opts ...grpc.ServerOption) { g.opts = append(g.opts, opts...) }
+
 // EnableDebug
 // https://github.com/grpc/grpc-experiments/tree/master/gdebug
-func (t *grpcEntry) EnableDebug() { service.RegisterChannelzServiceToServer(t.srv) }
-func (t *grpcEntry) RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors...)
+func (g *grpcEntry) EnableDebug() {
+	grpc.EnableTracing = true
+	reflection.Register(g.srv)
+	service.RegisterChannelzServiceToServer(g.srv)
 }
 
-func (t *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
+func (g *grpcEntry) GetDefaultServerOpts() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(g.cfg.MaxReceiveMessageSize),
+		grpc.MaxSendMsgSize(g.cfg.MaxSendMessageSize),
+	}
 }
 
-func (t *grpcEntry) Register(handler interface{}, opts ...Option) {
+func (g *grpcEntry) Init() (gErr error) {
+	defer xerror.RespErr(&gErr)
+
+	xerror.Panic(g.Entry.Init())
+
+	unaryInterceptorList := unaryInterceptors
+	unaryInterceptorList = append(unaryInterceptorList, g.unaryServerInterceptors...)
+
+	streamInterceptorList := streamInterceptors
+	streamInterceptorList = append(streamInterceptorList, g.streamServerInterceptors...)
+
+	opts := GetDefaultServerOpts()
+	opts = append(opts, g.GetDefaultServerOpts()...)
+	opts = append(opts,
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptorList...)),
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptorList...)))
+
+	g.srv = grpc.NewServer(opts...)
+
+	return
+}
+
+func (g *grpcEntry) register() (err error) {
+	defer xerror.RespErr(&err)
+
+	if g.cfg.registry == nil {
+		return nil
+	}
+
+	// parse address for host, port
+	var advt, host string
+	var port int
+
+	// check the advertise address first
+	// if it exists then use it, otherwise
+	// use the address
+	if len(g.cfg.Advertise) > 0 {
+		advt = g.cfg.Advertise
+	} else {
+		advt = g.cfg.Address
+	}
+
+	parts := strings.Split(advt, ":")
+	if len(parts) > 1 {
+		host = strings.Join(parts[:len(parts)-1], ":")
+		port, _ = strconv.Atoi(parts[len(parts)-1])
+	} else {
+		host = parts[0]
+	}
+
+	addr1, err := addr.Extract(host)
+	if err != nil {
+		return xerror.WrapF(err, "addr Extract error, host:%s", host)
+	}
+
+	// register service
+	node := &registry.Node{
+		Id:      golug_app.Project + "-" + getHostname() + "-" + DefaultId,
+		Address: addr1,
+		Port:    port,
+	}
+
+	node.Metadata["registry"] = g.cfg.registry.String()
+	node.Metadata["transport"] = "grpc"
+
+	services := &registry.Service{
+		Name:      golug_app.Project,
+		Version:   g.Entry.Options().Version,
+		Nodes:     []*registry.Node{node},
+		Endpoints: g.endpoints,
+	}
+
+	if !g.registered.Load() {
+		xlog.Infof("Registering node: %s", node.Id)
+	}
+
+	// create registry options
+	rOpts := []registry.RegisterOption{registry.TTL(g.cfg.RegisterTTL)}
+	if err := g.cfg.registry.Register(services, rOpts...); err != nil {
+		return xerror.WrapF(err, "[grpc] registry register error")
+	}
+
+	// already registered? don't need to register subscribers
+	if g.registered.Load() {
+		return nil
+	}
+
+	g.registered.Store(true)
+	return nil
+}
+
+func (g *grpcEntry) deregister() (err error) {
+	defer xerror.RespErr(&err)
+
+	if g.cfg.registry == nil {
+		return nil
+	}
+
+	var advt, host string
+	var port int
+
+	// check the advertise address first
+	// if it exists then use it, otherwise
+	// use the address
+	if len(g.cfg.Advertise) > 0 {
+		advt = g.cfg.Advertise
+	} else {
+		advt = g.cfg.Address
+	}
+
+	parts := strings.Split(advt, ":")
+	if len(parts) > 1 {
+		host = strings.Join(parts[:len(parts)-1], ":")
+		port, _ = strconv.Atoi(parts[len(parts)-1])
+	} else {
+		host = parts[0]
+	}
+
+	addr1, err := addr.Extract(host)
+	if err != nil {
+		return xerror.WrapF(err, "addr Extract error, host:%s", host)
+	}
+
+	node := &registry.Node{
+		Id:      golug_app.Project + "-" + getHostname() + "-" + DefaultId,
+		Address: addr1,
+		Port:    port,
+	}
+
+	services := &registry.Service{
+		Name:    golug_app.Project,
+		Version: g.Entry.Options().Version,
+		Nodes:   []*registry.Node{node},
+	}
+
+	xlog.Infof("DeRegistering node: %s", node.Id)
+	if err := g.cfg.registry.Deregister(services); err != nil {
+		return xerror.WrapF(err, "[grpc] registry deregister error")
+	}
+
+	if !g.registered.Load() {
+		return nil
+	}
+
+	g.registered.Store(false)
+	return nil
+}
+
+func (g *grpcEntry) Stop() (err error) {
+	defer xerror.RespErr(&err)
+
+	ch := make(chan error)
+	xlog.Info("[ExitProgress] Stop is called, send error chan. before.")
+	g.exit <- ch
+	xlog.Info("[ExitProgress] Stop is called, send error chan. end.")
+	return <-ch
+}
+
+func (g *grpcEntry) RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	g.unaryServerInterceptors = append(g.unaryServerInterceptors, interceptors...)
+}
+
+func (g *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	g.streamServerInterceptors = append(g.streamServerInterceptors, interceptors...)
+}
+
+func (g *grpcEntry) Register(handler interface{}, opts ...Option) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	t.handlers = append(t.handlers, handler)
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.handlers = append(g.handlers, handler)
 }
 
 // 开启api网关模式
-func (t *grpcEntry) startGw() (err error) {
-	if t.cfg.GwAddr == "" {
+func (g *grpcEntry) startGw() (err error) {
+	if g.cfg.GwAddr == "" {
 		return nil
 	}
 
 	app := fiber.New()
 
 	// 开启api网关模式
-	if err := registerGw(fmt.Sprintf("localhost:%d", t.Options().Port), app.Group("/")); err != nil {
+	if err := registerGw(fmt.Sprintf("localhost:%d", g.Entry.Options().Port), app.Group("/")); err != nil {
 		return err
 	}
 
@@ -91,53 +269,116 @@ func (t *grpcEntry) startGw() (err error) {
 	}
 	fmt.Printf("%#v\n", data)
 
-	return app.Listen(t.cfg.GwAddr)
+	return app.Listen(g.cfg.GwAddr)
 }
 
-func (t *grpcEntry) Start() (err error) {
+func (g *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
+	// 注册中心校验
+	g.cfg.registry = registry.Default
+
 	// 初始化server
-	t.srv = grpc.NewServer(append(t.opts,
-		grpc.ChainUnaryInterceptor(t.unaryServerInterceptors...),
-		grpc.ChainStreamInterceptor(t.streamServerInterceptors...))...,
+	g.srv = grpc.NewServer(append(g.opts,
+		grpc.ChainUnaryInterceptor(g.unaryServerInterceptors...),
+		grpc.ChainStreamInterceptor(g.streamServerInterceptors...))...,
 	)
 
-	t.endpoints = t.endpoints[:0]
+	g.endpoints = g.endpoints[:0]
 	// 初始化routes
-	for i := range t.handlers {
-		t.endpoints = append(t.endpoints, newRpcHandler(t.handlers[i])...)
-		xerror.Panic(register(t.srv, t.handlers[i]))
+	for i := range g.handlers {
+		g.endpoints = append(g.endpoints, newRpcHandler(g.handlers[i])...)
+		xerror.Panic(register(g.srv, g.handlers[i]))
 	}
 
-	// 方便grpcurl调用和调试
-	reflection.Register(t.srv)
-
-	ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", t.Options().Port))).(net.Listener)
+	ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", g.Entry.Options().Port))).(net.Listener)
 	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
 
 	xerror.Panic(xprocess.GoDelay(time.Second, func() {
 		defer xerror.Resp(func(err xerror.XErr) { xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err)) })
 
-		if err := t.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
+		if err := g.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
 			xlog.Error(err.Error())
 		}
 		return
 	}))
 
+	if g.cfg.Address == "" {
+		return fmt.Errorf("[grpc] please set address")
+	}
+
+	ts, err := net.Listen("tcp", g.cfg.Address)
+	if err != nil {
+		return xerror.WrapF(err, "net Listen error, addr:%s", g.cfg.Address)
+	}
+
+	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
+	g.Lock()
+	g.cfg.Address = ts.Addr().String()
+	g.Unlock()
+
+	// announce self to the world
+	if err := g.register(); err != nil {
+		return xerror.WrapF(err, "[grpc] registry try register error")
+	}
+
+	go func() {
+		if err := g.srv.Serve(ts); err != nil {
+			xlog.Errorf("[grpc] server stop error: %#v", err)
+		}
+	}()
+
+	t := new(time.Ticker)
+
+	// only process if it exists
+	if g.cfg.RegisterInterval > time.Duration(0) {
+		// new ticker
+		t = time.NewTicker(g.cfg.RegisterInterval)
+	}
+
+	// return error chan
+	var ch chan error
+
+Loop:
+	for {
+		select {
+		// register self on interval
+		case <-t.C:
+			if err := g.register(); err != nil {
+				xlog.Info("Server register error: ", err)
+			}
+		// wait for exit
+		case ch = <-g.exit:
+			break Loop
+		}
+	}
+
+	// deregister self
+	if err := g.deregister(); err != nil {
+		xlog.Info("Server deregister error: ", err)
+	}
+
+	// Add sleep for those requests which have selected this port.
+	time.Sleep(g.cfg.SleepAfterDeregister)
+
+	// wait for waitgroup
+	xlog.Info("[ExitProgress] Start wait-group wait.")
+
+	// stop the grpc server
+	xlog.Info("[ExitProgress] Start GracefulStop.")
+	g.srv.GracefulStop()
+
+	// close transport
+	xlog.Info("[ExitProgress] Close transport.")
+	ch <- nil
+	xlog.Info("[ExitProgress] All is done.")
+
 	return nil
 }
 
-func (t *grpcEntry) Stop() (err error) {
-	defer xerror.RespErr(&err)
-	t.srv.GracefulStop()
-	xlog.Infof("Server [grpc] Closed OK")
-	return nil
-}
-
-func (t *grpcEntry) initFlags() {
-	t.Flags(func(flags *pflag.FlagSet) {
-		flags.StringVar(&t.cfg.GwAddr, "gw", t.cfg.GwAddr, "set addr and enable gateway mode")
+func (g *grpcEntry) initFlags() {
+	g.Flags(func(flags *pflag.FlagSet) {
+		flags.StringVar(&g.cfg.GwAddr, "gw", g.cfg.GwAddr, "set addr and enable gateway mode")
 	})
 }
 

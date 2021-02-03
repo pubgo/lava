@@ -1,4 +1,4 @@
-package golug
+package init
 
 import (
 	"fmt"

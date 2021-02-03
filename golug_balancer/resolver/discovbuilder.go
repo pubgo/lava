@@ -2,18 +2,16 @@ package resolver
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"sync"
 
 	"github.com/pkg/errors"
 	registry "github.com/pubgo/golug/golug_registry"
 	"github.com/pubgo/xlog"
-	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
 type discovBuilder struct {
-	// node.Id -> resolver.Address
+	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
 }
 
@@ -21,8 +19,9 @@ type discovBuilder struct {
 func (d *discovBuilder) delService(services ...*registry.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
+			// 删除服务信息
 			for j := 0; j < Replica; j++ {
-				d.services.Delete(fmt.Sprintf("%s-%d", n.Id, j))
+				d.services.Delete(getServiceUniqueId(n.Id, j))
 			}
 		}
 	}
@@ -32,6 +31,7 @@ func (d *discovBuilder) delService(services ...*registry.Service) {
 func (d *discovBuilder) updateService(services ...*registry.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
+			// 更新服务信息
 			for j := 0; j < Replica; j++ {
 				addr := n.Address
 				// 如果port不存在, 那么addr中包含port
@@ -39,8 +39,8 @@ func (d *discovBuilder) updateService(services ...*registry.Service) {
 					addr = fmt.Sprintf("%s:%d", n.Address, n.Port)
 				}
 
-				res := &resolver.Address{Addr: addr, Attributes: attributes.New(), ServerName: services[i].Name}
-				val, ok := d.services.LoadOrStore(fmt.Sprintf("%s-%d", n.Id, j), res)
+				res := newAddr(addr, services[i].Name)
+				val, ok := d.services.LoadOrStore(getServiceUniqueId(n.Id, j), &res)
 				if ok {
 					val.(*resolver.Address).Addr = addr
 					val.(*resolver.Address).ServerName = services[i].Name
@@ -101,7 +101,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			}
 
 			if err != nil {
-				xlog.Error("registry.Watch", zap.Any("err", err))
+				xlog.Error(err.Error())
 				continue
 			}
 

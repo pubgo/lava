@@ -1,6 +1,7 @@
 package golug_grpc
 
 import (
+	"os"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
@@ -58,4 +59,12 @@ func register(server *grpc.Server, handler interface{}) (err error) {
 	}
 
 	return xerror.Fmt("[%#v] 没有找到匹配的interface", handler)
+}
+
+func getHostname() string {
+	if name, err := os.Hostname(); err != nil {
+		return "unknown"
+	} else {
+		return name
+	}
 }

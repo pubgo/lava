@@ -7,6 +7,7 @@ import (
 
 	registry "github.com/pubgo/golug/golug_registry"
 	"github.com/pubgo/xlog"
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -19,7 +20,7 @@ const (
 
 var (
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
-	Replica     = 3
+	Replica     = 2
 )
 
 func init() {
@@ -39,8 +40,11 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {
-	xlog.Infof("[grpc] ResolveNow")
+	xlog.Info("[grpc] ResolveNow")
 }
+
+// 关于 grpc 命名的介绍
+// https://github.com/grpc/grpc/blob/master/doc/naming.md
 
 func BuildDirectTarget(endpoints []string) string {
 	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
@@ -54,4 +58,18 @@ func BuildDiscovTarget(endpoints []string, key string) string {
 func reshuffle(targets []resolver.Address) []resolver.Address {
 	rand.Shuffle(len(targets), func(i, j int) { targets[i], targets[j] = targets[j], targets[i] })
 	return targets
+}
+
+// 创建新的Address
+func newAddr(addr string, name string) resolver.Address {
+	return resolver.Address{
+		Addr:       addr,
+		Attributes: attributes.New(),
+		ServerName: name,
+	}
+}
+
+// 组合服务的id和replica序列号
+func getServiceUniqueId(name string, id int) string {
+	return fmt.Sprintf("%s-%d", name, id)
 }

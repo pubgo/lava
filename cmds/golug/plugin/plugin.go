@@ -1,4 +1,4 @@
-package golug
+package plugin
 
 import (
 	"github.com/spf13/cobra"
