@@ -1,6 +1,7 @@
 package golug_grpc
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strconv"
@@ -76,6 +77,9 @@ func (g *grpcEntry) Init() (gErr error) {
 	opts = append(opts,
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptorList...)),
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptorList...)))
+
+	// 注册中心校验
+	g.cfg.registry = registry.Default
 
 	g.srv = grpc.NewServer(opts...)
 
@@ -234,6 +238,7 @@ func (g *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerI
 
 func (g *grpcEntry) Register(handler interface{}, opts ...Option) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
+	xerror.ExitF(checkHandle(handler), "[grpc] grpcEntry.Register error")
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -249,7 +254,9 @@ func (g *grpcEntry) startGw() (err error) {
 	app := fiber.New()
 
 	// 开启api网关模式
-	if err := registerGw(fmt.Sprintf("localhost:%d", g.Entry.Options().Port), app.Group("/")); err != nil {
+	if err := registerGw(
+		fmt.Sprintf("localhost:%d", g.Entry.Options().Port),
+		app.Group("/")); err != nil {
 		return err
 	}
 
@@ -275,33 +282,12 @@ func (g *grpcEntry) startGw() (err error) {
 func (g *grpcEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
-	// 注册中心校验
-	g.cfg.registry = registry.Default
-
-	// 初始化server
-	g.srv = grpc.NewServer(append(g.opts,
-		grpc.ChainUnaryInterceptor(g.unaryServerInterceptors...),
-		grpc.ChainStreamInterceptor(g.streamServerInterceptors...))...,
-	)
-
 	g.endpoints = g.endpoints[:0]
 	// 初始化routes
 	for i := range g.handlers {
 		g.endpoints = append(g.endpoints, newRpcHandler(g.handlers[i])...)
-		xerror.Panic(register(g.srv, g.handlers[i]))
+		xerror.PanicF(register(g.srv, g.handlers[i]), "[grpc] register error")
 	}
-
-	ts := xerror.PanicErr(net.Listen("tcp", fmt.Sprintf(":%d", g.Entry.Options().Port))).(net.Listener)
-	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
-
-	xerror.Panic(xprocess.GoDelay(time.Second, func() {
-		defer xerror.Resp(func(err xerror.XErr) { xlog.Error("grpcEntry.Start handle error", xlog.Any("err", err)) })
-
-		if err := g.srv.Serve(ts); err != nil && err != grpc.ErrServerStopped {
-			xlog.Error(err.Error())
-		}
-		return
-	}))
 
 	if g.cfg.Address == "" {
 		return fmt.Errorf("[grpc] please set address")
@@ -313,20 +299,20 @@ func (g *grpcEntry) Start() (err error) {
 	}
 
 	xlog.Infof("Server [grpc] Listening on %s", ts.Addr().String())
-	g.Lock()
+	g.mu.Lock()
 	g.cfg.Address = ts.Addr().String()
-	g.Unlock()
+	g.mu.Unlock()
 
 	// announce self to the world
 	if err := g.register(); err != nil {
 		return xerror.WrapF(err, "[grpc] registry try register error")
 	}
 
-	go func() {
+	xprocess.Go(func(ctx context.Context) {
 		if err := g.srv.Serve(ts); err != nil {
 			xlog.Errorf("[grpc] server stop error: %#v", err)
 		}
-	}()
+	})
 
 	t := new(time.Ticker)
 
@@ -345,7 +331,7 @@ Loop:
 		// register self on interval
 		case <-t.C:
 			if err := g.register(); err != nil {
-				xlog.Info("Server register error: ", err)
+				xlog.Info("[grpc] server register error", xlog.Any("err", err))
 			}
 		// wait for exit
 		case ch = <-g.exit:
@@ -355,7 +341,7 @@ Loop:
 
 	// deregister self
 	if err := g.deregister(); err != nil {
-		xlog.Info("Server deregister error: ", err)
+		xlog.Info("[grpc] server deregister error", xlog.Any("err", err))
 	}
 
 	// Add sleep for those requests which have selected this port.

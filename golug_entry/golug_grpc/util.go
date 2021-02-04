@@ -37,6 +37,32 @@ func registerGw(srv string, g fiber.Router, opts ...grpc.DialOption) (err error)
 	return nil
 }
 
+func checkHandle(handler interface{}) (err error) {
+	defer xerror.RespErr(&err)
+
+	xerror.Assert(handler == nil, "[handler] should not be nil")
+
+	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
+	for v := range golug_xgen.List() {
+		v1 := v.Type()
+		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
+			continue
+		}
+
+		if !hd.Implements(v1.In(1)) {
+			continue
+		}
+
+		if v1.In(0).String() != "*grpc.Server" {
+			continue
+		}
+
+		return nil
+	}
+
+	return xerror.Fmt("[%#v] 没有找到匹配的interface", handler)
+}
+
 func register(server *grpc.Server, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
