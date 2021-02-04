@@ -9,7 +9,7 @@ import (
 var name = "test-grpc"
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewGrpcEntry(name)
+	ent := golug.NewGrpc(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())

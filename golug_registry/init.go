@@ -1,8 +1,8 @@
 package golug_registry
 
 import (
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_config"
+	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 )
@@ -14,11 +14,11 @@ func init() {
 		golug_config.Decode(Name, &cfg)
 	})
 
-	xerror.Panic(dix_run.WithBeforeStart(func(ctx *dix_run.BeforeStartCtx) {
+	golug_run.BeforeStart(func() {
 		for k, v := range List() {
 			xerror.PanicF(v.Init(cfg), "registry %s init error", k)
 			// 注册中心只有一个, 所以可以使用Default, 否着需要使用Get()
 			Default = v
 		}
-	}))
+	})
 }

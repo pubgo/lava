@@ -12,7 +12,7 @@ import (
 var name = "test-task"
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewTaskEntry(name)
+	ent := golug.NewTask(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry task test")
 

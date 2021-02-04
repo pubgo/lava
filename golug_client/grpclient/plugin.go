@@ -10,7 +10,6 @@ func init() {
 		Name: Name,
 		OnInit: func(ent interface{}) {
 			golug_config.Decode(Name, &cfg)
-			initOption(cfg)
 		},
 	})
 }

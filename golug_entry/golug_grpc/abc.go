@@ -11,7 +11,7 @@ type Option func(opts *Options)
 type Entry interface {
 	golug_entry.Entry
 	Register(handler interface{}, opts ...Option)
-	Options(opts ...grpc.ServerOption)
+	InitOpts(opts ...grpc.ServerOption)
 	RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
 	RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }

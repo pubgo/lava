@@ -6,15 +6,16 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
 	"github.com/pubgo/golug/golug_watcher"
+	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"github.com/pubgo/xprocess/xutil"
 	"github.com/spf13/cobra"
 )
 
@@ -75,9 +76,29 @@ func handleSignal() {
 func start(ent golug_entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(dix_run.BeforeStart())
+	beforeStarts := golug_run.GetBeforeStarts()
+	for i := range beforeStarts {
+		func(i int) {
+			defer xerror.RespRaise(func(err xerror.XErr) error {
+				return err.WrapF("before start error: %s", xutil.FuncStack(beforeStarts[i]))
+			})
+
+			beforeStarts[i]()
+		}(i)
+	}
+
 	xerror.Panic(ent.Start())
-	xerror.Panic(dix_run.AfterStart())
+
+	afterStarts := golug_run.GetAfterStarts()
+	for i := range afterStarts {
+		func(i int) {
+			defer xerror.RespRaise(func(err xerror.XErr) error {
+				return err.WrapF("after start error: %s", xutil.FuncStack(afterStarts[i]))
+			})
+
+			afterStarts[i]()
+		}(i)
+	}
 
 	return
 }
@@ -85,9 +106,29 @@ func start(ent golug_entry.RunEntry) (err error) {
 func stop(ent golug_entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Panic(dix_run.BeforeStop())
+	beforeStops := golug_run.GetBeforeStarts()
+	for i := range beforeStops {
+		func(i int) {
+			defer xerror.RespRaise(func(err xerror.XErr) error {
+				return err.WrapF("before stop error: %s", xutil.FuncStack(beforeStops[i]))
+			})
+
+			beforeStops[i]()
+		}(i)
+	}
+
 	xerror.Panic(ent.Stop())
-	xerror.Panic(dix_run.AfterStop())
+
+	afterStops := golug_run.GetAfterStops()
+	for i := range afterStops {
+		func(i int) {
+			defer xerror.RespRaise(func(err xerror.XErr) error {
+				return err.WrapF("after stop error: %s", xutil.FuncStack(afterStops[i]))
+			})
+
+			afterStops[i]()
+		}(i)
+	}
 
 	return nil
 }

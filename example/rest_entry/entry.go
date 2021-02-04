@@ -14,7 +14,7 @@ import (
 var name = "test-http"
 
 func GetEntry() golug_entry.Entry {
-	ent := golug.NewRestEntry(name)
+	ent := golug.NewRest(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")
 
@@ -24,7 +24,7 @@ func GetEntry() golug_entry.Entry {
 		return ctx.Next()
 	})
 
-	ent.WithBeforeStart(func(_ *golug_entry.BeforeStart) {
+	ent.BeforeStart(func() {
 		l, err := net.Listen("tcp", ":8083")
 		xerror.Panic(err)
 		go http.Serve(l, nil)

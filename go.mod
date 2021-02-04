@@ -17,6 +17,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.1
 	github.com/google/go-cmp v0.5.3 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
@@ -29,7 +30,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.13
+	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/xerror v0.3.25
 	github.com/pubgo/xlog v0.0.16
 	github.com/pubgo/xprocess v0.1.11
@@ -37,7 +38,6 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.18.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1
 	go.uber.org/atomic v1.7.0

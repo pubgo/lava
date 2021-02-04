@@ -2,11 +2,11 @@ package golug_base
 
 import (
 	"fmt"
+	"github.com/pubgo/golug/internal/golug_run"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/dix/dix_run"
 	"github.com/pubgo/golug/golug_app"
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
@@ -23,21 +23,10 @@ type Entry struct {
 	opts golug_entry.Options
 }
 
-func (t *Entry) WithBeforeStart(f func(_ *golug_entry.BeforeStart)) {
-	xerror.Panic(dix_run.WithBeforeStart(f))
-}
-
-func (t *Entry) WithAfterStart(f func(_ *golug_entry.AfterStart)) {
-	xerror.Panic(dix_run.WithAfterStart(f))
-}
-
-func (t *Entry) WithBeforeStop(f func(_ *golug_entry.BeforeStop)) {
-	xerror.Panic(dix_run.WithBeforeStop(f))
-}
-
-func (t *Entry) WithAfterStop(f func(_ *golug_entry.AfterStop)) {
-	xerror.Panic(dix_run.WithAfterStop(f))
-}
+func (t *Entry) BeforeStart(f func()) { golug_run.BeforeStart(f) }
+func (t *Entry) AfterStart(f func())  { golug_run.AfterStart(f) }
+func (t *Entry) BeforeStop(f func())  { golug_run.BeforeStop(f) }
+func (t *Entry) AfterStop(f func())   { golug_run.AfterStop(f) }
 
 func (t *Entry) Plugin(plugin golug_plugin.Plugin) {
 	defer xerror.RespRaise(func(err xerror_abc.XErr) error { return xerror.Wrap(err, "Entry.Plugin") })

@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/golug/golug_app"
-	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_entry/golug_base"
 	registry "github.com/pubgo/golug/golug_registry"
 	"github.com/pubgo/golug/pkg/golug_utils/addr"
@@ -44,7 +43,7 @@ type grpcEntry struct {
 	streamServerInterceptors []grpc.StreamServerInterceptor
 }
 
-func (g *grpcEntry) Options(opts ...grpc.ServerOption) { g.opts = append(g.opts, opts...) }
+func (g *grpcEntry) InitOpts(opts ...grpc.ServerOption) { g.opts = append(g.opts, opts...) }
 
 // EnableDebug
 // https://github.com/grpc/grpc-experiments/tree/master/gdebug
@@ -289,9 +288,9 @@ func (g *grpcEntry) Start() (err error) {
 		xerror.PanicF(register(g.srv, g.handlers[i]), "[grpc] register error")
 	}
 
-	if g.cfg.Address == "" {
-		return fmt.Errorf("[grpc] please set address")
-	}
+	//if g.cfg.Address == "" {
+	//	return xerror.New("[grpc] please set address")
+	//}
 
 	ts, err := net.Listen("tcp", g.cfg.Address)
 	if err != nil {
@@ -373,7 +372,7 @@ func newEntry(name string) *grpcEntry {
 	ent.initFlags()
 
 	// 服务启动后, 启动网关
-	ent.WithAfterStart(func(_ *golug_entry.AfterStart) { xerror.Panic(ent.startGw()) })
+	ent.AfterStart(func() { xerror.Panic(ent.startGw()) })
 	ent.OnCfgWithName(Name, &ent.cfg)
 	return ent
 }
