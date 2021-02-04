@@ -40,6 +40,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/valyala/fasthttp v1.18.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1
+	go.etcd.io/etcd v0.0.0-20201125193152-8a03d2e9614b
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0

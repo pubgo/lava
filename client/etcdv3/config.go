@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
-	"github.com/pkg/errors"
+	"github.com/pubgo/xerror"
+	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 )
 
@@ -27,7 +27,7 @@ func (d *duration) UnmarshalJSON(data []byte) error {
 
 	dur, err := time.ParseDuration(string(data))
 	if err != nil {
-		return errors.Wrapf(err, "data: %s", data)
+		return xerror.WrapF(err, "data: %s", data)
 	}
 
 	*d = duration(dur)
@@ -65,7 +65,7 @@ func (t config) fromQuery(query url.Values) (clientv3.Config, error) {
 		case "int":
 			v, err := strconv.Atoi(query.Get(tag))
 			if err != nil {
-				return clientv3.Config{}, errors.Wrapf(err, "[etcd] config %s parse error", query.Get(tag))
+				return clientv3.Config{}, xerror.WrapF(err, "[etcd] config %s parse error", query.Get(tag))
 			}
 			vc.Field(i).Set(reflect.ValueOf(v))
 		case "string":
@@ -73,7 +73,7 @@ func (t config) fromQuery(query url.Values) (clientv3.Config, error) {
 		case "duration":
 			dur, err := time.ParseDuration(query.Get(tag))
 			if err != nil {
-				return clientv3.Config{}, errors.Wrapf(err, "[etcd] config %s parse error", query.Get(tag))
+				return clientv3.Config{}, xerror.WrapF(err, "[etcd] config %s parse error", query.Get(tag))
 			}
 
 			vc.Field(i).Set(reflect.ValueOf(duration(dur)))

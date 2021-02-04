@@ -6,6 +6,11 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type Option func(opts *Options)
+type Options struct {
+	prefix bool
+}
+
 // Watcher ...
 type Watcher interface {
 	Name() string
@@ -15,12 +20,16 @@ type Watcher interface {
 
 type CallBack func(event *Response) error
 type Response struct {
-	Event    string
+	Event    Event
 	Key      string
 	Value    []byte
 	Revision int64
 }
 
-func (t *Response) Decode(val interface{}) (err error) {
+func (t *Response) Decode(val interface{}) (gErr error) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		gErr = err.WrapF("input: %#v, output: %t", t.Value, val)
+	})
+
 	return xerror.Wrap(json.Unmarshal(t.Value, val))
 }

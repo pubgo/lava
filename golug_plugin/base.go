@@ -14,7 +14,7 @@ var _ Plugin = (*Base)(nil)
 type Base struct {
 	Name       string
 	OnInit     func(ent interface{})
-	OnWatch    func(r *golug_watcher.Response)
+	OnWatch    func(resp *golug_watcher.Response)
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 }

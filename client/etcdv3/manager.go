@@ -3,12 +3,15 @@ package etcdv3
 import (
 	"fmt"
 	"runtime"
+	"sync"
 	"unsafe"
 
-	"github.com/coreos/etcd/clientv3"
-	"github.com/pkg/errors"
 	"github.com/pubgo/golug/golug_consts"
+	"github.com/pubgo/xerror"
+	"go.etcd.io/etcd/clientv3"
 )
+
+var data sync.Map
 
 // GetClient 获取etcd client
 func GetClient(names ...string) *Client {
@@ -38,7 +41,7 @@ func newClient(cfg clientv3.Config) (*Client, error) {
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
 	if err = retry(3, func() (err error) { etcdClient, err = clientv3.New(cfg); return }); err != nil {
-		return nil, errors.Wrapf(err, "[etcd] New error, err: %v, cfg: %#v", err, cfg)
+		return nil, xerror.WrapF(err, "[etcd] New error, err: %v, cfg: %#v", err, cfg)
 	}
 
 	return &Client{Client: etcdClient}, nil

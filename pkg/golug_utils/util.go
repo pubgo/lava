@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/imdario/mergo"
 	jsoniter "github.com/json-iterator/go"
@@ -92,6 +93,17 @@ func IsTrue(data string) bool {
 }
 
 func EncodePassword(unencoded string) string {
-	newPasswd, _ := scrypt.Key([]byte(unencoded), []byte("!#@FDEWREWR&*("), 16384, 8, 1, 64)
-	return fmt.Sprintf("%x", newPasswd)
+	newPassword, _ := scrypt.Key([]byte(unencoded), []byte("!#@FDEWREWR&*("), 16384, 8, 1, 64)
+	return fmt.Sprintf("%x", newPassword)
+}
+
+func Retry(c int, fn func() error) (err error) {
+	for i := 0; i < c; i++ {
+		if err = fn(); err == nil {
+			break
+		}
+
+		time.Sleep(time.Second)
+	}
+	return
 }

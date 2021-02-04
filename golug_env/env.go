@@ -12,8 +12,16 @@ var trim = strings.TrimSpace
 var upper = strings.ToUpper
 var envRegexp = regexp.MustCompile(`\${(.+)}`)
 
+func handleKey(key string) string {
+	if !strings.HasPrefix(key, Prefix) {
+		key = Prefix + "_" + key
+	}
+	return key
+}
+
 func Set(key, value string) error {
-	return xerror.Wrap(os.Setenv(upper(key), value))
+	key = upper(handleKey(key))
+	return xerror.Wrap(os.Setenv(key, value))
 }
 
 func GetEnv(names ...string) string {
@@ -24,7 +32,7 @@ func GetEnv(names ...string) string {
 
 func Get(val *string, names ...string) {
 	for _, name := range names {
-		env, ok := os.LookupEnv(upper(name))
+		env, ok := Lookup(name)
 		env = trim(env)
 		if ok && env != "" {
 			*val = env
@@ -32,8 +40,15 @@ func Get(val *string, names ...string) {
 	}
 }
 
-func Lookup(key string) (string, bool) { return os.LookupEnv(upper(key)) }
-func Unsetenv(key string) error        { return os.Unsetenv(upper(key)) }
+func Lookup(key string) (string, bool) {
+	key = upper(handleKey(key))
+	return os.LookupEnv(key)
+}
+
+func Unsetenv(key string) error {
+	key = upper(handleKey(key))
+	return os.Unsetenv(key)
+}
 
 // ExpandEnv returns value of convert with environment variable.
 // Return environment variable if value start with "${" and end with "}".
@@ -49,13 +64,36 @@ func Expand(value string) string {
 
 	// 匹配环境变量格式
 	if envRegexp.MatchString(value) {
-		_vs := strings.Split(envRegexp.FindStringSubmatch(value)[1], "||")
-		_v := os.Getenv(upper(_vs[0]))
-		if len(_vs) == 2 && _v == "" {
-			_v = trim(_vs[1])
+		vs := strings.Split(envRegexp.FindStringSubmatch(value)[1], "||")
+		v := GetEnv(vs[0])
+		if len(vs) == 2 && v == "" {
+			v = trim(vs[1])
 		}
-		return _v
+		return v
 	}
 
 	return value
+}
+
+func List() map[string]string {
+	var data = make(map[string]string)
+	for _, env := range os.Environ() {
+		envs := strings.SplitN(env, "=", 2)
+		if len(envs) != 2 {
+			continue
+		}
+
+		key := trim(envs[0])
+		val := trim(envs[1])
+		if key == "" {
+			continue
+		}
+
+		if !strings.HasPrefix(key, Prefix) {
+			continue
+		}
+
+		data[key] = trim(val)
+	}
+	return data
 }

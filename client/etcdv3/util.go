@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
 	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
+	"go.etcd.io/etcd/clientv3"
 )
 
 // cfgMerge 合并etcd config
@@ -49,7 +49,7 @@ func InitFromEnv() error {
 			return fmt.Errorf("[etcd] name is null")
 		}
 
-		cfg, err := cfgFromUrl(envs[1])
+		cfg, err := cfgFromURL(envs[1])
 		if err != nil {
 			return errors.Wrapf(err, "[etcd] parse etcd config from url error, url: %s", envs[1])
 		}
@@ -62,9 +62,9 @@ func InitFromEnv() error {
 	return nil
 }
 
-// cfgFromUrl 从url解析出etcd config
+// cfgFromURL 从url解析出etcd config
 // [uri]: etcd://127.0.0.1:2379?timeout=1s&username=hello
-func cfgFromUrl(uri string) (cfg clientv3.Config, err error) {
+func cfgFromURL(uri string) (cfg clientv3.Config, err error) {
 	uri = strings.TrimSpace(uri)
 
 	if uri == "" {

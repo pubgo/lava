@@ -1,6 +1,8 @@
 package golug_watcher
 
 import (
+	"strings"
+
 	"github.com/pubgo/golug/golug_config"
 )
 
@@ -19,4 +21,14 @@ func GetCfg() (cfg map[string]Cfg) {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{}
+}
+
+// KeyWithDot [abc,ddd/ss,a,.c] --> abc.ddd/ss.a.c
+func KeyWithDot(key ...string) string {
+	return strings.ReplaceAll(strings.Join(key, "."), "..", ".")
+}
+
+//  /projectName/foo/bar -->  projectName.foo.bar
+func KeyToDot(prefix string) string {
+	return strings.Trim(strings.ReplaceAll(prefix, "/", "."), ".")
 }

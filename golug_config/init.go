@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/golug_app"
+	"github.com/pubgo/golug/golug_env"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
@@ -24,6 +25,10 @@ var (
 )
 
 var trim = strings.TrimSpace
+
+func IsExist() bool           { return GetCfg().ReadInConfig() == nil }
+func Fire() error             { return xerror.Wrap(dix.Dix(GetCfg())) }
+func On(fn func(cfg *Config)) { xerror.Panic(dix.Dix(fn)) }
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("cfg", pflag.PanicOnError)
@@ -119,8 +124,14 @@ func InitOtherConfig() (err error) {
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	cfg = &Config{Viper: viper.New()}
-	v := cfg.Viper
+	v := viper.New()
+	// 把环境变量的值设置到全局配置当中
+	for key, val := range golug_env.List() {
+		v.Set(key, val)
+	}
+
+	// 配置处理
+	cfg = &Config{Viper: v}
 
 	// 配置文件名字和类型
 	v.SetConfigType(CfgType)
@@ -149,10 +160,3 @@ func Init() (err error) {
 
 	return nil
 }
-
-func IsExist() bool {
-	return GetCfg().ReadInConfig() == nil
-}
-
-func Trigger() error          { return xerror.Wrap(dix.Dix(GetCfg())) }
-func On(fn func(cfg *Config)) { xerror.Panic(dix.Dix(fn)) }

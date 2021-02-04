@@ -53,7 +53,7 @@ func Init() (err error) {
 
 	xerror.Panic(golug_app.CheckMod())
 
-	xerror.Panic(golug_config.Trigger())
+	xerror.Panic(golug_config.Fire())
 	return nil
 }
 
@@ -179,6 +179,8 @@ func Run(entries ...golug_entry.Entry) (err error) {
 			for _, pg := range plugins {
 				key := pg.String()
 				xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
+
+				// watch key
 				golug_watcher.Watch(key, pg.Watch)
 			}
 

@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+// 环境变量的前缀
+var Prefix string
+
 func init() {
 	// 环境变量处理, key转大写, 同时把-./转换为_
 	replacer := strings.NewReplacer("-", "_", ".", "_", "/", "_")
