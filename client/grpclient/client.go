@@ -2,11 +2,11 @@ package grpclient
 
 import (
 	"context"
-	
-	"github.com/pubgo/golug/golug_balancer/resolver"
-	registry "github.com/pubgo/golug/golug_registry"
+	"sync"
 
 	"github.com/pkg/errors"
+	"github.com/pubgo/golug/client/grpclient/balancer/resolver"
+	registry "github.com/pubgo/golug/golug_registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
@@ -28,6 +28,9 @@ func New(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	}
 	return conn, nil
 }
+
+var mu sync.Mutex
+var clients sync.Map
 
 // Get new grpc client
 func Get(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {

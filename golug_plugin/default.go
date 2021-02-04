@@ -2,7 +2,7 @@ package golug_plugin
 
 import "github.com/pubgo/xerror"
 
-const defaultModule = "__golug"
+const defaultModule = "__default"
 
 var defaultManager = newManager()
 

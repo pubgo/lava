@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/golug_client/grpclient"
+	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/golug_xgen"
 	"github.com/pubgo/golug/pkg/golug_utils"
 	"google.golang.org/grpc"

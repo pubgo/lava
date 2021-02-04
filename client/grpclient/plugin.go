@@ -9,6 +9,7 @@ func init() {
 	golug_plugin.Register(&golug_plugin.Base{
 		Name: Name,
 		OnInit: func(ent interface{}) {
+			var cfg = GetDefaultCfg()
 			golug_config.Decode(Name, &cfg)
 		},
 	})

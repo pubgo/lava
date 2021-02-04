@@ -5,16 +5,12 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var watcherMap = golug_types.NewSyncMap()
+var watchers golug_types.SyncMap
 
+func List() (dt map[string]Watcher) { watchers.Map(&dt); return dt }
 func Register(name string, w Watcher) {
 	xerror.Assert(name == "" || w == nil, "[watcher:%s] should not be null", name)
-	xerror.Assert(watcherMap.Has(name), "[watcher:%s] already exists", name)
+	xerror.Assert(watchers.Has(name), "[watcher:%s] already exists", name)
 
-	watcherMap.Set(name, w)
-}
-
-func List() (dt map[string]Watcher) {
-	watcherMap.Map(&dt)
-	return dt
+	watchers.Set(name, w)
 }

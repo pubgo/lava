@@ -1,8 +1,9 @@
 package golug_registry
 
 import (
-	"github.com/pubgo/xerror"
 	"time"
+
+	"github.com/pubgo/xerror"
 )
 
 func TTL(t string) RegisterOption {

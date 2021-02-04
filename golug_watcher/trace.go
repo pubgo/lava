@@ -8,7 +8,7 @@ import (
 func init() {
 	golug_trace.Watch(Name+"_watcher_callback", func() interface{} {
 		var dt []string
-		callbackMap.Each(func(key string) { dt = append(dt, key) })
+		callbacks.Each(func(key string) { dt = append(dt, key) })
 		return dt
 	})
 

@@ -2,7 +2,6 @@ package golug_base
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/internal/golug_run"
 	"strings"
 
 	ver "github.com/hashicorp/go-version"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/golug/golug_config"
 	"github.com/pubgo/golug/golug_entry"
 	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_abc"
 	"github.com/spf13/cobra"
@@ -23,10 +23,14 @@ type Entry struct {
 	opts golug_entry.Options
 }
 
-func (t *Entry) BeforeStart(f func()) { golug_run.BeforeStart(f) }
-func (t *Entry) AfterStart(f func())  { golug_run.AfterStart(f) }
-func (t *Entry) BeforeStop(f func())  { golug_run.BeforeStop(f) }
-func (t *Entry) AfterStop(f func())   { golug_run.AfterStop(f) }
+func (t *Entry) BeforeStart(f func())         { golug_run.BeforeStart(f) }
+func (t *Entry) AfterStart(f func())          { golug_run.AfterStart(f) }
+func (t *Entry) BeforeStop(f func())          { golug_run.BeforeStop(f) }
+func (t *Entry) AfterStop(f func())           { golug_run.AfterStop(f) }
+func (t *Entry) Dix(data ...interface{})      { xerror.Panic(dix.Dix(data...)) }
+func (t *Entry) Start() error                 { return nil }
+func (t *Entry) Stop() error                  { return nil }
+func (t *Entry) Options() golug_entry.Options { return t.opts }
 
 func (t *Entry) Plugin(plugin golug_plugin.Plugin) {
 	defer xerror.RespRaise(func(err xerror_abc.XErr) error { return xerror.Wrap(err, "Entry.Plugin") })
@@ -53,10 +57,7 @@ func (t *Entry) Init() (err error) {
 	t.opts.Initialized = true
 	return
 }
-func (t *Entry) Dix(data ...interface{})      { xerror.Panic(dix.Dix(data...)) }
-func (t *Entry) Start() error                 { return nil }
-func (t *Entry) Stop() error                  { return nil }
-func (t *Entry) Options() golug_entry.Options { return t.opts }
+
 func (t *Entry) Flags(fn func(flags *pflag.FlagSet)) {
 	defer xerror.RespExit()
 	fn(t.opts.Command.PersistentFlags())

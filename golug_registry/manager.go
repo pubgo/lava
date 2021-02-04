@@ -8,6 +8,7 @@ import (
 var registries = golug_types.NewSyncMap()
 var Default Registry
 
+func List() (dt map[string]Registry) { registries.Map(&dt); return }
 func Register(name string, r Registry) {
 	xerror.Assert(name == "" || r == nil, "[name] or [r] is nil")
 	xerror.Assert(registries.Has(name), "registry %s is exists", name)
@@ -23,5 +24,3 @@ func Get(name string) Registry {
 
 	return val.(Registry)
 }
-
-func List() (dt map[string]Registry) { registries.Map(&dt); return }

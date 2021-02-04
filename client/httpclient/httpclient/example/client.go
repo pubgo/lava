@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/golug_client/httpclient/httpclient/golug_hystrix"
+	"github.com/pubgo/golug/client/httpclient/httpclient/golug_hystrix"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pubgo/golug/golug_client/httpclient"
+	"github.com/pubgo/golug/client/httpclient"
 )
 
 const (
