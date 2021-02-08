@@ -20,10 +20,20 @@ type Watcher interface {
 
 type CallBack func(event *Response) error
 type Response struct {
-	Event    Event
+	Event    string
 	Key      string
 	Value    []byte
 	Revision int64
+}
+
+func (t *Response) OnPut(fn func()) {
+	xerror.Panic(t.checkEventType())
+	fn()
+}
+
+func (t *Response) OnDelete(fn func()) {
+	xerror.Panic(t.checkEventType())
+	fn()
 }
 
 func (t *Response) Decode(val interface{}) (gErr error) {
@@ -32,4 +42,15 @@ func (t *Response) Decode(val interface{}) (gErr error) {
 	})
 
 	return xerror.Wrap(json.Unmarshal(t.Value, val))
+}
+
+func (t *Response) checkEventType() error {
+	switch t.Event {
+	case "DELETE":
+		return nil
+	case "PUT":
+		return nil
+	default:
+		return xerror.New("unknown type")
+	}
 }

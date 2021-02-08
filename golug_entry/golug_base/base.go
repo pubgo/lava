@@ -34,6 +34,9 @@ func (t *Entry) Options() golug_entry.Options { return t.opts }
 
 func (t *Entry) Plugin(plugin golug_plugin.Plugin) {
 	defer xerror.RespRaise(func(err xerror_abc.XErr) error { return xerror.Wrap(err, "Entry.Plugin") })
+
+	xerror.Assert(plugin == nil, "[plugin] should not be nil")
+	xerror.Assert(t.opts.Name == "", "please init project name first")
 	golug_plugin.Register(plugin, golug_plugin.Module(t.opts.Name))
 }
 

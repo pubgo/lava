@@ -3,30 +3,28 @@ package etcdv3
 import (
 	"fmt"
 	"runtime"
-	"sync"
 	"unsafe"
 
 	"github.com/pubgo/golug/golug_consts"
+	"github.com/pubgo/golug/golug_types"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
 )
 
-var data sync.Map
+var data golug_types.SyncMap
 
-// GetClient 获取etcd client
-func GetClient(names ...string) *Client {
-	var name = golug_consts.Default
-	if len(names) > 0 && names[0] != "" {
-		name = names[0]
-	}
+// Get 获取etcd client
+func Get(names ...string) *Client {
+	var name = golug_consts.GetDefault(names...)
 
-	val, ok := data.Load(name)
-	if !ok {
-		log.Errorf("[etcd] %s not found", name)
-		return nil
-	}
+	xerror.Assert(data.Has(name), "[etcdv3] %s not found", name)
 
-	return val.(*Client)
+	return data.Get(name).(*Client)
+}
+
+func New(cfg clientv3.Config) (*clientv3.Client, error) {
+	c, err := newClient(cfg)
+	return c.Client, err
 }
 
 func newClient(cfg clientv3.Config) (*Client, error) {
@@ -40,15 +38,16 @@ func newClient(cfg clientv3.Config) (*Client, error) {
 
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
-	if err = retry(3, func() (err error) { etcdClient, err = clientv3.New(cfg); return }); err != nil {
+	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
+	if err != nil {
 		return nil, xerror.WrapF(err, "[etcd] New error, err: %v, cfg: %#v", err, cfg)
 	}
 
 	return &Client{Client: etcdClient}, nil
 }
 
-// UpdateClient 更新etcd client
-func UpdateClient(name string, cfg clientv3.Config) error {
+// Update 更新etcd client
+func Update(name string, cfg clientv3.Config) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
 	oldClient, ok := data.Load(name)
@@ -57,7 +56,7 @@ func UpdateClient(name string, cfg clientv3.Config) error {
 		return err
 	}
 
-	data.Store(name, etcdClient)
+	data.Set(name, etcdClient)
 
 	if !ok || oldClient == nil {
 		return nil
@@ -74,10 +73,9 @@ func UpdateClient(name string, cfg clientv3.Config) error {
 	return nil
 }
 
-// InitClient 创建或者初始化etcd client
-func InitClient(name string, cfg clientv3.Config) error {
-	_, ok := data.Load(name)
-	if ok {
+// Init 创建或者初始化etcd client
+func Init(name string, cfg clientv3.Config) error {
+	if data.Has(name) {
 		return fmt.Errorf("[etcd] %s already exists", name)
 	}
 
@@ -86,13 +84,13 @@ func InitClient(name string, cfg clientv3.Config) error {
 		return err
 	}
 
-	data.Store(name, etcdClient)
+	data.Set(name, etcdClient)
 	return nil
 }
 
-// DelClient 删除etcd client, 并关闭etcd client
-func DelClient(name string) {
-	c := GetClient(name)
+// Del 删除etcd client, 并关闭etcd client
+func Del(name string) {
+	c := Get(name)
 	data.Delete(name)
 
 	if c == nil {
@@ -104,12 +102,8 @@ func DelClient(name string) {
 	}
 }
 
-// ListClient etcd client list
-func ListClient() map[string]*Client {
-	var clients = make(map[string]*Client)
-	data.Range(func(key, value interface{}) bool {
-		clients[key.(string)] = value.(*Client)
-		return true
-	})
-	return clients
+// List etcd client list
+func List() (dt map[string]*Client) {
+	data.Map(&dt)
+	return
 }
