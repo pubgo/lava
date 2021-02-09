@@ -17,19 +17,6 @@ const (
 
 	// DefaultTimeout 默认的连接超时时间
 	DefaultTimeout = 3 * time.Second
-
-	// DefaultMaxRecvMsgSize maximum message that client can receive
-	// (4 MB).
-	DefaultMaxRecvMsgSize = 1024 * 1024 * 4
-
-	// DefaultMaxSendMsgSize maximum message that client can send
-	// (4 MB).
-	DefaultMaxSendMsgSize = 1024 * 1024 * 4
-
-	Timeout = 3 * time.Second
-
-	// 闲时每个连接处理的请求
-	requestPerConn = 8
 )
 
 type Call struct {
@@ -181,17 +168,6 @@ func (t Cfg) toOptions() []grpc.DialOption {
 }
 
 var defaultDialOpts = []grpc.DialOption{
-	grpc.WithInsecure(),
-	grpc.WithBlock(),
-	grpc.WithBalancerName(p2c.Name), //nolint:staticcheck
-	grpc.WithKeepaliveParams(keepalive.ClientParameters{
-		Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
-		Timeout:             2 * time.Second,  // wait 2 second for ping ack before considering the connection dead
-		PermitWithoutStream: true,             // send pings even without active streams
-	}),
-	grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(DefaultMaxRecvMsgSize),
-		grpc.MaxCallSendMsgSize(DefaultMaxSendMsgSize)),
 	grpc.WithChainUnaryInterceptor(
 		grpc_opentracing.UnaryClientInterceptor(),
 	),
@@ -202,23 +178,28 @@ var defaultDialOpts = []grpc.DialOption{
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		DialTimeout: golug_types.NewDuration(2 * time.Second),
+		Insecure:     true,
+		Block:        true,
+		BalancerName: p2c.Name,
+		DialTimeout:  golug_types.NewDuration(2 * time.Second),
+
 		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
 		MaxRecvMsgSize: 1024 * 1024 * 4,
 		ClientParameters: ClientParameters{
+			PermitWithoutStream: true,                                      // send pings even without active streams
 			Time:                golug_types.NewDuration(10 * time.Second), // send pings every 10 seconds if there is no activity
 			Timeout:             golug_types.NewDuration(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
-			PermitWithoutStream: true,                                      // send pings even without active streams
 		},
 		ConnectParams: ConnectParams{
 			Backoff: BackoffConfig{
-				BaseDelay:  golug_types.NewDuration(1.0 * time.Second),
 				Multiplier: 1.6,
 				Jitter:     0.2,
+				BaseDelay:  golug_types.NewDuration(1.0 * time.Second),
 				MaxDelay:   golug_types.NewDuration(120 * time.Second),
 			},
 		},
 		Call: Call{
+			MaxCallRecvMsgSize: 1024 * 1024 * 4,
 			// DefaultMaxSendMsgSize maximum message that client can send (4 MB).
 			MaxCallSendMsgSize: 1024 * 1024 * 4,
 		},
