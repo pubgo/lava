@@ -3,7 +3,6 @@ package golug_cmd
 import (
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/pubgo/golug/golug_app"
@@ -31,25 +30,24 @@ func Init() (err error) {
 	// 始化配置文件
 	xerror.Panic(golug_config.Init())
 
+	// 从配置文件加载
+	if golug_config.CfgPath != "" {
+		xerror.Panic(golug_config.InitWithCfgPath())
+	}
+
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 剩下的就是获取配置了
 	if !golug_config.IsExist() {
-		xerror.Panic(golug_config.InitProject())
-	}
-
-	// 指定配置文件
-	if !golug_config.IsExist() && golug_config.CfgPath != "" {
-		xerror.Panic(golug_config.InitWithCfgPath())
+		xerror.Panic(golug_config.InitWithDir())
 	}
 
 	xerror.Assert(golug_config.GetCfg().ConfigFileUsed() == "", "config file not found")
 
 	xerror.ExitF(golug_config.GetCfg().ReadInConfig(), "read config failed")
-	golug_config.CfgPath = golug_config.GetCfg().ConfigFileUsed()
-	golug_app.Home = filepath.Dir(filepath.Dir(golug_config.CfgPath))
+	golug_config.InitHome()
 
-	xerror.Panic(golug_config.InitOtherConfig())
+	xerror.Panic(golug_config.InitApp())
 
 	xerror.Panic(golug_app.CheckMod())
 

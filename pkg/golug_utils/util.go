@@ -21,10 +21,16 @@ func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) {
 
 func PathExist(path string) bool {
 	_, err := os.Stat(path)
-	if err != nil && os.IsNotExist(err) {
+	if err == nil {
+		return true
+	}
+
+	if os.IsNotExist(err) {
 		return false
 	}
-	return true
+
+	xerror.Panic(err)
+	return false
 }
 
 func MarshalIndent(v interface{}) string {
