@@ -20,7 +20,7 @@ import (
 
 var rootCmd = &cobra.Command{Use: golug_app.Domain, Version: version.Version}
 
-func Init() (err error) {
+func initCfg() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 处理所有的配置,环境变量和flag
@@ -141,7 +141,7 @@ func Run(entries ...golug_entry.Entry) (err error) {
 
 		entRun := ent.(golug_entry.RunEntry)
 		opt := entRun.Options()
-		xerror.Assert(opt.Name == "" || opt.Version == "", "[name], [version] should not be empty")
+		xerror.Assert(opt.Name == "" || opt.Version == "", "[name,version] should not be empty")
 	}
 
 	rootCmd.PersistentFlags().AddFlagSet(golug_app.DefaultFlags())
@@ -164,11 +164,18 @@ func Run(entries ...golug_entry.Entry) (err error) {
 			ent.Commands(pl.Commands())
 		}
 
+		// 配置初始化
+		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
+			defer xerror.RespErr(&err)
+			golug_app.Project = entRun.Options().Name
+			xerror.Panic(initCfg())
+			return nil
+		}
+
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
-			golug_app.Project = entRun.Options().Name
-			xerror.Panic(Init())
+			// entry初始化
 			xerror.Panic(entRun.Init())
 
 			// 初始化组件, 初始化插件
