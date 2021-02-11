@@ -41,7 +41,7 @@ func init() {
 }
 
 func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &loginClient{c}, err
 }
 

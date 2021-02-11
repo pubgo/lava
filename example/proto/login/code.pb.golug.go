@@ -68,7 +68,7 @@ func init() {
 }
 
 func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &codeClient{c}, err
 }
 

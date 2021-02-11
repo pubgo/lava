@@ -17,7 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
 	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/golug_client/grpclient"
+	"github.com/pubgo/golug/client/grpclient"
 )
 
 var _=golug_utils.Decode
@@ -42,7 +42,7 @@ var _=golug_utils.Decode
 
 {% for ss in fd.GetService() %}
 	func Get{{ss.Srv}}Client(srv string, opts ...grpc.DialOption) ({{ss.Srv}}Client,error) {
-		c,err:=grpclient.New(srv, opts...)
+		c,err:=grpclient.Get(srv, opts...)
 		return &{{unExport(ss.Srv)}}Client{c},err
 	}
 {% endfor %}
@@ -85,5 +85,4 @@ var _=golug_utils.Decode
 		return nil
 	}
 {% endfor %}
-
 `

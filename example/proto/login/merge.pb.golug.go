@@ -68,7 +68,7 @@ func init() {
 }
 
 func GetMergeClient(srv string, opts ...grpc.DialOption) (MergeClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &mergeClient{c}, err
 }
 

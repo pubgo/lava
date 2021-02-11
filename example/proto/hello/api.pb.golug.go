@@ -65,12 +65,12 @@ func init() {
 }
 
 func GetTestApiClient(srv string, opts ...grpc.DialOption) (TestApiClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &testApiClient{c}, err
 }
 
 func GetTestApiV2Client(srv string, opts ...grpc.DialOption) (TestApiV2Client, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &testApiV2Client{c}, err
 }
 

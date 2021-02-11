@@ -59,7 +59,7 @@ func init() {
 }
 
 func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &transportClient{c}, err
 }
 

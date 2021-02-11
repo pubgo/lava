@@ -77,7 +77,7 @@ func init() {
 }
 
 func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {
-	c, err := grpclient.New(srv, opts...)
+	c, err := grpclient.Get(srv, opts...)
 	return &bindTelephoneClient{c}, err
 }
 
