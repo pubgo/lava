@@ -5,7 +5,7 @@ import (
 
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/golug/client/grpclient/balancer/p2c"
-	"github.com/pubgo/golug/golug_types"
+	"github.com/pubgo/golug/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/encoding"
@@ -33,9 +33,9 @@ type Call struct {
 }
 
 type ClientParameters struct {
-	PermitWithoutStream bool                 `json:"permit_without_stream"`
-	Time                golug_types.Duration `json:"time"`
-	Timeout             golug_types.Duration `json:"timeout"`
+	PermitWithoutStream bool           `json:"permit_without_stream"`
+	Time                types.Duration `json:"time"`
+	Timeout             types.Duration `json:"timeout"`
 }
 
 func (t ClientParameters) toClientParameters() keepalive.ClientParameters {
@@ -49,14 +49,14 @@ func (t ClientParameters) toClientParameters() keepalive.ClientParameters {
 // BackoffConfig defines the configuration options for backoff.
 type BackoffConfig struct {
 	// BaseDelay is the amount of time to backoff after the first failure.
-	BaseDelay golug_types.Duration
+	BaseDelay types.Duration
 	// Multiplier is the factor with which to multiply backoffs after a
 	// failed retry. Should ideally be greater than 1.
 	Multiplier float64
 	// Jitter is the factor with which backoffs are randomized.
 	Jitter float64
 	// MaxDelay is the upper bound of backoff delay.
-	MaxDelay golug_types.Duration
+	MaxDelay types.Duration
 }
 
 type ConnectParams struct {
@@ -64,7 +64,7 @@ type ConnectParams struct {
 	Backoff BackoffConfig
 	// MinConnectTimeout is the minimum amount of time we are willing to give a
 	// connection to complete.
-	MinConnectTimeout golug_types.Duration
+	MinConnectTimeout types.Duration
 }
 
 func (t ConnectParams) toConnectParams() grpc.ConnectParams {
@@ -87,10 +87,10 @@ type Cfg struct {
 	Compressor           string
 	Decompressor         string
 	Balancer             string
-	BackoffMaxDelay      golug_types.Duration
-	Timeout              golug_types.Duration
-	DialTimeout          golug_types.Duration
-	MaxDelay             golug_types.Duration `json:"max_delay"`
+	BackoffMaxDelay      types.Duration
+	Timeout              types.Duration
+	DialTimeout          types.Duration
+	MaxDelay             types.Duration `json:"max_delay"`
 	UserAgent            string
 	ConnectParams        ConnectParams
 	Authority            string
@@ -181,21 +181,21 @@ func GetDefaultCfg() Cfg {
 		Insecure:     true,
 		Block:        true,
 		BalancerName: p2c.Name,
-		DialTimeout:  golug_types.NewDuration(2 * time.Second),
+		DialTimeout:  types.NewDuration(2 * time.Second),
 
 		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
 		MaxRecvMsgSize: 1024 * 1024 * 4,
 		ClientParameters: ClientParameters{
-			PermitWithoutStream: true,                                      // send pings even without active streams
-			Time:                golug_types.NewDuration(10 * time.Second), // send pings every 10 seconds if there is no activity
-			Timeout:             golug_types.NewDuration(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
+			PermitWithoutStream: true,                                // send pings even without active streams
+			Time:                types.NewDuration(10 * time.Second), // send pings every 10 seconds if there is no activity
+			Timeout:             types.NewDuration(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
 		},
 		ConnectParams: ConnectParams{
 			Backoff: BackoffConfig{
 				Multiplier: 1.6,
 				Jitter:     0.2,
-				BaseDelay:  golug_types.NewDuration(1.0 * time.Second),
-				MaxDelay:   golug_types.NewDuration(120 * time.Second),
+				BaseDelay:  types.NewDuration(1.0 * time.Second),
+				MaxDelay:   types.NewDuration(120 * time.Second),
 			},
 		},
 		Call: Call{

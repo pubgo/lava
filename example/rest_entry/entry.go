@@ -7,13 +7,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug"
-	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/golug/entry"
 	"github.com/pubgo/xerror"
 )
 
 var name = "test-http"
 
-func GetEntry() golug_entry.Entry {
+func GetEntry() entry.Entry {
 	ent := golug.NewRest(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")

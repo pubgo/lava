@@ -7,6 +7,10 @@ app:
   debug: true
 config:
   watcher: ["default"]
+watcher:
+  golug:
+    driver: "etcd"
+    name: "default"
 recovery:
   enabled: true
 task_entry:
@@ -39,10 +43,6 @@ grpc_entry:
   connection_timeout: 2s
   max_header_list_size: 2
   header_table_size: 1
-log:
-  level: "debug"
-  encoderConfig:
-    callerEncoder: full
 rest_entry:
   enabled: true
   prefork: false
@@ -109,3 +109,34 @@ nsq:
       lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
 http:
   test: ""
+log:
+  level: debug
+  development: true
+  disableCaller: false
+  disableStacktrace: false
+  sampling: null
+  encoding: console
+  encoderConfig:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: 'N'
+    callerKey: C
+    stacktraceKey: S
+    lineEnding: |+
+    levelEncoder: capitalColor
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: full
+    nameEncoder: ''
+  outputPaths:
+    - stderr
+  errorOutputPaths:
+    - stderr
+  #initialFields:
+  #  name: test
+
+db:
+  default:
+    driver: "sqlite3_golug"
+    source: "{{home}}/db/sqlite.db"

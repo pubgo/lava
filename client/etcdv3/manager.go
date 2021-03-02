@@ -5,17 +5,17 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/pubgo/golug/golug_consts"
-	"github.com/pubgo/golug/golug_types"
+	"github.com/pubgo/golug/consts"
+	"github.com/pubgo/golug/types"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
 )
 
-var data golug_types.SyncMap
+var data types.SyncMap
 
 // Get 获取etcd client
 func Get(names ...string) *Client {
-	var name = golug_consts.GetDefault(names...)
+	var name = consts.GetDefault(names...)
 
 	xerror.Assert(data.Has(name), "[etcdv3] %s not found", name)
 

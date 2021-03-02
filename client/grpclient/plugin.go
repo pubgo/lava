@@ -1,16 +1,16 @@
 package grpclient
 
 import (
-	"github.com/pubgo/golug/golug_config"
-	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/config"
+	"github.com/pubgo/golug/plugin"
 )
 
 func init() {
-	golug_plugin.Register(&golug_plugin.Base{
+	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent interface{}) {
 			var cfg = GetDefaultCfg()
-			golug_config.Decode(Name, &cfg)
+			config.Decode(Name, &cfg)
 		},
 	})
 }

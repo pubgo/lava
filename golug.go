@@ -1,18 +1,20 @@
 package golug
 
 import (
-	"github.com/pubgo/golug/golug_cmd"
-	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_entry/golug_ctl"
-	"github.com/pubgo/golug/golug_entry/golug_grpc"
-	"github.com/pubgo/golug/golug_entry/golug_rest"
-	"github.com/pubgo/golug/golug_entry/golug_task"
-	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/config"
+	"github.com/pubgo/golug/entry"
+	"github.com/pubgo/golug/entry/golug_ctl"
+	"github.com/pubgo/golug/entry/golug_grpc"
+	"github.com/pubgo/golug/entry/golug_rest"
+	"github.com/pubgo/golug/entry/golug_task"
+	"github.com/pubgo/golug/internal/golug_cmd"
+	_ "github.com/pubgo/golug/internal/golug_log"
 	"github.com/pubgo/golug/internal/golug_run"
+	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xerror"
 )
 
-func Run(entries ...golug_entry.Entry) {
+func Run(entries ...entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Panic(golug_cmd.Run(entries...))
 }
@@ -21,9 +23,12 @@ func NewTask(name string) golug_task.Entry { return golug_task.New(name) }
 func NewRest(name string) golug_rest.Entry { return golug_rest.New(name) }
 func NewGrpc(name string) golug_grpc.Entry { return golug_grpc.New(name) }
 func NewCtl(name string) golug_ctl.Entry   { return golug_ctl.New(name) }
-func RegisterPlugin(plugin golug_plugin.Plugin, opts ...golug_plugin.ManagerOption) {
+
+func GetCfg() *config.Config                 { return config.GetCfg() }
+func OnCfgReady(fn func(cfg *config.Config)) { config.On(fn) }
+func RegisterPlugin(plg plugin.Plugin, opts ...plugin.ManagerOption) {
 	defer xerror.RespExit()
-	golug_plugin.Register(plugin, opts...)
+	plugin.Register(plg, opts...)
 }
 
 func BeforeStart(fn func()) { golug_run.BeforeStart(fn) }

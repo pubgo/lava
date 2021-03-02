@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
-	"github.com/pubgo/golug/golug_xgen"
+	"github.com/pubgo/golug/xgen"
 	"github.com/pubgo/golug/client/grpclient"
 )
 

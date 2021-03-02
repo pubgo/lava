@@ -3,7 +3,7 @@ package etcdv3
 import (
 	"time"
 
-	"github.com/pubgo/golug/golug_types"
+	"github.com/pubgo/golug/types"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 )
@@ -16,16 +16,16 @@ var DefaultCfg = clientv3.Config{
 }
 
 type config struct {
-	Endpoints            []string             `json:"endpoints"`
-	AutoSyncInterval     golug_types.Duration `json:"interval"`
-	DialTimeout          golug_types.Duration `json:"timeout"`
-	DialKeepAliveTime    golug_types.Duration `json:"keepalive"`
-	DialKeepAliveTimeout golug_types.Duration `json:"keepalive_timeout"`
-	MaxCallSendMsgSize   int                  `json:"max_send"`
-	MaxCallRecvMsgSize   int                  `json:"max_recv"`
-	Username             string               `json:"username"`
-	Password             string               `json:"password"`
-	DialOptions          []grpc.DialOption    `json:"-"`
+	Endpoints            []string          `json:"endpoints"`
+	AutoSyncInterval     types.Duration    `json:"interval"`
+	DialTimeout          types.Duration    `json:"timeout"`
+	DialKeepAliveTime    types.Duration    `json:"keepalive"`
+	DialKeepAliveTimeout types.Duration    `json:"keepalive_timeout"`
+	MaxCallSendMsgSize   int               `json:"max_send"`
+	MaxCallRecvMsgSize   int               `json:"max_recv"`
+	Username             string            `json:"username"`
+	Password             string            `json:"password"`
+	DialOptions          []grpc.DialOption `json:"-"`
 }
 
 // 转化为etcd config

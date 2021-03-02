@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/golug/pkg/golug_sh"
+	"github.com/pubgo/x/shutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ func GetCmd() *cobra.Command {
 			"github.com/pubgo/golugin/example": true,
 		}
 
-		for _, v := range strings.Split(xerror.PanicStr(golug_sh.GoList()), "\n") {
+		for _, v := range strings.Split(xerror.PanicStr(shutil.GoList()), "\n") {
 			if strings.Contains(v, "internal") {
 				continue
 			}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/pubgo/golug/client/grpclient/balancer/resolver"
-	registry "github.com/pubgo/golug/golug_registry"
+	registry "github.com/pubgo/golug/registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )

@@ -8,17 +8,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/pkg/golug_utils"
+	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/xgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-var _ = golug_utils.Decode
+var _ = gutils.Decode
 
 func init() {
-	var mthList []golug_xgen.GrpcRestHandler
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApi",
 		Name:          "Version",
 		Method:        "POST",
@@ -27,7 +27,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApi",
 		Name:          "VersionTest",
 		Method:        "GET",
@@ -36,13 +36,13 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiGateway), nil)
 }
 
 func init() {
-	var mthList []golug_xgen.GrpcRestHandler
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApiV2",
 		Name:          "Version1",
 		Method:        "POST",
@@ -51,7 +51,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApiV2",
 		Name:          "VersionTest1",
 		Method:        "POST",
@@ -60,8 +60,8 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterTestApiV2Gateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2Gateway), nil)
 }
 
 func GetTestApiClient(srv string, opts ...grpc.DialOption) (TestApiClient, error) {
@@ -102,7 +102,7 @@ func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption)
 		var req TestReq
 		var data = make(map[string]interface{})
 		ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[string(key)] = string(value) })
-		if err := golug_utils.Decode(data, &req); err != nil {
+		if err := gutils.Decode(data, &req); err != nil {
 			return err
 		}
 

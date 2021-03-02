@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/pubgo/golug"
-	"github.com/pubgo/golug/golug_entry"
-	"github.com/pubgo/golug/golug_plugin"
+	"github.com/pubgo/golug/entry"
+	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xlog"
 )
 
 var name = "test-ctl"
 
-func GetEntry() golug_entry.Entry {
+func GetEntry() entry.Entry {
 	ent := golug.NewCtl(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry ctl test")
@@ -20,7 +20,7 @@ func GetEntry() golug_entry.Entry {
 		xlog.Info("ctl ok")
 	})
 
-	golug.RegisterPlugin(&golug_plugin.Base{
+	golug.RegisterPlugin(&plugin.Base{
 		Name: "hello",
 		OnInit: func(fn interface{}) {
 			fmt.Println("hello plugin")

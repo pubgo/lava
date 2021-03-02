@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
-	registry "github.com/pubgo/golug/golug_registry"
+	registry "github.com/pubgo/golug/registry"
 	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"

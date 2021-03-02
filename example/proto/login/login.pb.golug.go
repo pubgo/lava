@@ -8,17 +8,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/pkg/golug_utils"
+	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/xgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-var _ = golug_utils.Decode
+var _ = gutils.Decode
 
 func init() {
-	var mthList []golug_xgen.GrpcRestHandler
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.Login",
 		Name:          "Login",
 		Method:        "POST",
@@ -27,7 +27,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.Login",
 		Name:          "Authenticate",
 		Method:        "POST",
@@ -36,8 +36,8 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterLoginGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterLoginGateway), nil)
 }
 
 func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {

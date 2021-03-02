@@ -2,10 +2,10 @@ package gomod
 
 import (
 	"bytes"
-	"github.com/pubgo/golug/pkg/golug_sh"
 	"io/ioutil"
 	"strings"
 
+	"github.com/pubgo/x/shutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ func GetCmd() *cobra.Command {
 		Run: func(_ *cobra.Command, args []string) {
 			defer xerror.RespExit()
 
-			graph := NewModGraph(strings.NewReader(xerror.PanicStr(golug_sh.GoMod())))
+			graph := NewModGraph(strings.NewReader(xerror.PanicStr(shutil.GoMod())))
 			graph.Keyword = keyword
 			graph.FillColor = fillColor
 			graph.Parse()
@@ -34,7 +34,7 @@ func GetCmd() *cobra.Command {
 			var w = bytes.NewBuffer(nil)
 			xerror.Panic(graph.Render(w))
 			xerror.Panic(ioutil.WriteFile("mod.dot", w.Bytes(), 0600))
-			xerror.Panic(golug_sh.GraphViz("mod.dot", "mod.svg"))
+			xerror.Panic(shutil.GraphViz("mod.dot", "mod.svg"))
 		},
 	})
 }

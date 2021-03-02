@@ -3,17 +3,16 @@ package etcdv3
 import (
 	"strings"
 
-	"github.com/pubgo/golug/golug_plugin"
-	"github.com/pubgo/golug/golug_watcher"
+	"github.com/pubgo/golug/plugin"
+	"github.com/pubgo/golug/watcher"
 	"github.com/pubgo/xerror"
 )
 
 func init() {
-	golug_plugin.Register(&golug_plugin.Base{
-		Name: Name,
-		OnInit: func(ent interface{}) {
-		},
-		OnWatch: func(r *golug_watcher.Response) {
+	plugin.Register(&plugin.Base{
+		Name:   Name,
+		OnInit: func(ent interface{}) {},
+		OnWatch: func(r *watcher.Response) {
 			r.OnPut(func() {
 				keys := strings.Split(r.Key, "/")
 				name := keys[len(keys)-1]

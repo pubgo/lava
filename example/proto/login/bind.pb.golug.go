@@ -8,17 +8,17 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/golug_xgen"
-	"github.com/pubgo/golug/pkg/golug_utils"
+	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/xgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-var _ = golug_utils.Decode
+var _ = gutils.Decode
 
 func init() {
-	var mthList []golug_xgen.GrpcRestHandler
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "Check",
 		Method:        "POST",
@@ -27,7 +27,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "BindVerify",
 		Method:        "POST",
@@ -36,7 +36,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "BindChange",
 		Method:        "POST",
@@ -45,7 +45,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "AutomaticBind",
 		Method:        "POST",
@@ -54,7 +54,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "BindPhoneParse",
 		Method:        "POST",
@@ -63,7 +63,7 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	mthList = append(mthList, golug_xgen.GrpcRestHandler{
+	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.BindTelephone",
 		Name:          "BindPhoneParseByOneClick",
 		Method:        "POST",
@@ -72,8 +72,8 @@ func init() {
 		ServerStreams: "False" == "True",
 	})
 
-	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
-	golug_xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), nil)
 }
 
 func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {

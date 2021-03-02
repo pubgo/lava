@@ -9,13 +9,12 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
-	github.com/fsnotify/fsnotify v1.4.9
 	github.com/fullstorydev/grpcurl v1.7.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.3
-	github.com/golang/snappy v0.0.1
+	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3
 	github.com/google/go-cmp v0.5.3 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -31,8 +30,9 @@ require (
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/xerror v0.3.25
-	github.com/pubgo/xlog v0.0.16
+	github.com/pubgo/x v0.3.10
+	github.com/pubgo/xerror v0.4.1
+	github.com/pubgo/xlog v0.0.18
 	github.com/pubgo/xprocess v0.1.11
 	github.com/pubgo/xprotogen v0.0.5
 	github.com/spf13/cobra v1.1.1
@@ -50,8 +50,6 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	google.golang.org/genproto v0.0.0-20201204160425-06b3db808446
 	google.golang.org/grpc v1.34.0
-	google.golang.org/protobuf v1.25.0
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	xorm.io/xorm v1.0.5
 )

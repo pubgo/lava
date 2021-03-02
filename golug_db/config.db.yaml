@@ -1,3 +1,0 @@
-default:
-  driver: "sqlite3_golug"
-  source: "{{home}}/db/sqlite.db"

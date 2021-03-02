@@ -1,3 +1,0 @@
-golug:
-  driver: "etcd"
-  name: "default"

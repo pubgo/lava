@@ -4,7 +4,7 @@ import (
 	"runtime"
 
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/golug/golug_version"
+	"github.com/pubgo/golug/tracelog"
 	"github.com/pubgo/xerror"
 )
 
@@ -16,13 +16,15 @@ var Project = ""
 
 func init() {
 	xerror.ExitErr(ver.NewVersion(Version))
-	golug_version.Register("golug_version", golug_version.M{
-		"build_time": BuildTime,
-		"version":    Version,
-		"go_version": GoVersion,
-		"go_path":    GoPath,
-		"go_root":    GoROOT,
-		"commit_id":  CommitID,
-		"project":    Project,
+	tracelog.Watch("golug_version", func() interface{} {
+		return map[string]interface{}{
+			"build_time": BuildTime,
+			"version":    Version,
+			"go_version": GoVersion,
+			"go_path":    GoPath,
+			"go_root":    GoROOT,
+			"commit_id":  CommitID,
+			"project":    Project,
+		}
 	})
 }
