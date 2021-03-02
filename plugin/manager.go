@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"sync"
 
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xprocess/xutil"
 )
 
 // NewManager creates a new internal_plugin manager
@@ -106,5 +106,5 @@ func (m *manager) isRegistered(plg Plugin, opts ...ManagerOption) bool {
 		return false
 	}
 
-	return m.registered[options.Module][xutil.FuncStack(plg)]
+	return m.registered[options.Module][stack.Func(plg)]
 }

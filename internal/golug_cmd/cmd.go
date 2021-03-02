@@ -5,16 +5,16 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry"
 	"github.com/pubgo/golug/golug"
-	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/golug/version"
 	"github.com/pubgo/golug/watcher"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xprocess/xutil"
 	"github.com/spf13/cobra"
 )
 
@@ -43,7 +43,7 @@ func start(ent entry.RunEntry) (err error) {
 	for i := range beforeStarts {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("before start error: %s", xutil.FuncStack(beforeStarts[i]))
+				return err.WrapF("before start error: %s", stack.Func(beforeStarts[i]))
 			})
 
 			beforeStarts[i]()
@@ -56,7 +56,7 @@ func start(ent entry.RunEntry) (err error) {
 	for i := range afterStarts {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("after start error: %s", xutil.FuncStack(afterStarts[i]))
+				return err.WrapF("after start error: %s", stack.Func(afterStarts[i]))
 			})
 
 			afterStarts[i]()
@@ -73,7 +73,7 @@ func stop(ent entry.RunEntry) (err error) {
 	for i := range beforeStops {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("before stop error: %s", xutil.FuncStack(beforeStops[i]))
+				return err.WrapF("before stop error: %s", stack.Func(beforeStops[i]))
 			})
 
 			beforeStops[i]()
@@ -86,7 +86,7 @@ func stop(ent entry.RunEntry) (err error) {
 	for i := range afterStops {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("after stop error: %s", xutil.FuncStack(afterStops[i]))
+				return err.WrapF("after stop error: %s", stack.Func(afterStops[i]))
 			})
 
 			afterStops[i]()

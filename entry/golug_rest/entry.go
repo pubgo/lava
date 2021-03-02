@@ -12,9 +12,9 @@ import (
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
 	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
 )
 
@@ -76,7 +76,7 @@ func (t *restEntry) Start() (err error) {
 	port := t.Options().Port
 
 	// 启动server后等待1s
-	xerror.Panic(xprocess.GoDelay(time.Second, func() {
+	xerror.Panic(fx.GoDelay(time.Second, func() {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("restEntry.Start error", xlog.Any("err", err))
 		})

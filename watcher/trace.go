@@ -2,7 +2,7 @@ package watcher
 
 import (
 	"github.com/pubgo/golug/tracelog"
-	"github.com/pubgo/xprocess/xutil"
+	"github.com/pubgo/x/stack"
 )
 
 func init() {
@@ -15,7 +15,7 @@ func init() {
 	tracelog.Watch(Name+"_watcher", func() interface{} {
 		var dt = make(map[string]string)
 		for k, v := range List() {
-			dt[k] = xutil.FuncStack(v)
+			dt[k] = stack.Func(v)
 		}
 		return dt
 	})

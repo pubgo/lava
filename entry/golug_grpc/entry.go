@@ -13,11 +13,11 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/golug/entry/base"
 	"github.com/pubgo/golug/golug"
-	registry "github.com/pubgo/golug/registry"
 	"github.com/pubgo/golug/gutils/addr"
+	registry "github.com/pubgo/golug/registry"
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xprocess"
 	"github.com/spf13/pflag"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -307,7 +307,7 @@ func (g *grpcEntry) Start() (err error) {
 		return xerror.WrapF(err, "[grpc] registry try register error")
 	}
 
-	xprocess.Go(func(ctx context.Context) {
+	_ = fx.Go(func(ctx context.Context) {
 		if err := g.srv.Serve(ts); err != nil {
 			xlog.Errorf("[grpc] server stop error: %#v", err)
 		}
