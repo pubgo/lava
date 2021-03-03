@@ -77,15 +77,12 @@ func init() {
 }
 
 func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {
-	c, err := grpclient.Get(srv, opts...)
+	c, err := grpclient.Client(srv, opts...).Get()
 	return &bindTelephoneClient{c}, err
 }
 
 func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	c, err := GetBindTelephoneClient(srv, opts...)
-	if err != nil {
-		return err
-	}
+	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
 		p := metadata.Pairs()
 		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
@@ -95,6 +92,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.Check(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -111,6 +113,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.BindVerify(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -127,6 +134,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.BindChange(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -143,6 +155,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.AutomaticBind(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -159,6 +176,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.BindPhoneParse(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -175,6 +197,11 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &bindTelephoneClient{conn}
 		resp, err := c.BindPhoneParseByOneClick(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err

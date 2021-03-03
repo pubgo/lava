@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-func NewQueue(val ...interface{}) *Queue {
+func QueueOf(val ...interface{}) *Queue {
 	var q = &Queue{}
 	for i := range val {
 		q.Push(val[i])

@@ -10,13 +10,14 @@ import (
 	"github.com/imdario/mergo"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"golang.org/x/crypto/scrypt"
 )
 
-func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) {
+func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) error {
 	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
-	xerror.Panic(mergo.Map(dst, src, opts...))
+	return xerror.Wrap(mergo.Map(dst, src, opts...))
 }
 
 func PathExist(path string) bool {
@@ -62,34 +63,24 @@ func Decode(val map[string]interface{}, fn interface{}) (gErr error) {
 func UnWrap(t interface{}, fn interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
-	if t == nil {
-		return xerror.New("[t] should not be nil")
-	}
+	xerror.Assert(t == nil, "[t] should not be nil")
+	xerror.Assert(fn == nil, "[fn] should not be nil")
 
-	if fn == nil {
-		return xerror.New("[fn] should not be nil")
-	}
+	vfn := reflect.ValueOf(fn)
+	xerror.Assert(vfn.Type().Kind() != reflect.Func, "[fn] type error, type:%#v", vfn)
+	xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be one, now:%d", vfn.Type().NumIn())
 
-	_fn := reflect.ValueOf(fn)
-	if _fn.Type().Kind() != reflect.Func {
-		return xerror.Fmt("[fn] type error, type:%#v", fn)
-	}
-
-	if _fn.Type().NumIn() != 1 {
-		return xerror.Fmt("[fn] input num should be one, now:%d", _fn.Type().NumIn())
-	}
-
-	_t := reflect.TypeOf(t)
-	if !_t.Implements(_fn.Type().In(0)) {
+	tfn := reflect.TypeOf(t)
+	if !tfn.Implements(vfn.Type().In(0)) {
 		return nil
 	}
 
-	_fn.Call([]reflect.Value{reflect.ValueOf(t)})
+	vfn.Call([]reflect.Value{reflect.ValueOf(t)})
 	return nil
 }
 
-// IsTrue true
-func IsTrue(data string) bool {
+// ParseBool true
+func ParseBool(data string) bool {
 	switch strings.ToUpper(data) {
 	case "TRUE", "T", "1", "OK", "GOOD", "REAL", "ACTIVE", "ENABLED":
 		return true
@@ -105,7 +96,8 @@ func EncodePassword(unencoded string) string {
 
 func Retry(c int, fn func() error) (err error) {
 	for i := 0; i < c; i++ {
-		if err = fn(); err == nil {
+		err = xutil.Try(func() { xerror.Panic(fn()) })
+		if err == nil {
 			break
 		}
 

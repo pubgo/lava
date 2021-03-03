@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xerror/xerror_abc"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -32,22 +31,19 @@ func (t *Entry) Start() error            { return nil }
 func (t *Entry) Stop() error             { return nil }
 func (t *Entry) Options() entry.Options  { return t.opts }
 
+// Plugin 注册插件
 func (t *Entry) Plugin(plg plugin.Plugin) {
-	defer xerror.RespRaise(func(err xerror_abc.XErr) error { return xerror.Wrap(err, "Entry.Plugin") })
+	defer xerror.RespExit()
 
-	xerror.Assert(plg == nil, "[plugin] should not be nil")
+	xerror.Assert(plg == nil || plg.String() == "", "[plugin] should not be nil")
 	xerror.Assert(t.opts.Name == "", "please init project name first")
 	plugin.Register(plg, plugin.Module(t.opts.Name))
 }
 
-func (t *Entry) OnCfg(fn interface{}) {
-	xerror.Assert(fn == nil, "[fn] is null")
-
-	config.On(func(cfg *config.Config) { config.Decode(t.opts.Name, fn) })
-}
-
+// OnCfg 项目配置加载解析
+func (t *Entry) OnCfg(fn interface{}) { t.OnCfgWithName(t.opts.Name, fn) }
 func (t *Entry) OnCfgWithName(name string, fn interface{}) {
-	xerror.Assert(fn == nil || name == "", "[name,fn] is null")
+	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
 
 	config.On(func(cfg *config.Config) { config.Decode(name, fn) })
 }

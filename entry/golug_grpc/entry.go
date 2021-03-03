@@ -30,7 +30,6 @@ var _ Entry = (*grpcEntry)(nil)
 type grpcEntry struct {
 	*base.Entry
 	exit                     chan chan error
-	name                     string
 	mu                       sync.RWMutex
 	cfg                      Cfg
 	registered               atomic.Bool
@@ -120,7 +119,7 @@ func (g *grpcEntry) register() (err error) {
 
 	// register service
 	node := &registry.Node{
-		Id:      golug.Project + "-" + getHostname() + "-" + DefaultId,
+		Id:      g.Options().Name + "-" + getHostname() + "-" + DefaultId,
 		Address: addr1,
 		Port:    port,
 	}
@@ -129,7 +128,7 @@ func (g *grpcEntry) register() (err error) {
 	node.Metadata["transport"] = "grpc"
 
 	services := &registry.Service{
-		Name:      golug.Project,
+		Name:      g.Options().Name,
 		Version:   g.Entry.Options().Version,
 		Nodes:     []*registry.Node{node},
 		Endpoints: g.endpoints,

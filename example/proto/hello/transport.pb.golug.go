@@ -59,15 +59,12 @@ func init() {
 }
 
 func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, error) {
-	c, err := grpclient.Get(srv, opts...)
+	c, err := grpclient.Client(srv, opts...).Get()
 	return &transportClient{c}, err
 }
 
 func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	c, err := GetTransportClient(srv, opts...)
-	if err != nil {
-		return err
-	}
+	client := grpclient.Client(srv, opts...)
 
 	g.Add("POST", "/hello/transport/test_stream3", func(ctx *fiber.Ctx) error {
 		p := metadata.Pairs()
@@ -78,6 +75,11 @@ func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOptio
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &transportClient{conn}
 		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err

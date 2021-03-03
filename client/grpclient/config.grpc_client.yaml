@@ -1,7 +1,0 @@
-service1:
-  insecure: false
-  block: true
-  max_recv_msg_size: 1024
-service2:
-service3:
-service4:

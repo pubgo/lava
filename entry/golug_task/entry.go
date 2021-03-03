@@ -32,18 +32,22 @@ func (t *taskEntry) Register(topic string, handler broker.Handler, opts ...broke
 	return nil
 }
 
+func (t *taskEntry) Stop() (err error) {
+	return nil
+}
+
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	t.broker = broker.Get(t.cfg.Broker)
 	for i := range t.handlers {
 		handler := t.handlers[i]
-		broker := t.broker
+		brk := t.broker
 		if handler.opts.Broker != nil {
-			broker = handler.opts.Broker
+			brk = handler.opts.Broker
 		}
 
-		xerror.Panic(broker.Subscribe(handler.opts.Topic, handler.handler, handler.optList...))
+		xerror.Panic(brk.Subscribe(handler.opts.Topic, handler.handler, handler.optList...))
 	}
 
 	return nil

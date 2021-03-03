@@ -68,15 +68,12 @@ func init() {
 }
 
 func GetMergeClient(srv string, opts ...grpc.DialOption) (MergeClient, error) {
-	c, err := grpclient.Get(srv, opts...)
+	c, err := grpclient.Client(srv, opts...).Get()
 	return &mergeClient{c}, err
 }
 
 func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	c, err := GetMergeClient(srv, opts...)
-	if err != nil {
-		return err
-	}
+	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
 		p := metadata.Pairs()
 		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
@@ -86,6 +83,11 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &mergeClient{conn}
 		resp, err := c.Telephone(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -102,6 +104,11 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &mergeClient{conn}
 		resp, err := c.TelephoneCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -118,6 +125,11 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &mergeClient{conn}
 		resp, err := c.WeChat(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -134,6 +146,11 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &mergeClient{conn}
 		resp, err := c.WeChatCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -150,6 +167,11 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &mergeClient{conn}
 		resp, err := c.WeChatUnMerge(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err

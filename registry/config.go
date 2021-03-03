@@ -5,8 +5,7 @@ import (
 )
 
 var Name = "registry"
-var defaultPrefix = "/registry"
-var cfg Cfg
+var cfg = GetDefaultCfg()
 
 type Cfg struct {
 	Project string        `json:"project"`
@@ -19,6 +18,6 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Prefix: defaultPrefix,
+		Prefix: "/registry",
 	}
 }

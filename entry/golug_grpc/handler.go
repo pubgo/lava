@@ -3,7 +3,7 @@ package golug_grpc
 import (
 	"reflect"
 
-	registry "github.com/pubgo/golug/registry"
+	"github.com/pubgo/golug/registry"
 )
 
 func newRpcHandler(handler interface{}) []*registry.Endpoint {

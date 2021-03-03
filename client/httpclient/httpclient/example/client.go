@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/pubgo/golug/client/httpclient/httpclient/golug_hystrix"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/pubgo/golug/client/httpclient"
+	"github.com/pubgo/golug/client/httpclient/httpclient/golug_hystrix"
+	"github.com/pubgo/xerror"
 )
 
 const (
@@ -40,13 +40,13 @@ func httpClientUsage() error {
 
 	response, err := httpClient.Get(baseURL, headers)
 	if err != nil {
-		return errors.Wrap(err, "failed to make a request to server")
+		return xerror.Wrap(err, "failed to make a request to server")
 	}
 	defer response.Body.Close()
 
 	respBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return errors.Wrap(err, "failed to read response body")
+		return xerror.Wrap(err, "failed to read response body")
 	}
 
 	fmt.Printf("Response: %s", string(respBody))
@@ -63,14 +63,14 @@ func httpClientClientUsage() error {
 	headers := http.Header{}
 	response, err := client.Get(baseURL, headers)
 	if err != nil {
-		return errors.Wrap(err, "failed to make a request to server")
+		return xerror.Wrap(err, "failed to make a request to server")
 	}
 
 	defer response.Body.Close()
 
 	respBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return errors.Wrap(err, "failed to read response body")
+		return xerror.Wrap(err, "failed to read response body")
 	}
 
 	fmt.Printf("Response: %s", string(respBody))
@@ -88,14 +88,14 @@ func customhttpclientClientUsage() error {
 	headers := http.Header{}
 	response, err := httpclientClient.Get(baseURL, headers)
 	if err != nil {
-		return errors.Wrap(err, "failed to make a request to server")
+		return xerror.Wrap(err, "failed to make a request to server")
 	}
 
 	defer response.Body.Close()
 
 	respBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return errors.Wrap(err, "failed to read response body")
+		return xerror.Wrap(err, "failed to read response body")
 	}
 
 	fmt.Printf("Response: %s", string(respBody))

@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var callbacks types.SyncMap
+var callbacks types.SMap
 
 func Watch(name string, h CallBack) {
 	xerror.Assert(name == "" || h == nil, "[name, callback] should not be null")
@@ -26,12 +26,22 @@ func GetWatch(name string, opts ...Option) (cbs []CallBack) {
 	// 以name为前缀的所有的callbacks
 	if wOpts.prefix {
 		callbacks.Range(func(k, value interface{}) bool {
+			// 检查是否是以name为前缀
+			// `dot`是连接符
 			if strings.HasPrefix(name+".", k.(string)+".") {
+				bc := value.(CallBack)
 				cbs = append(cbs, func(event *Response) error {
 					// 获取数据, 并且更新全局配置
-					config.GetCfg().Set(KeyToDot(event.Key), string(event.Value))
+					cfg := config.GetCfg()
+					event.OnDelete(func() {
+						cfg.Set(KeyToDot(event.Key), "")
+					})
 
-					return value.(CallBack)(event)
+					event.OnPut(func() {
+						cfg.Set(KeyToDot(event.Key), string(event.Value))
+					})
+
+					return bc(event)
 				})
 			}
 			return true
@@ -47,11 +57,19 @@ func GetWatch(name string, opts ...Option) (cbs []CallBack) {
 		return
 	}
 
+	bc := val.(CallBack)
 	cbs = []CallBack{func(event *Response) error {
 		// 获取数据, 并且更新全局配置
-		config.GetCfg().Set(KeyToDot(event.Key), string(event.Value))
+		cfg := config.GetCfg()
+		event.OnDelete(func() {
+			cfg.Set(KeyToDot(event.Key), "")
+		})
 
-		return val.(CallBack)(event)
+		event.OnPut(func() {
+			cfg.Set(KeyToDot(event.Key), string(event.Value))
+		})
+
+		return bc(event)
 	}}
 	return
 }

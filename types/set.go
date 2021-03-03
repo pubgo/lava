@@ -8,7 +8,7 @@ import (
 	"go.uber.org/atomic"
 )
 
-func NewSet(val ...interface{}) *Set {
+func SetOf(val ...interface{}) *Set {
 	s := &Set{}
 	for i := range val {
 		s.Add(val[i])
@@ -21,18 +21,21 @@ type Set struct {
 	count atomic.Uint32
 }
 
-func (t *Set) Len() uint32 { return t.count.Load() }
+func (t *Set) Has(v interface{}) bool { _, ok := t.m.Load(v); return ok }
+func (t *Set) Len() uint32            { return t.count.Load() }
+
 func (t *Set) Add(v interface{}) {
 	_, ok := t.m.LoadOrStore(v, struct{}{})
 	if !ok {
 		t.count.Inc()
 	}
 }
-func (t *Set) Has(v interface{}) bool { _, ok := t.m.Load(v); return ok }
+
 func (t *Set) List() (val []interface{}) {
 	t.m.Range(func(key, _ interface{}) bool { val = append(val, key); return true })
 	return
 }
+
 func (t *Set) Each(fn interface{}) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 

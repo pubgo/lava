@@ -20,7 +20,7 @@ func GetEntry() entry.Entry {
 		xlog.Info("ctl ok")
 	})
 
-	golug.RegisterPlugin(&plugin.Base{
+	golug.Plugin(&plugin.Base{
 		Name: "hello",
 		OnInit: func(fn interface{}) {
 			fmt.Println("hello plugin")

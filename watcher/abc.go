@@ -28,12 +28,16 @@ type Response struct {
 
 func (t *Response) OnPut(fn func()) {
 	xerror.Panic(t.checkEventType())
-	fn()
+	if t.Event == "PUT" {
+		fn()
+	}
 }
 
 func (t *Response) OnDelete(fn func()) {
 	xerror.Panic(t.checkEventType())
-	fn()
+	if t.Event == "DELETE" {
+		fn()
+	}
 }
 
 func (t *Response) Decode(val interface{}) (gErr error) {
@@ -46,9 +50,7 @@ func (t *Response) Decode(val interface{}) (gErr error) {
 
 func (t *Response) checkEventType() error {
 	switch t.Event {
-	case "DELETE":
-		return nil
-	case "PUT":
+	case "DELETE", "PUT":
 		return nil
 	default:
 		return xerror.New("unknown type")

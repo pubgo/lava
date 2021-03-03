@@ -3,12 +3,13 @@ package watcher
 import (
 	"github.com/pubgo/golug/tracelog"
 	"github.com/pubgo/x/stack"
+	"github.com/pubgo/xerror"
 )
 
 func init() {
 	tracelog.Watch(Name+"_watcher_callback", func() interface{} {
 		var dt []string
-		callbacks.Each(func(key string) { dt = append(dt, key) })
+		xerror.Panic(callbacks.Each(func(key string) { dt = append(dt, key) }))
 		return dt
 	})
 

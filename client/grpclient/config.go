@@ -181,21 +181,21 @@ func GetDefaultCfg() Cfg {
 		Insecure:     true,
 		Block:        true,
 		BalancerName: p2c.Name,
-		DialTimeout:  types.NewDuration(2 * time.Second),
+		DialTimeout:  types.Dur(2 * time.Second),
 
 		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
 		MaxRecvMsgSize: 1024 * 1024 * 4,
 		ClientParameters: ClientParameters{
-			PermitWithoutStream: true,                                // send pings even without active streams
-			Time:                types.NewDuration(10 * time.Second), // send pings every 10 seconds if there is no activity
-			Timeout:             types.NewDuration(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
+			PermitWithoutStream: true,                        // send pings even without active streams
+			Time:                types.Dur(10 * time.Second), // send pings every 10 seconds if there is no activity
+			Timeout:             types.Dur(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
 		},
 		ConnectParams: ConnectParams{
 			Backoff: BackoffConfig{
 				Multiplier: 1.6,
 				Jitter:     0.2,
-				BaseDelay:  types.NewDuration(1.0 * time.Second),
-				MaxDelay:   types.NewDuration(120 * time.Second),
+				BaseDelay:  types.Dur(1.0 * time.Second),
+				MaxDelay:   types.Dur(120 * time.Second),
 			},
 		},
 		Call: Call{

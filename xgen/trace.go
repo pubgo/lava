@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	tracelog.Watch("golug_xgen", func() interface{} {
+	tracelog.Watch("xgen", func() interface{} {
 		dt := make(map[string][]GrpcRestHandler)
 		for k, v := range List() {
 			dt[stack.Func(k.Interface())] = v

@@ -11,6 +11,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/golug"
+	"github.com/pubgo/golug/types"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
@@ -29,7 +31,7 @@ func GetCfg() *Config {
 func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
 
 // UnMarshal
-// UnMarshal config to map
+// UnMarshal config from file to map
 func UnMarshal(path string) map[string]interface{} {
 	dt, err := ioutil.ReadFile(path)
 	xerror.ExitF(err, path)
@@ -42,39 +44,32 @@ func UnMarshal(path string) map[string]interface{} {
 // Decode
 // decode config
 func Decode(name string, fn interface{}) {
-	defer xerror.RespRaise(func(err xerror.XErr) error { return xerror.WrapF(err, "name:%s", name) })
+	defer xerror.RespExit(name)
 
-	if GetCfg().Get(name) == nil {
-		return
-	}
-
-	if fn == nil {
-		xerror.Panic(xerror.New("[fn] should not be nil"))
-	}
+	xerror.Assert(fn == nil, "[fn] should not be nil")
+	xerror.Assert(GetCfg().Get(name) == nil, "[name] config not found")
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {
 	case reflect.Func: // func(cfg *Config)
-		if vfn.Type().NumIn() != 1 {
-			xerror.Panic(xerror.New("[fn] input num should be one"))
-		}
+		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be one")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := reflect.ValueOf(GetCfg().UnmarshalKey).Call(
-			[]reflect.Value{
+		ret := reflect.ValueOf(GetCfg().UnmarshalKey).
+			Call(types.ValueOf(
 				reflect.ValueOf(name), mthIn,
 				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
-			},
-		)
+			))
 		if !ret[0].IsNil() {
 			xerror.PanicF(ret[0].Interface().(error), "%s config decode error", name)
 		}
 
-		vfn.Call([]reflect.Value{mthIn})
+		vfn.Call(types.ValueOf(mthIn))
 	case reflect.Ptr:
-		xerror.Panic(GetCfg().UnmarshalKey(name, fn, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
+		xerror.Panic(GetCfg().UnmarshalKey(name, fn,
+			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
 	default:
-		xerror.Panic(xerror.Fmt("[fn] type error, type:%#v", fn))
+		xerror.Assert(true,"[fn] type error, type:%#v", vfn)
 	}
 }
 
@@ -86,19 +81,19 @@ func Template(format string) string {
 		// 处理特殊变量
 		switch tag {
 		case "home":
-			return w.Write([]byte(golug.Home))
+			return w.Write(xutil.ToBytes(golug.Home))
 		case "trace":
-			return w.Write([]byte(strconv.FormatBool(golug.Trace)))
+			return w.Write(xutil.ToBytes(strconv.FormatBool(golug.Trace)))
 		case "project":
-			return w.Write([]byte(golug.Project))
+			return w.Write(xutil.ToBytes(golug.Project))
 		case "domain":
-			return w.Write([]byte(golug.Domain))
+			return w.Write(xutil.ToBytes(golug.Domain))
 		case "mode":
-			return w.Write([]byte(golug.Mode))
+			return w.Write(xutil.ToBytes(golug.Mode))
 		case "config":
-			return w.Write([]byte(CfgName + "." + CfgType))
+			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
 		default:
-			return w.Write([]byte(GetCfg().GetString(tag)))
+			return w.Write(xutil.ToBytes(GetCfg().GetString(tag)))
 		}
 	})
 }

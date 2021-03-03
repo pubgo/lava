@@ -6,7 +6,7 @@ import (
 )
 
 func TestName(t *testing.T) {
-	sm := NewSyncMap()
+	sm := NewSMap()
 	sm.Set("a1", 1)
 	sm.Set("a2", 2)
 	fmt.Println(sm.Has("a1"))

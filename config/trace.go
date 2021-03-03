@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	tracelog.Watch(Name, func() interface{} {
+	tracelog.Watch(name, func() interface{} {
 		var data = make(map[string]interface{})
 		for _, k := range GetCfg().AllKeys() {
 			data[k] = GetCfg().GetString(k)

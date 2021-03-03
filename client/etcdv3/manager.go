@@ -11,7 +11,7 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
-var data types.SyncMap
+var data types.SMap
 
 // Get 获取etcd client
 func Get(names ...string) *Client {

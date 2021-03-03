@@ -15,11 +15,16 @@ import (
 
 // 默认的全局配置
 var (
-	Name    = "config"
+	name    = "config"
 	CfgType = "yaml"
 	CfgName = "config"
 	cfg     *Config
 )
+
+func init() {
+	env.GetVal(&CfgType, "cfg_type")
+	env.GetVal(&CfgName, "cfg_name")
+}
 
 func On(fn func(cfg *Config)) { xerror.Panic(dix.Dix(fn)) }
 
@@ -43,7 +48,7 @@ func initWithDir() (err error) {
 	v.AddConfigPath(filepath.Join("/etc", golug.Domain, golug.Project, CfgName))
 
 	// 监控Home工作目录
-	home := xerror.PanicErr(homedir.Dir()).(string)
+	home := xerror.PanicStr(homedir.Dir())
 	v.AddConfigPath(filepath.Join(home, ".config", golug.Project, CfgName))
 	v.AddConfigPath(filepath.Join(home, "."+golug.Domain, golug.Project, CfgName))
 
@@ -94,6 +99,14 @@ func initApp() (err error) {
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
+	// 运行环境检查
+	var m = golug.RunMode
+	switch golug.Mode {
+	case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
+	default:
+		xerror.Assert(true, "running mode does not match, mode: %s", golug.Mode)
+	}
+
 	// 配置处理
 	cfg = &Config{Viper: viper.New()}
 
@@ -116,25 +129,13 @@ func Init() (err error) {
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 剩下的就是获取配置了
-	if GetCfg().ReadInConfig() != nil {
+	if cfg.ReadInConfig() != nil {
 		xerror.Panic(initWithDir())
 	}
 
-	xerror.Assert(GetCfg().ConfigFileUsed() == "", "config file not found")
-
-	xerror.ExitF(GetCfg().ReadInConfig(), "read config failed")
-
+	xerror.Assert(cfg.ConfigFileUsed() == "", "config file not found")
+	xerror.ExitF(cfg.ReadInConfig(), "read config failed")
 	xerror.Panic(initApp())
-
-	// CheckMod
-	// 运行环境检查
-	var m = golug.RunMode
-	switch golug.Mode {
-	case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
-	default:
-		xerror.Assert(true, "running mode does not match, mode: %s", golug.Mode)
-	}
-
-	xerror.Panic(dix.Dix(GetCfg()))
+	xerror.Panic(dix.Dix(cfg))
 	return nil
 }

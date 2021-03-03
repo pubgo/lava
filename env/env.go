@@ -1,6 +1,8 @@
 package env
 
 import (
+	"github.com/pubgo/golug/gutils"
+
 	"os"
 	"regexp"
 	"strings"
@@ -34,6 +36,10 @@ func GetVal(val *string, names ...string) {
 			*val = env
 		}
 	}
+}
+
+func GetBoolVal(val *bool, names ...string) {
+	*val = gutils.ParseBool(trim(Get(names...)))
 }
 
 func Lookup(key string) (string, bool) {

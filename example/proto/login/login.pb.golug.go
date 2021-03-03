@@ -41,15 +41,12 @@ func init() {
 }
 
 func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
-	c, err := grpclient.Get(srv, opts...)
+	c, err := grpclient.Client(srv, opts...).Get()
 	return &loginClient{c}, err
 }
 
 func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	c, err := GetLoginClient(srv, opts...)
-	if err != nil {
-		return err
-	}
+	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
 		p := metadata.Pairs()
 		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
@@ -59,6 +56,11 @@ func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &loginClient{conn}
 		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -75,6 +77,11 @@ func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &loginClient{conn}
 		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err

@@ -11,7 +11,7 @@ import (
 var _ json.Unmarshaler = (*Duration)(nil)
 var _ json.Marshaler = (*Duration)(nil)
 
-func NewDuration(dur time.Duration) Duration {
+func Dur(dur time.Duration) Duration {
 	return Duration{Duration: dur}
 }
 

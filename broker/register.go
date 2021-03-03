@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var brokerMap = types.NewSyncMap()
+var brokerMap = types.NewSMap()
 
 func Register(name string, broker Broker) {
 	xerror.Assert(name == "" || broker == nil, "[broker], [name] should not be null")

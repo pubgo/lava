@@ -21,9 +21,3 @@ type WrappedServerStream = grpcMiddleware.WrappedServerStream
 func WrapServerStream(stream grpc.ServerStream) *WrappedServerStream {
 	return grpcMiddleware.WrapServerStream(stream)
 }
-
-type ClientInfo struct {
-	Method string
-	Conn   *grpc.ClientConn
-	Desc   *grpc.StreamDesc
-}

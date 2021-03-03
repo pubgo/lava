@@ -9,15 +9,17 @@ import (
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/golug"
-	"github.com/pubgo/golug/types"
 	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/types"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"
 )
 
-var clientMap = types.NewSyncMap()
+var clientMap types.SMap
+
+func List() (dt map[string]*xorm.Engine) { clientMap.Map(&dt); return }
 
 func Get(names ...string) *xorm.Engine {
 	var name = consts.GetDefault(names...)
@@ -26,9 +28,9 @@ func Get(names ...string) *xorm.Engine {
 	return clientMap.Get(name).(*xorm.Engine)
 }
 
-func List() (dt map[string]*xorm.Engine) { clientMap.Map(&dt); return }
+func initClient(name string, cfg Cfg) (err error) {
+	defer xerror.RespErr(&err)
 
-func initClient(name string, cfg Cfg) {
 	source := config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if _dir := filepath.Dir(source); !gutils.PathExist(_dir) {
@@ -39,7 +41,7 @@ func initClient(name string, cfg Cfg) {
 	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
 	engine.SetMaxOpenConns(cfg.MaxConnOpen)
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
-	engine.SetConnMaxLifetime(cfg.MaxConnTime)
+	engine.SetConnMaxLifetime(cfg.MaxConnTime.Duration)
 	engine.SetMapper(names.LintGonicMapper)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
 	if golug.IsDev() || golug.IsTest() {
@@ -56,6 +58,7 @@ func initClient(name string, cfg Cfg) {
 
 	// 初始化完毕之后, 更新到对象管理系统
 	updateEngine(name, engine)
+	return nil
 }
 
 func updateEngine(name string, engine *xorm.Engine) {

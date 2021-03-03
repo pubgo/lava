@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
-	registry "github.com/pubgo/golug/registry"
+	"github.com/pubgo/golug/registry"
+	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/resolver"
 )
@@ -73,7 +73,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(target.Endpoint)
 	if err != nil {
-		return nil, errors.Wrap(err, "registry GetService error\n")
+		return nil, xerror.Wrap(err, "registry GetService error\n")
 	}
 
 	// 启动后，更新服务地址
@@ -89,7 +89,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	w, err := r.Watch(registry.WatchService(target.Endpoint))
 	if err != nil {
-		return nil, errors.Wrapf(err, "target.Endpoint:%s\n", target.Endpoint)
+		return nil, xerror.WrapF(err, "target.Endpoint:%s\n", target.Endpoint)
 	}
 
 	go func() {

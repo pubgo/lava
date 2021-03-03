@@ -5,13 +5,17 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var registries = types.NewSyncMap()
+var registries types.SMap
 var Default Registry
 
-func List() (dt map[string]Registry) { registries.Map(&dt); return }
+func List() (dt map[string]Registry) {
+	xerror.Panic(registries.Map(&dt))
+	return
+}
+
 func Register(name string, r Registry) {
-	xerror.Assert(name == "" || r == nil, "[name] or [r] is nil")
-	xerror.Assert(registries.Has(name), "registry %s is exists", name)
+	xerror.Assert(name == "" || r == nil, "[name] or [r] is null")
+	xerror.Assert(registries.Has(name), "registry %s already exists", name)
 
 	registries.Set(name, r)
 }

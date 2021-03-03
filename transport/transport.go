@@ -6,6 +6,7 @@ package transport
 type Transport interface {
 	Dial(addr string) (Client, error)
 	Listen(addr string) (Listener, error)
+
 	String() string
 }
 

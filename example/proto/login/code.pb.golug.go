@@ -68,15 +68,12 @@ func init() {
 }
 
 func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
-	c, err := grpclient.Get(srv, opts...)
+	c, err := grpclient.Client(srv, opts...).Get()
 	return &codeClient{c}, err
 }
 
 func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	c, err := GetCodeClient(srv, opts...)
-	if err != nil {
-		return err
-	}
+	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
 		p := metadata.Pairs()
 		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
@@ -86,6 +83,11 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &codeClient{conn}
 		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -102,6 +104,11 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &codeClient{conn}
 		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -118,6 +125,11 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &codeClient{conn}
 		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -134,6 +146,11 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &codeClient{conn}
 		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err
@@ -150,6 +167,11 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 			return err
 		}
 
+		conn, err := client.Get()
+		if err != nil {
+			return err
+		}
+		c := &codeClient{conn}
 		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
 			return err

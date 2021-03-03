@@ -5,7 +5,9 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var data = types.NewSyncMap()
+var data types.SMap
+
+func List() (dt map[string]Codec) { xerror.Panic(data.Map(&dt)); return }
 
 func Register(name string, codec Codec) {
 	xerror.Assert(codec == nil || name == "", "[codec] %s is nil", name)
@@ -22,5 +24,3 @@ func Get(name string) Codec {
 
 	return val.(Codec)
 }
-
-func List() (dt map[string]Codec) { data.Map(&dt); return }

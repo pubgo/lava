@@ -16,7 +16,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3
 	github.com/google/go-cmp v0.5.3 // indirect
-	github.com/google/uuid v1.1.1
+	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-version v1.2.1
 	github.com/imdario/mergo v0.3.11
@@ -28,9 +28,8 @@ require (
 	github.com/miekg/dns v1.1.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.10
+	github.com/pubgo/x v0.3.12
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.0.18
 	github.com/pubgo/xprotogen v0.0.5

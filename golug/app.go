@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/golug/env"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/pflag"
@@ -38,25 +37,22 @@ var (
 func init() {
 	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	env.GetVal(&Domain, "env_prefix", "golug", "golug_domain", "golug_prefix")
+	env.GetVal(&Domain, "env_prefix", "domain", "golug_domain", "golug_prefix")
 	if Domain = trim(lower(Domain)); Domain == "" {
 		Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", Domain)
 	}
+	env.Prefix = Domain
 
-	env.GetVal(&Home, "home", "dir")
-
-	// 使用前缀获取系统环境变量
-	env.GetVal(&Project, "project", "name", "server_name")
-
-	env.GetVal(&Mode, "mode", "run")
-
-	Trace = gutils.IsTrue(trim(env.Get("trace")))
+	env.GetVal(&Home, "home", "cfg_dir", "config_path")
+	env.GetVal(&Project, "project", "server_name")
+	env.GetVal(&Mode, "mode", "run_mode")
+	env.GetBoolVal(&Trace, "trace")
 }
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&Home, "home", "c", Mode, "config home")
+	flags.StringVarP(&Home, "home", "c", Home, "config home dir")
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
 	flags.StringVarP(&Project, "project", "p", Project, "project name")

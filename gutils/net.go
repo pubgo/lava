@@ -16,6 +16,7 @@ func GetFreePort() (port int, err error) {
 	if err != nil {
 		return 0, err
 	}
+
 	defer listener.Close()
 
 	addr := listener.Addr().String()
