@@ -11,11 +11,13 @@ const tpl = `
 package {{pkg}}
 import (
 	"reflect"
+	"bytes"
 
 	"github.com/pubgo/golug/gutils"
 	"google.golang.org/grpc/metadata"
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/golug/xgen"
 	"github.com/pubgo/golug/client/grpclient"
 )
@@ -41,9 +43,12 @@ var _=gutils.Decode
 {% endfor %}
 
 {% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv string, opts ...grpc.DialOption) ({{ss.Srv}}Client,error) {
-		c,err:=grpclient.Client(srv, opts...).Get()
-		return &{{unExport(ss.Srv)}}Client{c},err
+	func Get{{ss.Srv}}Client(srv string, opts ...grpc.DialOption) func() ({{ss.Srv}}Client,error) {
+		client := grpclient.Client(srv, opts...)
+		return func() ({{ss.Srv}}Client,error) {
+			c, err := client.Get()
+			return &{{unExport(ss.Srv)}}Client{c},err
+		}
 	}
 {% endfor %}
 
@@ -54,9 +59,6 @@ var _=gutils.Decode
 		{%- for m in ss.GetMethod() %}
 			{%- if !m.CS and !m.SS and (m.HttpMethod=="POST" or m.HttpMethod=="GET" or m.HttpMethod=="PUT") %}
 				g.Add("{{m.HttpMethod}}", "{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
-					p := metadata.Pairs()
-					ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 					var req {{m.GetInputType()}}					
 					{%- if m.HttpMethod=="POST" or m.HttpMethod=="PUT" %}
 						if err:=ctx.BodyParser(&req);err!=nil{
@@ -64,7 +66,7 @@ var _=gutils.Decode
 						}
 					{%- else %}
 						var data = make(map[string]interface{})
-						ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[string(key)] = string(value) })
+						ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[xutil.ToStr(key)] = xutil.ToStr(value) })
 						if err := gutils.Decode(data, &req); err != nil {
 							return err
 						}
@@ -74,6 +76,10 @@ var _=gutils.Decode
 					if err!=nil{
 						return err
 					}
+
+					p := metadata.Pairs()
+					ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 					c:=&{{unExport(ss.Srv)}}Client{conn}
 					resp,err:=c.{{m.GetName()}}(metadata.NewIncomingContext(ctx.Context(), p),&req)
 					if err!=nil{

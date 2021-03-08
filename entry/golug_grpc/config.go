@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	registry "github.com/pubgo/golug/registry"
+	opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"github.com/pubgo/golug/registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -48,11 +48,11 @@ var (
 	DefaultId = uuid.New().String()
 
 	streamInterceptors = []grpc.StreamServerInterceptor{
-		grpc_opentracing.StreamServerInterceptor(),
+		opentracing.StreamServerInterceptor(),
 	}
 
 	unaryInterceptors = []grpc.UnaryServerInterceptor{
-		grpc_opentracing.UnaryServerInterceptor(),
+		opentracing.UnaryServerInterceptor(),
 	}
 
 	kasp = keepalive.ServerParameters{

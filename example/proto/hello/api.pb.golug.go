@@ -4,12 +4,14 @@
 package hello
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -64,22 +66,25 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Gateway), nil)
 }
 
-func GetTestApiClient(srv string, opts ...grpc.DialOption) (TestApiClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &testApiClient{c}, err
+func GetTestApiClient(srv string, opts ...grpc.DialOption) func() (TestApiClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (TestApiClient, error) {
+		c, err := client.Get()
+		return &testApiClient{c}, err
+	}
 }
 
-func GetTestApiV2Client(srv string, opts ...grpc.DialOption) (TestApiV2Client, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &testApiV2Client{c}, err
+func GetTestApiV2Client(srv string, opts ...grpc.DialOption) func() (TestApiV2Client, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (TestApiV2Client, error) {
+		c, err := client.Get()
+		return &testApiV2Client{c}, err
+	}
 }
 
 func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/hello/test_api/version", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TestReq
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -89,6 +94,10 @@ func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption)
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &testApiClient{conn}
 		resp, err := c.Version(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -98,12 +107,9 @@ func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption)
 	})
 
 	g.Add("GET", "/v1/example/versiontest", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TestReq
 		var data = make(map[string]interface{})
-		ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[string(key)] = string(value) })
+		ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[xutil.ToStr(key)] = xutil.ToStr(value) })
 		if err := gutils.Decode(data, &req); err != nil {
 			return err
 		}
@@ -112,6 +118,10 @@ func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption)
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &testApiClient{conn}
 		resp, err := c.VersionTest(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -126,9 +136,6 @@ func RegisterTestApiGateway(srv string, g fiber.Router, opts ...grpc.DialOption)
 func RegisterTestApiV2Gateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/v2/example/version", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TestReq
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -138,6 +145,10 @@ func RegisterTestApiV2Gateway(srv string, g fiber.Router, opts ...grpc.DialOptio
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &testApiV2Client{conn}
 		resp, err := c.Version1(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -147,9 +158,6 @@ func RegisterTestApiV2Gateway(srv string, g fiber.Router, opts ...grpc.DialOptio
 	})
 
 	g.Add("POST", "/v2/example/versiontest", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TestReq
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -159,6 +167,10 @@ func RegisterTestApiV2Gateway(srv string, g fiber.Router, opts ...grpc.DialOptio
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &testApiV2Client{conn}
 		resp, err := c.VersionTest1(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {

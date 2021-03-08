@@ -4,12 +4,14 @@
 package login
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -40,17 +42,17 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterLoginGateway), nil)
 }
 
-func GetLoginClient(srv string, opts ...grpc.DialOption) (LoginClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &loginClient{c}, err
+func GetLoginClient(srv string, opts ...grpc.DialOption) func() (LoginClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (LoginClient, error) {
+		c, err := client.Get()
+		return &loginClient{c}, err
+	}
 }
 
 func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req LoginRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -60,6 +62,10 @@ func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &loginClient{conn}
 		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -69,9 +75,6 @@ func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 	})
 
 	g.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req AuthenticateRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -81,6 +84,10 @@ func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &loginClient{conn}
 		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {

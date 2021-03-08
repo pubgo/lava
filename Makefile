@@ -15,18 +15,14 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -race -v -o main cmds/golug/main.go
+	@go build ${LDFLAGS} -mod vendor -v -o main cmds/golug/main.go
 
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
 
 .PHONY: install
 install:
-	@cd cmds/golug && go install ${LDFLAGS} .
-
-.PHONY: release
-release:
-	@go build ${LDFLAGS} -race -v -o main main.go
+	@cd cmds/golug && go install -v ${LDFLAGS} .
 
 .PHONY: test
 test:
@@ -65,15 +61,5 @@ gen:
 example:
 	go build ${LDFLAGS} -mod vendor -v -o main example/main.go
 
-
-.PHONY: ossync
-ossync:
-	cd cmds/ossync && go install ${LDFLAGS} -v .
-
-.PHONY: tickrun
-tickrun:
-	cd cmds/tickrun && go install ${LDFLAGS} -v .
-
-.PHONY: lug
-lug:
-	cd cmds/golug && go install ${LDFLAGS} -v .
+docker:
+	docker build -t golug .

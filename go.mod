@@ -19,17 +19,17 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hashicorp/go-version v1.2.1
+	github.com/hashicorp/mdns v1.0.3
 	github.com/imdario/mergo v0.3.11
 	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.10
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
-	github.com/miekg/dns v1.1.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.12
+	github.com/pubgo/x v0.3.15
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.0.18
 	github.com/pubgo/xprotogen v0.0.5

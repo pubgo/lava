@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/golug/internal/golug_cmd"
 	_ "github.com/pubgo/golug/internal/golug_log"
 	"github.com/pubgo/golug/internal/golug_run"
+	_ "github.com/pubgo/golug/metric"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xerror"
 )

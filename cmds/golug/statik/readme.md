@@ -1,0 +1,1 @@
+github.com/rakyll/statik

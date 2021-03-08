@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/types"
 	"github.com/pubgo/xerror"
 )
@@ -13,4 +14,13 @@ func Register(name string, w Watcher) {
 	xerror.Assert(watchers.Has(name), "[watcher:%s] already exists", name)
 
 	watchers.Set(name, w)
+}
+
+func Get(names ...string) Watcher {
+	w := watchers.Get(consts.GetDefault(names...))
+	if w == nil {
+		return nil
+	}
+
+	return w.(Watcher)
 }

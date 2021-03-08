@@ -1,7 +1,6 @@
 package etcdv3
 
 import (
-	"fmt"
 	"runtime"
 	"unsafe"
 
@@ -11,52 +10,49 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
-var data types.SMap
+var clients types.SMap
 
 // Get 获取etcd client
 func Get(names ...string) *Client {
-	var name = consts.GetDefault(names...)
-
-	xerror.Assert(data.Has(name), "[etcdv3] %s not found", name)
-
-	return data.Get(name).(*Client)
+	c := clients.Get(consts.GetDefault(names...))
+	if c == nil {
+		return nil
+	}
+	return c.(*Client)
 }
 
-func New(cfg clientv3.Config) (*clientv3.Client, error) {
-	c, err := newClient(cfg)
-	return c.Client, err
+// List etcd client list
+func List() (dt map[string]*Client) {
+	xerror.Panic(clients.Map(&dt))
+	return
 }
 
-func newClient(cfg clientv3.Config) (*Client, error) {
-	var err error
+func newClient(cfg clientv3.Config) (c *Client, err error) {
+	defer xerror.RespErr(&err)
 
 	// etcd config处理
 	cfg, err = cfgMerge(cfg)
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
 	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
-	if err != nil {
-		return nil, xerror.WrapF(err, "[etcd] New error, err: %v, cfg: %#v", err, cfg)
-	}
+	xerror.PanicF(err, "[etcd] New error, err: %v, cfgList: %#v", err, cfg)
 
 	return &Client{Client: etcdClient}, nil
 }
 
-// Update 更新etcd client
-func Update(name string, cfg clientv3.Config) error {
+// updateClient 更新etcd client
+func updateClient(name string, cfg clientv3.Config) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
-	oldClient, ok := data.Load(name)
+	oldClient, ok := clients.Load(name)
 	etcdClient, err := newClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	data.Set(name, etcdClient)
+	clients.Set(name, etcdClient)
 
 	if !ok || oldClient == nil {
 		return nil
@@ -73,25 +69,20 @@ func Update(name string, cfg clientv3.Config) error {
 	return nil
 }
 
-// Init 创建或者初始化etcd client
-func Init(name string, cfg clientv3.Config) error {
-	if data.Has(name) {
-		return fmt.Errorf("[etcd] %s already exists", name)
-	}
+// initClient 创建或者初始化etcd client
+func initClient(name string, cfg clientv3.Config) {
+	xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 
 	etcdClient, err := newClient(cfg)
-	if err != nil {
-		return err
-	}
+	xerror.Panic(err)
 
-	data.Set(name, etcdClient)
-	return nil
+	clients.Set(name, etcdClient)
 }
 
-// Del 删除etcd client, 并关闭etcd client
-func Del(name string) {
+// delClient 删除etcd client, 并关闭etcd client
+func delClient(name string) {
 	c := Get(name)
-	data.Delete(name)
+	clients.Delete(name)
 
 	if c == nil {
 		return
@@ -100,10 +91,4 @@ func Del(name string) {
 	if err := c.Close(); err != nil {
 		log.Errorf("[etcd] client close error, name:%s, err: %#v", name, err)
 	}
-}
-
-// List etcd client list
-func List() (dt map[string]*Client) {
-	data.Map(&dt)
-	return
 }

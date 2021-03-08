@@ -12,8 +12,8 @@ type Entry interface {
 	entry.Entry
 	Register(handler interface{}, opts ...Option)
 	InitOpts(opts ...grpc.ServerOption)
-	RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
-	RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
+	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
+	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }
 
 type WrappedServerStream = grpcMiddleware.WrappedServerStream

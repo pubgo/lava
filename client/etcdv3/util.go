@@ -1,19 +1,17 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/xerror"
 	"time"
 
-	"github.com/imdario/mergo"
 	"go.etcd.io/etcd/clientv3"
 )
 
-// cfgMerge 合并etcd config
+// cfgMerge 合并etcd Cfg
 func cfgMerge(cfg clientv3.Config) (cfg1 clientv3.Config, err error) {
-	cfg1 = DefaultCfg
-	if err1 := mergo.Map(&cfg1, cfg, mergo.WithOverride, mergo.WithTypeCheck); err1 != nil {
-		err = xerror.WrapF(err1, "[etcd] client config merge error")
-	}
+	cfg1 = GetDefaultCfg().ToEtcdConfig()
+	err = xerror.WrapF(gutils.Mergo(&cfg1, cfg), "[etcd] client Cfg merge error")
 	return
 }
 

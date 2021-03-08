@@ -40,8 +40,7 @@ type Cfg struct {
 	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
 }
 
-func GetDefaultCfg() Cfg {
-	var cfg = Cfg{}
+func GetDefaultCfg() (cfg Cfg) {
 	dt := xerror.PanicBytes(json.Marshal(fiber.New().Config()))
 	xerror.Panic(json.Unmarshal(dt, &cfg))
 	return cfg

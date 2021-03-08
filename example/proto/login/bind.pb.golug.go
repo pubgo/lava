@@ -4,12 +4,14 @@
 package login
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -76,17 +78,17 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneGateway), nil)
 }
 
-func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) (BindTelephoneClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &bindTelephoneClient{c}, err
+func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) func() (BindTelephoneClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (BindTelephoneClient, error) {
+		c, err := client.Get()
+		return &bindTelephoneClient{c}, err
+	}
 }
 
 func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req CheckRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -96,6 +98,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.Check(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -105,9 +111,6 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 	})
 
 	g.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req BindVerifyRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -117,6 +120,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.BindVerify(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -126,9 +133,6 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 	})
 
 	g.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req BindChangeRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -138,6 +142,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.BindChange(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -147,9 +155,6 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 	})
 
 	g.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req AutomaticBindRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -159,6 +164,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.AutomaticBind(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -168,9 +177,6 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 	})
 
 	g.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req BindPhoneParseRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -180,6 +186,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.BindPhoneParse(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -189,9 +199,6 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 	})
 
 	g.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req BindPhoneParseByOneClickRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -201,6 +208,10 @@ func RegisterBindTelephoneGateway(srv string, g fiber.Router, opts ...grpc.DialO
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &bindTelephoneClient{conn}
 		resp, err := c.BindPhoneParseByOneClick(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {

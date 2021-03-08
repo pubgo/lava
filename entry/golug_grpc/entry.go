@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/golug/entry/base"
 	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/gutils/addr"
-	registry "github.com/pubgo/golug/registry"
+	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -47,16 +47,11 @@ func (g *grpcEntry) InitOpts(opts ...grpc.ServerOption) { g.opts = append(g.opts
 // EnableDebug
 // https://github.com/grpc/grpc-experiments/tree/master/gdebug
 func (g *grpcEntry) EnableDebug() {
-	grpc.EnableTracing = true
-	reflection.Register(g.srv)
-	service.RegisterChannelzServiceToServer(g.srv)
-}
-
-func (g *grpcEntry) GetDefaultServerOpts() []grpc.ServerOption {
-	return []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(g.cfg.MaxReceiveMessageSize),
-		grpc.MaxSendMsgSize(g.cfg.MaxSendMessageSize),
-	}
+	g.BeforeStart(func() {
+		grpc.EnableTracing = true
+		reflection.Register(g.srv)
+		service.RegisterChannelzServiceToServer(g.srv)
+	})
 }
 
 func (g *grpcEntry) Init() (gErr error) {
@@ -71,10 +66,9 @@ func (g *grpcEntry) Init() (gErr error) {
 	streamInterceptorList = append(streamInterceptorList, g.streamServerInterceptors...)
 
 	opts := GetDefaultServerOpts()
-	opts = append(opts, g.GetDefaultServerOpts()...)
 	opts = append(opts,
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryInterceptorList...)),
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(streamInterceptorList...)))
+		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(unaryInterceptorList...)),
+		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(streamInterceptorList...)))
 
 	// 注册中心校验
 	g.cfg.registry = registry.Default
@@ -220,14 +214,14 @@ func (g *grpcEntry) Stop() (err error) {
 	return <-ch
 }
 
-func (g *grpcEntry) RegisterUnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
+func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	g.unaryServerInterceptors = append(g.unaryServerInterceptors, interceptors...)
 }
 
-func (g *grpcEntry) RegisterStreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
+func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 

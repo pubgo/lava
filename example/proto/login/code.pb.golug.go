@@ -4,12 +4,14 @@
 package login
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -67,17 +69,17 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterCodeGateway), nil)
 }
 
-func GetCodeClient(srv string, opts ...grpc.DialOption) (CodeClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &codeClient{c}, err
+func GetCodeClient(srv string, opts ...grpc.DialOption) func() (CodeClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (CodeClient, error) {
+		c, err := client.Get()
+		return &codeClient{c}, err
+	}
 }
 
 func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req SendCodeRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -87,6 +89,10 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &codeClient{conn}
 		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -96,9 +102,6 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 	})
 
 	g.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req VerifyRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -108,6 +111,10 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &codeClient{conn}
 		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -117,9 +124,6 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 	})
 
 	g.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req IsCheckImageCodeRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -129,6 +133,10 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &codeClient{conn}
 		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -138,9 +146,6 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 	})
 
 	g.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req VerifyImageCodeRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -150,6 +155,10 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &codeClient{conn}
 		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -159,9 +168,6 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 	})
 
 	g.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req GetSendStatusRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -171,6 +177,10 @@ func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) er
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &codeClient{conn}
 		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {

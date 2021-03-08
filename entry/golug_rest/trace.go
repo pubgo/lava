@@ -5,7 +5,8 @@ import (
 )
 
 func (t *restEntry) trace() {
-	tracelog.Watch(t.Options().Name+"_rest_router", func() interface{} {
+	var key = t.Options().Name + "_rest_router"
+	tracelog.Watch(key, func() interface{} {
 		if t.app == nil {
 			return nil
 		}

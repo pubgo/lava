@@ -2,25 +2,21 @@ package watcher
 
 import (
 	"strings"
-
-	"github.com/pubgo/golug/config"
 )
 
 var Name = "watcher"
+var cfgList []Cfg
 
 type Cfg struct {
 	Project string `json:"project"`
 	Driver  string `json:"driver"`
-	Name    string `json:"name"`
-}
-
-func GetCfg() (cfg map[string]Cfg) {
-	config.Decode(Name, &cfg)
-	return
 }
 
 func GetDefaultCfg() Cfg {
-	return Cfg{}
+	return Cfg{
+		Project: "hello",
+		Driver:  "etcdv3",
+	}
 }
 
 // KeyWithDot [abc,ddd/ss,a,.c] --> abc.ddd/ss.a.c

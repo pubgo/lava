@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/types"
 	"github.com/pubgo/xerror"
 )
@@ -13,15 +14,20 @@ func List() (dt map[string]Registry) {
 	return
 }
 
-func Register(name string, r Registry) {
-	xerror.Assert(name == "" || r == nil, "[name] or [r] is null")
-	xerror.Assert(registries.Has(name), "registry %s already exists", name)
+func Register(r Registry) (err error) {
+	defer xerror.RespErr(&err)
 
-	registries.Set(name, r)
+	xerror.Assert(r == nil || r.String() == "", "[driver] is null")
+
+	schema := r.String()
+	xerror.Assert(registries.Has(schema), "registry %s already exists", schema)
+
+	registries.Set(schema, r)
+	return
 }
 
-func Get(name string) Registry {
-	val, ok := registries.Load(name)
+func Get(schemas ...string) Registry {
+	val, ok := registries.Load(consts.GetDefault(schemas...))
 	if !ok {
 		return nil
 	}

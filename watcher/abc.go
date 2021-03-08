@@ -1,22 +1,21 @@
 package watcher
 
 import (
-	"encoding/json"
+	"context"
 
+	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
 
-type Option func(opts *Options)
-type Options struct {
-	prefix bool
-}
-
 // Watcher ...
 type Watcher interface {
-	Name() string
-	Start() error
-	Close() error
+	Watch(ctx context.Context, key string, opts ...OpOption) <-chan *Response
+	String() string
 }
+
+type OpOption func(*Op)
+type Op struct{}
 
 type CallBack func(event *Response) error
 type Response struct {
@@ -41,11 +40,10 @@ func (t *Response) OnDelete(fn func()) {
 }
 
 func (t *Response) Decode(val interface{}) (gErr error) {
-	defer xerror.Resp(func(err xerror.XErr) {
-		gErr = err.WrapF("input: %#v, output: %t", t.Value, val)
+	return xutil.Try(func() {
+		var err = jsonx.Unmarshal(t.Value, val)
+		gErr = xerror.WrapF(err, "input: %#v, output: %t", t.Value, val)
 	})
-
-	return xerror.Wrap(json.Unmarshal(t.Value, val))
 }
 
 func (t *Response) checkEventType() error {

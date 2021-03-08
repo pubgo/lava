@@ -4,12 +4,14 @@
 package hello
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -58,18 +60,18 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterTransportGateway), nil)
 }
 
-func GetTransportClient(srv string, opts ...grpc.DialOption) (TransportClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &transportClient{c}, err
+func GetTransportClient(srv string, opts ...grpc.DialOption) func() (TransportClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (TransportClient, error) {
+		c, err := client.Get()
+		return &transportClient{c}, err
+	}
 }
 
 func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 
 	g.Add("POST", "/hello/transport/test_stream3", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req Message
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -79,6 +81,10 @@ func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOptio
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &transportClient{conn}
 		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {

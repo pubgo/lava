@@ -54,7 +54,7 @@ func (t *restEntry) Init() (err error) {
 	dm := config.GetCfg().GetStringMap(Name)
 	delete(dm, "views")
 
-	gutils.Mergo(&t.cfg, dm)
+	xerror.Panic(gutils.Mergo(&t.cfg, dm))
 
 	if t.cfg1.Views.Dir != "" && t.cfg1.Views.Ext != "" {
 		t.cfg.Views = html.New(t.cfg1.Views.Dir, t.cfg1.Views.Ext)

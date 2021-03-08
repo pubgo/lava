@@ -25,5 +25,6 @@ func initLog(cfg xlog_config.Config) (err error) {
 
 	// 全局log设置
 	xerror.Panic(xlog.SetDefault(log.Named(golug.Domain)))
+
 	return nil
 }

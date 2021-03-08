@@ -1,4 +1,4 @@
-package init
+package initcmd
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewInit() *cobra.Command {
+func New() *cobra.Command {
 	var cmd = &cobra.Command{Use: "init"}
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {

@@ -9,6 +9,16 @@
 7. golug 抽象plugin, 跟随config的动态化加载,
 8. golug config和watcher分离, config从本地文件加载, watcher可以从远程的任何的组件watch, 比如etcd
 
+
+## 功能特性
+1. 健康检查, pprof
+2. 一切配置化, 通过plugin集成组建
+3. 集成log, metric, tracing
+4. 集成多种服务和server
+5. 一站式开发
+6. 环境自动检测, 本地项目生成
+7. 支持rest, grpc等
+
 ## example
 
 ```go

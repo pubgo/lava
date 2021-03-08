@@ -1,0 +1,43 @@
+run:
+  skip-dirs-use-default: false
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+linters:
+  enable:
+    - govet
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - errcheck
+    - exportloopref
+    - gochecknoinits
+    - gofmt
+    - goheader
+    - goimports
+    - gomodguard
+    - goprintffuncname
+    - gosimple
+    - gosec
+    - ineffassign
+    - misspell
+    - nakedret
+    - nolintlint
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+    - whitespace
+  disable-all: true
+issues:
+  exclude-rules:
+    - linters:
+        - stylecheck
+      text: "ST1005:"

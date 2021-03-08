@@ -3,33 +3,31 @@ package etcdv3
 import (
 	"time"
 
-	"github.com/pubgo/golug/types"
+	"github.com/pubgo/x/jsonx"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 )
 
 const Name = "etcdv3"
 
-var DefaultCfg = clientv3.Config{
-	DialTimeout: time.Second * 2,
-	DialOptions: []grpc.DialOption{grpc.WithBlock()},
-}
+var cfgList []Cfg
 
-type config struct {
+type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
-	AutoSyncInterval     types.Duration    `json:"interval"`
-	DialTimeout          types.Duration    `json:"timeout"`
-	DialKeepAliveTime    types.Duration    `json:"keepalive"`
-	DialKeepAliveTimeout types.Duration    `json:"keepalive_timeout"`
+	AutoSyncInterval     jsonx.Duration    `json:"interval"`
+	DialTimeout          jsonx.Duration    `json:"timeout"`
+	DialKeepAliveTime    jsonx.Duration    `json:"keepalive"`
+	DialKeepAliveTimeout jsonx.Duration    `json:"keepalive_timeout"`
 	MaxCallSendMsgSize   int               `json:"max_send"`
 	MaxCallRecvMsgSize   int               `json:"max_recv"`
 	Username             string            `json:"username"`
+	Name                 string            `json:"name"`
 	Password             string            `json:"password"`
 	DialOptions          []grpc.DialOption `json:"-"`
 }
 
-// 转化为etcd config
-func (t config) EtcdConfig() (cfg clientv3.Config) {
+// 转化为etcd Cfg
+func (t Cfg) ToEtcdConfig() (cfg clientv3.Config) {
 	cfg.Endpoints = t.Endpoints
 	cfg.AutoSyncInterval = t.AutoSyncInterval.Duration
 	cfg.DialTimeout = t.DialTimeout.Duration
@@ -41,4 +39,11 @@ func (t config) EtcdConfig() (cfg clientv3.Config) {
 	cfg.Password = t.Password
 	cfg.DialOptions = t.DialOptions
 	return cfg
+}
+
+func GetDefaultCfg() Cfg {
+	return Cfg{
+		DialTimeout: jsonx.Dur(time.Second * 2),
+		DialOptions: []grpc.DialOption{grpc.WithBlock()},
+	}
 }

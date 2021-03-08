@@ -4,12 +4,14 @@
 package login
 
 import (
+	"bytes"
 	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -67,17 +69,17 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterMergeGateway), nil)
 }
 
-func GetMergeClient(srv string, opts ...grpc.DialOption) (MergeClient, error) {
-	c, err := grpclient.Client(srv, opts...).Get()
-	return &mergeClient{c}, err
+func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (MergeClient, error) {
+		c, err := client.Get()
+		return &mergeClient{c}, err
+	}
 }
 
 func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
 	client := grpclient.Client(srv, opts...)
 	g.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TelephoneRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -87,6 +89,10 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &mergeClient{conn}
 		resp, err := c.Telephone(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -96,9 +102,6 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 	})
 
 	g.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req TelephoneRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -108,6 +111,10 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &mergeClient{conn}
 		resp, err := c.TelephoneCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -117,9 +124,6 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 	})
 
 	g.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req WeChatRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -129,6 +133,10 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &mergeClient{conn}
 		resp, err := c.WeChat(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -138,9 +146,6 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 	})
 
 	g.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req WeChatRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -150,6 +155,10 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &mergeClient{conn}
 		resp, err := c.WeChatCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
@@ -159,9 +168,6 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 	})
 
 	g.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(string(key), string(value)) })
-
 		var req WeChatUnMergeRequest
 		if err := ctx.BodyParser(&req); err != nil {
 			return err
@@ -171,6 +177,10 @@ func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) e
 		if err != nil {
 			return err
 		}
+
+		p := metadata.Pairs()
+		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
+
 		c := &mergeClient{conn}
 		resp, err := c.WeChatUnMerge(metadata.NewIncomingContext(ctx.Context(), p), &req)
 		if err != nil {
