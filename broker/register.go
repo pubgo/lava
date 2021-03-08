@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var brokerMap = types.NewSMap()
+var brokerMap types.SMap
 
 func List() (dt map[string]Broker) { xerror.Panic(brokerMap.Map(&dt)); return }
 

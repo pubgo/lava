@@ -10,7 +10,7 @@ var _ Entry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
 	handler broker.Handler
-	opts    broker.SubOptions
+	opts    broker.SubOpts
 	optList []broker.SubOption
 }
 
@@ -22,7 +22,7 @@ type taskEntry struct {
 }
 
 func (t *taskEntry) Register(topic string, handler broker.Handler, opts ...broker.SubOption) error {
-	var opts1 broker.SubOptions
+	var opts1 broker.SubOpts
 	for i := range opts {
 		opts[i](&opts1)
 	}

@@ -1,5 +1,0 @@
-package broker
-
-func init() {
-
-}
