@@ -20,21 +20,22 @@ require (
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/mdns v1.0.3
 	github.com/imdario/mergo v0.3.11
-	github.com/jhump/protoreflect v1.7.1
 	github.com/json-iterator/go v1.1.10
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
+	github.com/prometheus/client_golang v1.4.1
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.15
+	github.com/pubgo/x v0.3.18-0.20210308075649-51ffee8d36c4
 	github.com/pubgo/xerror v0.4.1
-	github.com/pubgo/xlog v0.0.18
+	github.com/pubgo/xlog v0.0.19-0.20210308125244-633625ef7c23
 	github.com/pubgo/xprotogen v0.0.5
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.18.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1
 	go.etcd.io/etcd v0.0.0-20201125193152-8a03d2e9614b
@@ -46,7 +47,7 @@ require (
 	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	google.golang.org/genproto v0.0.0-20201204160425-06b3db808446
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.36.0
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	xorm.io/xorm v1.0.5
 )

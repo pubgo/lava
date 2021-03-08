@@ -6,7 +6,9 @@ import (
 
 	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/types"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/clientv3"
 )
 
@@ -27,23 +29,19 @@ func List() (dt map[string]*Client) {
 	return
 }
 
-func newClient(cfg clientv3.Config) (c *Client, err error) {
+func newClient(cfg Cfg) (c *clientv3.Client, err error) {
 	defer xerror.RespErr(&err)
-
-	// etcd config处理
-	cfg, err = cfgMerge(cfg)
-	xerror.Panic(err)
 
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
-	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
+	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg.ToEtcd()); return err })
 	xerror.PanicF(err, "[etcd] New error, err: %v, cfgList: %#v", err, cfg)
 
-	return &Client{Client: etcdClient}, nil
+	return etcdClient, nil
 }
 
 // updateClient 更新etcd client
-func updateClient(name string, cfg clientv3.Config) error {
+func updateClient(name string, cfg Cfg) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
 	oldClient, ok := clients.Load(name)
@@ -62,7 +60,7 @@ func updateClient(name string, cfg clientv3.Config) error {
 	runtime.SetFinalizer(oldClient, func(cc *Client) {
 		log.Infof("[etcd] old etcd client %s object %d gc", name, uintptr(unsafe.Pointer(cc)))
 		if err := cc.Close(); err != nil {
-			log.Errorf("[etcd] old etcd client close error, name: %s, err:%#v", name, err)
+			log.Error("[etcd] old etcd client close error", xlog.String("name", name), xlog.Any("err", err))
 		}
 	})
 
@@ -70,13 +68,16 @@ func updateClient(name string, cfg clientv3.Config) error {
 }
 
 // initClient 创建或者初始化etcd client
-func initClient(name string, cfg clientv3.Config) {
-	xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
+func initClient(name string, cfg Cfg) error {
+	return xutil.Try(func() {
+		xerror.Assert(name == "", "[name] should not be null", name)
+		xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 
-	etcdClient, err := newClient(cfg)
-	xerror.Panic(err)
+		etcdClient, err := newClient(cfg)
+		xerror.Panic(err)
 
-	clients.Set(name, etcdClient)
+		clients.Set(name, &Client{Client: etcdClient, log: log.Named(name)})
+	})
 }
 
 // delClient 删除etcd client, 并关闭etcd client

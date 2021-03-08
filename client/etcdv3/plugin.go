@@ -14,7 +14,10 @@ func onInit(ent interface{}) {
 	config.Decode(Name, &cfgList)
 
 	for _, cfg := range cfgList {
-		initClient(consts.GetDefault(cfg.Name), cfg.ToEtcdConfig())
+		// etcd config处理
+		cfg, err := cfgMerge(cfg)
+		xerror.Panic(err)
+		xerror.Panic(initClient(consts.GetDefault(cfg.Name), cfg))
 	}
 }
 
@@ -28,7 +31,10 @@ func onWatch(r *watcher.Response) {
 		// 解析etcd配置
 		var cfg Cfg
 		xerror.PanicF(r.Decode(&cfg), "[etcd] clientv3 Config parse error, cfgList: %s", r.Value)
-		xerror.PanicF(updateClient(name, cfg.ToEtcdConfig()), "[etcd] client %s watcher update error", name)
+
+		cfg1, err := cfgMerge(cfg)
+		xerror.Panic(err)
+		xerror.PanicF(updateClient(name, cfg1), "[etcd] client %s watcher update error", name)
 	})
 
 	r.OnDelete(func() {

@@ -58,7 +58,17 @@ func Decode(name string, fn interface{}) {
 		ret := reflect.ValueOf(GetCfg().UnmarshalKey).
 			Call(types.ValueOf(
 				reflect.ValueOf(name), mthIn,
-				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
+				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) {
+					cfg.TagName = "json"
+					cfg.Metadata = nil
+					cfg.Result = fn
+					cfg.WeaklyTypedInput = true
+					// TODO 类型,可配置hook
+					cfg.DecodeHook = mapstructure.ComposeDecodeHookFunc(
+						mapstructure.StringToTimeDurationHookFunc(),
+						mapstructure.StringToSliceHookFunc(","),
+					)
+				}),
 			))
 		if !ret[0].IsNil() {
 			xerror.PanicF(ret[0].Interface().(error), "%s config decode error", name)
@@ -69,7 +79,7 @@ func Decode(name string, fn interface{}) {
 		xerror.Panic(GetCfg().UnmarshalKey(name, fn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
 	default:
-		xerror.Assert(true,"[fn] type error, type:%#v", vfn)
+		xerror.Assert(true, "[fn] type error, type:%#v", vfn)
 	}
 }
 

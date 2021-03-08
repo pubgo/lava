@@ -17,7 +17,7 @@ import (
 
 func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) error {
 	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
-	return xerror.Wrap(mergo.Map(dst, src, opts...))
+	return xerror.Wrap(mergo.Merge(dst, src, opts...))
 }
 
 func PathExist(path string) bool {
