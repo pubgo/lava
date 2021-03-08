@@ -11,7 +11,7 @@ import (
 // Watcher ...
 type Watcher interface {
 	Watch(ctx context.Context, key string, opts ...OpOption) <-chan *Response
-	String() string
+	Name() string
 }
 
 type OpOption func(*Op)
