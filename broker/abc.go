@@ -7,8 +7,8 @@ import (
 type Broker interface {
 	Publish(topic string, msg *Message, opts *PubOpts) error
 	Subscribe(topic string, handler Handler, opts *SubOpts) error
-	Start() string
-	Stop() string
+	Start() error
+	Stop() error
 	Name() string
 }
 
