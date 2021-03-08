@@ -12,41 +12,20 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent interface{}) {
-			registries := List()
-			if len(registries) == 0 {
+			reporters := List()
+			if len(reporters) == 0 {
 				xlog.Warn("reporter list is zero")
 				return
 			}
 
-			// 解析registry配置
 			config.Decode(Name, &cfg)
 
-			for k, v := range cfg {
-				if cfg.Driver != k {
-					continue
-				}
+			reporter := Get(cfg)
+			xerror.Assert(reporter == nil, "reporter %s is null", cfg)
+			xerror.Panic(reporter.Start())
 
-				xerror.PanicF(v.Init(cfg), "registry %s init error", k)
-
-				// 注册中心只有一个, 所以可以使用Default, 否着需要使用Get(driver)
-				Default = v
-			}
+			// 停止服务之后, 关闭配置的监控
+			golug_run.AfterStop(func() { xerror.Panic(reporter.Stop()) })
 		},
-	})
-
-	// 服务启动后, 启动配置监控
-	golug_run.AfterStart(func() {
-		for _, w := range List() {
-			xerror.ExitF(w.Start(), "watcher %s start error", w.Name())
-		}
-	})
-
-	// 停止服务之后, 关闭配置的监控
-	golug_run.BeforeStop(func() {
-		var err error
-		for _, w := range List() {
-			err = xerror.Append(err, xerror.WrapF(w.Close(), "watcher %s close error", w.Name()))
-		}
-		xerror.Panic(err)
 	})
 }

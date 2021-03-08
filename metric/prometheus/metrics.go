@@ -31,7 +31,7 @@ func (r *Reporter) Count(name string, value float64, tags metric.Tags) (err erro
 
 	name = r.cfg.Name + name
 
-	counter := r.metrics.getCounter(metric.StripUnsupportedCharacters(name), tags)
+	counter := r.metrics.getCounter(StripUnsupportedCharacters(name), tags)
 	m, _err := counter.GetMetricWith(r.convertTags(tags))
 	if _err != nil {
 		return _err
@@ -52,7 +52,7 @@ func (r *Reporter) Gauge(name string, value float64, tags metric.Tags) (err erro
 
 	name = r.cfg.Name + name
 
-	gauge := r.metrics.getGauge(metric.StripUnsupportedCharacters(name), tags)
+	gauge := r.metrics.getGauge(StripUnsupportedCharacters(name), tags)
 	m, _err := gauge.GetMetricWith(r.convertTags(tags))
 	if _err != nil {
 		return _err
@@ -73,7 +73,7 @@ func (r *Reporter) Summary(name string, value float64, tags metric.Tags) (err er
 
 	name = r.cfg.Name + name
 
-	timing := r.metrics.getSummary(metric.StripUnsupportedCharacters(name), tags)
+	timing := r.metrics.getSummary(StripUnsupportedCharacters(name), tags)
 	m, _err := timing.GetMetricWith(r.convertTags(tags))
 	if _err != nil {
 		return _err
@@ -84,7 +84,7 @@ func (r *Reporter) Summary(name string, value float64, tags metric.Tags) (err er
 }
 
 // Histogram ...
-func (r *Reporter) Histogram(name string, value float64, tags metric.Tags) (err error) {
+func (r *Reporter) Histogram(name string, value float64, tags metric.Tags, opts *metric.HistogramOpts) (err error) {
 	if !r.isStarted.Load() {
 		return MetricStartError
 	}
@@ -93,7 +93,7 @@ func (r *Reporter) Histogram(name string, value float64, tags metric.Tags) (err 
 
 	name = r.cfg.Name + name
 
-	hm := r.metrics.getHistogram(metric.StripUnsupportedCharacters(name), tags)
+	hm := r.metrics.getHistogram(StripUnsupportedCharacters(name), tags,opts)
 	m, _err := hm.GetMetricWith(r.convertTags(tags))
 	if _err != nil {
 		return _err

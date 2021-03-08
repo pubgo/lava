@@ -5,7 +5,6 @@ import (
 
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/golug/client/grpclient/balancer/p2c"
-	"github.com/pubgo/golug/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/encoding"
@@ -33,30 +32,30 @@ type Call struct {
 }
 
 type ClientParameters struct {
-	PermitWithoutStream bool           `json:"permit_without_stream"`
-	Time                types.Duration `json:"time"`
-	Timeout             types.Duration `json:"timeout"`
+	PermitWithoutStream bool          `json:"permit_without_stream"`
+	Time                time.Duration `json:"time"`
+	Timeout             time.Duration `json:"timeout"`
 }
 
 func (t ClientParameters) toClientParameters() keepalive.ClientParameters {
 	return keepalive.ClientParameters{
 		PermitWithoutStream: t.PermitWithoutStream,
-		Time:                t.Time.Duration,
-		Timeout:             t.Timeout.Duration,
+		Time:                t.Time,
+		Timeout:             t.Timeout,
 	}
 }
 
 // BackoffConfig defines the configuration options for backoff.
 type BackoffConfig struct {
 	// BaseDelay is the amount of time to backoff after the first failure.
-	BaseDelay types.Duration
+	BaseDelay time.Duration
 	// Multiplier is the factor with which to multiply backoffs after a
 	// failed retry. Should ideally be greater than 1.
 	Multiplier float64
 	// Jitter is the factor with which backoffs are randomized.
 	Jitter float64
 	// MaxDelay is the upper bound of backoff delay.
-	MaxDelay types.Duration
+	MaxDelay time.Duration
 }
 
 type ConnectParams struct {
@@ -64,18 +63,18 @@ type ConnectParams struct {
 	Backoff BackoffConfig
 	// MinConnectTimeout is the minimum amount of time we are willing to give a
 	// connection to complete.
-	MinConnectTimeout types.Duration
+	MinConnectTimeout time.Duration
 }
 
 func (t ConnectParams) toConnectParams() grpc.ConnectParams {
 	return grpc.ConnectParams{
 		Backoff: backoff.Config{
-			BaseDelay:  t.Backoff.BaseDelay.Duration,
+			BaseDelay:  t.Backoff.BaseDelay,
 			Multiplier: t.Backoff.Multiplier,
 			Jitter:     t.Backoff.Jitter,
-			MaxDelay:   t.Backoff.MaxDelay.Duration,
+			MaxDelay:   t.Backoff.MaxDelay,
 		},
-		MinConnectTimeout: t.MinConnectTimeout.Duration,
+		MinConnectTimeout: t.MinConnectTimeout,
 	}
 }
 
@@ -87,10 +86,10 @@ type Cfg struct {
 	Compressor           string
 	Decompressor         string
 	Balancer             string
-	BackoffMaxDelay      types.Duration
-	Timeout              types.Duration
-	DialTimeout          types.Duration
-	MaxDelay             types.Duration `json:"max_delay"`
+	BackoffMaxDelay      time.Duration
+	Timeout              time.Duration
+	DialTimeout          time.Duration
+	MaxDelay             time.Duration `json:"max_delay"`
 	UserAgent            string
 	ConnectParams        ConnectParams
 	Authority            string
@@ -115,7 +114,7 @@ type Cfg struct {
 	Call                 Call             `json:"call"`
 }
 
-func (t Cfg) toOptions() []grpc.DialOption {
+func (t Cfg) ToOpts() []grpc.DialOption {
 	var opts []grpc.DialOption
 
 	if t.Insecure {
@@ -181,21 +180,21 @@ func GetDefaultCfg() Cfg {
 		Insecure:     true,
 		Block:        true,
 		BalancerName: p2c.Name,
-		DialTimeout:  types.Dur(2 * time.Second),
+		DialTimeout:  2 * time.Second,
 
 		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
 		MaxRecvMsgSize: 1024 * 1024 * 4,
 		ClientParameters: ClientParameters{
-			PermitWithoutStream: true,                        // send pings even without active streams
-			Time:                types.Dur(10 * time.Second), // send pings every 10 seconds if there is no activity
-			Timeout:             types.Dur(2 * time.Second),  // wait 2 second for ping ack before considering the connection dead
+			PermitWithoutStream: true,             // send pings even without active streams
+			Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
+			Timeout:             2 * time.Second,  // wait 2 second for ping ack before considering the connection dead
 		},
 		ConnectParams: ConnectParams{
 			Backoff: BackoffConfig{
 				Multiplier: 1.6,
 				Jitter:     0.2,
-				BaseDelay:  types.Dur(1.0 * time.Second),
-				MaxDelay:   types.Dur(120 * time.Second),
+				BaseDelay:  1.0 * time.Second,
+				MaxDelay:   120 * time.Second,
 			},
 		},
 		Call: Call{

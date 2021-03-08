@@ -11,7 +11,7 @@ var brokerMap types.SMap
 func List() (dt map[string]Broker) { xerror.Panic(brokerMap.Map(&dt)); return }
 
 func Register(name string, broker Broker) {
-	xerror.Assert(name == "" || broker == nil, "[broker,name] should not be null")
+	xerror.Assert(name == "" || broker == nil || broker.Name() == "", "[broker,name] should not be null")
 	xerror.Assert(brokerMap.Has(name), "[broker] %s already exists", name)
 
 	brokerMap.Set(name, broker)

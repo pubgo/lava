@@ -11,7 +11,7 @@ import (
 
 func init() {
 	tracelog.Watch(Name+"_default_cfg", func() interface{} { return GetDefaultCfg() })
-	tracelog.Watch(Name+"_cfg", func() interface{} { return cfgMap })
+	tracelog.Watch(Name+"_cfg", func() interface{} { return cfgList })
 	tracelog.Watch(Name+"_dbMetas", func() interface{} {
 		var dbMetas = make(map[string][]*schemas.Table)
 		clientMap.Each(func(key string, engine *xorm.Engine) {

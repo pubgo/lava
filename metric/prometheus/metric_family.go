@@ -121,7 +121,7 @@ func (mf *metricFamily) getSummary(name string, tags metric.Tags) *prometheus.Su
 }
 
 // getHistogram either gets a histogram, or makes a new one:
-func (mf *metricFamily) getHistogram(name string, tags metric.Tags) *prometheus.HistogramVec {
+func (mf *metricFamily) getHistogram(name string, tags metric.Tags,opts *metric.HistogramOpts) *prometheus.HistogramVec {
 	mf.mutex.Lock()
 	defer mf.mutex.Unlock()
 

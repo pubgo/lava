@@ -31,6 +31,7 @@ type Reporter struct {
 	isStarted          atomic.Bool
 }
 
+
 func (r *Reporter) String() string { return Name }
 
 // Start ...
@@ -73,7 +74,7 @@ func newReporter(opts ...metric.Option) (reporter *Reporter, err error) {
 
 	options := metric.NewOptions(opts...)
 
-	options.Name = metric.StripUnsupportedCharacters(strings.ToLower(strings.TrimSpace(options.Name)))
+	options.Name = StripUnsupportedCharacters(strings.ToLower(strings.TrimSpace(options.Name)))
 	if options.Name != "" && !strings.HasSuffix(options.Name, "_") {
 		options.Name += "_"
 	}
@@ -110,7 +111,7 @@ func newReporter(opts ...metric.Option) (reporter *Reporter, err error) {
 func (r *Reporter) convertTags(tags metric.Tags) prometheus.Labels {
 	labels := prometheus.Labels{}
 	for key, value := range tags {
-		labels[key] = metric.StripUnsupportedCharacters(value)
+		labels[key] = StripUnsupportedCharacters(value)
 	}
 	return labels
 }

@@ -13,14 +13,15 @@ var (
 )
 
 type Cfg struct {
-	Address     string           `json:"address"`
-	Percentiles []float64        `json:"percentiles"`
-	Path        string           `json:"path"`
-	Project     string           `json:"project"`
-	Driver      string           `json:"driver"`
-	Name        string           `json:"name"`
-	Prefix      string           `json:"prefix"`
-	Attrs       attrs.Attributes `json:"-"`
+	Tags        map[string]string `json:"tags"`
+	Address     string            `json:"address"`
+	Percentiles []float64         `json:"percentiles"`
+	Path        string            `json:"path"`
+	Project     string            `json:"project"`
+	Driver      string            `json:"driver"`
+	Name        string            `json:"name"`
+	Prefix      string            `json:"prefix"`
+	Attrs       attrs.Attributes  `json:"-"`
 }
 
 func GetDefaultCfg() Cfg {

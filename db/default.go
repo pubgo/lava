@@ -41,7 +41,7 @@ func initClient(name string, cfg Cfg) (err error) {
 	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
 	engine.SetMaxOpenConns(cfg.MaxConnOpen)
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
-	engine.SetConnMaxLifetime(cfg.MaxConnTime.Duration)
+	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
 	if golug.IsDev() || golug.IsTest() {

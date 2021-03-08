@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/clientv3"
+	"go.uber.org/zap"
 )
 
 var clients types.SMap
@@ -29,12 +30,12 @@ func List() (dt map[string]*Client) {
 	return
 }
 
-func newClient(cfg Cfg) (c *clientv3.Client, err error) {
+func newClient(cfg clientv3.Config) (c *clientv3.Client, err error) {
 	defer xerror.RespErr(&err)
 
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
-	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg.ToEtcd()); return err })
+	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
 	xerror.PanicF(err, "[etcd] New error, err: %v, cfgList: %#v", err, cfg)
 
 	return etcdClient, nil
@@ -45,7 +46,7 @@ func updateClient(name string, cfg Cfg) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
 	oldClient, ok := clients.Load(name)
-	etcdClient, err := newClient(cfg)
+	etcdClient, err := newClient(cfg.ToEtcd())
 	if err != nil {
 		return err
 	}
@@ -73,10 +74,10 @@ func initClient(name string, cfg Cfg) error {
 		xerror.Assert(name == "", "[name] should not be null", name)
 		xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 
-		etcdClient, err := newClient(cfg)
+		etcdClient, err := newClient(cfg.ToEtcd())
 		xerror.Panic(err)
 
-		clients.Set(name, &Client{Client: etcdClient, log: log.Named(name)})
+		clients.Set(name, &Client{Client: etcdClient})
 	})
 }
 
@@ -90,6 +91,6 @@ func delClient(name string) {
 	}
 
 	if err := c.Close(); err != nil {
-		log.Errorf("[etcd] client close error, name:%s, err: %#v", name, err)
+		log.Error("[etcd] client close error", zap.String("name", name), zap.Any("err", err))
 	}
 }

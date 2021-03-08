@@ -9,17 +9,17 @@ import (
 
 func init() {
 	var onInit = func(ent interface{}) {
-		config.Decode(Name, &cfgMap)
+		config.Decode(Name, &cfgList)
 
-		for k, v := range cfgMap {
+		for k, v := range cfgList {
 			cfg := GetDefaultCfg()
 			xerror.Panic(gutils.Mergo(&cfg, v))
 
-			initClient(k, cfg)
-			cfgMap[k] = cfg
+			xerror.Panic(initClient(k, cfg))
+			cfgList[k] = cfg
 		}
 	}
-	
+
 	plugin.Register(&plugin.Base{
 		Name:   Name,
 		OnInit: onInit,
