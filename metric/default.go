@@ -1,19 +1,14 @@
 package metric
 
-import "github.com/pubgo/xerror"
+import (
+	"github.com/pubgo/xerror"
+)
 
 var defaultReporter Reporter
-
 // GetDefault 获取全局的Reporter
 func GetDefault() Reporter {
 	xerror.Assert(defaultReporter == nil, "please set default reporter")
 	return defaultReporter
-}
-
-// SetDefault 设置全局的Reporter
-func SetDefault(reporter Reporter) {
-	xerror.Assert(reporter == nil, "[reporter] should not be nil")
-	defaultReporter = reporter
 }
 
 // Count 上报递增数据

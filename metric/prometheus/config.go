@@ -1,16 +1,6 @@
 package prometheus
 
-import (
-	"github.com/pubgo/x/attrs"
-
-	"net/http"
-)
-
-var (
-	Name            = "metric"
-	cfg             = make(map[string]Cfg)
-	DefaultServeMux = &http.ServeMux{}
-)
+var Name = "prometheus"
 
 type Cfg struct {
 	Tags        map[string]string `json:"tags"`
@@ -21,7 +11,6 @@ type Cfg struct {
 	Driver      string            `json:"driver"`
 	Name        string            `json:"name"`
 	Prefix      string            `json:"prefix"`
-	Attrs       attrs.Attributes  `json:"-"`
 }
 
 func GetDefaultCfg() Cfg {

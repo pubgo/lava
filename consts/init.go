@@ -2,6 +2,7 @@ package consts
 
 const Default = "default"
 const Unknown = "unknown"
+const Driver = "driver"
 
 func GetDefault(names ...string) string {
 	var name = Default

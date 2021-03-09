@@ -8,24 +8,24 @@ import (
 
 var reporters types.SMap
 
-func Get(names ...string) Reporter {
+func Get(names ...string) Factory {
 	val, ok := reporters.Load(consts.GetDefault(names...))
 	if !ok {
 		return nil
 	}
 
-	return val.(Reporter)
+	return val.(Factory)
 }
 
-func List() (dt map[string]Reporter) {
+func List() (dt map[string]Factory) {
 	xerror.Panic(reporters.Map(&dt))
 	return
 }
 
-func Register(name string, r Reporter) (err error) {
+func Register(name string, r Factory) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(name == "" || r == nil || r.Name() == "", "[name,reporter] is null")
+	xerror.Assert(name == "" || r == nil, "[name,reporter] is null")
 	xerror.Assert(reporters.Has(name), "reporter %s already exists", name)
 	reporters.Set(name, r)
 	return
