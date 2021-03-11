@@ -57,7 +57,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTransportGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterTransportHandlerFromEndpoint), nil)
 }
 
 func GetTransportClient(srv string, opts ...grpc.DialOption) func() (TransportClient, error) {
@@ -66,32 +66,4 @@ func GetTransportClient(srv string, opts ...grpc.DialOption) func() (TransportCl
 		c, err := client.Get()
 		return &transportClient{c}, err
 	}
-}
-
-func RegisterTransportGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	client := grpclient.Client(srv, opts...)
-
-	g.Add("POST", "/hello/transport/test_stream3", func(ctx *fiber.Ctx) error {
-		var req Message
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &transportClient{conn}
-		resp, err := c.TestStream3(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	return nil
 }

@@ -41,7 +41,7 @@ func (p *Base) Watch(r *watcher.Response) (err error) {
 }
 
 func (p *Base) Commands() *cobra.Command {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error(err.Stack(), zap.Any("err", "command error")) })
+	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("command error", zap.Any("err", err)) })
 
 	if p.OnCommands != nil {
 		cmd := &cobra.Command{Use: p.Name}
@@ -51,9 +51,7 @@ func (p *Base) Commands() *cobra.Command {
 	return nil
 }
 
-func (p *Base) String() string {
-	return p.Name
-}
+func (p *Base) String() string {return p.Name}
 
 func (p *Base) Flags() *pflag.FlagSet {
 	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", zap.Any("err", err)) })

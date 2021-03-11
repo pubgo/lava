@@ -4,16 +4,15 @@ import (
 	"context"
 )
 
+type Factory func(cfg map[string]interface{}) (Broker, error)
 type Broker interface {
-	Publish(topic string, msg *Message, opts *PubOpts) error
-	Subscribe(topic string, handler Handler, opts *SubOpts) error
-	Start() error
-	Stop() error
-	Name() string
+	Pub(topic string, msg *Message, opts *PubOpts) error
+	Sub(topic string, handler Handler, opts *SubOpts) error
+	String() string
 }
 
 type PubOpts struct {
-	Context context.Context
+	Ctx context.Context
 }
 
 type SubOpts struct {

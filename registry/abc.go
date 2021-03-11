@@ -1,12 +1,12 @@
 // Package registry is an interface for service discovery
 package registry
 
+type Factory func(map[string]interface{}) (Registry, error)
+
 // The registry provides an interface for service discovery
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, ...}
 type Registry interface {
-	Cfg() Cfg
-	Init(cfg Cfg) error
 	Register(*Service, ...RegisterOption) error
 	Deregister(*Service, ...DeregisterOption) error
 	GetService(string, ...GetOption) ([]*Service, error)

@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/golug/config"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/mdns"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/xlog"
 )
@@ -35,7 +35,7 @@ type RegisterOption = registry.RegisterOption
 
 var (
 	// use a .micro domain rather than .local
-	mdnsDomain = golug.Domain
+	mdnsDomain = config.Domain
 )
 
 type mdnsTxt struct {

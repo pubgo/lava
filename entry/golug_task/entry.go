@@ -47,7 +47,7 @@ func (t *taskEntry) Start() (err error) {
 			brk = handler.opts.Broker
 		}
 
-		xerror.Panic(brk.Subscribe(handler.opts.Topic, handler.handler, handler.optList...))
+		xerror.Panic(brk.Sub(handler.opts.Topic, handler.handler, handler.optList...))
 	}
 
 	return nil

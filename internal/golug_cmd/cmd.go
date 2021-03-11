@@ -7,7 +7,6 @@ import (
 
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/golug/version"
@@ -18,10 +17,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{Use: golug.Domain, Version: version.Version}
+var rootCmd = &cobra.Command{Use: config.Domain, Version: version.Version}
 
 func handleSignal() {
-	if golug.CatchSigpipe {
+	if config.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		go func() {
@@ -33,7 +32,7 @@ func handleSignal() {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	golug.Signal = <-ch
+	config.Signal = <-ch
 }
 
 func start(ent entry.RunEntry) (err error) {
@@ -109,7 +108,7 @@ func Run(entries ...entry.Entry) (err error) {
 		xerror.Assert(opt.Name == "" || opt.Version == "", "[name,version] should not be empty")
 	}
 
-	rootCmd.PersistentFlags().AddFlagSet(golug.DefaultFlags())
+	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for _, ent := range entries {
@@ -131,7 +130,7 @@ func Run(entries ...entry.Entry) (err error) {
 		// 配置初始化
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
-			golug.Project = entRun.Options().Name
+			config.Project = entRun.Options().Name
 			xerror.Panic(config.Init())
 			return nil
 		}
@@ -155,7 +154,7 @@ func Run(entries ...entry.Entry) (err error) {
 
 			xerror.Panic(start(entRun))
 
-			if golug.IsBlock {
+			if config.IsBlock {
 				handleSignal()
 			}
 

@@ -1,0 +1,3 @@
+broker:
+  default:
+    driver: "nsq"

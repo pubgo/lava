@@ -11,7 +11,7 @@ import (
 
 const Name = "etcdv3"
 
-var cfgList []Cfg
+var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`

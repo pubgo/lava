@@ -7,19 +7,19 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func init() {
-	var onInit = func(ent interface{}) {
-		config.Decode(Name, &cfgList)
+func onInit(ent interface{}) {
+	config.Decode(Name, &cfgList)
 
-		for k, v := range cfgList {
-			cfg := GetDefaultCfg()
-			xerror.Panic(gutils.Mergo(&cfg, v))
+	for name := range cfgList {
+		cfg := GetDefaultCfg()
+		xerror.Panic(gutils.Mergo(&cfg, cfgList[name]))
 
-			xerror.Panic(initClient(k, cfg))
-			cfgList[k] = cfg
-		}
+		xerror.Panic(initClient(name, cfg))
+		cfgList[name] = cfg
 	}
+}
 
+func init() {
 	plugin.Register(&plugin.Base{
 		Name:   Name,
 		OnInit: onInit,

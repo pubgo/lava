@@ -25,14 +25,6 @@ type client struct {
 	opts    []grpc.DialOption
 }
 
-func (t *client) New() (*grpc.ClientConn, error) {
-	conn, err := dial(t.target, t.opts...)
-	if err != nil {
-		return nil, xerror.WrapF(err, "dial %s error\n", t.target)
-	}
-	return conn, nil
-}
-
 func (t *client) getClient() *grpc.ClientConn {
 	if val, ok := clients.Load(t.service); ok {
 		if val.(*grpc.ClientConn).GetState() == connectivity.Ready {
@@ -58,9 +50,9 @@ func (t *client) Get() (*grpc.ClientConn, error) {
 		return client, nil
 	}
 
-	conn, err := t.New()
+	conn, err := dial(t.target, t.opts...)
 	if err != nil {
-		return nil, err
+		return nil, xerror.WrapF(err, "dial %s error\n", t.service)
 	}
 
 	clients.Store(t.service, conn)

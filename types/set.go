@@ -1,6 +1,7 @@
 package types
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/pubgo/x/fx"
@@ -23,6 +24,23 @@ type Set struct {
 
 func (t *Set) Has(v interface{}) bool { _, ok := t.m.Load(v); return ok }
 func (t *Set) Len() uint32            { return t.count.Load() }
+
+func (t *Set) Map(data interface{}) (err error) {
+	defer xerror.RespErr(&err)
+
+	vd := reflect.ValueOf(data)
+	xerror.Assert(vd.Kind() != reflect.Ptr, "[data] should be ptr type")
+	vd = vd.Elem()
+	
+	dt := reflect.MakeSlice(vd.Type(), 0, int(t.count.Load()))
+	t.m.Range(func(key, _ interface{}) bool {
+		dt = reflect.AppendSlice(dt, reflect.ValueOf(key))
+		return true
+	})
+	vd.Set(dt)
+
+	return nil
+}
 
 func (t *Set) Add(v interface{}) {
 	_, ok := t.m.LoadOrStore(v, struct{}{})

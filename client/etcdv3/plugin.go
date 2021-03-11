@@ -13,10 +13,10 @@ import (
 func onInit(ent interface{}) {
 	config.Decode(Name, &cfgList)
 
-	for _, cfg := range cfgList {
+	for name, cfg := range cfgList {
 		// etcd config处理
 		cfg := xerror.PanicErr(cfgMerge(cfg)).(Cfg)
-		xerror.Panic(initClient(consts.GetDefault(cfg.Name), cfg))
+		xerror.Panic(initClient(consts.GetDefault(name), cfg))
 	}
 }
 

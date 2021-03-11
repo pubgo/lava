@@ -12,7 +12,6 @@ service TestApi {
   rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       get: "/v1/example/versiontest"
-      body: "*"
     };
   }
 }

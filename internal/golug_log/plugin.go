@@ -1,7 +1,6 @@
 package golug_log
 
 import (
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/golug/watcher"
@@ -11,7 +10,7 @@ import (
 )
 
 func init() {
-	if golug.IsDev() || golug.IsTest() {
+	if config.IsDev() || config.IsTest() {
 		cfg = xlog_config.NewDevConfig()
 	}
 

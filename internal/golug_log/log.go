@@ -1,7 +1,7 @@
 package golug_log
 
 import (
-	"github.com/pubgo/golug/golug"
+	"github.com/pubgo/golug/config"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xlog/xlog_config"
@@ -15,7 +15,7 @@ func init() {
 	log := xlog.New(xerror.PanicErr(xlog_config.NewZapLogger(cfg)).(*zap.Logger))
 
 	// 全局log设置
-	xerror.Panic(xlog.SetDefault(log.Named(golug.Domain)))
+	xerror.Panic(xlog.SetDefault(log.Named(config.Domain)))
 }
 
 func initLog(cfg xlog_config.Config) (err error) {
@@ -24,7 +24,7 @@ func initLog(cfg xlog_config.Config) (err error) {
 	log := xlog.New(xerror.PanicErr(xlog_config.NewZapLogger(cfg)).(*zap.Logger))
 
 	// 全局log设置
-	xerror.Panic(xlog.SetDefault(log.Named(golug.Domain)))
+	xerror.Panic(xlog.SetDefault(log.Named(config.Domain)))
 
 	return nil
 }

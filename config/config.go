@@ -10,8 +10,8 @@ import (
 	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/types"
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
@@ -20,6 +20,10 @@ import (
 
 type Config struct {
 	*viper.Viper
+}
+
+func Map(names ...string) map[string]interface{} {
+	return GetCfg().GetStringMap(strings.Join(names, "."))
 }
 
 func GetCfg() *Config {
@@ -55,21 +59,9 @@ func Decode(name string, fn interface{}) {
 		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be one")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := reflect.ValueOf(GetCfg().UnmarshalKey).
-			Call(types.ValueOf(
-				reflect.ValueOf(name), mthIn,
-				reflect.ValueOf(func(cfg *mapstructure.DecoderConfig) {
-					cfg.TagName = "json"
-					cfg.Metadata = nil
-					cfg.Result = fn
-					cfg.WeaklyTypedInput = true
-					// TODO 类型,可配置hook
-					cfg.DecodeHook = mapstructure.ComposeDecodeHookFunc(
-						mapstructure.StringToTimeDurationHookFunc(),
-						mapstructure.StringToSliceHookFunc(","),
-					)
-				}),
-			))
+		ret := fx.WrapRaw(GetCfg().UnmarshalKey)(name, mthIn,
+			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" })
+
 		if !ret[0].IsNil() {
 			xerror.PanicF(ret[0].Interface().(error), "%s config decode error", name)
 		}
@@ -91,15 +83,15 @@ func Template(format string) string {
 		// 处理特殊变量
 		switch tag {
 		case "home":
-			return w.Write(xutil.ToBytes(golug.Home))
+			return w.Write(xutil.ToBytes(Home))
 		case "trace":
-			return w.Write(xutil.ToBytes(strconv.FormatBool(golug.Trace)))
+			return w.Write(xutil.ToBytes(strconv.FormatBool(Trace)))
 		case "project":
-			return w.Write(xutil.ToBytes(golug.Project))
+			return w.Write(xutil.ToBytes(Project))
 		case "domain":
-			return w.Write(xutil.ToBytes(golug.Domain))
+			return w.Write(xutil.ToBytes(Domain))
 		case "mode":
-			return w.Write(xutil.ToBytes(golug.Mode))
+			return w.Write(xutil.ToBytes(Mode))
 		case "config":
 			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
 		default:

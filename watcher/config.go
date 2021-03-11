@@ -5,17 +5,15 @@ import (
 )
 
 var Name = "watcher"
-var cfgList []Cfg
 
 type Cfg struct {
-	Project string `json:"project"`
-	Driver  string `json:"driver"`
+	Driver   string   `json:"driver"`
+	Projects []string `json:"projects"`
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Project: "hello",
-		Driver:  "etcdv3",
+		Driver: "etcdv3",
 	}
 }
 

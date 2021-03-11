@@ -38,7 +38,7 @@ var _=gutils.Decode
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
-		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Gateway), nil)
+		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}HandlerFromEndpoint), nil)
 	}
 {% endfor %}
 
@@ -49,47 +49,6 @@ var _=gutils.Decode
 			c, err := client.Get()
 			return &{{unExport(ss.Srv)}}Client{c},err
 		}
-	}
-{% endfor %}
-
-
-{% for ss in fd.GetService() %}
-	func Register{{ss.Srv}}Gateway(srv string, g fiber.Router,opts ...grpc.DialOption) error {
-		client := grpclient.Client(srv, opts...)
-		{%- for m in ss.GetMethod() %}
-			{%- if !m.CS and !m.SS and (m.HttpMethod=="POST" or m.HttpMethod=="GET" or m.HttpMethod=="PUT") %}
-				g.Add("{{m.HttpMethod}}", "{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
-					var req {{m.GetInputType()}}					
-					{%- if m.HttpMethod=="POST" or m.HttpMethod=="PUT" %}
-						if err:=ctx.BodyParser(&req);err!=nil{
-							return err
-						}
-					{%- else %}
-						var data = make(map[string]interface{})
-						ctx.Context().QueryArgs().VisitAll(func(key, value []byte) { data[xutil.ToStr(key)] = xutil.ToStr(value) })
-						if err := gutils.Decode(data, &req); err != nil {
-							return err
-						}
-					{%- endif %}
-
-					conn,err:=client.Get()
-					if err!=nil{
-						return err
-					}
-
-					p := metadata.Pairs()
-					ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-					c:=&{{unExport(ss.Srv)}}Client{conn}
-					resp,err:=c.{{m.GetName()}}(metadata.NewIncomingContext(ctx.Context(), p),&req)
-					if err!=nil{
-						return err
-					}
-					return ctx.JSON(resp)
-				})
-			{%- endif %}
-		{% endfor %}
-		return nil
 	}
 {% endfor %}
 `

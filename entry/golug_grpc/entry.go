@@ -2,17 +2,17 @@ package golug_grpc
 
 import (
 	"context"
-	"fmt"
 	"net"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	gw "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/gutils/addr"
 	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/x/fx"
@@ -22,6 +22,7 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/channelz/service"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -74,6 +75,8 @@ func (g *grpcEntry) Init() (gErr error) {
 	g.cfg.registry = registry.Default
 
 	g.srv = grpc.NewServer(opts...)
+
+	gw.DefaultContextTimeout = time.Second * 2
 
 	return
 }
@@ -180,13 +183,13 @@ func (g *grpcEntry) deregister() (err error) {
 	}
 
 	node := &registry.Node{
-		Id:      golug.Project + "-" + getHostname() + "-" + DefaultId,
+		Id:      config.Project + "-" + getHostname() + "-" + DefaultId,
 		Address: addr1,
 		Port:    port,
 	}
 
 	services := &registry.Service{
-		Name:    golug.Project,
+		Name:    config.Project,
 		Version: g.Entry.Options().Version,
 		Nodes:   []*registry.Node{node},
 	}
@@ -230,7 +233,7 @@ func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerIntercept
 
 func (g *grpcEntry) Register(handler interface{}, opts ...Option) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.ExitF(checkHandle(handler), "[grpc] grpcEntry.Register error")
+	xerror.Panic(checkHandle(handler), "[grpc] grpcEntry.Register error")
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -243,32 +246,41 @@ func (g *grpcEntry) startGw() (err error) {
 		return nil
 	}
 
-	app := fiber.New()
-
 	// 开启api网关模式
-	if err := registerGw(
-		fmt.Sprintf("localhost:%d", g.Entry.Options().Port),
-		app.Group("/")); err != nil {
-		return err
-	}
+	mux := gw.NewServeMux(
+		gw.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
+			return metadata.MD(r.URL.Query())
+		}),
 
-	var data []map[string]string
-	for i, stacks := range app.Stack() {
-		data = append(data, make(map[string]string))
-		for _, stack := range stacks {
-			if stack == nil {
-				continue
+		gw.WithMarshalerOption(gw.MIMEWildcard, &gw.HTTPBodyMarshaler{
+			Marshaler: &gw.JSONPb{OrigName: true},
+		}),
+	)
+
+	var server = &http.Server{Addr: g.cfg.GwAddr, Handler: mux}
+
+	// 注册网关api
+	xerror.Panic(registerGw(g.cfg.Address, mux, grpc.WithBlock(), grpc.WithInsecure()))
+
+	g.AfterStart(func() {
+		xerror.Exit(fx.GoDelay(time.Second, func() {
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				xlog.Error("Server [GW] Listen Error", xlog.Any("err", err))
 			}
 
-			if stack.Path == "/" {
-				continue
-			}
-			data[i][stack.Method] = stack.Path
+			xlog.Info("Server [GW] Closed OK")
+		}))
+
+		xlog.Infof("Server [GW] Listening on http://%s", g.cfg.GwAddr)
+	})
+
+	g.BeforeStop(func() {
+		if err := server.Shutdown(context.Background()); err != nil {
+			xlog.Error("Server [GW] Shutdown Error", xlog.Any("err", err))
 		}
-	}
-	fmt.Printf("%#v\n", data)
+	})
 
-	return app.Listen(g.cfg.GwAddr)
+	return nil
 }
 
 func (g *grpcEntry) Start() (err error) {

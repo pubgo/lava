@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/consts"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/types"
 	"github.com/pubgo/xerror"
@@ -17,15 +16,15 @@ import (
 	"xorm.io/xorm/names"
 )
 
-var clientMap types.SMap
-
-func List() (dt map[string]*xorm.Engine) { clientMap.Map(&dt); return }
+var clients types.SMap
 
 func Get(names ...string) *xorm.Engine {
-	var name = consts.GetDefault(names...)
-	xerror.Assert(!clientMap.Has(name), "[db] %s not found", name)
+	c := clients.Get(consts.GetDefault(names...))
+	if c == nil {
+		return nil
+	}
 
-	return clientMap.Get(name).(*xorm.Engine)
+	return c.(*xorm.Engine)
 }
 
 func initClient(name string, cfg Cfg) (err error) {
@@ -44,17 +43,17 @@ func initClient(name string, cfg Cfg) (err error) {
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
-	if golug.IsDev() || golug.IsTest() {
+	if config.IsDev() || config.IsTest() {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
 	}
 
 	xerror.Panic(engine.DB().Ping())
 
-	if val, ok := clientMap.Load(name); ok {
+	if val, ok := clients.Load(name); ok {
 		_ = val.(*xorm.Engine).Close()
 	}
 
-	clientMap.Set(name, engine)
+	clients.Set(name, engine)
 
 	// 初始化完毕之后, 更新到对象管理系统
 	updateEngine(name, engine)

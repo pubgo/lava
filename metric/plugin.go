@@ -2,29 +2,22 @@ package metric
 
 import (
 	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/golug/tracelog"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 )
 
 func onInit(ent interface{}) {
-	cfg := config.GetCfg().GetStringMap(Name)
-	xerror.Assert(cfg == nil, "metric cfg is null")
+	var cfg = GetDefaultCfg()
+	config.Decode(Name, &cfg)
 
-	driver := cfg[consts.Driver]
-	if driver == nil {
-		driver = "prometheus"
-		xlog.Warn("metric driver is null, set default prometheus")
-	}
+	driver := cfg.Driver
+	xerror.Assert(driver == "", "metric driver is null")
 
-	fc := Get(driver.(string))
-	xerror.Assert(fc == nil, "metric driver not found")
+	fc := Get(driver)
+	xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
-	delete(cfg, consts.Driver)
-
-	defaultReporter = xerror.PanicErr(fc(cfg)).(Reporter)
+	defaultReporter = xerror.PanicErr(fc(config.Map(Name))).(Reporter)
 	xerror.Assert(defaultReporter == nil, "metric driver %s init error", driver)
 }
 

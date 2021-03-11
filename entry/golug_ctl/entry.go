@@ -1,8 +1,8 @@
 package golug_ctl
 
 import (
+	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/xerror"
 )
 
@@ -26,7 +26,7 @@ func (t *ctlEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Init())
-	golug.IsBlock = false
+	config.IsBlock = false
 	return nil
 }
 

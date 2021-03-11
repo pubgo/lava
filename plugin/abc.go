@@ -6,13 +6,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const Name ="plugin"
 type Manager interface {
-	Plugins(...ManagerOption) []Plugin
-	Register(Plugin, ...ManagerOption) error
+	Plugins(...ManagerOpt) []Plugin
+	Register(Plugin, ...ManagerOpt)
 }
 
-type ManagerOption func(o *ManagerOptions)
-type ManagerOptions struct {
+type ManagerOpt func(o *ManagerOpts)
+type ManagerOpts struct {
 	Module string
 }
 

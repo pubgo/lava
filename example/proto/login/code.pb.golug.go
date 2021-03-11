@@ -66,7 +66,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCodeGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint), nil)
 }
 
 func GetCodeClient(srv string, opts ...grpc.DialOption) func() (CodeClient, error) {
@@ -75,119 +75,4 @@ func GetCodeClient(srv string, opts ...grpc.DialOption) func() (CodeClient, erro
 		c, err := client.Get()
 		return &codeClient{c}, err
 	}
-}
-
-func RegisterCodeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	client := grpclient.Client(srv, opts...)
-	g.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
-		var req SendCodeRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &codeClient{conn}
-		resp, err := c.SendCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
-		var req VerifyRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &codeClient{conn}
-		resp, err := c.Verify(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
-		var req IsCheckImageCodeRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &codeClient{conn}
-		resp, err := c.IsCheckImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
-		var req VerifyImageCodeRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &codeClient{conn}
-		resp, err := c.VerifyImageCode(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
-		var req GetSendStatusRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &codeClient{conn}
-		resp, err := c.GetSendStatus(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	return nil
 }

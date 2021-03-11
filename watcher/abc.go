@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
+
+type Factory func(cfg map[string]interface{}) (Watcher, error)
 
 // Watcher ...
 type Watcher interface {
@@ -40,10 +41,12 @@ func (t *Response) OnDelete(fn func()) {
 }
 
 func (t *Response) Decode(val interface{}) (gErr error) {
-	return xutil.Try(func() {
-		var err = jsonx.Unmarshal(t.Value, val)
-		gErr = xerror.WrapF(err, "input: %#v, output: %t", t.Value, val)
-	})
+	defer xerror.RespErr(&gErr)
+
+	var err = jsonx.Unmarshal(t.Value, val)
+	gErr = xerror.WrapF(err, "input: %#v, output: %t", t.Value, val)
+
+	return
 }
 
 func (t *Response) checkEventType() error {

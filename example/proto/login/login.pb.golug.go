@@ -39,7 +39,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterLoginGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterLoginHandlerFromEndpoint), nil)
 }
 
 func GetLoginClient(srv string, opts ...grpc.DialOption) func() (LoginClient, error) {
@@ -48,53 +48,4 @@ func GetLoginClient(srv string, opts ...grpc.DialOption) func() (LoginClient, er
 		c, err := client.Get()
 		return &loginClient{c}, err
 	}
-}
-
-func RegisterLoginGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	client := grpclient.Client(srv, opts...)
-	g.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
-		var req LoginRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &loginClient{conn}
-		resp, err := c.Login(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
-		var req AuthenticateRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &loginClient{conn}
-		resp, err := c.Authenticate(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	return nil
 }

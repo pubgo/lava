@@ -41,8 +41,9 @@ func (m *manager) All() map[string][]Plugin {
 	return pls
 }
 
-func (m *manager) Plugins(opts ...ManagerOption) []Plugin {
-	options := ManagerOptions{Module: defaultModule}
+// Plugins lists the plugins
+func (m *manager) Plugins(opts ...ManagerOpt) []Plugin {
+	options := ManagerOpts{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}
@@ -56,27 +57,23 @@ func (m *manager) Plugins(opts ...ManagerOption) []Plugin {
 	return nil
 }
 
-func (m *manager) Register(pg Plugin, opts ...ManagerOption) error {
-	if pg == nil {
-		return xerror.New("plugin is nil")
-	}
+// Register registers a plugins
+func (m *manager) Register(pg Plugin, opts ...ManagerOpt) {
+	xerror.Assert(pg == nil, "plugin is nil")
 
-	options := ManagerOptions{Module: defaultModule}
+	options := ManagerOpts{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}
 
 	name := pg.String()
-	if name == "" {
-		return xerror.New("plugin.name is null")
-	}
+	xerror.Assert(name == "", "plugin.name is null")
 
 	m.Lock()
 	defer m.Unlock()
 
-	if reg, ok := m.registered[options.Module]; ok && reg[name] {
-		return xerror.Fmt("Plugin [%s] Already Registered", name)
-	}
+	reg, ok := m.registered[options.Module]
+	xerror.Assert(ok && reg[name], "Plugin [%s] Already Registered", name)
 
 	if _, ok := m.registered[options.Module]; !ok {
 		m.registered[options.Module] = map[string]bool{name: true}
@@ -89,12 +86,10 @@ func (m *manager) Register(pg Plugin, opts ...ManagerOption) error {
 	} else {
 		m.plugins[options.Module] = append(m.plugins[options.Module], pg)
 	}
-
-	return nil
 }
 
-func (m *manager) isRegistered(plg Plugin, opts ...ManagerOption) bool {
-	options := ManagerOptions{Module: defaultModule}
+func (m *manager) isRegistered(plg Plugin, opts ...ManagerOpt) bool {
+	options := ManagerOpts{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}

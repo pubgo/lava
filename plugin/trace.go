@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	tracelog.Watch("plugin", func() interface{} {
+	tracelog.Watch(Name, func() interface{} {
 		var data = make(map[string][]string)
 		for k, v := range All() {
 			for i := range v {

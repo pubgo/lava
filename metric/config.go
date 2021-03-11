@@ -1,6 +1,6 @@
-package registry
+package metric
 
-var Name = "registry"
+var Name = "metric"
 
 type Cfg struct {
 	Driver string `json:"driver"`
@@ -8,6 +8,6 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Driver: "mdns",
+		Driver: "prometheus",
 	}
 }

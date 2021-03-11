@@ -1,40 +1,42 @@
 package golug_grpc
 
 import (
+	"context"
 	"os"
 	"reflect"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/types"
+	gr "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
-func registerGw(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	return xutil.Try(func() {
-		xerror.Assert(g == nil, "[g] should not be nil")
-		xerror.Assert(srv == "", "[srv] should not be null")
+func registerGw(srv string, mux *gr.ServeMux, opts ...grpc.DialOption) (err error) {
+	defer xerror.RespErr(&err)
 
-		var paramsIn = types.ValueOf(reflect.ValueOf(srv), reflect.ValueOf(g))
-		for i := range opts {
-			paramsIn = append(paramsIn, reflect.ValueOf(opts[i]))
+	xerror.Assert(mux == nil, "[mux] should not be nil")
+	xerror.Assert(srv == "", "[srv] should not be null")
+
+	var params = []interface{}{context.Background(), mux, srv}
+	for i := range opts {
+		params = append(params, opts[i])
+	}
+
+	for v := range xgen.List() {
+		v1 := v.Type()
+		if v1.Kind() != reflect.Func || v1.NumIn() < 3 {
+			continue
 		}
 
-		for v := range xgen.List() {
-			v1 := v.Type()
-			if v1.Kind() != reflect.Func || v1.NumIn() < 3 {
-				continue
-			}
-
-			if v.Type().In(1).String() != "fiber.Router" {
-				continue
-			}
-
-			v.Call(paramsIn)
+		if v.Type().In(1).String() != "runtime.ServeMux" {
+			continue
 		}
-	})
+
+		_ = fx.WrapValue(v, params...)
+	}
+	return
 }
 
 func checkHandle(handler interface{}) error {
@@ -48,11 +50,7 @@ func checkHandle(handler interface{}) error {
 				continue
 			}
 
-			if !hd.Implements(v1.In(1)) {
-				continue
-			}
-
-			if v1.In(0).String() != "*grpc.Server" {
+			if !hd.Implements(v1.In(1)) || v1.In(0).String() != "*grpc.Server" {
 				continue
 			}
 
@@ -66,8 +64,8 @@ func checkHandle(handler interface{}) error {
 func register(server *grpc.Server, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(handler == nil, "[handler] should not be nil")
 	xerror.Assert(server == nil, "[server] should not be nil")
+	xerror.Assert(handler == nil, "[handler] should not be nil")
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v := range xgen.List() {
@@ -76,11 +74,11 @@ func register(server *grpc.Server, handler interface{}) (err error) {
 			continue
 		}
 
-		if !hd.Implements(v1.In(1)) {
+		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "*grpc.Server" {
 			continue
 		}
 
-		v.Call(types.ValueOf(reflect.ValueOf(server), reflect.ValueOf(handler)))
+		_ = fx.WrapValue(v, server, handler)
 		return nil
 	}
 

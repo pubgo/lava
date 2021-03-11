@@ -66,7 +66,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterMergeGateway), nil)
+	xgen.Add(reflect.ValueOf(RegisterMergeHandlerFromEndpoint), nil)
 }
 
 func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, error) {
@@ -75,119 +75,4 @@ func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, er
 		c, err := client.Get()
 		return &mergeClient{c}, err
 	}
-}
-
-func RegisterMergeGateway(srv string, g fiber.Router, opts ...grpc.DialOption) error {
-	client := grpclient.Client(srv, opts...)
-	g.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
-		var req TelephoneRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &mergeClient{conn}
-		resp, err := c.Telephone(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
-		var req TelephoneRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &mergeClient{conn}
-		resp, err := c.TelephoneCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
-		var req WeChatRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &mergeClient{conn}
-		resp, err := c.WeChat(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
-		var req WeChatRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &mergeClient{conn}
-		resp, err := c.WeChatCheck(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	g.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
-		var req WeChatUnMergeRequest
-		if err := ctx.BodyParser(&req); err != nil {
-			return err
-		}
-
-		conn, err := client.Get()
-		if err != nil {
-			return err
-		}
-
-		p := metadata.Pairs()
-		ctx.Request().Header.VisitAll(func(key, value []byte) { p.Set(xutil.ToStr(bytes.ToLower(key)), xutil.ToStr(value)) })
-
-		c := &mergeClient{conn}
-		resp, err := c.WeChatUnMerge(metadata.NewIncomingContext(ctx.Context(), p), &req)
-		if err != nil {
-			return err
-		}
-		return ctx.JSON(resp)
-	})
-
-	return nil
 }

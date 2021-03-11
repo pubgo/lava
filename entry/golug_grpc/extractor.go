@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	registry "github.com/pubgo/golug/registry"
+	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )

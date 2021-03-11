@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
+var defaultWatcher Watcher
 var callbacks types.SMap
 
 func Watch(name string, h CallBack) {

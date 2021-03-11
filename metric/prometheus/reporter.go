@@ -24,7 +24,7 @@ func init() {
 func New(cfg map[string]interface{}) (r metric.Reporter, err error) {
 	defer xerror.RespErr(&err)
 
-	var cfg1 Cfg
+	var cfg1 = GetDefaultCfg()
 	xerror.Exit(gutils.Decode(cfg, &cfg1))
 
 	return newReporter(cfg1)
@@ -67,7 +67,9 @@ func newReporter(cfg Cfg) (reporter *Reporter, err error) {
 
 	// Add metrics families for each type:
 	reporter.metrics = reporter.newMetricFamily()
-	mux.Default().Handle(cfg.Path, promhttp.HandlerFor(prometheusRegistry, promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
+	mux.Default().Handle(cfg.Path,
+		promhttp.HandlerFor(prometheusRegistry,
+			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 
 	return reporter, nil
 }

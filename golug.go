@@ -32,7 +32,7 @@ func Run(entries ...entry.Entry) {
 	xerror.Panic(golug_cmd.Run(entries...))
 }
 
-func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOption) {
+func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) {
 	defer xerror.RespExit()
 	plugin.Register(plg, opts...)
 }

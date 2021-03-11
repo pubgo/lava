@@ -1,4 +1,4 @@
-package golug
+package config
 
 import (
 	"os"
@@ -16,6 +16,7 @@ import (
 var (
 	IsBlock                = true
 	Domain                 = "golug"
+	EnvPrefix              = "golug"
 	CatchSigpipe           = true
 	Trace                  = false
 	Home                   = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
@@ -34,19 +35,27 @@ var (
 	lower = strings.ToLower
 )
 
+// 从环境变量中获取系统默认值
 func init() {
-	// 从环境变量中获取系统默认值
 	// 获取系统默认的前缀, 环境变量前缀等
-	env.GetVal(&Domain, "env_prefix", "domain", "golug_domain", "golug_prefix")
+	env.GetWith(&EnvPrefix, "env_prefix", "golug_prefix")
+	if EnvPrefix = trim(lower(EnvPrefix)); EnvPrefix == "" {
+		EnvPrefix = "golug"
+		xlog.Warnf("[env_prefix] prefix should be set, default: %s", EnvPrefix)
+	}
+	env.Prefix = EnvPrefix
+
+	env.GetWith(&Domain, "domain", "golug_domain")
 	if Domain = trim(lower(Domain)); Domain == "" {
 		Domain = "golug"
 		xlog.Warnf("[domain] prefix should be set, default: %s", Domain)
 	}
-	env.Prefix = Domain
 
-	env.GetVal(&Home, "home", "cfg_dir", "config_path")
-	env.GetVal(&Project, "project", "server_name")
-	env.GetVal(&Mode, "mode", "run_mode")
+	env.GetWith(&CfgType, "cfg_type")
+	env.GetWith(&CfgName, "cfg_name")
+	env.GetWith(&Home, "home", "cfg_dir", "config_path")
+	env.GetWith(&Project, "project", "server_name")
+	env.GetWith(&Mode, "mode", "run_mode")
 	env.GetBoolVal(&Trace, "trace")
 }
 

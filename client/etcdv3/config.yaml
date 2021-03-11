@@ -1,0 +1,4 @@
+etcdv3:
+  default:
+    endpoints: "localhost:2379"
+    name: "test"

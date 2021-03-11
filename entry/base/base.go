@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xerror"
@@ -51,7 +50,7 @@ func (t *Entry) OnCfgWithName(name string, fn interface{}) {
 func (t *Entry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(golug.Project != t.Options().Name, "project name not match(%s, %s)", golug.Project, t.Options().Name)
+	xerror.Assert(config.Project != t.Options().Name, "project name not match(%s, %s)", config.Project, t.Options().Name)
 
 	t.opts.Initialized = true
 	return

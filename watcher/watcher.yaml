@@ -1,0 +1,5 @@
+watcher:
+  driver: "etcd"
+  path: "/etcd"
+  prefix: ""
+  projects: "hello"

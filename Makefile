@@ -36,6 +36,9 @@ proto: clear gen
    -I${GOPATH}/src/github.com/googleapis/googleapis \
    -I${GOPATH}/src/github.com/gogo/protobuf \
    --go_out=plugins=grpc:. \
+   --grpc-gateway_out=. \
+   --grpc-gateway_opt=paths=source_relative \
+   --grpc-gateway_opt=logtostderr=true \
    --golug_out=. \
 	example/proto/hello/*
 
@@ -45,6 +48,9 @@ proto: clear gen
    -I${GOPATH}/src/github.com/googleapis/googleapis \
    -I${GOPATH}/src/github.com/gogo/protobuf \
    --go_out=plugins=grpc:. \
+   --grpc-gateway_out=. \
+   --grpc-gateway_opt=paths=source_relative \
+   --grpc-gateway_opt=logtostderr=true \
    --golug_out=. \
 	example/proto/login/*
 

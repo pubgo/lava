@@ -24,11 +24,11 @@ func Set(key, value string) error {
 
 func Get(names ...string) string {
 	var val string
-	GetVal(&val, names...)
+	GetWith(&val, names...)
 	return val
 }
 
-func GetVal(val *string, names ...string) {
+func GetWith(val *string, names ...string) {
 	for _, name := range names {
 		env, ok := Lookup(name)
 		env = trim(env)

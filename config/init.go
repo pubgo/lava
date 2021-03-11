@@ -7,8 +7,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/env"
-	"github.com/pubgo/golug/golug"
 	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 )
@@ -20,11 +20,6 @@ var (
 	CfgName = "config"
 	cfg     *Config
 )
-
-func init() {
-	env.GetVal(&CfgType, "cfg_type")
-	env.GetVal(&CfgName, "cfg_name")
-}
 
 func On(fn func(cfg *Config)) { xerror.Panic(dix.Dix(fn)) }
 
@@ -45,12 +40,12 @@ func initWithDir() (err error) {
 	}
 
 	// etc目录
-	v.AddConfigPath(filepath.Join("/etc", golug.Domain, golug.Project, CfgName))
+	v.AddConfigPath(filepath.Join("/etc", Domain, Project, CfgName))
 
 	// 监控Home工作目录
 	home := xerror.PanicStr(homedir.Dir())
-	v.AddConfigPath(filepath.Join(home, ".config", golug.Project, CfgName))
-	v.AddConfigPath(filepath.Join(home, "."+golug.Domain, golug.Project, CfgName))
+	v.AddConfigPath(filepath.Join(home, ".config", Project, CfgName))
+	v.AddConfigPath(filepath.Join(home, "."+Domain, Project, CfgName))
 
 	if err := v.ReadInConfig(); err != nil {
 		if !strings.Contains(strings.ToLower(err.Error()), "not found") {
@@ -60,35 +55,35 @@ func initWithDir() (err error) {
 	return nil
 }
 
-// 监控配置中的其他配置文件
+// 监控配置中的app自定义配置
 func initApp() (err error) {
 	defer xerror.RespErr(&err)
 
 	v := GetCfg()
 
-	// 处理独立的组件的配置, config.nsq.yaml, config.mysql.yaml
-	appCfg := filepath.Join(filepath.Dir(v.ConfigFileUsed()), "app."+CfgType)
+	// 处理项目自定义配置
+	appCfg := filepath.Join(filepath.Dir(v.ConfigFileUsed()), strutil.Append(Project, ".", CfgType))
 	if !gutils.PathExist(appCfg) {
 		return nil
 	}
 
 	// 从自定义文件中解析配置
-	val1 := UnMarshal(appCfg)
-	if val1 == nil {
+	appCfgData := UnMarshal(appCfg)
+	if appCfgData == nil || len(appCfgData) == 0 {
 		return
 	}
 
 	// 合并自定义的配置
-	for key, val2 := range val1 {
+	for key, val2 := range appCfgData {
 		// 获取config中默认的配置
 		if val := v.GetStringMap(key); val != nil {
 			// 合并配置
-			gutils.Mergo(&val, val2)
+			xerror.Exit(gutils.Mergo(&val, val2))
 			val2 = val
 		}
 		v.Set(key, val2)
 	}
-	return nil
+	return
 }
 
 // 处理所有的配置,环境变量和flag
@@ -100,11 +95,11 @@ func Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 运行环境检查
-	var m = golug.RunMode
-	switch golug.Mode {
+	var m = RunMode
+	switch Mode {
 	case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
 	default:
-		xerror.Assert(true, "running mode does not match, mode: %s", golug.Mode)
+		xerror.Assert(true, "running mode does not match, mode: %s", Mode)
 	}
 
 	// 配置处理
@@ -113,7 +108,7 @@ func Init() (err error) {
 	v := cfg.Viper
 
 	// env 处理
-	v.SetEnvPrefix(golug.Domain)
+	v.SetEnvPrefix(EnvPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer("_", ".", "-", ".", "/", "."))
 	v.AutomaticEnv()
 
