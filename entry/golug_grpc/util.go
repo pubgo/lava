@@ -5,7 +5,7 @@ import (
 	"os"
 	"reflect"
 
-	gr "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	gr "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/golug/xgen"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
@@ -46,7 +46,7 @@ func checkHandle(handler interface{}) error {
 		hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 		for v := range xgen.List() {
 			v1 := v.Type()
-			if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
+			if v1.Kind() != reflect.Func || v1.NumIn() < 2 || v1.In(1).Kind() != reflect.Interface {
 				continue
 			}
 
@@ -70,7 +70,8 @@ func register(server *grpc.Server, handler interface{}) (err error) {
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v := range xgen.List() {
 		v1 := v.Type()
-		if v1.Kind() != reflect.Func || v1.NumIn() < 2 {
+
+		if v1.Kind() != reflect.Func || v1.NumIn() < 2 || v1.In(1).Kind() != reflect.Interface {
 			continue
 		}
 

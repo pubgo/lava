@@ -8,7 +8,7 @@ import (
 var factories types.SMap
 
 func Register(name string, w Factory) {
-	xerror.Assert(name == "" || w == nil, "[watcher:%s] should not be null", name)
-	xerror.Assert(factories.Has(name), "[watcher:%s] already exists", name)
+	xerror.Assert(name == "" || w == nil, "[name,w] should not be null")
+	xerror.Assert(factories.Has(name), "[name] %s already exists", name)
 	factories.Set(name, w)
 }

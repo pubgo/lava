@@ -14,7 +14,7 @@ var _ Plugin = (*Base)(nil)
 type Base struct {
 	Name       string
 	OnInit     func(ent interface{})
-	OnWatch    func(resp *watcher.Response)
+	OnWatch    func(name string, resp *watcher.Response)
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 }
@@ -30,12 +30,12 @@ func (p *Base) Init(ent interface{}) (err error) {
 	return nil
 }
 
-func (p *Base) Watch(r *watcher.Response) (err error) {
+func (p *Base) Watch(name string, r *watcher.Response) (err error) {
 	defer xerror.RespErr(&err)
 
 	if p.OnWatch != nil {
 		xlog.Debugf("[%s] start watch", p.Name)
-		p.OnWatch(r)
+		p.OnWatch(name, r)
 	}
 	return nil
 }
@@ -51,7 +51,7 @@ func (p *Base) Commands() *cobra.Command {
 	return nil
 }
 
-func (p *Base) String() string {return p.Name}
+func (p *Base) String() string { return p.Name }
 
 func (p *Base) Flags() *pflag.FlagSet {
 	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", zap.Any("err", err)) })

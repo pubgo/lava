@@ -10,8 +10,7 @@ var _ Entry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
 	handler broker.Handler
-	opts    broker.SubOpts
-	optList []broker.SubOption
+	opts    *broker.SubOpts
 }
 
 type taskEntry struct {
@@ -21,15 +20,14 @@ type taskEntry struct {
 	handlers []entryTaskHandler
 }
 
-func (t *taskEntry) Register(topic string, handler broker.Handler, opts ...broker.SubOption) error {
-	var opts1 broker.SubOpts
-	for i := range opts {
-		opts[i](&opts1)
+func (t *taskEntry) Register(topic string, handler broker.Handler, opts ...*broker.SubOpts) {
+	var taskHandler = entryTaskHandler{handler: handler, opts: new(broker.SubOpts)}
+	if len(opts) > 0 && opts[0] != nil {
+		taskHandler.opts = opts[0]
 	}
-	opts1.Topic = topic
 
-	t.handlers = append(t.handlers, entryTaskHandler{handler: handler, opts: opts1, optList: opts})
-	return nil
+	taskHandler.opts.Topic = topic
+	t.handlers = append(t.handlers, taskHandler)
 }
 
 func (t *taskEntry) Stop() (err error) {
@@ -47,7 +45,7 @@ func (t *taskEntry) Start() (err error) {
 			brk = handler.opts.Broker
 		}
 
-		xerror.Panic(brk.Sub(handler.opts.Topic, handler.handler, handler.optList...))
+		xerror.Panic(brk.Sub(handler.opts.Topic, handler.handler, handler.opts))
 	}
 
 	return nil

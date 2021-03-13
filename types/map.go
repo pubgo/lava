@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"go.uber.org/atomic"
 )
@@ -18,16 +19,17 @@ type SMap struct {
 func (t *SMap) Each(fn interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
-	vfn := reflect.ValueOf(fn)
-	isKey := vfn.Type().NumIn() == 1
+	xerror.Assert(fn == nil, "[fn] should not be nil")
 
+	vfn := fx.WrapRaw(fn)
+	onlyKey := reflect.TypeOf(fn).NumIn() == 1
 	t.data.Range(func(key, value interface{}) bool {
-		if isKey {
-			vfn.Call([]reflect.Value{reflect.ValueOf(key)})
+		if onlyKey {
+			_ = vfn(key)
 			return true
 		}
 
-		vfn.Call([]reflect.Value{reflect.ValueOf(key), reflect.ValueOf(value)})
+		_ = vfn(key, value)
 		return true
 	})
 

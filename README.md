@@ -1,5 +1,14 @@
 # [golug](https://www.notion.so/barrylog/golug-96142de3b0444b6c905886efac96eeb0)
 
+1. protoc
+    curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip
+    go get github.com/golang/protobuf/protoc-gen-go@v1.3.2
+    go install -v github.com/gogo/protobuf/protoc-gen-gofast
+    go install -v github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+    go install -v github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+    go install -v github.com/vektra/mockery/cmd/mockery
+
+
 1. golug是一个高度抽象和集成的微服务框架
 2. golug集成了config, log, command, plugin, grpc, http(fiber), task, broker等组件
 3. golug使用方便, 统一入口
@@ -74,3 +83,7 @@ func main() {
 	))
 }
 ```
+
+
+https://github.com/fullstorydev/grpcurl
+https://github.com/bojand/ghz

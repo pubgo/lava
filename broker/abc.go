@@ -23,7 +23,7 @@ type SubOpts struct {
 	Broker  Broker
 }
 
-type Handler func(*Message) error
+type Handler func(msg *Message) error
 type Message struct {
 	Header    map[string]string
 	ID        string

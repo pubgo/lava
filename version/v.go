@@ -16,7 +16,7 @@ var Project = ""
 
 func init() {
 	xerror.ExitErr(ver.NewVersion(Version))
-	tracelog.Watch("golug_version", func() interface{} {
+	tracelog.Watch("version", func() interface{} {
 		return map[string]interface{}{
 			"build_time": BuildTime,
 			"version":    Version,

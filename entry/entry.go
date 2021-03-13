@@ -29,9 +29,13 @@ type Entry interface {
 
 type Option func(o *Options)
 type Options struct {
-	Initialized bool
-	Port        uint
-	Name        string
-	Version     string
-	Command     *cobra.Command
+	BeforeStarts []func()
+	AfterStarts  []func()
+	BeforeStops  []func()
+	AfterStops   []func()
+	Initialized  bool
+	Port         int
+	Name         string
+	Version      string
+	Command      *cobra.Command
 }

@@ -8,8 +8,8 @@ import (
 
 func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	typ := reflect.TypeOf(handler)
-	hdlr := reflect.ValueOf(handler)
-	name := reflect.Indirect(hdlr).Type().Name()
+	hd := reflect.ValueOf(handler)
+	name := reflect.Indirect(hd).Type().Name()
 
 	var endpoints []*registry.Endpoint
 

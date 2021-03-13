@@ -13,12 +13,10 @@ func onInit(ent interface{}) {
 		driver := cfg.Driver
 		xerror.Assert(driver == "", "broker driver is null")
 		xerror.Assert(!factories.Has(driver), "broker driver %s not found", driver)
+		xerror.Assert(brokers.Has(name), "broker %s already exists", name)
 
 		fc := factories.Get(driver).(Factory)
-		var brk = xerror.PanicErr(fc(config.Map(Name, name))).(Broker)
-
-		xerror.Assert(brokers.Has(name), "broker %s driver %s already exists", name, driver)
-		brokers.Set(name, brk)
+		brokers.Set(name, xerror.PanicErr(fc(config.Map(Name, name))).(Broker))
 	}
 }
 

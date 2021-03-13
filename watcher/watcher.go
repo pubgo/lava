@@ -14,27 +14,34 @@ var callbacks types.SMap
 
 func Watch(name string, h CallBack) {
 	xerror.Assert(name == "" || h == nil, "[name, callback] should not be null")
-	xerror.Assert(callbacks.Has(name), "[callback] %s already exists", name)
-
+	xerror.Assert(callbacks.Has(name), "callback %s already exists", name)
 	callbacks.Set(name, h)
 }
 
 func onWatch(resp *Response) {
 	defer xerror.Resp(func(err xerror.XErr) {
-		xlog.Error("", xlog.Any("err", err))
+		xlog.Error("onWatch error", xlog.Any("err", err))
 	})
 
 	// 以name为前缀的所有的callbacks
-	xerror.Panic(callbacks.Each(func(k string, bc CallBack) {
-		// 检查是否是以name为前缀, `dot`是连接符
-		if !strings.HasPrefix(resp.Key+".", k+".") {
+	xerror.Panic(callbacks.Each(func(k string, cb CallBack) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		key := KeyToDot(resp.Key)
+
+		// 检查是否是以name为前缀, `.`是连接符
+		if !strings.HasPrefix(key+".", k+".") {
 			return
 		}
 
 		// 获取数据, 并且更新全局配置
 		cfg := config.GetCfg()
-		resp.OnDelete(func() { cfg.Set(KeyToDot(resp.Key), "") })
-		resp.OnPut(func() { cfg.Set(KeyToDot(resp.Key), string(resp.Value)) })
-		xerror.Panic(bc(resp))
+		resp.OnDelete(func() { cfg.Set(key, "") })
+		resp.OnPut(func() { cfg.Set(key, string(resp.Value)) })
+
+		// 执行watch callback
+		var name = KeyToDot(strings.TrimPrefix(key, k))
+		xerror.PanicF(cb(name, resp), "event: %#v", *resp)
 	}))
 }

@@ -4,22 +4,25 @@
 package login
 
 import (
-	"bytes"
 	"reflect"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
-	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
-var _ = gutils.Decode
+func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (MergeClient, error) {
+		c, err := client.Get()
+		return &mergeClient{c}, err
+	}
+}
 
 func init() {
+
 	var mthList []xgen.GrpcRestHandler
+
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.Merge",
 		Name:          "Telephone",
@@ -66,13 +69,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterMergeHandlerFromEndpoint), nil)
-}
 
-func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, error) {
-	client := grpclient.Client(srv, opts...)
-	return func() (MergeClient, error) {
-		c, err := client.Get()
-		return &mergeClient{c}, err
-	}
+	xgen.Add(reflect.ValueOf(RegisterMergeHandlerFromEndpoint), nil)
+
 }

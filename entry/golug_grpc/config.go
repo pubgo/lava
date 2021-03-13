@@ -54,14 +54,6 @@ var (
 	unaryInterceptors = []grpc.UnaryServerInterceptor{
 		opentracing.UnaryServerInterceptor(),
 	}
-
-	kasp = keepalive.ServerParameters{
-		//MaxConnectionIdle:     30 * time.Second, // If a client is idle for 15 seconds, send a GOAWAY
-		//MaxConnectionAge:      55 * time.Second, // If any connection is alive for more than 30 seconds, send a GOAWAY
-		//MaxConnectionAgeGrace: 5 * time.Second,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
-		Time:    10 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-		Timeout: 2 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
-	}
 )
 
 func GetDefaultServerOpts() []grpc.ServerOption {
@@ -87,12 +79,14 @@ func GetDefaultServerOpts() []grpc.ServerOption {
 }
 
 type Cfg struct {
+	Gw struct {
+		Addr string `json:"addr"`
+	} `json:"gw"`
 	SleepAfterDeregister  time.Duration `json:"SleepAfterDeregister"`
 	RegisterInterval      time.Duration `json:"RegisterInterval"`
 	RegisterTTL           string        `json:"register_ttl"`
 	Address               string        `json:"address"`
 	Advertise             string        `json:"advertise"`
-	GwAddr                string        `json:"gw_addr"`
 	Codec                 string        `json:"codec"`
 	ConnectionTimeout     string        `json:"connection_timeout"`
 	Cp                    string        `json:"cp"`
@@ -118,8 +112,7 @@ type Cfg struct {
 	MaxSendMessageSize    int   `json:"max_send_message_size"`
 	ReadBufferSize        int64 `json:"read_buffer_size"`
 	WriteBufferSize       int64 `json:"write_buffer_size"`
-
-	registry registry.Registry
+	registry              registry.Registry
 }
 
 var DefaultCfg = Cfg{

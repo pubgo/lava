@@ -4,22 +4,25 @@
 package login
 
 import (
-	"bytes"
 	"reflect"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
-	"github.com/pubgo/x/xutil"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
-var _ = gutils.Decode
+func GetCodeClient(srv string, opts ...grpc.DialOption) func() (CodeClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (CodeClient, error) {
+		c, err := client.Get()
+		return &codeClient{c}, err
+	}
+}
 
 func init() {
+
 	var mthList []xgen.GrpcRestHandler
+
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "login.Code",
 		Name:          "SendCode",
@@ -66,13 +69,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint), nil)
-}
 
-func GetCodeClient(srv string, opts ...grpc.DialOption) func() (CodeClient, error) {
-	client := grpclient.Client(srv, opts...)
-	return func() (CodeClient, error) {
-		c, err := client.Get()
-		return &codeClient{c}, err
-	}
+	xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint), nil)
+
 }

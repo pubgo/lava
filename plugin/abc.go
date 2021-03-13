@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const Name ="plugin"
+const Name = "plugin"
+
 type Manager interface {
 	Plugins(...ManagerOpt) []Plugin
 	Register(Plugin, ...ManagerOpt)
@@ -18,7 +19,7 @@ type ManagerOpts struct {
 }
 
 type Plugin interface {
-	Watch(r *watcher.Response) error
+	Watch(name string, r *watcher.Response) error
 	Init(ent interface{}) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command

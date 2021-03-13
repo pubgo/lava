@@ -7,17 +7,17 @@ type Factory func(map[string]interface{}) (Registry, error)
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, ...}
 type Registry interface {
-	Register(*Service, ...RegisterOption) error
-	Deregister(*Service, ...DeregisterOption) error
-	GetService(string, ...GetOption) ([]*Service, error)
-	ListServices(...ListOption) ([]*Service, error)
-	Watch(...WatchOption) (Watcher, error)
+	Register(*Service, ...RegOpt) error
+	Deregister(*Service, ...DeRegOpt) error
+	GetService(string, ...GetOpt) ([]*Service, error)
+	ListServices(...ListOpt) ([]*Service, error)
+	Watch(...WatchOpt) (Watcher, error)
 	String() string
 }
 
-type Option func(*Options)
-type RegisterOption func(*RegisterOptions)
-type WatchOption func(*WatchOptions)
-type DeregisterOption func(*DeregisterOptions)
-type GetOption func(*GetOptions)
-type ListOption func(*ListOptions)
+type Opt func(*Opts)
+type RegOpt func(*RegOpts)
+type WatchOpt func(*WatchOpts)
+type DeRegOpt func(*DeRegOpts)
+type GetOpt func(*GetOpts)
+type ListOpt func(*ListOpts)

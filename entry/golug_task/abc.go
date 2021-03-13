@@ -7,5 +7,5 @@ import (
 
 type Entry interface {
 	entry.Entry
-	Register(topic string, handler broker.Handler, opts ...broker.SubOption) error
+	Register(topic string, handler broker.Handler, opts ... *broker.SubOpts)
 }

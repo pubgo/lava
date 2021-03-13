@@ -17,11 +17,6 @@ func GetDefaultCfg() Cfg {
 	}
 }
 
-// KeyWithDot [abc,ddd/ss,a,.c] --> abc.ddd/ss.a.c
-func KeyWithDot(key ...string) string {
-	return strings.ReplaceAll(strings.Join(key, "."), "..", ".")
-}
-
 //  /projectName/foo/bar -->  projectName.foo.bar
 func KeyToDot(prefix string) string {
 	return strings.Trim(strings.ReplaceAll(prefix, "/", "."), ".")

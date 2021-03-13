@@ -1,1 +1,0 @@
-https://github.com/asim/go-micro/tree/master/registry

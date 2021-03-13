@@ -8,17 +8,17 @@ import (
 )
 
 type Factory func(cfg map[string]interface{}) (Watcher, error)
+type CallBack func(name string, event *Response) error
 
 // Watcher ...
 type Watcher interface {
-	Watch(ctx context.Context, key string, opts ...OpOption) <-chan *Response
+	Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response
 	Name() string
 }
 
-type OpOption func(*Op)
-type Op struct{}
+type Opt func(*Opts)
+type Opts struct{}
 
-type CallBack func(event *Response) error
 type Response struct {
 	Event    string
 	Key      string
@@ -44,9 +44,7 @@ func (t *Response) Decode(val interface{}) (gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	var err = jsonx.Unmarshal(t.Value, val)
-	gErr = xerror.WrapF(err, "input: %#v, output: %t", t.Value, val)
-
-	return
+	return xerror.WrapF(err, "input: %s, output: %#v", t.Value, val)
 }
 
 func (t *Response) checkEventType() error {

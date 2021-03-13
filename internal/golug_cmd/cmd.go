@@ -39,6 +39,7 @@ func start(ent entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
 	beforeStarts := golug_run.GetBeforeStarts()
+	beforeStarts = append(beforeStarts, ent.Options().BeforeStarts...)
 	for i := range beforeStarts {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
@@ -52,6 +53,7 @@ func start(ent entry.RunEntry) (err error) {
 	xerror.Panic(ent.Start())
 
 	afterStarts := golug_run.GetAfterStarts()
+	afterStarts = append(afterStarts, ent.Options().AfterStarts...)
 	for i := range afterStarts {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
@@ -69,6 +71,7 @@ func stop(ent entry.RunEntry) (err error) {
 	defer xerror.RespErr(&err)
 
 	beforeStops := golug_run.GetBeforeStops()
+	beforeStops = append(beforeStops, ent.Options().BeforeStops...)
 	for i := range beforeStops {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {
@@ -82,6 +85,7 @@ func stop(ent entry.RunEntry) (err error) {
 	xerror.Panic(ent.Stop())
 
 	afterStops := golug_run.GetAfterStops()
+	afterStops = append(afterStops, ent.Options().AfterStops...)
 	for i := range afterStops {
 		func(i int) {
 			defer xerror.RespRaise(func(err xerror.XErr) error {

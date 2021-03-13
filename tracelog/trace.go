@@ -2,6 +2,7 @@ package tracelog
 
 import (
 	"expvar"
+
 	"github.com/pubgo/xerror"
 )
 

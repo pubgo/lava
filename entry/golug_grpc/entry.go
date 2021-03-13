@@ -10,7 +10,7 @@ import (
 	"time"
 
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	gw "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
 	"github.com/pubgo/golug/gutils/addr"
@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var _ Entry = (*grpcEntry)(nil)
@@ -55,11 +56,12 @@ func (g *grpcEntry) EnableDebug() {
 	})
 }
 
-func (g *grpcEntry) Init() (gErr error) {
-	defer xerror.RespErr(&gErr)
+func (g *grpcEntry) initGw() (gErr error) {
+	gw.DefaultContextTimeout = time.Second * 2
+	return
+}
 
-	xerror.Panic(g.Entry.Init())
-
+func (g *grpcEntry) initGrpc() (gErr error) {
 	unaryInterceptorList := unaryInterceptors
 	unaryInterceptorList = append(unaryInterceptorList, g.unaryServerInterceptors...)
 
@@ -76,7 +78,15 @@ func (g *grpcEntry) Init() (gErr error) {
 
 	g.srv = grpc.NewServer(opts...)
 
-	gw.DefaultContextTimeout = time.Second * 2
+	return
+}
+
+func (g *grpcEntry) Init() (gErr error) {
+	defer xerror.RespErr(&gErr)
+
+	xerror.Panic(g.Entry.Init())
+	xerror.Panic(g.initGrpc())
+	xerror.Panic(g.initGw())
 
 	return
 }
@@ -136,7 +146,7 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	// create registry options
-	rOpts := []registry.RegisterOption{registry.TTL(g.cfg.RegisterTTL)}
+	rOpts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
 	if err := g.cfg.registry.Register(services, rOpts...); err != nil {
 		return xerror.WrapF(err, "[grpc] registry register error")
 	}
@@ -232,6 +242,8 @@ func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerIntercept
 }
 
 func (g *grpcEntry) Register(handler interface{}, opts ...Option) {
+	defer xerror.RespDebug()
+
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 	xerror.Panic(checkHandle(handler), "[grpc] grpcEntry.Register error")
 
@@ -242,9 +254,11 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Option) {
 
 // 开启api网关模式
 func (g *grpcEntry) startGw() (err error) {
-	if g.cfg.GwAddr == "" {
+	if g.cfg.Gw.Addr == "" {
 		return nil
 	}
+
+	gw.DefaultContextTimeout = time.Second * 2
 
 	// 开启api网关模式
 	mux := gw.NewServeMux(
@@ -253,11 +267,19 @@ func (g *grpcEntry) startGw() (err error) {
 		}),
 
 		gw.WithMarshalerOption(gw.MIMEWildcard, &gw.HTTPBodyMarshaler{
-			Marshaler: &gw.JSONPb{OrigName: true},
+			Marshaler: &gw.JSONPb{
+				MarshalOptions: protojson.MarshalOptions{
+					UseProtoNames:  true,
+					UseEnumNumbers: true,
+				},
+				UnmarshalOptions: protojson.UnmarshalOptions{
+					DiscardUnknown: true,
+				},
+			},
 		}),
 	)
 
-	var server = &http.Server{Addr: g.cfg.GwAddr, Handler: mux}
+	var server = &http.Server{Addr: g.cfg.Gw.Addr, Handler: mux}
 
 	// 注册网关api
 	xerror.Panic(registerGw(g.cfg.Address, mux, grpc.WithBlock(), grpc.WithInsecure()))
@@ -271,7 +293,7 @@ func (g *grpcEntry) startGw() (err error) {
 			xlog.Info("Server [GW] Closed OK")
 		}))
 
-		xlog.Infof("Server [GW] Listening on http://%s", g.cfg.GwAddr)
+		xlog.Infof("Server [GW] Listening on http://%s", g.cfg.Gw.Addr)
 	})
 
 	g.BeforeStop(func() {
@@ -368,7 +390,7 @@ Loop:
 
 func (g *grpcEntry) initFlags() {
 	g.Flags(func(flags *pflag.FlagSet) {
-		flags.StringVar(&g.cfg.GwAddr, "gw", g.cfg.GwAddr, "set addr and enable gateway mode")
+		flags.StringVar(&g.cfg.Gw.Addr, "gw_addr", g.cfg.Gw.Addr, "set gateway addr and enable gateway")
 	})
 }
 

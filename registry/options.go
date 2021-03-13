@@ -8,15 +8,15 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func TTL(t string) RegisterOption {
-	return func(o *RegisterOptions) {
+func TTL(t string) RegOpt {
+	return func(o *RegOpts) {
 		dur, err := time.ParseDuration(t)
 		xerror.Panic(err)
 		o.TTL = dur
 	}
 }
 
-type Options struct {
+type Opts struct {
 	Addrs     []string
 	Timeout   time.Duration
 	Secure    bool
@@ -26,14 +26,14 @@ type Options struct {
 	Context context.Context
 }
 
-type RegisterOptions struct {
+type RegOpts struct {
 	TTL time.Duration
 	// Other options for implementations of the interface
 	// can be stored in a context
 	Context context.Context
 }
 
-type WatchOptions struct {
+type WatchOpts struct {
 	// Specify a service to watch
 	// If blank, the watch is for all services
 	Service string
@@ -42,84 +42,84 @@ type WatchOptions struct {
 	Context context.Context
 }
 
-type DeregisterOptions struct {
+type DeRegOpts struct {
 	Context context.Context
 }
 
-type GetOptions struct {
+type GetOpts struct {
 	Context context.Context
 }
 
-type ListOptions struct {
+type ListOpts struct {
 	Context context.Context
 }
 
 // Addrs is the registry addresses to use
-func Addrs(addrs ...string) Option {
-	return func(o *Options) {
+func Addrs(addrs ...string) Opt {
+	return func(o *Opts) {
 		o.Addrs = addrs
 	}
 }
 
-func Timeout(t time.Duration) Option {
-	return func(o *Options) {
+func Timeout(t time.Duration) Opt {
+	return func(o *Opts) {
 		o.Timeout = t
 	}
 }
 
 // Secure communication with the registry
-func Secure(b bool) Option {
-	return func(o *Options) {
+func Secure(b bool) Opt {
+	return func(o *Opts) {
 		o.Secure = b
 	}
 }
 
 // Specify TLS Config
-func TLSConfig(t *tls.Config) Option {
-	return func(o *Options) {
+func TLSConfig(t *tls.Config) Opt {
+	return func(o *Opts) {
 		o.TLSConfig = t
 	}
 }
 
-func RegisterTTL(t time.Duration) RegisterOption {
-	return func(o *RegisterOptions) {
+func RegisterTTL(t time.Duration) RegOpt {
+	return func(o *RegOpts) {
 		o.TTL = t
 	}
 }
 
-func RegisterContext(ctx context.Context) RegisterOption {
-	return func(o *RegisterOptions) {
+func RegisterContext(ctx context.Context) RegOpt {
+	return func(o *RegOpts) {
 		o.Context = ctx
 	}
 }
 
 // Watch a service
-func WatchService(name string) WatchOption {
-	return func(o *WatchOptions) {
+func WatchService(name string) WatchOpt {
+	return func(o *WatchOpts) {
 		o.Service = name
 	}
 }
 
-func WatchContext(ctx context.Context) WatchOption {
-	return func(o *WatchOptions) {
+func WatchContext(ctx context.Context) WatchOpt {
+	return func(o *WatchOpts) {
 		o.Context = ctx
 	}
 }
 
-func DeregisterContext(ctx context.Context) DeregisterOption {
-	return func(o *DeregisterOptions) {
+func DeregisterContext(ctx context.Context) DeRegOpt {
+	return func(o *DeRegOpts) {
 		o.Context = ctx
 	}
 }
 
-func GetContext(ctx context.Context) GetOption {
-	return func(o *GetOptions) {
+func GetContext(ctx context.Context) GetOpt {
+	return func(o *GetOpts) {
 		o.Context = ctx
 	}
 }
 
-func ListContext(ctx context.Context) ListOption {
-	return func(o *ListOptions) {
+func ListContext(ctx context.Context) ListOpt {
+	return func(o *ListOpts) {
 		o.Context = ctx
 	}
 }
@@ -127,8 +127,8 @@ func ListContext(ctx context.Context) ListOption {
 type servicesKey struct{}
 
 // Services is an option that preloads service data
-func Services(s map[string][]*Service) Option {
-	return func(o *Options) {
+func Services(s map[string][]*Service) Opt {
+	return func(o *Opts) {
 		if o.Context == nil {
 			o.Context = context.Background()
 		}

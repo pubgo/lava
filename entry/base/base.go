@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry"
-	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
+	"github.com/pubgo/golug/version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -21,10 +21,10 @@ type Entry struct {
 	opts entry.Options
 }
 
-func (t *Entry) BeforeStart(f func())    { golug_run.BeforeStart(f) }
-func (t *Entry) AfterStart(f func())     { golug_run.AfterStart(f) }
-func (t *Entry) BeforeStop(f func())     { golug_run.BeforeStop(f) }
-func (t *Entry) AfterStop(f func())      { golug_run.AfterStop(f) }
+func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
+func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
+func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
+func (t *Entry) AfterStop(f func())      { t.opts.AfterStops = append(t.opts.AfterStops, f) }
 func (t *Entry) Dix(data ...interface{}) { xerror.Panic(dix.Dix(data...)) }
 func (t *Entry) Start() error            { return nil }
 func (t *Entry) Stop() error             { return nil }
@@ -33,8 +33,7 @@ func (t *Entry) Options() entry.Options  { return t.opts }
 // Plugin 注册插件
 func (t *Entry) Plugin(plg plugin.Plugin) {
 	defer xerror.RespExit()
-
-	xerror.Assert(plg == nil || plg.String() == "", "[plugin] should not be nil")
+	xerror.Assert(plg == nil || plg.String() == "", "[plg] should not be nil")
 	xerror.Assert(t.opts.Name == "", "please init project name first")
 	plugin.Register(plg, plugin.Module(t.opts.Name))
 }
@@ -51,7 +50,7 @@ func (t *Entry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(config.Project != t.Options().Name, "project name not match(%s, %s)", config.Project, t.Options().Name)
-
+	t.opts.Port = config.Port
 	t.opts.Initialized = true
 	return
 }
@@ -104,12 +103,6 @@ func (t *Entry) Commands(commands ...*cobra.Command) {
 	}
 }
 
-func (t *Entry) initFlags() {
-	t.Flags(func(flags *pflag.FlagSet) {
-		flags.UintVar(&t.opts.Port, "port", t.opts.Port, "the server port")
-	})
-}
-
 func handleCmdName(name string) string {
 	if strings.Contains(name, "-") {
 		names := strings.Split(name, "-")
@@ -126,18 +119,17 @@ func handleCmdName(name string) string {
 
 func newEntry(name string) *Entry {
 	name = strings.TrimSpace(name)
-	xerror.Assert(name == "", "the [name] parameter should not be empty")
+	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
 	ent := &Entry{
 		opts: entry.Options{
 			Name:    name,
 			Port:    8080,
+			Version: version.Version,
 			Command: &cobra.Command{Use: handleCmdName(name)},
 		},
 	}
-
-	ent.initFlags()
 
 	return ent
 }

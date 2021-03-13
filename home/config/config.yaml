@@ -1,16 +1,13 @@
 app:
   project: "golug"
-  enabled: true
   name: "golug"
   version: "v0.0.1"
   home: ""
   debug: true
-config:
-  watcher: ["default"]
+  watcher: false
 watcher:
-  golug:
-    driver: "etcd"
-    name: "default"
+  driver: "null"
+  name: "default"
 recovery:
   enabled: true
 task_entry:

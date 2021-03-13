@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"github.com/pubgo/xlog"
 	"io"
 	"io/ioutil"
 	"reflect"
@@ -25,6 +26,8 @@ type Config struct {
 func Map(names ...string) map[string]interface{} {
 	return GetCfg().GetStringMap(strings.Join(names, "."))
 }
+
+func Enabled(name string) bool { return GetCfg().GetBool("app." + name) }
 
 func GetCfg() *Config {
 	xerror.Assert(cfg == nil, "[config] please init config")
@@ -50,8 +53,11 @@ func UnMarshal(path string) map[string]interface{} {
 func Decode(name string, fn interface{}) {
 	defer xerror.RespExit(name)
 
-	xerror.Assert(fn == nil, "[fn] should not be nil")
-	xerror.Assert(GetCfg().Get(name) == nil, "[name] config not found")
+	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
+	if GetCfg().Get(name) == nil{
+		xlog.Debugf("config key [%s] not found",name)
+		return
+	}
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {

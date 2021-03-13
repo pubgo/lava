@@ -27,7 +27,7 @@ func Get(names ...string) *xorm.Engine {
 	return c.(*xorm.Engine)
 }
 
-func initClient(name string, cfg Cfg) (err error) {
+func updateClient(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	source := config.Template(cfg.Source)
@@ -49,11 +49,13 @@ func initClient(name string, cfg Cfg) (err error) {
 
 	xerror.Panic(engine.DB().Ping())
 
-	if val, ok := clients.Load(name); ok {
-		_ = val.(*xorm.Engine).Close()
-	}
+	val, ok := clients.Load(name)
 
 	clients.Set(name, engine)
+
+	if ok {
+		_ = val.(*xorm.Engine).Close()
+	}
 
 	// 初始化完毕之后, 更新到对象管理系统
 	updateEngine(name, engine)

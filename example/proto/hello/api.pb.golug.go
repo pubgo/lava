@@ -7,15 +7,30 @@ import (
 	"reflect"
 
 	"github.com/pubgo/golug/client/grpclient"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/xgen"
 	"google.golang.org/grpc"
 )
 
-var _ = gutils.Decode
+func GetTestApiClient(srv string, opts ...grpc.DialOption) func() (TestApiClient, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (TestApiClient, error) {
+		c, err := client.Get()
+		return &testApiClient{c}, err
+	}
+}
+
+func GetTestApiV2Client(srv string, opts ...grpc.DialOption) func() (TestApiV2Client, error) {
+	client := grpclient.Client(srv, opts...)
+	return func() (TestApiV2Client, error) {
+		c, err := client.Get()
+		return &testApiV2Client{c}, err
+	}
+}
 
 func init() {
+
 	var mthList []xgen.GrpcRestHandler
+
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApi",
 		Name:          "Version",
@@ -35,11 +50,9 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint), nil)
-}
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
+	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint), nil)
+
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApiV2",
 		Name:          "Version1",
@@ -59,21 +72,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerFromEndpoint), nil)
-}
 
-func GetTestApiClient(srv string, opts ...grpc.DialOption) func() (TestApiClient, error) {
-	client := grpclient.Client(srv, opts...)
-	return func() (TestApiClient, error) {
-		c, err := client.Get()
-		return &testApiClient{c}, err
-	}
-}
-
-func GetTestApiV2Client(srv string, opts ...grpc.DialOption) func() (TestApiV2Client, error) {
-	client := grpclient.Client(srv, opts...)
-	return func() (TestApiV2Client, error) {
-		c, err := client.Get()
-		return &testApiV2Client{c}, err
-	}
 }
