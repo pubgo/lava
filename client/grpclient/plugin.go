@@ -10,7 +10,9 @@ func init() {
 		Name: Name,
 		OnInit: func(ent interface{}) {
 			var cfg = GetDefaultCfg()
-			config.Decode(Name, &cfg)
+			if !config.Decode(Name, &cfg) {
+				return
+			}
 		},
 	})
 }

@@ -5,5 +5,5 @@ import (
 )
 
 func init() {
-	Default().Handle("/debug/vars", expvar.Handler())
+	Default().Handle("/", expvar.Handler())
 }

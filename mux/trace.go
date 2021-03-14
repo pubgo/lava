@@ -11,10 +11,6 @@ func init() {
 			return nil
 		}
 
-		var data []string
-		for _, stack := range app.Routes() {
-			data = append(data, fmt.Sprintf("%#v\n", stack))
-		}
-		return data
+		return fmt.Sprintf("%#v\n",app.Routes())
 	}))
 }

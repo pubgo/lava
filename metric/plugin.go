@@ -9,7 +9,9 @@ import (
 
 func onInit(ent interface{}) {
 	var cfg = GetDefaultCfg()
-	config.Decode(Name, &cfg)
+	if !config.Decode(Name, &cfg) {
+		return
+	}
 
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "metric driver is null")

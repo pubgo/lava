@@ -7,9 +7,9 @@ import (
 
 func init() {
 	tracelog.Watch("xgen", func() interface{} {
-		dt := make(map[string][]GrpcRestHandler)
-		for k, v := range List() {
-			dt[stack.Func(k.Interface())] = v
+		dt := make(map[string]struct{})
+		for k := range List() {
+			dt[stack.Func(k.Interface())] = struct{}{}
 		}
 		return dt
 	})

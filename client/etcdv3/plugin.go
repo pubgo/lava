@@ -11,7 +11,9 @@ import (
 )
 
 func onInit(ent interface{}) {
-	config.Decode(Name, &cfgList)
+	if !config.Decode(Name, &cfgList) {
+		return
+	}
 
 	for name, cfg := range cfgList {
 		// etcd config处理

@@ -2,7 +2,7 @@ package config
 
 import (
 	"bytes"
-	"github.com/pubgo/xlog"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"reflect"
@@ -15,6 +15,7 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
 )
@@ -26,8 +27,6 @@ type Config struct {
 func Map(names ...string) map[string]interface{} {
 	return GetCfg().GetStringMap(strings.Join(names, "."))
 }
-
-func Enabled(name string) bool { return GetCfg().GetBool("app." + name) }
 
 func GetCfg() *Config {
 	xerror.Assert(cfg == nil, "[config] please init config")
@@ -50,35 +49,41 @@ func UnMarshal(path string) map[string]interface{} {
 
 // Decode
 // decode config
-func Decode(name string, fn interface{}) {
+func Decode(name string, fn interface{}) (b bool) {
 	defer xerror.RespExit(name)
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
-	if GetCfg().Get(name) == nil{
-		xlog.Debugf("config key [%s] not found",name)
-		return
+	if GetCfg().Get(name) == nil {
+		xlog.Warnf("config key [%s] not found", name)
+		return false
 	}
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {
 	case reflect.Func: // func(cfg *Config)
-		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be one")
+		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be 1")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
 		ret := fx.WrapRaw(GetCfg().UnmarshalKey)(name, mthIn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" })
 
 		if !ret[0].IsNil() {
-			xerror.PanicF(ret[0].Interface().(error), "%s config decode error", name)
+			xerror.PanicF(ret[0].Interface().(error),
+				"config key %s decode error", name)
 		}
 
 		vfn.Call(types.ValueOf(mthIn))
 	case reflect.Ptr:
-		xerror.Panic(GetCfg().UnmarshalKey(name, fn,
-			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }))
+		xerror.PanicF(GetCfg().UnmarshalKey(name, fn,
+			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
+			"config key %s decode error", name)
 	default:
-		xerror.Assert(true, "[fn] type error, type:%#v", vfn)
+		xerror.AssertFn(true, func() string {
+			return fmt.Sprintf("[fn] type error, refer: %#v", vfn)
+		})
 	}
+
+	return true
 }
 
 func Template(format string) string {

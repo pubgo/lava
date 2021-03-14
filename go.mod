@@ -36,7 +36,7 @@ require (
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.18-0.20210308075649-51ffee8d36c4
 	github.com/pubgo/xerror v0.4.1
-	github.com/pubgo/xlog v0.0.19-0.20210308125244-633625ef7c23
+	github.com/pubgo/xlog v0.0.19
 	github.com/pubgo/xprotogen v0.0.7
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5

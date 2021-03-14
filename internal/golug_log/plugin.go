@@ -12,7 +12,10 @@ func init() {
 		Name: name,
 		OnInit: func(ent interface{}) {
 			cfg.Level = config.Level
-			config.Decode(name, &cfg)
+			if !config.Decode(name, &cfg) {
+				return
+			}
+			
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(_ string, r *watcher.Response) {

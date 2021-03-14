@@ -110,7 +110,7 @@ log:
   level: debug
   development: true
   disableCaller: false
-  disableStacktrace: false
+  disableStacktrace: true
   sampling: null
   encoding: console
   encoderConfig:

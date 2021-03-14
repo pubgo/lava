@@ -9,7 +9,9 @@ import (
 )
 
 func onInit(ent interface{}) {
-	config.Decode(Name, &cfgList)
+	if !config.Decode(Name, &cfgList) {
+		return
+	}
 
 	for name := range cfgList {
 		cfg := GetDefaultCfg()

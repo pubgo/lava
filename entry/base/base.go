@@ -43,7 +43,7 @@ func (t *Entry) OnCfg(fn interface{}) { t.OnCfgWithName(t.opts.Name, fn) }
 func (t *Entry) OnCfgWithName(name string, fn interface{}) {
 	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
 
-	config.On(func(cfg *config.Config) { config.Decode(name, fn) })
+	config.On(func(cfg *config.Config) { _ = config.Decode(name, fn) })
 }
 
 func (t *Entry) Init() (err error) {

@@ -8,7 +8,9 @@ import (
 
 func onInit(ent interface{}) {
 	var cfg = GetDefaultCfg()
-	config.Decode(Name, &cfg)
+	if !config.Decode(Name, &cfg) {
+		return
+	}
 
 	var driver = cfg.Driver
 	xerror.Assert(driver == "", "registry driver is null")

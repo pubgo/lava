@@ -17,7 +17,9 @@ func init() {
 		defer xerror.RespExit()
 
 		var cfg = GetDefaultCfg()
-		config.Decode(Name, &cfg)
+		if !config.Decode(Name, &cfg) {
+			return
+		}
 
 		driver := cfg.Driver
 		xerror.Assert(driver == "", "watcher driver is null")
