@@ -2,7 +2,8 @@ package mdns
 
 import "time"
 
+const Name = "mdns"
+
 type Cfg struct {
-	Text []string `json:"text"`
 	TTL  time.Duration `json:"ttl"`
 }

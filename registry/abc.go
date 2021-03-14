@@ -11,7 +11,7 @@ type Registry interface {
 	Deregister(*Service, ...DeRegOpt) error
 	GetService(string, ...GetOpt) ([]*Service, error)
 	ListServices(...ListOpt) ([]*Service, error)
-	Watch(...WatchOpt) (Watcher, error)
+	Watch(string, ...WatchOpt) (Watcher, error)
 	String() string
 }
 

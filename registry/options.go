@@ -47,7 +47,7 @@ type DeRegOpts struct {
 }
 
 type GetOpts struct {
-	Context context.Context
+	Timeout time.Duration
 }
 
 type ListOpts struct {
@@ -108,12 +108,6 @@ func WatchContext(ctx context.Context) WatchOpt {
 
 func DeregisterContext(ctx context.Context) DeRegOpt {
 	return func(o *DeRegOpts) {
-		o.Context = ctx
-	}
-}
-
-func GetContext(ctx context.Context) GetOpt {
-	return func(o *GetOpts) {
 		o.Context = ctx
 	}
 }

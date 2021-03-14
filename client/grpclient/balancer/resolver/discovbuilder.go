@@ -85,7 +85,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	cc.UpdateState(resolver.State{Addresses: addrs})
 
-	w, err := r.Watch(registry.WatchService(target.Endpoint))
+	w, err := r.Watch(target.Endpoint)
 	if err != nil {
 		return nil, xerror.WrapF(err, "target.Endpoint:%s\n", target.Endpoint)
 	}
