@@ -5,6 +5,7 @@ import (
 )
 
 var Name = "watcher"
+var Prefix = "/watcher"
 
 type Cfg struct {
 	Driver   string   `json:"driver"`

@@ -57,7 +57,7 @@ func Unsetenv(key string) error {
 // It accept value formats "${env}" , "${env||}}" , "${env||defaultValue}" , "defaultvalue".
 // Examples:
 //	v1 := config.ExpandValueEnv("${GOPATH}")			// return the GOPATH environment variable.
-//	v2 := config.ExpandValueEnv("${GOAsta||/usr/local/go}")	// return the default value "/usr/local/go/".
+//	v2 := config.ExpandValueEnv("${GOPATH||/usr/local/go}")	// return the default value "/usr/local/go/".
 //	v3 := config.ExpandValueEnv("Astaxie")				// return the value "Astaxie".
 func Expand(value string) string {
 	value = trim(value)

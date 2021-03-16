@@ -3,6 +3,7 @@ package golug_ctl
 import (
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
+	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
 
@@ -17,17 +18,14 @@ type ctlEntry struct {
 func (t *ctlEntry) Register(f func(), opts ...Option) { t.handler = f }
 
 func (t *ctlEntry) Start() (err error) {
-	defer xerror.RespErr(&err)
-	t.handler()
-	return
+	return xutil.Try(t.handler)
 }
 
 func (t *ctlEntry) Init() (err error) {
-	defer xerror.RespErr(&err)
-
-	xerror.Panic(t.Entry.Init())
-	config.IsBlock = false
-	return nil
+	return xutil.Try(func() {
+		xerror.Panic(t.Entry.Init())
+		config.IsBlock = false
+	})
 }
 
 func newEntry(name string) *ctlEntry {

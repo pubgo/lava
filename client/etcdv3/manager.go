@@ -71,7 +71,7 @@ func updateClient(name string, cfg Cfg) error {
 // initClient 创建或者初始化etcd client
 func initClient(name string, cfg Cfg) error {
 	return xutil.Try(func() {
-		xerror.Assert(name == "", "[name] should not be null", name)
+		xerror.Assert(name == "", "[name] should not be null")
 		xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 
 		etcdClient, err := newClient(cfg.ToEtcd())

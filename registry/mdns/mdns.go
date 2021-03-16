@@ -77,7 +77,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, opt ...registry.RegOp
 			[]string{"register"},
 			nil,
 		)
-		xerror.Panic(err, "[mdns] service %s register error", service.Name)
+		xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
 		m.services[node.Id] = server
 

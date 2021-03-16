@@ -1,5 +1,7 @@
 package codec
 
+var Name = "codec"
+
 // Codec defines the interface.
 type Codec interface {
 	Name() string

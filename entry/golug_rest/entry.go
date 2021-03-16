@@ -3,19 +3,17 @@ package golug_rest
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/golug/gutils"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/spf13/pflag"
 )
 
 var _ Entry = (*restEntry)(nil)
@@ -51,14 +49,13 @@ func (t *restEntry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Panic(t.Entry.Init())
-	dm := config.GetCfg().GetStringMap(Name)
-	delete(dm, "views")
-
-	xerror.Panic(gutils.Map(&t.cfg, dm))
-
-	if t.cfg1.Views.Dir != "" && t.cfg1.Views.Ext != "" {
-		t.cfg.Views = html.New(t.cfg1.Views.Dir, t.cfg1.Views.Ext)
+	if t.cfg1.Templates.Dir != "" && t.cfg1.Templates.Ext != "" {
+		t.cfg.Views = html.New(t.cfg1.Templates.Dir, t.cfg1.Templates.Ext)
 	}
+
+	var dt = make(map[string]interface{})
+	xerror.Panic(gutils.Map(&dt, t.cfg1))
+	xerror.Panic(gutils.Map(&t.cfg, dt))
 	return nil
 }
 
@@ -111,14 +108,13 @@ func (t *restEntry) Stop() (err error) {
 	return nil
 }
 
-func (t *restEntry) initFlags() {
-	t.Flags(func(flags *pflag.FlagSet) {
-		flags.BoolVar(&t.cfg1.DisableStartupMessage, "disable_startup_message", t.cfg1.DisableStartupMessage, "print out the http server art and listening address")
-	})
-}
+func (t *restEntry) initFlags() {}
 
 func newEntry(name string) *restEntry {
-	ent := &restEntry{Entry: base.New(name), cfg1: GetDefaultCfg()}
+	var cfg = GetDefaultCfg()
+	cfg.DisableStartupMessage = true
+
+	ent := &restEntry{Entry: base.New(name), cfg1: cfg}
 	ent.initFlags()
 	ent.trace()
 	ent.OnCfgWithName(Name, &ent.cfg1)

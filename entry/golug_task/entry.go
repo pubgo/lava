@@ -30,9 +30,7 @@ func (t *taskEntry) Register(topic string, handler broker.Handler, opts ...*brok
 	t.handlers = append(t.handlers, taskHandler)
 }
 
-func (t *taskEntry) Stop() (err error) {
-	return nil
-}
+func (t *taskEntry) Stop() (err error) { return nil }
 
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)

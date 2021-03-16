@@ -25,7 +25,7 @@ func New(cfg map[string]interface{}) (r metric.Reporter, err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg1 = GetDefaultCfg()
-	xerror.Exit(gutils.Decode(cfg, &cfg1))
+	xerror.Panic(gutils.Decode(cfg, &cfg1))
 
 	return newReporter(cfg1)
 }

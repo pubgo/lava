@@ -1,14 +1,13 @@
 package golug_rest
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
+	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/xerror"
 )
-
-const Name = "rest_entry"
 
 type Cfg struct {
 	Prefork       bool   `json:"prefork"`
@@ -40,8 +39,16 @@ type Cfg struct {
 	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
 }
 
-func GetDefaultCfg() (cfg Cfg) {
-	dt := xerror.PanicBytes(json.Marshal(fiber.New().Config()))
-	xerror.Panic(json.Unmarshal(dt, &cfg))
-	return cfg
+func (t Cfg) Build() *fiber.App {
+	var cfg = fiber.New().Config()
+
+	if t.Templates.Dir != "" && t.Templates.Ext != "" {
+		cfg.Views = html.New(t.Templates.Dir, t.Templates.Ext)
+	}
+
+	var dt = make(map[string]interface{})
+	xerror.Exit(gutils.Map(&dt, t))
+	xerror.Exit(gutils.Map(&cfg, dt))
+
+	return fiber.New(cfg)
 }

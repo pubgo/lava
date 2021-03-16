@@ -22,8 +22,7 @@ func onInit(ent interface{}) {
 
 			xlog.Info("Server [mux] Closed OK")
 		}))
-
-		xlog.Infof("Server [mux] Listening on http://%s", addr)
+		xlog.Infof("Server [mux] Listening on http://localhost%s", addr)
 	})
 
 	golug_run.BeforeStop(func() {

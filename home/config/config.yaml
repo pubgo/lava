@@ -63,7 +63,7 @@ rest_entry:
   disable_default_date: false
   disable_default_content_type: false
   disable_header_normalizing: false
-  disable_startup_message: false
+  disable_startup_message: true
   reduce_memory_usage: false
   views:
     dir: ""

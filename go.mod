@@ -1,6 +1,6 @@
 module github.com/pubgo/golug
 
-go 1.14
+go 1.15
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
@@ -36,7 +36,7 @@ require (
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.18-0.20210308075649-51ffee8d36c4
 	github.com/pubgo/xerror v0.4.1
-	github.com/pubgo/xlog v0.0.19
+	github.com/pubgo/xlog v0.0.21
 	github.com/pubgo/xprotogen v0.0.7
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5

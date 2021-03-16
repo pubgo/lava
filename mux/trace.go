@@ -11,6 +11,6 @@ func init() {
 			return nil
 		}
 
-		return fmt.Sprintf("%#v\n",app.Routes())
+		return fmt.Sprintf("%#v\n", app.Routes())
 	}))
 }

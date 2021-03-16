@@ -15,7 +15,7 @@ func init() {
 			if !config.Decode(name, &cfg) {
 				return
 			}
-			
+
 			xerror.Panic(initLog(cfg))
 		},
 		OnWatch: func(_ string, r *watcher.Response) {

@@ -1,8 +1,6 @@
 package etcdv3
 
 import (
-	"strings"
-
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/consts"
 	"github.com/pubgo/golug/plugin"
@@ -22,10 +20,7 @@ func onInit(ent interface{}) {
 	}
 }
 
-func onWatch(r *watcher.Response) {
-	keys := strings.Split(r.Key, "/")
-	name := keys[len(keys)-1]
-
+func onWatch(name string,r *watcher.Response) {
 	r.OnPut(func() {
 		log.Debugf("[etcd] update client %s", name)
 
