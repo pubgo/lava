@@ -1,12 +1,12 @@
 package golug_rest
 
 import (
+	"github.com/pubgo/xerror"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/pubgo/golug/gutils"
-	"github.com/pubgo/xerror"
 )
 
 type Cfg struct {
@@ -46,9 +46,6 @@ func (t Cfg) Build() *fiber.App {
 		cfg.Views = html.New(t.Templates.Dir, t.Templates.Ext)
 	}
 
-	var dt = make(map[string]interface{})
-	xerror.Exit(gutils.Map(&dt, t))
-	xerror.Exit(gutils.Map(&cfg, dt))
-
+	xerror.Panic(gutils.StructMerge(&cfg, t))
 	return fiber.New(cfg)
 }

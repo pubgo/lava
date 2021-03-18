@@ -10,17 +10,19 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+type ServeMux = gw.ServeMux
+
 type Cfg struct {
 	Timeout time.Duration `json:"timeout"`
 }
 
 func (t Cfg) Build(opts ...gw.ServeMuxOption) *gw.ServeMux {
-	gw.DefaultContextTimeout = time.Second * 2
 	if t.Timeout != 0 {
 		gw.DefaultContextTimeout = t.Timeout
 	}
 
-	opts = append(opts,
+	var tOpts []gw.ServeMuxOption
+	tOpts = append(tOpts,
 		gw.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
 			return metadata.MD(r.URL.Query())
 		}),
@@ -37,5 +39,12 @@ func (t Cfg) Build(opts ...gw.ServeMuxOption) *gw.ServeMux {
 			},
 		}))
 
-	return gw.NewServeMux(opts...)
+	tOpts = append(tOpts, opts...)
+	return gw.NewServeMux(tOpts...)
+}
+
+func GetDefaultCfg() Cfg {
+	return Cfg{
+		Timeout: time.Second * 2,
+	}
 }

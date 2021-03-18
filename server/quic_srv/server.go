@@ -1,4 +1,4 @@
-package quic
+package quic_srv
 
 import (
 	"context"
@@ -11,51 +11,10 @@ import (
 	"log"
 	"math/big"
 	"net"
-	"os"
 	"sync"
 
 	quic "github.com/lucas-clemente/quic-go"
 )
-
-func client(addr string) error {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	config := &tls.Config{
-		InsecureSkipVerify: true,
-		NextProtos:         []string{"quicssh"},
-	}
-
-	log.Printf("Dialing %q...", addr)
-	session, err := quic.DialAddr(addr, config, nil)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Opening stream sync...")
-	stream, err := session.OpenStreamSync(ctx)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Piping stream with QUIC...")
-	var wg sync.WaitGroup
-	wg.Add(3)
-	c1 := readAndWrite(ctx, stream, os.Stdout, &wg)
-	c2 := readAndWrite(ctx, os.Stdin, stream, &wg)
-	select {
-	case err = <-c1:
-		if err != nil {
-			return err
-		}
-	case err = <-c2:
-		if err != nil {
-			return err
-		}
-	}
-	cancel()
-	wg.Wait()
-	return nil
-}
 
 func server(bind string) error {
 	// generate TLS certificate
@@ -145,24 +104,6 @@ func serverStreamHandler(ctx context.Context, conn io.ReadWriteCloser) {
 	cancel()
 	wg.Wait()
 	log.Printf("Piping finished")
-}
-
-func netCopy(input io.Reader, output io.Writer) (err error) {
-	buf := make([]byte, 8192)
-	for {
-		count, err := input.Read(buf)
-		if err != nil {
-			if err == io.EOF && count > 0 {
-				output.Write(buf[:count])
-			}
-			break
-		}
-		if count > 0 {
-			log.Println(buf, count)
-			output.Write(buf[:count])
-		}
-	}
-	return
 }
 
 func readAndWrite(ctx context.Context, r io.Reader, w io.Writer, wg *sync.WaitGroup) <-chan error {

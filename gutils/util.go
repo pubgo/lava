@@ -15,6 +15,22 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+type nullTransformer struct {
+}
+
+func (t nullTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	return func(dst, src reflect.Value) error {
+		if src.IsZero() {
+			return nil
+		}
+
+		if dst.CanSet() {
+			dst.Set(src)
+		}
+		return nil
+	}
+}
+
 func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) error {
 	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
 	return xerror.WrapF(mergo.Merge(dst, src, opts...), "\ndst: %#v\n\nsrc: %#v", dst, src)
@@ -23,6 +39,16 @@ func Mergo(dst, src interface{}, opts ...func(*mergo.Config)) error {
 func Map(dst, src interface{}, opts ...func(*mergo.Config)) error {
 	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
 	return xerror.WrapF(mergo.Map(dst, src, opts...), "\ndst: %#v\n\nsrc: %#v", dst, src)
+}
+
+func StructMerge(dst, src interface{}) error {
+	var dt = make(map[string]interface{})
+	xerror.Exit(Map(&dt, src))
+
+	var opts []func(*mergo.Config)
+	opts = append(opts, mergo.WithOverride, mergo.WithTypeCheck)
+	opts = append(opts, mergo.WithTransformers(nullTransformer{}))
+	return xerror.WrapF(mergo.Map(dst, dt, opts...), "\ndst: %#v\n\nsrc: %#v", dst, src)
 }
 
 func PathExist(path string) bool {

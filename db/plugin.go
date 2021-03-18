@@ -22,20 +22,21 @@ func onInit(ent interface{}) {
 	}
 }
 
+func onWatch(name string, w *watcher.Response) {
+	cfg, ok := cfgList[name]
+	if !ok {
+		cfg = GetDefaultCfg()
+	}
+
+	xerror.Panic(w.Decode(&cfg))
+	xerror.Panic(updateClient(name, cfg))
+	cfgList[name] = cfg
+}
+
 func init() {
 	plugin.Register(&plugin.Base{
-		Name:   Name,
-		OnInit: onInit,
-		OnWatch: func(name string, w *watcher.Response) {
-			cfg, ok := cfgList[name]
-			if !ok {
-				cfg = GetDefaultCfg()
-			}
-
-			xerror.Panic(w.Decode(&cfg))
-
-			xerror.Panic(updateClient(name, cfg))
-			cfgList[name] = cfg
-		},
+		Name:    Name,
+		OnInit:  onInit,
+		OnWatch: onWatch,
 	})
 }

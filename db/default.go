@@ -45,6 +45,7 @@ func updateClient(name string, cfg Cfg) (err error) {
 	engine.Logger().SetLevel(xl.LOG_WARNING)
 	if config.IsDev() || config.IsTest() {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
+		engine.ShowSQL(true)
 	}
 
 	xerror.Panic(engine.DB().Ping())
@@ -64,4 +65,8 @@ func updateClient(name string, cfg Cfg) (err error) {
 
 func updateEngine(name string, engine *xorm.Engine) {
 	xerror.Panic(dix.Dix(map[string]*xorm.Engine{name: engine}))
+}
+
+func Watch(db interface{}) {
+	xerror.Panic(dix.Dix(db))
 }

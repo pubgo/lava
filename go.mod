@@ -38,6 +38,7 @@ require (
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.0.21
 	github.com/pubgo/xprotogen v0.0.7
+	github.com/rakyll/statik v0.1.7
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1

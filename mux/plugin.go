@@ -2,9 +2,14 @@ package mux
 
 import (
 	"context"
+	"expvar"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/pubgo/dix"
+	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/internal/golug_run"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/x/fx"
@@ -13,7 +18,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+func On(fn func(app *chi.Mux)) { xerror.Panic(dix.Dix(fn)) }
+
 func onInit(ent interface{}) {
+	if !config.Decode(Name, &cfg) {
+		return
+	}
+
+	var app = cfg.Build()
+	var addr = fmt.Sprintf(":%d", cfg.Port)
+	var server = &http.Server{Addr: addr, Handler: app}
+	xerror.Panic(dix.Dix(app))
+
 	golug_run.AfterStart(func() {
 		xerror.Exit(fx.GoDelay(time.Second, func() {
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -30,6 +46,14 @@ func onInit(ent interface{}) {
 			xlog.Error("Server Shutdown Error", xlog.Any("err", err))
 		}
 	})
+
+	expvar.Publish(Name+"_rest_router", expvar.Func(func() interface{} {
+		if app == nil {
+			return nil
+		}
+
+		return fmt.Sprintf("%#v\n", app.Routes())
+	}))
 }
 
 func init() {
@@ -37,7 +61,7 @@ func init() {
 		Name:   Name,
 		OnInit: onInit,
 		OnFlags: func(flags *pflag.FlagSet) {
-			flags.StringVar(&server.Addr, "da", addr, "debug addr")
+			flags.IntVar(&cfg.Port, "debug_port", cfg.Port, "debug port")
 		},
 	})
 }

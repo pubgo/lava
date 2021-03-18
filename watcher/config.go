@@ -5,15 +5,17 @@ import (
 )
 
 var Name = "watcher"
-var Prefix = "/watcher"
+var Prefix = "/watchers"
 
 type Cfg struct {
+	Prefix   string   `json:"prefix"`
 	Driver   string   `json:"driver"`
 	Projects []string `json:"projects"`
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
+		Prefix: Prefix,
 		Driver: "etcdv3",
 	}
 }

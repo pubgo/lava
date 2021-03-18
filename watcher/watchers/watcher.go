@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pubgo/golug/watcher"
+	"github.com/pubgo/x/typex"
 )
 
 const Name = "null"
@@ -11,9 +12,7 @@ const Name = "null"
 var _ watcher.Watcher = (*nullWatcher)(nil)
 
 func init() {
-	watcher.Register(Name, func(cfg map[string]interface{}) (watcher.Watcher, error) {
-		return new(nullWatcher), nil
-	})
+	watcher.Register(Name, func(cfg typex.M) (watcher.Watcher, error) { return new(nullWatcher), nil })
 }
 
 type nullWatcher struct{}

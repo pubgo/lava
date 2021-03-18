@@ -1,24 +1,21 @@
 package mux
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"net/http"
-	"time"
+	"github.com/pubgo/golug/server/chi_srv"
 )
 
 const Name = "mux"
 
-var addr = ":8088"
-var app = chi.NewRouter()
-var server = &http.Server{Addr: addr, Handler: app}
+var cfg = GetDefaultCfg()
 
-func Default() *chi.Mux { return app }
+type Cfg struct {
+	chi_srv.Cfg
+	Port int
+}
 
-func init() {
-	app.Use(middleware.Logger)
-	app.Use(middleware.Recoverer)
-	app.Use(middleware.RequestID)
-	app.Use(middleware.Timeout(60 * time.Second))
+func GetDefaultCfg() Cfg {
+	return Cfg{
+		Cfg:  chi_srv.GetDefaultCfg(),
+		Port: 8088,
+	}
 }

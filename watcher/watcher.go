@@ -28,6 +28,10 @@ func onWatch(resp *Response) {
 		mu.Lock()
 		defer mu.Unlock()
 
+		defer xerror.Resp(func(err xerror.XErr) {
+			xlog.Error("watch callback error", xlog.Any("err", err))
+		})
+
 		key := KeyToDot(resp.Key)
 
 		// 检查是否是以name为前缀, `.`是连接符

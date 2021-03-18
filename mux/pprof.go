@@ -6,7 +6,7 @@ import (
 	"net/http/pprof"
 )
 
-func init() {
+func profRoute(app *chi.Mux) {
 	app.Route("/debug/pprof", func(r chi.Router) {
 		r.HandleFunc("/", pprof.Index)
 		r.HandleFunc("/cmdline", pprof.Cmdline)
@@ -20,4 +20,8 @@ func init() {
 		r.HandleFunc("/mutex", pprof.Handler("mutex").ServeHTTP)
 		r.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
 	})
+}
+
+func init() {
+	On(profRoute)
 }

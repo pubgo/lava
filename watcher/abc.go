@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 )
 
-type Factory func(cfg map[string]interface{}) (Watcher, error)
+type Factory func(cfg typex.M) (Watcher, error)
 type CallBack func(name string, event *Response) error
 
 // Watcher ...
@@ -52,6 +53,6 @@ func (t *Response) checkEventType() error {
 	case "DELETE", "PUT":
 		return nil
 	default:
-		return xerror.New("unknown type")
+		return xerror.Fmt("unknown type: %s", t.Event)
 	}
 }
