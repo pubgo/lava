@@ -25,16 +25,17 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.3.0
 	github.com/hashicorp/go-version v1.2.1
-	github.com/imdario/mergo v0.3.11
+	github.com/hashicorp/memberlist v0.1.3
+	github.com/imdario/mergo v0.3.12
 	github.com/json-iterator/go v1.1.10
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.4.0
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/prometheus/client_golang v1.4.1
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.18-0.20210308075649-51ffee8d36c4
+	github.com/pubgo/x v0.3.19
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.0.21
 	github.com/pubgo/xprotogen v0.0.7

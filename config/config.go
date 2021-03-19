@@ -87,17 +87,17 @@ func Decode(name string, fn interface{}) (b bool) {
 }
 
 func Template(format string) string {
-	t := fasttemplate.New(format, "{{", "}}")
+	t := fasttemplate.New(format, "${", "}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		tag = strings.TrimSpace(tag)
 
 		// 处理特殊变量
 		switch tag {
-		case "home":
+		case "project_home", "config_home":
 			return w.Write(xutil.ToBytes(Home))
 		case "trace":
 			return w.Write(xutil.ToBytes(strconv.FormatBool(Trace)))
-		case "project":
+		case "project_name":
 			return w.Write(xutil.ToBytes(Project))
 		case "domain":
 			return w.Write(xutil.ToBytes(Domain))
