@@ -140,6 +140,7 @@ func Init() (err error) {
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 剩下的就是获取配置了
 	xerror.PanicF(initWithDir(), "config file load error")
+	Home = filepath.Dir(GetCfg().ConfigFileUsed())
 
 	dt := xerror.PanicStr(iox.ReadText(cfg.ConfigFileUsed()))
 	// 处理环境变量

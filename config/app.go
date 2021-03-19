@@ -55,7 +55,7 @@ func init() {
 
 	env.GetWith(&CfgType, "cfg_type", "config_type")
 	env.GetWith(&CfgName, "cfg_name", "config_name")
-	env.GetWith(&Home, "home", "cfg_dir", "config_path", "config_dir")
+	env.GetWith(&Home, "project_home", "config_home", "cfg_dir", "config_path", "config_dir")
 	env.GetWith(&Mode, "mode", "run_mode", "run_env", "project_mode")
 	env.GetBoolVal(&Trace, "trace", "trace_log")
 }
