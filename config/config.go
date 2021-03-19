@@ -87,7 +87,7 @@ func Decode(name string, fn interface{}) (b bool) {
 }
 
 func Template(format string) string {
-	t := fasttemplate.New(format, "${", "}")
+	t := fasttemplate.New(format, "{{", "}}")
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		tag = strings.TrimSpace(tag)
 
@@ -97,7 +97,7 @@ func Template(format string) string {
 			return w.Write(xutil.ToBytes(Home))
 		case "trace":
 			return w.Write(xutil.ToBytes(strconv.FormatBool(Trace)))
-		case "project_name":
+		case "project_name", "project":
 			return w.Write(xutil.ToBytes(Project))
 		case "domain":
 			return w.Write(xutil.ToBytes(Domain))
@@ -105,6 +105,8 @@ func Template(format string) string {
 			return w.Write(xutil.ToBytes(Mode))
 		case "config":
 			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
+		case "config_path":
+			return w.Write(xutil.ToBytes(GetCfg().ConfigFileUsed()))
 		default:
 			return w.Write(xutil.ToBytes(GetCfg().GetString(tag)))
 		}

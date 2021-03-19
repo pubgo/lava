@@ -25,7 +25,7 @@ func addConfigPath(in string) bool {
 	}
 
 	// 检查配置文件是否存在
-	if !strings.Contains(lower(err.Error()), "not found") {
+	if strings.Contains(lower(err.Error()), "not found") {
 		return false
 	}
 
