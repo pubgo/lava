@@ -30,6 +30,7 @@ package {{pkg}}
 import (
 	"reflect"
 
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"github.com/pubgo/golug/xgen"
 	"github.com/pubgo/golug/client/grpclient"
@@ -43,7 +44,7 @@ import (
 		client := grpclient.Client(srv, opts...)
 		return func() ({{ss.Srv}}Client,error) {
 			c, err := client.Get()
-			return &{{unExport(ss.Srv)}}Client{c},err
+			return &{{unExport(ss.Srv)}}Client{c},xerror.WrapF(err, "srv: %s", srv)
 		}
 	}
 {% endfor %}

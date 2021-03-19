@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +16,7 @@ func GetMergeClient(srv string, opts ...grpc.DialOption) func() (MergeClient, er
 	client := grpclient.Client(srv, opts...)
 	return func() (MergeClient, error) {
 		c, err := client.Get()
-		return &mergeClient{c}, err
+		return &mergeClient{c}, xerror.WrapF(err, "srv: %s", srv)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +16,7 @@ func GetTestApiClient(srv string, opts ...grpc.DialOption) func() (TestApiClient
 	client := grpclient.Client(srv, opts...)
 	return func() (TestApiClient, error) {
 		c, err := client.Get()
-		return &testApiClient{c}, err
+		return &testApiClient{c}, xerror.WrapF(err, "srv: %s", srv)
 	}
 }
 
@@ -23,7 +24,7 @@ func GetTestApiV2Client(srv string, opts ...grpc.DialOption) func() (TestApiV2Cl
 	client := grpclient.Client(srv, opts...)
 	return func() (TestApiV2Client, error) {
 		c, err := client.Get()
-		return &testApiV2Client{c}, err
+		return &testApiV2Client{c}, xerror.WrapF(err, "srv: %s", srv)
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +16,7 @@ func GetLoginClient(srv string, opts ...grpc.DialOption) func() (LoginClient, er
 	client := grpclient.Client(srv, opts...)
 	return func() (LoginClient, error) {
 		c, err := client.Get()
-		return &loginClient{c}, err
+		return &loginClient{c}, xerror.WrapF(err, "srv: %s", srv)
 	}
 }
 

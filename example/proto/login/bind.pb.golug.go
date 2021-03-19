@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/golug/client/grpclient"
 	"github.com/pubgo/golug/xgen"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +16,7 @@ func GetBindTelephoneClient(srv string, opts ...grpc.DialOption) func() (BindTel
 	client := grpclient.Client(srv, opts...)
 	return func() (BindTelephoneClient, error) {
 		c, err := client.Get()
-		return &bindTelephoneClient{c}, err
+		return &bindTelephoneClient{c}, xerror.WrapF(err, "srv: %s", srv)
 	}
 }
 

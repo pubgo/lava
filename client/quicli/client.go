@@ -1,4 +1,4 @@
-package quic_cli
+package quicli
 
 import (
 	"context"
