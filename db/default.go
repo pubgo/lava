@@ -43,7 +43,7 @@ func updateClient(name string, cfg Cfg) (err error) {
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
 	engine.Logger().SetLevel(xl.LOG_WARNING)
-	if config.IsDev() || config.IsTest() {
+	if cfg.Debug && (config.IsDev() || config.IsTest()) {
 		engine.Logger().SetLevel(xl.LOG_DEBUG)
 		engine.ShowSQL(true)
 	}

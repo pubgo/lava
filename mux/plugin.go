@@ -15,7 +15,6 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/spf13/pflag"
 )
 
 func On(fn func(app *chi.Mux)) { xerror.Panic(dix.Dix(fn)) }
@@ -26,7 +25,7 @@ func onInit(ent interface{}) {
 	}
 
 	var app = cfg.Build()
-	var addr = fmt.Sprintf(":%d", cfg.Port)
+	var addr = fmt.Sprintf(":%d", config.DebugPort)
 	var server = &http.Server{Addr: addr, Handler: app}
 	xerror.Panic(dix.Dix(app))
 
@@ -60,8 +59,5 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name:   Name,
 		OnInit: onInit,
-		OnFlags: func(flags *pflag.FlagSet) {
-			flags.IntVar(&cfg.Port, "debug_port", cfg.Port, "debug port")
-		},
 	})
 }

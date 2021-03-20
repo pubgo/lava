@@ -10,6 +10,7 @@ var Name = "db"
 var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
+	Debug       bool          `json:"debug" yaml:"debug"`
 	Driver      string        `json:"driver" yaml:"driver"`
 	Source      string        `json:"source" yaml:"source"`
 	MaxConnTime time.Duration `json:"max_conn_time" yaml:"max_conn_time"`
@@ -20,6 +21,7 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
+		Debug:       true,
 		Driver:      "mysql",
 		Source:      "mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull",
 		MaxConnTime: time.Second * 5,
