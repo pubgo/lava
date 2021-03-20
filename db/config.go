@@ -21,7 +21,7 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Debug:       true,
+		Debug:       false,
 		Driver:      "mysql",
 		Source:      "mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull",
 		MaxConnTime: time.Second * 5,
