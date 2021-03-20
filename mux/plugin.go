@@ -29,7 +29,7 @@ func onInit(ent interface{}) {
 	var server = &http.Server{Addr: addr, Handler: app}
 	xerror.Panic(dix.Dix(app))
 
-	golug_run.AfterStart(func() {
+	golug_run.BeforeStart(func() {
 		xerror.Exit(fx.GoDelay(time.Second, func() {
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				xlog.Error("Server [mux] Listen Error", xlog.Any("err", err))
