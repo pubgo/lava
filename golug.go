@@ -11,6 +11,7 @@ import (
 	_ "github.com/pubgo/golug/internal/golug_log"
 	"github.com/pubgo/golug/internal/golug_run"
 	_ "github.com/pubgo/golug/metric"
+	_ "github.com/pubgo/golug/mux"
 	"github.com/pubgo/golug/plugin"
 	"github.com/pubgo/xerror"
 )
