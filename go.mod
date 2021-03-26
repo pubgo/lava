@@ -2,9 +2,10 @@ module github.com/pubgo/golug
 
 go 1.15
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
-
-replace github.com/bufbuild/buf => github.com/bufbuild/buf v0.36.0
+replace (
+	github.com/bufbuild/buf => github.com/bufbuild/buf v0.36.0
+	google.golang.org/grpc => google.golang.org/grpc v1.29.1
+)
 
 require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
@@ -50,6 +51,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/tools v0.0.0-20200825202427-b303f430e36d
 	google.golang.org/genproto v0.0.0-20210224155714-063164c882e6
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.1-0.20201208041424-160c7477e0e8

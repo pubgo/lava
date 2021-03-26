@@ -1,22 +1,19 @@
-// +build tools
-
-package tools
+package main
 
 import (
-	//_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
-	//_ "google.golang.org/protobuf/cmd/protoc-gen-go"
-
 	_ "github.com/bufbuild/buf/cmd/buf"
+	_ "github.com/gogo/protobuf/proto"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
 	_ "github.com/rakyll/statik"
-	_ "github.com/gogo/protobuf/proto"
+	_ "golang.org/x/tools/cmd/stringer"
 )
 
-
 //import (
+//_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+//_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 //	_ "github.com/alexkohler/nakedret"
 //	_ "github.com/chzchzchz/goword"
 //	_ "github.com/coreos/license-bill-of-materials"
