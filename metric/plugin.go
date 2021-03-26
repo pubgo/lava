@@ -3,7 +3,7 @@ package metric
 import (
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/plugin"
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 	"github.com/pubgo/xerror"
 )
 
@@ -29,5 +29,5 @@ func init() {
 		OnInit: onInit,
 	})
 
-	tracelog.Watch(Name, func() interface{} { return List() })
+	vars.Watch(Name, func() interface{} { return List() })
 }

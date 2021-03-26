@@ -4,7 +4,7 @@ import (
 	"runtime"
 
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 	"github.com/pubgo/xerror"
 )
 
@@ -16,7 +16,7 @@ var Project = ""
 
 func init() {
 	xerror.ExitErr(ver.NewVersion(Version))
-	tracelog.Watch("version", func() interface{} {
+	vars.Watch("version", func() interface{} {
 		return map[string]interface{}{
 			"build_time": BuildTime,
 			"version":    Version,

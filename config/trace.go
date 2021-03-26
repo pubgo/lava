@@ -1,11 +1,11 @@
 package config
 
 import (
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 )
 
 func init() {
-	tracelog.Watch("config", func() interface{} {
+	vars.Watch("config", func() interface{} {
 		var data = make(map[string]interface{})
 		for _, k := range GetCfg().AllKeys() {
 			data[k] = GetCfg().GetString(k)

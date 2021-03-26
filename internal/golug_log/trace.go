@@ -1,9 +1,9 @@
 package golug_log
 
 import (
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 )
 
 func init() {
-	tracelog.Watch(name, func() interface{} { return cfg })
+	vars.Watch(name, func() interface{} { return cfg })
 }

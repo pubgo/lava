@@ -1,12 +1,12 @@
 package golug_rest
 
 import (
-	"github.com/pubgo/xerror"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/xerror"
 )
 
 type Cfg struct {

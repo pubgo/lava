@@ -1,9 +1,9 @@
 package env
 
 import (
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 )
 
 func init() {
-	tracelog.Watch("env", func() interface{} { return List() })
+	vars.Watch("env", func() interface{} { return List() })
 }

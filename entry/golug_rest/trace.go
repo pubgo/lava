@@ -1,15 +1,15 @@
 package golug_rest
 
 import (
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 )
 
 func (t *restEntry) trace() {
-	tracelog.Watch(t.Options().Name + "_cfg", func() interface{} {
+	vars.Watch(t.Options().Name + "_cfg", func() interface{} {
 		return t.cfg1
 	})
 
-	tracelog.Watch(t.Options().Name + "_rest_router", func() interface{} {
+	vars.Watch(t.Options().Name + "_rest_router", func() interface{} {
 		if t.app == nil {
 			return nil
 		}

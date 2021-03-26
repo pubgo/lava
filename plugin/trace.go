@@ -1,11 +1,11 @@
 package plugin
 
 import (
-	"github.com/pubgo/golug/tracelog"
+	"github.com/pubgo/golug/vars"
 )
 
 func init() {
-	tracelog.Watch(Name, func() interface{} {
+	vars.Watch(Name, func() interface{} {
 		var data = make(map[string][]string)
 		for k, v := range All() {
 			for i := range v {
