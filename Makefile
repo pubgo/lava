@@ -27,6 +27,9 @@ build_hello_test:
 test:
 	@go test -short -race -v ./... -cover
 
+ci:
+	@golangci-lint run -v --timeout=5m
+
 .PHONY: proto
 proto: clear gen
 	protoc -I. \
@@ -84,11 +87,6 @@ deps:
 vet:
 	go vet ./...
 
-tools:
-	go install \
-		github.com/golangci/golangci-lint/cmd/golangci-lint \
-		github.com/golang/lint/golint \
-
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html
 	open cover.html
@@ -101,16 +99,6 @@ update-libs:
 
 mod-tidy:
 	GIT_TERMINAL_PROMPT=1 GO111MODULE=on go mod tidy
-
-tools:
-	@echo "libprotoc 3.11.4"
-	go install \
-		github.com/golangci/golangci-lint/cmd/golangci-lint \
-		github.com/bufbuild/buf/cmd/buf \
-        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-        github.com/golang/protobuf/protoc-gen-go \
-        golang.org/x/tools/cmd/stringer \
 
 mac:
 	GOOS=darwin go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl-darwin goctl.go
@@ -137,3 +125,6 @@ changelog:
 				--unreleased-label "**Next release**" \
 				--release-branch=master \
 				--future-release=v2.3.0
+
+vet:
+	@go vet ./...

@@ -25,8 +25,8 @@ func NewTask(name string) golug_task.Entry { return golug_task.New(name) }
 func NewRest(name string) golug_rest.Entry { return golug_rest.New(name) }
 func NewGrpc(name string) golug_grpc.Entry { return golug_grpc.New(name) }
 func NewCtl(name string) golug_ctl.Entry   { return golug_ctl.New(name) }
-func GetCfg() *config.Config               { return config.GetCfg() }
-func OnCfg(fn func(cfg *config.Config))    { config.On(fn) }
+func GetCfg() *config.Config            { return config.GetCfg() }
+func CfgOn(fn func(cfg *config.Config)) { config.On(fn) }
 
 func Run(entries ...entry.Entry) {
 	defer xerror.RespExit()
