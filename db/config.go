@@ -7,7 +7,7 @@ import (
 )
 
 var Name = "db"
-var cfgList = make(map[string]Cfg)
+var cfgList = make(map[string]*Cfg)
 
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`
@@ -19,8 +19,8 @@ type Cfg struct {
 	Mapper      names.Mapper  `json:"-" yaml:"-"`
 }
 
-func GetDefaultCfg() Cfg {
-	return Cfg{
+func GetDefaultCfg() *Cfg {
+	return &Cfg{
 		Debug:       false,
 		Driver:      "mysql",
 		Source:      "mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull",

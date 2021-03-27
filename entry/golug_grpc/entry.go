@@ -2,6 +2,7 @@ package golug_grpc
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -13,7 +14,6 @@ import (
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/entry/base"
-	"github.com/pubgo/golug/gutils/addr"
 	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -119,15 +119,10 @@ func (g *grpcEntry) register() (err error) {
 		host = parts[0]
 	}
 
-	addr1, err := addr.Extract(host)
-	if err != nil {
-		return xerror.WrapF(err, "addr Extract error, host:%s", host)
-	}
-
 	// register service
 	node := &registry.Node{
 		Id:      g.Options().Name + "-" + getHostname() + "-" + DefaultId,
-		Address: addr1,
+		Address: fmt.Sprintf("%s:%d", host, port),
 		Port:    port,
 	}
 
@@ -187,14 +182,9 @@ func (g *grpcEntry) deregister() (err error) {
 		host = parts[0]
 	}
 
-	addr1, err := addr.Extract(host)
-	if err != nil {
-		return xerror.WrapF(err, "addr Extract error, host:%s", host)
-	}
-
 	node := &registry.Node{
 		Id:      config.Project + "-" + getHostname() + "-" + DefaultId,
-		Address: addr1,
+		Address: fmt.Sprintf("%s:%d", host, port),
 		Port:    port,
 	}
 

@@ -1,9 +1,9 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/x/merge"
 	"time"
 
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
@@ -29,7 +29,7 @@ type Cfg struct {
 
 // 转化为etcd Cfg
 func (t Cfg) ToEtcd() (cfg clientv3.Config) {
-	xerror.Panic(gutils.Mergo(&cfg, t))
+	xerror.Panic(merge.Copy(&cfg, &t))
 	return
 }
 

@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/config"
 	"github.com/pubgo/golug/consts"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/golug/types"
+	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
@@ -32,7 +32,7 @@ func updateClient(name string, cfg Cfg) (err error) {
 
 	source := config.Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
-		if _dir := filepath.Dir(source); !gutils.PathExist(_dir) {
+		if _dir := filepath.Dir(source); pathutil.IsNotExist(_dir) {
 			_ = os.MkdirAll(_dir, 0755)
 		}
 	}

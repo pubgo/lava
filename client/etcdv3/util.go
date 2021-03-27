@@ -3,14 +3,14 @@ package etcdv3
 import (
 	"time"
 
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 )
 
 // cfgMerge 合并etcd Cfg
 func cfgMerge(cfg Cfg) (cfg1 Cfg, err error) {
 	cfg1 = GetDefaultCfg()
-	err = xerror.WrapF(gutils.Mergo(&cfg1, cfg), "[etcd] client Cfg merge error")
+	err = xerror.WrapF(merge.Copy(&cfg1, &cfg), "[etcd] client Cfg merge error")
 	return
 }
 

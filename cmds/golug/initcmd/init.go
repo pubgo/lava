@@ -3,12 +3,12 @@ package initcmd
 import (
 	"fmt"
 	"github.com/pubgo/golug/config"
+	"github.com/pubgo/x/pathutil"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/pubgo/golug/gutils"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func New() *cobra.Command {
 		fmt.Println("config home:", home)
 
 		cfgPath := filepath.Join(home, "config.yaml")
-		if gutils.PathExist(cfgPath) {
+		if pathutil.IsExist(cfgPath) {
 			return
 		}
 

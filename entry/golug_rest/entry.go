@@ -3,7 +3,6 @@ package golug_rest
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/golug/gutils"
 	"net/http"
 	"strings"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/pubgo/golug/entry/base"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
@@ -53,9 +53,7 @@ func (t *restEntry) Init() (err error) {
 		t.cfg.Views = html.New(t.cfg1.Templates.Dir, t.cfg1.Templates.Ext)
 	}
 
-	var dt = make(map[string]interface{})
-	xerror.Panic(gutils.Map(&dt, t.cfg1))
-	xerror.Panic(gutils.Map(&t.cfg, dt))
+	xerror.Panic(merge.Copy(&t.cfg, &t.cfg1))
 	return nil
 }
 
