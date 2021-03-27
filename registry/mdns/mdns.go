@@ -10,7 +10,7 @@ import (
 
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/internal/gutils"
 	"github.com/pubgo/golug/registry"
 	"github.com/pubgo/golug/types"
 	"github.com/pubgo/x/abc"

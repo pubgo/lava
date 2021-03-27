@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/internal/gutils"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"

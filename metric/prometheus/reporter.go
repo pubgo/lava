@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/internal/gutils"
 	"github.com/pubgo/golug/metric"
 	"github.com/pubgo/golug/mux"
 	"github.com/pubgo/xerror"

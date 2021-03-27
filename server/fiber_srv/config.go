@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/internal/gutils"
 	"github.com/pubgo/xerror"
 )
 

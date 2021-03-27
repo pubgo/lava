@@ -1,7 +1,7 @@
 package golug_grpc
 
 import (
-	"github.com/pubgo/golug/gutils"
+	"github.com/pubgo/golug/internal/gutils"
 	"time"
 
 	"github.com/pubgo/golug/config"
