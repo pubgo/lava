@@ -46,12 +46,42 @@ func onInit(ent interface{}) {
 		}
 	})
 
+	type Route struct {
+		Pattern   string
+		Handlers  map[string]bool
+		SubRoutes []Route
+	}
+
+	var getRoutes func(routes []chi.Route) []Route
+	getRoutes = func(routes []chi.Route) []Route {
+		if len(routes)==0{
+			return nil
+		}
+
+		var routeList []Route
+		for _, r := range app.Routes() {
+			rr := Route{Pattern: r.Pattern, Handlers: make(map[string]bool)}
+
+			for k := range r.Handlers {
+				rr.Handlers[k] = true
+			}
+
+			//if r.SubRoutes != nil {
+			//	rr.SubRoutes = getRoutes(r.SubRoutes.Routes())
+			//}
+
+			routeList = append(routeList, rr)
+		}
+		return routeList
+	}
+
 	expvar.Publish(Name+"_rest_router", expvar.Func(func() interface{} {
 		if app == nil {
 			return nil
 		}
 
-		return fmt.Sprintf("%#v\n", app.Routes())
+		fmt.Printf("%#v\n", getRoutes(app.Routes()))
+		return getRoutes(app.Routes())
 	}))
 }
 

@@ -10,6 +10,8 @@ watcher:
   name: "default"
 recovery:
   enabled: true
+mux:
+  debug: true
 task_entry:
   enabled: true
   broker: "nsq"
