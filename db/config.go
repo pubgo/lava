@@ -3,11 +3,16 @@ package db
 import (
 	"time"
 
+	"xorm.io/xorm"
 	"xorm.io/xorm/names"
 )
 
 var Name = "db"
 var cfgList = make(map[string]*Cfg)
+
+type Client struct {
+	*xorm.Engine
+}
 
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`

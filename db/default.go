@@ -1,9 +1,12 @@
 package db
 
 import (
+	"github.com/pubgo/xlog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"unsafe"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/golug/config"
@@ -18,13 +21,13 @@ import (
 
 var clients types.SMap
 
-func Get(names ...string) *xorm.Engine {
+func Get(names ...string) *Client {
 	c := clients.Get(consts.GetDefault(names...))
 	if c == nil {
 		return nil
 	}
 
-	return c.(*xorm.Engine)
+	return c.(*Client)
 }
 
 func updateClient(name string, cfg Cfg) (err error) {
@@ -52,10 +55,19 @@ func updateClient(name string, cfg Cfg) (err error) {
 
 	val, ok := clients.Load(name)
 
-	clients.Set(name, engine)
+	var client = &Client{engine}
+	runtime.SetFinalizer(client, func(c *Client) {
+		xlog.Infof("old orm client %s object %d gc", uintptr(unsafe.Pointer(c)))
+		if err := c.Close(); err != nil {
+			xlog.Errorf("orm close error, name: %s, err:%#v", err)
+		}
+	})
 
+	clients.Set(name, client)
+
+	// TODO runtime.SetFinalizer() 处理下
 	if ok {
-		_ = val.(*xorm.Engine).Close()
+		_ = val.(*Client).Close()
 	}
 
 	// 初始化完毕之后, 更新到对象管理系统
