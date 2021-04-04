@@ -1,14 +1,11 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
-	_ "unsafe"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/golug/types"
@@ -34,18 +31,18 @@ func GetCfg() *Config {
 }
 
 //go:linkname unMarshalReader github.com/spf13/viper.(*Viper).unmarshalReader
-func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
+//func unMarshalReader(v *viper.Viper, in io.Reader, c map[string]interface{}) error
 
 // UnMarshal
 // UnMarshal config from file to map
-func UnMarshal(path string) map[string]interface{} {
-	dt, err := ioutil.ReadFile(path)
-	xerror.ExitF(err, path)
-
-	var c = make(map[string]interface{})
-	xerror.ExitF(unMarshalReader(GetCfg().Viper, bytes.NewBuffer(dt), c), path)
-	return c
-}
+//func UnMarshal(path string) map[string]interface{} {
+//	dt, err := ioutil.ReadFile(path)
+//	xerror.ExitF(err, path)
+//
+//	var c = make(map[string]interface{})
+//	xerror.ExitF(unMarshalReader(GetCfg().Viper, bytes.NewBuffer(dt), c), path)
+//	return c
+//}
 
 // Decode
 // decode config

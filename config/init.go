@@ -97,9 +97,9 @@ func initApp() (err error) {
 	}
 
 	dt := xerror.PanicStr(iox.ReadText(appCfg))
+
 	// 处理环境变量
 	dt = env.Expand(dt)
-	// 重新加载配置
 
 	// 合并自定义的配置
 	xerror.Panic(GetCfg().MergeConfig(strings.NewReader(dt)))
@@ -107,7 +107,7 @@ func initApp() (err error) {
 }
 
 // 处理所有的配置,环境变量和flag
-// 配置顺序, 默认值->环境变量->配置文件->flag->配置文件
+// 配置顺序, 默认值->环境变量->配置文件->flag
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
