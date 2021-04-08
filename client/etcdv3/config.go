@@ -1,9 +1,9 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/x/merge"
 	"time"
 
+	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"

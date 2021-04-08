@@ -1,7 +1,7 @@
 package mux
 
 import (
-	"github.com/pubgo/golug/server/chi_srv"
+	"github.com/pubgo/golug/service/chiSrv"
 )
 
 const Name = "mux"
@@ -9,11 +9,11 @@ const Name = "mux"
 var cfg = GetDefaultCfg()
 
 type Cfg struct {
-	chi_srv.Cfg
+	chiSrv.Cfg
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Cfg: chi_srv.GetDefaultCfg(),
+		Cfg: chiSrv.GetDefaultCfg(),
 	}
 }

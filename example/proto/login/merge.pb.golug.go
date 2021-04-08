@@ -6,7 +6,7 @@ package login
 import (
 	"reflect"
 
-	"github.com/pubgo/golug/client/grpclient"
+	"github.com/pubgo/golug/service/grpclient"
 	"github.com/pubgo/golug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
