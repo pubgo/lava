@@ -41,11 +41,8 @@ func (t *Response) OnDelete(fn func()) {
 	}
 }
 
-func (t *Response) Decode(val interface{}) (gErr error) {
-	defer xerror.RespErr(&gErr)
-
-	var err = jsonx.Unmarshal(t.Value, val)
-	return xerror.WrapF(err, "input: %s, output: %#v", t.Value, val)
+func (t *Response) Decode(val interface{}) error {
+	return xerror.WrapF(jsonx.Unmarshal(t.Value, val), "input: %s, output: %#v", t.Value, val)
 }
 
 func (t *Response) checkEventType() error {
