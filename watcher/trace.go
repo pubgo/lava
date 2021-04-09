@@ -1,7 +1,7 @@
 package watcher
 
 import (
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 )

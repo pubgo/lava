@@ -3,16 +3,16 @@ package ctl_entry
 import (
 	"fmt"
 
-	"github.com/pubgo/golug"
-	"github.com/pubgo/golug/entry"
-	"github.com/pubgo/golug/plugin"
+	"github.com/pubgo/lug"
+	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/xlog"
 )
 
 var name = "test-ctl"
 
 func GetEntry() entry.Entry {
-	ent := golug.NewCtl(name)
+	ent := lug.NewCtl(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry ctl test")
 
@@ -20,7 +20,7 @@ func GetEntry() entry.Entry {
 		xlog.Info("ctl ok")
 	})
 
-	golug.Plugin(&plugin.Base{
+	lug.Plugin(&plugin.Base{
 		Name: "hello",
 		OnInit: func(fn interface{}) {
 			fmt.Println("hello plugin")

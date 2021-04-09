@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"github.com/pubgo/golug/types"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xerror"
 )
 

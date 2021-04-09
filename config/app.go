@@ -6,7 +6,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pubgo/golug/env"
+	"github.com/pubgo/lug/env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/pflag"

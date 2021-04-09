@@ -1,7 +1,7 @@
 package golug_log
 
 import (
-	"github.com/pubgo/golug/config"
+	"github.com/pubgo/lug/config"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/pubgo/xlog/xlog_config"

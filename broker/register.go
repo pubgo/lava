@@ -1,8 +1,8 @@
 package broker
 
 import (
-	"github.com/pubgo/golug/consts"
-	"github.com/pubgo/golug/types"
+	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 )

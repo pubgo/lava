@@ -1,7 +1,7 @@
 package prometheus
 
 import (
-	"github.com/pubgo/golug/metric"
+	"github.com/pubgo/lug/metric"
 	"github.com/pubgo/xerror"
 )
 

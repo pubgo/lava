@@ -3,7 +3,7 @@ package watchers
 import (
 	"context"
 
-	"github.com/pubgo/golug/watcher"
+	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/typex"
 )
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/golug/env"
+	"github.com/pubgo/lug/env"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/osutil"
 	"github.com/pubgo/x/pathutil"

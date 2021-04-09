@@ -1,5 +1,5 @@
 WORKDIR=`pwd`
-Project=github.com/pubgo/golug
+Project=github.com/pubgo/lug
 GOPath=$(shell go env GOPATH)
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 GoROOT=$(shell go env GOROOT)
@@ -18,7 +18,7 @@ default: run
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -v -o main cmds/golug/main.go
+	@go build ${LDFLAGS} -mod vendor -v -o main cmds/lug/main.go
 
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
@@ -42,7 +42,7 @@ proto: clear gen
    --grpc-gateway_out=. \
    --grpc-gateway_opt=paths=source_relative \
    --grpc-gateway_opt=logtostderr=true \
-   --golug_out=. \
+   --lug_out=. \
 	example/proto/hello/*.proto
 
 	protoc -I. \
@@ -55,7 +55,7 @@ proto: clear gen
    --grpc-gateway_out=. \
    --grpc-gateway_opt=paths=source_relative \
    --grpc-gateway_opt=logtostderr=true \
-   --golug_out=. \
+   --lug_out=. \
 	example/proto/login/*.proto
 
 .PHONY: clear
@@ -65,7 +65,7 @@ clear:
 
 .PHONY: gen
 gen:
-	cd cmds/protoc-gen-golug && go install .
+	cd cmds/protoc-gen-lug && go install .
 
 .PHONY: example
 example:
@@ -76,7 +76,7 @@ run:
 	go run ${LDFLAGS} -mod vendor -v example/*.go http
 
 docker:
-	docker build -t golug .
+	docker build -t lug .
 
 build-all:
 	go build -tags "kcp quic" ./...

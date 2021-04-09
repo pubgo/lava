@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	
-	"github.com/pubgo/golug/example/proto/hello"
+	"github.com/pubgo/lug/example/proto/hello"
 )
 
 func NewTestAPIHandler() hello.TestApiServer {

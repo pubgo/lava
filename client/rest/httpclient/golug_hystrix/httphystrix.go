@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
-	"github.com/pubgo/golug/client/rest"
+	"github.com/pubgo/lug/client/rest"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pubgo/golug/config"
+	"github.com/pubgo/lug/config"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"

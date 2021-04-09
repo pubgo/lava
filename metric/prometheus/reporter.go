@@ -3,11 +3,12 @@ package prometheus
 import (
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/pubgo/golug/internal/gutils"
-	"github.com/pubgo/golug/metric"
-	"github.com/pubgo/golug/mux"
+	"github.com/pubgo/lug/metric"
+	"github.com/pubgo/lug/mux"
+	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 )
 
@@ -25,7 +26,7 @@ func New(cfg map[string]interface{}) (r metric.Reporter, err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg1 = GetDefaultCfg()
-	xerror.Panic(gutils.Decode(cfg, &cfg1))
+	xerror.Panic(merge.MapStruct(&cfg1, cfg))
 
 	return newReporter(cfg1)
 }
@@ -67,9 +68,10 @@ func newReporter(cfg Cfg) (reporter *Reporter, err error) {
 
 	// Add metrics families for each type:
 	reporter.metrics = reporter.newMetricFamily()
-	mux.Default().Handle(cfg.Path,
-		promhttp.HandlerFor(prometheusRegistry,
+	mux.On(func(app *chi.Mux) {
+		app.Handle(cfg.Path, promhttp.HandlerFor(prometheusRegistry,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
+	})
 
 	return reporter, nil
 }

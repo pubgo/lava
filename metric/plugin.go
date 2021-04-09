@@ -1,9 +1,9 @@
 package metric
 
 import (
-	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/plugin"
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/xerror"
 )
 

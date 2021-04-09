@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 )
 
 func init() {

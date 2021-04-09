@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/internal/golug_run"
-	"github.com/pubgo/golug/plugin"
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -29,7 +29,8 @@ func onInit(ent interface{}) {
 	var server = &http.Server{Addr: addr, Handler: app}
 	xerror.Panic(dix.Dix(app))
 
-	golug_run.BeforeStart(func() {
+	ent1 := ent.(entry.Entry)
+	ent1.BeforeStart(func() {
 		xerror.Exit(fx.GoDelay(time.Second, func() {
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				xlog.Error("Server [mux] Listen Error", xlog.Any("err", err))
@@ -40,7 +41,7 @@ func onInit(ent interface{}) {
 		xlog.Infof("Server [mux] Listening on http://localhost%s", addr)
 	})
 
-	golug_run.BeforeStop(func() {
+	ent1.BeforeStop(func() {
 		if err := server.Shutdown(context.Background()); err != nil {
 			xlog.Error("Server Shutdown Error", xlog.Any("err", err))
 		}
@@ -54,7 +55,7 @@ func onInit(ent interface{}) {
 
 	var getRoutes func(routes []chi.Route) []Route
 	getRoutes = func(routes []chi.Route) []Route {
-		if len(routes)==0{
+		if len(routes) == 0 {
 			return nil
 		}
 

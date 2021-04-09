@@ -3,8 +3,8 @@ package watcher
 import (
 	"strings"
 
-	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/types"
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )

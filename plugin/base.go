@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/pubgo/golug/watcher"
+	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"

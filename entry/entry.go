@@ -1,7 +1,7 @@
 package entry
 
 import (
-	"github.com/pubgo/golug/plugin"
+	"github.com/pubgo/lug/plugin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

@@ -1,4 +1,4 @@
 package main
 
-import _ "github.com/pubgo/golug/watcher/watchers"
-import _ "github.com/pubgo/golug/mux"
+import _ "github.com/pubgo/lug/watcher/watchers"
+import _ "github.com/pubgo/lug/mux"

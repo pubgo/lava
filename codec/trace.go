@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/xerror"
 )
 

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"

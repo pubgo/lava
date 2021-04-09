@@ -1,7 +1,7 @@
 package golug_log
 
 import (
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 )
 
 func init() {

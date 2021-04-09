@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/pubgo/golug/metric"
+	"github.com/pubgo/lug/metric"
 )
 
 // metricFamily stores our cached metrics:

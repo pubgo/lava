@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pubgo/golug/client/rest"
-	"github.com/pubgo/golug/client/rest/httpclient/golug_hystrix"
+	"github.com/pubgo/lug/client/rest"
+	"github.com/pubgo/lug/client/rest/httpclient/golug_hystrix"
 	"github.com/pubgo/xerror"
 )
 

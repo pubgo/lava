@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/golug/config"
-	"github.com/pubgo/golug/internal/gutils"
-	"github.com/pubgo/golug/registry"
-	"github.com/pubgo/golug/types"
-	"github.com/pubgo/x/abc"
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
@@ -26,7 +25,7 @@ func init() {
 
 		var r = &mdnsRegistry{resolver: resolver}
 
-		xerror.Panic(gutils.Map(&r.cfg, m))
+		xerror.Panic(merge.MapStruct(&r.cfg, m))
 		return r, nil
 	})
 }
@@ -40,7 +39,7 @@ type mdnsRegistry struct {
 	cfg      Cfg
 	resolver *zeroconf.Resolver
 	services map[string]*zeroconf.Server
-	cancel   *abc.Cancel
+	cancel   context.CancelFunc
 }
 
 func (m *mdnsRegistry) Next() (*registry.Result, error) {
@@ -56,7 +55,7 @@ func (m *mdnsRegistry) Next() (*registry.Result, error) {
 func (m *mdnsRegistry) Stop() {
 	close(m.watcher)
 	if m.cancel != nil {
-		m.cancel.Cancel()
+		m.cancel()
 	}
 }
 

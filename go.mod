@@ -1,4 +1,4 @@
-module github.com/pubgo/golug
+module github.com/pubgo/lug
 
 go 1.15
 

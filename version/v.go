@@ -4,7 +4,7 @@ import (
 	"runtime"
 
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/golug/vars"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/xerror"
 )
 
