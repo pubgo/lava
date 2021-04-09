@@ -1,16 +1,15 @@
 package etcd
 
 import (
-	"runtime"
-	"unsafe"
-
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/clientv3"
-	"go.uber.org/zap"
+
+	"runtime"
+	"unsafe"
 )
 
 var clients types.SMap
@@ -45,26 +44,22 @@ func newClient(cfg clientv3.Config) (c *clientv3.Client, err error) {
 func updateClient(name string, cfg Cfg) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
-	oldClient, ok := clients.Load(name)
+	// 创建新的客户端
 	etcdClient, err := newClient(cfg.ToEtcd())
 	if err != nil {
 		return err
 	}
 
-	clients.Set(name, etcdClient)
-
+	// 获取老的客户端
+	oldClient, ok := clients.Load(name)
 	if !ok || oldClient == nil {
+		// 老客户端不存在就直接保存
+		clients.Set(name, &Client{etcdClient})
 		return nil
 	}
 
-	// 当old etcd client没有被使用的时候, 那么就关闭
-	runtime.SetFinalizer(oldClient, func(cc *Client) {
-		log.Infof("[etcd] old etcd client %s object %d gc", name, uintptr(unsafe.Pointer(cc)))
-		if err := cc.Close(); err != nil {
-			log.Error("[etcd] old etcd client close error", xlog.String("name", name), xlog.Any("err", err))
-		}
-	})
-
+	// 老的客户端存在就更新
+	oldClient.(*Client).Client = etcdClient
 	return nil
 }
 
@@ -90,7 +85,11 @@ func delClient(name string) {
 		return
 	}
 
-	if err := c.Close(); err != nil {
-		log.Error("[etcd] client close error", zap.String("name", name), zap.Any("err", err))
-	}
+	// 当old etcd client没有被使用的时候, 那么就关闭
+	runtime.SetFinalizer(c, func(cc *Client) {
+		log.Infof("[etcd] old etcd client %s object %d gc", name, uintptr(unsafe.Pointer(cc)))
+		if err := cc.Close(); err != nil {
+			log.Error("[etcd] old etcd client close error", xlog.String("name", name), xlog.Any("err", err))
+		}
+	})
 }
