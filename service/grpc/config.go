@@ -1,11 +1,11 @@
 package golug_srv
 
 import (
-	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
 	"time"
 
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/x/merge"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/keepalive"

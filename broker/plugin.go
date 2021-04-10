@@ -14,7 +14,7 @@ func onInit(ent interface{}) {
 	for name, cfg := range cfgList {
 		driver := cfg.Driver
 		xerror.Assert(driver == "", "broker driver is null")
-		xerror.Assert(!factories.Has(driver), "broker driver %s not found", driver)
+		xerror.Assert(!factories.Has(driver), "factory %s not found", driver)
 		xerror.Assert(brokers.Has(name), "broker %s already exists", name)
 
 		fc := factories.Get(driver).(Factory)

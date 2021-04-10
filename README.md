@@ -8,6 +8,8 @@
     go install -v github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
     go install -v github.com/vektra/mockery/cmd/mockery
 
+1. 配置管理
+2.
 
 1. golug是一个高度抽象和集成的微服务框架
 2. golug集成了config, log, command, plugin, grpc, http(fiber), task, broker等组件

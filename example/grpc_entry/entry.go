@@ -8,8 +8,8 @@ import (
 
 var name = "test-grpc"
 
-func GetEntry() entry.Entry {
-	ent := lug.NewGrpc(name)
+func GetEntry() entry.Abc {
+	ent := lug.NewRpc(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())

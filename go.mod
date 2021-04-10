@@ -5,6 +5,7 @@ go 1.15
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 require (
+	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatedier/golib v0.2.0
@@ -24,6 +25,7 @@ require (
 	github.com/lucas-clemente/quic-go v0.19.3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.19
@@ -34,6 +36,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
+	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/valyala/fasthttp v1.18.0 // indirect
 	github.com/valyala/fasttemplate v1.0.1
 	go.etcd.io/etcd v0.0.0-20200402134248-51bdeb39e698

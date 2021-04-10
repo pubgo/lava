@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lug/internal/gutils"
+	"github.com/pubgo/lug/internal/utils"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
@@ -18,7 +18,7 @@ func Start(app *fiber.App, port int) (err error) {
 	defer xerror.RespErr(&err)
 
 	if port < 1 {
-		port, _ = gutils.GetFreePort()
+		port, _ = utils.GetFreePort()
 	}
 
 	// 启动server后等待1s

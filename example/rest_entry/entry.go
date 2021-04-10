@@ -13,7 +13,7 @@ import (
 
 var name = "test-http"
 
-func GetEntry() entry.Entry {
+func GetEntry() entry.Abc {
 	ent := lug.NewRest(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry http test")

@@ -3,35 +3,37 @@ package lug
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/entry/ctlEntry"
-	"github.com/pubgo/lug/entry/grpcEntry"
-	"github.com/pubgo/lug/entry/restEntry"
-	"github.com/pubgo/lug/entry/taskEntry"
-	"github.com/pubgo/lug/internal/golug_cmd"
-	_ "github.com/pubgo/lug/internal/golug_log"
-	"github.com/pubgo/lug/internal/golug_run"
+	"github.com/pubgo/lug/entry/ctl"
+	"github.com/pubgo/lug/entry/rest"
+	"github.com/pubgo/lug/entry/rpc"
+	"github.com/pubgo/lug/entry/task"
+	_ "github.com/pubgo/lug/internal/log_plugin"
+	"github.com/pubgo/lug/internal/runtime"
 	_ "github.com/pubgo/lug/metric"
 	_ "github.com/pubgo/lug/mux"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/xerror"
 )
 
-func BeforeStart(fn func()) { golug_run.BeforeStart(fn) }
-func AfterStart(fn func())  { golug_run.AfterStart(fn) }
-func BeforeStop(fn func())  { golug_run.BeforeStop(fn) }
-func AfterStop(fn func())   { golug_run.AfterStop(fn) }
+func BeforeStart(fn func()) { runtime.BeforeStart(fn) }
+func AfterStart(fn func())  { runtime.AfterStart(fn) }
+func BeforeStop(fn func())  { runtime.BeforeStop(fn) }
+func AfterStop(fn func())   { runtime.AfterStop(fn) }
 
-func NewTask(name string) taskEntry.Entry { return taskEntry.New(name) }
-func NewRest(name string) restEntry.Entry { return restEntry.New(name) }
-func NewGrpc(name string) grpcEntry.Entry { return grpcEntry.New(name) }
-func NewCtl(name string) ctlEntry.Entry    { return ctlEntry.New(name) }
-func GetCfg() *config.Config               { return config.GetCfg() }
-func CfgOn(fn func(cfg *config.Config))    { config.On(fn) }
+func NewTask(name string) task.Entry    { return task.New(name) }
+func NewRest(name string) rest.Entry    { return rest.New(name) }
+func NewRpc(name string) rpc.Entry      { return rpc.New(name) }
+func NewCtl(name string) ctl.Entry      { return ctl.New(name) }
+func GetCfg() *config.Config            { return config.GetCfg() }
+func CfgOn(fn func(cfg *config.Config)) { config.On(fn) }
 
-func Run(entries ...entry.Entry) {
+func Run(entries ...entry.Abc) {
 	defer xerror.RespExit()
-	xerror.Panic(golug_cmd.Run(entries...))
+	xerror.Panic(runtime.Run(entries...))
 }
+
+func Start(ent entry.Abc) error { return runtime.Start(ent) }
+func Stop(ent entry.Abc) error  { return runtime.Stop(ent) }
 
 func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) {
 	defer xerror.RespExit()

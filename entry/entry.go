@@ -6,14 +6,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type RunEntry interface {
+type Runtime interface {
 	Init() error
 	Start() error
 	Stop() error
-	Options() Options
+	Options() Opts
 }
 
-type Entry interface {
+type Abc interface {
 	Version(v string)
 	Dix(data ...interface{})
 	OnCfg(fn interface{})
@@ -27,8 +27,8 @@ type Entry interface {
 	AfterStop(func())
 }
 
-type Option func(o *Options)
-type Options struct {
+type Opt func(o *Opts)
+type Opts struct {
 	BeforeStarts []func()
 	AfterStarts  []func()
 	BeforeStops  []func()

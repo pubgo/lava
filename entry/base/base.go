@@ -15,10 +15,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var _ entry.Entry = (*Entry)(nil)
+var _ entry.Abc = (*Entry)(nil)
 
 type Entry struct {
-	opts entry.Options
+	opts entry.Opts
 }
 
 func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
@@ -26,9 +26,9 @@ func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.Af
 func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
 func (t *Entry) AfterStop(f func())      { t.opts.AfterStops = append(t.opts.AfterStops, f) }
 func (t *Entry) Dix(data ...interface{}) { xerror.Panic(dix.Dix(data...)) }
-func (t *Entry) Start() error            { return nil }
-func (t *Entry) Stop() error             { return nil }
-func (t *Entry) Options() entry.Options  { return t.opts }
+func (t *Entry) Start() error            { panic("unimplemented") }
+func (t *Entry) Stop() error             { panic("unimplemented") }
+func (t *Entry) Options() entry.Opts     { return t.opts }
 
 // Plugin 注册插件
 func (t *Entry) Plugin(plg plugin.Plugin) {
@@ -123,7 +123,7 @@ func newEntry(name string) *Entry {
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
 	ent := &Entry{
-		opts: entry.Options{
+		opts: entry.Opts{
 			Name:    name,
 			Port:    8080,
 			Version: version.Version,
