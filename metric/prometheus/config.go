@@ -1,14 +1,18 @@
 package prometheus
 
+import "time"
+
 var Name = "prometheus"
 
 type Cfg struct {
-	Tags        map[string]string `json:"tags"`
-	Percentiles []float64         `json:"percentiles"`
-	Path        string            `json:"path"`
-	Project     string            `json:"project"`
-	Name        string            `json:"name"`
-	Prefix      string            `json:"prefix"`
+	Tags                   map[string]string `json:"tags"`
+	Percentiles            []float64         `json:"percentiles"`
+	Path                   string            `json:"path"`
+	Project                string            `json:"project"`
+	Name                   string            `json:"name"`
+	Prefix                 string            `json:"prefix"`
+	EnableGoRuntimeMetrics bool
+	FlushInterval      time.Duration
 }
 
 func GetDefaultCfg() Cfg {

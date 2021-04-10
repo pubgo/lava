@@ -16,11 +16,12 @@ func onInit(ent interface{}) {
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "metric driver is null")
 
-	fc := Get(driver)
+	fc := getFactory(driver)
 	xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
-	defaultReporter = xerror.PanicErr(fc(config.Map(Name))).(Reporter)
-	xerror.Assert(defaultReporter == nil, "metric driver %s init error", driver)
+	reporter := xerror.PanicErr(fc(config.Map(Name))).(Reporter)
+	xerror.Assert(reporter == nil, "metric driver %s init error", driver)
+	defaultReporter = reporter
 }
 
 func init() {
@@ -29,5 +30,9 @@ func init() {
 		OnInit: onInit,
 	})
 
-	vars.Watch(Name, func() interface{} { return List() })
+	vars.Watch(Name, func() interface{} {
+		var dt map[string]Factory
+		xerror.Panic(reporters.Map(&dt))
+		return dt
+	})
 }

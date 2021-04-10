@@ -8,6 +8,6 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Driver: "prometheus",
+		Driver: "noop",
 	}
 }

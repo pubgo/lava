@@ -8,18 +8,13 @@ import (
 
 var reporters types.SMap
 
-func Get(names ...string) Factory {
+func getFactory(names ...string) Factory {
 	val, ok := reporters.Load(consts.GetDefault(names...))
 	if !ok {
 		return nil
 	}
 
 	return val.(Factory)
-}
-
-func List() (dt map[string]Factory) {
-	xerror.Panic(reporters.Map(&dt))
-	return
 }
 
 func Register(name string, r Factory) (err error) {

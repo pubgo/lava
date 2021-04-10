@@ -4,29 +4,50 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var defaultReporter Reporter
-// GetDefault 获取全局的Reporter
-func GetDefault() Reporter {
+var defaultReporter Reporter = &noopReporter{}
+
+// getDefault 获取全局的Reporter
+func getDefault() Reporter {
 	xerror.Assert(defaultReporter == nil, "please set default reporter")
 	return defaultReporter
 }
 
+//CreateGauge init a new gauge type
+func CreateGauge(opts GaugeOpts) error {
+	return getDefault().CreateGauge(opts)
+}
+
+//CreateCounter init a new counter type
+func CreateCounter(opts CounterOpts) error {
+	return getDefault().CreateCounter(opts)
+}
+
+//CreateSummary init a new summary type
+func CreateSummary(opts SummaryOpts) error {
+	return getDefault().CreateSummary(opts)
+}
+
+//CreateHistogram init a new histogram type
+func CreateHistogram(opts HistogramOpts) error {
+	return getDefault().CreateHistogram(opts)
+}
+
 // Count 上报递增数据
 func Count(name string, value float64, tags Tags) error {
-	return GetDefault().Count(name, value, tags)
+	return getDefault().Count(name, value, tags)
 }
 
 // Gauge 实时的上报当前指标
 func Gauge(name string, value float64, tags Tags) error {
-	return GetDefault().Gauge(name, value, tags)
+	return getDefault().Gauge(name, value, tags)
 }
 
 // Histogram 存储区间数据, 在服务端端聚合数据
-func Histogram(name string, value float64, tags Tags, opts *HistogramOpts) error {
-	return GetDefault().Histogram(name, value, tags, opts)
+func Histogram(name string, value float64, tags Tags) error {
+	return getDefault().Histogram(name, value, tags)
 }
 
-// Summarier 在 client 端聚合数据, 直接存储了分位数
+// Summary 在client端聚合数据, 直接存储了分位数
 func Summary(name string, value float64, tags Tags) error {
-	return GetDefault().Summary(name, value, tags)
+	return getDefault().Summary(name, value, tags)
 }
