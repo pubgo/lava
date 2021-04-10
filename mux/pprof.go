@@ -2,24 +2,21 @@ package mux
 
 import (
 	"github.com/go-chi/chi/v5"
-
 	"net/http/pprof"
 )
 
 func profRoute(app *chi.Mux) {
-	app.Route("/debug/pprof", func(r chi.Router) {
-		r.HandleFunc("/", pprof.Index)
-		r.HandleFunc("/cmdline", pprof.Cmdline)
-		r.HandleFunc("/profile", pprof.Profile)
-		r.HandleFunc("/symbol", pprof.Symbol)
-		r.HandleFunc("/trace", pprof.Trace)
-		r.HandleFunc("/allocs", pprof.Handler("allocs").ServeHTTP)
-		r.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
-		r.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-		r.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
-		r.HandleFunc("/mutex", pprof.Handler("mutex").ServeHTTP)
-		r.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-	})
+	app.HandleFunc("/debug/pprof", pprof.Index)
+	app.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	app.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	app.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	app.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	app.HandleFunc("/debug/pprof/allocs", pprof.Handler("allocs").ServeHTTP)
+	app.HandleFunc("/debug/pprof/block", pprof.Handler("block").ServeHTTP)
+	app.HandleFunc("/debug/pprof/goroutine", pprof.Handler("goroutine").ServeHTTP)
+	app.HandleFunc("/debug/pprof/heap", pprof.Handler("heap").ServeHTTP)
+	app.HandleFunc("/debug/pprof/mutex", pprof.Handler("mutex").ServeHTTP)
+	app.HandleFunc("/debug/pprof/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
 }
 
 func init() {

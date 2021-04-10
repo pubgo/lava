@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/pubgo/xlog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"

@@ -16,7 +16,7 @@ type Cfg struct {
 func GetDefaultCfg() Cfg {
 	return Cfg{
 		Prefix: Prefix,
-		Driver: "etcdv3",
+		Driver: "etcd",
 	}
 }
 

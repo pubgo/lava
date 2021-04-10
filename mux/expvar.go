@@ -8,6 +8,6 @@ import (
 
 func init() {
 	On(func(app *chi.Mux) {
-		app.Handle("/", expvar.Handler())
+		app.Handle("/debug/vars", expvar.Handler())
 	})
 }
