@@ -1,7 +1,5 @@
 package prometheus
 
-import "time"
-
 var Name = "prometheus"
 
 type Cfg struct {
@@ -12,7 +10,6 @@ type Cfg struct {
 	Name                   string            `json:"name"`
 	Prefix                 string            `json:"prefix"`
 	EnableGoRuntimeMetrics bool
-	FlushInterval      time.Duration
 }
 
 func GetDefaultCfg() Cfg {

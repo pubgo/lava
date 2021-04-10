@@ -16,7 +16,7 @@ func onInit(ent interface{}) {
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "metric driver is null")
 
-	fc := getFactory(driver)
+	fc := Get(driver)
 	xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
 	reporter := xerror.PanicErr(fc(config.Map(Name))).(Reporter)

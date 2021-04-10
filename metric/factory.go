@@ -8,7 +8,7 @@ import (
 
 var reporters types.SMap
 
-func getFactory(names ...string) Factory {
+func Get(names ...string) Factory {
 	val, ok := reporters.Load(consts.GetDefault(names...))
 	if !ok {
 		return nil

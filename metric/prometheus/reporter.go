@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,19 +23,16 @@ func init() {
 	}))
 }
 
-var onceEnable sync.Once
-
 //reporterMetric is a prom exporter for go chassis
 type reporterMetric struct {
-	registry      *prometheus.Registry
-	FlushInterval time.Duration
-	lc            sync.RWMutex
-	lg            sync.RWMutex
-	ls            sync.RWMutex
-	counters      map[string]*prometheus.CounterVec
-	gauges        map[string]*prometheus.GaugeVec
-	summaries     map[string]*prometheus.SummaryVec
-	histograms    map[string]*prometheus.HistogramVec
+	registry   *prometheus.Registry
+	lc         sync.RWMutex
+	lg         sync.RWMutex
+	ls         sync.RWMutex
+	counters   map[string]*prometheus.CounterVec
+	gauges     map[string]*prometheus.GaugeVec
+	summaries  map[string]*prometheus.SummaryVec
+	histograms map[string]*prometheus.HistogramVec
 }
 
 //NewReporter create a prometheus exporter
@@ -54,29 +50,27 @@ func NewReporter(cfg Cfg) (metric.Reporter, error) {
 	}
 
 	// Make a prometheus registry (this keeps track of any metrics we generate):
-	prometheusRegistry := prometheus.NewRegistry()
+	registry := prometheus.NewRegistry()
 	if cfg.EnableGoRuntimeMetrics {
-		onceEnable.Do(func() {
-			xerror.Panic(prometheusRegistry.Register(prometheus.NewGoCollector()))
-			xerror.Panic(prometheusRegistry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
-			xlog.Info("go runtime metrics is exported")
-		})
+		xerror.Panic(registry.Register(prometheus.NewGoCollector()))
+		xerror.Panic(registry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
+		xlog.Info("go runtime metrics is exported")
 	}
 
 	mux.On(func(app *chi.Mux) {
-		app.Handle(cfg.Path, promhttp.HandlerFor(prometheusRegistry,
+		app.Handle(cfg.Path, promhttp.HandlerFor(registry,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 	})
 
 	return &reporterMetric{
-		FlushInterval: cfg.FlushInterval,
-		lc:            sync.RWMutex{},
-		lg:            sync.RWMutex{},
-		ls:            sync.RWMutex{},
-		summaries:     make(map[string]*prometheus.SummaryVec),
-		counters:      make(map[string]*prometheus.CounterVec),
-		gauges:        make(map[string]*prometheus.GaugeVec),
-		histograms:    make(map[string]*prometheus.HistogramVec),
+		registry:   registry,
+		lc:         sync.RWMutex{},
+		lg:         sync.RWMutex{},
+		ls:         sync.RWMutex{},
+		summaries:  make(map[string]*prometheus.SummaryVec),
+		counters:   make(map[string]*prometheus.CounterVec),
+		gauges:     make(map[string]*prometheus.GaugeVec),
+		histograms: make(map[string]*prometheus.HistogramVec),
 	}, nil
 }
 
@@ -88,6 +82,7 @@ func (c *reporterMetric) CreateGauge(opts metric.GaugeOpts) error {
 	if ok {
 		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
 	}
+
 	c.lg.Lock()
 	defer c.lg.Unlock()
 	gVec := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -107,6 +102,7 @@ func (c *reporterMetric) Gauge(name string, val float64, labels metric.Tags) err
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
+
 	gVec.With(prometheus.Labels(labels)).Set(val)
 	return nil
 }
@@ -119,6 +115,7 @@ func (c *reporterMetric) CreateCounter(opts metric.CounterOpts) error {
 	if ok {
 		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
 	}
+
 	c.lc.Lock()
 	defer c.lc.Unlock()
 	v := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -138,6 +135,7 @@ func (c *reporterMetric) Count(name string, val float64, labels metric.Tags) err
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
+
 	v.With(prometheus.Labels(labels)).Add(val)
 	return nil
 }
@@ -150,6 +148,7 @@ func (c *reporterMetric) CreateSummary(opts metric.SummaryOpts) error {
 	if ok {
 		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
 	}
+
 	c.ls.Lock()
 	defer c.ls.Unlock()
 	v := prometheus.NewSummaryVec(prometheus.SummaryOpts{
@@ -170,6 +169,7 @@ func (c *reporterMetric) Summary(name string, val float64, labels metric.Tags) e
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
+
 	v.With(prometheus.Labels(labels)).Observe(val)
 	return nil
 }
@@ -182,6 +182,7 @@ func (c *reporterMetric) CreateHistogram(opts metric.HistogramOpts) error {
 	if ok {
 		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
 	}
+
 	c.ls.Lock()
 	defer c.ls.Unlock()
 	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -202,6 +203,7 @@ func (c *reporterMetric) Histogram(name string, val float64, labels metric.Tags)
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
+
 	v.With(prometheus.Labels(labels)).Observe(val)
 	return nil
 }
