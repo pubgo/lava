@@ -1,19 +1,20 @@
-package tracer
+package jaeger
 
-import jaegerLog "github.com/uber/jaeger-client-go/log"
+import (
+	"github.com/pubgo/xlog"
+	jaegerLog "github.com/uber/jaeger-client-go/log"
+)
 
 var _ jaegerLog.Logger = (*logger)(nil)
 
 type logger struct {
-
+	logs xlog.Xlog
 }
 
 func (l logger) Error(msg string) {
-	panic("implement me")
+	l.logs.Error(msg)
 }
 
 func (l logger) Infof(msg string, args ...interface{}) {
-	panic("implement me")
+	l.logs.Infof(msg, args...)
 }
-
-

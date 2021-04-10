@@ -10,6 +10,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 )
 
+func Global() opentracing.Tracer { return opentracing.GlobalTracer() }
 
 // Inject injects the outbound HTTP request with the given span's context to ensure
 // correct propagation of span context throughout the trace.
@@ -99,7 +100,6 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string,
 			//if err != nil && err != opentracing.ErrSpanContextNotFound {
 			//	logger.Log("err", err)
 			//}
-
 
 			// create span
 			span := tracer.StartSpan(operationName, ext.RPCServerOption(wireContext))

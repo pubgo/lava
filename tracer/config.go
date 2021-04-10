@@ -1,20 +1,13 @@
 package tracer
 
-import (
-	"github.com/pubgo/xerror"
-	jaegerCfg "github.com/uber/jaeger-client-go/config"
-	"runtime/debug"
-)
+var Name = "tracer"
 
-type Cfg = jaegerCfg.Configuration
+type Cfg struct {
+	Driver string `json:"driver"`
+}
 
-func GetDefaultCfg() *Cfg {
-	cfg, err := jaegerCfg.FromEnv()
-	xerror.Panic(err)
-	closer, err := cfg.InitGlobalTracer()
-
-
-	debug.Stack()
-
-	return cfg
+func GetDefaultCfg() Cfg {
+	return Cfg{
+		Driver: "jaeger",
+	}
 }

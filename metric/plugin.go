@@ -19,9 +19,7 @@ func onInit(ent interface{}) {
 	fc := Get(driver)
 	xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
-	reporter := xerror.PanicErr(fc(config.Map(Name))).(Reporter)
-	xerror.Assert(reporter == nil, "metric driver %s init error", driver)
-	defaultReporter = reporter
+	SetDefault(xerror.PanicErr(fc(config.Map(Name))).(Reporter))
 }
 
 func init() {

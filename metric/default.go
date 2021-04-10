@@ -6,6 +6,12 @@ import (
 
 var defaultReporter Reporter = &noopReporter{}
 
+// SetDefault 设置全局的Reporter
+func SetDefault(reporter Reporter) {
+	xerror.Assert(reporter == nil, "[reporter] should not be nil")
+	defaultReporter = reporter
+}
+
 // getDefault 获取全局的Reporter
 func getDefault() Reporter {
 	xerror.Assert(defaultReporter == nil, "please set default reporter")

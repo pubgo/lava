@@ -16,16 +16,12 @@ import (
 )
 
 func init() {
-	xerror.Exit(metric.Register(Name, func(cfgMap map[string]interface{}) (metric.Reporter, error) {
-		var cfg = GetDefaultCfg()
-		xerror.Panic(merge.MapStruct(&cfg, cfgMap))
-		return NewReporter(cfg)
-	}))
+	xerror.Exit(metric.Register(Name, NewWithMap))
 }
 
 //reporterMetric is a prom exporter for go chassis
 type reporterMetric struct {
-	registry   *prometheus.Registry
+	registry   prometheus.Registerer
 	lc         sync.RWMutex
 	lg         sync.RWMutex
 	ls         sync.RWMutex
@@ -35,8 +31,14 @@ type reporterMetric struct {
 	histograms map[string]*prometheus.HistogramVec
 }
 
-//NewReporter create a prometheus exporter
-func NewReporter(cfg Cfg) (metric.Reporter, error) {
+func NewWithMap(cfgMap map[string]interface{}) (metric.Reporter, error) {
+	var cfg = GetDefaultCfg()
+	xerror.Panic(merge.MapStruct(&cfg, cfgMap))
+	return New(cfg)
+}
+
+//New create a prometheus exporter
+func New(cfg Cfg) (metric.Reporter, error) {
 	var name = cfg.Prefix
 	name = StripUnsupportedCharacters(strings.ToLower(strings.TrimSpace(name)))
 	if name != "" && !strings.HasSuffix(name, "_") {
@@ -50,7 +52,7 @@ func NewReporter(cfg Cfg) (metric.Reporter, error) {
 	}
 
 	// Make a prometheus registry (this keeps track of any metrics we generate):
-	registry := prometheus.NewRegistry()
+	registry := prometheus.DefaultRegisterer
 	if cfg.EnableGoRuntimeMetrics {
 		xerror.Panic(registry.Register(prometheus.NewGoCollector()))
 		xerror.Panic(registry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
@@ -58,7 +60,7 @@ func NewReporter(cfg Cfg) (metric.Reporter, error) {
 	}
 
 	mux.On(func(app *chi.Mux) {
-		app.Handle(cfg.Path, promhttp.HandlerFor(registry,
+		app.Handle(cfg.Path, promhttp.HandlerFor(prometheus.DefaultGatherer,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 	})
 

@@ -2,7 +2,6 @@ package metric
 
 // Tags is a map of fields to add to a metrics
 type Tags map[string]string
-type Factory func(cfg map[string]interface{}) (Reporter, error)
 
 // Reporter is an interface for collecting and instrumenting metrics
 type Reporter interface {

@@ -7,7 +7,7 @@ import (
 )
 
 // NewClientTrace Creates a New ClientTrace
-func newClientTrace(span opentracing.Span) *httptrace.ClientTrace {
+func NewClientTrace(span opentracing.Span) *httptrace.ClientTrace {
 	trace := &clientTrace{span: span}
 	return &httptrace.ClientTrace{
 		DNSStart:             trace.dnsStart,

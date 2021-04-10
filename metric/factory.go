@@ -6,6 +6,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type Factory func(cfg map[string]interface{}) (Reporter, error)
+
 var reporters types.SMap
 
 func Get(names ...string) Factory {
