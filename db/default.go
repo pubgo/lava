@@ -1,22 +1,14 @@
 package db
 
 import (
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
-	"unsafe"
-
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/types"
-	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"runtime"
+	"unsafe"
 	"xorm.io/xorm"
-	xl "xorm.io/xorm/log"
-	"xorm.io/xorm/names"
 )
 
 var clients types.SMap
@@ -33,41 +25,13 @@ func Get(names ...string) *Client {
 func updateClient(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
-	source := config.Template(cfg.Source)
-	if strings.Contains(cfg.Driver, "sqlite") {
-		if _dir := filepath.Dir(source); pathutil.IsNotExist(_dir) {
-			_ = os.MkdirAll(_dir, 0755)
-		}
-	}
-
-	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
-	engine.SetMaxOpenConns(cfg.MaxConnOpen)
-	engine.SetMaxIdleConns(cfg.MaxConnIdle)
-	engine.SetConnMaxLifetime(cfg.MaxConnTime)
-	engine.SetMapper(names.LintGonicMapper)
-	engine.Logger().SetLevel(xl.LOG_WARNING)
-	if cfg.Debug && (config.IsDev() || config.IsTest()) {
-		engine.Logger().SetLevel(xl.LOG_DEBUG)
-		engine.ShowSQL(true)
-	}
-
-	xerror.Panic(engine.DB().Ping())
+	engine := xerror.PanicErr(cfg.Build()).(*xorm.Engine)
 
 	val, ok := clients.Load(name)
-
-	var client = &Client{engine}
-	runtime.SetFinalizer(client, func(c *Client) {
-		xlog.Infof("old orm client %s object %d gc", uintptr(unsafe.Pointer(c)))
-		if err := c.Close(); err != nil {
-			xlog.Errorf("orm close error, name: %s, err:%#v", err)
-		}
-	})
-
-	clients.Set(name, client)
-
-	// TODO runtime.SetFinalizer() 处理下
-	if ok {
-		_ = val.(*Client).Close()
+	if !ok {
+		clients.Set(name, &Client{engine})
+	} else {
+		val.(*Client).Engine = engine
 	}
 
 	// 初始化完毕之后, 更新到对象管理系统
@@ -81,4 +45,19 @@ func updateEngine(name string, engine *xorm.Engine) {
 
 func Watch(db interface{}) {
 	xerror.Panic(dix.Dix(db))
+}
+
+func delClient(name string) {
+	var client = Get(name)
+	if client == nil {
+		return
+	}
+
+	clients.Delete(name)
+	runtime.SetFinalizer(client, func(c *Client) {
+		xlog.Infof("old orm client %s object %d gc", uintptr(unsafe.Pointer(c)))
+		if err := c.Close(); err != nil {
+			xlog.Errorf("orm close error, name: %s, err:%#v", err)
+		}
+	})
 }

@@ -27,10 +27,19 @@ type Cfg struct {
 	DialOptions          []grpc.DialOption `json:"-"`
 }
 
-// 转化为etcd Cfg
-func (t Cfg) ToEtcd() (cfg clientv3.Config) {
+func (t Cfg) Build() (c *clientv3.Client, err error) {
+	defer xerror.RespErr(&err)
+
+	var cfg clientv3.Config
+	// 转化为etcd Cfg
 	xerror.Panic(merge.Copy(&cfg, &t))
-	return
+
+	// 创建etcd client对象
+	var etcdClient *clientv3.Client
+	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
+	xerror.PanicF(err, "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
+
+	return etcdClient, nil
 }
 
 func GetDefaultCfg() Cfg {

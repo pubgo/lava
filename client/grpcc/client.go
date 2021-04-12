@@ -2,12 +2,12 @@ package grpcc
 
 import (
 	"context"
-	"google.golang.org/grpc/health/grpc_health_v1"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 var mu sync.Mutex

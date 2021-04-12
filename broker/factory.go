@@ -7,6 +7,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type Factory func(cfg map[string]interface{}) (Broker, error)
+
 var factories types.SMap
 var brokers types.SMap
 

@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"go.etcd.io/etcd/clientv3"
 
 	"runtime"
 	"unsafe"
@@ -29,23 +28,12 @@ func List() (dt map[string]*Client) {
 	return
 }
 
-func newClient(cfg clientv3.Config) (c *clientv3.Client, err error) {
-	defer xerror.RespErr(&err)
-
-	// 创建etcd client对象
-	var etcdClient *clientv3.Client
-	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
-	xerror.PanicF(err, "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
-
-	return etcdClient, nil
-}
-
 // updateClient 更新etcd client
 func updateClient(name string, cfg Cfg) error {
 	log.Debugf("[etcd] %s update etcd client", name)
 
 	// 创建新的客户端
-	etcdClient, err := newClient(cfg.ToEtcd())
+	etcdClient, err := cfg.Build()
 	if err != nil {
 		return err
 	}
@@ -69,7 +57,7 @@ func initClient(name string, cfg Cfg) error {
 		xerror.Assert(name == "", "[name] should not be null")
 		xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 
-		etcdClient, err := newClient(cfg.ToEtcd())
+		etcdClient, err := cfg.Build()
 		xerror.Panic(err)
 
 		clients.Set(name, &Client{Client: etcdClient})

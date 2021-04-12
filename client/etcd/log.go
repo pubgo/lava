@@ -2,13 +2,12 @@ package etcd
 
 import (
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xlog/xlog_abc"
 )
 
 var log xlog.Xlog
 
 func init() {
-	xlog.Watch(func(logs xlog_abc.Xlog) {
+	xlog.Watch(func(logs xlog.Xlog) {
 		log = logs.Named(Name)
 	})
 }

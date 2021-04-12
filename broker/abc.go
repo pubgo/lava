@@ -4,7 +4,6 @@ import (
 	"context"
 )
 
-type Factory func(cfg map[string]interface{}) (Broker, error)
 type Broker interface {
 	Pub(topic string, msg *Message, opts *PubOpts) error
 	Sub(topic string, handler Handler, opts *SubOpts) error

@@ -34,5 +34,10 @@ var plg = &plugin.Base{
 		xerror.Panic(w.Decode(&cfg))
 		xerror.Panic(updateClient(name, *cfg))
 		cfgList[name] = cfg
+
+
+		w.OnDelete(func() {
+
+		})
 	},
 }
