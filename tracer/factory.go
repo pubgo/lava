@@ -9,10 +9,10 @@ import (
 
 type Factory func(cfg map[string]interface{}) (opentracing.Tracer, error)
 
-var tracers types.SMap
+var factories types.SMap
 
 func Get(names ...string) Factory {
-	val, ok := tracers.Load(consts.GetDefault(names...))
+	val, ok := factories.Load(consts.GetDefault(names...))
 	if !ok {
 		return nil
 	}
@@ -24,7 +24,7 @@ func Register(name string, r Factory) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(name == "" || r == nil, "[name,tracer] is null")
-	xerror.Assert(tracers.Has(name), "tracer %s already exists", name)
-	tracers.Set(name, r)
+	xerror.Assert(factories.Has(name), "tracer %s already exists", name)
+	factories.Set(name, r)
 	return
 }

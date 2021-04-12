@@ -4,11 +4,9 @@ import (
 	"context"
 
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 )
 
-type Factory func(cfg typex.M) (Watcher, error)
 type CallBack func(name string, event *Response) error
 
 // Watcher ...

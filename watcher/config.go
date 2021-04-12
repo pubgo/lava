@@ -4,8 +4,7 @@ import (
 	"strings"
 )
 
-var Name = "watcher"
-var Prefix = "/watchers"
+const Name = "watcher"
 
 type Cfg struct {
 	Prefix   string   `json:"prefix"`
@@ -15,7 +14,7 @@ type Cfg struct {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Prefix: Prefix,
+		Prefix: "/watcher",
 		Driver: "etcd",
 	}
 }
