@@ -1,6 +1,9 @@
 package watcher
 
 import (
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/xerror"
+
 	"strings"
 )
 
@@ -10,6 +13,17 @@ type Cfg struct {
 	Prefix   string   `json:"prefix"`
 	Driver   string   `json:"driver"`
 	Projects []string `json:"projects"`
+}
+
+func (cfg Cfg) Build() (_ Watcher, err error) {
+	defer xerror.RespErr(&err)
+
+	driver := cfg.Driver
+	xerror.Assert(driver == "", "watcher driver is null")
+	xerror.Assert(!factories.Has(driver), "watcher driver [%s] not found", driver)
+
+	fc := factories.Get(driver).(Factory)
+	return fc(config.Map(Name))
 }
 
 func GetDefaultCfg() Cfg {

@@ -19,15 +19,17 @@ import (
 )
 
 func init() {
-	registry.Register(Name, func(m map[string]interface{}) (registry.Registry, error) {
-		resolver, err := zeroconf.NewResolver()
-		xerror.Panic(err, "Failed to initialize resolver")
+	registry.Register(Name, NewWithMap)
+}
 
-		var r = &mdnsRegistry{resolver: resolver}
+func NewWithMap(m map[string]interface{}) (registry.Registry, error) {
+	resolver, err := zeroconf.NewResolver()
+	xerror.Panic(err, "Failed to initialize resolver")
 
-		xerror.Panic(merge.MapStruct(&r.cfg, m))
-		return r, nil
-	})
+	var r = &mdnsRegistry{resolver: resolver}
+
+	xerror.Panic(merge.MapStruct(&r.cfg, m))
+	return r, nil
 }
 
 var _ registry.Registry = (*mdnsRegistry)(nil)
@@ -91,7 +93,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, opt ...registry.RegOp
 	})
 }
 
-func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeRegOpt) error {
+func (m *mdnsRegistry) DeRegister(service *registry.Service, opt ...registry.DeRegOpt) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

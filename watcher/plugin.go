@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
@@ -13,36 +14,32 @@ import (
 var mu = new(sync.Mutex)
 
 func init() {
-	config.On(func(c *config.Config) {
-		defer xerror.RespExit()
+	plugin.Register(&plugin.Base{
+		OnInit: func(ent interface{}) {
+			defer xerror.RespExit()
 
-		var cfg = GetDefaultCfg()
-		if !config.Decode(Name, &cfg) {
-			return
-		}
+			var cfg = GetDefaultCfg()
+			if !config.Decode(Name, &cfg) {
+				return
+			}
 
-		driver := cfg.Driver
-		xerror.Assert(driver == "", "watcher driver is null")
-		xerror.Assert(!factories.Has(driver), "watcher driver [%s] not found", driver)
+			defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
 
-		fc := factories.Get(driver).(Factory)
-		defaultWatcher = xerror.PanicErr(fc(config.Map(Name))).(Watcher)
-		xerror.Assert(defaultWatcher == nil, "watcher driver %s init error", driver)
+			// 获取所有watch的项目
+			projects := cfg.Projects
+			if !strutil.Contains(projects, config.Project) {
+				projects = append(projects, config.Project)
+			}
 
-		// 获取所有watch的项目
-		projects := cfg.Projects
-		if !strutil.Contains(projects, config.Project) {
-			projects = append(projects, config.Project)
-		}
-
-		// 项目prefix
-		for i := range projects {
-			var name = projects[i]
-			_ = fx.Go(func(ctx context.Context) {
-				for resp := range defaultWatcher.Watch(ctx, name) {
-					onWatch(resp)
-				}
-			})
-		}
+			// 项目prefix
+			for i := range projects {
+				var name = projects[i]
+				_ = fx.Go(func(ctx context.Context) {
+					for resp := range defaultWatcher.Watch(ctx, name) {
+						onWatch(resp)
+					}
+				})
+			}
+		},
 	})
 }

@@ -106,7 +106,7 @@ func WatchContext(ctx context.Context) WatchOpt {
 	}
 }
 
-func DeregisterContext(ctx context.Context) DeRegOpt {
+func DeRegisterContext(ctx context.Context) DeRegOpt {
 	return func(o *DeRegOpts) {
 		o.Context = ctx
 	}

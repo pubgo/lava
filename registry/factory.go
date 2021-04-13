@@ -5,6 +5,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type Factory func(map[string]interface{}) (Registry, error)
+
 var factories types.SMap
 var Default Registry
 

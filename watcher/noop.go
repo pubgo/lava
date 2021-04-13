@@ -14,8 +14,5 @@ func init() {
 
 type nullWatcher struct{}
 
-func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response {
-	return nil
-}
-
-func (e *nullWatcher) Name() string { return "noop" }
+func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response { return nil }
+func (e *nullWatcher) Name() string                                                        { return "noop" }

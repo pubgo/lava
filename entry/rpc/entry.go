@@ -196,7 +196,7 @@ func (g *grpcEntry) deregister() (err error) {
 	}
 
 	xlog.Infof("DeRegistering node: %s", node.Id)
-	if err := g.cfg.registry.Deregister(services); err != nil {
+	if err := g.cfg.registry.DeRegister(services); err != nil {
 		return xerror.WrapF(err, "[grpc] registry deregister error")
 	}
 
