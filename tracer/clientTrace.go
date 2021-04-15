@@ -1,6 +1,7 @@
 package tracer
 
 import (
+	"fmt"
 	"net/http/httptrace"
 
 	opentracing "github.com/opentracing/opentracing-go"
@@ -38,24 +39,33 @@ func (h *clientTrace) dnsDone(d httptrace.DNSDoneInfo) {
 }
 
 func (h *clientTrace) getConn(hostPort string) {
-	h.span.LogKV("event", "Get Connection")
+	h.span.LogKV("event", "Get Connection",
+		"hostPort", hostPort,
+	)
 }
 
-func (h *clientTrace) gotConn(httptrace.GotConnInfo) {
-	h.span.LogKV("event", "Got Connection")
+func (h *clientTrace) gotConn(info httptrace.GotConnInfo) {
+	h.span.LogKV("event", "Got Connection",
+		"conn", fmt.Sprintf("%+v", info),
+	)
 }
 
 func (h *clientTrace) connectStart(network, addr string) {
-	h.span.LogKV("event", "Connection Start")
+	h.span.LogKV("event", "Connection Start",
+		"network", network, "addr", addr,
+	)
 }
 
 func (h *clientTrace) connectDone(network, addr string, err error) {
 	if err != nil {
 		h.span.LogKV("event", "Connection Done",
+			"network", network, "addr", addr,
 			"err", err.Error(),
 		)
 	} else {
-		h.span.LogKV("event", "Connection Done")
+		h.span.LogKV("event", "Connection Done",
+			"network", network, "addr", addr,
+		)
 	}
 }
 

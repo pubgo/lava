@@ -1,24 +1,108 @@
 package tracer
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/xerror"
 )
+
+func getSpan(ctx context.Context) opentracing.SpanContext {
+	xerror.Assert(ctx == nil, "[ctx] should not be nil")
+
+	var spanCtx opentracing.SpanContext
+
+	if span := opentracing.SpanFromContext(ctx); span != nil {
+		spanCtx = span.Context()
+	}
+
+	return spanCtx
+}
+
+// SetIfError add error info and flag for error
+func SetIfError(span opentracing.Span, err error) {
+	if span == nil {
+		return
+	}
+
+	if err != nil {
+		ext.Error.Set(span, true)
+		span.SetTag(KeyErrorMessage, err.Error())
+	}
+}
+
+// SetIfContextError record error
+func SetIfContextError(span opentracing.Span, ctx context.Context) {
+	if span == nil {
+		return
+	}
+
+	if ctx != nil {
+		if err := ctx.Err(); err != nil {
+			ext.Error.Set(span, true)
+			span.SetTag(KeyContextErrorMessage, err.Error())
+		}
+	}
+}
 
 func Global() opentracing.Tracer { return opentracing.GlobalTracer() }
 
-// Inject injects the outbound HTTP request with the given span's context to ensure
+// InjectHeaders injects the outbound HTTP request with the given span's context to ensure
 // correct propagation of span context throughout the trace.
-func Inject(span opentracing.Span, request *http.Request) error {
+func InjectHeaders(span opentracing.Span, request *http.Request) error {
 	return span.Tracer().Inject(
 		span.Context(),
 		opentracing.HTTPHeaders,
 		opentracing.HTTPHeadersCarrier(request.Header))
+}
+
+func CreateSpan(r *http.Request, name string) opentracing.Span {
+	globalTracer := opentracing.GlobalTracer()
+
+	name = spanName(name, r)
+
+	// If headers contain trace data, create child span from parent; else, create root span
+	var span opentracing.Span
+	if globalTracer != nil {
+		spanCtx, err := globalTracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+		if err != nil {
+			span = globalTracer.StartSpan(name)
+		} else {
+			span = globalTracer.StartSpan(name, ext.RPCServerOption(spanCtx))
+		}
+		ext.HTTPMethod.Set(span, r.Method)
+		ext.HTTPUrl.Set(span, r.URL.String())
+	}
+
+	return span // caller must defer span.finish()
+}
+
+// spanName returns the rendered span name from the configured template.
+// If an error is encountered, it returns the unrendered template.
+func spanName(tmplStr string, r *http.Request) string {
+	tmpl, err := template.New("name").Parse(tmplStr)
+	if err != nil {
+		return tmplStr
+	}
+
+	var name bytes.Buffer
+
+	data := struct {
+		Proto, Method, Host, Scheme, Path, RawQuery string
+	}{r.Proto, r.Method, r.Host, r.URL.Scheme, r.URL.Path, r.URL.RawQuery}
+
+	if err = tmpl.Execute(&name, data); err != nil {
+		return tmplStr
+	}
+
+	return name.String()
 }
 
 // Extract extracts the inbound HTTP request to obtain the parent span's context to ensure
@@ -84,8 +168,7 @@ type HandlerFunc func(next http.Handler) http.Handler
 // headers, the Span will be a trace root. The Span is incorporated in the
 // HTTP Context object and can be retrieved with
 // opentracing.SpanFromContext(ctx).
-func FromHTTPRequest(tracer opentracing.Tracer, operationName string,
-) HandlerFunc {
+func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			// Try to join to a trace propagated in `req`.

@@ -9,14 +9,22 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 )
 
+const TraceId = "trace-id"
+
 type Span struct {
-	Span opentracing.Span
-	Ctx  context.Context
+	opentracing.Span
+	Ctx context.Context
 }
 
-func NewSpan(ctx context.Context, name string) *Span {
+func StartSpan(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
 	span := new(Span)
-	span.Span, span.Ctx = opentracing.StartSpanFromContext(ctx, name)
+	span.Span, span.Ctx = opentracing.StartSpanFromContext(ctx, name, opts...)
+	return span
+}
+
+func NewSpan(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
+	span := new(Span)
+	span.Span, span.Ctx = opentracing.StartSpanFromContext(ctx, name, opts...)
 	return span
 }
 
@@ -25,13 +33,13 @@ func NewRootSpan(name string) *Span {
 }
 
 func NewSpanByHttpHeader(header *http.Header, name string) *Span {
-	traceId := header.Get("uber-trace-id")
+	traceId := header.Get(TraceId)
 	return NewSpanByTraceId(traceId, name)
 }
 
 func NewSpanByTraceId(traceId string, name string) *Span {
 	carrier := opentracing.HTTPHeadersCarrier{}
-	carrier.Set("uber-trace-id", traceId)
+	carrier.Set(TraceId, traceId)
 
 	tracer := opentracing.GlobalTracer()
 	wireContext, err := tracer.Extract(
@@ -67,6 +75,20 @@ func (s *Span) LogKV(alternatingKeyValues ...interface{}) {
 	s.Span.LogKV(alternatingKeyValues)
 }
 
+func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {
+	opts = append(opts, opentracing.ChildOf(s.SpanContext()))
+	var sp = s.Tracer().StartSpan(name, opts...)
+	var ctx = opentracing.ContextWithSpan(s.Context(), sp)
+	return &Span{Span: sp, Ctx: ctx}
+}
+
+func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *Span {
+	opts = append(opts, opentracing.FollowsFrom(s.SpanContext()))
+	var sp = s.Tracer().StartSpan(name, opts...)
+	var ctx = opentracing.ContextWithSpan(s.Context(), sp)
+	return &Span{Span: sp, Ctx: ctx}
+}
+
 func (s *Span) SetTag(key string, value interface{}) *Span {
 	s.Span = s.Span.SetTag(key, value)
 	return s
@@ -86,14 +108,14 @@ func (s *Span) Sub(name string) *Span {
 func (s *Span) GetTraceId() string {
 	tracer := opentracing.GlobalTracer()
 	header := http.Header{}
-	tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, header)
-	return header.Get("uber-trace-id")
+	_ = tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, header)
+	return header.Get(TraceId)
 }
 
 func (s *Span) GetHttpHeader() http.Header {
 	tracer := opentracing.GlobalTracer()
 	header := http.Header{}
-	tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, header)
+	_ = tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
 	return header
 }
 

@@ -23,12 +23,12 @@ func NewWithMap(cfgMap map[string]interface{}) (opentracing.Tracer, error) {
 
 func New(cfg *Cfg) (opentracing.Tracer, error) {
 	logOpt := config.Logger(&logger{logs: xlog.Named(cfg.ServiceName)})
-	metrics := config.Metrics(prometheus.New())
+	metricOpt := config.Metrics(prometheus.New())
 
 	//r := jaeger.NewRemoteReporter(transport.NewIOTransport(os.Stdout, 1))
 	//reporter := config.Reporter(r)
 
-	trace, closer, err := cfg.NewTracer(logOpt, metrics)
+	trace, closer, err := cfg.NewTracer(logOpt, metricOpt)
 	xerror.Panic(err)
 
 	lug.AfterStop(func() {
