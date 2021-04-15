@@ -1,5 +1,15 @@
 package prometheus
 
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/pubgo/lug/metric"
+	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
+
+	"strings"
+	"sync"
+)
+
 var Name = "prometheus"
 
 type Cfg struct {
@@ -10,6 +20,41 @@ type Cfg struct {
 	Name                   string            `json:"name"`
 	Prefix                 string            `json:"prefix"`
 	EnableGoRuntimeMetrics bool
+}
+
+func (cfg Cfg) Build() (_ metric.Reporter, err error) {
+	defer xerror.RespErr(&err)
+
+	var name = cfg.Prefix
+	name = StripUnsupportedCharacters(strings.ToLower(strings.TrimSpace(name)))
+	if name != "" && !strings.HasSuffix(name, "_") {
+		name += "_"
+	}
+	cfg.Prefix = name
+
+	cfg.Path = strings.ToLower(strings.TrimSpace(cfg.Path))
+	if cfg.Path == "" {
+		cfg.Path = "/metrics"
+	}
+
+	// Make a prometheus registry (this keeps track of any metrics we generate):
+	registry := prometheus.DefaultRegisterer
+	if cfg.EnableGoRuntimeMetrics {
+		xerror.Panic(registry.Register(prometheus.NewGoCollector()))
+		xerror.Panic(registry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
+		xlog.Info("go runtime metrics is exported")
+	}
+
+	return &reporterMetric{
+		registry:   registry,
+		lc:         sync.RWMutex{},
+		lg:         sync.RWMutex{},
+		ls:         sync.RWMutex{},
+		summaries:  make(map[string]*prometheus.SummaryVec),
+		counters:   make(map[string]*prometheus.CounterVec),
+		gauges:     make(map[string]*prometheus.GaugeVec),
+		histograms: make(map[string]*prometheus.HistogramVec),
+	}, nil
 }
 
 func GetDefaultCfg() Cfg {

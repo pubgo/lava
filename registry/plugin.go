@@ -12,7 +12,7 @@ func onInit(ent interface{}) {
 		return
 	}
 
-	Default = xerror.PanicErr(cfg.Build()).(Registry)
+	defaultRegistry = xerror.PanicErr(cfg.Build()).(Registry)
 }
 
 func init() {

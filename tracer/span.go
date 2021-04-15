@@ -22,14 +22,12 @@ func StartSpan(ctx context.Context, name string, opts ...opentracing.StartSpanOp
 	return span
 }
 
-func NewSpan(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
-	span := new(Span)
-	span.Span, span.Ctx = opentracing.StartSpanFromContext(ctx, name, opts...)
-	return span
+func NewSpan(ctx context.Context, sp opentracing.Span) *Span {
+	return &Span{Ctx: ctx, Span: sp}
 }
 
-func NewRootSpan(name string) *Span {
-	return NewSpan(context.Background(), name)
+func RootSpan(name string, opts ...opentracing.StartSpanOption) *Span {
+	return StartSpan(context.Background(), name, opts...)
 }
 
 func NewSpanByHttpHeader(header *http.Header, name string) *Span {

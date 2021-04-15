@@ -2,7 +2,6 @@ package prometheus
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
@@ -12,7 +11,6 @@ import (
 	"github.com/pubgo/lug/mux"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 )
 
 func init() {
@@ -39,41 +37,14 @@ func NewWithMap(cfgMap map[string]interface{}) (metric.Reporter, error) {
 
 //New create a prometheus exporter
 func New(cfg Cfg) (metric.Reporter, error) {
-	var name = cfg.Prefix
-	name = StripUnsupportedCharacters(strings.ToLower(strings.TrimSpace(name)))
-	if name != "" && !strings.HasSuffix(name, "_") {
-		name += "_"
-	}
-	cfg.Prefix = name
-
-	cfg.Path = strings.ToLower(strings.TrimSpace(cfg.Path))
-	if cfg.Path == "" {
-		cfg.Path = "/metrics"
-	}
-
-	// Make a prometheus registry (this keeps track of any metrics we generate):
-	registry := prometheus.DefaultRegisterer
-	if cfg.EnableGoRuntimeMetrics {
-		xerror.Panic(registry.Register(prometheus.NewGoCollector()))
-		xerror.Panic(registry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
-		xlog.Info("go runtime metrics is exported")
-	}
+	var reporter = xerror.PanicErr(cfg.Build()).(*reporterMetric)
 
 	mux.On(func(app *chi.Mux) {
 		app.Handle(cfg.Path, promhttp.HandlerFor(prometheus.DefaultGatherer,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 	})
 
-	return &reporterMetric{
-		registry:   registry,
-		lc:         sync.RWMutex{},
-		lg:         sync.RWMutex{},
-		ls:         sync.RWMutex{},
-		summaries:  make(map[string]*prometheus.SummaryVec),
-		counters:   make(map[string]*prometheus.CounterVec),
-		gauges:     make(map[string]*prometheus.GaugeVec),
-		histograms: make(map[string]*prometheus.HistogramVec),
-	}, nil
+	return reporter, nil
 }
 
 //CreateGauge create collector

@@ -22,6 +22,9 @@ func init() {
 			resp.OnPut(func() {
 				var cfg = GetDefaultCfg()
 				xerror.Panic(resp.Decode(&cfg))
+
+				var trace = xerror.PanicErr(cfg.Build()).(opentracing.Tracer)
+				opentracing.SetGlobalTracer(trace)
 			})
 		},
 	})

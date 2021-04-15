@@ -3,12 +3,13 @@ package mdns
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
-	"testing"
-	"time"
 )
 
 func TestServer(t *testing.T) {
