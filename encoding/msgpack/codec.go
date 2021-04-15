@@ -1,0 +1,31 @@
+package msgpack
+
+import (
+	"bytes"
+
+	msgpack "github.com/vmihailenco/msgpack/v5"
+)
+
+// msgpackCodec uses messagepack marshaler and unmarshaler.
+type msgpackCodec struct{}
+
+func (c msgpackCodec) Name() string {
+	return Name
+}
+
+// Encode encodes an object into slice of bytes.
+func (c msgpackCodec) Encode(i interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := msgpack.NewEncoder(&buf)
+	// enc.UseJSONTag(true)
+	err := enc.Encode(i)
+	return buf.Bytes(), err
+}
+
+// Decode decodes an object from slice of bytes.
+func (c msgpackCodec) Decode(data []byte, i interface{}) error {
+	dec := msgpack.NewDecoder(bytes.NewReader(data))
+	// dec.UseJSONTag(true)
+	err := dec.Decode(i)
+	return err
+}

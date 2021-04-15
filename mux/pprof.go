@@ -2,6 +2,7 @@ package mux
 
 import (
 	"github.com/go-chi/chi/v5"
+
 	"net/http/pprof"
 )
 
