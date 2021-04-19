@@ -1,7 +1,6 @@
 package tracing
 
 import (
-	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/xerror"
 )
@@ -12,7 +11,7 @@ type Cfg struct {
 	Driver string `json:"driver"`
 }
 
-func (cfg Cfg) Build() (_ opentracing.Tracer, err error) {
+func (cfg Cfg) Build() (_ Tracer, err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

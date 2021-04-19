@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/memberlist"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog/xlog_std"
 )
 
 //https://github.com/asim/memberlist/blob/master/memberlist.go
@@ -49,47 +50,13 @@ type Cfg struct {
 	UDPBufferSize           int
 }
 
-type delegate struct{}
-
-func (d delegate) NodeMeta(limit int) []byte {
-	panic("implement me")
-}
-
-func (d delegate) NotifyMsg(bytes []byte) {
-	panic("implement me")
-}
-
-func (d delegate) GetBroadcasts(overhead, limit int) [][]byte {
-	panic("implement me")
-}
-
-func (d delegate) LocalState(join bool) []byte {
-	panic("implement me")
-}
-
-func (d delegate) MergeRemoteState(buf []byte, join bool) {
-	panic("implement me")
-}
-
 func (t Cfg) Build() *memberlist.Memberlist {
-
 	t.BindPort = 0
 	t.Name += fmt.Sprintf("_%d", time.Now().Unix())
 	t.mc.Events = &memberlist.ChannelEventDelegate{Ch: make(chan memberlist.NodeEvent, chanSize)}
 	t.mc.Events = &eventDelegate{}
 	t.mc.Delegate = &delegate{}
-	//t.mc.Logger = ac.logger
-
-	//broadcasts := &memberlist.TransmitLimitedQueue{
-	//	NumNodes: func() int {
-	//		return t.mc.NumMembers()
-	//	},
-	//	RetransmitMult: 3,
-	//}
-	//broadcasts.QueueBroadcast(&broadcast{
-	//	msg:    append([]byte("d"), b...),
-	//	notify: nil,
-	//})
+	t.mc.Logger = xlog_std.New(t.Name)
 
 	ml, err := memberlist.Create(t.mc)
 	xerror.Panic(err)
@@ -101,35 +68,4 @@ func GetDefaultCfg() Cfg {
 	return Cfg{
 		mc: memberlist.DefaultLANConfig(),
 	}
-}
-
-type eventDelegate struct{}
-
-func (ed *eventDelegate) NotifyJoin(node *memberlist.Node) {
-	fmt.Println("A node has joined: " + node.String())
-}
-
-func (ed *eventDelegate) NotifyLeave(node *memberlist.Node) {
-	fmt.Println("A node has left: " + node.String())
-}
-
-func (ed *eventDelegate) NotifyUpdate(node *memberlist.Node) {
-	fmt.Println("A node was updated: " + node.String())
-}
-
-type broadcast struct {
-	msg    []byte
-	notify chan<- struct{}
-}
-
-func (b2 broadcast) Invalidates(b memberlist.Broadcast) bool {
-	panic("implement me")
-}
-
-func (b2 broadcast) Message() []byte {
-	panic("implement me")
-}
-
-func (b2 broadcast) Finished() {
-	panic("implement me")
 }

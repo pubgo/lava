@@ -3,7 +3,10 @@
 package tools
 
 import (
-	_ "golang.org/x/lint/golint"
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	_ "github.com/client9/misspell/cmd/misspell"
+	_ "github.com/fatih/gomodifytags"
 	_ "github.com/rakyll/statik"
+	_ "golang.org/x/lint/golint"
+	_ "golang.org/x/tools/cmd/goimports"
+	_ "honnef.co/go/tools/cmd/staticcheck"
 )

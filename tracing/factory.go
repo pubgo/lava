@@ -1,13 +1,12 @@
 package tracing
 
 import (
-	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xerror"
 )
 
-type Factory func(cfg map[string]interface{}) (opentracing.Tracer, error)
+type Factory func(cfg map[string]interface{}) (Tracer, error)
 
 var factories types.SMap
 

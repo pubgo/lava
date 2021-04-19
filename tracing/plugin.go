@@ -8,24 +8,25 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func init() {
-	plugin.Register(&plugin.Base{
-		OnInit: func(ent interface{}) {
+func init() { plugin.Register(plg) }
+
+var plg = &plugin.Base{
+	Name: Name,
+	OnInit: func(ent interface{}) {
+		var cfg = GetDefaultCfg()
+		_ = config.Decode(Name, &cfg)
+
+		var trace = xerror.PanicErr(cfg.Build()).(opentracing.Tracer)
+		opentracing.SetGlobalTracer(trace)
+	},
+
+	OnWatch: func(name string, resp *watcher.Response) {
+		resp.OnPut(func() {
 			var cfg = GetDefaultCfg()
-			_ = config.Decode(Name, &cfg)
+			xerror.Panic(resp.Decode(&cfg))
 
 			var trace = xerror.PanicErr(cfg.Build()).(opentracing.Tracer)
 			opentracing.SetGlobalTracer(trace)
-		},
-
-		OnWatch: func(name string, resp *watcher.Response) {
-			resp.OnPut(func() {
-				var cfg = GetDefaultCfg()
-				xerror.Panic(resp.Decode(&cfg))
-
-				var trace = xerror.PanicErr(cfg.Build()).(opentracing.Tracer)
-				opentracing.SetGlobalTracer(trace)
-			})
-		},
-	})
+		})
+	},
 }

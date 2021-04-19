@@ -21,24 +21,16 @@ type Opts struct {
 	Timeout   time.Duration
 	Secure    bool
 	TLSConfig *tls.Config
-	// Other options for implementations of the interface
-	// can be stored in a context
-	Context context.Context
+	Context   context.Context
 }
 
 type RegOpts struct {
-	TTL time.Duration
-	// Other options for implementations of the interface
-	// can be stored in a context
+	TTL     time.Duration
 	Context context.Context
 }
 
 type WatchOpts struct {
-	// Specify a service to watch
-	// If blank, the watch is for all services
 	Service string
-	// Other options for implementations of the interface
-	// can be stored in a context
 	Context context.Context
 }
 
