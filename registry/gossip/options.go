@@ -15,7 +15,7 @@ type advertiseKey struct{}
 type connectTimeoutKey struct{}
 type connectRetryKey struct{}
 
-// helper for setting registry options
+// helper for setting registry opts
 func setRegistryOption(k, v interface{}) registry.Opt {
 	return func(o *registry.Opts) {
 		if o.Context == nil {

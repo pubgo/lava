@@ -40,6 +40,13 @@ const (
 	nodeActionUpdate
 )
 
+var (
+	// You should change this if using secure
+	DefaultSecret = []byte("micro-gossip-key") // exactly 16 bytes
+	ExpiryTick    = time.Second * 1            // needs to be smaller than registry.RegisterTTL
+	MaxPacketSize = 512
+)
+
 func actionTypeString(t int32) string {
 	switch t {
 	case actionTypeCreate:
@@ -69,39 +76,21 @@ type delegate struct {
 	updates chan *update
 }
 
-type event struct {
-	action int32
-	node   string
-}
-
-type eventDelegate struct {
-	events chan *event
-}
-
-func (ed *eventDelegate) NotifyJoin(n *memberlist.Node) {
-	ed.events <- &event{action: nodeActionJoin, node: n.Address()}
-}
-func (ed *eventDelegate) NotifyLeave(n *memberlist.Node) {
-	ed.events <- &event{action: nodeActionLeave, node: n.Address()}
-}
-func (ed *eventDelegate) NotifyUpdate(n *memberlist.Node) {
-	ed.events <- &event{action: nodeActionUpdate, node: n.Address()}
-}
-
 type gossipRegistry struct {
+	sync.RWMutex
+
 	queue       *memberlist.TransmitLimitedQueue
 	updates     chan *update
 	events      chan *event
-	options     registry.Cfg
+	opts        registry.Opts
 	member      *memberlist.Memberlist
 	interval    time.Duration
 	tcpInterval time.Duration
 
 	connectRetry   bool
 	connectTimeout time.Duration
-	sync.RWMutex
-	services map[string][]*registry.Service
 
+	services map[string][]*registry.Service
 	watchers map[string]chan *registry.Result
 
 	mtu     int
@@ -121,14 +110,7 @@ type updates struct {
 	services map[uint64]*update
 }
 
-var (
-	// You should change this if using secure
-	DefaultSecret = []byte("micro-gossip-key") // exactly 16 bytes
-	ExpiryTick    = time.Second * 1            // needs to be smaller than registry.RegisterTTL
-	MaxPacketSize = 512
-)
-
-func configure(g *gossipRegistry, opts registry.Cfg) error {
+func configure(g *gossipRegistry, opts ...registry.Opt) error {
 	// loop through address list and get valid entries
 	addrs := func(curAddrs []string) []string {
 		var newAddrs []string
@@ -141,15 +123,15 @@ func configure(g *gossipRegistry, opts registry.Cfg) error {
 	}
 
 	// current address list
-	curAddrs := addrs(g.options.Addrs)
+	curAddrs := addrs(g.opts.Addrs)
 
-	// parse options
+	// parse opts
 	for _, o := range opts {
-		o(&g.options)
+		o(&g.opts)
 	}
 
 	// new address list
-	newAddrs := addrs(g.options.Addrs)
+	newAddrs := addrs(g.opts.Addrs)
 
 	// no new nodes and existing member. no configure
 	if (len(newAddrs) == len(curAddrs)) && g.member != nil {
@@ -171,18 +153,18 @@ func configure(g *gossipRegistry, opts registry.Cfg) error {
 	// create a new default config
 	c := memberlist.DefaultLocalConfig()
 
-	// sane good default options
+	// sane good default opts
 	c.LogOutput = ioutil.Discard // log to /dev/null
 	c.PushPullInterval = 0       // disable expensive tcp push/pull
 	c.ProtocolVersion = 4        // suport latest stable features
 
-	// set config from options
-	if config, ok := g.options.Context.Value(configKey{}).(*memberlist.Config); ok && config != nil {
+	// set config from opts
+	if config, ok := g.opts.Context.Value(configKey{}).(*memberlist.Config); ok && config != nil {
 		c = config
 	}
 
 	// set address
-	if address, ok := g.options.Context.Value(addressKey{}).(string); ok {
+	if address, ok := g.opts.Context.Value(addressKey{}).(string); ok {
 		host, port, err := net.SplitHostPort(address)
 		if err == nil {
 			p, err := strconv.Atoi(port)
@@ -197,7 +179,7 @@ func configure(g *gossipRegistry, opts registry.Cfg) error {
 	}
 
 	// set the advertise address
-	if advertise, ok := g.options.Context.Value(advertiseKey{}).(string); ok {
+	if advertise, ok := g.opts.Context.Value(advertiseKey{}).(string); ok {
 		host, port, err := net.SplitHostPort(advertise)
 		if err == nil {
 			p, err := strconv.Atoi(port)
@@ -215,8 +197,8 @@ func configure(g *gossipRegistry, opts registry.Cfg) error {
 	c.Name = strings.Join([]string{"micro", hostname, uuid.New().String()}, "-")
 
 	// set a secret key if secure
-	if g.options.Secure {
-		k, ok := g.options.Context.Value(secretKey{}).([]byte)
+	if g.opts.Secure {
+		k, ok := g.opts.Context.Value(secretKey{}).([]byte)
 		if !ok {
 			// use the default secret
 			k = DefaultSecret
@@ -225,12 +207,12 @@ func configure(g *gossipRegistry, opts registry.Cfg) error {
 	}
 
 	// set connect retry
-	if v, ok := g.options.Context.Value(connectRetryKey{}).(bool); ok && v {
+	if v, ok := g.opts.Context.Value(connectRetryKey{}).(bool); ok && v {
 		g.connectRetry = true
 	}
 
 	// set connect timeout
-	if td, ok := g.options.Context.Value(connectTimeoutKey{}).(time.Duration); ok {
+	if td, ok := g.opts.Context.Value(connectTimeoutKey{}).(time.Duration); ok {
 		g.connectTimeout = td
 	}
 
@@ -419,7 +401,7 @@ func (g *gossipRegistry) connect(addrs []string) error {
 	for {
 		select {
 		// context closed
-		case <-g.options.Context.Done():
+		case <-g.opts.Context.Done():
 			return nil
 		// call close, don't wait anymore
 		case <-g.done:
@@ -501,7 +483,7 @@ func (g *gossipRegistry) connectLoop() {
 		select {
 		case <-g.done:
 			return
-		case <-g.options.Context.Done():
+		case <-g.opts.Context.Done():
 			g.Stop()
 			return
 		case <-ticker.C:
@@ -687,14 +669,6 @@ func (g *gossipRegistry) run() {
 	}
 }
 
-func (g *gossipRegistry) Init(opts ...registry.Opt) error {
-	return configure(g, opts...)
-}
-
-func (g *gossipRegistry) Options() registry.Opts {
-	return g.options
-}
-
 func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {
@@ -745,7 +719,7 @@ func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.RegOpt) 
 	return nil
 }
 
-func (g *gossipRegistry) Deregister(s *registry.Service) error {
+func (g *gossipRegistry) DeRegister(s *registry.Service, opt ...registry.DeRegOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -787,7 +761,7 @@ func (g *gossipRegistry) Deregister(s *registry.Service) error {
 	return nil
 }
 
-func (g *gossipRegistry) GetService(name string) ([]*registry.Service, error) {
+func (g *gossipRegistry) GetService(name string, opt ...registry.GetOpt) ([]*registry.Service, error) {
 	g.RLock()
 	service, ok := g.services[name]
 	g.RUnlock()
@@ -797,7 +771,7 @@ func (g *gossipRegistry) GetService(name string) ([]*registry.Service, error) {
 	return service, nil
 }
 
-func (g *gossipRegistry) ListServices() ([]*registry.Service, error) {
+func (g *gossipRegistry) ListServices(opt ...registry.ListOpt) ([]*registry.Service, error) {
 	var services []*registry.Service
 	g.RLock()
 	for _, service := range g.services {
@@ -807,7 +781,7 @@ func (g *gossipRegistry) ListServices() ([]*registry.Service, error) {
 	return services, nil
 }
 
-func (g *gossipRegistry) Watch(opts ...registry.WatchOpt) (registry.Watcher, error) {
+func (g *gossipRegistry) Watch(s string, opts ...registry.WatchOpt) (registry.Watcher, error) {
 	n, e := g.subscribe()
 	return newGossipWatcher(n, e, opts...)
 }
@@ -816,9 +790,8 @@ func (g *gossipRegistry) String() string {
 	return "gossip"
 }
 
-func NewRegistry(opts registry.Cfg) registry.Registry {
+func NewRegistry(opts ...registry.Opt) registry.Registry {
 	g := &gossipRegistry{
-		options:  opts,
 		done:     make(chan bool),
 		events:   make(chan *event, 100),
 		updates:  make(chan *update, 100),
@@ -830,7 +803,7 @@ func NewRegistry(opts registry.Cfg) registry.Registry {
 	go g.run()
 
 	// configure the gossiper
-	if err := configure(g, opts); err != nil {
+	if err := configure(g, opts...); err != nil {
 		xlog.Fatalf("[gossip] Error configuring registry: %v", err)
 	}
 	// wait for setup
