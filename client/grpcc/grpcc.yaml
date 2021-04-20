@@ -1,0 +1,7 @@
+grpcc:
+  default:
+    name: "test"
+  direct:
+    name: "test"
+  discov:
+    name: "test"

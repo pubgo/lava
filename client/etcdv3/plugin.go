@@ -8,6 +8,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+func init() { plugin.Register(plg) }
+
 var plg = &plugin.Base{
 	Name: Name,
 	OnInit: func(ent interface{}) {
@@ -21,6 +23,7 @@ var plg = &plugin.Base{
 			xerror.Panic(initClient(consts.GetDefault(name), cfg))
 		}
 	},
+
 	OnWatch: func(name string, r *watcher.Response) {
 		r.OnPut(func() {
 			log.Debugf("[etcd] update client %s", name)
@@ -43,8 +46,4 @@ var plg = &plugin.Base{
 			delClient(name)
 		})
 	},
-}
-
-func init() {
-	plugin.Register(plg)
 }

@@ -52,10 +52,10 @@ func Range(db *xorm.Session, data interface{}, page, perPage int, where string, 
 
 	var start int
 
-	sess := db.Where(where, a...)
+	ses := db.Where(where, a...)
 	_, perPage, start = pagination(page, perPage)
-	count := xerror.PanicErr(sess.Count()).(int64)
-	return count, xerror.Wrap(sess.Limit(perPage, start).Find(data))
+	count := xerror.PanicErr(ses.Count()).(int64)
+	return count, xerror.Wrap(ses.Limit(perPage, start).Find(data))
 }
 
 func InsertOne(db *xorm.Session, task interface{}) (err error) {

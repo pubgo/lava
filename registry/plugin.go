@@ -6,18 +6,16 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func onInit(ent interface{}) {
-	var cfg = GetDefaultCfg()
-	if !config.Decode(Name, &cfg) {
-		return
-	}
+func init() { plugin.Register(&plg) }
 
-	defaultRegistry = xerror.PanicErr(cfg.Build()).(Registry)
-}
+var plg = plugin.Base{
+	Name: Name,
+	OnInit: func(ent interface{}) {
+		var cfg = GetDefaultCfg()
+		if !config.Decode(Name, &cfg) {
+			return
+		}
 
-func init() {
-	plugin.Register(&plugin.Base{
-		Name:   Name,
-		OnInit: onInit,
-	})
+		defaultRegistry = xerror.PanicErr(cfg.Build()).(Registry)
+	},
 }

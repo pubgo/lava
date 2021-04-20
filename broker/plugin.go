@@ -6,19 +6,17 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func onInit(ent interface{}) {
-	if !config.Decode(Name, &cfgList) {
-		return
-	}
+func init() { plugin.Register(&plg) }
 
-	for name, cfg := range cfgList {
-		brokers.Set(name, xerror.PanicErr(cfg.Build(name)).(Broker))
-	}
-}
+var plg = plugin.Base{
+	Name: Name,
+	OnInit: func(ent interface{}) {
+		if !config.Decode(Name, &cfgList) {
+			return
+		}
 
-func init() {
-	plugin.Register(&plugin.Base{
-		Name:   Name,
-		OnInit: onInit,
-	})
+		for name, cfg := range cfgList {
+			brokers.Set(name, xerror.PanicErr(cfg.Build(name)).(Broker))
+		}
+	},
 }

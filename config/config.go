@@ -21,7 +21,7 @@ type Config struct {
 	*viper.Viper
 }
 
-func Map(names ...string) map[string]interface{} {
+func GetMap(names ...string) map[string]interface{} {
 	return GetCfg().GetStringMap(strings.Join(names, "."))
 }
 

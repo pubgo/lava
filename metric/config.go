@@ -20,7 +20,7 @@ func (cfg Cfg) Build() (_ Reporter, err error) {
 	fc := Get(driver)
 	xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
-	return fc(config.Map(Name))
+	return fc(config.GetMap(Name))
 }
 
 func GetDefaultCfg() Cfg {

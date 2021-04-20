@@ -23,7 +23,7 @@ func (cfg Cfg) Build() (_ Watcher, err error) {
 	xerror.Assert(!factories.Has(driver), "watcher driver [%s] not found", driver)
 
 	fc := factories.Get(driver).(Factory)
-	return fc(config.Map(Name))
+	return fc(config.GetMap(Name))
 }
 
 func GetDefaultCfg() Cfg {

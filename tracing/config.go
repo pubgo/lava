@@ -20,7 +20,7 @@ func (cfg Cfg) Build() (_ Tracer, err error) {
 	fc := Get(driver)
 	xerror.Assert(fc == nil, "tracer driver %s not found", driver)
 
-	return fc(config.Map(Name))
+	return fc(config.GetMap(Name))
 }
 
 func GetDefaultCfg() Cfg {

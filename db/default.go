@@ -6,9 +6,10 @@ import (
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"xorm.io/xorm"
+
 	"runtime"
 	"unsafe"
-	"xorm.io/xorm"
 )
 
 var clients types.SMap
@@ -53,11 +54,11 @@ func delClient(name string) {
 		return
 	}
 
-	clients.Delete(name)
 	runtime.SetFinalizer(client, func(c *Client) {
-		xlog.Infof("old orm client %s object %d gc", uintptr(unsafe.Pointer(c)))
+		xlog.Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
 		if err := c.Close(); err != nil {
-			xlog.Errorf("orm close error, name: %s, err:%#v", err)
+			xlog.Errorf("db close error, name: %s", name, xlog.Any("err", err))
 		}
 	})
+	clients.Delete(name)
 }

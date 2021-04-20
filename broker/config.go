@@ -21,7 +21,7 @@ func (cfg Cfg) Build(name string) (_ Broker, err error) {
 	xerror.Assert(brokers.Has(name), "broker %s already exists", name)
 
 	fc := factories.Get(driver).(Factory)
-	return fc(config.Map(Name, name))
+	return fc(config.GetMap(Name, name))
 }
 
 func GetDefaultCfg() Cfg {

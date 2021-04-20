@@ -25,6 +25,7 @@ var plg = &plugin.Base{
 			cfgList[name] = cfg
 		}
 	},
+
 	OnWatch: func(name string, w *watcher.Response) {
 		cfg, ok := cfgList[name]
 		if !ok {
@@ -35,9 +36,6 @@ var plg = &plugin.Base{
 		xerror.Panic(updateClient(name, *cfg))
 		cfgList[name] = cfg
 
-
-		w.OnDelete(func() {
-
-		})
+		w.OnDelete(func() {})
 	},
 }

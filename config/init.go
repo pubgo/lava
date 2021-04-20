@@ -115,9 +115,8 @@ func Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 运行环境检查
-	var m = RunMode
 	switch Mode {
-	case m.Dev, m.Stag, m.Prod, m.Test, m.Release:
+	case Dev.String(), Stag.String(), Prod.String(), Test.String(), Release.String():
 	default:
 		xerror.Assert(true, "running mode does not match, mode: %s", Mode)
 	}

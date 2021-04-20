@@ -3,13 +3,13 @@ package clientinterceptors
 import (
 	"context"
 
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpcRecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func RecoveryUnary(f grpc_recovery.RecoveryHandlerFuncContext) grpc.UnaryClientInterceptor {
+func RecoveryUnary(f grpcRecovery.RecoveryHandlerFuncContext) grpc.UnaryClientInterceptor {
 	if f == nil {
 		panic("[f] should not be nil")
 	}
@@ -25,7 +25,7 @@ func RecoveryUnary(f grpc_recovery.RecoveryHandlerFuncContext) grpc.UnaryClientI
 	}
 }
 
-func RecoveryStream(f grpc_recovery.RecoveryHandlerFuncContext) grpc.StreamClientInterceptor {
+func RecoveryStream(f grpcRecovery.RecoveryHandlerFuncContext) grpc.StreamClientInterceptor {
 	if f == nil {
 		panic("[f] should not be nil")
 	}
@@ -41,7 +41,7 @@ func RecoveryStream(f grpc_recovery.RecoveryHandlerFuncContext) grpc.StreamClien
 	}
 }
 
-func DefaultRecovery() grpc_recovery.RecoveryHandlerFuncContext {
+func DefaultRecovery() grpcRecovery.RecoveryHandlerFuncContext {
 	return func(ctx context.Context, p interface{}) (err error) {
 		return status.Errorf(codes.Internal, "[grpc] client recovery error, err: %v", p)
 	}

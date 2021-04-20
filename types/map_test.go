@@ -20,10 +20,10 @@ func TestName(t *testing.T) {
 	})
 
 	var data = make(map[string]int)
-	sm.Map(data)
+	sm.MapTo(data)
 	fmt.Println(data)
 
 	var data1 map[string]int
-	sm.Map(&data1)
+	sm.MapTo(&data1)
 	fmt.Println(data1)
 }

@@ -1,4 +1,4 @@
-package golug_hystrix
+package hystrix
 
 import (
 	"net/http"

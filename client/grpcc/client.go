@@ -4,27 +4,37 @@ import (
 	"context"
 	"sync"
 
+	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-var mu sync.Mutex
+var mux sync.Mutex
 var clients sync.Map
 
-func Client(service string, opts ...grpc.DialOption) *client {
+func NewClient(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	return GetDefaultCfg().Build(service, opts...)
+}
+
+func GetClient(service string, optFns ...func(service string) []grpc.DialOption) *client {
+	var fn = defaultDialOption
+	if len(optFns) > 0 {
+		fn = optFns[0]
+	}
+
 	return &client{
 		service: service,
-		target:  buildTarget(service),
-		opts:    append(defaultDialOpts, opts...),
+		optFn:   fn,
 	}
 }
 
+var _ GrpcClient = (*client)(nil)
+
 type client struct {
 	service string
-	target  string
-	opts    []grpc.DialOption
+	optFn   func(service string) []grpc.DialOption
 }
 
 func (t *client) getClient() *grpc.ClientConn {
@@ -56,8 +66,8 @@ func (t *client) Get() (*grpc.ClientConn, error) {
 		return client, nil
 	}
 
-	mu.Lock()
-	defer mu.Unlock()
+	mux.Lock()
+	defer mux.Unlock()
 
 	// 双检, 避免多次创建
 	client = t.getClient()
@@ -65,7 +75,8 @@ func (t *client) Get() (*grpc.ClientConn, error) {
 		return client, nil
 	}
 
-	conn, err := dial(t.target, t.opts...)
+	var cfg = GetCfg(consts.Default)
+	conn, err := cfg.Build(t.service, t.optFn(t.service)...)
 	if err != nil {
 		return nil, xerror.WrapF(err, "dial %s error\n", t.service)
 	}

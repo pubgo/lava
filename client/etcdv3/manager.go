@@ -24,7 +24,7 @@ func Get(names ...string) *Client {
 
 // List etcd client list
 func List() (dt map[string]*Client) {
-	xerror.Panic(clients.Map(&dt))
+	xerror.Panic(clients.MapTo(&dt))
 	return
 }
 
@@ -66,18 +66,17 @@ func initClient(name string, cfg Cfg) error {
 
 // delClient 删除etcd client, 并关闭etcd client
 func delClient(name string) {
-	c := Get(name)
-	clients.Delete(name)
-
-	if c == nil {
+	cli := Get(name)
+	if cli == nil {
 		return
 	}
 
 	// 当old etcd client没有被使用的时候, 那么就关闭
-	runtime.SetFinalizer(c, func(cc *Client) {
+	runtime.SetFinalizer(cli, func(cc *Client) {
 		log.Infof("[etcd] old etcd client %s object %d gc", name, uintptr(unsafe.Pointer(cc)))
 		if err := cc.Close(); err != nil {
 			log.Error("[etcd] old etcd client close error", xlog.String("name", name), xlog.Any("err", err))
 		}
 	})
+	clients.Delete(name)
 }

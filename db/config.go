@@ -4,14 +4,14 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
+	"xorm.io/xorm"
+	xl "xorm.io/xorm/log"
+	"xorm.io/xorm/names"
+
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	xl "xorm.io/xorm/log"
-
-	"xorm.io/xorm"
-	"xorm.io/xorm/names"
 )
 
 var Name = "db"
@@ -46,10 +46,12 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
-	engine.Logger().SetLevel(xl.LOG_WARNING)
-	if cfg.Debug && (config.IsDev() || config.IsTest()) {
-		engine.Logger().SetLevel(xl.LOG_DEBUG)
-		engine.ShowSQL(true)
+	engine.SetLogger(newLogger("xorm"))
+	engine.Logger().SetLevel(xl.LOG_DEBUG)
+	engine.ShowSQL(true)
+	if !cfg.Debug || config.IsStag() || config.IsProd() {
+		engine.Logger().SetLevel(xl.LOG_WARNING)
+		engine.ShowSQL(false)
 	}
 
 	xerror.Panic(engine.DB().Ping())
@@ -58,7 +60,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 
 func GetDefaultCfg() *Cfg {
 	return &Cfg{
-		Debug:       false,
+		Debug:       true,
 		Driver:      "mysql",
 		Source:      "mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull",
 		MaxConnTime: time.Second * 5,

@@ -1,15 +1,15 @@
 package clientinterceptors
 
 import (
-	"github.com/pubgo/lug/client/grpcc/clientinterceptors/grpc_hystrix"
+	"github.com/pubgo/lug/client/grpcc/clientinterceptors/hystrix"
 	"google.golang.org/grpc"
 
 )
 
-func BreakerUnary(opts ...grpc_hystrix.Option) grpc.UnaryClientInterceptor {
-	return grpc_hystrix.UnaryClientInterceptor(opts...)
+func BreakerUnary(opts ...hystrix.Option) grpc.UnaryClientInterceptor {
+	return hystrix.UnaryClientInterceptor(opts...)
 }
 
-func BreakerStream(opts ...grpc_hystrix.Option) grpc.StreamClientInterceptor {
-	return grpc_hystrix.StreamClientInterceptor(opts...)
+func BreakerStream(opts ...hystrix.Option) grpc.StreamClientInterceptor {
+	return hystrix.StreamClientInterceptor(opts...)
 }

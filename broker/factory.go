@@ -12,7 +12,7 @@ type Factory func(cfg map[string]interface{}) (Broker, error)
 var factories types.SMap
 var brokers types.SMap
 
-func List() (dt map[string]Factory) { xerror.Panic(factories.Map(&dt)); return }
+func List() (dt map[string]Factory) { xerror.Panic(factories.MapTo(&dt)); return }
 func Register(name string, broker Factory) {
 	xerror.Assert(name == "" || broker == nil, "[broker,name] should not be null")
 	xerror.Assert(factories.Has(name), "[broker] %s already exists, refer: %s", name, stack.Func(factories.Get(name)))

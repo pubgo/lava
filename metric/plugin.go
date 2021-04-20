@@ -25,7 +25,7 @@ func init() {
 
 	vars.Watch(Name, func() interface{} {
 		var dt map[string]Factory
-		xerror.Panic(reporters.Map(&dt))
+		xerror.Panic(reporters.MapTo(&dt))
 		return dt
 	})
 }

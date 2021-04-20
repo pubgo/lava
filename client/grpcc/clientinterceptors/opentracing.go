@@ -1,14 +1,14 @@
 package clientinterceptors
 
 import (
-	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	grpcOpentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"google.golang.org/grpc"
 )
 
-func OpenTracingUnary(opts ...grpc_opentracing.Option) grpc.UnaryClientInterceptor {
-	return grpc_opentracing.UnaryClientInterceptor(opts...)
+func OpenTracingUnary(opts ...grpcOpentracing.Option) grpc.UnaryClientInterceptor {
+	return grpcOpentracing.UnaryClientInterceptor(opts...)
 }
 
-func OpenTracingStream(opts ...grpc_opentracing.Option) grpc.StreamClientInterceptor {
-	return grpc_opentracing.StreamClientInterceptor(opts...)
+func OpenTracingStream(opts ...grpcOpentracing.Option) grpc.StreamClientInterceptor {
+	return grpcOpentracing.StreamClientInterceptor(opts...)
 }

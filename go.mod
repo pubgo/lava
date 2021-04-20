@@ -14,6 +14,7 @@ require (
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
 	github.com/go-chi/chi/v5 v5.0.0
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6
 	github.com/gogo/protobuf v1.3.2
@@ -29,6 +30,7 @@ require (
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
+	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1

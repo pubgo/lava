@@ -19,7 +19,7 @@ func (cfg Cfg) Build() (_ Registry, err error) {
 	xerror.Assert(!factories.Has(driver), "registry driver %s not found", driver)
 
 	var fc = factories.Get(driver).(Factory)
-	return fc(config.Map(Name))
+	return fc(config.GetMap(Name))
 }
 
 func GetDefaultCfg() Cfg {

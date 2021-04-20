@@ -1,4 +1,4 @@
-package grpc_hystrix
+package hystrix
 
 import (
 	"context"

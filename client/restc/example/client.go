@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/pubgo/lug/client/restc"
-	"github.com/pubgo/lug/client/restc/httpclient/golug_hystrix"
+	"github.com/pubgo/lug/client/restc/hystrix"
 	"github.com/pubgo/xerror"
 )
 
@@ -16,13 +16,13 @@ const (
 )
 
 func hystrixO() restc.Option {
-	return restc.WithMiddleware(golug_hystrix.Middleware(
-		golug_hystrix.WithHystrixTimeout(1100*time.Millisecond),
-		golug_hystrix.WithCommandName("MyCommand"),
-		golug_hystrix.WithMaxConcurrentRequests(100),
-		golug_hystrix.WithErrorPercentThreshold(25),
-		golug_hystrix.WithSleepWindow(10),
-		golug_hystrix.WithRequestVolumeThreshold(10),
+	return restc.WithMiddleware(hystrix.Middleware(
+		hystrix.WithHystrixTimeout(1100*time.Millisecond),
+		hystrix.WithCommandName("MyCommand"),
+		hystrix.WithMaxConcurrentRequests(100),
+		hystrix.WithErrorPercentThreshold(25),
+		hystrix.WithSleepWindow(10),
+		hystrix.WithRequestVolumeThreshold(10),
 	))
 }
 
