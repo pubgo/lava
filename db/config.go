@@ -17,10 +17,6 @@ import (
 var Name = "db"
 var cfgList = make(map[string]*Cfg)
 
-type Client struct {
-	*xorm.Engine
-}
-
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`
 	Driver      string        `json:"driver" yaml:"driver"`

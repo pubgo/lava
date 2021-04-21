@@ -9,11 +9,11 @@ var data types.SMap
 
 func List() (dt map[string]Codec) { xerror.Panic(data.MapTo(&dt)); return }
 
-func Register(name string, codec Codec) {
-	xerror.Assert(codec == nil || name == "" || codec.Name() == "", "[codec] %s is null", name)
-	xerror.Assert(data.Has(name), "[codec] %s already exists", name)
+func Register(name string, cdc Codec) {
+	xerror.Assert(cdc == nil || name == "" || cdc.Name() == "", "[cdc] %s is null", name)
+	xerror.Assert(data.Has(name), "[cdc] %s already exists", name)
 
-	data.Set(name, codec)
+	data.Set(name, cdc)
 }
 
 func Get(name string) Codec {

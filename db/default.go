@@ -12,6 +12,10 @@ import (
 	"unsafe"
 )
 
+type Client struct {
+	*xorm.Engine
+}
+
 var clients types.SMap
 
 func Get(names ...string) *Client {
@@ -42,10 +46,6 @@ func updateClient(name string, cfg Cfg) (err error) {
 
 func updateEngine(name string, engine *xorm.Engine) {
 	xerror.Panic(dix.Dix(map[string]*xorm.Engine{name: engine}))
-}
-
-func Watch(db interface{}) {
-	xerror.Panic(dix.Dix(db))
 }
 
 func delClient(name string) {
