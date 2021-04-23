@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var _ entry.Abc = (*Entry)(nil)
+var _ entry.Entry = (*Entry)(nil)
 
 type Entry struct {
 	opts entry.Opts

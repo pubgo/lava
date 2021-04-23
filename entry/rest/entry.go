@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
+	fb "github.com/pubgo/lug/service/fiber"
 	"github.com/pubgo/x/fx"
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -24,7 +23,7 @@ type restEntry struct {
 	*base.Entry
 	app      *fiber.App
 	handlers []func()
-	cfg      fiber.Config
+	cfg      fb.Cfg
 	cancel   context.CancelFunc
 }
 
@@ -50,15 +49,9 @@ func (t *restEntry) Init() (err error) {
 	return xutil.Try(func() {
 		xerror.Panic(t.Entry.Init())
 
-		var cfg = GetDefaultCfg()
+		var cfg = fb.GetDefaultCfg()
 		cfg.DisableStartupMessage = true
 		_ = config.Decode(Name, &cfg)
-
-		if cfg.Templates.Dir != "" && cfg.Templates.Ext != "" {
-			t.cfg.Views = html.New(cfg.Templates.Dir, cfg.Templates.Ext)
-		}
-
-		xerror.Panic(merge.Copy(&t.cfg, &cfg))
 	})
 }
 
@@ -66,7 +59,7 @@ func (t *restEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 初始化app
-	t.app = fiber.New(t.cfg)
+	t.app = t.cfg.Build()
 
 	// 初始化routes
 	for i := range t.handlers {

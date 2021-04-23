@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/pubgo/lug/cmds/lug/goimportdot"
-	"github.com/pubgo/lug/cmds/lug/golist"
-	"github.com/pubgo/lug/cmds/lug/gomod"
-	"github.com/pubgo/lug/cmds/lug/initcmd"
-	"github.com/pubgo/lug/cmds/lug/plugin"
+	"github.com/pubgo/lug/cmd/lug/goimportdot"
+	"github.com/pubgo/lug/cmd/lug/golist"
+	"github.com/pubgo/lug/cmd/lug/gomod"
+	"github.com/pubgo/lug/cmd/lug/initcmd"
+	"github.com/pubgo/lug/cmd/lug/plugin"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"

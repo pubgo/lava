@@ -13,7 +13,7 @@ type Runtime interface {
 	Options() Opts
 }
 
-type Abc interface {
+type Entry interface {
 	Version(v string)
 	Dix(data ...interface{})
 	OnCfg(fn interface{})

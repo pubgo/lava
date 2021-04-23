@@ -10,7 +10,7 @@ import (
 
 var name = "test-task"
 
-func GetEntry() entry.Abc {
+func GetEntry() entry.Entry {
 	ent := lug.NewTask(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry task test")

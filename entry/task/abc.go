@@ -8,6 +8,6 @@ import (
 type Handler = broker.Handler
 type Opts = broker.SubOpts
 type Entry interface {
-	entry.Abc
+	entry.Entry
 	Register(topic string, handler Handler, opts ...*Opts)
 }

@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/xlog"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -11,6 +12,7 @@ import (
 
 const Name = "etcdv3"
 
+var log = xlog.Named(Name)
 var cfgList = make(map[string]Cfg)
 
 type Cfg struct {

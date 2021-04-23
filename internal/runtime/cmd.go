@@ -94,7 +94,7 @@ func stop(ent entry.Runtime) (err error) {
 	return nil
 }
 
-func Run(entries ...entry.Abc) (err error) {
+func Run(entries ...entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
@@ -169,7 +169,7 @@ func Run(entries ...entry.Abc) (err error) {
 	return xerror.Wrap(rootCmd.Execute())
 }
 
-func Start(ent entry.Abc) (err error) {
+func Start(ent entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")
@@ -207,7 +207,7 @@ func Start(ent entry.Abc) (err error) {
 	return xerror.Wrap(start(entRun))
 }
 
-func Stop(ent entry.Abc) (err error) {
+func Stop(ent entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")

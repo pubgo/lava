@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -15,23 +16,23 @@ import (
 
 // 默认的全局配置
 var (
-	CfgType      = "yaml"
-	CfgName      = "config"
-	IsBlock      = true
-	Domain       = "lug"
-	CatchSigpipe = true
-	Trace        = false
-	Port         = 8080
-	DebugPort    = 8088
-	Home         = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
-	CfgPath      = ""
-	Project      = "lug"
-	Level        = "debug"
-	Mode         = Dev.String()
-	Signal       = syscall.Signal(0)
-	trim         = strings.TrimSpace
-	lower        = strings.ToLower
-	cfg          = &Config{Viper: viper.New()}
+	CfgType                = "yaml"
+	CfgName                = "config"
+	IsBlock                = true
+	Domain                 = "lug"
+	CatchSigpipe           = true
+	Trace                  = false
+	Port                   = 8080
+	DebugPort              = 8088
+	Home                   = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	CfgPath                = ""
+	Project                = "lug"
+	Level                  = "debug"
+	Mode                   = Dev.String()
+	Signal       os.Signal = syscall.Signal(0)
+	trim                   = strings.TrimSpace
+	lower                  = strings.ToLower
+	cfg                    = &Config{Viper: viper.New()}
 )
 
 const (

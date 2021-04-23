@@ -29,7 +29,7 @@ func onInit(ent interface{}) {
 	var server = &http.Server{Addr: addr, Handler: app}
 	xerror.Panic(dix.Dix(app))
 
-	ent1 := ent.(entry.Abc)
+	ent1 := ent.(entry.Entry)
 	ent1.BeforeStart(func() {
 		xerror.Exit(fx.GoDelay(time.Second, func() {
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

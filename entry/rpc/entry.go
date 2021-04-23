@@ -74,7 +74,7 @@ func (g *grpcEntry) initGrpc() (gErr error) {
 		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(streamInterceptorList...)))
 
 	// 注册中心校验
-	g.cfg.registry = registry.Default
+	g.cfg.registry = registry.Default()
 
 	g.srv = grpc.NewServer(opts...)
 

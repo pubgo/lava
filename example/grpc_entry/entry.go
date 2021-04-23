@@ -8,7 +8,7 @@ import (
 
 var name = "test-grpc"
 
-func GetEntry() entry.Abc {
+func GetEntry() entry.Entry {
 	ent := lug.NewRpc(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry grpc test")

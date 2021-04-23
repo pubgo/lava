@@ -16,10 +16,7 @@ type ctlEntry struct {
 }
 
 func (t *ctlEntry) Register(f func(), opts ...Opt) { t.handler = f }
-
-func (t *ctlEntry) Start() (err error) {
-	return xutil.Try(t.handler)
-}
+func (t *ctlEntry) Start() (err error)             { return xutil.Try(t.handler) }
 
 func (t *ctlEntry) Init() (err error) {
 	return xutil.Try(func() {
@@ -29,8 +26,5 @@ func (t *ctlEntry) Init() (err error) {
 	})
 }
 
-func newEntry(name string) *ctlEntry {
-	return &ctlEntry{Entry: base.New(name)}
-}
-
-func New(name string) Entry { return newEntry(name) }
+func newEntry(name string) *ctlEntry { return &ctlEntry{Entry: base.New(name)} }
+func New(name string) Entry          { return newEntry(name) }

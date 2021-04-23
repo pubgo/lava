@@ -40,13 +40,8 @@ func Err2GrpcCode(err error) codes.Code {
 	return codes.Unknown
 }
 
-func Http2GrpcCode(err *Error) codes.Code {
-	switch err {
-	case nil:
-		return codes.OK
-	}
-
-	switch err.Code {
+func Http2GrpcCode(code int32) codes.Code {
+	switch code {
 	case http.StatusOK:
 		return codes.OK
 	case http.StatusBadRequest:
@@ -74,7 +69,7 @@ func Http2GrpcCode(err *Error) codes.Code {
 	return codes.Unknown
 }
 
-func GrpcAcceptable(err error) bool {
+func IsGrpcAcceptable(err error) bool {
 	switch status.Code(err) {
 	case codes.DeadlineExceeded, codes.Internal, codes.Unavailable, codes.DataLoss:
 		return false

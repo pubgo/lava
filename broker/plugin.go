@@ -3,6 +3,7 @@ package broker
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 )
 
@@ -18,5 +19,22 @@ var plg = plugin.Base{
 		for name, cfg := range cfgList {
 			brokers.Set(name, xerror.PanicErr(cfg.Build(name)).(Broker))
 		}
+	},
+	OnVars: func(w func(name string, data func() interface{})) {
+		w(Name+"_factory", func() interface{} {
+			var data = make(map[string]string)
+			xerror.Panic(factories.Each(func(name string, fc Factory) {
+				data[name] = stack.Func(fc)
+			}))
+			return data
+		})
+
+		w(Name+"_broker", func() interface{} {
+			var data = make(map[string]string)
+			xerror.Panic(brokers.Each(func(name string, fc Broker) {
+				data[name] = fc.String()
+			}))
+			return data
+		})
 	},
 }

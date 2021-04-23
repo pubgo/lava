@@ -11,7 +11,7 @@ import (
 
 var name = "test-ctl"
 
-func GetEntry() entry.Abc {
+func GetEntry() entry.Entry {
 	ent := lug.NewCtl(name)
 	ent.Version("v0.0.1")
 	ent.Description("entry ctl test")
@@ -20,7 +20,7 @@ func GetEntry() entry.Abc {
 		xlog.Info("ctl ok")
 	})
 
-	lug.Plugin(&plugin.Base{
+	ent.Plugin(&plugin.Base{
 		Name: "hello",
 		OnInit: func(fn interface{}) {
 			fmt.Println("hello plugin")

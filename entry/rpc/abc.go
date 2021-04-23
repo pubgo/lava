@@ -9,7 +9,7 @@ import (
 type Opts struct{}
 type Opt func(opts *Opts)
 type Entry interface {
-	entry.Abc
+	entry.Entry
 	Register(handler interface{}, opts ...Opt)
 	InitOpts(opts ...grpc.ServerOption)
 	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)

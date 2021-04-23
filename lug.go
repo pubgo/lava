@@ -27,13 +27,13 @@ func NewCtl(name string) ctl.Entry      { return ctl.New(name) }
 func GetCfg() *config.Config            { return config.GetCfg() }
 func CfgOn(fn func(cfg *config.Config)) { config.On(fn) }
 
-func Run(entries ...entry.Abc) {
+func Run(entries ...entry.Entry) {
 	defer xerror.RespExit()
 	xerror.Panic(runtime.Run(entries...))
 }
 
-func Start(ent entry.Abc) error { return runtime.Start(ent) }
-func Stop(ent entry.Abc) error  { return runtime.Stop(ent) }
+func Start(ent entry.Entry) error { return runtime.Start(ent) }
+func Stop(ent entry.Entry) error  { return runtime.Stop(ent) }
 
 func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) {
 	defer xerror.RespExit()

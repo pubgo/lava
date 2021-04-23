@@ -6,12 +6,16 @@ import (
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 )
 
 func init() { plugin.Register(plg) }
 
 var plg = &plugin.Base{
 	Name: Name,
+	OnLog: func(logs xlog.Xlog) {
+		log = logs.Named(Name)
+	},
 	OnInit: func(ent interface{}) {
 		if !config.Decode(Name, &cfgList) {
 			return

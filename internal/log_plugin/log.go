@@ -12,7 +12,7 @@ import (
 func init() {
 	cfg := xlog_config.NewDevConfig()
 	cfg.EncoderConfig.EncodeCaller = "full"
-	log := xlog.New(xerror.PanicErr(xlog_config.NewZapLogger(cfg)).(*zap.Logger))
+	log := xlog.New(xerror.PanicErr(cfg.Build()).(*zap.Logger))
 
 	// 全局log设置
 	xerror.Panic(xlog.SetDefault(log.Named(config.Domain)))
@@ -21,7 +21,7 @@ func init() {
 func initLog(cfg xlog_config.Config) (err error) {
 	defer xerror.RespErr(&err)
 
-	log := xlog.New(xerror.PanicErr(xlog_config.NewZapLogger(cfg)).(*zap.Logger))
+	log := xlog.New(xerror.PanicErr(cfg.Build()).(*zap.Logger))
 
 	// 全局log设置
 	xerror.Panic(xlog.SetDefault(log.Named(config.Domain)))

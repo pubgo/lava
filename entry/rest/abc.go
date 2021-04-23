@@ -10,7 +10,7 @@ type Router = fiber.Router
 type Opts struct{}
 type Opt func(opts *Opts)
 type Entry interface {
-	entry.Abc
+	entry.Entry
 	Use(handler ...Handler)
 	Router(fn func(r Router))
 }

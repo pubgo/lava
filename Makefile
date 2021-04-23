@@ -84,9 +84,6 @@ build-all:
 deps:
 	go list -f '{{ join .Deps  "\n"}}' ./... |grep "/" | grep -v "github.com/smallnest/rpcx"| grep "\." | sort |uniq
 
-vet:
-	go vet ./...
-
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html
 	open cover.html
@@ -128,3 +125,6 @@ changelog:
 
 vet:
 	@go vet ./...
+
+generate:
+	@go generate ./...

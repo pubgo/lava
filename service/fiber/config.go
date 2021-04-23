@@ -1,6 +1,7 @@
 package fiber
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -50,8 +51,8 @@ func (t Cfg) Build() *fiber.App {
 	return fiber.New(cfg)
 }
 
-func GetDefaultCfg() *Cfg {
-	return &Cfg{
-
-	}
+func GetDefaultCfg() (cfg Cfg) {
+	dt := xerror.PanicBytes(json.Marshal(fiber.New().Config()))
+	xerror.Panic(json.Unmarshal(dt, &cfg))
+	return cfg
 }

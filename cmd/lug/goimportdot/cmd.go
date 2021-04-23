@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/lug/cmds/lug/goimportdot/core"
+	"github.com/pubgo/lug/cmd/lug/goimportdot/core"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 )
