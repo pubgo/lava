@@ -6,7 +6,6 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
-	github.com/VividCortex/gohistogram v1.0.0
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/apache/thrift v0.13.0
 	github.com/coreos/etcd v3.3.13+incompatible
@@ -15,7 +14,6 @@ require (
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
 	github.com/go-chi/chi/v5 v5.0.0
-	github.com/go-kit/kit v0.10.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6

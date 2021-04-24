@@ -12,31 +12,30 @@ import (
 
 var mu = new(sync.Mutex)
 
-func init() {
-	config.On(func(_ *config.Config) {
-		defer xerror.RespExit()
+func Init() (err error) {
+	defer xerror.RespErr(&err)
 
-		var cfg = GetDefaultCfg()
-		if !config.Decode(Name, &cfg) {
-			return
-		}
+	var cfg = GetDefaultCfg()
+	if !config.Decode(Name, &cfg) {
+		return
+	}
 
-		defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
+	defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
 
-		// 获取所有watch的项目
-		projects := cfg.Projects
-		if !strutil.Contains(projects, config.Project) {
-			projects = append(projects, config.Project)
-		}
+	// 获取所有watch的项目
+	projects := cfg.Projects
+	if !strutil.Contains(projects, config.Project) {
+		projects = append(projects, config.Project)
+	}
 
-		// 项目prefix
-		for i := range projects {
-			var name = projects[i]
-			_ = fx.Go(func(ctx context.Context) {
-				for resp := range defaultWatcher.Watch(ctx, name) {
-					onWatch(resp)
-				}
-			})
-		}
-	})
+	// 项目prefix
+	for i := range projects {
+		var name = projects[i]
+		_ = fx.Go(func(ctx context.Context) {
+			for resp := range defaultWatcher.Watch(ctx, name) {
+				onWatch(resp)
+			}
+		})
+	}
+	return nil
 }

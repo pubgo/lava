@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"context"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -23,4 +24,18 @@ func retry(c int, fn func() error) (err error) {
 	}
 
 	return
+}
+
+//connection cut off
+func isServerErr(err error) bool {
+	if err != nil {
+		if err == context.Canceled {
+			return false
+		} else if err == context.DeadlineExceeded {
+			return false
+		} else {
+			return true
+		}
+	}
+	return false
 }

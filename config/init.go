@@ -149,7 +149,5 @@ func Init() (err error) {
 
 	// 加载自定义配置
 	xerror.Panic(initApp())
-
-	xerror.Panic(dix.Dix(cfg))
 	return nil
 }

@@ -13,6 +13,7 @@ import (
 	_ "github.com/pubgo/lug/mux"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/xerror"
+	_ "go.etcd.io/etcd/pkg/transport"
 )
 
 func BeforeStart(fn func()) { runtime.BeforeStart(fn) }

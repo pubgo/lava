@@ -5,6 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
@@ -133,6 +134,8 @@ func Run(entries ...entry.Entry) (err error) {
 			defer xerror.RespErr(&err)
 			config.Project = entRun.Options().Name
 			xerror.Panic(config.Init())
+			xerror.Panic(dix.Dix(config.GetCfg()))
+			xerror.Panic(watcher.Init())
 			return nil
 		}
 
@@ -189,6 +192,8 @@ func Start(ent entry.Entry) (err error) {
 	// config初始化
 	config.Project = entRun.Options().Name
 	xerror.Panic(config.Init())
+	xerror.Panic(dix.Dix(config.GetCfg()))
+	xerror.Panic(watcher.Init())
 
 	// entry初始化
 	xerror.Panic(entRun.Init())

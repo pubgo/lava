@@ -11,7 +11,11 @@ type CallBack func(name string, event *Response) error
 
 // Watcher ...
 type Watcher interface {
+	Get(ctx context.Context, opts ...Opt) ([]*Response, error)
+	GetCallback(ctx context.Context, fn func(resp *Response), opts ...Opt) error
+	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 	Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response
+	Close(opts ...Opt)
 	Name() string
 }
 
