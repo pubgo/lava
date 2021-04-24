@@ -1,7 +1,7 @@
-package clientinterceptors
+package grpccinterceptors
 
 import (
-	"github.com/pubgo/lug/client/grpcc/clientinterceptors/hystrix"
+	"github.com/pubgo/lug/client/grpcc/grpccinterceptors/hystrix"
 	"google.golang.org/grpc"
 
 )

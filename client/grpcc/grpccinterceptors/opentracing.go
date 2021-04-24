@@ -1,4 +1,4 @@
-package clientinterceptors
+package grpccinterceptors
 
 import (
 	grpcOpentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"

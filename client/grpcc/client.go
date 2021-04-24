@@ -30,11 +30,35 @@ func GetClient(service string, optFns ...func(service string) []grpc.DialOption)
 	}
 }
 
-var _ GrpcClient = (*client)(nil)
+var _ Client = (*client)(nil)
 
 type client struct {
 	service string
 	optFn   func(service string) []grpc.DialOption
+}
+
+func (t *client) Check(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
+	c, err := t.Get()
+	if err != nil {
+		return nil, xerror.Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+	defer cancel()
+
+	return grpc_health_v1.NewHealthClient(c).Check(ctx, in, opts...)
+}
+
+func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (grpc_health_v1.Health_WatchClient, error) {
+	c, err := t.Get()
+	if err != nil {
+		return nil, xerror.Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+	defer cancel()
+
+	return grpc_health_v1.NewHealthClient(c).Watch(ctx, in, opts...)
 }
 
 func (t *client) getClient() *grpc.ClientConn {
@@ -44,19 +68,6 @@ func (t *client) getClient() *grpc.ClientConn {
 		}
 	}
 	return nil
-}
-
-// ClientProtocol impl.
-func (t *client) Ping() error {
-	c, err := t.Get()
-	if err != nil {
-		return xerror.Wrap(err)
-	}
-
-	client := grpc_health_v1.NewHealthClient(c)
-	var ctx = context.Background()
-	_, err = client.Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: t.service})
-	return err
 }
 
 // Get new grpc client

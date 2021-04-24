@@ -1,4 +1,4 @@
-package clientinterceptors
+package grpccinterceptors
 
 import (
 	"context"

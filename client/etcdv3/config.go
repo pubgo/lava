@@ -1,11 +1,11 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/xlog"
 	"time"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc"
 )
@@ -17,15 +17,17 @@ var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
-	AutoSyncInterval     time.Duration     `json:"interval"`
-	DialTimeout          time.Duration     `json:"timeout"`
-	DialKeepAliveTime    time.Duration     `json:"keepalive"`
-	DialKeepAliveTimeout time.Duration     `json:"keepalive_timeout"`
-	MaxCallSendMsgSize   int               `json:"max_send"`
-	MaxCallRecvMsgSize   int               `json:"max_recv"`
+	AutoSyncInterval     time.Duration     `json:"auto_sync_interval"`
+	DialTimeout          time.Duration     `json:"dial_timeout"`
+	DialKeepAliveTime    time.Duration     `json:"dial_keep_alive_time"`
+	DialKeepAliveTimeout time.Duration     `json:"dial_keep_alive_timeout"`
+	MaxCallSendMsgSize   int               `json:"max_send_size"`
+	MaxCallRecvMsgSize   int               `json:"max_recv_size"`
 	Username             string            `json:"username"`
 	Name                 string            `json:"name"`
 	Password             string            `json:"password"`
+	RejectOldCluster     bool              `json:"reject-old-cluster"`
+	PermitWithoutStream  bool              `json:"permit-without-stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
 }
 

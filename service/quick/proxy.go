@@ -13,7 +13,7 @@ import (
 	"net"
 	"sync"
 
-	quic "github.com/lucas-clemente/quic-go"
+	 "github.com/lucas-clemente/quic-go"
 )
 
 func server(bind string) error {
@@ -27,6 +27,7 @@ func server(bind string) error {
 	if err != nil {
 		return err
 	}
+
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)

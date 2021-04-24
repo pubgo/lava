@@ -21,5 +21,6 @@ func retry(c int, fn func() error) (err error) {
 		}
 		time.Sleep(time.Second)
 	}
+
 	return
 }

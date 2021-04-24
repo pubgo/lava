@@ -17,6 +17,8 @@ func init() {
 	xerror.Exit(metric.Register(Name, NewWithMap))
 }
 
+var _ metric.Reporter = (*reporterMetric)(nil)
+
 //reporterMetric is a prom exporter for go chassis
 type reporterMetric struct {
 	registry   prometheus.Registerer
