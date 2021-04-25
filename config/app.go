@@ -6,7 +6,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/env"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -34,35 +33,6 @@ var (
 	lower                  = strings.ToLower
 	cfg                    = &Config{Viper: viper.New()}
 )
-
-const (
-	Dev RunMode = iota + 1
-	Test
-	Stag
-	Prod
-	Release
-)
-
-// RunMode 项目运行模式
-type RunMode uint8
-
-func (t RunMode) String() string {
-	switch t {
-	case 1:
-		return "dev"
-	case 2:
-		return "test"
-	case 3:
-		return "stag"
-	case 4:
-		return "prod"
-	case 5:
-		return "release"
-	default:
-		xlog.Errorf("running mode(%d) not match", t)
-		return consts.Unknown
-	}
-}
 
 // 从环境变量中获取系统默认值
 func init() {
@@ -94,24 +64,4 @@ func DefaultFlags() *pflag.FlagSet {
 	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	flags.BoolVar(&CatchSigpipe, "catch-sigpipe", CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")
 	return flags
-}
-
-func IsDev() bool {
-	return Mode == Dev.String()
-}
-
-func IsTest() bool {
-	return Mode == Test.String()
-}
-
-func IsStag() bool {
-	return Mode == Stag.String()
-}
-
-func IsProd() bool {
-	return Mode == Prod.String()
-}
-
-func IsRelease() bool {
-	return Mode == Release.String()
 }

@@ -192,8 +192,8 @@ func Start(ent entry.Entry) (err error) {
 	// config初始化
 	config.Project = entRun.Options().Name
 	xerror.Panic(config.Init())
-	xerror.Panic(dix.Dix(config.GetCfg()))
 	xerror.Panic(watcher.Init())
+	xerror.Panic(dix.Dix(config.GetCfg()))
 
 	// entry初始化
 	xerror.Panic(entRun.Init())

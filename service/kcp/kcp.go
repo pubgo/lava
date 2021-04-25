@@ -1,4 +1,4 @@
-package lug_net
+package kcp
 
 import (
 	"fmt"
@@ -38,7 +38,6 @@ func ListenKcp(bindAddr string, bindPort int) (l *KCPListener, err error) {
 				continue
 			}
 			conn.SetStreamMode(true)
-			conn.SetWriteDelay(true)
 			conn.SetNoDelay(1, 20, 2, 1)
 			conn.SetMtu(1350)
 			conn.SetWindowSize(1024, 1024)
@@ -68,18 +67,4 @@ func (l *KCPListener) Close() error {
 
 func (l *KCPListener) Addr() net.Addr {
 	return l.listener.Addr()
-}
-
-func NewKCPConnFromUDP(conn *net.UDPConn, connected bool, raddr string) (net.Conn, error) {
-	kcpConn, err := kcp.NewConnEx(1, connected, raddr, nil, 10, 3, conn)
-	if err != nil {
-		return nil, err
-	}
-	kcpConn.SetStreamMode(true)
-	kcpConn.SetWriteDelay(true)
-	kcpConn.SetNoDelay(1, 20, 2, 1)
-	kcpConn.SetMtu(1350)
-	kcpConn.SetWindowSize(1024, 1024)
-	kcpConn.SetACKNoDelay(false)
-	return kcpConn, nil
 }

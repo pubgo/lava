@@ -1,4 +1,4 @@
-package net
+package lug_net
 
 import (
 	"errors"

@@ -37,7 +37,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.19
+	github.com/pubgo/x v0.3.20
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.1.3
 	github.com/pubgo/xprotogen v0.0.7

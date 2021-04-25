@@ -22,5 +22,8 @@ func init() {
 			xerror.Panic(r.Decode(&cfg))
 			xerror.Panic(initLog(cfg))
 		},
+		OnVars: func(w func(name string, data func() interface{})) {
+			w(name, func() interface{} { return cfg })
+		},
 	})
 }
