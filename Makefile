@@ -69,7 +69,8 @@ gen:
 
 .PHONY: example
 example:
-	go build ${LDFLAGS} -mod vendor -v -o main example/*.go
+	#go build ${LDFLAGS} -mod vendor -v -o main example/*.go
+	go build ${LDFLAGS} -v -o main example/*.go
 
 .PHONY: run
 run:

@@ -7,13 +7,9 @@ import (
 	"github.com/pubgo/lug/entry/rest"
 	"github.com/pubgo/lug/entry/rpc"
 	"github.com/pubgo/lug/entry/task"
-	_ "github.com/pubgo/lug/internal/log_plugin"
 	"github.com/pubgo/lug/internal/runtime"
-	_ "github.com/pubgo/lug/metric"
-	_ "github.com/pubgo/lug/mux"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/xerror"
-	_ "go.etcd.io/etcd/pkg/transport"
 )
 
 func BeforeStart(fn func()) { runtime.BeforeStart(fn) }
@@ -21,22 +17,20 @@ func AfterStart(fn func())  { runtime.AfterStart(fn) }
 func BeforeStop(fn func())  { runtime.BeforeStop(fn) }
 func AfterStop(fn func())   { runtime.AfterStop(fn) }
 
-func NewTask(name string) task.Entry    { return task.New(name) }
-func NewRest(name string) rest.Entry    { return rest.New(name) }
-func NewRpc(name string) rpc.Entry      { return rpc.New(name) }
-func NewCtl(name string) ctl.Entry      { return ctl.New(name) }
+func NewTask(name string) task.Entry { return task.New(name) }
+func NewRest(name string) rest.Entry { return rest.New(name) }
+func NewRpc(name string) rpc.Entry   { return rpc.New(name) }
+func NewCtl(name string) ctl.Entry   { return ctl.New(name) }
+
 func GetCfg() *config.Config            { return config.GetCfg() }
 func CfgOn(fn func(cfg *config.Config)) { config.On(fn) }
 
-func Run(entries ...entry.Entry) {
-	defer xerror.RespExit()
-	xerror.Panic(runtime.Run(entries...))
-}
+func Run(entries ...entry.Entry) error { return runtime.Run(entries...) }
+func Start(ent entry.Entry) error      { return runtime.Start(ent) }
+func Stop(ent entry.Entry) error       { return runtime.Stop(ent) }
 
-func Start(ent entry.Entry) error { return runtime.Start(ent) }
-func Stop(ent entry.Entry) error  { return runtime.Stop(ent) }
-
-func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) {
-	defer xerror.RespExit()
+func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) (err error) {
+	defer xerror.RespErr(&err)
 	plugin.Register(plg, opts...)
+	return
 }

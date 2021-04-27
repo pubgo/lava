@@ -34,6 +34,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/pubgo/dix v0.1.14

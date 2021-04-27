@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	v "github.com/pubgo/lug/internal/version"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
@@ -19,6 +20,11 @@ import (
 
 var rootCmd = &cobra.Command{Use: config.Domain, Version: version.Version}
 
+func init() {
+	rootCmd.AddCommand(v.Cmd)
+}
+
+//Cmd
 func handleSignal() {
 	if config.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
