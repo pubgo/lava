@@ -6,12 +6,12 @@ GoROOT=$(shell go env GOROOT)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse HEAD)
 LDFLAGS=-ldflags " \
--X '${Project}/version.GoROOT=${GoROOT}' \
--X '${Project}/version.BuildTime=${BuildTime}' \
--X '${Project}/version.GoPath=${GOPath}' \
--X '${Project}/version.CommitID=${CommitID}' \
--X '${Project}/version.Project=${Project}' \
--X '${Project}/version.Version=${Version}' \
+-X 'github.com/pubgo/lug/version.GoROOT=${GoROOT}' \
+-X 'github.com/pubgo/lug/version.BuildTime=${BuildTime}' \
+-X 'github.com/pubgo/lug/version.GoPath=${GOPath}' \
+-X 'github.com/pubgo/lug/version.CommitID=${CommitID}' \
+-X 'github.com/pubgo/lug/version.Project=${Project}' \
+-X 'github.com/pubgo/lug/version.Version=${Version}' \
 "
 
 default: run

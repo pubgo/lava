@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/internal/vars"
 	v "github.com/pubgo/lug/internal/version"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/version"
@@ -22,6 +23,7 @@ var rootCmd = &cobra.Command{Use: config.Domain, Version: version.Version}
 
 func init() {
 	rootCmd.AddCommand(v.Cmd)
+	rootCmd.AddCommand(vars.Cmd)
 }
 
 //Cmd

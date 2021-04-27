@@ -2,6 +2,7 @@ package version
 
 import (
 	"encoding/json"
+	"expvar"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -34,14 +35,12 @@ lug version table`),
 			typ = args[0]
 		}
 
-		if typ == "" {
+		switch typ {
+		case "":
 			dt, err := json.MarshalIndent(info, "", "\t")
 			xerror.Panic(err)
 			fmt.Println(string(dt))
-			return
-		}
-
-		if typ == "table" {
+		case "table", "tb", "t":
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Path", "Version", "Replace"})
 			table.Append([]string{info.Main.Path, version.Version, replace(info.Main.Replace)})
@@ -51,6 +50,8 @@ lug version table`),
 			}
 			table.Render()
 		}
+
+		fmt.Println(expvar.Get("version"))
 	},
 }
 
