@@ -21,6 +21,10 @@ type Entry struct {
 	opts entry.Opts
 }
 
+func (t *Entry) Health(fn func() error) error {
+	return fn()
+}
+
 func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
 func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
 func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }

@@ -1,12 +1,14 @@
-package mux
+package debug
 
 import (
+	chiS "github.com/go-chi/chi/v5"
 	"github.com/pubgo/lug/service/chi"
 )
 
-const Name = "mux"
+const Name = "debug"
 
 var cfg = GetDefaultCfg()
+var app *chiS.Mux
 
 type Cfg struct {
 	chi.Cfg

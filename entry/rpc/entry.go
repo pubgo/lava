@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
@@ -18,6 +18,7 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"github.com/soheilhy/cmux"
 	"github.com/spf13/pflag"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -31,6 +32,7 @@ var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
 	*base.Entry
+	mux                      cmux.CMux
 	exit                     chan chan error
 	mu                       sync.RWMutex
 	cfg                      Cfg
@@ -42,6 +44,10 @@ type grpcEntry struct {
 	opts                     []grpc.ServerOption
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
+}
+
+func (g *grpcEntry) Health(fn func() error) error {
+	return fn()
 }
 
 func (g *grpcEntry) InitOpts(opts ...grpc.ServerOption) { g.opts = append(g.opts, opts...) }
@@ -61,6 +67,15 @@ func (g *grpcEntry) initGw() (gErr error) {
 	return
 }
 
+func (g *grpcEntry) GRPCListener() net.Listener {
+	//HTTP2MatchHeaderFieldPrefixSendSettings
+	return g.mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
+}
+
+func (g *grpcEntry) HTTPListener() net.Listener {
+	return g.mux.Match(cmux.HTTP2(), cmux.HTTP1Fast())
+}
+
 func (g *grpcEntry) initGrpc() (gErr error) {
 	unaryInterceptorList := unaryInterceptors
 	unaryInterceptorList = append(unaryInterceptorList, g.unaryServerInterceptors...)
@@ -70,8 +85,8 @@ func (g *grpcEntry) initGrpc() (gErr error) {
 
 	opts := GetDefaultServerOpts()
 	opts = append(opts,
-		grpc.UnaryInterceptor(grpcMiddleware.ChainUnaryServer(unaryInterceptorList...)),
-		grpc.StreamInterceptor(grpcMiddleware.ChainStreamServer(streamInterceptorList...)))
+		grpc.UnaryInterceptor(grpcMid.ChainUnaryServer(unaryInterceptorList...)),
+		grpc.StreamInterceptor(grpcMid.ChainStreamServer(streamInterceptorList...)))
 
 	// 注册中心校验
 	g.cfg.registry = registry.Default()

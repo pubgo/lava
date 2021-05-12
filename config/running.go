@@ -1,55 +1,29 @@
 package config
 
-import (
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/xlog"
-)
-
-const (
-	Dev runningMode = iota + 1
-	Test
-	Stag
-	Prod
-	Release
-)
-
-// runningMode 项目运行模式
-type runningMode uint8
-
-func (t runningMode) String() string {
-	switch t {
-	case 1:
-		return "dev"
-	case 2:
-		return "test"
-	case 3:
-		return "stag"
-	case 4:
-		return "prod"
-	case 5:
-		return "release"
-	default:
-		xlog.Errorf("running mode(%d) not match", t)
-		return consts.Unknown
+func parseRunMode(mode string) RunMode {
+	if val, ok := RunMode_value[mode]; ok {
+		return RunMode(val)
 	}
+
+	return RunMode_unknown
 }
 
 func IsDev() bool {
-	return Mode == Dev.String()
+	return Mode == RunMode_dev.String()
 }
 
 func IsTest() bool {
-	return Mode == Test.String()
+	return Mode == RunMode_test.String()
 }
 
 func IsStag() bool {
-	return Mode == Stag.String()
+	return Mode == RunMode_stag.String()
 }
 
 func IsProd() bool {
-	return Mode == Prod.String()
+	return Mode == RunMode_prod.String()
 }
 
 func IsRelease() bool {
-	return Mode == Release.String()
+	return Mode == RunMode_release.String()
 }

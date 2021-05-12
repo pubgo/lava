@@ -7,16 +7,21 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-type CallBack func(name string, event *Response) error
+const (
+	PUT    = "PUT"
+	DELETE = "DELETE"
+)
+
+type CallBack func(name string, resp *Response) error
 
 // Watcher ...
 type Watcher interface {
+	Name() string
+	Close(ctx context.Context, opts ...Opt)
 	Get(ctx context.Context, opts ...Opt) ([]*Response, error)
 	GetCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt) error
-	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 	Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response
-	Close(opts ...Opt)
-	Name() string
+	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 }
 
 type Opt func(*Opts)
@@ -31,14 +36,14 @@ type Response struct {
 
 func (t *Response) OnPut(fn func()) {
 	xerror.Panic(t.checkEventType())
-	if t.Event == "PUT" {
+	if t.Event == PUT {
 		fn()
 	}
 }
 
 func (t *Response) OnDelete(fn func()) {
 	xerror.Panic(t.checkEventType())
-	if t.Event == "DELETE" {
+	if t.Event == DELETE {
 		fn()
 	}
 }
@@ -49,9 +54,9 @@ func (t *Response) Decode(val interface{}) error {
 
 func (t *Response) checkEventType() error {
 	switch t.Event {
-	case "DELETE", "PUT":
+	case DELETE, PUT:
 		return nil
 	default:
-		return xerror.Fmt("unknown type: %s", t.Event)
+		return xerror.Fmt("unknown event: %s", t.Event)
 	}
 }

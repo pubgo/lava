@@ -3,13 +3,16 @@ package config
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/x/typex"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -28,6 +31,12 @@ func GetMap(names ...string) map[string]interface{} {
 func GetCfg() *Config {
 	xerror.Assert(cfg == nil, "[config] please init config")
 	return cfg
+}
+
+func TempFile(names ...string) string {
+	var tmpFile = filepath.Join(typex.StrOf(os.TempDir(), names...)...)
+	xerror.Panic(pathutil.BuildDir(tmpFile))
+	return tmpFile
 }
 
 // Decode
@@ -55,7 +64,7 @@ func Decode(name string, fn interface{}) (b bool) {
 				"config key %s decode error", name)
 		}
 
-		vfn.Call(types.ValueOf(mthIn))
+		vfn.Call(typex.ValueOf(mthIn))
 	case reflect.Ptr:
 		xerror.PanicF(GetCfg().UnmarshalKey(name, fn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),

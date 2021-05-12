@@ -115,8 +115,8 @@ func Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	// 运行环境检查
-	switch Mode {
-	case Dev.String(), Stag.String(), Prod.String(), Test.String(), Release.String():
+	switch parseRunMode(Mode) {
+	case RunMode_dev, RunMode_stag, RunMode_prod, RunMode_test, RunMode_release:
 	default:
 		xerror.Assert(true, "running mode does not match, mode: %s", Mode)
 	}
@@ -137,7 +137,7 @@ func Init() (err error) {
 
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
-	// 剩下的就是获取配置了
+	// 然后获取配置了
 	xerror.PanicF(initWithDir(), "config file load error")
 	Home = filepath.Dir(filepath.Dir(GetCfg().ConfigFileUsed()))
 

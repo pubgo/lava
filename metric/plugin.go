@@ -27,7 +27,6 @@ var plg = plugin.Base{
 			return dt
 		})
 	},
-	
 	OnLog: func(logs xlog.Xlog) {
 		_ = logs.Named(Name)
 	},

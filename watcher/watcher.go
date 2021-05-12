@@ -7,7 +7,6 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/types"
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -43,20 +42,16 @@ func Init() (err error) {
 		}))
 
 		// 远程配置watch
-		_ = fx.Go(func(ctx context.Context) {
-			for resp := range defaultWatcher.Watch(ctx, name) {
-				onWatch(resp)
-			}
-		})
+		defaultWatcher.WatchCallback(context.Background(), name, onWatch)
 	}
 
 	return
 }
 
-func Watch(name string, h CallBack) {
-	xerror.Assert(name == "" || h == nil, "[name, callback] should not be null")
+func Watch(name string, cb CallBack) {
+	xerror.Assert(name == "" || cb == nil, "[name, callback] should not be null")
 	xerror.Assert(callbacks.Has(name), "callback %s already exists", name)
-	callbacks.Set(name, h)
+	callbacks.Set(name, cb)
 }
 
 func onWatch(resp *Response) {
@@ -79,11 +74,6 @@ func onWatch(resp *Response) {
 		if !strings.HasPrefix(key+".", k+".") {
 			return
 		}
-
-		// 获取数据, 并且更新全局配置
-		cfg := config.GetCfg()
-		resp.OnDelete(func() { cfg.Set(key, "") })
-		resp.OnPut(func() { cfg.Set(key, string(resp.Value)) })
 
 		// 执行watch callback
 		var name = KeyToDot(strings.TrimPrefix(key, k))

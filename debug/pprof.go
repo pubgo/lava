@@ -1,10 +1,12 @@
-package mux
+package debug
 
 import (
 	"github.com/go-chi/chi/v5"
 
 	"net/http/pprof"
 )
+
+func init() { On(profRoute) }
 
 func profRoute(app *chi.Mux) {
 	app.HandleFunc("/debug/pprof", pprof.Index)
@@ -18,8 +20,4 @@ func profRoute(app *chi.Mux) {
 	app.HandleFunc("/debug/pprof/heap", pprof.Handler("heap").ServeHTTP)
 	app.HandleFunc("/debug/pprof/mutex", pprof.Handler("mutex").ServeHTTP)
 	app.HandleFunc("/debug/pprof/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-}
-
-func init() {
-	On(profRoute)
 }

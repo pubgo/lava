@@ -21,6 +21,7 @@ type Entry interface {
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
+	Health(fn func() error) error
 	BeforeStart(func())
 	AfterStart(func())
 	BeforeStop(func())
@@ -38,4 +39,15 @@ type Opts struct {
 	Name         string
 	Version      string
 	Command      *cobra.Command
+}
+
+func Parse(ent interface{}, fn func(ent Entry), errs ...func(b bool)) {
+	ent1, ok := ent.(Entry)
+	if ok {
+		fn(ent1)
+	}
+
+	if len(errs) > 0 {
+		errs[0](ok)
+	}
 }

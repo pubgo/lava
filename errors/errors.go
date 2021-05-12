@@ -9,8 +9,8 @@ import (
 	"github.com/pubgo/x/jsonx"
 )
 
-func (t *Error) Error() string {
-	var dt, err = jsonx.Marshal(t)
+func (x *Error) Error() string {
+	var dt, err = jsonx.Marshal(x)
 	if err != nil {
 		return err.Error()
 	}
@@ -18,17 +18,17 @@ func (t *Error) Error() string {
 }
 
 // Is matches each error in the chain with the target value.
-func (t *Error) Is(target error) bool {
+func (x *Error) Is(target error) bool {
 	err, ok := target.(*Error)
 	if ok {
-		return t.Code == err.Code
+		return x.Code == err.Code
 	}
 	return false
 }
 
 // HTTPStatus returns the Status represented by se.
-func (t *Error) HTTPStatus() int {
-	switch t.Code {
+func (x *Error) HTTPStatus() int {
+	switch x.Code {
 	case 0:
 		return http.StatusOK
 	case 1:
@@ -89,21 +89,21 @@ func FromError(err error) (*Error, bool) {
 }
 
 // New generates a custom error.
-func New(id, Message string, code int32) *Error {
+func New(id, Status string, code int32) *Error {
 	return &Error{
-		Id:      id,
-		Code:    code,
-		Message: Message,
+		Id:     id,
+		Code:   code,
+		Status: Status,
 	}
 }
 
 // Parse tries to parse a JSON string into an error. If that
-// fails, it will set the given string as the error Message.
+// fails, it will set the given string as the error Status.
 func Parse(err string) *Error {
 	e := new(Error)
 	err1 := json.Unmarshal([]byte(err), e)
 	if err1 != nil {
-		e.Message = err
+		e.Status = err
 	}
 	return e
 }
@@ -111,72 +111,72 @@ func Parse(err string) *Error {
 // BadRequest generates a 400 error.
 func BadRequest(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    400,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   400,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // Unauthorized generates a 401 error.
 func Unauthorized(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    401,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   401,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // Forbidden generates a 403 error.
 func Forbidden(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    403,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   403,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // NotFound generates a 404 error.
 func NotFound(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    404,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   404,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // MethodNotAllowed generates a 405 error.
 func MethodNotAllowed(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    405,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   405,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // Timeout generates a 408 error.
 func Timeout(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    408,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   408,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // Conflict generates a 409 error.
 func Conflict(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    409,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   409,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
 // InternalServerError generates a 500 error.
 func InternalServerError(id, format string, a ...interface{}) error {
 	return &Error{
-		Id:      id,
-		Code:    500,
-		Message: fmt.Sprintf(format, a...),
+		Id:     id,
+		Code:   500,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -191,7 +191,7 @@ func (e *IgnorableError) Error() string {
 }
 
 // UnwrapIgnorableError tries to parse a JSON string into an error. If that
-// fails, it will set the given string as the error Message.
+// fails, it will set the given string as the error Status.
 func UnwrapIgnorableError(err string) (bool, string) {
 	if err == "" {
 		return false, err
@@ -222,9 +222,9 @@ func WrapIgnorableError(err error) error {
 // HTTP Mapping: 499 Client Closed Request
 func Cancelled(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    1,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   1,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -241,9 +241,9 @@ func IsCancelled(err error) bool {
 // HTTP Mapping: 500 Internal Server Error
 func Unknown(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    2,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   2,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -260,9 +260,9 @@ func IsUnknown(err error) bool {
 // HTTP Mapping: 400 Bad Request
 func InvalidArgument(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    3,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   3,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -279,9 +279,9 @@ func IsInvalidArgument(err error) bool {
 // HTTP Mapping: 504 Gateway Timeout
 func DeadlineExceeded(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    4,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   4,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -307,9 +307,9 @@ func IsNotFound(err error) bool {
 // HTTP Mapping: 409 Conflict
 func AlreadyExists(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    6,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   6,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -326,9 +326,9 @@ func IsAlreadyExists(err error) bool {
 // HTTP Mapping: 403 Forbidden
 func PermissionDenied(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    7,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   7,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -346,9 +346,9 @@ func IsPermissionDenied(err error) bool {
 // HTTP Mapping: 429 Too Many Requests
 func ResourceExhausted(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    8,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   8,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -366,9 +366,9 @@ func IsResourceExhausted(err error) bool {
 // HTTP Mapping: 400 Bad Request
 func FailedPrecondition(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    9,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   9,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -386,9 +386,9 @@ func IsFailedPrecondition(err error) bool {
 // HTTP Mapping: 409 Conflict
 func Aborted(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    10,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   10,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -406,9 +406,9 @@ func IsAborted(err error) bool {
 // HTTP Mapping: 400 Bad Request
 func OutOfRange(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    11,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   11,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -425,9 +425,9 @@ func IsOutOfRange(err error) bool {
 // HTTP Mapping: 501 Not Implemented
 func Unimplemented(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    12,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   12,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -447,9 +447,9 @@ func IsUnimplemented(err error) bool {
 // HTTP Mapping: 500 Internal Server Error
 func Internal(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    13,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   13,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -466,9 +466,9 @@ func IsInternal(err error) bool {
 // HTTP Mapping: 503 Service Unavailable
 func Unavailable(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    14,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   14,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 
@@ -485,9 +485,9 @@ func IsUnavailable(err error) bool {
 // HTTP Mapping: 500 Internal Server Error
 func DataLoss(id, format string, a ...interface{}) error {
 	return &Error{
-		Code:    15,
-		Id:      id,
-		Message: fmt.Sprintf(format, a...),
+		Code:   15,
+		Id:     id,
+		Status: fmt.Sprintf(format, a...),
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/pubgo/lug/metric"
-	"github.com/pubgo/lug/mux"
+	"github.com/pubgo/lug/debug"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 )
@@ -41,7 +41,7 @@ func NewWithMap(cfgMap map[string]interface{}) (metric.Reporter, error) {
 func New(cfg Cfg) (metric.Reporter, error) {
 	var reporter = xerror.PanicErr(cfg.Build()).(*reporterMetric)
 
-	mux.On(func(app *chi.Mux) {
+	debug.On(func(app *chi.Mux) {
 		app.Handle(cfg.Path, promhttp.HandlerFor(prometheus.DefaultGatherer,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 	})

@@ -1,4 +1,4 @@
-metric:
+tracing:
   driver: "jaeger"
   serviceName: "test"
   disabled: true

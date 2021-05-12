@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// Event is an absctraction for all messages that
-// are sent to quque or received from queue.
+// Event is an abstraction for all messages that
+// are sent to queue or received from queue.
 type Event struct {
 	// Key sets the key of the message for routing policy
 	Key string
@@ -19,14 +19,14 @@ type Event struct {
 // to asynchronous subscribers.
 type Handler func(context.Context, Event) error
 
-// Publisher is absctraction for sending messages
+// Publisher is abstraction for sending messages
 // to queue.
 type Publisher interface {
 	Publish(ctx context.Context, event Event) error
 	Close() error
 }
 
-// Subscriber is an absctraction for receiving messages
+// Subscriber is an abstraction for receiving messages
 // from queue.
 type Subscriber interface {
 	Subscribe(ctx context.Context, h Handler) error

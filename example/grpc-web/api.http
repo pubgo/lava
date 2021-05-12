@@ -1,0 +1,9 @@
+POST http://localhost:8900/hello.TestApi/Version
+Content-Type: application/grpc+json
+
+{
+ "input":"hello"
+}
+
+###
+GET http://localhost:8900/

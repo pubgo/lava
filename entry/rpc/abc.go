@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/lug/entry"
 	"google.golang.org/grpc"
 )
@@ -16,8 +16,8 @@ type Entry interface {
 	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }
 
-type WrappedServerStream = grpcMiddleware.WrappedServerStream
+type ServerStream = grpcMid.WrappedServerStream
 
-func WrapServerStream(stream grpc.ServerStream) *WrappedServerStream {
-	return grpcMiddleware.WrapServerStream(stream)
+func WrapStream(stream grpc.ServerStream) *grpcMid.WrappedServerStream {
+	return grpcMid.WrapServerStream(stream)
 }

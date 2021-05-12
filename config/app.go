@@ -27,7 +27,7 @@ var (
 	CfgPath                = ""
 	Project                = "lug"
 	Level                  = "debug"
-	Mode                   = Dev.String()
+	Mode                   = "dev"
 	Signal       os.Signal = syscall.Signal(0)
 	trim                   = strings.TrimSpace
 	lower                  = strings.ToLower

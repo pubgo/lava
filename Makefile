@@ -18,7 +18,7 @@ default: run
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -v -o main cmds/lug/main.go
+	@go build ${LDFLAGS} -mod vendor -v -o main cmd/lug/main.go
 
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
@@ -65,7 +65,7 @@ clear:
 
 .PHONY: gen
 gen:
-	cd cmds/protoc-gen-lug && go install .
+	cd cmd/protoc-gen-lug && go install .
 
 .PHONY: example
 example:

@@ -1,12 +1,12 @@
 app:
-  project: "golug"
-  name: "golug"
+  project: "lug"
+  name: "lug"
   version: "v0.0.1"
   home: ""
   debug: true
   watcher: false
 watcher:
-  driver: "null"
+  driver: "noop"
   name: "default"
 recovery:
   enabled: true
@@ -135,5 +135,5 @@ log:
 
 db:
   default:
-    driver: "sqlite3_golug"
+    driver: "sqlite3x"
     source: "{{home}}/db/sqlite.db"

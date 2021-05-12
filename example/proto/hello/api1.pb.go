@@ -20,6 +20,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+//枚举消息类型
+type PhoneType int32
+
+const (
+	PhoneType_MOBILE PhoneType = 0 //proto3版本中，首成员必须为0，成员不应有相同的值
+	PhoneType_HOME   PhoneType = 1
+	PhoneType_WORK   PhoneType = 2
+)
+
+// Enum value maps for PhoneType.
+var (
+	PhoneType_name = map[int32]string{
+		0: "MOBILE",
+		1: "HOME",
+		2: "WORK",
+	}
+	PhoneType_value = map[string]int32{
+		"MOBILE": 0,
+		"HOME":   1,
+		"WORK":   2,
+	}
+)
+
+func (x PhoneType) Enum() *PhoneType {
+	p := new(PhoneType)
+	*p = x
+	return p
+}
+
+func (x PhoneType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PhoneType) Descriptor() protoreflect.EnumDescriptor {
+	return file_example_proto_hello_api1_proto_enumTypes[0].Descriptor()
+}
+
+func (PhoneType) Type() protoreflect.EnumType {
+	return &file_example_proto_hello_api1_proto_enumTypes[0]
+}
+
+func (x PhoneType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PhoneType.Descriptor instead.
+func (PhoneType) EnumDescriptor() ([]byte, []int) {
+	return file_example_proto_hello_api1_proto_rawDescGZIP(), []int{0}
+}
+
 type TestReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -212,8 +262,10 @@ var file_example_proto_hello_api1_proto_rawDesc = []byte{
 	0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x6e, 0x6f, 0x77, 0x54, 0x69,
 	0x6d, 0x65, 0x12, 0x26, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x12, 0x2e, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2e, 0x54, 0x65, 0x73, 0x74, 0x41, 0x70, 0x69,
-	0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x2a, 0x2b, 0x0a, 0x09, 0x50, 0x68,
+	0x6f, 0x6e, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0a, 0x0a, 0x06, 0x4d, 0x4f, 0x42, 0x49, 0x4c,
+	0x45, 0x10, 0x00, 0x12, 0x08, 0x0a, 0x04, 0x48, 0x4f, 0x4d, 0x45, 0x10, 0x01, 0x12, 0x08, 0x0a,
+	0x04, 0x57, 0x4f, 0x52, 0x4b, 0x10, 0x02, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -228,14 +280,16 @@ func file_example_proto_hello_api1_proto_rawDescGZIP() []byte {
 	return file_example_proto_hello_api1_proto_rawDescData
 }
 
+var file_example_proto_hello_api1_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_example_proto_hello_api1_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_example_proto_hello_api1_proto_goTypes = []interface{}{
-	(*TestReq)(nil),       // 0: hello.TestReq
-	(*TestApiData)(nil),   // 1: hello.TestApiData
-	(*TestApiOutput)(nil), // 2: hello.TestApiOutput
+	(PhoneType)(0),        // 0: hello.PhoneType
+	(*TestReq)(nil),       // 1: hello.TestReq
+	(*TestApiData)(nil),   // 2: hello.TestApiData
+	(*TestApiOutput)(nil), // 3: hello.TestApiOutput
 }
 var file_example_proto_hello_api1_proto_depIdxs = []int32{
-	1, // 0: hello.TestApiOutput.data:type_name -> hello.TestApiData
+	2, // 0: hello.TestApiOutput.data:type_name -> hello.TestApiData
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -291,13 +345,14 @@ func file_example_proto_hello_api1_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_example_proto_hello_api1_proto_rawDesc,
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_example_proto_hello_api1_proto_goTypes,
 		DependencyIndexes: file_example_proto_hello_api1_proto_depIdxs,
+		EnumInfos:         file_example_proto_hello_api1_proto_enumTypes,
 		MessageInfos:      file_example_proto_hello_api1_proto_msgTypes,
 	}.Build()
 	File_example_proto_hello_api1_proto = out.File

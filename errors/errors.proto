@@ -2,18 +2,12 @@ syntax = "proto3";
 
 package lug.errors;
 
-import "google/protobuf/any.proto";
-
 option cc_enable_arenas = true;
 option go_package = ".;errors";
-option java_multiple_files = true;
-option java_outer_classname = "ErrorsProto";
-option java_package = "com.github.lug.errors";
-option objc_class_prefix = "LugErrors";
 
 message Error {
   string id = 1;
   int32 code = 2;
-  string message = 3;
-  repeated google.protobuf.Any details = 4;
+  string status = 3;
+  string details = 4;
 }

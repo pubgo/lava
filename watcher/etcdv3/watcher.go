@@ -47,6 +47,22 @@ type etcdWatcher struct {
 	exitCh   chan struct{}
 }
 
+func (w *etcdWatcher) Close(ctx context.Context, opts ...watcher.Opt) {
+	panic("implement me")
+}
+
+func (w *etcdWatcher) Get(ctx context.Context, opts ...watcher.Opt) ([]*watcher.Response, error) {
+	panic("implement me")
+}
+
+func (w *etcdWatcher) GetCallback(ctx context.Context, key string, fn func(resp *watcher.Response), opts ...watcher.Opt) error {
+	panic("implement me")
+}
+
+func (w *etcdWatcher) WatchCallback(ctx context.Context, key string, fn func(resp *watcher.Response), opts ...watcher.Opt) {
+	panic("implement me")
+}
+
 func (w *etcdWatcher) Watch(ctx context.Context, key string, opts ...watcher.Opt) <-chan *watcher.Response {
 	var resp = make(chan *watcher.Response)
 	go func() {

@@ -1,4 +1,4 @@
-package log_plugin
+package log
 
 import (
 	"github.com/pubgo/lug/config"

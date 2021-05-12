@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	
 	"github.com/pubgo/lug/example/proto/hello"
 )
 
