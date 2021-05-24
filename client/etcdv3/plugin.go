@@ -34,7 +34,7 @@ var plg = &plugin.Base{
 
 			// 解析etcd配置
 			var cfg Cfg
-			xerror.PanicF(r.Decode(&cfg), "[etcd] clientv3 Config parse error, cfgList: %s", r.Value)
+			xerror.PanicF(r.Decode(&cfg), "[etcd] clientv3 conf parse error, cfgList: %s", r.Value)
 
 			cfg = xerror.PanicErr(cfgMerge(cfg)).(Cfg)
 			xerror.PanicF(updateClient(name, cfg), "[etcd] client %s watcher update error", name)

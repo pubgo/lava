@@ -13,14 +13,14 @@ type Manager interface {
 	Register(Plugin, ...ManagerOpt)
 }
 
-type ManagerOpt func(o *ManagerOpts)
-type ManagerOpts struct {
+type ManagerOpt func(o *managerOpts)
+type managerOpts struct {
 	Module string
 }
 
 type Plugin interface {
-	Watch(name string, r *watcher.Response) error
 	Init(ent interface{}) error
+	Watch(name string, r *watcher.Response) error
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	String() string

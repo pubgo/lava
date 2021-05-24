@@ -6,6 +6,7 @@ import (
 
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
@@ -47,14 +48,14 @@ func (t *Entry) OnCfg(fn interface{}) { t.OnCfgWithName(t.opts.Name, fn) }
 func (t *Entry) OnCfgWithName(name string, fn interface{}) {
 	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
 
-	config.On(func(cfg *config.Config) { _ = config.Decode(name, fn) })
+	config.On(func(cfg config.Config) { _ = config.Decode(name, fn) })
 }
 
 func (t *Entry) Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(config.Project != t.Options().Name, "project name not match(%s, %s)", config.Project, t.Options().Name)
-	t.opts.Port = config.Port
+	xerror.Assert(app.Project != t.Options().Name, "project name not match(%s, %s)", app.Project, t.Options().Name)
+	t.opts.Addr = app.Addr
 	t.opts.Initialized = true
 	return
 }
@@ -126,14 +127,8 @@ func newEntry(name string) *Entry {
 	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
-	ent := &Entry{
-		opts: entry.Opts{
-			Name:    name,
-			Port:    8080,
-			Version: version.Version,
-			Command: &cobra.Command{Use: handleCmdName(name)},
-		},
-	}
+	var cmd = &cobra.Command{Use: handleCmdName(name)}
+	ent := &Entry{opts: entry.Opts{Name: name, Addr: ":8080", Version: version.Version, Command: cmd}}
 
 	return ent
 }

@@ -3,7 +3,7 @@ package db
 import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"xorm.io/xorm"
@@ -16,7 +16,7 @@ type Client struct {
 	*xorm.Engine
 }
 
-var clients types.SMap
+var clients typex.SMap
 
 func Get(names ...string) *Client {
 	c := clients.Get(consts.GetDefault(names...))

@@ -22,9 +22,7 @@ func NewRest(name string) rest.Entry { return rest.New(name) }
 func NewRpc(name string) rpc.Entry   { return rpc.New(name) }
 func NewCtl(name string) ctl.Entry   { return ctl.New(name) }
 
-func GetCfg() *config.Config            { return config.GetCfg() }
-func CfgOn(fn func(cfg *config.Config)) { config.On(fn) }
-
+func GetCfg() config.Config            { return config.GetCfg() }
 func Run(entries ...entry.Entry) error { return runtime.Run(entries...) }
 func Start(ent entry.Entry) error      { return runtime.Start(ent) }
 func Stop(ent entry.Entry) error       { return runtime.Stop(ent) }

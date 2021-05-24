@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ Plugin = (*Base)(nil)
+var _ = Plugin(&Base{})
 
 type Base struct {
 	Name       string

@@ -1,12 +1,12 @@
 package encoding
 
 import (
-	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
+	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 )
 
-var data types.SMap
+var data typex.SMap
 
 func List() (dt map[string]Codec) { xerror.Panic(data.MapTo(&dt)); return }
 
@@ -27,8 +27,10 @@ func Get(name string) Codec {
 
 func init() {
 	vars.Watch(Name, func() interface{} {
-		var dt []string
-		xerror.Panic(data.Each(func(key string) { dt = append(dt, key) }))
+		var dt = make(map[string]string)
+		for k, v := range List() {
+			dt[k] = v.Name()
+		}
 		return dt
 	})
 }

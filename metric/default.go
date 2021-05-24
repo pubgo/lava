@@ -6,8 +6,8 @@ import (
 
 var defaultReporter Reporter = &noopReporter{}
 
-// SetDefault 设置全局的Reporter
-func SetDefault(reporter Reporter) {
+// setDefault 设置全局的Reporter
+func setDefault(reporter Reporter) {
 	xerror.Assert(reporter == nil, "[reporter] should not be nil")
 	defaultReporter = reporter
 }
@@ -19,23 +19,23 @@ func getDefault() Reporter {
 }
 
 //CreateGauge init a new gauge type
-func CreateGauge(opts GaugeOpts) error {
-	return getDefault().CreateGauge(opts)
+func CreateGauge(name string, labels []string, opts GaugeOpts) error {
+	return getDefault().CreateGauge(name, labels, opts)
 }
 
 //CreateCounter init a new counter type
-func CreateCounter(opts CounterOpts) error {
-	return getDefault().CreateCounter(opts)
+func CreateCounter(name string, labels []string, opts CounterOpts) error {
+	return getDefault().CreateCounter(name, labels, opts)
 }
 
 //CreateSummary init a new summary type
-func CreateSummary(opts SummaryOpts) error {
-	return getDefault().CreateSummary(opts)
+func CreateSummary(name string, labels []string, opts SummaryOpts) error {
+	return getDefault().CreateSummary(name, labels, opts)
 }
 
 //CreateHistogram init a new histogram type
-func CreateHistogram(opts HistogramOpts) error {
-	return getDefault().CreateHistogram(opts)
+func CreateHistogram(name string, labels []string, opts HistogramOpts) error {
+	return getDefault().CreateHistogram(name, labels, opts)
 }
 
 // Count 上报递增数据

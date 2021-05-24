@@ -7,38 +7,32 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/pubgo/lug/metric"
 	"github.com/pubgo/lug/debug"
+	"github.com/pubgo/lug/metric"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 )
 
 func init() {
-	xerror.Exit(metric.Register(Name, NewWithMap))
+	xerror.Exit(metric.Register(Name, New))
 }
 
 var _ metric.Reporter = (*reporterMetric)(nil)
 
 //reporterMetric is a prom exporter for go chassis
 type reporterMetric struct {
+	sync.RWMutex
 	registry   prometheus.Registerer
-	lc         sync.RWMutex
-	lg         sync.RWMutex
-	ls         sync.RWMutex
 	counters   map[string]*prometheus.CounterVec
 	gauges     map[string]*prometheus.GaugeVec
 	summaries  map[string]*prometheus.SummaryVec
 	histograms map[string]*prometheus.HistogramVec
 }
 
-func NewWithMap(cfgMap map[string]interface{}) (metric.Reporter, error) {
+//New create a prometheus exporter
+func New(cfgMap map[string]interface{}) (metric.Reporter, error) {
 	var cfg = GetDefaultCfg()
 	xerror.Panic(merge.MapStruct(&cfg, cfgMap))
-	return New(cfg)
-}
-
-//New create a prometheus exporter
-func New(cfg Cfg) (metric.Reporter, error) {
 	var reporter = xerror.PanicErr(cfg.Build()).(*reporterMetric)
 
 	debug.On(func(app *chi.Mux) {
@@ -50,30 +44,26 @@ func New(cfg Cfg) (metric.Reporter, error) {
 }
 
 //CreateGauge create collector
-func (c *reporterMetric) CreateGauge(opts metric.GaugeOpts) error {
-	c.lg.RLock()
-	_, ok := c.gauges[opts.Name]
-	c.lg.RUnlock()
+func (c *reporterMetric) CreateGauge(name string, labels []string, opts metric.GaugeOpts) error {
+	c.Lock()
+	defer c.Unlock()
+
+	_, ok := c.gauges[name]
 	if ok {
-		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
+		return fmt.Errorf("metric [%s] is duplicated", name)
 	}
 
-	c.lg.Lock()
-	defer c.lg.Unlock()
-	gVec := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: opts.Name,
-		Help: opts.Help,
-	}, opts.Labels)
-	c.gauges[opts.Name] = gVec
+	gVec := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: name, Help: opts.Help}, labels)
+	c.gauges[name] = gVec
 	c.registry.MustRegister(gVec)
 	return nil
 }
 
 //GaugeSet set value
 func (c *reporterMetric) Gauge(name string, val float64, labels metric.Tags) error {
-	c.lg.RLock()
+	c.RLock()
 	gVec, ok := c.gauges[name]
-	c.lg.RUnlock()
+	c.RUnlock()
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
@@ -83,30 +73,26 @@ func (c *reporterMetric) Gauge(name string, val float64, labels metric.Tags) err
 }
 
 //CreateCounter create collector
-func (c *reporterMetric) CreateCounter(opts metric.CounterOpts) error {
-	c.lc.RLock()
-	_, ok := c.counters[opts.Name]
-	c.lc.RUnlock()
+func (c *reporterMetric) CreateCounter(name string, labels []string, opts metric.CounterOpts) error {
+	c.Lock()
+	defer c.Unlock()
+
+	_, ok := c.counters[name]
 	if ok {
-		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
+		return fmt.Errorf("metric [%s] is duplicated", name)
 	}
 
-	c.lc.Lock()
-	defer c.lc.Unlock()
-	v := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: opts.Name,
-		Help: opts.Help,
-	}, opts.Labels)
-	c.counters[opts.Name] = v
+	v := prometheus.NewCounterVec(prometheus.CounterOpts{Name: name, Help: opts.Help}, labels)
+	c.counters[name] = v
 	c.registry.MustRegister(v)
 	return nil
 }
 
 //CounterAdd increase value
 func (c *reporterMetric) Count(name string, val float64, labels metric.Tags) error {
-	c.lc.RLock()
+	c.RLock()
 	v, ok := c.counters[name]
-	c.lc.RUnlock()
+	c.RUnlock()
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
@@ -116,31 +102,26 @@ func (c *reporterMetric) Count(name string, val float64, labels metric.Tags) err
 }
 
 //CreateSummary create collector
-func (c *reporterMetric) CreateSummary(opts metric.SummaryOpts) error {
-	c.ls.RLock()
-	_, ok := c.summaries[opts.Name]
-	c.ls.RUnlock()
+func (c *reporterMetric) CreateSummary(name string, labels []string, opts metric.SummaryOpts) error {
+	c.Lock()
+	defer c.Unlock()
+
+	_, ok := c.summaries[name]
 	if ok {
-		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
+		return fmt.Errorf("metric [%s] is duplicated", name)
 	}
 
-	c.ls.Lock()
-	defer c.ls.Unlock()
-	v := prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Name:       opts.Name,
-		Help:       opts.Help,
-		Objectives: opts.Objectives,
-	}, opts.Labels)
-	c.summaries[opts.Name] = v
+	v := prometheus.NewSummaryVec(prometheus.SummaryOpts{Name: name, Help: opts.Help, Objectives: opts.Objectives}, labels)
+	c.summaries[name] = v
 	c.registry.MustRegister(v)
 	return nil
 }
 
 //SummaryObserve set value
 func (c *reporterMetric) Summary(name string, val float64, labels metric.Tags) error {
-	c.ls.RLock()
+	c.RLock()
 	v, ok := c.summaries[name]
-	c.ls.RUnlock()
+	c.RUnlock()
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}
@@ -150,31 +131,26 @@ func (c *reporterMetric) Summary(name string, val float64, labels metric.Tags) e
 }
 
 //CreateHistogram create collector
-func (c *reporterMetric) CreateHistogram(opts metric.HistogramOpts) error {
-	c.ls.RLock()
-	_, ok := c.histograms[opts.Name]
-	c.ls.RUnlock()
+func (c *reporterMetric) CreateHistogram(name string, labels []string, opts metric.HistogramOpts) error {
+	c.Lock()
+	defer c.Unlock()
+
+	_, ok := c.histograms[name]
 	if ok {
-		return fmt.Errorf("metric [%s] is duplicated", opts.Name)
+		return fmt.Errorf("metric [%s] is duplicated", name)
 	}
 
-	c.ls.Lock()
-	defer c.ls.Unlock()
-	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    opts.Name,
-		Help:    opts.Help,
-		Buckets: opts.Buckets,
-	}, opts.Labels)
-	c.histograms[opts.Name] = v
+	v := prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: name, Help: opts.Help, Buckets: opts.Buckets}, labels)
+	c.histograms[name] = v
 	c.registry.MustRegister(v)
 	return nil
 }
 
 //HistogramObserve set value
 func (c *reporterMetric) Histogram(name string, val float64, labels metric.Tags) error {
-	c.ls.RLock()
+	c.RLock()
 	v, ok := c.histograms[name]
-	c.ls.RUnlock()
+	c.RUnlock()
 	if !ok {
 		return fmt.Errorf("metrics do not exists, create it first")
 	}

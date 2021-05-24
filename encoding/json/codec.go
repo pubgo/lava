@@ -9,6 +9,14 @@ import (
 // jsonCodec uses json marshaler and unmarshaler.
 type jsonCodec struct{}
 
+func (c jsonCodec) Marshal(v interface{}) ([]byte, error) {
+	return c.Encode(v)
+}
+
+func (c jsonCodec) Unmarshal(data []byte, v interface{}) error {
+	return c.Decode(data, v)
+}
+
 func (c jsonCodec) Name() string {
 	return Name
 }

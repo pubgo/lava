@@ -2,13 +2,13 @@ package tracing
 
 import (
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 
 type Factory func(cfg map[string]interface{}) (Tracer, error)
 
-var factories types.SMap
+var factories typex.SMap
 
 func Get(names ...string) Factory {
 	val, ok := factories.Load(consts.GetDefault(names...))

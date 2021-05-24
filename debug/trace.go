@@ -5,9 +5,9 @@ import (
 	"golang.org/x/net/trace"
 )
 
-func init() { On(traceRoute) }
-
-func traceRoute(app *chi.Mux) {
-	app.HandleFunc("/debug/requests", trace.Traces)
-	app.HandleFunc("/debug/events", trace.Events)
+func init() {
+	On(func(app *chi.Mux) {
+		app.HandleFunc("/debug/requests", trace.Traces)
+		app.HandleFunc("/debug/events", trace.Events)
+	})
 }

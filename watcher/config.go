@@ -20,10 +20,10 @@ func (cfg Cfg) Build() (_ Watcher, err error) {
 
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "watcher driver is null")
-	xerror.Assert(!factories.Has(driver), "watcher driver [%s] not found", driver)
+	xerror.Assert(factories[driver] == nil, "watcher driver [%s] not found", driver)
 
-	fc := factories.Get(driver).(Factory)
-	return fc(config.GetMap(Name))
+	fc := factories[driver]
+	return fc(config.GetCfg().GetStringMap(Name))
 }
 
 func GetDefaultCfg() Cfg {

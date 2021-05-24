@@ -8,7 +8,7 @@ import (
 )
 
 // 定时清理过期数据
-func (p *cache) initJanitor() error {
+func initJanitor(p *cache) error {
 	interval := p.opts.ClearTime
 	if interval < defaultMinExpiration {
 		return errors.Wrapf(ErrClearTime, "过期时间(%s)小于最小过期时间(%s)", interval, defaultMinExpiration)
@@ -19,6 +19,7 @@ func (p *cache) initJanitor() error {
 	} else {
 		stopJanitor(p)
 	}
+
 	runJanitor(p, interval)
 	return nil
 }
@@ -47,7 +48,6 @@ func (j *janitor) Run(c *cache) {
 		select {
 		case <-ticker.C:
 			c.deleteExpired()
-			c.sf.Clear()
 		case <-j.stop:
 			ticker.Stop()
 			return

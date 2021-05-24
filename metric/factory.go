@@ -2,13 +2,13 @@ package metric
 
 import (
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 
 type Factory func(cfg map[string]interface{}) (Reporter, error)
 
-var reporters types.SMap
+var reporters typex.SMap
 
 func Get(names ...string) Factory {
 	val, ok := reporters.Load(consts.GetDefault(names...))

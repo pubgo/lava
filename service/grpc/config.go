@@ -1,9 +1,9 @@
 package golug_srv
 
 import (
+	"github.com/pubgo/lug/app"
 	"time"
 
-	"github.com/pubgo/lug/config"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
@@ -80,7 +80,7 @@ func (t Cfg) Build(opt ...grpc.ServerOption) *grpc.Server {
 	opts := t.BuildOpts()
 	srv := grpc.NewServer(append(opts, opt...)...)
 
-	if config.IsDev() || config.IsTest() {
+	if app.IsDev() || app.IsTest() {
 		grpc.EnableTracing = true
 		reflection.Register(srv)
 		service.RegisterChannelzServiceToServer(srv)

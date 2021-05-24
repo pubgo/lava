@@ -1,62 +1,123 @@
 package config
 
 import (
-	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"reflect"
-	"strconv"
-	"strings"
-
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/x/fx"
-	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
+
+	"fmt"
+	"io"
+	"path/filepath"
+	"reflect"
+	"strconv"
+	"strings"
+	"sync"
 )
 
-type Config struct {
-	*viper.Viper
-}
+var (
+	CfgType = "yaml"
+	CfgName = "config"
+	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	CfgPath = ""
+)
 
-func GetMap(names ...string) map[string]interface{} {
-	return GetCfg().GetStringMap(strings.Join(names, "."))
-}
-
-func GetCfg() *Config {
+func GetCfg() *conf {
 	xerror.Assert(cfg == nil, "[config] please init config")
 	return cfg
 }
 
-func TempFile(names ...string) string {
-	var tmpFile = filepath.Join(typex.StrOf(os.TempDir(), names...)...)
-	xerror.Panic(pathutil.BuildDir(tmpFile))
-	return tmpFile
+var _ Config = (*conf)(nil)
+
+var cfg = &conf{v: viper.New()}
+
+type conf struct {
+	rw sync.RWMutex
+	v  *viper.Viper
 }
 
-// Decode
-// decode config
-func Decode(name string, fn interface{}) (b bool) {
+func (t *conf) MergeConfig(in io.Reader) error {
+	t.rw.Lock()
+	defer t.rw.Unlock()
+
+	return t.v.MergeConfig(in)
+}
+
+func (t *conf) AllKeys() []string {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.AllKeys()
+}
+
+func (t *conf) ConfigFileUsed() string {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.ConfigFileUsed()
+}
+
+func GetMap(keys ...string) map[string]interface{} {
+	return GetCfg().GetStringMap(strings.Join(keys, "."))
+}
+
+func (t *conf) GetStringMap(key string) map[string]interface{} {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.GetStringMap(key)
+}
+
+func (t *conf) Get(key string) interface{} {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.Get(key)
+}
+
+func (t *conf) GetString(key string) string {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.GetString(key)
+}
+
+func (t *conf) Set(key string, value interface{}) {
+	t.rw.Lock()
+	defer t.rw.Unlock()
+
+	t.v.Set(key, value)
+}
+
+func (t *conf) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	return t.v.UnmarshalKey(key, rawVal, opts...)
+}
+
+func Decode(name string, fn interface{}) (b bool) { return GetCfg().Decode(name, fn) }
+func (t *conf) Decode(name string, fn interface{}) (b bool) {
 	defer xerror.RespExit(name)
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
-	if GetCfg().Get(name) == nil {
+	if t.Get(name) == nil {
 		xlog.Warnf("config key [%s] not found", name)
 		return false
 	}
 
 	vfn := reflect.ValueOf(fn)
 	switch vfn.Type().Kind() {
-	case reflect.Func: // func(cfg *Config)
+	case reflect.Func: // func(cfg *conf)
 		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be 1")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := fx.WrapRaw(GetCfg().UnmarshalKey)(name, mthIn,
+		ret := fx.WrapRaw(t.UnmarshalKey)(name, mthIn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" })
 
 		if !ret[0].IsNil() {
@@ -66,7 +127,7 @@ func Decode(name string, fn interface{}) (b bool) {
 
 		vfn.Call(typex.ValueOf(mthIn))
 	case reflect.Ptr:
-		xerror.PanicF(GetCfg().UnmarshalKey(name, fn,
+		xerror.PanicF(t.UnmarshalKey(name, fn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
 			"config key %s decode error", name)
 	default:
@@ -78,9 +139,9 @@ func Decode(name string, fn interface{}) (b bool) {
 	return true
 }
 
-func Template(format string) string {
-	t := fasttemplate.New(format, "{{", "}}")
-	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+func (t *conf) Template(format string) string {
+	tpl := fasttemplate.New(format, "{{", "}}")
+	return tpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		tag = strings.TrimSpace(tag)
 
 		// 处理特殊变量
@@ -88,19 +149,19 @@ func Template(format string) string {
 		case "project_home", "config_home":
 			return w.Write(xutil.ToBytes(Home))
 		case "trace":
-			return w.Write(xutil.ToBytes(strconv.FormatBool(Trace)))
+			return w.Write(xutil.ToBytes(strconv.FormatBool(app.Trace)))
 		case "project_name", "project":
-			return w.Write(xutil.ToBytes(Project))
+			return w.Write(xutil.ToBytes(app.Project))
 		case "domain":
-			return w.Write(xutil.ToBytes(Domain))
+			return w.Write(xutil.ToBytes(app.Domain))
 		case "mode":
-			return w.Write(xutil.ToBytes(Mode))
+			return w.Write(xutil.ToBytes(app.Mode))
 		case "config":
 			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
 		case "config_path":
-			return w.Write(xutil.ToBytes(GetCfg().ConfigFileUsed()))
+			return w.Write(xutil.ToBytes(t.ConfigFileUsed()))
 		default:
-			return w.Write(xutil.ToBytes(GetCfg().GetString(tag)))
+			return w.Write(xutil.ToBytes(t.GetString(tag)))
 		}
 	})
 }

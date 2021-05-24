@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/pubgo/lug/cache/core"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
 )
@@ -82,7 +83,7 @@ func (p *cache) Init(opts ...Option) error {
 		return errors.Wrapf(ErrStore, "store is nil")
 	}
 
-	if err := p.initJanitor(); err != nil {
+	if err := initJanitor(p); err != nil {
 		return err
 	}
 
@@ -101,11 +102,11 @@ func (p *cache) init() {
 	p.opts.MaxExpiration = defaultMaxExpiration
 	p.opts.MaxKeySize = defaultMaxKeySize
 	p.opts.DefaultExpiration = -1
-	p.opts.store = gocache.NewStore()
+	p.opts.store = &noopStore{}
 }
 
 func (p *cache) deleteExpired() {
-	_, _ = p.sf.Do("delete_expired", func() (interface{}, error) {
+	_, _, _ = p.sf.Do("delete_expired", func() (interface{}, error) {
 		_ = p.opts.store.DeleteExpired()
 		return nil, nil
 	})
@@ -239,6 +240,7 @@ func (p *cache) getSet(key []byte, d time.Duration, fn ...func([]byte) ([]byte, 
 	if dt != nil {
 		expired = d
 	}
+
 	return dt, p.Set(key, dt, expired)
 }
 
@@ -272,7 +274,7 @@ func (p *cache) OnDataLoad(f func([]byte) ([]byte, error)) {
 }
 
 func (p *cache) onDftEvicted(k, v []byte) {
-	size := uint64(util.GetDataSize(k, v))
+	size := uint64(len(k) + len(v))
 	core.GlobalBufSize.Sub(size)
 	p.bufSize.Sub(size)
 
@@ -318,9 +320,9 @@ func newPCache(opts ...Option) (*cache, error) {
 	return c, c.Init(opts...)
 }
 
-var defaultPCache Cache
+var defaultPCache *cache
 
-func SetDefaultCache(c Cache) {
+func SetDefaultCache(c *cache) {
 	defaultPCache = c
 }
 

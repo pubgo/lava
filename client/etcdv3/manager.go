@@ -2,8 +2,8 @@ package etcdv3
 
 import (
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/x/xutil"
+	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 
@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-var clients types.SMap
+var clients typex.SMap
 
 // Get 获取etcd client
 func Get(names ...string) *Client {
@@ -53,7 +53,7 @@ func updateClient(name string, cfg Cfg) error {
 
 // initClient 创建或者初始化etcd client
 func initClient(name string, cfg Cfg) error {
-	return xutil.Try(func() {
+	return try.Try(func() {
 		xerror.Assert(name == "", "[name] should not be null")
 		xerror.Assert(clients.Has(name), "[etcd] %s already exists", name)
 

@@ -15,9 +15,9 @@ func init() {
 
 	vars.Watch(Name+"_watcher", func() interface{} {
 		var dt = make(map[string]string)
-		xerror.Panic(factories.Each(func(name string, f Factory) {
+		for name, f := range factories {
 			dt[name] = stack.Func(f)
-		}))
+		}
 		return dt
 	})
 }

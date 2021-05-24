@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
@@ -30,7 +31,7 @@ type Cfg struct {
 func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	defer xerror.RespErr(&err)
 
-	source := config.Template(cfg.Source)
+	source := config.GetCfg().Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if _dir := filepath.Dir(source); pathutil.IsNotExist(_dir) {
 			_ = os.MkdirAll(_dir, 0755)
@@ -45,7 +46,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	engine.SetLogger(newLogger("xorm"))
 	engine.Logger().SetLevel(xl.LOG_DEBUG)
 	engine.ShowSQL(true)
-	if !cfg.Debug || config.IsStag() || config.IsProd() {
+	if !cfg.Debug || app.IsStag() || app.IsProd() {
 		engine.Logger().SetLevel(xl.LOG_WARNING)
 		engine.ShowSQL(false)
 	}

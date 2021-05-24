@@ -20,7 +20,7 @@ const (
 
 var (
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
-	Replica     = 2
+	Replica     = 1
 )
 
 func init() {

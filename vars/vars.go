@@ -5,6 +5,7 @@ import (
 
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 )
 
 type value func() interface{}
@@ -24,7 +25,7 @@ func (f value) String() string {
 
 func Watch(name string, data func() interface{}) {
 	expvar.Publish(name, value(func() (val interface{}) {
-		defer xerror.Resp(func(err xerror.XErr) { val = err })
+		defer xerror.Resp(func(err xerror.XErr) { xlog.Error("expvar error", xlog.Any("err", err)) })
 		return data()
 	}))
 }

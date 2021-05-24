@@ -8,6 +8,14 @@ import (
 // bytesCodec uses raw slice pf bytes and don't encode/decode.
 type bytesCodec struct{}
 
+func (c bytesCodec) Marshal(v interface{}) ([]byte, error) {
+	return c.Encode(v)
+}
+
+func (c bytesCodec) Unmarshal(data []byte, v interface{}) error {
+	return c.Decode(data, v)
+}
+
 func (c bytesCodec) Name() string {
 	return Name
 }

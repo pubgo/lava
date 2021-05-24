@@ -6,11 +6,13 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/internal/vars"
-	v "github.com/pubgo/lug/internal/version"
+	"github.com/pubgo/lug/internal/cmds/vars"
+	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/plugins/pidfile"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/stack"
@@ -19,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{Use: config.Domain, Version: version.Version}
+var rootCmd = &cobra.Command{Use: app.Domain, Version: version.Version}
 
 func init() {
 	rootCmd.AddCommand(v.Cmd)
@@ -28,7 +30,7 @@ func init() {
 
 //Cmd
 func handleSignal() {
-	if config.CatchSigpipe {
+	if app.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		go func() {
@@ -40,7 +42,7 @@ func handleSignal() {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	config.Signal = <-ch
+	app.Signal = <-ch
 }
 
 func start(ent entry.Runtime) (err error) {
@@ -118,6 +120,7 @@ func Run(entries ...entry.Entry) (err error) {
 		xerror.Assert(opt.Name == "" || opt.Version == "", "[name,version] should not be empty")
 	}
 
+	rootCmd.PersistentFlags().AddFlagSet(app.DefaultFlags())
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
@@ -140,10 +143,11 @@ func Run(entries ...entry.Entry) (err error) {
 		// 配置初始化
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
-			config.Project = entRun.Options().Name
-			xerror.Panic(config.Init())
-			xerror.Panic(dix.Dix(config.GetCfg()))
+
+			app.Project = entRun.Options().Name
+			xerror.Panic(config.GetCfg().Init())
 			xerror.Panic(watcher.Init())
+			xerror.Panic(dix.Dix(config.GetCfg()))
 			return nil
 		}
 
@@ -166,7 +170,10 @@ func Run(entries ...entry.Entry) (err error) {
 
 			xerror.Panic(start(entRun))
 
-			if config.IsBlock {
+			// 保存pid文件
+			xerror.Panic(pidfile.New(cmd.Use).SavePid())
+
+			if app.IsBlock {
 				handleSignal()
 			}
 
@@ -198,8 +205,8 @@ func Start(ent entry.Entry) (err error) {
 	}
 
 	// config初始化
-	config.Project = entRun.Options().Name
-	xerror.Panic(config.Init())
+	app.Project = entRun.Options().Name
+	xerror.Panic(config.GetCfg().Init())
 	xerror.Panic(watcher.Init())
 	xerror.Panic(dix.Dix(config.GetCfg()))
 

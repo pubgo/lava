@@ -2,25 +2,28 @@ package watcher
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"sync"
 
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
 
 var defaultWatcher Watcher
-var callbacks types.SMap
+var callbacks typex.SMap
 var mux sync.Mutex
 
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg = GetDefaultCfg()
-	if !config.Decode(Name, &cfg) {
+	if !config.GetCfg().Decode(Name, &cfg) {
 		return
 	}
 
@@ -28,8 +31,8 @@ func Init() (err error) {
 
 	// 获取所有watch的项目
 	projects := cfg.Projects
-	if !strutil.Contains(projects, config.Project) {
-		projects = append(projects, config.Project)
+	if !strutil.Contains(projects, app.Project) {
+		projects = append(projects, app.Project)
 	}
 
 	// 项目prefix
@@ -38,7 +41,9 @@ func Init() (err error) {
 
 		// 获取远程配置
 		xerror.Panic(defaultWatcher.GetCallback(context.Background(), name, func(resp *Response) {
-			config.GetCfg().Set(KeyToDot(resp.Key), string(resp.Value))
+			var dt interface{}
+			xerror.Panic(json.Unmarshal(resp.Value, &dt))
+			config.GetCfg().Set(KeyToDot(resp.Key), dt)
 		}))
 
 		// 远程配置watch
@@ -57,6 +62,16 @@ func Watch(name string, cb CallBack) {
 func onWatch(resp *Response) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		xlog.Error("onWatch error", xlog.Any("err", err))
+	})
+
+	resp.OnPut(func() {
+		var dt interface{}
+		xerror.Panic(jsonx.Unmarshal(resp.Value, &dt))
+		config.GetCfg().Set(KeyToDot(resp.Key), dt)
+	})
+
+	resp.OnDelete(func() {
+		config.GetCfg().Set(KeyToDot(resp.Key), nil)
 	})
 
 	// 以name为前缀的所有的callbacks

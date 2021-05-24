@@ -8,7 +8,7 @@ import (
 const Name = "debug"
 
 var cfg = GetDefaultCfg()
-var app *chiS.Mux
+var appMux *chiS.Mux
 
 type Cfg struct {
 	chi.Cfg

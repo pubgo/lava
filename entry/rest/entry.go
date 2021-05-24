@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/pubgo/lug/entry/base"
 	fb "github.com/pubgo/lug/service/fiber"
 	"github.com/pubgo/x/fx"
-	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
@@ -46,13 +44,13 @@ func (t *restEntry) Use(handler ...Handler) {
 }
 
 func (t *restEntry) Init() (err error) {
-	return xutil.Try(func() {
-		xerror.Panic(t.Entry.Init())
+	defer xerror.RespErr(&err)
 
-		var cfg = fb.GetDefaultCfg()
-		cfg.DisableStartupMessage = true
-		_ = config.Decode(Name, &cfg)
-	})
+	xerror.Panic(t.Entry.Init())
+	var cfg = fb.GetDefaultCfg()
+	cfg.DisableStartupMessage = true
+	_ = config.Decode(Name, &cfg)
+	return
 }
 
 func (t *restEntry) Start() (err error) {
@@ -66,8 +64,6 @@ func (t *restEntry) Start() (err error) {
 		t.handlers[i]()
 	}
 
-	port := t.Options().Port
-
 	// 启动server后等待1s
 	xerror.Panic(fx.GoDelay(time.Second, func() {
 		defer xerror.Resp(func(err xerror.XErr) {
@@ -75,9 +71,8 @@ func (t *restEntry) Start() (err error) {
 		})
 
 		for {
-			if err := t.app.Listen(fmt.Sprintf(":%d", port)); err != nil && err != http.ErrServerClosed {
+			if err := t.app.Listen(t.Options().Addr); err != nil && err != http.ErrServerClosed {
 				if strings.Contains(err.Error(), "address already in use") {
-					port += 1
 					continue
 				}
 
@@ -88,7 +83,7 @@ func (t *restEntry) Start() (err error) {
 
 		xlog.Infof("Server [http] Closed OK")
 	}))
-	xlog.Infof("Server [http] Listening on http://%d", port)
+	xlog.Infof("Server [http] Listening on http://%s", t.Options().Addr)
 
 	return nil
 }

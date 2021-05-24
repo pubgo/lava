@@ -8,11 +8,6 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-// NewManager creates a new internal_plugin manager
-func NewManager() Manager {
-	return newManager()
-}
-
 func newManager() *manager {
 	return &manager{
 		plugins:    make(map[string][]Plugin),
@@ -30,28 +25,34 @@ func (m *manager) String() string {
 	return string(xerror.PanicBytes(json.MarshalIndent(m.registered, "", "  ")))
 }
 
-func (m *manager) All() map[string][]Plugin {
+func (m *manager) lock(fn func()) {
 	m.Lock()
 	defer m.Unlock()
 
+	fn()
+}
+
+func (m *manager) All() map[string][]Plugin {
 	pls := make(map[string][]Plugin)
-	for k, v := range m.plugins {
-		pls[k] = append(pls[k], v...)
-	}
+	m.lock(func() {
+		for k, v := range m.plugins {
+			pls[k] = append(pls[k], v...)
+		}
+	})
 	return pls
 }
 
 // Plugins lists the plugins
 func (m *manager) Plugins(opts ...ManagerOpt) []Plugin {
-	options := ManagerOpts{Module: defaultModule}
+	mOpts := managerOpts{Module: defaultModule}
 	for _, o := range opts {
-		o(&options)
+		o(&mOpts)
 	}
 
 	m.Lock()
 	defer m.Unlock()
 
-	if plugins, ok := m.plugins[options.Module]; ok {
+	if plugins, ok := m.plugins[mOpts.Module]; ok {
 		return plugins
 	}
 	return nil
@@ -61,13 +62,13 @@ func (m *manager) Plugins(opts ...ManagerOpt) []Plugin {
 func (m *manager) Register(pg Plugin, opts ...ManagerOpt) {
 	xerror.Assert(pg == nil, "plugin is nil")
 
-	options := ManagerOpts{Module: defaultModule}
+	options := managerOpts{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}
 
 	name := pg.String()
-	xerror.Assert(name == "", "plugin.name is null")
+	xerror.Assert(name == "", "plugin name is null")
 
 	m.Lock()
 	defer m.Unlock()
@@ -89,7 +90,7 @@ func (m *manager) Register(pg Plugin, opts ...ManagerOpt) {
 }
 
 func (m *manager) isRegistered(plg Plugin, opts ...ManagerOpt) bool {
-	options := ManagerOpts{Module: defaultModule}
+	options := managerOpts{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}

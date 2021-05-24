@@ -7,7 +7,7 @@ import (
 	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/lug/client/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -22,7 +22,7 @@ const (
 	DefaultTimeout = 3 * time.Second
 )
 
-var configMap types.SMap
+var configMap typex.SMap
 
 type callParameters struct {
 	Header                map[string]string `json:"header"`
@@ -167,7 +167,6 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.WithWriteBufferSize(t.WriteBuffer))
 	opts = append(opts, grpc.WithInitialWindowSize(t.WindowSize))
 	opts = append(opts, grpc.WithInitialConnWindowSize(t.ConnWindowSize))
-	opts = append(opts, grpc.WithBalancerName(t.BalancerName))
 	opts = append(opts, grpc.WithUserAgent(t.UserAgent))
 	opts = append(opts, grpc.WithAuthority(t.Authority))
 	opts = append(opts, grpc.WithDefaultServiceConfig(t.DefaultServiceConfig))

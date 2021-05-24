@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/xlog"
 
 	"strings"
-	"sync"
 )
 
 var Name = "prometheus"
@@ -47,9 +46,6 @@ func (cfg Cfg) Build() (_ metric.Reporter, err error) {
 
 	return &reporterMetric{
 		registry:   registry,
-		lc:         sync.RWMutex{},
-		lg:         sync.RWMutex{},
-		ls:         sync.RWMutex{},
 		summaries:  make(map[string]*prometheus.SummaryVec),
 		counters:   make(map[string]*prometheus.CounterVec),
 		gauges:     make(map[string]*prometheus.GaugeVec),

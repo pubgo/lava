@@ -3,7 +3,7 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/x/typex"
+	"github.com/pubgo/lug/pkg/typex"
 )
 
 var _ Watcher = (*nullWatcher)(nil)
@@ -14,7 +14,9 @@ func init() {
 
 type nullWatcher struct{}
 
-func (e *nullWatcher) Get(ctx context.Context, opts ...Opt) ([]*Response, error) { return nil, nil }
+func (e *nullWatcher) Get(ctx context.Context, key string, opts ...Opt) ([]*Response, error) {
+	return nil, nil
+}
 func (e *nullWatcher) GetCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt) error {
 	return nil
 }

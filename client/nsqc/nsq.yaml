@@ -1,0 +1,6 @@
+default:
+  address: "localhost:4150"
+  lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+test_shanghai:
+  address: "localhost:4150"
+  lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]

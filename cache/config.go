@@ -6,6 +6,7 @@ import (
 
 // Options 缓存配置变量
 type options struct {
+	store             Store
 	DataLoadTime      time.Duration
 	ClearTime         time.Duration
 	MaxBufSize        uint64

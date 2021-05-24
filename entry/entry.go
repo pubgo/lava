@@ -2,6 +2,7 @@ package entry
 
 import (
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -15,13 +16,12 @@ type Runtime interface {
 
 type Entry interface {
 	Version(v string)
-	Dix(data ...interface{})
 	OnCfg(fn interface{})
+	Dix(data ...interface{})
 	Plugin(plugin plugin.Plugin)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
-	Health(fn func() error) error
 	BeforeStart(func())
 	AfterStart(func())
 	BeforeStop(func())
@@ -35,13 +35,15 @@ type Opts struct {
 	BeforeStops  []func()
 	AfterStops   []func()
 	Initialized  bool
-	Port         int
+	Addr         string
 	Name         string
 	Version      string
 	Command      *cobra.Command
 }
 
 func Parse(ent interface{}, fn func(ent Entry), errs ...func(b bool)) {
+	xerror.Assert(ent == nil, "ent is nil")
+
 	ent1, ok := ent.(Entry)
 	if ok {
 		fn(ent1)

@@ -2,7 +2,7 @@ package cache
 
 import "time"
 
-var _ Store = (noopStore)(nil)
+var _ Store = (*noopStore)(nil)
 
 type noopStore struct{}
 

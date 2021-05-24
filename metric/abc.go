@@ -5,10 +5,10 @@ type Tags map[string]string
 
 // Reporter is an interface for collecting and instrumenting metrics
 type Reporter interface {
-	CreateGauge(opts GaugeOpts) error
-	CreateCounter(opts CounterOpts) error
-	CreateSummary(opts SummaryOpts) error
-	CreateHistogram(opts HistogramOpts) error
+	CreateGauge(name string, labels []string, opts GaugeOpts) error
+	CreateCounter(name string, labels []string, opts CounterOpts) error
+	CreateSummary(name string, labels []string, opts SummaryOpts) error
+	CreateHistogram(name string, labels []string, opts HistogramOpts) error
 
 	Count(name string, value float64, tags Tags) error
 	Gauge(name string, value float64, tags Tags) error
@@ -18,30 +18,22 @@ type Reporter interface {
 
 //CounterOpts is options to create a counter options
 type CounterOpts struct {
-	Name   string
-	Help   string
-	Labels []string
+	Help string
 }
 
 //GaugeOpts is options to create a gauge collector
 type GaugeOpts struct {
-	Name   string
-	Help   string
-	Labels []string
+	Help string
 }
 
 //SummaryOpts is options to create summary collector
 type SummaryOpts struct {
-	Name       string
 	Help       string
-	Labels     []string
 	Objectives map[float64]float64
 }
 
 //HistogramOpts is options to create histogram collector
 type HistogramOpts struct {
-	Name    string
 	Help    string
-	Labels  []string
 	Buckets []float64
 }

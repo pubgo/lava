@@ -7,13 +7,17 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
 	github.com/apache/thrift v0.13.0
+	github.com/arl/statsviz v0.4.0
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
 	github.com/go-chi/chi/v5 v5.0.0
+	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6
@@ -43,6 +47,8 @@ require (
 	github.com/pubgo/xerror v0.4.1
 	github.com/pubgo/xlog v0.1.3
 	github.com/pubgo/xprotogen v0.0.7
+	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+	github.com/segmentio/nsq-go v1.2.4
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5

@@ -9,6 +9,14 @@ import (
 // msgpackCodec uses messagepack marshaler and unmarshaler.
 type msgpackCodec struct{}
 
+func (c msgpackCodec) Marshal(v interface{}) ([]byte, error) {
+	return c.Encode(v)
+}
+
+func (c msgpackCodec) Unmarshal(data []byte, v interface{}) error {
+	return c.Decode(data, v)
+}
+
 func (c msgpackCodec) Name() string {
 	return Name
 }

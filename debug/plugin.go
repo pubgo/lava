@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
@@ -16,7 +17,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-func On(fn func(app *chi.Mux)) { xerror.Panic(dix.Dix(fn)) }
+func On(fn func(mux *chi.Mux)) { xerror.Panic(dix.Dix(fn)) }
 func init()                    { plugin.Register(plg) }
 
 var plg = &plugin.Base{
@@ -24,21 +25,21 @@ var plg = &plugin.Base{
 	OnInit: func(ent interface{}) {
 		_ = config.Decode(Name, &cfg)
 
-		app = cfg.Build()
-		var addr = fmt.Sprintf(":%d", config.DebugPort)
-		var server = &http.Server{Addr: addr, Handler: app}
-		xerror.Panic(dix.Dix(app))
+		srv := cfg.Build()
+		var addr = fmt.Sprintf(":%d", app.DebugPort)
+		var server = &http.Server{Addr: addr, Handler: srv}
+		xerror.Panic(dix.Dix(srv))
 
 		entry.Parse(ent, func(ent entry.Entry) {
 			ent.BeforeStart(func() {
 				xerror.Exit(fx.GoDelay(time.Second, func() {
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-						xlog.Error("Server [mux] Listen Error", xlog.Any("err", err))
+						xlog.Error("Server [debug] Listen Error", xlog.Any("err", err))
 					}
 
-					xlog.Info("Server [mux] Closed OK")
+					xlog.Info("Server [debug] Closed OK")
 				}))
-				xlog.Infof("Server [mux] Listening on http://localhost%s", addr)
+				xlog.Infof("Server [debug] Listening on http://localhost%s", addr)
 			})
 
 			ent.BeforeStop(func() {
@@ -63,7 +64,7 @@ var plg = &plugin.Base{
 			}
 
 			var routeList []Route
-			for _, r := range app.Routes() {
+			for _, r := range appMux.Routes() {
 				rr := Route{Pattern: r.Pattern, Handlers: make(map[string]bool)}
 
 				for k := range r.Handlers {
@@ -80,12 +81,11 @@ var plg = &plugin.Base{
 		}
 
 		w(Name+"_rest_router", func() interface{} {
-			if app == nil {
+			if appMux == nil {
 				return nil
 			}
 
-			fmt.Printf("%#v\n", getRoutes(app.Routes()))
-			return getRoutes(app.Routes())
+			return getRoutes(appMux.Routes())
 		})
 	},
 }

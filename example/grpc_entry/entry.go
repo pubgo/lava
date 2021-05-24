@@ -13,5 +13,6 @@ func GetEntry() entry.Entry {
 	ent.Version("v0.0.1")
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())
+	ent.InitOpts()
 	return ent
 }

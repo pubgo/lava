@@ -1,13 +1,13 @@
 package registry
 
 import (
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 
 type Factory func(map[string]interface{}) (Registry, error)
 
-var factories types.SMap
+var factories typex.SMap
 var defaultRegistry Registry
 
 func Register(name string, r Factory) {

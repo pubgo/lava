@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lug/app"
 	"net"
 	"net/http"
 	"strconv"
@@ -199,13 +200,13 @@ func (g *grpcEntry) deregister() (err error) {
 	}
 
 	node := &registry.Node{
-		Id:      config.Project + "-" + getHostname() + "-" + DefaultId,
+		Id:      app.Project + "-" + getHostname() + "-" + DefaultId,
 		Address: fmt.Sprintf("%s:%d", host, port),
 		Port:    port,
 	}
 
 	services := &registry.Service{
-		Name:    config.Project,
+		Name:    app.Project,
 		Version: g.Entry.Options().Version,
 		Nodes:   []*registry.Node{node},
 	}

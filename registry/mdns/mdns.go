@@ -5,13 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lug/app"
 	"sync"
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
-	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
@@ -138,7 +138,7 @@ func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) ([]*registr
 		ctx, cancel := context.WithTimeout(context.Background(), gOpts.Timeout)
 		defer cancel()
 
-		xerror.Panic(m.resolver.Browse(ctx, s, config.Domain, entries), "Failed to Browse")
+		xerror.Panic(m.resolver.Browse(ctx, s, app.Domain, entries), "Failed to Browse")
 		<-ctx.Done()
 	})
 }
@@ -159,7 +159,7 @@ func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry
 	return watcher, xutil.Try(func() {
 		xerror.Assert(service == "", "[service] should not be null")
 
-		var allNodes types.SMap
+		var allNodes typex.SMap
 		services, err := m.GetService(service)
 		xerror.Panic(err)
 		for i := range services {
@@ -169,7 +169,7 @@ func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry
 		}
 
 		watcher.cancel = fx.GoLoop(func(ctx context.Context) {
-			var nodes types.SMap
+			var nodes typex.SMap
 
 			select {
 			case <-time.Tick(m.cfg.TTL):

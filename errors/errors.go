@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/x/strutil"
 )
 
 func (x *Error) Error() string {
@@ -14,7 +16,17 @@ func (x *Error) Error() string {
 	if err != nil {
 		return err.Error()
 	}
+
 	return string(dt)
+}
+
+func (x *Error) As(target interface{}) bool {
+	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
+	if err, ok := t1.(*Error); ok {
+		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
+		return true
+	}
+	return false
 }
 
 // Is matches each error in the chain with the target value.
@@ -88,6 +100,17 @@ func FromError(err error) (*Error, bool) {
 	return nil, false
 }
 
+// Parse tries to parse a JSON string into an error. If that
+// fails, it will set the given string as the error Status.
+func Parse(err string) *Error {
+	e := new(Error)
+	err1 := json.Unmarshal(strutil.ToBytes(err), e)
+	if err1 != nil {
+		e.Status = err
+	}
+	return e
+}
+
 // New generates a custom error.
 func New(id, Status string, code int32) *Error {
 	return &Error{
@@ -95,17 +118,6 @@ func New(id, Status string, code int32) *Error {
 		Code:   code,
 		Status: Status,
 	}
-}
-
-// Parse tries to parse a JSON string into an error. If that
-// fails, it will set the given string as the error Status.
-func Parse(err string) *Error {
-	e := new(Error)
-	err1 := json.Unmarshal([]byte(err), e)
-	if err1 != nil {
-		e.Status = err
-	}
-	return e
 }
 
 // BadRequest generates a 400 error.
@@ -197,13 +209,13 @@ func UnwrapIgnorableError(err string) (bool, string) {
 		return false, err
 	}
 
-	igerr := new(IgnorableError)
-	uerr := json.Unmarshal([]byte(err), igerr)
-	if uerr != nil {
+	igErr := new(IgnorableError)
+	uErr := json.Unmarshal([]byte(err), igErr)
+	if uErr != nil {
 		return false, err
 	}
 
-	return igerr.Ignorable, igerr.Err
+	return igErr.Ignorable, igErr.Err
 }
 
 // IgnoreError generates a -1 error.
@@ -228,15 +240,6 @@ func Cancelled(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsCancelled determines if err is an error which indicates a cancelled error.
-// It supports wrapped errors.
-func IsCancelled(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 1
-	}
-	return false
-}
-
 // Unknown error.
 // HTTP Mapping: 500 Internal Server Error
 func Unknown(id, format string, a ...interface{}) error {
@@ -245,15 +248,6 @@ func Unknown(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsUnknown determines if err is an error which indicates a unknown error.
-// It supports wrapped errors.
-func IsUnknown(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 2
-	}
-	return false
 }
 
 // InvalidArgument The client specified an invalid argument.
@@ -266,15 +260,6 @@ func InvalidArgument(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsInvalidArgument determines if err is an error which indicates an invalid argument error.
-// It supports wrapped errors.
-func IsInvalidArgument(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 3
-	}
-	return false
-}
-
 // DeadlineExceeded The deadline expired before the operation could complete.
 // HTTP Mapping: 504 Gateway Timeout
 func DeadlineExceeded(id, format string, a ...interface{}) error {
@@ -283,24 +268,6 @@ func DeadlineExceeded(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsDeadlineExceeded determines if err is an error which indicates a deadline exceeded error.
-// It supports wrapped errors.
-func IsDeadlineExceeded(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 4
-	}
-	return false
-}
-
-// IsNotFound determines if err is an error which indicates a not found error.
-// It supports wrapped errors.
-func IsNotFound(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 5
-	}
-	return false
 }
 
 // AlreadyExists The entity that a client attempted to create (e.g., file or directory) already exists.
@@ -313,15 +280,6 @@ func AlreadyExists(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsAlreadyExists determines if err is an error which indicates a already exsits error.
-// It supports wrapped errors.
-func IsAlreadyExists(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 6
-	}
-	return false
-}
-
 // PermissionDenied The caller does not have permission to execute the specified operation.
 // HTTP Mapping: 403 Forbidden
 func PermissionDenied(id, format string, a ...interface{}) error {
@@ -330,15 +288,6 @@ func PermissionDenied(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsPermissionDenied determines if err is an error which indicates a permission denied error.
-// It supports wrapped errors.
-func IsPermissionDenied(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 7
-	}
-	return false
 }
 
 // ResourceExhausted Some resource has been exhausted, perhaps a per-user quota, or
@@ -352,15 +301,6 @@ func ResourceExhausted(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsResourceExhausted determines if err is an error which indicates a resource exhausted error.
-// It supports wrapped errors.
-func IsResourceExhausted(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 8
-	}
-	return false
-}
-
 // FailedPrecondition The operation was rejected because the system is not in a state
 // required for the operation's execution.
 // HTTP Mapping: 400 Bad Request
@@ -370,15 +310,6 @@ func FailedPrecondition(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsFailedPrecondition determines if err is an error which indicates a failed precondition error.
-// It supports wrapped errors.
-func IsFailedPrecondition(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 9
-	}
-	return false
 }
 
 // Aborted The operation was aborted, typically due to a concurrency issue such as
@@ -392,15 +323,6 @@ func Aborted(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsAborted determines if err is an error which indicates an aborted error.
-// It supports wrapped errors.
-func IsAborted(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 10
-	}
-	return false
-}
-
 // OutOfRange The operation was attempted past the valid range.  E.g., seeking or
 // reading past end-of-file.
 // HTTP Mapping: 400 Bad Request
@@ -412,15 +334,6 @@ func OutOfRange(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsOutOfRange determines if err is an error which indicates a out of range error.
-// It supports wrapped errors.
-func IsOutOfRange(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 11
-	}
-	return false
-}
-
 // Unimplemented The operation is not implemented or is not supported/enabled in this service.
 // HTTP Mapping: 501 Not Implemented
 func Unimplemented(id, format string, a ...interface{}) error {
@@ -429,15 +342,6 @@ func Unimplemented(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsUnimplemented determines if err is an error which indicates a unimplemented error.
-// It supports wrapped errors.
-func IsUnimplemented(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 12
-	}
-	return false
 }
 
 // Internal This means that some invariants expected by the
@@ -453,15 +357,6 @@ func Internal(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsInternal determines if err is an error which indicates an internal server error.
-// It supports wrapped errors.
-func IsInternal(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 13
-	}
-	return false
-}
-
 // Unavailable The service is currently unavailable.
 // HTTP Mapping: 503 Service Unavailable
 func Unavailable(id, format string, a ...interface{}) error {
@@ -472,15 +367,6 @@ func Unavailable(id, format string, a ...interface{}) error {
 	}
 }
 
-// IsUnavailable determines if err is an error which indicates a unavailable error.
-// It supports wrapped errors.
-func IsUnavailable(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 14
-	}
-	return false
-}
-
 // DataLoss Unrecoverable data loss or corruption.
 // HTTP Mapping: 500 Internal Server Error
 func DataLoss(id, format string, a ...interface{}) error {
@@ -489,22 +375,4 @@ func DataLoss(id, format string, a ...interface{}) error {
 		Id:     id,
 		Status: fmt.Sprintf(format, a...),
 	}
-}
-
-// IsDataLoss determines if err is an error which indicates a data loss error.
-// It supports wrapped errors.
-func IsDataLoss(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 15
-	}
-	return false
-}
-
-// IsUnauthorized determines if err is an error which indicates a unauthorized error.
-// It supports wrapped errors.
-func IsUnauthorized(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Code == 16
-	}
-	return false
 }

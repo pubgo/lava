@@ -20,6 +20,7 @@ var plg = plugin.Base{
 			brokers.Set(name, xerror.PanicErr(cfg.Build(name)).(Broker))
 		}
 	},
+
 	OnVars: func(w func(name string, data func() interface{})) {
 		w(Name+"_factory", func() interface{} {
 			var data = make(map[string]string)

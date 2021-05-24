@@ -16,17 +16,19 @@ var Project = ""
 var BuildTime = "2021-03-20 16:52:09"
 var Version = "v0.0.19"
 
+func GetVer() map[string]interface{} {
+	return map[string]interface{}{
+		"build_time": BuildTime,
+		"version":    Version,
+		"go_version": GoVersion,
+		"go_path":    GoPath,
+		"go_root":    GoROOT,
+		"commit_id":  CommitID,
+		"project":    Project,
+	}
+}
+
 func init() {
 	xerror.ExitErr(ver.NewVersion(Version))
-	vars.Watch("version", func() interface{} {
-		return map[string]interface{}{
-			"build_time": BuildTime,
-			"version":    Version,
-			"go_version": GoVersion,
-			"go_path":    GoPath,
-			"go_root":    GoROOT,
-			"commit_id":  CommitID,
-			"project":    Project,
-		}
-	})
+	vars.Watch("version", func() interface{} { return GetVer() })
 }

@@ -2,9 +2,9 @@ package protobuf
 
 import (
 	"fmt"
-	"github.com/pubgo/lug/encoding"
 
 	proto "github.com/gogo/protobuf/proto"
+	"github.com/pubgo/lug/encoding"
 	pb "google.golang.org/protobuf/proto"
 )
 

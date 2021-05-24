@@ -4,7 +4,7 @@ GOPath=$(shell go env GOPATH)
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 GoROOT=$(shell go env GOROOT)
 BuildTime=$(shell date "+%F %T")
-CommitID=$(shell git rev-parse HEAD)
+CommitID=$(shell git rev-parse --short=6 HEAD)
 LDFLAGS=-ldflags " \
 -X 'github.com/pubgo/lug/version.GoROOT=${GoROOT}' \
 -X 'github.com/pubgo/lug/version.BuildTime=${BuildTime}' \
@@ -23,7 +23,7 @@ build:
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
 
-.PHONY: test
+.PHONY: test./ma
 test:
 	@go test -short -race -v ./... -cover
 
