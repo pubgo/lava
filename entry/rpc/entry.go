@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lug/app"
 	"net"
 	"net/http"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 
 	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/registry"

@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/lug/internal/cmds/vars"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/plugins/pidfile"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/stack"
@@ -141,37 +140,47 @@ func Run(entries ...entry.Entry) (err error) {
 		}
 
 		// 配置初始化
-		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-			defer xerror.RespErr(&err)
-
-			app.Project = entRun.Options().Name
-			xerror.Panic(config.GetCfg().Init())
-			xerror.Panic(watcher.Init())
-			xerror.Panic(dix.Dix(config.GetCfg()))
-			return nil
-		}
+		//cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
+		//	defer xerror.RespErr(&err)
+		//
+		//	app.Project = entRun.Options().Name
+		//	xerror.Panic(config.GetCfg().Init())
+		//	xerror.Panic(dix.Dix(config.GetCfg()))
+		//	return nil
+		//}
 
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
-			// entry初始化
-			xerror.Panic(entRun.Init())
+			// 本项目名字初始化
+			app.Project = entRun.Options().Name
+
+			// 配置初始化
+			xerror.Panic(config.GetCfg().Init())
+			xerror.Panic(dix.Dix(config.GetCfg()))
+
+			// plugin项目前缀初始化, 默认本项目
+			plugin.InitProjectPrefix(app.Project)
 
 			// 初始化组件, 初始化插件
-			plugins := plugin.List(plugin.Module(entRun.Options().Name))
+			plugins := plugin.List(plugin.Module(app.Project))
 			plugins = append(plugin.List(), plugins...)
 			for _, pg := range plugins {
 				key := pg.String()
 				xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 
-				// watch key
-				watcher.Watch(key, pg.Watch)
+				// watch初始化, watch remote key
+				for _, project := range plugin.GetProjectPrefix() {
+					watcher.WatchPlugin(project, key, pg.Watch)
+				}
 			}
 
-			xerror.Panic(start(entRun))
+			xerror.Panic(watcher.Init())
 
-			// 保存pid文件
-			xerror.Panic(pidfile.New(cmd.Use).SavePid())
+			// entry初始化
+			xerror.Panic(entRun.Init())
+
+			xerror.Panic(start(entRun))
 
 			if app.IsBlock {
 				handleSignal()

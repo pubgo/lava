@@ -2,6 +2,8 @@ package lug
 
 import (
 	_ "github.com/pubgo/lug/debug"
+	_ "github.com/pubgo/lug/encoding/json"
+	_ "github.com/pubgo/lug/encoding/protobuf"
 	_ "github.com/pubgo/lug/healthy"
 	_ "github.com/pubgo/lug/internal/log"
 	_ "github.com/pubgo/lug/metric"

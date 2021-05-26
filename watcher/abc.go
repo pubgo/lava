@@ -3,7 +3,6 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 )
 
@@ -24,14 +23,14 @@ type Watcher interface {
 	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 }
 
-type Opt func(*Opts)
-type Opts struct{}
+type Opt func(*opts)
+type opts struct{}
 
 type Response struct {
-	Event    string
-	Key      string
-	Value    []byte
-	Revision int64
+	Event   string
+	Key     string
+	Value   []byte
+	Version int64
 }
 
 func (t *Response) OnPut(fn func()) {
@@ -49,7 +48,7 @@ func (t *Response) OnDelete(fn func()) {
 }
 
 func (t *Response) Decode(val interface{}) error {
-	return xerror.WrapF(jsonx.Unmarshal(t.Value, val), "input: %s, output: %#v", t.Value, val)
+	return xerror.WrapF(unmarshal(t.Value, val), "input: %s, output: %#v", t.Value, val)
 }
 
 func (t *Response) checkEventType() error {

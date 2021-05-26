@@ -4,6 +4,7 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
@@ -31,8 +32,10 @@ var plg = plugin.Base{
 	},
 	OnVars: func(w func(name string, data func() interface{})) {
 		w(Name, func() interface{} {
-			var dt map[string]Factory
-			xerror.Panic(reporters.MapTo(&dt))
+			var dt = make(map[string]string)
+			xerror.Panic(reporters.Each(func(name string, r Factory) {
+				dt[name] = stack.Func(r)
+			}))
 			return dt
 		})
 	},

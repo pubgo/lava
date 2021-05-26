@@ -16,6 +16,7 @@ require (
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
@@ -28,6 +29,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.3.0
 	github.com/hashicorp/go-version v1.2.1
+	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/memberlist v0.1.3
 	github.com/jaegertracing/jaeger v1.22.0
 	github.com/json-iterator/go v1.1.10
@@ -40,6 +42,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
+	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/pubgo/dix v0.1.14
@@ -67,5 +70,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210224155714-063164c882e6
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.1-0.20201208041424-160c7477e0e8
+	gopkg.in/yaml.v2 v2.4.0
 	xorm.io/xorm v1.0.5
 )

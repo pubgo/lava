@@ -12,13 +12,11 @@ import (
 )
 
 func init() {
-	xerror.Exit(tracing.Register(Name, NewWithMap))
-}
-
-func NewWithMap(cfgMap map[string]interface{}) (tracing.Tracer, error) {
-	var cfg = GetDefaultCfg()
-	xerror.Panic(merge.MapStruct(&cfg, cfgMap))
-	return New(cfg)
+	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) (tracing.Tracer, error) {
+		var cfg = GetDefaultCfg()
+		xerror.Panic(merge.MapStruct(&cfg, cfgMap))
+		return New(cfg)
+	}))
 }
 
 func New(cfg *Cfg) (tracing.Tracer, error) {

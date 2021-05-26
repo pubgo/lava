@@ -7,14 +7,12 @@ import (
 
 type Factory func(map[string]interface{}) (Registry, error)
 
-var factories typex.SMap
-var defaultRegistry Registry
+var factories typex.MapRWM
 
 func Register(name string, r Factory) {
 	defer xerror.RespExit()
+	
 	xerror.Assert(name == "" || r == nil, "[name,r] should not be null")
 	xerror.Assert(factories.Has(name), "registry %s already exists", name)
 	factories.Set(name, r)
 }
-
-func Default() Registry { return defaultRegistry }

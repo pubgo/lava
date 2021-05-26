@@ -25,10 +25,10 @@ var plg = &plugin.Base{
 	OnInit: func(ent interface{}) {
 		_ = config.Decode(Name, &cfg)
 
-		srv := cfg.Build()
+		appMux = cfg.Build()
 		var addr = fmt.Sprintf(":%d", app.DebugPort)
-		var server = &http.Server{Addr: addr, Handler: srv}
-		xerror.Panic(dix.Dix(srv))
+		var server = &http.Server{Addr: addr, Handler: appMux}
+		xerror.Panic(dix.Dix(appMux))
 
 		entry.Parse(ent, func(ent entry.Entry) {
 			ent.BeforeStart(func() {
@@ -51,41 +51,13 @@ var plg = &plugin.Base{
 	},
 
 	OnVars: func(w func(name string, data func() interface{})) {
-		type Route struct {
-			Pattern   string
-			Handlers  map[string]bool
-			SubRoutes []Route
-		}
-
-		var getRoutes func(routes []chi.Route) []Route
-		getRoutes = func(routes []chi.Route) []Route {
-			if len(routes) == 0 {
-				return nil
-			}
-
-			var routeList []Route
-			for _, r := range appMux.Routes() {
-				rr := Route{Pattern: r.Pattern, Handlers: make(map[string]bool)}
-
-				for k := range r.Handlers {
-					rr.Handlers[k] = true
-				}
-
-				//if r.SubRoutes != nil {
-				//	rr.SubRoutes = getRoutes(r.SubRoutes.Routes())
-				//}
-
-				routeList = append(routeList, rr)
-			}
-			return routeList
-		}
-
 		w(Name+"_rest_router", func() interface{} {
-			if appMux == nil {
-				return nil
+			var dt []string
+			for _, r := range appMux.Routes() {
+				dt=append(dt,fmt.Sprintf("http://localhost:%d%s", app.DebugPort, r.Pattern))
 			}
 
-			return getRoutes(appMux.Routes())
+			return dt
 		})
 	},
 }

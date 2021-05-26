@@ -1,35 +1,49 @@
 package bytes
 
 import (
-	"fmt"
 	"reflect"
+
+	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/xerror"
 )
+
+var Name = "bytes"
+
+func init() {
+	encoding.Register(Name, bytesCodec{})
+}
 
 // bytesCodec uses raw slice pf bytes and don't encode/decode.
 type bytesCodec struct{}
 
 func (c bytesCodec) Marshal(v interface{}) ([]byte, error) {
-	return c.Encode(v)
+	ret, err := c.Encode(v)
+	if err != nil {
+		return nil, xerror.Wrap(err)
+	}
+	return ret, nil
 }
 
 func (c bytesCodec) Unmarshal(data []byte, v interface{}) error {
-	return c.Decode(data, v)
+	if err := c.Decode(data, v); err != nil {
+		return xerror.Wrap(err)
+	}
+	return nil
 }
 
-func (c bytesCodec) Name() string {
-	return Name
-}
+func (c bytesCodec) Name() string { return Name }
 
 // Encode returns raw slice of bytes.
 func (c bytesCodec) Encode(i interface{}) ([]byte, error) {
 	if data, ok := i.([]byte); ok {
 		return data, nil
 	}
+
 	if data, ok := i.(*[]byte); ok {
 		return *data, nil
 	}
 
-	return nil, fmt.Errorf("%T is not a []byte", i)
+	return nil, xerror.Fmt("%T is not a []byte", i)
 }
 
 // Decode returns raw slice of bytes.

@@ -31,7 +31,7 @@ func (t *Set) Map(data interface{}) (err error) {
 	vd := reflect.ValueOf(data)
 	xerror.Assert(vd.Kind() != reflect.Ptr, "[data] should be ptr type")
 	vd = vd.Elem()
-	
+
 	dt := reflect.MakeSlice(vd.Type(), 0, int(t.count.Load()))
 	t.m.Range(func(key, _ interface{}) bool {
 		dt = reflect.AppendSlice(dt, reflect.ValueOf(key))

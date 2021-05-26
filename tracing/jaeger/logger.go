@@ -38,6 +38,7 @@ func (l *logger) Report(span *jaeger.Span) {
 		for i := range logs.Fields {
 			fields = append(fields, logs.Fields[i].String())
 		}
+
 		l.logs.Info(
 			fmt.Sprintf("Reporting span %s %+v", span.OperationName(), span),
 			xlog.Time("StartTime", span.StartTime()),

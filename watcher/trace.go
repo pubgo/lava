@@ -3,17 +3,16 @@ package watcher
 import (
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/stack"
-	"github.com/pubgo/xerror"
 )
 
 func init() {
-	vars.Watch(Name+"_watcher_callback", func() interface{} {
+	vars.Watch(Name+"_callback", func() interface{} {
 		var dt []string
-		xerror.Panic(callbacks.Each(func(key string) { dt = append(dt, key) }))
+		callbacks.Each(func(key string, _ interface{}) { dt = append(dt, key) })
 		return dt
 	})
 
-	vars.Watch(Name+"_watcher", func() interface{} {
+	vars.Watch(Name, func() interface{} {
 		var dt = make(map[string]string)
 		for name, f := range factories {
 			dt[name] = stack.Func(f)

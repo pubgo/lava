@@ -64,10 +64,10 @@ func (w *etcdWatcher) WatchCallback(ctx context.Context, key string, fn func(res
 			for i := range w.Events {
 				var e = w.Events[i]
 				fn(&watcher.Response{
-					Event:    e.Type.String(),
-					Key:      string(e.Kv.Key),
-					Value:    e.Kv.Value,
-					Revision: e.Kv.Version,
+					Event:   e.Type.String(),
+					Key:     string(e.Kv.Key),
+					Value:   e.Kv.Value,
+					Version: e.Kv.Version,
 				})
 			}
 		}
@@ -81,10 +81,10 @@ func (w *etcdWatcher) Watch(ctx context.Context, key string, opts ...watcher.Opt
 			for i := range w.Events {
 				var e = w.Events[i]
 				resp <- &watcher.Response{
-					Event:    e.Type.String(),
-					Key:      string(e.Kv.Key),
-					Value:    e.Kv.Value,
-					Revision: e.Kv.Version,
+					Event:   e.Type.String(),
+					Key:     string(e.Kv.Key),
+					Value:   e.Kv.Value,
+					Version: e.Kv.Version,
 				}
 			}
 		}

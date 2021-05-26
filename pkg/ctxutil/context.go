@@ -15,3 +15,7 @@ func Timeout(durations ...time.Duration) (context.Context, context.CancelFunc) {
 
 	return context.WithTimeout(context.Background(), dur)
 }
+
+func Default() context.Context {
+	return context.Background()
+}

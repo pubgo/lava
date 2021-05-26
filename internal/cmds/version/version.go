@@ -16,7 +16,7 @@ import (
 
 var trim = strings.TrimSpace
 var Cmd = &cobra.Command{
-	Use:     "version",
+	Use:     "ver",
 	Aliases: typex.StrOf("v"),
 	Short:   "Print the dependency package information",
 	Example: trim(`
@@ -47,7 +47,7 @@ lug version table`),
 			fmt.Println(string(dt))
 		case "table", "tb", "t":
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"Path", "Version", "Replace"})
+			table.SetHeader([]string{"path", "Version", "Replace"})
 			table.Append([]string{info.Main.Path, version.Version, replace(info.Main.Replace)})
 
 			for _, dep := range info.Deps {

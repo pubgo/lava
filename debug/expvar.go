@@ -7,6 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/lug/app"
+	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/xerror"
 )
 
 func init() {
@@ -14,19 +16,29 @@ func init() {
 		r.Handle("/debug/expvar", expvar.Handler())
 
 		r.Get("/debug/vars", func(writer http.ResponseWriter, request *http.Request) {
-			var dt = ""
+			writer.Header().Set("Content-Type", "application/json")
+
+			var keys []string
 			expvar.Do(func(value expvar.KeyValue) {
-				dt += value.Key + "\n"
+				keys = append(keys, value.Key)
 			})
-			writer.Write([]byte(dt))
+
+			dt, err := jsonx.Marshal(keys)
+			xerror.Panic(err)
+			xerror.PanicErr(writer.Write(dt))
 		})
+
 		r.Get("/", func(writer http.ResponseWriter, request *http.Request) {
-			var dt = ""
+			writer.Header().Set("Content-Type", "application/json")
+
+			var keys []string
 			for _, r := range r.Routes() {
-				dt += fmt.Sprintf("http://localhost:%d%s\n", app.DebugPort, r.Pattern)
+				keys = append(keys, fmt.Sprintf("http://localhost:%d%s", app.DebugPort, r.Pattern))
 			}
 
-			writer.Write([]byte(dt))
+			dt, err := jsonx.Marshal(keys)
+			xerror.Panic(err)
+			xerror.PanicErr(writer.Write(dt))
 		})
 
 		r.Get("/debug/vars/{vars}", func(writer http.ResponseWriter, request *http.Request) {

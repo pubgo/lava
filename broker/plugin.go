@@ -30,7 +30,7 @@ var plg = plugin.Base{
 			return data
 		})
 
-		w(Name+"_broker", func() interface{} {
+		w(Name, func() interface{} {
 			var data = make(map[string]string)
 			xerror.Panic(brokers.Each(func(name string, fc Broker) {
 				data[name] = fc.String()

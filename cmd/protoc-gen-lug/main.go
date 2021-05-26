@@ -63,7 +63,7 @@ import (
 						Service:      "{{pkg}}.{{ss.Name}}",
 						Name:         "{{m.GetName()}}",
 						Method:       "{{m.HttpMethod}}",
-						Path:          "{{m.HttpPath}}",
+						path:          "{{m.HttpPath}}",
 						ClientStream:  "{{m.CS}}"=="True",
 						ServerStreams: "{{m.SS}}"=="True",
 					})`, gen.Context{"pkg": fd.Pkg, "m": m, "ss": ss}))

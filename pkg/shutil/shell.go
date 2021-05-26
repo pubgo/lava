@@ -1,4 +1,4 @@
-package sh
+package shutil
 
 import (
 	"bytes"

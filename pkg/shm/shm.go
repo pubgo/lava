@@ -19,6 +19,7 @@ package shm
 
 import (
 	"github.com/pubgo/xlog"
+
 	"os"
 	"path/filepath"
 	"syscall"

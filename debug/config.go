@@ -14,6 +14,10 @@ type Cfg struct {
 	chi.Cfg
 }
 
+func (t *Cfg)init() {
+
+}
+
 func GetDefaultCfg() Cfg {
 	return Cfg{
 		Cfg: chi.GetDefaultCfg(),
