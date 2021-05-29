@@ -35,7 +35,7 @@ func (t Cfg) Build() (c *clientv3.Client, err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg clientv3.Config
-	// 转化为etcd Cfg
+	// 转化为etcd Builder
 	xerror.Panic(merge.Copy(&cfg, &t))
 
 	// 创建etcd client对象

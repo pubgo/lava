@@ -2,7 +2,7 @@ package healthy
 
 import (
 	"context"
-	
+
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
@@ -10,7 +10,7 @@ import (
 
 type HealthCheck func(ctx context.Context) error
 
-var healthList typex.MapRWM
+var healthList typex.Map
 
 func Get(names ...string) HealthCheck {
 	val, ok := healthList.Load(consts.GetDefault(names...))

@@ -1,6 +1,8 @@
 package debug
 
 import (
+	"github.com/go-chi/chi/v5"
+
 	"bytes"
 	"fmt"
 	"html"
@@ -12,8 +14,6 @@ import (
 	rpp "runtime/pprof"
 	"sort"
 	"strings"
-
-	"github.com/go-chi/chi/v5"
 )
 
 func init() {

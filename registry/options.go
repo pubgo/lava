@@ -4,14 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"time"
-
-	"github.com/pubgo/xerror"
 )
 
-func TTL(t string) RegOpt {
+func TTL(dur time.Duration) RegOpt {
 	return func(o *RegOpts) {
-		dur, err := time.ParseDuration(t)
-		xerror.Panic(err)
 		o.TTL = dur
 	}
 }

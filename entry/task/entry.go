@@ -32,9 +32,9 @@ func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
 	t.handlers = append(t.handlers, taskHandler)
 }
 
-func (t *taskEntry) Init() (err error) {
+func (t *taskEntry) InitRT() (err error) {
 	return xutil.Try(func() {
-		xerror.Panic(t.Entry.Init())
+		xerror.Panic(t.Entry.InitRT())
 		_ = config.Decode(Name, &t.cfg)
 	})
 }

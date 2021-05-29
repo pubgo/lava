@@ -7,6 +7,9 @@ import "example/proto/hello/api1.proto";
 
 service TestApi {
   rpc Version(hello.TestReq) returns (hello.TestApiOutput){
+    option (google.api.http) = {
+      get: "/v1/version"
+    };
   }
 
   rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){

@@ -19,11 +19,8 @@ import (
 var _ entry.Entry = (*Entry)(nil)
 
 type Entry struct {
+	init func()
 	opts entry.Opts
-}
-
-func (t *Entry) Health(fn func() error) error {
-	return fn()
 }
 
 func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
@@ -34,29 +31,29 @@ func (t *Entry) Dix(data ...interface{}) { xerror.Panic(dix.Dix(data...)) }
 func (t *Entry) Start() error            { panic("unimplemented") }
 func (t *Entry) Stop() error             { panic("unimplemented") }
 func (t *Entry) Options() entry.Opts     { return t.opts }
+func (t *Entry) OnCfg(fn interface{})    { t.OnCfgWithName(t.opts.Name, fn) }
+func (t *Entry) OnInit(init func())      { t.init = init }
+func (t *Entry) OnCfgWithName(name string, fn interface{}) {
+	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
+	config.On(func(cfg config.Config) { _ = config.Decode(name, fn) })
+}
 
 // Plugin 注册插件
 func (t *Entry) Plugin(plg plugin.Plugin) {
 	defer xerror.RespExit()
+
 	xerror.Assert(plg == nil || plg.String() == "", "[plg] should not be nil")
 	xerror.Assert(t.opts.Name == "", "please init project name first")
 	plugin.Register(plg, plugin.Module(t.opts.Name))
 }
 
-// OnCfg 项目配置加载解析
-func (t *Entry) OnCfg(fn interface{}) { t.OnCfgWithName(t.opts.Name, fn) }
-func (t *Entry) OnCfgWithName(name string, fn interface{}) {
-	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
-
-	config.On(func(cfg config.Config) { _ = config.Decode(name, fn) })
-}
-
-func (t *Entry) Init() (err error) {
+func (t *Entry) InitRT() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(app.Project != t.Options().Name, "project name not match(%s, %s)", app.Project, t.Options().Name)
-	t.opts.Addr = app.Addr
+	t.init()
 	t.opts.Initialized = true
+
 	return
 }
 
@@ -88,8 +85,7 @@ func (t *Entry) Version(v string) {
 	}
 
 	t.opts.Command.Version = v
-	_, err := ver.NewVersion(v)
-	xerror.Panic(err)
+	xerror.PanicErr(ver.NewVersion(v))
 	return
 }
 
@@ -127,8 +123,7 @@ func newEntry(name string) *Entry {
 	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
-	var cmd = &cobra.Command{Use: handleCmdName(name)}
-	ent := &Entry{opts: entry.Opts{Name: name, Addr: ":8080", Version: version.Version, Command: cmd}}
+	ent := &Entry{opts: entry.Opts{Name: name, Version: version.Version, Command: &cobra.Command{Use: handleCmdName(name)}}}
 
 	return ent
 }

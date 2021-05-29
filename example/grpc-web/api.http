@@ -1,9 +1,11 @@
-POST http://localhost:8900/hello.TestApi/Version
+POST http://localhost:8900/hello.TestApi/Version?name=jello
 Content-Type: application/grpc+json
 
-{
- "input":"hello"
-}
+{"input":"hello"}
+
+###
+GET http://localhost:8900/hello.TestApi/Version?input=hello1
+Content-Type: application/grpc+uri
 
 ### TestStream3
 POST http://localhost:8900//hello.Transport/TestStream3

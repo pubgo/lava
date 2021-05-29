@@ -8,7 +8,7 @@ import (
 )
 
 type Runtime interface {
-	Init() error
+	InitRT() error
 	Start() error
 	Stop() error
 	Options() Opts
@@ -35,7 +35,6 @@ type Opts struct {
 	BeforeStops  []func()
 	AfterStops   []func()
 	Initialized  bool
-	Addr         string
 	Name         string
 	Version      string
 	Command      *cobra.Command

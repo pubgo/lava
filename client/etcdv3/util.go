@@ -11,7 +11,7 @@ import (
 // cfgMerge 合并etcd Cfg
 func cfgMerge(cfg Cfg) (cfg1 Cfg, err error) {
 	cfg1 = GetDefaultCfg()
-	err = xerror.WrapF(merge.Copy(&cfg1, &cfg), "[etcd] client Cfg merge error")
+	err = xerror.WrapF(merge.Copy(&cfg1, &cfg), "[etcd] client Builder merge error")
 	return
 }
 

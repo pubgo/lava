@@ -7,8 +7,8 @@ import (
 
 type Handler = fiber.Handler
 type Router = fiber.Router
-type Opts struct{}
-type Opt func(opts *Opts)
+type options struct{}
+type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
 	Use(handler ...Handler)

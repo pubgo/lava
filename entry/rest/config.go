@@ -1,9 +1,11 @@
 package rest
 
 import (
-	fb "github.com/pubgo/lug/service/fiber"
+	fb "github.com/pubgo/lug/builder/fiber"
 )
 
 const Name = "rest"
 
-type Cfg = fb.Cfg
+type Cfg struct {
+	fb.Cfg
+}

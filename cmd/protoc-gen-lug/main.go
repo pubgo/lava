@@ -11,7 +11,7 @@ import (
 func main() {
 	defer xerror.RespDebug()
 
-	m := gen.New("lug")
+	m := gen.New("lug",gen.OnlyService())
 	m.Parameter(func(key, value string) {
 		log.Println("params:", key, "=", value)
 	})
@@ -63,7 +63,7 @@ import (
 						Service:      "{{pkg}}.{{ss.Name}}",
 						Name:         "{{m.GetName()}}",
 						Method:       "{{m.HttpMethod}}",
-						path:          "{{m.HttpPath}}",
+						Path:          "{{m.HttpPath}}",
 						ClientStream:  "{{m.CS}}"=="True",
 						ServerStreams: "{{m.SS}}"=="True",
 					})`, gen.Context{"pkg": fd.Pkg, "m": m, "ss": ss}))

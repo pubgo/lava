@@ -14,7 +14,7 @@ func main() {
 
 func startTrace() {
 	_, file, line, _ := runtime.Caller(1) //  runtime库的Caller函数，可以返回运行时正在执行的文件名和行号
-	events := trace.NewEventLog("grpc.Server", fmt.Sprintf("%s:%d", file, line))
+	events := trace.NewEventLog("grpc.Srv", fmt.Sprintf("%s:%d", file, line))
 
 	for i := 0; ; i++ {
 		tr := trace.New("grpc.trace11", fmt.Sprintf("%s:%d", file, line))

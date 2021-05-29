@@ -15,6 +15,7 @@ import (
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/stack"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -27,7 +28,6 @@ func init() {
 	rootCmd.AddCommand(vars.Cmd)
 }
 
-//Cmd
 func handleSignal() {
 	if app.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
@@ -42,65 +42,48 @@ func handleSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	app.Signal = <-ch
+	xlog.Infof("signal [%s] trigger", app.Signal.String())
 }
 
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	beforeStarts := append(beforeStarts, ent.Options().BeforeStarts...)
-	for i := range beforeStarts {
-		func(i int) {
-			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("before start error: %s", stack.Func(beforeStarts[i]))
-			})
-
-			beforeStarts[i]()
-		}(i)
+	xlog.Infof("[%s] before start running", ent.Options().Name)
+	bStarts := append(beforeStarts, ent.Options().BeforeStarts...)
+	for i := range bStarts {
+		xerror.PanicF(try.Try(bStarts[i]), "before start error: %s", stack.Func(bStarts[i]))
 	}
+	xlog.Infof("[%s] before start over", ent.Options().Name)
 
 	xerror.Panic(ent.Start())
 
-	afterStarts := append(afterStarts, ent.Options().AfterStarts...)
-	for i := range afterStarts {
-		func(i int) {
-			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("after start error: %s", stack.Func(afterStarts[i]))
-			})
-
-			afterStarts[i]()
-		}(i)
+	xlog.Infof("[%s] after start running", ent.Options().Name)
+	aStarts := append(afterStarts, ent.Options().AfterStarts...)
+	for i := range aStarts {
+		xerror.PanicF(try.Try(aStarts[i]), "after start error: %s", stack.Func(bStarts[i]))
 	}
-
+	xlog.Infof("[%s] after start over", ent.Options().Name)
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	beforeStops := append(beforeStops, ent.Options().BeforeStops...)
-	for i := range beforeStops {
-		func(i int) {
-			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("before stop error: %s", stack.Func(beforeStops[i]))
-			})
-
-			beforeStops[i]()
-		}(i)
+	xlog.Infof("[%s] before stop running", ent.Options().Name)
+	bStops := append(beforeStops, ent.Options().BeforeStops...)
+	for i := range bStops {
+		xerror.PanicF(try.Try(bStops[i]), "before stop error: %s", stack.Func(bStops[i]))
 	}
+	xlog.Infof("[%s] before stop over", ent.Options().Name)
 
 	xerror.Panic(ent.Stop())
 
-	afterStops := append(afterStops, ent.Options().AfterStops...)
-	for i := range afterStops {
-		func(i int) {
-			defer xerror.RespRaise(func(err xerror.XErr) error {
-				return err.WrapF("after stop error: %s", stack.Func(afterStops[i]))
-			})
-
-			afterStops[i]()
-		}(i)
+	xlog.Infof("[%s] after stop running", ent.Options().Name)
+	aStops := append(afterStops, ent.Options().AfterStops...)
+	for i := range aStops {
+		xerror.PanicF(try.Try(afterStops[i]), "after stop error: %s", stack.Func(afterStops[i]))
 	}
-
+	xlog.Infof("[%s] after stop over", ent.Options().Name)
 	return nil
 }
 
@@ -144,7 +127,7 @@ func Run(entries ...entry.Entry) (err error) {
 		//	defer xerror.RespErr(&err)
 		//
 		//	app.Project = entRun.Options().Name
-		//	xerror.Panic(config.GetCfg().Init())
+		//	xerror.Panic(config.GetCfg().OnInit())
 		//	xerror.Panic(dix.Dix(config.GetCfg()))
 		//	return nil
 		//}
@@ -178,7 +161,7 @@ func Run(entries ...entry.Entry) (err error) {
 			xerror.Panic(watcher.Init())
 
 			// entry初始化
-			xerror.Panic(entRun.Init())
+			xerror.PanicF(entRun.InitRT(), app.Project)
 
 			xerror.Panic(start(entRun))
 
@@ -220,7 +203,7 @@ func Start(ent entry.Entry) (err error) {
 	xerror.Panic(dix.Dix(config.GetCfg()))
 
 	// entry初始化
-	xerror.Panic(entRun.Init())
+	xerror.Panic(entRun.InitRT())
 
 	// plugin初始化
 	plugins := plugin.List(plugin.Module(entRun.Options().Name))

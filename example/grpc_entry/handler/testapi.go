@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/pubgo/lug/example/proto/hello"
 )
 
@@ -13,7 +14,7 @@ type testapiHandler struct {
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
+	//log.Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	out = &hello.TestApiOutput{
 		Msg: in.Input,

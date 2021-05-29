@@ -3,7 +3,12 @@ GET http://localhost:8080/api
 Content-Type: application/json
 
 ###
-POST http://localhost:8080/hello_test_api/version
+POST http://localhost:8080/v1/version
 Content-Type: application/json
 
-{"input":"hello"}
+{
+  "input":"hello"
+}
+
+###
+GET http://localhost:8080/v1/version?input=hello1

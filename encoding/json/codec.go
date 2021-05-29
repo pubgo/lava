@@ -14,13 +14,13 @@ var (
 	}.Froze()
 )
 
-func init() { encoding.Register(Name, jsonCodec{}) }
+func init() { encoding.Register(Name, &jsonCodec{}) }
 
 // jsonCodec uses json marshaler and unmarshaler.
 type jsonCodec struct{}
 
-func (c jsonCodec) Marshal(v interface{}) ([]byte, error)      { return std.Marshal(v) }
-func (c jsonCodec) Unmarshal(data []byte, v interface{}) error { return std.Unmarshal(data, v) }
-func (c jsonCodec) Name() string                               { return Name }
-func (c jsonCodec) Encode(i interface{}) ([]byte, error)       { return std.Marshal(i) }
-func (c jsonCodec) Decode(data []byte, v interface{}) error    { return std.Unmarshal(data, v) }
+func (c *jsonCodec) Marshal(v interface{}) ([]byte, error)      { return std.Marshal(v) }
+func (c *jsonCodec) Unmarshal(data []byte, v interface{}) error { return std.Unmarshal(data, v) }
+func (c *jsonCodec) Name() string                               { return Name }
+func (c *jsonCodec) Encode(i interface{}) ([]byte, error)       { return std.Marshal(i) }
+func (c *jsonCodec) Decode(data []byte, v interface{}) error    { return std.Unmarshal(data, v) }

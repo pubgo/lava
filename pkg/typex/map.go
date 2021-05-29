@@ -9,16 +9,20 @@ type Map struct {
 	data map[string]interface{}
 }
 
-func (t *Map) check() {
-	if t.done == 1 {
-		return
-	}
-
+func (t *Map) once() {
 	mu.Lock()
 	defer mu.Unlock()
 
 	t.done = 1
 	t.data = make(map[string]interface{})
+}
+
+func (t *Map) check() {
+	if t.done == 1 {
+		return
+	}
+
+	t.once()
 }
 
 func (t *Map) Has(key string) bool {
@@ -73,7 +77,7 @@ func (t *Map) Each(fn func(name string, val interface{})) {
 func (t *Map) Set(key string, val interface{}) {
 	t.check()
 
-	t.data[key] = &val
+	t.data[key] = val
 }
 
 func (t *Map) Del(key string) {

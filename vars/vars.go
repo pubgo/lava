@@ -2,7 +2,6 @@ package vars
 
 import (
 	"expvar"
-
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"

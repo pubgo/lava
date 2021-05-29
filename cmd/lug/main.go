@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	var rootCmd = &cobra.Command{Use: "lug", Version: version.Version, Short: "golug 项目管理命令"}
+	var rootCmd = &cobra.Command{Use: "lug", Version: version.Version, Short: "lug框架管理工具"}
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 	rootCmd.AddCommand(initcmd.New())
 	rootCmd.AddCommand(plugin.NewPlugin())

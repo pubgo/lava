@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"github.com/pubgo/lug/builder/grpc-web"
 	"github.com/pubgo/lug/example/grpc_entry/handler"
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/x/q"
@@ -9,15 +9,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/metadata"
-	"time"
+	"net/url"
 
-	"bytes"
-	"encoding/binary"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
+	_ "github.com/gin-gonic/gin/binding"
 	"net/http"
+	"time"
+	_ "unsafe"
 )
 
 type codec struct{}
@@ -34,8 +34,31 @@ func (c *codec) Name() string {
 	return "json"
 }
 
+type codecUri struct{}
+
+func (c *codecUri) Marshal(v interface{}) ([]byte, error) {
+	fmt.Printf("%#v\n", v)
+	return json.Marshal(v)
+}
+
+func (c *codecUri) Unmarshal(data []byte, v interface{}) error {
+	fmt.Println(string(data))
+
+	var u, err = url.ParseQuery(string(data))
+	if err != nil {
+		return err
+	}
+
+	return mapFormByTag(v, u, "json")
+}
+
+func (c *codecUri) Name() string {
+	return "uri"
+}
+
 func init() {
 	encoding.RegisterCodec(&codec{})
+	encoding.RegisterCodec(&codecUri{})
 }
 
 func main() {
@@ -45,127 +68,26 @@ func main() {
 	fmt.Println(grpcServer.GetServiceInfo())
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.RequestURI)
-		fmt.Println(r.Header)
+		//fmt.Println(r.RequestURI)
+		//fmt.Println(r.Header)
+		fmt.Println(r.URL.Path)
+		fmt.Println(r.URL.Path)
 
-		var dd, err = ioutil.ReadAll(r.Body)
-		xerror.Panic(err)
-		fmt.Println("input", string(dd), "end")
+		//q.Q(r)
 
-		r.Body = grpcDataWrapper(dd)
-		grpcServer.ServeHTTP(newGrpcWebResponse(w), hackIntoNormalGrpcRequest(r))
+		//uri, err := url.ParseQuery(r.URL.RawQuery)
+		//xerror.Panic(err)
+		//
+		//var mm = new(interface{})
+		//xerror.Panic(mapFormByTag(mm, uri, "json"))
+		//q.Q(mm)
+
+		grpcWeb.Middleware(grpcServer, w, r)
+
 		return
 	})
 
 	http.ListenAndServe("127.0.0.1:8900", nil)
-}
-
-func grpcDataWrapper(data ...[]byte) io.ReadCloser {
-	writer := new(bytes.Buffer)
-	for _, msgBytes := range data {
-		grpcPreamble := []byte{0, 0, 0, 0, 0}
-		binary.BigEndian.PutUint32(grpcPreamble[1:], uint32(len(msgBytes)))
-		writer.Write(grpcPreamble)
-		writer.Write(msgBytes)
-	}
-	return ioutil.NopCloser(writer)
-}
-
-// 把http1参数转化为http2参数
-func hackIntoNormalGrpcRequest(req *http.Request) *http.Request {
-	// Hack, this should be a shallow copy, but let's see if this works
-	req.ProtoMajor = 2
-	req.ProtoMinor = 0
-
-	req.Method = http.MethodPost
-
-	req.Header.Set("content-type", "application/grpc+json")
-
-	// Remove content-length header since it represents http1.1 payload size, not the sum of the h2
-	// DATA frame payload lengths. https://http2.github.io/http2-spec/#malformed This effectively
-	// switches to chunked encoding which is the default for h2
-	req.Header.Del("content-length")
-
-	// header处理
-
-	return req
-}
-
-// grpcWebResponse implements http.ResponseWriter.
-type grpcWebResponse struct {
-	w     http.ResponseWriter
-	bytes *bytes.Buffer
-}
-
-func newGrpcWebResponse(resp http.ResponseWriter) *grpcWebResponse {
-	g := &grpcWebResponse{w: resp, bytes: bytes.NewBuffer(nil)}
-	return g
-}
-
-func (w *grpcWebResponse) Header() http.Header {
-	return w.w.Header()
-}
-
-func (w *grpcWebResponse) Write(b []byte) (int, error) {
-	var index, err = w.w.Write(b)
-
-	fmt.Println(b)
-
-	flushWriter(w.w)
-
-	return index, err
-
-	w.bytes.Write(b)
-
-	fmt.Println(w.bytes.Bytes())
-
-	//for {
-	grpcPreamble := []byte{0, 0, 0, 0, 0}
-	readCount, err := w.bytes.Read(grpcPreamble)
-	//fmt.Println(err)
-	//if err == io.EOF {
-	//	return 0, err
-	//}
-
-	if readCount != 5 || err != nil {
-		return -1, err
-	}
-
-	payloadLength := binary.BigEndian.Uint32(grpcPreamble[1:])
-	payloadBytes := make([]byte, payloadLength)
-
-	readCount, err = w.bytes.Read(payloadBytes)
-	fmt.Println(payloadLength, readCount)
-	if uint32(readCount) != payloadLength || err != nil {
-		return -1, err
-	}
-
-	fmt.Println(string(payloadBytes))
-	if grpcPreamble[0]&(1<<7) == (1 << 7) { // MSB signifies the trailer parser
-		return w.w.Write(payloadBytes)
-	} else {
-		return w.w.Write(payloadBytes)
-	}
-	//}
-}
-
-func (w *grpcWebResponse) WriteHeader(code int) {
-	w.w.WriteHeader(code)
-}
-
-func (w *grpcWebResponse) Flush() {
-	flushWriter(w.w)
-}
-
-func flushWriter(w http.ResponseWriter) {
-	f, ok := w.(http.Flusher)
-	fmt.Println(ok)
-
-	if !ok {
-		return
-	}
-
-	f.Flush()
 }
 
 var _ hello.TransportServer = (*trans)(nil)
@@ -205,3 +127,6 @@ func (t *trans) TestStream3(ctx context.Context, message *hello.Message) (*hello
 	q.Q(ctx)
 	return message, nil
 }
+
+//go:linkname mapFormByTag github.com/gin-gonic/gin/binding.mapFormByTag
+func mapFormByTag(ptr interface{}, form map[string][]string, tag string) error

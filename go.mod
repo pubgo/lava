@@ -47,10 +47,11 @@ require (
 	github.com/prometheus/client_golang v1.5.1
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.21
-	github.com/pubgo/xerror v0.4.1
+	github.com/pubgo/xerror v0.4.2
 	github.com/pubgo/xlog v0.1.3
-	github.com/pubgo/xprotogen v0.0.7
+	github.com/pubgo/xprotogen v0.0.9
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/cobra v1.1.1
@@ -58,14 +59,14 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
-	github.com/valyala/fasthttp v1.23.0
+	github.com/valyala/fasthttp v1.25.0
 	github.com/valyala/fasttemplate v1.0.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/bbolt v1.3.4 // indirect
 	go.etcd.io/etcd v0.0.0-20201125193152-8a03d2e9614b
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/net v0.0.0-20210226101413-39120d07d75e
+	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	google.golang.org/genproto v0.0.0-20210224155714-063164c882e6
 	google.golang.org/grpc v1.36.0

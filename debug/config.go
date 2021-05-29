@@ -1,25 +1,16 @@
 package debug
 
 import (
-	chiS "github.com/go-chi/chi/v5"
-	"github.com/pubgo/lug/service/chi"
+	cc "github.com/go-chi/chi/v5"
+	"github.com/pubgo/lug/builder/chi"
 )
 
 const Name = "debug"
 
-var cfg = GetDefaultCfg()
-var appMux *chiS.Mux
+var Addr = ":8081"
 
-type Cfg struct {
+type Mux struct {
+	*cc.Mux
 	chi.Cfg
-}
-
-func (t *Cfg)init() {
-
-}
-
-func GetDefaultCfg() Cfg {
-	return Cfg{
-		Cfg: chi.GetDefaultCfg(),
-	}
+	srv chi.Builder
 }

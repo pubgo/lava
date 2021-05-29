@@ -1,7 +1,7 @@
 package healthy
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/pubgo/lug/abc"
 	"github.com/pubgo/lug/debug"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/x/jsonx"
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	debug.On(func(mux *chi.Mux) {
+	debug.On(func(mux *abc.DebugMux) {
 		mux.Get("/health", httpHandle)
 	})
 }

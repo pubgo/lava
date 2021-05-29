@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/pubgo/xerror"
 	"io"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/pubgo/xerror"
 )
 
 func TestName(t *testing.T) {

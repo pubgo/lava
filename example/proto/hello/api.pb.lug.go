@@ -35,8 +35,8 @@ func init() {
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApi",
 		Name:          "Version",
-		Method:        "POST",
-		Path:          "/hello/test_api/version",
+		Method:        "GET",
+		Path:          "/v1/version",
 		ClientStream:  "False" == "True",
 		ServerStreams: "False" == "True",
 	})

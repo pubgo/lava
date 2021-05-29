@@ -4,8 +4,8 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/entry/ctl"
+	"github.com/pubgo/lug/entry/grpc"
 	"github.com/pubgo/lug/entry/rest"
-	"github.com/pubgo/lug/entry/rpc"
 	"github.com/pubgo/lug/entry/task"
 	"github.com/pubgo/lug/internal/runtime"
 	"github.com/pubgo/lug/plugin"
@@ -17,10 +17,11 @@ func AfterStart(fn func())  { runtime.AfterStart(fn) }
 func BeforeStop(fn func())  { runtime.BeforeStop(fn) }
 func AfterStop(fn func())   { runtime.AfterStop(fn) }
 
-func NewTask(name string) task.Entry { return task.New(name) }
-func NewRest(name string) rest.Entry { return rest.New(name) }
-func NewRpc(name string) rpc.Entry   { return rpc.New(name) }
-func NewCtl(name string) ctl.Entry   { return ctl.New(name) }
+func NewTask(name string) task.Entry          { return task.New(name) }
+func NewRest(name string) rest.Entry          { return rest.New(name) }
+func NewGrpc(name string) grpc.Entry          { return grpc.New(name) }
+func NewCtl(name string) ctl.Entry            { return ctl.New(name) }
+func Entry(fn func() entry.Entry) entry.Entry { return fn() }
 
 func GetCfg() config.Config            { return config.GetCfg() }
 func Run(entries ...entry.Entry) error { return runtime.Run(entries...) }

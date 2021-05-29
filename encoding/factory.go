@@ -26,6 +26,8 @@ func Get(name string) Codec {
 func Keys() []string { return data.Keys() }
 
 func Each(fn func(name string, cdc Codec)) {
+	defer xerror.RespExit()
+
 	data.Each(func(name string, val interface{}) {
 		fn(name, val.(Codec))
 	})

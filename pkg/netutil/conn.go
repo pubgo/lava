@@ -1,12 +1,14 @@
 package netutil
 
 import (
-	"crypto/tls"
 	"github.com/pubgo/xerror"
+
+	"context"
+	"crypto/tls"
 	"net"
 	"net/url"
 	"os"
-	"syscall"
+	"strings"
 )
 
 type sockOpts struct {
@@ -17,13 +19,52 @@ type sockOpts struct {
 // SockOpt sets up socket file's creating option
 type SockOpt func(opts *sockOpts) error
 
-var lc net.ListenConfig
+func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
+	defer xerror.RespErr(&err)
 
-func Listen(address string, opts ...SockOpt) (net.Listener, error) {
-	url, err := url.Parse(address)
+	if !strings.Contains(address, "//") {
+		address = "tcp4://" + address
+	}
+
+	uri, err := url.Parse(address)
 	xerror.Panic(err)
+	if uri.Scheme == "" {
+		uri.Scheme = "tcp4"
+	}
 
-	_ = url
+	var sOpts sockOpts
+	for i := range opts {
+		xerror.Panic(opts[i](&sOpts))
+	}
+
+	var lc net.ListenConfig
+	if cb := sOpts.cfgCallback; cb != nil {
+		cb(&lc)
+	}
+
+	return lc.Listen(context.Background(), uri.Scheme, uri.Host)
+}
+
+func ListenPacket(address string, opts ...SockOpt) (_ net.PacketConn, err error) {
+	defer xerror.RespErr(&err)
+
+	uri, err := url.Parse(address)
+	xerror.Panic(err)
+	if uri.Scheme == "" {
+		uri.Scheme = "udp4"
+	}
+
+	var sOpts sockOpts
+	for i := range opts {
+		xerror.Panic(opts[i](&sOpts))
+	}
+
+	var lc net.ListenConfig
+	if cb := sOpts.cfgCallback; cb != nil {
+		cb(&lc)
+	}
+
+	return lc.ListenPacket(context.Background(), uri.Scheme, uri.Host)
 }
 
 // NewTCPSocket creates a TCP socket listener with the specified address and
@@ -70,29 +111,29 @@ func WithChmod(mask os.FileMode) SockOpt {
 }
 
 // NewUnixSocketWithOpts creates a unix socket with the specified options
-func NewUnixSocketWithOpts(path string, opts ...SockOpt) (net.Listener, error) {
-	if err := syscall.Unlink(path); err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	mask := syscall.Umask(0777)
-	defer syscall.Umask(mask)
-
-	l, err := net.Listen("unix", path)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, op := range opts {
-		if err := op(path); err != nil {
-			l.Close()
-			return nil, err
-		}
-	}
-
-	return l, nil
-}
+//func NewUnixSocketWithOpts(path string, opts ...SockOpt) (net.Listener, error) {
+//	if err := syscall.Unlink(path); err != nil && !os.IsNotExist(err) {
+//		return nil, err
+//	}
+//	mask := syscall.Umask(0777)
+//	defer syscall.Umask(mask)
+//
+//	l, err := net.Listen("unix", path)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	for _, op := range opts {
+//		if err := op(path); err != nil {
+//			l.Close()
+//			return nil, err
+//		}
+//	}
+//
+//	return l, nil
+//}
 
 // NewUnixSocket creates a unix socket with the specified path and group.
-func NewUnixSocket(path string, gid int) (net.Listener, error) {
-	return NewUnixSocketWithOpts(path, WithChown(0, gid), WithChmod(0660))
-}
+//func NewUnixSocket(path string, gid int) (net.Listener, error) {
+//	return NewUnixSocketWithOpts(path, WithChown(0, gid), WithChmod(0660))
+//}

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lug/app"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 )
@@ -33,7 +32,7 @@ func init() {
 
 			var keys []string
 			for _, r := range r.Routes() {
-				keys = append(keys, fmt.Sprintf("http://localhost:%d%s", app.DebugPort, r.Pattern))
+				keys = append(keys, fmt.Sprintf("http://localhost%s%s", Addr, r.Pattern))
 			}
 
 			dt, err := jsonx.Marshal(keys)

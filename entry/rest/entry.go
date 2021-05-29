@@ -3,13 +3,12 @@ package rest
 import (
 	"context"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lug/app"
+	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
-	fb "github.com/pubgo/lug/service/fiber"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -19,14 +18,14 @@ var _ Entry = (*restEntry)(nil)
 
 type restEntry struct {
 	*base.Entry
-	app      *fiber.App
+	cfg      Cfg
+	srv      fb.Builder
 	handlers []func()
-	cfg      fb.Cfg
 	cancel   context.CancelFunc
 }
 
 func (t *restEntry) Router(fn func(r Router)) {
-	t.handlers = append(t.handlers, func() { fn(t.app) })
+	t.handlers = append(t.handlers, func() { fn(t.srv.Get()) })
 }
 
 func (t *restEntry) use(handler Handler) {
@@ -34,7 +33,7 @@ func (t *restEntry) use(handler Handler) {
 		return
 	}
 
-	t.handlers = append(t.handlers, func() { t.app.Use(handler) })
+	t.handlers = append(t.handlers, func() { t.srv.Get().Use(handler) })
 }
 
 func (t *restEntry) Use(handler ...Handler) {
@@ -43,65 +42,53 @@ func (t *restEntry) Use(handler ...Handler) {
 	}
 }
 
-func (t *restEntry) Init() (err error) {
-	defer xerror.RespErr(&err)
-
-	xerror.Panic(t.Entry.Init())
-	var cfg = fb.GetDefaultCfg()
-	cfg.DisableStartupMessage = true
-	_ = config.Decode(Name, &cfg)
-	return
-}
-
-func (t *restEntry) Start() (err error) {
-	defer xerror.RespErr(&err)
-
-	// 初始化app
-	t.app = t.cfg.Build()
-
-	// 初始化routes
-	for i := range t.handlers {
-		t.handlers[i]()
-	}
-
+func (t *restEntry) Start() error {
 	// 启动server后等待1s
-	xerror.Panic(fx.GoDelay(time.Second, func() {
-		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("restEntry.Start error", xlog.Any("err", err))
-		})
+	return fx.GoDelay(time.Second, func() {
+		xlog.Infof("Srv [rest] Listening on http://localhost%s", app.Addr)
 
-		for {
-			if err := t.app.Listen(t.Options().Addr); err != nil && err != http.ErrServerClosed {
-				if strings.Contains(err.Error(), "address already in use") {
-					continue
-				}
-
-				xlog.Error(xerror.Parse(err).Stack(true))
-			}
-			break
+		if err := t.srv.Get().Listen(app.Addr); err != nil && err != http.ErrServerClosed {
+			xlog.Error("Srv [rest] Close Error", xlog.Any("err", err))
+			return
 		}
 
-		xlog.Infof("Server [http] Closed OK")
-	}))
-	xlog.Infof("Server [http] Listening on http://%s", t.Options().Addr)
+		xlog.Infof("Srv [rest] Closed OK")
+	})
 
-	return nil
 }
 
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
-	if err := t.app.Shutdown(); err != nil && err != http.ErrServerClosed {
-		xlog.Error(xerror.Parse(err).Stack(true))
-		return nil
+	if err := t.srv.Get().Shutdown(); err != nil && err != http.ErrServerClosed {
+		xlog.Error("Srv [rest] Shutdown Error", xlog.Any("err", err))
+		return err
 	}
 
 	return nil
 }
 
 func newEntry(name string) *restEntry {
-	ent := &restEntry{Entry: base.New(name)}
+	var ent = &restEntry{
+		Entry: base.New(name),
+		cfg:   Cfg{},
+		srv:   fb.New(),
+	}
+
 	ent.trace()
+	ent.OnInit(func() {
+		ent.cfg.DisableStartupMessage = true
+		_ = config.Decode(Name, &ent.cfg)
+
+		// 初始化srv
+		xerror.Panic(ent.srv.Build(ent.cfg.Cfg))
+
+		// 初始化routes
+		for i := range ent.handlers {
+			ent.handlers[i]()
+		}
+	})
+
 	return ent
 }
 
