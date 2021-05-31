@@ -33,7 +33,6 @@ type KeepalivePolicy struct {
 }
 
 type Cfg struct {
-
 	Codec                 string          `json:"codec"`
 	ConnectionTimeout     time.Duration   `json:"connection_timeout"`
 	Cp                    string          `json:"cp"`

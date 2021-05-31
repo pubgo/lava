@@ -12,9 +12,3 @@ type Cfg struct {
 	EnableJsonDecoderDisallowUnknownFields bool
 	Mode                                   string
 }
-
-func (t *Cfg) Build() (*gin.Engine, error) {
-	engine := gin.New()
-	engine.Use(gin.Logger(), gin.Recovery())
-	return engine, nil
-}

@@ -9,17 +9,15 @@ import (
 )
 
 type Cfg struct {
-	Srv                  grpcs.Cfg     `json:"server"`
+	Srv                  grpcs.Cfg     `json:"grpc"`
 	Gw                   grpcGw.Cfg    `json:"gw"`
 	Web                  grpcWeb.Cfg   `json:"web"`
 	SleepAfterDeregister time.Duration `json:"sleepAfterDeregister"`
-	// The interval on which to register
-	RegisterInterval time.Duration `json:"registerInterval"`
-	// The register expiry time
-	RegisterTTL time.Duration `json:"register_ttl"`
-	Address     string        `json:"address"`
-	Advertise   string        `json:"advertise"`
-	hostname    string
-	id          string
-	name        string
+	RegisterInterval     time.Duration `json:"registerInterval"`
+	RegisterTTL          time.Duration `json:"register_ttl"`
+	Address              string        `json:"address"`
+	Advertise            string        `json:"advertise"`
+	hostname             string
+	id                   string
+	name                 string
 }

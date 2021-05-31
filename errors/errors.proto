@@ -3,7 +3,7 @@ syntax = "proto3";
 package lug.errors;
 
 option cc_enable_arenas = true;
-option go_package = ".;errors";
+option go_package = "./;errors";
 
 message Error {
   string id = 1;

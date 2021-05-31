@@ -85,6 +85,4 @@ func (t *Builder) Build(cfg Cfg) error {
 	return nil
 }
 
-func New() Builder {
-	return Builder{}
-}
+func New() Builder {return Builder{}}
