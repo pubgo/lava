@@ -1,6 +1,6 @@
 module github.com/pubgo/lug
 
-go 1.15
+go 1.16
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
