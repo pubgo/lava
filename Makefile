@@ -131,3 +131,9 @@ vet:
 
 generate:
 	@go generate ./...
+
+.PHONY: install
+install:
+	@go install -v github.com/rakyll/statik
+	@go install -v github.com/tinylib/msgp
+	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2

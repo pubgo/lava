@@ -21,3 +21,7 @@ func main() {
 
 	xerror.PanicErr(url.Parse("tcp4://:8080"))
 }
+
+func init1(a ...int) {
+
+}
