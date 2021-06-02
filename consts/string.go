@@ -22,5 +22,6 @@ func (s *StrBank) Get(index, offset int32) string {
 }
 
 func (s *StrBank) StrOf(str string) Index {
+	s.data += str
 	return Index{int32(len(s.data)), int32(len(str))}
 }

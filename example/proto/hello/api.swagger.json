@@ -1,0 +1,219 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "example/proto/hello/api.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "TestApi"
+    },
+    {
+      "name": "TestApiV2"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/example/versiontest": {
+      "get": {
+        "summary": "VersionTest rpc",
+        "operationId": "TestApi_VersionTest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TestApi"
+        ]
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "summary": "Version rpc",
+        "operationId": "TestApi_Version",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TestApi"
+        ]
+      }
+    },
+    "/v2/example/version": {
+      "post": {
+        "operationId": "TestApiV2_Version1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/helloTestReq"
+            }
+          }
+        ],
+        "tags": [
+          "TestApiV2"
+        ]
+      }
+    },
+    "/v2/example/versiontest": {
+      "post": {
+        "operationId": "TestApiV2_VersionTest1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/helloTestReq"
+            }
+          }
+        ],
+        "tags": [
+          "TestApiV2"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "helloTestApiData": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "srvVersion": {
+          "type": "string"
+        }
+      }
+    },
+    "helloTestApiOutput": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64"
+        },
+        "data": {
+          "$ref": "#/definitions/helloTestApiData"
+        }
+      }
+    },
+    "helloTestReq": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

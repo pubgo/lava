@@ -1,6 +1,6 @@
 module github.com/pubgo/lug
 
-go 1.15
+go 1.16
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
@@ -18,16 +18,19 @@ require (
 	github.com/fatedier/kcp-go v2.0.3+incompatible
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-chi/chi/v5 v5.0.0
+	github.com/go-echarts/go-echarts/v2 v2.2.4
+	github.com/go-echarts/statsview v0.3.4
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.2.3
 	github.com/gofiber/template v1.6.6
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
+	github.com/google/gops v0.3.18
 	github.com/google/uuid v1.2.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.3.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/memberlist v0.1.3
@@ -53,6 +56,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/nsq-go v1.2.4
+	github.com/shirou/gopsutil/v3 v3.21.2
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
@@ -68,9 +72,9 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	google.golang.org/genproto v0.0.0-20210224155714-063164c882e6
-	google.golang.org/grpc v1.36.0
-	google.golang.org/protobuf v1.25.1-0.20201208041424-160c7477e0e8
+	google.golang.org/genproto v0.0.0-20210426193834-eac7f76ac494
+	google.golang.org/grpc v1.37.0
+	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
 	xorm.io/xorm v1.0.5
 )

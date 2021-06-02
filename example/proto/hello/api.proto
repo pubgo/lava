@@ -2,16 +2,34 @@ syntax = "proto3";
 
 package hello;
 
+option go_package = "./;hello";
+
 import "google/api/annotations.proto";
 import "example/proto/hello/api1.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+  };
+  external_docs: {
+    url: "https://github.com/gogo/grpc-example";
+    description: "gRPC example repository";
+  }
+  schemes: HTTPS;
+};
+
+
+// TestApi service
 service TestApi {
+  // Version rpc
   rpc Version(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       get: "/v1/version"
     };
   }
 
+  // VersionTest rpc
   rpc VersionTest(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       get: "/v1/example/versiontest"

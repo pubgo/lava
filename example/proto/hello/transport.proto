@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package hello;
 
+option go_package = "./;hello";
+
 service Transport {
 	rpc TestStream(stream Message) returns (stream Message) {}
 	rpc TestStream1(stream Message) returns (Message) {}

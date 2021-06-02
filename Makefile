@@ -32,36 +32,38 @@ ci:
 
 .PHONY: proto
 proto: clear gen
-	protoc -I. \
+	protoc -I./ \
    -I/usr/local/include \
-   -I${GOPATH}/src \
+   -Ivendor \
+   -Ivendor/github.com/grpc-ecosystem/grpc-gateway/v2 \
    -I${GOPATH}/src/github.com/googleapis/googleapis \
-   -I${GOPATH}/src/github.com/gogo/protobuf \
    --go_out=plugins=grpc:. \
    --go_opt=paths=source_relative \
    --grpc-gateway_out=. \
    --grpc-gateway_opt=paths=source_relative \
    --grpc-gateway_opt=logtostderr=true \
    --lug_out=. \
+   --openapiv2_out ./openapi \
+   --openapiv2_opt logtostderr=true \
 	example/proto/hello/*.proto
 
-	protoc -I. \
-   -I/usr/local/include \
-   -I${GOPATH}/src \
-   -I${GOPATH}/src/github.com/googleapis/googleapis \
-   -I${GOPATH}/src/github.com/gogo/protobuf \
-   --go_out=plugins=grpc:. \
-   --go_opt=paths=source_relative \
-   --grpc-gateway_out=. \
-   --grpc-gateway_opt=paths=source_relative \
-   --grpc-gateway_opt=logtostderr=true \
-   --lug_out=. \
-	example/proto/login/*.proto
+	#protoc -I. \
+#   -I/usr/local/include \
+#   -I${GOPATH}/src \
+#   -I${GOPATH}/src/github.com/googleapis/googleapis \
+#   -I${GOPATH}/src/github.com/gogo/protobuf \
+#   --go_out=plugins=grpc:. \
+#   --go_opt=paths=source_relative \
+#   --grpc-gateway_out=. \
+#   --grpc-gateway_opt=paths=source_relative \
+#   --grpc-gateway_opt=logtostderr=true \
+#   --lug_out=. \
+#	example/proto/login/*.proto
 
 .PHONY: clear
 clear:
-	rm -rf example/proto/*.go
-	rm -rf example/proto/**/*.go
+	#rm -rf example/proto/*.go
+	#rm -rf example/proto/**/*.go
 
 .PHONY: gen
 gen:
@@ -70,7 +72,7 @@ gen:
 .PHONY: example
 example:
 	#go build ${LDFLAGS} -mod vendor -v -o main example/*.go
-	go build ${LDFLAGS} -v -o main example/*.go
+	CGO_CFLAGS=-Wno-undef-prefix go build ${LDFLAGS} -v -o main example/*.go
 
 .PHONY: run
 run:
