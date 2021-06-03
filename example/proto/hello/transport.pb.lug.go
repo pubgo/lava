@@ -21,7 +21,6 @@ func GetTransportClient(srv string, optFns ...func(service string) []grpc.DialOp
 }
 
 func init() {
-
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -61,5 +60,4 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-
 }

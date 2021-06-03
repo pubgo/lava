@@ -1,17 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprotogen/gen"
+
+	"log"
 )
 
 func main() {
 	defer xerror.RespDebug()
 
-	m := gen.New("lug",gen.OnlyService())
+	m := gen.New("lug", gen.OnlyService())
 	m.Parameter(func(key, value string) {
 		log.Println("params:", key, "=", value)
 	})
@@ -34,7 +33,8 @@ import (
 	"google.golang.org/grpc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/lug/client/grpcc"
-)`
+)
+`
 		},
 
 		func(fd *gen.FileDescriptor) string {
@@ -51,40 +51,25 @@ import (
 `
 		},
 
-
 		func(fd *gen.FileDescriptor) string {
-			var tpl = ""
-			gen.Append(&tpl, `func init() {`)
-			gen.Append(&tpl, `var mthList []xgen.GrpcRestHandler`)
-			for _, ss := range fd.GetService() {
-				for _, m := range ss.GetMethod() {
-					gen.Append(&tpl, gen.Template(`
-					mthList = append(mthList, xgen.GrpcRestHandler{
-						Service:      "{{pkg}}.{{ss.Name}}",
-						Name:         "{{m.GetName()}}",
-						Method:       "{{m.HttpMethod}}",
-						Path:          "{{m.HttpPath}}",
-						ClientStream:  "{{m.CS}}"=="True",
-						ServerStreams: "{{m.SS}}"=="True",
-					})`, gen.Context{"pkg": fd.Pkg, "m": m, "ss": ss}))
-				}
-				gen.Append(&tpl, fmt.Sprintf(`xgen.Add(reflect.ValueOf(Register%sServer),mthList)`, ss.Srv))
-
-				var isStream bool
-				for _, m := range ss.GetMethod() {
-					if m.CS || m.SS {
-						isStream = true
-						break
-					}
-				}
-
-				if !isStream {
-					gen.Append(&tpl, fmt.Sprintf(`xgen.Add(reflect.ValueOf(Register%sHandlerFromEndpoint), nil)`, ss.Srv))
-				}
-			}
-
-			gen.Append(&tpl, `}`)
-			return tpl
+			return `
+{% for ss in fd.GetService() %}
+	func init(){
+		var mthList []xgen.GrpcRestHandler
+		{% for m in ss.GetMethod() %}
+			mthList = append(mthList, xgen.GrpcRestHandler{
+				Service:      "{{pkg}}.{{ss.Name}}",
+				Name:         "{{m.GetName()}}",
+				Method:       "{{m.HttpMethod}}",
+				Path:          "{{m.HttpPath}}",
+				ClientStream:  "{{m.CS}}"=="True",
+				ServerStreams: "{{m.SS}}"=="True",
+			})
+		{% endfor %}
+		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+	}
+{% endfor %}
+`
 		},
 	))
 }

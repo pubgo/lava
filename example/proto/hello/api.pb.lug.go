@@ -29,7 +29,6 @@ func GetTestApiV2Client(srv string, optFns ...func(service string) []grpc.DialOp
 }
 
 func init() {
-
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -51,8 +50,10 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
+}
 
-	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint), nil)
+func init() {
+	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:       "hello.TestApiV2",
@@ -73,7 +74,4 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerFromEndpoint), nil)
-
 }
