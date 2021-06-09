@@ -28,12 +28,21 @@ func main() {
 package {{pkg}}
 import (
 	"reflect"
+	"strings"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/lug/client/grpcc"
+	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/gofiber/fiber/v2/utils"
+	fb "github.com/pubgo/lug/builder/fiber"
 )
+
+var _ = strings.Trim
+var _ = gutil.EqualFieldType
+var _ = utils.ByteSize
 `
 		},
 
@@ -67,6 +76,81 @@ import (
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+	}
+{% endfor %}
+`
+		},
+
+		func(fd *gen.FileDescriptor) string {
+			return `
+{% for ss in fd.GetService() %}
+	func Register{{ss.Srv}}RestServer(app fiber.Router, server {{ss.Srv}}Server) {
+		if app == nil || server == nil {
+			panic("app is nil or server is nil")
+		}
+
+		{% for m in ss.GetMethod() %}
+			{%- if !m.CS && !m.SS %}
+			app.Add("{{m.HttpMethod}}","{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
+				var req = new({{m.GetInputType()}})				
+				{%- if m.HttpMethod=="GET" %}
+					data := make(map[string][]string)
+					ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+						k := utils.UnsafeString(key)
+						v := utils.UnsafeString(val)
+						if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+							values := strings.Split(v, ",")
+							for i := 0; i < len(values); i++ {
+								data[k] = append(data[k], values[i])
+							}
+						} else {
+							data[k] = append(data[k], v)
+						}
+					})
+					xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+				{%- else %}
+					xerror.Panic(ctx.BodyParser(req))
+				{%- endif %}
+
+				var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
+				if err!=nil{
+					return err
+				}
+
+				return ctx.JSON(resp)
+			})
+			{%- else %}
+
+			app.Get("{{m.HttpPath}}", fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) {
+			defer c.Close()
+		
+			{%- if m.CS %}
+				if err := server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}); err != nil {
+					c.WriteMessage(fb.TextMessage, []byte(err.Error()))
+				}
+			{%- else %}
+				var req = new({{m.GetInputType()}})				
+				data := make(map[string][]string)
+				ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+					k := utils.UnsafeString(key)
+					v := utils.UnsafeString(val)
+					if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+						values := strings.Split(v, ",")
+						for i := 0; i < len(values); i++ {
+							data[k] = append(data[k], values[i])
+						}
+					} else {
+						data[k] = append(data[k], v)
+					}
+				})
+				xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+				if err := server.{{m.GetName()}}(req,&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}); err != nil {
+					c.WriteMessage(fb.TextMessage, []byte(err.Error()))
+				}
+			{%- endif %}
+			}))
+			{%- endif %}
+		{% endfor %}
 	}
 {% endfor %}
 `

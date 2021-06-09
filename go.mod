@@ -11,7 +11,7 @@ require (
 	github.com/apache/thrift v0.13.0
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
-	github.com/coreos/etcd v3.3.13+incompatible
+	github.com/coreos/etcd v3.3.25+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
@@ -22,12 +22,14 @@ require (
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gofiber/fiber/v2 v2.2.3
+	github.com/gofiber/fiber/v2 v2.12.0
 	github.com/gofiber/template v1.6.6
+	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/schema v1.2.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
@@ -45,13 +47,14 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
+	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.21
 	github.com/pubgo/xerror v0.4.2
-	github.com/pubgo/xlog v0.1.3
+	github.com/pubgo/xlog v0.1.4
 	github.com/pubgo/xprotogen v0.0.9
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
@@ -63,11 +66,10 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
-	github.com/valyala/fasthttp v1.25.0
+	github.com/valyala/fasthttp v1.26.0
 	github.com/valyala/fasttemplate v1.0.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
-	go.etcd.io/bbolt v1.3.4 // indirect
-	go.etcd.io/etcd v0.0.0-20201125193152-8a03d2e9614b
+	go.etcd.io/etcd v3.3.25+incompatible
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed

@@ -5,9 +5,8 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	_ "unsafe"
 
-	_ "github.com/gin-gonic/gin/binding"
+	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -70,8 +69,5 @@ func (c *uriCodec) Unmarshal(data []byte, v interface{}) error {
 		return err
 	}
 
-	return mapFormByTag(v, u, "json")
+	return gutil.MapFormByTag(v, u, "json")
 }
-
-//go:linkname mapFormByTag github.com/gin-gonic/gin/binding.mapFormByTag
-func mapFormByTag(ptr interface{}, form map[string][]string, tag string) error

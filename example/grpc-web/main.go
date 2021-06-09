@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/pubgo/lug/builder/grpc-web"
 	"github.com/pubgo/lug/example/grpc_entry/handler"
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/x/q"
@@ -82,7 +81,7 @@ func main() {
 		//xerror.Panic(mapFormByTag(mm, uri, "json"))
 		//q.Q(mm)
 
-		grpcWeb.Middleware(grpcServer, w, r)
+		//grpcWeb.Middleware(w, r)
 
 		return
 	})

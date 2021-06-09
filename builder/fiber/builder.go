@@ -3,8 +3,10 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
+	websocket "github.com/gofiber/websocket/v2"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
+	"log"
 )
 
 type Builder struct {
@@ -30,6 +32,52 @@ func (t *Builder) Build(cfg Cfg) (err error) {
 	}
 
 	t.srv = fiber.New(fc)
+
+	t.srv.Use("/ws", func(c *fiber.Ctx) error {
+		// IsWebSocketUpgrade returns true if the client
+		// requested upgrade to the WebSocket protocol.
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+
+		// c.Locals is added to the *websocket.Conn
+		log.Println(c.Locals("allowed"))  // true
+		log.Println(c.Params("id"))       // 123
+		log.Println(c.Query("v"))         // 1.0
+		log.Println(c.Cookies("session")) // ""
+
+		return fiber.ErrUpgradeRequired
+	})
+
+	t.srv.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
+		// c.Locals is added to the *websocket.Conn
+		log.Println(c.Locals("allowed"))  // true
+		log.Println(c.Params("id"))       // 123
+		log.Println(c.Query("v"))         // 1.0
+		log.Println(c.Cookies("session")) // ""
+
+		var (
+			mt  int
+			msg []byte
+			err error
+		)
+
+		for {
+			if mt, msg, err = c.ReadMessage(); err != nil {
+				log.Println("read:", err)
+				break
+			}
+
+			log.Printf("recv: %s", msg)
+
+			if err = c.WriteMessage(mt, msg); err != nil {
+				log.Println("write:", err)
+				break
+			}
+		}
+
+	}))
 	return nil
 }
 

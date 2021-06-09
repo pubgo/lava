@@ -14,7 +14,7 @@ import (
 
 func EnableHealth(service string, s *grpc.Server) {
 	healthCheck := health.NewServer()
-	healthCheck.SetServingStatus(service, grpc_health_v1.HealthCheckResponse_SERVING)
+	healthCheck.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(s, healthCheck)
 }
 

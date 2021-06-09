@@ -24,8 +24,26 @@ type restEntry struct {
 	cancel   context.CancelFunc
 }
 
+func (t *restEntry) Register(handler interface{}, middlewares ...Handler) {
+	defer xerror.RespExit()
+
+	xerror.Assert(handler == nil, "[handler] should not be nil")
+	xerror.Assert(!checkHandle(handler).IsValid(), "[rest] restEntry.Register error")
+
+	var handles []interface{}
+	for i := range middlewares {
+		handles = append(handles, middlewares[i])
+	}
+
+	t.handlers = append(t.handlers, func() {
+		xerror.PanicF(register(t.srv.Get().Use(handles...), handler), "[rest] register error")
+	})
+}
+
 func (t *restEntry) Router(fn func(r Router)) {
-	t.handlers = append(t.handlers, func() { fn(t.srv.Get()) })
+	t.handlers = append(t.handlers, func() {
+		fn(t.srv.Get())
+	})
 }
 
 func (t *restEntry) use(handler Handler) {
@@ -33,7 +51,9 @@ func (t *restEntry) use(handler Handler) {
 		return
 	}
 
-	t.handlers = append(t.handlers, func() { t.srv.Get().Use(handler) })
+	t.handlers = append(t.handlers, func() {
+		t.srv.Get().Use(handler)
+	})
 }
 
 func (t *restEntry) Use(handler ...Handler) {

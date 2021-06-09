@@ -11,6 +11,7 @@ type options struct{}
 type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
-	Use(handler ...Handler)
+	Use(middlewares ...Handler)
 	Router(fn func(r Router))
+	Register(handler interface{}, middlewares ...Handler)
 }

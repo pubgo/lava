@@ -77,6 +77,7 @@ func (t *Builder) Build(cfg Cfg) error {
 	srv := grpc.NewServer(opts...)
 
 	EnableReflection(srv)
+	EnableHealth(app.Project, srv)
 	if app.IsDev() || app.IsTest() {
 		EnableDebug(srv)
 	}
@@ -85,4 +86,4 @@ func (t *Builder) Build(cfg Cfg) error {
 	return nil
 }
 
-func New() Builder {return Builder{}}
+func New() Builder { return Builder{} }
