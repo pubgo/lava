@@ -6,5 +6,5 @@ type GrpcRestHandler struct {
 	Name          string `json:"name"`
 	Path          string `json:"path"`
 	ClientStream  bool   `json:"client_stream"`
-	ServerStreams bool   `json:"server_streams"`
+	ServerStream bool   `json:"server_stream"`
 }

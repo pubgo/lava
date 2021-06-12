@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/client/grpcc"
 	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
@@ -20,6 +20,7 @@ import (
 var _ = strings.Trim
 var _ = gutil.EqualFieldType
 var _ = utils.ByteSize
+var _ = fb.New
 
 func GetTransportClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (TransportClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -33,42 +34,43 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.Transport",
-		Name:          "TestStream",
-		Method:        "POST",
-		Path:          "/hello/transport/test_stream",
-		ClientStream:  "True" == "True",
-		ServerStreams: "True" == "True",
+		Service:      "hello.Transport",
+		Name:         "TestStream",
+		Method:       "POST",
+		Path:         "/hello/transport/test_stream",
+		ClientStream: "True" == "True",
+		ServerStream: "True" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.Transport",
-		Name:          "TestStream1",
-		Method:        "POST",
-		Path:          "/hello/transport/test_stream1",
-		ClientStream:  "True" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.Transport",
+		Name:         "TestStream1",
+		Method:       "POST",
+		Path:         "/hello/transport/test_stream1",
+		ClientStream: "True" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.Transport",
-		Name:          "TestStream2",
-		Method:        "POST",
-		Path:          "/hello/transport/test_stream2",
-		ClientStream:  "False" == "True",
-		ServerStreams: "True" == "True",
+		Service:      "hello.Transport",
+		Name:         "TestStream2",
+		Method:       "POST",
+		Path:         "/hello/transport/test_stream2",
+		ClientStream: "False" == "True",
+		ServerStream: "True" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.Transport",
-		Name:          "TestStream3",
-		Method:        "POST",
-		Path:          "/hello/transport/test_stream3",
-		ClientStream:  "False" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.Transport",
+		Name:         "TestStream3",
+		Method:       "POST",
+		Path:         "/hello/transport/test_stream3",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTransportRestServer), nil)
 }
 
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {

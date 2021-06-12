@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/client/grpcc"
 	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
@@ -20,6 +20,7 @@ import (
 var _ = strings.Trim
 var _ = gutil.EqualFieldType
 var _ = utils.ByteSize
+var _ = fb.New
 
 func GetTestApiClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (TestApiClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -41,48 +42,50 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.TestApi",
-		Name:          "Version",
-		Method:        "GET",
-		Path:          "/v1/version",
-		ClientStream:  "False" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.TestApi",
+		Name:         "Version",
+		Method:       "GET",
+		Path:         "/v1/version",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.TestApi",
-		Name:          "VersionTest",
-		Method:        "GET",
-		Path:          "/v1/example/versiontest",
-		ClientStream:  "False" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.TestApi",
+		Name:         "VersionTest",
+		Method:       "GET",
+		Path:         "/v1/example/versiontest",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiRestServer), nil)
 }
 
 func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.TestApiV2",
-		Name:          "Version1",
-		Method:        "POST",
-		Path:          "/v2/example/version",
-		ClientStream:  "False" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.TestApiV2",
+		Name:         "Version1",
+		Method:       "POST",
+		Path:         "/v2/example/version",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:       "hello.TestApiV2",
-		Name:          "VersionTest1",
-		Method:        "POST",
-		Path:          "/v2/example/versiontest",
-		ClientStream:  "False" == "True",
-		ServerStreams: "False" == "True",
+		Service:      "hello.TestApiV2",
+		Name:         "VersionTest1",
+		Method:       "POST",
+		Path:         "/v2/example/versiontest",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2RestServer), nil)
 }
 
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {

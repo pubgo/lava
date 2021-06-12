@@ -2,9 +2,9 @@ package etcdv3
 
 import (
 	"context"
+	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"time"
 
-	"github.com/pubgo/lug/client/etcdv3"
 	registry "github.com/pubgo/lug/registry"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -13,7 +13,7 @@ type Watcher struct {
 	revision int64
 	stop     chan struct{}
 	w        clientv3.WatchChan
-	client   *etcdv3.Client
+	client   *etcdv32.Client
 	timeout  time.Duration
 }
 

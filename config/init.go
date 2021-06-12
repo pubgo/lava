@@ -120,7 +120,7 @@ func initApp(v *viper.Viper) (err error) {
 	return
 }
 
-// 处理所有的配置,环境变量和flag
+// Init 处理所有的配置,环境变量和flag
 // 配置顺序, 默认值->环境变量->配置文件->flag
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置

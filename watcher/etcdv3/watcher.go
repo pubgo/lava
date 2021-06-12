@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pubgo/lug/client/etcdv3"
 	"github.com/pubgo/lug/pkg/typex"
+	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/watcher"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -47,7 +47,7 @@ type etcdWatcher struct {
 	exitCh   chan struct{}
 }
 
-func (w *etcdWatcher) getEtcd() *etcdv3.Client                        { return etcdv3.Get(w.name) }
+func (w *etcdWatcher) getEtcd() *etcdv32.Client                       { return etcdv32.Get(w.name) }
 func (w *etcdWatcher) Close(ctx context.Context, opts ...watcher.Opt) {}
 func (w *etcdWatcher) Get(ctx context.Context, key string, opts ...watcher.Opt) ([]*watcher.Response, error) {
 	w.getEtcd().Get(ctx, key)
@@ -77,7 +77,7 @@ func (w *etcdWatcher) WatchCallback(ctx context.Context, key string, fn func(res
 func (w *etcdWatcher) Watch(ctx context.Context, key string, opts ...watcher.Opt) <-chan *watcher.Response {
 	var resp = make(chan *watcher.Response)
 	go func() {
-		for w := range etcdv3.Get().Watch(ctx, key) {
+		for w := range etcdv32.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
 				resp <- &watcher.Response{

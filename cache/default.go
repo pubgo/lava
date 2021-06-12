@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pubgo/lug/cache/core"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
 )
@@ -59,8 +58,8 @@ func (p *cache) Init(opts ...Option) error {
 	}
 
 	// 最大缓存大小判断
-	if opt.MaxBufSize > core.DefaultMaxBufSize || opt.MaxBufSize < core.DefaultMinBufSize {
-		return errors.Wrapf(ErrBufSize, "ErrBufSize:%d, min:%d, max:%d", opt.MaxBufSize, core.DefaultMinBufSize, core.DefaultMaxBufSize)
+	if opt.MaxBufSize > DefaultMaxBufSize || opt.MaxBufSize < DefaultMinBufSize {
+		return errors.Wrapf(ErrBufSize, "ErrBufSize:%d, min:%d, max:%d", opt.MaxBufSize, DefaultMinBufSize, DefaultMaxBufSize)
 	}
 
 	// 最大过期时间判断
@@ -98,7 +97,7 @@ func (p *cache) Init(opts ...Option) error {
 func (p *cache) init() {
 	p.opts.ClearTime = defaultClearTime
 	p.opts.DataLoadTime = dataLoadTimeOutTime
-	p.opts.MaxBufSize = core.DefaultMaxBufSize
+	p.opts.MaxBufSize = DefaultMaxBufSize
 	p.opts.MaxExpiration = defaultMaxExpiration
 	p.opts.MaxKeySize = defaultMaxKeySize
 	p.opts.DefaultExpiration = -1
@@ -117,7 +116,7 @@ func (p *cache) expiredHandle(d time.Duration) time.Duration {
 	return d + time.Duration(rand.Intn(int(defaultMinExpiration)))
 }
 
-func (p *cache) checkKey(k []byte) error {
+func (p *cache) checkKey(k string) error {
 	if l := uint64(len(k)); l > p.opts.MaxKeySize || l < defaultMinKeySize {
 		return errors.Wrapf(ErrKeyLength, "key:%s", k)
 	}
@@ -143,13 +142,13 @@ func (p *cache) set(k []byte, x []byte, d time.Duration) error {
 	size := uint64(len(k) + len(x))
 
 	// 全局缓存检查
-	gBufSize := core.GlobalBufSize.Add(size)
-	if gBufSize > uint64(core.GlobalMaxBufExpand) {
-		core.GlobalBufSize.Sub(size)
-		return errors.Wrapf(ErrBufExceeded, "GlobalBufSize:%d, GlobalMaxBufExpand:%f", gBufSize, core.GlobalMaxBufExpand)
+	gBufSize := GlobalBufSize.Add(size)
+	if gBufSize > uint64(GlobalMaxBufExpand) {
+		GlobalBufSize.Sub(size)
+		return errors.Wrapf(ErrBufExceeded, "GlobalBufSize:%d, GlobalMaxBufExpand:%f", gBufSize, GlobalMaxBufExpand)
 	}
 
-	if gBufSize > core.GlobalMaxBufSize {
+	if gBufSize > GlobalMaxBufSize {
 		// 清理过期
 		go p.deleteExpired()
 	}
@@ -171,13 +170,13 @@ func (p *cache) set(k []byte, x []byte, d time.Duration) error {
 		return err
 	}
 
-	core.GlobalBufSize.Sub(size1)
+	GlobalBufSize.Sub(size1)
 	p.bufSize.Sub(size1)
 
 	return nil
 }
 
-func (p *cache) Set(k, x []byte, d time.Duration) error {
+func (p *cache) Set(k string, x interface{}, d time.Duration) error {
 	if err := p.checkKey(k); err != nil {
 		return err
 	}
@@ -191,11 +190,11 @@ func (p *cache) Set(k, x []byte, d time.Duration) error {
 	return p.set(k, x, d)
 }
 
-func (p *cache) SetDefault(k, x []byte) error {
+func (p *cache) SetDefault(k string, x interface{}) error {
 	return p.Set(k, x, p.opts.DefaultExpiration)
 }
 
-func (p *cache) getSet(key []byte, d time.Duration, fn ...func([]byte) ([]byte, error)) ([]byte, error) {
+func (p *cache) getSet(key string, d time.Duration, fn ...getCallback) ([]byte, error) {
 	if err := p.checkKey(key); err != nil {
 		return nil, err
 	}
@@ -244,15 +243,15 @@ func (p *cache) getSet(key []byte, d time.Duration, fn ...func([]byte) ([]byte, 
 	return dt, p.Set(key, dt, expired)
 }
 
-func (p *cache) GetSet(key []byte, d time.Duration, fn ...func([]byte) ([]byte, error)) ([]byte, error) {
+func (p *cache) GetSet(key string, d time.Duration, fn ...getCallback) ([]byte, error) {
 	return p.getSet(key, d, fn...)
 }
 
-func (p *cache) Get(key []byte, fn ...func([]byte) ([]byte, error)) ([]byte, error) {
+func (p *cache) Get(key string, fn ...func([]byte) ([]byte, error)) ([]byte, error) {
 	return p.getSet(key, p.opts.DefaultExpiration, fn...)
 }
 
-func (p *cache) Delete(k []byte) error {
+func (p *cache) Delete(k string) error {
 	if err := p.checkKey(k); err != nil {
 		return err
 	}
@@ -275,7 +274,7 @@ func (p *cache) OnDataLoad(f func([]byte) ([]byte, error)) {
 
 func (p *cache) onDftEvicted(k, v []byte) {
 	size := uint64(len(k) + len(v))
-	core.GlobalBufSize.Sub(size)
+	GlobalBufSize.Sub(size)
 	p.bufSize.Sub(size)
 
 	if p.onEvicted != nil {
@@ -303,7 +302,7 @@ func (p *cache) Close() error {
 	p.Lock()
 	defer p.Unlock()
 
-	core.GlobalBufSize.Sub(p.bufSize.Load())
+	GlobalBufSize.Sub(p.bufSize.Load())
 	stopJanitor(p)
 
 	p.onDataLoad = nil

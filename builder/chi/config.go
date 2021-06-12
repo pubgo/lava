@@ -6,7 +6,7 @@ type Cfg struct {
 	Timeout   time.Duration `json:"timeout"`
 	Logger    bool          `json:"logger"`
 	Recover   bool          `json:"recover"`
-	RequestID bool          `json:"request_id"`
+	RequestID bool          `json:"req_id"`
 }
 
 func GetDefaultCfg() Cfg {

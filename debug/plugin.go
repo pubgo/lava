@@ -25,7 +25,7 @@ func init()                         { plugin.Register(plg) }
 var plg = &plugin.Base{
 	Name: Name,
 	OnFlags: func(flags *pflag.FlagSet) {
-		flags.StringVar(&Addr, "da", Addr, "the Mux server addr")
+		flags.StringVar(&Addr, "da", Addr, "debug server addr")
 	},
 	OnInit: func(ent interface{}) {
 		var srv = &Mux{Cfg: cb.GetDefaultCfg(), srv: cb.New()}

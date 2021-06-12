@@ -28,7 +28,7 @@ func Run(entries ...entry.Entry) error { return runtime.Run(entries...) }
 func Start(ent entry.Entry) error      { return runtime.Start(ent) }
 func Stop(ent entry.Entry) error       { return runtime.Stop(ent) }
 
-func Plugin(plg plugin.Plugin, opts ...plugin.ManagerOpt) (err error) {
+func Plugin(plg plugin.Plugin, opts ...plugin.Opt) (err error) {
 	defer xerror.RespErr(&err)
 	plugin.Register(plg, opts...)
 	return

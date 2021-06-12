@@ -8,6 +8,8 @@ import (
 	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lug/vars"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -41,6 +43,20 @@ func Init() (err error) {
 		// 配置远程watch
 		defaultWatcher.WatchCallback(context.Background(), name, func(resp *Response) { onWatch(name, resp) })
 	}
+
+	vars.Watch(Name+"_callback", func() interface{} {
+		var dt []string
+		callbacks.Each(func(key string, _ interface{}) { dt = append(dt, key) })
+		return dt
+	})
+
+	vars.Watch(Name, func() interface{} {
+		var dt = make(map[string]string)
+		for name, f := range factories {
+			dt[name] = stack.Func(f)
+		}
+		return dt
+	})
 
 	return
 }

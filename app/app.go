@@ -45,7 +45,6 @@ func DefaultFlags() *pflag.FlagSet {
 	flags.StringVarP(&Level, "level", "l", Level, "log level(debug|info|warn|error|panic|fatal)")
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
-	flags.BoolVarP(&IsBlock, "block", "b", IsBlock, "enable signal block")
 	flags.BoolVar(&CatchSigpipe, "catch-sigpipe", CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")
 	return flags
 }

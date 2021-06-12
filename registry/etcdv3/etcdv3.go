@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"path"
 	"strings"
 	"sync"
 
 	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	hash "github.com/mitchellh/hashstructure"
-	"github.com/pubgo/lug/client/etcdv3"
 	registry "github.com/pubgo/lug/registry"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
@@ -39,7 +39,7 @@ func NewRegistry() registry.Registry {
 
 type Registry struct {
 	sync.Mutex
-	client   *etcdv3.Client
+	client   *etcdv32.Client
 	cfg      Cfg
 	register map[string]uint64
 	leases   map[string]clientv3.LeaseID

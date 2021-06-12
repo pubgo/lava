@@ -1,21 +1,48 @@
 package plugin
 
+import "github.com/pubgo/xerror"
+
 const defaultModule = "__default"
 
-var dm = newManager()
-
-func String() string                             { return dm.String() }
-func All() map[string][]Plugin                   { return dm.All() }
-func List(opts ...ManagerOpt) []Plugin           { return dm.Plugins(opts...) }
-func Register(plugin Plugin, opts ...ManagerOpt) { dm.Register(plugin, opts...) }
-
-// IsRegistered check plugin whether registered global.
-// Notice plugin is not check whether is nil
-func IsRegistered(plugin Plugin, opts ...ManagerOpt) bool { return dm.isRegistered(plugin, opts...) }
-
 var projectPrefix = make(map[string]struct{})
+var plugins = make(map[string][]Plugin)
 
-// InitProjectPrefix 默认的项目前缀是本项目, 可以通过设置, 让plugin前缀支持其他项目
+func All() map[string][]Plugin {
+	pls := make(map[string][]Plugin, len(plugins))
+	for k, v := range plugins {
+		pls[k] = append(pls[k], v...)
+	}
+	return pls
+}
+
+func List(opts ...Opt) []Plugin {
+	mOpts := options{Module: defaultModule}
+	for _, o := range opts {
+		o(&mOpts)
+	}
+
+	return plugins[mOpts.Module]
+}
+
+func Register(pg Plugin, opts ...Opt) {
+	xerror.Assert(pg == nil || pg.String() == "", "plugin is nil")
+
+	options := options{Module: defaultModule}
+	for _, o := range opts {
+		o(&options)
+	}
+
+	name := pg.String()
+	xerror.Assert(name == "", "plugin name is null")
+
+	pgs := plugins[options.Module]
+	for i := range pgs {
+		xerror.Assert(pgs[i].String() == name, "plugin [%s] already registers", name)
+	}
+	plugins[options.Module] = append(plugins[options.Module], pg)
+}
+
+// InitProjectPrefix 默认的项目前缀是本项目, 可以通过设置projects, 让plugin前缀支持其他项目
 func InitProjectPrefix(projects ...string) {
 	for i := range projects {
 		projectPrefix[projects[i]] = struct{}{}

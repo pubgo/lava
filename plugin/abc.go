@@ -8,27 +8,15 @@ import (
 
 const Name = "plugin"
 
-type Manager interface {
-	Plugins(...ManagerOpt) []Plugin
-	Register(Plugin, ...ManagerOpt)
-}
-
-type ManagerOpt func(o *managerOpts)
-type managerOpts struct {
+type Opt func(o *options)
+type options struct {
 	Module string
 }
 
 type Plugin interface {
-	Init(ent interface{}) error
-	Watch(name string, r *watcher.Response) error
+	String() string
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
-	String() string
-}
-
-type Option func(o *Options)
-type Options struct {
-	Name     string
-	Flags    *pflag.FlagSet
-	Commands *cobra.Command
+	Init(ent interface{}) error
+	Watch(name string, r *watcher.Response) error
 }

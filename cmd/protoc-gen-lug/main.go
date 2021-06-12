@@ -33,7 +33,7 @@ import (
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"github.com/pubgo/lug/xgen"
-	"github.com/pubgo/lug/client/grpcc"
+	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/gofiber/fiber/v2/utils"
@@ -43,6 +43,7 @@ import (
 var _ = strings.Trim
 var _ = gutil.EqualFieldType
 var _ = utils.ByteSize
+var _ = fb.New
 `
 		},
 
@@ -72,10 +73,11 @@ var _ = utils.ByteSize
 				Method:       "{{m.HttpMethod}}",
 				Path:          "{{m.HttpPath}}",
 				ClientStream:  "{{m.CS}}"=="True",
-				ServerStreams: "{{m.SS}}"=="True",
+				ServerStream: "{{m.SS}}"=="True",
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}RestServer),nil)
 	}
 {% endfor %}
 `

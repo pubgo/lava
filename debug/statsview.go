@@ -3,18 +3,17 @@ package debug
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/templates"
 	"github.com/go-echarts/statsview/statics"
 	"github.com/go-echarts/statsview/viewer"
 	"github.com/pubgo/lug/abc"
-	"net/http"
 )
 
 // ViewManager
 type ViewManager struct {
-	//srv *http.Server
-
 	Smgr   *viewer.StatsMgr
 	Ctx    context.Context
 	Cancel context.CancelFunc
@@ -25,19 +24,6 @@ type ViewManager struct {
 func (vm *ViewManager) Register(views ...viewer.Viewer) {
 	vm.Views = append(vm.Views, views...)
 }
-
-//// Start runs a http server and begin to collect metrics
-//func (vm *ViewManager) Start() error {
-//	return vm.srv.ListenAndServe()
-//}
-//
-//// Stop shutdown the http server gracefully
-//func (vm *ViewManager) Stop() {
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-//	defer cancel()
-//	vm.srv.Shutdown(ctx)
-//	vm.Cancel()
-//}
 
 func init() {
 	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithAddr("localhost:8081"))
@@ -65,14 +51,7 @@ func New() *ViewManager {
 	page.AssetsHost = fmt.Sprintf("http://%s/debug/statsview/statics/", viewer.LinkAddr())
 	page.Assets.JSAssets.Add("jquery.min.js")
 
-	mgr := &ViewManager{
-		//srv: &http.Server{
-		//	Addr:           viewer.Addr(),
-		//	ReadTimeout:    time.Minute,
-		//	WriteTimeout:   time.Minute,
-		//	MaxHeaderBytes: 1 << 20,
-		//},
-	}
+	mgr := &ViewManager{}
 	mgr.Ctx, mgr.Cancel = context.WithCancel(context.Background())
 	mgr.Register(
 		viewer.NewGoroutinesViewer(),
@@ -86,13 +65,6 @@ func New() *ViewManager {
 	for _, v := range mgr.Views {
 		v.SetStatsMgr(smgr)
 	}
-
-	//mux := http.NewServeMux()
-	//mux.HandleFunc("/debug/pprof/", pprof.Index)
-	//mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	//mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	//mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	//mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 	On(func(mux *abc.DebugMux) {
 		for _, v := range mgr.Views {

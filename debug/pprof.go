@@ -18,45 +18,7 @@ import (
 
 func init() {
 	On(func(app *chi.Mux) {
-		app.HandleFunc("/debug/pprof/", func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, "/debug/pprof/") {
-				name := strings.TrimPrefix(r.URL.Path, "/debug/pprof/")
-				if name != "" {
-					pprof.Handler(name).ServeHTTP(w, r)
-					return
-				}
-			}
-
-			w.Header().Set("X-Content-Type-Options", "nosniff")
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-			var profiles []profileEntry
-			for _, p := range rpp.Profiles() {
-				profiles = append(profiles, profileEntry{
-					Name:  p.Name(),
-					Href:  p.Name(),
-					Desc:  profileDescriptions[p.Name()],
-					Count: p.Count(),
-				})
-			}
-
-			// Adding other profiles exposed from within this package
-			for _, p := range []string{"cmdline", "profile", "trace"} {
-				profiles = append(profiles, profileEntry{
-					Name: p,
-					Href: p,
-					Desc: profileDescriptions[p],
-				})
-			}
-
-			sort.Slice(profiles, func(i, j int) bool {
-				return profiles[i].Name < profiles[j].Name
-			})
-
-			if err := indexTmplExecute(w, profiles); err != nil {
-				log.Print(err)
-			}
-		})
+		app.HandleFunc("/debug/pprof/", pprofHandle)
 		app.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		app.HandleFunc("/debug/pprof/profile", pprof.Profile)
 		app.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
@@ -68,6 +30,46 @@ func init() {
 		app.HandleFunc("/debug/pprof/mutex", pprof.Handler("mutex").ServeHTTP)
 		app.HandleFunc("/debug/pprof/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
 	})
+}
+
+func pprofHandle(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.URL.Path, "/debug/pprof/") {
+		name := strings.TrimPrefix(r.URL.Path, "/debug/pprof/")
+		if name != "" {
+			pprof.Handler(name).ServeHTTP(w, r)
+			return
+		}
+	}
+
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	var profiles []profileEntry
+	for _, p := range rpp.Profiles() {
+		profiles = append(profiles, profileEntry{
+			Name:  p.Name(),
+			Href:  p.Name(),
+			Desc:  profileDescriptions[p.Name()],
+			Count: p.Count(),
+		})
+	}
+
+	// Adding other profiles exposed from within this package
+	for _, p := range []string{"cmdline", "profile", "trace"} {
+		profiles = append(profiles, profileEntry{
+			Name: p,
+			Href: p,
+			Desc: profileDescriptions[p],
+		})
+	}
+
+	sort.Slice(profiles, func(i, j int) bool {
+		return profiles[i].Name < profiles[j].Name
+	})
+
+	if err := indexTmplExecute(w, profiles); err != nil {
+		log.Print(err)
+	}
 }
 
 func indexTmplExecute(w io.Writer, profiles []profileEntry) error {

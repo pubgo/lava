@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Options 缓存配置变量
+// options 缓存配置变量
 type options struct {
 	store             Store
 	DataLoadTime      time.Duration

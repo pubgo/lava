@@ -23,8 +23,8 @@ type Watcher interface {
 	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 }
 
-type Opt func(*opts)
-type opts struct{}
+type Opt func(*options)
+type options struct{}
 
 type Response struct {
 	Event   string

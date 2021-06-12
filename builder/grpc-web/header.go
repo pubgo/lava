@@ -15,8 +15,8 @@ type replacer func(key string, vv []string) (string, []string, bool)
 
 // copyOptions acts as a storage for copyHeader options.
 type copyOptions struct {
-	skipKeys  map[string]bool
-	replacers []replacer
+	skipKeys map[string]bool
+	replaces []replacer
 }
 
 // copyOption is the option type to pass to copyHeader function.
@@ -42,8 +42,8 @@ func skipKeys(keys ...string) copyOption {
 // case-insensitive.
 func replaceInVals(key, old, new string) copyOption {
 	return func(opts *copyOptions) {
-		opts.replacers = append(
-			opts.replacers,
+		opts.replaces = append(
+			opts.replaces,
 			func(k string, vv []string) (string, []string, bool) {
 				if strings.ToLower(key) == strings.ToLower(k) {
 					vv2 := make([]string, 0, len(vv))
@@ -65,8 +65,8 @@ func replaceInVals(key, old, new string) copyOption {
 // substring in header keys.
 func replaceInKeys(old, new string) copyOption {
 	return func(opts *copyOptions) {
-		opts.replacers = append(
-			opts.replacers,
+		opts.replaces = append(
+			opts.replaces,
 			func(k string, vv []string) (string, []string, bool) {
 				if strings.Contains(k, old) {
 					return strings.Replace(k, old, new, 1), vv, true
@@ -82,8 +82,8 @@ func replaceInKeys(old, new string) copyOption {
 // strings.ToLower, strings.ToUpper, http.CanonicalHeaderKey
 func keyCase(fn func(string) string) copyOption {
 	return func(opts *copyOptions) {
-		opts.replacers = append(
-			opts.replacers,
+		opts.replaces = append(
+			opts.replaces,
 			func(k string, vv []string) (string, []string, bool) {
 				return fn(k), vv, true
 			},
@@ -96,8 +96,8 @@ func keyCase(fn func(string) string) copyOption {
 // strings.Trim, strings.TrimLeft/TrimRight, strings.TrimPrefix/TrimSuffix
 func keyTrim(fn func(string, string) string, cut string) copyOption {
 	return func(opts *copyOptions) {
-		opts.replacers = append(
-			opts.replacers,
+		opts.replaces = append(
+			opts.replaces,
 			func(k string, vv []string) (string, []string, bool) {
 				return fn(k, cut), vv, true
 			},
@@ -118,7 +118,7 @@ func copyHeader(dst, src http.Header, opts ...copyOption) {
 		if options.skipKeys[strings.ToLower(k)] {
 			continue
 		}
-		for _, r := range options.replacers {
+		for _, r := range options.replaces {
 			if k2, vv2, ok := r(k, vv); ok {
 				k, vv = k2, vv2
 			}

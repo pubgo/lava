@@ -7,7 +7,8 @@ import (
 type getCallback func(key string) (interface{}, error)
 
 type Store interface {
-	Get(key string) (interface{}, error)
+	Get(key string) ([]byte, error)
+	GetObj(key string, o interface{}) error
 	Set(key string, val interface{}, ds ...time.Duration) error
 	GetSet(key string, d time.Duration, fns ...getCallback) (interface{}, error)
 	GetExpired(key string) (val interface{}, expireAt int64, err error)

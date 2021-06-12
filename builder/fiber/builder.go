@@ -3,11 +3,14 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	websocket "github.com/gofiber/websocket/v2"
+	"github.com/gofiber/websocket/v2"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
+
 	"log"
 )
+
+func New() Builder { return Builder{} }
 
 type Builder struct {
 	srv *fiber.App
@@ -80,5 +83,3 @@ func (t *Builder) Build(cfg Cfg) (err error) {
 	}))
 	return nil
 }
-
-func New() Builder { return Builder{} }

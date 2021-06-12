@@ -7,10 +7,10 @@ import (
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"go.uber.org/zap"
 )
 
 var _ = Plugin(&Base{})
+var logs = xlog.Named(Name)
 
 type Base struct {
 	Name       string
@@ -19,14 +19,15 @@ type Base struct {
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 	OnVars     func(w func(name string, data func() interface{}))
-	OnLog      func(logs xlog.Xlog)
+	OnLog      func(log xlog.Xlog)
 }
 
+func (p *Base) String() string { return p.Name }
 func (p *Base) Init(ent interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	if p.OnInit != nil {
-		xlog.Debugf("plugin [%s] init", p.Name)
+		logs.Infof("plugin [%s] init", p.Name)
 		p.OnInit(ent)
 	}
 
@@ -42,30 +43,32 @@ func (p *Base) Init(ent interface{}) (err error) {
 }
 
 func (p *Base) Watch(name string, r *watcher.Response) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RespExit(Name, "Watch")
 
-	if p.OnWatch != nil {
-		xlog.Debugf("[%s] start watch", p.Name)
-		p.OnWatch(name, r)
+	if p.OnWatch == nil {
+		return nil
 	}
-	return nil
+
+	xlog.Infof("plugin [%s] watch", p.Name)
+	p.OnWatch(name, r)
+
+	return
 }
 
 func (p *Base) Commands() *cobra.Command {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("command error", zap.Any("err", err)) })
+	defer xerror.RespExit(Name, "Commands")
 
-	if p.OnCommands != nil {
-		cmd := &cobra.Command{Use: p.Name}
-		p.OnCommands(cmd)
-		return cmd
+	if p.OnCommands == nil {
+		return nil
 	}
-	return nil
+
+	cmd := &cobra.Command{Use: p.Name}
+	p.OnCommands(cmd)
+	return cmd
 }
 
-func (p *Base) String() string { return p.Name }
-
 func (p *Base) Flags() *pflag.FlagSet {
-	defer xerror.Resp(func(err xerror.XErr) { xlog.Error("flags error", zap.Any("err", err)) })
+	defer xerror.RespExit(Name, "Flags")
 
 	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
 	if p.OnFlags != nil {
