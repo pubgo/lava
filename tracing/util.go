@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	// error keys
 	KeyErrorMessage        = "err_msg"
 	KeyContextErrorMessage = "ctx_err_msg"
 )

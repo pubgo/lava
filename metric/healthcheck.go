@@ -1,8 +1,8 @@
 package metric
 
 import (
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -23,9 +23,8 @@ func init() {
 
 	_ = fx.Go(func(_ context.Context) {
 		for range time.Tick(time.Second) {
-			var err = Count(name, 1.0, tags)
-			if err != nil {
-				xlog.ErrorM("health check error", xlog.M{"err": err, "version": tags})
+			if err := Count(name, 1.0, tags); err != nil {
+				xlog.ErrorM("health check", xlog.M{"err": err, "tags": tags})
 			}
 		}
 	})

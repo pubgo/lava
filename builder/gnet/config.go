@@ -11,6 +11,10 @@ import (
 	_ "github.com/panjf2000/gnet/pool/goroutine"
 )
 
+type Cfg struct {
+
+}
+
 func init() {
 	encoderConfig := gnet.EncoderConfig{
 		ByteOrder:                       binary.BigEndian,
@@ -25,9 +29,11 @@ func init() {
 		LengthAdjustment:    0,
 		InitialBytesToStrip: 4,
 	}
+
+
 	codec := gnet.NewLengthFieldBasedFrameCodec(encoderConfig, decoderConfig)
 	log.Fatal(gnet.Serve(
-		nil,
+		&gnet.EventServer{},
 		fmt.Sprintf("tcp://:%d", 8089),
 		gnet.WithMulticore(true),
 		gnet.WithTCPKeepAlive(time.Minute*5), // todo 需要确定是否对长连接有影响

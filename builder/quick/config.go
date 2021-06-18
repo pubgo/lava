@@ -37,10 +37,11 @@ type Cfg struct {
 }
 
 func (t Cfg) ListenAddr(addr string, tlsConf *tls.Config) (quic.Listener, error) {
-	return quic.ListenAddr(addr, tlsConf, t.ToCfg())
+	ln, err := quic.ListenAddr(addr, tlsConf, t.ToCfg())
+	return ln, xerror.Wrap(err)
 }
 
-// Listen creates a QUIC listener on the given network interface
+// ListenConn creates a QUIC listener on the given network interface
 func (t Cfg) ListenConn(addr string, tlsConf *tls.Config) (net.Listener, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
@@ -61,32 +62,27 @@ func (t Cfg) ListenConn(addr string, tlsConf *tls.Config) (net.Listener, error) 
 }
 
 func (t Cfg) DialAddr(addr string, tlsConf *tls.Config) (quic.Session, error) {
-	return quic.DialAddr(addr, tlsConf, t.ToCfg())
+	session, err := quic.DialAddr(addr, tlsConf, t.ToCfg())
+	return session, xerror.Wrap(err)
 }
 
 // DialConn creates a new QUIC connection
 // it returns once the connection is established and secured with forward-secure keys
-func (t Cfg) DialConn(addr string, tlsConf *tls.Config) (net.Conn, error) {
+func (t Cfg) DialConn(addr string, tlsConf *tls.Config) (_ net.Conn, err error) {
+	defer xerror.RespErr(&err)
+
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	udpConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	// DialAddr returns once a forward-secure connection is established
 	session, err := quic.Dial(udpConn, udpAddr, addr, tlsConf, t.ToCfg())
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	stream, err := session.OpenStreamSync(context.Background())
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	return &conn{conn: udpConn, session: session, stream: stream}, nil
 }
@@ -94,14 +90,13 @@ func (t Cfg) DialConn(addr string, tlsConf *tls.Config) (net.Conn, error) {
 func (t Cfg) ToCfg() *quic.Config {
 	var cfg = quic.Config{}
 
-	xerror.Panic(merge.Copy(&cfg, &t))
+	xerror.Panic(merge.CopyStruct(&cfg, &t))
 
 	return &cfg
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-
 	}
 }
 

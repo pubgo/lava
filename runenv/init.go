@@ -12,7 +12,6 @@ import (
 
 // 默认的全局配置
 var (
-	IsBlock                = true
 	Domain                 = "lug"
 	CatchSigpipe           = true
 	Trace                  = false

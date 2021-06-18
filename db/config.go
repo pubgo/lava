@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm"

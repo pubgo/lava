@@ -27,7 +27,7 @@ func Get(names ...string) *Client {
 	return c.(*Client)
 }
 
-func updateClient(name string, cfg Cfg) (err error) {
+func Update(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	engine := xerror.PanicErr(cfg.Build()).(*xorm.Engine)
@@ -40,7 +40,7 @@ func updateClient(name string, cfg Cfg) (err error) {
 	}
 
 	// 初始化完毕之后, 更新到对象管理系统
-	updateEngine(name, engine)
+	//updateEngine(name, engine)
 	return nil
 }
 
@@ -48,7 +48,7 @@ func updateEngine(name string, engine *xorm.Engine) {
 	xerror.Panic(dix.Dix(map[string]*xorm.Engine{name: engine}))
 }
 
-func delClient(name string) {
+func Delete(name string) {
 	var client = Get(name)
 	if client == nil {
 		return

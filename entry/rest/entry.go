@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pubgo/lug/runenv"
 	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -62,7 +62,7 @@ func (t *restEntry) Use(handler ...Handler) {
 	}
 }
 
-func (t *restEntry) Start() error {
+func (t *restEntry) Start(args ...string) error {
 	// 启动server后等待1s
 	return fx.GoDelay(time.Second, func() {
 		xlog.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)

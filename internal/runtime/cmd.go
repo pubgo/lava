@@ -43,7 +43,7 @@ func handleSignal() {
 	xlog.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
-func start(ent entry.Runtime) (err error) {
+func start(ent entry.Runtime, args []string) (err error) {
 	defer xerror.RespErr(&err)
 
 	xlog.Infof("[%s] before start running", ent.Options().Name)
@@ -53,7 +53,7 @@ func start(ent entry.Runtime) (err error) {
 	}
 	xlog.Infof("[%s] before start over", ent.Options().Name)
 
-	xerror.Panic(ent.Start())
+	xerror.Panic(ent.Start(args...))
 
 	xlog.Infof("[%s] after start running", ent.Options().Name)
 	aStarts := append(afterStarts, ent.Options().AfterStarts...)
@@ -118,16 +118,7 @@ func Run(entries ...entry.Entry) (err error) {
 		}
 
 		// 配置初始化
-		//cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-		//	defer xerror.RespErr(&err)
-		//
-		//	app.Project = entRun.Options().Name
-		//	xerror.Panic(config.GetCfg().OnInit())
-		//	xerror.Panic(dix.Dix(config.GetCfg()))
-		//	return nil
-		//}
-
-		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
+		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
 			// 本项目名字初始化
@@ -157,13 +148,14 @@ func Run(entries ...entry.Entry) (err error) {
 
 			// entry初始化
 			xerror.PanicF(entRun.InitRT(), runenv.Project)
+			return nil
+		}
 
-			xerror.Panic(start(entRun))
+		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
+			defer xerror.RespErr(&err)
 
-			if runenv.IsBlock {
-				handleSignal()
-			}
-
+			xerror.Panic(start(entRun, args))
+			handleSignal()
 			xerror.Panic(stop(entRun))
 			return nil
 		}
@@ -174,7 +166,7 @@ func Run(entries ...entry.Entry) (err error) {
 	return xerror.Wrap(rootCmd.Execute())
 }
 
-func Start(ent entry.Entry) (err error) {
+func Start(ent entry.Entry, args ...string) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")
@@ -211,7 +203,7 @@ func Start(ent entry.Entry) (err error) {
 		watcher.Watch(key, pg.Watch)
 	}
 
-	return xerror.Wrap(start(entRun))
+	return xerror.Wrap(start(entRun, args))
 }
 
 func Stop(ent entry.Entry) (err error) {

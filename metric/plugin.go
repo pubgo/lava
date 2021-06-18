@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 )
 
 func init() { plugin.Register(&plg) }
@@ -38,8 +37,5 @@ var plg = plugin.Base{
 			}))
 			return dt
 		})
-	},
-	OnLog: func(logs xlog.Xlog) {
-		_ = logs.Named(Name)
 	},
 }

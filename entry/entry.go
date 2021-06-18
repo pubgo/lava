@@ -9,7 +9,7 @@ import (
 
 type Runtime interface {
 	InitRT() error
-	Start() error
+	Start(args ...string) error
 	Stop() error
 	Options() Opts
 }
@@ -17,7 +17,7 @@ type Runtime interface {
 type Entry interface {
 	OnCfg(fn interface{})
 	Dix(data ...interface{})
-	Plugin(plugin plugin.Plugin)
+	Plugin(plugins ...plugin.Plugin)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
@@ -29,12 +29,11 @@ type Entry interface {
 
 type Opt func(o *Opts)
 type Opts struct {
+	Name         string
 	BeforeStarts []func()
 	AfterStarts  []func()
 	BeforeStops  []func()
 	AfterStops   []func()
-	Initialized  bool
-	Name         string
 	Command      *cobra.Command
 }
 

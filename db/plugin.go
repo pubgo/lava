@@ -45,7 +45,7 @@ var plg = &plugin.Base{
 			cfg := GetDefaultCfg()
 			xerror.Panic(merge.Copy(&cfg, cfgList[name]))
 
-			xerror.Panic(updateClient(name, *cfg))
+			xerror.Panic(Update(name, *cfg))
 			cfgList[name] = cfg
 		}
 	},
@@ -57,9 +57,11 @@ var plg = &plugin.Base{
 		}
 
 		xerror.Panic(w.Decode(&cfg))
-		xerror.Panic(updateClient(name, *cfg))
+		xerror.Panic(Update(name, *cfg))
 		cfgList[name] = cfg
 
-		w.OnDelete(func() {})
+		w.OnDelete(func() {
+			Delete(name)
+		})
 	},
 }

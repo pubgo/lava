@@ -16,46 +16,48 @@ type reporterMetric struct {
 	summaries  map[string]*histogram
 }
 
-func (r reporterMetric) CreateGauge(opts metric.GaugeOpts) (err error) {
+func (r *reporterMetric) CreateGauge(name string, labels []string, opts metric.GaugeOpts) (err error) {
 	defer xerror.RespErr(&err)
 
-	r.gauges[opts.Name] = expvar.NewFloat(opts.Name)
+	r.gauges[name] = expvar.NewFloat(name)
 	return nil
 }
 
-func (r reporterMetric) CreateCounter(opts metric.CounterOpts) (err error) {
+func (r *reporterMetric) CreateCounter(name string, labels []string, opts metric.CounterOpts) (err error) {
 	defer xerror.RespErr(&err)
 
-	r.gauges[opts.Name] = expvar.NewFloat(opts.Name)
+	r.counters[name] = expvar.NewFloat(name)
 	return nil
 }
 
-func (r reporterMetric) CreateSummary(opts metric.SummaryOpts) (err error) {
+func (r *reporterMetric) CreateSummary(name string, labels []string, opts metric.SummaryOpts) (err error) {
 	defer xerror.RespErr(&err)
 
-	r.summaries[opts.Name] = &histogram{}
+	r.summaries[name] = &histogram{}
 	return nil
 }
 
-func (r reporterMetric) CreateHistogram(opts metric.HistogramOpts) (err error) {
+func (r *reporterMetric) CreateHistogram(name string, labels []string, opts metric.HistogramOpts) (err error) {
 	defer xerror.RespErr(&err)
 
-	r.summaries[opts.Name] = &histogram{}
+	r.histograms[name] = &histogram{}
 	return nil
 }
 
-func (r reporterMetric) Count(name string, value float64, tags metric.Tags) error {
-	panic("implement me")
+func (r *reporterMetric) Count(name string, value float64, tags metric.Tags) error {
+	r.counters[name].Set(value)
+	return nil
 }
 
-func (r reporterMetric) Gauge(name string, value float64, tags metric.Tags) error {
-	panic("implement me")
+func (r *reporterMetric) Gauge(name string, value float64, tags metric.Tags) error {
+	r.gauges[name].Set(value)
+	return nil
 }
 
-func (r reporterMetric) Histogram(name string, value float64, tags metric.Tags) error {
-	panic("implement me")
+func (r *reporterMetric) Histogram(name string, value float64, tags metric.Tags) error {
+	return nil
 }
 
-func (r reporterMetric) Summary(name string, value float64, tags metric.Tags) error {
-	panic("implement me")
+func (r *reporterMetric) Summary(name string, value float64, tags metric.Tags) error {
+	return nil
 }

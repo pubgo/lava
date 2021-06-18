@@ -39,11 +39,11 @@ func (c *conn) RemoteAddr() net.Addr {
 
 // Close closes the connection.
 func (c *conn) Close() error {
-	if c.stream != nil {
-		return c.stream.Close()
+	if c.stream == nil {
+		return nil
 	}
 
-	return nil
+	return c.stream.Close()
 }
 
 // SetDeadline sets the deadline associated with the listener. A zero time value disables the deadline.

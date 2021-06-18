@@ -59,7 +59,7 @@ func (c *reporterMetric) CreateGauge(name string, labels []string, opts metric.G
 	return nil
 }
 
-//GaugeSet set value
+//Gauge set value
 func (c *reporterMetric) Gauge(name string, val float64, labels metric.Tags) error {
 	c.RLock()
 	gVec, ok := c.gauges[name]
@@ -88,7 +88,7 @@ func (c *reporterMetric) CreateCounter(name string, labels []string, opts metric
 	return nil
 }
 
-//CounterAdd increase value
+//Count increase value
 func (c *reporterMetric) Count(name string, val float64, labels metric.Tags) error {
 	c.RLock()
 	v, ok := c.counters[name]
@@ -117,7 +117,7 @@ func (c *reporterMetric) CreateSummary(name string, labels []string, opts metric
 	return nil
 }
 
-//SummaryObserve set value
+//Summary set value
 func (c *reporterMetric) Summary(name string, val float64, labels metric.Tags) error {
 	c.RLock()
 	v, ok := c.summaries[name]
@@ -146,7 +146,7 @@ func (c *reporterMetric) CreateHistogram(name string, labels []string, opts metr
 	return nil
 }
 
-//HistogramObserve set value
+//Histogram set value
 func (c *reporterMetric) Histogram(name string, val float64, labels metric.Tags) error {
 	c.RLock()
 	v, ok := c.histograms[name]

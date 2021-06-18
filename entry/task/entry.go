@@ -2,9 +2,7 @@ package task
 
 import (
 	"github.com/pubgo/lug/broker"
-	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
 
@@ -32,16 +30,9 @@ func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
 	t.handlers = append(t.handlers, taskHandler)
 }
 
-func (t *taskEntry) InitRT() (err error) {
-	return xutil.Try(func() {
-		xerror.Panic(t.Entry.InitRT())
-		_ = config.Decode(Name, &t.cfg)
-	})
-}
-
 func (t *taskEntry) Stop() (err error) { return nil }
 
-func (t *taskEntry) Start() (err error) {
+func (t *taskEntry) Start(args ...string) (err error) {
 	defer xerror.RespErr(&err)
 
 	t.broker = broker.Get(t.cfg.Broker)
@@ -60,6 +51,6 @@ func (t *taskEntry) Start() (err error) {
 
 func newEntry(name string) *taskEntry {
 	return &taskEntry{Entry: base.New(name)}
-
 }
+
 func New(name string) Entry { return newEntry(name) }

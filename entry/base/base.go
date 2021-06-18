@@ -38,12 +38,14 @@ func (t *Entry) OnCfgWithName(name string, fn interface{}) {
 }
 
 // Plugin 注册插件
-func (t *Entry) Plugin(plg plugin.Plugin) {
+func (t *Entry) Plugin(plugins ...plugin.Plugin) {
 	defer xerror.RespExit()
 
-	xerror.Assert(plg == nil || plg.String() == "", "[plg] should not be nil")
-	xerror.Assert(t.opts.Name == "", "please init project name first")
-	plugin.Register(plg, plugin.Module(t.opts.Name))
+	for _, plg := range plugins {
+		xerror.Assert(plg == nil || plg.String() == "", "[plg] should not be nil")
+		xerror.Assert(t.opts.Name == "", "please init project name first")
+		plugin.Register(plg, plugin.Module(t.opts.Name))
+	}
 }
 
 func (t *Entry) InitRT() (err error) {
@@ -51,7 +53,6 @@ func (t *Entry) InitRT() (err error) {
 
 	xerror.Assert(runenv.Project != t.Options().Name, "project name not match(%s, %s)", runenv.Project, t.Options().Name)
 	t.init()
-	t.opts.Initialized = true
 
 	return
 }
@@ -111,9 +112,9 @@ func newEntry(name string) *Entry {
 	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
-	ent := &Entry{opts: entry.Opts{Name: name, Command: &cobra.Command{Use: handleCmdName(name), Version: version.Version}}}
-
-	return ent
+	return &Entry{
+		opts: entry.Opts{Name: name, Command: &cobra.Command{Use: handleCmdName(name), Version: version.Version}},
+	}
 }
 
 func New(name string) *Entry { return newEntry(name) }

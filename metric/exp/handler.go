@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"expvar"
 	"fmt"
+	"html/template"
 	"net/http"
 	"sort"
 	"strings"
-
-	"html/template"
 )
 
 var (

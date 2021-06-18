@@ -1,21 +1,15 @@
-WORKDIR=`pwd`
-Project=github.com/pubgo/lug
-GOPath=$(shell go env GOPATH)
+VersionBase=github.com/pubgo/lug
+Domain=lugo
 Version=$(shell git tag --sort=committerdate | tail -n 1)
-GoROOT=$(shell go env GOROOT)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=6 HEAD)
 LDFLAGS=-ldflags " \
--X 'github.com/pubgo/lug/version.GoROOT=${GoROOT}' \
--X 'github.com/pubgo/lug/version.BuildTime=${BuildTime}' \
--X 'github.com/pubgo/lug/version.GoPath=${GOPath}' \
--X 'github.com/pubgo/lug/version.CommitID=${CommitID}' \
--X 'github.com/pubgo/lug/version.Project=${Project}' \
--X 'github.com/pubgo/lug/version.Version=${Version}' \
--X 'github.com/pubgo/lug/version.Data=hello world' \
+-X '${VersionBase}/version.BuildTime=${BuildTime}' \
+-X '${VersionBase}/version.CommitID=${CommitID}' \
+-X '${VersionBase}/version.Version=${Version}' \
+-X '${VersionBase}/version.Domain=${Domain}' \
+-X '${VersionBase}/version.Data=hello' \
 "
-
-default: run
 
 .PHONY: build
 build:
@@ -74,10 +68,6 @@ gen:
 example:
 	#go build ${LDFLAGS} -mod vendor -v -o main example/*.go
 	CGO_CFLAGS=-Wno-undef-prefix go build ${LDFLAGS} -v -o main example/*.go
-
-.PHONY: run
-run:
-	go run ${LDFLAGS} -mod vendor -v example/*.go http
 
 docker:
 	docker build -t lug .

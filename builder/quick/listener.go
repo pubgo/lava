@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/lucas-clemente/quic-go"
+	"github.com/pubgo/xerror"
 )
 
 var _ net.Listener = (*listener)(nil)
@@ -18,20 +19,15 @@ type listener struct {
 func (s *listener) Accept() (net.Conn, error) {
 	session, err := s.server.Accept(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, xerror.Wrap(err)
 	}
 
 	stream, err := session.AcceptStream(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, xerror.Wrap(err)
 	}
 
-	conn := &conn{
-		conn:    s.conn,
-		session: session,
-		stream:  stream,
-	}
-
+	conn := &conn{conn: s.conn, session: session, stream: stream}
 	return conn, nil
 }
 
