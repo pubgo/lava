@@ -15,9 +15,11 @@ var CommitID = ""
 var Project = ""
 var BuildTime = "2021-03-20 16:52:09"
 var Version = "v0.0.19"
+var Data = ""
 
 func GetVer() map[string]interface{} {
 	return map[string]interface{}{
+		"data":       Data,
 		"build_time": BuildTime,
 		"version":    Version,
 		"go_version": GoVersion,

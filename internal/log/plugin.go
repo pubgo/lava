@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
@@ -12,7 +12,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: name,
 		OnInit: func(ent interface{}) {
-			cfg.Level = app.Level
+			cfg.Level = runenv.Level
 
 			if !config.Decode(name, &cfg) {
 				return

@@ -13,7 +13,6 @@ var name = "test-ctl"
 
 func GetEntry() entry.Entry {
 	ent := lug.NewCtl(name)
-	ent.Version("v0.0.1")
 	ent.Description("entry ctl test")
 
 	ent.Register(func() {

@@ -16,13 +16,13 @@ type Token struct {
 	Claims   map[string]interface{} `json:"claims"`
 }
 
-// NewTokenContext sets the session token to a given context
+// NewTokenCtx sets the session token to a given context
 func NewTokenCtx(ctx context.Context, token *Token) context.Context {
 	ctx = context.WithValue(ctx, tokenCtxKey{}, token)
 	return ctx
 }
 
-// TokenFromContext returns a session token
+// TokenFromCtx returns a session token
 func TokenFromCtx(ctx context.Context) *Token {
 	if token, ok := ctx.Value(tokenCtxKey{}).(*Token); ok {
 		return token

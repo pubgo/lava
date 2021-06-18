@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/hcl"
 	"github.com/pelletier/go-toml"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/encoding"
 	"github.com/pubgo/x/jsonx"
@@ -43,7 +43,7 @@ func GetDefaultCfg() Cfg {
 }
 
 func trimProject(key string) string {
-	return strings.Trim(strings.TrimPrefix(key, app.Project), ".")
+	return strings.Trim(strings.TrimPrefix(key, runenv.Project), ".")
 }
 
 // KeyToDot /projectName/foo/bar -->  projectName.foo.bar

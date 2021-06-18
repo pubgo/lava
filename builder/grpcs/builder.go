@@ -3,7 +3,8 @@ package grpcs
 import (
 	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
 	opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
@@ -12,6 +13,7 @@ import (
 )
 
 type Builder struct {
+	name                     string
 	mu                       sync.Mutex
 	srv                      *grpc.Server
 	opts                     []grpc.ServerOption
@@ -48,7 +50,7 @@ func (t *Builder) Init(opts ...grpc.ServerOption) {
 	t.opts = append(t.opts, opts...)
 }
 
-func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
+func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
 	return []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
@@ -60,7 +62,9 @@ func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
 	}
 }
 
-func (t *Builder) Build(cfg Cfg) error {
+func (t *Builder) Build(cfg *Cfg, cb ...func()) (err error) {
+	defer xerror.RespErr(&err)
+
 	opts := t.BuildOpts(cfg)
 
 	unaryInterceptorList := append([]grpc.UnaryServerInterceptor{
@@ -77,13 +81,18 @@ func (t *Builder) Build(cfg Cfg) error {
 	srv := grpc.NewServer(opts...)
 
 	EnableReflection(srv)
-	EnableHealth(app.Project, srv)
-	if app.IsDev() || app.IsTest() {
+	EnableHealth(t.name, srv)
+	if runenv.IsDev() || runenv.IsTest() {
 		EnableDebug(srv)
 	}
 
 	t.srv = srv
+
+	if len(cb) > 0 {
+		cb[0]()
+	}
+
 	return nil
 }
 
-func New() Builder { return Builder{} }
+func New(name string) Builder { return Builder{name: name} }

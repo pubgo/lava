@@ -12,7 +12,6 @@ var name = "test-task"
 
 func GetEntry() entry.Entry {
 	ent := lug.NewTask(name)
-	ent.Version("v0.0.1")
 	ent.Description("entry task test")
 
 	ent.Register("topic", func(msg *broker.Message) error {

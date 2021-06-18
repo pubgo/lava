@@ -9,19 +9,20 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pubgo/lug/app"
-	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
 	grpcWeb "github.com/pubgo/lug/builder/grpc-web"
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/pkg/ctxutil"
+	"github.com/pubgo/lug/pkg/logutil"
 	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/version"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xlog/xlog_grpc"
+	grpcLog "github.com/pubgo/xlog/xlog_grpc"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
@@ -33,7 +34,6 @@ type grpcEntry struct {
 	*base.Entry
 	cfg         Cfg
 	web         grpcWeb.Builder
-	gw          grpcGw.Builder
 	srv         grpcs.Builder
 	mux         cmux.CMux
 	registry    registry.Registry
@@ -51,7 +51,14 @@ func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor
 func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
 	g.srv.StreamInterceptor(interceptors...)
 }
-func (g *grpcEntry) serve() error             { return g.mux.Serve() }
+
+func (g *grpcEntry) serve() error { return g.mux.Serve() }
+func (g *grpcEntry) handleError() {
+	g.mux.HandleError(func(err error) bool {
+		xlog.Error("grpcEntry mux handleError", logutil.Err(err))
+		return false
+	})
+}
 func (g *grpcEntry) matchAny() net.Listener   { return g.mux.Match(cmux.Any()) }
 func (g *grpcEntry) matchHttp1() net.Listener { return g.mux.Match(cmux.HTTP1()) }
 func (g *grpcEntry) matchHttp2() net.Listener {
@@ -100,21 +107,19 @@ func (g *grpcEntry) register() (err error) {
 	node.Metadata["transport"] = "grpc"
 
 	services := &registry.Service{
-		Name:      g.Options().Name,
-		Version:   g.Entry.Options().Version,
+		Name:      g.cfg.name,
+		Version:   version.Version,
 		Nodes:     []*registry.Node{node},
 		Endpoints: g.endpoints,
 	}
 
 	if !g.registered.Load() {
-		xlog.Infof("Registering node: %s", node.Id)
+		xlog.Info("Registering node", xlog.String("id", node.Id), xlog.String("name", g.cfg.name))
 	}
 
-	// create registry options
-	rOpts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
-	if err := g.registry.Register(services, rOpts...); err != nil {
-		return xerror.WrapF(err, "[grpc] registry register error")
-	}
+	// registry options
+	opts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
+	xerror.Panic(g.registry.Register(services, opts...), "[grpc] register error")
 
 	// already registered? don't need to register subscribers
 	if g.registered.Load() {
@@ -159,15 +164,13 @@ func (g *grpcEntry) deRegister() (err error) {
 	}
 
 	services := &registry.Service{
-		Name:    app.Project,
-		Version: g.Entry.Options().Version,
+		Name:    g.cfg.name,
+		Version: version.Version,
 		Nodes:   []*registry.Node{node},
 	}
 
 	xlog.Infof("DeRegistering node: %s", node.Id)
-	if err := g.registry.DeRegister(services); err != nil {
-		return xerror.WrapF(err, "[grpc] registry deRegister error")
-	}
+	xerror.Panic(g.registry.DeRegister(services), "[grpc] registry deRegister error")
 
 	if !g.registered.Load() {
 		return nil
@@ -205,7 +208,7 @@ func (g *grpcEntry) initHandler() {
 
 	// 初始化routes
 	for i := range g.handlers {
-		xerror.PanicF(register(g.srv.Get(), g.handlers[i]), "[grpc] register error")
+		xerror.PanicF(register(g.srv.Get(), g.handlers[i]), "register handler error")
 	}
 }
 
@@ -213,7 +216,7 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.Assert(!checkHandle(handler).IsValid(), "[grpc] grpcEntry.Register error")
+	xerror.Assert(!checkHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
 
 	g.handlers = append(g.handlers, handler)
 	g.endpoints = append(g.endpoints, newRpcHandler(handler)...)
@@ -222,50 +225,44 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	xlog.Infof("[%s] Server Listening on %s", app.Project, app.Addr)
-	ln, err := netutil.Listen(app.Addr)
-	xerror.Panic(err)
+	xlog.Info("Server Listening", logutil.Name(g.cfg.name), xlog.String("addr", runenv.Addr))
+	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 	g.mux = cmux.New(ln)
 
 	_ = fx.GoDelay(time.Millisecond*10, func() {
-		xlog.Info("Server [grpc] Listening")
+		xlog.Info("[grpc] Server Starting")
 		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
-			xlog.Error("Server [grpc] Stop error", xlog.Any("err", err))
+			xlog.Error("[grpc] Server Stop", logutil.Err(err))
 		}
 	})
 
 	_ = fx.GoDelay(time.Millisecond*10, func() {
-		xlog.Info("Server [grpc-web] Listening")
+		xlog.Info("[grpc-web] Server Staring")
 		if err := g.web.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed {
-			xlog.Error("Server [grpc-web] stop error", xlog.Any("err", err))
+			xlog.Error(" [grpc-web] Server Stop", logutil.Err(err))
 		}
 	})
 
-	xerror.Panic(fx.GoDelay(time.Millisecond*10, func() {
+	_ = fx.GoDelay(time.Millisecond*10, func() {
 		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			xlog.Error("Server [mux] stop error", xlog.Any("err", err))
+			xlog.Error(" [mux] Server Stop", logutil.Err(err))
 		}
-	}))
+	})
 
-	// announce self to the world
-	if err := g.register(); err != nil {
-		return xerror.WrapF(err, "[grpc] registry try register error")
-	}
+	// register self
+	xerror.Panic(g.register(), "[grpc] try to register self")
 
 	_ = fx.Go(func(ctx context.Context) {
-		t := new(time.Ticker)
+		var interval = DefaultRegisterInterval
 
 		// only process if it exists
 		if g.cfg.RegisterInterval > time.Duration(0) {
-			// new ticker
-			t = time.NewTicker(g.cfg.RegisterInterval)
+			interval = g.cfg.RegisterInterval
 		}
 
 		// register self on interval
-		for range t.C {
-			if err := g.register(); err != nil {
-				xlog.Info("[grpc] server register error", xlog.Any("err", err))
-			}
+		for range time.NewTicker(interval).C {
+			logutil.ErrWith(g.register(), "[grpc] server register on interval")
 		}
 	})
 
@@ -275,6 +272,8 @@ func (g *grpcEntry) Start() (gErr error) {
 func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
 		cfg: Cfg{
+			Srv:                  grpcs.GetDefaultCfg(),
+			Web:                  grpcWeb.GetDefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
 			SleepAfterDeregister: time.Second * 2,
@@ -283,24 +282,24 @@ func newEntry(name string) *grpcEntry {
 			name:                 name,
 		},
 		Entry: base.New(name),
-		srv:   grpcs.New(),
-		web:   grpcWeb.New(),
-		gw:    grpcGw.New(),
+		srv:   grpcs.New(name),
+		web:   grpcWeb.New(name),
 	}
 
 	g.OnInit(func() {
-		xlog_grpc.Init(xlog.Named(Name))
+		grpcLog.Init(xlog.Named(Name))
+
 		grpcs.InitEncoding()
 		_ = config.Decode(Name, &g.cfg)
 
 		// 注册中心校验
 		g.registry = registry.Default()
 
-		xerror.Panic(g.srv.Build(g.cfg.Srv))
-		xerror.Panic(g.web.Build(g.cfg.Web, g.srv.Get()))
-		//xerror.Panic(g.gw.Build(g.cfg.Gw))
+		xerror.Panic(g.srv.Build(g.cfg.Srv, func() {
+			g.initHandler()
 
-		g.initHandler()
+			xerror.Panic(g.web.Build(g.cfg.Web, g.srv.Get()))
+		}))
 	})
 
 	return g

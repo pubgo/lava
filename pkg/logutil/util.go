@@ -1,11 +1,20 @@
 package logutil
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
-
-	"reflect"
 )
+
+func ErrWith(err error, msg string, args ...interface{}) {
+	if err == nil {
+		return
+	}
+
+	xlog.Error(fmt.Sprintf(msg, args...), Err(err))
+}
 
 func Err(err error) xlog.Field {
 	return xlog.Any("err", err)

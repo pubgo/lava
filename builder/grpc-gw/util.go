@@ -7,7 +7,7 @@ import (
 	"time"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -43,7 +43,7 @@ func startGw(addr string) (err error) {
 	var server = &http.Server{Addr: addr, Handler: mux}
 
 	// 注册网关api
-	xerror.Panic(registerGw(app.Addr, mux, grpc.WithBlock(), grpc.WithInsecure()))
+	xerror.Panic(registerGw(runenv.Addr, mux, grpc.WithBlock(), grpc.WithInsecure()))
 
 	xerror.Exit(fx.GoDelay(time.Second, func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -53,7 +53,7 @@ func startGw(addr string) (err error) {
 		xlog.Info("Srv [GW] Closed OK")
 	}))
 
-	xlog.Infof("Srv [GW] Listening on http://localhost%s", app.Addr)
+	xlog.Infof("Srv [GW] Listening on http://localhost%s", runenv.Addr)
 
 	//g.BeforeStop(func() {
 	//	if err := server.Shutdown(context.Background()); err != nil {

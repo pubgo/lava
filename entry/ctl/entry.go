@@ -1,7 +1,7 @@
 package ctl
 
 import (
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/x/try"
@@ -23,7 +23,7 @@ func newEntry(name string) *ctlEntry {
 	var ent = &ctlEntry{Entry: base.New(name)}
 	ent.OnInit(func() {
 		_ = config.Decode(Name, &ent.cfg)
-		app.IsBlock = false
+		runenv.IsBlock = false
 	})
 
 	return ent

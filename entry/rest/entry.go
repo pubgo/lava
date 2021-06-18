@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
@@ -65,9 +65,9 @@ func (t *restEntry) Use(handler ...Handler) {
 func (t *restEntry) Start() error {
 	// 启动server后等待1s
 	return fx.GoDelay(time.Second, func() {
-		xlog.Infof("Srv [rest] Listening on http://localhost%s", app.Addr)
+		xlog.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)
 
-		if err := t.srv.Get().Listen(app.Addr); err != nil && err != http.ErrServerClosed {
+		if err := t.srv.Get().Listen(runenv.Addr); err != nil && err != http.ErrServerClosed {
 			xlog.Error("Srv [rest] Close Error", xlog.Any("err", err))
 			return
 		}

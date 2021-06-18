@@ -12,6 +12,7 @@ LDFLAGS=-ldflags " \
 -X 'github.com/pubgo/lug/version.CommitID=${CommitID}' \
 -X 'github.com/pubgo/lug/version.Project=${Project}' \
 -X 'github.com/pubgo/lug/version.Version=${Version}' \
+-X 'github.com/pubgo/lug/version.Data=hello world' \
 "
 
 default: run

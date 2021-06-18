@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/x/xutil"
@@ -149,13 +149,13 @@ func (t *conf) Template(format string) string {
 		case "project_home", "config_home":
 			return w.Write(xutil.ToBytes(Home))
 		case "trace":
-			return w.Write(xutil.ToBytes(strconv.FormatBool(app.Trace)))
+			return w.Write(xutil.ToBytes(strconv.FormatBool(runenv.Trace)))
 		case "project_name", "project":
-			return w.Write(xutil.ToBytes(app.Project))
+			return w.Write(xutil.ToBytes(runenv.Project))
 		case "domain":
-			return w.Write(xutil.ToBytes(app.Domain))
+			return w.Write(xutil.ToBytes(runenv.Domain))
 		case "mode":
-			return w.Write(xutil.ToBytes(app.Mode))
+			return w.Write(xutil.ToBytes(runenv.Mode))
 		case "config":
 			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
 		case "config_path":

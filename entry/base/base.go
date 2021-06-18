@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -28,8 +27,8 @@ func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.Af
 func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
 func (t *Entry) AfterStop(f func())      { t.opts.AfterStops = append(t.opts.AfterStops, f) }
 func (t *Entry) Dix(data ...interface{}) { xerror.Panic(dix.Dix(data...)) }
-func (t *Entry) Start() error            { panic("unimplemented") }
-func (t *Entry) Stop() error             { panic("unimplemented") }
+func (t *Entry) Start() error            { panic("start unimplemented") }
+func (t *Entry) Stop() error             { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts     { return t.opts }
 func (t *Entry) OnCfg(fn interface{})    { t.OnCfgWithName(t.opts.Name, fn) }
 func (t *Entry) OnInit(init func())      { t.init = init }
@@ -50,7 +49,7 @@ func (t *Entry) Plugin(plg plugin.Plugin) {
 func (t *Entry) InitRT() (err error) {
 	defer xerror.RespErr(&err)
 
-	xerror.Assert(app.Project != t.Options().Name, "project name not match(%s, %s)", app.Project, t.Options().Name)
+	xerror.Assert(runenv.Project != t.Options().Name, "project name not match(%s, %s)", runenv.Project, t.Options().Name)
 	t.init()
 	t.opts.Initialized = true
 
@@ -78,17 +77,6 @@ func (t *Entry) Description(description ...string) {
 	return
 }
 
-func (t *Entry) Version(v string) {
-	t.opts.Version = strings.TrimSpace(v)
-	if t.opts.Version == "" {
-		return
-	}
-
-	t.opts.Command.Version = v
-	xerror.PanicErr(ver.NewVersion(v))
-	return
-}
-
 func (t *Entry) Commands(commands ...*cobra.Command) {
 	rootCmd := t.opts.Command
 	for _, cmd := range commands {
@@ -105,15 +93,15 @@ func (t *Entry) Commands(commands ...*cobra.Command) {
 }
 
 func handleCmdName(name string) string {
-	if strings.Contains(name, "-") {
-		names := strings.Split(name, "-")
-		name = names[len(names)-1]
-	}
-
-	if strings.Contains(name, ".") {
-		names := strings.Split(name, ".")
-		name = names[len(names)-1]
-	}
+	//if strings.Contains(name, "-") {
+	//	names := strings.Split(name, "-")
+	//	name = names[len(names)-1]
+	//}
+	//
+	//if strings.Contains(name, ".") {
+	//	names := strings.Split(name, ".")
+	//	name = names[len(names)-1]
+	//}
 
 	return name
 }
@@ -123,11 +111,9 @@ func newEntry(name string) *Entry {
 	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
-	ent := &Entry{opts: entry.Opts{Name: name, Version: version.Version, Command: &cobra.Command{Use: handleCmdName(name)}}}
+	ent := &Entry{opts: entry.Opts{Name: name, Command: &cobra.Command{Use: handleCmdName(name), Version: version.Version}}}
 
 	return ent
 }
 
-func New(name string) *Entry {
-	return newEntry(name)
-}
+func New(name string) *Entry { return newEntry(name) }

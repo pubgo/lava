@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
@@ -46,7 +46,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	engine.SetLogger(newLogger("xorm"))
 	engine.Logger().SetLevel(xl.LOG_DEBUG)
 	engine.ShowSQL(true)
-	if !cfg.Debug || app.IsStag() || app.IsProd() {
+	if !cfg.Debug || runenv.IsStag() || runenv.IsProd() {
 		engine.Logger().SetLevel(xl.LOG_WARNING)
 		engine.ShowSQL(false)
 	}

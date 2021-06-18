@@ -13,7 +13,6 @@ var name = "test-grpc"
 
 func GetEntry() entry.Entry {
 	ent := lug.NewGrpc(name)
-	ent.Version("v0.0.1")
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())
 	ent.Init()

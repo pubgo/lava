@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/osutil"
@@ -83,11 +83,11 @@ func initWithDir(v *viper.Viper) (err error) {
 		filepath.Join("home", CfgName),
 
 		// etc目录
-		filepath.Join("/etc", app.Domain, app.Project, CfgName),
+		filepath.Join("/etc", runenv.Domain, runenv.Project, CfgName),
 
 		// home工作目录
-		filepath.Join(home, ".config", app.Project, CfgName),
-		filepath.Join(home, "."+app.Domain, app.Project, CfgName),
+		filepath.Join(home, ".config", runenv.Project, CfgName),
+		filepath.Join(home, "."+runenv.Domain, runenv.Project, CfgName),
 	)
 
 	for i := range paths {
@@ -105,7 +105,7 @@ func initApp(v *viper.Viper) (err error) {
 
 	// 处理项目自定义配置
 	path := filepath.Dir(v.ConfigFileUsed())
-	appCfg := filepath.Join(path, fmt.Sprint(app.Project, ".", CfgType))
+	appCfg := filepath.Join(path, fmt.Sprint(runenv.Project, ".", CfgType))
 	if pathutil.IsNotExist(appCfg) {
 		return nil
 	}
@@ -131,7 +131,7 @@ func (t *conf) Init() (err error) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
-	xerror.Assert(!app.CheckMode(), "")
+	xerror.Assert(!runenv.CheckMode(), "")
 
 	// 配置处理
 	v := t.v

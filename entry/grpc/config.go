@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
 	grpcWeb "github.com/pubgo/lug/builder/grpc-web"
 	"github.com/pubgo/lug/builder/grpcs"
 
@@ -9,9 +8,8 @@ import (
 )
 
 type Cfg struct {
-	Srv                  grpcs.Cfg     `json:"grpc"`
-	Gw                   grpcGw.Cfg    `json:"gw"`
-	Web                  grpcWeb.Cfg   `json:"web"`
+	Srv                  *grpcs.Cfg     `json:"grpc"`
+	Web                  *grpcWeb.Cfg   `json:"web"`
 	SleepAfterDeregister time.Duration `json:"sleepAfterDeregister"`
 	RegisterInterval     time.Duration `json:"registerInterval"`
 	RegisterTTL          time.Duration `json:"register_ttl"`
@@ -21,3 +19,17 @@ type Cfg struct {
 	id                   string
 	name                 string
 }
+
+const (
+	// DefaultMaxMsgSize define maximum message size that server can send or receive.
+	// Default value is 4MB.
+	DefaultMaxMsgSize = 1024 * 1024 * 4
+
+	DefaultSleepAfterDeregister = time.Second * 2
+
+	// DefaultRegisterTTL The register expiry time
+	DefaultRegisterTTL = time.Minute
+
+	// DefaultRegisterInterval The interval on which to register
+	DefaultRegisterInterval = time.Second * 30
+)

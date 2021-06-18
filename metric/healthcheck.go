@@ -1,7 +1,7 @@
 package metric
 
 import (
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/x/fx"
@@ -16,7 +16,7 @@ import (
 func init() {
 	var name = "health"
 	xerror.Panic(CreateCounter(name, typex.StrOf("version", "build_time", "commit_id"), CounterOpts{
-		Help: fmt.Sprintf("%s health check", app.Project),
+		Help: fmt.Sprintf("%s health check", runenv.Project),
 	}))
 
 	var tags = Tags{"version": version.Version, "build_time": version.BuildTime, "commit_id": version.CommitID}

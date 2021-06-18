@@ -5,7 +5,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/vars"
@@ -29,8 +29,8 @@ func Init() (err error) {
 
 	// 获取所有watch的项目
 	projects := cfg.Projects
-	if !strutil.Contains(projects, app.Project) {
-		projects = append(projects, app.Project)
+	if !strutil.Contains(projects, runenv.Project) {
+		projects = append(projects, runenv.Project)
 	}
 
 	// 项目prefix
@@ -95,7 +95,7 @@ func onWatch(name string, resp *Response) {
 	xerror.PanicF(resp.Decode(&dt), "value都必须是kv类型的数据, key:%s, value:%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
-		if name == app.Project {
+		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
 			config.GetCfg().Set(trimProject(key), dt)
 		} else {
@@ -104,7 +104,7 @@ func onWatch(name string, resp *Response) {
 	})
 
 	resp.OnDelete(func() {
-		if name == app.Project {
+		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
 			config.GetCfg().Set(trimProject(key), nil)
 		} else {

@@ -12,8 +12,8 @@ type Cfg struct {
 	Prefix string
 }
 
-func GetDefaultCfg() Cfg {
-	return Cfg{
+func GetDefaultCfg() *Cfg {
+	return &Cfg{
 		Prefix: "",
 	}
 }

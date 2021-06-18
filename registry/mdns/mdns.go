@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lug/app"
+	"github.com/pubgo/lug/runenv"
 	"sync"
 	"time"
 
@@ -138,7 +138,7 @@ func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) ([]*registr
 		ctx, cancel := context.WithTimeout(context.Background(), gOpts.Timeout)
 		defer cancel()
 
-		xerror.Panic(m.resolver.Browse(ctx, s, app.Domain, entries), "Failed to Browse")
+		xerror.Panic(m.resolver.Browse(ctx, s, runenv.Domain, entries), "Failed to Browse")
 		<-ctx.Done()
 	})
 }

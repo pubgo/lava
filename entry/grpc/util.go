@@ -62,7 +62,10 @@ func init() {
 type uriCodec struct{}
 
 func (c *uriCodec) Name() string                          { return "uri" }
-func (c *uriCodec) Marshal(v interface{}) ([]byte, error) { return json.Marshal(v) }
+func (c *uriCodec) Marshal(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
 func (c *uriCodec) Unmarshal(data []byte, v interface{}) error {
 	var u, err = url.ParseQuery(string(data))
 	if err != nil {

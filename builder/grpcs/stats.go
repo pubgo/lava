@@ -18,8 +18,8 @@ type GRPCStats struct {
 	Success  float64
 }
 
-var connsMutex sync.Mutex
-var conns map[*stats.ConnTagInfo]string = make(map[*stats.ConnTagInfo]string)
+var consMutex sync.Mutex
+var cons  = make(map[*stats.ConnTagInfo]string)
 
 type connCtxKey struct{}
 
@@ -76,16 +76,16 @@ func (s *statsHandler) HandleConn(ctx context.Context, connStats stats.ConnStats
 		log.Fatal("can not get conn tag")
 	}
 
-	connsMutex.Lock()
-	defer connsMutex.Unlock()
+	consMutex.Lock()
+	defer consMutex.Unlock()
 
 	switch connStats.(type) {
 	case *stats.ConnBegin:
-		conns[tag] = ""
-		log.Printf("begin conn, tag = (%p)%#v, now connections = %d\n", tag, tag, len(conns))
+		cons[tag] = ""
+		log.Printf("begin conn, tag = (%p)%#v, now connections = %d\n", tag, tag, len(cons))
 	case *stats.ConnEnd:
-		delete(conns, tag)
-		log.Printf("end conn, tag = (%p)%#v, now connections = %d\n", tag, tag, len(conns))
+		delete(cons, tag)
+		log.Printf("end conn, tag = (%p)%#v, now connections = %d\n", tag, tag, len(cons))
 	default:
 		log.Printf("illegal ConnStats type\n")
 	}

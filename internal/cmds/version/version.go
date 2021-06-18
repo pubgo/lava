@@ -16,12 +16,13 @@ import (
 
 var trim = strings.TrimSpace
 var Cmd = &cobra.Command{
-	Use:     "ver",
+	Use:     "version",
 	Aliases: typex.StrOf("v"),
 	Short:   "Print the dependency package information",
 	Example: trim(`
 lug version
-lug version table`),
+lug version json
+lug version t`),
 	Run: func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()
 

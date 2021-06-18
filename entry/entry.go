@@ -15,7 +15,6 @@ type Runtime interface {
 }
 
 type Entry interface {
-	Version(v string)
 	OnCfg(fn interface{})
 	Dix(data ...interface{})
 	Plugin(plugin plugin.Plugin)
@@ -36,7 +35,6 @@ type Opts struct {
 	AfterStops   []func()
 	Initialized  bool
 	Name         string
-	Version      string
 	Command      *cobra.Command
 }
 

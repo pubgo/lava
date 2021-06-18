@@ -6,12 +6,11 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/app"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/internal/cmds/vars"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/stack"
@@ -21,15 +20,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{Use: app.Domain, Version: version.Version}
+var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
 	rootCmd.AddCommand(v.Cmd)
-	rootCmd.AddCommand(vars.Cmd)
 }
 
 func handleSignal() {
-	if app.CatchSigpipe {
+	if runenv.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		go func() {
@@ -41,8 +39,8 @@ func handleSignal() {
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	app.Signal = <-ch
-	xlog.Infof("signal [%s] trigger", app.Signal.String())
+	runenv.Signal = <-ch
+	xlog.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
 func start(ent entry.Runtime) (err error) {
@@ -95,14 +93,11 @@ func Run(entries ...entry.Entry) (err error) {
 	for _, ent := range entries {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
-		entRun, ok := ent.(entry.Runtime)
+		_, ok := ent.(entry.Runtime)
 		xerror.Assert(!ok, "[ent] not implement runtime")
-
-		opt := entRun.Options()
-		xerror.Assert(opt.Name == "" || opt.Version == "", "[name,version] should not be empty")
 	}
 
-	rootCmd.PersistentFlags().AddFlagSet(app.DefaultFlags())
+	rootCmd.PersistentFlags().AddFlagSet(runenv.DefaultFlags())
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
@@ -136,17 +131,17 @@ func Run(entries ...entry.Entry) (err error) {
 			defer xerror.RespErr(&err)
 
 			// 本项目名字初始化
-			app.Project = entRun.Options().Name
+			runenv.Project = entRun.Options().Name
 
 			// 配置初始化
 			xerror.Panic(config.GetCfg().Init())
 			xerror.Panic(dix.Dix(config.GetCfg()))
 
 			// plugin项目前缀初始化, 默认本项目
-			plugin.InitProjectPrefix(app.Project)
+			plugin.InitProjectPrefix(runenv.Project)
 
 			// 初始化组件, 初始化插件
-			plugins := plugin.List(plugin.Module(app.Project))
+			plugins := plugin.List(plugin.Module(runenv.Project))
 			plugins = append(plugin.List(), plugins...)
 			for _, pg := range plugins {
 				key := pg.String()
@@ -161,11 +156,11 @@ func Run(entries ...entry.Entry) (err error) {
 			xerror.Panic(watcher.Init())
 
 			// entry初始化
-			xerror.PanicF(entRun.InitRT(), app.Project)
+			xerror.PanicF(entRun.InitRT(), runenv.Project)
 
 			xerror.Panic(start(entRun))
 
-			if app.IsBlock {
+			if runenv.IsBlock {
 				handleSignal()
 			}
 
@@ -188,7 +183,7 @@ func Start(ent entry.Entry) (err error) {
 	xerror.Assert(!ok, "[ent] not implement runtime")
 
 	opt := entRun.Options()
-	xerror.Assert(opt.Name == "" || opt.Version == "", "[name,version] should not be empty")
+	xerror.Assert(opt.Name == "", "[name] should not be empty")
 
 	entPlugins := plugin.List(plugin.Module(entRun.Options().Name))
 	for _, pl := range append(plugin.List(), entPlugins...) {
@@ -197,7 +192,7 @@ func Start(ent entry.Entry) (err error) {
 	}
 
 	// config初始化
-	app.Project = entRun.Options().Name
+	runenv.Project = entRun.Options().Name
 	xerror.Panic(config.GetCfg().Init())
 	xerror.Panic(watcher.Init())
 	xerror.Panic(dix.Dix(config.GetCfg()))

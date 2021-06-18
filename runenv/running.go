@@ -1,4 +1,4 @@
-package app
+package runenv
 
 // CheckMode 运行环境检查
 func CheckMode() bool {

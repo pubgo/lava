@@ -1,9 +1,9 @@
 ### example测试
-GET http://localhost:8080/api
+GET http://localhost:8080/v1/version
 Content-Type: application/json
 
 ###
-POST http://localhost:8080/v1/version
+GET http://localhost:8080/v1/version
 Content-Type: application/json
 
 {
@@ -12,3 +12,4 @@ Content-Type: application/json
 
 ###
 GET http://localhost:8080/v1/version?input=hello1
+Content-Type: application/grpc+uri

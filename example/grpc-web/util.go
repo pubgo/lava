@@ -1,12 +1,12 @@
-package grpcWeb
+package main
 
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
@@ -27,7 +27,8 @@ func reqDataWrapper(data ...[]byte) io.ReadCloser {
 func req2GrpcRequest(req *http.Request) *http.Request {
 	if req.Method == http.MethodGet {
 		req.Header.Set("content-type", "application/grpc+uri")
-		req.Body = reqDataWrapper(strutil.ToBytes(strings.TrimSpace(req.URL.RawQuery)))
+		req.Body = reqDataWrapper(strutil.ToBytes(req.URL.RawQuery))
+		fmt.Println(req.Body)
 	} else {
 		req.Header.Set("content-type", "application/grpc+json")
 		var dd, err = ioutil.ReadAll(req.Body)
@@ -50,47 +51,31 @@ func req2GrpcRequest(req *http.Request) *http.Request {
 
 // grpcWebResponse implements http.ResponseWriter.
 type grpcWebResponse struct {
-	w   http.ResponseWriter
-	buf *bytes.Buffer
+	w http.ResponseWriter
 }
 
 func newGrpcWebResponse(resp http.ResponseWriter) *grpcWebResponse {
-	return &grpcWebResponse{w: resp, buf: bytes.NewBuffer(nil)}
+	return &grpcWebResponse{w: resp}
 }
 
 func (w *grpcWebResponse) Header() http.Header {
-	w.w.Header().Set("content-type", "application/json")
 	return w.w.Header()
 }
 
-func (w *grpcWebResponse) Write(b []byte) (int, error) { return w.buf.Write(b) }
-func (w *grpcWebResponse) WriteHeader(code int)        { w.w.WriteHeader(code) }
-func (w *grpcWebResponse) Flush() {
-	grpcPreamble := []byte{0, 0, 0, 0, 0}
-	readCount, err := w.buf.Read(grpcPreamble)
-	if err == io.EOF {
-		return
+func (w *grpcWebResponse) Write(b []byte) (int, error) {
+	if len(b) == 5 && (b[0]&(1<<7) == (1<<7) || b[0] == 0) {
+		return 0, nil
 	}
 
-	if readCount != 5 || err != nil {
-		return
-	}
-
-	payloadLen := binary.BigEndian.Uint32(grpcPreamble[1:])
-	if w.buf.Len() < int(payloadLen) {
-		return
-	}
-
-	payloadBytes := make([]byte, payloadLen)
-	readCount, err = w.buf.Read(payloadBytes)
-	if uint32(readCount) != payloadLen || err != nil {
-		return
-	}
-
-	w.w.Write(payloadBytes)
+	var index, err = w.w.Write(b)
 
 	flush(w.w)
+
+	return index, err
 }
+
+func (w *grpcWebResponse) WriteHeader(code int) { w.w.WriteHeader(code) }
+func (w *grpcWebResponse) Flush()               { flush(w.w) }
 
 func flush(w http.ResponseWriter) {
 	f, ok := w.(http.Flusher)
@@ -101,12 +86,33 @@ func flush(w http.ResponseWriter) {
 	f.Flush()
 }
 
-//if len(b) == 5 && (b[0]&(1<<7) == (1<<7) || b[0] == 0) {
-//	return 0, nil
+//w.bytes.Write(b)
+//
+//grpcPreamble := []byte{0, 0, 0, 0, 0}
+//readCount, err := w.bytes.Read(grpcPreamble)
+//if err == io.EOF {
+//	return 0, err
 //}
-
+//
+//if readCount != 5 || err != nil {
+//	return -1, err
+//}
+//
+//payloadLength := binary.BigEndian.Uint32(grpcPreamble[1:])
+//w.readCount = payloadLength
+//
+//if w.bytes.Len() < int(w.readCount) {
+//	return 0, err
+//}
+//
+//payloadBytes := make([]byte, payloadLength)
+//readCount, err = w.bytes.Read(payloadBytes)
+//if uint32(readCount) != payloadLength || err != nil {
+//	return -1, err
+//}
+//
 //if grpcPreamble[0]&(1<<7) == (1 << 7) { // MSB signifies the trailer parser
-//	w.w.Write(payloadBytes)
+//	return w.w.Write(payloadBytes)
 //} else {
-//	w.w.Write(payloadBytes)
+//	return w.w.Write(payloadBytes)
 //}

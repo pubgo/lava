@@ -81,7 +81,7 @@ func main() {
 		//xerror.Panic(mapFormByTag(mm, uri, "json"))
 		//q.Q(mm)
 
-		//grpcWeb.Middleware(w, r)
+		grpcServer.ServeHTTP(newGrpcWebResponse(w), req2GrpcRequest(r))
 
 		return
 	})
