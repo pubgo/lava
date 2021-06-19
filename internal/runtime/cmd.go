@@ -101,7 +101,8 @@ func Run(entries ...entry.Entry) (err error) {
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
-	for _, ent := range entries {
+	for i := range entries {
+		ent := entries[i]
 		entRun := ent.(entry.Runtime)
 		cmd := entRun.Options().Command
 

@@ -90,7 +90,7 @@ func init() {
 
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 	if app == nil || server == nil {
-		panic("app is nil or server is nil")
+		panic("[app]app is nil or server is nil")
 	}
 
 	app.Add("GET", "/v1/version", func(ctx *fiber.Ctx) error {

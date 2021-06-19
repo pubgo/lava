@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
@@ -24,19 +25,23 @@ type restEntry struct {
 	cancel   context.CancelFunc
 }
 
-func (t *restEntry) Register(handler interface{}, middlewares ...Handler) {
+func (t *restEntry) Register(handler interface{}, handlers ...Handler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.Assert(!checkHandle(handler).IsValid(), "[rest] restEntry.Register error")
+	xerror.Assert(!checkHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
 
 	var handles []interface{}
-	for i := range middlewares {
-		handles = append(handles, middlewares[i])
+	for i := range handlers {
+		handles = append(handles, handlers[i])
 	}
 
 	t.handlers = append(t.handlers, func() {
-		xerror.PanicF(register(t.srv.Get().Use(handles...), handler), "[rest] register error")
+		var srv fiber.Router = t.srv.Get()
+		if len(handles) > 0 {
+			srv = srv.Use(handles...)
+		}
+		xerror.PanicF(register(srv, handler), "[rest] register error")
 	})
 }
 
@@ -63,8 +68,8 @@ func (t *restEntry) Use(handler ...Handler) {
 }
 
 func (t *restEntry) Start(args ...string) error {
-	// 启动server后等待1s
-	return fx.GoDelay(time.Second, func() {
+	// 启动server后等待
+	return fx.GoDelay(time.Millisecond*10, func() {
 		xlog.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)
 
 		if err := t.srv.Get().Listen(runenv.Addr); err != nil && err != http.ErrServerClosed {
@@ -74,16 +79,16 @@ func (t *restEntry) Start(args ...string) error {
 
 		xlog.Infof("Srv [rest] Closed OK")
 	})
-
 }
 
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
-
+	xlog.Info("Srv [rest] Shutdown")
 	if err := t.srv.Get().Shutdown(); err != nil && err != http.ErrServerClosed {
 		xlog.Error("Srv [rest] Shutdown Error", xlog.Any("err", err))
 		return err
 	}
+	xlog.Info("Srv [rest] Shutdown Ok")
 
 	return nil
 }
@@ -95,8 +100,9 @@ func newEntry(name string) *restEntry {
 		srv:   fb.New(),
 	}
 
-	ent.trace()
 	ent.OnInit(func() {
+		defer xerror.Raise(func(err xerror.XErr) error { return err })
+
 		ent.cfg.DisableStartupMessage = true
 		_ = config.Decode(Name, &ent.cfg)
 
@@ -107,6 +113,8 @@ func newEntry(name string) *restEntry {
 		for i := range ent.handlers {
 			ent.handlers[i]()
 		}
+
+		ent.trace()
 	})
 
 	return ent

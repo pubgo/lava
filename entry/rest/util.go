@@ -27,11 +27,12 @@ func checkHandle(handler interface{}) reflect.Value {
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
 	for v := range xgen.List() {
 		v1 := v.Type()
-		if v1.Kind() != reflect.Func || v1.NumIn() < 2 || v1.In(1).Kind() != reflect.Interface {
-			continue
-		}
 
-		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "fiber.Router" {
+		if v1.Kind() != reflect.Func ||
+			v1.NumIn() < 2 ||
+			v1.In(0).String() != "fiber.Router" ||
+			v1.In(1).Kind() != reflect.Interface ||
+			!hd.Implements(v1.In(1)) {
 			continue
 		}
 

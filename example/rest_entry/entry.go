@@ -1,14 +1,14 @@
 package rest_entry
 
 import (
+	_ "expvar"
 	"fmt"
-	"net"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/lug/example/grpc_entry/handler"
 )
 
 var name = "test-http"
@@ -19,14 +19,11 @@ func GetEntry() entry.Entry {
 
 	ent.Use(func(ctx *fiber.Ctx) error {
 		fmt.Println("ok")
-
 		return ctx.Next()
 	})
 
 	ent.BeforeStart(func() {
-		l, err := net.Listen("tcp", ":8083")
-		xerror.Panic(err)
-		go http.Serve(l, nil)
+		go http.ListenAndServe(":8083", nil)
 	})
 
 	ent.Router(func(r fiber.Router) {
@@ -35,6 +32,8 @@ func GetEntry() entry.Entry {
 			return err
 		})
 	})
+
+	ent.Register(handler.NewTestAPIHandler())
 
 	return ent
 }

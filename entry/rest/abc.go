@@ -13,5 +13,5 @@ type Entry interface {
 	entry.Entry
 	Use(middlewares ...Handler)
 	Router(fn func(r Router))
-	Register(handler interface{}, middlewares ...Handler)
+	Register(handler interface{}, handlers ...Handler)
 }
