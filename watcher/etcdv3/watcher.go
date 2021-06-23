@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lug/pkg/typex"
 	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/watcher"
-	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 )
 
 var Name = "etcd"

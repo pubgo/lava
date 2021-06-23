@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "example/proto/hello/api.proto",
-    "version": "version not set"
+    "version": "1.0"
   },
   "tags": [
     {
@@ -11,6 +11,9 @@
     {
       "name": "TestApiV2"
     }
+  ],
+  "schemes": [
+    "https"
   ],
   "consumes": [
     "application/json"
@@ -215,5 +218,9 @@
         }
       }
     }
+  },
+  "externalDocs": {
+    "description": "gRPC example repository",
+    "url": "https://github.com/gogo/grpc-example"
   }
 }

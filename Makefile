@@ -27,19 +27,18 @@ ci:
 
 .PHONY: proto
 proto: clear gen
-	protoc -I./ \
-   -I/usr/local/include \
-   -Ivendor \
-   -Ivendor/github.com/grpc-ecosystem/grpc-gateway/v2 \
-   -I${GOPATH}/src/github.com/googleapis/googleapis \
-   --go_out=plugins=grpc:. \
-   --go_opt=paths=source_relative \
-   --grpc-gateway_out=. \
-   --grpc-gateway_opt=paths=source_relative \
-   --grpc-gateway_opt=logtostderr=true \
-   --lug_out=. \
-   --openapiv2_out ./openapi \
-   --openapiv2_opt logtostderr=true \
+	protoc \
+   	-I . \
+   	-I /usr/local/include \
+   	-I vendor/github.com/gogo/googleapis/ \
+  	-I vendor/github.com/grpc-ecosystem/grpc-gateway/v2/ \
+  	-I vendor/ \
+  	--gofast_out=paths=source_relative:. \
+  	--go-grpc_out=require_unimplemented_servers=false,paths=source_relative:. \
+   	--lug_out=./ \
+   	--openapiv2_out=./ \
+   	--openapiv2_opt=logtostderr=true \
+   	--govalidators_out=gogoimport=true,paths=source_relative:. \
 	example/proto/hello/*.proto
 
 	#protoc -I. \

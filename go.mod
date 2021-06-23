@@ -2,8 +2,6 @@ module github.com/pubgo/lug
 
 go 1.16
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
-
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
@@ -25,7 +23,9 @@ require (
 	github.com/gofiber/fiber/v2 v2.12.0
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
+	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18
 	github.com/google/uuid v1.2.0
@@ -37,7 +37,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/memberlist v0.1.3
 	github.com/jaegertracing/jaeger v1.22.0
-	github.com/json-iterator/go v1.1.10
+	github.com/json-iterator/go v1.1.11
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
@@ -45,17 +45,19 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/mwitkow/go-proto-validators v0.3.2
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.5.1
+	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.21
 	github.com/pubgo/xerror v0.4.2
 	github.com/pubgo/xlog v0.1.4
 	github.com/pubgo/xprotogen v0.0.9
+	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/nsq-go v1.2.4
@@ -69,13 +71,13 @@ require (
 	github.com/valyala/fasthttp v1.26.0
 	github.com/valyala/fasttemplate v1.0.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
-	go.etcd.io/etcd v3.3.25+incompatible
+	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	google.golang.org/genproto v0.0.0-20210426193834-eac7f76ac494
-	google.golang.org/grpc v1.37.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
 	xorm.io/xorm v1.0.5

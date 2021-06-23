@@ -2,12 +2,12 @@ package grpcc
 
 import (
 	"context"
-	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"time"
 
 	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
+	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -105,19 +105,19 @@ type Cfg struct {
 	MaxHeaderListSize    uint32           `json:"max_header_list_size"`
 	DisableHealthCheck   bool             `json:"disable_health_check"`
 	BalancerName         string           `json:"balancer_name"`
-	Insecure         bool             `json:"insecure"`
-	Block            bool             `json:"block"`
-	IdleNum          uint32           `json:"idle_num"`
-	WriteBuffer      int              `json:"write_buffer"`
-	ReadBuffer       int              `json:"read_buffer"`
-	WindowSize       int32            `json:"window_size"`
-	ConnWindowSize   int32            `json:"conn_window_size"`
-	MaxRecvMsgSize   int              `json:"max_recv_msg_size"`
-	NoProxy          bool             `json:"no_proxy"`
-	Proxy            bool             `json:"proxy"`
-	ConnectParams    connectParams    `json:"connect_params"`
-	ClientParameters clientParameters `json:"client_parameters"`
-	Call             callParameters   `json:"call"`
+	Insecure             bool             `json:"insecure"`
+	Block                bool             `json:"block"`
+	IdleNum              uint32           `json:"idle_num"`
+	WriteBuffer          int              `json:"write_buffer"`
+	ReadBuffer           int              `json:"read_buffer"`
+	WindowSize           int32            `json:"window_size"`
+	ConnWindowSize       int32            `json:"conn_window_size"`
+	MaxRecvMsgSize       int              `json:"max_recv_msg_size"`
+	NoProxy              bool             `json:"no_proxy"`
+	Proxy                bool             `json:"proxy"`
+	ConnectParams        connectParams    `json:"connect_params"`
+	ClientParameters     clientParameters `json:"client_parameters"`
+	Call                 callParameters   `json:"call"`
 }
 
 func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, err error) {

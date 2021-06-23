@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 )
 

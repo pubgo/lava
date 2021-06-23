@@ -2,11 +2,11 @@ package etcdv3
 
 import (
 	"context"
-	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"time"
 
+	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	registry "github.com/pubgo/lug/registry"
-	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 )
 
 type Watcher struct {

@@ -4,7 +4,7 @@ package hello;
 
 option go_package = "./;hello";
 
-import "google/api/annotations.proto";
+import "github.com/gogo/googleapis/google/api/annotations.proto";
 import "example/proto/hello/api1.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -44,6 +44,7 @@ service TestApiV2 {
       body: "*"
     };
   }
+
   rpc VersionTest1(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       post: "/v2/example/versiontest"

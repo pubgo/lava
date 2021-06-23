@@ -5,17 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	"path"
 	"strings"
 	"sync"
 
 	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	hash "github.com/mitchellh/hashstructure"
+	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
 	registry "github.com/pubgo/lug/registry"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/client/v3"
 )
 
 func init() {
