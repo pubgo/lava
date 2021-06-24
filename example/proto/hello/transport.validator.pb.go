@@ -7,14 +7,12 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/gogo/protobuf/proto"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 func (this *Message) Validate() error {
 	// Validation of proto3 map<> fields is unsupported.

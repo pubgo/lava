@@ -46,6 +46,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -77,6 +83,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -84,7 +96,7 @@
         ]
       }
     },
-    "/v2/example/version": {
+    "/v2/example/version/{name}": {
       "post": {
         "operationId": "TestApiV2_Version1",
         "responses": {
@@ -103,11 +115,22 @@
         },
         "parameters": [
           {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/helloTestReq"
+              "type": "object",
+              "properties": {
+                "input": {
+                  "type": "string"
+                }
+              }
             }
           }
         ],
@@ -184,6 +207,9 @@
       "type": "object",
       "properties": {
         "input": {
+          "type": "string"
+        },
+        "name": {
           "type": "string"
         }
       }

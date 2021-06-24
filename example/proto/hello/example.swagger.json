@@ -46,23 +46,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "createdSince",
-            "description": "Only list users created after this timestamp.",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "date-time"
-          },
-          {
-            "name": "olderThan",
-            "description": "Only list users older than this Duration.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "tags": [
           "UserService"
         ]
@@ -90,6 +73,36 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/helloUser"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      },
+      "patch": {
+        "operationId": "UserService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloUser"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/helloUpdateUserRequest"
             }
           }
         ],
@@ -142,45 +155,6 @@
           "UserService"
         ]
       }
-    },
-    "/api/v1/users/{user.id}": {
-      "patch": {
-        "operationId": "UserService_UpdateUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/helloUser"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "user.id",
-            "in": "path",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/helloUpdateUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
     }
   },
   "definitions": {
@@ -212,13 +186,6 @@
         "id": {
           "type": "integer",
           "format": "int64"
-        },
-        "role": {
-          "$ref": "#/definitions/helloRole"
-        },
-        "createDate": {
-          "type": "string",
-          "format": "date-time"
         }
       }
     },

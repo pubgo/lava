@@ -3,6 +3,7 @@ Domain=lugo
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=6 HEAD)
+GOPATH=$(shell go env GOPATH )
 LDFLAGS=-ldflags " \
 -X '${VersionBase}/version.BuildTime=${BuildTime}' \
 -X '${VersionBase}/version.CommitID=${CommitID}' \
@@ -29,15 +30,11 @@ ci:
 proto: clear gen
 	protoc \
    	-I . \
-   	-I /usr/local/include \
-   	-I vendor/github.com/gogo/googleapis/ \
-  	-I vendor/github.com/grpc-ecosystem/grpc-gateway/v2/ \
-  	-I vendor/ \
-  	--gofast_out=paths=source_relative:. \
+   	-I ${GOPATH}/proto/ \
+  	--go_out=paths=source_relative:. \
   	--go-grpc_out=require_unimplemented_servers=false,paths=source_relative:. \
    	--lug_out=./ \
-   	--openapiv2_out=./ \
-   	--openapiv2_opt=logtostderr=true \
+   	--openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:. \
    	--govalidators_out=gogoimport=true,paths=source_relative:. \
 	example/proto/hello/*.proto
 
@@ -56,7 +53,7 @@ proto: clear gen
 
 .PHONY: clear
 clear:
-	#rm -rf example/proto/*.go
+	rm -rf example/proto/hello/*.go
 	#rm -rf example/proto/**/*.go
 
 .PHONY: gen

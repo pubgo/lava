@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/gogo/googleapis/google/api"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 )
 

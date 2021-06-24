@@ -23,7 +23,6 @@ require (
 	github.com/gofiber/fiber/v2 v2.12.0
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
-	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
@@ -32,7 +31,7 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/memberlist v0.1.3
@@ -76,6 +75,7 @@ require (
 	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	google.golang.org/api v0.30.0
 	google.golang.org/grpc v1.38.0
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.26.0

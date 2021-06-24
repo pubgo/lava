@@ -70,7 +70,7 @@ func init() {
 		Service:      "hello.TestApiV2",
 		Name:         "Version1",
 		Method:       "POST",
-		Path:         "/v2/example/version",
+		Path:         "/v2/example/version/{name}",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
 	})
@@ -150,7 +150,7 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 		panic("app is nil or server is nil")
 	}
 
-	app.Add("POST", "/v2/example/version", func(ctx *fiber.Ctx) error {
+	app.Add("POST", "/v2/example/version/{name}", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		xerror.Panic(ctx.BodyParser(req))
 
