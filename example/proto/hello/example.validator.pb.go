@@ -11,12 +11,12 @@ package hello
 import (
 	fmt "fmt"
 	math "math"
-	proto "github.com/gogo/protobuf/proto"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "github.com/mwitkow/go-proto-validators"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "google.golang.org/protobuf/types/known/emptypb"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 

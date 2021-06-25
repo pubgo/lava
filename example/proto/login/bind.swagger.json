@@ -1,0 +1,551 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "绑定手机号",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "BindTelephone"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/user/bind-telephone/automatic-bind": {
+      "post": {
+        "summary": "手机号绑定,不通过验证码",
+        "operationId": "BindTelephone_AutomaticBind",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginAutomaticBindResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginAutomaticBindRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    },
+    "/user/bind-telephone/bind-change": {
+      "post": {
+        "summary": "通过验证码,进行手机号绑定,换绑",
+        "operationId": "BindTelephone_BindChange",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginBindChangeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginBindChangeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    },
+    "/user/bind-telephone/bind-phone-parse": {
+      "post": {
+        "summary": "绑定手机号解析，通过第三方小程序code换取手机号",
+        "operationId": "BindTelephone_BindPhoneParse",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginBindPhoneParseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginBindPhoneParseRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    },
+    "/user/bind-telephone/bind-phone-parse-by-one-click": {
+      "post": {
+        "summary": "绑定手机号解析，通过阿里一键",
+        "operationId": "BindTelephone_BindPhoneParseByOneClick",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginBindPhoneParseByOneClickResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginBindPhoneParseByOneClickRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    },
+    "/user/bind-telephone/bind-verify": {
+      "post": {
+        "summary": "通过验证码,校验手机号是否可以接收验证码",
+        "operationId": "BindTelephone_BindVerify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginBindVerifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginBindVerifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    },
+    "/user/bind-telephone/check": {
+      "post": {
+        "summary": "检查是否可以绑定",
+        "operationId": "BindTelephone_Check",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginCheckResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginCheckRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BindTelephone"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "loginAutomaticBindRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid"
+        },
+        "origin": {
+          "type": "string",
+          "title": "前缀,通常为空,抖音必须为DY-"
+        }
+      }
+    },
+    "loginAutomaticBindResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "消息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "$ref": "#/definitions/loginBindData",
+          "title": "数据"
+        }
+      }
+    },
+    "loginBindChangeRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid"
+        },
+        "code": {
+          "type": "string",
+          "title": "验证码"
+        },
+        "origin": {
+          "type": "string",
+          "title": "前缀,通常为空,抖音必须为DY-"
+        }
+      }
+    },
+    "loginBindChangeResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "$ref": "#/definitions/loginBindData",
+          "title": "数据"
+        }
+      }
+    },
+    "loginBindData": {
+      "type": "object",
+      "properties": {
+        "bindId": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid"
+        }
+      }
+    },
+    "loginBindPhoneParseByOneClickRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "title": "用于解析手机号加密数据"
+        },
+        "platformId": {
+          "type": "string",
+          "format": "int64",
+          "title": "platformId"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "telephone 有手机号即验证手机号"
+        }
+      }
+    },
+    "loginBindPhoneParseByOneClickResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "消息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "loginBindPhoneParseRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "title": "用于解析手机号加密数据"
+        },
+        "encryptedData": {
+          "type": "string",
+          "title": "用于解析手机号加密数据"
+        },
+        "iv": {
+          "type": "string",
+          "title": "用于解析手机号加密数据"
+        },
+        "platformId": {
+          "type": "string",
+          "format": "int64",
+          "title": "platformId"
+        },
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid，有uid的情况下不使用code"
+        }
+      }
+    },
+    "loginBindPhoneParseResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "消息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "loginBindVerifyRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid"
+        },
+        "code": {
+          "type": "string",
+          "title": "验证码"
+        },
+        "origin": {
+          "type": "string",
+          "title": "前缀,通常为空,抖音必须为DY-"
+        }
+      }
+    },
+    "loginBindVerifyResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "消息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "loginCheckRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "uid"
+        },
+        "origin": {
+          "type": "string",
+          "title": "前缀,通常为空,抖音必须为DY-"
+        }
+      }
+    },
+    "loginCheckResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code,不为0为错误"
+        },
+        "msg": {
+          "type": "string",
+          "title": "错误信息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

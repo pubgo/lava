@@ -35,7 +35,7 @@ proto: clear gen
   	--go-grpc_out=require_unimplemented_servers=false,paths=source_relative:. \
    	--lug_out=./ \
    	--openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:. \
-   	--govalidators_out=gogoimport=true,paths=source_relative:. \
+   	--govalidators_out=paths=source_relative:. \
 	example/proto/hello/*.proto
 
 	#protoc -I. \

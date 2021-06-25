@@ -6,7 +6,7 @@ package hello
 import (
 	fmt "fmt"
 	math "math"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 

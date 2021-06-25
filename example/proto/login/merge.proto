@@ -3,7 +3,9 @@ syntax = "proto3";
 // 账户合并相关
 package login;
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+option go_package = "./;login";
+
+import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 // 账户合并

@@ -1,0 +1,320 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "统一登录入口",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Login"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/user/login/authenticate": {
+      "post": {
+        "summary": "使用凭证获取用户信息",
+        "operationId": "Login_Authenticate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginAuthenticateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginAuthenticateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Login"
+        ]
+      }
+    },
+    "/user/login/login": {
+      "post": {
+        "summary": "登录注册获取凭证,cookie,token",
+        "operationId": "Login_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Login"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "loginAuthenticateRequest": {
+      "type": "object",
+      "properties": {
+        "credentials": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "凭证,cookie:string or token:sting"
+        }
+      }
+    },
+    "loginAuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "错误码,0 为正常"
+        },
+        "msg": {
+          "type": "string",
+          "title": "错误信息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "请求响应时间戳"
+        },
+        "data": {
+          "$ref": "#/definitions/loginData",
+          "title": "数据"
+        }
+      }
+    },
+    "loginCredentials": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "userinfoId 对应 bindId"
+        },
+        "uri": {
+          "type": "string",
+          "title": "uri"
+        },
+        "openid": {
+          "type": "string",
+          "title": "openid"
+        },
+        "isNew": {
+          "type": "boolean",
+          "title": "isNew"
+        },
+        "isFirstRegister": {
+          "type": "boolean",
+          "title": "是否首次注册"
+        },
+        "isBindTelephone": {
+          "type": "boolean",
+          "title": "是否绑定手机号"
+        },
+        "platformInfo": {
+          "$ref": "#/definitions/loginPlatformInfo",
+          "title": "platformId"
+        }
+      }
+    },
+    "loginData": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "userinfoId"
+        },
+        "uri": {
+          "type": "string",
+          "title": "uri"
+        },
+        "nickname": {
+          "type": "string",
+          "title": "个人昵称,没有店铺昵称覆盖逻辑"
+        },
+        "headImgUrl": {
+          "type": "string",
+          "title": "个人头像,没有店铺头像覆盖逻辑"
+        },
+        "signature": {
+          "type": "string",
+          "title": "签名"
+        },
+        "sex": {
+          "type": "string",
+          "format": "int64",
+          "title": "性别, 性别 0未知,1男,2女"
+        },
+        "region": {
+          "type": "string",
+          "title": "区域"
+        },
+        "country": {
+          "type": "string",
+          "title": "国家"
+        },
+        "province": {
+          "type": "string",
+          "title": "省市"
+        },
+        "city": {
+          "type": "string",
+          "title": "城市"
+        },
+        "lang": {
+          "type": "string",
+          "title": "语言类型,默认 \"\""
+        },
+        "createTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "注册时间戳"
+        },
+        "modifyTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "更新时间戳"
+        },
+        "currentlyLoggedPlatformId": {
+          "type": "string",
+          "format": "int64",
+          "title": "当前登录平台id ,对应 center 表 type 字段"
+        }
+      }
+    },
+    "loginLoginRequest": {
+      "type": "object",
+      "properties": {
+        "platformId": {
+          "type": "string",
+          "format": "int64",
+          "title": "平台id ,对应 center 表 type 字段"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "登录相关信息,json,手机号登录参数\nUserType      int64  `json:\"userType\"`\n\tVerifyType    string `json:\"verifyType\"`\n\tNationCode    string `json:\"nationCode\"`\n\tTelephone     string `json:\"telephone\"`\n\tCode          string `json:\"code\"`\n\tLoginToken    string `json:\"loginToken\"`\n\tDeviceId      string `json:\"deviceId\"`\n\tSysMessageNum int64  `json:\"sysMessageNum\"`"
+        },
+        "scope": {
+          "type": "string",
+          "title": "凭据类型,普通用户 base, 特权?超级? super"
+        }
+      }
+    },
+    "loginLoginResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "错误码,0 为正常"
+        },
+        "msg": {
+          "type": "string",
+          "title": "错误信息"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "请求响应时间戳"
+        },
+        "data": {
+          "$ref": "#/definitions/loginCredentials",
+          "title": "数据"
+        }
+      }
+    },
+    "loginPlatformInfo": {
+      "type": "object",
+      "properties": {
+        "platformId": {
+          "type": "string",
+          "format": "int64",
+          "title": "platformId"
+        },
+        "originalUid": {
+          "type": "string",
+          "format": "int64",
+          "title": "originalId 原始ID,platformId 对应的user"
+        },
+        "originalUri": {
+          "type": "string",
+          "title": "originalUri 原始uri,platformId 对应的user"
+        },
+        "originalOpenid": {
+          "type": "string",
+          "title": "originalOpenid 原始openid,platformId 对应的user"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
