@@ -10,7 +10,7 @@ import (
 )
 
 var _ = Plugin(&Base{})
-var logs = xlog.Named(Name)
+var logs = xlog.GetLogger(Name)
 
 type Base struct {
 	Name       string
@@ -19,7 +19,6 @@ type Base struct {
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 	OnVars     func(w func(name string, data func() interface{}))
-	OnLog      func(log xlog.Xlog)
 }
 
 func (p *Base) String() string { return p.Name }
@@ -35,10 +34,6 @@ func (p *Base) Init(ent interface{}) (err error) {
 		p.OnVars(vars.Watch)
 	}
 
-	if p.OnLog != nil {
-		xlog.Watch(p.OnLog)
-	}
-
 	return nil
 }
 
@@ -49,7 +44,7 @@ func (p *Base) Watch(name string, r *watcher.Response) (err error) {
 		return nil
 	}
 
-	xlog.Infof("plugin [%s] watch", p.Name)
+	logs.Infof("plugin [%s] watch", p.Name)
 	p.OnWatch(name, r)
 
 	return

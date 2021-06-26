@@ -64,7 +64,7 @@ func init() {
 		Service:      "hello.UserService",
 		Name:         "UpdateUser",
 		Method:       "PATCH",
-		Path:         "/api/v1/users",
+		Path:         "/api/v1/users/{user.id}",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
 	})
@@ -134,7 +134,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		}
 	}))
 
-	app.Add("PATCH", "/api/v1/users", func(ctx *fiber.Ctx) error {
+	app.Add("PATCH", "/api/v1/users/{user.id}", func(ctx *fiber.Ctx) error {
 		var req = new(UpdateUserRequest)
 		xerror.Panic(ctx.BodyParser(req))
 

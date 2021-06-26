@@ -27,6 +27,8 @@ var (
 	CfgPath = ""
 )
 
+var logs = xlog.GetLogger("config")
+
 func GetCfg() *conf {
 	xerror.Assert(cfg == nil, "[config] please init config")
 	return cfg
@@ -107,7 +109,7 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
 	if t.Get(name) == nil {
-		xlog.Warnf("config key [%s] not found", name)
+		logs.Warnf("config key [%s] not found", name)
 		return false
 	}
 

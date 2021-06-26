@@ -5,17 +5,19 @@ import (
 
 	"github.com/hashicorp/hcl"
 	"github.com/pelletier/go-toml"
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"gopkg.in/yaml.v2"
 )
 
 const Name = "watcher"
 
 var cfg = GetDefaultCfg()
+var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	Prefix        string   `json:"prefix"`

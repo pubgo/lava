@@ -1,3 +1,4 @@
+WORKDIR=`pwd`
 VersionBase=github.com/pubgo/lug
 Domain=lugo
 Version=$(shell git tag --sort=committerdate | tail -n 1)
@@ -26,35 +27,16 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
-.PHONY: proto
-proto: clear gen
-	protoc \
-   	-I . \
-   	-I ${GOPATH}/proto/ \
-  	--go_out=paths=source_relative:. \
-  	--go-grpc_out=require_unimplemented_servers=false,paths=source_relative:. \
-   	--lug_out=./ \
-   	--openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:. \
-   	--govalidators_out=paths=source_relative:. \
-	example/proto/hello/*.proto
-
-	#protoc -I. \
-#   -I/usr/local/include \
-#   -I${GOPATH}/src \
-#   -I${GOPATH}/src/github.com/googleapis/googleapis \
-#   -I${GOPATH}/src/github.com/gogo/protobuf \
-#   --go_out=plugins=grpc:. \
-#   --go_opt=paths=source_relative \
-#   --grpc-gateway_out=. \
-#   --grpc-gateway_opt=paths=source_relative \
-#   --grpc-gateway_opt=logtostderr=true \
-#   --lug_out=. \
-#	example/proto/login/*.proto
-
-.PHONY: clear
-clear:
+proto:
 	rm -rf example/proto/hello/*.go
-	#rm -rf example/proto/**/*.go
+	rm -rf example/proto/hello/*.json
+	rm -rf example/proto/login/*.go
+	rm -rf example/proto/login/*.json
+	flerken protoc vendor-rm
+	flerken protoc vendor
+	flerken protoc ls
+	flerken protoc gen
+
 
 .PHONY: gen
 gen:

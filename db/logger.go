@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pubgo/xlog"
-	"github.com/pubgo/xlog/xlog_opts"
+	"go.uber.org/zap"
 	xormLog "xorm.io/xorm/log"
 )
 
@@ -34,7 +34,7 @@ func (l *logBridge) AfterSQL(ctx xormLog.LogContext) {
 // newLogger init a log bridge for xorm
 func newLogger(name string) xormLog.Logger {
 	return &logBridge{
-		logger: xlog.Named(name, xlog_opts.AddCallerSkip(7)),
+		logger: xlog.Named(name, zap.AddCallerSkip(7)),
 	}
 }
 

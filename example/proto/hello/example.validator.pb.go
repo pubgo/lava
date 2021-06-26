@@ -12,11 +12,15 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
-	_ "github.com/mwitkow/go-proto-validators"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
+	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/mwitkow/go-proto-validators"
 	_ "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
+	time "time"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 
@@ -24,10 +28,16 @@ import (
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 func (this *User) Validate() error {
 	if !(this.Id > 0) {
 		return github_com_mwitkow_go_proto_validators.FieldError("Id", fmt.Errorf(`ID must be a positive integer`))
+	}
+	if this.CreateDate != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.CreateDate); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("CreateDate", err)
+		}
 	}
 	return nil
 }
@@ -48,5 +58,15 @@ func (this *UpdateUserRequest) Validate() error {
 	return nil
 }
 func (this *ListUsersRequest) Validate() error {
+	if this.CreatedSince != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.CreatedSince); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("CreatedSince", err)
+		}
+	}
+	if this.OlderThan != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.OlderThan); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("OlderThan", err)
+		}
+	}
 	return nil
 }

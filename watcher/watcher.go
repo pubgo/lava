@@ -5,14 +5,14 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
@@ -77,9 +77,9 @@ func WatchPlugin(project, name string, cb CallBack) {
 
 func onWatch(name string, resp *Response) {
 	defer xerror.Resp(func(err xerror.XErr) {
-		xlog.Error("watch handle error",
-			xlog.Any("err", err),
-			xlog.Any("resp", resp))
+		logs.Error("watch handle error",
+			zap.Any("err", err),
+			zap.Any("resp", resp))
 	})
 
 	// value是空就skip
@@ -115,9 +115,9 @@ func onWatch(name string, resp *Response) {
 	// 以name为前缀的所有的callbacks
 	callbacks.Each(func(k string, cb interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("watch callback handle error",
-				xlog.String("watch_key", k),
-				xlog.Any("err", err))
+			logs.Error("watch callback handle error",
+				zap.String("watch_key", k),
+				zap.Any("err", err))
 		})
 
 		// 检查是否是以key为前缀, `.`是连接符和分隔符

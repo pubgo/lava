@@ -22,12 +22,14 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	grpcLog "github.com/pubgo/xlog/xlog_grpc"
+	_ "github.com/pubgo/xlog/xlog_grpc"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
+var logs = xlog.GetLogger(Name)
 var _ Entry = (*grpcEntry)(nil)
 
 type grpcEntry struct {
@@ -55,7 +57,7 @@ func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerIntercept
 func (g *grpcEntry) serve() error { return g.mux.Serve() }
 func (g *grpcEntry) handleError() {
 	g.mux.HandleError(func(err error) bool {
-		xlog.Error("grpcEntry mux handleError", logutil.Err(err))
+		logs.Error("grpcEntry mux handleError", logutil.Err(err))
 		return false
 	})
 }
@@ -114,7 +116,7 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		xlog.Info("Registering node", xlog.String("id", node.Id), xlog.String("name", g.cfg.name))
+		logs.Info("Registering node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
 	}
 
 	// registry options
@@ -169,7 +171,7 @@ func (g *grpcEntry) deRegister() (err error) {
 		Nodes:   []*registry.Node{node},
 	}
 
-	xlog.Infof("DeRegistering node: %s", node.Id)
+	logs.Infof("DeRegistering node: %s", node.Id)
 	xerror.Panic(g.registry.DeRegister(services), "[grpc] registry deRegister error")
 
 	if !g.registered.Load() {
@@ -185,21 +187,21 @@ func (g *grpcEntry) Stop() (err error) {
 
 	// deRegister self
 	if err := g.deRegister(); err != nil {
-		xlog.Info("[grpc] server deRegister error", xlog.Any("err", err))
+		logs.Info("[grpc] server deRegister error", zap.Any("err", err))
 	}
 
 	// Add sleep for those requests which have selected this port.
 	time.Sleep(g.cfg.SleepAfterDeregister)
 
 	// stop the grpc server
-	xlog.Info("[ExitProgress] Start GracefulStop.")
+	logs.Info("[ExitProgress] Start GracefulStop.")
 	g.srv.Get().GracefulStop()
-	xlog.Info("[ExitProgress] GracefulStop Ok.")
-	xlog.Info("[ExitProgress] Start Shutdown.")
+	logs.Info("[ExitProgress] GracefulStop Ok.")
+	logs.Info("[ExitProgress] Start Shutdown.")
 	if err := g.web.Get().Shutdown(ctxutil.Default()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
 		xerror.Panic(err)
 	}
-	xlog.Info("[ExitProgress] Shutdown Ok.")
+	logs.Info("[ExitProgress] Shutdown Ok.")
 	return
 }
 
@@ -225,27 +227,27 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 func (g *grpcEntry) Start(args ...string) (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	xlog.Info("Server Listening", logutil.Name(g.cfg.name), xlog.String("addr", runenv.Addr))
+	logs.Info("Server Listening", logutil.Name(g.cfg.name), zap.String("addr", runenv.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 	g.mux = cmux.New(ln)
 
-	_ = fx.GoDelay(time.Millisecond*10, func() {
-		xlog.Info("[grpc] Server Starting")
+	fx.GoDelay(func() {
+		logs.Info("[grpc] Server Starting")
 		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
-			xlog.Error("[grpc] Server Stop", logutil.Err(err))
+			logs.Error("[grpc] Server Stop", logutil.Err(err))
 		}
 	})
 
-	_ = fx.GoDelay(time.Millisecond*10, func() {
-		xlog.Info("[grpc-web] Server Staring")
+	fx.GoDelay(func() {
+		logs.Info("[grpc-web] Server Staring")
 		if err := g.web.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed {
-			xlog.Error(" [grpc-web] Server Stop", logutil.Err(err))
+			logs.Error(" [grpc-web] Server Stop", logutil.Err(err))
 		}
 	})
 
-	_ = fx.GoDelay(time.Millisecond*10, func() {
+	fx.GoDelay(func() {
 		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			xlog.Error(" [mux] Server Stop", logutil.Err(err))
+			logs.Error(" [mux] Server Stop", logutil.Err(err))
 		}
 	})
 
@@ -262,7 +264,7 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 
 		// register self on interval
 		for range time.NewTicker(interval).C {
-			logutil.ErrWith(g.register(), "[grpc] server register on interval")
+			logs.Error("[grpc] server register on interval", logutil.Err(g.register()))
 		}
 	})
 
@@ -287,8 +289,6 @@ func newEntry(name string) *grpcEntry {
 	}
 
 	g.OnInit(func() {
-		grpcLog.Init(xlog.Named(Name))
-
 		grpcs.InitEncoding()
 		_ = config.Decode(Name, &g.cfg)
 

@@ -6,7 +6,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/lug/pkg/env"
-	"github.com/pubgo/xlog"
 	"github.com/spf13/pflag"
 )
 
@@ -31,7 +30,6 @@ func init() {
 	env.GetWith(&Domain, "domain", "app_domain", "project_domain")
 	if Domain = strings.TrimSpace(strings.ToLower(Domain)); Domain == "" {
 		Domain = "lug"
-		xlog.Warnf("[domain] is null, set default: %s", Domain)
 	}
 
 	env.GetWith(&Mode, "mode", "run_mode", "run_env", "project_mode")

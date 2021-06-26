@@ -24,7 +24,7 @@ func init() {
 	_ = fx.Go(func(_ context.Context) {
 		for range time.Tick(time.Second) {
 			if err := Count(name, 1.0, tags); err != nil {
-				xlog.ErrorM("health check", xlog.M{"err": err, "tags": tags})
+				logs.Error("health check", xlog.M{"err": err, "tags": tags})
 			}
 		}
 	})

@@ -7,7 +7,6 @@ import (
 
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 )
 
 func extractValue(v reflect.Type) *registry.Value {
@@ -114,7 +113,7 @@ func extractEndpoint(method reflect.Method) *registry.Endpoint {
 	}
 
 	if rspType == nil {
-		xlog.Error("[rspType] is nil")
+		logs.Error("[rspType] is nil")
 		return nil
 	}
 

@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var logs = xlog.GetLogger("runtime")
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
@@ -32,7 +33,7 @@ func handleSignal() {
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		go func() {
 			<-sigChan
-			xlog.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
+			logs.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
 			signal.Ignore(syscall.SIGPIPE)
 		}()
 	}
@@ -40,48 +41,48 @@ func handleSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runenv.Signal = <-ch
-	xlog.Infof("signal [%s] trigger", runenv.Signal.String())
+	logs.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
 func start(ent entry.Runtime, args []string) (err error) {
 	defer xerror.RespErr(&err)
 
-	xlog.Infof("[%s] before start running", ent.Options().Name)
+	logs.Infof("[%s] before start running", ent.Options().Name)
 	bStarts := append(beforeStarts, ent.Options().BeforeStarts...)
 	for i := range bStarts {
 		xerror.PanicF(try.Try(bStarts[i]), "before start error: %s", stack.Func(bStarts[i]))
 	}
-	xlog.Infof("[%s] before start over", ent.Options().Name)
+	logs.Infof("[%s] before start over", ent.Options().Name)
 
 	xerror.Panic(ent.Start(args...))
 
-	xlog.Infof("[%s] after start running", ent.Options().Name)
+	logs.Infof("[%s] after start running", ent.Options().Name)
 	aStarts := append(afterStarts, ent.Options().AfterStarts...)
 	for i := range aStarts {
 		xerror.PanicF(try.Try(aStarts[i]), "after start error: %s", stack.Func(bStarts[i]))
 	}
-	xlog.Infof("[%s] after start over", ent.Options().Name)
+	logs.Infof("[%s] after start over", ent.Options().Name)
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	xlog.Infof("[%s] before stop running", ent.Options().Name)
+	logs.Infof("[%s] before stop running", ent.Options().Name)
 	bStops := append(beforeStops, ent.Options().BeforeStops...)
 	for i := range bStops {
 		xerror.PanicF(try.Try(bStops[i]), "before stop error: %s", stack.Func(bStops[i]))
 	}
-	xlog.Infof("[%s] before stop over", ent.Options().Name)
+	logs.Infof("[%s] before stop over", ent.Options().Name)
 
 	xerror.Panic(ent.Stop())
 
-	xlog.Infof("[%s] after stop running", ent.Options().Name)
+	logs.Infof("[%s] after stop running", ent.Options().Name)
 	aStops := append(afterStops, ent.Options().AfterStops...)
 	for i := range aStops {
 		xerror.PanicF(try.Try(afterStops[i]), "after stop error: %s", stack.Func(afterStops[i]))
 	}
-	xlog.Infof("[%s] after stop over", ent.Options().Name)
+	logs.Infof("[%s] after stop over", ent.Options().Name)
 	return nil
 }
 

@@ -23,6 +23,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.12.0
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
+	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
@@ -52,9 +53,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.21
+	github.com/pubgo/x v0.3.23
 	github.com/pubgo/xerror v0.4.2
-	github.com/pubgo/xlog v0.1.4
+	github.com/pubgo/xlog v0.1.5
 	github.com/pubgo/xprotogen v0.0.9
 	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
@@ -75,7 +76,7 @@ require (
 	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	google.golang.org/api v0.30.0
+	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
 	google.golang.org/grpc v1.38.0
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.26.0

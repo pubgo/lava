@@ -3,9 +3,11 @@ package metric
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 )
 
 var Name = "metric"
+var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	Driver string `json:"driver"`

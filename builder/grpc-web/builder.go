@@ -2,12 +2,16 @@ package grpcWeb
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"net/http"
 )
+
+var logs = xlog.GetLogger(Name)
 
 type Builder struct {
 	name      string
@@ -39,11 +43,11 @@ func (t *Builder) initResources() {
 func (t *Builder) initMiddleware() {
 	var mux = http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		xlog.Info(req.URL.Path)
+		logs.Info(req.URL.Path)
 		if p, ok := t.routes[req.URL.Path]; ok {
 			req.URL.Path = p
 		}
-		xlog.Info(req.URL.Path)
+		logs.Info(req.URL.Path)
 
 		if _, ok := t.resources[req.URL.Path]; !ok {
 			w.WriteHeader(http.StatusNotFound)
@@ -65,8 +69,8 @@ func (t *Builder) Build(cfg *Cfg, srv *grpc.Server) error {
 	t.initRoutes()
 	t.initMiddleware()
 
-	xlog.Debug(xlog.Any("routes", t.routes))
-	xlog.Debug(xlog.Any("resources", t.resources))
+	logs.Debug(zap.Any("routes", t.routes))
+	logs.Debug(zap.Any("resources", t.resources))
 
 	return nil
 }

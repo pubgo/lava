@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/pubgo/lug/registry"
-	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
@@ -40,7 +39,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {
-	xlog.Info("[grpc] ResolveNow")
+	logs.Info("[grpc] ResolveNow")
 }
 
 // 关于 grpc 命名的介绍

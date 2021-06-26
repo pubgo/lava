@@ -3,7 +3,6 @@ package ctl_entry
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/cobra"
 	"time"
 
 	"github.com/pubgo/lug"
@@ -11,9 +10,11 @@ import (
 	"github.com/pubgo/lug/entry/ctl"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/xlog"
+	"github.com/spf13/cobra"
 )
 
 var name = "test-ctl"
+var logs = xlog.GetLogger(name)
 
 func GetEntry() entry.Entry {
 	ent := lug.NewCtl(name)
@@ -26,11 +27,11 @@ func GetEntry() entry.Entry {
 	})
 
 	ent.Register(func(ctx context.Context) {
-		xlog.Info("ctl ok")
+		logs.Info("ctl ok")
 	})
 
 	ent.RegisterLoop(func(ctx context.Context) {
-		xlog.Info("ctl hello")
+		logs.Info("ctl hello")
 		time.Sleep(time.Second)
 	}, ctl.WithName("hello"))
 

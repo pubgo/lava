@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/abc"
@@ -15,8 +14,8 @@ import (
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 )
 
 func On(fn func(mux *abc.DebugMux)) { xerror.Panic(dix.Dix(fn)) }
@@ -40,21 +39,21 @@ var plg = &plugin.Base{
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		entry.Parse(ent, func(ent entry.Entry) {
 			ent.BeforeStart(func() {
-				xerror.Exit(fx.GoDelay(time.Second, func() {
-					xlog.Infof("Server [debug] Listening on http://localhost%s", Addr)
+				fx.GoDelay(func() {
+					logs.Infof("Server [debug] Listening on http://localhost%s", Addr)
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-						xlog.Error("Server [debug] Listen Error", xlog.Any("err", err))
+						logs.Error("Server [debug] Listen Error", zap.Any("err", err))
 						return
 					}
 
-					xlog.Info("Server [debug] Closed OK")
-				}))
+					logs.Info("Server [debug] Closed OK")
+				})
 
 			})
 
 			ent.BeforeStop(func() {
 				if err := server.Shutdown(context.Background()); err != nil {
-					xlog.Error("Server [debug] Shutdown Error", xlog.Any("err", err))
+					logs.Error("Server [debug] Shutdown Error", zap.Any("err", err))
 				}
 			})
 		})

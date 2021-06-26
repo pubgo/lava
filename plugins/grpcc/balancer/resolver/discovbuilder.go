@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
+var logs = xlog.GetLogger("resolver")
+
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
@@ -67,7 +69,6 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	var r = registry.Default()
 	xerror.Assert(r == nil, "registry %s not found", target.Authority)
 
-
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(target.Endpoint)
@@ -100,7 +101,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			}
 
 			if err != nil {
-				xlog.Error(err.Error())
+				logs.Error(err.Error())
 				continue
 			}
 

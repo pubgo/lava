@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	fb "github.com/pubgo/lug/builder/fiber"
@@ -11,8 +10,9 @@ import (
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 )
 
 var _ Entry = (*restEntry)(nil)
@@ -68,27 +68,29 @@ func (t *restEntry) Use(handler ...Handler) {
 }
 
 func (t *restEntry) Start(args ...string) error {
-	// 启动server后等待
-	return fx.GoDelay(time.Millisecond*10, func() {
-		xlog.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)
+	return try.Try(func() {
+		// 启动server后等待
+		fx.GoDelay(func() {
+			logs.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)
 
-		if err := t.srv.Get().Listen(runenv.Addr); err != nil && err != http.ErrServerClosed {
-			xlog.Error("Srv [rest] Close Error", xlog.Any("err", err))
-			return
-		}
+			if err := t.srv.Get().Listen(runenv.Addr); err != nil && err != http.ErrServerClosed {
+				logs.Error("Srv [rest] Close Error", zap.Any("err", err))
+				return
+			}
 
-		xlog.Infof("Srv [rest] Closed OK")
+			logs.Infof("Srv [rest] Closed OK")
+		})
 	})
 }
 
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
-	xlog.Info("Srv [rest] Shutdown")
+	logs.Info("Srv [rest] Shutdown")
 	if err := t.srv.Get().Shutdown(); err != nil && err != http.ErrServerClosed {
-		xlog.Error("Srv [rest] Shutdown Error", xlog.Any("err", err))
+		logs.Error("Srv [rest] Shutdown Error", zap.Any("err", err))
 		return err
 	}
-	xlog.Info("Srv [rest] Shutdown Ok")
+	logs.Info("Srv [rest] Shutdown Ok")
 
 	return nil
 }
