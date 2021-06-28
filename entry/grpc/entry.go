@@ -264,7 +264,9 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 
 		// register self on interval
 		for range time.NewTicker(interval).C {
-			logs.Error("[grpc] server register on interval", logutil.Err(g.register()))
+			if err := g.register(); err != nil {
+				logs.Error("[grpc] server register on interval", logutil.Err(err))
+			}
 		}
 	})
 

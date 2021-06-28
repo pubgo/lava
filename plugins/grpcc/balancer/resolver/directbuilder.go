@@ -12,7 +12,7 @@ import (
 //   direct://<authority>/127.0.0.1:9000,127.0.0.2:9000
 type directBuilder struct{}
 
-// directBuilder direct:///127.0.0.1,wpt.etcd:2379
+// directBuilder direct:///127.0.0.1,etcd:2379
 func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
 	// 根据规则解析出地址
 	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool { return r == EndpointSepChar })

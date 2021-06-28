@@ -44,7 +44,7 @@ func checkHandle(handler interface{}) reflect.Value {
 			continue
 		}
 
-		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "*grpc.Server" {
+		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "grpc.ServiceRegistrar" {
 			continue
 		}
 
