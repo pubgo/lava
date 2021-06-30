@@ -5,4 +5,4 @@ import (
 )
 
 var name = "timeout"
-var log = xlog.Named(name)
+var logs = xlog.GetLogger(name)

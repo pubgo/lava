@@ -15,6 +15,7 @@ const (
 )
 
 type Uploader struct {
+	c        Client
 	boundary string
 	params   map[string][]string
 	files    []struct {
@@ -24,8 +25,9 @@ type Uploader struct {
 	}
 }
 
-func NewUploader() *Uploader {
+func NewUploader(c Client) *Uploader {
 	return &Uploader{
+		c:        c,
 		boundary: "myboundary",
 		params:   make(map[string][]string),
 	}
@@ -73,11 +75,7 @@ func (u *Uploader) AddFile(formname, filename string, fileReader io.Reader) *Upl
 		name     string
 		formname string
 		content  io.Reader
-	}{
-		name:     filename,
-		formname: formname,
-		content:  fileReader,
-	})
+	}{name: filename, formname: formname, content: fileReader})
 	return u
 }
 
@@ -89,12 +87,14 @@ func (u *Uploader) Body() (io.Reader, error) {
 	var rds = []io.Reader{
 		strings.NewReader(u.buildBodyTop()),
 	}
+
 	for _, file := range u.files {
 		var bs = make([]byte, 1024)
 		size, err := file.content.Read(bs)
 		if err != nil {
 			return nil, err
 		}
+
 		newRd := io.MultiReader(bytes.NewReader(bs[:size]), file.content)
 		contentType := http.DetectContentType(bs)
 		if contentType == "" {
@@ -102,6 +102,7 @@ func (u *Uploader) Body() (io.Reader, error) {
 		} else {
 			contentType = "Content-type: " + contentType
 		}
+
 		rds = append(rds, strings.NewReader(fmt.Sprintf(fileFormat, u.boundary, file.formname, file.name, contentType)))
 		rds = append(rds, newRd)
 		rds = append(rds, strings.NewReader("\r\n"))

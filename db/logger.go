@@ -34,7 +34,7 @@ func (l *logBridge) AfterSQL(ctx xormLog.LogContext) {
 // newLogger init a log bridge for xorm
 func newLogger(name string) xormLog.Logger {
 	return &logBridge{
-		logger: xlog.Named(name, zap.AddCallerSkip(7)),
+		logger: xlog.GetLogger(name, zap.AddCallerSkip(7)),
 	}
 }
 

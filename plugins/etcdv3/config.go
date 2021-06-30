@@ -12,7 +12,7 @@ import (
 
 const Name = "etcdv3"
 
-var logs = xlog.Named(Name)
+var logs = xlog.GetLogger(Name)
 var cfgList = make(map[string]Cfg)
 
 type Cfg struct {

@@ -11,6 +11,7 @@ import (
 	_ "github.com/pubgo/lug/metric"
 	_ "github.com/pubgo/lug/tracing"
 	"github.com/pubgo/lug/vars"
+	_ "go.uber.org/automaxprocs"
 )
 
 func init() {

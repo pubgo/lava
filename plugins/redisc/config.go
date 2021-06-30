@@ -5,11 +5,12 @@ import (
 
 	redis "github.com/go-redis/redis/v8"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/xlog"
 )
 
 var Name = "redis"
 var cfg = make(map[string]ClientCfg)
-var options *redis.Options
+var logs = xlog.GetLogger(Name)
 
 const (
 	DbType                  = "redis"
@@ -25,6 +26,5 @@ func GetCfg() map[string]ClientCfg {
 }
 
 func GetDefaultCfg() ClientCfg {
-	return ClientCfg{
-	}
+	return ClientCfg{}
 }

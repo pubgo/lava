@@ -1,10 +1,13 @@
 package resolver
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"google.golang.org/grpc/resolver"
@@ -16,6 +19,8 @@ type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
 }
+
+func (d *discovBuilder) Scheme() string { return DiscovScheme }
 
 // 删除服务
 func (d *discovBuilder) delService(services ...*registry.Service) {
@@ -59,40 +64,34 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 		addrs = append(addrs, *value.(*resolver.Address))
 		return true
 	})
-	return reshuffle(addrs)
+	return addrs
 }
 
 // Build discov://etcd/service_name
-func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
+	defer xerror.RespErr(&err)
+
 	// target.Authority得到注册中心的地址
 	// 当然也可以直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
-	xerror.Assert(r == nil, "registry %s not found", target.Authority)
+	xerror.Assert(r == nil, "registry [%s] not found", target.Authority)
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(target.Endpoint)
-	if err != nil {
-		return nil, xerror.Wrap(err, "registry GetService error\n")
-	}
+	xerror.Panic(err, "registry GetService error")
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
 	var addrs = d.getAddrs()
-
-	if len(addrs) == 0 {
-		return nil, fmt.Errorf("service none available")
-	}
-
-	cc.UpdateState(resolver.State{Addresses: addrs})
+	xerror.Assert(len(addrs) == 0, "service none available")
+	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 
 	w, err := r.Watch(target.Endpoint)
-	if err != nil {
-		return nil, xerror.WrapF(err, "target.Endpoint:%s\n", target.Endpoint)
-	}
+	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
 
-	go func() {
+	cancel := fx.Go(func(ctx context.Context) {
 		defer w.Stop()
 		for {
 			res, err := w.Next()
@@ -112,11 +111,12 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				d.updateService(res.Service)
 			}
 
-			cc.UpdateState(resolver.State{Addresses: d.getAddrs()})
+			try.Logs(logs, func() {
+				var addrs = d.getAddrs()
+				xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+			})
 		}
-	}()
+	})
 
-	return &baseResolver{cc: cc, r: w}, nil
+	return &baseResolver{cc: cc, r: w, cancel: cancel}, nil
 }
-
-func (d *discovBuilder) Scheme() string { return DiscovScheme }

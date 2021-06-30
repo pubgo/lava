@@ -9,7 +9,7 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	defer xerror.RespDebug()
+	defer xerror.RespTest(t)
 
 	var cfg = GetDefaultCfg()
 	cfg.Driver = sqlite.Name
@@ -17,6 +17,7 @@ func TestConfig(t *testing.T) {
 
 	eng, err := cfg.Build()
 	xerror.Panic(err)
+
 	fmt.Println(eng.Query("select * from db"))
 	fmt.Println(eng.Query("select * from db where Field1=?", 1))
 }

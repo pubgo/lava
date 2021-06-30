@@ -2,13 +2,11 @@ package redisc
 
 import (
 	"context"
-	"errors"
-	"github.com/pubgo/lug/pkg/ctxutil"
 	"sync"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 )
 
 var clientM sync.Map
@@ -18,7 +16,7 @@ type Option func(options *redis.Options)
 func GetClient(ctx context.Context, prefix string, options ...Option) *redis.Client {
 	val, ok := clientM.Load(prefix)
 	if !ok {
-		xerror.Panic(xerror.Fmt("%s not found", prefix))
+		xerror.Panic(xerror.Fmt("[redis] key [%s] not found", prefix))
 	}
 
 	cc := val.(*redis.Client).WithContext(ctx)
@@ -40,12 +38,9 @@ func initClient(name string, cfg ClientCfg) {
 	var ctx, cancel = ctxutil.Timeout()
 	defer cancel()
 
-	redisClient := redis.NewClient(&cfg)
-	ping := redisClient.Ping(ctx)
-	if ping.Val() == "" {
-		xerror.Exit(errors.New("redis连接池连接失败,error=" + ping.Err().Error()))
-	}
+	client := redis.NewClient(&cfg)
+	xerror.Panic(client.Ping(ctx).Err(), "redis连接池连接失败")
 
-	clientM.Store(name, redisClient)
-	xlog.Info("rebuild redis pool done - " + name)
+	clientM.Store(name, client)
+	logs.Info("rebuild redis pool done - " + name)
 }

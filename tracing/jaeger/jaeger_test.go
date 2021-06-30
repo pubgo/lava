@@ -3,13 +3,12 @@ package jaeger
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 
 	"testing"
 )
 
 func TestLogger(t *testing.T) {
-	xlog.Info("hello")
+	logs.Info("hello")
 }
 
 func TestName(t *testing.T) {
@@ -25,7 +24,6 @@ func TestName(t *testing.T) {
 
 	span.LogKV("key", "value")
 	span.SetTag("http", "get")
-
 
 	span = tracer.StartSpan("start1")
 	defer span.Finish()

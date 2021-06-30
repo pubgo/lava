@@ -1,172 +1,116 @@
 package restc
 
 import (
-	"bytes"
-	"io"
-	"io/ioutil"
-	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/pubgo/lug/pkg/retry"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/fasthttp"
 )
 
 const (
 	defaultRetryCount  = 1
 	defaultHTTPTimeout = 2 * time.Second
+	defaultContentType = "application/json"
 )
 
 var _ Client = (*client)(nil)
 
 // client is the Client implementation
 type client struct {
-	client *http.Client
-	opts   Options
-	do     DoFunc
+	client        *fasthttp.Client
+	cfg           Cfg
+	do            DoFunc
+	defaultHeader *fasthttp.RequestHeader
 }
 
-func (c *client) Options() Options {
-	return c.opts
+func (c *client) Do(req *Request) (resp *Response, err error) {
+	return resp, xerror.Wrap(c.do(req, func(res *Response) error {
+		resp = res
+		return nil
+	}))
 }
 
-func newOptions(opts ...Option) Options {
-	_opts := Options{
-		Timeout:    defaultHTTPTimeout,
-		RetryCount: defaultRetryCount,
-		Retrier:    NewRetrier(NewConstantBackoff(10*time.Millisecond, 50*time.Millisecond)),
+func doUrl(c *client, mth string, url string, requests ...func(req *Request)) (*Response, error) {
+	var req = fasthttp.AcquireRequest()
+	c.defaultHeader.CopyTo(&req.Header)
+
+	req.SetRequestURI(url)
+	req.Header.SetMethod(mth)
+	req.Header.SetContentType(defaultContentType)
+
+	if len(requests) > 0 {
+		requests[0](req)
 	}
 
-	for _, opt := range opts {
-		opt(&_opts)
-	}
+	var resp, err = c.Do(req)
+	fasthttp.ReleaseRequest(req)
 
-	return _opts
-}
-
-// New returns a new instance of http client
-func New(opts ...Option) Client {
-	cOpts := newOptions(opts...)
-	c := &client{
-		opts: cOpts,
-		client: &http.Client{
-			Timeout: cOpts.Timeout,
-		},
-	}
-
-	do := c.doFunc
-	for i := len(cOpts.Middles); i > 0; i-- {
-		do = cOpts.Middles[i-1](do)
-	}
-	c.do = do
-
-	return c
-}
-
-// Get makes a HTTP GET request to provided URL
-func (c *client) Get(url string, headers http.Header) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, xerror.WrapF(err, "GET - request creation failed")
-	}
-	request.Header = headers
-
-	return c.Do(request)
-}
-
-// Post makes a HTTP POST request to provided URL and requestBody
-func (c *client) Post(url string, body io.Reader, headers http.Header) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		return nil, xerror.WrapF(err, "POST - request creation failed")
-	}
-	request.Header = headers
-
-	return c.Do(request)
-}
-
-// Put makes a HTTP PUT request to provided URL and requestBody
-func (c *client) Put(url string, body io.Reader, headers http.Header) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodPut, url, body)
-	if err != nil {
-		return nil, xerror.WrapF(err, "PUT - request creation failed")
-	}
-	request.Header = headers
-
-	return c.Do(request)
-}
-
-// Patch makes a HTTP PATCH request to provided URL and requestBody
-func (c *client) Patch(url string, body io.Reader, headers http.Header) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodPatch, url, body)
-	if err != nil {
-		return nil, xerror.WrapF(err, "PATCH - request creation failed")
-	}
-	request.Header = headers
-
-	return c.Do(request)
-}
-
-// Delete makes a HTTP DELETE request with provided URL
-func (c *client) Delete(url string, headers http.Header) (*http.Response, error) {
-	request, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		return nil, xerror.WrapF(err, "DELETE - request creation failed")
-	}
-	request.Header = headers
-
-	return c.Do(request)
-}
-
-func (c *client) doFunc(req *http.Request, fn func(*http.Response) error) error {
-	// nolint:bodyclose
-	response, err := c.client.Do(req)
-	if err != nil {
-		return err
+		return nil, xerror.Wrap(err)
 	}
 
-	return fn(response)
+	return resp, nil
 }
 
-// Do makes an HTTP request with the native `http.Do` interface
-func (c *client) Do(request *http.Request) (*http.Response, error) {
-	var (
-		err        error
-		resp       *http.Response
-		bodyReader *bytes.Reader
-	)
+func (c *client) Get(url string, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodGet, url, requests...)
+	return resp, xerror.Wrap(err)
+}
 
-	if request.Body != nil {
-		reqData, err := ioutil.ReadAll(request.Body)
-		if err != nil {
-			return nil, err
+func (c *client) Delete(url string, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodDelete, url, requests...)
+	return resp, xerror.Wrap(err)
+}
+
+func (c *client) Post(url string, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodDelete, url, requests...)
+	return resp, xerror.Wrap(err)
+}
+
+func (c *client) PostForm(url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodDelete, url, func(req *Request) {
+		req.SetBodyString(val.Encode())
+		req.Header.SetContentType("application/x-www-form-urlencoded")
+		if len(requests) > 0 {
+			requests[0](req)
 		}
-		bodyReader = bytes.NewReader(reqData)
-		request.Body = ioutil.NopCloser(bodyReader) // prevents closing the body between retries
-	}
+	})
+	return resp, xerror.Wrap(err)
+}
 
-	for i := 0; i < c.opts.RetryCount; i++ {
-		if resp != nil {
-			resp.Body.Close()
-		}
+func (c *client) Put(url string, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodPut, url, requests...)
+	return resp, xerror.Wrap(err)
+}
 
-		err = c.do(request, func(response *http.Response) error {
-			if bodyReader != nil {
-				// Reset the body reader after the request since at this point it's already read
-				// Note that it's safe to ignore the error here since the 0,0 position is always valid
-				_, _ = bodyReader.Seek(0, 0)
+func (c *client) Patch(url string, requests ...func(req *Request)) (*Response, error) {
+	var resp, err = doUrl(c, fasthttp.MethodPatch, url, requests...)
+	return resp, xerror.Wrap(err)
+}
+
+func doFunc(c *client) func(req *Request, fn func(*Response) error) error {
+	return func(req *Request, fn func(*Response) error) (err error) {
+		var resp = fasthttp.AcquireResponse()
+		retry.Do(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff), func(i int) bool {
+			if c.cfg.Timeout > 0 {
+				err = c.client.DoTimeout(req, resp, c.cfg.Timeout)
+			} else {
+				err = c.client.Do(req, resp)
 			}
-			resp = response
-			return nil
+
+			if err != nil {
+				return false
+			}
+
+			return true
 		})
 
 		if err != nil {
-			if backoffTime := c.opts.Retrier.NextInterval(i); backoffTime != 0 {
-				time.Sleep(backoffTime)
-			}
-			continue
+			return xerror.Wrap(err)
 		}
 
-		break
+		return xerror.Wrap(fn(resp))
 	}
-
-	return resp, err
 }

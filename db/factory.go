@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 	"xorm.io/xorm"
 
 	"runtime"
@@ -55,9 +55,9 @@ func Delete(name string) {
 	}
 
 	runtime.SetFinalizer(client, func(c *Client) {
-		xlog.Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
+		logs.Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
 		if err := c.Close(); err != nil {
-			xlog.Errorf("db close error, name: %s", name, xlog.Any("err", err))
+			logs.Errorf("db close error, name: %s", name, zap.Any("err", err))
 		}
 	})
 	clients.Delete(name)

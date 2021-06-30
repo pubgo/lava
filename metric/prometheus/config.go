@@ -10,6 +10,7 @@ import (
 )
 
 var Name = "prometheus"
+var logs = xlog.GetLogger("metric." + Name)
 
 type Cfg struct {
 	Tags                   map[string]string `json:"tags"`
@@ -41,7 +42,7 @@ func (cfg Cfg) Build() (_ metric.Reporter, err error) {
 	if cfg.EnableGoRuntimeMetrics {
 		xerror.Panic(registry.Register(prometheus.NewGoCollector()))
 		xerror.Panic(registry.Register(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{Namespace: "go"})))
-		xlog.Info("go runtime metrics is exported")
+		logs.Info("go runtime metrics is exported")
 	}
 
 	return &reporterMetric{

@@ -1,6 +1,7 @@
 package p2c
 
 import (
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 )
@@ -11,7 +12,7 @@ type p2cBalancer struct{}
 
 func (p2c *p2cBalancer) Build(info base.PickerBuildInfo) balancer.Picker {
 	if info.ReadySCs == nil || len(info.ReadySCs) == 0 {
-		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
+		return base.NewErrPicker(xerror.Wrap(balancer.ErrNoSubConnAvailable))
 	}
 
 	// 创建一个新的负载均衡器
@@ -32,11 +33,8 @@ type p2cPicker struct {
 func (p2c *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	item, done := p2c.pickerAgl.Next()
 	if item == nil {
-		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
+		return balancer.PickResult{}, xerror.Wrap(balancer.ErrNoSubConnAvailable)
 	}
 
-	return balancer.PickResult{
-		SubConn: item.(balancer.SubConn),
-		Done:    done,
-	}, nil
+	return balancer.PickResult{SubConn: item.(balancer.SubConn), Done: done}, nil
 }

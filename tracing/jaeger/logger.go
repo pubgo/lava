@@ -6,6 +6,7 @@ import (
 	"github.com/pubgo/xlog"
 	"github.com/uber/jaeger-client-go"
 	jaegerLog "github.com/uber/jaeger-client-go/log"
+	"go.uber.org/zap"
 )
 
 var _ jaegerLog.Logger = (*logger)(nil)
@@ -41,10 +42,10 @@ func (l *logger) Report(span *jaeger.Span) {
 
 		l.logs.Info(
 			fmt.Sprintf("Reporting span %s %+v", span.OperationName(), span),
-			xlog.Time("StartTime", span.StartTime()),
-			xlog.Any("tags", span.Tags()),
-			xlog.Duration("Duration", span.Duration()),
-			xlog.Any("fields", fields),
+			zap.Time("StartTime", span.StartTime()),
+			zap.Any("tags", span.Tags()),
+			zap.Duration("Duration", span.Duration()),
+			zap.Any("fields", fields),
 		)
 	}
 }

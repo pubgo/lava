@@ -12,10 +12,13 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+var logs = xlog.GetLogger("grpc-gw")
 
 // 开启api网关模式
 func startGw(addr string) (err error) {
@@ -45,15 +48,15 @@ func startGw(addr string) (err error) {
 	// 注册网关api
 	xerror.Panic(registerGw(runenv.Addr, mux, grpc.WithBlock(), grpc.WithInsecure()))
 
-	xerror.Exit(fx.GoDelay(time.Second, func() {
+	fx.GoDelay(func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			xlog.Error("Srv [GW] Listen Error", xlog.Any("err", err))
+			logs.Error("Srv [GW] Listen Error", zap.Any("err", err))
 		}
 
-		xlog.Info("Srv [GW] Closed OK")
-	}))
+		logs.Info("Srv [GW] Closed OK")
+	})
 
-	xlog.Infof("Srv [GW] Listening on http://localhost%s", runenv.Addr)
+	logs.Infof("Srv [GW] Listening on http://localhost%s", runenv.Addr)
 
 	//g.BeforeStop(func() {
 	//	if err := server.Shutdown(context.Background()); err != nil {

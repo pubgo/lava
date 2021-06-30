@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,9 +18,6 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: name,
 		OnInit: func(ent interface{}) {
-		},
-		OnLog: func(logs xlog.Xlog) {
-			log = logs.Named(name)
 		},
 	})
 }
@@ -51,7 +47,7 @@ func TimeoutUnaryServerInterceptor(t time.Duration) grpc.UnaryServerInterceptor 
 		go func() {
 			defer func() {
 				if c := recover(); c != nil {
-					log.Errorf("response request panic: %v", c)
+					logs.Errorf("response request panic: %v", c)
 					err = status.Errorf(codes.Internal, "response request panic: %v", c)
 				}
 				close(done)
@@ -98,7 +94,7 @@ func TimeoutStreamServerInterceptor(defaultTimeOut time.Duration) grpc.StreamSer
 		go func() {
 			defer func() {
 				if c := recover(); c != nil {
-					log.Errorf("response request panic: %v", c)
+					logs.Errorf("response request panic: %v", c)
 					err = status.Errorf(codes.Internal, "response request panic: %v", c)
 				}
 				close(done)

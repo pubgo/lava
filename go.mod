@@ -53,8 +53,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.23
-	github.com/pubgo/xerror v0.4.2
+	github.com/pubgo/x v0.3.25
+	github.com/pubgo/xerror v0.4.4
 	github.com/pubgo/xlog v0.1.5
 	github.com/pubgo/xprotogen v0.0.9
 	github.com/rakyll/statik v0.1.7
@@ -73,6 +73,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
+	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c

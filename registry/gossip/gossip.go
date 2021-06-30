@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/mitchellh/hashstructure"
-	registry "github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/registry"
 	pb "github.com/pubgo/lug/registry/gossip/proto"
 	"github.com/pubgo/xlog"
 )
@@ -46,6 +46,8 @@ var (
 	ExpiryTick    = time.Second * 1            // needs to be smaller than registry.RegisterTTL
 	MaxPacketSize = 512
 )
+
+var logs = xlog.GetLogger("gossip")
 
 func actionTypeString(t int32) string {
 	switch t {
@@ -255,7 +257,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 
 	g.Unlock()
 
-	xlog.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
+	logs.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
 
 	// try connect
 	return g.connect(curAddrs)
@@ -273,7 +275,7 @@ func (b *broadcast) Message() []byte {
 		return nil
 	}
 	if l := len(up); l > MaxPacketSize {
-		xlog.Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
+		logs.Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
 	}
 	return up
 }
@@ -412,10 +414,10 @@ func (g *gossipRegistry) connect(addrs []string) error {
 		// got a tick, try to connect
 		case <-ticker.C:
 			if _, err := fn(); err == nil {
-				xlog.Infof("[gossip] connect success for %v", g.addrs)
+				logs.Infof("[gossip] connect success for %v", g.addrs)
 				return nil
 			} else {
-				xlog.Infof("[gossip] connect failed for %v", g.addrs)
+				logs.Infof("[gossip] connect failed for %v", g.addrs)
 			}
 		}
 	}
@@ -804,7 +806,7 @@ func NewRegistry(opts ...registry.Opt) registry.Registry {
 
 	// configure the gossiper
 	if err := configure(g, opts...); err != nil {
-		xlog.Fatalf("[gossip] Error configuring registry: %v", err)
+		logs.Fatalf("[gossip] Error configuring registry: %v", err)
 	}
 	// wait for setup
 	<-time.After(g.interval * 2)

@@ -2,12 +2,13 @@ package nsqc
 
 import (
 	"github.com/pubgo/xlog"
+
 	"time"
 )
 
 var Name = "nsq"
 var cfgList = make(map[string]Cfg)
-var logs = xlog.Named(Name)
+var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	Name           string        `json:"name"`

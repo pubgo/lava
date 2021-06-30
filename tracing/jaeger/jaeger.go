@@ -20,9 +20,9 @@ func init() {
 }
 
 func New(cfg *Cfg) (tracing.Tracer, error) {
-	var logs = &logger{logs: xlog.Named(cfg.ServiceName,
+	var logs = &logger{logs: xlog.GetLogger(cfg.ServiceName,
 		zap.AddCallerSkip(4),
-		zap.Fields(xlog.String("type", "tracing")))}
+		zap.Fields(zap.String("type", "tracing")))}
 
 	logOpt := config.Logger(logs)
 	metricOpt := config.Metrics(prometheus.New())

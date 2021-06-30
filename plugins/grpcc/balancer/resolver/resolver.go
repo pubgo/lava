@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -11,7 +12,6 @@ import (
 )
 
 const (
-	//direct connect to service, it is can be used in k8s or other systems without service discovery
 	DirectScheme    = "direct"
 	DiscovScheme    = "discov"
 	EndpointSepChar = ','
@@ -28,17 +28,19 @@ func init() {
 }
 
 type baseResolver struct {
-	cc resolver.ClientConn
-	r  registry.Watcher
+	cancel context.CancelFunc
+	cc     resolver.ClientConn
+	r      registry.Watcher
 }
 
 func (r *baseResolver) Close() {
+	defer r.cancel()
 	if r.r != nil {
 		r.r.Stop()
 	}
 }
 
-func (r *baseResolver) ResolveNow(options resolver.ResolveNowOptions) {
+func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 	logs.Info("[grpc] ResolveNow")
 }
 

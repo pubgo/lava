@@ -5,6 +5,7 @@ import (
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"
@@ -17,6 +18,7 @@ import (
 
 var Name = "db"
 var cfgList = make(map[string]*Cfg)
+var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`
@@ -51,8 +53,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 		engine.ShowSQL(false)
 	}
 
-	xerror.Panic(engine.DB().Ping())
-	return engine, nil
+	return engine, xerror.Wrap(engine.DB().Ping())
 }
 
 func GetDefaultCfg() *Cfg {

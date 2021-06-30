@@ -1,23 +1,31 @@
 package restc
 
 import (
-	"io"
-	"net/http"
+	"github.com/valyala/fasthttp"
+
+	"net/url"
 )
 
+func ReleaseResponse(resp *Response) { fasthttp.ReleaseResponse(resp) }
+
+type Response = fasthttp.Response
+type Request = fasthttp.Request
+type RequestHeader = fasthttp.RequestHeader
+type ResponseHeader = fasthttp.ResponseHeader
+
 // DoFunc http client do func wrapper
-type DoFunc func(*http.Request, func(*http.Response) error) error
+type DoFunc func(req *Request, fn func(resp *Response) error) error
 
 // Middleware http client middleware
 type Middleware func(DoFunc) DoFunc
 
 // Client http client interface
 type Client interface {
-	Get(url string, headers http.Header) (*http.Response, error)
-	Post(url string, body io.Reader, headers http.Header) (*http.Response, error)
-	Put(url string, body io.Reader, headers http.Header) (*http.Response, error)
-	Patch(url string, body io.Reader, headers http.Header) (*http.Response, error)
-	Delete(url string, headers http.Header) (*http.Response, error)
-	Do(req *http.Request) (*http.Response, error)
-	Options() Options
+	Do(req *Request) (*Response, error)
+	Get(url string, requests ...func(req *Request)) (*Response, error)
+	Delete(url string, requests ...func(req *Request)) (*Response, error)
+	Post(url string, requests ...func(req *Request)) (*Response, error)
+	PostForm(url string, val url.Values, requests ...func(req *Request)) (*Response, error)
+	Put(url string, requests ...func(req *Request)) (*Response, error)
+	Patch(url string, requests ...func(req *Request)) (*Response, error)
 }

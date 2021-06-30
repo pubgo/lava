@@ -3,16 +3,17 @@ package gnet
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/panjf2000/gnet/pool/goroutine"
 	"log"
 	"time"
 
 	"github.com/panjf2000/gnet"
-	_ "github.com/panjf2000/gnet"
 	_ "github.com/panjf2000/gnet/pool/goroutine"
 )
 
-type Cfg struct {
+var _ = goroutine.Default()
 
+type Cfg struct {
 }
 
 func init() {
@@ -29,7 +30,6 @@ func init() {
 		LengthAdjustment:    0,
 		InitialBytesToStrip: 4,
 	}
-
 
 	codec := gnet.NewLengthFieldBasedFrameCodec(encoderConfig, decoderConfig)
 	log.Fatal(gnet.Serve(

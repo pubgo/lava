@@ -2,103 +2,44 @@ package main
 
 import (
 	"fmt"
-	restc2 "github.com/pubgo/lug/restc"
-	hystrix2 "github.com/pubgo/lug/restc/hystrix"
-	"io/ioutil"
-	"net/http"
 	"time"
 
+	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/restc"
+	"github.com/pubgo/lug/restc/hystrix"
 	"github.com/pubgo/xerror"
 )
 
 const (
-	baseURL = "https://www.baidu.com"
+	baseURL = "https://www.cnblogs.com/bergus/articles/nginx-kai-qi-response-heheader-ri-zhi-ji-lu.html"
 )
 
-func hystrixO() restc2.Option {
-	return restc2.WithMiddleware(hystrix2.Middleware(
-		hystrix2.WithHystrixTimeout(1100*time.Millisecond),
-		hystrix2.WithCommandName("MyCommand"),
-		hystrix2.WithMaxConcurrentRequests(100),
-		hystrix2.WithErrorPercentThreshold(25),
-		hystrix2.WithSleepWindow(10),
-		hystrix2.WithRequestVolumeThreshold(10),
+func hystrixO() restc.Option {
+	return restc.WithMiddle(hystrix.Middleware(
+		hystrix.WithHystrixTimeout(1100*time.Millisecond),
+		hystrix.WithCommandName("MyCommand"),
+		hystrix.WithMaxConcurrentRequests(100),
+		hystrix.WithErrorPercentThreshold(25),
+		hystrix.WithSleepWindow(10),
+		hystrix.WithRequestVolumeThreshold(10),
 	))
 }
 
 func httpClientUsage() error {
-	timeout := 100 * time.Millisecond
-
-	httpClient := restc2.New(
-		restc2.WithHTTPTimeout(timeout),
-		restc2.WithRetryCount(2),
-		restc2.WithRetrier(restc2.NewRetrier(restc2.NewConstantBackoff(10*time.Millisecond, 50*time.Millisecond))),
-	)
-
-	headers := http.Header{}
-	headers.Set("Content-Type", "application/json")
-
-	response, err := httpClient.Get(baseURL, headers)
-	if err != nil {
-		return xerror.Wrap(err, "failed to make a request to server")
-	}
-	defer response.Body.Close()
-
-	respBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return xerror.Wrap(err, "failed to read response body")
-	}
-
-	fmt.Printf("Response: %s", string(respBody))
-	return nil
-}
-
-func httpClientClientUsage() error {
-	timeout := 100 * time.Millisecond
-	client := restc2.New(
-		restc2.WithHTTPTimeout(timeout),
+	var cfg = restc.DefaultCfg()
+	httpClient, err := cfg.Build(
 		hystrixO(),
+		restc.WithBackoff(retry.NewConstant(10*time.Millisecond)),
 	)
+	xerror.Panic(err)
 
-	headers := http.Header{}
-	response, err := client.Get(baseURL, headers)
+	response, err := httpClient.Get(baseURL)
+	defer restc.ReleaseResponse(response)
 	if err != nil {
 		return xerror.Wrap(err, "failed to make a request to server")
 	}
 
-	defer response.Body.Close()
-
-	respBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return xerror.Wrap(err, "failed to read response body")
-	}
-
-	fmt.Printf("Response: %s", string(respBody))
-	return nil
-}
-
-func customhttpclientClientUsage() error {
-	timeout := 0 * time.Millisecond
-
-	httpclientClient := restc2.New(
-		restc2.WithHTTPTimeout(timeout),
-		hystrixO(),
-	)
-
-	headers := http.Header{}
-	response, err := httpclientClient.Get(baseURL, headers)
-	if err != nil {
-		return xerror.Wrap(err, "failed to make a request to server")
-	}
-
-	defer response.Body.Close()
-
-	respBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return xerror.Wrap(err, "failed to read response body")
-	}
-
-	fmt.Printf("Response: %s", string(respBody))
+	fmt.Printf("Response: %s", string(response.Body()))
 	return nil
 }
 
@@ -110,6 +51,4 @@ func check(err error) {
 
 func main() {
 	check(httpClientUsage())
-	check(httpClientClientUsage())
-	check(customhttpclientClientUsage())
 }
