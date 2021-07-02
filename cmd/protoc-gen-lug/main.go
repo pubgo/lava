@@ -34,16 +34,9 @@ import (
 	"google.golang.org/grpc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/lug/plugins/grpcc"
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lug/pkg/gutil"
-	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
 )
 
 var _ = strings.Trim
-var _ = gutil.EqualFieldType
-var _ = utils.ByteSize
-var _ = fb.New
 `
 		},
 
@@ -77,14 +70,15 @@ var _ = fb.New
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
-		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}RestServer),nil)
+		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}HandlerFromEndpoint),nil)
 	}
 {% endfor %}
 `
 		},
+	))
+}
 
-		func(fd *gen.FileDescriptor) string {
-			return `
+/*
 {% for ss in fd.GetService() %}
 	func Register{{ss.Srv}}RestServer(app fiber.Router, server {{ss.Srv}}Server) {
 		if app == nil || server == nil {
@@ -94,7 +88,10 @@ var _ = fb.New
 		{% for m in ss.GetMethod() %}
 			{%- if !m.CS && !m.SS %}
 			app.Add("{{m.HttpMethod}}","{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
-				var req = new({{m.GetInputType()}})				
+				msg, err := client.AddUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+				rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.UserService/AddUser", runtime.WithHTTPPathPattern("/api/v1/users"))
+
+				var req = new({{m.GetInputType()}})
 				{%- if m.HttpMethod=="GET" %}
 					data := make(map[string][]string)
 					ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
@@ -121,17 +118,23 @@ var _ = fb.New
 
 				return ctx.JSON(resp)
 			})
-			{%- else %}
+			{%- endif %}
+
+			{%- if !m.CS && m.SS %}
+			{%- endif %}
+
+			{%- if m.CS && m.SS %}
+			{%- endif %}
 
 			app.Get("{{m.HttpPath}}", fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) {
 			defer c.Close()
-		
+
 			{%- if m.CS %}
 				if err := server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}); err != nil {
 					c.WriteMessage(fb.TextMessage, []byte(err.Error()))
 				}
 			{%- else %}
-				var req = new({{m.GetInputType()}})				
+				var req = new({{m.GetInputType()}})
 				data := make(map[string][]string)
 				ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 					k := utils.UnsafeString(key)
@@ -151,11 +154,7 @@ var _ = fb.New
 				}
 			{%- endif %}
 			}))
-			{%- endif %}
 		{% endfor %}
 	}
 {% endfor %}
-`
-		},
-	))
-}
+*/

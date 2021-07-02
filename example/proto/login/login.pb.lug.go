@@ -7,10 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -18,9 +14,6 @@ import (
 )
 
 var _ = strings.Trim
-var _ = gutil.EqualFieldType
-var _ = utils.ByteSize
-var _ = fb.New
 
 func GetLoginClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (LoginClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -52,36 +45,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterLoginRestServer), nil)
-}
-
-func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
-
-	app.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
-		var req = new(LoginRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.Login(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
-		var req = new(AuthenticateRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.Authenticate(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
+	xgen.Add(reflect.ValueOf(RegisterLoginHandlerFromEndpoint), nil)
 }

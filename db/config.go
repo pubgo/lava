@@ -33,14 +33,16 @@ type Cfg struct {
 func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	defer xerror.RespErr(&err)
 
-	source := config.GetCfg().Template(cfg.Source)
 	if strings.Contains(cfg.Driver, "sqlite") {
-		if _dir := filepath.Dir(source); pathutil.IsNotExist(_dir) {
-			_ = os.MkdirAll(_dir, 0755)
+		if !filepath.IsAbs(cfg.Source) {
+			cfg.Source = filepath.Join(config.Home, cfg.Source)
+		}
+		if rootDir := filepath.Dir(cfg.Source); pathutil.IsNotExist(rootDir) {
+			_ = os.MkdirAll(rootDir, 0755)
 		}
 	}
 
-	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, source)).(*xorm.Engine)
+	engine := xerror.PanicErr(xorm.NewEngine(cfg.Driver, cfg.Source)).(*xorm.Engine)
 	engine.SetMaxOpenConns(cfg.MaxConnOpen)
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)

@@ -7,11 +7,13 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 )
 
@@ -61,29 +63,22 @@ func Init() (err error) {
 	return
 }
 
-func Watch(name string, cb CallBack) {
+func Watch(name string, plg plugin.Plugin) {
 	name = KeyToDot(name)
-	xerror.Assert(name == "" || cb == nil, "[name, callback] should not be null")
-	xerror.Assert(callbacks.Has(name), "callback %s already exists", name)
-	callbacks.Set(name, cb)
-}
-
-func WatchPlugin(project, name string, cb CallBack) {
-	name = KeyToDot(project, "plugin", name)
-	xerror.Assert(project == "" || name == "" || cb == nil, "[project, name, callback] should not be null")
-	xerror.Assert(callbacks.Has(name), "callback %s already exists", name)
-	callbacks.Set(name, cb)
+	xerror.Assert(name == "" || plg == nil, "[name, plugin] should not be null")
+	xerror.Assert(callbacks.Has(name), "plugin %s already exists", name)
+	callbacks.Set(name, plg)
 }
 
 func onWatch(name string, resp *Response) {
 	defer xerror.Resp(func(err xerror.XErr) {
-		logs.Error("watch handle error",
+		xlog.Error("onWatch error",
 			zap.Any("err", err),
 			zap.Any("resp", resp))
 	})
 
-	// value是空就skip
-	if cfg.SkipNullValue && len(bytes.TrimSpace(resp.Value)) == 0 {
+	// value为空就skip
+	if cfg.SkipNull && len(bytes.TrimSpace(resp.Value)) == 0 {
 		return
 	}
 
@@ -113,9 +108,9 @@ func onWatch(name string, resp *Response) {
 	})
 
 	// 以name为前缀的所有的callbacks
-	callbacks.Each(func(k string, cb interface{}) {
+	callbacks.Each(func(k string, plg interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logs.Error("watch callback handle error",
+			xlog.Error("watch callback handle error",
 				zap.String("watch_key", k),
 				zap.Any("err", err))
 		})
@@ -127,6 +122,6 @@ func onWatch(name string, resp *Response) {
 
 		// 执行watch callback
 		var name = strings.Trim(strings.TrimPrefix(key, k), ".")
-		xerror.PanicF(cb.(CallBack)(name, resp), "event: %#v", *resp)
+		xerror.PanicF(plg.(plugin.Plugin).Watch(name, resp), "event: %#v", *resp)
 	})
 }

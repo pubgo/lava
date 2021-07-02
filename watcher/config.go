@@ -3,27 +3,20 @@ package watcher
 import (
 	"strings"
 
-	"github.com/hashicorp/hcl"
-	"github.com/pelletier/go-toml"
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/encoding"
 	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
-	"gopkg.in/yaml.v2"
 )
 
 const Name = "watcher"
 
 var cfg = GetDefaultCfg()
-var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
-	Prefix        string   `json:"prefix"`
-	SkipNullValue bool     `json:"skip_null_value"`
-	Driver        string   `json:"driver"`
-	Projects      []string `json:"projects"`
+	SkipNull bool     `json:"skip_null"`
+	Driver   string   `json:"driver"`
+	Projects []string `json:"projects"`
+	Exclude  []string `json:"exclude"`
 }
 
 func (cfg Cfg) Build() (_ Watcher, err error) {
@@ -39,8 +32,8 @@ func (cfg Cfg) Build() (_ Watcher, err error) {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Prefix: "/watcher",
-		Driver: "etcd",
+		Driver:   "etcd",
+		SkipNull: true,
 	}
 }
 
@@ -59,34 +52,4 @@ func KeyToDot(prefix ...string) string {
 	p = strings.Trim(p, ".")
 
 	return p
-}
-
-func unmarshal(in []byte, c interface{}) (err error) {
-	defer func() {
-		if err != nil {
-			err = xerror.Fmt("Unmarshal Error, encoding: %v\n", encoding.Keys())
-		}
-	}()
-
-	// "yaml", "yml"
-	if err = yaml.Unmarshal(in, &c); err == nil {
-		return
-	}
-
-	// "json"
-	if err = jsonx.Unmarshal(in, &c); err == nil {
-		return
-	}
-
-	// "hcl"
-	if err = hcl.Unmarshal(in, &c); err == nil {
-		return
-	}
-
-	// "toml"
-	if err = toml.Unmarshal(in, &c); err == nil {
-		return
-	}
-
-	return
 }

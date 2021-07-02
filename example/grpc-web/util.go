@@ -2,14 +2,17 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"io"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
+	"google.golang.org/grpc"
 )
 
 func reqDataWrapper(data ...[]byte) io.ReadCloser {
@@ -116,3 +119,8 @@ func flush(w http.ResponseWriter) {
 //} else {
 //	return w.w.Write(payloadBytes)
 //}
+
+func GrpcCallFrom(ctx *fiber.Ctx) (context.Context, []grpc.CallOption) {
+	//grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD)
+	return nil, nil
+}

@@ -142,45 +142,6 @@
           "UserService"
         ]
       }
-    },
-    "/api/v1/users/{user.id}": {
-      "patch": {
-        "operationId": "UserService_UpdateUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/helloUser"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "user.id",
-            "in": "path",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/helloUpdateUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "UserService"
-        ]
-      }
     }
   },
   "definitions": {
@@ -192,19 +153,6 @@
         "ADMIN"
       ],
       "default": "GUEST"
-    },
-    "helloUpdateUserRequest": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/helloUser",
-          "description": "The user resource which replaces the resource on the server."
-        },
-        "updateMask": {
-          "type": "string",
-          "title": "The update mask applies to the resource. For the `FieldMask` definition,\nsee https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask"
-        }
-      }
     },
     "helloUser": {
       "type": "object",

@@ -3,13 +3,10 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/lug/types"
 )
 
-const (
-	PUT    = "PUT"
-	DELETE = "DELETE"
-)
+type Response = types.Response
 
 type CallBack func(name string, resp *Response) error
 
@@ -25,37 +22,3 @@ type Watcher interface {
 
 type Opt func(*options)
 type options struct{}
-
-type Response struct {
-	Event   string
-	Key     string
-	Value   []byte
-	Version int64
-}
-
-func (t *Response) OnPut(fn func()) {
-	xerror.Panic(t.checkEventType())
-	if t.Event == PUT {
-		fn()
-	}
-}
-
-func (t *Response) OnDelete(fn func()) {
-	xerror.Panic(t.checkEventType())
-	if t.Event == DELETE {
-		fn()
-	}
-}
-
-func (t *Response) Decode(val interface{}) error {
-	return xerror.WrapF(unmarshal(t.Value, val), "input: %s, output: %#v", t.Value, val)
-}
-
-func (t *Response) checkEventType() error {
-	switch t.Event {
-	case DELETE, PUT:
-		return nil
-	default:
-		return xerror.Fmt("unknown event: %s", t.Event)
-	}
-}

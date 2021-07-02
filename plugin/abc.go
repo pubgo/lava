@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lug/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -18,5 +18,6 @@ type Plugin interface {
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	Init(ent interface{}) error
-	Watch(name string, r *watcher.Response) error
+	Watch(name string, r *types.Response) error
+	Codec(name string, r *types.Response) (map[string]interface{}, error)
 }

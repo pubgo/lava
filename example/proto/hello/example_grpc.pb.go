@@ -20,8 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserServiceClient interface {
 	AddUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (UserService_ListUsersClient, error)
-	ListUsersByRole(ctx context.Context, in *UserRole, opts ...grpc.CallOption) (UserService_ListUsersByRoleClient, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
+	ListUsersByRole(ctx context.Context, opts ...grpc.CallOption) (UserService_ListUsersByRoleClient, error)
 }
 
 type userServiceClient struct {
@@ -73,28 +72,27 @@ func (x *userServiceListUsersClient) Recv() (*User, error) {
 	return m, nil
 }
 
-func (c *userServiceClient) ListUsersByRole(ctx context.Context, in *UserRole, opts ...grpc.CallOption) (UserService_ListUsersByRoleClient, error) {
+func (c *userServiceClient) ListUsersByRole(ctx context.Context, opts ...grpc.CallOption) (UserService_ListUsersByRoleClient, error) {
 	stream, err := c.cc.NewStream(ctx, &_UserService_serviceDesc.Streams[1], "/hello.UserService/ListUsersByRole", opts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &userServiceListUsersByRoleClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
 	return x, nil
 }
 
 type UserService_ListUsersByRoleClient interface {
+	Send(*UserRole) error
 	Recv() (*User, error)
 	grpc.ClientStream
 }
 
 type userServiceListUsersByRoleClient struct {
 	grpc.ClientStream
+}
+
+func (x *userServiceListUsersByRoleClient) Send(m *UserRole) error {
+	return x.ClientStream.SendMsg(m)
 }
 
 func (x *userServiceListUsersByRoleClient) Recv() (*User, error) {
@@ -105,23 +103,13 @@ func (x *userServiceListUsersByRoleClient) Recv() (*User, error) {
 	return m, nil
 }
 
-func (c *userServiceClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
-	err := c.cc.Invoke(ctx, "/hello.UserService/UpdateUser", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UserServiceServer is the server API for UserService service.
 // All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	AddUser(context.Context, *User) (*emptypb.Empty, error)
 	ListUsers(*ListUsersRequest, UserService_ListUsersServer) error
-	ListUsersByRole(*UserRole, UserService_ListUsersByRoleServer) error
-	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
+	ListUsersByRole(UserService_ListUsersByRoleServer) error
 }
 
 // UnimplementedUserServiceServer should be embedded to have forward compatible implementations.
@@ -134,11 +122,8 @@ func (UnimplementedUserServiceServer) AddUser(context.Context, *User) (*emptypb.
 func (UnimplementedUserServiceServer) ListUsers(*ListUsersRequest, UserService_ListUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedUserServiceServer) ListUsersByRole(*UserRole, UserService_ListUsersByRoleServer) error {
+func (UnimplementedUserServiceServer) ListUsersByRole(UserService_ListUsersByRoleServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListUsersByRole not implemented")
-}
-func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -192,15 +177,12 @@ func (x *userServiceListUsersServer) Send(m *User) error {
 }
 
 func _UserService_ListUsersByRole_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(UserRole)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(UserServiceServer).ListUsersByRole(m, &userServiceListUsersByRoleServer{stream})
+	return srv.(UserServiceServer).ListUsersByRole(&userServiceListUsersByRoleServer{stream})
 }
 
 type UserService_ListUsersByRoleServer interface {
 	Send(*User) error
+	Recv() (*UserRole, error)
 	grpc.ServerStream
 }
 
@@ -212,22 +194,12 @@ func (x *userServiceListUsersByRoleServer) Send(m *User) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserRequest)
-	if err := dec(in); err != nil {
+func (x *userServiceListUsersByRoleServer) Recv() (*UserRole, error) {
+	m := new(UserRole)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).UpdateUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/hello.UserService/UpdateUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UpdateUser(ctx, req.(*UpdateUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 var _UserService_serviceDesc = grpc.ServiceDesc{
@@ -237,10 +209,6 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddUser",
 			Handler:    _UserService_AddUser_Handler,
-		},
-		{
-			MethodName: "UpdateUser",
-			Handler:    _UserService_UpdateUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -253,6 +221,7 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 			StreamName:    "ListUsersByRole",
 			Handler:       _UserService_ListUsersByRole_Handler,
 			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "example/proto/hello/example.proto",

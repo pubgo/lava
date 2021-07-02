@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/abc"
 	cb "github.com/pubgo/lug/builder/chi"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -18,8 +18,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func On(fn func(mux *abc.DebugMux)) { xerror.Panic(dix.Dix(fn)) }
-func init()                         { plugin.Register(plg) }
+func On(fn func(mux *types.DebugMux)) { xerror.Panic(dix.Dix(fn)) }
+func init()                           { plugin.Register(plg) }
 
 var plg = &plugin.Base{
 	Name: Name,
@@ -34,7 +34,7 @@ var plg = &plugin.Base{
 		xerror.Panic(builder.Build(srv.Cfg))
 		srv.Mux = builder.Get()
 
-		xerror.Panic(dix.Dix((*abc.DebugMux)(srv.Mux)))
+		xerror.Panic(dix.Dix((*types.DebugMux)(srv.Mux)))
 
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		entry.Parse(ent, func(ent entry.Entry) {

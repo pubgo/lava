@@ -5,16 +5,18 @@ import (
 	"sync"
 
 	"github.com/pubgo/lug/pkg/typex"
-	etcdv32 "github.com/pubgo/lug/plugins/etcdv3"
+	"github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/x/merge"
+	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/client/v3"
 )
 
-var Name = "etcd"
-
 func init() {
 	watcher.Register(Name, func(cfg typex.M) (watcher.Watcher, error) {
-		return newWatcher("", ""), nil
+		var c Cfg
+		xerror.Panic(merge.MapStruct(&c, cfg))
+		return newWatcher(c.Prefix, c.Name), nil
 	})
 }
 
@@ -47,7 +49,7 @@ type etcdWatcher struct {
 	exitCh   chan struct{}
 }
 
-func (w *etcdWatcher) getEtcd() *etcdv32.Client                       { return etcdv32.Get(w.name) }
+func (w *etcdWatcher) getEtcd() *etcdv3.Client                        { return etcdv3.Get(w.name) }
 func (w *etcdWatcher) Close(ctx context.Context, opts ...watcher.Opt) {}
 func (w *etcdWatcher) Get(ctx context.Context, key string, opts ...watcher.Opt) ([]*watcher.Response, error) {
 	w.getEtcd().Get(ctx, key)
@@ -55,10 +57,13 @@ func (w *etcdWatcher) Get(ctx context.Context, key string, opts ...watcher.Opt) 
 }
 
 func (w *etcdWatcher) GetCallback(ctx context.Context, key string, fn func(resp *watcher.Response), opts ...watcher.Opt) error {
+	key = handleKey(key)
 	return nil
 }
 
 func (w *etcdWatcher) WatchCallback(ctx context.Context, key string, fn func(resp *watcher.Response), opts ...watcher.Opt) {
+	key = handleKey(key)
+
 	go func() {
 		for w := range w.getEtcd().Watch(ctx, key) {
 			for i := range w.Events {
@@ -75,9 +80,11 @@ func (w *etcdWatcher) WatchCallback(ctx context.Context, key string, fn func(res
 }
 
 func (w *etcdWatcher) Watch(ctx context.Context, key string, opts ...watcher.Opt) <-chan *watcher.Response {
+	key = handleKey(key)
+
 	var resp = make(chan *watcher.Response)
 	go func() {
-		for w := range etcdv32.Get().Watch(ctx, key) {
+		for w := range etcdv3.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
 				resp <- &watcher.Response{

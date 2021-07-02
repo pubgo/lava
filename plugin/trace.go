@@ -2,14 +2,16 @@ package plugin
 
 import (
 	"github.com/pubgo/lug/vars"
+
+	"net/url"
 )
 
 func init() {
 	vars.Watch(Name, func() interface{} {
-		var data = make(map[string][]string)
+		var data = url.Values{}
 		for k, v := range All() {
 			for i := range v {
-				data[k] = append(data[k], v[i].String())
+				data.Add(k, v[i].String())
 			}
 		}
 		return data

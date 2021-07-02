@@ -7,10 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -18,9 +14,6 @@ import (
 )
 
 var _ = strings.Trim
-var _ = gutil.EqualFieldType
-var _ = utils.ByteSize
-var _ = fb.New
 
 func GetTestApiClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (TestApiClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -60,7 +53,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiRestServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint), nil)
 }
 
 func init() {
@@ -85,93 +78,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2RestServer), nil)
-}
-
-func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
-
-	app.Add("GET", "/v1/version", func(ctx *fiber.Ctx) error {
-		var req = new(TestReq)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := utils.UnsafeString(key)
-			v := utils.UnsafeString(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
-		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-
-		var resp, err = server.Version(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("GET", "/v1/example/versiontest", func(ctx *fiber.Ctx) error {
-		var req = new(TestReq)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := utils.UnsafeString(key)
-			v := utils.UnsafeString(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
-		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-
-		var resp, err = server.VersionTest(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-}
-
-func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
-
-	app.Add("POST", "/v2/example/version/{name}", func(ctx *fiber.Ctx) error {
-		var req = new(TestReq)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.Version1(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/v2/example/versiontest", func(ctx *fiber.Ctx) error {
-		var req = new(TestReq)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.VersionTest1(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerFromEndpoint), nil)
 }

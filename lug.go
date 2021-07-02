@@ -9,7 +9,6 @@ import (
 	"github.com/pubgo/lug/entry/task"
 	"github.com/pubgo/lug/internal/runtime"
 	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/xerror"
 )
 
 func BeforeStart(fn func()) { runtime.BeforeStart(fn) }
@@ -28,8 +27,4 @@ func Run(entries ...entry.Entry) error { return runtime.Run(entries...) }
 func Start(ent entry.Entry) error      { return runtime.Start(ent) }
 func Stop(ent entry.Entry) error       { return runtime.Stop(ent) }
 
-func Plugin(plg plugin.Plugin, opts ...plugin.Opt) (err error) {
-	defer xerror.RespErr(&err)
-	plugin.Register(plg, opts...)
-	return
-}
+func Plugin(plg plugin.Plugin, opts ...plugin.Opt) { plugin.Register(plg, opts...) }

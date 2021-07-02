@@ -14,6 +14,8 @@ import (
 )
 
 type Cfg struct {
+	Token                         string
+	keepAlive                     bool
 	Timeout                       time.Duration
 	RetryCount                    uint64
 	Name                          string
@@ -76,6 +78,15 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	var requestHeader fasthttp.RequestHeader
 	requestHeader.SetMethod(fasthttp.MethodGet)
 	requestHeader.SetContentType(defaultContentType)
+	requestHeader.Set(fasthttp.HeaderConnection, "close")
+	if t.keepAlive {
+		requestHeader.Set(fasthttp.HeaderConnection, "keep-alive")
+	}
+
+	if t.Token != "" {
+		requestHeader.Set(fasthttp.HeaderAuthorization, t.Token)
+	}
+
 	if t.Header != nil {
 		for k, v := range t.Header {
 			for i := range v {
@@ -96,6 +107,8 @@ func DefaultCfg() Cfg {
 	return Cfg{
 		DialDualStack:       true,
 		Timeout:             defaultHTTPTimeout,
+		ReadTimeout:         defaultHTTPTimeout,
+		WriteTimeout:        defaultHTTPTimeout,
 		RetryCount:          defaultRetryCount,
 		backoff:             retry.NewNoop(),
 		MaxIdleConnDuration: 90 * time.Second,

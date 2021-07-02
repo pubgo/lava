@@ -20,6 +20,18 @@ func main() {
 	fmt.Printf("%#v\n\n", val)
 
 	xerror.PanicErr(url.Parse("tcp4://:8080"))
+
+	var a = []int{1, 2, 3, 4, 5, 6}
+	var b = a[:0]
+	fmt.Println(a, b)
+	for i := 0; i < 40; i++ {
+		b = append(b, i+100)
+	}
+	fmt.Println(a, b)
+	for i := 0; i < len(a); i++ {
+		a[i] = -1
+	}
+	fmt.Println(a, b)
 }
 
 func init1(a ...int) {

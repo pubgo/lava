@@ -51,17 +51,17 @@ service UserService {
       get: "/api/v1/users"
     };
   }
-  rpc ListUsersByRole(UserRole) returns (stream User) {
+  rpc ListUsersByRole(stream UserRole) returns (stream User) {
     option (google.api.http) = {
       get: "/api/v1/users/role"
     };
   }
-  rpc UpdateUser(UpdateUserRequest) returns (User) {
-    option (google.api.http) = {
-      patch: "/api/v1/users/{user.id}"
-      body: "*"
-    };
-  }
+//  rpc UpdateUser(UpdateUserRequest) returns (User) {
+//    option (google.api.http) = {
+//      patch: "/api/v1/users/{user.id}"
+//      body: "*"
+//    };
+//  }
 }
 
 enum Role {

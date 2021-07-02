@@ -7,10 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -18,9 +14,6 @@ import (
 )
 
 var _ = strings.Trim
-var _ = gutil.EqualFieldType
-var _ = utils.ByteSize
-var _ = fb.New
 
 func GetTransportClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (TransportClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -70,60 +63,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTransportRestServer), nil)
-}
-
-func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
-
-	app.Get("/hello/transport/test_stream", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
-		defer c.Close()
-		if err := server.TestStream(&transportTestStreamServer{fb.NewWsStream(ctx, c)}); err != nil {
-			c.WriteMessage(fb.TextMessage, []byte(err.Error()))
-		}
-	}))
-
-	app.Get("/hello/transport/test_stream1", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
-		defer c.Close()
-		if err := server.TestStream1(&transportTestStream1Server{fb.NewWsStream(ctx, c)}); err != nil {
-			c.WriteMessage(fb.TextMessage, []byte(err.Error()))
-		}
-	}))
-
-	app.Get("/hello/transport/test_stream2", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
-		defer c.Close()
-		var req = new(Message)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := utils.UnsafeString(key)
-			v := utils.UnsafeString(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
-		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-		if err := server.TestStream2(req, &transportTestStream2Server{fb.NewWsStream(ctx, c)}); err != nil {
-			c.WriteMessage(fb.TextMessage, []byte(err.Error()))
-		}
-	}))
-
-	app.Add("POST", "/hello/transport/test_stream3", func(ctx *fiber.Ctx) error {
-		var req = new(Message)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.TestStream3(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
+	xgen.Add(reflect.ValueOf(RegisterTransportHandlerFromEndpoint), nil)
 }

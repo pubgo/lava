@@ -9,7 +9,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/templates"
 	"github.com/go-echarts/statsview/statics"
 	"github.com/go-echarts/statsview/viewer"
-	"github.com/pubgo/lug/abc"
+	"github.com/pubgo/lug/types"
 )
 
 // ViewManager
@@ -66,7 +66,7 @@ func New() *ViewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	On(func(mux *abc.DebugMux) {
+	On(func(mux *types.DebugMux) {
 		for _, v := range mgr.Views {
 			page.AddCharts(v.View())
 			mux.HandleFunc("/debug/statsview/view/"+v.Name(), v.Serve)

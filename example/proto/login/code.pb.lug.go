@@ -7,10 +7,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
-	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -18,9 +14,6 @@ import (
 )
 
 var _ = strings.Trim
-var _ = gutil.EqualFieldType
-var _ = utils.ByteSize
-var _ = fb.New
 
 func GetCodeClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (CodeClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -79,72 +72,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCodeRestServer), nil)
-}
-
-func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
-
-	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
-		var req = new(SendCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.SendCode(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.Verify(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(IsCheckImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.IsCheckImageCode(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.VerifyImageCode(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
-	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
-		var req = new(GetSendStatusRequest)
-		xerror.Panic(ctx.BodyParser(req))
-
-		var resp, err = server.GetSendStatus(ctx.Context(), req)
-		if err != nil {
-			return err
-		}
-
-		return ctx.JSON(resp)
-	})
-
+	xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint), nil)
 }

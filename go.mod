@@ -55,7 +55,7 @@ require (
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.25
 	github.com/pubgo/xerror v0.4.4
-	github.com/pubgo/xlog v0.1.5
+	github.com/pubgo/xlog v0.1.7
 	github.com/pubgo/xprotogen v0.0.9
 	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
@@ -69,7 +69,6 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.26.0
-	github.com/valyala/fasttemplate v1.0.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
@@ -79,6 +78,7 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
 	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0

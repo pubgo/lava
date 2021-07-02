@@ -130,9 +130,6 @@ func Run(entries ...entry.Entry) (err error) {
 			xerror.Panic(config.GetCfg().Init())
 			xerror.Panic(dix.Dix(config.GetCfg()))
 
-			// plugin项目前缀初始化, 默认本项目
-			plugin.InitProjectPrefix(runenv.Project)
-
 			// 初始化组件, 初始化插件
 			plugins := plugin.List(plugin.Module(runenv.Project))
 			plugins = append(plugin.List(), plugins...)
@@ -141,9 +138,7 @@ func Run(entries ...entry.Entry) (err error) {
 				xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 
 				// watch初始化, watch remote key
-				for _, project := range plugin.GetProjectPrefix() {
-					watcher.WatchPlugin(project, key, pg.Watch)
-				}
+				watcher.Watch( key, pg)
 			}
 
 			xerror.Panic(watcher.Init())
@@ -202,7 +197,7 @@ func Start(ent entry.Entry, args ...string) (err error) {
 		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 
 		// watch key
-		watcher.Watch(key, pg.Watch)
+		watcher.Watch(key, pg)
 	}
 
 	return xerror.Wrap(start(entRun, args))

@@ -1,21 +1,16 @@
 package config
 
 import (
+	"fmt"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
-	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
-	"github.com/valyala/fasttemplate"
-
-	"fmt"
 	"io"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -139,31 +134,4 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 	}
 
 	return true
-}
-
-func (t *conf) Template(format string) string {
-	tpl := fasttemplate.New(format, "{{", "}}")
-	return tpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-		tag = strings.TrimSpace(tag)
-
-		// 处理特殊变量
-		switch tag {
-		case "project_home", "config_home":
-			return w.Write(xutil.ToBytes(Home))
-		case "trace":
-			return w.Write(xutil.ToBytes(strconv.FormatBool(runenv.Trace)))
-		case "project_name", "project":
-			return w.Write(xutil.ToBytes(runenv.Project))
-		case "domain":
-			return w.Write(xutil.ToBytes(runenv.Domain))
-		case "mode":
-			return w.Write(xutil.ToBytes(runenv.Mode))
-		case "config":
-			return w.Write(xutil.ToBytes(CfgName + "." + CfgType))
-		case "config_path":
-			return w.Write(xutil.ToBytes(t.ConfigFileUsed()))
-		default:
-			return w.Write(xutil.ToBytes(t.GetString(tag)))
-		}
-	})
 }

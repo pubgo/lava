@@ -35,3 +35,11 @@ func Watch(name string, data func() interface{}) {
 		return data()
 	}))
 }
+
+func Get(name string) expvar.Var {
+	return expvar.Get(name)
+}
+
+func Each(fn func(key string, val func() string)) {
+	expvar.Do(func(kv expvar.KeyValue) { fn(kv.Key, kv.Value.String) })
+}
