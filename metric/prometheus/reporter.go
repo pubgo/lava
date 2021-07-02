@@ -2,12 +2,12 @@ package prometheus
 
 import (
 	"fmt"
+	debug2 "github.com/pubgo/lug/internal/debug"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/pubgo/lug/debug"
 	"github.com/pubgo/lug/metric"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
@@ -35,7 +35,7 @@ func New(cfgMap map[string]interface{}) (metric.Reporter, error) {
 	xerror.Panic(merge.MapStruct(&cfg, cfgMap))
 	var reporter = xerror.PanicErr(cfg.Build()).(*reporterMetric)
 
-	debug.On(func(app *chi.Mux) {
+	debug2.On(func(app *chi.Mux) {
 		app.Handle(cfg.Path, promhttp.HandlerFor(prometheus.DefaultGatherer,
 			promhttp.HandlerOpts{ErrorHandling: promhttp.ContinueOnError}))
 	})

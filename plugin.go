@@ -3,10 +3,10 @@ package lug
 import (
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	"github.com/pubgo/dix"
-	_ "github.com/pubgo/lug/debug"
 	_ "github.com/pubgo/lug/encoding/json"
 	_ "github.com/pubgo/lug/encoding/protobuf"
 	_ "github.com/pubgo/lug/healthy"
+	_ "github.com/pubgo/lug/internal/debug"
 	_ "github.com/pubgo/lug/internal/log"
 	_ "github.com/pubgo/lug/metric"
 	_ "github.com/pubgo/lug/tracing"

@@ -1,13 +1,14 @@
 package config
 
 import (
-	"fmt"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
+
+	"fmt"
 	"io"
 	"path/filepath"
 	"reflect"

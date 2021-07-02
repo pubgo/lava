@@ -1,9 +1,9 @@
 package healthy
 
 import (
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/debug"
+	debug2 "github.com/pubgo/lug/internal/debug"
 	"github.com/pubgo/lug/pkg/ctxutil"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	debug.On(func(mux *types.DebugMux) {
+	debug2.On(func(mux *types.DebugMux) {
 		mux.Get("/health", httpHandle)
 	})
 }
