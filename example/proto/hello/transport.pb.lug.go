@@ -63,5 +63,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTransportHandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterTransportHandlerFromEndpoint),nil)
 }

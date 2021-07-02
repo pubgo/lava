@@ -53,7 +53,7 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterTestApiHandlerFromEndpoint),nil)
 }
 
 func init() {
@@ -78,5 +78,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerFromEndpoint),nil)
 }

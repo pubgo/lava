@@ -54,5 +54,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterUserServiceServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterUserServiceHandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterUserServiceHandlerFromEndpoint),nil)
 }

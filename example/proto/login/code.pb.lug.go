@@ -72,5 +72,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterCodeHandlerFromEndpoint),nil)
 }

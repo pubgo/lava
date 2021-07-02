@@ -45,5 +45,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterLoginHandlerFromEndpoint), nil)
+	// xgen.Add(reflect.ValueOf(RegisterLoginHandlerFromEndpoint),nil)
 }

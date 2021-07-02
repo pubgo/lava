@@ -2,8 +2,8 @@ package plugin
 
 import (
 	"github.com/pubgo/lug/pkg/logutil"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
-	"github.com/pubgo/lug/watcher"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -16,8 +16,8 @@ var _ = Plugin(&Base{})
 type Base struct {
 	Name       string
 	OnInit     func(ent interface{})
-	OnWatch    func(name string, resp *watcher.Response)
-	OnCodec    func(name string, resp *watcher.Response) (map[string]interface{}, error)
+	OnWatch    func(name string, resp *types.Response)
+	OnCodec    func(name string, resp *types.Response) (map[string]interface{}, error)
 	OnCommands func(cmd *cobra.Command)
 	OnFlags    func(flags *pflag.FlagSet)
 	OnVars     func(w func(name string, data func() interface{}))
@@ -37,7 +37,7 @@ func (p *Base) Init(ent interface{}) (err error) {
 	})
 }
 
-func (p *Base) Codec(name string, resp *watcher.Response) (dt map[string]interface{}, err error) {
+func (p *Base) Codec(name string, resp *types.Response) (dt map[string]interface{}, err error) {
 	return dt, try.Try(func() {
 		if p.OnCodec == nil {
 			return
@@ -48,7 +48,7 @@ func (p *Base) Codec(name string, resp *watcher.Response) (dt map[string]interfa
 	})
 }
 
-func (p *Base) Watch(name string, r *watcher.Response) (err error) {
+func (p *Base) Watch(name string, r *types.Response) (err error) {
 	return try.Try(func() {
 		if p.OnWatch == nil {
 			return
