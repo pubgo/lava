@@ -33,7 +33,7 @@ func NewTestApiClient(cc grpc.ClientConnInterface) TestApiClient {
 
 func (c *testApiClient) Version(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApi/Version", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.nam.TestApi/Version", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *testApiClient) Version(ctx context.Context, in *TestReq, opts ...grpc.C
 
 func (c *testApiClient) VersionTest(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApi/VersionTest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.nam.TestApi/VersionTest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func _TestApi_Version_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApi/Version",
+		FullMethod: "/hello.nam.TestApi/Version",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TestApiServer).Version(ctx, req.(*TestReq))
@@ -109,7 +109,7 @@ func _TestApi_VersionTest_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApi/VersionTest",
+		FullMethod: "/hello.nam.TestApi/VersionTest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TestApiServer).VersionTest(ctx, req.(*TestReq))
@@ -118,7 +118,7 @@ func _TestApi_VersionTest_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 var _TestApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "hello.TestApi",
+	ServiceName: "hello.nam.TestApi",
 	HandlerType: (*TestApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -152,7 +152,7 @@ func NewTestApiV2Client(cc grpc.ClientConnInterface) TestApiV2Client {
 
 func (c *testApiV2Client) Version1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApiV2/Version1", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.nam.TestApiV2/Version1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (c *testApiV2Client) Version1(ctx context.Context, in *TestReq, opts ...grp
 
 func (c *testApiV2Client) VersionTest1(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
-	err := c.cc.Invoke(ctx, "/hello.TestApiV2/VersionTest1", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.nam.TestApiV2/VersionTest1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func _TestApiV2_Version1_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApiV2/Version1",
+		FullMethod: "/hello.nam.TestApiV2/Version1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TestApiV2Server).Version1(ctx, req.(*TestReq))
@@ -226,7 +226,7 @@ func _TestApiV2_VersionTest1_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.TestApiV2/VersionTest1",
+		FullMethod: "/hello.nam.TestApiV2/VersionTest1",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TestApiV2Server).VersionTest1(ctx, req.(*TestReq))
@@ -235,7 +235,7 @@ func _TestApiV2_VersionTest1_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 var _TestApiV2_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "hello.TestApiV2",
+	ServiceName: "hello.nam.TestApiV2",
 	HandlerType: (*TestApiV2Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -25,7 +25,7 @@ func main() {
 // {{fd.GetName()}} is a deprecated file.
 {%- endif %}
 
-package {{pkg}}
+package {{pkg()}}
 import (
 	"reflect"
 	"strings"
@@ -61,7 +61,7 @@ var _ = strings.Trim
 		var mthList []xgen.GrpcRestHandler
 		{% for m in ss.GetMethod() %}
 			mthList = append(mthList, xgen.GrpcRestHandler{
-				Service:      "{{pkg}}.{{ss.Name}}",
+				Service:      "{{ss.Pkg}}.{{ss.Name}}",
 				Name:         "{{m.GetName()}}",
 				Method:       "{{m.HttpMethod}}",
 				Path:          "{{m.HttpPath}}",
