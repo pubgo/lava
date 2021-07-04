@@ -25,7 +25,7 @@ func Register(name string, r HealthCheck) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(name == "" || r == nil, "[name,r] is null")
-	xerror.Assert(healthList.Has(name), "healthy %s already exists", name)
+	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)
 	return
 }

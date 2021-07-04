@@ -107,6 +107,13 @@ func onWatch(name string, resp *Response) {
 		}
 	})
 
+	// 过滤掉Exclude中的project, 不进行plugin执行
+	for _, exc := range cfg.Exclude {
+		if strutil.Contains(cfg.Projects, exc) {
+			return
+		}
+	}
+
 	// 以name为前缀的所有的callbacks
 	callbacks.Each(func(k string, plg interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {

@@ -19,5 +19,4 @@ type Plugin interface {
 	Commands() *cobra.Command
 	Init(ent interface{}) error
 	Watch(name string, r *types.Response) error
-	Codec(name string, r *types.Response) (map[string]interface{}, error)
 }

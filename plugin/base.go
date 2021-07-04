@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/x/try"
-	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -34,17 +33,6 @@ func (p *Base) Init(ent interface{}) (err error) {
 		if p.OnVars != nil {
 			p.OnVars(vars.Watch)
 		}
-	})
-}
-
-func (p *Base) Codec(name string, resp *types.Response) (dt map[string]interface{}, err error) {
-	return dt, try.Try(func() {
-		if p.OnCodec == nil {
-			return
-		}
-
-		dt, err = p.OnCodec(name, resp)
-		xerror.Panic(err)
 	})
 }
 
