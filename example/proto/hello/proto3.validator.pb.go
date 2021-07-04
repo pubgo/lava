@@ -7,10 +7,11 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
-	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	_ "google.golang.org/protobuf/types/known/wrapperspb"
 	_ "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/known/anypb"
+	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	time "time"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
@@ -108,5 +109,12 @@ func (this *Proto3Message) Validate() error {
 	// Validation of proto3 map<> fields is unsupported.
 	// Validation of proto3 map<> fields is unsupported.
 	// Validation of proto3 map<> fields is unsupported.
+	for _, item := range this.Details {
+		if item != nil {
+			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {
+				return github_com_mwitkow_go_proto_validators.FieldError("Details", err)
+			}
+		}
+	}
 	return nil
 }

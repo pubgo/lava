@@ -5,6 +5,7 @@ package hello;
 option go_package = "./;hello";
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/any.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
@@ -32,6 +33,7 @@ message Proto3Message {
     bool oneof_bool_value = 1;
     string oneof_string_value = 2;
   }
+
   google.protobuf.DoubleValue wrapper_double_value = 17;
   google.protobuf.FloatValue wrapper_float_value = 18;
   google.protobuf.Int64Value wrapper_int64_value = 19;
@@ -55,6 +57,7 @@ message Proto3Message {
   map<string, bool> map_value14 = 39;
   map<bool, string> map_value15 = 40;
   map<string, google.protobuf.UInt64Value> map_value16 = 45;
+  repeated google.protobuf.Any details = 46;
 }
 
 enum EnumValue {

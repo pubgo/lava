@@ -11,9 +11,14 @@ import (
 	_ "github.com/pubgo/lug/metric"
 	_ "github.com/pubgo/lug/tracing"
 	"github.com/pubgo/lug/vars"
-	_ "go.uber.org/automaxprocs"
+	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 func init() {
+	var fn = xerror.ExitErr(maxprocs.Set(maxprocs.Logger(func(s string, i ...interface{}) { xlog.Infof(s, i...) })))
+	fn.(func())()
+
 	vars.Watch("dix", func() interface{} { return dix.Json() })
 }

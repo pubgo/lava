@@ -217,7 +217,7 @@ func RegisterTestApiHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.nam.TestApi/Version", runtime.WithHTTPPathPattern("/v1/version"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.TestApi/Version", runtime.WithHTTPPathPattern("/v1/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -240,7 +240,7 @@ func RegisterTestApiHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.nam.TestApi/VersionTest", runtime.WithHTTPPathPattern("/v1/example/versiontest"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.TestApi/VersionTest", runtime.WithHTTPPathPattern("/v1/example/versiontest"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -272,7 +272,7 @@ func RegisterTestApiV2HandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.nam.TestApiV2/Version1", runtime.WithHTTPPathPattern("/v2/example/version/{name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.TestApiV2/Version1", runtime.WithHTTPPathPattern("/v2/example/version/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -295,7 +295,7 @@ func RegisterTestApiV2HandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.nam.TestApiV2/VersionTest1", runtime.WithHTTPPathPattern("/v2/example/versiontest"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.TestApiV2/VersionTest1", runtime.WithHTTPPathPattern("/v2/example/versiontest"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -357,7 +357,7 @@ func RegisterTestApiHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.nam.TestApi/Version", runtime.WithHTTPPathPattern("/v1/version"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.TestApi/Version", runtime.WithHTTPPathPattern("/v1/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -377,7 +377,7 @@ func RegisterTestApiHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.nam.TestApi/VersionTest", runtime.WithHTTPPathPattern("/v1/example/versiontest"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.TestApi/VersionTest", runtime.WithHTTPPathPattern("/v1/example/versiontest"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -450,7 +450,7 @@ func RegisterTestApiV2HandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.nam.TestApiV2/Version1", runtime.WithHTTPPathPattern("/v2/example/version/{name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.TestApiV2/Version1", runtime.WithHTTPPathPattern("/v2/example/version/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -470,7 +470,7 @@ func RegisterTestApiV2HandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.nam.TestApiV2/VersionTest1", runtime.WithHTTPPathPattern("/v2/example/versiontest"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.TestApiV2/VersionTest1", runtime.WithHTTPPathPattern("/v2/example/versiontest"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

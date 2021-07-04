@@ -35,7 +35,7 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:      "hello.nam.TestApi",
+		Service:      "hello.TestApi",
 		Name:         "Version",
 		Method:       "GET",
 		Path:         "/v1/version",
@@ -44,7 +44,7 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:      "hello.nam.TestApi",
+		Service:      "hello.TestApi",
 		Name:         "VersionTest",
 		Method:       "GET",
 		Path:         "/v1/example/versiontest",
@@ -60,7 +60,7 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:      "hello.nam.TestApiV2",
+		Service:      "hello.TestApiV2",
 		Name:         "Version1",
 		Method:       "POST",
 		Path:         "/v2/example/version/{name}",
@@ -69,7 +69,7 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Service:      "hello.nam.TestApiV2",
+		Service:      "hello.TestApiV2",
 		Name:         "VersionTest1",
 		Method:       "POST",
 		Path:         "/v2/example/versiontest",
