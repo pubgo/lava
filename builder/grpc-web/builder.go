@@ -29,7 +29,7 @@ func (t *Builder) initRoutes() {
 		}
 
 		for i := range v {
-			t.routes[v[i].Path] = v[i].Service + "/" + v[i].Name
+			t.routes[v[i].Method+" "+v[i].Path] = v[i].Service + "/" + v[i].Name
 		}
 	}
 }
@@ -41,23 +41,20 @@ func (t *Builder) initResources() {
 	}
 }
 func (t *Builder) initMiddleware() {
-	var mux = http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		logs.Info(req.URL.Path)
+	t.server.Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if p, ok := t.routes[req.URL.Path]; ok {
 			req.URL.Path = p
 		}
-		logs.Info(req.URL.Path)
 
+		logs.Debug(req.URL.Path)
 		if _, ok := t.resources[req.URL.Path]; !ok {
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprintf(w, "url path [%s] not found", req.URL.Path)
+			fmt.Fprintf(w, "service [%s] url [%s] not found", t.name, req.URL.Path)
 			return
 		}
 
 		t.srv.ServeHTTP(newGrpcWebResponse(w), req2GrpcRequest(req))
 	})
-	t.server.Handler = mux
 }
 
 func (t *Builder) Build(cfg *Cfg, srv *grpc.Server) error {
