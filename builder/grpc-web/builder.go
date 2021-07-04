@@ -29,7 +29,10 @@ func (t *Builder) initRoutes() {
 		}
 
 		for i := range v {
-			t.routes[v[i].Method+" "+v[i].Path] = v[i].Service + "/" + v[i].Name
+			var name = v[i].Method + " " + v[i].Path
+			xerror.Assert(t.routes[name] != "", "service [%s] route [%s] already exists", t.name, name)
+
+			t.routes[name] = v[i].Service + "/" + v[i].Name
 		}
 	}
 }
