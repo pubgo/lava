@@ -72,5 +72,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
-	// xgen.Add(reflect.ValueOf(RegisterMergeHandlerFromEndpoint),nil)
+	xgen.Add(reflect.ValueOf(RegisterMergeHandler), nil)
 }

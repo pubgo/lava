@@ -17,6 +17,10 @@ func Name(name string) zap.Field {
 	return zap.String("name", name)
 }
 
+func Id(id string) zap.Field {
+	return zap.String("id", id)
+}
+
 func UIntPrt(p interface{}) zap.Field {
 	return zap.Uintptr("ptr", uintptr(reflect.ValueOf(p).Pointer()))
 }

@@ -70,7 +70,10 @@ var _ = strings.Trim
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
-		// xgen.Add(reflect.ValueOf(Register{{ss.Srv}}HandlerFromEndpoint),nil)
+
+		{%- if !ss.IsDefault() %}
+			xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Handler),nil)
+		{%- endif %}
 	}
 {% endfor %}
 `

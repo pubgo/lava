@@ -55,7 +55,7 @@ require (
 	github.com/pubgo/x v0.3.25
 	github.com/pubgo/xerror v0.4.4
 	github.com/pubgo/xlog v0.1.7
-	github.com/pubgo/xprotogen v0.0.14
+	github.com/pubgo/xprotogen v0.0.16
 	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect

@@ -5,14 +5,16 @@ import (
 	"time"
 
 	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
-	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/pkg/typex"
+	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
+	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
 )
 
 const (
@@ -127,6 +129,16 @@ func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, 
 	defer cancel()
 
 	conn, err := grpc.DialContext(ctx, buildTarget(target), append(t.ToOpts(), opts...)...)
+	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
+}
+
+func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, err error) {
+	defer xerror.RespErr(&err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, resolver.BuildDirectTarget(target), append(t.ToOpts(), opts...)...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
 

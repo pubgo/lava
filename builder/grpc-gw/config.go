@@ -6,8 +6,10 @@ import (
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
+const DefaultTimeout = time.Second * 2
+
 func init() {
-	gw.DefaultContextTimeout = time.Second * 2
+	gw.DefaultContextTimeout = DefaultTimeout
 }
 
 type ServeMux = gw.ServeMux
@@ -16,8 +18,8 @@ type Cfg struct {
 	Timeout time.Duration `json:"timeout"`
 }
 
-func GetDefaultCfg() Cfg {
-	return Cfg{
+func GetDefaultCfg() *Cfg {
+	return &Cfg{
 		Timeout: time.Second * 2,
 	}
 }

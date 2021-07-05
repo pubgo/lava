@@ -30,7 +30,7 @@ func init() {
 		Service:      "hello.Transport",
 		Name:         "TestStream",
 		Method:       "POST",
-		Path:         "/hello/transport/test_stream",
+		Path:         "/hello/transport/test-stream",
 		ClientStream: "True" == "True",
 		ServerStream: "True" == "True",
 	})
@@ -39,7 +39,7 @@ func init() {
 		Service:      "hello.Transport",
 		Name:         "TestStream1",
 		Method:       "POST",
-		Path:         "/hello/transport/test_stream1",
+		Path:         "/hello/transport/test-stream1",
 		ClientStream: "True" == "True",
 		ServerStream: "False" == "True",
 	})
@@ -48,7 +48,7 @@ func init() {
 		Service:      "hello.Transport",
 		Name:         "TestStream2",
 		Method:       "POST",
-		Path:         "/hello/transport/test_stream2",
+		Path:         "/hello/transport/test-stream2",
 		ClientStream: "False" == "True",
 		ServerStream: "True" == "True",
 	})
@@ -57,11 +57,10 @@ func init() {
 		Service:      "hello.Transport",
 		Name:         "TestStream3",
 		Method:       "POST",
-		Path:         "/hello/transport/test_stream3",
+		Path:         "/hello/transport/test-stream3",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
-	// xgen.Add(reflect.ValueOf(RegisterTransportHandlerFromEndpoint),nil)
 }

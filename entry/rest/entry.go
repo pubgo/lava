@@ -71,26 +71,26 @@ func (t *restEntry) Start(args ...string) error {
 	return try.Try(func() {
 		// 启动server后等待
 		fx.GoDelay(func() {
-			logs.Infof("Srv [rest] Listening on http://localhost%s", runenv.Addr)
+			logs.Infof("Rpc [rest] Listening on http://localhost%s", runenv.Addr)
 
 			if err := t.srv.Get().Listen(runenv.Addr); err != nil && err != http.ErrServerClosed {
-				logs.Error("Srv [rest] Close Error", zap.Any("err", err))
+				logs.Error("Rpc [rest] Close Error", zap.Any("err", err))
 				return
 			}
 
-			logs.Infof("Srv [rest] Closed OK")
+			logs.Infof("Rpc [rest] Closed OK")
 		})
 	})
 }
 
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
-	logs.Info("Srv [rest] Shutdown")
+	logs.Info("Rpc [rest] Shutdown")
 	if err := t.srv.Get().Shutdown(); err != nil && err != http.ErrServerClosed {
-		logs.Error("Srv [rest] Shutdown Error", zap.Any("err", err))
+		logs.Error("Rpc [rest] Shutdown Error", zap.Any("err", err))
 		return err
 	}
-	logs.Info("Srv [rest] Shutdown Ok")
+	logs.Info("Rpc [rest] Shutdown Ok")
 
 	return nil
 }

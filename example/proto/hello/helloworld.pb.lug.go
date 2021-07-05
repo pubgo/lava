@@ -36,5 +36,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterGreeterServer), mthList)
-	// xgen.Add(reflect.ValueOf(RegisterGreeterHandlerFromEndpoint),nil)
+	xgen.Add(reflect.ValueOf(RegisterGreeterHandler), nil)
 }

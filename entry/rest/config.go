@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-const Name = "rest"
+const Name = "rest_entry"
 var logs=xlog.GetLogger(Name)
 
 type Cfg struct {

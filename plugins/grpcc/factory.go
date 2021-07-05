@@ -8,8 +8,8 @@ import (
 
 var clients sync.Map
 
-func NewClient(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	return GetDefaultCfg().Build(service, opts...)
+func NewDirect(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	return GetDefaultCfg().BuildDirect(service, opts...)
 }
 
 func GetClient(service string, optFns ...func(service string) []grpc.DialOption) *client {

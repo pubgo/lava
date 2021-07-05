@@ -47,12 +47,12 @@ func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 // 关于 grpc 命名的介绍
 // https://github.com/grpc/grpc/blob/master/doc/naming.md
 
-func BuildDirectTarget(endpoints []string) string {
+func BuildDirectTarget(endpoints ...string) string {
 	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
 }
 
-func BuildDiscovTarget(endpoints []string, key string) string {
-	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), key)
+func BuildDiscovTarget(service string, endpoints ...string) string {
+	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), service)
 }
 
 //对targets打散

@@ -2,11 +2,12 @@ package grpc
 
 import (
 	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/pubgo/lug/entry"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lug/entry"
 )
 
-const Name = "grpc_entry"
+
 
 type options struct{}
 type Opt func(opts *options)

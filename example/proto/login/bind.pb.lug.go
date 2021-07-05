@@ -81,5 +81,5 @@ func init() {
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
-	// xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandlerFromEndpoint),nil)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandler), nil)
 }
