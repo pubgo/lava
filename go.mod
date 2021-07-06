@@ -52,7 +52,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.25
+	github.com/pubgo/x v0.3.26
 	github.com/pubgo/xerror v0.4.4
 	github.com/pubgo/xlog v0.1.7
 	github.com/pubgo/xprotogen v0.0.16

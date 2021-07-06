@@ -2,9 +2,9 @@ package grpcc
 
 import (
 	"context"
+	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"time"
 
-	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -138,7 +138,9 @@ func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (_ *grpc.Client
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, resolver.BuildDirectTarget(target), append(t.ToOpts(), opts...)...)
+	target = resolver.BuildDirectTarget(target)
+	opts = append(opts, grpc.WithDefaultServiceConfig(`{}`))
+	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), opts...)...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
 
@@ -196,6 +198,7 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 }
 
 var defaultDialOpts = []grpc.DialOption{
+	grpc.WithDefaultServiceConfig(`{}`),
 	grpc.WithChainUnaryInterceptor(
 		grpcTracing.UnaryClientInterceptor(),
 	),

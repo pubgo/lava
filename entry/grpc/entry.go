@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -59,6 +60,10 @@ func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerIntercept
 func (g *grpcEntry) serve() error { return g.mux.Serve() }
 func (g *grpcEntry) handleError() {
 	g.mux.HandleError(func(err error) bool {
+		if errors.Is(err, net.ErrClosed) {
+			return true
+		}
+
 		logs.Error("grpcEntry mux handleError", logutil.Err(err), logutil.Name(g.cfg.name))
 		return false
 	})
@@ -254,7 +259,7 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	// 启动grpc网关
 	fx.GoDelay(func() {
 		logs.Info("[grpc-gw] Server Staring")
-		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed {
+		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed && errors.Is(err, net.ErrClosed) {
 			logs.Error(" [grpc-gw] Server Stop", logutil.Err(err))
 		}
 	})
