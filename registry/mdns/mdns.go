@@ -5,13 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lug/runenv"
 	"sync"
 	"time"
 
-	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/runenv"
+
+	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
@@ -36,12 +37,12 @@ var _ registry.Registry = (*mdnsRegistry)(nil)
 var _ registry.Watcher = (*mdnsRegistry)(nil)
 
 type mdnsRegistry struct {
-	watcher  chan *registry.Result
-	mu       sync.Mutex
-	cfg      Cfg
-	resolver *zeroconf.Resolver
-	services map[string]*zeroconf.Server
-	cancel   context.CancelFunc
+	watcher   chan *registry.Result
+	cfg       Cfg
+	resolver  *zeroconf.Resolver
+	services  sync.Map
+	services1 map[string]*zeroconf.Server
+	cancel    context.CancelFunc
 }
 
 func (m *mdnsRegistry) Next() (*registry.Result, error) {
@@ -61,56 +62,55 @@ func (m *mdnsRegistry) Stop() {
 	}
 }
 
-func (m *mdnsRegistry) Register(service *registry.Service, opt ...registry.RegOpt) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (m *mdnsRegistry) Register(service *registry.Service, opt ...registry.RegOpt) (err error) {
+	defer xerror.RespErr(&err)
 
-	return xutil.Try(func() {
-		xerror.Assert(service == nil, "[service] should not be nil")
-		xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
+	xerror.Assert(service == nil, "[service] should not be nil")
+	xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
 
-		node := service.Nodes[0]
-		server, err := zeroconf.Register(
-			node.Id,
-			service.Name,
-			"local",
-			node.GetPort(),
-			[]string{"register"},
-			nil,
-		)
-		xerror.PanicF(err, "[mdns] service %s register error", service.Name)
+	node := service.Nodes[0]
+	server, err := zeroconf.Register(
+		node.Id,
+		service.Name,
+		"local",
+		node.GetPort(),
+		[]string{"register"},
+		nil,
+	)
+	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
-		m.services[node.Id] = server
+	m.services.Store(node.Id, server)
 
-		var opts registry.RegOpts
-		for i := range opt {
-			opt[i](&opts)
-		}
+	var opts registry.RegOpts
+	for i := range opt {
+		opt[i](&opts)
+	}
 
-		if opts.TTL != 0 {
-			server.TTL(uint32(opts.TTL.Seconds()))
-		}
-	})
+	if opts.TTL != 0 {
+		server.TTL(uint32(opts.TTL.Seconds()))
+	}
+	return nil
 }
 
-func (m *mdnsRegistry) DeRegister(service *registry.Service, opt ...registry.DeRegOpt) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (m *mdnsRegistry) DeRegister(service *registry.Service, opt ...registry.DeRegOpt) (err error) {
+	defer xerror.RespErr(&err)
 
-	return xutil.Try(func() {
-		xerror.Assert(service == nil, "[service] should not be nil")
-		xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
+	xerror.Assert(service == nil, "[service] should not be nil")
+	xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
 
-		node := service.Nodes[0]
-		m.services[node.Id].Shutdown()
-	})
+	node := service.Nodes[0]
+
+	var val, ok = m.services.Load(node.Id)
+	if !ok {
+		return nil
+	}
+
+	val.(*zeroconf.Server).Shutdown()
+
+	return nil
 }
 
-func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) ([]*registry.Service, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	var services []*registry.Service
+func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
 	return services, xutil.Try(func() {
 		entries := make(chan *zeroconf.ServiceEntry)
 		go func(results <-chan *zeroconf.ServiceEntry) {
@@ -144,16 +144,10 @@ func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) ([]*registr
 }
 
 func (m *mdnsRegistry) ListServices(opt ...registry.ListOpt) ([]*registry.Service, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	return nil, errors.New("[mdns] ListServices not implemented")
 }
 
 func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry.Watcher, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	var watcher = &mdnsRegistry{watcher: make(chan *registry.Result)}
 
 	return watcher, xutil.Try(func() {

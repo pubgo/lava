@@ -34,10 +34,7 @@ type baseResolver struct {
 }
 
 func (r *baseResolver) Close() {
-	defer r.cancel()
-	if r.r != nil {
-		r.r.Stop()
-	}
+	r.cancel()
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {

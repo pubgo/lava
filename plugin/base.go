@@ -1,13 +1,14 @@
 package plugin
 
 import (
-	"github.com/pubgo/lug/pkg/logutil"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
+
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.uber.org/zap"
 )
 
 var _ = Plugin(&Base{})
@@ -54,7 +55,9 @@ func (p *Base) Commands() *cobra.Command {
 
 	cmd := &cobra.Command{Use: p.Name}
 
-	logutil.Exit(func() { p.OnCommands(cmd) })
+	try.Catch(func() { p.OnCommands(cmd) }, func(err error) {
+		xlog.Fatal("commands callback", zap.Any("err", err))
+	})
 
 	return cmd
 }
@@ -62,7 +65,9 @@ func (p *Base) Commands() *cobra.Command {
 func (p *Base) Flags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
 	if p.OnFlags != nil {
-		logutil.Exit(func() { p.OnFlags(flags) })
+		try.Catch(func() { p.OnFlags(flags) }, func(err error) {
+			xlog.Fatal("flags callback", zap.Any("err", err))
+		})
 	}
 	return flags
 }

@@ -1,6 +1,7 @@
 package p2c
 
 import (
+	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
@@ -17,7 +18,9 @@ func (p2c *p2cBalancer) Build(info base.PickerBuildInfo) balancer.Picker {
 
 	// 创建一个新的负载均衡器
 	npa := NewP2cAgl()
-	for _, subConn := range info.ReadySCs {
+	for subConn,info := range info.ReadySCs {
+		q.Q(info)
+		subConn.Connect()
 		npa.Add(subConn)
 	}
 

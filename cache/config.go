@@ -4,9 +4,12 @@ import (
 	"time"
 )
 
+// Option 可选配置
+type Option func(o *options)
+
 // options 缓存配置变量
 type options struct {
-	store             Store
+	store             IStore
 	DataLoadTime      time.Duration
 	ClearTime         time.Duration
 	MaxBufSize        uint64
@@ -14,6 +17,3 @@ type options struct {
 	MaxExpiration     time.Duration
 	MaxKeySize        uint64
 }
-
-// Option 可选配置
-type Option func(o *options)

@@ -1,8 +1,9 @@
 package plugin
 
 import (
-	"github.com/pubgo/lug/pkg/logutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 )
 
 const defaultModule = "__default"
@@ -27,21 +28,23 @@ func List(opts ...Opt) []Plugin {
 }
 
 func Register(pg Plugin, opts ...Opt) {
-	logutil.Exit(func() {
-		xerror.Assert(pg == nil || pg.String() == "", "plugin is nil")
-
-		options := options{Module: defaultModule}
-		for _, o := range opts {
-			o(&options)
-		}
-
-		name := pg.String()
-		xerror.Assert(name == "", "plugin name is null")
-
-		pgs := plugins[options.Module]
-		for i := range pgs {
-			xerror.Assert(pgs[i].String() == name, "plugin [%s] already registers", name)
-		}
-		plugins[options.Module] = append(plugins[options.Module], pg)
+	defer xerror.Resp(func(err xerror.XErr) {
+		xlog.Fatal("register plugin", zap.Any("err", err))
 	})
+
+	xerror.Assert(pg == nil || pg.String() == "", "plugin is nil")
+
+	options := options{Module: defaultModule}
+	for _, o := range opts {
+		o(&options)
+	}
+
+	name := pg.String()
+	xerror.Assert(name == "", "plugin name is null")
+
+	pgs := plugins[options.Module]
+	for i := range pgs {
+		xerror.Assert(pgs[i].String() == name, "plugin [%s] already registers", name)
+	}
+	plugins[options.Module] = append(plugins[options.Module], pg)
 }

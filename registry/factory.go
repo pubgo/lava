@@ -7,7 +7,7 @@ import (
 
 type Factory func(map[string]interface{}) (Registry, error)
 
-var factories typex.MapRWM
+var factories typex.Map
 
 func Register(name string, r Factory) {
 	defer xerror.RespExit()

@@ -3,10 +3,11 @@ package grpcs
 import (
 	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
 	opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/pubgo/lug/runenv"
 
 	"sync"
 	"time"

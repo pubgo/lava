@@ -7,8 +7,6 @@ import (
 	"github.com/pubgo/lug/entry"
 )
 
-
-
 type options struct{}
 type Opt func(opts *options)
 type Entry interface {

@@ -120,12 +120,10 @@ log:
     nameKey: 'N'
     callerKey: C
     stacktraceKey: S
-    lineEnding: |+
     levelEncoder: capitalColor
-    timeEncoder: iso8601
+    timeEncoder: "2006-01-02 15:04:05"
     durationEncoder: string
     callerEncoder: full
-    nameEncoder: ''
   outputPaths:
     - stderr
   errorOutputPaths:
@@ -137,3 +135,6 @@ db:
   default:
     driver: "sqlite3x"
     source: "{{home}}/db/sqlite.db"
+
+registry:
+  driver: "mdns"

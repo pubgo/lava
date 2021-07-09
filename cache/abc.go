@@ -6,14 +6,14 @@ import (
 
 type getCallback func(key string) (interface{}, error)
 
-type Store interface {
+type IStore interface {
 	Get(key string) ([]byte, error)
-	GetObj(key string, o interface{}) error
-	Set(key string, val interface{}, ds ...time.Duration) error
-	GetSet(key string, d time.Duration, fns ...getCallback) (interface{}, error)
-	GetExpired(key string) (val interface{}, expireAt int64, err error)
+	GetObj(key string, obj interface{}) error
+	Set(key string, obj interface{}, ds ...time.Duration) error
+	GetSet(key string, d time.Duration, cbs ...getCallback) ([]byte, error)
+	GetExpired(key string) (obj []byte, expireAt int64, err error)
 	Delete(key string) error
 	DeleteExpired() error
-	OnEvicted(func(key string, val interface{}))
+	OnEvicted(func(key string, obj []byte))
 	Close() error
 }

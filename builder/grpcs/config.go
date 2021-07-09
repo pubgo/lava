@@ -11,6 +11,7 @@ import (
 const (
 	DefaultContentType = "application/grpc"
 	DefaultMaxMsgSize  = 1024 * 1024 * 4
+	DefaultTimeout     = time.Second * 2
 )
 
 type KeepaliveParams struct {
@@ -52,11 +53,11 @@ type Cfg struct {
 
 func GetDefaultCfg() *Cfg {
 	return &Cfg{
-		MaxRecvMsgSize:       DefaultMaxMsgSize,
-		MaxSendMsgSize:       DefaultMaxMsgSize,
-		WriteBufferSize:      32 * 1024,
-		ReadBufferSize:       32 * 1024,
-		ConnectionTimeout:    120 * time.Second,
+		MaxRecvMsgSize:    DefaultMaxMsgSize,
+		MaxSendMsgSize:    DefaultMaxMsgSize,
+		WriteBufferSize:   32 * 1024,
+		ReadBufferSize:    32 * 1024,
+		ConnectionTimeout: 120 * time.Second,
 		KeepaliveParams: KeepaliveParams{
 			MaxConnectionIdle:     30 * time.Second, // If a client is idle for 15 seconds, send a GOAWAY
 			MaxConnectionAge:      55 * time.Second, // If any connection is alive for more than 30 seconds, send a GOAWAY

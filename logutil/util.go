@@ -25,8 +25,7 @@ func UIntPrt(p interface{}) zap.Field {
 	return zap.Uintptr("ptr", uintptr(reflect.ValueOf(p).Pointer()))
 }
 
-func Exit(fn func(), fields ...zap.Field)  { log1(xlog.Fatal, fn, fields...) }
-func Panic(fn func(), fields ...zap.Field) { log1(xlog.Fatal, fn, fields...) }
+func Fatal(fn func(), fields ...zap.Field) { log1(xlog.Fatal, fn, fields...) }
 
 func log1(log func(args ...interface{}), fn func(), fields ...zap.Field) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")

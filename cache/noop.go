@@ -1,27 +1,46 @@
 package cache
 
-import "time"
+import (
+	"time"
+)
 
-var _ Store = (*noopStore)(nil)
+var _ IStore = (*noopStore)(nil)
 
 type noopStore struct{}
 
-func (n noopStore) GetObj(key string, o interface{}) error {
+func (n noopStore) Get(key string) ([]byte, error) {
 	panic("implement me")
 }
 
-func (n noopStore) Get(key string) ([]byte, error)                             { return nil, nil }
-func (n noopStore) Set(key string, val interface{}, ds ...time.Duration) error { return nil }
-
-func (n noopStore) GetSet(key string, d time.Duration, fns ...getCallback) (interface{}, error) {
-	return nil, nil
+func (n noopStore) GetObj(key string, obj interface{}) error {
+	panic("implement me")
 }
 
-func (n noopStore) GetExpired(key string) (val interface{}, expireAt int64, err error) {
-	return nil, 0, err
+func (n noopStore) Set(key string, obj interface{}, ds ...time.Duration) error {
+	panic("implement me")
 }
 
-func (n noopStore) Delete(key string) error                       { return nil }
-func (n noopStore) DeleteExpired() error                          { return nil }
-func (n noopStore) OnEvicted(f func(key string, val interface{})) { return }
-func (n noopStore) Close() error                                  { return nil }
+func (n noopStore) GetSet(key string, d time.Duration, cbs ...getCallback) ([]byte, error) {
+	panic("implement me")
+}
+
+func (n noopStore) GetExpired(key string) (obj []byte, expireAt int64, err error) {
+	panic("implement me")
+}
+
+func (n noopStore) Delete(key string) error {
+	panic("implement me")
+}
+
+func (n noopStore) DeleteExpired() error {
+	panic("implement me")
+}
+
+func (n noopStore) OnEvicted(f func(key string, obj []byte)) {
+	panic("implement me")
+}
+
+func (n noopStore) Close() error {
+	panic("implement me")
+}
+

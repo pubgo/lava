@@ -5,6 +5,7 @@ Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=6 HEAD)
 GOPATH=$(shell go env GOPATH )
+TAG=$(shell git describe --abbrev=0 --tags)
 LDFLAGS=-ldflags " \
 -X '${VersionBase}/version.BuildTime=${BuildTime}' \
 -X '${VersionBase}/version.CommitID=${CommitID}' \
@@ -40,7 +41,7 @@ proto:
 
 .PHONY: gen
 gen:
-	cd cmd/protoc-gen-lug && go install .
+	cd protoc-gen-lug && go install .
 
 .PHONY: example
 example:
@@ -103,6 +104,5 @@ generate:
 
 .PHONY: install
 install:
-	@go install -v github.com/rakyll/statik
 	@go install -v github.com/tinylib/msgp
 	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2

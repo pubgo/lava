@@ -28,6 +28,7 @@ func TimeoutUnaryServerInterceptor(t time.Duration) grpc.UnaryServerInterceptor 
 			defaultTimeOut = time.Duration(s) * time.Second
 		}
 	}
+
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if _, ok := ctx.Deadline(); !ok { //if ok is true, it is set by header grpc-timeout from client
 			var cancel context.CancelFunc
@@ -78,6 +79,7 @@ func TimeoutStreamServerInterceptor(defaultTimeOut time.Duration) grpc.StreamSer
 			defaultTimeOut = time.Duration(s) * time.Second
 		}
 	}
+
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		ctx := stream.Context()
 		if _, ok := ctx.Deadline(); !ok { //if ok is true, it is set by header grpc-timeout from client

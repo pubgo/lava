@@ -1,24 +1,33 @@
 package grpcs
 
 import (
+	"context"
 	"fmt"
-	"github.com/pubgo/lug/xgen"
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
 	"reflect"
 
-	enc "github.com/pubgo/lug/encoding"
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+
+	enc "github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lug/xgen"
 )
 
-func EnableHealth(service string, s *grpc.Server) {
+func HealthCheck(srv string, conn *grpc.ClientConn) error {
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+	defer cancel()
+	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: srv})
+	return xerror.Wrap(err)
+}
+
+func EnableHealth(srv string, s *grpc.Server) {
 	healthCheck := health.NewServer()
-	healthCheck.SetServingStatus(service, grpc_health_v1.HealthCheckResponse_SERVING)
+	healthCheck.SetServingStatus(srv, grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(s, healthCheck)
 }
 

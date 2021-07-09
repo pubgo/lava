@@ -2,9 +2,9 @@ package grpcc
 
 import (
 	"context"
-	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"time"
 
+	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -88,58 +88,60 @@ func (t connectParams) toConnectParams() grpc.ConnectParams {
 
 // WithContextDialer
 type Cfg struct {
-	Registry             string           `json:"registry"`
-	MaxMsgSize           int              `json:"max_msg_size"`
-	Codec                string           `json:"codec"`
-	Compressor           string           `json:"compressor"`
-	Decompressor         string           `json:"decompressor"`
-	Balancer             string           `json:"balancer"`
-	BackoffMaxDelay      time.Duration    `json:"backoff_max_delay"`
-	Timeout              time.Duration    `json:"timeout"`
-	DialTimeout          time.Duration    `json:"dial_timeout"`
-	MaxDelay             time.Duration    `json:"max_delay"`
-	UserAgent            string           `json:"user_agent"`
-	Authority            string           `json:"authority"`
-	ChannelzParentID     int64            `json:"channelz_parent_id"`
-	DisableServiceConfig bool             `json:"disable_service_config"`
-	DefaultServiceConfig string           `json:"default_service_config"`
-	DisableRetry         bool             `json:"disable_retry"`
-	MaxHeaderListSize    uint32           `json:"max_header_list_size"`
-	DisableHealthCheck   bool             `json:"disable_health_check"`
-	BalancerName         string           `json:"balancer_name"`
-	Insecure             bool             `json:"insecure"`
-	Block                bool             `json:"block"`
-	IdleNum              uint32           `json:"idle_num"`
-	WriteBuffer          int              `json:"write_buffer"`
-	ReadBuffer           int              `json:"read_buffer"`
-	WindowSize           int32            `json:"window_size"`
-	ConnWindowSize       int32            `json:"conn_window_size"`
-	MaxRecvMsgSize       int              `json:"max_recv_msg_size"`
-	NoProxy              bool             `json:"no_proxy"`
-	Proxy                bool             `json:"proxy"`
-	ConnectParams        connectParams    `json:"connect_params"`
-	ClientParameters     clientParameters `json:"client_parameters"`
-	Call                 callParameters   `json:"call"`
+	Registry             string        `json:"registry"`
+	MaxMsgSize           int           `json:"max_msg_size"`
+	Codec                string        `json:"codec"`
+	Compressor           string        `json:"compressor"`
+	Decompressor         string        `json:"decompressor"`
+	Balancer             string        `json:"balancer"`
+	BackoffMaxDelay      time.Duration `json:"backoff_max_delay"`
+	Timeout              time.Duration `json:"timeout"`
+	DialTimeout          time.Duration `json:"dial_timeout"`
+	MaxDelay             time.Duration `json:"max_delay"`
+	UserAgent            string        `json:"user_agent"`
+	Authority            string        `json:"authority"`
+	ChannelzParentID     int64         `json:"channelz_parent_id"`
+	DisableServiceConfig bool          `json:"disable_service_config"`
+	DefaultServiceConfig string        `json:"default_service_config"`
+	DisableRetry         bool          `json:"disable_retry"`
+	MaxHeaderListSize    uint32        `json:"max_header_list_size"`
+	DisableHealthCheck   bool          `json:"disable_health_check"`
+	BalancerName         string        `json:"balancer_name"`
+	Insecure             bool          `json:"insecure"`
+	Block                bool          `json:"block"`
+	IdleNum              uint32        `json:"idle_num"`
+	WriteBuffer          int           `json:"write_buffer"`
+	ReadBuffer           int           `json:"read_buffer"`
+	WindowSize           int32         `json:"window_size"`
+	ConnWindowSize       int32         `json:"conn_window_size"`
+
+	// MaxRecvMsgSize maximum message that client can receive (4 MB).
+	MaxRecvMsgSize   int              `json:"max_recv_msg_size"`
+	NoProxy          bool             `json:"no_proxy"`
+	Proxy            bool             `json:"proxy"`
+	ConnectParams    connectParams    `json:"connect_params"`
+	ClientParameters clientParameters `json:"client_parameters"`
+	Call             callParameters   `json:"call"`
 }
 
-func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, err error) {
-	defer xerror.RespErr(&err)
+func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, gErr error) {
+	defer xerror.RespErr(&gErr)
 
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, buildTarget(target), append(t.ToOpts(), opts...)...)
+	target = buildTarget(target)
+	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), opts...)...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
 
-func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, err error) {
-	defer xerror.RespErr(&err)
+func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, gErr error) {
+	defer xerror.RespErr(&gErr)
 
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
 	defer cancel()
 
 	target = resolver.BuildDirectTarget(target)
-	opts = append(opts, grpc.WithDefaultServiceConfig(`{}`))
 	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), opts...)...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
@@ -175,25 +177,59 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 		opts = append(opts, grpc.WithDisableHealthCheck())
 	}
 
-	// Fail right away
+	if t.ReadBuffer != 0 {
+		opts = append(opts, grpc.WithReadBufferSize(t.ReadBuffer))
+	}
+
+	if t.WriteBuffer != 0 {
+		opts = append(opts, grpc.WithWriteBufferSize(t.WriteBuffer))
+	}
+
+	if t.WindowSize != 0 {
+		opts = append(opts, grpc.WithInitialWindowSize(t.WindowSize))
+	}
+
+	if t.ConnWindowSize != 0 {
+		opts = append(opts, grpc.WithInitialConnWindowSize(t.ConnWindowSize))
+	}
+
+	if t.UserAgent != "" {
+		opts = append(opts, grpc.WithUserAgent(t.UserAgent))
+	}
+
+	if t.Authority != "" {
+		opts = append(opts, grpc.WithAuthority(t.Authority))
+	}
+
+	if t.DefaultServiceConfig != "" {
+		opts = append(opts, grpc.WithDefaultServiceConfig(t.DefaultServiceConfig))
+	}
+
+	if t.MaxHeaderListSize != 0 {
+		opts = append(opts, grpc.WithMaxHeaderListSize(t.MaxHeaderListSize))
+	}
+
+	if t.ChannelzParentID != 0 {
+		opts = append(opts, grpc.WithChannelzParentID(t.ChannelzParentID))
+	}
+
+	var cos []grpc.CallOption
+	if t.MaxRecvMsgSize != 0 {
+		cos = append(cos, grpc.MaxCallRecvMsgSize(t.MaxRecvMsgSize))
+	}
+
+	if t.Codec != "" {
+		cos = append(cos, grpc.ForceCodec(encoding.GetCodec(t.Codec)))
+	}
+
+	if t.Compressor != "" {
+		cos = append(cos, grpc.UseCompressor(t.Compressor))
+	}
+
+	opts = append(opts, grpc.WithDefaultCallOptions(cos...))
 	opts = append(opts, grpc.FailOnNonTempDialError(true))
-	opts = append(opts, grpc.WithReadBufferSize(t.ReadBuffer))
-	opts = append(opts, grpc.WithWriteBufferSize(t.WriteBuffer))
-	opts = append(opts, grpc.WithInitialWindowSize(t.WindowSize))
-	opts = append(opts, grpc.WithInitialConnWindowSize(t.ConnWindowSize))
-	opts = append(opts, grpc.WithUserAgent(t.UserAgent))
-	opts = append(opts, grpc.WithAuthority(t.Authority))
-	opts = append(opts, grpc.WithDefaultServiceConfig(t.DefaultServiceConfig))
-	opts = append(opts, grpc.WithMaxHeaderListSize(t.MaxHeaderListSize))
-	opts = append(opts, grpc.WithChannelzParentID(t.ChannelzParentID))
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
-	opts = append(opts, grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(t.MaxMsgSize),
-		grpc.ForceCodec(encoding.GetCodec(t.Codec)),
-		grpc.UseCompressor(t.Compressor),
-	))
-
 	return opts
 }
 
@@ -220,13 +256,12 @@ func GetCfg(name string) Cfg {
 func defaultDialOption(_ string) []grpc.DialOption { return GetDefaultCfg().ToOpts() }
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Insecure:     true,
-		Block:        true,
-		BalancerName: p2c2.Name,
-		DialTimeout:  2 * time.Second,
-
-		// DefaultMaxRecvMsgSize maximum message that client can receive (4 MB).
-		MaxRecvMsgSize: 1024 * 1024 * 4,
+		Insecure:          true,
+		Block:             true,
+		BalancerName:      p2c2.Name,
+		DialTimeout:       2 * time.Second,
+		MaxHeaderListSize: 1024 * 4,
+		MaxRecvMsgSize:    1024 * 1024 * 4,
 		ClientParameters: clientParameters{
 			PermitWithoutStream: true,             // send pings even without active streams
 			Time:                10 * time.Second, // send pings every 10 seconds if there is no activity

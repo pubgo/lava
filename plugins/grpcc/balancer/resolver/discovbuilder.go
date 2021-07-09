@@ -3,6 +3,9 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/x/q"
+	"go.uber.org/zap"
+	"strings"
 	"sync"
 
 	"github.com/pubgo/lug/registry"
@@ -42,9 +45,9 @@ func (d *discovBuilder) updateService(services ...*registry.Service) {
 			for j := 0; j < Replica; j++ {
 				addr := n.Address
 				// 如果port不存在, 那么addr中包含port
-				if n.Port > 0 {
-					addr = fmt.Sprintf("%s:%d", n.Address, n.Port)
-				}
+				//if !strings.Contains(n.Address, ":") {
+				addr = fmt.Sprintf("%s:%d", "localhost", n.Port)
+				//}
 
 				res := newAddr(addr, services[i].Name)
 				val, ok := d.services.LoadOrStore(getServiceUniqueId(n.Id, j), &res)
@@ -71,6 +74,8 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
+	logs.Infof("discovBuilder Build %#v\n",target)
+
 	// target.Authority得到注册中心的地址
 	// 当然也可以直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
@@ -80,6 +85,8 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(target.Endpoint)
 	xerror.Panic(err, "registry GetService error")
+
+	q.Q(services)
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
@@ -93,19 +100,26 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	cancel := fx.Go(func(ctx context.Context) {
 		defer w.Stop()
+
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
 			res, err := w.Next()
 			if err == registry.ErrWatcherStopped {
 				break
 			}
 
 			if err != nil {
-				logs.Error(err.Error())
+				logs.Error("error", zap.Any("err", err))
 				continue
 			}
 
 			// 注册中心删除服务
-			if res.Action == "delete" {
+			if strings.ToLower(res.Action) == "delete" {
 				d.delService(res.Service)
 			} else {
 				d.updateService(res.Service)

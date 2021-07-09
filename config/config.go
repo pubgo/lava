@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
+	"os"
 
 	"fmt"
 	"io"
@@ -23,7 +24,15 @@ var (
 	CfgPath = ""
 )
 
-var logs = xlog.GetLogger("config")
+// default hostname.
+var hostname string
+
+func init() {
+	hostname, _ = os.Hostname()
+	if hostname == "" {
+		hostname = "localhost"
+	}
+}
 
 func GetCfg() *conf {
 	xerror.Assert(cfg == nil, "[config] please init config")
@@ -105,7 +114,7 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
 	if t.Get(name) == nil {
-		logs.Warnf("config key [%s] not found", name)
+		xlog.Warnf("config key [%s] not found", name)
 		return false
 	}
 

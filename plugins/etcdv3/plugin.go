@@ -3,9 +3,10 @@ package etcdv3
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
+
 	"github.com/pubgo/xerror"
 )
 
@@ -36,10 +37,10 @@ var plg = &plugin.Base{
 		})
 
 		r.OnDelete(func() {
-			logs.Debugf("delete client", logutil.Name(name))
+			logs.Debugf("delete client", logger.Name(name))
 
 			if Get(name) == nil {
-				logs.Errorf("client not found", logutil.Name(name))
+				logs.Errorf("client not found", logger.Name(name))
 			}
 
 			Delete(name)

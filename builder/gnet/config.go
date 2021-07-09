@@ -3,11 +3,11 @@ package gnet
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/panjf2000/gnet/pool/goroutine"
 	"log"
 	"time"
 
 	"github.com/panjf2000/gnet"
+	"github.com/panjf2000/gnet/pool/goroutine"
 	_ "github.com/panjf2000/gnet/pool/goroutine"
 )
 

@@ -41,7 +41,6 @@ require (
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
 	github.com/mattn/go-sqlite3 v1.14.0
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mwitkow/go-proto-validators v0.3.2
@@ -54,11 +53,11 @@ require (
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.26
 	github.com/pubgo/xerror v0.4.4
-	github.com/pubgo/xlog v0.1.7
+	github.com/pubgo/xlog v0.2.0
 	github.com/pubgo/xprotogen v0.0.16
-	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
+	github.com/segmentio/ksuid v1.0.3
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/shirou/gopsutil/v3 v3.21.2
 	github.com/soheilhy/cmux v0.1.4
