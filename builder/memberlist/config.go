@@ -2,11 +2,11 @@ package memberlist
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/memberlist"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog/xlog_std"
 )
 
 //https://github.com/asim/memberlist/blob/master/memberlist.go
@@ -56,7 +56,7 @@ func (t Cfg) Build() *memberlist.Memberlist {
 	t.mc.Events = &memberlist.ChannelEventDelegate{Ch: make(chan memberlist.NodeEvent, chanSize)}
 	t.mc.Events = &eventDelegate{}
 	t.mc.Delegate = &delegate{}
-	t.mc.Logger = xlog_std.New(t.Name)
+	t.mc.Logger = log.Default()
 
 	ml, err := memberlist.Create(t.mc)
 	xerror.Panic(err)

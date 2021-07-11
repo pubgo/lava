@@ -13,10 +13,7 @@ type Service struct {
 	Nodes     []*Node           `json:"nodes,omitempty"`
 }
 
-func NodeOf(nodes ...*Node) []*Node {
-	return nodes
-}
-
+type Nodes []*Node
 type Node struct {
 	Id       string            `json:"id,omitempty"`
 	Address  string            `json:"address,omitempty"`
@@ -29,12 +26,13 @@ func (t Node) GetPort() int {
 		return t.Port
 	}
 
-	parts := strings.Split(t.Address, ":")
-	if len(parts) > 1 {
-		t.Port, _ = strconv.Atoi(parts[len(parts)-1])
+	addrs := strings.Split(t.Address, ":")
+	if len(addrs) > 1 {
+		port, _ := strconv.Atoi(addrs[len(addrs)-1])
+		return port
 	}
 
-	return t.Port
+	return 0
 }
 
 type Endpoint struct {

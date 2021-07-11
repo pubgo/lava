@@ -51,9 +51,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
-	github.com/pubgo/x v0.3.26
+	github.com/pubgo/x v0.3.28
 	github.com/pubgo/xerror v0.4.4
-	github.com/pubgo/xlog v0.2.0
+	github.com/pubgo/xlog v0.2.2
 	github.com/pubgo/xprotogen v0.0.16
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect

@@ -42,9 +42,19 @@ func (t *ctlEntry) Start(args ...string) (err error) {
 
 	if opts.once {
 		opts.cancel = fx.Go(opts.handler)
-	} else {
-		opts.cancel = fx.GoLoop(opts.handler)
+		return
 	}
+
+	opts.cancel = fx.Go(func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				opts.handler(ctx)
+			}
+		}
+	})
 
 	return nil
 }

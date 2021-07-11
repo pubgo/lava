@@ -13,7 +13,8 @@ func initLog(cfg xlog_config.Config) (err error) {
 	defer xerror.RespErr(&err)
 
 	// 全局log设置
-	xerror.Panic(xlog.SetDefault(xerror.PanicErr(cfg.Build()).(*zap.Logger).Named(runenv.Domain).Named(runenv.Project)))
+	var log = xerror.PanicErr(cfg.Build()).(*zap.Logger)
+	xerror.Panic(xlog.SetDefault(log.Named(runenv.Domain).Named(runenv.Project)))
 
 	return nil
 }

@@ -3,8 +3,8 @@ package mdns
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"go.uber.org/atomic"
 	"sync"
 	"time"
 
@@ -25,7 +25,7 @@ func init() {
 
 func NewWithMap(m map[string]interface{}) (registry.Registry, error) {
 	resolver, err := zeroconf.NewResolver()
-	xerror.Panic(err, "Failed to initialize resolver")
+	xerror.Panic(err, "Failed to initialize zeroconf resolver")
 
 	var r = &mdnsRegistry{resolver: resolver}
 
@@ -37,17 +37,16 @@ var _ registry.Registry = (*mdnsRegistry)(nil)
 var _ registry.Watcher = (*mdnsRegistry)(nil)
 
 type mdnsRegistry struct {
-	watcher   chan *registry.Result
-	cfg       Cfg
-	resolver  *zeroconf.Resolver
-	services  sync.Map
-	services1 map[string]*zeroconf.Server
-	cancel    context.CancelFunc
+	closed   atomic.Bool
+	cfg      Cfg
+	services sync.Map
+	results  chan *registry.Result
+	resolver *zeroconf.Resolver
+	cancel   context.CancelFunc
 }
 
 func (m *mdnsRegistry) Next() (*registry.Result, error) {
-	result, ok := <-m.watcher
-
+	result, ok := <-m.results
 	if !ok {
 		return nil, registry.ErrWatcherStopped
 	}
@@ -56,39 +55,37 @@ func (m *mdnsRegistry) Next() (*registry.Result, error) {
 }
 
 func (m *mdnsRegistry) Stop() {
-	close(m.watcher)
+	if m.closed.Load() {
+		return
+	}
+	m.closed.Store(true)
+
+	close(m.results)
 	if m.cancel != nil {
 		m.cancel()
 	}
 }
 
-func (m *mdnsRegistry) Register(service *registry.Service, opt ...registry.RegOpt) (err error) {
+func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
-	xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
+	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
-	server, err := zeroconf.Register(
-		node.Id,
-		service.Name,
-		"local",
-		node.GetPort(),
-		[]string{"register"},
-		nil,
-	)
+	server, err := zeroconf.Register(service.Name, runenv.Domain, "local", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
-	m.services.Store(node.Id, server)
-
 	var opts registry.RegOpts
-	for i := range opt {
-		opt[i](&opts)
+	for i := range optList {
+		optList[i](&opts)
 	}
 
 	if opts.TTL != 0 {
 		server.TTL(uint32(opts.TTL.Seconds()))
 	}
+
+	m.services.Store(node.Id, server)
 	return nil
 }
 
@@ -96,11 +93,10 @@ func (m *mdnsRegistry) DeRegister(service *registry.Service, opt ...registry.DeR
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
-	xerror.Assert(len(service.Nodes) == 0, "service nodes should not be zero")
+	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
-
-	var val, ok = m.services.Load(node.Id)
+	var val, ok = m.services.LoadAndDelete(node.Id)
 	if !ok {
 		return nil
 	}
@@ -110,21 +106,21 @@ func (m *mdnsRegistry) DeRegister(service *registry.Service, opt ...registry.DeR
 	return nil
 }
 
-func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
+func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
 	return services, xutil.Try(func() {
 		entries := make(chan *zeroconf.ServiceEntry)
-		go func(results <-chan *zeroconf.ServiceEntry) {
-			for s := range results {
+		_ = fx.Go(func(ctx context.Context) {
+			for s := range entries {
 				services = append(services, &registry.Service{
-					Name: s.Service,
-					Nodes: registry.NodeOf(&registry.Node{
-						Id:      s.Instance,
+					Name: s.Instance,
+					Nodes: registry.Nodes{{
+						Id:      s.Text[0],
 						Port:    s.Port,
 						Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
-					}),
+					}},
 				})
 			}
-		}(entries)
+		})
 
 		var gOpts registry.GetOpts
 		for i := range opts {
@@ -138,17 +134,40 @@ func (m *mdnsRegistry) GetService(s string, opts ...registry.GetOpt) (services [
 		ctx, cancel := context.WithTimeout(context.Background(), gOpts.Timeout)
 		defer cancel()
 
-		xerror.Panic(m.resolver.Browse(ctx, s, runenv.Domain, entries), "Failed to Browse")
+		xerror.PanicF(m.resolver.Lookup(ctx, name, runenv.Domain, "local", entries), "Failed to Lookup Service %s", name)
 		<-ctx.Done()
 	})
 }
 
-func (m *mdnsRegistry) ListServices(opt ...registry.ListOpt) ([]*registry.Service, error) {
-	return nil, errors.New("[mdns] ListServices not implemented")
+func (m *mdnsRegistry) ListServices(opts ...registry.ListOpt) (services []*registry.Service, _ error) {
+	return services, xutil.Try(func() {
+		entries := make(chan *zeroconf.ServiceEntry)
+		_ = fx.GoLoop(func(ctx fx.Ctx) {
+			var s, ok = <-entries
+			if !ok {
+				ctx.Break()
+			}
+
+			services = append(services, &registry.Service{
+				Name: s.Instance,
+				Nodes: registry.Nodes{{
+					Id:      s.Text[0],
+					Port:    s.Port,
+					Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
+				}},
+			})
+		})
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		xerror.PanicF(m.resolver.Browse(ctx, runenv.Domain, "local", entries), "Failed to Browse Service")
+		<-ctx.Done()
+	})
 }
 
 func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry.Watcher, error) {
-	var watcher = &mdnsRegistry{watcher: make(chan *registry.Result)}
+	var watcher = &mdnsRegistry{results: make(chan *registry.Result)}
 
 	return watcher, xutil.Try(func() {
 		xerror.Assert(service == "", "[service] should not be null")
@@ -162,58 +181,40 @@ func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry
 			}
 		}
 
-		watcher.cancel = fx.GoLoop(func(ctx context.Context) {
+		watcher.cancel = fx.Tick(func(_ctx fx.Ctx) {
 			var nodes typex.SMap
-
-			select {
-			case <-time.Tick(m.cfg.TTL):
-				entries := make(chan *zeroconf.ServiceEntry)
-				go func(results <-chan *zeroconf.ServiceEntry) {
-					for s := range results {
-						nodes.Set(s.Instance, &registry.Node{
-							Id:      s.Instance,
-							Port:    s.Port,
-							Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
-						})
-					}
-				}(entries)
-
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-				defer cancel()
-				xerror.Panic(m.resolver.Browse(ctx, service, "local", entries), "Failed to Browse")
-				<-ctx.Done()
-
-				xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
-					if allNodes.Has(id) {
-						return
-					}
-
-					allNodes.Set(id, n)
-					watcher.watcher <- &registry.Result{
-						Action: registry.Update.String(),
-						Service: &registry.Service{
-							Name:  service,
-							Nodes: registry.NodeOf(n),
-						},
-					}
-				}))
-
-				xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
-					if nodes.Has(id) {
-						return
-					}
-
-					allNodes.Delete(id)
-					watcher.watcher <- &registry.Result{
-						Action: registry.Delete.String(),
-						Service: &registry.Service{
-							Name:  service,
-							Nodes: registry.NodeOf(n),
-						},
-					}
-				}))
+			services, err := m.GetService(service)
+			xerror.PanicF(err, "Watch Service %s Error", service)
+			for i := range services {
+				for _, n := range services[i].Nodes {
+					nodes.Set(n.Id, n)
+				}
 			}
-		})
+
+			xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
+				if allNodes.Has(id) {
+					return
+				}
+
+				allNodes.Set(id, n)
+				watcher.results <- &registry.Result{
+					Action:  registry.Update.String(),
+					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				}
+			}))
+
+			xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
+				if nodes.Has(id) {
+					return
+				}
+
+				allNodes.Delete(id)
+				watcher.results <- &registry.Result{
+					Action:  registry.Delete.String(),
+					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				}
+			}))
+		}, m.cfg.TTL)
 	})
 }
 

@@ -3,16 +3,16 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/x/q"
-	"go.uber.org/zap"
 	"strings"
 	"sync"
 
 	"github.com/pubgo/lug/registry"
+
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -74,7 +74,7 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Infof("discovBuilder Build %#v\n",target)
+	logs.Infof("discovBuilder Build %#v\n", target)
 
 	// target.Authority得到注册中心的地址
 	// 当然也可以直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
@@ -86,13 +86,13 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	services, err := r.GetService(target.Endpoint)
 	xerror.Panic(err, "registry GetService error")
 
-	q.Q(services)
-
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
 	var addrs = d.getAddrs()
 	xerror.Assert(len(addrs) == 0, "service none available")
+
+	fmt.Printf("%#v\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", addrs)
 	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 
 	w, err := r.Watch(target.Endpoint)

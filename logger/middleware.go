@@ -16,10 +16,11 @@ import (
 func middleware() func(ctx *fiber.Ctx) error {
 	start := time.Now()
 	return func(ctx *fiber.Ctx) error {
+		var reqID = ReqIDFromCtx(ctx.Context())
 
 		ac := make(xlog.M)
 		ac["service"] = ctx.OriginalURL()
-		ac["req_id"] = ReqIDFromCtx(ctx.Context())
+		ac["req_id"] = reqID
 		ac["receive_time"] = start.Format(time.RFC3339Nano)
 
 		defer func() {
@@ -36,7 +37,7 @@ func middleware() func(ctx *fiber.Ctx) error {
 			xlog.Info("request log", ac)
 		}()
 
-		ctx.Context().SetUserValue(xRequestId, ReqIDFromCtx(ctx.Context()))
+		ctx.Context().SetUserValue(xRequestId, reqID)
 		return xerror.Wrap(ctx.Next())
 	}
 }
@@ -44,9 +45,11 @@ func middleware() func(ctx *fiber.Ctx) error {
 func unaryServer() grpc.UnaryServerInterceptor {
 	start := time.Now()
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		var reqID = ReqIDFromCtx(ctx)
+
 		ac := make(xlog.M)
 		ac["service"] = info.FullMethod
-		ac["req_id"] = ReqIDFromCtx(ctx)
+		ac["req_id"] = reqID
 		ac["receive_time"] = start.Unix()
 
 		defer func() {
@@ -64,7 +67,7 @@ func unaryServer() grpc.UnaryServerInterceptor {
 			xlog.Info("record log", ac)
 		}()
 
-		ctx = context.WithValue(ctx, xRequestId, reqID(ReqIDFromCtx(ctx)))
+		ctx = ctxWithReqID(ctx, reqID)
 		return handler(ctx, req)
 	}
 }
@@ -73,6 +76,7 @@ func streamServer() grpc.StreamServerInterceptor {
 	start := time.Now()
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		var ctx = ss.Context()
+		var reqID = ReqIDFromCtx(ctx)
 
 		ac := make(xlog.M)
 		ac["service"] = info.FullMethod
@@ -93,7 +97,7 @@ func streamServer() grpc.StreamServerInterceptor {
 			xlog.Info("request log", ac)
 		}()
 
-		ctx = context.WithValue(ctx, xRequestId, reqID(ReqIDFromCtx(ctx)))
+		ctx = ctxWithReqID(ctx, reqID)
 		return handler(srv, &grpcEntry.ServerStream{ServerStream: ss, WrappedContext: ctx})
 	}
 }

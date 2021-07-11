@@ -6,6 +6,12 @@ import (
 	"syscall"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/x/stack"
+	"github.com/pubgo/x/try"
+	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
+	"github.com/spf13/cobra"
+
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	v "github.com/pubgo/lug/internal/cmds/version"
@@ -13,11 +19,6 @@ import (
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
-	"github.com/pubgo/x/stack"
-	"github.com/pubgo/x/try"
-	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
-	"github.com/spf13/cobra"
 )
 
 var logs = xlog.GetLogger("runtime")
@@ -86,7 +87,7 @@ func stop(ent entry.Runtime) (err error) {
 	return nil
 }
 
-func Run(entries ...entry.Entry) (err error) {
+func Run(short string, entries ...entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
@@ -98,6 +99,8 @@ func Run(entries ...entry.Entry) (err error) {
 		xerror.Assert(!ok, "[ent] not implement runtime")
 	}
 
+	rootCmd.Short = short
+	rootCmd.Long = short
 	rootCmd.PersistentFlags().AddFlagSet(runenv.DefaultFlags())
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
@@ -138,7 +141,7 @@ func Run(entries ...entry.Entry) (err error) {
 				xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 
 				// watch初始化, watch remote key
-				watcher.Watch( key, pg)
+				watcher.Watch(key, pg)
 			}
 
 			xerror.Panic(watcher.Init())

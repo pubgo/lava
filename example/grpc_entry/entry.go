@@ -3,7 +3,6 @@ package grpc_entry
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lug/plugins/grpcc"
 	"time"
 
 	"github.com/pubgo/lug"
@@ -19,7 +18,7 @@ import (
 
 var name = "test-grpc"
 
-var _ = hello.GetTestApiClient(name, func(service string) []grpc.DialOption {
+var testApiSrv = hello.GetTestApiClient(name, func(service string) []grpc.DialOption {
 	fmt.Println("service", service)
 	return nil
 })
@@ -35,26 +34,21 @@ func GetEntry() entry.Entry {
 	})
 
 	ent.AfterStart(func() {
-		_ = fx.GoLoop(func(ctx context.Context) {
+		_ = fx.Tick(func(ctx fx.Ctx) {
 			xlog.Info("客户端访问")
 
-			defer xerror.Resp(func(err xerror.XErr) {
-				err.Debug()
-				time.Sleep(time.Second * 5)
-			})
-
-			var conn, err = grpcc.NewDirect(":8080")
-			xerror.Panic(err)
-			//var cli, err = testApiSrv()
+			defer xerror.RespDebug()
+			//var conn, err = grpcc.NewDirect(":8080")
 			//xerror.Panic(err)
+			//cli := hello.NewTestApiClient(conn)
 
-			cli := hello.NewTestApiClient(conn)
+			var cli, err = testApiSrv()
+			xerror.Panic(err)
+
 			var out, err1 = cli.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
 			xerror.Panic(err1)
-			xlog.Infof("%s\n",out)
-
-			time.Sleep(time.Second * 5)
-		})
+			fmt.Printf("%#v \n", out)
+		}, time.Second*5)
 	})
 
 	return ent

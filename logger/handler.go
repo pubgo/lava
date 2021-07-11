@@ -26,7 +26,7 @@ func ReqIDFromCtx(ctx context.Context) string {
 	return reqID(rid)
 }
 
-func CtxWithReqID(ctx context.Context, id string) context.Context {
+func ctxWithReqID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, xRequestId, id)
 }
 

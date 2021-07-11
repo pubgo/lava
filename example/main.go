@@ -8,6 +8,7 @@ import (
 
 func main() {
 	xerror.Exit(lug.Run(
+		"lug example 测试",
 		//task_entry.GetEntry(),
 		//rest_entry.GetEntry(),
 		//ctl_entry.GetEntry(),

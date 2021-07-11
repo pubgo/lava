@@ -106,7 +106,7 @@ nsq:
     lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
 http:
   test: ""
-log:
+logger:
   level: debug
   development: true
   disableCaller: false
@@ -138,3 +138,4 @@ db:
 
 registry:
   driver: "mdns"
+  ttl: "5s"
