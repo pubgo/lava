@@ -4,7 +4,6 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/xlog"
 	"sync"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
 	"go.uber.org/atomic"
 )
 
@@ -27,7 +27,6 @@ func NewWithMap(m map[string]interface{}) (registry.Registry, error) {
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
 
 	var r = &mdnsRegistry{resolver: resolver}
-
 	xerror.Panic(merge.MapStruct(&r.cfg, m))
 	return r, nil
 }

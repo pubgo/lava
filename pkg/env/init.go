@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// 环境变量的前缀
+// Prefix 环境变量的前缀
 var Prefix string
 
 func init() {

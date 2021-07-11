@@ -299,12 +299,17 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	xerror.Panic(g.register(), "[grpc] try to register self")
 
 	g.cancelRegister = fx.Go(func(ctx context.Context) {
+		if g.registry == nil {
+			return
+		}
+
 		var interval = DefaultRegisterInterval
 
 		// only process if it exists
 		if g.cfg.RegisterInterval > time.Duration(0) {
 			interval = g.cfg.RegisterInterval
 		}
+
 		var tick = time.NewTicker(interval)
 		defer tick.Stop()
 

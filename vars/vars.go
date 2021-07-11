@@ -5,6 +5,7 @@ import (
 
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
@@ -15,8 +16,11 @@ var logs = xlog.GetLogger("vars")
 type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
-func (f value) String() string {
-	v, err := jsonx.Marshal(f())
+func (f value) String() (val string) {
+	var dt interface{}
+	try.Logs(logs, func() { dt = f() })
+
+	v, err := jsonx.Marshal(dt)
 	if err != nil {
 		return err.Error()
 	}
