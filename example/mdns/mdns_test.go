@@ -25,6 +25,10 @@ func TestServer1(t *testing.T) {
 	server, err := zeroconf.Register("t2", "t", "local", 1234, []string{"hello"}, nil)
 	xerror.Panic(err)
 	q.Q(server)
+
+	server, err = zeroconf.Register("t3", "t", "local", 1234, []string{"hello"}, nil)
+	xerror.Panic(err)
+	q.Q(server)
 	select {}
 }
 
@@ -32,8 +36,8 @@ func TestClient(t *testing.T) {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err)
 
-	_ = fx.GoLoop(func(ctx context.Context) {
-		entries := make(chan *zeroconf.ServiceEntry)
+	entries := make(chan *zeroconf.ServiceEntry)
+	_ = fx.Go(func(ctx context.Context) {
 		go func(results <-chan *zeroconf.ServiceEntry) {
 			for s := range results {
 				q.Q(s)
@@ -41,9 +45,13 @@ func TestClient(t *testing.T) {
 			}
 		}(entries)
 
-		xerror.Panic(resolver.Browse(ctx, "t", "local", entries), "Failed to Lookup")
-		time.Sleep(time.Second * 5)
+		//time.Sleep(time.Second * 5)
 	})
+
+	var ctx, _ = context.WithTimeout(context.Background(), time.Second*5)
+	//xerror.Panic(resolver.Lookup(ctx, "t2", "t", "local", entries), "Failed to Lookup")
+	xerror.Panic(resolver.Browse(ctx, "t", "local", entries), "Failed to Lookup")
+	<-ctx.Done()
 
 	select {}
 }

@@ -305,11 +305,13 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 		if g.cfg.RegisterInterval > time.Duration(0) {
 			interval = g.cfg.RegisterInterval
 		}
+		var tick = time.NewTicker(interval)
+		defer tick.Stop()
 
 		for {
 			select {
-			case <-time.NewTicker(interval).C:
-				logs.Infof("[grpc] server register on interval(%s)", interval)
+			case <-tick.C:
+				logs.Infof("[grpc] server register(%s) on interval(%s)", g.registry.String(), interval)
 				if err := g.register(); err != nil {
 					logs.Error("[grpc] server register on interval", logutil.Err(err))
 				}

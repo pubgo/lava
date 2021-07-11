@@ -127,7 +127,7 @@ type Cfg struct {
 func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
 
 	target = buildTarget(target)

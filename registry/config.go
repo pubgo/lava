@@ -15,6 +15,7 @@ type Cfg struct {
 
 func (cfg Cfg) Build() (_ Registry, err error) {
 	defer xerror.RespErr(&err)
+
 	var driver = cfg.Driver
 	xerror.Assert(driver == "", "registry driver is null")
 	xerror.Assert(!factories.Has(driver), "registry driver %s not found", driver)

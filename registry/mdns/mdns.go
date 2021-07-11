@@ -4,19 +4,18 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"go.uber.org/atomic"
+	"github.com/pubgo/xlog"
 	"sync"
 	"time"
 
+	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
-	"github.com/pubgo/lug/runenv"
-
-	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
+	"go.uber.org/atomic"
 )
 
 func init() {
@@ -73,7 +72,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
-	server, err := zeroconf.Register(service.Name, runenv.Domain, "local", node.GetPort(), []string{node.Id}, nil)
+	server, err := zeroconf.Register(node.Id, service.Name, "local", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
 	var opts registry.RegOpts
@@ -81,9 +80,9 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		optList[i](&opts)
 	}
 
-	if opts.TTL != 0 {
-		server.TTL(uint32(opts.TTL.Seconds()))
-	}
+	//if opts.TTL != 0 {
+	//	server.TTL(uint32(opts.TTL.Seconds()))
+	//}
 
 	m.services.Store(node.Id, server)
 	return nil
@@ -112,9 +111,9 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (service
 		_ = fx.Go(func(ctx context.Context) {
 			for s := range entries {
 				services = append(services, &registry.Service{
-					Name: s.Instance,
+					Name: s.Service,
 					Nodes: registry.Nodes{{
-						Id:      s.Text[0],
+						Id:      s.Instance,
 						Port:    s.Port,
 						Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
 					}},
@@ -127,43 +126,16 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (service
 			opts[i](&gOpts)
 		}
 
-		if gOpts.Timeout == 0 {
-			gOpts.Timeout = time.Second * 5
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), gOpts.Timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 
-		xerror.PanicF(m.resolver.Lookup(ctx, name, runenv.Domain, "local", entries), "Failed to Lookup Service %s", name)
+		xerror.PanicF(m.resolver.Browse(ctx, name, "local", entries), "Failed to Lookup Service %s", name)
 		<-ctx.Done()
 	})
 }
 
 func (m *mdnsRegistry) ListServices(opts ...registry.ListOpt) (services []*registry.Service, _ error) {
-	return services, xutil.Try(func() {
-		entries := make(chan *zeroconf.ServiceEntry)
-		_ = fx.GoLoop(func(ctx fx.Ctx) {
-			var s, ok = <-entries
-			if !ok {
-				ctx.Break()
-			}
-
-			services = append(services, &registry.Service{
-				Name: s.Instance,
-				Nodes: registry.Nodes{{
-					Id:      s.Text[0],
-					Port:    s.Port,
-					Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
-				}},
-			})
-		})
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-		defer cancel()
-
-		xerror.PanicF(m.resolver.Browse(ctx, runenv.Domain, "local", entries), "Failed to Browse Service")
-		<-ctx.Done()
-	})
+	return services, nil
 }
 
 func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry.Watcher, error) {
@@ -181,7 +153,14 @@ func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry
 			}
 		}
 
+		var ttl = m.cfg.TTL
+		if ttl == 0 {
+			ttl = time.Second * 30
+		}
+
 		watcher.cancel = fx.Tick(func(_ctx fx.Ctx) {
+			xlog.Infof("[mdns] registry watch service(%s) on interval(%s)", service, ttl)
+
 			var nodes typex.SMap
 			services, err := m.GetService(service)
 			xerror.PanicF(err, "Watch Service %s Error", service)
@@ -214,7 +193,7 @@ func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (registry
 					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 				}
 			}))
-		}, m.cfg.TTL)
+		}, ttl)
 	})
 }
 
