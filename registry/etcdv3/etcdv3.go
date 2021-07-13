@@ -9,9 +9,10 @@ import (
 	"strings"
 	"sync"
 
-	hash "github.com/mitchellh/hashstructure"
 	"github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/registry"
+
+	hash "github.com/mitchellh/hashstructure"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"

@@ -80,5 +80,11 @@ require (
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
+	k8s.io/api v0.21.1
+	k8s.io/apimachinery v0.21.1
+	k8s.io/client-go v0.21.1
+	k8s.io/klog/v2 v2.9.0 // indirect
+	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
 	xorm.io/xorm v1.0.5
 )

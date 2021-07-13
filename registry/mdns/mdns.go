@@ -4,18 +4,17 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
-	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
+
+	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"go.uber.org/atomic"
 )
 
 func init() {
@@ -35,9 +34,8 @@ var _ registry.Registry = (*mdnsRegistry)(nil)
 var _ registry.Watcher = (*mdnsRegistry)(nil)
 
 type mdnsRegistry struct {
-	closed   atomic.Bool
 	cfg      Cfg
-	services sync.Map
+	services typex.SMap
 	results  chan *registry.Result
 	resolver *zeroconf.Resolver
 	cancel   context.CancelFunc
@@ -53,11 +51,6 @@ func (m *mdnsRegistry) Next() (*registry.Result, error) {
 }
 
 func (m *mdnsRegistry) Stop() {
-	if m.closed.Load() {
-		return
-	}
-	m.closed.Store(true)
-
 	close(m.results)
 	if m.cancel != nil {
 		m.cancel()
@@ -71,7 +64,13 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
-	server, err := zeroconf.Register(node.Id, service.Name, "local", node.GetPort(), []string{node.Id}, nil)
+
+	// 已经存在
+	if m.services.Has(node.Id) {
+		return nil
+	}
+
+	server, err := zeroconf.Register(node.Id, service.Name, "local.", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
 	var opts registry.RegOpts
@@ -79,11 +78,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		optList[i](&opts)
 	}
 
-	//if opts.TTL != 0 {
-	//	server.TTL(uint32(opts.TTL.Seconds()))
-	//}
-
-	m.services.Store(node.Id, server)
+	m.services.Set(node.Id, server)
 	return nil
 }
 
@@ -128,7 +123,7 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (service
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 
-		xerror.PanicF(m.resolver.Browse(ctx, name, "local", entries), "Failed to Lookup Service %s", name)
+		xerror.PanicF(m.resolver.Browse(ctx, name, "local.", entries), "Failed to Lookup Service %s", name)
 		<-ctx.Done()
 	})
 }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/healthy"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
@@ -26,6 +27,7 @@ var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
 	rootCmd.AddCommand(v.Cmd)
+	rootCmd.AddCommand(healthy.Cmd)
 }
 
 func handleSignal() {

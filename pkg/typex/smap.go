@@ -75,6 +75,7 @@ func (t *SMap) Get(key interface{}) interface{} {
 	return NotFound
 }
 
+func (t *SMap) LoadAndDelete(key interface{}) (value interface{}, ok bool) { return t.data.LoadAndDelete(key) }
 func (t *SMap) Load(key interface{}) (value interface{}, ok bool) { return t.data.Load(key) }
 func (t *SMap) Range(f func(key, value interface{}) bool)         { t.data.Range(f) }
 func (t *SMap) Delete(key interface{})                            { t.data.Delete(key) }

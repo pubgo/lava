@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lug/healthy"
 	"net"
 	"strconv"
 	"strings"
@@ -358,6 +359,10 @@ func newEntry(name string) *grpcEntry {
 
 		xerror.Panic(g.rpc.Build(g.cfg.Rpc, func() {
 			g.initHandler()
+		}))
+
+		xerror.Exit(healthy.Register(g.cfg.name, func(ctx context.Context) error {
+			return xerror.Wrap(grpcs.HealthCheck(g.cfg.name, g.client))
 		}))
 	})
 
