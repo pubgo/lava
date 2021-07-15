@@ -7,6 +7,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
+	fb "github.com/pubgo/lug/builder/fiber"
+	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -14,6 +18,10 @@ import (
 )
 
 var _ = strings.Trim
+var _ = utils.UnsafeString
+var _ fiber.Router = nil
+var _ = gutil.MapFormByTag
+var _ = fb.Cfg{}
 
 func GetUserServiceClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (UserServiceClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -37,6 +45,15 @@ func init() {
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Service:      "hello.UserService",
+		Name:         "GetUser",
+		Method:       "GET",
+		Path:         "/api/v1/users",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Service:      "hello.UserService",
 		Name:         "ListUsers",
 		Method:       "GET",
 		Path:         "/api/v1/users",
@@ -53,6 +70,92 @@ func init() {
 		ServerStream: "True" == "True",
 	})
 
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Service:      "hello.UserService",
+		Name:         "UpdateUser",
+		Method:       "PATCH",
+		Path:         "/api/v1/users/{user.id}",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
+	})
+
 	xgen.Add(reflect.ValueOf(RegisterUserServiceServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterUserServiceHandler), nil)
+}
+
+func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
+	if app == nil || server == nil {
+		panic("app is nil or server is nil")
+	}
+
+	app.Add("POST", "/api/v1/users", func(ctx *fiber.Ctx) error {
+		var req = new(User)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.AddUser(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Add("GET", "/api/v1/users", func(ctx *fiber.Ctx) error {
+		var req = new(User)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := utils.UnsafeString(key)
+			v := utils.UnsafeString(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.GetUser(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Get("/api/v1/users", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
+		var req = new(ListUsersRequest)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := utils.UnsafeString(key)
+			v := utils.UnsafeString(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(server.ListUsers(req, &userServiceListUsersServer{fb.NewWsStream(ctx, c)}))
+	}))
+
+	app.Get("/api/v1/users/role", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
+		xerror.Panic(server.ListUsersByRole(&userServiceListUsersByRoleServer{fb.NewWsStream(ctx, c)}))
+	}))
+
+	app.Add("PATCH", "/api/v1/users/{user.id}", func(ctx *fiber.Ctx) error {
+		var req = new(UpdateUserRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.UpdateUser(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
 }

@@ -1,60 +1,85 @@
 package k8s
 
-
 import (
 	"context"
 	"fmt"
 
-	v1 "k8s.io/api/core/v1"
+	"github.com/pubgo/lug/pkg/k8s"
+	"github.com/pubgo/lug/registry"
+
+	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
 )
 
-type watcher struct {
-	k       *kube
+var _ registry.Watcher = (*Watcher)(nil)
+
+// Watcher performs the conversion from channel to iterator
+// It reads the latest changes from the `chan []*registry.ServiceInstance`
+// And the outside can sense the closure of Watcher through stopCh
+type Watcher struct {
+	service string
 	watcher watch.Interface
+	client  *kubernetes.Clientset
 }
 
-func newWatcher(k *kube) (config.Watcher, error) {
-	w, err := k.client.CoreV1().ConfigMaps(k.opts.Namespace).Watch(context.Background(), metav1.ListOptions{
-		LabelSelector: k.opts.LabelSelector,
-		FieldSelector: k.opts.FieldSelector,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &watcher{
-		k:       k,
-		watcher: w,
-	}, nil
+// newWatcher is used to initialize Watcher
+func newWatcher(s *Registry, service string) *Watcher {
+	watcher, err := s.client.
+		CoreV1().
+		Endpoints(k8s.Namespace()).
+		Watch(context.Background(),
+			metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", service)})
+	xerror.Panic(err)
+	return &Watcher{watcher: watcher, client: s.client, service: service}
 }
 
-func (w *watcher) Next() ([]*config.KeyValue, error) {
-ResultChan:
-	ch := <-w.watcher.ResultChan()
-	if ch.Object == nil {
-		// 重新获取watcher
-		k8sWatcher, err := w.k.client.CoreV1().ConfigMaps(w.k.opts.Namespace).Watch(context.Background(), metav1.ListOptions{
-			LabelSelector: w.k.opts.LabelSelector,
-			FieldSelector: w.k.opts.FieldSelector,
-		})
-		if err != nil {
-			return nil, err
+// Next will block until ServiceInstance changes
+func (t *Watcher) Next() (*registry.Result, error) {
+	select {
+	case _, ok := <-t.watcher.ResultChan():
+		if ok {
+			endpoints, err := t.client.
+				CoreV1().
+				Endpoints(k8s.Namespace()).
+				List(context.Background(),
+					metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", t.service)})
+			xerror.Panic(err)
+
+			var resp = &registry.Result{
+				Action: registry.Update.String(),
+				Service: &registry.Service{
+					Name: t.service,
+				},
+			}
+
+			for _, endpoint := range endpoints.Items {
+				for _, subset := range endpoint.Subsets {
+					realPort := ""
+					for _, p := range subset.Ports {
+						realPort = fmt.Sprint(p.Port)
+						break
+					}
+
+					for _, addr := range subset.Addresses {
+						resp.Service.Nodes = append(resp.Service.Nodes, &registry.Node{
+							Id:      string(addr.TargetRef.UID),
+							Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
+						})
+					}
+				}
+			}
+
+			return resp, err
 		}
-		w.watcher = k8sWatcher
-		goto ResultChan
+
+		return nil, registry.ErrWatcherStopped
 	}
-	cm, ok := ch.Object.(*v1.ConfigMap)
-	if !ok {
-		return nil, fmt.Errorf("kube Object not ConfigMap")
-	}
-	if ch.Type == "DELETED" {
-		return nil, fmt.Errorf("kube configmap delete %s", cm.Name)
-	}
-	return w.k.configMap(*cm), nil
 }
 
-func (w *watcher) Stop() error {
-	w.watcher.Stop()
+// Stop is used to close the iterator
+func (t *Watcher) Stop() error {
+	t.watcher.Stop()
 	return nil
 }

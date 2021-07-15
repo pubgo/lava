@@ -30,13 +30,21 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
+	fb "github.com/pubgo/lug/builder/fiber"
+	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/plugins/grpcc"
+	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"github.com/pubgo/lug/xgen"
-	"github.com/pubgo/lug/plugins/grpcc"
 )
 
 var _ = strings.Trim
+var _ = utils.UnsafeString
+var _ fiber.Router = nil
+var _ = gutil.MapFormByTag
+var _ = fb.Cfg{}
 `
 		},
 
@@ -78,10 +86,8 @@ var _ = strings.Trim
 {% endfor %}
 `
 		},
-	))
-}
-
-/*
+		func(fd *gen.FileDescriptor) string {
+			return `
 {% for ss in fd.GetService() %}
 	func Register{{ss.Srv}}RestServer(app fiber.Router, server {{ss.Srv}}Server) {
 		if app == nil || server == nil {
@@ -91,9 +97,6 @@ var _ = strings.Trim
 		{% for m in ss.GetMethod() %}
 			{%- if !m.CS && !m.SS %}
 			app.Add("{{m.HttpMethod}}","{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
-				msg, err := client.AddUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-				rctx, err := runtime.AnnotateContext(ctx, mux, req, "/hello.UserService/AddUser", runtime.WithHTTPPathPattern("/api/v1/users"))
-
 				var req = new({{m.GetInputType()}})
 				{%- if m.HttpMethod=="GET" %}
 					data := make(map[string][]string)
@@ -110,33 +113,26 @@ var _ = strings.Trim
 						}
 					})
 					xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+					var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
+					if err!=nil{
+						return err
+					}
+	
+					return ctx.JSON(resp)
 				{%- else %}
 					xerror.Panic(ctx.BodyParser(req))
+					var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
+					if err!=nil{
+						return err
+					}
+	
+					return ctx.JSON(resp)
 				{%- endif %}
-
-				var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
-				if err!=nil{
-					return err
-				}
-
-				return ctx.JSON(resp)
 			})
-			{%- endif %}
-
-			{%- if !m.CS && m.SS %}
-			{%- endif %}
-
-			{%- if m.CS && m.SS %}
-			{%- endif %}
-
-			app.Get("{{m.HttpPath}}", fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) {
-			defer c.Close()
-
-			{%- if m.CS %}
-				if err := server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}); err != nil {
-					c.WriteMessage(fb.TextMessage, []byte(err.Error()))
-				}
 			{%- else %}
+
+			{%- if m.SS && !m.CS %}
+			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) { 
 				var req = new({{m.GetInputType()}})
 				data := make(map[string][]string)
 				ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
@@ -151,13 +147,21 @@ var _ = strings.Trim
 						data[k] = append(data[k], v)
 					}
 				})
+
+
 				xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-				if err := server.{{m.GetName()}}(req,&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}); err != nil {
-					c.WriteMessage(fb.TextMessage, []byte(err.Error()))
-				}
-			{%- endif %}
+				xerror.Panic(server.{{m.GetName()}}(req,&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
 			}))
+			{%- else %}
+			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) { 
+				xerror.Panic(server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
+			}))
+			{%- endif %}
+			{%- endif %}
 		{% endfor %}
 	}
 {% endfor %}
-*/
+`
+		},
+	))
+}

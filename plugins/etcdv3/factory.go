@@ -2,7 +2,7 @@ package etcdv3
 
 import (
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/pkg/typex"
 
 	"github.com/pubgo/xerror"
@@ -35,7 +35,7 @@ func Update(name string, cfg Cfg) (gErr error) {
 	// 获取老的客户端
 	oldClient, ok := clients.Load(name)
 	if !ok || oldClient == nil {
-		logs.Debug("create client", logger.Name(name))
+		logs.Debug("create client", logutil.Name(name))
 
 		// 老客户端不存在就直接保存
 		clients.Set(name, &Client{etcdClient})
@@ -44,13 +44,13 @@ func Update(name string, cfg Cfg) (gErr error) {
 
 	// 当old etcd client没有被使用的时候, 那么就关闭
 	runtime.SetFinalizer(oldClient, func(cc *Client) {
-		logs.Infof("old client gc", logger.Name(name), logger.UIntPrt(cc))
+		logs.Infof("old client gc", logutil.Name(name), logutil.UIntPrt(cc))
 		if err := cc.Close(); err != nil {
-			logs.Error("old client close error", logger.Name(name), logger.Err(err))
+			logs.Error("old client close error", logutil.Name(name), logutil.Err(err))
 		}
 	})
 
-	logs.Debug("update client", logger.Name(name))
+	logs.Debug("update client", logutil.Name(name))
 	// 老的客户端更新
 	clients.Set(name, &Client{etcdClient})
 	return nil

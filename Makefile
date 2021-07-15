@@ -28,6 +28,15 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
+
+gen-proto:
+	rm -rf example/proto/hello/*.go
+	rm -rf example/proto/hello/*.json
+	rm -rf example/proto/login/*.go
+	rm -rf example/proto/login/*.json
+	flerken protoc ls
+	flerken protoc gen
+
 proto:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json

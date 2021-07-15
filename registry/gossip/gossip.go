@@ -721,7 +721,7 @@ func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.RegOpt) 
 	return nil
 }
 
-func (g *gossipRegistry) DeRegister(s *registry.Service, opt ...registry.DeRegOpt) error {
+func (g *gossipRegistry) Deregister(s *registry.Service, opt ...registry.DeregOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -773,7 +773,7 @@ func (g *gossipRegistry) GetService(name string, opt ...registry.GetOpt) ([]*reg
 	return service, nil
 }
 
-func (g *gossipRegistry) ListServices(opt ...registry.ListOpt) ([]*registry.Service, error) {
+func (g *gossipRegistry) ListService(opt ...registry.ListOpt) ([]*registry.Service, error) {
 	var services []*registry.Service
 	g.RLock()
 	for _, service := range g.services {

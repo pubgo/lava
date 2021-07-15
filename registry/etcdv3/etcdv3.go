@@ -67,7 +67,7 @@ func servicePath(prefix, s string) string {
 	return path.Join(prefix, strings.Replace(s, "/", "-", -1))
 }
 
-func (e *Registry) DeRegister(s *registry.Service, opts ...registry.DeRegOpt) error {
+func (e *Registry) Deregister(s *registry.Service, opts ...registry.DeregOpt) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("Require at least one node")
 	}
@@ -214,7 +214,7 @@ func (e *Registry) GetService(name string, opts ...registry.GetOpt) ([]*registry
 	return services, nil
 }
 
-func (e *Registry) ListServices(opts ...registry.ListOpt) ([]*registry.Service, error) {
+func (e *Registry) ListService(opts ...registry.ListOpt) ([]*registry.Service, error) {
 	var services []*registry.Service
 	nameSet := make(map[string]struct{})
 

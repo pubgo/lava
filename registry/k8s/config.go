@@ -9,7 +9,7 @@ import (
 
 const name = "k8s"
 
-type config struct {
+type Cfg struct {
 	// kube namespace
 	Namespace string
 	// kube labelSelector example `app=test`
@@ -23,7 +23,7 @@ type config struct {
 	Filename string
 }
 
-func (t *config) Build() *kubernetes.Clientset {
+func (t *Cfg) Build() *kubernetes.Clientset {
 	var config *rest.Config
 	if t.Filename != "" {
 		config = xerror.PanicErr(clientcmd.LoadFromFile(t.Filename)).(*rest.Config)

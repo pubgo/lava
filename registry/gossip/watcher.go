@@ -45,11 +45,12 @@ func (m *gossipWatcher) Next() (*registry.Result, error) {
 	}
 }
 
-func (m *gossipWatcher) Stop() {
+func (m *gossipWatcher) Stop() error {
 	select {
 	case <-m.stop:
-		return
+		return nil
 	default:
 		close(m.stop)
 	}
+	return nil
 }

@@ -7,6 +7,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
+	fb "github.com/pubgo/lug/builder/fiber"
+	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
@@ -14,6 +18,10 @@ import (
 )
 
 var _ = strings.Trim
+var _ = utils.UnsafeString
+var _ fiber.Router = nil
+var _ = gutil.MapFormByTag
+var _ = fb.Cfg{}
 
 func GetMergeClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (MergeClient, error) {
 	client := grpcc.GetClient(srv, optFns...)
@@ -73,4 +81,66 @@ func init() {
 
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterMergeHandler), nil)
+}
+
+func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
+	if app == nil || server == nil {
+		panic("app is nil or server is nil")
+	}
+
+	app.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
+		var req = new(TelephoneRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Telephone(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
+		var req = new(TelephoneRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.TelephoneCheck(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
+		var req = new(WeChatRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.WeChat(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
+		var req = new(WeChatRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.WeChatCheck(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
+	app.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
+		var req = new(WeChatUnMergeRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.WeChatUnMerge(ctx.Context(), req)
+		if err != nil {
+			return err
+		}
+
+		return ctx.JSON(resp)
+	})
+
 }

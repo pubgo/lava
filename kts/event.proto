@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package kts;
+
+option go_package = "./;kts";
+
+enum EventType {
+  UNKNOWN = 0;
+  CREATE = 1;
+  UPDATE = 2;
+  DELETE = 3;
+}
+
+

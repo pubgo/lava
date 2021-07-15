@@ -6,9 +6,9 @@ package registry
 // {consul, etcd, zookeeper, mdns, ...}
 type Registry interface {
 	Register(*Service, ...RegOpt) error
-	DeRegister(*Service, ...DeRegOpt) error
+	Deregister(*Service, ...DeregOpt) error
 	GetService(string, ...GetOpt) ([]*Service, error)
-	ListServices(...ListOpt) ([]*Service, error)
+	ListService(...ListOpt) ([]*Service, error)
 	Watch(string, ...WatchOpt) (Watcher, error)
 	String() string
 }
@@ -16,6 +16,6 @@ type Registry interface {
 type Opt func(*Opts)
 type RegOpt func(*RegOpts)
 type WatchOpt func(*WatchOpts)
-type DeRegOpt func(*DeRegOpts)
+type DeregOpt func(*DeregOpts)
 type GetOpt func(*GetOpts)
 type ListOpt func(*ListOpts)

@@ -20,7 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-//枚举消息类型
+// 枚举消息类型
 type PhoneType int32
 
 const (

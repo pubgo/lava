@@ -94,11 +94,12 @@ func (w *Watcher) Next() (*registry.Result, error) {
 	return nil, registry.ErrWatcherStopped
 }
 
-func (w *Watcher) Stop() {
+func (w *Watcher) Stop() error {
 	select {
 	case <-w.stop:
-		return
+		return nil
 	default:
 		close(w.stop)
 	}
+	return nil
 }

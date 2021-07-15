@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/registry"
 
 	"github.com/pubgo/x/fx"
@@ -70,16 +71,15 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 	return addrs
 }
 
-// Build discov://etcd/service_name
+// Build discov://service_name
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
 	logs.Infof("discovBuilder Build %#v", target)
 
-	// target.Authority得到注册中心的地址
-	// 当然也可以直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
+	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
-	xerror.Assert(r == nil, "registry [%s] not found", target.Authority)
+	xerror.Assert(r == nil, "registry is nil")
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
@@ -99,7 +99,9 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
 
 	cancel := fx.Go(func(ctx context.Context) {
-		defer w.Stop()
+		defer logutil.Logs(func() {
+			xerror.Panic(w.Stop())
+		})
 
 		for {
 			select {

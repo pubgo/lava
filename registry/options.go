@@ -30,7 +30,7 @@ type WatchOpts struct {
 	Context context.Context
 }
 
-type DeRegOpts struct {
+type DeregOpts struct {
 	Context context.Context
 }
 
@@ -62,7 +62,7 @@ func Secure(b bool) Opt {
 	}
 }
 
-// Specify TLS Config
+// TLSConfig Specify TLS Config
 func TLSConfig(t *tls.Config) Opt {
 	return func(o *Opts) {
 		o.TLSConfig = t
@@ -81,7 +81,7 @@ func RegisterContext(ctx context.Context) RegOpt {
 	}
 }
 
-// Watch a service
+// WatchService Watch a service
 func WatchService(name string) WatchOpt {
 	return func(o *WatchOpts) {
 		o.Service = name
@@ -94,8 +94,8 @@ func WatchContext(ctx context.Context) WatchOpt {
 	}
 }
 
-func DeRegisterContext(ctx context.Context) DeRegOpt {
-	return func(o *DeRegOpts) {
+func DeregContext(ctx context.Context) DeregOpt {
+	return func(o *DeregOpts) {
 		o.Context = ctx
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lug/healthy"
 	"net"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
+	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/lug/pkg/netutil"
@@ -114,13 +114,12 @@ func (g *grpcEntry) register() (err error) {
 		var ip, err = netutil.LocalIP()
 		xerror.Panic(err)
 		host = ip
-		host = "localhost"
 	}
 
 	// register service
 	node := &registry.Node{
 		Port:     port,
-		Address:  fmt.Sprintf("localhost:%d", port),
+		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       g.cfg.name + "-" + g.cfg.hostname + "-" + g.cfg.id,
 		Metadata: make(map[string]string),
 	}
@@ -192,7 +191,7 @@ func (g *grpcEntry) deRegister() (err error) {
 	}
 
 	logs.Infof("deregister node: %s", node.Id)
-	xerror.Panic(g.registry.DeRegister(services), "deregister node error")
+	xerror.Panic(g.registry.Deregister(services), "deregister node error")
 	logs.Infof("deregister node: %s ok", node.Id)
 
 	if !g.registered.Load() {
