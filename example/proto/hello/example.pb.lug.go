@@ -41,6 +41,7 @@ func init() {
 		Path:         "/api/v1/users",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,6 +51,7 @@ func init() {
 		Path:         "/api/v1/users",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -59,6 +61,7 @@ func init() {
 		Path:         "/api/v1/users",
 		ClientStream: "False" == "True",
 		ServerStream: "True" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -68,6 +71,7 @@ func init() {
 		Path:         "/api/v1/users/role",
 		ClientStream: "True" == "True",
 		ServerStream: "True" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -77,9 +81,11 @@ func init() {
 		Path:         "/api/v1/users/{user.id}",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterUserServiceServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterUserServiceRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterUserServiceHandler), nil)
 }
 
@@ -88,6 +94,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/api/v1/users", func(ctx *fiber.Ctx) error {
 		var req = new(User)
 		xerror.Panic(ctx.BodyParser(req))
@@ -99,6 +106,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("GET", "/api/v1/users", func(ctx *fiber.Ctx) error {
 		var req = new(User)
 		data := make(map[string][]string)
@@ -123,6 +131,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		return ctx.JSON(resp)
 	})
 
+	// websockets
 	app.Get("/api/v1/users", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
 		var req = new(ListUsersRequest)
 		data := make(map[string][]string)
@@ -143,10 +152,12 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		xerror.Panic(server.ListUsers(req, &userServiceListUsersServer{fb.NewWsStream(ctx, c)}))
 	}))
 
+	// websockets
 	app.Get("/api/v1/users/role", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
 		xerror.Panic(server.ListUsersByRole(&userServiceListUsersByRoleServer{fb.NewWsStream(ctx, c)}))
 	}))
 
+	// restful
 	app.Add("PATCH", "/api/v1/users/{user.id}", func(ctx *fiber.Ctx) error {
 		var req = new(UpdateUserRequest)
 		xerror.Panic(ctx.BodyParser(req))

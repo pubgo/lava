@@ -49,6 +49,7 @@ func init() {
 		Path:         "/v1/version",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -58,9 +59,11 @@ func init() {
 		Path:         "/v1/example/versiontest",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterTestApiHandler), nil)
 }
 
@@ -74,6 +77,7 @@ func init() {
 		Path:         "/v2/example/version/{name}",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -83,9 +87,11 @@ func init() {
 		Path:         "/v2/example/versiontest",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2RestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Handler), nil)
 }
 
@@ -94,6 +100,7 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("GET", "/v1/version", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		data := make(map[string][]string)
@@ -118,6 +125,7 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("GET", "/v1/example/versiontest", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		data := make(map[string][]string)
@@ -149,6 +157,7 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/v2/example/version/{name}", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		xerror.Panic(ctx.BodyParser(req))
@@ -160,6 +169,7 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/v2/example/versiontest", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		xerror.Panic(ctx.BodyParser(req))

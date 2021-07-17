@@ -48,6 +48,7 @@ func httpHandle(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	writer.Header().Set("content-type", "application/json")
 	writer.WriteHeader(http.StatusOK)
 	_, _ = writer.Write(bts)
 }

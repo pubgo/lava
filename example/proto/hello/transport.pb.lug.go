@@ -41,6 +41,7 @@ func init() {
 		Path:         "/hello/transport/test-stream",
 		ClientStream: "True" == "True",
 		ServerStream: "True" == "True",
+		DefaultUrl:   "True" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,6 +51,7 @@ func init() {
 		Path:         "/hello/transport/test-stream1",
 		ClientStream: "True" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "True" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -59,6 +61,7 @@ func init() {
 		Path:         "/hello/transport/test-stream2",
 		ClientStream: "False" == "True",
 		ServerStream: "True" == "True",
+		DefaultUrl:   "True" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -68,9 +71,11 @@ func init() {
 		Path:         "/hello/transport/test-stream3",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "True" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTransportRestServer), nil)
 }
 
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
@@ -78,14 +83,17 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// websockets
 	app.Get("/hello/transport/test-stream", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
 		xerror.Panic(server.TestStream(&transportTestStreamServer{fb.NewWsStream(ctx, c)}))
 	}))
 
+	// websockets
 	app.Get("/hello/transport/test-stream1", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
 		xerror.Panic(server.TestStream1(&transportTestStream1Server{fb.NewWsStream(ctx, c)}))
 	}))
 
+	// websockets
 	app.Get("/hello/transport/test-stream2", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {
 		var req = new(Message)
 		data := make(map[string][]string)
@@ -106,6 +114,7 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 		xerror.Panic(server.TestStream2(req, &transportTestStream2Server{fb.NewWsStream(ctx, c)}))
 	}))
 
+	// restful
 	app.Add("POST", "/hello/transport/test-stream3", func(ctx *fiber.Ctx) error {
 		var req = new(Message)
 		xerror.Panic(ctx.BodyParser(req))

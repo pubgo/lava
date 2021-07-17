@@ -41,9 +41,11 @@ func init() {
 		Path:         "/say/{name}",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterGreeterServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterGreeterRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterGreeterHandler), nil)
 }
 
@@ -52,6 +54,7 @@ func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("GET", "/say/{name}", func(ctx *fiber.Ctx) error {
 		var req = new(HelloRequest)
 		data := make(map[string][]string)

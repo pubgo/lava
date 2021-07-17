@@ -1,14 +1,16 @@
 package tracing
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 
-type Factory func(cfg map[string]interface{}) (Tracer, error)
-
 var factories typex.SMap
+var GetTraceId = func(span opentracing.SpanContext) string { return "" }
+
+type Factory func(cfg map[string]interface{}) (Tracer, error)
 
 func Get(names ...string) Factory {
 	val, ok := factories.Load(consts.GetDefault(names...))

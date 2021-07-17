@@ -5,6 +5,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
+
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 )

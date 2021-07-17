@@ -41,6 +41,7 @@ func init() {
 		Path:         "/user/merge/telephone",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,6 +51,7 @@ func init() {
 		Path:         "/user/merge/telephone-check",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -59,6 +61,7 @@ func init() {
 		Path:         "/user/merge/we-chat",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -68,6 +71,7 @@ func init() {
 		Path:         "/user/merge/we-chat-check",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -77,9 +81,11 @@ func init() {
 		Path:         "/user/merge/we-chat-un-merge",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterMergeRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterMergeHandler), nil)
 }
 
@@ -88,6 +94,7 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
 		var req = new(TelephoneRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -99,6 +106,7 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
 		var req = new(TelephoneRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -110,6 +118,7 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -121,6 +130,7 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -132,6 +142,7 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatUnMergeRequest)
 		xerror.Panic(ctx.BodyParser(req))

@@ -41,6 +41,7 @@ func init() {
 		Path:         "/user/code/send-code",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,6 +51,7 @@ func init() {
 		Path:         "/user/code/verify",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -59,6 +61,7 @@ func init() {
 		Path:         "/user/code/is-check-image-code",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -68,6 +71,7 @@ func init() {
 		Path:         "/user/code/verify-image-code",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -77,9 +81,11 @@ func init() {
 		Path:         "/user/code/get-send-status",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterCodeRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterCodeHandler), nil)
 }
 
@@ -88,6 +94,7 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
 		var req = new(SendCodeRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -99,6 +106,7 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
 		var req = new(VerifyRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -110,6 +118,7 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
 		var req = new(IsCheckImageCodeRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -121,6 +130,7 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
 		var req = new(VerifyImageCodeRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -132,6 +142,7 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
 		var req = new(GetSendStatusRequest)
 		xerror.Panic(ctx.BodyParser(req))

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"time"
 
 	"github.com/pubgo/lug/example/proto/hello"
 )
@@ -19,6 +20,7 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	out = &hello.TestApiOutput{
 		Msg: in.Input,
 	}
+	time.Sleep(time.Millisecond * 10)
 	return
 }
 

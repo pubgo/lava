@@ -12,6 +12,7 @@ import (
 	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/lug/logutil"
@@ -24,11 +25,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 var _ Entry = (*grpcEntry)(nil)
@@ -330,6 +334,139 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	return nil
 }
 
+func (g *grpcEntry) handlerUnaryMiddle(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	// get grpc metadata
+	gmd, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		gmd = metadata.MD{}
+	}
+
+	// copy the metadata to go-micro.metadata
+	md := make(map[string]string)
+	for k, v := range gmd {
+		md[k] = strings.Join(v, ", ")
+	}
+
+	// timeout for server deadline
+	to := md["timeout"]
+
+	// get content type
+	ct := defaultContentType
+	if c, ok := md["x-content-type"]; ok {
+		ct = c
+	}
+
+	delete(md, "x-content-type")
+	delete(md, "timeout")
+
+	// get peer from context
+	if p, ok := peer.FromContext(ctx); ok {
+		md["Remote"] = p.Addr.String()
+		ctx = peer.NewContext(ctx, p)
+	}
+
+	// set the timeout if we have it
+	if len(to) > 0 {
+		if n, err := strconv.ParseUint(to, 10, 64); err == nil {
+			ctx, _ = context.WithTimeout(ctx, time.Duration(n))
+		}
+	}
+
+	// create a client.Request
+	request := &rpcRequest{
+		service: ServiceFromMethod(info.FullMethod),
+		method:  info.FullMethod,
+
+		contentType: ct,
+		cdc:         ct,
+		payload:     req,
+		header:      md,
+	}
+
+	var wrapper = func(ctx context.Context, req entry.Request, rsp func(interface{})) error {
+		dt, err := handler(ctx, req.Body())
+		if err != nil {
+			return err
+		}
+
+		return try.Try(func() { rsp(dt) })
+	}
+
+	var middlewares = g.Options().Middlewares
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		wrapper = middlewares[i](wrapper)
+	}
+
+	err = wrapper(ctx, request, func(rsp interface{}) { resp = rsp })
+	return
+}
+func (g *grpcEntry) handlerStreamMiddle(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	var ctx = stream.Context()
+
+	// get grpc metadata
+	gmd, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		gmd = metadata.MD{}
+	}
+
+	// copy the metadata to go-micro.metadata
+	md := make(map[string]string)
+	for k, v := range gmd {
+		md[k] = strings.Join(v, ", ")
+	}
+
+	// timeout for server deadline
+	to := md["timeout"]
+
+	// get content type
+	ct := defaultContentType
+	if c, ok := md["x-content-type"]; ok {
+		ct = c
+	}
+
+	delete(md, "x-content-type")
+	delete(md, "timeout")
+
+	// get peer from context
+	if p, ok := peer.FromContext(ctx); ok {
+		md["Remote"] = p.Addr.String()
+		ctx = peer.NewContext(ctx, p)
+	}
+
+	// set the timeout if we have it
+	if len(to) > 0 {
+		if n, err := strconv.ParseUint(to, 10, 64); err == nil {
+			ctx, _ = context.WithTimeout(ctx, time.Duration(n))
+		}
+	}
+
+	// create a client.Request
+	request := &rpcRequest{
+		method:      info.FullMethod,
+		service:     ServiceFromMethod(info.FullMethod),
+		contentType: ct,
+		cdc:         ct,
+		payload:     stream,
+		header:      md,
+	}
+
+	var wrapper = func(ctx context.Context, req entry.Request, rsp func(interface{})) error {
+		err := handler(ctx, stream)
+		if err != nil {
+			return err
+		}
+
+		return try.Try(func() { rsp(stream) })
+	}
+
+	var middlewares = g.Options().Middlewares
+	for i := range middlewares {
+		wrapper = middlewares[i](wrapper)
+	}
+
+	return wrapper(ctx, request, func(rsp interface{}) { stream = rsp.(grpc.ServerStream) })
+}
+
 func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
 		Entry: base.New(name),
@@ -346,6 +483,10 @@ func newEntry(name string) *grpcEntry {
 			SleepAfterDeRegister: time.Second * 2,
 		},
 	}
+
+	// 默认注册
+	g.UnaryInterceptor(g.handlerUnaryMiddle)
+	g.StreamInterceptor(g.handlerStreamMiddle)
 
 	g.OnInit(func() {
 		grpcs.InitEncoding()
@@ -369,3 +510,20 @@ func newEntry(name string) *grpcEntry {
 }
 
 func New(name string) Entry { return newEntry(name) }
+
+// ServiceFromMethod returns the service
+// /service.Foo/Bar => service
+func ServiceFromMethod(m string) string {
+	if len(m) == 0 {
+		return m
+	}
+	if m[0] != '/' {
+		return m
+	}
+	parts := strings.Split(m, "/")
+	if len(parts) < 3 {
+		return m
+	}
+	parts = strings.Split(parts[1], ".")
+	return strings.Join(parts[:len(parts)-1], ".")
+}

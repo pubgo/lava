@@ -2,8 +2,10 @@ package metric
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 )
@@ -12,7 +14,7 @@ func init() { plugin.Register(&plg) }
 
 var plg = plugin.Base{
 	Name: Name,
-	OnInit: func(ent interface{}) {
+	OnInit: func(ent entry.Entry) {
 		var cfg = GetDefaultCfg()
 		if !config.Decode(Name, &cfg) {
 			return
@@ -29,6 +31,7 @@ var plg = plugin.Base{
 		var reporter = xerror.PanicErr(cfg.Build()).(Reporter)
 		setDefault(reporter)
 	},
+
 	OnVars: func(w func(name string, data func() interface{})) {
 		w(Name, func() interface{} {
 			var dt = make(map[string]string)

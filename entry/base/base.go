@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
+
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -20,6 +21,11 @@ var _ entry.Entry = (*Entry)(nil)
 type Entry struct {
 	init func()
 	opts entry.Opts
+}
+
+func (t *Entry) Middleware(middleware entry.Middleware) {
+	defer xerror.RespExit()
+	t.opts.Middlewares = append(t.opts.Middlewares, middleware)
 }
 
 func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }

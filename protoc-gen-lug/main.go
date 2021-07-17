@@ -75,9 +75,11 @@ var _ = fb.Cfg{}
 				Path:          "{{m.HttpPath}}",
 				ClientStream:  "{{m.CS}}"=="True",
 				ServerStream: "{{m.SS}}"=="True",
+				DefaultUrl: "{{ss.IsDefault()}}"=="True",
 			})
 		{% endfor %}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Server),mthList)
+		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}RestServer),nil)
 
 		{%- if !ss.IsDefault() %}
 			xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Handler),nil)
@@ -96,6 +98,7 @@ var _ = fb.Cfg{}
 
 		{% for m in ss.GetMethod() %}
 			{%- if !m.CS && !m.SS %}
+			// restful
 			app.Add("{{m.HttpMethod}}","{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
 				var req = new({{m.GetInputType()}})
 				{%- if m.HttpMethod=="GET" %}
@@ -131,6 +134,7 @@ var _ = fb.Cfg{}
 			})
 			{%- else %}
 
+			// websockets
 			{%- if m.SS && !m.CS %}
 			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) { 
 				var req = new({{m.GetInputType()}})

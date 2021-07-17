@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/entry/ctl"
 	"github.com/pubgo/lug/plugin"
+
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 )
@@ -37,7 +38,7 @@ func GetEntry() entry.Entry {
 
 	ent.Plugin(&plugin.Base{
 		Name: "hello",
-		OnInit: func(fn interface{}) {
+		OnInit: func(ent entry.Entry) {
 			fmt.Println("hello plugin")
 		},
 	})

@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2/utils"
 
 	"reflect"
+	"strings"
 	_ "unsafe"
 )
 
@@ -47,4 +48,16 @@ func EqualFieldType(out interface{}, kind reflect.Kind, key string) bool {
 		}
 	}
 	return false
+}
+
+func CmdExample(data ...string) string {
+	var str = ""
+	for i := range data {
+		str += "  " + data[i] + "\n"
+	}
+	return "  " + strings.TrimSpace(str)
+}
+
+func DotJoin(str ...string) string {
+	return strings.Join(str, ".")
 }

@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/pubgo/lug/kts"
+	"github.com/pubgo/lug/types"
 
 	"time"
 )
@@ -26,7 +26,7 @@ type Event struct {
 	// Id is registry id
 	Id string
 	// Type defines type of event
-	Type kts.EventType
+	Type types.EventType
 	// Timestamp is event timestamp
 	Timestamp time.Time
 	// Service is registry service

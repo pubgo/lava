@@ -1,8 +1,10 @@
 package prometheus
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/pubgo/lug/metric"
+	"github.com/pubgo/lug/pkg/gutil"
+	
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 
@@ -10,7 +12,7 @@ import (
 )
 
 var Name = "prometheus"
-var logs = xlog.GetLogger("metric." + Name)
+var logs = xlog.GetLogger(gutil.DotJoin(metric.Name, Name))
 
 type Cfg struct {
 	Tags                   map[string]string `json:"tags"`

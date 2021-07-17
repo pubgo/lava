@@ -511,13 +511,3 @@ func ForwardResponseStream(ctx context.Context, w http.ResponseWriter, req *http
 		f.Flush()
 	}
 }
-
-func init() {
-	//var filter_UserService_ListUsers_0=&utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-	//if err := req.ParseForm(); err != nil {
-	//	return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	//}
-	//if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_UserService_ListUsers_0); err != nil {
-	//	return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	//}
-}

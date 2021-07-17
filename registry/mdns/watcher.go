@@ -2,15 +2,16 @@ package mdns
 
 import (
 	"context"
+	"github.com/pubgo/lug/logutil"
 	"time"
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 
-	"github.com/pubgo/lug/kts"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/types"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)
@@ -34,6 +35,10 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 
 	results := make(chan *registry.Result)
 	return &Watcher{results: results, cancel: fx.Tick(func(_ctx fx.Ctx) {
+		defer xerror.Resp(func(err xerror.XErr) {
+			xlog.Error("error",logutil.Err(err))
+		})
+
 		xlog.Infof("[mdns] registry watch service(%s) on interval(%s)", service, ttl)
 
 		var nodes typex.SMap
@@ -52,7 +57,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 
 			allNodes.Set(id, n)
 			results <- &registry.Result{
-				Action:  kts.EventType_UPDATE.String(),
+				Action:  types.EventType_UPDATE.String(),
 				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 			}
 		}))
@@ -64,7 +69,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 
 			allNodes.Delete(id)
 			results <- &registry.Result{
-				Action:  kts.EventType_DELETE.String(),
+				Action:  types.EventType_DELETE.String(),
 				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 			}
 		}))

@@ -41,6 +41,7 @@ func init() {
 		Path:         "/user/login/login",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,9 +51,11 @@ func init() {
 		Path:         "/user/login/authenticate",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterLoginRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterLoginHandler), nil)
 }
 
@@ -61,6 +64,7 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
 		var req = new(LoginRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -72,6 +76,7 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
 		var req = new(AuthenticateRequest)
 		xerror.Panic(ctx.BodyParser(req))

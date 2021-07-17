@@ -2,7 +2,9 @@ package broker
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 )
@@ -11,7 +13,7 @@ func init() { plugin.Register(&plg) }
 
 var plg = plugin.Base{
 	Name: Name,
-	OnInit: func(ent interface{}) {
+	OnInit: func(ent entry.Entry) {
 		if !config.Decode(Name, &cfgList) {
 			return
 		}

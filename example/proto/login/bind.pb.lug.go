@@ -41,6 +41,7 @@ func init() {
 		Path:         "/user/bind-telephone/check",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -50,6 +51,7 @@ func init() {
 		Path:         "/user/bind-telephone/bind-verify",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -59,6 +61,7 @@ func init() {
 		Path:         "/user/bind-telephone/bind-change",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -68,6 +71,7 @@ func init() {
 		Path:         "/user/bind-telephone/automatic-bind",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -77,6 +81,7 @@ func init() {
 		Path:         "/user/bind-telephone/bind-phone-parse",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
@@ -86,9 +91,11 @@ func init() {
 		Path:         "/user/bind-telephone/bind-phone-parse-by-one-click",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
 	})
 
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneRestServer), nil)
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandler), nil)
 }
 
@@ -97,6 +104,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		panic("app is nil or server is nil")
 	}
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
 		var req = new(CheckRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -108,6 +116,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
 		var req = new(BindVerifyRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -119,6 +128,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
 		var req = new(BindChangeRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -130,6 +140,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
 		var req = new(AutomaticBindRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -141,6 +152,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
 		var req = new(BindPhoneParseRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -152,6 +164,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 		return ctx.JSON(resp)
 	})
 
+	// restful
 	app.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
 		var req = new(BindPhoneParseByOneClickRequest)
 		xerror.Panic(ctx.BodyParser(req))

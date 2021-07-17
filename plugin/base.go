@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
 
@@ -14,20 +15,26 @@ import (
 var _ = Plugin(&Base{})
 
 type Base struct {
-	Name       string
-	OnInit     func(ent interface{})
-	OnWatch    func(name string, resp *types.Response)
-	OnCodec    func(name string, resp *types.Response) (map[string]interface{}, error)
-	OnCommands func(cmd *cobra.Command)
-	OnFlags    func(flags *pflag.FlagSet)
-	OnVars     func(w func(name string, data func() interface{}))
+	Name         string
+	OnMiddleware func() entry.Middleware
+	OnInit       func(ent entry.Entry)
+	OnWatch      func(name string, resp *types.Response)
+	OnCodec      func(name string, resp *types.Response) (map[string]interface{}, error)
+	OnCommands   func(cmd *cobra.Command)
+	OnFlags      func(flags *pflag.FlagSet)
+	OnVars       func(w func(name string, data func() interface{}))
 }
 
 func (p *Base) String() string { return p.Name }
-func (p *Base) Init(ent interface{}) (err error) {
+func (p *Base) Init(ent entry.Entry) (err error) {
 	return try.Try(func() {
+		if p.OnMiddleware != nil {
+			ent.Middleware(p.OnMiddleware())
+		}
+
 		if p.OnInit != nil {
 			xlog.Infof("plugin [%s] init", p.Name)
+
 			p.OnInit(ent)
 		}
 

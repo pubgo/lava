@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	
 	"github.com/pubgo/x/merge"
@@ -11,7 +12,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent interface{}) {
+		OnInit: func(ent entry.Entry) {
 			if !config.Decode(Name, &configMap) {
 				return
 			}

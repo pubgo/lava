@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/example/grpc_entry/handler"

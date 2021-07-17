@@ -4,100 +4,48 @@ import (
 	"context"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/tracing"
 	"github.com/pubgo/xlog"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-
-	grpcEntry "github.com/pubgo/lug/entry/grpc"
 )
 
-func middleware() func(ctx *fiber.Ctx) error {
-	start := time.Now()
-	return func(ctx *fiber.Ctx) error {
-		var reqID = ReqIDFromCtx(ctx.Context())
+func Middleware() entry.Middleware {
+	return func(next entry.Wrapper) entry.Wrapper {
+		return func(ctx context.Context, req entry.Request, resp func(rsp interface{})) error {
+			var span = tracing.FromCtx(ctx)
 
-		ac := make(xlog.M)
-		ac["service"] = ctx.OriginalURL()
-		ac["req_id"] = reqID
-		ac["receive_time"] = start.Format(time.RFC3339Nano)
+			start := time.Now()
 
-		defer func() {
-			if err := recover(); err != nil {
-				// 根据请求参数决定是否记录请求参数
-				ac["body"] = ctx.Request().Body()
-				ac["header"] = string(ctx.Request().Header.Header())
-				ac["error"] = err
-			}
+			var reqID = ReqIDFromCtx(ctx)
+			var respBody interface{}
+			ac := make(xlog.M)
+			ac["service"] = req.Service()
+			ac["method"] = req.Method()
+			ac["endpoint"] = req.Endpoint()
+			ac["request_id"] = reqID
+			ac["trace_id"] = span.GetTraceID()
+			ac["receive_time"] = start.Format(time.RFC3339Nano)
 
-			// 毫秒
-			ac["cost"] = time.Since(start).Milliseconds()
+			defer func() {
+				if err := recover(); err != nil {
+					// 根据请求参数决定是否记录请求参数
+					ac["req_body"] = req.Body()
+					ac["resp_body"] = respBody
+					ac["header"] = req.Header()
+					ac["error"] = err
+				}
 
-			xlog.Info("request log", ac)
-		}()
+				ac["req_body"] = req.Body()
+				ac["resp_body"] = respBody
+				ac["header"] = req.Header()
 
-		ctx.Context().SetUserValue(xRequestId, reqID)
-		return xerror.Wrap(ctx.Next())
-	}
-}
+				// 毫秒
+				ac["cost"] = time.Since(start).Milliseconds()
 
-func unaryServer() grpc.UnaryServerInterceptor {
-	start := time.Now()
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		var reqID = ReqIDFromCtx(ctx)
+				xlog.Info("request log", ac)
+			}()
 
-		ac := make(xlog.M)
-		ac["service"] = info.FullMethod
-		ac["req_id"] = reqID
-		ac["receive_time"] = start.Unix()
-
-		defer func() {
-			if err := recover(); err != nil {
-				// 根据请求参数决定是否记录请求参数
-				ac["params"] = req
-				var md, _ = metadata.FromIncomingContext(ctx)
-				ac["header"] = md
-				ac["error"] = err
-			}
-
-			// 毫秒
-			ac["cost"] = time.Since(start).Milliseconds()
-
-			xlog.Info("record log", ac)
-		}()
-
-		ctx = ctxWithReqID(ctx, reqID)
-		return handler(ctx, req)
-	}
-}
-
-func streamServer() grpc.StreamServerInterceptor {
-	start := time.Now()
-	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		var ctx = ss.Context()
-		var reqID = ReqIDFromCtx(ctx)
-
-		ac := make(xlog.M)
-		ac["service"] = info.FullMethod
-		ac["req_id"] = ReqIDFromCtx(ctx)
-		ac["receive_time"] = start.Format(time.RFC3339Nano)
-
-		defer func() {
-			if err := recover(); err != nil {
-				// 根据请求参数决定是否记录请求参数
-				var md, _ = metadata.FromIncomingContext(ctx)
-				ac["header"] = md
-				ac["error"] = err
-			}
-
-			// 毫秒
-			ac["cost"] = time.Since(start).Milliseconds()
-
-			xlog.Info("request log", ac)
-		}()
-
-		ctx = ctxWithReqID(ctx, reqID)
-		return handler(srv, &grpcEntry.ServerStream{ServerStream: ss, WrappedContext: ctx})
+			return next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) { respBody = rsp })
+		}
 	}
 }

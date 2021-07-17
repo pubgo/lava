@@ -11,19 +11,14 @@ import (
 
 const TraceId = "trace-id"
 
-type Span struct {
-	opentracing.Span
-	Ctx context.Context
-}
-
 func StartSpan(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
 	span := new(Span)
-	span.Span, span.Ctx = opentracing.StartSpanFromContext(ctx, name, opts...)
+	span.Span, span.ctx = opentracing.StartSpanFromContext(ctx, name, opts...)
 	return span
 }
 
-func NewSpan(ctx context.Context, sp opentracing.Span) *Span {
-	return &Span{Ctx: ctx, Span: sp}
+func NewSpan(sp opentracing.Span) *Span {
+	return &Span{Span: sp}
 }
 
 func RootSpan(name string, opts ...opentracing.StartSpanOption) *Span {
@@ -52,68 +47,44 @@ func NewSpanByTraceId(traceId string, name string) *Span {
 	span.Span = opentracing.StartSpan(
 		name, ext.RPCServerOption(wireContext))
 
-	span.Ctx = opentracing.ContextWithSpan(context.Background(), span.Span)
 	return span
 }
 
-func (s *Span) SpanContext() opentracing.SpanContext {
-	return s.Span.Context()
+var _ opentracing.Span = (*Span)(nil)
+
+type Span struct {
+	opentracing.Span
+	ctx context.Context
 }
 
-func (s *Span) Context() context.Context {
-	return s.Ctx
-}
+func (s *Span) Ctx() context.Context { return s.ctx }
 
-func (s *Span) SetOperationName(name string) *Span {
+func (s *Span) SetOperation(name string) *Span {
 	s.Span = s.Span.SetOperationName(name)
 	return s
 }
 
-func (s *Span) LogKV(alternatingKeyValues ...interface{}) {
-	s.Span.LogKV(alternatingKeyValues)
-}
-
 func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {
-	opts = append(opts, opentracing.ChildOf(s.SpanContext()))
-	var sp = s.Tracer().StartSpan(name, opts...)
-	var ctx = opentracing.ContextWithSpan(s.Context(), sp)
-	return &Span{Span: sp, Ctx: ctx}
+	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.ChildOf(s.Context()))...)}
 }
 
 func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *Span {
-	opts = append(opts, opentracing.FollowsFrom(s.SpanContext()))
-	var sp = s.Tracer().StartSpan(name, opts...)
-	var ctx = opentracing.ContextWithSpan(s.Context(), sp)
-	return &Span{Span: sp, Ctx: ctx}
+	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.FollowsFrom(s.Context()))...)}
 }
 
-func (s *Span) SetTag(key string, value interface{}) *Span {
-	s.Span = s.Span.SetTag(key, value)
-	return s
-}
-
-func (s *Span) SetBaggageItem(restrictedKey, value string) *Span {
+func (s *Span) SetBaggage(restrictedKey, value string) *Span {
 	s.Span = s.Span.SetBaggageItem(restrictedKey, value)
 	return s
 }
 
-func (s *Span) Sub(name string) *Span {
-	span := new(Span)
-	span.Span, span.Ctx = opentracing.StartSpanFromContext(s.Ctx, name)
-	return span
-}
-
-func (s *Span) GetTraceId() string {
-	tracer := opentracing.GlobalTracer()
-	header := http.Header{}
-	_ = tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, header)
-	return header.Get(TraceId)
+func (s *Span) GetTraceID() string {
+	return GetTraceId(s.Span.Context())
 }
 
 func (s *Span) GetHttpHeader() http.Header {
 	tracer := opentracing.GlobalTracer()
 	header := http.Header{}
-	_ = tracer.Inject(s.SpanContext(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
+	_ = tracer.Inject(s.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
 	return header
 }
 

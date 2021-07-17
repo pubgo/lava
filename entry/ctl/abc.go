@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/plugin"
 )
 
 type Entry interface {
 	entry.Entry
+	Plugin(plugins ...plugin.Plugin)
 	Register(fn func(ctx context.Context), optList ...Opt)
 	RegisterLoop(fn func(ctx context.Context), optList ...Opt)
 }

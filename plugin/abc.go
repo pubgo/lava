@@ -1,7 +1,9 @@
 package plugin
 
 import (
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -17,6 +19,6 @@ type Plugin interface {
 	String() string
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
-	Init(ent interface{}) error
+	Init(ent entry.Entry) error
 	Watch(name string, r *types.Response) error
 }

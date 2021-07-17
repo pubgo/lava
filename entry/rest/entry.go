@@ -4,11 +4,14 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
 	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/runenv"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
@@ -23,6 +26,28 @@ type restEntry struct {
 	srv      fb.Builder
 	handlers []func()
 	cancel   context.CancelFunc
+}
+
+func (t *restEntry) handlerMiddle(fbCtx *fiber.Ctx) error {
+	// create a client.Request
+	request := &httpRequest{
+		service:     fbCtx.OriginalURL(),
+		method:      fbCtx.Method(),
+		contentType: utils.UnsafeString(fbCtx.Request().Header.ContentType()),
+		//header:      fbCtx.Request().Header,
+	}
+
+	var wrapper = func(ctx context.Context, req entry.Request, rsp func(interface{})) error {
+		fbCtx.SetUserContext(ctx)
+		return fbCtx.Next()
+	}
+
+	var middlewares = t.Options().Middlewares
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		wrapper = middlewares[i](wrapper)
+	}
+
+	return wrapper(fbCtx.UserContext(), request, func(_ interface{}) {})
 }
 
 func (t *restEntry) Register(handler interface{}, handlers ...Handler) {
@@ -110,6 +135,9 @@ func newEntry(name string) *restEntry {
 
 		// 初始化srv
 		xerror.Panic(ent.srv.Build(ent.cfg.Cfg))
+
+		// 加载组件middleware
+		ent.srv.Get().Use(ent.handlerMiddle)
 
 		// 初始化routes
 		for i := range ent.handlers {

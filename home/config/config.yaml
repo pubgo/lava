@@ -141,3 +141,7 @@ db:
 registry:
   driver: "mdns"
   ttl: "5s"
+tracing:
+  driver: "jaeger"
+  serviceName: "test"
+  disabled: true

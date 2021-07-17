@@ -11,20 +11,23 @@ import (
 )
 
 const Name = "grpc_entry"
+const defaultContentType = "application/grpc"
+const DefaultSleepAfterDeregister = time.Second * 2
 
 var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	Rpc                  *grpcs.Cfg    `json:"grpc"`
 	Gw                   *grpcGw.Cfg   `json:"gw"`
-	SleepAfterDeRegister time.Duration `json:"sleepAfterDeRegister"`
-	RegisterInterval     time.Duration `json:"register_interval"`
-	RegisterTTL          time.Duration `json:"register_ttl"`
 	Address              string        `json:"address"`
 	Advertise            string        `json:"advertise"`
-	hostname             string
-	id                   string
-	name                 string
+	RegisterTTL          time.Duration `json:"register_ttl"`
+	RegisterInterval     time.Duration `json:"register_interval"`
+	SleepAfterDeRegister time.Duration `json:"sleepAfterDeRegister"`
+
+	id       string
+	name     string
+	hostname string
 }
 
 const (
