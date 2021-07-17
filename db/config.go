@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/runenv"
+
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -47,7 +48,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
-	engine.SetLogger(newLogger("xorm"))
+	engine.SetLogger(newLogger(Name))
 	engine.Logger().SetLevel(xl.LOG_DEBUG)
 	engine.ShowSQL(true)
 	if !cfg.Debug || runenv.IsStag() || runenv.IsProd() {

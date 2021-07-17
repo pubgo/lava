@@ -5,9 +5,11 @@ import (
 
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
-	
+
 	"github.com/pubgo/xerror"
 )
+
+const Name = "health"
 
 type HealthCheck func(ctx context.Context) error
 

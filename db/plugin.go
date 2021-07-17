@@ -2,8 +2,10 @@ package db
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
+
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
@@ -36,7 +38,7 @@ var plg = &plugin.Base{
 			return sqlList
 		})
 	},
-	OnInit: func(ent interface{}) {
+	OnInit: func(ent entry.Entry) {
 		if !config.Decode(Name, &cfgList) {
 			return
 		}
@@ -49,7 +51,6 @@ var plg = &plugin.Base{
 			cfgList[name] = cfg
 		}
 	},
-
 	OnWatch: func(name string, w *watcher.Response) {
 		cfg, ok := cfgList[name]
 		if !ok {

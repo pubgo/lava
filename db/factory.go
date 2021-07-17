@@ -1,9 +1,10 @@
 package db
 
 import (
-	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
+
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"xorm.io/xorm"
@@ -12,11 +13,11 @@ import (
 	"unsafe"
 )
 
+var clients typex.SMap
+
 type Client struct {
 	*xorm.Engine
 }
-
-var clients typex.SMap
 
 func Get(names ...string) *Client {
 	c := clients.Get(consts.GetDefault(names...))
@@ -40,8 +41,8 @@ func Update(name string, cfg Cfg) (err error) {
 	}
 
 	// 初始化完毕之后, 更新到对象管理系统
-	//updateEngine(name, engine)
-	return nil
+	updateEngine(name, engine)
+	return
 }
 
 func updateEngine(name string, engine *xorm.Engine) {

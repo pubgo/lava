@@ -24,10 +24,11 @@ func (l *logBridge) AfterSQL(ctx xormLog.LogContext) {
 	if key, ok := v.(string); ok {
 		sessionPart = fmt.Sprintf(" [%s]", key)
 	}
+
 	if ctx.ExecuteTime > 0 {
-		l.logger.Infof("[SQL]%s %s %v - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
+		l.logger.Infof("[SQL]%s [%s %v] - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	} else {
-		l.logger.Infof("[SQL]%s %s %v", sessionPart, ctx.SQL, ctx.Args)
+		l.logger.Infof("[SQL]%s [%s %v]", sessionPart, ctx.SQL, ctx.Args)
 	}
 }
 
