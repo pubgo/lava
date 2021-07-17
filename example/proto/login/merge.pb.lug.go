@@ -97,7 +97,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 	// restful
 	app.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
 		var req = new(TelephoneRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Telephone(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -109,7 +112,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 	// restful
 	app.Add("POST", "/user/merge/telephone-check", func(ctx *fiber.Ctx) error {
 		var req = new(TelephoneRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.TelephoneCheck(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -121,7 +127,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 	// restful
 	app.Add("POST", "/user/merge/we-chat", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.WeChat(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -133,7 +142,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 	// restful
 	app.Add("POST", "/user/merge/we-chat-check", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.WeChatCheck(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -145,7 +157,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 	// restful
 	app.Add("POST", "/user/merge/we-chat-un-merge", func(ctx *fiber.Ctx) error {
 		var req = new(WeChatUnMergeRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.WeChatUnMerge(ctx.Context(), req)
 		if err != nil {
 			return err

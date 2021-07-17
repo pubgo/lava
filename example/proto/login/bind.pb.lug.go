@@ -107,7 +107,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
 		var req = new(CheckRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Check(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -119,7 +122,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
 		var req = new(BindVerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.BindVerify(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -131,7 +137,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
 		var req = new(BindChangeRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.BindChange(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -143,7 +152,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
 		var req = new(AutomaticBindRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.AutomaticBind(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -155,7 +167,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
 		var req = new(BindPhoneParseRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.BindPhoneParse(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -167,7 +182,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 	// restful
 	app.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
 		var req = new(BindPhoneParseByOneClickRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.BindPhoneParseByOneClick(ctx.Context(), req)
 		if err != nil {
 			return err

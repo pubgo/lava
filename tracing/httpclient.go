@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http/httptrace"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 )
 
 // NewClientTrace Creates a New ClientTrace

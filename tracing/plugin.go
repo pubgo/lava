@@ -28,7 +28,7 @@ var plg = &plugin.Base{
 			var cfg = GetDefaultCfg()
 			xerror.Panic(resp.Decode(&cfg))
 
-			var trace = xerror.PanicErr(cfg.Build()).(Tracer)
+			var trace = xerror.ExitErr(cfg.Build()).(Tracer)
 			opentracing.SetGlobalTracer(&trace)
 		})
 	},

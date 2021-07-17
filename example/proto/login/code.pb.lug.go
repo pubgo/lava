@@ -97,7 +97,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	// restful
 	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
 		var req = new(SendCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.SendCode(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -109,7 +112,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	// restful
 	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
 		var req = new(VerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Verify(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -121,7 +127,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	// restful
 	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
 		var req = new(IsCheckImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.IsCheckImageCode(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -133,7 +142,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	// restful
 	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
 		var req = new(VerifyImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.VerifyImageCode(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -145,7 +157,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	// restful
 	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
 		var req = new(GetSendStatusRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.GetSendStatus(ctx.Context(), req)
 		if err != nil {
 			return err

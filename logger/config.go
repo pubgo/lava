@@ -25,7 +25,7 @@ func init() {
 	// 全局log设置
 	// 默认logger初始化
 	var log = xerror.PanicErr(cfg.Build()).(*zap.Logger)
-	xerror.Panic(xlog.SetDefault(log.Named(runenv.Domain)))
+	xerror.Panic(xlog.SetDefault(log.Named(runenv.Domain).Named(runenv.Project)))
 
 	vars.Watch(name, func() interface{} { return cfg })
 }

@@ -160,7 +160,10 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 	// restful
 	app.Add("POST", "/v2/example/version/{name}", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Version1(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -172,7 +175,10 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 	// restful
 	app.Add("POST", "/v2/example/versiontest", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.VersionTest1(ctx.Context(), req)
 		if err != nil {
 			return err

@@ -67,7 +67,10 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 	// restful
 	app.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
 		var req = new(LoginRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Login(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -79,7 +82,10 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 	// restful
 	app.Add("POST", "/user/login/authenticate", func(ctx *fiber.Ctx) error {
 		var req = new(AuthenticateRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.Authenticate(ctx.Context(), req)
 		if err != nil {
 			return err

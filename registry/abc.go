@@ -5,12 +5,12 @@ package registry
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, mdns, ...}
 type Registry interface {
+	String() string
 	Register(*Service, ...RegOpt) error
 	Deregister(*Service, ...DeregOpt) error
-	GetService(string, ...GetOpt) ([]*Service, error)
-	ListService(...ListOpt) ([]*Service, error)
 	Watch(string, ...WatchOpt) (Watcher, error)
-	String() string
+	ListService(...ListOpt) ([]*Service, error)
+	GetService(string, ...GetOpt) ([]*Service, error)
 }
 
 type Opt func(*Opts)

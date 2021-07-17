@@ -97,7 +97,10 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 	// restful
 	app.Add("POST", "/api/v1/users", func(ctx *fiber.Ctx) error {
 		var req = new(User)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.AddUser(ctx.Context(), req)
 		if err != nil {
 			return err
@@ -160,7 +163,10 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 	// restful
 	app.Add("PATCH", "/api/v1/users/{user.id}", func(ctx *fiber.Ctx) error {
 		var req = new(UpdateUserRequest)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.UpdateUser(ctx.Context(), req)
 		if err != nil {
 			return err

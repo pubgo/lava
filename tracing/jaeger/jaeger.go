@@ -43,9 +43,9 @@ func New(cfg *Cfg) (tracing.Tracer, error) {
 		cfg.ServiceName = runenv.Project
 	}
 
-	var logs = newLog(cfg.ServiceName)
+	var logs = newLog("tracing")
 	var tracer tracing.Tracer
-	trace, closer, err := cfg.NewTracer(
+	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(logs)),
 		config.Logger(logs),
 		config.Metrics(prometheus.New()),
@@ -54,7 +54,6 @@ func New(cfg *Cfg) (tracing.Tracer, error) {
 
 	xerror.Panic(err)
 	tracer.Tracer = trace
-	tracer.Closer = closer
 
 	return tracer, nil
 }

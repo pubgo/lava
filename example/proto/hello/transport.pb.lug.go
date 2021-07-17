@@ -117,7 +117,10 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 	// restful
 	app.Add("POST", "/hello/transport/test-stream3", func(ctx *fiber.Ctx) error {
 		var req = new(Message)
-		xerror.Panic(ctx.BodyParser(req))
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
 		var resp, err = server.TestStream3(ctx.Context(), req)
 		if err != nil {
 			return err

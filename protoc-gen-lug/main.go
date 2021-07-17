@@ -123,7 +123,10 @@ var _ = fb.Cfg{}
 	
 					return ctx.JSON(resp)
 				{%- else %}
-					xerror.Panic(ctx.BodyParser(req))
+					if err := ctx.BodyParser(req); err != nil {
+						return xerror.Wrap(err)
+					}
+
 					var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
 					if err!=nil{
 						return err
@@ -135,32 +138,29 @@ var _ = fb.Cfg{}
 			{%- else %}
 
 			// websockets
-			{%- if m.SS && !m.CS %}
-			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) { 
-				var req = new({{m.GetInputType()}})
-				data := make(map[string][]string)
-				ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-					k := utils.UnsafeString(key)
-					v := utils.UnsafeString(val)
-					if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-						values := strings.Split(v, ",")
-						for i := 0; i < len(values); i++ {
-							data[k] = append(data[k], values[i])
+			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) {
+				{%- if m.SS && !m.CS %}
+					var req = new({{m.GetInputType()}})
+					data := make(map[string][]string)
+					ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+						k := utils.UnsafeString(key)
+						v := utils.UnsafeString(val)
+						if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+							values := strings.Split(v, ",")
+							for i := 0; i < len(values); i++ {
+								data[k] = append(data[k], values[i])
+							}
+						} else {
+							data[k] = append(data[k], v)
 						}
-					} else {
-						data[k] = append(data[k], v)
-					}
-				})
+					})
 
-
-				xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-				xerror.Panic(server.{{m.GetName()}}(req,&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
+					xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+					xerror.Panic(server.{{m.GetName()}}(req,&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
+				{%- else %}
+					xerror.Panic(server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
+				{%- endif %}
 			}))
-			{%- else %}
-			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) { 
-				xerror.Panic(server.{{m.GetName()}}(&{{unExport(ss.Srv)}}{{m.GetName()}}Server{fb.NewWsStream(ctx,c)}))
-			}))
-			{%- endif %}
 			{%- endif %}
 		{% endfor %}
 	}

@@ -3,7 +3,7 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"strings"
+	"github.com/pubgo/lug/types"
 	"sync"
 
 	"github.com/pubgo/lug/logutil"
@@ -75,7 +75,7 @@ func (d *discovBuilder) getAddrs() []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Infof("discovBuilder Build %#v", target)
+	logs.Debugf("discovBuilder Build %#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
@@ -99,38 +99,36 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
 
 	cancel := fx.Go(func(ctx context.Context) {
-		defer logutil.Logs(func() {
-			xerror.Panic(w.Stop())
-		})
+		defer logutil.Logs(func() { xerror.Panic(w.Stop()) })
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			default:
-			}
+				res, err := w.Next()
+				if err == registry.ErrWatcherStopped {
+					return
+				}
 
-			res, err := w.Next()
-			if err == registry.ErrWatcherStopped {
-				break
-			}
+				if err != nil {
+					logs.Error("error", zap.Any("err", err))
+					continue
+				}
 
-			if err != nil {
-				logs.Error("error", zap.Any("err", err))
-				continue
-			}
+				// 注册中心删除服务
+				if res.Action == types.EventType_DELETE {
+					d.delService(res.Service)
+				} else {
+					d.updateService(res.Service)
+				}
 
-			// 注册中心删除服务
-			if strings.ToLower(res.Action) == "delete" {
-				d.delService(res.Service)
-			} else {
-				d.updateService(res.Service)
-			}
+				try.Logs(logs, func() {
+					var addrs = d.getAddrs()
+					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+				})
 
-			try.Logs(logs, func() {
-				var addrs = d.getAddrs()
-				xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
-			})
+			}
 		}
 	})
 

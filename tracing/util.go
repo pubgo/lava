@@ -1,35 +1,20 @@
 package tracing
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"strconv"
-	"text/template"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/xerror"
 )
 
 const (
 	KeyErrorMessage        = "err_msg"
 	KeyContextErrorMessage = "ctx_err_msg"
 )
-
-func getSpan(ctx context.Context) opentracing.SpanContext {
-	xerror.Assert(ctx == nil, "[ctx] should not be nil")
-
-	var spanCtx opentracing.SpanContext
-
-	if span := opentracing.SpanFromContext(ctx); span != nil {
-		spanCtx = span.Context()
-	}
-
-	return spanCtx
-}
 
 // SetIfErr add error info and flag for error
 func SetIfErr(span opentracing.Span, err error) {
@@ -53,8 +38,6 @@ func SetIfCtxErr(span opentracing.Span, ctx context.Context) {
 	}
 }
 
-func Global() opentracing.Tracer { return opentracing.GlobalTracer() }
-
 // InjectHeaders injects the outbound HTTP request with the given span's context to ensure
 // correct propagation of span context throughout the trace.
 func InjectHeaders(span opentracing.Span, request *http.Request) error {
@@ -66,8 +49,6 @@ func InjectHeaders(span opentracing.Span, request *http.Request) error {
 
 func CreateSpan(r *http.Request, name string) opentracing.Span {
 	globalTracer := opentracing.GlobalTracer()
-
-	name = spanName(name, r)
 
 	// If headers contain trace data, create child span from parent; else, create root span
 	var span opentracing.Span
@@ -85,33 +66,13 @@ func CreateSpan(r *http.Request, name string) opentracing.Span {
 	return span // caller must defer span.finish()
 }
 
-// spanName returns the rendered span name from the configured template.
-// If an error is encountered, it returns the unrendered template.
-func spanName(tmplStr string, r *http.Request) string {
-	tmpl, err := template.New("name").Parse(tmplStr)
-	if err != nil {
-		return tmplStr
-	}
-
-	var name bytes.Buffer
-
-	data := struct {
-		Proto, Method, Host, Scheme, Path, RawQuery string
-	}{r.Proto, r.Method, r.Host, r.URL.Scheme, r.URL.Path, r.URL.RawQuery}
-
-	if err = tmpl.Execute(&name, data); err != nil {
-		return tmplStr
-	}
-
-	return name.String()
-}
-
 // Extract extracts the inbound HTTP request to obtain the parent span's context to ensure
 // correct propagation of span context throughout the trace.
 func Extract(tracer opentracing.Tracer, r *http.Request) (opentracing.SpanContext, error) {
 	return tracer.Extract(
 		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(r.Header))
+		opentracing.HTTPHeadersCarrier(r.Header),
+	)
 }
 
 // RequestFunc is a middleware function for outgoing HTTP requests.

@@ -12,6 +12,7 @@ import (
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
+	"github.com/pubgo/x/try"
 	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
@@ -112,9 +113,8 @@ func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) (services []*regist
 	return services, nil
 }
 
-func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (_ registry.Watcher, err error) {
-	defer xerror.RespErr(&err)
-	return newWatcher(m, service, opt...), nil
+func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (w registry.Watcher, err error) {
+	return w, try.Try(func() { w = newWatcher(m, service, opt...) })
 }
 
 func (m *mdnsRegistry) String() string { return Name }

@@ -71,9 +71,7 @@ func (t *client) Get() (*grpc.ClientConn, error) {
 
 	var cfg = GetCfg(consts.Default)
 	conn, err := cfg.Build(t.service, t.optFn(t.service)...)
-	if err != nil {
-		return nil, xerror.WrapF(err, "dial %s error\n", t.service)
-	}
+	xerror.PanicF(err, "dial %s error", t.service)
 
 	clients.Store(t.service, conn)
 	return conn, nil

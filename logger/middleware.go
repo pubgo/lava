@@ -26,26 +26,28 @@ func Middleware() entry.Middleware {
 			ac["trace_id"] = span.GetTraceID()
 			ac["receive_time"] = start.Format(time.RFC3339Nano)
 
+			var gErr error
 			defer func() {
-				if err := recover(); err != nil {
+				if err := recover(); err != nil || gErr != nil {
+					if gErr != nil {
+						err = gErr
+					}
+
 					// 根据请求参数决定是否记录请求参数
 					ac["req_body"] = req.Body()
 					ac["resp_body"] = respBody
 					ac["header"] = req.Header()
 					ac["error"] = err
 				}
-
-				ac["req_body"] = req.Body()
-				ac["resp_body"] = respBody
-				ac["header"] = req.Header()
-
+				
 				// 毫秒
 				ac["cost"] = time.Since(start).Milliseconds()
 
 				xlog.Info("request log", ac)
 			}()
 
-			return next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) { respBody = rsp })
+			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) { respBody = rsp })
+			return gErr
 		}
 	}
 }

@@ -2,11 +2,8 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/x/stack"
-
 	"github.com/pubgo/lug/entry"
 )
 
@@ -18,7 +15,6 @@ func Middleware() entry.Middleware {
 				span = opentracing.StartSpan(req.Endpoint())
 			}
 
-			fmt.Println(stack.Func(next))
 			return next(withCtx(ctx, NewSpan(span)), req, resp)
 		}
 	}
