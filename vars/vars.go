@@ -3,6 +3,8 @@ package vars
 import (
 	"expvar"
 
+	"github.com/pubgo/lug/logutil"
+
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/x/try"
@@ -11,14 +13,14 @@ import (
 	"go.uber.org/zap"
 )
 
-var logs = xlog.GetLogger("vars")
+var pkg = logutil.Pkg("vars")
 
 type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
 func (f value) String() (val string) {
 	var dt interface{}
-	try.Logs(logs, func() { dt = f() })
+	try.Logs(xlog.GetDefault(), func() { dt = f() }, pkg)
 
 	v, err := jsonx.Marshal(dt)
 	if err != nil {
@@ -31,8 +33,8 @@ func (f value) String() (val string) {
 func Watch(name string, data func() interface{}) {
 	expvar.Publish(name, value(func() (val interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logs.Error("unknown error",
-				zap.String("pkg", "expvar"),
+			xlog.Error("unknown error",
+				pkg,
 				zap.String("name", name),
 				zap.Any("err", err))
 		})

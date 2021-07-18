@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/x/typex"
+	"io/fs"
 	"path/filepath"
 	"strings"
 
@@ -9,9 +11,7 @@ import (
 	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/osutil"
 	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -52,7 +52,9 @@ func initWithCfg(v *viper.Viper) bool {
 		return false
 	}
 
-	xerror.Assert(pathutil.IsNotExist(CfgPath), "config file not found, path:%s", CfgPath)
+	xerror.AssertFn(pathutil.IsNotExist(CfgPath), func() string {
+		return fmt.Sprintf("config file not found, path:%s", CfgPath)
+	})
 
 	v.SetConfigFile(CfgPath)
 
@@ -74,24 +76,13 @@ func initWithDir(v *viper.Viper) (err error) {
 		return nil
 	}
 
-	home := xerror.PanicStr(osutil.Home())
-	var paths = typex.StrOf(
-		// 当前${PWD}/config目录
-		CfgName,
+	var pathList = strListMap(getPathList(), func(str string) string {
+		return filepath.Join(str, "."+runenv.Project, CfgName)
+	})
 
-		// 当前目录${PWD}/home/config目录
-		filepath.Join("home", CfgName),
-
-		// etc目录
-		filepath.Join("/etc", runenv.Domain, runenv.Project, CfgName),
-
-		// home工作目录
-		filepath.Join(home, ".config", runenv.Project, CfgName),
-		filepath.Join(home, "."+runenv.Domain, runenv.Project, CfgName),
-	)
-
-	for i := range paths {
-		if addConfigPath(v, paths[i]) {
+	pathList = typex.StrOf(filepath.Join(".lug", CfgName), pathList...)
+	for i := range pathList {
+		if addConfigPath(v, pathList[i]) {
 			return
 		}
 	}
@@ -100,24 +91,29 @@ func initWithDir(v *viper.Viper) (err error) {
 }
 
 // 监控配置中的app自定义配置
-func initApp(v *viper.Viper) (err error) {
-	defer xerror.RespErr(&err)
+func initApp(v *viper.Viper) error {
+	return xerror.Wrap(filepath.Walk(filepath.Join(Home, CfgName),
+		func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return xerror.Wrap(err)
+			}
 
-	// 处理项目自定义配置
-	path := filepath.Dir(v.ConfigFileUsed())
-	appCfg := filepath.Join(path, fmt.Sprint(runenv.Project, ".", CfgType))
-	if pathutil.IsNotExist(appCfg) {
-		return nil
-	}
+			if info.IsDir() {
+				return nil
+			}
 
-	dt := xerror.PanicStr(iox.ReadText(appCfg))
+			if !strings.HasSuffix(info.Name(), CfgType) {
+				return nil
+			}
 
-	// 处理环境变量
-	dt = env.Expand(dt)
+			dt := xerror.PanicStr(iox.ReadText(path))
 
-	// 合并自定义的配置
-	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
-	return
+			// 处理环境变量
+			dt = env.Expand(dt)
+
+			// 合并自定义的配置
+			return xerror.Wrap(v.MergeConfig(strings.NewReader(dt)))
+		}))
 }
 
 // Init 处理所有的配置,环境变量和flag
@@ -131,7 +127,7 @@ func (t *conf) Init() (err error) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
-	xerror.Assert(!runenv.CheckMode(), "")
+	xerror.Assert(!runenv.CheckMode(), "mode(%s) not match in all(%v)", runenv.Mode, runenv.RunMode_value)
 
 	// 配置处理
 	v := t.v
@@ -160,4 +156,25 @@ func (t *conf) Init() (err error) {
 	// 加载自定义配置
 	xerror.Panic(initApp(v))
 	return nil
+}
+
+func getPathList() (paths []string) {
+	var wd = xerror.PanicStr(filepath.Abs("./"))
+	for {
+		if wd == "/" {
+			break
+		}
+
+		paths = append(paths, wd)
+		wd = filepath.Dir(wd)
+	}
+
+	return
+}
+
+func strListMap(strList []string, fn func(str string) string) []string {
+	for i := range strList {
+		strList[i] = fn(strList[i])
+	}
+	return strList
 }

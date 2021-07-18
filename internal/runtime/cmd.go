@@ -51,7 +51,7 @@ func start(ent entry.Runtime, args []string) (err error) {
 	defer xerror.RespErr(&err)
 
 	logs.Infof("service [%s] before-start running", ent.Options().Name)
-	bStarts := append(beforeStarts, ent.Options().BeforeStarts...)
+	bStarts := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range bStarts {
 		xerror.PanicF(try.Try(bStarts[i]), "before start error: %s", stack.Func(bStarts[i]))
 	}
@@ -60,7 +60,7 @@ func start(ent entry.Runtime, args []string) (err error) {
 	xerror.Panic(ent.Start(args...))
 
 	logs.Infof("service [%s] after-start running", ent.Options().Name)
-	aStarts := append(afterStarts, ent.Options().AfterStarts...)
+	aStarts := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range aStarts {
 		xerror.PanicF(try.Try(aStarts[i]), "after start error: %s", stack.Func(bStarts[i]))
 	}
@@ -72,7 +72,7 @@ func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
 	logs.Infof("service [%s] before-stop running", ent.Options().Name)
-	bStops := append(beforeStops, ent.Options().BeforeStops...)
+	bStops := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range bStops {
 		xerror.PanicF(try.Try(bStops[i]), "before stop error: %s", stack.Func(bStops[i]))
 	}
@@ -81,9 +81,9 @@ func stop(ent entry.Runtime) (err error) {
 	xerror.Panic(ent.Stop())
 
 	logs.Infof("service [%s] after-stop running", ent.Options().Name)
-	aStops := append(afterStops, ent.Options().AfterStops...)
+	aStops := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range aStops {
-		xerror.PanicF(try.Try(afterStops[i]), "after stop error: %s", stack.Func(afterStops[i]))
+		xerror.PanicF(try.Try(aStops[i]), "after stop error: %s", stack.Func(aStops[i]))
 	}
 	logs.Infof("service [%s] after-stop over", ent.Options().Name)
 	return nil
@@ -134,6 +134,7 @@ func Run(short string, entries ...entry.Entry) (err error) {
 			// 配置初始化
 			xerror.Panic(config.GetCfg().Init())
 			xerror.Panic(dix.Dix(config.GetCfg()))
+			xerror.Panic(dix.Dix(ent))
 
 			// 初始化组件, 初始化插件
 			plugins := plugin.List(plugin.Module(runenv.Project))

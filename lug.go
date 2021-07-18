@@ -11,10 +11,10 @@ import (
 	"github.com/pubgo/lug/plugin"
 )
 
-func BeforeStart(fn func()) { runtime.BeforeStart(fn) }
-func AfterStart(fn func())  { runtime.AfterStart(fn) }
-func BeforeStop(fn func())  { runtime.BeforeStop(fn) }
-func AfterStop(fn func())   { runtime.AfterStop(fn) }
+func BeforeStart(fn func()) { entry.BeforeStart(fn) }
+func AfterStart(fn func())  { entry.AfterStart(fn) }
+func BeforeStop(fn func())  { entry.BeforeStop(fn) }
+func AfterStop(fn func())   { entry.AfterStop(fn) }
 
 func NewTask(name string) task.Entry          { return task.New(name) }
 func NewRest(name string) rest.Entry          { return rest.New(name) }

@@ -3,6 +3,8 @@ package entry
 import (
 	"context"
 
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -39,4 +41,8 @@ type Opts struct {
 	AfterStops   []func()
 	Command      *cobra.Command
 	Middlewares  []Middleware
+}
+
+func Watch(cb func(ent Entry)) error {
+	return xerror.Wrap(dix.Dix(cb))
 }

@@ -17,6 +17,10 @@ func Name(name string) zap.Field {
 	return zap.String("name", name)
 }
 
+func Pkg(name string) zap.Field {
+	return zap.String("pkg", name)
+}
+
 func Id(id string) zap.Field {
 	return zap.String("id", id)
 }

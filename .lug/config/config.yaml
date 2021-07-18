@@ -106,32 +106,6 @@ nsq:
     lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
 http:
   test: ""
-logger:
-  level: debug
-  development: true
-  disableCaller: false
-  disableStacktrace: true
-  sampling: null
-  encoding: console
-  encoderConfig:
-    messageKey: M
-    levelKey: L
-    timeKey: T
-    nameKey: 'N'
-    callerKey: C
-    stacktraceKey: S
-    levelEncoder: capitalColor
-    timeEncoder: "2006-01-02 15:04:05"
-    durationEncoder: string
-    callerEncoder: full
-  outputPaths:
-    - stderr
-  errorOutputPaths:
-    - stderr
-  filterSuffix:
-    - "grpc-component"
-  #initialFields:
-  #  name: test
 
 db:
   default:

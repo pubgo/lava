@@ -2,18 +2,18 @@ package config
 
 import (
 	"fmt"
+	"io"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"sync"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
-	"io"
-	"os"
-	"path/filepath"
-	"reflect"
-	"strings"
-	"sync"
 )
 
 var (
@@ -23,18 +23,8 @@ var (
 	CfgPath = ""
 )
 
-// default hostname.
-var hostname string
-
-func init() {
-	hostname, _ = os.Hostname()
-	if hostname == "" {
-		hostname = "localhost"
-	}
-}
-
 func GetCfg() *conf {
-	xerror.Assert(cfg == nil, "[config] please init config")
+	xerror.AssertFn(cfg == nil, func() string { return "[config] please init config" })
 	return cfg
 }
 
@@ -71,7 +61,6 @@ func (t *conf) ConfigFileUsed() string {
 func GetMap(keys ...string) map[string]interface{} {
 	return GetCfg().GetStringMap(strings.Join(keys, "."))
 }
-
 func (t *conf) GetStringMap(key string) map[string]interface{} {
 	t.rw.RLock()
 	defer t.rw.RUnlock()

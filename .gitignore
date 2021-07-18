@@ -11,6 +11,7 @@
 *.dot
 *.svg
 *.db
+.lug
 
 # Test binary, built with `go test -c`
 *.test

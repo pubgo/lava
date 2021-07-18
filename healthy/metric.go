@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/lug/internal/runtime"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/metric"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/runenv"
@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	runtime.AfterStart(func() {
+	entry.AfterStart(func() {
 		var tags = metric.Tags{"version": version.Version, "build_time": version.BuildTime, "commit_id": version.CommitID}
 
 		xerror.Panic(metric.CreateCounter(Name, typex.StrOf("version", "build_time", "commit_id"), metric.CounterOpts{
