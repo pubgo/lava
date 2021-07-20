@@ -3,6 +3,7 @@ package etcdv3
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
@@ -14,7 +15,7 @@ func init() { plugin.Register(plg) }
 
 var plg = &plugin.Base{
 	Name: Name,
-	OnInit: func(ent interface{}) {
+	OnInit: func(ent entry.Entry) {
 		if !config.Decode(Name, &cfgList) {
 			return
 		}
@@ -30,7 +31,7 @@ var plg = &plugin.Base{
 		r.OnPut(func() {
 			// 解析etcd配置
 			var cfg Cfg
-			xerror.PanicF(r.Decode(&cfg), "etcd conf parse error, cfg: %s", r.Value)
+			xerror.PanicF(watcher.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
 
 			cfg = xerror.PanicErr(cfgMerge(cfg)).(Cfg)
 			xerror.PanicF(Update(name, cfg), "client %s watcher update error", name)

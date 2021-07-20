@@ -1,4 +1,4 @@
-package entry
+package types
 
 // Request is a synchronous request interface
 type Request interface {

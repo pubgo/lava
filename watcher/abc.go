@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/lug/types"
 )
 
-type Response = types.Response
+type Response = types.WatchResp
 
 type CallBack func(name string, resp *Response) error
 

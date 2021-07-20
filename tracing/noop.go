@@ -7,8 +7,6 @@ import (
 
 func init() {
 	xerror.Exit(Register("noop", func(_ map[string]interface{}) (Tracer, error) {
-		return Tracer{
-			Tracer: opentracing.GlobalTracer(),
-		}, nil
+		return Tracer{Tracer: opentracing.GlobalTracer()}, nil
 	}))
 }

@@ -2,16 +2,17 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/x/typex"
 	"io/fs"
 	"path/filepath"
 	"strings"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/lug/runenv"
+
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -102,7 +103,13 @@ func initApp(v *viper.Viper) error {
 				return nil
 			}
 
+			// 过滤非*.yaml
 			if !strings.HasSuffix(info.Name(), CfgType) {
+				return nil
+			}
+
+			// 过滤config.yaml
+			if info.Name() == CfgName+"."+CfgType {
 				return nil
 			}
 

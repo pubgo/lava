@@ -26,7 +26,7 @@ var plg = &plugin.Base{
 	OnWatch: func(name string, resp *watcher.Response) {
 		resp.OnPut(func() {
 			var cfg = GetDefaultCfg()
-			xerror.Panic(resp.Decode(&cfg))
+			xerror.Panic(watcher.Decode(resp.Value, &cfg))
 
 			var trace = xerror.ExitErr(cfg.Build()).(Tracer)
 			opentracing.SetGlobalTracer(&trace)

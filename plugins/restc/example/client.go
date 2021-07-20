@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	restc2 "github.com/pubgo/lug/plugins/restc"
-	hystrix2 "github.com/pubgo/lug/plugins/restc/hystrix"
 	"time"
 
 	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/plugins/restc"
+	"github.com/pubgo/lug/plugins/restc/hystrix"
 	"github.com/pubgo/xerror"
 )
 
@@ -14,27 +14,27 @@ const (
 	baseURL = "https://www.cnblogs.com/bergus/articles/nginx-kai-qi-response-heheader-ri-zhi-ji-lu.html"
 )
 
-func hystrixO() restc2.Option {
-	return restc2.WithMiddle(hystrix2.Middleware(
-		hystrix2.WithHystrixTimeout(1100*time.Millisecond),
-		hystrix2.WithCommandName("MyCommand"),
-		hystrix2.WithMaxConcurrentRequests(100),
-		hystrix2.WithErrorPercentThreshold(25),
-		hystrix2.WithSleepWindow(10),
-		hystrix2.WithRequestVolumeThreshold(10),
+func hystrixO() restc.Option {
+	return restc.WithMiddle(hystrix.Middleware(
+		hystrix.WithHystrixTimeout(1100*time.Millisecond),
+		hystrix.WithCommandName("MyCommand"),
+		hystrix.WithMaxConcurrentRequests(100),
+		hystrix.WithErrorPercentThreshold(25),
+		hystrix.WithSleepWindow(10),
+		hystrix.WithRequestVolumeThreshold(10),
 	))
 }
 
 func httpClientUsage() error {
-	var cfg = restc2.DefaultCfg()
+	var cfg = restc.DefaultCfg()
 	httpClient, err := cfg.Build(
 		hystrixO(),
-		restc2.WithBackoff(retry.NewConstant(10*time.Millisecond)),
+		restc.WithBackoff(retry.NewConstant(10*time.Millisecond)),
 	)
 	xerror.Panic(err)
 
 	response, err := httpClient.Get(baseURL)
-	defer restc2.ReleaseResponse(response)
+	defer restc.ReleaseResponse(response)
 	if err != nil {
 		return xerror.Wrap(err, "failed to make a request to server")
 	}

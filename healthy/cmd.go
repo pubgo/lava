@@ -17,7 +17,7 @@ var Cmd = &cobra.Command{
 	Use:   "health",
 	Short: "health check",
 	Example: gutil.CmdExample(
-		`lug health`,
+		"lug health",
 		"lug health localhost:8081",
 	),
 	Run: func(cmd *cobra.Command, args []string) {

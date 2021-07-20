@@ -51,7 +51,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pubgo/dix v0.1.14
 	github.com/pubgo/x v0.3.28
-	github.com/pubgo/xerror v0.4.4
+	github.com/pubgo/xerror v0.4.6
 	github.com/pubgo/xlog v0.2.2
 	github.com/pubgo/xprotogen v0.0.16
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563

@@ -6,7 +6,8 @@ import (
 
 	"github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/registry"
-	"go.etcd.io/etcd/client/v3"
+	"github.com/pubgo/lug/types"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type Watcher struct {
@@ -65,17 +66,17 @@ func (w *Watcher) Next() (*registry.Result, error) {
 
 		for _, ev := range resp.Events {
 			service := decode(ev.Kv.Value)
-			var action string
+			var action types.EventType
 
 			switch ev.Type {
 			case clientv3.EventTypePut:
 				if ev.IsCreate() {
-					action = "create"
+					action = types.EventType_CREATE
 				} else if ev.IsModify() {
-					action = "update"
+					action = types.EventType_UPDATE
 				}
 			case clientv3.EventTypeDelete:
-				action = "delete"
+				action = types.EventType_DELETE
 
 				// get service from prevKv
 				service = decode(ev.PrevKv.Value)

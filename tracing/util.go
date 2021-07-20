@@ -9,6 +9,8 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/x/byteutil"
+	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -16,7 +18,7 @@ const (
 	KeyContextErrorMessage = "ctx_err_msg"
 )
 
-// SetIfErr add error info and flag for error
+// SetIfErr add error info
 func SetIfErr(span opentracing.Span, err error) {
 	if span == nil || err == nil {
 		return
@@ -26,7 +28,7 @@ func SetIfErr(span opentracing.Span, err error) {
 	span.SetTag(KeyErrorMessage, err.Error())
 }
 
-// SetIfCtxErr record error
+// SetIfCtxErr record context error
 func SetIfCtxErr(span opentracing.Span, ctx context.Context) {
 	if span == nil || ctx == nil {
 		return
@@ -47,21 +49,52 @@ func InjectHeaders(span opentracing.Span, request *http.Request) error {
 		opentracing.HTTPHeadersCarrier(request.Header))
 }
 
-func CreateSpan(r *http.Request, name string) opentracing.Span {
-	globalTracer := opentracing.GlobalTracer()
+func CreateSpan(r *http.Request, name string) *Span {
+	var span = FromCtx(r.Context())
+	if span != nil {
+		return span
+	}
+
+	tracer := opentracing.GlobalTracer()
+	if tracer == nil {
+		return nil
+	}
+
+	var openSpan opentracing.Span
+	spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+	if err != nil {
+		openSpan = tracer.StartSpan(name)
+	} else {
+		openSpan = tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
+	}
+
+	ext.HTTPMethod.Set(span, r.Method)
+	ext.HTTPUrl.Set(span, r.URL.String())
+
+	return NewSpan(openSpan)
+}
+
+func CreateSpanFromFast(r *fasthttp.Request, name string) opentracing.Span {
+	tracer := opentracing.GlobalTracer()
+
+	var header = make(http.Header)
+	r.Header.VisitAll(func(key, value []byte) {
+		header.Add(byteutil.ToStr(key), byteutil.ToStr(value))
+	})
 
 	// If headers contain trace data, create child span from parent; else, create root span
 	var span opentracing.Span
-	if globalTracer != nil {
-		spanCtx, err := globalTracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+	if tracer != nil {
+		spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
 		if err != nil {
-			span = globalTracer.StartSpan(name)
+			span = tracer.StartSpan(name)
 		} else {
-			span = globalTracer.StartSpan(name, ext.RPCServerOption(spanCtx))
+			span = tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
 		}
-		ext.HTTPMethod.Set(span, r.Method)
-		ext.HTTPUrl.Set(span, r.URL.String())
 	}
+
+	ext.HTTPMethod.Set(span, byteutil.ToStr(r.Header.Method()))
+	ext.HTTPUrl.Set(span, r.URI().String())
 
 	return span // caller must defer span.finish()
 }

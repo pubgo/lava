@@ -2,9 +2,9 @@ package plugin
 
 import (
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
-
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
@@ -18,8 +18,8 @@ type Base struct {
 	Name         string
 	OnMiddleware func() entry.Middleware
 	OnInit       func(ent entry.Entry)
-	OnWatch      func(name string, resp *types.Response)
-	OnCodec      func(name string, resp *types.Response) (map[string]interface{}, error)
+	OnWatch      func(name string, resp *types.WatchResp)
+	OnCodec      func(name string, resp *types.WatchResp) (map[string]interface{}, error)
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnVars       func(w func(name string, data func() interface{}))
@@ -44,7 +44,7 @@ func (p *Base) Init(ent entry.Entry) (err error) {
 	})
 }
 
-func (p *Base) Watch(name string, r *types.Response) (err error) {
+func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 	return try.Try(func() {
 		if p.OnWatch == nil {
 			return
@@ -63,7 +63,7 @@ func (p *Base) Commands() *cobra.Command {
 	cmd := &cobra.Command{Use: p.Name}
 
 	try.Catch(func() { p.OnCommands(cmd) }, func(err error) {
-		xlog.Fatal("commands callback", zap.Any("err", err))
+		zap.L().Error("commands callback", logutil.Err(err))
 	})
 
 	return cmd

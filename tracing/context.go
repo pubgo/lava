@@ -2,6 +2,8 @@ package tracing
 
 import (
 	"context"
+
+	"github.com/opentracing/opentracing-go"
 )
 
 type spanKey struct{}
@@ -13,10 +15,15 @@ func withCtx(ctx context.Context, span *Span) context.Context {
 
 // FromCtx retrieves the current span from the context.
 func FromCtx(ctx context.Context) *Span {
-	spanV := ctx.Value(spanKey{})
-	if spanV == nil {
-		return nil
+	span := ctx.Value(spanKey{})
+	if span != nil {
+		return span.(*Span)
 	}
 
-	return spanV.(*Span)
+	span = opentracing.SpanFromContext(ctx)
+	if span != nil {
+		return NewSpan(span.(opentracing.Span))
+	}
+
+	return nil
 }

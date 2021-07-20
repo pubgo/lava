@@ -18,6 +18,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/pubgo/lug/registry"
 	pb "github.com/pubgo/lug/registry/gossip/proto"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xlog"
 )
 
@@ -30,7 +31,6 @@ const (
 	actionTypeCreate
 	actionTypeDelete
 	actionTypeUpdate
-	actionTypeSync
 )
 
 const (
@@ -49,18 +49,17 @@ var (
 
 var logs = xlog.GetLogger("gossip")
 
-func actionTypeString(t int32) string {
+func actionTypeString(t int32) types.EventType {
 	switch t {
 	case actionTypeCreate:
-		return "create"
+		return types.EventType_CREATE
 	case actionTypeDelete:
-		return "delete"
+		return types.EventType_DELETE
 	case actionTypeUpdate:
-		return "update"
-	case actionTypeSync:
-		return "sync"
+		return types.EventType_UPDATE
+	default:
+		return types.EventType_UNKNOWN
 	}
-	return "invalid"
 }
 
 const (
@@ -340,7 +339,7 @@ func (d *delegate) LocalState(join bool) []byte {
 
 	d.updates <- &update{
 		Update: &pb.Update{
-			Action: actionTypeSync,
+			Action: int32(types.EventType_UPDATE),
 		},
 		sync: syncCh,
 	}
@@ -425,7 +424,7 @@ func (g *gossipRegistry) connect(addrs []string) error {
 	return nil
 }
 
-func (g *gossipRegistry) publish(action string, services []*registry.Service) {
+func (g *gossipRegistry) publish(action types.EventType, services []*registry.Service) {
 	g.RLock()
 	for _, sub := range g.watchers {
 		go func(sub chan *registry.Result) {
@@ -645,28 +644,28 @@ func (g *gossipRegistry) run() {
 				delete(updates.services, hash)
 				updates.Unlock()
 			}
-		case actionTypeSync:
-			// no sync channel provided
-			if u.sync == nil {
-				continue
-			}
+			// case actionTypeSync:
+			// 	// no sync channel provided
+			// 	if u.sync == nil {
+			// 		continue
+			// 	}
 
-			g.RLock()
+			// 	g.RLock()
 
-			// push all services through the sync chan
-			for _, service := range g.services {
-				for _, srv := range service {
-					u.sync <- srv
-				}
+			// 	// push all services through the sync chan
+			// 	for _, service := range g.services {
+			// 		for _, srv := range service {
+			// 			u.sync <- srv
+			// 		}
 
-				// publish to watchers
-				go g.publish(actionTypeString(actionTypeCreate), service)
-			}
+			// 		// publish to watchers
+			// 		go g.publish(actionTypeString(actionTypeCreate), service)
+			// 	}
 
-			g.RUnlock()
+			// 	g.RUnlock()
 
-			// close the sync chan
-			close(u.sync)
+			// 	// close the sync chan
+			// 	close(u.sync)
 		}
 	}
 }

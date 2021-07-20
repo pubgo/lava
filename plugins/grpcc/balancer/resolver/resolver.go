@@ -44,10 +44,12 @@ func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 // 关于 grpc 命名的介绍
 // https://github.com/grpc/grpc/blob/master/doc/naming.md
 
+// BuildDirectTarget direct:///localhost:8080,localhost:8081
 func BuildDirectTarget(endpoints ...string) string {
 	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
 }
 
+// BuildDiscovTarget discov://etcd/test-service
 func BuildDiscovTarget(service string, endpoints ...string) string {
 	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), service)
 }

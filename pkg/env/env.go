@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 var trim = strings.TrimSpace
@@ -36,24 +38,48 @@ func GetWith(val *string, names ...string) {
 }
 
 func GetBoolVal(val *bool, names ...string) {
-	v, err := strconv.ParseBool(trim(Get(names...)))
-	if err == nil {
-		*val = v
+	var dt = trim(Get(names...))
+	if dt == "" {
+		return
 	}
+
+	v, err := strconv.ParseBool(dt)
+	if err != nil {
+		zap.L().Error("env value [ParseBool]", zap.Any("error", err))
+		return
+	}
+
+	*val = v
 }
 
 func GetIntVal(val *int, names ...string) {
-	v, err := strconv.Atoi(trim(Get(names...)))
-	if err == nil {
-		*val = v
+	var dt = trim(Get(names...))
+	if dt == "" {
+		return
 	}
+
+	v, err := strconv.Atoi(dt)
+	if err != nil {
+		zap.L().Error("env value [ParseInt]", zap.Any("error", err))
+		return
+	}
+
+	*val = v
 }
 
 func GetFloatVal(val *float64, names ...string) {
-	v, err := strconv.ParseFloat(trim(Get(names...)), 32)
-	if err == nil {
-		*val = v
+	var dt = trim(Get(names...))
+	if dt == "" {
+		return
 	}
+
+	v, err := strconv.ParseFloat(dt, 32)
+	if err != nil {
+		zap.L().Error("env value [ParseFloat]", zap.Any("error", err))
+		return
+	}
+
+	*val = v
 }
 
 func Lookup(key string) (string, bool) {

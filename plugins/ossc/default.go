@@ -4,9 +4,9 @@ import (
 	"sync"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/consts"
 )
 
 var clientM sync.Map
@@ -21,11 +21,7 @@ func GetClient(names ...string) *oss.Bucket {
 }
 
 func initClient(name string, cfg ClientCfg) {
-	client, err := oss.New(
-		env.Expand(cfg.Endpoint),
-		env.Expand(cfg.AccessKeyID),
-		env.Expand(cfg.AccessKeySecret),
-	)
+	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 	xerror.Panic(err)
 	kk := xerror.PanicErr(client.Bucket(cfg.Bucket)).(*oss.Bucket)
 	clientM.Store(name, kk)

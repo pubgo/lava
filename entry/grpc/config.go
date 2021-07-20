@@ -11,8 +11,24 @@ import (
 )
 
 const Name = "grpc_entry"
-const defaultContentType = "application/grpc"
-const DefaultSleepAfterDeregister = time.Second * 2
+
+const (
+	// DefaultMaxMsgSize define maximum message size that server can send or receive.
+	// Default value is 4MB.
+	DefaultMaxMsgSize = 1024 * 1024 * 4
+
+	DefaultSleepAfterDeRegister = time.Second * 2
+
+	// DefaultRegisterTTL The register expiry time
+	DefaultRegisterTTL = time.Minute
+
+	// DefaultRegisterInterval The interval on which to register
+	DefaultRegisterInterval = time.Second * 30
+
+	defaultContentType = "application/grpc"
+
+	DefaultSleepAfterDeregister = time.Second * 2
+)
 
 var logs = xlog.GetLogger(Name)
 
@@ -29,17 +45,3 @@ type Cfg struct {
 	name     string
 	hostname string
 }
-
-const (
-	// DefaultMaxMsgSize define maximum message size that server can send or receive.
-	// Default value is 4MB.
-	DefaultMaxMsgSize = 1024 * 1024 * 4
-
-	DefaultSleepAfterDeRegister = time.Second * 2
-
-	// DefaultRegisterTTL The register expiry time
-	DefaultRegisterTTL = time.Minute
-
-	// DefaultRegisterInterval The interval on which to register
-	DefaultRegisterInterval = time.Second * 30
-)

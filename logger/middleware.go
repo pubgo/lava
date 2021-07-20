@@ -2,16 +2,19 @@ package logger
 
 import (
 	"context"
+	"github.com/pubgo/lug/types"
 	"time"
 
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/tracing"
+
+	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 )
 
 func Middleware() entry.Middleware {
 	return func(next entry.Wrapper) entry.Wrapper {
-		return func(ctx context.Context, req entry.Request, resp func(rsp interface{})) error {
+		return func(ctx context.Context, req types.Request, resp func(rsp interface{}) error) error {
 			var span = tracing.FromCtx(ctx)
 
 			start := time.Now()
@@ -39,14 +42,14 @@ func Middleware() entry.Middleware {
 					ac["header"] = req.Header()
 					ac["error"] = err
 				}
-				
+
 				// 毫秒
 				ac["cost"] = time.Since(start).Milliseconds()
 
 				xlog.Info("request log", ac)
 			}()
 
-			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) { respBody = rsp })
+			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) error { respBody = rsp; return xerror.Wrap(resp(rsp)) })
 			return gErr
 		}
 	}

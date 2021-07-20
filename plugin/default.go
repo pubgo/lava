@@ -32,15 +32,18 @@ func Register(pg Plugin, opts ...Opt) {
 		xlog.Fatal("register plugin", zap.Any("err", err))
 	})
 
-	xerror.Assert(pg == nil || pg.String() == "", "plugin is nil")
+	if pg == nil {
+		xlog.Fatal("plugin[pg] is nil")
+		return
+	}
+
+	name := pg.String()
+	xerror.Assert(name == "", "plugin name is null")
 
 	options := options{Module: defaultModule}
 	for _, o := range opts {
 		o(&options)
 	}
-
-	name := pg.String()
-	xerror.Assert(name == "", "plugin name is null")
 
 	pgs := plugins[options.Module]
 	for i := range pgs {

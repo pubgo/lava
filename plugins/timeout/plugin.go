@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,7 +19,7 @@ var defaultTimeOut = time.Second
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: name,
-		OnInit: func(ent interface{}) {
+		OnInit: func(ent entry.Entry) {
 		},
 	})
 }

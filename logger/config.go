@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var name = "logger"
+var Name = "logger"
 
 var cfg = xlog_config.NewProdConfig()
 
@@ -23,9 +23,8 @@ func init() {
 	}
 
 	// 全局log设置
-	// 默认logger初始化
 	var log = xerror.PanicErr(cfg.Build()).(*zap.Logger)
-	xerror.Panic(xlog.SetDefault(log.Named(runenv.Domain).Named(runenv.Project)))
+	xerror.Panic(xlog.SetDefault(log.Named(runenv.Domain)))
 
-	vars.Watch(name, func() interface{} { return cfg })
+	vars.Watch(Name, func() interface{} { return cfg })
 }

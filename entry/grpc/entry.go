@@ -12,7 +12,6 @@ import (
 	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/lug/logutil"
@@ -21,11 +20,11 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/version"
 
 	"github.com/google/uuid"
 	"github.com/pubgo/x/fx"
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
@@ -290,14 +289,12 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	})
 
 	// 启动本地grpc客户端
-	fx.GoDelay(func() {
+	{
 		logs.Info("[grpc] Client Connecting")
-		defer xerror.RespExit("[grpc] Client Connecting Error")
-
 		g.client = xerror.PanicErr(grpcc.NewDirect(runenv.Addr)).(*grpc.ClientConn)
 		xerror.Panic(grpcs.HealthCheck(g.cfg.name, g.client))
 		xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
-	})
+	}
 
 	// register self
 	xerror.Panic(g.register(), "[grpc] try to register self")
@@ -383,13 +380,13 @@ func (g *grpcEntry) handlerUnaryMiddle(ctx context.Context, req interface{}, inf
 		header:      md,
 	}
 
-	var wrapper = func(ctx context.Context, req entry.Request, rsp func(interface{})) error {
+	var wrapper = func(ctx context.Context, req types.Request, rsp func(interface{}) error) error {
 		dt, err := handler(ctx, req.Body())
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return try.Try(func() { rsp(dt) })
+		return xerror.Wrap(rsp(dt))
 	}
 
 	var middlewares = g.Options().Middlewares
@@ -397,7 +394,7 @@ func (g *grpcEntry) handlerUnaryMiddle(ctx context.Context, req interface{}, inf
 		wrapper = middlewares[i](wrapper)
 	}
 
-	err = wrapper(ctx, request, func(rsp interface{}) { resp = rsp })
+	err = wrapper(ctx, request, func(rsp interface{}) error { resp = rsp; return nil })
 	return
 }
 func (g *grpcEntry) handlerStreamMiddle(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -450,13 +447,13 @@ func (g *grpcEntry) handlerStreamMiddle(srv interface{}, stream grpc.ServerStrea
 		header:      md,
 	}
 
-	var wrapper = func(ctx context.Context, req entry.Request, rsp func(interface{})) error {
+	var wrapper = func(ctx context.Context, req types.Request, rsp func(interface{}) error) error {
 		err := handler(ctx, stream)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return try.Try(func() { rsp(stream) })
+		return xerror.Wrap(rsp(stream))
 	}
 
 	var middlewares = g.Options().Middlewares
@@ -464,7 +461,7 @@ func (g *grpcEntry) handlerStreamMiddle(srv interface{}, stream grpc.ServerStrea
 		wrapper = middlewares[i](wrapper)
 	}
 
-	return wrapper(ctx, request, func(rsp interface{}) { stream = rsp.(grpc.ServerStream) })
+	return wrapper(ctx, request, func(rsp interface{}) error { stream = rsp.(grpc.ServerStream); return nil })
 }
 
 func newEntry(name string) *grpcEntry {

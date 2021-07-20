@@ -9,6 +9,11 @@ import (
 )
 
 func main() {
+	var errrr error
+	fmt.Println(xerror.AppendInto(&errrr, fmt.Errorf("ss")))
+	fmt.Println(errrr==nil)
+
+
 	var val = make(map[string]interface{})
 	val["ssm"] = 2
 

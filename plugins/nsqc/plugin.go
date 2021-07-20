@@ -2,6 +2,7 @@ package nsqc
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
@@ -11,7 +12,7 @@ func init() { plugin.Register(&plg) }
 
 var plg = plugin.Base{
 	Name: Name,
-	OnInit: func(ent interface{}) {
+	OnInit: func(ent entry.Entry) {
 		config.Decode(Name, &cfgList)
 
 		for k, v := range cfgList {

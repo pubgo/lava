@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/lug/pkg/k8s"
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,7 +49,7 @@ func (t *Watcher) Next() (*registry.Result, error) {
 			xerror.Panic(err)
 
 			var resp = &registry.Result{
-				Action: registry.Update.String(),
+				Action: types.EventType_UPDATE,
 				Service: &registry.Service{
 					Name: t.service,
 				},

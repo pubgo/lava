@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const Name = "cache"
+
 // Option 可选配置
 type Option func(o *options)
 

@@ -1,15 +1,19 @@
 package restc
 
 import (
-	"github.com/valyala/fasthttp"
-
+	"context"
 	"net/url"
+
+	"github.com/valyala/fasthttp"
 )
 
 func ReleaseResponse(resp *Response) { fasthttp.ReleaseResponse(resp) }
 
+type Request struct {
+	*fasthttp.Request
+	context.Context
+}
 type Response = fasthttp.Response
-type Request = fasthttp.Request
 type RequestHeader = fasthttp.RequestHeader
 type ResponseHeader = fasthttp.ResponseHeader
 
@@ -17,7 +21,7 @@ type ResponseHeader = fasthttp.ResponseHeader
 type DoFunc func(req *Request, fn func(resp *Response) error) error
 
 // Middleware http client middleware
-type Middleware func(DoFunc) DoFunc
+type Middleware func(next DoFunc) DoFunc
 
 // Client http client interface
 type Client interface {

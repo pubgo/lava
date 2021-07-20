@@ -15,7 +15,7 @@ import (
 
 type Cfg struct {
 	Token                         string
-	keepAlive                     bool
+	KeepAlive                     bool
 	Timeout                       time.Duration
 	RetryCount                    uint64
 	Name                          string
@@ -33,11 +33,12 @@ type Cfg struct {
 	DisableHeaderNamesNormalizing bool
 	DisablePathNormalizing        bool
 	MaxConnWaitTimeout            time.Duration
-	Socks5Proxy                   string
+	Proxy                         bool
+	Socks5                        string
 	CertPath                      string
 	KeyPath                       string
 	Insecure                      bool
-	Header                        map[string][]string
+	Header                        map[string]string
 	retryIf                       fasthttp.RetryIfFunc
 	backoff                       retry.Backoff
 	tlsConfig                     *tls.Config
@@ -55,14 +56,17 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	c := &fasthttp.Client{}
 	xerror.Panic(merge.CopyStruct(c, t))
 
-	if t.Socks5Proxy != "" {
-		if !strings.Contains(t.Socks5Proxy, "://") {
-			t.Socks5Proxy = "socks5://" + t.Socks5Proxy
+	if t.Proxy {
+		if t.Socks5 != "" {
+			if !strings.Contains(t.Socks5, "://") {
+				t.Socks5 = "socks5://" + t.Socks5
+			}
+			c.Dial = fasthttpproxy.FasthttpSocksDialer(t.Socks5)
+		} else {
+			c.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(defaultHTTPTimeout)
 		}
-		c.Dial = fasthttpproxy.FasthttpSocksDialer(t.Socks5Proxy)
-	} else {
-		c.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(defaultHTTPTimeout)
 	}
+
 	if t.dial != nil {
 		c.Dial = t.dial
 	}
@@ -75,27 +79,26 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	}
 	c.TLSConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
-	var requestHeader fasthttp.RequestHeader
-	requestHeader.SetMethod(fasthttp.MethodGet)
-	requestHeader.SetContentType(defaultContentType)
-	requestHeader.Set(fasthttp.HeaderConnection, "close")
-	if t.keepAlive {
-		requestHeader.Set(fasthttp.HeaderConnection, "keep-alive")
+	var dftHeader fasthttp.RequestHeader
+	dftHeader.SetMethod(fasthttp.MethodGet)
+	dftHeader.SetContentType(defaultContentType)
+	dftHeader.Set(fasthttp.HeaderConnection, "close")
+	if t.KeepAlive {
+		dftHeader.Set(fasthttp.HeaderConnection, "keep-alive")
 	}
 
 	if t.Token != "" {
-		requestHeader.Set(fasthttp.HeaderAuthorization, t.Token)
+		dftHeader.Set(fasthttp.HeaderAuthorization, t.Token)
 	}
 
 	if t.Header != nil {
 		for k, v := range t.Header {
-			for i := range v {
-				requestHeader.Add(k, v[i])
-			}
+			dftHeader.Set(k, v)
 		}
 	}
 
-	var client = &client{client: c, defaultHeader: &requestHeader}
+	// 加载插件
+	var client = &client{client: c, defaultHeader: &dftHeader}
 	client.do = doFunc(client)
 	for i := len(t.middles); i > 0; i-- {
 		client.do = t.middles[i-1](client.do)

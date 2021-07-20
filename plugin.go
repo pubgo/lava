@@ -15,14 +15,14 @@ import (
 	_ "github.com/pubgo/lug/metric"
 	_ "github.com/pubgo/lug/registry/mdns"
 	_ "github.com/pubgo/lug/tracing"
+	_ "github.com/pubgo/lug/tracing/jaeger"
 	"github.com/pubgo/lug/vars"
 )
 
 func init() {
 	BeforeStart(func() {
 		var log = maxprocs.Logger(func(s string, i ...interface{}) { xlog.Infof(s, i...) })
-		var fn = xerror.ExitErr(maxprocs.Set(log))
-		fn.(func())()
+		xerror.ExitErr(maxprocs.Set(log)).(func())()
 	})
 
 	vars.Watch("dix", func() interface{} { return dix.Json() })

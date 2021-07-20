@@ -57,7 +57,7 @@ var plg = &plugin.Base{
 			cfg = GetDefaultCfg()
 		}
 
-		xerror.Panic(w.Decode(&cfg))
+		xerror.Panic(watcher.Decode(w.Value, &cfg))
 		xerror.Panic(Update(name, *cfg))
 		cfgList[name] = cfg
 

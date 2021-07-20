@@ -1,7 +1,11 @@
 package registry
 
-import "errors"
+import (
+	"github.com/pubgo/xerror"
+)
+
+var Err = xerror.New(Name)
 
 // ErrWatcherStopped Watcher stopped error when watcher is stopped
-var ErrWatcherStopped = errors.New("[registry] watcher stopped")
-var ErrNotFound = errors.New("[registry] not found")
+var ErrWatcherStopped = Err.New("watcher stopped")
+var ErrNotFound = Err.New("not found")

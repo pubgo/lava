@@ -39,6 +39,10 @@ func (r *rpcRequest) Header() map[string]string {
 
 func (r *rpcRequest) Read() ([]byte, error) {
 	var cdc = encoding.Get(r.cdc)
+	if cdc == nil {
+		return nil, encoding.ErrNotFound
+	}
+
 	return cdc.Marshal(r.payload)
 }
 

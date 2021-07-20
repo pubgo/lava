@@ -1,6 +1,9 @@
 package jaeger
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/tracing"
 	"github.com/pubgo/lug/tracing/jaeger/reporter"
@@ -11,6 +14,13 @@ import (
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-lib/metrics/prometheus"
+)
+
+const (
+	phpRequestTraceID      = "x-w-traceid"
+	phpRequestSpanID       = "x-w-spanid"
+	phpRequestParentSpanID = "x-w-parentspanid"
+	phpRequestSampleID     = "x-w-sampled"
 )
 
 func init() {
@@ -56,4 +66,27 @@ func New(cfg *Cfg) (tracing.Tracer, error) {
 	tracer.Tracer = trace
 
 	return tracer, nil
+}
+
+func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {
+	defer xerror.RespErr(&err)
+
+	if req == nil {
+		return span, xerror.Fmt("context is nil")
+	}
+
+	var sampleIDStr = strings.Join(req.Header.Values(phpRequestSampleID), ",")
+	var traceIDStr = strings.Join(req.Header.Values(phpRequestTraceID), ",")
+	traceID, err := jaeger.TraceIDFromString(traceIDStr)
+	xerror.Panic(err)
+
+	var spanIDStr = strings.Join(req.Header.Values(phpRequestSpanID), ",")
+	spanID, err := jaeger.SpanIDFromString(spanIDStr)
+	xerror.Panic(err)
+
+	var pSpanIDStr = strings.Join(req.Header.Values(phpRequestParentSpanID), ",")
+	pSpanID, err := jaeger.SpanIDFromString(pSpanIDStr)
+	xerror.Panic(err)
+
+	return jaeger.NewSpanContext(traceID, spanID, pSpanID, sampleIDStr == "", nil), nil
 }

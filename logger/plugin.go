@@ -12,17 +12,16 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Base{
-		Name:         name,
+		Name:         Name,
 		OnMiddleware: Middleware,
 		OnInit: func(ent entry.Entry) {
 			cfg.Level = runenv.Level
-			_ = config.Decode(name, &cfg)
-
-			xerror.Panic(initLog(cfg))
+			_ = config.Decode(Name, &cfg)
+			xerror.Panic(updateLog(cfg))
 		},
 		OnWatch: func(_ string, r *watcher.Response) {
-			xerror.Panic(r.Decode(&cfg))
-			xerror.Panic(initLog(cfg))
+			xerror.Panic(watcher.Decode(r.Value, &cfg))
+			xerror.Panic(updateLog(cfg))
 		},
 	})
 }
