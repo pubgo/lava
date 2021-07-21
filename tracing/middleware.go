@@ -10,7 +10,7 @@ import (
 
 func Middleware() entry.Middleware {
 	return func(next entry.Wrapper) entry.Wrapper {
-		return func(ctx context.Context, req types.Request, resp func(rsp interface{}) error) error {
+		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var span = opentracing.SpanFromContext(ctx)
 			if span == nil {
 				span = opentracing.StartSpan(req.Endpoint())

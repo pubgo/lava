@@ -28,9 +28,10 @@ func init() {
 }
 
 type baseResolver struct {
-	cancel context.CancelFunc
-	cc     resolver.ClientConn
-	r      registry.Watcher
+	builder string
+	cancel  context.CancelFunc
+	cc      resolver.ClientConn
+	r       registry.Watcher
 }
 
 func (r *baseResolver) Close() {
@@ -38,7 +39,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.Info("[grpc] ResolveNow")
+	logs.Infof("[grpc] %s ResolveNow",r.builder)
 }
 
 // 关于 grpc 命名的介绍

@@ -15,7 +15,9 @@ type directBuilder struct{}
 func (d *directBuilder) Scheme() string { return DirectScheme }
 
 // Build [direct:///127.0.0.1,etcd:2379]
-func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
+	defer xerror.RespErr(&err)
+
 	// 根据规则解析出地址
 	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool { return r == EndpointSepChar })
 	if len(endpoints) == 0 {
@@ -31,6 +33,7 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		}
 	}
 
-	return &baseResolver{cc: cc},
-		xerror.WrapF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+
+	return &baseResolver{cc: cc, builder: DirectScheme}, nil
 }

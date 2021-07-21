@@ -132,5 +132,5 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		}
 	})
 
-	return &baseResolver{cc: cc, r: w, cancel: cancel}, nil
+	return &baseResolver{cc: cc, r: w, cancel: cancel, builder: DiscovScheme}, nil
 }

@@ -14,7 +14,7 @@ import (
 
 func Middleware() entry.Middleware {
 	return func(next entry.Wrapper) entry.Wrapper {
-		return func(ctx context.Context, req types.Request, resp func(rsp interface{}) error) error {
+		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var span = tracing.FromCtx(ctx)
 
 			start := time.Now()
@@ -37,7 +37,7 @@ func Middleware() entry.Middleware {
 					}
 
 					// 根据请求参数决定是否记录请求参数
-					ac["req_body"] = req.Body()
+					ac["req_body"] = req.Payload()
 					ac["resp_body"] = respBody
 					ac["header"] = req.Header()
 					ac["error"] = err
@@ -49,7 +49,10 @@ func Middleware() entry.Middleware {
 				xlog.Info("request log", ac)
 			}()
 
-			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp interface{}) error { respBody = rsp; return xerror.Wrap(resp(rsp)) })
+			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp types.Response) error {
+				respBody = rsp.Payload()
+				return xerror.Wrap(resp(rsp))
+			})
 			return gErr
 		}
 	}

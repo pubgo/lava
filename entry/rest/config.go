@@ -2,6 +2,7 @@ package rest
 
 import (
 	fb "github.com/pubgo/lug/builder/fiber"
+
 	"github.com/pubgo/xlog"
 )
 

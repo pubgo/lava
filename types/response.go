@@ -1,26 +1,13 @@
 package types
 
-import "context"
-
-// Response is the response writer for unencoded messages
+// Response is the response writer for un encoded messages
 type Response interface {
-	// Codec Encoded writer
+	Write(p []byte) (n int, err error)
 	Codec() string
-	// WriteHeader Write the header
-	WriteHeader(map[string]string)
-	// Write write a response directly to the client
-	Write([]byte) error
-}
-
-// Stream represents a stream established with a client.
-// A stream can be bidirectional which is indicated by the request.
-// The last error will be left in Error().
-// EOF indicates end of the stream.
-type Stream interface {
-	Context() context.Context
-	Request() Request
+	Header() Header
+	Body() ([]byte, error)
+	Payload() interface{}
 	Send(interface{}) error
 	Recv(interface{}) error
-	Error() error
-	Close() error
+	Stream() bool
 }

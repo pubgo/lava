@@ -2,7 +2,7 @@ package entry
 
 import (
 	"context"
-	
+
 	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/dix"
@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type Wrapper func(ctx context.Context, req types.Request, resp func(rsp interface{}) error) error
+type Wrapper func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error
 type Middleware func(next Wrapper) Wrapper
 
 type Runtime interface {

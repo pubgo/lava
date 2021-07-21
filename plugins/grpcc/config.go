@@ -135,15 +135,13 @@ func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, 
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
 
-func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, gErr error) {
+func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
-	defer cancel()
-
 	target = resolver.BuildDirectTarget(target)
-	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), opts...)...)
-	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
+	conn, gErr = grpc.DialContext(context.Background(), target, append(t.ToOpts(), opts...)...)
+	xerror.PanicF(gErr, "DialContext error, target:%s", target)
+	return
 }
 
 func (t Cfg) ToOpts() []grpc.DialOption {

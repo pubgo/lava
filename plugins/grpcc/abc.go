@@ -10,4 +10,5 @@ type DialOptions = []grpc.DialOption
 type Client interface {
 	grpc_health_v1.HealthClient
 	Get() (*grpc.ClientConn, error)
+	Close() error
 }

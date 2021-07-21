@@ -11,11 +11,11 @@ type Request interface {
 	// ContentType Content type provided
 	ContentType() string
 	// Header of the request
-	Header() map[string]string
-	// Body is the initial decoded value
-	Body() interface{}
-	// Read the encode request body
-	Read() ([]byte, error)
+	Header() Header
+	// Payload is the initial decoded value
+	Payload() interface{}
+	// Body the encode request body
+	Body() ([]byte, error)
 	// Codec The encoded message stream
 	Codec() string
 	// Stream Indicates whether its a stream

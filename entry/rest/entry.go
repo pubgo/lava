@@ -11,7 +11,6 @@ import (
 	"github.com/pubgo/lug/types"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
@@ -29,22 +28,12 @@ type restEntry struct {
 }
 
 func (t *restEntry) handlerMiddle(fbCtx *fiber.Ctx) error {
-	fbCtx.Response().Body()
-
-	// create a client.Request
-	request := &httpRequest{
-		service:     fbCtx.OriginalURL(),
-		method:      fbCtx.Method(),
-		contentType: utils.UnsafeString(fbCtx.Request().Header.ContentType()),
-		//header:      fbCtx.Request().Header,
-	}
-
 	fbCtx.SetUserContext(fbCtx.Context())
-	var wrapper = func(ctx context.Context, req types.Request, rsp func(interface{}) error) error {
+	var wrapper = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		if err := fbCtx.Next(); err != nil {
 			return xerror.Wrap(err)
 		}
-		return xerror.Wrap(rsp(fbCtx.Response()))
+		return xerror.Wrap(rsp(&httpResponse{ctx: fbCtx}))
 	}
 
 	var middlewares = t.Options().Middlewares
@@ -52,7 +41,9 @@ func (t *restEntry) handlerMiddle(fbCtx *fiber.Ctx) error {
 		wrapper = middlewares[i](wrapper)
 	}
 
-	return wrapper(fbCtx.UserContext(), request, func(_ interface{}) error { return nil })
+	// create a client.Request
+	request := &httpRequest{req: fbCtx}
+	return wrapper(fbCtx.UserContext(), request, func(response types.Response) error { return nil })
 }
 
 func (t *restEntry) Register(handler interface{}, handlers ...Handler) {

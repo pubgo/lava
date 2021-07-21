@@ -20,6 +20,15 @@ type client struct {
 	optFn   func(service string) []grpc.DialOption
 }
 
+func (t *client) Close() error {
+	val, ok := clients.LoadAndDelete(t.service)
+	if !ok {
+		return nil
+	}
+
+	return xerror.Wrap(val.(*grpc.ClientConn).Close())
+}
+
 func (t *client) Check(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
 	c, err := t.Get()
 	if err != nil {

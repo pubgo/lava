@@ -20,7 +20,6 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/version"
 
 	"github.com/google/uuid"
@@ -30,8 +29,6 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 )
 
 var _ Entry = (*grpcEntry)(nil)
@@ -74,6 +71,7 @@ func (g *grpcEntry) handleError() {
 		return false
 	})
 }
+
 func (g *grpcEntry) matchAny() net.Listener   { return g.mux.Match(cmux.Any()) }
 func (g *grpcEntry) matchHttp1() net.Listener { return g.mux.Match(cmux.HTTP1()) }
 func (g *grpcEntry) matchHttp2() net.Listener {
@@ -289,12 +287,15 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	})
 
 	// 启动本地grpc客户端
-	{
+	fx.GoDelay(func() {
 		logs.Info("[grpc] Client Connecting")
-		g.client = xerror.PanicErr(grpcc.NewDirect(runenv.Addr)).(*grpc.ClientConn)
+
+		conn, err := grpcc.NewDirect(runenv.Addr)
+		xerror.Panic(err)
+		g.client = conn
 		xerror.Panic(grpcs.HealthCheck(g.cfg.name, g.client))
 		xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
-	}
+	})
 
 	// register self
 	xerror.Panic(g.register(), "[grpc] try to register self")
@@ -329,139 +330,6 @@ func (g *grpcEntry) Start(args ...string) (gErr error) {
 	})
 
 	return nil
-}
-
-func (g *grpcEntry) handlerUnaryMiddle(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	// get grpc metadata
-	gmd, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		gmd = metadata.MD{}
-	}
-
-	// copy the metadata to go-micro.metadata
-	md := make(map[string]string)
-	for k, v := range gmd {
-		md[k] = strings.Join(v, ", ")
-	}
-
-	// timeout for server deadline
-	to := md["timeout"]
-
-	// get content type
-	ct := defaultContentType
-	if c, ok := md["x-content-type"]; ok {
-		ct = c
-	}
-
-	delete(md, "x-content-type")
-	delete(md, "timeout")
-
-	// get peer from context
-	if p, ok := peer.FromContext(ctx); ok {
-		md["Remote"] = p.Addr.String()
-		ctx = peer.NewContext(ctx, p)
-	}
-
-	// set the timeout if we have it
-	if len(to) > 0 {
-		if n, err := strconv.ParseUint(to, 10, 64); err == nil {
-			ctx, _ = context.WithTimeout(ctx, time.Duration(n))
-		}
-	}
-
-	// create a client.Request
-	request := &rpcRequest{
-		service: ServiceFromMethod(info.FullMethod),
-		method:  info.FullMethod,
-
-		contentType: ct,
-		cdc:         ct,
-		payload:     req,
-		header:      md,
-	}
-
-	var wrapper = func(ctx context.Context, req types.Request, rsp func(interface{}) error) error {
-		dt, err := handler(ctx, req.Body())
-		if err != nil {
-			return xerror.Wrap(err)
-		}
-
-		return xerror.Wrap(rsp(dt))
-	}
-
-	var middlewares = g.Options().Middlewares
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapper = middlewares[i](wrapper)
-	}
-
-	err = wrapper(ctx, request, func(rsp interface{}) error { resp = rsp; return nil })
-	return
-}
-func (g *grpcEntry) handlerStreamMiddle(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	var ctx = stream.Context()
-
-	// get grpc metadata
-	gmd, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		gmd = metadata.MD{}
-	}
-
-	// copy the metadata to go-micro.metadata
-	md := make(map[string]string)
-	for k, v := range gmd {
-		md[k] = strings.Join(v, ", ")
-	}
-
-	// timeout for server deadline
-	to := md["timeout"]
-
-	// get content type
-	ct := defaultContentType
-	if c, ok := md["x-content-type"]; ok {
-		ct = c
-	}
-
-	delete(md, "x-content-type")
-	delete(md, "timeout")
-
-	// get peer from context
-	if p, ok := peer.FromContext(ctx); ok {
-		md["Remote"] = p.Addr.String()
-		ctx = peer.NewContext(ctx, p)
-	}
-
-	// set the timeout if we have it
-	if len(to) > 0 {
-		if n, err := strconv.ParseUint(to, 10, 64); err == nil {
-			ctx, _ = context.WithTimeout(ctx, time.Duration(n))
-		}
-	}
-
-	// create a client.Request
-	request := &rpcRequest{
-		method:      info.FullMethod,
-		service:     ServiceFromMethod(info.FullMethod),
-		contentType: ct,
-		cdc:         ct,
-		payload:     stream,
-		header:      md,
-	}
-
-	var wrapper = func(ctx context.Context, req types.Request, rsp func(interface{}) error) error {
-		err := handler(ctx, stream)
-		if err != nil {
-			return xerror.Wrap(err)
-		}
-
-		return xerror.Wrap(rsp(stream))
-	}
-
-	var middlewares = g.Options().Middlewares
-	for i := range middlewares {
-		wrapper = middlewares[i](wrapper)
-	}
-
-	return wrapper(ctx, request, func(rsp interface{}) error { stream = rsp.(grpc.ServerStream); return nil })
 }
 
 func newEntry(name string) *grpcEntry {
@@ -507,20 +375,3 @@ func newEntry(name string) *grpcEntry {
 }
 
 func New(name string) Entry { return newEntry(name) }
-
-// ServiceFromMethod returns the service
-// /service.Foo/Bar => service
-func ServiceFromMethod(m string) string {
-	if len(m) == 0 {
-		return m
-	}
-	if m[0] != '/' {
-		return m
-	}
-	parts := strings.Split(m, "/")
-	if len(parts) < 3 {
-		return m
-	}
-	parts = strings.Split(parts[1], ".")
-	return strings.Join(parts[:len(parts)-1], ".")
-}

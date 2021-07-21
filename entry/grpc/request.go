@@ -1,16 +1,37 @@
 package grpc
 
-import "github.com/pubgo/lug/encoding"
+import (
+	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lug/types"
+)
+
+var _ types.Request = (*rpcRequest)(nil)
 
 type rpcRequest struct {
 	service     string
 	method      string
 	contentType string
 	cdc         string
-	header      map[string]string
-	body        []byte
+	header      types.Header
 	stream      bool
 	payload     interface{}
+}
+
+func (r *rpcRequest) Header() types.Header {
+	return r.header
+}
+
+func (r *rpcRequest) Payload() interface{} {
+	return r.payload
+}
+
+func (r *rpcRequest) Body() ([]byte, error) {
+	var cdc = encoding.Get(r.cdc)
+	if cdc == nil {
+		return nil, encoding.ErrNotFound
+	}
+
+	return cdc.Marshal(r.payload)
 }
 
 func (r *rpcRequest) ContentType() string {
@@ -33,23 +54,6 @@ func (r *rpcRequest) Codec() string {
 	return r.cdc
 }
 
-func (r *rpcRequest) Header() map[string]string {
-	return r.header
-}
-
-func (r *rpcRequest) Read() ([]byte, error) {
-	var cdc = encoding.Get(r.cdc)
-	if cdc == nil {
-		return nil, encoding.ErrNotFound
-	}
-
-	return cdc.Marshal(r.payload)
-}
-
 func (r *rpcRequest) Stream() bool {
 	return r.stream
-}
-
-func (r *rpcRequest) Body() interface{} {
-	return r.payload
 }
