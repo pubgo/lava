@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/dix"
 	"net"
 	"strconv"
 	"strings"
@@ -238,6 +239,7 @@ func (g *grpcEntry) initHandler() {
 
 	// 初始化routes
 	for i := range g.handlers {
+		xerror.PanicF(dix.Invoke(g.handlers[i]), "%s", dix.Graph())
 		xerror.PanicF(grpcs.Register(g.rpc.Get(), g.handlers[i]), "register handler error")
 	}
 }

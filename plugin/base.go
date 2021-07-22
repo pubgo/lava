@@ -70,7 +70,7 @@ func (p *Base) Commands() *cobra.Command {
 
 func (p *Base) Flags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
-	if p.OnFlags != nil {
+	if p.OnFlags == nil {
 		return flags
 	}
 

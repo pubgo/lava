@@ -34,6 +34,7 @@ require (
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/memberlist v0.1.3
+	github.com/iancoleman/strcase v0.2.0
 	github.com/jaegertracing/jaeger v1.22.0
 	github.com/json-iterator/go v1.1.11
 	github.com/klauspost/crc32 v1.2.0 // indirect
@@ -49,9 +50,9 @@ require (
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
-	github.com/pubgo/dix v0.1.14
+	github.com/pubgo/dix v0.1.22
 	github.com/pubgo/x v0.3.28
-	github.com/pubgo/xerror v0.4.6
+	github.com/pubgo/xerror v0.4.7
 	github.com/pubgo/xlog v0.2.2
 	github.com/pubgo/xprotogen v0.0.16
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563

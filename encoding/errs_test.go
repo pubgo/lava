@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -8,5 +9,5 @@ import (
 )
 
 func TestName(t *testing.T) {
-	fmt.Println(xerror.Wrap(ErrNotFound))
+	fmt.Println(errors.Is(xerror.Wrap(ErrNotFound), Err))
 }

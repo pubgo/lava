@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,11 +12,13 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/healthy"
 	v "github.com/pubgo/lug/internal/cmds/version"
+	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
@@ -74,7 +77,7 @@ func stop(ent entry.Runtime) (err error) {
 	logs.Infof("service [%s] before-stop running", ent.Options().Name)
 	bStops := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range bStops {
-		xerror.PanicF(try.Try(bStops[i]), "before stop error: %s", stack.Func(bStops[i]))
+		logutil.Logs(bStops[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(bStops[i]))))
 	}
 	logs.Infof("service [%s] before-stop over", ent.Options().Name)
 
@@ -83,7 +86,7 @@ func stop(ent entry.Runtime) (err error) {
 	logs.Infof("service [%s] after-stop running", ent.Options().Name)
 	aStops := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range aStops {
-		xerror.PanicF(try.Try(aStops[i]), "after stop error: %s", stack.Func(aStops[i]))
+		logutil.Logs(aStops[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(aStops[i]))))
 	}
 	logs.Infof("service [%s] after-stop over", ent.Options().Name)
 	return nil
@@ -132,9 +135,8 @@ func Run(short string, entries ...entry.Entry) (err error) {
 			runenv.Project = entRun.Options().Name
 
 			// 配置初始化
-			xerror.Panic(config.GetCfg().Init())
+			xerror.Panic(config.Init())
 			xerror.Panic(dix.Dix(config.GetCfg()))
-			xerror.Panic(dix.Dix(ent))
 
 			// 初始化组件, 初始化插件
 			plugins := plugin.List(plugin.Module(runenv.Project))
@@ -188,7 +190,7 @@ func Start(ent entry.Entry, args ...string) (err error) {
 
 	// config初始化
 	runenv.Project = entRun.Options().Name
-	xerror.Panic(config.GetCfg().Init())
+	xerror.Panic(config.Init())
 	xerror.Panic(watcher.Init())
 	xerror.Panic(dix.Dix(config.GetCfg()))
 

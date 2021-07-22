@@ -1,17 +1,20 @@
 package env
 
 import (
+	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
 
 	"testing"
 )
 
 func TestSnakeCase(t *testing.T) {
-	xerror.RespTest(t)
+	defer xerror.RespTest(t)
 
-	xerror.Assert(snakeCase("a.b") != "a.b", "snakeCase error")
-	xerror.Assert(snakeCase("a-b") != "a-b", "snakeCase error")
-	xerror.Assert(snakeCase("aBcD") != "a_bc_d", "snakeCase error")
-	xerror.Assert(snakeCase("aaBBccDD") != "aa_b_bcc_d_d", "snakeCase error")
-	xerror.Assert(snakeCase("aaBB/ccDD") != "aa_b_b/cc_d_d", "snakeCase error")
+	var snake = strcase.ToSnake
+	xerror.AssertEqual(snake("a.b"), "a_b")
+	xerror.AssertEqual(snake("a.b"), "a_b")
+	xerror.AssertEqual(snake("a-b"), "a_b")
+	xerror.AssertEqual(snake("aBcD"), "a_bc_d")
+	xerror.AssertEqual(snake("aaBBccDD"), "aa_b_bcc_dd")
+	xerror.AssertEqual(snake("aaBB/ccDD"), "aa_bb/cc_dd")
 }

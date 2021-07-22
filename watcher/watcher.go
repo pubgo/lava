@@ -28,7 +28,7 @@ var callbacks typex.Map
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	if !config.GetCfg().Decode(Name, &cfg) {
+	if !config.Decode(Name, &cfg) {
 		return
 	}
 

@@ -23,10 +23,12 @@ var (
 	CfgPath = ""
 )
 
-func GetCfg() *conf {
+func getCfg() *conf {
 	xerror.AssertFn(cfg == nil, func() string { return "[config] please init config" })
 	return cfg
 }
+
+func GetCfg() Config { return getCfg() }
 
 var _ Config = (*conf)(nil)
 
@@ -96,7 +98,7 @@ func (t *conf) UnmarshalKey(key string, rawVal interface{}, opts ...viper.Decode
 	return t.v.UnmarshalKey(key, rawVal, opts...)
 }
 
-func Decode(name string, fn interface{}) (b bool) { return GetCfg().Decode(name, fn) }
+func Decode(name string, fn interface{}) (b bool) { return getCfg().Decode(name, fn) }
 func (t *conf) Decode(name string, fn interface{}) (b bool) {
 	defer xerror.RespExit(name)
 
