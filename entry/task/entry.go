@@ -32,7 +32,7 @@ func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
 
 func (t *taskEntry) Stop() (err error) { return nil }
 
-func (t *taskEntry) Start(args ...string) (err error) {
+func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
 	t.broker = broker.Get(t.cfg.Broker)

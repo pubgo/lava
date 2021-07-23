@@ -21,7 +21,7 @@ var plg = &plugin.Base{
 		for k, v := range cfgList {
 			cfg := GetDefaultCfg()
 			xerror.Panic(merge.Copy(&cfg, &v))
-			initClient(k, cfg)
+			Update(k, cfg)
 			cfgList[k] = cfg
 		}
 	},

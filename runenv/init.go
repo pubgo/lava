@@ -12,6 +12,7 @@ import (
 var (
 	Domain                 = "lug"
 	CatchSigpipe           = true
+	Block                  = true
 	Trace                  = false
 	Addr                   = ":8080"
 	Project                = "lug"

@@ -20,7 +20,7 @@ func GetClient(names ...string) *oss.Bucket {
 	return val.(*oss.Bucket)
 }
 
-func initClient(name string, cfg ClientCfg) {
+func Update(name string, cfg ClientCfg) {
 	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 	xerror.Panic(err)
 	kk := xerror.PanicErr(client.Bucket(cfg.Bucket)).(*oss.Bucket)

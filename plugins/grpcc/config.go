@@ -86,7 +86,7 @@ func (t connectParams) toConnectParams() grpc.ConnectParams {
 	}
 }
 
-// WithContextDialer
+// Cfg ...
 type Cfg struct {
 	Registry             string        `json:"registry"`
 	MaxMsgSize           int           `json:"max_msg_size"`

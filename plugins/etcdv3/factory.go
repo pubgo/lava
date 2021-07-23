@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/pkg/typex"
@@ -38,8 +39,10 @@ func Update(name string, cfg Cfg) (gErr error) {
 		logs.Debug("create client", logutil.Name(name))
 
 		// 老客户端不存在就直接保存
-		clients.Set(name, &Client{etcdClient})
-		return nil
+		var client = &Client{etcdClient}
+		clients.Set(name, client)
+		xerror.Exit(dix.Provider(client))
+		return
 	}
 
 	// 当old etcd client没有被使用的时候, 那么就关闭

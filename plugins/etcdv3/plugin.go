@@ -40,10 +40,6 @@ var plg = &plugin.Base{
 		r.OnDelete(func() {
 			logs.Debugf("delete client", logutil.Name(name))
 
-			if Get(name) == nil {
-				logs.Errorf("client not found", logutil.Name(name))
-			}
-
 			Delete(name)
 		})
 	},

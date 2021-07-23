@@ -3,6 +3,7 @@ package metric
 import (
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
+
 	"github.com/pubgo/xerror"
 )
 

@@ -44,6 +44,10 @@ func handleSignal() {
 		}()
 	}
 
+	if !runenv.Block {
+		return
+	}
+
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runenv.Signal = <-ch
@@ -60,7 +64,7 @@ func start(ent entry.Runtime, args []string) (err error) {
 	}
 	logs.Infof("service [%s] before-start over", ent.Options().Name)
 
-	xerror.Panic(ent.Start(args...))
+	xerror.Panic(ent.Start())
 
 	logs.Infof("service [%s] after-start running", ent.Options().Name)
 	aStarts := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)

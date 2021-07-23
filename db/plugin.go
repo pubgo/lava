@@ -52,14 +52,16 @@ var plg = &plugin.Base{
 		}
 	},
 	OnWatch: func(name string, w *watcher.Response) {
-		cfg, ok := cfgList[name]
-		if !ok {
-			cfg = GetDefaultCfg()
-		}
+		w.OnPut(func() {
+			cfg, ok := cfgList[name]
+			if !ok {
+				cfg = GetDefaultCfg()
+			}
 
-		xerror.Panic(watcher.Decode(w.Value, &cfg))
-		xerror.Panic(Update(name, *cfg))
-		cfgList[name] = cfg
+			xerror.Panic(watcher.Decode(w.Value, &cfg))
+			xerror.Panic(Update(name, *cfg))
+			cfgList[name] = cfg
+		})
 
 		w.OnDelete(func() {
 			Delete(name)

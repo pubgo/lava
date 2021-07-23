@@ -3,6 +3,8 @@ package ctl
 import (
 	"context"
 
+	"github.com/pubgo/x/fx"
+
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 )
@@ -10,19 +12,19 @@ import (
 type Entry interface {
 	entry.Entry
 	Plugin(plugins ...plugin.Plugin)
-	Register(fn func(ctx context.Context), optList ...Opt)
-	RegisterLoop(fn func(ctx context.Context), optList ...Opt)
+	Register(name string, fn func(ctx fx.Ctx), optList ...Opt)
+	RegisterLoop(name string, fn func(ctx fx.Ctx), optList ...Opt)
 }
 
 type Opt func(opts *options)
 type options struct {
 	Name    string
 	once    bool
-	handler func(ctx context.Context)
+	handler func(ctx fx.Ctx)
 	cancel  context.CancelFunc
 }
 
-func WithName(name string) Opt {
+func withName(name string) Opt {
 	return func(opts *options) {
 		opts.Name = name
 	}

@@ -52,7 +52,7 @@ func Update(name string, cfg Cfg) (err error) {
 
 	clients.Set(name, client)
 	// 初始化完毕之后, 更新到对象管理系统
-	xerror.Panic(dix.Dix(map[string]*Client{name: client}))
+	xerror.Panic(dix.Provider(map[string]*Client{name: client}))
 
 	return
 }

@@ -254,7 +254,7 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 	g.endpoints = append(g.endpoints, newRpcHandler(handler)...)
 }
 
-func (g *grpcEntry) Start(args ...string) (gErr error) {
+func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	logs.Info("Server Listening On", logutil.Name(g.cfg.name), zap.String("addr", runenv.Addr))

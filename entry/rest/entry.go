@@ -88,7 +88,7 @@ func (t *restEntry) Use(handler ...Handler) {
 	}
 }
 
-func (t *restEntry) Start(args ...string) error {
+func (t *restEntry) Start() error {
 	return try.Try(func() {
 		// 启动server后等待
 		fx.GoDelay(func() {

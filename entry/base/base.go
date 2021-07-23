@@ -23,16 +23,11 @@ type Entry struct {
 	opts entry.Opts
 }
 
-func (t *Entry) Middleware(middleware entry.Middleware) {
-	defer xerror.RespExit()
-	t.opts.Middlewares = append(t.opts.Middlewares, middleware)
-}
-
 func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
 func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
 func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
 func (t *Entry) AfterStop(f func())      { t.opts.AfterStops = append(t.opts.AfterStops, f) }
-func (t *Entry) Dix(data ...interface{}) { xerror.Panic(dix.Dix(data...)) }
+func (t *Entry) Dix(data ...interface{}) { defer xerror.RespExit(); xerror.Panic(dix.Dix(data...)) }
 func (t *Entry) Start() error            { panic("start unimplemented") }
 func (t *Entry) Stop() error             { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts     { return t.opts }
@@ -41,6 +36,10 @@ func (t *Entry) OnInit(init func())      { t.init = init }
 func (t *Entry) OnCfgWithName(name string, fn interface{}) {
 	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
 	config.On(func(cfg config.Config) { _ = config.Decode(name, fn) })
+}
+
+func (t *Entry) Middleware(middleware entry.Middleware) {
+	t.opts.Middlewares = append(t.opts.Middlewares, middleware)
 }
 
 // Plugin 注册插件
@@ -58,6 +57,7 @@ func (t *Entry) InitRT() (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(runenv.Project != t.Options().Name, "project name not match(%s, %s)", runenv.Project, t.Options().Name)
+	xerror.Assert(t.init == nil, "init is nil")
 	t.init()
 
 	return
@@ -118,8 +118,11 @@ func newEntry(name string) *Entry {
 	xerror.Assert(name == "", "[name] should not be null")
 	xerror.Assert(strings.Contains(name, " "), "[name] should not contain blank")
 
-	return &Entry{
-		opts: entry.Opts{Name: name, Command: &cobra.Command{Use: handleCmdName(name), Version: version.Version}},
+	return &Entry{opts: entry.Opts{
+		Name: name,
+		Command: &cobra.Command{
+			Use:     handleCmdName(name),
+			Version: version.Version}},
 	}
 }
 

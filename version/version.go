@@ -13,7 +13,7 @@ var CommitID = ""
 var BuildTime = "2021-03-20 16:52:09"
 var Version = "v0.0.1"
 var Data = ""
-var Domain = ""
+var Domain string
 
 func GetVer() map[string]interface{} {
 	return map[string]interface{}{

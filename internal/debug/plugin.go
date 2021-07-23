@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func On(fn func(mux *types.DebugMux)) { xerror.Panic(dix.Dix(fn)) }
+func On(fn func(mux *types.DebugMux)) { xerror.Exit(dix.Provider(fn)) }
 func init()                           { plugin.Register(plg) }
 
 var plg = &plugin.Base{
@@ -35,7 +35,7 @@ var plg = &plugin.Base{
 		xerror.Panic(builder.Build(srv.Cfg))
 		srv.Mux = builder.Get()
 
-		xerror.Panic(dix.Dix((*types.DebugMux)(srv.Mux)))
+		xerror.Exit(dix.Provider((*types.DebugMux)(srv.Mux)))
 
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		ent.BeforeStart(func() {

@@ -1,15 +1,15 @@
 package ctl_entry
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/pubgo/lug"
+	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/entry/ctl"
 	"github.com/pubgo/lug/plugin"
 
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 )
@@ -27,14 +27,14 @@ func GetEntry() entry.Entry {
 		},
 	})
 
-	ent.Register(func(ctx context.Context) {
+	ent.Register(consts.Default, func(ctx fx.Ctx) {
 		logs.Info("ctl ok")
 	})
 
-	ent.RegisterLoop(func(ctx context.Context) {
+	ent.RegisterLoop("hello", func(ctx fx.Ctx) {
 		logs.Info("ctl hello")
 		time.Sleep(time.Second)
-	}, ctl.WithName("hello"))
+	})
 
 	ent.Plugin(&plugin.Base{
 		Name: "hello",

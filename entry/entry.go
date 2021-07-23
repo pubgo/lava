@@ -16,7 +16,7 @@ type Middleware func(next Wrapper) Wrapper
 
 type Runtime interface {
 	InitRT() error
-	Start(args ...string) error
+	Start() error
 	Stop() error
 	Options() Opts
 }

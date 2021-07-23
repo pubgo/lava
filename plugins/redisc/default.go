@@ -13,7 +13,7 @@ var clientM sync.Map
 
 type Option func(options *redis.Options)
 
-func GetClient(ctx context.Context, prefix string, options ...Option) *redis.Client {
+func Get(ctx context.Context, prefix string, options ...Option) *redis.Client {
 	val, ok := clientM.Load(prefix)
 	if !ok {
 		xerror.Panic(xerror.Fmt("[redis] key [%s] not found", prefix))
@@ -34,7 +34,7 @@ func GetClient(ctx context.Context, prefix string, options ...Option) *redis.Cli
 	return cc
 }
 
-func initClient(name string, cfg ClientCfg) {
+func Update(name string, cfg ClientCfg) {
 	var ctx, cancel = ctxutil.Timeout()
 	defer cancel()
 
