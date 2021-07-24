@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/runenv"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
@@ -24,15 +25,29 @@ type ctlEntry struct {
 	handlers map[string]options
 }
 
-func (t *ctlEntry) Register(name string, fn func(ctx fx.Ctx), optList ...Opt) {
-	var opts = register(t, fn, append(optList, withName(name))...)
-	opts.once = true
-	t.handlers[opts.Name] = opts
-}
+func (t *ctlEntry) Register(run Service, optList ...Opt) {
+	defer xerror.RespExit()
 
-func (t *ctlEntry) RegisterLoop(name string, fn func(ctx fx.Ctx), optList ...Opt) {
-	var opts = register(t, fn, append(optList, withName(name))...)
-	t.handlers[opts.Name] = opts
+	xerror.Assert(run == nil, "[run] should not be nil")
+
+	t.BeforeStart(func() { xerror.Exit(dix.Invoke(run)) })
+
+	runners := run.Run()
+	if runners != nil {
+		for name, v := range runners {
+			var opts = register(t, v, append(optList, withName(name))...)
+			opts.once = true
+			t.handlers[opts.Name] = opts
+		}
+	}
+
+	loops := run.RunLoop()
+	if loops != nil {
+		for name, v := range loops {
+			var opts = register(t, v, append(optList, withName(name))...)
+			t.handlers[opts.Name] = opts
+		}
+	}
 }
 
 func (t *ctlEntry) Start() (err error) {
@@ -51,17 +66,13 @@ func (t *ctlEntry) Start() (err error) {
 
 	if opts.once {
 		runenv.Block = false
-		opts.cancel = fx.Go(func(ctx context.Context) {
-			opts.handler(fx.Ctx{Context: ctx})
-		})
+		opts.cancel = fx.Go(func(ctx context.Context) { opts.handler(fx.Ctx{Context: ctx}) })
 		return
 	}
 
-	opts.cancel = fx.GoLoop(func(ctx fx.Ctx) {
-		opts.handler(ctx)
-	})
+	opts.cancel = fx.GoLoop(func(ctx fx.Ctx) { opts.handler(ctx) })
 
-	return nil
+	return
 }
 
 func (t *ctlEntry) Stop() error {
@@ -89,8 +100,8 @@ func newEntry(name string) *ctlEntry {
 
 func New(name string) Entry { return newEntry(name) }
 
-func register(t *ctlEntry, fn func(ctx fx.Ctx), optList ...Opt) options {
-	var opts = options{handler: fn}
+func register(t *ctlEntry, run Handler, optList ...Opt) options {
+	var opts = options{handler: run}
 	for i := range optList {
 		optList[i](&opts)
 	}

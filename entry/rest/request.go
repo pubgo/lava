@@ -2,9 +2,10 @@ package rest
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/x/byteutil"
+
 	"github.com/pubgo/lug/encoding"
 	"github.com/pubgo/lug/types"
-	"github.com/pubgo/x/byteutil"
 )
 
 var _ types.Request = (*httpRequest)(nil)

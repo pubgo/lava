@@ -239,7 +239,6 @@ func (g *grpcEntry) initHandler() {
 
 	// 初始化routes
 	for i := range g.handlers {
-		xerror.PanicF(dix.Invoke(g.handlers[i]), "%s", dix.Graph())
 		xerror.PanicF(grpcs.Register(g.rpc.Get(), g.handlers[i]), "register handler error")
 	}
 }
@@ -249,6 +248,8 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 	xerror.Assert(!grpcs.FindHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
+
+	g.BeforeStart(func() { xerror.Exit(dix.Invoke(handler)) })
 
 	g.handlers = append(g.handlers, handler)
 	g.endpoints = append(g.endpoints, newRpcHandler(handler)...)

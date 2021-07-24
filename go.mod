@@ -8,7 +8,6 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
@@ -23,6 +22,7 @@ require (
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18

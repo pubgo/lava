@@ -1,13 +1,13 @@
 package rest
 
 import (
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/x/byteutil"
 	"reflect"
 
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/xgen"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 )

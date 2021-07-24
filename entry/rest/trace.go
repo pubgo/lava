@@ -11,11 +11,11 @@ func (t *restEntry) trace() {
 			return nil
 		}
 
-		var data = make(map[string]string)
+		var data = make(map[string][]string)
 		stack := t.srv.Get().Stack()
 		for m := range stack {
 			for _, route := range stack[m] {
-				data[route.Path] = route.Method
+				data[route.Path] = append(data[route.Path], route.Method)
 			}
 		}
 		return data

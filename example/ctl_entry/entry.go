@@ -2,14 +2,11 @@ package ctl_entry
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/pubgo/lug"
-	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 )
@@ -27,21 +24,14 @@ func GetEntry() entry.Entry {
 		},
 	})
 
-	ent.Register(consts.Default, func(ctx fx.Ctx) {
-		logs.Info("ctl ok")
-	})
-
-	ent.RegisterLoop("hello", func(ctx fx.Ctx) {
-		logs.Info("ctl hello")
-		time.Sleep(time.Second)
-	})
-
 	ent.Plugin(&plugin.Base{
 		Name: "hello",
 		OnInit: func(ent entry.Entry) {
 			fmt.Println("hello plugin")
 		},
 	})
+
+	ent.Register(&Service{})
 
 	return ent
 }
