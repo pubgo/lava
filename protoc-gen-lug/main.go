@@ -92,9 +92,7 @@ var _ = fb.Cfg{}
 			return `
 {% for ss in fd.GetService() %}
 	func Register{{ss.Srv}}RestServer(app fiber.Router, server {{ss.Srv}}Server) {
-		if app == nil || server == nil {
-			panic("app is nil or server is nil")
-		}
+		xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 		{% for m in ss.GetMethod() %}
 			{%- if !m.CS && !m.SS %}

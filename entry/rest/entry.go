@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"github.com/pubgo/dix"
 	"net/http"
 
 	fb "github.com/pubgo/lug/builder/fiber"
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/lug/types"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
