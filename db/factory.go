@@ -20,15 +20,17 @@ type Client struct {
 	val atomic.Value
 }
 
-func (c *Client) Get() *xorm.Engine { return c.val.Load().(*xorm.Engine) }
+func (c *Client) Get() *xorm.Engine {
+	return c.val.Load().(*xorm.Engine)
+}
 
-func Get(names ...string) *Client {
+func Get(names ...string) *xorm.Engine {
 	c := clients.Get(consts.GetDefault(names...))
 	if c == nil {
 		return nil
 	}
 
-	return c.(*Client)
+	return c.(*Client).Get()
 }
 
 func Update(name string, cfg Cfg) (err error) {
