@@ -121,7 +121,7 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.TestStream3(ctx.Context(), req)
+		var resp, err = server.TestStream3(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}

@@ -101,7 +101,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.AddUser(ctx.Context(), req)
+		var resp, err = server.AddUser(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 			}
 		})
 		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-		var resp, err = server.GetUser(ctx.Context(), req)
+		var resp, err = server.GetUser(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -167,7 +167,7 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.UpdateUser(ctx.Context(), req)
+		var resp, err = server.UpdateUser(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}

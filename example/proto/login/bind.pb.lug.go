@@ -111,7 +111,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.Check(ctx.Context(), req)
+		var resp, err = server.Check(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.BindVerify(ctx.Context(), req)
+		var resp, err = server.BindVerify(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.BindChange(ctx.Context(), req)
+		var resp, err = server.BindChange(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.AutomaticBind(ctx.Context(), req)
+		var resp, err = server.AutomaticBind(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -171,7 +171,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.BindPhoneParse(ctx.Context(), req)
+		var resp, err = server.BindPhoneParse(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}
@@ -186,7 +186,7 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 			return xerror.Wrap(err)
 		}
 
-		var resp, err = server.BindPhoneParseByOneClick(ctx.Context(), req)
+		var resp, err = server.BindPhoneParseByOneClick(ctx.UserContext(), req)
 		if err != nil {
 			return err
 		}

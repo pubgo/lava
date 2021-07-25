@@ -116,7 +116,7 @@ var _ = fb.Cfg{}
 						}
 					})
 					xerror.Panic(gutil.MapFormByTag(req, data, "json"))
-					var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
+					var resp,err=server.{{m.GetName()}}(ctx.UserContext(),req)
 					if err!=nil{
 						return err
 					}
@@ -127,7 +127,7 @@ var _ = fb.Cfg{}
 						return xerror.Wrap(err)
 					}
 
-					var resp,err=server.{{m.GetName()}}(ctx.Context(),req)
+					var resp,err=server.{{m.GetName()}}(ctx.UserContext(),req)
 					if err!=nil{
 						return err
 					}

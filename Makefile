@@ -29,7 +29,7 @@ ci:
 	@golangci-lint run -v --timeout=5m
 
 
-gen-proto:
+proto-gen:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
