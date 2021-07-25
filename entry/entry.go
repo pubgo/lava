@@ -27,7 +27,6 @@ type Entry interface {
 	AfterStart(func())
 	BeforeStart(func())
 	OnCfg(fn interface{})
-	Dix(data ...interface{})
 	Middleware(middleware Middleware)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
@@ -46,5 +45,5 @@ type Opts struct {
 }
 
 func Watch(cb func(ent Entry)) error {
-	return xerror.Wrap(dix.Dix(cb))
+	return xerror.Wrap(dix.Provider(cb))
 }

@@ -30,7 +30,7 @@ func DefaultFlags() *pflag.FlagSet {
 	return flags
 }
 
-func On(fn func(cfg Config)) { xerror.Panic(dix.Dix(fn)) }
+func On(fn func(cfg Config)) { xerror.Panic(dix.Provider(fn)) }
 
 func addConfigPath(v *viper.Viper, in string) bool {
 	v.AddConfigPath(in)

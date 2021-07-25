@@ -17,10 +17,10 @@ import (
 var clients typex.SMap
 
 type Client struct {
-	atomic.Value
+	val atomic.Value
 }
 
-func (c *Client) Get() *xorm.Engine { return c.Load().(*xorm.Engine) }
+func (c *Client) Get() *xorm.Engine { return c.val.Load().(*xorm.Engine) }
 
 func Get(names ...string) *Client {
 	c := clients.Get(consts.GetDefault(names...))
@@ -35,11 +35,11 @@ func Update(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	var client = &Client{}
-	client.Store(xerror.PanicErr(cfg.Build()).(*xorm.Engine))
+	client.val.Store(xerror.PanicErr(cfg.Build()).(*xorm.Engine))
 
 	val, ok := clients.Load(name)
 	if ok {
-		val.(*Client).Store(client)
+		val.(*Client).val.Store(client)
 		return
 	}
 

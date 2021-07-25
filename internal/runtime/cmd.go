@@ -140,7 +140,7 @@ func Run(short string, entries ...entry.Entry) (err error) {
 
 			// 配置初始化
 			xerror.Panic(config.Init())
-			xerror.Panic(dix.Dix(config.GetCfg()))
+			xerror.Panic(dix.Provider(config.GetCfg()))
 
 			// 初始化组件, 初始化插件
 			plugins := plugin.List(plugin.Module(runenv.Project))
@@ -196,7 +196,7 @@ func Start(ent entry.Entry, args ...string) (err error) {
 	runenv.Project = entRun.Options().Name
 	xerror.Panic(config.Init())
 	xerror.Panic(watcher.Init())
-	xerror.Panic(dix.Dix(config.GetCfg()))
+	xerror.Panic(dix.Provider(config.GetCfg()))
 
 	// entry初始化
 	xerror.Panic(entRun.InitRT())

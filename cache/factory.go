@@ -12,7 +12,7 @@ var factories typex.Map
 
 type Factory func(cfg map[string]interface{}) (IStore, error)
 
-func RegisterStore(name string, store Factory) {
+func Register(name string, store Factory) {
 	xerror.Assert(name == "" || store == nil, "[store,name] should not be null")
 	xerror.Assert(factories.Has(name), "[store] %s already exists, refer: %s", name, stack.Func(factories.Get(name)))
 	factories.Set(name, store)

@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/version"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -27,7 +26,6 @@ func (t *Entry) BeforeStart(f func())    { t.opts.BeforeStarts = append(t.opts.B
 func (t *Entry) AfterStart(f func())     { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
 func (t *Entry) BeforeStop(f func())     { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
 func (t *Entry) AfterStop(f func())      { t.opts.AfterStops = append(t.opts.AfterStops, f) }
-func (t *Entry) Dix(data ...interface{}) { defer xerror.RespExit(); xerror.Panic(dix.Dix(data...)) }
 func (t *Entry) Start() error            { panic("start unimplemented") }
 func (t *Entry) Stop() error             { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts     { return t.opts }

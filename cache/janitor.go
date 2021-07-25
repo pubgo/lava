@@ -8,8 +8,8 @@ import (
 )
 
 // 定时清理过期数据
-func initJanitor(p *cache) error {
-	interval := p.opts.ClearTime
+func initJanitor(p *cacheImpl) error {
+	interval := p.cfg.ClearTime
 	if interval < defaultMinExpiration {
 		return errors.Wrapf(ErrClearTime, "过期时间(%s)小于最小过期时间(%s)", interval, defaultMinExpiration)
 	}
@@ -24,11 +24,11 @@ func initJanitor(p *cache) error {
 	return nil
 }
 
-func stopJanitor(c *cache) {
+func stopJanitor(c *cacheImpl) {
 	c.janitor.stop <- true
 }
 
-func runJanitor(c *cache, ci time.Duration) {
+func runJanitor(c *cacheImpl, ci time.Duration) {
 	j := &janitor{
 		Interval: ci,
 		stop:     make(chan bool),
@@ -42,7 +42,7 @@ type janitor struct {
 	stop     chan bool
 }
 
-func (j *janitor) Run(c *cache) {
+func (j *janitor) Run(c *cacheImpl) {
 	ticker := time.NewTicker(j.Interval)
 	for {
 		select {

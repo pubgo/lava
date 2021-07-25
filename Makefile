@@ -1,6 +1,6 @@
 WORKDIR=`pwd`
-VersionBase=github.com/pubgo/lug
 Domain=lugo
+VersionBase=github.com/pubgo/lug
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=6 HEAD)
