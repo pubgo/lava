@@ -33,6 +33,15 @@ func Get(names ...string) *xorm.Engine {
 	return c.(*Client).Get()
 }
 
+func GetCallback(cb func(*xorm.Engine), names ...string) {
+	c := clients.Get(consts.GetDefault(names...))
+	if c == nil {
+		return
+	}
+
+	cb(c.(*Client).Get())
+}
+
 func Update(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
