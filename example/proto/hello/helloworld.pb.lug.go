@@ -50,9 +50,7 @@ func init() {
 }
 
 func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("GET", "/say/{name}", func(ctx *fiber.Ctx) error {

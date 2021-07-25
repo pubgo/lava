@@ -100,9 +100,7 @@ func init() {
 }
 
 func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {

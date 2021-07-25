@@ -79,9 +79,7 @@ func init() {
 }
 
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// websockets
 	app.Get("/hello/transport/test-stream", fb.NewWs(func(ctx *fiber.Ctx, c *fb.Conn) {

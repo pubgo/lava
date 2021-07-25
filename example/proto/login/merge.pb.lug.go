@@ -90,9 +90,7 @@ func init() {
 }
 
 func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {

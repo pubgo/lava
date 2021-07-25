@@ -96,9 +96,7 @@ func init() {
 }
 
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("GET", "/v1/version", func(ctx *fiber.Ctx) error {
@@ -153,9 +151,7 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 }
 
 func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("POST", "/v2/example/version/{name}", func(ctx *fiber.Ctx) error {

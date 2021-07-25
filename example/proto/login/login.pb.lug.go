@@ -60,9 +60,7 @@ func init() {
 }
 
 func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
-	if app == nil || server == nil {
-		panic("app is nil or server is nil")
-	}
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
 
 	// restful
 	app.Add("POST", "/user/login/login", func(ctx *fiber.Ctx) error {
