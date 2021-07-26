@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/protobuf/types/known/structpb"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 
@@ -16,6 +17,12 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 func (this *TestReq) Validate() error {
+	if this.Lists != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Lists); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Lists", err)
+		}
+	}
+	// Validation of proto3 map<> fields is unsupported.
 	return nil
 }
 func (this *TestApiData) Validate() error {

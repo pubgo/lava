@@ -121,10 +121,10 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 
 		var resp, err = server.TestStream3(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

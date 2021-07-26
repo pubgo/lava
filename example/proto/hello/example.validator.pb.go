@@ -12,14 +12,15 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
+	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "github.com/gogo/protobuf/gogoproto"
 	_ "github.com/mwitkow/go-proto-validators"
 	_ "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
-	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
+	_ "google.golang.org/protobuf/types/known/structpb"
 	time "time"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
@@ -42,6 +43,12 @@ func (this *User) Validate() error {
 	return nil
 }
 func (this *UserRole) Validate() error {
+	if this.Lists != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Lists); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Lists", err)
+		}
+	}
+	// Validation of proto3 map<> fields is unsupported.
 	return nil
 }
 func (this *UpdateUserRequest) Validate() error {

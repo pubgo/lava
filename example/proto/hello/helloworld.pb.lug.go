@@ -71,10 +71,10 @@ func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
 		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
 		var resp, err = server.SayHello(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

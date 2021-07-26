@@ -40,7 +40,9 @@ require (
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
+	github.com/magefile/mage v1.11.0
 	github.com/mattn/go-sqlite3 v1.14.0
+	github.com/mattn/go-zglob v0.0.3
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mwitkow/go-proto-validators v0.3.2

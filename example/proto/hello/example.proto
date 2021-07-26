@@ -10,6 +10,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/struct.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "gogoproto/gogo.proto";
@@ -91,6 +92,8 @@ message User {
 
 message UserRole {
   Role role = 1;
+  google.protobuf.ListValue lists = 2;
+  map <string, google.protobuf.ListValue> headers = 3;
 }
 
 message UpdateUserRequest {

@@ -111,10 +111,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.Check(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -126,10 +126,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.BindVerify(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -141,10 +141,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.BindChange(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -156,10 +156,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.AutomaticBind(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -171,10 +171,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.BindPhoneParse(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -186,10 +186,10 @@ func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServe
 
 		var resp, err = server.BindPhoneParseByOneClick(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

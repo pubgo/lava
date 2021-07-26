@@ -117,10 +117,10 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
 		var resp, err = server.Version(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -142,10 +142,10 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
 		var resp, err = server.VersionTest(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }
@@ -162,10 +162,10 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 
 		var resp, err = server.Version1(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -177,10 +177,10 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 
 		var resp, err = server.VersionTest1(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

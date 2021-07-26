@@ -101,10 +101,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 
 		var resp, err = server.SendCode(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -116,10 +116,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 
 		var resp, err = server.Verify(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -131,10 +131,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 
 		var resp, err = server.IsCheckImageCode(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -146,10 +146,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 
 		var resp, err = server.VerifyImageCode(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -161,10 +161,10 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 
 		var resp, err = server.GetSendStatus(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

@@ -101,10 +101,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 
 		var resp, err = server.Telephone(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -116,10 +116,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 
 		var resp, err = server.TelephoneCheck(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -131,10 +131,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 
 		var resp, err = server.WeChat(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -146,10 +146,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 
 		var resp, err = server.WeChatCheck(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -161,10 +161,10 @@ func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
 
 		var resp, err = server.WeChatUnMerge(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

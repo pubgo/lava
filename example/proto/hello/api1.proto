@@ -2,11 +2,15 @@ syntax = "proto3";
 
 package hello;
 
+import "google/protobuf/struct.proto";
+
 option go_package = "./;hello";
 
 message TestReq {
   string input = 1;
   string name = 2;
+  google.protobuf.ListValue lists = 3;
+  map <string, google.protobuf.ListValue> headers = 4;
 }
 
 message TestApiData {

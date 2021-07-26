@@ -71,10 +71,10 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 
 		var resp, err = server.Login(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 	// restful
@@ -86,10 +86,10 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 
 		var resp, err = server.Authenticate(ctx.UserContext(), req)
 		if err != nil {
-			return err
+			return xerror.Wrap(err)
 		}
 
-		return ctx.JSON(resp)
+		return xerror.Wrap(ctx.JSON(resp))
 	})
 
 }

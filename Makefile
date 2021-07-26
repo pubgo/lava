@@ -63,9 +63,6 @@ docker:
 build-all:
 	go build -tags "kcp quic" ./...
 
-deps:
-	go list -f '{{ join .Deps  "\n"}}' ./... |grep "/" | grep -v "github.com/smallnest/rpcx"| grep "\." | sort |uniq
-
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html
 	open cover.html
@@ -78,32 +75,6 @@ update-libs:
 
 mod-tidy:
 	GIT_TERMINAL_PROMPT=1 GO111MODULE=on go mod tidy
-
-mac:
-	GOOS=darwin go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl-darwin goctl.go
-	$(if $(shell command -v upx), upx goctl-darwin)
-win:
-	GOOS=windows go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl.exe goctl.go
-	$(if $(shell command -v upx), upx goctl.exe)
-linux:
-	GOOS=linux go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl-linux goctl.go
-	$(if $(shell command -v upx), upx goctl-linux)
-
-changelog:
-	docker run --rm \
-		--interactive \
-		--tty \
-		-e "CHANGELOG_GITHUB_TOKEN=${CHANGELOG_GITHUB_TOKEN}" \
-		-v "$(PWD):/usr/local/src/your-app" \
-		ferrarimarco/github-changelog-generator:1.14.3 \
-				-u grpc-ecosystem \
-				-p grpc-gateway \
-				--author \
-				--compare-link \
-				--github-site=https://github.com \
-				--unreleased-label "**Next release**" \
-				--release-branch=master \
-				--future-release=v2.3.0
 
 vet:
 	@go vet ./...
