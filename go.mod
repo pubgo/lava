@@ -52,7 +52,7 @@ require (
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
-	github.com/pubgo/dix v0.1.24
+	github.com/pubgo/dix v0.1.25
 	github.com/pubgo/x v0.3.28
 	github.com/pubgo/xerror v0.4.7
 	github.com/pubgo/xlog v0.2.2
