@@ -6,6 +6,7 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 )
 
 func GetSpanWithCtx(ctx context.Context) *Span {
@@ -25,11 +26,7 @@ var _ opentracing.Span = (*Span)(nil)
 type Span struct {
 	opentracing.Span
 	traceId string
-}
-
-func (s *Span) SetOperation(name string) *Span {
-	s.Span = s.Span.SetOperationName(name)
-	return s
+	log     *zap.Logger
 }
 
 func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {
@@ -46,7 +43,17 @@ func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *
 	}
 }
 
-func (s *Span) SetBaggage(restrictedKey, value string) *Span {
+func (s *Span) SetOperationName(name string) opentracing.Span {
+	s.Span = s.Span.SetOperationName(name)
+	return s
+}
+
+func (s *Span) SetTag(key string, value interface{}) opentracing.Span {
+	s.Span.SetTag(key, value)
+	return s
+}
+
+func (s *Span) SetBaggageItem(restrictedKey, value string) opentracing.Span {
 	s.Span = s.Span.SetBaggageItem(restrictedKey, value)
 	return s
 }

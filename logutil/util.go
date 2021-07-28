@@ -1,13 +1,20 @@
 package logutil
 
 import (
+	"context"
+	"reflect"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 
-	"reflect"
+	"github.com/pubgo/lug/tracing"
 )
+
+func Trace(ctx context.Context) zap.Field {
+	return zap.String("trace_id", tracing.GetSpanWithCtx(ctx).TraceID())
+}
 
 func Err(err error) zap.Field {
 	return zap.Any("err", err)

@@ -23,6 +23,7 @@ var plg = plugin.Base{
 		var reporter = xerror.PanicErr(cfg.Build()).(Reporter)
 		setDefault(reporter)
 	},
+
 	OnWatch: func(name string, resp *watcher.Response) {
 		var cfg = GetDefaultCfg()
 		_ = config.Decode(Name, &cfg)

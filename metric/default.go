@@ -19,23 +19,35 @@ func getDefault() Reporter {
 }
 
 //CreateGauge init a new gauge type
-func CreateGauge(name string, labels []string, opts GaugeOpts) error {
-	return getDefault().CreateGauge(name, labels, opts)
+func CreateGauge(name string, labels []string, opts GaugeOpts) Handler {
+	xerror.Exit(getDefault().CreateGauge(name, labels, opts))
+	return func(value float64, tags Tags) error {
+		return getDefault().Gauge(name, value, tags)
+	}
 }
 
 //CreateCounter init a new counter type
-func CreateCounter(name string, labels []string, opts CounterOpts) error {
-	return getDefault().CreateCounter(name, labels, opts)
+func CreateCounter(name string, labels []string, opts CounterOpts) Handler {
+	xerror.Exit(getDefault().CreateCounter(name, labels, opts))
+	return func(value float64, tags Tags) error {
+		return getDefault().Count(name, value, tags)
+	}
 }
 
 //CreateSummary init a new summary type
-func CreateSummary(name string, labels []string, opts SummaryOpts) error {
-	return getDefault().CreateSummary(name, labels, opts)
+func CreateSummary(name string, labels []string, opts SummaryOpts) Handler {
+	xerror.Exit(getDefault().CreateSummary(name, labels, opts))
+	return func(value float64, tags Tags) error {
+		return getDefault().Summary(name, value, tags)
+	}
 }
 
 //CreateHistogram init a new histogram type
-func CreateHistogram(name string, labels []string, opts HistogramOpts) error {
-	return getDefault().CreateHistogram(name, labels, opts)
+func CreateHistogram(name string, labels []string, opts HistogramOpts) Handler {
+	xerror.Exit(getDefault().CreateHistogram(name, labels, opts))
+	return func(value float64, tags Tags) error {
+		return getDefault().Histogram(name, value, tags)
+	}
 }
 
 // Count 上报递增数据
