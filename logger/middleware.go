@@ -2,11 +2,11 @@ package logger
 
 import (
 	"context"
-	"github.com/pubgo/lug/types"
 	"time"
 
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/tracing"
+	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -15,7 +15,7 @@ import (
 func Middleware() entry.Middleware {
 	return func(next entry.Wrapper) entry.Wrapper {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
-			var span = tracing.FromCtx(ctx)
+			var span = tracing.GetSpanWithCtx(ctx)
 
 			start := time.Now()
 
@@ -26,7 +26,7 @@ func Middleware() entry.Middleware {
 			ac["method"] = req.Method()
 			ac["endpoint"] = req.Endpoint()
 			ac["request_id"] = reqID
-			ac["trace_id"] = span.GetTraceID()
+			ac["trace_id"] = span.TraceID()
 			ac["receive_time"] = start.Format(time.RFC3339Nano)
 
 			var gErr error

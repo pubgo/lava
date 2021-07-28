@@ -11,7 +11,7 @@ var _ jLog.Logger = (*logger)(nil)
 func newLog(name string) *logger {
 	return &logger{logs: xlog.GetLogger(name,
 		zap.AddCallerSkip(2),
-		zap.Fields(zap.String("pkg", "tracing")))}
+		zap.Fields(zap.Bool("tracing", true)))}
 }
 
 type logger struct {

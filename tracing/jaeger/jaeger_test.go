@@ -2,6 +2,7 @@ package jaeger
 
 import (
 	"github.com/pubgo/lug/tracing"
+	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
@@ -18,6 +19,7 @@ func TestName(t *testing.T) {
 
 	var cfg = GetDefaultCfg()
 	cfg.ServiceName = "service_name"
+	cfg.BatchSize = 0
 
 	tracer := xerror.PanicErr(New(cfg)).(tracing.Tracer)
 
@@ -52,4 +54,6 @@ func TestName(t *testing.T) {
 	span3.LogKV("key", "value")
 	span3.SetTag("http", "get")
 	span3.Finish()
+
+	time.Sleep(time.Second)
 }

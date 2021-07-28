@@ -3,15 +3,15 @@ package jaeger
 import (
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/xerror"
-	"github.com/uber/jaeger-client-go"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 )
 
-type Cfg = jaegerCfg.Configuration
+type Cfg struct {
+	*jaegerCfg.Configuration
+	BatchSize int `yaml:"batch_size"`
+}
 
 const Name = "jaeger"
-
-var _ = jaeger.NewNullReporter()
 
 func GetDefaultCfg() *Cfg {
 	cfg, err := jaegerCfg.FromEnv()
@@ -20,5 +20,5 @@ func GetDefaultCfg() *Cfg {
 	cfg.Disabled = false
 	cfg.ServiceName = runenv.Project
 	xerror.Panic(err)
-	return cfg
+	return &Cfg{Configuration: cfg, BatchSize: 100}
 }

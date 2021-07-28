@@ -86,3 +86,6 @@ generate:
 install:
 	@go install -v github.com/tinylib/msgp
 	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+
+lint:
+	@golangci-lint run --skip-dirs-use-default --timeout 3m0s

@@ -63,6 +63,7 @@ func (t *conf) ConfigFileUsed() string {
 func GetMap(keys ...string) map[string]interface{} {
 	return GetCfg().GetStringMap(strings.Join(keys, "."))
 }
+
 func (t *conf) GetStringMap(key string) map[string]interface{} {
 	t.rw.RLock()
 	defer t.rw.RUnlock()

@@ -2,10 +2,11 @@ package tracing
 
 import (
 	"context"
-	"github.com/pubgo/lug/types"
 
 	"github.com/opentracing/opentracing-go"
+
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/types"
 )
 
 func Middleware() entry.Middleware {

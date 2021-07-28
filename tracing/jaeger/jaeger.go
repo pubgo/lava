@@ -16,6 +16,8 @@ import (
 	"github.com/uber/jaeger-lib/metrics/prometheus"
 )
 
+var _ = jaeger.NewNullReporter()
+
 const (
 	phpRequestTraceID      = "x-w-traceid"
 	phpRequestSpanID       = "x-w-spanid"
@@ -56,13 +58,12 @@ func New(cfg *Cfg) (tracing.Tracer, error) {
 	var logs = newLog("tracing")
 	var tracer tracing.Tracer
 	trace, _, err := cfg.NewTracer(
-		config.Reporter(reporter.NewIoReporter(logs)),
+		config.Reporter(reporter.NewIoReporter(logs, cfg.BatchSize)),
 		config.Logger(logs),
 		config.Metrics(prometheus.New()),
 		config.Sampler(jaeger.NewConstSampler(true)),
 	)
-
-	xerror.Panic(err)
+	xerror.Exit(err)
 	tracer.Tracer = trace
 
 	return tracer, nil

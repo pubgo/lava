@@ -8,20 +8,24 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-const TraceId = "trace-id"
+func GetSpanWithCtx(ctx context.Context) *Span {
+	var span = FromCtx(ctx)
+	if span == nil {
+		span = NewSpan(opentracing.StartSpan("tracing"))
+	}
+	return span
+}
 
 func NewSpan(sp opentracing.Span) *Span {
-	return &Span{Span: sp}
+	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
 }
 
 var _ opentracing.Span = (*Span)(nil)
 
 type Span struct {
 	opentracing.Span
-	ctx context.Context
+	traceId string
 }
-
-func (s *Span) Ctx() context.Context { return s.ctx }
 
 func (s *Span) SetOperation(name string) *Span {
 	s.Span = s.Span.SetOperationName(name)
@@ -29,11 +33,17 @@ func (s *Span) SetOperation(name string) *Span {
 }
 
 func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {
-	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.ChildOf(s.Context()))...)}
+	return &Span{
+		traceId: s.traceId,
+		Span:    s.Tracer().StartSpan(name, append(opts, opentracing.ChildOf(s.Context()))...),
+	}
 }
 
 func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *Span {
-	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.FollowsFrom(s.Context()))...)}
+	return &Span{
+		traceId: s.traceId,
+		Span:    s.Tracer().StartSpan(name, append(opts, opentracing.FollowsFrom(s.Context()))...),
+	}
 }
 
 func (s *Span) SetBaggage(restrictedKey, value string) *Span {
@@ -41,10 +51,7 @@ func (s *Span) SetBaggage(restrictedKey, value string) *Span {
 	return s
 }
 
-func (s *Span) GetTraceID() string {
-	return GetTraceId(s.Span.Context())
-}
-
+func (s *Span) TraceID() string { return s.traceId }
 func (s *Span) GetHttpHeader() http.Header {
 	tracer := opentracing.GlobalTracer()
 	header := http.Header{}

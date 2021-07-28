@@ -1,10 +1,10 @@
 package tracing
 
 import (
-	"context"
-
 	"github.com/opentracing/opentracing-go"
 )
+
+var GetTraceId = func(span opentracing.SpanContext) string { return "" }
 
 type Tags = opentracing.Tags
 
@@ -13,12 +13,7 @@ type Tracer struct {
 }
 
 func (t *Tracer) createSpan(name string, opts ...opentracing.StartSpanOption) *Span {
-	span := new(Span)
-
-	span.Span = t.Tracer.StartSpan(name, opts...)
-	span.ctx = opentracing.ContextWithSpan(context.Background(), span.Span)
-
-	return span
+	return NewSpan(t.Tracer.StartSpan(name, opts...))
 }
 
 func (t *Tracer) RootSpan(name string, opts ...opentracing.StartSpanOption) *Span {

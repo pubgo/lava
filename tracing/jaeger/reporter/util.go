@@ -2,12 +2,12 @@ package reporter
 
 import (
 	"fmt"
-
+	
 	"github.com/jaegertracing/jaeger/model"
 	j "github.com/uber/jaeger-client-go/thrift-gen/jaeger"
 )
 
-func ToDomainSpan(jSpan *j.Span, jProcess *j.Process) *model.Span {
+func toDomainSpan(jSpan *j.Span, jProcess *j.Process) *model.Span {
 	return transformSpan(jSpan, getProcess(jProcess))
 }
 
@@ -15,22 +15,21 @@ func getProcess(jProcess *j.Process) *model.Process {
 	if jProcess == nil {
 		return nil
 	}
+
 	tags := getTags(jProcess.Tags, 0)
-	return &model.Process{
-		Tags:        tags,
-		ServiceName: jProcess.ServiceName,
-	}
+	return &model.Process{Tags: tags, ServiceName: jProcess.ServiceName}
 }
 
 func getTags(tags []*j.Tag, extraSpace int) model.KeyValues {
 	if len(tags) == 0 {
 		return nil
 	}
-	retMe := make(model.KeyValues, len(tags), len(tags)+extraSpace)
+
+	retKv := make(model.KeyValues, len(tags), len(tags)+extraSpace)
 	for i, tag := range tags {
-		retMe[i] = getTag(tag)
+		retKv[i] = getTag(tag)
 	}
-	return retMe
+	return retKv
 }
 
 func getTag(tag *j.Tag) model.KeyValue {
@@ -55,6 +54,7 @@ func transformSpan(jSpan *j.Span, mProcess *model.Process) *model.Span {
 	//allocate extra space for future append operation
 	tags := getTags(jSpan.Tags, 1)
 	refs := getReferences(jSpan.References)
+
 	// We no longer store ParentSpanID in the domain model, but the data in Thrift model
 	// might still have these IDs without representing them in the References, so we
 	// convert it back into child-of reference.
@@ -62,6 +62,7 @@ func transformSpan(jSpan *j.Span, mProcess *model.Process) *model.Span {
 		parentSpanID := model.NewSpanID(uint64(jSpan.ParentSpanId))
 		refs = model.MaybeAddParentSpanID(traceID, parentSpanID, refs)
 	}
+
 	return &model.Span{
 		TraceID:       traceID,
 		SpanID:        model.NewSpanID(uint64(jSpan.SpanId)),
@@ -83,13 +84,10 @@ func getReferences(jRefs []*j.SpanRef) []model.SpanRef {
 
 	mRefs := make([]model.SpanRef, len(jRefs))
 	for idx, jRef := range jRefs {
-		mRefs[idx] = model.SpanRef{
-			RefType: model.SpanRefType(int(jRef.RefType)),
-			TraceID: model.NewTraceID(uint64(jRef.TraceIdHigh), uint64(jRef.TraceIdLow)),
-			SpanID:  model.NewSpanID(uint64(jRef.SpanId)),
-		}
+		mRefs[idx].RefType = model.SpanRefType(int(jRef.RefType))
+		mRefs[idx].TraceID = model.NewTraceID(uint64(jRef.TraceIdHigh), uint64(jRef.TraceIdLow))
+		mRefs[idx].SpanID = model.NewSpanID(uint64(jRef.SpanId))
 	}
-
 	return mRefs
 }
 
@@ -98,12 +96,10 @@ func getLogs(logs []*j.Log) []model.Log {
 		return nil
 	}
 
-	retMe := make([]model.Log, len(logs))
+	retLog := make([]model.Log, len(logs))
 	for i, log := range logs {
-		retMe[i] = model.Log{
-			Timestamp: model.EpochMicrosecondsAsTime(uint64(log.Timestamp)),
-			Fields:    getTags(log.Fields, 0),
-		}
+		retLog[i].Fields = getTags(log.Fields, 0)
+		retLog[i].Timestamp = model.EpochMicrosecondsAsTime(uint64(log.Timestamp))
 	}
-	return retMe
+	return retLog
 }

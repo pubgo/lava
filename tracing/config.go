@@ -2,6 +2,7 @@ package tracing
 
 import (
 	"github.com/pubgo/lug/config"
+
 	"github.com/pubgo/xerror"
 )
 
@@ -18,13 +19,13 @@ func (cfg Cfg) Build() (_ Tracer, err error) {
 	xerror.Assert(driver == "", "tracer driver is null")
 
 	fc := Get(driver)
-	xerror.Assert(fc == nil, "tracer driver %s not found", driver)
+	xerror.Assert(fc == nil, "tracer driver [%s] not found", driver)
 
 	return fc(config.GetMap(Name))
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Driver: "noop",
+		Driver: "jaeger",
 	}
 }
