@@ -2,6 +2,7 @@ package memberlist
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/memberlist"
 )
 

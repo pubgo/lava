@@ -16,12 +16,12 @@ func (p2c *p2cBalancer) Build(info base.PickerBuildInfo) balancer.Picker {
 	}
 
 	// 创建一个新的负载均衡器
-	npa := NewP2cAgl()
-	for subConn, _ := range info.ReadySCs {
-		npa.Add(subConn)
+	connM := NewP2cAgl()
+	for subConn := range info.ReadySCs {
+		connM.Add(subConn)
 	}
 
-	return &p2cPicker{pickerAgl: npa}
+	return &p2cPicker{pickerAgl: connM}
 }
 
 var _ balancer.Picker = (*p2cPicker)(nil)

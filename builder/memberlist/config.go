@@ -61,7 +61,6 @@ func (t Cfg) Build() *memberlist.Memberlist {
 	ml, err := memberlist.Create(t.mc)
 	xerror.Panic(err)
 	return ml
-
 }
 
 func GetDefaultCfg() Cfg {

@@ -17,6 +17,14 @@ func GetSpanWithCtx(ctx context.Context) *Span {
 	return span
 }
 
+func GetTraceIdWithCtx(ctx context.Context) string {
+	var span = FromCtx(ctx)
+	if span == nil {
+		return ""
+	}
+	return span.TraceID()
+}
+
 func NewSpan(sp opentracing.Span) *Span {
 	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
 }

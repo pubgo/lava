@@ -22,7 +22,7 @@ var plg = plugin.Base{
 		for name, cfg := range cfgList {
 			var bk = xerror.PanicErr(cfg.Build(name)).(Broker)
 			brokers.Set(name, bk)
-			xerror.Exit(dix.Provider(bk, name))
+			xerror.Exit(dix.Provider(map[string]interface{}{name: bk}))
 		}
 	},
 

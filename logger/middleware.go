@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/tracing"
 	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/xerror"
@@ -43,13 +43,14 @@ func Middleware() entry.Middleware {
 				// 毫秒
 				ac["cost"] = time.Since(start).Milliseconds()
 
-				xlog.Info("request log", ac, logutil.Trace(ctx))
+				xlog.Info("request log", ac, tracing.TraceIdField(ctx))
 			}()
 
 			gErr = next(ctxWithReqID(ctx, reqID), req, func(rsp types.Response) error {
 				respBody = rsp.Payload()
 				return xerror.Wrap(resp(rsp))
 			})
+
 			return gErr
 		}
 	}

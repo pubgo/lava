@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"strconv"
@@ -193,4 +194,8 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 			next.ServeHTTP(w, req)
 		})
 	}
+}
+
+func TraceIdField(ctx context.Context) zap.Field {
+	return zap.String("trace_id", GetTraceIdWithCtx(ctx))
 }

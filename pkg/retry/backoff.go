@@ -67,9 +67,9 @@ func WithJitterPercent(j uint64, next Backoff) Backoff {
 }
 
 // WithMaxRetries executes the backoff function up until the maximum attempts.
-func WithMaxRetries(max uint64, next Backoff) Backoff {
+func WithMaxRetries(max uint32, next Backoff) Backoff {
 	var l sync.Mutex
-	var attempt uint64
+	var attempt uint32
 
 	return BackoffFunc(func() (time.Duration, bool) {
 		l.Lock()

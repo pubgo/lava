@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const DefaultConstant = time.Second
+
 // NewConstant creates a new constant backoff using the value t. The wait time
 // is the provided constant value.
 func NewConstant(t time.Duration) Backoff {

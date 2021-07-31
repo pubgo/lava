@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/lug/pkg/retry"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -41,7 +42,11 @@ func (t Cfg) Build() (c *clientv3.Client, err error) {
 
 	// 创建etcd client对象
 	var etcdClient *clientv3.Client
-	err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
+	xerror.Panic(retry.New().Do(func(i int) error {
+		etcdClient, err = clientv3.New(cfg)
+		return xerror.Wrap(err)
+	}))
+	//err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
 	xerror.PanicF(err, "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
 
 	return etcdClient, nil

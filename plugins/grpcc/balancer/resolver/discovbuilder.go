@@ -3,11 +3,11 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lug/types"
 	"sync"
 
 	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-var logs = xlog.GetLogger("resolver")
+var logs = xlog.GetLogger("balancer.resolver")
 
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
@@ -62,10 +62,13 @@ func (d *discovBuilder) updateService(services ...*registry.Service) {
 }
 
 // 获取服务地址
-func (d *discovBuilder) getAddrs() []resolver.Address {
+func (d *discovBuilder) getAddrs(name string) []resolver.Address {
 	var addrs []resolver.Address
 	d.services.Range(func(_, value interface{}) bool {
-		addrs = append(addrs, *value.(*resolver.Address))
+		var addr = *value.(*resolver.Address)
+		if addr.ServerName == name {
+			addrs = append(addrs, *value.(*resolver.Address))
+		}
 		return true
 	})
 	return addrs
@@ -89,7 +92,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
-	var addrs = d.getAddrs()
+	var addrs = d.getAddrs(target.Endpoint)
 	xerror.Assert(len(addrs) == 0, "service none available")
 
 	logs.Infof("discovBuilder Addrs %#v", addrs)
@@ -124,7 +127,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				}
 
 				try.Logs(logs, func() {
-					var addrs = d.getAddrs()
+					var addrs = d.getAddrs(target.Endpoint)
 					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 				})
 

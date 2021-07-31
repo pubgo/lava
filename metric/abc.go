@@ -2,7 +2,7 @@ package metric
 
 type Handler func(value float64, tags Tags) error
 
-func (m Handler) Do(value float64, tags Tags) error { return m(value, tags) }
+func (m Handler) Record(value float64, tags Tags) error { return m(value, tags) }
 
 // Tags is a map of fields to add to a metrics
 type Tags map[string]string

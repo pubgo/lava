@@ -3,6 +3,7 @@ package task
 import (
 	"github.com/pubgo/lug/broker"
 	"github.com/pubgo/lug/entry/base"
+
 	"github.com/pubgo/xerror"
 )
 
@@ -31,7 +32,6 @@ func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
 }
 
 func (t *taskEntry) Stop() (err error) { return nil }
-
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 

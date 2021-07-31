@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 
-	"github.com/pubgo/xlog"
 	"github.com/segmentio/ksuid"
 )
 
@@ -26,21 +25,4 @@ func ReqIDFromCtx(ctx context.Context) string {
 
 func ctxWithReqID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, xRequestId, id)
-}
-
-type loggerKey struct{}
-
-// WithCtx returns a new context with the provided logger.
-func WithCtx(ctx context.Context, log xlog.Xlog) context.Context {
-	return context.WithValue(ctx, loggerKey{}, log)
-}
-
-// FromCtx retrieves the current logger from the context.
-func FromCtx(ctx context.Context) xlog.Xlog {
-	logger := ctx.Value(loggerKey{})
-	if logger == nil {
-		return xlog.GetDefault()
-	}
-
-	return logger.(xlog.Xlog)
 }

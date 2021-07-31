@@ -88,26 +88,18 @@ func doUrl(c *client, mth string, url string, requests ...func(req *Request)) (*
 }
 
 func doFunc(c *client) func(req *Request, fn func(*Response) error) error {
-	return func(req *Request, fn func(*Response) error) (gErr error) {
+	var backoff = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
+
+	return func(req *Request, fn func(*Response) error) error {
 		var resp = fasthttp.AcquireResponse()
-		retry.Do(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff), func(i int) bool {
-			var err error
+
+		xerror.Panic(backoff.Do(func(i int) error {
 			if c.cfg.Timeout > 0 {
-				err = xerror.Wrap(c.client.DoTimeout(req.Request, resp, c.cfg.Timeout))
+				return xerror.Wrap(c.client.DoTimeout(req.Request, resp, c.cfg.Timeout))
 			} else {
-				err = xerror.Wrap(c.client.Do(req.Request, resp))
+				return xerror.Wrap(c.client.Do(req.Request, resp))
 			}
-
-			if xerror.AppendInto(&gErr, err) {
-				return false
-			}
-
-			return true
-		})
-
-		if gErr != nil {
-			return
-		}
+		}))
 
 		return xerror.Wrap(fn(resp))
 	}

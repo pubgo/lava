@@ -1,4 +1,9 @@
 etcd:
   default:
-    endpoints: "localhost:2379"
+    endpoints:
+      - "localhost:2379"
+    name: "test"
+  etcd-name-hello:
+    endpoints:
+      - "localhost:2379"
     name: "test"

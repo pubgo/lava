@@ -17,7 +17,7 @@ type Cfg struct {
 	Token                         string
 	KeepAlive                     bool
 	Timeout                       time.Duration
-	RetryCount                    uint64
+	RetryCount                    uint32
 	Name                          string
 	NoDefaultUserAgentHeader      bool
 	DialDualStack                 bool
