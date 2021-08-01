@@ -1,7 +1,6 @@
 package restc
 
 import (
-	"context"
 	"crypto/tls"
 
 	"github.com/pubgo/lug/pkg/retry"
@@ -30,10 +29,4 @@ func WithBackoff(bk retry.Backoff) Option {
 
 func WithMiddle(middles ...types.Middleware) Option {
 	return func(c *Cfg) { c.middles = middles }
-}
-
-func Context(ctx context.Context) func(req *Request) {
-	return func(req *Request) {
-		req.Context = ctx
-	}
 }

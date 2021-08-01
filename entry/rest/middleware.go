@@ -7,25 +7,33 @@ import (
 	"github.com/pubgo/lug/types"
 )
 
-func (t *restEntry) middleWrapper(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
-	var reqCtx = req.(*httpRequest).ctx
-	reqCtx.SetUserContext(ctx)
+func (t *restEntry) handlerLugMiddle(middlewares []types.Middleware) func(fbCtx *fiber.Ctx) error {
+	var handler = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+		var reqCtx = req.(*httpRequest)
 
-	if err := reqCtx.Next(); err != nil {
-		return err
+		for k, v := range reqCtx.Header() {
+			for i := range v {
+				reqCtx.ctx.Request().Header.Add(k, v[i])
+			}
+		}
+		if err := reqCtx.ctx.Next(); err != nil {
+			return err
+		}
+
+		reqCtx.ctx.SetUserContext(ctx)
+		return rsp(&httpResponse{header: reqCtx.header, ctx: reqCtx.ctx})
 	}
 
-	return rsp(&httpResponse{ctx: reqCtx})
-}
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		handler = middlewares[i](handler)
+	}
 
-func (t *restEntry) handlerLugMiddle(fbCtx *fiber.Ctx) error {
-	t.middleOnce.Do(func() {
-		var middlewares = t.Options().Middlewares
-		for i := len(middlewares) - 1; i >= 0; i-- {
-			t.handler = middlewares[i](t.middleWrapper)
+	return func(fbCtx *fiber.Ctx) error {
+		request := &httpRequest{
+			ctx:    fbCtx,
+			header: convertHeader(&fbCtx.Request().Header),
 		}
-	})
 
-	request := &httpRequest{ctx: fbCtx}
-	return t.handler(fbCtx.Context(), request, func(_ types.Response) error { return nil })
+		return handler(fbCtx.Context(), request, func(_ types.Response) error { return nil })
+	}
 }

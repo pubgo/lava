@@ -11,7 +11,8 @@ import (
 var _ types.Request = (*httpRequest)(nil)
 
 type httpRequest struct {
-	ctx *fiber.Ctx
+	ctx    *fiber.Ctx
+	header types.Header
 }
 
 func (r *httpRequest) Client() bool {
@@ -19,7 +20,7 @@ func (r *httpRequest) Client() bool {
 }
 
 func (r *httpRequest) Header() types.Header {
-	return convertHeader(&r.ctx.Request().Header)
+	return r.header
 }
 
 func (r *httpRequest) Payload() interface{} {

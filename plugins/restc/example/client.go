@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/plugins/restc"
-	"github.com/pubgo/lug/plugins/restc/hystrix"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/plugins/hystrix"
+	"github.com/pubgo/lug/plugins/restc"
 )
 
 const (
@@ -33,8 +36,8 @@ func httpClientUsage() error {
 	)
 	xerror.Panic(err)
 
-	response, err := httpClient.Get(baseURL)
-	defer restc.ReleaseResponse(response)
+	response, err := httpClient.Get(context.Background(), baseURL)
+	defer fasthttp.ReleaseResponse(response)
 	if err != nil {
 		return xerror.Wrap(err, "failed to make a request to server")
 	}

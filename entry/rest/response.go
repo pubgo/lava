@@ -10,7 +10,8 @@ import (
 var _ types.Response = (*httpResponse)(nil)
 
 type httpResponse struct {
-	ctx *fiber.Ctx
+	ctx    *fiber.Ctx
+	header types.Header
 }
 
 func (h *httpResponse) Write(p []byte) (n int, err error) {
@@ -18,7 +19,7 @@ func (h *httpResponse) Write(p []byte) (n int, err error) {
 }
 
 func (h *httpResponse) Header() types.Header {
-	return convertHeader(&h.ctx.Response().Header)
+	return h.header
 }
 
 func (h *httpResponse) Body() ([]byte, error) {

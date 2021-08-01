@@ -57,6 +57,6 @@ func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) types
 }
 
 func getPort(addr string) string {
-	var addrs = strings.Split(addr, ":")
-	return addrs[len(addrs)-1]
+	var addrList = strings.Split(addr, ":")
+	return addrList[len(addrList)-1]
 }

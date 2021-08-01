@@ -8,7 +8,8 @@ import (
 var _ types.Request = (*request)(nil)
 
 type request struct {
-	req *Request
+	header types.Header
+	req    *Request
 }
 
 func (r *request) Client() bool {
@@ -40,7 +41,7 @@ func (r *request) Payload() interface{} {
 }
 
 func (r *request) Body() ([]byte, error) {
-	return r.req.Request.Body(), nil
+	return r.req.Body(), nil
 }
 
 func (r *request) Codec() string {
