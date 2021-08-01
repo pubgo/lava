@@ -110,7 +110,7 @@ http:
 db:
   default:
     driver: "sqlite3x"
-    source: "{{home}}/db/sqlite.db"
+    source: "./sqlite.db"
 
 registry:
   driver: "mdns"
