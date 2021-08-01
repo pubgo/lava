@@ -1,10 +1,12 @@
 package hystrix
 
 import (
+	"context"
 	"time"
 
+	"github.com/pubgo/lug/types"
+
 	"github.com/afex/hystrix-go/hystrix"
-	"github.com/pubgo/lug/plugins/restc"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 	maxInt                        = int(maxUint >> 1)
 )
 
-func Middleware(opts ...Option) restc.Middleware {
+func Middleware(opts ...Option) types.Middleware {
 	hOpts := Options{
 		HystrixCommandName:     defaultCommandName,
 		HystrixTimeout:         defaultHystrixTimeout,
@@ -43,10 +45,10 @@ func Middleware(opts ...Option) restc.Middleware {
 		},
 	)
 
-	return func(doFunc restc.DoFunc) restc.DoFunc {
-		return func(req *restc.Request, fn func(resp *restc.Response) error) error {
+	return func(next types.MiddleNext) types.MiddleNext {
+		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			return hystrix.Do(hOpts.HystrixCommandName, func() error {
-				return doFunc(req, fn)
+				return next(ctx, req, resp)
 			}, nil)
 		}
 	}

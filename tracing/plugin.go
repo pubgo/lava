@@ -1,7 +1,6 @@
 package tracing
 
 import (
-	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lug/config"
@@ -19,8 +18,7 @@ var plg = &plugin.Base{
 		var cfg = GetDefaultCfg()
 		_ = config.Decode(Name, &cfg)
 
-		var trace = xerror.ExitErr(cfg.Build()).(Tracer)
-		opentracing.SetGlobalTracer(&trace)
+		xerror.Exit(cfg.Build())
 	},
 
 	OnWatch: func(name string, resp *watcher.Response) {
@@ -28,8 +26,7 @@ var plg = &plugin.Base{
 			var cfg = GetDefaultCfg()
 			xerror.Panic(watcher.Decode(resp.Value, &cfg))
 
-			var trace = xerror.ExitErr(cfg.Build()).(Tracer)
-			opentracing.SetGlobalTracer(&trace)
+			xerror.Exit(cfg.Build())
 		})
 	},
 }

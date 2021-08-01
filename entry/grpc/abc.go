@@ -12,7 +12,6 @@ type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
 	Plugin(plugins ...plugin.Plugin)
-	Init(opts ...grpc.ServerOption)
 	Register(handler interface{}, opts ...Opt)
 	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
 	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)

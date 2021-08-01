@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/tracing"
 	"github.com/pubgo/lug/types"
 
@@ -12,9 +11,9 @@ import (
 	"github.com/pubgo/xlog"
 )
 
-func Middleware() entry.Middleware {
-	return func(next entry.Wrapper) entry.Wrapper {
-		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+func Middleware() types.Middleware {
+	return func(next types.MiddleNext) types.MiddleNext {
+		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (gErr error) {
 			start := time.Now()
 
 			var reqID = ReqIDFromCtx(ctx)
@@ -24,9 +23,8 @@ func Middleware() entry.Middleware {
 			ac["method"] = req.Method()
 			ac["endpoint"] = req.Endpoint()
 			ac["request_id"] = reqID
-			ac["receive_time"] = start.Format(time.RFC3339Nano)
+			ac["start_time"] = start.Format(time.RFC3339)
 
-			var gErr error
 			defer func() {
 				if err := recover(); err != nil || gErr != nil {
 					if gErr != nil {
@@ -40,8 +38,8 @@ func Middleware() entry.Middleware {
 					ac["error"] = err
 				}
 
-				// 毫秒
-				ac["cost"] = time.Since(start).Milliseconds()
+				// 微秒
+				ac["duration"] = time.Since(start).Microseconds()
 
 				xlog.Info("request log", ac, tracing.TraceIdField(ctx))
 			}()

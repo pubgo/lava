@@ -8,24 +8,31 @@ import (
 
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/lug/internal/debug"
+	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/registry/mdns"
+	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/tracing"
+	_ "github.com/pubgo/lug/tracing/jaeger"
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
-	"google.golang.org/grpc"
-
 	_ "net/http/pprof"
 )
 
-var testApiSrv = hello.GetTestApiClient("test-grpc", func(service string) []grpc.DialOption {
-	fmt.Println("service", service)
-	return nil
+var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
+	cfg.Middlewares = append(cfg.Middlewares, tracing.Middleware())
+	fmt.Println("service", cfg)
 })
 
 func main() {
 	go http.ListenAndServe(debug.Addr, nil)
+
+	runenv.Project = "test-client"
+
+	var cfg = tracing.GetDefaultCfg()
+	xerror.Exit(cfg.Build())
 
 	xerror.Exit(registry.Init(mdns.Name, nil))
 

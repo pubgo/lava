@@ -33,7 +33,7 @@ const (
 var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
-	Rpc                  *grpcs.Cfg    `json:"grpc"`
+	Grpc                 *grpcs.Cfg    `json:"grpc"`
 	Gw                   *grpcGw.Cfg   `json:"gw"`
 	Address              string        `json:"address"`
 	Advertise            string        `json:"advertise"`

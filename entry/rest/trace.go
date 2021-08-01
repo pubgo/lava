@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/lug/vars"
 )
 
-func (t *restEntry) trace() {
+func trace(t *restEntry) {
 	vars.Watch(t.Options().Name+"_cfg", func() interface{} { return t.cfg })
 	vars.Watch(t.Options().Name+"_rest_router", func() interface{} {
 		if t.srv.Get() == nil {

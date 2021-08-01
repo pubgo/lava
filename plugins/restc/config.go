@@ -2,6 +2,7 @@ package restc
 
 import (
 	"crypto/tls"
+	"github.com/pubgo/lug/types"
 	"runtime"
 	"strings"
 	"time"
@@ -43,7 +44,7 @@ type Cfg struct {
 	backoff                       retry.Backoff
 	tlsConfig                     *tls.Config
 	dial                          fasthttp.DialFunc
-	middles                       []Middleware
+	middles                       []types.Middleware
 }
 
 func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {

@@ -1,9 +1,9 @@
 package tracing
 
 import (
-	"github.com/pubgo/lug/config"
-
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/config"
 )
 
 const Name = "tracing"
@@ -12,7 +12,7 @@ type Cfg struct {
 	Driver string `json:"driver"`
 }
 
-func (cfg Cfg) Build() (_ Tracer, err error) {
+func (cfg Cfg) Build() (err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

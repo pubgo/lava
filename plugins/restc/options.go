@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 
 	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/types"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -26,7 +28,7 @@ func WithBackoff(bk retry.Backoff) Option {
 	return func(c *Cfg) { c.backoff = bk }
 }
 
-func WithMiddle(middles ...Middleware) Option {
+func WithMiddle(middles ...types.Middleware) Option {
 	return func(c *Cfg) { c.middles = middles }
 }
 

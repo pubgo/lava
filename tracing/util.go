@@ -102,11 +102,8 @@ func CreateSpanFromFast(r *fasthttp.Request, name string) opentracing.Span {
 
 // Extract extracts the inbound HTTP request to obtain the parent span's context to ensure
 // correct propagation of span context throughout the trace.
-func Extract(tracer opentracing.Tracer, r *http.Request) (opentracing.SpanContext, error) {
-	return tracer.Extract(
-		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(r.Header),
-	)
+func Extract(tracer opentracing.Tracer, header http.Header) (opentracing.SpanContext, error) {
+	return tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
 }
 
 // RequestFunc is a middleware function for outgoing HTTP requests.
@@ -197,5 +194,5 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 }
 
 func TraceIdField(ctx context.Context) zap.Field {
-	return zap.String("trace_id", GetTraceIdWithCtx(ctx))
+	return zap.String("trace_id", GetTraceIdFromCtx(ctx))
 }

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/xgen"
@@ -12,7 +13,9 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func register(server fiber.Router, handler interface{}) error {
+func register(server fiber.Router, handler interface{}) (err error) {
+	defer xerror.RespErr(&err)
+
 	xerror.Assert(server == nil, "[server] should not be nil")
 
 	var v = checkHandle(handler)
@@ -51,4 +54,9 @@ func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) types
 		h.Add(byteutil.ToStr(key), byteutil.ToStr(value))
 	})
 	return h
+}
+
+func getPort(addr string) string {
+	var addrs = strings.Split(addr, ":")
+	return addrs[len(addrs)-1]
 }

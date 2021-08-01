@@ -1,39 +1,30 @@
 package grpcs
 
 import (
-	grpcMid "github.com/grpc-ecosystem/go-grpc-middleware"
-	opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
+	"fmt"
+	"time"
+
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/pubgo/lug/runenv"
-
-	"sync"
-	"time"
 )
 
 type Builder struct {
-	name                     string
-	mu                       sync.Mutex
-	srv                      *grpc.Server
-	opts                     []grpc.ServerOption
-	unaryServerInterceptors  []grpc.UnaryServerInterceptor
-	streamServerInterceptors []grpc.StreamServerInterceptor
+	name               string
+	srv                *grpc.Server
+	unaryInterceptors  []grpc.UnaryServerInterceptor
+	streamInterceptors []grpc.StreamServerInterceptor
 }
 
 func (t *Builder) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	t.unaryServerInterceptors = append(t.unaryServerInterceptors, interceptors...)
+	t.unaryInterceptors = append(t.unaryInterceptors, interceptors...)
 }
 
 func (t *Builder) StreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	t.streamServerInterceptors = append(t.streamServerInterceptors, interceptors...)
+	t.streamInterceptors = append(t.streamInterceptors, interceptors...)
 }
 
 func (t *Builder) Get() *grpc.Server {
@@ -44,53 +35,34 @@ func (t *Builder) Get() *grpc.Server {
 	return t.srv
 }
 
-func (t *Builder) Init(opts ...grpc.ServerOption) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	t.opts = append(t.opts, opts...)
-}
-
 func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
 	return []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
+		grpc.KeepaliveParams(keepalive.ServerParameters{}),
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
 			MinTime:             5 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
 			PermitWithoutStream: true,            // Allow pings even when there are no active streams
 		}),
-		grpc.KeepaliveParams(keepalive.ServerParameters{}),
 	}
 }
 
-func (t *Builder) Build(cfg *Cfg, cb ...func()) (err error) {
+func (t *Builder) Build(cfg *Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	opts := t.BuildOpts(cfg)
-
-	unaryInterceptorList := append([]grpc.UnaryServerInterceptor{
-		opentracing.UnaryServerInterceptor(),
-	}, t.unaryServerInterceptors...)
-
-	streamInterceptorList := append([]grpc.StreamServerInterceptor{
-		opentracing.StreamServerInterceptor(),
-	}, t.streamServerInterceptors...)
-
-	opts = append(opts, grpc.UnaryInterceptor(grpcMid.ChainUnaryServer(unaryInterceptorList...)))
-	opts = append(opts, grpc.StreamInterceptor(grpcMid.ChainStreamServer(streamInterceptorList...)))
-	opts = append(opts, t.opts...)
-	srv := grpc.NewServer(opts...)
-
-	EnableReflection(srv)
-	EnableHealth(t.name, srv)
-	if runenv.IsDev() || runenv.IsTest() {
-		EnableDebug(srv)
+	for i := range t.unaryInterceptors {
+		fmt.Printf("%s\n\n\n\n", stack.Func(t.unaryInterceptors[i]))
 	}
 
-	t.srv = srv
+	opts = append(opts, grpc.ChainUnaryInterceptor(t.unaryInterceptors...))
+	opts = append(opts, grpc.ChainStreamInterceptor(t.streamInterceptors...))
+	t.srv = grpc.NewServer(opts...)
 
-	if len(cb) > 0 {
-		cb[0]()
+	EnableReflection(t.srv)
+	EnableHealth(t.name, t.srv)
+	if runenv.IsDev() || runenv.IsTest() {
+		EnableDebug(t.srv)
 	}
 
 	return nil

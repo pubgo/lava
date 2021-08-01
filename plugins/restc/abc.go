@@ -17,12 +17,6 @@ type Response = fasthttp.Response
 type RequestHeader = fasthttp.RequestHeader
 type ResponseHeader = fasthttp.ResponseHeader
 
-// DoFunc http client do func wrapper
-type DoFunc func(req *Request, fn func(resp *Response) error) error
-
-// Middleware http client middleware
-type Middleware func(next DoFunc) DoFunc
-
 // Client http client interface
 type Client interface {
 	Do(req *Request) (*Response, error)

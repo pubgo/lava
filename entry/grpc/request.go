@@ -3,18 +3,27 @@ package grpc
 import (
 	"github.com/pubgo/lug/encoding"
 	"github.com/pubgo/lug/types"
+
+	"google.golang.org/grpc"
 )
 
 var _ types.Request = (*rpcRequest)(nil)
 
 type rpcRequest struct {
-	service     string
-	method      string
-	contentType string
-	cdc         string
-	header      types.Header
-	stream      bool
-	payload     interface{}
+	handler       grpc.UnaryHandler
+	handlerStream grpc.StreamHandler
+	stream        grpc.ServerStream
+	srv           interface{}
+	service       string
+	method        string
+	contentType   string
+	cdc           string
+	header        types.Header
+	payload       interface{}
+}
+
+func (r *rpcRequest) Client() bool {
+	return false
 }
 
 func (r *rpcRequest) Header() types.Header {
@@ -55,5 +64,5 @@ func (r *rpcRequest) Codec() string {
 }
 
 func (r *rpcRequest) Stream() bool {
-	return r.stream
+	return r.stream != nil
 }

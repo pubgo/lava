@@ -22,9 +22,9 @@ func NewGrpc(name string) grpc.Entry          { return grpc.New(name) }
 func NewCtl(name string) ctl.Entry            { return ctl.New(name) }
 func Entry(fn func() entry.Entry) entry.Entry { return fn() }
 
-func GetCfg() config.Config            { return config.GetCfg() }
-func Run(short string,entries ...entry.Entry) error { return runtime.Run(short,entries...) }
-func Start(ent entry.Entry) error      { return runtime.Start(ent) }
-func Stop(ent entry.Entry) error       { return runtime.Stop(ent) }
+func GetCfg() config.Config                          { return config.GetCfg() }
+func Run(short string, entries ...entry.Entry) error { return runtime.Run(short, entries...) }
+func Start(ent entry.Entry) error                    { return runtime.Start(ent) }
+func Stop(ent entry.Entry) error                     { return runtime.Stop(ent) }
 
 func Plugin(plg plugin.Plugin, opts ...plugin.Opt) { plugin.Register(plg, opts...) }

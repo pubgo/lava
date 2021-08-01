@@ -5,7 +5,7 @@ import (
 	"time"
 
 	e "github.com/jaegertracing/jaeger/plugin/storage/es/spanstore/dbmodel"
-	jsoniter "github.com/json-iterator/go"
+	json "github.com/json-iterator/go"
 	"github.com/pubgo/x/syncutil"
 	_ "github.com/pubgo/x/syncutil"
 	"github.com/pubgo/xerror"
@@ -93,11 +93,15 @@ func (t *ioReporter) saveSpan(span interface{}) (gErr error) {
 		return nil
 	}
 
-	s, err := jsoniter.Marshal(span)
-	xerror.Panic(err)
+	s, err := json.Marshal(span)
+	if err != nil {
+		return xerror.Wrap(err)
+	}
 
 	_, err = t.writer.Write(s)
-	xerror.Panic(err)
+	if err != nil {
+		return xerror.Wrap(err)
+	}
 
 	return nil
 }

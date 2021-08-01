@@ -40,7 +40,7 @@ func init() {
 		return traceID.String()
 	}
 
-	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) (tracing.Tracer, error) {
+	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
 		var cfg = GetDefaultCfg()
 		cfg.ServiceName = runenv.Project
 
@@ -49,14 +49,13 @@ func init() {
 	}))
 }
 
-func New(cfg *Cfg) (tracing.Tracer, error) {
+func New(cfg *Cfg) error {
 	cfg.Disabled = false
 	if cfg.ServiceName == "" {
 		cfg.ServiceName = runenv.Project
 	}
 
 	var logs = newLog("tracing")
-	var tracer tracing.Tracer
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(logs, cfg.BatchSize)),
 		config.Logger(logs),
@@ -64,9 +63,8 @@ func New(cfg *Cfg) (tracing.Tracer, error) {
 		config.Sampler(jaeger.NewConstSampler(true)),
 	)
 	xerror.Exit(err)
-	tracer.Tracer = trace
-
-	return tracer, nil
+	opentracing.SetGlobalTracer(trace)
+	return nil
 }
 
 func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {

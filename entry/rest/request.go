@@ -11,35 +11,39 @@ import (
 var _ types.Request = (*httpRequest)(nil)
 
 type httpRequest struct {
-	req *fiber.Ctx
+	ctx *fiber.Ctx
+}
+
+func (r *httpRequest) Client() bool {
+	return false
 }
 
 func (r *httpRequest) Header() types.Header {
-	return convertHeader(&r.req.Request().Header)
+	return convertHeader(&r.ctx.Request().Header)
 }
 
 func (r *httpRequest) Payload() interface{} {
-	return r.req.Body()
+	return r.ctx.Body()
 }
 
 func (r *httpRequest) Body() ([]byte, error) {
-	return r.req.Body(), nil
+	return r.ctx.Body(), nil
 }
 
 func (r *httpRequest) ContentType() string {
-	return byteutil.ToStr(r.req.Request().Header.ContentType())
+	return byteutil.ToStr(r.ctx.Request().Header.ContentType())
 }
 
 func (r *httpRequest) Service() string {
-	return r.req.OriginalURL()
+	return r.ctx.OriginalURL()
 }
 
 func (r *httpRequest) Method() string {
-	return r.req.Method()
+	return r.ctx.Method()
 }
 
 func (r *httpRequest) Endpoint() string {
-	return r.req.OriginalURL()
+	return r.ctx.OriginalURL()
 }
 
 func (r *httpRequest) Codec() string {

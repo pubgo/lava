@@ -9,7 +9,7 @@ import (
 
 var factories typex.SMap
 
-type Factory func(cfg map[string]interface{}) (Tracer, error)
+type Factory func(cfg map[string]interface{}) error
 
 func Get(names ...string) Factory {
 	val, ok := factories.Load(consts.GetDefault(names...))

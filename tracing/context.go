@@ -27,3 +27,13 @@ func FromCtx(ctx context.Context) *Span {
 
 	return nil
 }
+
+func SpanFromCtx(ctx context.Context, fn func(span *Span)) {
+	var span = FromCtx(ctx)
+
+	if span == nil {
+		return
+	}
+
+	fn(span)
+}

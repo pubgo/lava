@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/dix"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
@@ -21,9 +21,11 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/version"
 
 	"github.com/google/uuid"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
@@ -38,7 +40,7 @@ type grpcEntry struct {
 	*base.Entry
 	cfg Cfg
 	mux cmux.CMux
-	rpc grpcs.Builder
+	srv grpcs.Builder
 	gw  grpcGw.Builder
 
 	registry    registry.Registry
@@ -49,16 +51,22 @@ type grpcEntry struct {
 	endpoints []*registry.Endpoint
 	client    *grpc.ClientConn
 
+	middleOnce     sync.Once
 	cancelRegister context.CancelFunc
+
+	wrapperUnary  func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
+	wrapperStream func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
+
+	unaryServerInterceptors  []grpc.UnaryServerInterceptor
+	streamServerInterceptors []grpc.StreamServerInterceptor
 }
 
-func (g *grpcEntry) Init(opts ...grpc.ServerOption) { g.rpc.Init(opts...) }
 func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
-	g.rpc.UnaryInterceptor(interceptors...)
+	g.unaryServerInterceptors = append(g.unaryServerInterceptors, interceptors...)
 }
 
 func (g *grpcEntry) StreamInterceptor(interceptors ...grpc.StreamServerInterceptor) {
-	g.rpc.StreamInterceptor(interceptors...)
+	g.streamServerInterceptors = append(g.streamServerInterceptors, interceptors...)
 }
 
 func (g *grpcEntry) serve() error { return g.mux.Serve() }
@@ -228,19 +236,10 @@ func (g *grpcEntry) Stop() (err error) {
 
 	// stop the grpc server
 	logs.Info("[ExitProgress] Start GracefulStop.")
-	g.rpc.Get().GracefulStop()
+	g.srv.Get().GracefulStop()
 	logs.Info("[ExitProgress] GracefulStop Ok.")
 
 	return
-}
-
-func (g *grpcEntry) initHandler() {
-	xerror.RespExit()
-
-	// 初始化routes
-	for i := range g.handlers {
-		xerror.PanicF(grpcs.Register(g.rpc.Get(), g.handlers[i]), "register handler error")
-	}
 }
 
 func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
@@ -268,7 +267,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动grpc服务
 	fx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
-		if err := g.rpc.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
+		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
 			logs.Error("[grpc] Server Stop", logutil.Err(err))
 		}
 	})
@@ -338,13 +337,13 @@ func (g *grpcEntry) Start() (gErr error) {
 func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
 		Entry: base.New(name),
-		rpc:   grpcs.New(name),
+		srv:   grpcs.New(name),
 		gw:    grpcGw.New(name),
 		cfg: Cfg{
 			name:                 name,
 			hostname:             getHostname(),
 			id:                   uuid.New().String(),
-			Rpc:                  grpcs.GetDefaultCfg(),
+			Grpc:                 grpcs.GetDefaultCfg(),
 			Gw:                   grpcGw.GetDefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
@@ -352,26 +351,37 @@ func newEntry(name string) *grpcEntry {
 		},
 	}
 
-	// 默认注册
-	g.UnaryInterceptor(g.handlerUnaryMiddle)
-	g.StreamInterceptor(g.handlerStreamMiddle)
+	// 健康检查
+	xerror.Exit(healthy.Register(g.cfg.name, func(ctx context.Context) error {
+		return xerror.Wrap(grpcs.HealthCheck(g.cfg.name, g.client))
+	}))
 
 	g.OnInit(func() {
+		// encoding register
 		grpcs.InitEncoding()
+
+		// grpc_entry配置解析
 		_ = config.Decode(Name, &g.cfg)
 
-		// 注册中心校验
+		// 注册中心初始化
 		g.registry = registry.Default()
 
+		// 网关初始化
 		xerror.Panic(g.gw.Build(g.cfg.Gw))
 
-		xerror.Panic(g.rpc.Build(g.cfg.Rpc, func() {
-			g.initHandler()
-		}))
+		// 默认middleware注册
+		g.srv.UnaryInterceptor(g.handlerUnaryMiddle(g.Options().Middlewares))
+		g.srv.StreamInterceptor(g.handlerStreamMiddle(g.Options().Middlewares))
+		// 自定义middleware注册
+		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
+		g.srv.StreamInterceptor(g.streamServerInterceptors...)
 
-		xerror.Exit(healthy.Register(g.cfg.name, func(ctx context.Context) error {
-			return xerror.Wrap(grpcs.HealthCheck(g.cfg.name, g.client))
-		}))
+		// grpc serve初始化
+		xerror.Panic(g.srv.Build(g.cfg.Grpc))
+		// 初始化handlers
+		for i := range g.handlers {
+			xerror.PanicF(grpcs.Register(g.srv.Get(), g.handlers[i]), "grpc register handler error")
+		}
 	})
 
 	return g

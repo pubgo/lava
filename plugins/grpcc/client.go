@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/pubgo/lug/consts"
+
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -17,7 +18,7 @@ var _ Client = (*client)(nil)
 
 type client struct {
 	service string
-	optFn   func(service string) []grpc.DialOption
+	optFn   func(cfg *Cfg)
 }
 
 func (t *client) Close() error {
@@ -79,7 +80,9 @@ func (t *client) Get() (*grpc.ClientConn, error) {
 	}
 
 	var cfg = GetCfg(consts.Default)
-	conn, err := cfg.Build(t.service, t.optFn(t.service)...)
+	t.optFn(&cfg)
+
+	conn, err := cfg.Build(t.service)
 	xerror.PanicF(err, "dial %s error", t.service)
 
 	clients.Store(t.service, conn)

@@ -241,7 +241,7 @@ func Cancelled(id, format string, a ...interface{}) error {
 }
 
 // Unknown error.
-// HTTP Mapping: 500 Internal Rpc Error
+// HTTP Mapping: 500 Internal Grpc Error
 func Unknown(id, format string, a ...interface{}) error {
 	return &Error{
 		Code:   2,
@@ -348,7 +348,7 @@ func Unimplemented(id, format string, a ...interface{}) error {
 // underlying system have been broken.  This error code is reserved
 // for serious errors.
 //
-// HTTP Mapping: 500 Internal Rpc Error
+// HTTP Mapping: 500 Internal Grpc Error
 func Internal(id, format string, a ...interface{}) error {
 	return &Error{
 		Code:   13,
@@ -368,7 +368,7 @@ func Unavailable(id, format string, a ...interface{}) error {
 }
 
 // DataLoss Unrecoverable data loss or corruption.
-// HTTP Mapping: 500 Internal Rpc Error
+// HTTP Mapping: 500 Internal Grpc Error
 func DataLoss(id, format string, a ...interface{}) error {
 	return &Error{
 		Code:   15,

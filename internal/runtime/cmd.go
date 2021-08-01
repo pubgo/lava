@@ -54,7 +54,7 @@ func handleSignal() {
 	logs.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
-func start(ent entry.Runtime, args []string) (err error) {
+func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
 	logs.Infof("service [%s] before-start running", ent.Options().Name)
@@ -153,6 +153,7 @@ func Run(short string, entries ...entry.Entry) (err error) {
 				watcher.Watch(key, pg)
 			}
 
+			// watcher 初始化
 			xerror.Panic(watcher.Init())
 
 			// entry初始化
@@ -163,7 +164,7 @@ func Run(short string, entries ...entry.Entry) (err error) {
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
-			xerror.Panic(start(entRun, args))
+			xerror.Panic(start(entRun))
 			handleSignal()
 			xerror.Panic(stop(entRun))
 			return nil
@@ -212,7 +213,7 @@ func Start(ent entry.Entry, args ...string) (err error) {
 		watcher.Watch(key, pg)
 	}
 
-	return xerror.Wrap(start(entRun, args))
+	return xerror.Wrap(start(entRun))
 }
 
 func Stop(ent entry.Entry) (err error) {

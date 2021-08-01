@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	grpcTracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -15,13 +14,15 @@ import (
 	"github.com/pubgo/lug/pkg/typex"
 	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
+	"github.com/pubgo/lug/types"
 )
 
 const (
 	Name = "grpcc"
 
 	// DefaultTimeout 默认的连接超时时间
-	DefaultTimeout = 3 * time.Second
+	DefaultTimeout     = 3 * time.Second
+	defaultContentType = "application/grpc"
 )
 
 var configMap typex.SMap
@@ -116,30 +117,34 @@ type Cfg struct {
 	ConnWindowSize       int32         `json:"conn_window_size"`
 
 	// MaxRecvMsgSize maximum message that client can receive (4 MB).
-	MaxRecvMsgSize   int              `json:"max_recv_msg_size"`
-	NoProxy          bool             `json:"no_proxy"`
-	Proxy            bool             `json:"proxy"`
-	ConnectParams    connectParams    `json:"connect_params"`
-	ClientParameters clientParameters `json:"client_parameters"`
-	Call             callParameters   `json:"call"`
+	MaxRecvMsgSize     int                            `json:"max_recv_msg_size"`
+	NoProxy            bool                           `json:"no_proxy"`
+	Proxy              bool                           `json:"proxy"`
+	ConnectParams      connectParams                  `json:"connect_params"`
+	ClientParameters   clientParameters               `json:"client_parameters"`
+	Call               callParameters                 `json:"call"`
+	Middlewares        []types.Middleware             `json:"-"`
+	DialOptions        []grpc.DialOption              `json:"-"`
+	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
+	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
 }
 
-func (t Cfg) Build(target string, opts ...grpc.DialOption) (_ *grpc.ClientConn, gErr error) {
+func (t Cfg) Build(target string) (_ *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
 	defer cancel()
 
 	target = buildTarget(target)
-	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), opts...)...)
+	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
 }
 
-func (t Cfg) BuildDirect(target string, opts ...grpc.DialOption) (conn *grpc.ClientConn, gErr error) {
+func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	target = resolver.BuildDirectTarget(target)
-	conn, gErr = grpc.DialContext(context.Background(), target, append(t.ToOpts(), opts...)...)
+	conn, gErr = grpc.DialContext(context.Background(), target, append(t.ToOpts(), t.DialOptions...)...)
 	xerror.PanicF(gErr, "DialContext error, target:%s", target)
 	return
 }
@@ -228,32 +233,32 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.FailOnNonTempDialError(true))
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
+
+	var unaryInterceptors = append([]grpc.UnaryClientInterceptor{unaryInterceptor(t.Middlewares)}, t.UnaryInterceptors...)
+	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptors...))
+
+	var streamInterceptors = append([]grpc.StreamClientInterceptor{streamInterceptor(t.Middlewares)}, t.StreamInterceptors...)
+	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptors...))
 	return opts
 }
 
-var defaultDialOpts = []grpc.DialOption{
-	grpc.WithDefaultServiceConfig(`{}`),
-	grpc.WithChainUnaryInterceptor(
-		grpcTracing.UnaryClientInterceptor(),
-	),
-	grpc.WithChainStreamInterceptor(
-		grpcTracing.StreamClientInterceptor(),
-	),
-}
+var defaultDialOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 func GetCfg(name string) Cfg {
 	if configMap.Has(name) {
 		return configMap.Get(name).(Cfg)
-	} else if configMap.Has(consts.Default) {
-		return configMap.Get(consts.Default).(Cfg)
-	} else {
-		return GetDefaultCfg()
 	}
+
+	if configMap.Has(consts.Default) {
+		return configMap.Get(consts.Default).(Cfg)
+	}
+
+	return GetDefaultCfg()
 }
 
 func defaultDialOption(_ string) []grpc.DialOption { return GetDefaultCfg().ToOpts() }
-func GetDefaultCfg() Cfg {
-	return Cfg{
+func GetDefaultCfg(opts ...func(cfg *Cfg)) Cfg {
+	var cfg = Cfg{
 		Insecure:          true,
 		Block:             true,
 		BalancerName:      p2c2.Name,
@@ -279,4 +284,9 @@ func GetDefaultCfg() Cfg {
 			MaxCallSendMsgSize: 1024 * 1024 * 4,
 		},
 	}
+
+	for i := range opts {
+		opts[i](&cfg)
+	}
+	return cfg
 }

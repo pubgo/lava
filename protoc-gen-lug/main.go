@@ -37,7 +37,6 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
-	"google.golang.org/grpc"
 )
 
 var _ = strings.Trim
@@ -51,8 +50,8 @@ var _ = fb.Cfg{}
 		func(fd *gen.FileDescriptor) string {
 			return `
 {% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv string, optFns ...func(service string) []grpc.DialOption) func() ({{ss.Srv}}Client,error) {
-		client := grpcc.GetClient(srv, optFns...)
+	func Get{{ss.Srv}}Client(srv string, opts ...func(cfg *grpcc.Cfg)) func() ({{ss.Srv}}Client,error) {
+		client := grpcc.GetClient(srv, opts...)
 		return func() ({{ss.Srv}}Client,error) {
 			c, err := client.Get()
 			return &{{unExport(ss.Srv)}}Client{c},xerror.WrapF(err, "srv: %s", srv)

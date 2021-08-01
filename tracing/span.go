@@ -9,15 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func GetSpanWithCtx(ctx context.Context) *Span {
-	var span = FromCtx(ctx)
-	if span == nil {
-		span = NewSpan(opentracing.StartSpan("tracing"))
-	}
-	return span
-}
-
-func GetTraceIdWithCtx(ctx context.Context) string {
+func GetTraceIdFromCtx(ctx context.Context) string {
 	var span = FromCtx(ctx)
 	if span == nil {
 		return ""
@@ -26,6 +18,11 @@ func GetTraceIdWithCtx(ctx context.Context) string {
 }
 
 func NewSpan(sp opentracing.Span) *Span {
+	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
+}
+
+func StartSpan(operationName string, opts ...opentracing.StartSpanOption) *Span {
+	var sp = opentracing.StartSpan(operationName, opts...)
 	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
 }
 

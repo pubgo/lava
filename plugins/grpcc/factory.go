@@ -8,18 +8,14 @@ import (
 
 var clients sync.Map
 
-func NewDirect(service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	return GetDefaultCfg().BuildDirect(service, opts...)
+func NewDirect(service string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
+	return GetDefaultCfg(opts...).BuildDirect(service)
 }
 
-func GetClient(service string, optFns ...func(service string) []grpc.DialOption) *client {
-	var fn = defaultDialOption
-	if len(optFns) > 0 {
-		fn = optFns[0]
+func GetClient(service string, opts ...func(cfg *Cfg)) *client {
+	var fn = func(cfg *Cfg) {}
+	if len(opts) > 0 {
+		fn = opts[0]
 	}
-
-	return &client{
-		service: service,
-		optFn:   fn,
-	}
+	return &client{service: service, optFn: fn}
 }

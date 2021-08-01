@@ -22,17 +22,17 @@ type ctlEntry struct {
 	listNames bool
 	*base.Entry
 	cfg      Cfg
+	srv      Service
 	handlers map[string]options
 }
 
-func (t *ctlEntry) Register(run Service, optList ...Opt) {
+func (t *ctlEntry) Register(srv Service, optList ...Opt) {
 	defer xerror.RespExit()
 
-	xerror.Assert(run == nil, "[run] should not be nil")
+	xerror.Assert(srv == nil, "[srv] should not be nil")
+	t.srv = srv
 
-	t.BeforeStart(func() { xerror.Exit(dix.Invoke(run)) })
-
-	runners := run.Run()
+	runners := srv.Run()
 	if runners != nil {
 		for name, v := range runners {
 			var opts = register(t, v, append(optList, withName(name))...)
@@ -41,7 +41,7 @@ func (t *ctlEntry) Register(run Service, optList ...Opt) {
 		}
 	}
 
-	loops := run.RunLoop()
+	loops := srv.RunLoop()
 	if loops != nil {
 		for name, v := range loops {
 			var opts = register(t, v, append(optList, withName(name))...)
@@ -64,6 +64,9 @@ func (t *ctlEntry) Start() (err error) {
 	var opts, ok = t.handlers[t.name]
 	xerror.Assert(!ok, "%s not found", t.name)
 
+	// 依赖注入
+	xerror.Exit(dix.Invoke(t.srv))
+
 	if opts.once {
 		runenv.Block = false
 		opts.cancel = fx.Go(func(ctx context.Context) { opts.handler(fx.Ctx{Context: ctx}) })
@@ -85,7 +88,11 @@ func (t *ctlEntry) Stop() error {
 }
 
 func newEntry(name string) *ctlEntry {
-	var ent = &ctlEntry{Entry: base.New(name), handlers: make(map[string]options)}
+	var ent = &ctlEntry{
+		Entry:    base.New(name),
+		handlers: make(map[string]options),
+	}
+
 	ent.Flags(func(flags *pflag.FlagSet) {
 		flags.StringVar(&ent.name, "name", consts.Default, "ctl name")
 		flags.BoolVar(&ent.listNames, "list", false, "list ctl name")
@@ -99,17 +106,3 @@ func newEntry(name string) *ctlEntry {
 }
 
 func New(name string) Entry { return newEntry(name) }
-
-func register(t *ctlEntry, run Handler, optList ...Opt) options {
-	var opts = options{handler: run}
-	for i := range optList {
-		optList[i](&opts)
-	}
-
-	if opts.Name == "" {
-		opts.Name = consts.Default
-	}
-
-	xerror.Assert(t.handlers[opts.Name].handler != nil, "handler [%s] already exists", opts.Name)
-	return opts
-}

@@ -17,7 +17,7 @@ var _ = Plugin(&Base{})
 
 type Base struct {
 	Name         string
-	OnMiddleware func() entry.Middleware
+	OnMiddleware func() types.Middleware
 	OnInit       func(ent entry.Entry)
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)

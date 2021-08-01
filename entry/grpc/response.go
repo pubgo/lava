@@ -14,6 +14,7 @@ type rpcResponse struct {
 	stream grpc.ServerStream
 	header types.Header
 	dt     interface{}
+	ct     string
 }
 
 func (h *rpcResponse) Write(p []byte) (n int, err error) {
@@ -37,7 +38,7 @@ func (h *rpcResponse) Stream() bool {
 }
 
 func (h *rpcResponse) Codec() string {
-	return ""
+	return h.ct
 }
 
 func (h *rpcResponse) Send(i interface{}) error {

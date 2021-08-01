@@ -14,7 +14,6 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
-	"google.golang.org/grpc"
 )
 
 var _ = strings.Trim
@@ -23,8 +22,8 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 
-func GetTransportClient(srv string, optFns ...func(service string) []grpc.DialOption) func() (TransportClient, error) {
-	client := grpcc.GetClient(srv, optFns...)
+func GetTransportClient(srv string, opts ...func(cfg *grpcc.Cfg)) func() (TransportClient, error) {
+	client := grpcc.GetClient(srv, opts...)
 	return func() (TransportClient, error) {
 		c, err := client.Get()
 		return &transportClient{c}, xerror.WrapF(err, "srv: %s", srv)

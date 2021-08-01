@@ -7,7 +7,8 @@ import (
 )
 
 const Name = "rest_entry"
-var logs=xlog.GetLogger(Name)
+
+var logs = xlog.GetLogger(Name)
 
 type Cfg struct {
 	fb.Cfg

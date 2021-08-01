@@ -3,6 +3,8 @@ package rest_entry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
 	"time"
 
 	"github.com/pubgo/lug/config"
@@ -15,7 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ rest.Service = (*Service)(nil)
 var _ hello.TestApiServer = (*Service)(nil)
 
 var logs = xlog.GetLogger("hello.handler")
@@ -48,8 +49,8 @@ func (t *Service) VersionTest(ctx context.Context, in *hello.TestReq) (out *hell
 	return
 }
 
-func (t *Service) Router() func(r rest.Router) {
-	return func(r rest.Router) {
+func init() {
+	xerror.Exit(dix.Provider(func(r rest.Router) {
 		r.Use(func(ctx *fiber.Ctx) error {
 			fmt.Println("ok")
 			return ctx.Next()
@@ -59,5 +60,5 @@ func (t *Service) Router() func(r rest.Router) {
 			_, err := ctx.WriteString("ok")
 			return err
 		})
-	}
+	}))
 }

@@ -2,6 +2,7 @@ package types
 
 // Request is a synchronous request interface
 type Request interface {
+	Client() bool
 	// Service name requested
 	Service() string
 	// Method The action requested
