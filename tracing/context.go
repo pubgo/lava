@@ -25,15 +25,7 @@ func FromCtx(ctx context.Context) *Span {
 		return NewSpan(span.(opentracing.Span))
 	}
 
-	return nil
+	return NewSpan((&opentracing.NoopTracer{}).StartSpan(""))
 }
 
-func SpanFromCtx(ctx context.Context, fn func(span *Span)) {
-	var span = FromCtx(ctx)
-
-	if span == nil {
-		return
-	}
-
-	fn(span)
-}
+func SpanFromCtx(ctx context.Context, fn func(span *Span)) { fn(FromCtx(ctx)) }

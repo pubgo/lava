@@ -50,31 +50,6 @@ func InjectHeaders(span opentracing.Span, request *http.Request) error {
 		opentracing.HTTPHeadersCarrier(request.Header))
 }
 
-func CreateSpan(r *http.Request, name string) *Span {
-	var span = FromCtx(r.Context())
-	if span != nil {
-		return span
-	}
-
-	tracer := opentracing.GlobalTracer()
-	if tracer == nil {
-		return nil
-	}
-
-	var openSpan opentracing.Span
-	spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
-	if err != nil {
-		openSpan = tracer.StartSpan(name)
-	} else {
-		openSpan = tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
-	}
-
-	ext.HTTPMethod.Set(span, r.Method)
-	ext.HTTPUrl.Set(span, r.URL.String())
-
-	return NewSpan(openSpan)
-}
-
 func CreateSpanFromFast(r *fasthttp.Request, name string) opentracing.Span {
 	tracer := opentracing.GlobalTracer()
 

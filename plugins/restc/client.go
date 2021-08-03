@@ -108,9 +108,8 @@ func doFunc(c *client) types.MiddleNext {
 		var resp = fasthttp.AcquireResponse()
 
 		defer func() {
-			tracing.SpanFromCtx(ctx, func(span *tracing.Span) {
-				ext.HTTPStatusCode.Set(span, uint16(resp.StatusCode()))
-			})
+			var span = tracing.FromCtx(ctx)
+			ext.HTTPStatusCode.Set(span, uint16(resp.StatusCode()))
 		}()
 
 		xerror.Panic(backoff.Do(func(i int) error {

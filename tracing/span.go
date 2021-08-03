@@ -10,11 +10,17 @@ import (
 )
 
 func GetTraceIdFromCtx(ctx context.Context) string {
-	var span = FromCtx(ctx)
-	if span == nil {
-		return ""
+	span := ctx.Value(spanKey{})
+	if span != nil {
+		return span.(*Span).TraceID()
 	}
-	return span.TraceID()
+
+	span = opentracing.SpanFromContext(ctx)
+	if span != nil {
+		return NewSpan(span.(opentracing.Span)).TraceID()
+	}
+
+	return ""
 }
 
 func NewSpan(sp opentracing.Span) *Span {
