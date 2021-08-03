@@ -22,11 +22,18 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 
-func GetUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) func() (UserServiceClient, error) {
+func GetUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli UserServiceClient)) error {
 	client := grpcc.GetClient(srv, opts...)
-	return func() (UserServiceClient, error) {
+	return func(fn func(cli UserServiceClient)) (err error) {
+		defer xerror.RespErr(&err)
+
 		c, err := client.Get()
-		return &userServiceClient{c}, xerror.WrapF(err, "srv: %s", srv)
+		if err != nil {
+			return xerror.WrapF(err, "srv: %s", srv)
+		}
+
+		fn(&userServiceClient{c})
+		return
 	}
 }
 

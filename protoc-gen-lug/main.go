@@ -50,11 +50,18 @@ var _ = fb.Cfg{}
 		func(fd *gen.FileDescriptor) string {
 			return `
 {% for ss in fd.GetService() %}
-	func Get{{ss.Srv}}Client(srv string, opts ...func(cfg *grpcc.Cfg)) func() ({{ss.Srv}}Client,error) {
+	func Get{{ss.Srv}}Client(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli {{ss.Srv}}Client)) error {
 		client := grpcc.GetClient(srv, opts...)
-		return func() ({{ss.Srv}}Client,error) {
+		return func(fn func(cli {{ss.Srv}}Client)) (err error) {
+			defer xerror.RespErr(&err)
+
 			c, err := client.Get()
-			return &{{unExport(ss.Srv)}}Client{c},xerror.WrapF(err, "srv: %s", srv)
+			if err!=nil{
+				return xerror.WrapF(err, "srv: %s", srv)
+			}
+			
+			fn(&{{unExport(ss.Srv)}}Client{c})
+			return
 		}
 	}
 {% endfor %}

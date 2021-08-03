@@ -41,12 +41,12 @@ func main() {
 
 		defer xerror.RespDebug()
 
-		var cli, err = testApiSrv()
-		xerror.Panic(err)
+		xerror.Panic(testApiSrv(func(cli hello.TestApiClient) {
+			var out, err1 = cli.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
+			xerror.Panic(err1)
+			fmt.Printf("%#v \n", out)
+		}))
 
-		var out, err1 = cli.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
-		xerror.Panic(err1)
-		fmt.Printf("%#v \n", out)
 	}, time.Second*5)
 	select {}
 }

@@ -22,19 +22,33 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 
-func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) func() (TestApiClient, error) {
+func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiClient)) error {
 	client := grpcc.GetClient(srv, opts...)
-	return func() (TestApiClient, error) {
+	return func(fn func(cli TestApiClient)) (err error) {
+		defer xerror.RespErr(&err)
+
 		c, err := client.Get()
-		return &testApiClient{c}, xerror.WrapF(err, "srv: %s", srv)
+		if err != nil {
+			return xerror.WrapF(err, "srv: %s", srv)
+		}
+
+		fn(&testApiClient{c})
+		return
 	}
 }
 
-func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) func() (TestApiV2Client, error) {
+func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiV2Client)) error {
 	client := grpcc.GetClient(srv, opts...)
-	return func() (TestApiV2Client, error) {
+	return func(fn func(cli TestApiV2Client)) (err error) {
+		defer xerror.RespErr(&err)
+
 		c, err := client.Get()
-		return &testApiV2Client{c}, xerror.WrapF(err, "srv: %s", srv)
+		if err != nil {
+			return xerror.WrapF(err, "srv: %s", srv)
+		}
+
+		fn(&testApiV2Client{c})
+		return
 	}
 }
 

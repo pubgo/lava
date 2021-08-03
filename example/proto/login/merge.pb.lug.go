@@ -22,11 +22,18 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 
-func GetMergeClient(srv string, opts ...func(cfg *grpcc.Cfg)) func() (MergeClient, error) {
+func GetMergeClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli MergeClient)) error {
 	client := grpcc.GetClient(srv, opts...)
-	return func() (MergeClient, error) {
+	return func(fn func(cli MergeClient)) (err error) {
+		defer xerror.RespErr(&err)
+
 		c, err := client.Get()
-		return &mergeClient{c}, xerror.WrapF(err, "srv: %s", srv)
+		if err != nil {
+			return xerror.WrapF(err, "srv: %s", srv)
+		}
+
+		fn(&mergeClient{c})
+		return
 	}
 }
 

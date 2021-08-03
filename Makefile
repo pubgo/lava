@@ -29,7 +29,7 @@ ci:
 	@golangci-lint run -v --timeout=5m
 
 
-proto-gen:
+gen-proto:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
@@ -37,7 +37,7 @@ proto-gen:
 	flerken protoc ls
 	flerken protoc gen
 
-proto:
+proto-vendor:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
@@ -49,7 +49,7 @@ proto:
 
 
 .PHONY: gen
-gen:
+gen-protoc-plugin:
 	cd protoc-gen-lug && go install .
 
 .PHONY: example
