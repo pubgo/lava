@@ -1,27 +1,12 @@
 package tracing
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )
-
-func GetTraceIdFromCtx(ctx context.Context) string {
-	span := ctx.Value(spanKey{})
-	if span != nil {
-		return span.(*Span).TraceID()
-	}
-
-	span = opentracing.SpanFromContext(ctx)
-	if span != nil {
-		return NewSpan(span.(opentracing.Span)).TraceID()
-	}
-
-	return ""
-}
 
 func NewSpan(sp opentracing.Span) *Span {
 	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}

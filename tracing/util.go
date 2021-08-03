@@ -3,7 +3,6 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/byteutil"
 	"github.com/valyala/fasthttp"
+	"go.uber.org/zap"
 )
 
 const (
@@ -169,5 +169,9 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 }
 
 func TraceIdField(ctx context.Context) zap.Field {
-	return zap.String("trace_id", GetTraceIdFromCtx(ctx))
+	return zap.String("trace_id", FromCtx(ctx).TraceID())
+}
+
+func CreateChild(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
+	return FromCtx(ctx).CreateChild(name, opts...)
 }
