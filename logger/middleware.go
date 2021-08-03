@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pubgo/lug/tracing"
@@ -26,20 +27,30 @@ func Middleware() types.Middleware {
 			ac["start_time"] = start.Format(time.RFC3339)
 
 			defer func() {
-				if err := recover(); err != nil || gErr != nil {
-					if gErr != nil {
-						err = gErr
+				if err := recover(); err != nil {
+					switch err := err.(type) {
+					case error:
+						gErr = err
+					default:
+						gErr = fmt.Errorf("%#v", err)
 					}
+				}
 
+				if gErr != nil {
 					// 根据请求参数决定是否记录请求参数
 					ac["req_body"] = req.Payload()
 					ac["resp_body"] = respBody
 					ac["header"] = req.Header()
-					ac["error"] = err
+					ac["error"] = gErr
 				}
 
 				// 微秒
 				ac["duration"] = time.Since(start).Microseconds()
+
+				if gErr != nil {
+					xlog.Error("request log", ac, tracing.TraceIdField(ctx))
+					return
+				}
 
 				xlog.Info("request log", ac, tracing.TraceIdField(ctx))
 			}()
@@ -49,7 +60,7 @@ func Middleware() types.Middleware {
 				return xerror.Wrap(resp(rsp))
 			})
 
-			return gErr
+			return
 		}
 	}
 }

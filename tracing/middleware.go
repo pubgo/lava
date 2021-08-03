@@ -21,7 +21,6 @@ func Middleware() types.Middleware {
 			}
 
 			var span *Span
-
 			if !req.Client() {
 				parentSpanContext, err := tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 				if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
@@ -41,13 +40,9 @@ func Middleware() types.Middleware {
 				}
 			}
 
-			defer func() {
-				SetIfErr(span, gErr)
-
-				span.Finish()
-			}()
-
+			defer span.Finish()
 			gErr = next(withCtx(ctx, span), req, resp)
+			SetIfErr(span, gErr)
 			return
 		}
 	}
