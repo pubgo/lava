@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/opentracing/opentracing-go"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/grpclog"
@@ -20,28 +20,33 @@ func Middleware() types.Middleware {
 				return xerror.Fmt("tracer is nil")
 			}
 
-			var span *Span
+			var (
+				span              *Span
+				err               error
+				parentSpanContext opentracing.SpanContext
+			)
+
 			if !req.Client() {
-				parentSpanContext, err := tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
+				parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 				if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
 					grpclog.Infof("opentracing: failed parsing trace information: %v", err)
 				}
+
 				span = StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
 			} else {
 				span = FromCtx(ctx)
-				var parentSpanCtx opentracing.SpanContext
-				if span != nil {
-					parentSpanCtx = span.Context()
+				if !span.Noop() {
+					parentSpanContext = span.Context()
 				}
 
-				span = StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanCtx), ext.SpanKindRPCClient)
+				span = StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanContext), ext.SpanKindRPCClient)
 				if err := tracer.Inject(span.Context(), opentracing.TextMap, textMapCarrier(req.Header())); err != nil {
 					grpclog.Infof("opentracing: failed serializing trace information: %v", err)
 				}
 			}
 
 			defer span.Finish()
-			gErr = next(withCtx(ctx, span), req, resp)
+			gErr = next(opentracing.ContextWithSpan(ctx, span), req, resp)
 			SetIfErr(span, gErr)
 			return
 		}

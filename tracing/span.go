@@ -23,6 +23,11 @@ type Span struct {
 	opentracing.Span
 	traceId string
 	log     *zap.Logger
+	noop    bool
+}
+
+func (s *Span) Noop() bool {
+	return s.noop
 }
 
 func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {

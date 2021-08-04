@@ -6,26 +6,16 @@ import (
 	"github.com/opentracing/opentracing-go"
 )
 
-type spanKey struct{}
-
-// withCtx returns a new context with the provided span.
-func withCtx(ctx context.Context, span *Span) context.Context {
-	return context.WithValue(ctx, spanKey{}, span)
-}
-
 // FromCtx retrieves the current span from the context.
 func FromCtx(ctx context.Context) *Span {
-	span := ctx.Value(spanKey{})
+	span := opentracing.SpanFromContext(ctx)
 	if span != nil {
-		return span.(*Span)
+		if sp, ok := span.(*Span); ok {
+			return sp
+		}
+
+		return NewSpan(span)
 	}
 
-	span = opentracing.SpanFromContext(ctx)
-	if span != nil {
-		return NewSpan(span.(opentracing.Span))
-	}
-
-	return NewSpan((&opentracing.NoopTracer{}).StartSpan(""))
+	return &Span{Span: opentracing.StartSpan(""), noop: true}
 }
-
-func SpanFromCtx(ctx context.Context, fn func(span *Span)) { fn(FromCtx(ctx)) }
