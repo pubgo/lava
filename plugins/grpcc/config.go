@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/lug/pkg/typex"
 	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
+	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/types"
 )
 
@@ -129,24 +130,31 @@ type Cfg struct {
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
 }
 
-func (t Cfg) Build(target string) (_ *grpc.ClientConn, gErr error) {
+func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Hour)
+	// 服务发现模式, 检查注册中心是否初始化完成
+	xerror.Assert(registry.Default() == nil, "please init registry")
+	target = resolver.BuildDiscovTarget(target, registry.Default().String())
+
+	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
 	defer cancel()
 
-	target = buildTarget(target)
-	conn, err := grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
-	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", target)
+	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
+	return conn, xerror.WrapF(gErr, "DialContext error, target:%s\n", target)
 }
 
 func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
+	// 直连模式,target=>localhost:8080,localhost:8081,localhost:8082
 	target = resolver.BuildDirectTarget(target)
-	conn, gErr = grpc.DialContext(context.Background(), target, append(t.ToOpts(), t.DialOptions...)...)
-	xerror.PanicF(gErr, "DialContext error, target:%s", target)
-	return
+
+	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
+	defer cancel()
+
+	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
+	return conn, xerror.WrapF(gErr, "DialContext error, target:%s", target)
 }
 
 func (t Cfg) ToOpts() []grpc.DialOption {
@@ -244,25 +252,25 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 
 var defaultDialOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
-func GetCfg(name string) Cfg {
+func GetCfg(name string) *Cfg {
 	if configMap.Has(name) {
-		return configMap.Get(name).(Cfg)
+		return configMap.Get(name).(*Cfg)
 	}
 
 	if configMap.Has(consts.Default) {
-		return configMap.Get(consts.Default).(Cfg)
+		return configMap.Get(consts.Default).(*Cfg)
 	}
 
 	return GetDefaultCfg()
 }
 
-func defaultDialOption(_ string) []grpc.DialOption { return GetDefaultCfg().ToOpts() }
-func GetDefaultCfg(opts ...func(cfg *Cfg)) Cfg {
+func GetDefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 	var cfg = Cfg{
 		Insecure:          true,
 		Block:             true,
 		BalancerName:      p2c2.Name,
 		DialTimeout:       2 * time.Second,
+		Timeout:           DefaultTimeout,
 		MaxHeaderListSize: 1024 * 4,
 		MaxRecvMsgSize:    1024 * 1024 * 4,
 		ClientParameters: clientParameters{
@@ -288,5 +296,5 @@ func GetDefaultCfg(opts ...func(cfg *Cfg)) Cfg {
 	for i := range opts {
 		opts[i](&cfg)
 	}
-	return cfg
+	return &cfg
 }

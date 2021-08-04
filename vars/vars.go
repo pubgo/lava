@@ -2,6 +2,7 @@ package vars
 
 import (
 	"expvar"
+	"github.com/pubgo/x/stack"
 
 	"github.com/pubgo/lug/logutil"
 
@@ -35,7 +36,7 @@ func Watch(name string, data func() interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
 			xlog.Error("unknown error",
 				pkg,
-				zap.String("name", name),
+				zap.String(name, stack.Func(data)),
 				zap.Any("err", err))
 		})
 		return data()

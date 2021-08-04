@@ -19,21 +19,20 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	defer xerror.RespErr(&err)
 
 	// 根据规则解析出地址
-	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool { return r == EndpointSepChar })
+	endpoints := strings.Split(target.Endpoint, EndpointSep)
 	if len(endpoints) == 0 {
 		return nil, xerror.Fmt("%v has not endpoint", target)
 	}
 
 	// 构造resolver address, 并处理副本集
-	var addrs []resolver.Address
+	var addrList []resolver.Address
 	for i := range endpoints {
 		addr := endpoints[i]
 		for j := 0; j < Replica; j++ {
-			addrs = append(addrs, newAddr(addr, addr))
+			addrList = append(addrList, newAddr(addr, addr))
 		}
 	}
 
-	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
-
+	xerror.PanicF(cc.UpdateState(newState(addrList)), "update resolver address: %v", addrList)
 	return &baseResolver{cc: cc, builder: DirectScheme}, nil
 }

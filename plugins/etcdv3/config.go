@@ -1,7 +1,6 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/lug/pkg/retry"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -9,6 +8,8 @@ import (
 	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lug/pkg/retry"
 )
 
 const Name = "etcdv3"
@@ -30,30 +31,28 @@ type Cfg struct {
 	RejectOldCluster     bool              `json:"reject_old_cluster"`
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
+	backoff              retry.Handler
 }
 
 func (t Cfg) Build() (c *clientv3.Client, err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg clientv3.Config
-	// 转化为etcd Builder
 	xerror.Panic(merge.Copy(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
 	// 创建etcd client对象
-	var etcdClient *clientv3.Client
-	xerror.Panic(retry.New().Do(func(i int) error {
-		etcdClient, err = clientv3.New(cfg)
+	xerror.PanicF(t.backoff.Do(func(i int) error {
+		c, err = clientv3.New(cfg)
 		return xerror.Wrap(err)
-	}))
-	//err = retry(3, func() error { etcdClient, err = clientv3.New(cfg); return err })
-	xerror.PanicF(err, "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
+	}), "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
 
-	return etcdClient, nil
+	return
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
+		backoff:     retry.New(),
 		DialTimeout: time.Second * 2,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}

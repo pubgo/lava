@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/x/fx"
 	"net/http"
 	"time"
+	_ "unsafe"
 
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/lug/internal/debug"
@@ -15,7 +17,7 @@ import (
 	"github.com/pubgo/lug/tracing"
 	_ "github.com/pubgo/lug/tracing/jaeger"
 
-	"github.com/pubgo/x/fx"
+	_ "github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	_ "net/http/pprof"
@@ -23,10 +25,14 @@ import (
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
 	cfg.Middlewares = append(cfg.Middlewares, tracing.Middleware())
+
 	fmt.Println("service", cfg)
 })
 
 func main() {
+	init1()
+	init2()
+	fx.MemStatsPrint()
 	go http.ListenAndServe(debug.Addr, nil)
 
 	runenv.Project = "test-client"
@@ -49,4 +55,13 @@ func main() {
 
 	}, time.Second*5)
 	select {}
+}
+
+//go:linkname github.com/pubgo/x/fx.MemStatsPrint init1
+func init1() {
+	fmt.Println("init1")
+}
+
+func init2() {
+	fmt.Println("init2")
 }

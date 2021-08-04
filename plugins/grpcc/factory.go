@@ -2,14 +2,10 @@ package grpcc
 
 import (
 	"google.golang.org/grpc"
-
-	"sync"
 )
 
-var clients sync.Map
-
-func NewDirect(service string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
-	return GetDefaultCfg(opts...).BuildDirect(service)
+func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
+	return GetDefaultCfg(opts...).BuildDirect(addr)
 }
 
 func GetClient(service string, opts ...func(cfg *Cfg)) *client {

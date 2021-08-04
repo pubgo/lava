@@ -13,13 +13,12 @@ import (
 
 const (
 	DirectScheme    = "direct"
-	DiscovScheme    = "discov"
-	EndpointSepChar = ','
+	DiscovScheme = "discov"
+	EndpointSep  = ","
 )
 
 var (
-	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
-	Replica     = 1
+	Replica = 1
 )
 
 func init() {
@@ -39,7 +38,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.Infof("[grpc] %s ResolveNow",r.builder)
+	logs.Infof("[grpc] %s ResolveNow", r.builder)
 }
 
 // 关于 grpc 命名的介绍

@@ -295,7 +295,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		conn, err := grpcc.NewDirect(runenv.Addr)
 		xerror.Panic(err)
 		g.client = conn
-		xerror.Panic(grpcs.HealthCheck(g.cfg.name, g.client))
+		xerror.Panic(grpcc.HealthCheck(g.cfg.name, g.client))
 		xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
 	})
 
@@ -353,7 +353,7 @@ func newEntry(name string) *grpcEntry {
 
 	// 健康检查
 	xerror.Exit(healthy.Register(g.cfg.name, func(ctx context.Context) error {
-		return xerror.Wrap(grpcs.HealthCheck(g.cfg.name, g.client))
+		return xerror.Wrap(grpcc.HealthCheck(g.cfg.name, g.client))
 	}))
 
 	g.OnInit(func() {

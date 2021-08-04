@@ -1,10 +1,8 @@
 package grpcs
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -51,10 +49,6 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	opts := t.BuildOpts(cfg)
-	for i := range t.unaryInterceptors {
-		fmt.Printf("%s\n\n\n\n", stack.Func(t.unaryInterceptors[i]))
-	}
-
 	opts = append(opts, grpc.ChainUnaryInterceptor(t.unaryInterceptors...))
 	opts = append(opts, grpc.ChainStreamInterceptor(t.streamInterceptors...))
 	t.srv = grpc.NewServer(opts...)

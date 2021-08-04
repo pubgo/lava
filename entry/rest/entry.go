@@ -81,10 +81,11 @@ func newEntry(name string) *restEntry {
 		Entry: base.New(name),
 		srv:   fb.New(),
 	}
-	trace(ent)
 
 	ent.OnInit(func() {
 		defer xerror.RespExit()
+
+		trace(ent)
 
 		ent.cfg.DisableStartupMessage = true
 		// 解析rest_entry配置

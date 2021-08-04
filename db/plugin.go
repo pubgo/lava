@@ -9,7 +9,6 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
-	"xorm.io/xorm"
 	"xorm.io/xorm/schemas"
 )
 
@@ -21,18 +20,18 @@ var plg = &plugin.Base{
 		w(Name+"_cfg", func() interface{} { return cfgList })
 		w(Name+"_dbMetas", func() interface{} {
 			var dbMetas = make(map[string][]*schemas.Table)
-			xerror.Panic(clients.Each(func(key string, engine *xorm.Engine) {
-				dbMetas[key] = xerror.PanicErr(engine.DBMetas()).([]*schemas.Table)
+			xerror.Panic(clients.Each(func(key string, engine *Client) {
+				dbMetas[key] = xerror.PanicErr(engine.Get().DBMetas()).([]*schemas.Table)
 			}))
 			return dbMetas
 		})
 
 		w(Name+"_sqlList", func() interface{} {
 			var sqlList []string
-			xerror.Panic(clients.Each(func(key string, engine *xorm.Engine) {
+			xerror.Panic(clients.Each(func(key string, engine *Client) {
 				var b strutil.Builder
 				defer b.Reset()
-				xerror.Panic(engine.DumpAll(&b))
+				xerror.Panic(engine.Get().DumpAll(&b))
 				sqlList = append(sqlList, b.String())
 			}))
 			return sqlList

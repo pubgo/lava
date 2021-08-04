@@ -99,6 +99,7 @@ func initApp(v *viper.Viper) error {
 				return xerror.Wrap(err)
 			}
 
+			// 过滤目录
 			if info.IsDir() {
 				return nil
 			}
@@ -113,13 +114,24 @@ func initApp(v *viper.Viper) error {
 				return nil
 			}
 
+			// 读取配置
 			dt := xerror.PanicStr(iox.ReadText(path))
 
 			// 处理环境变量
 			dt = env.Expand(dt)
 
+			var names = strings.Split(info.Name(), ".")
+
+			c := make(map[string]interface{})
+			xerror.Exit(unmarshalReader(v, strings.NewReader(dt), c))
+			fmt.Println(dt)
+			fmt.Printf("%#v\n",c)
+			fmt.Printf("%#v\n",names[len(names)-2])
+
 			// 合并自定义的配置
-			return xerror.Wrap(v.MergeConfig(strings.NewReader(dt)))
+			xerror.Exit(v.MergeConfigMap(map[string]interface{}{names[len(names)-2]: c}))
+			v.Debug()
+			return nil
 		}))
 }
 

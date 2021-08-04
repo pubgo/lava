@@ -39,10 +39,13 @@ type conf struct {
 	v  *viper.Viper
 }
 
+func (t *conf) AllSettings() map[string]interface{} {
+	return t.v.AllSettings()
+}
+
 func (t *conf) MergeConfig(in io.Reader) error {
 	t.rw.Lock()
 	defer t.rw.Unlock()
-
 	return t.v.MergeConfig(in)
 }
 

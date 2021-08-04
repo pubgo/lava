@@ -4,42 +4,40 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pubgo/lug/consts"
-
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/health/grpc_health_v1"
-)
 
-var mux sync.Mutex
+	"github.com/pubgo/lug/consts"
+)
 
 var _ Client = (*client)(nil)
 
 type client struct {
-	service string
+	mu      sync.Mutex
 	optFn   func(cfg *Cfg)
+	service string
+	conn    *grpc.ClientConn
+	cfg     *Cfg
 }
 
 func (t *client) Close() error {
-	val, ok := clients.LoadAndDelete(t.service)
-	if !ok {
-		return nil
-	}
+	t.mu.Lock()
+	var conn = t.conn
+	t.mu.Unlock()
 
-	return xerror.Wrap(val.(*grpc.ClientConn).Close())
+	return xerror.Wrap(conn.Close())
 }
 
-func (t *client) Check(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
+func (t *client) Check(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
 	c, err := t.Get()
 	if err != nil {
 		return nil, xerror.Wrap(err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), t.cfg.Timeout)
 	defer cancel()
-
-	return grpc_health_v1.NewHealthClient(c).Check(ctx, in, opts...)
+	return grpc_health_v1.NewHealthClient(c).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: t.service}, opts...)
 }
 
 func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (grpc_health_v1.Health_WatchClient, error) {
@@ -48,43 +46,30 @@ func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckReques
 		return nil, xerror.Wrap(err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
-	defer cancel()
-
 	return grpc_health_v1.NewHealthClient(c).Watch(ctx, in, opts...)
 }
 
-func (t *client) getClient() *grpc.ClientConn {
-	if val, ok := clients.Load(t.service); ok {
-		if val.(*grpc.ClientConn).GetState() == connectivity.Ready {
-			return val.(*grpc.ClientConn)
-		}
-	}
-	return nil
-}
-
 // Get new grpc client
-func (t *client) Get() (*grpc.ClientConn, error) {
-	var client = t.getClient()
-	if client != nil {
-		return client, nil
+func (t *client) Get() (_ *grpc.ClientConn, err error) {
+	defer xerror.RespErr(&err)
+
+	if t.conn != nil {
+		return t.conn, nil
 	}
 
-	mux.Lock()
-	defer mux.Unlock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
 	// 双检, 避免多次创建
-	client = t.getClient()
-	if client != nil {
-		return client, nil
+	if t.conn != nil {
+		return t.conn, nil
 	}
 
-	var cfg = GetCfg(consts.Default)
-	t.optFn(&cfg)
+	t.cfg = GetCfg(consts.Default)
+	t.optFn(t.cfg)
 
-	conn, err := cfg.Build(t.service)
+	t.conn, err = t.cfg.Build(t.service)
 	xerror.PanicF(err, "dial %s error", t.service)
-
-	clients.Store(t.service, conn)
-	return conn, nil
+	xerror.PanicErr(t.Check(nil))
+	return t.conn, nil
 }

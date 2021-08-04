@@ -9,5 +9,6 @@ type Config interface {
 	ConfigFileUsed() string
 	AllKeys() []string
 	MergeConfig(in io.Reader) error
+	AllSettings() map[string]interface{}
 	GetStringMap(key string) map[string]interface{}
 }

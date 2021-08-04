@@ -8,7 +8,7 @@ import (
 type DialOptions = []grpc.DialOption
 
 type Client interface {
-	grpc_health_v1.HealthClient
+	Check(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error)
 	Get() (*grpc.ClientConn, error)
 	Close() error
 }

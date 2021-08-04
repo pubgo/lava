@@ -1,7 +1,6 @@
 package grpcs
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 
@@ -17,13 +16,6 @@ import (
 	enc "github.com/pubgo/lug/encoding"
 	"github.com/pubgo/lug/xgen"
 )
-
-func HealthCheck(srv string, conn *grpc.ClientConn) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
-	defer cancel()
-	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: srv})
-	return xerror.Wrap(err)
-}
 
 func EnableHealth(srv string, s *grpc.Server) {
 	healthCheck := health.NewServer()
