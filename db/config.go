@@ -48,7 +48,7 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 	engine.SetMaxIdleConns(cfg.MaxConnIdle)
 	engine.SetConnMaxLifetime(cfg.MaxConnTime)
 	engine.SetMapper(names.LintGonicMapper)
-	engine.SetLogger(newLogger(Name))
+	engine.SetLogger(newLogger())
 	engine.Logger().SetLevel(xl.LOG_DEBUG)
 	engine.ShowSQL(true)
 	if !cfg.Debug || runenv.IsStag() || runenv.IsProd() {

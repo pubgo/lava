@@ -1,8 +1,10 @@
 package db
 
 import (
+	"context"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
 
@@ -49,6 +51,12 @@ var plg = &plugin.Base{
 			xerror.Panic(Update(name, *cfg))
 			cfgList[name] = cfg
 		}
+
+		xerror.Exit(healthy.Register(Name, func(ctx context.Context) error {
+			return clients.Each(func(name string, c *Client) {
+				xerror.Panic(c.Get().PingContext(ctx))
+			})
+		}))
 	},
 	OnWatch: func(name string, w *watcher.Response) {
 		w.OnPut(func() {

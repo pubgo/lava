@@ -2,6 +2,8 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/lug/healthy"
+	"github.com/pubgo/xerror"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -28,6 +30,11 @@ func GetEntry() entry.Entry {
 			return next(ctx, req, resp)
 		}
 	})
+
+	// 健康检查
+	xerror.Exit(healthy.Register(name, func(ctx context.Context) error {
+		return nil
+	}))
 
 	return ent
 }

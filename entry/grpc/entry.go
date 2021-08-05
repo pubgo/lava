@@ -14,7 +14,6 @@ import (
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/lug/pkg/netutil"
@@ -350,11 +349,6 @@ func newEntry(name string) *grpcEntry {
 			SleepAfterDeRegister: time.Second * 2,
 		},
 	}
-
-	// 健康检查
-	xerror.Exit(healthy.Register(g.cfg.name, func(ctx context.Context) error {
-		return xerror.Wrap(grpcc.HealthCheck(g.cfg.name, g.client))
-	}))
 
 	g.OnInit(func() {
 		// encoding register
