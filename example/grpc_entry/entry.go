@@ -19,14 +19,12 @@ func GetEntry() entry.Entry {
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())
 	ent.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		//q.Q(info)
 		return handler(ctx, req)
 	})
 
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			zap.L().Info("test grpc entry")
-
 			return next(ctx, req, resp)
 		}
 	})

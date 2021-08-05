@@ -8,6 +8,7 @@ import (
 	cb "github.com/pubgo/lug/builder/chi"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
@@ -27,20 +28,22 @@ var plg = &plugin.Base{
 	OnFlags: func(flags *pflag.FlagSet) {
 		flags.StringVar(&Addr, "da", Addr, "debug server addr")
 	},
+
 	OnInit: func(ent entry.Entry) {
 		var srv = &Mux{Cfg: cb.GetDefaultCfg(), srv: cb.New()}
 		_ = config.Decode(Name, &srv)
+
 
 		var builder = cb.New()
 		xerror.Panic(builder.Build(srv.Cfg))
 		srv.Mux = builder.Get()
 
-		xerror.Exit(dix.Provider((*types.DebugMux)(srv.Mux)))
+		xerror.Exit(dix.Provider(srv.Mux))
 
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		ent.BeforeStart(func() {
 			fx.GoDelay(func() {
-				logs.Infof("Server [debug] Listening on http://localhost%s", Addr)
+				logs.Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(Addr))
 				if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					logs.Error("Server [debug] Listen Error", zap.Any("err", err))
 					return
@@ -48,7 +51,6 @@ var plg = &plugin.Base{
 
 				logs.Info("Server [debug] Closed OK")
 			})
-
 		})
 
 		ent.BeforeStop(func() {

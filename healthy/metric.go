@@ -2,37 +2,30 @@ package healthy
 
 import (
 	"context"
-	"fmt"
 	"time"
+
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/metric"
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/version"
-
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/lug/pkg/ctxutil"
 )
 
 func init() {
 	entry.AfterStart(func() {
-		var tags = metric.Tags{"version": version.Version, "build_time": version.BuildTime, "commit_id": version.CommitID}
-
-		var versionCount = metric.CreateCounter(
-			Name,
-			typex.StrOf("version", "build_time", "commit_id"),
-			metric.CounterOpts{
-				Help: fmt.Sprintf("%s health check", runenv.Project),
-			},
-		)
-
-		_ = fx.Go(func(_ context.Context) {
-			for range time.Tick(time.Second) {
-				if err := versionCount.Record(1.0, tags); err != nil {
-					xlog.Error("health check", xlog.M{"err": err, "tags": tags})
+		var healthCheckTimer = metric.NewTimer("health_check")
+		var scope = metric.WithSubScope("health_check")
+		_ = fx.Tick(func(ctx fx.Ctx) {
+			metric.TimeRecord(healthCheckTimer, func() {
+				for name, r := range healthList.Map() {
+					metric.TimeRecord(scope.Timer(name), func() {
+						var ctx, cancel = context.WithTimeout(ctx, ctxutil.DefaultTimeout)
+						defer cancel()
+						xerror.Panic(r.(HealthCheck)(ctx))
+					})
 				}
-			}
-		})
+			})
+		}, time.Second)
 	})
 }

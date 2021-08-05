@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/lug/example/grpc_entry"
 	"github.com/pubgo/lug/example/rest_entry"
 	"github.com/pubgo/lug/example/task_entry"
+	_ "github.com/pubgo/lug/plugins/panicparse"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"

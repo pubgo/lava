@@ -61,3 +61,8 @@ func CmdExample(data ...string) string {
 func DotJoin(str ...string) string {
 	return strings.Join(str, ".")
 }
+
+func GetPort(addr string) string {
+	var addrList = strings.Split(addr, ":")
+	return addrList[len(addrList)-1]
+}

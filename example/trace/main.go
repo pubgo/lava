@@ -2,15 +2,12 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/net/trace"
-	"google.golang.org/grpc/grpclog"
 	"runtime"
 	"time"
+
+	"golang.org/x/net/trace"
+	"google.golang.org/grpc/grpclog"
 )
-
-func main() {
-
-}
 
 func startTrace() {
 	_, file, line, _ := runtime.Caller(1) //  runtime库的Caller函数，可以返回运行时正在执行的文件名和行号

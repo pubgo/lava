@@ -1,7 +1,10 @@
 package main
 
-import "github.com/pubgo/lug/metric"
+import (
+	"fmt"
+	"github.com/pubgo/lug/logutil"
+)
 
 func main() {
-	metric.Summary("hello", 11, nil)
+	logutil.ErrLog(fmt.Errorf("ok"))
 }

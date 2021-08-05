@@ -124,9 +124,6 @@ func initApp(v *viper.Viper) error {
 
 			c := make(map[string]interface{})
 			xerror.Exit(unmarshalReader(v, strings.NewReader(dt), c))
-			fmt.Println(dt)
-			fmt.Printf("%#v\n",c)
-			fmt.Printf("%#v\n",names[len(names)-2])
 
 			// 合并自定义的配置
 			xerror.Exit(v.MergeConfigMap(map[string]interface{}{names[len(names)-2]: c}))

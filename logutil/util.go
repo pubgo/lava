@@ -63,6 +63,14 @@ func Try(fn func(), fields ...zap.Field) (gErr error) {
 	return
 }
 
+func ErrLog(err error, fields ...zap.Field) {
+	if err == nil {
+		return
+	}
+
+	zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error(), append(fields, Err(err))...)
+}
+
 func Logs(fn func(), fields ...zap.Field) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 

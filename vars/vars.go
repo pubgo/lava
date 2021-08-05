@@ -2,12 +2,12 @@ package vars
 
 import (
 	"expvar"
-	"github.com/pubgo/x/stack"
 
 	"github.com/pubgo/lug/logutil"
 
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"

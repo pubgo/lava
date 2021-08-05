@@ -7,8 +7,10 @@ import (
 	"github.com/pubgo/lug/entry/grpc"
 	"github.com/pubgo/lug/entry/rest"
 	"github.com/pubgo/lug/entry/task"
+	"github.com/pubgo/lug/internal/debug"
 	"github.com/pubgo/lug/internal/runtime"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 )
 
 func BeforeStart(fn func()) { entry.BeforeStart(fn) }
@@ -28,3 +30,5 @@ func Start(ent entry.Entry) error                    { return runtime.Start(ent)
 func Stop(ent entry.Entry) error                     { return runtime.Stop(ent) }
 
 func Plugin(plg plugin.Plugin, opts ...plugin.Opt) { plugin.Register(plg, opts...) }
+
+func Debug(fn func(mux *types.DebugMux)) { debug.On(fn) }

@@ -86,7 +86,7 @@ http:
 db:
   default:
     driver: "sqlite3x"
-    source: "./sqlite.db"
+    source: "./db/sqlite.db"
 
 registry:
   driver: "mdns"
@@ -95,3 +95,7 @@ tracing:
   driver: "jaeger"
   serviceName: "test"
   disabled: true
+
+metric:
+  driver: "prometheus"
+  path: "/etcd"

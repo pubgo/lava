@@ -1,71 +1,35 @@
 package metric
 
 import (
+	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/xerror"
 )
 
-var defaultReporter Reporter = &noopReporter{}
+var defaultScope Scope
 
-// setDefault 设置全局的Reporter
-func setDefault(reporter Reporter) {
-	xerror.Assert(reporter == nil, "[reporter] should not be nil")
-	defaultReporter = reporter
+// setDefault 设置全局的scope
+func setDefault(scope Scope) {
+	xerror.Assert(scope == nil, "[scope] should not be nil")
+	defaultScope = scope
 }
 
-// getDefault 获取全局的Reporter
-func getDefault() Reporter {
-	xerror.Assert(defaultReporter == nil, "please set default reporter")
-	return defaultReporter
+// Root 获取全局的scope
+func Root() Scope {
+	xerror.Assert(defaultScope == nil, "please set default scope")
+	return defaultScope
 }
 
-//CreateGauge init a new gauge type
-func CreateGauge(name string, labels []string, opts GaugeOpts) Handler {
-	xerror.Exit(getDefault().CreateGauge(name, labels, opts))
-	return func(value float64, tags Tags) error {
-		return getDefault().Gauge(name, value, tags)
-	}
-}
+func NewCounter(name string, tags Tags) Counter           { return Root().Counter(name) }
+func NewGauge(name string) Gauge                          { return Root().Gauge(name) }
+func NewTimer(name string) Timer                          { return Root().Timer(name) }
+func NewHistogram(name string, buckets Buckets) Histogram { return Root().Histogram(name, buckets) }
+func WithTagged(tags Tags) Scope                          { return Root().Tagged(tags) }
+func WithSubScope(name string) Scope                      { return Root().SubScope(name) }
 
-//CreateCounter init a new counter type
-func CreateCounter(name string, labels []string, opts CounterOpts) Handler {
-	xerror.Exit(getDefault().CreateCounter(name, labels, opts))
-	return func(value float64, tags Tags) error {
-		return getDefault().Count(name, value, tags)
-	}
-}
+func TimeRecord(t Timer, fn func()) {
+	defer xerror.Resp(func(err xerror.XErr) { logutil.ErrLog(err) })
 
-//CreateSummary init a new summary type
-func CreateSummary(name string, labels []string, opts SummaryOpts) Handler {
-	xerror.Exit(getDefault().CreateSummary(name, labels, opts))
-	return func(value float64, tags Tags) error {
-		return getDefault().Summary(name, value, tags)
-	}
-}
-
-//CreateHistogram init a new histogram type
-func CreateHistogram(name string, labels []string, opts HistogramOpts) Handler {
-	xerror.Exit(getDefault().CreateHistogram(name, labels, opts))
-	return func(value float64, tags Tags) error {
-		return getDefault().Histogram(name, value, tags)
-	}
-}
-
-// Count 上报递增数据
-func Count(name string, value float64, tags Tags) error {
-	return getDefault().Count(name, value, tags)
-}
-
-// Gauge 实时的上报当前指标
-func Gauge(name string, value float64, tags Tags) error {
-	return getDefault().Gauge(name, value, tags)
-}
-
-// Histogram 存储区间数据, 在服务端端聚合数据
-func Histogram(name string, value float64, tags Tags) error {
-	return getDefault().Histogram(name, value, tags)
-}
-
-// Summary 在client端聚合数据, 直接存储了分位数
-func Summary(name string, value float64, tags Tags) error {
-	return getDefault().Summary(name, value, tags)
+	var start = t.Start()
+	fn()
+	start.Stop()
 }

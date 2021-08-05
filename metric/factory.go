@@ -5,9 +5,10 @@ import (
 	"github.com/pubgo/lug/pkg/typex"
 
 	"github.com/pubgo/xerror"
+	"github.com/uber-go/tally"
 )
 
-type Factory func(cfg map[string]interface{}) (Reporter, error)
+type Factory func(cfg map[string]interface{}, opts *tally.ScopeOptions) error
 
 var reporters typex.SMap
 

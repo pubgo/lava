@@ -1,13 +1,17 @@
 package metric
 
 import (
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/watcher"
+	"time"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
+	"github.com/uber-go/tally"
+
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/runenv"
 )
 
 func init() { plugin.Register(&plg) }
@@ -16,21 +20,23 @@ var plg = plugin.Base{
 	Name: Name,
 	OnInit: func(ent entry.Entry) {
 		var cfg = GetDefaultCfg()
-		if !config.Decode(Name, &cfg) {
-			return
+		_ = config.Decode(Name, &cfg)
+
+		driver := cfg.Driver
+		xerror.Assert(driver == "", "metric driver is null")
+
+		fc := Get(driver)
+		xerror.Assert(fc == nil, "metric driver %s not found", driver)
+
+		var opts = tally.ScopeOptions{
+			Prefix: runenv.Project,
 		}
 
-		var reporter = xerror.PanicErr(cfg.Build()).(Reporter)
-		setDefault(reporter)
-	},
+		xerror.Exit(fc(config.GetMap(Name), &opts))
 
-	OnWatch: func(name string, resp *watcher.Response) {
-		var cfg = GetDefaultCfg()
-		_ = config.Decode(Name, &cfg)
-		xerror.Panic(watcher.Decode(resp.Value, &cfg))
-
-		var reporter = xerror.PanicErr(cfg.Build()).(Reporter)
-		setDefault(reporter)
+		scope, closer := tally.NewRootScope(opts, time.Second)
+		ent.AfterStop(func() { logutil.ErrLog(closer.Close()) })
+		setDefault(scope)
 	},
 
 	OnVars: func(w func(name string, data func() interface{})) {

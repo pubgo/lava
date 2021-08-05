@@ -40,7 +40,12 @@ require (
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/lucas-clemente/quic-go v0.19.3
+	github.com/m3db/prometheus_client_golang v0.8.1 // indirect
+	github.com/m3db/prometheus_client_model v0.1.0 // indirect
+	github.com/m3db/prometheus_common v0.1.0 // indirect
+	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magefile/mage v1.11.0
+	github.com/maruel/panicparse/v2 v2.1.1
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/mattn/go-zglob v0.0.3
 	github.com/mitchellh/hashstructure v1.1.0
@@ -66,6 +71,8 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/twmb/murmur3 v1.1.5 // indirect
+	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.26.0
