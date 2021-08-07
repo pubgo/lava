@@ -30,9 +30,6 @@ var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
 })
 
 func main() {
-	init1()
-	init2()
-	fx.MemStatsPrint()
 	go http.ListenAndServe(debug.Addr, nil)
 
 	runenv.Project = "test-client"
@@ -55,13 +52,4 @@ func main() {
 
 	}, time.Second*5)
 	select {}
-}
-
-//go:linkname github.com/pubgo/x/fx.MemStatsPrint init1
-func init1() {
-	fmt.Println("init1")
-}
-
-func init2() {
-	fmt.Println("init2")
 }

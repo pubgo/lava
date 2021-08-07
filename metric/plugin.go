@@ -28,12 +28,8 @@ var plg = plugin.Base{
 		fc := Get(driver)
 		xerror.Assert(fc == nil, "metric driver %s not found", driver)
 
-		var opts = tally.ScopeOptions{
-			Prefix: runenv.Project,
-		}
-
+		var opts = tally.ScopeOptions{Prefix: runenv.Project}
 		xerror.Exit(fc(config.GetMap(Name), &opts))
-
 		scope, closer := tally.NewRootScope(opts, time.Second)
 		ent.AfterStop(func() { logutil.ErrLog(closer.Close()) })
 		setDefault(scope)

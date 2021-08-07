@@ -62,16 +62,16 @@ func (d *discovBuilder) updateService(services ...*registry.Service) {
 }
 
 // 获取服务地址
-func (d *discovBuilder) getAddrs(name string) []resolver.Address {
-	var addrs []resolver.Address
+func (d *discovBuilder) getAddrList(name string) []resolver.Address {
+	var addrList []resolver.Address
 	d.services.Range(func(_, value interface{}) bool {
 		var addr = *value.(*resolver.Address)
 		if addr.ServerName == name {
-			addrs = append(addrs, *value.(*resolver.Address))
+			addrList = append(addrList, *value.(*resolver.Address))
 		}
 		return true
 	})
-	return addrs
+	return addrList
 }
 
 // Build discov://service_name
@@ -92,7 +92,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
-	var addrs = d.getAddrs(target.Endpoint)
+	var addrs = d.getAddrList(target.Endpoint)
 	xerror.Assert(len(addrs) == 0, "service none available")
 
 	logs.Infof("discovBuilder Addrs %#v", addrs)
@@ -127,7 +127,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				}
 
 				try.Logs(logs, func() {
-					var addrs = d.getAddrs(target.Endpoint)
+					var addrs = d.getAddrList(target.Endpoint)
 					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 				})
 

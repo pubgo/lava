@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/pubgo/lug/healthy"
 	"github.com/pubgo/xerror"
+	"google.golang.org/grpc/grpclog"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -27,6 +28,7 @@ func GetEntry() entry.Entry {
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			zap.L().Info("test grpc entry")
+			grpclog.Info("ok grpc log")
 			return next(ctx, req, resp)
 		}
 	})

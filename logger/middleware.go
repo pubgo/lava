@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+
 	"time"
 
 	"github.com/pubgo/lug/tracing"

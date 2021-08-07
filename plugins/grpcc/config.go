@@ -139,7 +139,7 @@ func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
 	defer cancel()
-
+	//
 	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
 	return conn, xerror.WrapF(gErr, "DialContext error, target:%s\n", target)
 }
@@ -269,7 +269,7 @@ func GetDefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 		Insecure:          true,
 		Block:             true,
 		BalancerName:      p2c2.Name,
-		DialTimeout:       2 * time.Second,
+		DialTimeout:       time.Minute,
 		Timeout:           DefaultTimeout,
 		MaxHeaderListSize: 1024 * 4,
 		MaxRecvMsgSize:    1024 * 1024 * 4,

@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	TraceId        = "trace_id"
 	KeyErrorMessage        = "err_msg"
 	KeyContextErrorMessage = "ctx_err_msg"
 )
@@ -169,7 +170,7 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 }
 
 func TraceIdField(ctx context.Context) zap.Field {
-	return zap.String("trace_id", FromCtx(ctx).TraceID())
+	return zap.String(TraceId, FromCtx(ctx).TraceID())
 }
 
 func CreateChild(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {

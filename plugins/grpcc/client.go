@@ -3,9 +3,11 @@ package grpcc
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lug/consts"
@@ -53,7 +55,7 @@ func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckReques
 func (t *client) Get() (_ *grpc.ClientConn, err error) {
 	defer xerror.RespErr(&err)
 
-	if t.conn != nil {
+	if t.conn != nil && t.conn.GetState() == connectivity.Ready {
 		return t.conn, nil
 	}
 
@@ -61,7 +63,8 @@ func (t *client) Get() (_ *grpc.ClientConn, err error) {
 	defer t.mu.Unlock()
 
 	// 双检, 避免多次创建
-	if t.conn != nil {
+	time.Sleep(time.Millisecond * 10)
+	if t.conn != nil && t.conn.GetState() == connectivity.Ready {
 		return t.conn, nil
 	}
 
@@ -70,6 +73,6 @@ func (t *client) Get() (_ *grpc.ClientConn, err error) {
 
 	t.conn, err = t.cfg.Build(t.service)
 	xerror.PanicF(err, "dial %s error", t.service)
-	xerror.PanicErr(t.Check(nil))
+	//xerror.PanicErr(t.Check(nil))
 	return t.conn, nil
 }

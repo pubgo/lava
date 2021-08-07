@@ -7,6 +7,8 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/grpclog"
 
 	"github.com/pubgo/lug/types"
@@ -14,7 +16,7 @@ import (
 
 func Middleware() types.Middleware {
 	return func(next types.MiddleNext) types.MiddleNext {
-		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (gErr error) {
+		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var tracer = opentracing.GlobalTracer()
 			if tracer == nil {
 				return xerror.Fmt("tracer is nil")
@@ -45,10 +47,16 @@ func Middleware() types.Middleware {
 				}
 			}
 
-			defer span.Finish()
-			gErr = next(opentracing.ContextWithSpan(ctx, span), req, resp)
-			SetIfErr(span, gErr)
-			return
+			ctx = opentracing.ContextWithSpan(ctx, span)
+			ctx = xlog.AppendCtx(ctx, zap.String(TraceId, span.TraceID()))
+
+			defer func() {
+				SetIfErr(span, err)
+				span.Finish()
+			}()
+
+			err = next(ctx, req, resp)
+			return err
 		}
 	}
 }

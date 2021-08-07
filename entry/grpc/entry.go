@@ -288,15 +288,12 @@ func (g *grpcEntry) Start() (gErr error) {
 	})
 
 	// 启动本地grpc客户端
-	fx.GoDelay(func() {
-		logs.Info("[grpc] Client Connecting")
-
-		conn, err := grpcc.NewDirect(runenv.Addr)
-		xerror.Panic(err)
-		g.client = conn
-		xerror.Panic(grpcc.HealthCheck(g.cfg.name, g.client))
-		xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
-	})
+	logs.Info("[grpc] Client Connecting")
+	conn, err := grpcc.NewDirect(runenv.Addr)
+	xerror.Panic(err)
+	g.client = conn
+	xerror.Panic(grpcc.HealthCheck(g.cfg.name, g.client))
+	xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
 
 	// register self
 	xerror.Panic(g.register(), "[grpc] try to register self")

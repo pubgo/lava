@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/lug/builder/grpcs"
 
 	"github.com/pubgo/xlog"
-	_ "github.com/pubgo/xlog/xlog_grpc"
 
 	"time"
 )
