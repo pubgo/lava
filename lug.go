@@ -11,8 +11,6 @@ import (
 	"github.com/pubgo/lug/internal/runtime"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/types"
-
-	"github.com/pubgo/x/merge"
 )
 
 func BeforeStart(fn func()) { entry.BeforeStart(fn) }
@@ -34,9 +32,3 @@ func Stop(ent entry.Entry) error                     { return runtime.Stop(ent) 
 func Plugin(plg plugin.Plugin, opts ...plugin.Opt) { plugin.Register(plg, opts...) }
 
 func Debug(fn func(mux *types.DebugMux)) { debug.On(fn) }
-
-type CfgMap map[string]interface{}
-
-func (t CfgMap) Decode(dst interface{}) error {
-	return merge.MapStruct(dst, &t)
-}
