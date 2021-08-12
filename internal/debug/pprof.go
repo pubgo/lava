@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"github.com/felixge/fgprof"
 	"github.com/go-chi/chi/v5"
 
 	"bytes"
@@ -18,6 +19,7 @@ import (
 
 func init() {
 	On(func(app *chi.Mux) {
+		app.HandleFunc("/debug/fgprof", fgprof.Handler())
 		app.HandleFunc("/debug/pprof/", pprofHandle)
 		app.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		app.HandleFunc("/debug/pprof/profile", pprof.Profile)
