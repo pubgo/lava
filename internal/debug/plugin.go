@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"net/http"
 
@@ -16,6 +17,7 @@ import (
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
+	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -42,6 +44,14 @@ var plg = &plugin.Base{
 
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		ent.BeforeStart(func() {
+			expvar.Do(func(kv expvar.KeyValue) {
+				var val = kv.Value
+				srv.Mux.Get(fmt.Sprintf("/debug/vars/%s", kv.Key), func(writer http.ResponseWriter, request *http.Request) {
+					writer.Header().Set("Content-Type", "application/json")
+					xerror.PanicErr(writer.Write(strutil.ToBytes(val.String())))
+				})
+			})
+
 			xerror.Assert(netutil.ScanPort("tcp4", Addr), "server: %s already exists", Addr)
 
 			fx.GoDelay(func() {
