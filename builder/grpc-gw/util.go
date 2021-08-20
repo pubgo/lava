@@ -1,13 +1,11 @@
 package grpc_gw
 
 import (
-	"github.com/pubgo/lug/xgen"
-
 	"context"
 	"reflect"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/x/fx"
+	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )
@@ -26,12 +24,12 @@ func Register(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn) (err
 		}
 
 		if v1.In(0).String() != "context.Context" ||
-			v1.In(1).String() != "runtime.ServeMux" ||
-			v1.In(2).String() != "grpc.ClientConn" {
+			v1.In(1).String() != "*runtime.ServeMux" ||
+			v1.In(2).String() != "*grpc.ClientConn" {
 			continue
 		}
 
-		fx.Wrap(v)(ctx, mux, conn)(func(err2 error) { xerror.Panic(err2) })
+		return v.Interface().(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)(ctx, mux, conn)
 	}
 
 	return nil

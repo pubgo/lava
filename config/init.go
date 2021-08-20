@@ -127,7 +127,6 @@ func initApp(v *viper.Viper) error {
 
 			// 合并自定义的配置
 			xerror.Exit(v.MergeConfigMap(map[string]interface{}{names[len(names)-2]: c}))
-			v.Debug()
 			return nil
 		}))
 }
