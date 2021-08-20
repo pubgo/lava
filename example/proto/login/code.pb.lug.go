@@ -92,7 +92,7 @@ func init() {
 
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCodeRestServer), nil)
-	xgen.Add(reflect.ValueOf(RegisterCodeHandler), nil)
+	xgen.Add(reflect.ValueOf(RegisterCodeHandlerClient), RegisterCodeHandler)
 }
 
 func RegisterCodeRestServer(app fiber.Router, server CodeServer) {

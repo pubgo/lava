@@ -88,7 +88,7 @@ var _ = fb.Cfg{}
 		xgen.Add(reflect.ValueOf(Register{{ss.Srv}}RestServer),nil)
 
 		{%- if !ss.IsDefault() %}
-			xgen.Add(reflect.ValueOf(Register{{ss.Srv}}Handler),nil)
+			xgen.Add(reflect.ValueOf(Register{{ss.Srv}}HandlerClient),Register{{ss.Srv}}Handler)
 		{%- endif %}
 	}
 {% endfor %}

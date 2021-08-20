@@ -62,7 +62,7 @@ func init() {
 
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterLoginRestServer), nil)
-	xgen.Add(reflect.ValueOf(RegisterLoginHandler), nil)
+	xgen.Add(reflect.ValueOf(RegisterLoginHandlerClient), RegisterLoginHandler)
 }
 
 func RegisterLoginRestServer(app fiber.Router, server LoginServer) {

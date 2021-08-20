@@ -23,11 +23,12 @@ type Builder struct {
 
 func (t *Builder) Get() *http.Server { return t.server }
 func (t *Builder) initRoutes() {
-	for _, v := range xgen.List() {
-		if v == nil {
+	for _, vs := range xgen.List() {
+		if vs == nil {
 			continue
 		}
 
+		var v = vs.([]xgen.GrpcRestHandler)
 		for i := range v {
 			var name = v[i].Method + " " + v[i].Path
 			xerror.Assert(t.routes[name] != "", "service [%s] route [%s] already exists", t.name, name)

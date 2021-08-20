@@ -17,19 +17,28 @@ func Register(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn) (err
 	xerror.Assert(mux == nil, "[mux] should not be nil")
 	xerror.Assert(ctx == nil, "[ctx] should not be nil")
 
-	for v := range xgen.List() {
+	for v, val := range xgen.List() {
 		v1 := v.Type()
 		if v1.Kind() != reflect.Func || v1.NumIn() < 3 {
 			continue
 		}
 
-		if v1.In(0).String() != "context.Context" ||
-			v1.In(1).String() != "*runtime.ServeMux" ||
-			v1.In(2).String() != "*grpc.ClientConn" {
+		if val == nil {
 			continue
 		}
 
-		return v.Interface().(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)(ctx, mux, conn)
+		//if v1.In(0).String() != "context.Context" ||
+		//	v1.In(1).String() != "*runtime.ServeMux" ||
+		//	v1.In(2).String() != "*grpc.ClientConn" {
+		//	continue
+		//}
+
+		var ff, ok = val.(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)
+		if !ok {
+			continue
+		}
+
+		xerror.Panic(ff(ctx, mux, conn))
 	}
 
 	return nil

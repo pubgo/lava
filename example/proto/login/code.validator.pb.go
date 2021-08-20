@@ -7,8 +7,8 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/gogo/protobuf/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	_ "github.com/gogo/protobuf/gogoproto"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 

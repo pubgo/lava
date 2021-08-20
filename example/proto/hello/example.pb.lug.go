@@ -92,7 +92,7 @@ func init() {
 
 	xgen.Add(reflect.ValueOf(RegisterUserServiceServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterUserServiceRestServer), nil)
-	xgen.Add(reflect.ValueOf(RegisterUserServiceHandler), nil)
+	xgen.Add(reflect.ValueOf(RegisterUserServiceHandlerClient), RegisterUserServiceHandler)
 }
 
 func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
