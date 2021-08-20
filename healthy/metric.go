@@ -16,7 +16,7 @@ func init() {
 	entry.AfterStart(func() {
 		var healthCheckTimer = metric.NewTimer("health_check")
 		var scope = metric.WithSubScope("health_check")
-		_ = fx.Tick(func(ctx fx.Ctx) {
+		entry.AfterStop(fx.Tick(func(ctx fx.Ctx) {
 			metric.TimeRecord(healthCheckTimer, func() {
 				for name, r := range healthList.Map() {
 					metric.TimeRecord(scope.Timer(name), func() {
@@ -26,6 +26,6 @@ func init() {
 					})
 				}
 			})
-		}, time.Second)
+		}, time.Second))
 	})
 }

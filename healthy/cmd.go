@@ -29,8 +29,8 @@ var Cmd = &cobra.Command{
 			addr = args[0]
 		}
 
-		var addrs = strings.Split(addr, ":")
-		var resp, err = http.Get(fmt.Sprintf("http://localhost:%s/health", addrs[len(addrs)-1]))
+		var addrList = strings.Split(addr, ":")
+		var resp, err = http.Get(fmt.Sprintf("http://localhost:%s/health", addrList[len(addrList)-1]))
 		xerror.Panic(err)
 		xerror.Assert(resp.StatusCode != http.StatusOK, "health check")
 		_, _ = io.Copy(os.Stdout, resp.Body)
