@@ -194,7 +194,7 @@
         "version": {
           "type": "string"
         },
-        "srvVersion": {
+        "srv_ver": {
           "type": "string"
         }
       }

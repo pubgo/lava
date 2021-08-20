@@ -15,7 +15,7 @@ message TestReq {
 
 message TestApiData {
   string version = 1;
-  string srvVersion = 2;
+  string srvVersion = 2 [json_name="srv_ver"];
 }
 
 message TestApiOutput {

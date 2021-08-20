@@ -17,7 +17,6 @@ func init() {
 
 func home(r *chi.Mux) func(writer http.ResponseWriter, r *http.Request) {
 	return func(writer http.ResponseWriter, req *http.Request) {
-		http.DefaultServeMux.Handler(req)
 		writer.Header().Set("Content-Type", "application/json")
 
 		var keys []string

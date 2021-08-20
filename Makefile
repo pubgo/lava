@@ -3,7 +3,7 @@ Domain=lugo
 VersionBase=github.com/pubgo/lug
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
-CommitID=$(shell git rev-parse --short=6 HEAD)
+CommitID=$(shell git rev-parse --short=8 HEAD)
 GOPATH=$(shell go env GOPATH )
 TAG=$(shell git describe --abbrev=0 --tags)
 LDFLAGS=-ldflags " \
@@ -54,8 +54,7 @@ gen-protoc-plugin:
 
 .PHONY: example
 example:
-	#go build ${LDFLAGS} -mod vendor -v -o main example/*.go
-	CGO_CFLAGS=-Wno-undef-prefix go build ${LDFLAGS} -v -o main example/*.go
+	go build ${LDFLAGS} -mod vendor -v -o main example/*.go
 
 docker:
 	docker build -t lug .

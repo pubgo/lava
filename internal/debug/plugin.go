@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
@@ -33,7 +34,6 @@ var plg = &plugin.Base{
 		var srv = &Mux{Cfg: cb.GetDefaultCfg(), srv: cb.New()}
 		_ = config.Decode(Name, &srv)
 
-
 		var builder = cb.New()
 		xerror.Panic(builder.Build(srv.Cfg))
 		srv.Mux = builder.Get()
@@ -42,6 +42,8 @@ var plg = &plugin.Base{
 
 		var server = &http.Server{Addr: Addr, Handler: srv}
 		ent.BeforeStart(func() {
+			xerror.Assert(netutil.ScanPort("tcp4", Addr), "server: %s already exists", Addr)
+
 			fx.GoDelay(func() {
 				logs.Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(Addr))
 				if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
