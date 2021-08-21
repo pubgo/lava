@@ -293,7 +293,9 @@ func (g *grpcEntry) Start() (gErr error) {
 	xerror.Panic(err)
 	g.client = conn
 	xerror.Panic(grpcc.HealthCheck(g.cfg.name, g.client))
-	xerror.PanicF(g.gw.Register(g.client), "gw register handler error")
+	for i := range g.handlers {
+		xerror.PanicF(g.gw.Register(g.client, g.handlers[i]), "gw register handler error")
+	}
 
 	// register self
 	xerror.Panic(g.register(), "[grpc] try to register self")

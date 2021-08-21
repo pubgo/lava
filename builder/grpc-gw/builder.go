@@ -18,8 +18,8 @@ type Builder struct {
 }
 
 func (t *Builder) Get() *http.Server { return t.srv }
-func (t *Builder) Register(conn *grpc.ClientConn) (err error) {
-	return Register(context.Background(), t.mux, conn)
+func (t *Builder) Register(conn *grpc.ClientConn, handler interface{}) (err error) {
+	return Register(context.Background(), t.mux, conn, handler)
 }
 
 func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
