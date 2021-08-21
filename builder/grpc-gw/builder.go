@@ -1,12 +1,10 @@
 package grpc_gw
 
 import (
+	"context"
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/encoding/protojson"
-
-	"context"
 	"net/http"
 )
 
@@ -35,17 +33,8 @@ func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 			return metadata.MD(r.URL.Query())
 		}),
 
-		gw.WithMarshalerOption(gw.MIMEWildcard, &gw.HTTPBodyMarshaler{
-			Marshaler: &gw.JSONPb{
-				MarshalOptions: protojson.MarshalOptions{
-					UseProtoNames:  true,
-					UseEnumNumbers: true,
-				},
-				UnmarshalOptions: protojson.UnmarshalOptions{
-					DiscardUnknown: true,
-				},
-			},
-		}))
+		gw.WithMarshalerOption(gw.MIMEWildcard, &gw.JSONBuiltin{}),
+	)
 
 	tOpts = append(tOpts, t.opts...)
 
