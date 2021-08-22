@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type TestApiClient interface {
 	// Version rpc
 	Version(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
+	Version1(ctx context.Context, in *structpb.Value, opts ...grpc.CallOption) (*TestApiOutput1, error)
 	// VersionTest rpc
 	VersionTest(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error)
 }
@@ -40,6 +42,15 @@ func (c *testApiClient) Version(ctx context.Context, in *TestReq, opts ...grpc.C
 	return out, nil
 }
 
+func (c *testApiClient) Version1(ctx context.Context, in *structpb.Value, opts ...grpc.CallOption) (*TestApiOutput1, error) {
+	out := new(TestApiOutput1)
+	err := c.cc.Invoke(ctx, "/hello.TestApi/Version1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *testApiClient) VersionTest(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestApiOutput, error) {
 	out := new(TestApiOutput)
 	err := c.cc.Invoke(ctx, "/hello.TestApi/VersionTest", in, out, opts...)
@@ -55,6 +66,7 @@ func (c *testApiClient) VersionTest(ctx context.Context, in *TestReq, opts ...gr
 type TestApiServer interface {
 	// Version rpc
 	Version(context.Context, *TestReq) (*TestApiOutput, error)
+	Version1(context.Context, *structpb.Value) (*TestApiOutput1, error)
 	// VersionTest rpc
 	VersionTest(context.Context, *TestReq) (*TestApiOutput, error)
 }
@@ -65,6 +77,9 @@ type UnimplementedTestApiServer struct {
 
 func (UnimplementedTestApiServer) Version(context.Context, *TestReq) (*TestApiOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Version not implemented")
+}
+func (UnimplementedTestApiServer) Version1(context.Context, *structpb.Value) (*TestApiOutput1, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Version1 not implemented")
 }
 func (UnimplementedTestApiServer) VersionTest(context.Context, *TestReq) (*TestApiOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VersionTest not implemented")
@@ -99,6 +114,24 @@ func _TestApi_Version_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TestApi_Version1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(structpb.Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TestApiServer).Version1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hello.TestApi/Version1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TestApiServer).Version1(ctx, req.(*structpb.Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TestApi_VersionTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TestReq)
 	if err := dec(in); err != nil {
@@ -124,6 +157,10 @@ var _TestApi_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Version",
 			Handler:    _TestApi_Version_Handler,
+		},
+		{
+			MethodName: "Version1",
+			Handler:    _TestApi_Version1_Handler,
 		},
 		{
 			MethodName: "VersionTest",

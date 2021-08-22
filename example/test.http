@@ -9,3 +9,12 @@ Content-Type: application/json
 ###
 GET http://localhost:8080/v1/version?input=hello1
 Content-Type: application/grpc+uri
+
+### example测试
+POST http://localhost:8080/v1/version1
+Content-Type: application/json
+
+{
+ "name": "hello",
+ "input":"hello"
+}

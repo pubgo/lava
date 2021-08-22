@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ = strings.Trim
@@ -21,6 +22,7 @@ var _ = utils.UnsafeString
 var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
+var _ = structpb.Value{}
 
 func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -60,6 +62,16 @@ func init() {
 		Name:         "Version",
 		Method:       "GET",
 		Path:         "/v1/version",
+		ClientStream: "False" == "True",
+		ServerStream: "False" == "True",
+		DefaultUrl:   "False" == "True",
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Service:      "hello.TestApi",
+		Name:         "Version1",
+		Method:       "POST",
+		Path:         "/v1/version1",
 		ClientStream: "False" == "True",
 		ServerStream: "False" == "True",
 		DefaultUrl:   "False" == "True",
@@ -129,6 +141,21 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		})
 		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
 		var resp, err = server.Version(ctx.UserContext(), req)
+		if err != nil {
+			return xerror.Wrap(err)
+		}
+
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+
+	// restful
+	app.Add("POST", "/v1/version1", func(ctx *fiber.Ctx) error {
+		var req = new(structpb.Value)
+		if err := ctx.BodyParser(req); err != nil {
+			return xerror.Wrap(err)
+		}
+
+		var resp, err = server.Version1(ctx.UserContext(), req)
 		if err != nil {
 			return xerror.Wrap(err)
 		}

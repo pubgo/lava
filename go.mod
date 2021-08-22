@@ -61,7 +61,7 @@ require (
 	github.com/pubgo/x v0.3.28
 	github.com/pubgo/xerror v0.4.7
 	github.com/pubgo/xlog v0.2.5
-	github.com/pubgo/xprotogen v0.0.16
+	github.com/pubgo/xprotogen v0.0.17
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3

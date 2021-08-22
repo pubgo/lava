@@ -96,6 +96,38 @@
         ]
       }
     },
+    "/v1/version1": {
+      "post": {
+        "operationId": "TestApi_Version1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput1"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "tags": [
+          "TestApi"
+        ]
+      }
+    },
     "/v2/example/version/{name}": {
       "post": {
         "operationId": "TestApiV2_Version1",
@@ -215,6 +247,17 @@
         },
         "data": {
           "$ref": "#/definitions/helloTestApiData"
+        }
+      }
+    },
+    "helloTestApiOutput1": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object"
+        },
+        "abc": {
+          "type": "string"
         }
       }
     },

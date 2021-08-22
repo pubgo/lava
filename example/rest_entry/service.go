@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/structpb"
 	"time"
 
 	"github.com/pubgo/lug/config"
@@ -24,6 +25,10 @@ var logs = xlog.GetLogger("hello.handler")
 type Service struct {
 	Db  *db.Client    `dix:""`
 	Cfg config.Config `dix:""`
+}
+
+func (t *Service) Version1(ctx context.Context, req *structpb.Value) (*hello.TestApiOutput1, error) {
+	panic("implement me")
 }
 
 func (t *Service) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {

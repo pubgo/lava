@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"google.golang.org/protobuf/types/known/structpb"
 	"time"
 
 	"github.com/pubgo/lug/config"
@@ -18,6 +20,13 @@ func NewTestAPIHandler() hello.TestApiServer {
 type testapiHandler struct {
 	Db  *db.Client    `dix:""`
 	Cfg config.Config `dix:""`
+}
+
+func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {
+	fmt.Printf("%#v\n",value.GetStructValue().AsMap())
+	return &hello.TestApiOutput1{
+		Data: value,
+	}, nil
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {

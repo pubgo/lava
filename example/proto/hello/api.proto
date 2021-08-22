@@ -6,6 +6,7 @@ option go_package = "./;hello";
 
 import "google/api/annotations.proto";
 import "example/proto/hello/api1.proto";
+import "google/protobuf/struct.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -19,13 +20,19 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   schemes: HTTPS;
 };
 
-
 // TestApi service
 service TestApi {
   // Version rpc
   rpc Version(hello.TestReq) returns (hello.TestApiOutput){
     option (google.api.http) = {
       get: "/v1/version"
+    };
+  }
+
+  rpc Version1(google.protobuf.Value) returns (TestApiOutput1){
+    option (google.api.http) = {
+      post: "/v1/version1"
+      body: "*"
     };
   }
 
@@ -53,3 +60,8 @@ service TestApiV2 {
   }
 }
 
+
+message TestApiOutput1 {
+  google.protobuf.Value data = 1;
+  string abc = 2;
+}

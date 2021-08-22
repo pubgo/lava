@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ = strings.Trim
@@ -21,6 +22,7 @@ var _ = utils.UnsafeString
 var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
+var _ = structpb.Value{}
 
 func GetGreeterClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli GreeterClient)) error {
 	client := grpcc.GetClient(srv, opts...)

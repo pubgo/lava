@@ -1,14 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xprotogen/gen"
-
-	"log"
 )
 
 func main() {
-	defer xerror.RespDebug()
+	defer xerror.RespExit()
 
 	m := gen.New("lug", gen.OnlyService())
 	m.Parameter(func(key, value string) {
@@ -37,6 +37,7 @@ import (
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ = strings.Trim
@@ -44,6 +45,7 @@ var _ = utils.UnsafeString
 var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
+var _ = structpb.Value{}
 `
 		},
 
@@ -104,7 +106,7 @@ var _ = fb.Cfg{}
 			{%- if !m.CS && !m.SS %}
 			// restful
 			app.Add("{{m.HttpMethod}}","{{m.HttpPath}}", func(ctx *fiber.Ctx) error {
-				var req = new({{m.GetInputType()}})
+				var req = new({{goType(m.GetInputType())}})
 				{%- if m.HttpMethod=="GET" %}
 					data := make(map[string][]string)
 					ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
@@ -144,7 +146,7 @@ var _ = fb.Cfg{}
 			// websockets
 			app.Get("{{m.HttpPath}}",fb.NewWs(func(ctx *fiber.Ctx,c *fb.Conn) {
 				{%- if m.SS && !m.CS %}
-					var req = new({{m.GetInputType()}})
+					var req = new({{goType(m.GetInputType())}})
 					data := make(map[string][]string)
 					ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 						k := utils.UnsafeString(key)
