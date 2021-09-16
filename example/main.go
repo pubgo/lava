@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/example/ctl_entry"
 	"github.com/pubgo/lug/example/grpc_entry"

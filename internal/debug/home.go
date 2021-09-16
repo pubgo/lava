@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -24,8 +25,26 @@ func home(r *chi.Mux) func(writer http.ResponseWriter, r *http.Request) {
 			keys = append(keys, fmt.Sprintf("http://localhost%s%s", Addr, r.Pattern))
 		}
 
+		//xerror.Panic(indexTmpl.Execute(writer, paths))
 		dt, err := jsonx.Marshal(keys)
 		xerror.Panic(err)
 		xerror.PanicErr(writer.Write(dt))
 	}
 }
+
+var indexTmpl = template.Must(template.New("index").Parse(`<html>
+<head>
+<title>/debug/routes</title>
+</head>
+<body>
+<table>
+<thead><td>Method</td><td>Path</td><td>Handler</td></thead>
+{{range .}}
+	<tr>
+	<td>{{.Method}}</td><td><a href={{.Path}}>{{.Path}}</a></td><td>{{.Handler}}</td>
+	</tr>
+{{end}}
+</table>
+</body>
+</html>
+`))

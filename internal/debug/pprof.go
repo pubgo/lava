@@ -19,18 +19,30 @@ import (
 
 func init() {
 	On(func(app *chi.Mux) {
+		var pprofMap = map[string]http.HandlerFunc{
+			"cmdline":      pprof.Cmdline,
+			"profile":      pprof.Profile,
+			"symbol":       pprof.Symbol,
+			"trace":        pprof.Trace,
+			"allocs":       pprof.Handler("allocs").ServeHTTP,
+			"block":        pprof.Handler("blockd").ServeHTTP,
+			"goroutine":    pprof.Handler("goroutine").ServeHTTP,
+			"heap":         pprof.Handler("heap").ServeHTTP,
+			"mutex":        pprof.Handler("mutex").ServeHTTP,
+			"threadcreate": pprof.Handler("threadcreate").ServeHTTP,
+		}
 		app.HandleFunc("/debug/fgprof", fgprof.Handler().ServeHTTP)
-		app.HandleFunc("/debug/pprof/", pprofHandle)
-		app.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		app.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		app.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		app.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		app.HandleFunc("/debug/pprof/allocs", pprof.Handler("allocs").ServeHTTP)
-		app.HandleFunc("/debug/pprof/block", pprof.Handler("block").ServeHTTP)
-		app.HandleFunc("/debug/pprof/goroutine", pprof.Handler("goroutine").ServeHTTP)
-		app.HandleFunc("/debug/pprof/heap", pprof.Handler("heap").ServeHTTP)
-		app.HandleFunc("/debug/pprof/mutex", pprof.Handler("mutex").ServeHTTP)
-		app.HandleFunc("/debug/pprof/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+		app.HandleFunc("/debug/pprof/", pprof.Index)
+		app.HandleFunc("/debug/pprof/{name}", func(writer http.ResponseWriter, request *http.Request) {
+			name := chi.URLParam(request, "name")
+			var handle, ok = pprofMap[name]
+			if ok {
+				handle(writer, request)
+				return
+			}
+			writer.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(writer, "%s not found", name)
+		})
 	})
 }
 

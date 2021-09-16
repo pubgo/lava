@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lug/types"
 )
 
-// ViewManager
+// ViewManager ...
 type ViewManager struct {
 	Smgr   *viewer.StatsMgr
 	Ctx    context.Context
