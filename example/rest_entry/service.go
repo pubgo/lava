@@ -3,9 +3,6 @@ package rest_entry
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
-	"google.golang.org/protobuf/types/known/structpb"
 	"time"
 
 	"github.com/pubgo/lug/config"
@@ -14,8 +11,11 @@ import (
 	"github.com/pubgo/lug/example/proto/hello"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ hello.TestApiServer = (*Service)(nil)
@@ -42,6 +42,7 @@ func (t *Service) Version(ctx context.Context, in *hello.TestReq) (out *hello.Te
 	out = &hello.TestApiOutput{
 		Msg: in.Input,
 	}
+	out.Reset()
 	time.Sleep(time.Millisecond * 10)
 	return
 }

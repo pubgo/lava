@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"google.golang.org/protobuf/types/known/structpb"
 	"time"
 
 	"github.com/pubgo/lug/config"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/lug/example/proto/hello"
 
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func NewTestAPIHandler() hello.TestApiServer {
@@ -23,7 +23,7 @@ type testapiHandler struct {
 }
 
 func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {
-	fmt.Printf("%#v\n",value.GetStructValue().AsMap())
+	fmt.Printf("%#v\n", value.GetStructValue().AsMap())
 	return &hello.TestApiOutput1{
 		Data: value,
 	}, nil
