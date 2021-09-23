@@ -2,11 +2,12 @@ package grpc_gw
 
 import (
 	"context"
+	"net/http"
+
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
-	"net/http"
 )
 
 type Builder struct {

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/fs"
 	"path/filepath"
 	"strings"
 
@@ -25,7 +24,7 @@ func init() {
 }
 
 func DefaultFlags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
+	flags := pflag.NewFlagSet("", pflag.PanicOnError)
 	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
 	return flags
 }
@@ -93,42 +92,22 @@ func initWithDir(v *viper.Viper) (err error) {
 
 // 监控配置中的app自定义配置
 func initApp(v *viper.Viper) error {
-	return xerror.Wrap(filepath.Walk(filepath.Join(Home, CfgName),
-		func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return xerror.Wrap(err)
-			}
 
-			// 过滤目录
-			if info.IsDir() {
-				return nil
-			}
+	var path = filepath.Join(Home, fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
+	xerror.Assert(!pathutil.IsExist(path), "%s not found", path)
 
-			// 过滤非*.yaml
-			if !strings.HasSuffix(info.Name(), CfgType) {
-				return nil
-			}
+	// 读取配置
+	dt := xerror.PanicStr(iox.ReadText(path))
 
-			// 过滤config.yaml
-			if info.Name() == CfgName+"."+CfgType {
-				return nil
-			}
+	// 处理环境变量
+	dt = env.Expand(dt)
 
-			// 读取配置
-			dt := xerror.PanicStr(iox.ReadText(path))
+	c := make(map[string]interface{})
+	xerror.Exit(unmarshalReader(v, strings.NewReader(dt), c))
 
-			// 处理环境变量
-			dt = env.Expand(dt)
-
-			var names = strings.Split(info.Name(), ".")
-
-			c := make(map[string]interface{})
-			xerror.Exit(unmarshalReader(v, strings.NewReader(dt), c))
-
-			// 合并自定义的配置
-			xerror.Exit(v.MergeConfigMap(map[string]interface{}{names[len(names)-2]: c}))
-			return nil
-		}))
+	// 合并自定义的配置
+	xerror.Exit(v.MergeConfigMap(c))
+	return nil
 }
 
 func Init() error { return getCfg().Init() }
@@ -165,8 +144,10 @@ func (t *conf) Init() (err error) {
 	Home = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
 
 	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
+
 	// 处理环境变量
 	dt = env.Expand(dt)
+
 	// 重新加载配置
 	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
 

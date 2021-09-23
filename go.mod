@@ -52,15 +52,16 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mwitkow/go-proto-validators v0.3.2
+	github.com/nacos-group/nacos-sdk-go v1.0.9
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.25
-	github.com/pubgo/x v0.3.28
-	github.com/pubgo/xerror v0.4.7
-	github.com/pubgo/xlog v0.2.5
+	github.com/pubgo/dix v0.1.27
+	github.com/pubgo/x v0.3.36
+	github.com/pubgo/xerror v0.4.10
+	github.com/pubgo/xlog v0.2.8
 	github.com/pubgo/xprotogen v0.0.17
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
@@ -76,6 +77,7 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.26.0
+	github.com/valyala/fasttemplate v1.2.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0

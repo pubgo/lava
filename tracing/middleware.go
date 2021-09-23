@@ -6,12 +6,10 @@ import (
 
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/grpclog"
-
-	"github.com/pubgo/lug/types"
 )
 
 func Middleware() types.Middleware {
@@ -31,7 +29,7 @@ func Middleware() types.Middleware {
 			if !req.Client() {
 				parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 				if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
-					grpclog.Infof("opentracing: failed parsing trace information: %v", err)
+					xlog.Infof("opentracing: failed parsing trace information: %v", err)
 				}
 
 				span = StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
@@ -43,7 +41,7 @@ func Middleware() types.Middleware {
 
 				span = StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanContext), ext.SpanKindRPCClient)
 				if err := tracer.Inject(span.Context(), opentracing.TextMap, textMapCarrier(req.Header())); err != nil {
-					grpclog.Infof("opentracing: failed serializing trace information: %v", err)
+					xlog.Infof("opentracing: failed serializing trace information: %v", err)
 				}
 			}
 

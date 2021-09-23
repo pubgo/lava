@@ -13,7 +13,6 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/try"
-	"github.com/pubgo/x/xutil"
 	"github.com/pubgo/xerror"
 )
 
@@ -81,7 +80,7 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 }
 
 func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
-	return services, xutil.Try(func() {
+	return services, xerror.Try(func() {
 		entries := make(chan *zeroconf.ServiceEntry)
 		_ = fx.Go(func(ctx context.Context) {
 			for s := range entries {

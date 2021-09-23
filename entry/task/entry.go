@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/pubgo/lug/broker"
+	broker2 "github.com/pubgo/lug/abc/broker"
 	"github.com/pubgo/lug/entry/base"
 
 	"github.com/pubgo/xerror"
@@ -10,19 +10,19 @@ import (
 var _ Entry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
-	handler broker.Handler
-	opts    *broker.SubOpts
+	handler broker2.Handler
+	opts    *broker2.SubOpts
 }
 
 type taskEntry struct {
 	*base.Entry
 	cfg      Cfg
-	broker   broker.Broker
+	broker   broker2.Broker
 	handlers []entryTaskHandler
 }
 
 func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
-	var taskHandler = entryTaskHandler{handler: handler, opts: new(broker.SubOpts)}
+	var taskHandler = entryTaskHandler{handler: handler, opts: new(broker2.SubOpts)}
 	if len(opts) > 0 && opts[0] != nil {
 		taskHandler.opts = opts[0]
 	}
@@ -35,7 +35,7 @@ func (t *taskEntry) Stop() (err error) { return nil }
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
-	t.broker = broker.Get(t.cfg.Broker)
+	t.broker = broker2.Get(t.cfg.Broker)
 	for i := range t.handlers {
 		handler := t.handlers[i]
 		brk := t.broker

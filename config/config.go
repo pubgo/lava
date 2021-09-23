@@ -19,7 +19,7 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "home")
+	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lug")
 	CfgPath = ""
 )
 
