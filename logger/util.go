@@ -1,11 +1,10 @@
-package logutil
+package logger
 
 import (
 	"reflect"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 )
 
@@ -29,38 +28,24 @@ func UIntPrt(p interface{}) zap.Field {
 	return zap.Uintptr("ptr", uintptr(reflect.ValueOf(p).Pointer()))
 }
 
-func Fatal(fn func(), fields ...zap.Field) { log1(xlog.Fatal, fn, fields...) }
-
-func log1(log func(args ...interface{}), fn func(), fields ...zap.Field) {
-	xerror.Assert(fn == nil, "[fn] should not be nil")
-
-	defer xerror.Resp(func(err xerror.XErr) {
-		var params = make([]interface{}, 0, len(fields)+2)
-		for i := range fields {
-			params = append(params, fields[i])
-		}
-		log(append(params, zap.Any("err", err), stack.Func(fn))...)
-	})
-
-	fn()
-}
-
 func Try(fn func(), fields ...zap.Field) (gErr error) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		var params = make([]interface{}, 0, len(fields)+2)
-		for i := range fields {
-			params = append(params, fields[i])
-		}
-
-		xlog.Error(append(params, zap.Any("err", err), stack.Func(fn))...)
-
+		zap.L().Error(err.Error(), append(fields, Err(err), FuncStack(fn))...)
 		gErr = err
 	})
 
 	fn()
 	return
+}
+
+func ErrWith(name string, err error) {
+	if err == nil {
+		return
+	}
+
+	zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error(), Err(err), Name(name))
 }
 
 func ErrLog(err error, fields ...zap.Field) {
@@ -71,16 +56,15 @@ func ErrLog(err error, fields ...zap.Field) {
 	zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error(), append(fields, Err(err))...)
 }
 
+func FuncStack(fn interface{}) zap.Field {
+	return zap.String("stack", stack.Func(fn))
+}
+
 func Logs(fn func(), fields ...zap.Field) {
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		var params = make([]interface{}, 0, len(fields)+2)
-		for i := range fields {
-			params = append(params, fields[i])
-		}
-
-		xlog.Error(append(params, zap.Any("err", err), stack.Func(fn))...)
+		zap.L().Error(err.Error(), append(fields, Err(err), FuncStack(fn))...)
 	})
 
 	fn()

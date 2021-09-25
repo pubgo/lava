@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 )
 
 func main() {
-	logutil.ErrLog(fmt.Errorf("ok"))
+	logger.ErrLog(fmt.Errorf("ok"))
 }

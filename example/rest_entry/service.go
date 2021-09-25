@@ -9,18 +9,24 @@ import (
 	"github.com/pubgo/lug/db"
 	"github.com/pubgo/lug/entry/rest"
 	"github.com/pubgo/lug/example/proto/hello"
+	"github.com/pubgo/lug/logger"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ hello.TestApiServer = (*Service)(nil)
 
-var logs = xlog.GetLogger("hello.handler")
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) {
+		logs = log.Named("hello.handler")
+	})
+}
 
 type Service struct {
 	Db  *db.Client    `dix:""`
@@ -32,7 +38,7 @@ func (t *Service) Version1(ctx context.Context, req *structpb.Value) (*hello.Tes
 }
 
 func (t *Service) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	logs.Infof("Received Helloworld.Call request, name: %s", in.Input)
+	logs.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if t.Db != nil {
 		logs.Info("dix db ok", zap.Any("err", t.Db.Get().Ping()))

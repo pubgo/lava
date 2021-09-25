@@ -6,9 +6,9 @@ import (
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/types"
@@ -36,10 +36,10 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	results := make(chan *registry.Result)
 	return &Watcher{results: results, cancel: fx.Tick(func(_ctx fx.Ctx) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("error", logutil.Err(err))
+			zap.L().Error("error", logger.Err(err))
 		})
 
-		xlog.Infof("[mdns] registry watch service(%s) on interval(%s)", service, ttl)
+		zap.S().Infof("[mdns] registry watch service(%s) on interval(%s)", service, ttl)
 
 		var nodes typex.SMap
 		services, err := m.GetService(service)

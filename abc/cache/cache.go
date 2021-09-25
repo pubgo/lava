@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 
 	"github.com/pkg/errors"
 	"github.com/pubgo/x/fx"
@@ -179,7 +179,7 @@ func (p *cacheImpl) defaultEvicted(k string, v []byte) {
 		return
 	}
 
-	logutil.Logs(func() { onEvicted(k, v) })
+	logger.Logs(func() { onEvicted(k, v) })
 }
 
 func (p *cacheImpl) OnEvicted(f func(k string, v []byte)) {

@@ -58,5 +58,5 @@ func (c *Connector) Close() error {
 }
 
 func (c *Connector) get() *xorm.Engine {
-	return c.source.Get().(*xorm.Engine)
+	return c.source.Get()
 }

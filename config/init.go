@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/lug/runenv"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/x/typex"
@@ -28,8 +27,6 @@ func DefaultFlags() *pflag.FlagSet {
 	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
 	return flags
 }
-
-func On(fn func(cfg Config)) { xerror.Panic(dix.Provider(fn)) }
 
 func addConfigPath(v *viper.Viper, in string) bool {
 	v.AddConfigPath(in)
@@ -93,7 +90,7 @@ func initWithDir(v *viper.Viper) (err error) {
 // 监控配置中的app自定义配置
 func initApp(v *viper.Viper) error {
 
-	var path = filepath.Join(Home, fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
+	var path = filepath.Join(Home, "config", fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
 	xerror.Assert(!pathutil.IsExist(path), "%s not found", path)
 
 	// 读取配置

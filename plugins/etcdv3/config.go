@@ -1,11 +1,12 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/lug/logger"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 
@@ -14,7 +15,12 @@ import (
 
 const Name = "etcdv3"
 
-var logs = xlog.GetLogger(Name)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
+
 var cfgList = make(map[string]Cfg)
 
 type Cfg struct {

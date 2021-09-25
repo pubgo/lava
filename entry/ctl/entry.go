@@ -65,7 +65,7 @@ func (t *ctlEntry) Start() (err error) {
 	xerror.Assert(!ok, "%s not found", t.name)
 
 	// 依赖注入
-	xerror.Exit(dix.Invoke(t.srv))
+	xerror.Exit(dix.Inject(t.srv))
 
 	if opts.once {
 		runenv.Block = false

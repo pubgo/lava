@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -12,7 +13,6 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"github.com/spf13/viper"
 )
 
@@ -21,6 +21,7 @@ var (
 	CfgName = "config"
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lug")
 	CfgPath = ""
+	cfg     = &conf{v: viper.New()}
 )
 
 func getCfg() *conf {
@@ -32,20 +33,22 @@ func GetCfg() Config { return getCfg() }
 
 var _ Config = (*conf)(nil)
 
-var cfg = &conf{v: viper.New()}
-
 type conf struct {
 	rw sync.RWMutex
 	v  *viper.Viper
 }
 
 func (t *conf) AllSettings() map[string]interface{} {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
 	return t.v.AllSettings()
 }
 
 func (t *conf) MergeConfig(in io.Reader) error {
 	t.rw.Lock()
 	defer t.rw.Unlock()
+
 	return t.v.MergeConfig(in)
 }
 
@@ -108,7 +111,7 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
 	if t.Get(name) == nil {
-		xlog.Warnf("config key [%s] not found", name)
+		zap.S().Warnf("config key [%s] not found", name)
 		return false
 	}
 

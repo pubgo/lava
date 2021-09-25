@@ -5,43 +5,29 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 )
 
 func NewSpan(sp opentracing.Span) *Span {
-	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
+	return &Span{Span: sp}
 }
 
 func StartSpan(operationName string, opts ...opentracing.StartSpanOption) *Span {
 	var sp = opentracing.StartSpan(operationName, opts...)
-	return &Span{Span: sp, traceId: GetTraceId(sp.Context())}
+	return &Span{Span: sp}
 }
 
 var _ opentracing.Span = (*Span)(nil)
 
 type Span struct {
 	opentracing.Span
-	traceId string
-	log     *zap.Logger
-	noop    bool
-}
-
-func (s *Span) Noop() bool {
-	return s.noop
 }
 
 func (s *Span) CreateChild(name string, opts ...opentracing.StartSpanOption) *Span {
-	return &Span{
-		traceId: s.traceId,
-		Span:    s.Tracer().StartSpan(name, append(opts, opentracing.ChildOf(s.Context()))...),
-	}
+	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.ChildOf(s.Context()))...)}
 }
 
 func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *Span {
-	return &Span{
-		traceId: s.traceId,
-		Span:    s.Tracer().StartSpan(name, append(opts, opentracing.FollowsFrom(s.Context()))...),
-	}
+	return &Span{Span: s.Tracer().StartSpan(name, append(opts, opentracing.FollowsFrom(s.Context()))...)}
 }
 
 func (s *Span) SetOperationName(name string) opentracing.Span {
@@ -59,7 +45,6 @@ func (s *Span) SetBaggageItem(restrictedKey, value string) opentracing.Span {
 	return s
 }
 
-func (s *Span) TraceID() string { return s.traceId }
 func (s *Span) GetHttpHeader() http.Header {
 	tracer := opentracing.GlobalTracer()
 	header := http.Header{}

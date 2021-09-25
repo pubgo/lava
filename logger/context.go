@@ -3,26 +3,21 @@ package logger
 import (
 	"context"
 
-	"github.com/segmentio/ksuid"
+	"go.uber.org/zap"
 )
 
-const (
-	xRequestId = "X-Request-Id"
+type (
+	loggerKey struct{}
 )
 
-func reqID(id string) string {
-	if id == "" {
-		return ksuid.New().String()
+func ctxFromLogger(parent context.Context, logger *zap.Logger) context.Context {
+	return context.WithValue(parent, loggerKey{}, logger)
+}
+
+func GetLog(ctx context.Context) *zap.Logger {
+	var l, ok = ctx.Value(loggerKey{}).(*zap.Logger)
+	if ok {
+		return l
 	}
-
-	return id
-}
-
-func ReqIDFromCtx(ctx context.Context) string {
-	rid, _ := ctx.Value(xRequestId).(string)
-	return reqID(rid)
-}
-
-func ctxWithReqID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, xRequestId, id)
+	return zap.L()
 }

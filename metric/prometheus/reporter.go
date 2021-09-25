@@ -1,14 +1,14 @@
 package prometheus
 
 import (
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/metric"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
+	"go.uber.org/zap"
 )
 
 const Name = "prometheus"
@@ -24,11 +24,7 @@ func init() {
 		opts.CachedReporter, err = proCfg.NewReporter(
 			prometheus.ConfigurationOptions{
 				OnError: func(e error) {
-					xlog.Error(
-						"metric error",
-						logutil.Err(e),
-						logutil.Pkg("metric.prometheus"),
-					)
+					zap.L().Error("metric error", logger.Err(e), logger.Pkg("metric.prometheus"))
 				},
 			})
 		return xerror.Wrap(err)

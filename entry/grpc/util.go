@@ -121,10 +121,7 @@ func extractEndpoint(method reflect.Method) *registry.Endpoint {
 		rspType = mt.Out(0)
 	}
 
-	if rspType == nil {
-		logs.Error("[rspType] is nil")
-		return nil
-	}
+	xerror.Assert(rspType == nil, "[rspType] is nil")
 
 	request := extractValue(reqType)
 	response := extractValue(rspType)

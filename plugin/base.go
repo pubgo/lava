@@ -1,13 +1,12 @@
 package plugin
 
 import (
+	"fmt"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/logutil"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
 
-	"github.com/pubgo/x/try"
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
@@ -28,14 +27,12 @@ type Base struct {
 
 func (p *Base) String() string { return p.Name }
 func (p *Base) Init(ent entry.Entry) (err error) {
-	return try.Try(func() {
+	return xerror.Try(func() {
 		if p.OnMiddleware != nil {
 			ent.Middleware(p.OnMiddleware())
 		}
 
 		if p.OnInit != nil {
-			xlog.Infof("plugin [%s] init", p.Name)
-
 			p.OnInit(ent)
 		}
 
@@ -50,8 +47,8 @@ func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 		return
 	}
 
-	xlog.Infof("plugin [%s] watch", p.Name)
-	return try.Try(func() { p.OnWatch(name, r) })
+	zap.L().Info(fmt.Sprintf("plugin [%s] watch", p.Name))
+	return xerror.Try(func() { p.OnWatch(name, r) })
 }
 
 func (p *Base) Commands() *cobra.Command {
@@ -60,11 +57,7 @@ func (p *Base) Commands() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{Use: p.Name}
-
-	try.Catch(func() { p.OnCommands(cmd) }, func(err error) {
-		zap.L().Error("commands callback", logutil.Err(err))
-	})
-
+	xerror.TryThrow(func() { p.OnCommands(cmd) }, "commands callback error")
 	return cmd
 }
 
@@ -74,7 +67,7 @@ func (p *Base) Flags() *pflag.FlagSet {
 		return flags
 	}
 
-	try.Catch(func() { p.OnFlags(flags) }, func(err error) {
+	xerror.TryCatch(func() { p.OnFlags(flags) }, func(err error) {
 		zap.L().Fatal("flags callback", zap.Any("err", err))
 	})
 	return flags

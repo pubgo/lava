@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/watcher"
 
@@ -38,7 +38,7 @@ var plg = &plugin.Base{
 		})
 
 		r.OnDelete(func() {
-			logs.Debugf("delete client", logutil.Name(name))
+			logs.Debug("delete client", logger.Name(name))
 
 			Delete(name)
 		})

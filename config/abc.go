@@ -3,6 +3,7 @@ package config
 import "io"
 
 type Config interface {
+	Decode(name string, fn interface{}) (b bool)
 	Get(key string) interface{}
 	Set(string, interface{})
 	GetString(key string) string

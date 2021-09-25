@@ -2,17 +2,14 @@ package ctl_entry
 
 import (
 	"fmt"
-
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 
-	"github.com/pubgo/xlog"
 	"github.com/spf13/cobra"
 )
 
 var name = "test-ctl"
-var logs = xlog.GetLogger(name)
 
 func GetEntry() entry.Entry {
 	ent := lug.NewCtl(name)

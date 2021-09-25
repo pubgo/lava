@@ -1,7 +1,7 @@
 package metric
 
 import (
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/xerror"
 )
 
@@ -27,7 +27,7 @@ func WithTagged(tags Tags) Scope                          { return Root().Tagged
 func WithSubScope(name string) Scope                      { return Root().SubScope(name) }
 
 func TimeRecord(t Timer, fn func()) {
-	defer xerror.Resp(func(err xerror.XErr) { logutil.ErrLog(err) })
+	defer xerror.Resp(func(err xerror.XErr) { logger.ErrLog(err) })
 
 	var start = t.Start()
 	fn()

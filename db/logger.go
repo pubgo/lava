@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 	xormLog "xorm.io/xorm/log"
 )
@@ -14,7 +13,7 @@ var _ xormLog.ContextLogger = (*logBridge)(nil)
 type logBridge struct {
 	lvl     xormLog.LogLevel
 	showSQL bool
-	logger  xlog.Xlog
+	logger  *zap.Logger
 }
 
 func (l *logBridge) BeforeSQL(ctx xormLog.LogContext) {}
@@ -26,57 +25,57 @@ func (l *logBridge) AfterSQL(ctx xormLog.LogContext) {
 	}
 
 	if ctx.ExecuteTime > 0 {
-		l.logger.Infof("[SQL]%s [%s %v] - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
+		l.logger.Sugar().Infof("[SQL]%s [%s %v] - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	} else {
-		l.logger.Infof("[SQL]%s [%s %v]", sessionPart, ctx.SQL, ctx.Args)
+		l.logger.Sugar().Infof("[SQL]%s [%s %v]", sessionPart, ctx.SQL, ctx.Args)
 	}
 }
 
 // newLogger init a log bridge for xorm
 func newLogger() xormLog.Logger {
 	return &logBridge{
-		logger: xlog.GetLogger(Name+"_tracing", zap.AddCallerSkip(1)),
+		logger: zap.L().Named(Name + "_tracing").WithOptions(zap.AddCallerSkip(1)),
 	}
 }
 
 // Debug show debug log
 func (l *logBridge) Debug(v ...interface{}) {
-	l.logger.Debug(v...)
+	l.logger.Debug(fmt.Sprint(v...))
 }
 
 // Debugf show debug log
 func (l *logBridge) Debugf(format string, v ...interface{}) {
-	l.logger.Debugf(format, v...)
+	l.logger.Sugar().Debugf(format, v...)
 }
 
 // Error show error log
 func (l *logBridge) Error(v ...interface{}) {
-	l.logger.Error(v...)
+	l.logger.Error(fmt.Sprint(v...))
 }
 
 // Errorf show error log
 func (l *logBridge) Errorf(format string, v ...interface{}) {
-	l.logger.Errorf(format, v...)
+	l.logger.Sugar().Errorf(format, v...)
 }
 
 // Info show information level log
 func (l *logBridge) Info(v ...interface{}) {
-	l.logger.Info(v...)
+	l.logger.Info(fmt.Sprint(v...))
 }
 
 // Infof show information level log
 func (l *logBridge) Infof(format string, v ...interface{}) {
-	l.logger.Infof(format, v...)
+	l.logger.Sugar().Infof(format, v...)
 }
 
 // Warn show warning log
 func (l *logBridge) Warn(v ...interface{}) {
-	l.logger.Warn(v...)
+	l.logger.Warn(fmt.Sprint(v...))
 }
 
 // Warnf show warnning log
 func (l *logBridge) Warnf(format string, v ...interface{}) {
-	l.logger.Warnf(format, v...)
+	l.logger.Sugar().Warnf(format, v...)
 }
 
 // Level get logger level

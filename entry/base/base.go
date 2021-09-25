@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
@@ -30,12 +29,7 @@ func (t *Entry) AfterStop(f func())   { t.opts.AfterStops = append(t.opts.AfterS
 func (t *Entry) Start() error         { panic("start unimplemented") }
 func (t *Entry) Stop() error          { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts  { return t.opts }
-func (t *Entry) OnCfg(fn interface{}) { t.OnCfgWithName(t.opts.Name, fn) }
 func (t *Entry) OnInit(init func())   { t.init = init }
-func (t *Entry) OnCfgWithName(name string, fn interface{}) {
-	xerror.Assert(fn == nil || name == "", "[name,fn] should not be null")
-	config.On(func(cfg config.Config) { _ = config.Decode(name, fn) })
-}
 
 func (t *Entry) Middleware(middleware types.Middleware) {
 	t.opts.Middlewares = append(t.opts.Middlewares, middleware)

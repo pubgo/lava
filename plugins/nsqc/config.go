@@ -1,14 +1,19 @@
 package nsqc
 
 import (
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/lug/logger"
+	"go.uber.org/zap"
 
 	"time"
 )
 
 var Name = "nsq"
 var cfgList = make(map[string]Cfg)
-var logs = xlog.GetLogger(Name)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
 
 type Cfg struct {
 	Name           string        `json:"name"`

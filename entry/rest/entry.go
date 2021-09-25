@@ -9,7 +9,7 @@ import (
 	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/types"
 
@@ -40,7 +40,7 @@ func (t *restEntry) Register(srv interface{}) {
 	xerror.Assert(!checkHandle(srv).IsValid(), "[srv] 没有找到对应的service实现")
 
 	t.handlers = append(t.handlers, func() {
-		xerror.Panic(dix.Invoke(srv))
+		xerror.Panic(dix.Inject(srv))
 		xerror.PanicF(register(t.srv.Get(), srv), "[rest] grpc handler register error")
 	})
 }
@@ -49,14 +49,14 @@ func (t *restEntry) Start() error {
 	return try.Try(func() {
 		// 启动server后等待
 		fx.GoDelay(func() {
-			logs.Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
+			logs.Sugar().Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
 
 			if err := t.srv.Get().Listen(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logs.Error("Server Close Error", logutil.Err(err))
+				logs.Error("Server Close Error", logger.Err(err))
 				return
 			}
 
-			logs.Infof("Server Closed OK")
+			logs.Info("Server Closed OK")
 		})
 	})
 }
@@ -67,7 +67,7 @@ func (t *restEntry) Stop() (err error) {
 	logs.Info("Server Shutdown")
 
 	if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logs.Error("Server Shutdown Error", logutil.Err(err))
+		logs.Error("Server Shutdown Error", logger.Err(err))
 		return err
 	}
 

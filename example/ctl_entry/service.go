@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lug/entry/ctl"
 
 	"github.com/pubgo/x/fx"
+	"go.uber.org/zap"
 )
 
 var _ ctl.Service = (*Service)(nil)
@@ -21,7 +22,7 @@ func (t *Service) Run() map[string]ctl.Handler {
 	return map[string]ctl.Handler{
 		consts.Default: func(ctx fx.Ctx) {
 			fmt.Println("db ping:", t.Db.Get().Ping())
-			logs.Info("ctl hello once")
+			zap.L().Info("ctl hello once")
 		},
 	}
 }
@@ -30,7 +31,7 @@ func (t *Service) RunLoop() map[string]ctl.Handler {
 	return map[string]ctl.Handler{
 		"hello": func(ctx fx.Ctx) {
 			fmt.Println("db ping:", t.Db.Get().Ping())
-			logs.Info("ctl hello forever")
+			zap.L().Info("ctl hello forever")
 			time.Sleep(time.Second)
 		},
 	}

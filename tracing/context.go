@@ -13,9 +13,8 @@ func FromCtx(ctx context.Context) *Span {
 		if sp, ok := span.(*Span); ok {
 			return sp
 		}
-
 		return NewSpan(span)
 	}
 
-	return &Span{Span: opentracing.StartSpan(""), noop: true}
+	return nil
 }

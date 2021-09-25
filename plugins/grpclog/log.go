@@ -1,9 +1,9 @@
-package grpcc
+package grpclog
 
 import (
 	"fmt"
 
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/lug/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
@@ -13,34 +13,36 @@ var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)
 var _ grpclog.DepthLoggerV2 = (*loggerWrapper)(nil)
 
 func init() {
-	grpclog.SetLoggerV2(&loggerWrapper{
-		log:      xlog.GetLogger("grpc", zap.AddCallerSkip(4)),
-		depthLog: xlog.GetLogger("grpc-component", zap.AddCallerSkip(2))},
-	)
+	logger.On(func(log *zap.Logger) {
+		grpclog.SetLoggerV2(&loggerWrapper{
+			log:      log.Named("grpc").WithOptions(zap.AddCallerSkip(4)),
+			depthLog: log.Named("grpc-component").WithOptions(zap.AddCallerSkip(2)),
+		})
+	})
 }
 
 type loggerWrapper struct {
-	log           xlog.Xlog
-	depthLog      xlog.Xlog
+	log           *zap.Logger
+	depthLog      *zap.Logger
 	printFilter   func(args ...interface{}) bool
 	printfFilter  func(format string, args ...interface{}) bool
 	printlnFilter func(args ...interface{}) bool
 }
 
 func (l *loggerWrapper) InfoDepth(depth int, args ...interface{}) {
-	l.depthLog.Named("", zap.AddCallerSkip(depth)).Info(fmt.Sprint(args...))
+	l.depthLog.WithOptions(zap.AddCallerSkip(depth)).Info(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) WarningDepth(depth int, args ...interface{}) {
-	l.depthLog.Named("", zap.AddCallerSkip(depth)).Warn(fmt.Sprint(args...))
+	l.depthLog.WithOptions(zap.AddCallerSkip(depth)).Warn(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) ErrorDepth(depth int, args ...interface{}) {
-	l.depthLog.Named("", zap.AddCallerSkip(depth)).Error(fmt.Sprint(args...))
+	l.depthLog.WithOptions(zap.AddCallerSkip(depth)).Error(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) FatalDepth(depth int, args ...interface{}) {
-	l.depthLog.Named("", zap.AddCallerSkip(depth)).Fatal(fmt.Sprint(args...))
+	l.depthLog.WithOptions(zap.AddCallerSkip(depth)).Fatal(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) SetPrintFilter(filter func(args ...interface{}) bool) {
@@ -70,23 +72,21 @@ func (l *loggerWrapper) Info(args ...interface{}) {
 		return
 	}
 
-	l.log.InfoW(func(log xlog.Logger) { log.Print(args...) })
+	l.log.Info(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) Infoln(args ...interface{}) {
 	if l.filterln(args) {
 		return
 	}
-
-	l.log.InfoW(func(log xlog.Logger) { log.Println(args...) })
+	l.log.Info(fmt.Sprintln(args...))
 }
 
 func (l *loggerWrapper) Infof(format string, args ...interface{}) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.InfoW(func(log xlog.Logger) { log.Printf(format, args...) })
+	l.log.Info(fmt.Sprintf(format, args...))
 }
 
 func (l *loggerWrapper) Warning(args ...interface{}) {
@@ -94,7 +94,7 @@ func (l *loggerWrapper) Warning(args ...interface{}) {
 		return
 	}
 
-	l.log.WarnW(func(log xlog.Logger) { log.Print(args...) })
+	l.log.Warn(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) Warningln(args ...interface{}) {
@@ -102,7 +102,7 @@ func (l *loggerWrapper) Warningln(args ...interface{}) {
 		return
 	}
 
-	l.log.WarnW(func(log xlog.Logger) { log.Println(args...) })
+	l.log.Warn(fmt.Sprintln(args...))
 }
 
 func (l *loggerWrapper) Warningf(format string, args ...interface{}) {
@@ -110,7 +110,7 @@ func (l *loggerWrapper) Warningf(format string, args ...interface{}) {
 		return
 	}
 
-	l.log.WarnW(func(log xlog.Logger) { log.Printf(format, args...) })
+	l.log.Warn(fmt.Sprintf(format, args...))
 }
 
 func (l *loggerWrapper) Error(args ...interface{}) {
@@ -118,7 +118,7 @@ func (l *loggerWrapper) Error(args ...interface{}) {
 		return
 	}
 
-	l.log.ErrorW(func(log xlog.Logger) { log.Print(args...) })
+	l.log.Error(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) Errorln(args ...interface{}) {
@@ -126,15 +126,14 @@ func (l *loggerWrapper) Errorln(args ...interface{}) {
 		return
 	}
 
-	l.log.ErrorW(func(log xlog.Logger) { log.Println(args...) })
+	l.log.Error(fmt.Sprintln(args...))
 }
 
 func (l *loggerWrapper) Errorf(format string, args ...interface{}) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.ErrorW(func(log xlog.Logger) { log.Printf(format, args...) })
+	l.log.Error(fmt.Sprintf(format, args...))
 }
 
 func (l *loggerWrapper) Fatal(args ...interface{}) {
@@ -142,7 +141,7 @@ func (l *loggerWrapper) Fatal(args ...interface{}) {
 		return
 	}
 
-	l.log.FatalW(func(log xlog.Logger) { log.Print(args...) })
+	l.log.Fatal(fmt.Sprint(args...))
 }
 
 func (l *loggerWrapper) Fatalln(args ...interface{}) {
@@ -150,7 +149,7 @@ func (l *loggerWrapper) Fatalln(args ...interface{}) {
 		return
 	}
 
-	l.log.FatalW(func(log xlog.Logger) { log.Println(args...) })
+	l.log.Fatal(fmt.Sprintln(args...))
 }
 
 func (l *loggerWrapper) Fatalf(format string, args ...interface{}) {
@@ -158,10 +157,10 @@ func (l *loggerWrapper) Fatalf(format string, args ...interface{}) {
 		return
 	}
 
-	l.log.FatalW(func(log xlog.Logger) { log.Printf(format, args...) })
+	l.log.Fatal(fmt.Sprintf(format, args...))
 }
 
 func (l *loggerWrapper) V(_ int) bool { return true }
 func (l *loggerWrapper) Lvl(lvl int) grpclog.LoggerV2 {
-	return &loggerWrapper{log: l.log.Named("", zap.IncreaseLevel(zapcore.Level(lvl)))}
+	return &loggerWrapper{log: l.log.WithOptions(zap.IncreaseLevel(zapcore.Level(lvl)))}
 }

@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/xgen"
+
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
-var logs = xlog.GetLogger(Name)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
 
 type Builder struct {
 	name      string
@@ -70,9 +75,7 @@ func (t *Builder) Build(cfg *Cfg, srv *grpc.Server) error {
 	t.initRoutes()
 	t.initMiddleware()
 
-	logs.Debug(zap.Any("routes", t.routes))
-	logs.Debug(zap.Any("resources", t.resources))
-
+	logs.Debug("build", zap.Any("routes", t.routes), zap.Any("resources", t.resources))
 	return nil
 }
 

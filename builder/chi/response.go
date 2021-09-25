@@ -1,7 +1,7 @@
 package chi
 
 import (
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 
 	"net/http"
 )
@@ -30,5 +30,5 @@ func (r *response) WriteHeader(statusCode int) {
 func (r *response) do() {
 	r.w.WriteHeader(r.code)
 	_, err := r.w.Write(r.bytes)
-	logutil.ErrLog(err)
+	logger.ErrLog(err)
 }

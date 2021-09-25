@@ -5,12 +5,10 @@ import (
 
 	redis "github.com/go-redis/redis/v8"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/xlog"
 )
 
 var Name = "redis"
 var cfg = make(map[string]ClientCfg)
-var logs = xlog.GetLogger(Name)
 
 const (
 	DbType                  = "redis"

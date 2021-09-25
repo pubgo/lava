@@ -55,7 +55,7 @@ var plg = &plugin.Base{
 			xerror.Assert(netutil.ScanPort("tcp4", Addr), "server: %s already exists", Addr)
 
 			fx.GoDelay(func() {
-				logs.Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(Addr))
+				logs.Sugar().Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(Addr))
 				if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					logs.Error("Server [debug] Listen Error", zap.Any("err", err))
 					return

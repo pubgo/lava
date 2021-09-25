@@ -17,7 +17,6 @@ import (
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
@@ -77,9 +76,7 @@ func Watch(name string, plg plugin.Plugin) {
 
 func onWatch(name string, resp *Response) {
 	defer xerror.Resp(func(err xerror.XErr) {
-		xlog.Error("onWatch error",
-			zap.Any("err", err),
-			zap.Any("resp", resp))
+		zap.S().Errorw("onWatch error", zap.Any("err", err), zap.Any("resp", resp))
 	})
 
 	// value为空就skip
@@ -122,9 +119,10 @@ func onWatch(name string, resp *Response) {
 	// 以name为前缀的所有的callbacks
 	callbacks.Each(func(k string, plg interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("watch callback handle error",
+			zap.L().Error("watch callback handle error",
 				zap.String("watch_key", k),
-				zap.Any("err", err))
+				zap.Any("err", err),
+			)
 		})
 
 		// 检查是否是以key为前缀, `.`是连接符和分隔符

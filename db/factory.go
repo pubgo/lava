@@ -5,12 +5,12 @@ import (
 	"unsafe"
 
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/typex"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/atomic"
-	"go.uber.org/zap"
 	"xorm.io/xorm"
 )
 
@@ -55,9 +55,9 @@ func Update(name string, cfg Cfg) (err error) {
 	}
 
 	runtime.SetFinalizer(client, func(c *Client) {
-		logs.Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
+		logs.Sugar().Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
 		if err := c.Get().Close(); err != nil {
-			logs.Errorf("db close error, name: %s", name, zap.Any("err", err))
+			logs.Sugar().Errorw("db close error", "name", name, logger.Err(err))
 		}
 	})
 

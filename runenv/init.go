@@ -30,7 +30,7 @@ func init() {
 	env.GetWith(&Domain, "domain", "service_domain", "project_domain")
 
 	// 开启trace
-	env.GetBoolVal(&Trace, "trace", "trace_log")
+	env.GetBoolVal(&Trace, "trace", "trace_log", "tracelog")
 }
 
 func DefaultFlags() *pflag.FlagSet {

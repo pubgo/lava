@@ -3,15 +3,12 @@ package nacos
 import (
 	"fmt"
 
-	"github.com/pubgo/xlog"
-
 	"github.com/nacos-group/nacos-sdk-go/clients"
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/vo"
 )
 
 var Name = "nacos"
-var logs = xlog.GetLogger(Name)
 
 func init() {
 	cc := constant.ClientConfig{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pubgo/x/fx"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 	_ "unsafe"
@@ -19,7 +20,6 @@ import (
 
 	_ "github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	_ "net/http/pprof"
 )
 
@@ -40,7 +40,7 @@ func main() {
 	xerror.Exit(registry.Init(mdns.Name, nil))
 
 	_ = fx.Tick(func(ctx fx.Ctx) {
-		xlog.Debug("客户端访问")
+		zap.L().Debug("客户端访问")
 
 		defer xerror.RespDebug()
 

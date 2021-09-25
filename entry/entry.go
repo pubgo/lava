@@ -19,7 +19,6 @@ type Entry interface {
 	BeforeStop(func())
 	AfterStart(func())
 	BeforeStart(func())
-	OnCfg(fn interface{})
 	Middleware(middleware types.Middleware)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))

@@ -2,45 +2,29 @@ package vars
 
 import (
 	"expvar"
-
-	"github.com/pubgo/lug/logutil"
+	"fmt"
 
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/x/stack"
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
-	"go.uber.org/zap"
 )
-
-var pkg = logutil.Pkg("vars")
 
 type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
 func (f value) String() (val string) {
-	var dt interface{}
-	try.Logs(xlog.GetDefault(), func() { dt = f() }, pkg)
-
-	v, err := jsonx.Marshal(dt)
-	if err != nil {
-		return err.Error()
-	}
-
-	return byteutil.ToStr(v)
+	xerror.TryCatch(func() {
+		dt := f()
+		v := xerror.PanicBytes(jsonx.Marshal(dt))
+		val = byteutil.ToStr(v)
+	}, func(err error) {
+		val = fmt.Sprintf("%v", err)
+	})
+	return
 }
 
 func Watch(name string, data func() interface{}) {
-	expvar.Publish(name, value(func() (val interface{}) {
-		defer xerror.Resp(func(err xerror.XErr) {
-			xlog.Error("unknown error",
-				pkg,
-				zap.String(name, stack.Func(data)),
-				zap.Any("err", err))
-		})
-		return data()
-	}))
+	expvar.Publish(name, value(data))
 }
 
 func Get(name string) expvar.Var {

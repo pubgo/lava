@@ -18,7 +18,7 @@
 package shm
 
 import (
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 
 	"os"
 	"path/filepath"
@@ -56,7 +56,7 @@ func Alloc(name string, size int) (*ShmSpan, error) {
 	// lock mmap data to avoid I/O page fault
 	err = syscall.Mlock(data)
 	if err != nil {
-		xlog.Warnf("failed to mlock memory from mmap, please check the RLIMIT_MEMLOCK:%s\n", err)
+		zap.S().Warnf("failed to mlock memory from mmap, please check the RLIMIT_MEMLOCK:%s\n", err)
 	}
 
 	return NewShmSpan(name, data), nil

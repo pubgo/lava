@@ -9,7 +9,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
 )
@@ -31,7 +31,7 @@ var plg = plugin.Base{
 		var opts = tally.ScopeOptions{Prefix: runenv.Project}
 		xerror.Exit(fc(config.GetMap(Name), &opts))
 		scope, closer := tally.NewRootScope(opts, time.Second)
-		ent.AfterStop(func() { logutil.ErrLog(closer.Close()) })
+		ent.AfterStop(func() { logger.ErrLog(closer.Close()) })
 		setDefault(scope)
 	},
 

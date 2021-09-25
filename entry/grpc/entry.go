@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/plugins/grpcc"
@@ -75,7 +75,7 @@ func (g *grpcEntry) handleError() {
 			return true
 		}
 
-		logs.Error("grpcEntry mux handleError", logutil.Err(err), logutil.Name(g.cfg.name))
+		logs.Error("grpcEntry mux handleError", logger.Err(err), logger.Name(g.cfg.name))
 		return false
 	})
 }
@@ -144,7 +144,7 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		logs.Info("Registering node", logutil.Id(node.Id), logutil.Name(g.cfg.name))
+		logs.Info("Registering node", logger.Id(node.Id), logger.Name(g.cfg.name))
 	}
 
 	// registry options
@@ -199,9 +199,8 @@ func (g *grpcEntry) deRegister() (err error) {
 		Nodes:   []*registry.Node{node},
 	}
 
-	logs.Infof("deregister node: %s", node.Id)
 	xerror.Panic(g.registry.Deregister(services), "deregister node error")
-	logs.Infof("deregister node: %s ok", node.Id)
+	logs.Info("deregister node ok", zap.String("id", node.Id))
 
 	if !g.registered.Load() {
 		return nil
@@ -220,7 +219,7 @@ func (g *grpcEntry) Stop() (err error) {
 
 	// deRegister self
 	if err := g.deRegister(); err != nil {
-		logs.Info("[grpc] server deRegister error", logutil.Err(err))
+		logs.Info("[grpc] server deRegister error", logger.Err(err))
 	}
 
 	// Add sleep for those requests which have selected this port.
@@ -228,7 +227,7 @@ func (g *grpcEntry) Stop() (err error) {
 
 	logs.Info("[ExitProgress] Start Shutdown.")
 	if err := g.gw.Get().Shutdown(ctxutil.Default()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-		logs.Error("[grpc-gw] Shutdown Error", logutil.Err(err))
+		logs.Error("[grpc-gw] Shutdown Error", logger.Err(err))
 	} else {
 		logs.Info("[ExitProgress] Shutdown Ok.")
 	}
@@ -247,8 +246,6 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 	xerror.Assert(!grpcs.FindHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
 
-	g.BeforeStart(func() { xerror.Exit(dix.Invoke(handler)) })
-
 	g.handlers = append(g.handlers, handler)
 	g.endpoints = append(g.endpoints, newRpcHandler(handler)...)
 }
@@ -256,7 +253,7 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Info("Server Listening On", logutil.Name(g.cfg.name), zap.String("addr", runenv.Addr))
+	logs.Info("Server Listening On", logger.Name(g.cfg.name), zap.String("addr", runenv.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
@@ -267,7 +264,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	fx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
 		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
-			logs.Error("[grpc] Server Stop", logutil.Err(err))
+			logs.Error("[grpc] Server Stop", logger.Err(err))
 		}
 	})
 
@@ -275,7 +272,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	fx.GoDelay(func() {
 		logs.Info("[grpc-gw] Server Staring")
 		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed && errors.Is(err, net.ErrClosed) {
-			logs.Error(" [grpc-gw] Server Stop", logutil.Err(err))
+			logs.Error("[grpc-gw] Server Stop", logger.Err(err))
 		}
 	})
 
@@ -283,7 +280,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	fx.GoDelay(func() {
 		logs.Info("[mux] Server Staring")
 		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			logs.Error(" [mux] Server Stop", logutil.Err(err))
+			logs.Error("[mux] Server Stop", logger.Err(err))
 		}
 	})
 
@@ -318,9 +315,9 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.Infof("[grpc] server register(%s) on interval(%s)", g.registry.String(), interval)
+				logs.Sugar().Infow("[grpc] server register", "registry", g.registry.String(), "interval", interval)
 				if err := g.register(); err != nil {
-					logs.Error("[grpc] server register on interval", logutil.Err(err))
+					logs.Error("[grpc] server register on interval", logger.Err(err))
 				}
 			case <-ctx.Done():
 				logs.Info("[grpc] register is cancelled")
@@ -373,6 +370,7 @@ func newEntry(name string) *grpcEntry {
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
 		// 初始化handlers
 		for i := range g.handlers {
+			xerror.Panic(dix.Inject(g.handlers[i]),fmt.Sprintf("%#v", g.handlers[i]))
 			xerror.PanicF(grpcs.Register(g.srv.Get(), g.handlers[i]), "grpc register handler error")
 		}
 	})

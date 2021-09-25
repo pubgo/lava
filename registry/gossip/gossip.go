@@ -16,10 +16,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/mitchellh/hashstructure"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/registry"
 	pb "github.com/pubgo/lug/registry/gossip/proto"
 	"github.com/pubgo/lug/types"
-	"github.com/pubgo/xlog"
+	"go.uber.org/zap"
 )
 
 // use registry.Result int32 values after it switches from string to int32 types
@@ -47,7 +48,11 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs = xlog.GetLogger("gossip")
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named("gossip") })
+}
 
 func actionTypeString(t int32) types.EventType {
 	switch t {
@@ -256,7 +261,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 
 	g.Unlock()
 
-	logs.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
+	logs.Sugar().Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
 
 	// try connect
 	return g.connect(curAddrs)
@@ -274,7 +279,7 @@ func (b *broadcast) Message() []byte {
 		return nil
 	}
 	if l := len(up); l > MaxPacketSize {
-		logs.Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
+		logs.Sugar().Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
 	}
 	return up
 }
@@ -413,10 +418,10 @@ func (g *gossipRegistry) connect(addrs []string) error {
 		// got a tick, try to connect
 		case <-ticker.C:
 			if _, err := fn(); err == nil {
-				logs.Infof("[gossip] connect success for %v", g.addrs)
+				logs.Sugar().Infof("[gossip] connect success for %v", g.addrs)
 				return nil
 			} else {
-				logs.Infof("[gossip] connect failed for %v", g.addrs)
+				logs.Sugar().Infof("[gossip] connect failed for %v", g.addrs)
 			}
 		}
 	}
@@ -805,7 +810,7 @@ func NewRegistry(opts ...registry.Opt) registry.Registry {
 
 	// configure the gossiper
 	if err := configure(g, opts...); err != nil {
-		logs.Fatalf("[gossip] Error configuring registry: %v", err)
+		logs.Sugar().Fatalf("[gossip] Error configuring registry: %v", err)
 	}
 	// wait for setup
 	<-time.After(g.interval * 2)

@@ -47,7 +47,7 @@ func init() {
 // New creates a new ViewManager instance
 func New() *ViewManager {
 	page := components.NewPage()
-	page.PageTitle = "Statsview"
+	page.PageTitle = "statsview"
 	page.AssetsHost = fmt.Sprintf("http://%s/debug/statsview/statics/", viewer.LinkAddr())
 	page.Assets.JSAssets.Add("jquery.min.js")
 

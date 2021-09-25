@@ -7,6 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 )
 
 var clientM sync.Map
@@ -42,5 +43,5 @@ func Update(name string, cfg ClientCfg) {
 	xerror.Panic(client.Ping(ctx).Err(), "redis连接池连接失败")
 
 	clientM.Store(name, client)
-	logs.Info("rebuild redis pool done - " + name)
+	zap.L().Info("rebuild redis pool done - " + name)
 }

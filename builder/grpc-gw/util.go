@@ -2,7 +2,6 @@ package grpc_gw
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -31,7 +30,7 @@ func Register(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, hand
 		}
 
 		//func RegisterUserServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-		fmt.Println(hd.Implements(reflect.TypeOf(val).In(1)), v1.String(), v1.Name())
+		//fmt.Println(hd.Implements(reflect.TypeOf(val).In(1)), v1.String(), v1.Name())
 		var ff, ok = v.Interface().(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)
 		if !ok || !hd.Implements(reflect.TypeOf(val).In(1)) {
 			continue

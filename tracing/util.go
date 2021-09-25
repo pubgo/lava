@@ -11,11 +11,10 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/byteutil"
 	"github.com/valyala/fasthttp"
-	"go.uber.org/zap"
 )
 
 const (
-	TraceId        = "trace_id"
+	TraceId                = "trace_id"
 	KeyErrorMessage        = "err_msg"
 	KeyContextErrorMessage = "ctx_err_msg"
 )
@@ -150,7 +149,7 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 			}
 
 			//if err != nil && err != opentracing.ErrSpanContextNotFound {
-			//	logger.Log("err", err)
+			//	logger.Logger("err", err)
 			//}
 
 			// create span
@@ -167,10 +166,6 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 			next.ServeHTTP(w, req)
 		})
 	}
-}
-
-func TraceIdField(ctx context.Context) zap.Field {
-	return zap.String(TraceId, FromCtx(ctx).TraceID())
 }
 
 func CreateChild(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {

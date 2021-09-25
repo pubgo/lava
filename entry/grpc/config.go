@@ -3,8 +3,8 @@ package grpc
 import (
 	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
 	"github.com/pubgo/lug/builder/grpcs"
-
-	"github.com/pubgo/xlog"
+	"github.com/pubgo/lug/logger"
+	"go.uber.org/zap"
 
 	"time"
 )
@@ -29,7 +29,11 @@ const (
 	DefaultSleepAfterDeregister = time.Second * 2
 )
 
-var logs = xlog.GetLogger(Name)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
 
 type Cfg struct {
 	Grpc                 *grpcs.Cfg    `json:"grpc"`

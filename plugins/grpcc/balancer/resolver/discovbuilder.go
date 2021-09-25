@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/lug/logutil"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/x/fx"
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 )
 
-var logs = xlog.GetLogger("balancer.resolver")
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named("balancer.resolver") })
+}
 
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
@@ -78,7 +80,7 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Debugf("discovBuilder Build %#v", target)
+	logs.Sugar().Debugf("discovBuilder Build %#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
@@ -95,14 +97,14 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	var addrs = d.getAddrList(target.Endpoint)
 	xerror.Assert(len(addrs) == 0, "service none available")
 
-	logs.Infof("discovBuilder Addrs %#v", addrs)
+	logs.Sugar().Infof("discovBuilder Addrs %#v", addrs)
 	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 
 	w, err := r.Watch(target.Endpoint)
 	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
 
 	cancel := fx.Go(func(ctx context.Context) {
-		defer logutil.Logs(func() { xerror.Panic(w.Stop()) })
+		defer logger.Logs(func() { xerror.Panic(w.Stop()) })
 
 		for {
 			select {
@@ -126,11 +128,12 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					d.updateService(res.Service)
 				}
 
-				try.Logs(logs, func() {
+				xerror.TryCatch(func() {
 					var addrs = d.getAddrList(target.Endpoint)
 					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+				}, func(err error) {
+					logs.Error("update state error", logger.Err(err))
 				})
-
 			}
 		}
 	})

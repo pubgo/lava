@@ -17,6 +17,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
+	github.com/go-logr/logr v1.1.0 // indirect
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.12.0
@@ -58,7 +59,7 @@ require (
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.27
+	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.10
 	github.com/pubgo/xlog v0.2.8
@@ -83,7 +84,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/automaxprocs v1.4.0
-	go.uber.org/zap v1.17.0
+	go.uber.org/zap v1.19.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced

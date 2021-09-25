@@ -2,11 +2,12 @@ package db
 
 import (
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/runenv"
+	"go.uber.org/zap"
 
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"
@@ -19,7 +20,11 @@ import (
 
 var Name = "db"
 var cfgList = make(map[string]*Cfg)
-var logs = xlog.GetLogger(Name)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
 
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`

@@ -1,7 +1,6 @@
 package jaeger
 
 import (
-	"github.com/pubgo/xlog"
 	jLog "github.com/uber/jaeger-client-go/log"
 	"go.uber.org/zap"
 )
@@ -9,13 +8,11 @@ import (
 var _ jLog.Logger = (*logger)(nil)
 
 func newLog(name string) *logger {
-	return &logger{logs: xlog.GetLogger(name,
-		zap.AddCallerSkip(2),
-		zap.Fields(zap.Bool("tracing", true)))}
+	return &logger{logs: zap.L().Named(name).WithOptions(zap.AddCallerSkip(2), zap.Fields(zap.Bool("tracing", true)))}
 }
 
 type logger struct {
-	logs xlog.Xlog
+	logs *zap.Logger
 }
 
 func (l logger) Write(p []byte) (n int, err error) {
@@ -24,7 +21,7 @@ func (l logger) Write(p []byte) (n int, err error) {
 }
 
 func (l logger) Debugf(msg string, args ...interface{}) {
-	l.logs.Debugf(msg, args...)
+	l.logs.Sugar().Debugf(msg, args...)
 }
 
 func (l logger) Error(msg string) {
@@ -32,5 +29,5 @@ func (l logger) Error(msg string) {
 }
 
 func (l logger) Infof(msg string, args ...interface{}) {
-	l.logs.Infof(msg, args...)
+	l.logs.Sugar().Infof(msg, args...)
 }

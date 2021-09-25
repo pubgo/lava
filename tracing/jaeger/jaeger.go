@@ -26,20 +26,6 @@ const (
 )
 
 func init() {
-	tracing.GetTraceId = func(span opentracing.SpanContext) string {
-		var ctx, ok = span.(jaeger.SpanContext)
-		if !ok {
-			return ""
-		}
-
-		var traceID = ctx.TraceID()
-		if !traceID.IsValid() {
-			return ""
-		}
-
-		return traceID.String()
-	}
-
 	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
 		var cfg = GetDefaultCfg()
 		cfg.ServiceName = runenv.Project
