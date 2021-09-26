@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
+	"reflect"
 )
 
 var _ json.Marshaler = (*Base)(nil)
@@ -27,22 +29,22 @@ type Base struct {
 }
 
 func (p *Base) getStack(val interface{}) string {
-	if val == nil {
+	if !reflect.ValueOf(val).IsValid() || reflect.ValueOf(val).IsNil() {
 		return ""
 	}
-	return fmt.Sprintf("%#v", val)
+	return stack.Func(val)
 }
 
 func (p *Base) MarshalJSON() ([]byte, error) {
 	var data = make(map[string]string)
 	data["name"] = p.Name
-	data["OnHealth"] = p.getStack(p.OnHealth)
-	data["OnMiddleware"] = p.getStack((func(next types.MiddleNext) types.MiddleNext)(p.OnMiddleware))
-	data["OnInit"] = p.getStack(p.OnInit)
-	data["OnCommands"] = p.getStack(p.OnCommands)
-	data["OnFlags"] = p.getStack(p.OnFlags)
-	data["OnWatch"] = p.getStack(p.OnWatch)
-	data["OnVars"] = p.getStack(p.OnVars)
+	data["health"] = p.getStack(p.OnHealth)
+	data["middleware"] = p.getStack((func(next types.MiddleNext) types.MiddleNext)(p.OnMiddleware))
+	data["init"] = p.getStack(p.OnInit)
+	data["commands"] = p.getStack(p.OnCommands)
+	data["flags"] = p.getStack(p.OnFlags)
+	data["watch"] = p.getStack(p.OnWatch)
+	data["vars"] = p.getStack(p.OnVars)
 	return json.Marshal(data)
 }
 
