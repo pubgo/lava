@@ -21,8 +21,8 @@ func Get(names ...string) Factory {
 	return val.(Factory)
 }
 
-func Register(name string, r Factory) (err error) {
-	defer xerror.RespErr(&err)
+func Register(name string, r Factory) {
+	defer xerror.RespExit()
 
 	xerror.Assert(name == "" || r == nil, "[name,reporter] is null")
 	xerror.Assert(reporters.Has(name), "reporter %s already exists", name)

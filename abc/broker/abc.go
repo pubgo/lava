@@ -5,9 +5,9 @@ import (
 )
 
 type Broker interface {
+	String() string
 	Pub(topic string, msg *Message, opts *PubOpts) error
 	Sub(topic string, handler Handler, opts *SubOpts) error
-	String() string
 }
 
 type PubOpts struct {

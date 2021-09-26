@@ -16,6 +16,7 @@ import (
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/ctxutil"
+	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
@@ -253,7 +254,7 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Info("Server Listening On", logger.Name(g.cfg.name), zap.String("addr", runenv.Addr))
+	logs.Sugar().Infof("Server [%s] Listening on http://localhost:%s", g.cfg.name, gutil.GetPort(runenv.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
@@ -278,9 +279,9 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动net网络
 	fx.GoDelay(func() {
-		logs.Info("[mux] Server Staring")
+		logs.Info("[cmux] Server Staring")
 		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			logs.Error("[mux] Server Stop", logger.Err(err))
+			logs.Error("[cmux] Server Stop", logger.Err(err))
 		}
 	})
 
@@ -320,7 +321,7 @@ func (g *grpcEntry) Start() (gErr error) {
 					logs.Error("[grpc] server register on interval", logger.Err(err))
 				}
 			case <-ctx.Done():
-				logs.Info("[grpc] register is cancelled")
+				logs.Info("[grpc] register cancelled")
 				return
 			}
 		}
@@ -347,6 +348,8 @@ func newEntry(name string) *grpcEntry {
 	}
 
 	g.OnInit(func() {
+		defer xerror.RespExit()
+
 		// encoding register
 		grpcs.InitEncoding()
 
@@ -370,7 +373,7 @@ func newEntry(name string) *grpcEntry {
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
 		// 初始化handlers
 		for i := range g.handlers {
-			xerror.Panic(dix.Inject(g.handlers[i]),fmt.Sprintf("%#v", g.handlers[i]))
+			xerror.Panic(dix.Inject(g.handlers[i]))
 			xerror.PanicF(grpcs.Register(g.srv.Get(), g.handlers[i]), "grpc register handler error")
 		}
 	})

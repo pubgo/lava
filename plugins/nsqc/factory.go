@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/typex"
 
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
 	"runtime"
@@ -19,12 +18,11 @@ func Get(names ...string) *nsqClient {
 	if !ok {
 		return nil
 	}
-
 	return val.(*nsqClient)
 }
 
 func Update(name string, cfg Cfg) error {
-	return try.Try(func() {
+	return xerror.Try(func() {
 		xerror.Assert(name == "", "[name] should not be null")
 
 		// 创建新的客户端

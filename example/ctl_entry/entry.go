@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
-
 	"github.com/spf13/cobra"
 )
 

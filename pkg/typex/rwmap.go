@@ -2,12 +2,12 @@ package typex
 
 import "sync"
 
-type MapRWM struct {
+type RwMap struct {
 	rw   sync.RWMutex
 	data map[string]interface{}
 }
 
-func (t *MapRWM) Has(key string) bool {
+func (t *RwMap) Has(key string) bool {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -15,7 +15,7 @@ func (t *MapRWM) Has(key string) bool {
 	return ok
 }
 
-func (t *MapRWM) Map() map[string]interface{} {
+func (t *RwMap) Map() map[string]interface{} {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -28,7 +28,7 @@ func (t *MapRWM) Map() map[string]interface{} {
 	return dt
 }
 
-func (t *MapRWM) Get(key string) interface{} {
+func (t *RwMap) Get(key string) interface{} {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -40,7 +40,7 @@ func (t *MapRWM) Get(key string) interface{} {
 	return NotFound
 }
 
-func (t *MapRWM) Load(key string) (interface{}, bool) {
+func (t *RwMap) Load(key string) (interface{}, bool) {
 	t.rw.RLock()
 	val, ok := t.data[key]
 	t.rw.RUnlock()
@@ -48,7 +48,7 @@ func (t *MapRWM) Load(key string) (interface{}, bool) {
 	return val, ok
 }
 
-func (t *MapRWM) Keys() []string {
+func (t *RwMap) Keys() []string {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -59,7 +59,7 @@ func (t *MapRWM) Keys() []string {
 	return keys
 }
 
-func (t *MapRWM) Each(fn func(name string, val interface{})) {
+func (t *RwMap) Each(fn func(name string, val interface{})) {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -68,14 +68,14 @@ func (t *MapRWM) Each(fn func(name string, val interface{})) {
 	}
 }
 
-func (t *MapRWM) Set(key string, val interface{}) {
+func (t *RwMap) Set(key string, val interface{}) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
 	t.data[key] = &val
 }
 
-func (t *MapRWM) Del(key string) {
+func (t *RwMap) Del(key string) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 

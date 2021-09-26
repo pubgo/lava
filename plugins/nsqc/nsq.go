@@ -36,7 +36,6 @@ func (t *nsqClient) Consumer(topic string, channel string) (c *nsq.Consumer, err
 	return consumer, nil
 }
 
-
 func (t *nsqClient) Producer(topic string) (p *nsq.Producer, err error) {
 	defer xerror.RespErr(&err)
 

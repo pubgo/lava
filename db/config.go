@@ -1,21 +1,21 @@
 package db
 
 import (
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/runenv"
-	"go.uber.org/zap"
-
-	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
-	"xorm.io/xorm"
-	xl "xorm.io/xorm/log"
-	"xorm.io/xorm/names"
-
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lug/runenv"
+
+	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+	"xorm.io/xorm"
+	xl "xorm.io/xorm/log"
+	"xorm.io/xorm/names"
 )
 
 var Name = "db"

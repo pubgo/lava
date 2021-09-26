@@ -16,11 +16,10 @@ var clients typex.SMap
 // Get 获取etcd client
 func Get(names ...string) *Client {
 	c := clients.Get(consts.GetDefault(names...))
-	if c == nil {
-		return nil
+	if c != nil {
+		return c.(*Client)
 	}
-
-	return c.(*Client)
+	return nil
 }
 
 // Update 更新etcd client
@@ -53,9 +52,9 @@ func Update(name string, cfg Cfg) (gErr error) {
 		}
 	})
 
-	logs.Debug("update client", logger.Name(name))
 	// 老的客户端更新
-	clients.Set(name, &Client{etcdClient})
+	logs.Debug("update client", logger.Name(name))
+	oldClient.(*Client).Client = etcdClient
 	return nil
 }
 

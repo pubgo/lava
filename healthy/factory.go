@@ -13,7 +13,7 @@ const Name = "health"
 
 type HealthCheck func(ctx context.Context) error
 
-var healthList typex.Map
+var healthList typex.SMap
 
 func Get(names ...string) HealthCheck {
 	val, ok := healthList.Load(consts.GetDefault(names...))
@@ -24,9 +24,16 @@ func Get(names ...string) HealthCheck {
 	return val.(HealthCheck)
 }
 
-func Register(name string, r HealthCheck) (err error) {
-	defer xerror.RespErr(&err)
+func List() (val []HealthCheck) {
+	healthList.Range(func(_, value interface{}) bool {
+		val = append(val, value.(HealthCheck))
+		return true
+	})
+	return
+}
 
+func Register(name string, r HealthCheck) {
+	defer xerror.RespExit()
 	xerror.Assert(name == "" || r == nil, "[name,r] is null")
 	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)

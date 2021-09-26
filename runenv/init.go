@@ -15,6 +15,7 @@ var (
 	Block                  = true
 	Trace                  = false
 	Addr                   = ":8080"
+	DebugAddr              = ":8081"
 	Project                = "lug"
 	Level                  = "debug"
 	Mode                   = "dev"
@@ -35,6 +36,7 @@ func init() {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
+	flags.StringVar(&DebugAddr, "da", DebugAddr, "debug addr")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
 	flags.StringVarP(&Addr, "addr", "a", Addr, "service address")
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")

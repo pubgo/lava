@@ -3,7 +3,10 @@ package ossc
 import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lug/watcher"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
@@ -21,9 +24,25 @@ var plg = &plugin.Base{
 		for k, v := range cfgList {
 			cfg := GetDefaultCfg()
 			xerror.Panic(merge.Copy(&cfg, &v))
-			Update(k, cfg)
+			xerror.Panic(Update(k, cfg))
 			cfgList[k] = cfg
 		}
+	},
+	OnWatch: func(name string, r *types.WatchResp) {
+		r.OnPut(func() {
+			// 解析etcd配置
+			var cfg ClientCfg
+			xerror.PanicF(watcher.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
+
+			cfg1 := GetDefaultCfg()
+			xerror.Panic(merge.Copy(&cfg1, &cfg), "config merge error")
+			xerror.PanicF(Update(name, cfg1), "client %s watcher update error", name)
+		})
+
+		r.OnDelete(func() {
+			logs.Debug("delete client", logger.Name(name))
+			clientM.Delete(name)
+		})
 	},
 	OnVars: func(w func(name string, data func() interface{})) {
 		w(Name, func() interface{} { return cfgList })

@@ -18,8 +18,9 @@ import (
 var _ entry.Entry = (*Entry)(nil)
 
 type Entry struct {
-	init func()
-	opts entry.Opts
+	init        func()
+	opts        entry.Opts
+	middlewares []types.Middleware
 }
 
 func (t *Entry) BeforeStart(f func()) { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
@@ -28,11 +29,28 @@ func (t *Entry) BeforeStop(f func())  { t.opts.BeforeStops = append(t.opts.Befor
 func (t *Entry) AfterStop(f func())   { t.opts.AfterStops = append(t.opts.AfterStops, f) }
 func (t *Entry) Start() error         { panic("start unimplemented") }
 func (t *Entry) Stop() error          { panic("stop unimplemented") }
-func (t *Entry) Options() entry.Opts  { return t.opts }
-func (t *Entry) OnInit(init func())   { t.init = init }
+func (t *Entry) Options() entry.Opts {
+	var opts = t.opts
+	opts.Middlewares = append(t.middlewares, t.opts.Middlewares...)
+	return opts
+}
+
+func (t *Entry) OnInit(init func()) { t.init = init }
 
 func (t *Entry) Middleware(middleware types.Middleware) {
+	if middleware == nil {
+		return
+	}
+
 	t.opts.Middlewares = append(t.opts.Middlewares, middleware)
+}
+
+func (t *Entry) MiddlewareInter(middleware types.Middleware) {
+	if middleware == nil {
+		return
+	}
+
+	t.middlewares = append(t.middlewares, middleware)
 }
 
 // Plugin 注册插件

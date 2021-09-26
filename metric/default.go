@@ -2,12 +2,13 @@ package metric
 
 import (
 	"github.com/pubgo/lug/logger"
+
 	"github.com/pubgo/xerror"
 )
 
 var defaultScope Scope
 
-// setDefault 设置全局的scope
+// setDefault 设置全局scope
 func setDefault(scope Scope) {
 	xerror.Assert(scope == nil, "[scope] should not be nil")
 	defaultScope = scope

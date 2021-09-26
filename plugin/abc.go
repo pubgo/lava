@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"context"
+
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
 
@@ -21,4 +23,7 @@ type Plugin interface {
 	Commands() *cobra.Command
 	Init(ent entry.Entry) error
 	Watch(name string, r *types.WatchResp) error
+	Vars(func(name string, data func() interface{})) error
+	Health() func(ctx context.Context) error
+	Middleware() types.Middleware
 }

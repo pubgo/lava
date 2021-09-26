@@ -34,7 +34,6 @@ var plg = plugin.Base{
 		ent.AfterStop(func() { logger.ErrLog(closer.Close()) })
 		setDefault(scope)
 	},
-
 	OnVars: func(w func(name string, data func() interface{})) {
 		w(Name, func() interface{} {
 			var dt = make(map[string]string)

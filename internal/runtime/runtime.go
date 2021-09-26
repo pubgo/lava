@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/x/stack"
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -19,6 +18,7 @@ import (
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/vars"
 	"github.com/pubgo/lug/version"
 	"github.com/pubgo/lug/watcher"
 )
@@ -60,21 +60,21 @@ func handleSignal() {
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Sugar().Infof("service [%s] before-start running", ent.Options().Name)
-	bStarts := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
-	for i := range bStarts {
-		xerror.PanicF(try.Try(bStarts[i]), "before start error: %s", stack.Func(bStarts[i]))
+	logs.Sugar().Info("before-start running")
+	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
+	for i := range beforeList {
+		xerror.PanicF(xerror.Try(beforeList[i]), "before start error: %s", stack.Func(beforeList[i]))
 	}
-	logs.Sugar().Infof("service [%s] before-start over", ent.Options().Name)
+	logs.Sugar().Info("before-start over")
 
 	xerror.Panic(ent.Start())
 
-	logs.Sugar().Infof("service [%s] after-start running", ent.Options().Name)
-	aStarts := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
-	for i := range aStarts {
-		xerror.PanicF(try.Try(aStarts[i]), "after start error: %s", stack.Func(bStarts[i]))
+	logs.Sugar().Info("after-start running")
+	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
+	for i := range afterList {
+		xerror.PanicF(xerror.Try(afterList[i]), "after start error: %s", stack.Func(afterList[i]))
 	}
-	logs.Sugar().Infof("service [%s] after-start over", ent.Options().Name)
+	logs.Sugar().Info("after-start over")
 	return
 }
 
@@ -82,24 +82,24 @@ func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
 	logs.Sugar().Infof("service [%s] before-stop running", ent.Options().Name)
-	bStops := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
-	for i := range bStops {
-		logger.Logs(bStops[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(bStops[i]))))
+	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
+	for i := range beforeList {
+		logger.Logs(beforeList[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(beforeList[i]))))
 	}
 	logs.Sugar().Infof("service [%s] before-stop over", ent.Options().Name)
 
 	xerror.Panic(ent.Stop())
 
 	logs.Sugar().Infof("service [%s] after-stop running", ent.Options().Name)
-	aStops := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
-	for i := range aStops {
-		logger.Logs(aStops[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(aStops[i]))))
+	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
+	for i := range afterList {
+		logger.Logs(afterList[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(afterList[i]))))
 	}
 	logs.Sugar().Infof("service [%s] after-stop over", ent.Options().Name)
 	return nil
 }
 
-func Run(short string, entries ...entry.Entry) (err error) {
+func Run(description string, entries ...entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
@@ -111,16 +111,16 @@ func Run(short string, entries ...entry.Entry) (err error) {
 		xerror.Assert(!ok, "[ent] not implement runtime")
 	}
 
-	rootCmd.Short = short
-	rootCmd.Long = short
+	rootCmd.Short = description
+	rootCmd.Long = description
 	rootCmd.PersistentFlags().AddFlagSet(runenv.DefaultFlags())
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
 	for i := range entries {
 		ent := entries[i]
-		entRun := ent.(entry.Runtime)
-		cmd := entRun.Options().Command
+		entRT := ent.(entry.Runtime)
+		cmd := entRT.Options().Command
 
 		// 检查Command是否注册
 		for _, c := range rootCmd.Commands() {
@@ -128,47 +128,63 @@ func Run(short string, entries ...entry.Entry) (err error) {
 		}
 
 		// 注册plugin的command和flags
-		entPlugins := plugin.List(plugin.Module(entRun.Options().Name))
-		for _, pl := range append(plugin.List(), entPlugins...) {
-			cmd.PersistentFlags().AddFlagSet(pl.Flags())
-			ent.Commands(pl.Commands())
-		}
+		// 先注册全局, 后注册项目相关
+		xerror.TryThrow(func() {
+			entPlugins := plugin.List(plugin.Module(entRT.Options().Name))
+			for _, plg := range append(plugin.List(), entPlugins...) {
+				cmd.PersistentFlags().AddFlagSet(plg.Flags())
+				ent.Commands(plg.Commands())
+				entRT.MiddlewareInter(plg.Middleware())
+			}
+		})
 
-		// 配置初始化
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
 
-			// 本项目名字初始化
-			runenv.Project = entRun.Options().Name
+			// 项目名初始化
+			runenv.Project = entRT.Options().Name
 
-			// 配置初始化
+			xerror.TryThrow(func() {
+				plugins := plugin.List(plugin.Module(runenv.Project))
+				plugins = append(plugin.List(), plugins...)
+				for _, plg := range plugins {
+
+					// 注册watcher
+					watcher.Watch(plg.String(), plg.Watch)
+
+					// 注册debug
+					healthy.Register(plg.String(), plg.Health())
+
+					// 注册vars
+					xerror.Panic(plg.Vars(vars.Watch))
+				}
+			})
+
+			// config初始化
 			xerror.Panic(config.Init())
 
-			// 初始化组件, 初始化插件
-			plugins := plugin.List(plugin.Module(runenv.Project))
-			plugins = append(plugin.List(), plugins...)
-			for _, pg := range plugins {
-				key := pg.String()
-				xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
-
-				// watch初始化, watch remote key
-				watcher.Watch(key, pg)
-			}
-
-			// watcher 初始化
+			// watcher初始化
 			xerror.Panic(watcher.Init())
 
+			// plugin初始化
+			xerror.TryThrow(func() {
+				plugins := plugin.List(plugin.Module(runenv.Project))
+				plugins = append(plugin.List(), plugins...)
+				for _, plg := range plugins {
+					xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
+				}
+			})
+
 			// entry初始化
-			xerror.PanicF(entRun.InitRT(), runenv.Project)
+			xerror.PanicF(entRT.InitRT(), runenv.Project)
 			return nil
 		}
 
 		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 			defer xerror.RespErr(&err)
-
-			xerror.Panic(start(entRun))
+			xerror.Panic(start(entRT))
 			handleSignal()
-			xerror.Panic(stop(entRun))
+			xerror.Panic(stop(entRT))
 			return nil
 		}
 
@@ -178,7 +194,7 @@ func Run(short string, entries ...entry.Entry) (err error) {
 	return xerror.Wrap(rootCmd.Execute())
 }
 
-func Start(ent entry.Entry, args ...string) (err error) {
+func Start(ent entry.Entry) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")
@@ -211,7 +227,7 @@ func Start(ent entry.Entry, args ...string) (err error) {
 		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
 
 		// watch key
-		watcher.Watch(key, pg)
+		watcher.Watch(key, pg.Watch)
 	}
 
 	return xerror.Wrap(start(entRun))

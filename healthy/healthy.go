@@ -1,13 +1,9 @@
 package healthy
 
 import (
-	"github.com/pubgo/lug/internal/debug"
 	"github.com/pubgo/lug/pkg/ctxutil"
-	"github.com/pubgo/lug/types"
-
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
 	"net/http"
@@ -15,9 +11,7 @@ import (
 )
 
 func init() {
-	debug.On(func(mux *types.DebugMux) {
-		mux.Get("/health", httpHandle)
-	})
+	http.HandleFunc("/health", httpHandle)
 }
 
 type health struct {
@@ -27,10 +21,10 @@ type health struct {
 
 func httpHandle(writer http.ResponseWriter, request *http.Request) {
 	var dt = make(map[string]*health)
-	healthList.Each(func(name string, r interface{}) {
+	xerror.Panic(healthList.Each(func(name string, r interface{}) {
 		dt[name] = &health{}
 		dt[name].Cost = fx.CostWith(func() {
-			try.Catch(func() {
+			xerror.TryCatch(func() {
 				var ctx, cancel = ctxutil.Timeout(time.Second * 2)
 				defer cancel()
 				xerror.Panic(r.(HealthCheck)(ctx))
@@ -39,7 +33,7 @@ func httpHandle(writer http.ResponseWriter, request *http.Request) {
 				writer.WriteHeader(http.StatusInternalServerError)
 			})
 		}).String()
-	})
+	}))
 
 	var bts, err = jsonx.Marshal(dt)
 	if err != nil {

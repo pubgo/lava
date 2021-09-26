@@ -1,15 +1,15 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/lug/logger"
-	"go.uber.org/zap"
 	"time"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/client/v3"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/retry"
 )
 

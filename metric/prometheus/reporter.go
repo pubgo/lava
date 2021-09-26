@@ -14,7 +14,7 @@ import (
 const Name = "prometheus"
 
 func init() {
-	xerror.Exit(metric.Register(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) (err error) {
+	metric.Register(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) (err error) {
 		opts.Separator = prometheus.DefaultSeparator
 		opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 
@@ -28,5 +28,5 @@ func init() {
 				},
 			})
 		return xerror.Wrap(err)
-	}))
+	})
 }

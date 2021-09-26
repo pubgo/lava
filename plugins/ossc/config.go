@@ -1,7 +1,17 @@
 package ossc
 
+import (
+	"github.com/pubgo/lug/logger"
+	"go.uber.org/zap"
+)
+
 var Name = "oss"
 var cfgList = make(map[string]ClientCfg)
+var logs *zap.Logger
+
+func init() {
+	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
+}
 
 type ClientCfg struct {
 	Endpoint        string

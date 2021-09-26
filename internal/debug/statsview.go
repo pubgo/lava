@@ -9,7 +9,6 @@ import (
 	"github.com/go-echarts/go-echarts/v2/templates"
 	"github.com/go-echarts/statsview/statics"
 	"github.com/go-echarts/statsview/viewer"
-	"github.com/pubgo/lug/types"
 )
 
 // ViewManager ...
@@ -27,8 +26,7 @@ func (vm *ViewManager) Register(views ...viewer.Viewer) {
 
 func init() {
 	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithAddr("localhost:8081"))
-
-	New()
+	_ = New()
 	templates.PageTpl = `
 {{- define "page" }}
 <!DOCTYPE html>
@@ -66,35 +64,32 @@ func New() *ViewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	On(func(mux *types.DebugMux) {
-		for _, v := range mgr.Views {
-			page.AddCharts(v.View())
-			mux.HandleFunc("/debug/statsview/view/"+v.Name(), v.Serve)
-		}
+	for _, v := range mgr.Views {
+		page.AddCharts(v.View())
+		http.HandleFunc("/debug/statsview/view/"+v.Name(), v.Serve)
+	}
 
-		mux.HandleFunc("/debug/statsview", func(w http.ResponseWriter, _ *http.Request) {
-			page.Render(w)
-		})
-
-		staticsPrev := "/debug/statsview/statics/"
-		///debug/statsview/statics/echarts.min.js
-		mux.HandleFunc(staticsPrev+"echarts.min.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.EchartJS))
-		})
-
-		mux.HandleFunc(staticsPrev+"jquery.min.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.JqueryJS))
-		})
-
-		mux.HandleFunc(staticsPrev+"themes/westeros.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.WesterosJS))
-		})
-
-		mux.HandleFunc(staticsPrev+"themes/macarons.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.MacaronsJS))
-		})
+	http.HandleFunc("/debug/statsview", func(w http.ResponseWriter, _ *http.Request) {
+		page.Render(w)
 	})
 
-	//mgr.srv.Handler = cors.AllowAll().Handler(mux)
+	staticsPrev := "/debug/statsview/statics/"
+	///debug/statsview/statics/echarts.min.js
+	http.HandleFunc(staticsPrev+"echarts.min.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Write([]byte(statics.EchartJS))
+	})
+
+	http.HandleFunc(staticsPrev+"jquery.min.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Write([]byte(statics.JqueryJS))
+	})
+
+	http.HandleFunc(staticsPrev+"themes/westeros.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Write([]byte(statics.WesterosJS))
+	})
+
+	http.HandleFunc(staticsPrev+"themes/macarons.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Write([]byte(statics.MacaronsJS))
+	})
+
 	return mgr
 }

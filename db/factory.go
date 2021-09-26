@@ -17,11 +17,11 @@ import (
 var clients typex.SMap
 
 type Client struct {
-	val atomic.Value
+	client atomic.Value
 }
 
 func (c *Client) Get() *xorm.Engine {
-	return c.val.Load().(*xorm.Engine)
+	return c.client.Load().(*xorm.Engine)
 }
 
 func Get(names ...string) *xorm.Engine {
@@ -33,8 +33,8 @@ func Get(names ...string) *xorm.Engine {
 	return c.(*Client).Get()
 }
 
-func GetCallback(cb func(*xorm.Engine), names ...string) {
-	c := clients.Get(consts.GetDefault(names...))
+func GetWith(name string, cb func(*xorm.Engine)) {
+	c := clients.Get(consts.GetDefault(name))
 	if c == nil {
 		return
 	}
@@ -46,14 +46,17 @@ func Update(name string, cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	var client = &Client{}
-	client.val.Store(xerror.PanicErr(cfg.Build()).(*xorm.Engine))
+	client.client.Store(xerror.PanicErr(cfg.Build()).(*xorm.Engine))
 
 	val, ok := clients.Load(name)
-	if ok {
-		val.(*Client).val.Store(client)
+	// 更新client
+	if ok && val != nil {
+		val.(*Client).client.Store(client)
 		return
 	}
 
+	// 创建client
+	clients.Set(name, client)
 	runtime.SetFinalizer(client, func(c *Client) {
 		logs.Sugar().Infof("old db client %s object %d gc", name, uintptr(unsafe.Pointer(c)))
 		if err := c.Get().Close(); err != nil {
@@ -61,8 +64,7 @@ func Update(name string, cfg Cfg) (err error) {
 		}
 	})
 
-	clients.Set(name, client)
-	// 初始化完毕之后, 更新到对象管理系统
+	// 依赖注入
 	xerror.Panic(dix.Provider(map[string]*Client{name: client}))
 
 	return

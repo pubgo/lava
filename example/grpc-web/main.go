@@ -36,13 +36,10 @@ func (c *codec) Name() string {
 type codecUri struct{}
 
 func (c *codecUri) Marshal(v interface{}) ([]byte, error) {
-	fmt.Printf("%#v\n", v)
 	return json.Marshal(v)
 }
 
 func (c *codecUri) Unmarshal(data []byte, v interface{}) error {
-	fmt.Println(string(data))
-
 	var u, err = url.ParseQuery(string(data))
 	if err != nil {
 		return err
@@ -64,7 +61,6 @@ func main() {
 	grpcServer := grpc.NewServer()
 	hello.RegisterTestApiServer(grpcServer, handler.NewTestAPIHandler())
 	hello.RegisterTransportServer(grpcServer, &trans{})
-	fmt.Println(grpcServer.GetServiceInfo())
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		//fmt.Println(r.RequestURI)

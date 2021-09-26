@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/vars"
 )
 
 var CommitID = ""
@@ -36,5 +35,4 @@ func init() {
 	}
 
 	xerror.ExitErr(ver.NewVersion(Version))
-	vars.Watch("version", func() interface{} { return GetVer() })
 }

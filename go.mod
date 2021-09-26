@@ -6,11 +6,13 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
+	github.com/antonmedv/expr v1.9.0
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
+	github.com/favadi/protoc-go-inject-tag v1.3.0
 	github.com/felixge/fgprof v0.9.1
 	github.com/gin-contrib/sse v0.1.0
 	github.com/gin-gonic/gin v1.7.2
@@ -80,6 +82,7 @@ require (
 	github.com/valyala/fasthttp v1.26.0
 	github.com/valyala/fasttemplate v1.2.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
+	go.etcd.io/bbolt v1.3.3
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
@@ -91,7 +94,7 @@ require (
 	google.golang.org/grpc v1.38.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1

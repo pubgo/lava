@@ -1,22 +1,20 @@
 package debug
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lug/version"
-	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/xerror"
-
 	"net/http"
 	"os"
 	"runtime/debug"
+
+	"github.com/pubgo/lug/version"
+
+	"github.com/pubgo/x/jsonx"
+	"github.com/pubgo/xerror"
 )
 
 func init() {
-	On(func(mux *chi.Mux) {
-		mux.Get("/env", envHandle)
-		mux.Get("/version", versionHandle)
-		mux.Get("/dep", depHandle)
-	})
+	http.HandleFunc("/env", envHandle)
+	http.HandleFunc("/version", versionHandle)
+	http.HandleFunc("/dep", depHandle)
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

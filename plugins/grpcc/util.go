@@ -2,10 +2,11 @@ package grpcc
 
 import (
 	"context"
+	"strings"
+
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"strings"
 )
 
 // serviceFromMethod returns the service

@@ -2,7 +2,6 @@ package chi
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 
 	"net/http"
 	"sync"
@@ -48,27 +47,25 @@ func (t *Builder) Build(cfg Cfg) error {
 				return
 			}
 
-			t.defaultMap.Store(p, h)
-			app.Handle(p, h)
 			h.ServeHTTP(writer, request)
 		})
 	})
 
-	if cfg.Logger {
-		app.Use(middleware.Logger)
-	}
-
-	if cfg.Recover {
-		app.Use(middleware.Recoverer)
-	}
-
-	if cfg.RequestID {
-		app.Use(middleware.RequestID)
-	}
-
-	if cfg.Timeout > 0 {
-		app.Use(middleware.Timeout(cfg.Timeout))
-	}
+	//if cfg.Logger {
+	//	app.Use(middleware.Logger)
+	//}
+	//
+	//if cfg.Recover {
+	//	app.Use(middleware.Recoverer)
+	//}
+	//
+	//if cfg.RequestID {
+	//	app.Use(middleware.RequestID)
+	//}
+	//
+	//if cfg.Timeout > 0 {
+	//	app.Use(middleware.Timeout(cfg.Timeout))
+	//}
 
 	t.srv = app
 

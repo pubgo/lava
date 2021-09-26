@@ -20,9 +20,11 @@ func GetClient(names ...string) *oss.Bucket {
 	return val.(*oss.Bucket)
 }
 
-func Update(name string, cfg ClientCfg) {
+func Update(name string, cfg ClientCfg) (err error) {
+	defer xerror.RespErr(&err)
 	client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 	xerror.Panic(err)
 	kk := xerror.PanicErr(client.Bucket(cfg.Bucket)).(*oss.Bucket)
 	clientM.Store(name, kk)
+	return nil
 }

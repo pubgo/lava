@@ -12,6 +12,7 @@ type Runtime interface {
 	Start() error
 	Stop() error
 	Options() Opts
+	MiddlewareInter(middleware types.Middleware)
 }
 
 type Entry interface {

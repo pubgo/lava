@@ -3,14 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/x/fx"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 	_ "unsafe"
 
 	"github.com/pubgo/lug/example/proto/hello"
-	"github.com/pubgo/lug/internal/debug"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/registry"
 	"github.com/pubgo/lug/registry/mdns"
@@ -18,19 +15,21 @@ import (
 	"github.com/pubgo/lug/tracing"
 	_ "github.com/pubgo/lug/tracing/jaeger"
 
+	"github.com/pubgo/x/fx"
 	_ "github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 	_ "net/http/pprof"
 )
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
-	cfg.Middlewares = append(cfg.Middlewares, tracing.Middleware())
+	cfg.Middlewares = append(cfg.Middlewares, tracing.Middleware)
 
 	fmt.Println("service", cfg)
 })
 
 func main() {
-	go http.ListenAndServe(debug.Addr, nil)
+	go http.ListenAndServe(runenv.DebugAddr, nil)
 
 	runenv.Project = "test-client"
 

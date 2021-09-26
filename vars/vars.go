@@ -2,8 +2,6 @@ package vars
 
 import (
 	"expvar"
-	"fmt"
-
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
@@ -13,13 +11,9 @@ type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
 func (f value) String() (val string) {
-	xerror.TryCatch(func() {
-		dt := f()
-		v := xerror.PanicBytes(jsonx.Marshal(dt))
-		val = byteutil.ToStr(v)
-	}, func(err error) {
-		val = fmt.Sprintf("%v", err)
-	})
+	dt := f()
+	v := xerror.PanicBytes(jsonx.Marshal(dt))
+	val = byteutil.ToStr(v)
 	return
 }
 

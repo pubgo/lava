@@ -7,6 +7,13 @@ import (
 	xormLog "xorm.io/xorm/log"
 )
 
+// newLogger init a log bridge for xorm
+func newLogger() xormLog.Logger {
+	return &logBridge{
+		logger: zap.L().Named(Name + "_tracing").WithOptions(zap.AddCallerSkip(1)),
+	}
+}
+
 var _ xormLog.ContextLogger = (*logBridge)(nil)
 
 // logBridge a logger bridge from Logger to xorm
@@ -28,13 +35,6 @@ func (l *logBridge) AfterSQL(ctx xormLog.LogContext) {
 		l.logger.Sugar().Infof("[SQL]%s [%s %v] - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	} else {
 		l.logger.Sugar().Infof("[SQL]%s [%s %v]", sessionPart, ctx.SQL, ctx.Args)
-	}
-}
-
-// newLogger init a log bridge for xorm
-func newLogger() xormLog.Logger {
-	return &logBridge{
-		logger: zap.L().Named(Name + "_tracing").WithOptions(zap.AddCallerSkip(1)),
 	}
 }
 
@@ -79,9 +79,7 @@ func (l *logBridge) Warnf(format string, v ...interface{}) {
 }
 
 // Level get logger level
-func (l *logBridge) Level() xormLog.LogLevel {
-	return l.lvl
-}
+func (l *logBridge) Level() xormLog.LogLevel { return l.lvl }
 
 // SetLevel set the logger level
 func (l *logBridge) SetLevel(lvl xormLog.LogLevel) { l.lvl = lvl }
@@ -96,6 +94,4 @@ func (l *logBridge) ShowSQL(show ...bool) {
 }
 
 // IsShowSQL if record SQL
-func (l *logBridge) IsShowSQL() bool {
-	return l.showSQL
-}
+func (l *logBridge) IsShowSQL() bool { return l.showSQL }

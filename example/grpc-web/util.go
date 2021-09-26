@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"io"
 	"io/ioutil"
@@ -31,7 +30,6 @@ func req2GrpcRequest(req *http.Request) *http.Request {
 	if req.Method == http.MethodGet {
 		req.Header.Set("content-type", "application/grpc+uri")
 		req.Body = reqDataWrapper(strutil.ToBytes(req.URL.RawQuery))
-		fmt.Println(req.Body)
 	} else {
 		req.Header.Set("content-type", "application/grpc+json")
 		var dd, err = ioutil.ReadAll(req.Body)

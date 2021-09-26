@@ -1,45 +1,77 @@
 package plugin
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/vars"
-
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
 
-var _ = Plugin(&Base{})
+var _ json.Marshaler = (*Base)(nil)
+var _ Plugin = (*Base)(nil)
 
 type Base struct {
 	Name         string
-	OnMiddleware func() types.Middleware
+	OnHealth     func(ctx context.Context) error
+	OnMiddleware types.Middleware
 	OnInit       func(ent entry.Entry)
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnWatch      func(name string, resp *types.WatchResp)
 	OnVars       func(w func(name string, data func() interface{}))
-	OnCodec      func(name string, resp *types.WatchResp) (map[string]interface{}, error)
+}
+
+func (p *Base) getStack(val interface{}) string {
+	if val == nil {
+		return ""
+	}
+	return fmt.Sprintf("%#v", val)
+}
+
+func (p *Base) MarshalJSON() ([]byte, error) {
+	var data = make(map[string]string)
+	data["name"] = p.Name
+	data["OnHealth"] = p.getStack(p.OnHealth)
+	data["OnMiddleware"] = p.getStack((func(next types.MiddleNext) types.MiddleNext)(p.OnMiddleware))
+	data["OnInit"] = p.getStack(p.OnInit)
+	data["OnCommands"] = p.getStack(p.OnCommands)
+	data["OnFlags"] = p.getStack(p.OnFlags)
+	data["OnWatch"] = p.getStack(p.OnWatch)
+	data["OnVars"] = p.getStack(p.OnVars)
+	return json.Marshal(data)
+}
+
+func (p *Base) Middleware() types.Middleware {
+	return p.OnMiddleware
+}
+
+func (p *Base) Vars(f func(name string, data func() interface{})) error {
+	if p.OnVars == nil {
+		return nil
+	}
+
+	return xerror.Try(func() { p.OnVars(f) })
+}
+
+func (p *Base) Health() func(ctx context.Context) error {
+	if p.OnHealth == nil {
+		return func(ctx context.Context) error { return nil }
+	}
+	return p.OnHealth
 }
 
 func (p *Base) String() string { return p.Name }
-func (p *Base) Init(ent entry.Entry) (err error) {
-	return xerror.Try(func() {
-		if p.OnMiddleware != nil {
-			ent.Middleware(p.OnMiddleware())
-		}
+func (p *Base) Init(ent entry.Entry) error {
+	if p.OnInit == nil {
+		return nil
+	}
 
-		if p.OnInit != nil {
-			p.OnInit(ent)
-		}
-
-		if p.OnInit != nil && p.OnVars != nil {
-			p.OnVars(vars.Watch)
-		}
-	})
+	return xerror.Try(func() { p.OnInit(ent) })
 }
 
 func (p *Base) Watch(name string, r *types.WatchResp) (err error) {

@@ -4,35 +4,42 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"sort"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 )
 
 func init() {
-	On(func(r *chi.Mux) {
-		r.Get("/", home(r))
-	})
+	http.HandleFunc("/", home())
 }
 
-func home(r *chi.Mux) func(writer http.ResponseWriter, r *http.Request) {
-	return func(writer http.ResponseWriter, req *http.Request) {
-		writer.Header().Set("Content-Type", "application/json")
+func home() func(writer http.ResponseWriter, r *http.Request) {
+	type RouteInfo struct {
+		Method  string
+		Path    string
+		Handler string
+	}
 
-		var keys []string
-		for _, r := range r.Routes() {
-			keys = append(keys, fmt.Sprintf("http://localhost%s%s", Addr, r.Pattern))
+	return func(writer http.ResponseWriter, req *http.Request) {
+		serveMux.mu.RLock()
+		defer serveMux.mu.RUnlock()
+
+		var paths []RouteInfo
+		for k, v := range serveMux.m {
+			paths = append(paths, RouteInfo{
+				Method:  "any",
+				Path:    k,
+				Handler: fmt.Sprintf("%#v", v),
+			})
 		}
 
-		//xerror.Panic(indexTmpl.Execute(writer, paths))
-		dt, err := jsonx.Marshal(keys)
-		xerror.Panic(err)
-		xerror.PanicErr(writer.Write(dt))
+		sort.Slice(paths, func(i, j int) bool { return paths[i].Path < paths[j].Path })
+		xerror.Panic(indexTmpl.Execute(writer, paths))
 	}
 }
 
-var indexTmpl = template.Must(template.New("index").Parse(`<html>
+var indexTmpl = template.Must(template.New("index").Parse(`
+<html>
 <head>
 <title>/debug/routes</title>
 </head>

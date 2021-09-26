@@ -39,7 +39,6 @@ var plg = &plugin.Base{
 
 		r.OnDelete(func() {
 			logs.Debug("delete client", logger.Name(name))
-
 			Delete(name)
 		})
 	},

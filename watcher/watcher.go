@@ -7,8 +7,8 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
 
 	"github.com/hashicorp/hcl"
@@ -67,7 +67,7 @@ func Init() (err error) {
 	return
 }
 
-func Watch(name string, plg plugin.Plugin) {
+func Watch(name string, plg func(name string, r *types.WatchResp) error) {
 	name = KeyToDot(name)
 	xerror.Assert(name == "" || plg == nil, "[name, plugin] should not be null")
 	xerror.Assert(callbacks.Has(name), "plugin %s already exists", name)
@@ -83,6 +83,14 @@ func onWatch(name string, resp *Response) {
 	if cfg.SkipNull && len(bytes.TrimSpace(resp.Value)) == 0 {
 		return
 	}
+
+	zap.S().Infow(
+		"watcher callback",
+		"key", resp.Key,
+		"event", resp.Event.String(),
+		"version", resp.Version,
+		"value", string(resp.Value),
+	)
 
 	var key = KeyToDot(resp.Key)
 
@@ -132,16 +140,12 @@ func onWatch(name string, resp *Response) {
 
 		// 执行watch callback
 		var name = strings.Trim(strings.TrimPrefix(key, k), ".")
-		xerror.PanicF(plg.(plugin.Plugin).Watch(name, resp), "event: %#v", *resp)
+		xerror.PanicF(plg.(func(name string, r *types.WatchResp) error)(name, resp), "event: %#v", *resp)
 	})
 }
 
 func Decode(data []byte, c interface{}) (err error) {
-	defer func() {
-		if err != nil {
-			err = xerror.Fmt("Unmarshal Error, encoding\n")
-		}
-	}()
+	defer xerror.RespErr(&err)
 
 	// "yaml", "yml"
 	if err = yaml.Unmarshal(data, &c); err == nil {
