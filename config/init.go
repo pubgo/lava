@@ -84,12 +84,11 @@ func initWithDir(v *viper.Viper) (err error) {
 		}
 	}
 
-	return v.ReadInConfig()
+	return xerror.Wrap(v.ReadInConfig())
 }
 
 // 监控配置中的app自定义配置
 func initApp(v *viper.Viper) error {
-
 	var path = filepath.Join(Home, "config", fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
 	xerror.Assert(!pathutil.IsExist(path), "%s not found", path)
 
@@ -100,10 +99,10 @@ func initApp(v *viper.Viper) error {
 	dt = env.Expand(dt)
 
 	c := make(map[string]interface{})
-	xerror.Exit(unmarshalReader(v, strings.NewReader(dt), c))
+	xerror.Panic(unmarshalReader(v, strings.NewReader(dt), c))
 
 	// 合并自定义的配置
-	xerror.Exit(v.MergeConfigMap(c))
+	xerror.Panic(v.MergeConfigMap(c))
 	return nil
 }
 

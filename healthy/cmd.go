@@ -2,14 +2,15 @@ package healthy
 
 import (
 	"fmt"
-	"github.com/pubgo/lug/pkg/gutil"
-	"github.com/pubgo/lug/runenv"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
+
+	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/runenv"
 )
 
 var Cmd = &cobra.Command{

@@ -3,43 +3,61 @@ package bbolt
 import (
 	"context"
 
-	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/tracing"
+
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 )
 
-type DB struct {
-	*bolt.DB
+func Get(name ...string) *DB {
+	var val, ok = cfgMap[consts.GetDefault(name...)]
+	if !ok {
+		return nil
+	}
+	return val.db
 }
 
-func (t *DB) Bucket(name string, tx *bolt.Tx) *bolt.Bucket {
+type DB struct {
+	db *bolt.DB
+}
+
+func (t *DB) Get() *bolt.DB {
+	return t.db
+}
+
+func (t *DB) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
 	xerror.Panic(err, "create bucket error")
 	return bk
 }
 
-func (t *DB) View(ctx context.Context, fn func(*bolt.Tx) error) error {
-	var span = tracing.FromCtx(ctx).CreateChild(Name)
+func (t *DB) View(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
+	name := consts.Default
+	if len(names) > 0 {
+		name = names[0]
+	}
+
+	var span = tracing.CreateChild(ctx, name)
 	defer span.Finish()
 
 	ext.DBType.Set(span, Name)
 
-	return xerror.Wrap(t.DB.View(func(tx *bolt.Tx) (err error) {
-		defer xerror.RespErr(&err)
-		return fn(tx)
-	}))
+	return t.db.View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }
 
-func (t *DB) Update(ctx context.Context, fn func(*bolt.Tx) error) error {
-	var span = tracing.FromCtx(ctx).CreateChild(Name)
+func (t *DB) Update(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
+	name := consts.Default
+	if len(names) > 0 {
+		name = names[0]
+	}
+
+	var span = tracing.CreateChild(ctx, name)
 	defer span.Finish()
 
 	ext.DBType.Set(span, Name)
 
-	return xerror.Wrap(t.DB.Update(func(tx *bolt.Tx) (err error) {
-		defer xerror.RespErr(&err)
-		return fn(tx)
-	}))
+	return t.db.Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }

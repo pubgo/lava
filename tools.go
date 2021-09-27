@@ -10,7 +10,6 @@ import (
 	_ "github.com/magefile/mage/mg"
 	_ "github.com/magefile/mage/sh"
 	_ "github.com/mwitkow/go-proto-validators/protoc-gen-govalidators"
-	_ "github.com/pubgo/lug/tracing/jaeger"
 	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 )

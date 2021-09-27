@@ -1,14 +1,14 @@
 package etcdv3
 
 import (
+	"runtime"
+
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/typex"
-
-	"runtime"
 )
 
 var clients typex.SMap
@@ -40,6 +40,8 @@ func Update(name string, cfg Cfg) (gErr error) {
 		// 老客户端不存在就直接保存
 		var client = &Client{etcdClient}
 		clients.Set(name, client)
+
+		// 依赖注入
 		xerror.Exit(dix.Provider(map[string]interface{}{name: client}))
 		return
 	}

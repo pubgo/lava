@@ -1,10 +1,11 @@
 package entry
 
 import (
-	"github.com/pubgo/lug/types"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 )
 
 type Runtime interface {
@@ -20,6 +21,7 @@ type Entry interface {
 	BeforeStop(func())
 	AfterStart(func())
 	BeforeStart(func())
+	Plugin(plugins ...plugin.Plugin)
 	Middleware(middleware types.Middleware)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))

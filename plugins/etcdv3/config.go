@@ -44,7 +44,7 @@ func (t Cfg) Build() (c *clientv3.Client, err error) {
 	defer xerror.RespErr(&err)
 
 	var cfg clientv3.Config
-	xerror.Panic(merge.Copy(&cfg, &t))
+	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
 	// 创建etcd client对象

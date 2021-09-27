@@ -11,6 +11,8 @@ func main() {
 	defer xerror.RespExit()
 
 	m := gen.New("lug", gen.OnlyService())
+	m.ImportMap["google.protobuf.Empty"] = "emptypb.Empty"
+
 	m.Parameter(func(key, value string) {
 		log.Println("params:", key, "=", value)
 	})
@@ -32,12 +34,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var _ = strings.Trim
@@ -46,6 +49,7 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 var _ = structpb.Value{}
+var _ = emptypb.Empty{}
 `
 		},
 
@@ -77,6 +81,8 @@ var _ = structpb.Value{}
 		var mthList []xgen.GrpcRestHandler
 		{% for m in ss.GetMethod() %}
 			mthList = append(mthList, xgen.GrpcRestHandler{
+				Input:        &{{goType(m.GetInputType())}}{},
+				Output:       &{{goType(m.GetOutputType())}}{},
 				Service:      "{{ss.Pkg}}.{{ss.Name}}",
 				Name:         "{{m.GetName()}}",
 				Method:       "{{m.HttpMethod}}",

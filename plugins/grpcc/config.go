@@ -26,7 +26,7 @@ const (
 	defaultContentType = "application/grpc"
 )
 
-var configMap typex.SMap
+var cfgMap typex.SMap
 
 type callParameters struct {
 	Header                map[string]string `json:"header"`
@@ -253,12 +253,12 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 var defaultDialOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 func GetCfg(name string) *Cfg {
-	if configMap.Has(name) {
-		return configMap.Get(name).(*Cfg)
+	if cfgMap.Has(name) {
+		return cfgMap.Get(name).(*Cfg)
 	}
 
-	if configMap.Has(consts.Default) {
-		return configMap.Get(consts.Default).(*Cfg)
+	if cfgMap.Has(consts.Default) {
+		return cfgMap.Get(consts.Default).(*Cfg)
 	}
 
 	return GetDefaultCfg()

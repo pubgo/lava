@@ -819,6 +819,8 @@ github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN
 github.com/mailru/easyjson v0.7.0/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7ldAVICs=
 github.com/mailru/easyjson v0.7.1/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7ldAVICs=
 github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
+github.com/maragudk/gomponents v0.17.2 h1:+hdokU3WHVLaWj7UYOvSDUslSd2WHLH2RAq2SYmPVbM=
+github.com/maragudk/gomponents v0.17.2/go.mod h1:0OdlqOoqxcwvhBFrp8wlKHnEXhNB7IVhb8GuARmd+tI=
 github.com/maratori/testpackage v1.0.1/go.mod h1:ddKdw+XG0Phzhx8BFDTKgpWP4i7MpApTE5fXSKAqwDU=
 github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsIW75CHf65OeIOkyKbteujpZVXDpWK6YGZbxE=
 github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kNSCBdG0=
@@ -1038,8 +1040,9 @@ github.com/pubgo/dix v0.1.28/go.mod h1:vVW2ct5FgYVCnvTZ8jnK6BPI4VXUPuuehL2DTyoK0
 github.com/pubgo/x v0.3.36 h1:6MRqb1Rrmvpwb9UkTfxRRP5eVmIK/wxqxPNsMtALFng=
 github.com/pubgo/x v0.3.36/go.mod h1:i3n1XrT39kzcgA8gt886bfCSg6u6uwohbwAtC8h8ePI=
 github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56mxJQ=
-github.com/pubgo/xerror v0.4.10 h1:Wx3jjCXLE6pcUOYd2YhQKJnOcNelAzg4yPhn2Q/Pjtk=
 github.com/pubgo/xerror v0.4.10/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
+github.com/pubgo/xerror v0.4.11 h1:7VjXlWGHvEFLH1eBshoxHqUcQITDtWI1jrWHfDEUNwY=
+github.com/pubgo/xerror v0.4.11/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xlog v0.2.8 h1:8nhDTR0zJ8nrOOfZuSXeEURHaekIVyVVHitkdSz7WPg=
 github.com/pubgo/xlog v0.2.8/go.mod h1:ceFOxHSwkcTjtMkbMq0e6j8ihr32p2z2mkbfYD5pHLc=
 github.com/pubgo/xprotogen v0.0.17 h1:/gl2SclxjAWi1nLtgElgZDe3ihJizmCIr6/AyMezvhk=

@@ -8,7 +8,7 @@ import (
 )
 
 var Name = "redis"
-var cfg = make(map[string]ClientCfg)
+var cfgMap = make(map[string]ClientCfg)
 
 const (
 	DbType                  = "redis"
@@ -19,10 +19,6 @@ const (
 
 type ClientCfg = redis.Options
 
-func GetCfg() map[string]ClientCfg {
-	return cfg
-}
-
-func GetDefaultCfg() ClientCfg {
+func DefaultCfg() ClientCfg {
 	return ClientCfg{}
 }

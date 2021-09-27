@@ -6,13 +6,15 @@ import (
 )
 
 type GrpcRestHandler struct {
-	Service      string `json:"service"`
-	Method       string `json:"method"`
-	Name         string `json:"name"`
-	Path         string `json:"path"`
-	ClientStream bool   `json:"client_stream"`
-	ServerStream bool   `json:"server_stream"`
-	DefaultUrl   bool   `json:"default_url"`
+	Input        interface{} `json:"input"`
+	Output       interface{} `json:"output"`
+	Service      string      `json:"service"`
+	Method       string      `json:"method"`
+	Name         string      `json:"name"`
+	Path         string      `json:"path"`
+	ClientStream bool        `json:"client_stream"`
+	ServerStream bool        `json:"server_stream"`
+	DefaultUrl   bool        `json:"default_url"`
 }
 
 var data sync.Map

@@ -12,7 +12,6 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/plugins/request_id"
 	"github.com/pubgo/lug/runenv"
@@ -23,7 +22,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: "logger",
-		OnInit: func(ent entry.Entry) {
+		OnInit: func(ent plugin.Entry) {
 			var cfg = xlog_config.NewProdConfig()
 			if runenv.IsDev() || runenv.IsTest() {
 				cfg = xlog_config.NewDevConfig()

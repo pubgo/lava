@@ -9,11 +9,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -23,6 +24,7 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 var _ = structpb.Value{}
+var _ = emptypb.Empty{}
 
 func GetCodeClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli CodeClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -43,6 +45,8 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SendCodeRequest{},
+		Output:       &SendCodeResponse{},
 		Service:      "login.Code",
 		Name:         "SendCode",
 		Method:       "POST",
@@ -53,6 +57,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &VerifyRequest{},
+		Output:       &VerifyResponse{},
 		Service:      "login.Code",
 		Name:         "Verify",
 		Method:       "POST",
@@ -63,6 +69,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &IsCheckImageCodeRequest{},
+		Output:       &IsCheckImageCodeResponse{},
 		Service:      "login.Code",
 		Name:         "IsCheckImageCode",
 		Method:       "POST",
@@ -73,6 +81,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &VerifyImageCodeRequest{},
+		Output:       &VerifyImageCodeResponse{},
 		Service:      "login.Code",
 		Name:         "VerifyImageCode",
 		Method:       "POST",
@@ -83,6 +93,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &GetSendStatusRequest{},
+		Output:       &GetSendStatusResponse{},
 		Service:      "login.Code",
 		Name:         "GetSendStatus",
 		Method:       "POST",

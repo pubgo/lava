@@ -1,8 +1,8 @@
 package rest
 
 import (
-	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/logger"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"go.uber.org/zap"
 )
 

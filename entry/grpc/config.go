@@ -1,9 +1,9 @@
 package grpc
 
 import (
-	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
-	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/logger"
+	grpcGw "github.com/pubgo/lug/pkg/builder/grpc-gw"
+	"github.com/pubgo/lug/pkg/builder/grpcs"
 	"go.uber.org/zap"
 
 	"time"

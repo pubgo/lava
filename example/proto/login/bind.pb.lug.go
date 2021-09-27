@@ -9,11 +9,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -23,6 +24,7 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 var _ = structpb.Value{}
+var _ = emptypb.Empty{}
 
 func GetBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli BindTelephoneClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -43,6 +45,8 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &CheckRequest{},
+		Output:       &CheckResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "Check",
 		Method:       "POST",
@@ -53,6 +57,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindVerifyRequest{},
+		Output:       &BindVerifyResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "BindVerify",
 		Method:       "POST",
@@ -63,6 +69,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindChangeRequest{},
+		Output:       &BindChangeResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "BindChange",
 		Method:       "POST",
@@ -73,6 +81,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &AutomaticBindRequest{},
+		Output:       &AutomaticBindResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "AutomaticBind",
 		Method:       "POST",
@@ -83,6 +93,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindPhoneParseRequest{},
+		Output:       &BindPhoneParseResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "BindPhoneParse",
 		Method:       "POST",
@@ -93,6 +105,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindPhoneParseByOneClickRequest{},
+		Output:       &BindPhoneParseByOneClickResponse{},
 		Service:      "login.BindTelephone",
 		Name:         "BindPhoneParseByOneClick",
 		Method:       "POST",

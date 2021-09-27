@@ -3,14 +3,14 @@ package etcdv3
 import (
 	"context"
 
+	"github.com/pubgo/x/merge"
+	"github.com/pubgo/xerror"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/plugins/etcdv3"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
-
-	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
-	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
 func init() {

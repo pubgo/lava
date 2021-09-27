@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-const defaultModule = "__default"
+const defaultModule = "__global"
 
 var plugins = make(map[string][]Plugin)
 

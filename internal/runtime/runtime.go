@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/healthy"
+	"github.com/pubgo/lug/internal/cmds/restapi"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
@@ -34,6 +35,7 @@ var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 func init() {
 	rootCmd.AddCommand(v.Cmd)
 	rootCmd.AddCommand(healthy.Cmd)
+	rootCmd.AddCommand(restapi.Cmd)
 }
 
 func handleSignal() {
@@ -99,8 +101,8 @@ func stop(ent entry.Runtime) (err error) {
 	return nil
 }
 
-func Run(description string, entries ...entry.Entry) (err error) {
-	defer xerror.RespErr(&err)
+func Run(description string, entries ...entry.Entry) {
+	defer xerror.RespExit()
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
 
@@ -191,11 +193,11 @@ func Run(description string, entries ...entry.Entry) (err error) {
 		rootCmd.AddCommand(cmd)
 	}
 
-	return xerror.Wrap(rootCmd.Execute())
+	xerror.Panic(rootCmd.Execute())
 }
 
-func Start(ent entry.Entry) (err error) {
-	defer xerror.RespErr(&err)
+func Start(ent entry.Entry) {
+	defer xerror.RespExit()
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")
 
@@ -230,16 +232,16 @@ func Start(ent entry.Entry) (err error) {
 		watcher.Watch(key, pg.Watch)
 	}
 
-	return xerror.Wrap(start(entRun))
+	xerror.Panic(start(entRun))
 }
 
-func Stop(ent entry.Entry) (err error) {
-	defer xerror.RespErr(&err)
+func Stop(ent entry.Entry) {
+	defer xerror.RespExit()
 
 	xerror.Assert(ent == nil, "[entry] should not be nil")
 
 	entRun, ok := ent.(entry.Runtime)
 	xerror.Assert(!ok, "[ent] not implement runtime")
 
-	return xerror.Wrap(stop(entRun))
+	xerror.Panic(stop(entRun))
 }

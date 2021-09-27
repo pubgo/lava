@@ -2,10 +2,12 @@ package ctl_entry
 
 import (
 	"fmt"
+
+	"github.com/spf13/cobra"
+
 	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
-	"github.com/spf13/cobra"
 )
 
 var name = "test-ctl"
@@ -22,7 +24,7 @@ func GetEntry() entry.Entry {
 
 	ent.Plugin(&plugin.Base{
 		Name: "hello",
-		OnInit: func(ent entry.Entry) {
+		OnInit: func(ent plugin.Entry) {
 			fmt.Println("hello plugin")
 		},
 	})

@@ -9,11 +9,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -23,6 +24,7 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 var _ = structpb.Value{}
+var _ = emptypb.Empty{}
 
 func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -58,6 +60,8 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
 		Service:      "hello.TestApi",
 		Name:         "Version",
 		Method:       "GET",
@@ -68,6 +72,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &structpb.Value{},
+		Output:       &TestApiOutput1{},
 		Service:      "hello.TestApi",
 		Name:         "Version1",
 		Method:       "POST",
@@ -78,6 +84,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
 		Service:      "hello.TestApi",
 		Name:         "VersionTest",
 		Method:       "GET",
@@ -96,6 +104,8 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
 		Service:      "hello.TestApiV2",
 		Name:         "Version1",
 		Method:       "POST",
@@ -106,6 +116,8 @@ func init() {
 	})
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
 		Service:      "hello.TestApiV2",
 		Name:         "VersionTest1",
 		Method:       "POST",

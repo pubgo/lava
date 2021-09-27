@@ -49,6 +49,7 @@ require (
 	github.com/m3db/prometheus_common v0.1.0 // indirect
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magefile/mage v1.11.0
+	github.com/maragudk/gomponents v0.17.2
 	github.com/maruel/panicparse/v2 v2.1.1
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/mattn/go-zglob v0.0.3
@@ -63,7 +64,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.10
+	github.com/pubgo/xerror v0.4.11
 	github.com/pubgo/xlog v0.2.8
 	github.com/pubgo/xprotogen v0.0.17
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563

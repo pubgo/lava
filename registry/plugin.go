@@ -1,23 +1,22 @@
 package registry
 
 import (
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
-
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/plugin"
 )
 
-func init() { plugin.Register(&plg) }
+func init() {
+	plugin.Register(&plugin.Base{
+		Name: Name,
+		OnInit: func(ent plugin.Entry) {
+			var cfg = GetDefaultCfg()
+			if !config.Decode(Name, &cfg) {
+				return
+			}
 
-var plg = plugin.Base{
-	Name: Name,
-	OnInit: func(ent entry.Entry) {
-		var cfg = GetDefaultCfg()
-		if !config.Decode(Name, &cfg) {
-			return
-		}
-
-		defaultRegistry = xerror.PanicErr(cfg.Build()).(Registry)
-	},
+			defaultRegistry = xerror.PanicErr(cfg.Build()).(Registry)
+		},
+	})
 }

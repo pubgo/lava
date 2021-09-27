@@ -10,30 +10,28 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
 )
 
-func init() { plugin.Register(plg) }
-
-var plg = &plugin.Base{
-	Name:         Name,
-	OnMiddleware: Middleware,
-	OnInit: func(ent entry.Entry) {
-		var cfg = GetDefaultCfg()
-		_ = config.Decode(Name, &cfg)
-
-		xerror.Exit(cfg.Build())
-	},
-	OnWatch: func(name string, resp *watcher.Response) {
-		resp.OnPut(func() {
+func init() {
+	plugin.Register(&plugin.Base{
+		Name:         Name,
+		OnMiddleware: Middleware,
+		OnInit: func(ent plugin.Entry) {
 			var cfg = GetDefaultCfg()
-			xerror.Panic(watcher.Decode(resp.Value, &cfg))
-			xerror.Exit(cfg.Build())
-		})
-	},
+			_ = config.Decode(Name, &cfg)
+			xerror.Panic(cfg.Build())
+		},
+		OnWatch: func(name string, resp *watcher.Response) {
+			resp.OnPut(func() {
+				var cfg = GetDefaultCfg()
+				xerror.Panic(watcher.Decode(resp.Value, &cfg))
+				xerror.Panic(cfg.Build())
+			})
+		},
+	})
 }
 
 func Middleware(next types.MiddleNext) types.MiddleNext {

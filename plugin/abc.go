@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/types"
 
 	"github.com/spf13/cobra"
@@ -17,11 +16,18 @@ type options struct {
 	Module string
 }
 
+type Entry interface {
+	AfterStop(func())
+	BeforeStop(func())
+	AfterStart(func())
+	BeforeStart(func())
+}
+
 type Plugin interface {
 	String() string
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
-	Init(ent entry.Entry) error
+	Init(ent Entry) error
 	Watch(name string, r *types.WatchResp) error
 	Vars(func(name string, data func() interface{})) error
 	Health() func(ctx context.Context) error

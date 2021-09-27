@@ -7,16 +7,14 @@ import (
 	"github.com/pubgo/lug/example/rest_entry"
 	"github.com/pubgo/lug/example/task_entry"
 	_ "github.com/pubgo/lug/plugins/panicparse"
-
-	"github.com/pubgo/xerror"
 )
 
 func main() {
-	xerror.Exit(lug.Run(
+	lug.Run(
 		"lug example 测试",
 		task_entry.GetEntry(),
 		rest_entry.GetEntry(),
 		ctl_entry.GetEntry(),
 		grpc_entry.GetEntry(),
-	))
+	)
 }

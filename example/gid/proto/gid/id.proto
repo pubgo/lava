@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package gid;
+
+option go_package = "./;gid";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+  };
+  external_docs: {
+    url: "https://github.com/gogo/grpc-example";
+    description: "gRPC example repository";
+  }
+  schemes: HTTPS;
+};
+
+
+service Id {
+  rpc Generate(GenerateRequest) returns (GenerateResponse) {
+    option (google.api.http) = {
+      post: "/v1/id/generate"
+      body: "*"
+    };
+  }
+  rpc Types(TypesRequest) returns (TypesResponse) {
+    option (google.api.http) = {
+      get: "/v1/id/types"
+    };
+  }
+}
+
+// Generate a unique ID. Defaults to uuid.
+message GenerateRequest {
+  // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
+  string type = 1;
+}
+
+message GenerateResponse {
+  // the unique id generated
+  string id = 1;
+  // the type of id generated
+  string type = 2;
+}
+
+// List the types of IDs available. No query params needed.
+message TypesRequest {}
+
+message TypesResponse {
+  repeated string types = 1;
+}

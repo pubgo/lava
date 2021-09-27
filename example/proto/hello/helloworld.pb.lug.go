@@ -9,11 +9,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	fb "github.com/pubgo/lug/builder/fiber"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/xgen"
 	"github.com/pubgo/xerror"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -23,6 +24,7 @@ var _ fiber.Router = nil
 var _ = gutil.MapFormByTag
 var _ = fb.Cfg{}
 var _ = structpb.Value{}
+var _ = emptypb.Empty{}
 
 func GetGreeterClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli GreeterClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -43,6 +45,8 @@ func init() {
 	var mthList []xgen.GrpcRestHandler
 
 	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &HelloRequest{},
+		Output:       &HelloReply{},
 		Service:      "hello.Greeter",
 		Name:         "SayHello",
 		Method:       "GET",

@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	grpcGw "github.com/pubgo/lug/builder/grpc-gw"
-	"github.com/pubgo/lug/builder/grpcs"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/logger"
+	grpcGw "github.com/pubgo/lug/pkg/builder/grpc-gw"
+	"github.com/pubgo/lug/pkg/builder/grpcs"
 	"github.com/pubgo/lug/pkg/ctxutil"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/netutil"

@@ -2,9 +2,10 @@ package vars
 
 import (
 	"expvar"
+	"runtime/debug"
+
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/runenv"
-	"runtime/debug"
 
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"

@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"sync"
 
-	fb "github.com/pubgo/lug/builder/fiber"
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry/base"
 	"github.com/pubgo/lug/logger"
+	fb "github.com/pubgo/lug/pkg/builder/fiber"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/types"
 

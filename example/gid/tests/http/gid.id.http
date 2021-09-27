@@ -1,0 +1,12 @@
+### gid.Id.Generate
+POST http://localhost:8080/v1/id/generate
+Content-Type: application/json
+
+{
+ "type": ""
+}
+
+### gid.Id.Types
+GET http://localhost:8080/v1/id/types
+Content-Type: application/json
+

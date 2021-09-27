@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/types"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 	"reflect"
+
+	"github.com/pubgo/lug/types"
 )
 
 var _ json.Marshaler = (*Base)(nil)
@@ -21,7 +22,7 @@ type Base struct {
 	Name         string
 	OnHealth     func(ctx context.Context) error
 	OnMiddleware types.Middleware
-	OnInit       func(ent entry.Entry)
+	OnInit       func(ent Entry)
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnWatch      func(name string, resp *types.WatchResp)
@@ -68,7 +69,7 @@ func (p *Base) Health() func(ctx context.Context) error {
 }
 
 func (p *Base) String() string { return p.Name }
-func (p *Base) Init(ent entry.Entry) error {
+func (p *Base) Init(ent Entry) error {
 	if p.OnInit == nil {
 		return nil
 	}

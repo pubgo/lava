@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var (

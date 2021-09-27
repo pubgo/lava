@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/x/fx"
 
 	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
 )
 
 type Handler func(fx.Ctx)
@@ -17,7 +16,6 @@ type Service interface {
 
 type Entry interface {
 	entry.Entry
-	Plugin(plugins ...plugin.Plugin)
 	Register(run Service, optList ...Opt)
 }
 
