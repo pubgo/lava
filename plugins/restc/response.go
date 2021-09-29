@@ -20,7 +20,8 @@ func (r *response) Codec() string {
 }
 
 func (r *response) Header() types.Header {
-	panic("implement me")
+	//return r.resp.Header
+	return nil
 }
 
 func (r *response) Body() ([]byte, error) {

@@ -5,13 +5,13 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/tracing"
-	"github.com/pubgo/lug/types"
-
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/tracing"
+	"github.com/pubgo/lug/types"
 )
 
 const (
@@ -20,23 +20,20 @@ const (
 	defaultContentType = "application/json"
 )
 
-var _ Client = (*client)(nil)
+var _ Client = (*clientImpl)(nil)
 
-// client is the Client implementation
-type client struct {
+// clientImpl is the Client implementation
+type clientImpl struct {
 	client        *fasthttp.Client
 	defaultHeader *fasthttp.RequestHeader
 	cfg           Cfg
 	do            types.MiddleNext
 }
 
-func (c *client) Do(ctx context.Context, req *Request) (resp *Response, err error) {
+func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err error) {
 	return resp, xerror.Wrap(c.do(
 		ctx,
-		&request{
-			req:    req,
-			header: convertHeader(&req.Header),
-		},
+		&request{req: req, header: convertHeader(&req.Header)},
 		func(res types.Response) error {
 			resp = res.(*response).resp
 			return nil
@@ -44,24 +41,25 @@ func (c *client) Do(ctx context.Context, req *Request) (resp *Response, err erro
 	))
 }
 
-func (c *client) Get(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) Get(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodGet, url, requests...)
 	return resp, xerror.Wrap(err)
 }
 
-func (c *client) Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodDelete, url, requests...)
 	return resp, xerror.Wrap(err)
 }
 
-func (c *client) Post(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) Post(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodPost, url, requests...)
 	return resp, xerror.Wrap(err)
 }
 
-func (c *client) PostForm(ctx context.Context, url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodPost, url, func(req *Request) {
 		req.SetBodyString(val.Encode())
+		//defaultHeader.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.SetContentType("application/x-www-form-urlencoded")
 		if len(requests) > 0 {
 			requests[0](req)
@@ -70,17 +68,17 @@ func (c *client) PostForm(ctx context.Context, url string, val url.Values, reque
 	return resp, xerror.Wrap(err)
 }
 
-func (c *client) Put(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) Put(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodPut, url, requests...)
 	return resp, xerror.Wrap(err)
 }
 
-func (c *client) Patch(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+func (c *clientImpl) Patch(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodPatch, url, requests...)
 	return resp, xerror.Wrap(err)
 }
 
-func doUrl(ctx context.Context, c *client, mth string, url string, requests ...func(req *Request)) (*Response, error) {
+func doUrl(ctx context.Context, c *clientImpl, mth string, url string, requests ...func(req *Request)) (*Response, error) {
 	var req = fasthttp.AcquireRequest()
 	c.defaultHeader.CopyTo(&req.Header)
 
@@ -101,7 +99,7 @@ func doUrl(ctx context.Context, c *client, mth string, url string, requests ...f
 	return resp, nil
 }
 
-func doFunc(c *client) types.MiddleNext {
+func doFunc(c *clientImpl) types.MiddleNext {
 	var backoff = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
 
 	return func(ctx context.Context, req types.Request, callback func(rsp types.Response) error) error {

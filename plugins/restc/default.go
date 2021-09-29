@@ -7,11 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var defaultClient Client
-
-func init() {
-	defaultClient = xerror.PanicErr(DefaultCfg().Build()).(Client)
-}
+var defaultClient = xerror.ExitErr(DefaultCfg().Build()).(Client)
 
 func Do(ctx context.Context, req *Request) (*Response, error) { return defaultClient.Do(ctx, req) }
 

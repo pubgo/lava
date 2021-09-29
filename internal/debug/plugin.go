@@ -4,16 +4,16 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/mux"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
-
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 )
 
 func init() {

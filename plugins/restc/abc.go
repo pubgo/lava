@@ -14,7 +14,7 @@ type Response = fasthttp.Response
 type RequestHeader = fasthttp.RequestHeader
 type ResponseHeader = fasthttp.ResponseHeader
 
-// Client http client interface
+// Client http clientImpl interface
 type Client interface {
 	Do(ctx context.Context, req *Request) (*Response, error)
 	Get(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error)

@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/registry"
-
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lug/registry"
 )
 
 func init() {

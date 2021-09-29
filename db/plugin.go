@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
 )
 
@@ -34,7 +35,7 @@ func init() {
 					cfg = GetDefaultCfg()
 				}
 
-				xerror.Panic(watcher.Decode(w.Value, &cfg))
+				xerror.Panic(types.Decode(w.Value, &cfg))
 				xerror.Panic(Update(name, *cfg))
 				cfgList[name] = cfg
 			})

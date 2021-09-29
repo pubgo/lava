@@ -5,20 +5,16 @@ import (
 	"context"
 	"strings"
 
+	"github.com/pubgo/x/stack"
+	"github.com/pubgo/x/strutil"
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/vars"
-
-	"github.com/hashicorp/hcl"
-	"github.com/pelletier/go-toml"
-	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/x/stack"
-	"github.com/pubgo/x/strutil"
-	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
@@ -97,7 +93,7 @@ func onWatch(name string, resp *Response) {
 	// 把数据设置到全局配置管理中
 	// value都必须是kv类型的数据
 	var dt = make(map[string]interface{})
-	xerror.PanicF(Decode(resp.Value, &dt), "value都必须是kv类型的数据, key:%s, value:%s", resp.Key, resp.Value)
+	xerror.PanicF(types.Decode(resp.Value, &dt), "value都必须是kv类型的数据, key:%s, value:%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
 		if name == runenv.Project {
@@ -142,30 +138,4 @@ func onWatch(name string, resp *Response) {
 		var name = strings.Trim(strings.TrimPrefix(key, k), ".")
 		xerror.PanicF(plg.(func(name string, r *types.WatchResp) error)(name, resp), "event: %#v", *resp)
 	})
-}
-
-func Decode(data []byte, c interface{}) (err error) {
-	defer xerror.RespErr(&err)
-
-	// "yaml", "yml"
-	if err = yaml.Unmarshal(data, &c); err == nil {
-		return
-	}
-
-	// "json"
-	if err = jsonx.Unmarshal(data, &c); err == nil {
-		return
-	}
-
-	// "hcl"
-	if err = hcl.Unmarshal(data, &c); err == nil {
-		return
-	}
-
-	// "toml"
-	if err = toml.Unmarshal(data, &c); err == nil {
-		return
-	}
-
-	return
 }

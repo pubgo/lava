@@ -11,6 +11,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/plugins/request_id"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
 )
@@ -27,7 +28,7 @@ func init() {
 		OnWatch: func(name string, resp *watcher.Response) {
 			resp.OnPut(func() {
 				var cfg = GetDefaultCfg()
-				xerror.Panic(watcher.Decode(resp.Value, &cfg))
+				xerror.Panic(types.Decode(resp.Value, &cfg))
 				xerror.Panic(cfg.Build())
 			})
 		},
@@ -67,6 +68,12 @@ func Middleware(next types.MiddleNext) types.MiddleNext {
 			}
 		}
 
-		return next(opentracing.ContextWithSpan(ctx, span), req, resp)
+		var reqId = request_id.GetReqID(ctx)
+		span.SetTag(request_id.Name, reqId)
+
+		defer span.Finish()
+		err = next(opentracing.ContextWithSpan(ctx, span), req, resp)
+		SetIfErr(span, err)
+		return err
 	}
 }

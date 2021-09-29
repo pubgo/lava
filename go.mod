@@ -9,17 +9,27 @@ require (
 	github.com/antonmedv/expr v1.9.0
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
+	github.com/emicklei/proto v1.9.1
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
 	github.com/fatedier/kcp-go v2.0.3+incompatible
+	github.com/fatih/color v1.9.0
 	github.com/favadi/protoc-go-inject-tag v1.3.0
 	github.com/felixge/fgprof v0.9.1
+	github.com/flosch/pongo2/v4 v4.0.2
+	github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90
+	github.com/fullstorydev/grpcurl v1.8.2
 	github.com/gin-contrib/sse v0.1.0
 	github.com/gin-gonic/gin v1.7.2
+	github.com/go-bindata/go-bindata/v3 v3.1.3
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-logr/logr v1.1.0 // indirect
+	github.com/go-openapi/loads v0.19.5
+	github.com/go-openapi/runtime v0.19.21
+	github.com/go-openapi/spec v0.20.2
+	github.com/go-openapi/swag v0.19.13 // indirect
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.12.0
@@ -27,10 +37,13 @@ require (
 	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt v3.2.1+incompatible
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18
 	github.com/google/uuid v1.2.0
+	github.com/gordonklaus/ineffassign v0.0.0-20200309095847-7953dde2c7bf
+	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/schema v1.2.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -40,6 +53,7 @@ require (
 	github.com/hashicorp/memberlist v0.1.3
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jaegertracing/jaeger v1.22.0
+	github.com/jhump/protoreflect v1.9.0
 	github.com/json-iterator/go v1.1.11
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
@@ -66,7 +80,8 @@ require (
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.11
 	github.com/pubgo/xlog v0.2.8
-	github.com/pubgo/xprotogen v0.0.17
+	github.com/pubgo/xprotogen v0.0.17 // indirect
+	github.com/rakyll/statik v0.1.7
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
@@ -76,6 +91,9 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/swaggo/http-swagger v1.1.1 // indirect
+	github.com/tinylib/msgp v1.1.6
+	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
@@ -89,8 +107,11 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.19.0
+	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+	golang.org/x/tools v0.1.3
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
 	google.golang.org/grpc v1.38.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0

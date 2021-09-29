@@ -1,6 +1,7 @@
 package mux
 
 import (
+	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -9,13 +10,15 @@ import (
 
 var app = func() *chi.Mux {
 	var route = chi.NewRouter()
-
+	route.Use(middleware.Logger)
 	route.Use(func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			defer xerror.RespHttp(writer, request)
 			handler.ServeHTTP(writer, request)
 		})
 	})
+
+
 
 	return route
 }()

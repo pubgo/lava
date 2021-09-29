@@ -1,3 +1,5 @@
+//go:generate go-bindata -fs -pkg docs -o docs/docs.go -prefix "docs/" -ignore=docs\.go docs/...
+
 package main
 
 import (

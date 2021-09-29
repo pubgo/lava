@@ -3,10 +3,10 @@ package restc
 import (
 	"crypto/tls"
 
+	"github.com/valyala/fasthttp"
+
 	"github.com/pubgo/lug/pkg/retry"
 	"github.com/pubgo/lug/types"
-
-	"github.com/valyala/fasthttp"
 )
 
 type Option func(opts *Cfg)

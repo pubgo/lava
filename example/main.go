@@ -1,3 +1,5 @@
+//go:generate statik -src=./docs -dest=./docs -f -include=*.jpg,*.txt,*.html,*.css,*.js,*.json
+
 package main
 
 import (

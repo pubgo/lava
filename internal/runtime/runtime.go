@@ -14,7 +14,9 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/healthy"
+	"github.com/pubgo/lug/internal/cmds/protoc"
 	"github.com/pubgo/lug/internal/cmds/restapi"
+	"github.com/pubgo/lug/internal/cmds/swagger"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
@@ -36,6 +38,8 @@ func init() {
 	rootCmd.AddCommand(v.Cmd)
 	rootCmd.AddCommand(healthy.Cmd)
 	rootCmd.AddCommand(restapi.Cmd)
+	rootCmd.AddCommand(protoc.Cmd)
+	rootCmd.AddCommand(swagger.Cmd)
 }
 
 func handleSignal() {

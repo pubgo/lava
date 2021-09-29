@@ -33,7 +33,7 @@ func (r *request) ContentType() string {
 }
 
 func (r *request) Header() types.Header {
-	panic("implement me")
+	return r.header
 }
 
 func (r *request) Payload() interface{} {

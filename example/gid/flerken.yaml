@@ -20,6 +20,7 @@ protoc:
       path: /gogoproto
   input:
     - proto/gid/*.proto
+    - proto/login/*.proto
   plugins:
     go:
       - paths=source_relative:.
@@ -30,10 +31,10 @@ protoc:
       - paths=source_relative
       - require_unimplemented_servers=false:.
     lug:
-      - :.
+      - paths=source_relative:.
     openapiv2:
       - logtostderr=true
       - allow_repeated_fields_in_body=true
-      - repeated_path_param_separator=ssv:.
-    govalidators:
-      - paths=source_relative:.
+      - repeated_path_param_separator=ssv:./docs/swagger
+#    govalidators:
+#      - paths=source_relative:.

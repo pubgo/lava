@@ -2,12 +2,12 @@ package restc
 
 import (
 	"crypto/tls"
-	"github.com/pubgo/lug/types"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
@@ -99,7 +99,7 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	}
 
 	// 加载插件
-	var client = &client{client: c, defaultHeader: &dftHeader}
+	var client = &clientImpl{client: c, defaultHeader: &dftHeader}
 	client.do = doFunc(client)
 	for i := len(t.middles); i > 0; i-- {
 		client.do = t.middles[i-1](client.do)

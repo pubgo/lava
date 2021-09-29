@@ -36,7 +36,7 @@ protoc:
       - paths=source_relative
       - require_unimplemented_servers=false:.
     lug:
-      - :.
+      - paths=source_relative:.
     openapiv2:
       - logtostderr=true
       - allow_repeated_fields_in_body=true

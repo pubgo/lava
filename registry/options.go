@@ -36,6 +36,7 @@ type DeregOpts struct {
 
 type GetOpts struct {
 	Timeout time.Duration
+	Context context.Context
 }
 
 type ListOpts struct {

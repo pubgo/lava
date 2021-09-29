@@ -1,0 +1,20 @@
+nacos:
+  default:
+    client:
+      namespace_id: "e525eafa-f7d7-4029-83d9-008937f9d468"
+      timeout_ms: 5000
+      not_load_cache_at_start: true
+      log_dir: "/tmp/nacos/log"
+      cache_dir: "/tmp/nacos/cache"
+      rotate_time: "1h"
+      max_age: 3
+      log_level: "debug"
+    servers:
+      - ip_addr: "console1.nacos.io"
+        context_path: "/nacos"
+        port: 80
+        scheme: "http"
+      - ip_addr: "console2.nacos.io"
+        context_path: "/nacos"
+        port: 80
+        scheme: "http"
