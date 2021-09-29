@@ -16,7 +16,6 @@ import (
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 	// 无效分配
 	_ "github.com/gordonklaus/ineffassign"
-	_ "github.com/rakyll/statik/fs"
 	_ "golang.org/x/tools/cmd/goyacc"
 	_ "github.com/go-bindata/go-bindata/v3/go-bindata"
 )

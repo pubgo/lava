@@ -1,16 +1,13 @@
 package gutil
 
 import (
-	_ "github.com/gin-gonic/gin/binding"
-	"github.com/gofiber/fiber/v2/utils"
-
+	"go/format"
 	"reflect"
 	"strings"
-	_ "unsafe"
-)
 
-//go:linkname MapFormByTag github.com/gin-gonic/gin/binding.mapFormByTag
-func MapFormByTag(ptr interface{}, form map[string][]string, tag string) error
+	"github.com/gofiber/fiber/v2/utils"
+	"github.com/pubgo/xerror"
+)
 
 func EqualFieldType(out interface{}, kind reflect.Kind, key string) bool {
 	// Get type of interface
@@ -48,6 +45,14 @@ func EqualFieldType(out interface{}, kind reflect.Kind, key string) bool {
 		}
 	}
 	return false
+}
+
+func CodeJoin(data ...string) string {
+	var str = ""
+	for i := range data {
+		str += strings.TrimSpace(data[i]) + "\n"
+	}
+	return string(xerror.PanicBytes(format.Source([]byte(strings.TrimSpace(str)))))
 }
 
 func CmdExample(data ...string) string {

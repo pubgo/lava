@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
@@ -20,7 +19,6 @@ import (
 var trim = strings.TrimSpace
 var Cmd = &cobra.Command{
 	Use:     "rest.http",
-	Aliases: typex.StrOf("v"),
 	Short:   "gen rest.http from protobuf",
 	Example: trim(`
 lug rest.http`),

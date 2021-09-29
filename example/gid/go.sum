@@ -1089,6 +1089,7 @@ github.com/prometheus/tsdb v0.6.2-0.20190402121629-4f204dcbc150/go.mod h1:qhTCs0
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/pubgo/dix v0.1.28 h1:b1FFHeDaGHbkRQSIMKcgw3fc6b8Ig0nggPJ+3HtJjFA=
 github.com/pubgo/dix v0.1.28/go.mod h1:vVW2ct5FgYVCnvTZ8jnK6BPI4VXUPuuehL2DTyoK0Kk=
+github.com/pubgo/lug/example/gid v0.0.0-20210929150519-54021d938648/go.mod h1:BmorimbR8/HPy88NZtTAVlM2bAm7RrVFgE1pUu0XQYU=
 github.com/pubgo/x v0.3.36 h1:6MRqb1Rrmvpwb9UkTfxRRP5eVmIK/wxqxPNsMtALFng=
 github.com/pubgo/x v0.3.36/go.mod h1:i3n1XrT39kzcgA8gt886bfCSg6u6uwohbwAtC8h8ePI=
 github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56mxJQ=

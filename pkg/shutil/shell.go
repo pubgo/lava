@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 )
 
@@ -29,6 +30,7 @@ func Run(args ...string) (string, error) {
 
 func Shell(args ...string) *exec.Cmd {
 	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -49,4 +51,13 @@ func GraphViz(in, out string) (err error) {
 		return err
 	}
 	return ioutil.WriteFile(out, []byte(ret), 0600)
+}
+
+func Bash(args ...string) *exec.Cmd {
+	cmd := exec.Command("/bin/bash", "-c", strings.Join(args, " "))
+	cmd.Env = os.Environ()
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	return cmd
 }

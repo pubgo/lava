@@ -2,58 +2,96 @@ package swagger
 
 import (
 	"encoding/json"
+	"fmt"
+	"html/template"
 	"net/http"
-	"path"
+	"strings"
 
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/spec"
 	"github.com/pubgo/xerror"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/pubgo/lug/mux"
 )
 
-func init() {
+func Init(names func() []string, asset func(name string) []byte) {
+	var homeTmpl = template.Must(template.New("index").Parse(`
+		<html>
+		<head>
+		<title>/swagger</title>
+		</head>
+		<body>
+		{{range .}}
+			<a href={{.}}>{{.}}</a><br/>
+		{{end}}
+		</body>
+		</html>
+		`))
+	mux.Get("/swagger", func(writer http.ResponseWriter, request *http.Request) {
+		var keys []string
+		for _, r := range names() {
+			keys = append(keys, strings.TrimSuffix(r, ".swagger.json"))
+		}
+		xerror.Panic(homeTmpl.Execute(writer, keys))
+	})
+
 	mux.Get("/swagger/*", func(writer http.ResponseWriter, request *http.Request) {
 		var s ServeCmd
-		specDoc, err := loads.Analyzed(json.RawMessage(nil), "")
-		xerror.Panic(err)
 
-		if s.Flatten {
-			specDoc, err = specDoc.Expanded(&spec.ExpandOptions{
-				SkipSchemas:         false,
-				ContinueOnError:     true,
-				AbsoluteCircularRef: true,
-			})
+		if strings.HasSuffix(request.RequestURI, "swagger.json") {
+			writer.Header().Set("Content-Type", "application/json")
+
+			specDoc, err := loads.Analyzed(asset(strings.Trim(request.RequestURI, "/")), "")
 			xerror.Panic(err)
+
+			if s.Flatten {
+				specDoc, err = specDoc.Expanded(&spec.ExpandOptions{
+					SkipSchemas:         false,
+					ContinueOnError:     true,
+					AbsoluteCircularRef: true,
+				})
+				xerror.Panic(err)
+			}
+
+			b, err := json.MarshalIndent(specDoc.Spec(), "", "  ")
+			xerror.Panic(err)
+			writer.Write(b)
+			return
 		}
 
-		b, err := json.MarshalIndent(specDoc.Spec(), "", "  ")
-		xerror.Panic(err)
+		var flavor = "swagger"
+		if f := request.URL.Query().Get("flavor"); f != "" {
+			flavor = f
+		}
 
 		basePath := s.BasePath
 		if basePath == "" {
 			basePath = "/"
 		}
 
-		visit := s.DocURL
 		handler := http.NotFoundHandler()
-		if !s.NoUI {
-			if s.Flavor == "redoc" {
-				handler = middleware.Redoc(middleware.RedocOpts{
-					BasePath: basePath,
-					SpecURL:  path.Join(basePath, "swagger.json"),
-					Path:     s.Path,
-				}, handler)
-			} else if visit != "" || s.Flavor == "swagger" {
-				handler = middleware.SwaggerUI(middleware.SwaggerUIOpts{
-					BasePath: basePath,
-					SpecURL:  path.Join(basePath, "swagger.json"),
-					Path:     s.Path,
-				}, handler)
-			}
+		if flavor == "redoc" {
+			handler = middleware.Redoc(middleware.RedocOpts{
+				Title:    request.URL.Path,
+				BasePath: basePath,
+				SpecURL:  fmt.Sprintf("%s.swagger.json", request.URL.Path),
+				Path:     request.URL.Path,
+			}, handler)
+		} else if flavor == "swagger" {
+			handler = middleware.SwaggerUI(middleware.SwaggerUIOpts{
+				Title:    request.URL.Path,
+				BasePath: basePath,
+				SpecURL:  fmt.Sprintf("%s.swagger.json", request.URL.Path),
+				Path:     request.URL.Path,
+			}, handler)
+		} else {
+			handler = httpSwagger.Handler(
+				httpSwagger.URL(fmt.Sprintf("%s.swagger.json", request.URL.Path)),
+			)
 		}
-		middleware.Spec(basePath, b, handler).ServeHTTP(writer, request)
+		handler.ServeHTTP(writer, request)
 	})
 }
 

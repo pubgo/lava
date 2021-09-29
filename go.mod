@@ -32,7 +32,7 @@ require (
 	github.com/go-openapi/swag v0.19.13 // indirect
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gofiber/fiber/v2 v2.12.0
+	github.com/gofiber/fiber/v2 v2.19.0
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
@@ -41,7 +41,7 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20200309095847-7953dde2c7bf
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/schema v1.2.0
@@ -77,11 +77,12 @@ require (
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
+	github.com/pubgo/lug/example/gid v0.0.0-20210929150519-54021d938648
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.11
 	github.com/pubgo/xlog v0.2.8
 	github.com/pubgo/xprotogen v0.0.17 // indirect
-	github.com/rakyll/statik v0.1.7
+	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
@@ -91,14 +92,14 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/swaggo/http-swagger v1.1.1 // indirect
+	github.com/swaggo/http-swagger v1.1.1
 	github.com/tinylib/msgp v1.1.6
 	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
-	github.com/valyala/fasthttp v1.26.0
+	github.com/valyala/fasthttp v1.29.0
 	github.com/valyala/fasttemplate v1.2.1
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/bbolt v1.3.3
@@ -113,7 +114,7 @@ require (
 	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
 	golang.org/x/tools v0.1.3
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
-	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc v1.41.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/grpc/examples v0.0.0-20210622215705-4440c3b8306d // indirect
 	google.golang.org/protobuf v1.27.1
