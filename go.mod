@@ -29,7 +29,6 @@ require (
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.21
 	github.com/go-openapi/spec v0.20.2
-	github.com/go-openapi/swag v0.19.13 // indirect
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.19.0
@@ -43,7 +42,6 @@ require (
 	github.com/google/gops v0.3.18
 	github.com/google/uuid v1.3.0
 	github.com/gordonklaus/ineffassign v0.0.0-20200309095847-7953dde2c7bf
-	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/schema v1.2.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -62,7 +60,6 @@ require (
 	github.com/m3db/prometheus_client_model v0.1.0 // indirect
 	github.com/m3db/prometheus_common v0.1.0 // indirect
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
-	github.com/magefile/mage v1.11.0
 	github.com/maragudk/gomponents v0.17.2
 	github.com/maruel/panicparse/v2 v2.1.1
 	github.com/mattn/go-sqlite3 v1.14.0
@@ -77,12 +74,9 @@ require (
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
-	github.com/pubgo/lug/example/gid v0.0.0-20210929150519-54021d938648
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.11
 	github.com/pubgo/xlog v0.2.8
-	github.com/pubgo/xprotogen v0.0.17 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
@@ -94,7 +88,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/swaggo/http-swagger v1.1.1
 	github.com/tinylib/msgp v1.1.6
-	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
