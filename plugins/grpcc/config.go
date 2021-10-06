@@ -12,9 +12,9 @@ import (
 
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
-	p2c2 "github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
+	"github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
-	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/plugins/registry"
 	"github.com/pubgo/lug/types"
 )
 
@@ -268,7 +268,7 @@ func GetDefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 	var cfg = Cfg{
 		Insecure:          true,
 		Block:             true,
-		BalancerName:      p2c2.Name,
+		BalancerName:      p2c.Name,
 		DialTimeout:       time.Minute,
 		Timeout:           DefaultTimeout,
 		MaxHeaderListSize: 1024 * 4,

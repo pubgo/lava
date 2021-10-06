@@ -16,7 +16,7 @@ import (
 var Cmd = &cobra.Command{
 	Use:   "health",
 	Short: "health check",
-	Example: gutil.CmdExample(
+	Example: gutil.ExampleFmt(
 		"lug health",
 		"lug health localhost:8081",
 	),

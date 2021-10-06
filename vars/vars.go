@@ -2,10 +2,6 @@ package vars
 
 import (
 	"expvar"
-	"runtime/debug"
-
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/runenv"
 
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
@@ -15,24 +11,10 @@ import (
 type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
-func (f value) String() (val string) {
-	xerror.TryCatch(func() {
-		dt := f()
-		v := xerror.PanicBytes(jsonx.Marshal(dt))
-		val = byteutil.ToStr(v)
-	}, func(err error) {
-		val = jsonx.Json(typex.M{
-			"err_msg": err,
-			"err":     err.Error(),
-			"stack":   string(debug.Stack()),
-		})
-
-		if runenv.IsDev() {
-			xerror.Parse(err).Debug()
-		}
-	})
-
-	return
+func (f value) String() string {
+	dt := f()
+	v := xerror.PanicBytes(jsonx.Marshal(dt))
+	return byteutil.ToStr(v)
 }
 
 func Watch(name string, data func() interface{}) {

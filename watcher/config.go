@@ -1,17 +1,14 @@
 package watcher
 
 import (
-	"strings"
+	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/runenv"
-
-	"github.com/pubgo/xerror"
 )
 
 const Name = "watcher"
 
-var cfg = GetDefaultCfg()
+var cfg = DefaultCfg()
 
 type Cfg struct {
 	SkipNull bool     `json:"skip_null"`
@@ -31,26 +28,9 @@ func (cfg Cfg) Build() (_ Watcher, err error) {
 	return fc(config.GetCfg().GetStringMap(Name))
 }
 
-func GetDefaultCfg() Cfg {
+func DefaultCfg() Cfg {
 	return Cfg{
 		Driver:   "etcd",
 		SkipNull: true,
 	}
-}
-
-func trimProject(key string) string {
-	return strings.Trim(strings.TrimPrefix(key, runenv.Project), ".")
-}
-
-// KeyToDot /projectName/foo/bar -->  projectName.foo.bar
-func KeyToDot(prefix ...string) string {
-	var p string
-	if len(prefix) > 0 {
-		p = strings.Join(prefix, ".")
-	}
-
-	p = strings.ReplaceAll(strings.ReplaceAll(p, "/", "."), "..", ".")
-	p = strings.Trim(p, ".")
-
-	return p
 }

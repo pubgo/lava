@@ -12,10 +12,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
-			if !config.Decode(Name, &cfgMap) {
-				return
-			}
-
+			_ = config.Decode(Name, &cfgMap)
 			cfgMap.Map(func(val interface{}) interface{} {
 				var cfg = val.(Cfg)
 				var defCfg = GetDefaultCfg()

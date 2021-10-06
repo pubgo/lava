@@ -6,9 +6,12 @@ import (
 	"github.com/pubgo/lug/types"
 )
 
-type Response = types.WatchResp
-
-type CallBack func(name string, resp *Response) error
+type (
+	Response = types.WatchResp
+	CallBack func(name string, resp *Response) error
+	Opt      func(*options)
+	options  struct{}
+)
 
 // Watcher ...
 type Watcher interface {
@@ -19,6 +22,3 @@ type Watcher interface {
 	Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response
 	WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt)
 }
-
-type Opt func(*options)
-type options struct{}

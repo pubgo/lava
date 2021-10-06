@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/plugins/registry"
 	"github.com/pubgo/xerror"
 )
 

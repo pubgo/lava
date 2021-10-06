@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/plugins/registry"
 	"github.com/pubgo/lug/types"
 
 	"github.com/pubgo/x/fx"

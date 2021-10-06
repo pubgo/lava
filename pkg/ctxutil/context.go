@@ -7,15 +7,31 @@ import (
 
 const DefaultTimeout = time.Second * 2
 
-func Timeout(durations ...time.Duration) (context.Context, context.CancelFunc) {
+type Context interface {
+	Context() context.Context
+	Cancel() context.CancelFunc
+}
+
+var _ Context = (*ctxImpl)(nil)
+
+type ctxImpl struct {
+	context context.Context
+	cancel  context.CancelFunc
+}
+
+func (c ctxImpl) Context() context.Context   { return c.context }
+func (c ctxImpl) Cancel() context.CancelFunc { return c.cancel }
+
+func Timeout(durations ...time.Duration) Context {
 	var dur = DefaultTimeout
 	if len(durations) > 0 {
 		dur = durations[0]
 	}
 
-	return context.WithTimeout(context.Background(), dur)
+	var ctx, cancel = context.WithTimeout(context.Background(), dur)
+	return ctxImpl{context: ctx, cancel: cancel}
 }
 
-func Default() context.Context {
-	return context.Background()
+func Default() Context {
+	return ctxImpl{context: context.Background(), cancel: func() {}}
 }

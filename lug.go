@@ -16,13 +16,12 @@ func AfterStart(fn func())  { entry.AfterStart(fn) }
 func BeforeStop(fn func())  { entry.BeforeStop(fn) }
 func AfterStop(fn func())   { entry.AfterStop(fn) }
 
-func NewTask(name string) task.Entry          { return task.New(name) }
-func NewRest(name string) rest.Entry          { return rest.New(name) }
-func NewGrpc(name string) grpc.Entry          { return grpc.New(name) }
-func NewCtl(name string) ctl.Entry            { return ctl.New(name) }
-func Entry(fn func() entry.Entry) entry.Entry { return fn() }
+func NewTask(name string) task.Entry { return task.New(name) }
+func NewRest(name string) rest.Entry { return rest.New(name) }
+func NewGrpc(name string) grpc.Entry { return grpc.New(name) }
+func NewCtl(name string) ctl.Entry   { return ctl.New(name) }
 
-func GetCfg() config.Config                          { return config.GetCfg() }
+func Config() config.Config                          { return config.GetCfg() }
 func Run(description string, entries ...entry.Entry) { runtime.Run(description, entries...) }
 func Start(ent entry.Entry)                          { runtime.Start(ent) }
 func Stop(ent entry.Entry)                           { runtime.Stop(ent) }

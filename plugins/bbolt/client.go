@@ -3,13 +3,13 @@ package bbolt
 import (
 	"context"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/tracing"
-
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
+
+	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/tracing"
 )
 
 func Get(name ...string) *DB {

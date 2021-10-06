@@ -10,6 +10,6 @@ import (
 	_ "github.com/pubgo/lug/plugins/automaxprocs"
 	_ "github.com/pubgo/lug/plugins/grpclog"
 	_ "github.com/pubgo/lug/plugins/request_id"
-	_ "github.com/pubgo/lug/registry/mdns"
+	_ "github.com/pubgo/lug/plugins/registry/mdns"
 	_ "github.com/pubgo/lug/tracing/jaeger"
 )

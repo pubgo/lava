@@ -2,7 +2,7 @@ package xorm
 
 import (
 	"context"
-	"github.com/pubgo/lug/db"
+	db2 "github.com/pubgo/lug/plugins/db"
 
 	"github.com/pubgo/lug/abc/connector"
 
@@ -19,7 +19,7 @@ type Connector struct {
 	Sql        string `json:"sql"`
 
 	tmpl   *fasttemplate.Template
-	source *db.Client `dix:""`
+	source *db2.Client `dix:""`
 }
 
 func (c *Connector) Read(ctx context.Context, cb func(interface{})) (gErr error) {

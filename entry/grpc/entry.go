@@ -19,7 +19,7 @@ import (
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/netutil"
 	"github.com/pubgo/lug/plugins/grpcc"
-	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/plugins/registry"
 	"github.com/pubgo/lug/runenv"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/version"
@@ -227,7 +227,7 @@ func (g *grpcEntry) Stop() (err error) {
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
 	logs.Info("[ExitProgress] Start Shutdown.")
-	if err := g.gw.Get().Shutdown(ctxutil.Default()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
+	if err := g.gw.Get().Shutdown(ctxutil.Default().Context()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
 		logs.Error("[grpc-gw] Shutdown Error", logger.Err(err))
 	} else {
 		logs.Info("[ExitProgress] Shutdown Ok.")

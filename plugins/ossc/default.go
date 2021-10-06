@@ -11,7 +11,7 @@ import (
 
 var clientM sync.Map
 
-func GetClient(names ...string) *oss.Bucket {
+func Get(names ...string) *oss.Bucket {
 	val, ok := clientM.Load(consts.GetDefault(names...))
 	if !ok {
 		return nil

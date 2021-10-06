@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
-	"reflect"
 
 	"github.com/pubgo/lug/types"
 )
@@ -20,6 +20,8 @@ var _ Plugin = (*Base)(nil)
 
 type Base struct {
 	Name         string
+	Descriptor   string
+	Url          string
 	OnHealth     func(ctx context.Context) error
 	OnMiddleware types.Middleware
 	OnInit       func(ent Entry)
@@ -29,8 +31,9 @@ type Base struct {
 	OnVars       func(w func(name string, data func() interface{}))
 }
 
-func (p *Base) getStack(val interface{}) string {
-	if !reflect.ValueOf(val).IsValid() || reflect.ValueOf(val).IsNil() {
+func (p *Base) getFuncStack(val interface{}) string {
+	r := reflect.ValueOf(val)
+	if !r.IsValid() || r.IsNil() {
 		return ""
 	}
 	return stack.Func(val)
@@ -39,13 +42,15 @@ func (p *Base) getStack(val interface{}) string {
 func (p *Base) MarshalJSON() ([]byte, error) {
 	var data = make(map[string]string)
 	data["name"] = p.Name
-	data["health"] = p.getStack(p.OnHealth)
-	data["middleware"] = p.getStack((func(next types.MiddleNext) types.MiddleNext)(p.OnMiddleware))
-	data["init"] = p.getStack(p.OnInit)
-	data["commands"] = p.getStack(p.OnCommands)
-	data["flags"] = p.getStack(p.OnFlags)
-	data["watch"] = p.getStack(p.OnWatch)
-	data["vars"] = p.getStack(p.OnVars)
+	data["descriptor"] = p.Descriptor
+	data["url"] = p.Url
+	data["health"] = p.getFuncStack(p.OnHealth)
+	data["middleware"] = p.getFuncStack(p.OnMiddleware)
+	data["init"] = p.getFuncStack(p.OnInit)
+	data["commands"] = p.getFuncStack(p.OnCommands)
+	data["flags"] = p.getFuncStack(p.OnFlags)
+	data["watch"] = p.getFuncStack(p.OnWatch)
+	data["vars"] = p.getFuncStack(p.OnVars)
 	return json.Marshal(data)
 }
 

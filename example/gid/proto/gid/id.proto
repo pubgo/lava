@@ -225,8 +225,6 @@ message ABitOfEverything {
 
   // mark a field as readonly in Open API definition
   string output_only_string_via_field_behavior_annotation = 39 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  optional string optional_string_value = 40;
 }
 
 // ABitOfEverythingRepeated is used to validate repeated path parameter functionality
@@ -391,11 +389,11 @@ service ABitOfEverythingService {
   rpc UpdateV2(UpdateV2Request) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       put: "/v2/example/a_bit_of_everything/{abe.uuid}"
-      body: "abe"
+      body: "*"
       additional_bindings: [
         {
           patch: "/v2/example/a_bit_of_everything/{abe.uuid}"
-          body: "abe"
+          body: "*"
         },
         {
           patch: "/v2a/example/a_bit_of_everything/{abe.uuid}"
@@ -553,7 +551,7 @@ service ABitOfEverythingService {
   rpc GetMessageWithBody(MessageWithBody) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/v2/example/withbody/{id}",
-      body: "data"
+      body: "*"
     };
   }
   rpc PostWithEmptyBody(Body) returns (google.protobuf.Empty) {

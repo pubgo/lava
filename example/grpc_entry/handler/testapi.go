@@ -3,10 +3,10 @@ package handler
 import (
 	"context"
 	"fmt"
+	db2 "github.com/pubgo/lug/plugins/db"
 	"time"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/db"
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/lug/logger"
 
@@ -19,7 +19,7 @@ func NewTestAPIHandler() hello.TestApiServer {
 }
 
 type testapiHandler struct {
-	Db *db.Client `dix:""`
+	Db *db2.Client `dix:""`
 }
 
 func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {

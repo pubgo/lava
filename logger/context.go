@@ -10,7 +10,7 @@ type (
 	loggerKey struct{}
 )
 
-func ctxFromLogger(parent context.Context, logger *zap.Logger) context.Context {
+func ctxWithLogger(parent context.Context, logger *zap.Logger) context.Context {
 	return context.WithValue(parent, loggerKey{}, logger)
 }
 

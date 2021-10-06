@@ -5,16 +5,16 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
 )
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent entry.Entry) {
+		OnInit: func(ent plugin.Entry) {
 			_ = config.Decode(Name, &cfgList)
 			for name, cfg := range cfgList {
 				// etcd config处理
@@ -26,7 +26,7 @@ func init() {
 			r.OnPut(func() {
 				// 解析etcd配置
 				var cfg Cfg
-				xerror.PanicF(watcher.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
+				xerror.PanicF(types.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
 
 				cfg = xerror.PanicErr(cfgMerge(cfg)).(Cfg)
 				xerror.PanicF(Update(name, cfg), "client %s watcher update error", name)

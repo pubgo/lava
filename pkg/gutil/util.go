@@ -47,15 +47,16 @@ func EqualFieldType(out interface{}, kind reflect.Kind, key string) bool {
 	return false
 }
 
-func CodeJoin(data ...string) string {
+func CodeFormat(data ...string) string {
 	var str = ""
 	for i := range data {
 		str += strings.TrimSpace(data[i]) + "\n"
 	}
-	return string(xerror.PanicBytes(format.Source([]byte(strings.TrimSpace(str)))))
+	str = strings.TrimSpace(str)
+	return string(xerror.PanicBytes(format.Source([]byte(str))))
 }
 
-func CmdExample(data ...string) string {
+func ExampleFmt(data ...string) string {
 	var str = ""
 	for i := range data {
 		str += "  " + data[i] + "\n"

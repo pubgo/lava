@@ -16,7 +16,12 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -v -o main cmd/lug/main.go
+	@go build ${LDFLAGS} -mod vendor -tags trace -v -o main cmd/lug/main.go
+
+.PHONY: install
+install:
+	@go build ${LDFLAGS} -mod vendor -tags trace -o lug -v cmd/lug/*.go
+	@mv lug ${GOPATH}/bin/lug
 
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
@@ -28,29 +33,28 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
-
 proto-gen:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
 	rm -rf example/proto/login/*.json
-	flerken protoc ls
-	flerken protoc gen
+	lug protoc ls
+	lug protoc gen
 
 proto-vendor:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
 	rm -rf example/proto/login/*.json
-	flerken protoc vendor-rm
-	flerken protoc vendor
-	flerken protoc ls
-	flerken protoc gen
+	lug protoc vendor-rm
+	lug protoc vendor
+	lug protoc ls
+	lug protoc gen
 
 
 .PHONY: gen
 proto-plugin-gen:
-	cd protoc-gen-lug && go install .
+	cd cmd/protoc-gen-lug && go install .
 
 .PHONY: example
 example:
@@ -81,8 +85,8 @@ vet:
 generate:
 	@go generate ./...
 
-.PHONY: install
-install:
+.PHONY: deps
+deps:
 	@go install -v github.com/tinylib/msgp
 	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 

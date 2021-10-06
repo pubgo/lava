@@ -3,10 +3,11 @@ package grpclog
 import (
 	"fmt"
 
-	"github.com/pubgo/lug/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
+
+	"github.com/pubgo/lug/logger"
 )
 
 var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)

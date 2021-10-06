@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/pubgo/lug/registry"
+	"github.com/pubgo/lug/plugins/registry"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )

@@ -3,9 +3,10 @@ package xgen
 import (
 	"fmt"
 
+	"github.com/pubgo/x/stack"
+
 	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/vars"
-	"github.com/pubgo/x/stack"
 )
 
 func init() {

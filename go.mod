@@ -9,6 +9,8 @@ require (
 	github.com/antonmedv/expr v1.9.0
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
+	github.com/bigwhite/functrace v0.0.0-20210622013229-318a19dbb29a
+	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
@@ -72,6 +74,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
@@ -94,7 +97,9 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.29.0
 	github.com/valyala/fasttemplate v1.2.1
+	github.com/visualfc/atk v1.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.1
+	github.com/webview/webview v0.0.0-20210330151455-f540d88dde4e
 	go.etcd.io/bbolt v1.3.3
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
@@ -104,7 +109,7 @@ require (
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
+	golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71
 	golang.org/x/tools v0.1.3
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
 	google.golang.org/grpc v1.41.0

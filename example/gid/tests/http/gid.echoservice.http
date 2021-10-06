@@ -1,0 +1,43 @@
+### gid.EchoService.Echo
+POST http://localhost:8080/v1/example/echo/{id}
+Content-Type: application/json
+
+{
+ "id": "",
+ "num": "",
+ "status": ""
+}
+
+### gid.EchoService.EchoBody
+POST http://localhost:8080/v1/example/echo_body
+Content-Type: application/json
+
+{
+ "id": "",
+ "num": "",
+ "status": ""
+}
+
+### gid.EchoService.EchoDelete
+DELETE http://localhost:8080/v1/example/echo_delete
+Content-Type: application/json
+
+{
+ "id": "",
+ "num": "",
+ "status": ""
+}
+
+### gid.EchoService.EchoPatch
+PATCH http://localhost:8080/v1/example/echo_patch
+Content-Type: application/json
+
+{
+ "body": "",
+ "update_mask": ""
+}
+
+### gid.EchoService.EchoUnauthorized
+GET http://localhost:8080/v1/example/echo_unauthorized
+Content-Type: application/json
+

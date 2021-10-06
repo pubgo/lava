@@ -8,8 +8,7 @@ import (
 )
 
 func init() {
-	var log = xerror.ExitErr(zap.NewDevelopment()).(*zap.Logger)
-	zap.ReplaceGlobals(log)
+	zap.ReplaceGlobals(xerror.ExitErr(zap.NewDevelopment()).(*zap.Logger))
 }
 
 func On(fn func(log *zap.Logger)) *zap.Logger {

@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/types"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lug/types"
 )
 
 func init() {

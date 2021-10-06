@@ -36,11 +36,11 @@ func Get(ctx context.Context, prefix string, options ...Option) *redis.Client {
 }
 
 func Update(name string, cfg ClientCfg) {
-	var ctx, cancel = ctxutil.Timeout()
-	defer cancel()
+	var ctx = ctxutil.Timeout()
+	defer ctx.Cancel()
 
 	client := redis.NewClient(&cfg)
-	xerror.Panic(client.Ping(ctx).Err(), "redis连接池连接失败")
+	xerror.Panic(client.Ping(ctx.Context()).Err(), "redis连接池连接失败")
 
 	clientM.Store(name, client)
 	zap.L().Info("rebuild redis pool done - " + name)

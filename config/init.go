@@ -114,6 +114,7 @@ func Init() error { return getCfg().Init() }
 // flag可以指定配置文件位置
 // 始化配置文件
 func (t *conf) Init() (err error) {
+
 	defer xerror.RespErr(&err)
 
 	t.rw.Lock()
@@ -153,6 +154,7 @@ func (t *conf) Init() (err error) {
 }
 
 func getPathList() (paths []string) {
+
 	var wd = xerror.PanicStr(filepath.Abs("./"))
 	for {
 		if wd == "/" {
@@ -167,6 +169,7 @@ func getPathList() (paths []string) {
 }
 
 func strListMap(strList []string, fn func(str string) string) []string {
+
 	for i := range strList {
 		strList[i] = fn(strList[i])
 	}

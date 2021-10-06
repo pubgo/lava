@@ -3,10 +3,10 @@ package rest_entry
 import (
 	"context"
 	"fmt"
+	db2 "github.com/pubgo/lug/plugins/db"
 	"time"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/db"
 	"github.com/pubgo/lug/entry/rest"
 	"github.com/pubgo/lug/example/proto/hello"
 	"github.com/pubgo/lug/logger"
@@ -19,7 +19,7 @@ import (
 var _ hello.TestApiServer = (*Service)(nil)
 
 type Service struct {
-	Db  *db.Client    `dix:""`
+	Db  *db2.Client   `dix:""`
 	Cfg config.Config `dix:""`
 }
 

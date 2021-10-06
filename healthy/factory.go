@@ -3,10 +3,10 @@ package healthy
 import (
 	"context"
 
+	"github.com/pubgo/xerror"
+
 	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/typex"
-
-	"github.com/pubgo/xerror"
 )
 
 const Name = "health"
@@ -37,5 +37,4 @@ func Register(name string, r HealthCheck) {
 	xerror.Assert(name == "" || r == nil, "[name,r] is null")
 	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)
-	return
 }

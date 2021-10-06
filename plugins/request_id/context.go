@@ -10,7 +10,7 @@ type (
 	reqIdKey struct{}
 )
 
-func ctxFromReqId(ctx context.Context, val string) context.Context {
+func ctxWithReqId(ctx context.Context, val string) context.Context {
 	return context.WithValue(ctx, reqIdKey{}, val)
 }
 

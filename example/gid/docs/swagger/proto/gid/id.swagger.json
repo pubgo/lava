@@ -361,12 +361,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "optionalStringValue",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -662,12 +656,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "optionalStringValue",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -949,12 +937,6 @@
           {
             "name": "outputOnlyStringViaFieldBehaviorAnnotation",
             "description": "mark a field as readonly in Open API definition.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "optionalStringValue",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1258,12 +1240,6 @@
           {
             "name": "outputOnlyStringViaFieldBehaviorAnnotation",
             "description": "mark a field as readonly in Open API definition.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "optionalStringValue",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1623,9 +1599,6 @@
                   "type": "string",
                   "title": "mark a field as readonly in Open API definition",
                   "readOnly": true
-                },
-                "optionalStringValue": {
-                  "type": "string"
                 }
               },
               "description": "Intentionaly complicated message type to cover many features of Protobuf.",
@@ -2116,15 +2089,8 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gidABitOfEverything"
+              "$ref": "#/definitions/gidUpdateV2Request"
             }
-          },
-          {
-            "name": "updateMask",
-            "description": "The paths to update.",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -2169,15 +2135,8 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gidABitOfEverything"
+              "$ref": "#/definitions/gidUpdateV2Request"
             }
-          },
-          {
-            "name": "updateMask",
-            "description": "The paths to update.",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -2353,7 +2312,12 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gidBody"
+              "type": "object",
+              "properties": {
+                "data": {
+                  "$ref": "#/definitions/gidBody"
+                }
+              }
             }
           }
         ],
@@ -2622,9 +2586,6 @@
           "type": "string",
           "title": "mark a field as readonly in Open API definition",
           "readOnly": true
-        },
-        "optionalStringValue": {
-          "type": "string"
         }
       },
       "description": "Intentionaly complicated message type to cover many features of Protobuf.",

@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/pubgo/lug/internal/cmds/bindata"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,8 +14,6 @@ import (
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/healthy"
-	"github.com/pubgo/lug/internal/cmds/protoc"
-	"github.com/pubgo/lug/internal/cmds/restapi"
 	v "github.com/pubgo/lug/internal/cmds/version"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
@@ -37,9 +34,6 @@ var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 func init() {
 	rootCmd.AddCommand(v.Cmd)
 	rootCmd.AddCommand(healthy.Cmd)
-	rootCmd.AddCommand(restapi.Cmd)
-	rootCmd.AddCommand(protoc.Cmd)
-	rootCmd.AddCommand(bindata.Cmd)
 }
 
 func handleSignal() {

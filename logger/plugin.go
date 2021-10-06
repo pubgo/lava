@@ -17,9 +17,11 @@ import (
 	"github.com/pubgo/lug/types"
 )
 
+const name = "logger"
+
 func init() {
 	plugin.Register(&plugin.Base{
-		Name: "logger",
+		Name: name,
 		OnInit: func(ent plugin.Entry) {
 			var cfg = xlog_config.NewProdConfig()
 			if runenv.IsDev() || runenv.IsTest() {
@@ -27,12 +29,12 @@ func init() {
 				cfg.EncoderConfig.EncodeCaller = consts.Default
 			}
 
-			_ = config.Decode("logger", &cfg)
+			_ = config.Decode(name, &cfg)
 			cfg.Level = runenv.Level
 			cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
 			// 全局log设置
-			var log = xerror.ExitErr(cfg.Build()).(*zap.Logger)
+			var log = xerror.PanicErr(cfg.Build()).(*zap.Logger)
 			log = log.Named(runenv.Project)
 			zap.ReplaceGlobals(log)
 			xerror.Exit(dix.Provider(log))
@@ -46,12 +48,12 @@ func init() {
 				)
 
 				now := time.Now()
-				var params []zap.Field
+				var params = make([]zap.Field, 0, 10)
 				params = append(params, zap.String("service", req.Service()))
 				params = append(params, zap.String("start_time", now.Format(time.RFC3339)))
 
 				var respBody interface{}
-				err = next(ctxFromLogger(ctx, log), req, func(rsp types.Response) error {
+				err = next(ctxWithLogger(ctx, log), req, func(rsp types.Response) error {
 					respBody = rsp.Payload()
 					return xerror.Wrap(resp(rsp))
 				})

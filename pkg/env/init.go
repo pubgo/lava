@@ -25,7 +25,7 @@ func init() {
 		if envList := strings.SplitN(env, "=", 2); len(envList) == 2 && trim(envList[0]) != "" {
 			_ = os.Unsetenv(envList[0])
 			key := replacer.Replace(strcase.ToSnake(trim(envList[0])))
-			_ = os.Setenv(strings.ToLower(key), envList[1])
+			_ = os.Setenv(strings.ToUpper(key), envList[1])
 		}
 	}
 }

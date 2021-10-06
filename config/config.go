@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -106,6 +105,7 @@ func (t *conf) UnmarshalKey(key string, rawVal interface{}, opts ...viper.Decode
 }
 
 func Decode(name string, fn interface{}) (b bool) { return getCfg().Decode(name, fn) }
+
 func (t *conf) Decode(name string, fn interface{}) (b bool) {
 	defer xerror.RespExit(name)
 
@@ -126,18 +126,16 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 
 		if !ret[0].IsNil() {
 			xerror.PanicF(ret[0].Interface().(error),
-				"config key %s decode error", name)
+				"config key [%s] decode error", name)
 		}
 
 		vfn.Call(typex.ValueOf(mthIn))
 	case reflect.Ptr:
 		xerror.PanicF(t.UnmarshalKey(name, fn,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }),
-			"config key %s decode error", name)
+			"config key [%s] decode error", name)
 	default:
-		xerror.AssertFn(true, func() string {
-			return fmt.Sprintf("[fn] type error, refer: %#v", vfn)
-		})
+		panic(xerror.Fmt("[fn] type error,name=>%s, refer=>%#v", name, fn))
 	}
 
 	return true

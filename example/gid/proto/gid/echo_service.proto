@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 package gid;
 
 option go_package = "./;gid";

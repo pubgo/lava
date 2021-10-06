@@ -31,8 +31,7 @@ type clientImpl struct {
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err error) {
-	return resp, xerror.Wrap(c.do(
-		ctx,
+	return resp, xerror.Wrap(c.do(ctx,
 		&request{req: req, header: convertHeader(&req.Header)},
 		func(res types.Response) error {
 			resp = res.(*response).resp
@@ -42,24 +41,20 @@ func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err 
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doUrl(ctx, c, fasthttp.MethodGet, url, requests...)
-	return resp, xerror.Wrap(err)
+	return doUrl(ctx, c, fasthttp.MethodGet, url, requests...)
 }
 
 func (c *clientImpl) Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doUrl(ctx, c, fasthttp.MethodDelete, url, requests...)
-	return resp, xerror.Wrap(err)
+	return doUrl(ctx, c, fasthttp.MethodDelete, url, requests...)
 }
 
 func (c *clientImpl) Post(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doUrl(ctx, c, fasthttp.MethodPost, url, requests...)
-	return resp, xerror.Wrap(err)
+	return doUrl(ctx, c, fasthttp.MethodPost, url, requests...)
 }
 
 func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
 	var resp, err = doUrl(ctx, c, fasthttp.MethodPost, url, func(req *Request) {
 		req.SetBodyString(val.Encode())
-		//defaultHeader.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.SetContentType("application/x-www-form-urlencoded")
 		if len(requests) > 0 {
 			requests[0](req)
@@ -69,13 +64,11 @@ func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, r
 }
 
 func (c *clientImpl) Put(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doUrl(ctx, c, fasthttp.MethodPut, url, requests...)
-	return resp, xerror.Wrap(err)
+	return doUrl(ctx, c, fasthttp.MethodPut, url, requests...)
 }
 
 func (c *clientImpl) Patch(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doUrl(ctx, c, fasthttp.MethodPatch, url, requests...)
-	return resp, xerror.Wrap(err)
+	return doUrl(ctx, c, fasthttp.MethodPatch, url, requests...)
 }
 
 func doUrl(ctx context.Context, c *clientImpl, mth string, url string, requests ...func(req *Request)) (*Response, error) {
@@ -93,7 +86,7 @@ func doUrl(ctx context.Context, c *clientImpl, mth string, url string, requests 
 	fasthttp.ReleaseRequest(req)
 
 	if err != nil {
-		return nil, xerror.Wrap(err)
+		return nil, xerror.WrapF(err, "method=>%s, url=>%s", mth, url)
 	}
 
 	return resp, nil

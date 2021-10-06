@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
+
+	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lug/types"
 )
 
 type Cfg struct {
