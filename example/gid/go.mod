@@ -11,6 +11,7 @@ require (
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/lug v0.1.5
+	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.12
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced

@@ -7,6 +7,7 @@
 package login
 
 import (
+	fiber "github.com/pubgo/lug/pkg/builder/fiber"
 	grpcc "github.com/pubgo/lug/plugins/grpcc"
 	xgen "github.com/pubgo/lug/xgen"
 	xerror "github.com/pubgo/xerror"
@@ -103,4 +104,49 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandlerServer), nil)
+}
+func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
+		var req = new(CheckRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Check(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
+		var req = new(BindVerifyRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.BindVerify(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
+		var req = new(BindChangeRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.BindChange(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
+		var req = new(AutomaticBindRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.AutomaticBind(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
+		var req = new(BindPhoneParseRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.BindPhoneParse(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
+		var req = new(BindPhoneParseByOneClickRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.BindPhoneParseByOneClick(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
 }

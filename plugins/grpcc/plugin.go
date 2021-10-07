@@ -13,12 +13,13 @@ func init() {
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
 			_ = config.Decode(Name, &cfgMap)
-			cfgMap.Map(func(val interface{}) interface{} {
-				var cfg = val.(Cfg)
-				var defCfg = GetDefaultCfg()
+			for k := range cfgMap {
+				var cfg = cfgMap[k]
+				var defCfg = DefaultCfg()
 				xerror.Panic(merge.Copy(&defCfg, &cfg))
-				return defCfg
-			})
+				cfgMap[k] = defCfg
+
+			}
 		},
 	})
 }

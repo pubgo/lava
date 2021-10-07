@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
 	"github.com/pubgo/lug/plugins/registry"
@@ -26,7 +25,7 @@ const (
 	defaultContentType = "application/grpc"
 )
 
-var cfgMap typex.SMap
+var cfgMap = make(map[string]*Cfg)
 
 type callParameters struct {
 	Header                map[string]string `json:"header"`
@@ -57,22 +56,14 @@ func (t clientParameters) toClientParameters() keepalive.ClientParameters {
 
 // backoffConfig defines the configuration options for backoff.
 type backoffConfig struct {
-	// BaseDelay is the amount of time to backoff after the first failure.
-	BaseDelay time.Duration `json:"base_delay"`
-	// Multiplier is the factor with which to multiply backoffs after a
-	// failed retry. Should ideally be greater than 1.
-	Multiplier float64 `json:"multiplier"`
-	// Jitter is the factor with which backoffs are randomized.
-	Jitter float64 `json:"jitter"`
-	// MaxDelay is the upper bound of backoff delay.
-	MaxDelay time.Duration `json:"max_delay"`
+	BaseDelay  time.Duration `json:"base_delay"`
+	Multiplier float64       `json:"multiplier"`
+	Jitter     float64       `json:"jitter"`
+	MaxDelay   time.Duration `json:"max_delay"`
 }
 
 type connectParams struct {
-	// Backoff specifies the configuration options for connection backoff.
-	Backoff backoffConfig `json:"backoff"`
-	// MinConnectTimeout is the minimum amount of time we are willing to give a
-	// connection to complete.
+	Backoff           backoffConfig `json:"backoff"`
 	MinConnectTimeout time.Duration `json:"min_connect_timeout"`
 }
 
@@ -117,7 +108,7 @@ type Cfg struct {
 	WindowSize           int32         `json:"window_size"`
 	ConnWindowSize       int32         `json:"conn_window_size"`
 
-	// MaxRecvMsgSize maximum message that client can receive (4 MB).
+	// MaxRecvMsgSize maximum message that Client can receive (4 MB).
 	MaxRecvMsgSize     int                            `json:"max_recv_msg_size"`
 	NoProxy            bool                           `json:"no_proxy"`
 	Proxy              bool                           `json:"proxy"`
@@ -139,11 +130,12 @@ func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
 	defer cancel()
-	//
+
 	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
 	return conn, xerror.WrapF(gErr, "DialContext error, target:%s\n", target)
 }
 
+// BuildDirect 直连模式
 func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
@@ -158,7 +150,7 @@ func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 }
 
 func (t Cfg) ToOpts() []grpc.DialOption {
-	var opts = defaultDialOpts
+	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
 
 	if t.Insecure {
 		opts = append(opts, grpc.WithInsecure())
@@ -250,21 +242,21 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	return opts
 }
 
-var defaultDialOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
+var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
-func GetCfg(name string) *Cfg {
-	if cfgMap.Has(name) {
-		return cfgMap.Get(name).(*Cfg)
+func getCfg(name string,opts ...func(cfg *Cfg)) *Cfg {
+	if cfgMap[name] != nil {
+		return cfgMap[name]
 	}
 
-	if cfgMap.Has(consts.Default) {
-		return cfgMap.Get(consts.Default).(*Cfg)
+	if cfgMap[consts.Default] != nil {
+		return cfgMap[consts.Default]
 	}
 
-	return GetDefaultCfg()
+	return DefaultCfg(opts...)
 }
 
-func GetDefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
+func DefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 	var cfg = Cfg{
 		Insecure:          true,
 		Block:             true,
@@ -288,7 +280,7 @@ func GetDefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 		},
 		Call: callParameters{
 			MaxCallRecvMsgSize: 1024 * 1024 * 4,
-			// DefaultMaxSendMsgSize maximum message that client can send (4 MB).
+			// DefaultMaxSendMsgSize maximum message that Client can send (4 MB).
 			MaxCallSendMsgSize: 1024 * 1024 * 4,
 		},
 	}

@@ -23,6 +23,7 @@ func main() {
 			if !f.Generate {
 				continue
 			}
+
 			generateFile(gen, f)
 		}
 		return nil

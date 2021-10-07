@@ -39,7 +39,7 @@ func init() {
 		Input:        &CheckRequest{},
 		Output:       &CheckResponse{},
 		Service:      "login.BindTelephone",
-		Name:         "Check",
+		Name:         "CheckHealth",
 		Method:       "POST",
 		Path:         "/user/bind-telephone/check",
 		DefaultUrl:   false,

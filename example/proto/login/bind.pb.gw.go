@@ -247,7 +247,7 @@ func RegisterBindTelephoneHandlerServer(ctx context.Context, mux *runtime.ServeM
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/login.BindTelephone/Check", runtime.WithHTTPPathPattern("/user/bind-telephone/check"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/login.BindTelephone/CheckHealth", runtime.WithHTTPPathPattern("/user/bind-telephone/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -424,7 +424,7 @@ func RegisterBindTelephoneHandlerClient(ctx context.Context, mux *runtime.ServeM
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/login.BindTelephone/Check", runtime.WithHTTPPathPattern("/user/bind-telephone/check"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/login.BindTelephone/CheckHealth", runtime.WithHTTPPathPattern("/user/bind-telephone/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

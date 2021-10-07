@@ -7,6 +7,7 @@
 package login
 
 import (
+	fiber "github.com/pubgo/lug/pkg/builder/fiber"
 	grpcc "github.com/pubgo/lug/plugins/grpcc"
 	xgen "github.com/pubgo/lug/xgen"
 	xerror "github.com/pubgo/xerror"
@@ -92,4 +93,42 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCodeHandlerServer), nil)
+}
+func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
+		var req = new(SendCodeRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.SendCode(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
+		var req = new(VerifyRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Verify(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
+		var req = new(IsCheckImageCodeRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.IsCheckImageCode(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
+		var req = new(VerifyImageCodeRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.VerifyImageCode(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
+		var req = new(GetSendStatusRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.GetSendStatus(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
 }

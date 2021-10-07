@@ -1,12 +1,13 @@
 package grpcc
 
 import (
-	"context"
 	"strings"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
+
+	"github.com/pubgo/lug/pkg/ctxutil"
 )
 
 // serviceFromMethod returns the service
@@ -30,9 +31,9 @@ func serviceFromMethod(m string) string {
 }
 
 func HealthCheck(srv string, conn *grpc.ClientConn) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeout)
-	defer cancel()
+	ctx := ctxutil.Timeout(DefaultTimeout)
+	defer ctx.Cancel()
 
-	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: srv})
+	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctx.Context(), &grpc_health_v1.HealthCheckRequest{Service: srv})
 	return xerror.Wrap(err)
 }

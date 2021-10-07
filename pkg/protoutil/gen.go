@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go/format"
+	"google.golang.org/protobuf/compiler/protogen"
 	"io"
 	"io/ioutil"
 	"log"
@@ -276,6 +277,25 @@ func trim(s string) string {
 	return strings.Trim(strings.TrimSpace(s), ".-_/")
 }
 
+func Import(name string) func(id string) protogen.GoIdent {
+	var pkg = protogen.GoImportPath(name)
+	return func(id string) protogen.GoIdent {
+		return pkg.Ident(id)
+	}
+}
+
+func NewGenWrap(g *protogen.GeneratedFile) *GenWrap {
+	return &GenWrap{g: g}
+}
+
+type GenWrap struct {
+	g *protogen.GeneratedFile
+}
+
+func (t *GenWrap) Fmt(tpl string, m pongo2.Context) {
+	t.g.P(Template(tpl, m))
+}
+
 type Context = pongo2.Context
 
 func Template(tpl string, m pongo2.Context) string {
@@ -443,4 +463,3 @@ func SourceCode(buf *bytes.Buffer) (string, error) {
 	code, err := format.Source(buf.Bytes())
 	return string(code), err
 }
-

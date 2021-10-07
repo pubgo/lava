@@ -1246,13 +1246,13 @@ var file_proto_login_bind_proto_depIdxs = []int32{
 	4,  // 3: login.AutomaticBindResponse.data:type_name -> login.BindData
 	15, // 4: login.BindPhoneParseResponse.data:type_name -> login.BindPhoneParseResponse.DataEntry
 	16, // 5: login.BindPhoneParseByOneClickResponse.data:type_name -> login.BindPhoneParseByOneClickResponse.DataEntry
-	0,  // 6: login.BindTelephone.Check:input_type -> login.CheckRequest
+	0,  // 6: login.BindTelephone.CheckHealth:input_type -> login.CheckRequest
 	2,  // 7: login.BindTelephone.BindVerify:input_type -> login.BindVerifyRequest
 	5,  // 8: login.BindTelephone.BindChange:input_type -> login.BindChangeRequest
 	7,  // 9: login.BindTelephone.AutomaticBind:input_type -> login.AutomaticBindRequest
 	9,  // 10: login.BindTelephone.BindPhoneParse:input_type -> login.BindPhoneParseRequest
 	11, // 11: login.BindTelephone.BindPhoneParseByOneClick:input_type -> login.BindPhoneParseByOneClickRequest
-	1,  // 12: login.BindTelephone.Check:output_type -> login.CheckResponse
+	1,  // 12: login.BindTelephone.CheckHealth:output_type -> login.CheckResponse
 	3,  // 13: login.BindTelephone.BindVerify:output_type -> login.BindVerifyResponse
 	6,  // 14: login.BindTelephone.BindChange:output_type -> login.BindChangeResponse
 	8,  // 15: login.BindTelephone.AutomaticBind:output_type -> login.AutomaticBindResponse

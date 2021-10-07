@@ -1,13 +1,13 @@
 package fiber
 
 import (
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 	"github.com/gofiber/websocket/v2"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-
-	"log"
 )
 
 func New() Builder { return Builder{} }

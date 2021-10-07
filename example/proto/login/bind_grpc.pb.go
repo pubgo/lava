@@ -41,7 +41,7 @@ func NewBindTelephoneClient(cc grpc.ClientConnInterface) BindTelephoneClient {
 
 func (c *bindTelephoneClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
 	out := new(CheckResponse)
-	err := c.cc.Invoke(ctx, "/login.BindTelephone/Check", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/login.BindTelephone/CheckHealth", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ type UnimplementedBindTelephoneServer struct {
 }
 
 func (UnimplementedBindTelephoneServer) Check(context.Context, *CheckRequest) (*CheckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method CheckHealth not implemented")
 }
 func (UnimplementedBindTelephoneServer) BindVerify(context.Context, *BindVerifyRequest) (*BindVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BindVerify not implemented")
@@ -155,7 +155,7 @@ func _BindTelephone_Check_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/login.BindTelephone/Check",
+		FullMethod: "/login.BindTelephone/CheckHealth",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BindTelephoneServer).Check(ctx, req.(*CheckRequest))
@@ -258,7 +258,7 @@ var _BindTelephone_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*BindTelephoneServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Check",
+			MethodName: "CheckHealth",
 			Handler:    _BindTelephone_Check_Handler,
 		},
 		{

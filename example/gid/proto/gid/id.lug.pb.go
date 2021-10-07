@@ -7,14 +7,18 @@
 package gid
 
 import (
+	fiber "github.com/pubgo/lug/pkg/builder/fiber"
+	gutil "github.com/pubgo/lug/pkg/gutil"
 	grpcc "github.com/pubgo/lug/plugins/grpcc"
 	xgen "github.com/pubgo/lug/xgen"
+	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
+	strings "strings"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -62,6 +66,36 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterIdServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterIdHandlerServer), nil)
+}
+func RegisterIdRestServer(app fiber.Router, server IdServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("POST", "/v1/id/generate", func(ctx *fiber.Ctx) error {
+		var req = new(GenerateRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Generate(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/id/types", func(ctx *fiber.Ctx) error {
+		var req = new(TypesRequest)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.Types(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
 }
 func GetABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli ABitOfEverythingServiceClient)) error {
 	client := grpcc.GetClient(srv, opts...)
@@ -290,6 +324,246 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceServer), mthList)
 }
+func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEverythingServiceServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("POST", "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Create(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v1/example/a_bit_of_everything", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.CreateBody(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v1/{parent=publishers/*}/books", func(ctx *fiber.Ctx) error {
+		var req = new(CreateBookRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.CreateBook(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("PATCH", "/v1/{book.name=publishers/*/books/*}", func(ctx *fiber.Ctx) error {
+		var req = new(UpdateBookRequest)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.UpdateBook(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("PUT", "/v1/example/a_bit_of_everything/{uuid}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.Update(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("PUT", "/v2/example/a_bit_of_everything/{abe.uuid}", func(ctx *fiber.Ctx) error {
+		var req = new(UpdateV2Request)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.UpdateV2(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/example/a_bit_of_everything/query/{uuid}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.GetQuery(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/example/a_bit_of_everything_repeated/{path_repeated_float_value}/{path_repeated_double_value}/{path_repeated_int64_value}/{path_repeated_uint64_value}/{path_repeated_int32_value}/{path_repeated_fixed64_value}/{path_repeated_fixed32_value}/{path_repeated_bool_value}/{path_repeated_string_value}/{path_repeated_bytes_value}/{path_repeated_uint32_value}/{path_repeated_enum_value}/{path_repeated_sfixed32_value}/{path_repeated_sfixed64_value}/{path_repeated_sint32_value}/{path_repeated_sint64_value}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverythingRepeated)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.GetRepeatedQuery(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v1/example/deep_path/{single_nested.name}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.DeepPathEcho(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/gid/a-bit-of-everything-service/no-bindings", func(ctx *fiber.Ctx) error {
+		var req = new(durationpb.Duration)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.NoBindings(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v2/example/timeout", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.Timeout(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v2/example/errorwithdetails", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.ErrorWithDetails(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v2/example/withbody/{id}", func(ctx *fiber.Ctx) error {
+		var req = new(MessageWithBody)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.GetMessageWithBody(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v2/example/postwithemptybody/{name}", func(ctx *fiber.Ctx) error {
+		var req = new(Body)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.PostWithEmptyBody(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/example/a_bit_of_everything/params/get/{single_nested.name}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.CheckGetQueryParams(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/example/a_bit_of_everything/params/get/nested_enum/{single_nested.ok}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.CheckNestedEnumGetQueryParams(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("POST", "/v1/example/a_bit_of_everything/params/post/{string_value}", func(ctx *fiber.Ctx) error {
+		var req = new(ABitOfEverything)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.CheckPostQueryParams(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v2/example/overwriteresponsecontenttype", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.OverwriteResponseContentType(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+	app.Add("GET", "/v1/example/checkStatus", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.CheckStatus(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
 func GetCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli CamelCaseServiceNameClient)) error {
 	client := grpcc.GetClient(srv, opts...)
 	return func(fn func(cli CamelCaseServiceNameClient)) (err error) {
@@ -320,6 +594,29 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandlerServer), nil)
 }
+func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("GET", "/v2/example/empty", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
+				values := strings.Split(v, ",")
+				for i := 0; i < len(values); i++ {
+					data[k] = append(data[k], values[i])
+				}
+			} else {
+				data[k] = append(data[k], v)
+			}
+		})
+		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		var resp, err = server.Empty(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
 func GetAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli AnotherServiceWithNoBindingsClient)) error {
 	client := grpcc.GetClient(srv, opts...)
 	return func(fn func(cli AnotherServiceWithNoBindingsClient)) (err error) {
@@ -348,4 +645,14 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsServer), mthList)
+}
+func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
+	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	app.Add("POST", "/gid/another-service-with-no-bindings/no-bindings", func(ctx *fiber.Ctx) error {
+		var req = new(emptypb.Empty)
+		xerror.Panic(ctx.BodyParser(req))
+		var resp, err = server.NoBindings(ctx.UserContext(), req)
+		xerror.Panic(err)
+		return xerror.Wrap(ctx.JSON(resp))
+	})
 }

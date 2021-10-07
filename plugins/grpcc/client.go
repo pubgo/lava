@@ -11,27 +11,26 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/internal/resource"
 )
 
-var _ Client = (*client)(nil)
+var _ resource.Resource = (*Client)(nil)
 
-type client struct {
+type Client struct {
+	cfg     *Cfg
+	service string
 	mu      sync.Mutex
 	optFn   func(cfg *Cfg)
-	service string
 	conn    *grpc.ClientConn
-	cfg     *Cfg
 }
 
-func (t *client) Close() error {
+func (t *Client) Close() error {
 	t.mu.Lock()
-	var conn = t.conn
-	t.mu.Unlock()
-
-	return xerror.Wrap(conn.Close())
+	defer t.mu.Unlock()
+	return xerror.Wrap(t.conn.Close())
 }
 
-func (t *client) Check(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
+func (t *Client) CheckHealth(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
 	c, err := t.Get()
 	if err != nil {
 		return nil, xerror.Wrap(err)
@@ -42,7 +41,7 @@ func (t *client) Check(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResp
 	return grpc_health_v1.NewHealthClient(c).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: t.service}, opts...)
 }
 
-func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (grpc_health_v1.Health_WatchClient, error) {
+func (t *Client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckRequest, opts ...grpc.CallOption) (grpc_health_v1.Health_WatchClient, error) {
 	c, err := t.Get()
 	if err != nil {
 		return nil, xerror.Wrap(err)
@@ -51,8 +50,8 @@ func (t *client) Watch(ctx context.Context, in *grpc_health_v1.HealthCheckReques
 	return grpc_health_v1.NewHealthClient(c).Watch(ctx, in, opts...)
 }
 
-// Get new grpc client
-func (t *client) Get() (_ *grpc.ClientConn, err error) {
+// Get new grpc Client
+func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 	defer xerror.RespErr(&err)
 
 	if t.conn != nil && t.conn.GetState() == connectivity.Ready {
@@ -68,11 +67,10 @@ func (t *client) Get() (_ *grpc.ClientConn, err error) {
 		return t.conn, nil
 	}
 
-	t.cfg = GetCfg(consts.Default)
+	t.cfg = getCfg(consts.Default)
 	t.optFn(t.cfg)
 
 	t.conn, err = t.cfg.Build(t.service)
 	xerror.PanicF(err, "dial %s error", t.service)
-	//xerror.PanicErr(t.Check(nil))
 	return t.conn, nil
 }

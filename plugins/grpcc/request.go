@@ -3,9 +3,9 @@ package grpcc
 import (
 	"net/http"
 
-	"github.com/pubgo/lug/types"
-
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lug/types"
 )
 
 var _ types.Request = (*request)(nil)
