@@ -20,7 +20,6 @@ func (t *RwMap) Map() map[string]interface{} {
 	defer t.rw.RUnlock()
 
 	var dt = make(map[string]interface{}, len(t.data))
-
 	for k, v := range t.data {
 		dt[k] = v
 	}
@@ -30,9 +29,9 @@ func (t *RwMap) Map() map[string]interface{} {
 
 func (t *RwMap) Get(key string) interface{} {
 	t.rw.RLock()
+	val, ok := t.data[key]
 	defer t.rw.RUnlock()
 
-	val, ok := t.data[key]
 	if ok {
 		return val
 	}
@@ -72,7 +71,11 @@ func (t *RwMap) Set(key string, val interface{}) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
-	t.data[key] = &val
+	if t.data == nil {
+		t.data = make(map[string]interface{}, 8)
+	}
+	
+	t.data[key] = val
 }
 
 func (t *RwMap) Del(key string) {

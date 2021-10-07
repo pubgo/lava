@@ -881,6 +881,7 @@ github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kN
 github.com/marten-seemann/qpack v0.2.1/go.mod h1:F7Gl5L1jIgN1D11ucXefiuJS9UMVP2opoCp2jDKb7wc=
 github.com/marten-seemann/qtls v0.10.0/go.mod h1:UvMd1oaYDACI99/oZUYLzMCkBXQVT0aGm99sJhbT8hs=
 github.com/marten-seemann/qtls-go1-15 v0.1.1/go.mod h1:GyFwywLKkRt+6mfU99csTEY1joMZz5vmB1WNZH3P81I=
+github.com/maruel/panicparse/v2 v2.1.1 h1:zUgy1SQ+Zi36oL/V+6cs/8OZjTio/41cjLVJ2hO5W9Q=
 github.com/maruel/panicparse/v2 v2.1.1/go.mod h1:AeTWdCE4lcq8OKsLb6cHSj1RWHVSnV9HBCk7sKLF4Jg=
 github.com/matoous/godox v0.0.0-20190911065817-5d6d842e92eb/go.mod h1:1BELzlh859Sh1c6+90blK8lbYy0kwQf1bYlBhBysy1s=
 github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a h1:rnrxZue85aKdMU4nJ50GgKA31lCaVbft+7Xl8OXj55U=
@@ -1101,6 +1102,8 @@ github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56
 github.com/pubgo/xerror v0.4.10/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xerror v0.4.11 h1:7VjXlWGHvEFLH1eBshoxHqUcQITDtWI1jrWHfDEUNwY=
 github.com/pubgo/xerror v0.4.11/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
+github.com/pubgo/xerror v0.4.12 h1:Fvxsj/mMA7nvkjMTN6k2JyVITdG7Zw52uTwetbto+bM=
+github.com/pubgo/xerror v0.4.12/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xlog v0.2.8 h1:8nhDTR0zJ8nrOOfZuSXeEURHaekIVyVVHitkdSz7WPg=
 github.com/pubgo/xlog v0.2.8/go.mod h1:ceFOxHSwkcTjtMkbMq0e6j8ihr32p2z2mkbfYD5pHLc=
 github.com/quasilyte/go-consistent v0.0.0-20190521200055-c6f3937de18c/go.mod h1:5STLWrekHfjyYwxBRVRXNOSewLJ3PWfDJd1VyTS21fI=
@@ -1330,6 +1333,7 @@ github.com/visualfc/atk v1.2.2/go.mod h1:0k0PUeYW6x/pCVmstqDvBTw/WucHLEdENXj7NrQ
 github.com/vmihailenco/msgpack/v5 v5.3.1/go.mod h1:7xyJ9e+0+9SaZT0Wt1RGleJXzli6Q/V5KbhBonMG9jc=
 github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=
 github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad/go.mod h1:Hy8o65+MXnS6EwGElrSRjUzQDLXreJlzYLlWiHtt8hM=
+github.com/webview/webview v0.0.0-20210330151455-f540d88dde4e/go.mod h1:rpXAuuHgyEJb6kXcXldlkOjU6y4x+YcASKKXJNUhh0Y=
 github.com/wsddn/go-ecdh v0.0.0-20161211032359-48726bab9208/go.mod h1:IotVbo4F+mw0EzQ08zFqg7pK3FebNXpaMsRy2RT+Ees=
 github.com/xanzy/go-gitlab v0.31.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=

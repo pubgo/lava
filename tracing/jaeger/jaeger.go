@@ -4,16 +4,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/tracing"
-	"github.com/pubgo/lug/tracing/jaeger/reporter"
-
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-lib/metrics/prometheus"
+
+	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lug/tracing"
+	"github.com/pubgo/lug/tracing/jaeger/reporter"
 )
 
 var _ = jaeger.NewNullReporter()

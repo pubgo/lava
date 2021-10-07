@@ -39,7 +39,6 @@ func Init(names func() []string, asset func(name string) []byte) {
 
 	mux.Get("/swagger/*", func(writer http.ResponseWriter, request *http.Request) {
 		var s ServeCmd
-
 		if strings.HasSuffix(request.RequestURI, "swagger.json") {
 			writer.Header().Set("Content-Type", "application/json")
 

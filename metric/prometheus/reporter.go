@@ -1,14 +1,14 @@
 package prometheus
 
 import (
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/metric"
-
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lug/metric"
 )
 
 const Name = "prometheus"

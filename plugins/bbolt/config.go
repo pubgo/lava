@@ -29,8 +29,6 @@ type Cfg struct {
 	PageSize        int               `json:"page_size"`
 	NoSync          bool              `json:"no_sync"`
 	Path            string            `json:"path"`
-
-	db *DB
 }
 
 func (t *Cfg) BuildOpts() *bolt.Options {
@@ -40,18 +38,14 @@ func (t *Cfg) BuildOpts() *bolt.Options {
 	return options
 }
 
-func (t *Cfg) Build() (gErr error) {
-	defer xerror.RespErr(&gErr)
-
+func (t *Cfg) Build() *bolt.DB {
 	var opts = t.BuildOpts()
 	var path = filepath.Join(config.Home, t.Path)
 	xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(path)))
 
 	db, err := bolt.Open(path, t.FileMode, opts)
 	xerror.Panic(err)
-	t.db = &DB{db: db}
-
-	return
+	return db
 }
 
 func DefaultCfg() *Cfg {

@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/pubgo/x/stack"
@@ -40,6 +39,7 @@ func (p *Base) getFuncStack(val interface{}) string {
 }
 
 func (p *Base) MarshalJSON() ([]byte, error) {
+	defer xerror.RespRaise()
 	var data = make(map[string]string)
 	data["name"] = p.Name
 	data["descriptor"] = p.Descriptor
@@ -87,7 +87,7 @@ func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 		return
 	}
 
-	zap.L().Info(fmt.Sprintf("plugin [%s] watch", p.Name))
+	zap.S().Infof("plugin [%s] watch init", p.Name)
 	return xerror.Try(func() { p.OnWatch(name, r) })
 }
 

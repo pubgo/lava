@@ -2,6 +2,7 @@ package gutil
 
 import (
 	"go/format"
+	"os"
 	"reflect"
 	"strings"
 
@@ -71,4 +72,24 @@ func DotJoin(str ...string) string {
 func GetPort(addr string) string {
 	var addrList = strings.Split(addr, ":")
 	return addrList[len(addrList)-1]
+}
+
+// DirExists function to check if directory exists?
+func DirExists(path string) bool {
+	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
+		// path is a directory
+		return true
+	}
+	return false
+}
+
+// FileExists function to check if file exists?
+func FileExists(path string) bool {
+	if stat, err := os.Stat(path); err == nil && !stat.IsDir() {
+		return true
+	} else if os.IsNotExist(err) {
+		return false
+	} else {
+		return false
+	}
 }

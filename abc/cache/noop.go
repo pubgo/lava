@@ -8,23 +8,19 @@ var _ IStore = (*noopStore)(nil)
 
 type noopStore struct{}
 
-func (n noopStore) Get(key string) ([]byte, error) {
+func (n noopStore) OnEvicted(f func(key string, obj []byte)) {
 	panic("implement me")
 }
 
-func (n noopStore) GetObj(key string, obj interface{}) error {
+func (n noopStore) Get(key string) (obj []byte, err error) {
 	panic("implement me")
 }
 
-func (n noopStore) Set(key string, obj interface{}, ds ...time.Duration) error {
+func (n noopStore) GetExpired(key string) (obj []byte, expired time.Time, err error) {
 	panic("implement me")
 }
 
-func (n noopStore) GetSet(key string, d time.Duration, cbs ...getCallback) ([]byte, error) {
-	panic("implement me")
-}
-
-func (n noopStore) GetExpired(key string) (obj []byte, expireAt int64, err error) {
+func (n noopStore) Set(key string, obj []byte, dur ...time.Duration) error {
 	panic("implement me")
 }
 
@@ -36,11 +32,6 @@ func (n noopStore) DeleteExpired() error {
 	panic("implement me")
 }
 
-func (n noopStore) OnEvicted(f func(key string, obj []byte)) {
-	panic("implement me")
-}
-
 func (n noopStore) Close() error {
 	panic("implement me")
 }
-

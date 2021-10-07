@@ -19,7 +19,7 @@ func init() {
 			for name, cfg := range cfgList {
 				// etcd config处理
 				cfg := xerror.PanicErr(cfgMerge(cfg)).(Cfg)
-				xerror.Panic(Update(consts.GetDefault(name), cfg))
+				Update(consts.GetDefault(name), cfg)
 			}
 		},
 		OnWatch: func(name string, r *watcher.Response) {
@@ -29,7 +29,7 @@ func init() {
 				xerror.PanicF(types.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
 
 				cfg = xerror.PanicErr(cfgMerge(cfg)).(Cfg)
-				xerror.PanicF(Update(name, cfg), "client %s watcher update error", name)
+				Update(name, cfg)
 			})
 
 			r.OnDelete(func() {

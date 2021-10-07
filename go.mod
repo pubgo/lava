@@ -10,7 +10,6 @@ require (
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/bigwhite/functrace v0.0.0-20210622013229-318a19dbb29a
-	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
@@ -78,7 +77,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.11
+	github.com/pubgo/xerror v0.4.12
 	github.com/pubgo/xlog v0.2.8
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
@@ -96,8 +95,6 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.29.0
-	github.com/valyala/fasttemplate v1.2.1
-	github.com/visualfc/atk v1.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	github.com/webview/webview v0.0.0-20210330151455-f540d88dde4e
 	go.etcd.io/bbolt v1.3.3

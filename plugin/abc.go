@@ -3,10 +3,10 @@ package plugin
 import (
 	"context"
 
-	"github.com/pubgo/lug/types"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/pubgo/lug/types"
 )
 
 const Name = "plugin"

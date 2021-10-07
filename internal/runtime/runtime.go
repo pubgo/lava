@@ -23,10 +23,10 @@ import (
 	"github.com/pubgo/lug/watcher"
 )
 
-var logs *zap.Logger
+var logs = zap.L()
 
 func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named("runtime") })
+	logger.On(func(log *zap.Logger) { logs = log.Named("runtime") })
 }
 
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
@@ -138,8 +138,8 @@ func Run(description string, entries ...entry.Entry) {
 			}
 		})
 
-		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-			defer xerror.RespErr(&err)
+		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+			defer xerror.RespExit()
 
 			// 项目名初始化
 			runenv.Project = entRT.Options().Name
@@ -177,15 +177,13 @@ func Run(description string, entries ...entry.Entry) {
 
 			// entry初始化
 			xerror.PanicF(entRT.InitRT(), runenv.Project)
-			return nil
 		}
 
-		cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
-			defer xerror.RespErr(&err)
+		cmd.Run = func(cmd *cobra.Command, args []string) {
+			defer xerror.RespExit()
 			xerror.Panic(start(entRT))
 			handleSignal()
 			xerror.Panic(stop(entRT))
-			return nil
 		}
 
 		rootCmd.AddCommand(cmd)
@@ -197,7 +195,7 @@ func Run(description string, entries ...entry.Entry) {
 func Start(ent entry.Entry) {
 	defer xerror.RespExit()
 
-	xerror.Assert(ent == nil, "[entry] should not be nil")
+	xerror.Assert(ent == nil, "[ent] should not be nil")
 
 	entRun, ok := ent.(entry.Runtime)
 	xerror.Assert(!ok, "[ent] not implement runtime")
@@ -236,7 +234,7 @@ func Start(ent entry.Entry) {
 func Stop(ent entry.Entry) {
 	defer xerror.RespExit()
 
-	xerror.Assert(ent == nil, "[entry] should not be nil")
+	xerror.Assert(ent == nil, "[ent] should not be nil")
 
 	entRun, ok := ent.(entry.Runtime)
 	xerror.Assert(!ok, "[ent] not implement runtime")
