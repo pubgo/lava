@@ -10,8 +10,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/emicklei/proto"
+	"github.com/mattn/go-zglob/fastwalk"
 	"github.com/pkg/browser"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
@@ -19,11 +21,14 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
+	"github.com/pubgo/lug/consts"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/shutil"
 )
 
 func Cmd() *cobra.Command {
+	var protoRoot = "proto"
+
 	var cmd = &cobra.Command{
 		Use:   "protoc",
 		Short: "protoc generate",
@@ -32,12 +37,23 @@ func Cmd() *cobra.Command {
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
 		},
 	}
+	cmd.Flags().StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
+
 	cmd.AddCommand(
 		&cobra.Command{
 			Use: "gen",
 			Run: func(cmd *cobra.Command, args []string) {
-				var protoList = xerror.PanicErr(gutil.Glob("proto/**")).([]string)
-				for _, in := range protoList {
+				var protoList = make(map[string]struct{})
+				xerror.Panic(fastwalk.FastWalk(protoRoot, func(path string, typ os.FileMode) error {
+					if typ.IsDir() {
+						return nil
+					}
+
+					protoList[filepath.Dir(path)] = struct{}{}
+					return nil
+				}))
+
+				for in := range protoList {
 					var data = fmt.Sprintf("protoc -I . -I %s", protoPath)
 					for name, out := range cfg.Plugins {
 						if len(out) > 0 {
@@ -49,6 +65,22 @@ func Cmd() *cobra.Command {
 					xerror.Panic(shutil.Bash(data).Run(), data)
 					fmt.Print("\n\n")
 				}
+
+				// 把生成的openapi嵌入到go代码
+				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
+				xerror.Panic(shutil.Bash(shell).Run())
+
+				// swagger加载和注册
+				var code = gutil.CodeFormat(
+					"package docs",
+					`import "github.com/pubgo/lug/plugins/swagger"`,
+					fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
+					`func init() {swagger.Init(AssetNames, MustAsset)}`,
+				)
+
+				const path = "docs/swagger.go"
+				_ = os.RemoveAll(path)
+				xerror.Panic(ioutil.WriteFile(path, []byte(code), 0755))
 			},
 		},
 
