@@ -1,6 +1,7 @@
 package netutil
 
 import (
+	"errors"
 	"net"
 	"time"
 
@@ -12,13 +13,13 @@ func LocalIP() (string, error) {
 	addrList, err := net.InterfaceAddrs()
 
 	if nil != err {
-		return "", err
+		return "", xerror.Wrap(err)
 	}
 
 	for _, address := range addrList {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if nil != ipnet.IP.To4() {
-				return ipnet.IP.String(), nil
+		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String(), nil
 			}
 		}
 	}
@@ -26,11 +27,26 @@ func LocalIP() (string, error) {
 	return "", xerror.Fmt("can't get local IP")
 }
 
-func ScanPort(protocol string, addr string) bool {
+// CheckPort 检查端口是否被占用
+func CheckPort(protocol string, addr string) bool {
 	conn, err := net.DialTimeout(protocol, addr, 3*time.Second)
 	if err != nil {
 		return false
 	}
 	defer conn.Close()
 	return true
+}
+
+// DiscoverDNS ...
+func DiscoverDNS(service, proto string, address string) ([]*net.SRV, error) {
+	_, addresses, err := net.LookupSRV(service, proto, address)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(addresses) == 0 {
+		return nil, errors.New("discovery: srv lookup nothing")
+	}
+
+	return addresses, nil
 }

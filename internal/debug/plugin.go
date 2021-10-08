@@ -26,7 +26,7 @@ func init() {
 
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}
 			ent.AfterStart(func() {
-				xerror.Assert(netutil.ScanPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
+				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
 				fx.GoDelay(func() {
 					zap.S().Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(runenv.DebugAddr))
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

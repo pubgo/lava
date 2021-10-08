@@ -34,6 +34,7 @@ func init() {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprintln(w, expvar.Get(name).String())
 	})
+
 	mux.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
 		var keys []string
 		expvar.Do(func(kv expvar.KeyValue) {

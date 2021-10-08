@@ -1,8 +1,6 @@
 package netutil
 
 import (
-	"github.com/pubgo/xerror"
-
 	"context"
 	"crypto/tls"
 	"net"
@@ -10,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pubgo/xerror"
 )
 
 type sockOpts struct {
@@ -27,8 +27,7 @@ func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
 		address = "tcp4://" + address
 	}
 
-	uri, err := url.Parse(address)
-	xerror.Panic(err)
+	uri := xerror.PanicErr(url.Parse(address)).(*url.URL)
 	if uri.Scheme == "" {
 		uri.Scheme = "tcp4"
 	}

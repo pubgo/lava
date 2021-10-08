@@ -73,6 +73,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
+	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28

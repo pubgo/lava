@@ -8,6 +8,7 @@ import "google/protobuf/timestamp.proto";
 import "protos/sql/options.proto";
 
 message User {
+//    option (sql.all) = "json";
     int64 id = 1;
     string name = 2;
     Friends friends = 3;

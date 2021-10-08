@@ -6,6 +6,10 @@ import "google/protobuf/descriptor.proto";
 
 option go_package = "./;sql";
 
+extend google.protobuf.MessageOptions {
+    string all = 90001;
+}
+
 extend google.protobuf.FileOptions {
     optional string pkg = 560003;
 }
