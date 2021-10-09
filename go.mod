@@ -63,9 +63,9 @@ require (
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/maragudk/gomponents v0.17.2
 	github.com/maruel/panicparse/v2 v2.1.1
+	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/mattn/go-zglob v0.0.3
-	github.com/maxence-charriere/go-app/v6 v6.6.2 // indirect
 	github.com/maxence-charriere/go-app/v9 v9.0.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
@@ -76,7 +76,6 @@ require (
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
-	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
@@ -92,6 +91,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/swaggo/http-swagger v1.1.1
+	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	github.com/tinylib/msgp v1.1.6
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible
@@ -196,6 +196,7 @@ require (
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/marten-seemann/qtls v0.10.0 // indirect
 	github.com/marten-seemann/qtls-go1-15 v0.1.1 // indirect
+	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mattn/go-runewidth v0.0.8 // indirect

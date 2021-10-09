@@ -98,7 +98,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterEchoServiceHandlerServer), nil)
 }
 func RegisterEchoServiceRestServer(app fiber.Router, server EchoServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/v1/example/echo/{id}", func(ctx *fiber.Ctx) error {
 		var req = new(SimpleMessage)
 		xerror.Panic(ctx.BodyParser(req))

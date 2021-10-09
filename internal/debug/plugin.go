@@ -20,8 +20,9 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
-			for k, v := range serveMux.m {
-				mux.Get(k, v.h.ServeHTTP)
+			serveMux := mux.GetDefaultServeMux()
+			for k, v := range serveMux.M {
+				mux.Get(k, v.H.ServeHTTP)
 			}
 
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}

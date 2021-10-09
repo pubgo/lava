@@ -525,12 +525,6 @@
             "schema": {
               "$ref": "#/definitions/gidDynamicMessage"
             }
-          },
-          {
-            "name": "updateMask",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -642,9 +636,6 @@
       "properties": {
         "body": {
           "$ref": "#/definitions/gidDynamicMessage"
-        },
-        "updateMask": {
-          "type": "string"
         }
       }
     },

@@ -87,6 +87,7 @@ generate:
 
 .PHONY: deps
 deps:
+	# https://github.com/protocolbuffers/protobuf
 	@go install -v github.com/tinylib/msgp
 	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 

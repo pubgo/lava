@@ -95,7 +95,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterCodeHandlerServer), nil)
 }
 func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
 		var req = new(SendCodeRequest)
 		xerror.Panic(ctx.BodyParser(req))

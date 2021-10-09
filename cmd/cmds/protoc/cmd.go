@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/pubgo/lug/pkg/env"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/mattn/go-zglob/fastwalk"
-	"github.com/pkg/browser"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -28,16 +28,19 @@ import (
 
 func Cmd() *cobra.Command {
 	var protoRoot = "proto"
+	var protoCfg = ".lug/protobuf.yaml"
 
 	var cmd = &cobra.Command{
 		Use:   "protoc",
-		Short: "protoc generate",
+		Short: "protobuf generation, configuration and management",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			content := xerror.PanicBytes(ioutil.ReadFile("protobuf.yaml"))
+			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
 		},
 	}
+
 	cmd.Flags().StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
+	cmd.Flags().StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
 
 	cmd.AddCommand(
 		&cobra.Command{
@@ -54,7 +57,7 @@ func Cmd() *cobra.Command {
 				}))
 
 				for in := range protoList {
-					var data = fmt.Sprintf("protoc -I . -I %s", protoPath)
+					var data = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
 					for name, out := range cfg.Plugins {
 						if len(out) > 0 {
 							data += fmt.Sprintf(" --%s_out=%s", name, strings.Join(out, ","))
@@ -97,16 +100,61 @@ func Cmd() *cobra.Command {
 		},
 
 		&cobra.Command{
-			Use: "vendor-rm",
+			Use: "vendor",
 			Run: func(cmd *cobra.Command, args []string) {
 				_ = os.RemoveAll(protoPath)
-			},
-		},
 
-		&cobra.Command{
-			Use: "open",
-			Run: func(cmd *cobra.Command, args []string) {
-				xerror.Panic(browser.OpenFile(protoPath))
+				// 迁移protobuf的默认文件
+				cfg.Depends = append(cfg.Depends, depend{
+					Name: "protobuf",
+					Url:  "/usr/local/include/google/protobuf",
+					Path: "/google/protobuf",
+				})
+
+				// 把本项目protobuf迁移过去, 默认路径./proto
+				//protoList := xerror.PanicErr(gutil.Glob("./proto/**")).([]string)
+				//for i := range protoList {
+				//	var _, name = filepath.Split(protoList[i])
+				//	cfg.Depends = append(cfg.Depends, depend{
+				//		Name: name,
+				//		Url:  xerror.PanicStr(filepath.Abs(protoList[i])),
+				//		Path: filepath.Join("/", name),
+				//	})
+				//}
+
+				for _, dep := range cfg.Depends {
+					var url = dep.Url
+					if url == "" {
+						continue
+					}
+
+					if gutil.DirExists(filepath.Join(modPath, url)) {
+						url = filepath.Join(modPath, url)
+					}
+
+					if !gutil.DirExists(url) {
+						continue
+					}
+
+					url = xerror.PanicStr(filepath.Abs(url))
+					zap.S().Debugw("proto url", "url", url)
+					var newUrl = filepath.Join(protoPath, dep.Path)
+					xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) error {
+						if info.IsDir() {
+							return nil
+						}
+
+						if !strings.HasSuffix(info.Name(), ".proto") {
+							return nil
+						}
+
+						var newPath = filepath.Join(newUrl, strings.TrimPrefix(path, url))
+						xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(newPath)))
+						xerror.PanicErr(copyFile(newPath, path))
+
+						return nil
+					}))
+				}
 			},
 		},
 
@@ -312,42 +360,6 @@ func Cmd() *cobra.Command {
 					default:
 						Walk(cancel, ProtoFile)
 					}
-				}
-			},
-		},
-		&cobra.Command{
-			Use: "vendor",
-			Run: func(cmd *cobra.Command, args []string) {
-				for _, dep := range cfg.Depends {
-					var url = dep.Url
-
-					if pathutil.Exist(filepath.Join(modPath, url)) {
-						url = filepath.Join(modPath, url)
-					}
-
-					if !pathutil.Exist(url) {
-						continue
-					}
-
-					url = xerror.PanicStr(filepath.Abs(url))
-
-					zap.L().Debug("proto url", zap.String("url", url))
-					var newUrl = filepath.Join(protoPath, dep.Path)
-					xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) error {
-						if info.IsDir() {
-							return nil
-						}
-
-						if !strings.HasSuffix(info.Name(), ".proto") {
-							return nil
-						}
-
-						var newPath = filepath.Join(newUrl, strings.TrimPrefix(path, url))
-						xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(newPath)))
-						xerror.PanicErr(copyFile(newPath, path))
-
-						return nil
-					}))
 				}
 			},
 		},

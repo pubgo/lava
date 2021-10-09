@@ -8,6 +8,13 @@ option go_package = "./;login";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
+//option (gogoproto.goproto_registration) = true;
+//option (gogoproto.marshaler_all) = true;
+//option (gogoproto.stable_marshaler_all) = true;
+//option (gogoproto.sizer_all) = true;
+//option (gogoproto.unmarshaler_all) = true;
+//option (gogoproto.goproto_getters_all) = false;
+
 // 绑定手机号
 service BindTelephone {
     // 检查是否可以绑定
@@ -78,7 +85,7 @@ message CheckResponse {
 
 message BindVerifyRequest {
     // 区号
-    string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+    string nationCode = 1 [(gogoproto.jsontag) = "nation_code"];
     // 手机号
     string telephone = 2 [(gogoproto.jsontag) = "telephone"];
     // uid

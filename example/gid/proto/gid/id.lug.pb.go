@@ -68,7 +68,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterIdHandlerServer), nil)
 }
 func RegisterIdRestServer(app fiber.Router, server IdServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/v1/id/generate", func(ctx *fiber.Ctx) error {
 		var req = new(GenerateRequest)
 		xerror.Panic(ctx.BodyParser(req))
@@ -325,7 +325,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceServer), mthList)
 }
 func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEverythingServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}", func(ctx *fiber.Ctx) error {
 		var req = new(ABitOfEverything)
 		xerror.Panic(ctx.BodyParser(req))
@@ -595,7 +595,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandlerServer), nil)
 }
 func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("GET", "/v2/example/empty", func(ctx *fiber.Ctx) error {
 		var req = new(emptypb.Empty)
 		data := make(map[string][]string)
@@ -647,7 +647,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsServer), mthList)
 }
 func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/gid/another-service-with-no-bindings/no-bindings", func(ctx *fiber.Ctx) error {
 		var req = new(emptypb.Empty)
 		xerror.Panic(ctx.BodyParser(req))

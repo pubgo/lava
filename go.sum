@@ -938,6 +938,10 @@ github.com/marten-seemann/qtls-go1-15 v0.1.1/go.mod h1:GyFwywLKkRt+6mfU99csTEY1j
 github.com/maruel/panicparse/v2 v2.1.1 h1:zUgy1SQ+Zi36oL/V+6cs/8OZjTio/41cjLVJ2hO5W9Q=
 github.com/maruel/panicparse/v2 v2.1.1/go.mod h1:AeTWdCE4lcq8OKsLb6cHSj1RWHVSnV9HBCk7sKLF4Jg=
 github.com/matoous/godox v0.0.0-20190911065817-5d6d842e92eb/go.mod h1:1BELzlh859Sh1c6+90blK8lbYy0kwQf1bYlBhBysy1s=
+github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a h1:rnrxZue85aKdMU4nJ50GgKA31lCaVbft+7Xl8OXj55U=
+github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a/go.mod h1:hJJYoBMTZIONmUEpX3+9v2057zuRM0n3n77U4Ob4wE4=
+github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e h1:cj+w63ez19o7y7vunA8Q3rUIWwKEOUx7foqjnr4qbtI=
+github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e/go.mod h1:OFd5kqMcMRr5LyBjZulGPJxaEK9r/jQ6JCV4Xi32bKo=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.0/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
@@ -973,8 +977,6 @@ github.com/mattn/go-zglob v0.0.3/go.mod h1:9fxibJccNxU2cnpIKLRRFA7zX7qhkJIQWBb44
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
-github.com/maxence-charriere/go-app/v6 v6.6.2 h1:smv48ZcdNYc//M6uF40jrxc319GogW9IjolQ3XwUezA=
-github.com/maxence-charriere/go-app/v6 v6.6.2/go.mod h1:lndc83s6AlsH9LmLR5JsttRzSwUVqOOYi3e/Kd5FfTU=
 github.com/maxence-charriere/go-app/v9 v9.0.0 h1:+YuEmk+dl2QeVNqoVBGzpN2NM+UOGy4pvxDR/8YCoqQ=
 github.com/maxence-charriere/go-app/v9 v9.0.0/go.mod h1:zo0n1kh4OMKn7P+MrTUUi7QwUMU2HOfHsZ293TITtxI=
 github.com/melbahja/goph v0.2.0/go.mod h1:iSTKQ5cr4oS0+xW+qNPySWygq8OV91/7CToImPJE1QE=
@@ -1110,8 +1112,6 @@ github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi
 github.com/pierrec/lz4 v2.4.1+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/piotrkowalczuk/promgrpc/v4 v4.0.4 h1:X8NIOHEeAb578lV/VVb4PeAMewtmLi0hfpy1pWlKsXQ=
 github.com/piotrkowalczuk/promgrpc/v4 v4.0.4/go.mod h1:Is3zREWSoeO2j+BOX96ihxFcyTDLZD3XyQ/B/xCd4+4=
-github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 h1:KoWmjvw+nsYOo29YJK9vDA65RGE3NrOnUtO7a+RF9HU=
-github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8/go.mod h1:HKlIX3XHQyzLZPlr7++PzdhaXEj94dEiJgZDTsxEqUI=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
@@ -1342,6 +1342,8 @@ github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg
 github.com/tebeka/strftime v0.1.5/go.mod h1:29/OidkoWHdEKZqzyDLUyC+LmgDgdHo4WAFCDT7D/Ig=
 github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161/go.mod h1:wM7WEvslTq+iOEAMDLSzhVuOt5BRZ05WirO+b09GHQU=
 github.com/templexxx/xor v0.0.0-20191217153810-f85b25db303b/go.mod h1:5XA7W9S6mni3h5uvOC75dA3m9CCCaS83lltmc0ukdi4=
+github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125 h1:3SNcvBmEPE1YlB1JpVZouslJpI3GBNoiqW7+wb0Rz7w=
+github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125/go.mod h1:M8agBzgqHIhgj7wEn9/0hJUZcrvt9VY+Ln+S1I5Mha0=
 github.com/tetafro/godot v0.4.2/go.mod h1:/7NLHhv08H1+8DNj0MElpAACw1ajsCuf3TKNQxA5S+0=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=

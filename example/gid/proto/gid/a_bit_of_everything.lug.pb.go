@@ -62,7 +62,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterLoginServiceHandlerServer), nil)
 }
 func RegisterLoginServiceRestServer(app fiber.Router, server LoginServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/v1/example/login", func(ctx *fiber.Ctx) error {
 		var req = new(LoginRequest)
 		xerror.Panic(ctx.BodyParser(req))

@@ -25,21 +25,15 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
-proto-gen:proto-rm
-	@lug protoc ls
-	@lug protoc gen
+proto-gen:
+	debug=1 lug protoc gen
 
 proto-rm:
 	@rm -rf proto/**/*.go
-	@rm -rf proto/**/*.json
 
 proto-vendor:
-	rm -rf proto/**/*.go
-	rm -rf proto/**/*.json
-	lug protoc vendor-rm
 	lug protoc vendor
 	lug protoc ls
-	lug protoc gen
 
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html

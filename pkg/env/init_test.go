@@ -1,10 +1,10 @@
 package env
 
 import (
+	"testing"
+	
 	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
-
-	"testing"
 )
 
 func TestSnakeCase(t *testing.T) {
@@ -17,4 +17,6 @@ func TestSnakeCase(t *testing.T) {
 	xerror.AssertEqual(snake("aBcD"), "a_bc_d")
 	xerror.AssertEqual(snake("aaBBccDD"), "aa_b_bcc_dd")
 	xerror.AssertEqual(snake("aaBB/ccDD"), "aa_bb/cc_dd")
+	t.Log(Pwd)
+	t.Log(Home)
 }

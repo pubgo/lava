@@ -95,7 +95,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterMergeHandlerServer), nil)
 }
 func RegisterMergeRestServer(app fiber.Router, server MergeServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/user/merge/telephone", func(ctx *fiber.Ctx) error {
 		var req = new(TelephoneRequest)
 		xerror.Panic(ctx.BodyParser(req))

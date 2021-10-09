@@ -1,6 +1,8 @@
 package env
 
 import (
+	"github.com/pubgo/xerror"
+	"k8s.io/client-go/util/homedir"
 	"os"
 	"strings"
 
@@ -9,6 +11,12 @@ import (
 
 // Prefix 环境变量的前缀
 var Prefix string
+
+// Pwd 当前目录
+var Pwd = xerror.PanicStr(os.Getwd())
+
+// Home the home directory for the current user
+var Home = homedir.HomeDir()
 
 func init() {
 	// env_prefix 获取系统环境变量前缀

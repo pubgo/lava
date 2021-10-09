@@ -1,9 +1,9 @@
 package metric
 
 import (
-	"github.com/pubgo/lug/logger"
-
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/logger"
 )
 
 var defaultScope Scope
@@ -20,7 +20,7 @@ func Root() Scope {
 	return defaultScope
 }
 
-func NewCounter(name string, tags Tags) Counter           { return Root().Counter(name) }
+func NewCounter(name string) Counter                      { return Root().Counter(name) }
 func NewGauge(name string) Gauge                          { return Root().Gauge(name) }
 func NewTimer(name string) Timer                          { return Root().Timer(name) }
 func NewHistogram(name string, buckets Buckets) Histogram { return Root().Histogram(name, buckets) }

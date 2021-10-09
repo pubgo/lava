@@ -7,10 +7,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lug/pkg/env"
 )
 
 var (
-	protoPath = filepath.Join(os.Getenv("GOPATH"), "proto")
+	protoPath = filepath.Join(filepath.Join(env.Pwd, ".lug"), "proto")
 	modPath   = filepath.Join(os.Getenv("GOPATH"), "/pkg/mod")
 )
 
@@ -26,18 +28,18 @@ func init() {
 var cfg Cfg
 
 type Cfg struct {
-	Depends []depend            `json:"deps,omitempty"`
-	Input   []string            `json:"input,omitempty"`
-	Plugins map[string][]string `json:"plugins,omitempty"`
+	Depends []depend            `yaml:"deps,omitempty"`
+	Input   []string            `yaml:"input,omitempty"`
+	Plugins map[string][]string `yaml:"plugins,omitempty"`
 }
 
 type depend struct {
-	Name string `json:"name,omitempty"`
-	Url  string `json:"url,omitempty"`
-	Path string `json:"path,omitempty"`
+	Name string `yaml:"name,omitempty"`
+	Url  string `yaml:"url,omitempty"`
+	Path string `yaml:"path,omitempty"`
 }
 
 type plugin struct {
-	Name string   `json:"name,omitempty"`
-	Out  []string `json:"out,omitempty"`
+	Name string   `yaml:"name,omitempty"`
+	Out  []string `yaml:"out,omitempty"`
 }

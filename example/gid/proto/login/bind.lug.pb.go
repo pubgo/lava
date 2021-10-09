@@ -106,7 +106,7 @@ func init() {
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandlerServer), nil)
 }
 func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
-	xerror.Assert(app == nil || server == nil, "app is nil or server is nil")
+	xerror.Assert(app == nil || server == nil, "app or server is nil")
 	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
 		var req = new(CheckRequest)
 		xerror.Panic(ctx.BodyParser(req))

@@ -8,11 +8,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
-	"github.com/pubgo/lug/errors"
-	"github.com/pubgo/lug/logger"
 	"github.com/teris-io/shortid"
 
+	"github.com/pubgo/lug/errors"
 	"github.com/pubgo/lug/example/gid/proto/gid"
+	"github.com/pubgo/lug/logger"
 )
 
 var _ gid.IdServer = (*Id)(nil)

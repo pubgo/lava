@@ -167,13 +167,11 @@ func Run(description string, entries ...entry.Entry) {
 			xerror.Panic(watcher.Init())
 
 			// plugin初始化
-			xerror.TryThrow(func() {
-				plugins := plugin.List(plugin.Module(runenv.Project))
-				plugins = append(plugin.List(), plugins...)
-				for _, plg := range plugins {
-					xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
-				}
-			})
+			plugins := plugin.List(plugin.Module(runenv.Project))
+			plugins = append(plugin.List(), plugins...)
+			for _, plg := range plugins {
+				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
+			}
 
 			// entry初始化
 			xerror.PanicF(entRT.InitRT(), runenv.Project)
