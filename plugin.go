@@ -4,7 +4,6 @@ import (
 	// 默认编码
 	_ "github.com/pubgo/lug/encoding/json"
 	_ "github.com/pubgo/lug/encoding/protobuf"
-
 	// debug服务
 	_ "github.com/pubgo/lug/internal/debug"
 

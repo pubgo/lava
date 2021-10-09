@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/pubgo/lug/pkg/env"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -22,6 +21,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/lug/pkg/gutil"
 	"github.com/pubgo/lug/pkg/shutil"
 )
@@ -106,28 +106,17 @@ func Cmd() *cobra.Command {
 
 				// 迁移protobuf的默认文件
 				cfg.Depends = append(cfg.Depends, depend{
-					Name: "protobuf",
+					Name: "google/protobuf",
 					Url:  "/usr/local/include/google/protobuf",
-					Path: "/google/protobuf",
+					Path: "",
 				})
 
-				// 把本项目protobuf迁移过去, 默认路径./proto
-				//protoList := xerror.PanicErr(gutil.Glob("./proto/**")).([]string)
-				//for i := range protoList {
-				//	var _, name = filepath.Split(protoList[i])
-				//	cfg.Depends = append(cfg.Depends, depend{
-				//		Name: name,
-				//		Url:  xerror.PanicStr(filepath.Abs(protoList[i])),
-				//		Path: filepath.Join("/", name),
-				//	})
-				//}
-
 				for _, dep := range cfg.Depends {
-					var url = dep.Url
-					if url == "" {
+					if dep.Name == "" || dep.Url == "" {
 						continue
 					}
 
+					var url = dep.Url
 					if gutil.DirExists(filepath.Join(modPath, url)) {
 						url = filepath.Join(modPath, url)
 					}

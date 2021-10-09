@@ -1,6 +1,21 @@
+package main
+
+import (
+	"github.com/pubgo/x/q"
+	"github.com/pubgo/xerror"
+	"golang.org/x/mod/modfile"
+)
+
+func main() {
+	var a, err = modfile.Parse("in", []byte(`
 module github.com/pubgo/lug
 
 go 1.17
+
+replace (
+	github.com/HdrHistogram/hdrhistogram-go => github.com/HdrHistogram/hdrhistogram-go v1.0.0
+)
+
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
@@ -246,3 +261,8 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 	xorm.io/builder v0.3.7 // indirect
 )
+`), nil)
+
+	xerror.Panic(err)
+	q.Q(a)
+}
