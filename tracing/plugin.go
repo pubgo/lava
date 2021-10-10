@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/pkg/fastrand"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/plugins/request_id"
 	"github.com/pubgo/lug/types"
@@ -39,20 +40,25 @@ func init() {
 				}
 
 				var (
-					span              opentracing.Span
 					err               error
+					span              opentracing.Span
 					parentSpanContext opentracing.SpanContext
 				)
 
 				if !req.Client() {
-					// 服务端tracing, 从header中解析链路信息
+					// 服务端请求
+					// 从请求header中解析链路信息
 					parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 					if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
-						zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
+						// 百分之一的概率
+						if fastrand.Probability(0.01) {
+							zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
+						}
 					}
 					span = opentracing.StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
 				} else {
-					// 客户端tracing, 从context获取span
+					// 客户端请求
+					// 从context中获取span
 					span = opentracing.SpanFromContext(ctx)
 					if span != nil {
 						parentSpanContext = span.Context()

@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/xerror"
 )
 
@@ -45,6 +46,7 @@ func Register(pg Plugin, opts ...Opt) {
 	xerror.Assert(pg == nil, "plugin[pg] is nil")
 	xerror.Assert(pg.Id() == "", "plugin name is null")
 
+	logger.Debug(1).Infof("register plugin[%s]", pg.Id())
 	opt := options{Module: defaultModule}
 	for _, o := range opts {
 		o(&opt)

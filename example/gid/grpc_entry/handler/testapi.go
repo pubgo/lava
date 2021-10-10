@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/example/gid/proto/hello"
+	"github.com/pubgo/lug/example/gid/protopb/proto/hello"
 	"github.com/pubgo/lug/logger"
 	db2 "github.com/pubgo/lug/plugins/db"
 )

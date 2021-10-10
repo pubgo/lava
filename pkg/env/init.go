@@ -1,12 +1,12 @@
 package env
 
 import (
-	"github.com/pubgo/xerror"
-	"k8s.io/client-go/util/homedir"
 	"os"
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"github.com/pubgo/xerror"
+	"k8s.io/client-go/util/homedir"
 )
 
 // Prefix 环境变量的前缀

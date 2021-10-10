@@ -4,8 +4,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 var trim = strings.TrimSpace
@@ -45,7 +43,6 @@ func GetBoolVal(val *bool, names ...string) {
 
 	v, err := strconv.ParseBool(dt)
 	if err != nil {
-		zap.L().Error("env value [ParseBool]", zap.Any("error", err))
 		return
 	}
 
@@ -60,7 +57,6 @@ func GetIntVal(val *int, names ...string) {
 
 	v, err := strconv.Atoi(dt)
 	if err != nil {
-		zap.L().Error("env value [ParseInt]", zap.Any("error", err))
 		return
 	}
 
@@ -75,7 +71,6 @@ func GetFloatVal(val *float64, names ...string) {
 
 	v, err := strconv.ParseFloat(dt, 32)
 	if err != nil {
-		zap.L().Error("env value [ParseFloat]", zap.Any("error", err))
 		return
 	}
 

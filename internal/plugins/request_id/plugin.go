@@ -14,6 +14,7 @@ import (
 const Name = "request_id"
 
 func init() {
+	fmt.Println(Name)
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
@@ -35,7 +36,7 @@ func init() {
 					}
 				}()
 
-				return next(CtxWithReqId(ctx, resID), req, resp)
+				return next(ctxWithReqId(ctx, resID), req, resp)
 			}
 		},
 	})

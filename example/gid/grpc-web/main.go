@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/pubgo/lug/example/gid/grpc_entry/handler"
-	"github.com/pubgo/lug/example/gid/proto/hello"
+	"github.com/pubgo/lug/example/gid/protopb/proto/hello"
 )
 
 type codec struct{}

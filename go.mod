@@ -26,7 +26,9 @@ require (
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
-	github.com/go-logr/logr v1.1.0 // indirect
+	github.com/go-logr/logr v1.1.0
+	github.com/go-logr/stdr v1.1.0
+	github.com/go-logr/zapr v1.1.0
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.21
 	github.com/go-openapi/spec v0.20.2
@@ -100,6 +102,7 @@ require (
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fasthttp v1.29.0
+	github.com/valyala/fastrand v1.1.0
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	github.com/webview/webview v0.0.0-20210330151455-f540d88dde4e
 	go.etcd.io/bbolt v1.3.3
@@ -108,6 +111,7 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.19.0
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/mod v0.4.2
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
@@ -235,7 +239,6 @@ require (
 	go.opentelemetry.io/otel/metric v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v0.20.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect

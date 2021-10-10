@@ -11,6 +11,7 @@ import (
 
 	"github.com/pubgo/lug/config"
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/plugins/request_id"
 	"github.com/pubgo/lug/runenv"
@@ -26,7 +27,7 @@ func init() {
 			var cfg = xlog_config.NewProdConfig()
 			if runenv.IsDev() || runenv.IsTest() {
 				cfg = xlog_config.NewDevConfig()
-				cfg.EncoderConfig.EncodeCaller = consts.Default
+				cfg.EncoderConfig.EncodeCaller = "full"
 			}
 
 			_ = config.Decode(name, &cfg)
@@ -53,7 +54,7 @@ func init() {
 				params = append(params, zap.String("start_time", now.Format(time.RFC3339)))
 
 				var respBody interface{}
-				err = next(ctxWithLogger(ctx, log), req, func(rsp types.Response) error {
+				err = next(logger.CtxWithLogger(ctx, log), req, func(rsp types.Response) error {
 					respBody = rsp.Payload()
 					return xerror.Wrap(resp(rsp))
 				})
