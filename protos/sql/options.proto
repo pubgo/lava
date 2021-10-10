@@ -36,6 +36,7 @@ enum PersistenceOptions {
 
 message QueryOpts {
     repeated QLImpl queries = 1;
+    map<string,string> values = 2;
 }
 
 message QLImpl {

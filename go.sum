@@ -1112,6 +1112,8 @@ github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi
 github.com/pierrec/lz4 v2.4.1+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
 github.com/piotrkowalczuk/promgrpc/v4 v4.0.4 h1:X8NIOHEeAb578lV/VVb4PeAMewtmLi0hfpy1pWlKsXQ=
 github.com/piotrkowalczuk/promgrpc/v4 v4.0.4/go.mod h1:Is3zREWSoeO2j+BOX96ihxFcyTDLZD3XyQ/B/xCd4+4=
+github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 h1:KoWmjvw+nsYOo29YJK9vDA65RGE3NrOnUtO7a+RF9HU=
+github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8/go.mod h1:HKlIX3XHQyzLZPlr7++PzdhaXEj94dEiJgZDTsxEqUI=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
@@ -1173,6 +1175,8 @@ github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56
 github.com/pubgo/xerror v0.4.10/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xerror v0.4.12 h1:Fvxsj/mMA7nvkjMTN6k2JyVITdG7Zw52uTwetbto+bM=
 github.com/pubgo/xerror v0.4.12/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
+github.com/pubgo/xerror v0.4.13 h1:Xs/jkaA3KLto7ojMAWkChvbpTgbkeAq4g2HLoXkWjVI=
+github.com/pubgo/xerror v0.4.13/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xlog v0.2.8 h1:8nhDTR0zJ8nrOOfZuSXeEURHaekIVyVVHitkdSz7WPg=
 github.com/pubgo/xlog v0.2.8/go.mod h1:ceFOxHSwkcTjtMkbMq0e6j8ihr32p2z2mkbfYD5pHLc=
 github.com/quasilyte/go-consistent v0.0.0-20190521200055-c6f3937de18c/go.mod h1:5STLWrekHfjyYwxBRVRXNOSewLJ3PWfDJd1VyTS21fI=

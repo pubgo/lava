@@ -11,7 +11,7 @@ import (
 	"github.com/teris-io/shortid"
 
 	"github.com/pubgo/lug/errors"
-	"github.com/pubgo/lug/example/gid/proto/gid"
+	"github.com/pubgo/lug/example/gid/protopb/proto/gid"
 	"github.com/pubgo/lug/logger"
 )
 

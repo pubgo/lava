@@ -10,7 +10,7 @@ import (
 // newLogger init a log bridge for xorm
 func newLogger() xormLog.Logger {
 	return &logBridge{
-		logger: zap.L().Named(Name + "_tracing").WithOptions(zap.AddCallerSkip(1)),
+		logger: zap.L().Named(Name + "-tracing").WithOptions(zap.AddCallerSkip(1)),
 	}
 }
 

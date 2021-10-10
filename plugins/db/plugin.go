@@ -7,6 +7,7 @@ import (
 	"xorm.io/xorm/schemas"
 
 	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lug/internal/resource"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/types"
 	"github.com/pubgo/lug/watcher"
@@ -23,9 +24,11 @@ func init() {
 			for name := range cfgList {
 				cfg := DefaultCfg()
 				xerror.Panic(merge.Copy(&cfg, cfgList[name]))
-
-				xerror.Panic(Update(name, *cfg))
 				cfgList[name] = cfg
+
+				var db = cfgList[name].Build()
+				resource.Update(Name, name, &Client{db: db})
+
 			}
 		},
 		OnWatch: func(name string, w *watcher.Response) {
@@ -34,34 +37,33 @@ func init() {
 				if !ok {
 					cfg = DefaultCfg()
 				}
-
 				xerror.Panic(types.Decode(w.Value, &cfg))
-				xerror.Panic(Update(name, *cfg))
 				cfgList[name] = cfg
+
+				var db = cfgList[name].Build()
+				resource.Update(Name, name, &Client{db: db})
 			})
 
-			w.OnDelete(func() {
-				Delete(name)
-			})
+			w.OnDelete(func() { resource.Remove(Name, name) })
 		},
 		OnVars: func(w func(name string, data func() interface{})) {
 			w(Name+"_cfg", func() interface{} { return cfgList })
 			w(Name+"_dbMetas", func() interface{} {
 				var dbMetas = make(map[string][]*schemas.Table)
-				xerror.Panic(clients.Each(func(key string, engine *Client) {
-					dbMetas[key] = xerror.PanicErr(engine.Get().DBMetas()).([]*schemas.Table)
-				}))
+				for name, res := range resource.GetByKind(Name) {
+					dbMetas[name] = xerror.PanicErr(res.(*Client).Get().DBMetas()).([]*schemas.Table)
+				}
 				return dbMetas
 			})
 
 			w(Name+"_sqlList", func() interface{} {
-				var sqlList []string
-				xerror.Panic(clients.Each(func(key string, engine *Client) {
+				var sqlList = make(map[string]string)
+				for name, res := range resource.GetByKind(Name) {
 					var b strutil.Builder
-					defer b.Reset()
-					xerror.Panic(engine.Get().DumpAll(&b))
-					sqlList = append(sqlList, b.String())
-				}))
+					xerror.Panic(res.(*Client).Get().DumpAll(&b))
+					b.Reset()
+					sqlList[name] = b.String()
+				}
 				return sqlList
 			})
 		},

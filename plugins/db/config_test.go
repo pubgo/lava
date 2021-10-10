@@ -15,9 +15,7 @@ func TestConfig(t *testing.T) {
 	cfg.Driver = sqlite.Name
 	cfg.Source = "./sqlite.db"
 
-	eng, err := cfg.Build()
-	xerror.Panic(err)
-
-	fmt.Println(eng.Query("select * from db"))
-	fmt.Println(eng.Query("select * from db where Field1=?", 1))
+	db := cfg.Build()
+	fmt.Println(db.Query("select * from db"))
+	fmt.Println(db.Query("select * from db where Field1=?", 1))
 }

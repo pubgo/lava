@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 	_ "net/http/pprof"
 
-	"github.com/pubgo/lug/example/gid/proto/hello"
+	"github.com/pubgo/lug/example/gid/protopb/proto/hello"
 	"github.com/pubgo/lug/plugins/grpcc"
 	"github.com/pubgo/lug/plugins/registry"
 	"github.com/pubgo/lug/plugins/registry/mdns"

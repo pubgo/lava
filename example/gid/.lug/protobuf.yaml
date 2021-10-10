@@ -1,39 +1,36 @@
 deps:
-  - name: google
-    url: github.com/googleapis/googleapis@v0.0.0-20200429181057-7e1c7603c8cb/google
-    path: /google
-  - name: protoc-gen-openapiv2
-    url: github.com/grpc-ecosystem/grpc-gateway/v2@v2.5.0/protoc-gen-openapiv2
-    path: /protoc-gen-openapiv2
-  - name: go-proto-validators
-    url: github.com/mwitkow/go-proto-validators@v0.3.2
-    path: /go-proto-validators
-  - name: gogoproto
-    url: github.com/gogo/protobuf@v1.3.2/gogoproto
-    path: /gogoproto
+- name: google
+  url: github.com/googleapis/googleapis
+  path: /google
+  version: v0.0.0-20211008232417-177c62af7f18
+- name: protoc-gen-openapiv2
+  url: github.com/grpc-ecosystem/grpc-gateway/v2
+  path: /protoc-gen-openapiv2
+  version: v2.5.0
+- name: go-proto-validators
+  url: github.com/mwitkow/go-proto-validators
+  version: v0.3.2
+- name: gogoproto
+  url: github.com/gogo/protobuf
+  path: /gogoproto
+  version: v1.3.2
+- name: google/protobuf
+  url: /usr/local/include/google/protobuf
 plugins:
   go:
-    - paths=source_relative:.
-#  gofast:
-#    - Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types
-#    - paths=source_relative:.
-  grpc-gateway:
-#    - Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
-#    - Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
-#    - Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types
-#    - Mgoogle/api/annotations.proto=github.com/gogo/googleapis/google/api
-#    - Mgoogle/protobuf/field_mask.proto=github.com/gogo/protobuf/types
-    - paths=source_relative
-    - allow_repeated_fields_in_body=true:.
+  - paths=source_relative:protopb
   go-grpc:
-    - paths=source_relative
-    - require_unimplemented_servers=false:.
-  lug:
-    - rest=true
-    - paths=source_relative:.
-  openapiv2:
-    - logtostderr=true
-    - allow_repeated_fields_in_body=true
-    - repeated_path_param_separator=ssv:./docs/swagger
+  - paths=source_relative
+  - require_unimplemented_servers=false:protopb
   govalidators:
-    - paths=source_relative:.
+  - paths=source_relative:protopb
+  grpc-gateway:
+  - paths=source_relative
+  - allow_repeated_fields_in_body=true:protopb
+  lug:
+  - rest=true
+  - paths=source_relative:protopb
+  openapiv2:
+  - logtostderr=true
+  - allow_repeated_fields_in_body=true
+  - repeated_path_param_separator=ssv:./docs/swagger

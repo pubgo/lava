@@ -1,8 +1,7 @@
 package encoding
 
 import (
-	"github.com/pubgo/xerror"
+	"errors"
 )
 
-var Err = xerror.New(Name)
-var ErrNotFound = Err.New("key not found")
+var ErrNotFound = errors.New("encoding: key not found")

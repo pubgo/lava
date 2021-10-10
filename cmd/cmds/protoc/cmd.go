@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/emicklei/proto"
@@ -17,12 +18,15 @@ import (
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/pkg/cliutil"
 	"github.com/pubgo/lug/pkg/env"
 	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lug/pkg/modutil"
 	"github.com/pubgo/lug/pkg/shutil"
 )
 
@@ -30,33 +34,102 @@ func Cmd() *cobra.Command {
 	var protoRoot = "proto"
 	var protoCfg = ".lug/protobuf.yaml"
 
-	var cmd = &cobra.Command{
-		Use:   "protoc",
-		Short: "protobuf generation, configuration and management",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	var cmd = cliutil.Cmd(func(cmd *cobra.Command) {
+		cmd.Use = "protoc"
+		cmd.Short = "protobuf generation, configuration and management"
+		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+			defer xerror.RespExit()
+
+			xerror.Panic(pathutil.IsNotExistMkDir(protoPath))
+
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
-		},
-	}
 
-	cmd.Flags().StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
-	cmd.Flags().StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
+			// protobuf文件检查
+			for _, dep := range cfg.Depends {
+				xerror.Assert(dep.Name == "" || dep.Url == "", "name和url都不能为空")
+			}
+		}
+	})
+	cliutil.Flags(cmd, func(flags *pflag.FlagSet) {
+		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
+		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
+	})
 
 	cmd.AddCommand(
 		&cobra.Command{
+			Use:   "download",
+			Short: "下载缺失protobuf依赖并把版本信息写入配置文件",
+			Run: func(cmd *cobra.Command, args []string) {
+				defer xerror.RespExit()
+
+				var versions = modutil.LoadVersions()
+				for i, dep := range cfg.Depends {
+					var url = dep.Url
+
+					// 跳过本地指定的目录, url是绝对路径
+					if pathutil.IsDir(url) {
+						continue
+					}
+
+					var version = versions[url]
+					if version == "" {
+						version = dep.Version
+					}
+
+					// go.mod 中版本不存在, 就下载
+					if version == "" {
+						var list, err = gutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						xerror.Panic(err)
+
+						var _, name = filepath.Split(url)
+						for i := range list {
+							if strings.HasPrefix(list[i], name+"@") {
+								version = strings.TrimPrefix(list[i], name+"@")
+								break
+							}
+						}
+					}
+
+					if version == "" {
+						xerror.Panic(shutil.Bash("go", "get", "-d", url+"/...").Run())
+						var list, err = gutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						xerror.Panic(err)
+
+						var _, name = filepath.Split(url)
+						for i := range list {
+							if strings.HasPrefix(list[i], name+"@") {
+								version = strings.TrimPrefix(list[i], name+"@")
+								break
+							}
+						}
+						xerror.Assert(version == "", "version为空")
+					}
+
+					cfg.Depends[i].Version = version
+				}
+				xerror.Panic(ioutil.WriteFile(protoCfg, xerror.PanicBytes(yaml.Marshal(cfg)), 0755))
+			},
+		},
+
+		&cobra.Command{
 			Use: "gen",
 			Run: func(cmd *cobra.Command, args []string) {
-				var protoList = make(map[string]struct{})
+				defer xerror.RespExit()
+
+				var protoList sync.Map
 				xerror.Panic(fastwalk.FastWalk(protoRoot, func(path string, typ os.FileMode) error {
 					if typ.IsDir() {
 						return nil
 					}
 
-					protoList[filepath.Dir(path)] = struct{}{}
+					protoList.Store(filepath.Dir(path), struct{}{})
 					return nil
 				}))
 
-				for in := range protoList {
+				protoList.Range(func(key, _ interface{}) bool {
+					var in = key.(string)
+
 					var data = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
 					for name, out := range cfg.Plugins {
 						if len(out) > 0 {
@@ -66,8 +139,8 @@ func Cmd() *cobra.Command {
 					data = data + " " + filepath.Join(in, "*.proto")
 
 					xerror.Panic(shutil.Bash(data).Run(), data)
-					fmt.Print("\n\n")
-				}
+					return true
+				})
 
 				// 把生成的openapi嵌入到go代码
 				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
@@ -102,14 +175,10 @@ func Cmd() *cobra.Command {
 		&cobra.Command{
 			Use: "vendor",
 			Run: func(cmd *cobra.Command, args []string) {
-				_ = os.RemoveAll(protoPath)
+				defer xerror.RespExit()
 
-				// 迁移protobuf的默认文件
-				cfg.Depends = append(cfg.Depends, depend{
-					Name: "google/protobuf",
-					Url:  "/usr/local/include/google/protobuf",
-					Path: "",
-				})
+				// 删除老的protobuf文件
+				_ = os.RemoveAll(protoPath)
 
 				for _, dep := range cfg.Depends {
 					if dep.Name == "" || dep.Url == "" {
@@ -117,17 +186,24 @@ func Cmd() *cobra.Command {
 					}
 
 					var url = dep.Url
-					if gutil.DirExists(filepath.Join(modPath, url)) {
+					var version = dep.Version
+
+					// 加载版本
+					if version != "" {
+						url = fmt.Sprintf("%s@%s", url, version)
+					}
+
+					// 加载路径
+					url = filepath.Join(url, dep.Path)
+
+					if !gutil.DirExists(url) {
 						url = filepath.Join(modPath, url)
 					}
 
-					if !gutil.DirExists(url) {
-						continue
-					}
+					zap.S().Debug(url)
 
 					url = xerror.PanicStr(filepath.Abs(url))
-					zap.S().Debugw("proto url", "url", url)
-					var newUrl = filepath.Join(protoPath, dep.Path)
+					var newUrl = filepath.Join(protoPath, dep.Name)
 					xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) error {
 						if info.IsDir() {
 							return nil
@@ -150,6 +226,8 @@ func Cmd() *cobra.Command {
 		&cobra.Command{
 			Use: "api",
 			Run: func(cmd *cobra.Command, args []string) {
+				defer xerror.RespExit()
+
 				var (
 					Ctx       = context.Background()
 					Task      = make(chan struct{}, 1)

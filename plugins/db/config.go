@@ -8,23 +8,16 @@ import (
 
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 	"xorm.io/xorm"
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/runenv"
 )
 
 var Name = "db"
 var cfgList = make(map[string]*Cfg)
-var logs = zap.L()
-
-func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
-}
 
 type Cfg struct {
 	Debug       bool          `json:"debug" yaml:"debug"`
@@ -36,9 +29,7 @@ type Cfg struct {
 	Mapper      names.Mapper  `json:"-" yaml:"-"`
 }
 
-func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
-	defer xerror.RespErr(&err)
-
+func (cfg Cfg) Build() (_ *xorm.Engine) {
 	if strings.Contains(cfg.Driver, "sqlite") {
 		if !filepath.IsAbs(cfg.Source) {
 			cfg.Source = filepath.Join(config.Home, cfg.Source)
@@ -60,8 +51,9 @@ func (cfg Cfg) Build() (_ *xorm.Engine, err error) {
 		engine.Logger().SetLevel(xl.LOG_WARNING)
 		engine.ShowSQL(false)
 	}
+	xerror.Panic(engine.DB().Ping())
 
-	return engine, xerror.Wrap(engine.DB().Ping())
+	return engine
 }
 
 func DefaultCfg() *Cfg {

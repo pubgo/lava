@@ -73,7 +73,8 @@ func (p *Base) Health() func(ctx context.Context) error {
 	return p.OnHealth
 }
 
-func (p *Base) String() string { return p.Name }
+func (p *Base) String() string { return p.Descriptor }
+func (p *Base) Id() string     { return p.Name }
 func (p *Base) Init(ent Entry) error {
 	if p.OnInit == nil {
 		return nil

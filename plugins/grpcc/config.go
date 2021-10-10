@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
 	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
 	"github.com/pubgo/lug/plugins/registry"
@@ -115,7 +116,7 @@ type Cfg struct {
 	ConnectParams      connectParams                  `json:"connect_params"`
 	ClientParameters   clientParameters               `json:"client_parameters"`
 	Call               callParameters                 `json:"call"`
-	Middlewares        []types.Middleware             `json:"-"`
+	Middlewares        []string                       `json:"-"`
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
@@ -234,17 +235,27 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
 
-	var unaryInterceptors = append([]grpc.UnaryClientInterceptor{unaryInterceptor(t.Middlewares)}, t.UnaryInterceptors...)
+	var middlewares []types.Middleware
+	for _, name := range t.Middlewares {
+		var mid = plugin.Get(name).Middleware()
+		if mid == nil {
+			continue
+		}
+
+		middlewares = append(middlewares, plugin.Get(name).Middleware())
+	}
+
+	var unaryInterceptors = append([]grpc.UnaryClientInterceptor{unaryInterceptor(middlewares)}, t.UnaryInterceptors...)
 	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptors...))
 
-	var streamInterceptors = append([]grpc.StreamClientInterceptor{streamInterceptor(t.Middlewares)}, t.StreamInterceptors...)
+	var streamInterceptors = append([]grpc.StreamClientInterceptor{streamInterceptor(middlewares)}, t.StreamInterceptors...)
 	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptors...))
 	return opts
 }
 
 var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
-func getCfg(name string,opts ...func(cfg *Cfg)) *Cfg {
+func getCfg(name string, opts ...func(cfg *Cfg)) *Cfg {
 	if cfgMap[name] != nil {
 		return cfgMap[name]
 	}

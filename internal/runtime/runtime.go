@@ -130,8 +130,8 @@ func Run(description string, entries ...entry.Entry) {
 		// 注册plugin的command和flags
 		// 先注册全局, 后注册项目相关
 		xerror.TryThrow(func() {
-			entPlugins := plugin.List(plugin.Module(entRT.Options().Name))
-			for _, plg := range append(plugin.List(), entPlugins...) {
+			entPlugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
+			for _, plg := range entPlugins {
 				cmd.PersistentFlags().AddFlagSet(plg.Flags())
 				ent.Commands(plg.Commands())
 				entRT.MiddlewareInter(plg.Middleware())
@@ -145,15 +145,14 @@ func Run(description string, entries ...entry.Entry) {
 			runenv.Project = entRT.Options().Name
 
 			xerror.TryThrow(func() {
-				plugins := plugin.List(plugin.Module(runenv.Project))
-				plugins = append(plugin.List(), plugins...)
+				plugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
 				for _, plg := range plugins {
 
 					// 注册watcher
-					watcher.Watch(plg.String(), plg.Watch)
+					watcher.Watch(plg.Id(), plg.Watch)
 
 					// 注册debug
-					healthy.Register(plg.String(), plg.Health())
+					healthy.Register(plg.Id(), plg.Health())
 
 					// 注册vars
 					xerror.Panic(plg.Vars(vars.Watch))
@@ -167,8 +166,7 @@ func Run(description string, entries ...entry.Entry) {
 			xerror.Panic(watcher.Init())
 
 			// plugin初始化
-			plugins := plugin.List(plugin.Module(runenv.Project))
-			plugins = append(plugin.List(), plugins...)
+			plugins := plugin.ListWithDefault(plugin.Module(runenv.Project))
 			for _, plg := range plugins {
 				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
 			}
@@ -201,8 +199,8 @@ func Start(ent entry.Entry) {
 	opt := entRun.Options()
 	xerror.Assert(opt.Name == "", "[name] should not be empty")
 
-	entPlugins := plugin.List(plugin.Module(entRun.Options().Name))
-	for _, pl := range append(plugin.List(), entPlugins...) {
+	plugins := plugin.ListWithDefault(plugin.Module(entRun.Options().Name))
+	for _, pl := range plugins {
 		// 加载flag
 		_ = pl.Flags()
 	}
@@ -216,8 +214,6 @@ func Start(ent entry.Entry) {
 	xerror.Panic(entRun.InitRT())
 
 	// plugin初始化
-	plugins := plugin.List(plugin.Module(entRun.Options().Name))
-	plugins = append(plugin.List(), plugins...)
 	for _, pg := range plugins {
 		key := pg.String()
 		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)

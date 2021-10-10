@@ -27,11 +27,8 @@ type Client struct {
 	db *bolt.DB
 }
 
-func (t *Client) Close() error { return t.db.Close() }
-
-func (t *Client) Get() *bolt.DB {
-	return t.db
-}
+func (t *Client) Close() error  { return t.db.Close() }
+func (t *Client) Get() *bolt.DB { return t.db }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))

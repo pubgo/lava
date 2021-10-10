@@ -24,7 +24,7 @@ func init() {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("", pflag.PanicOnError)
-	flags.StringVarP(&CfgPath, "cfg", "c", CfgPath, "config path")
+	flags.StringVarP(&CfgPath, "config", "c", CfgPath, "config path")
 	return flags
 }
 
@@ -49,9 +49,7 @@ func initWithCfg(v *viper.Viper) bool {
 		return false
 	}
 
-	xerror.AssertFn(pathutil.IsNotExist(CfgPath), func() string {
-		return fmt.Sprintf("config file not found, path:%s", CfgPath)
-	})
+	xerror.Assert(pathutil.IsNotExist(CfgPath), "config file not found, path:%s", CfgPath)
 
 	v.SetConfigFile(CfgPath)
 

@@ -13,12 +13,10 @@ func init() {
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
 			_ = config.Decode(Name, &cfgMap)
-			for k := range cfgMap {
-				var cfg = cfgMap[k]
+			for name := range cfgMap {
 				var defCfg = DefaultCfg()
-				xerror.Panic(merge.Copy(&defCfg, &cfg))
-				cfgMap[k] = defCfg
-
+				xerror.Panic(merge.Copy(&defCfg, cfgMap[name]))
+				cfgMap[name] = defCfg
 			}
 		},
 	})

@@ -58,7 +58,7 @@ func (t *Entry) Plugin(plugins ...plugin.Plugin) {
 	defer xerror.RespExit()
 
 	for _, plg := range plugins {
-		xerror.Assert(plg == nil || plg.String() == "", "[plg] should not be nil")
+		xerror.Assert(plg == nil || plg.Id() == "", "[plg] should not be nil")
 		xerror.Assert(t.opts.Name == "", "please init project name first")
 		plugin.Register(plg, plugin.Module(t.opts.Name))
 	}

@@ -6,20 +6,12 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/client/v3"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/pkg/retry"
 )
 
 const Name = "etcdv3"
-
-var logs *zap.Logger
-
-func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
-}
 
 var cfgList = make(map[string]Cfg)
 
@@ -40,13 +32,12 @@ type Cfg struct {
 	backoff              retry.Handler
 }
 
-func (t Cfg) Build() (c *clientv3.Client, err error) {
-	defer xerror.RespErr(&err)
-
+func (t Cfg) Build() (c *clientv3.Client) {
 	var cfg clientv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
+	var err error
 	// 创建etcd client对象
 	xerror.PanicF(t.backoff.Do(func(i int) error {
 		c, err = clientv3.New(cfg)
@@ -56,8 +47,8 @@ func (t Cfg) Build() (c *clientv3.Client, err error) {
 	return
 }
 
-func GetDefaultCfg() Cfg {
-	return Cfg{
+func GetDefaultCfg() *Cfg {
+	return &Cfg{
 		backoff:     retry.New(),
 		DialTimeout: time.Second * 2,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},

@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"github.com/pubgo/lug/consts"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -33,7 +34,7 @@ type Cfg struct {
 
 func (t *Cfg) BuildOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
-	options.Timeout = time.Second * 2
+	options.Timeout = consts.DefaultTimeout
 	xerror.Panic(merge.CopyStruct(options, t))
 	return options
 }
@@ -50,8 +51,8 @@ func (t *Cfg) Build() *bolt.DB {
 
 func DefaultCfg() *Cfg {
 	return &Cfg{
-		Path:     "./db/superloop",
+		Path:     "./db/bolt",
 		FileMode: 0666,
-		Timeout:  time.Second,
+		Timeout:  consts.DefaultTimeout,
 	}
 }

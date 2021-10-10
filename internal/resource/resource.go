@@ -11,54 +11,62 @@ import (
 	"github.com/pubgo/lug/pkg/typex"
 )
 
-var sources typex.RwMap
+var sources typex.SMap
 
+// Remove 删除资源
 func Remove(kind string, name string) {
+	zap.S().Infof("delete resource, kind=>%s, name=>%s", kind, name)
 	check(kind, name)
-	sources.Del(join(kind, name))
+	sources.Delete(join(kind, name))
 }
 
+// Has 检查资源是否存在
 func Has(kind string, name string) bool {
 	check(kind, name)
 	return sources.Has(join(kind, name))
 }
 
+// Update 更新资源
 func Update(kind string, name string, srv Resource) {
-	defer xerror.Raise(Update)
-
 	check(kind, name)
 	xerror.Assert(srv == nil, "[srv] should not be nil")
 
+	zap.S().Infof("create or update resource, kind=>%s, name=>%s", kind, name)
+
 	var id = join(kind, name)
 	var oldClient, ok = sources.Load(id)
+
+	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		// 老客户端更新
-		zap.S().Infof("update old client, name=>%s", name)
+		zap.S().Infof("update resource, name=>%s", name)
 		oldClient.(*resourceWrap).srv = srv
 		return
 	}
 
-	zap.S().Infof("create new client, name=>%s", name)
+	// 资源不存在, 创建新资源
+	zap.S().Infof("create resource, name=>%s", name)
 
-	// 创建新客户端
 	var newClient = &resourceWrap{kind: kind, srv: srv}
 	sources.Set(id, newClient)
 
 	// 依赖注入
 	xerror.Panic(dix.Provider(map[string]interface{}{name: srv}))
 
-	// 当client被gc时, 关闭client
+	// 当resource被gc时, 关闭resource
 	runtime.SetFinalizer(newClient, func(cc Resource) {
-		zap.S().Infof("old client gc, name=>%s, id=>%p", name, cc)
-		if err := cc.Close(); err != nil {
-			zap.S().Error("old client close error",
+		defer xerror.Resp(func(err xerror.XErr) {
+			zap.S().Error("old resource close error",
 				zap.Any("name", name),
 				zap.Any("err", err),
 				zap.Any("err_msg", err.Error()))
-		}
+		})
+
+		xerror.Panic(cc.Close())
+		zap.S().Infof("old resource close ok, name=>%s, id=>%p", name, cc)
 	})
 }
 
+// Get 根据类型和名字获取一个资源
 func Get(kind string, name string) Resource {
 	check(kind, name)
 	var id = join(kind, name)
@@ -68,22 +76,41 @@ func Get(kind string, name string) Resource {
 	return nil
 }
 
-func GetByKind(kind string) []Resource {
+// GetByKind 通过资源类型获取资源列表
+func GetByKind(kind string) map[string]Resource {
 	check(kind, "check")
-	var ss []Resource
-	sources.Each(func(name string, val interface{}) {
+	var ss = make(map[string]Resource)
+	sources.Range(func(key, val interface{}) bool {
+		var name = key.(string)
 		if val.(*resourceWrap).kind == kind {
-			ss = append(ss, val.(*resourceWrap).srv)
+			ss[name] = val.(*resourceWrap).srv
 		}
+		return true
 	})
 	return ss
 }
 
+// GetOne 根据类型获取一个资源
+func GetOne(kind string) Resource {
+	check(kind, "check")
+	var ss Resource
+	sources.Range(func(_, val interface{}) bool {
+		if val.(*resourceWrap).kind == kind {
+			ss = val.(*resourceWrap).srv
+			return false
+		}
+		return true
+	})
+	return ss
+}
+
+// GetAllKind 获取所有的资源类型
 func GetAllKind() []string {
 	var ss []string
 	var set = make(map[string]struct{})
-	sources.Each(func(name string, val interface{}) {
+	sources.Range(func(_, val interface{}) bool {
 		set[val.(*resourceWrap).kind] = struct{}{}
+		return true
 	})
 
 	for k := range set {
@@ -98,6 +125,6 @@ func join(names ...string) string {
 
 func check(kind string, name string) {
 	if kind == "" || name == "" {
-		panic(xerror.Fmt("kind or name is null, [%s,%s]", kind, name))
+		xerror.Panic(ErrKindNull, "kind:", kind, "name:", name)
 	}
 }

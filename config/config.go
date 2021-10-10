@@ -19,7 +19,7 @@ var (
 	CfgType = "yaml"
 	CfgName = "config"
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lug")
-	CfgPath = ""
+	CfgPath = ".lug/config/config.yaml"
 	cfg     = &conf{v: viper.New()}
 )
 

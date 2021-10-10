@@ -76,10 +76,11 @@ require (
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.6.0
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.28
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.12
+	github.com/pubgo/xerror v0.4.13
 	github.com/pubgo/xlog v0.2.8
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
@@ -90,6 +91,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/http-swagger v1.1.1
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	github.com/tinylib/msgp v1.1.6
@@ -207,6 +209,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/panjf2000/ants/v2 v2.4.5 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
@@ -242,6 +245,7 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/api v0.21.1 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 	xorm.io/builder v0.3.7 // indirect

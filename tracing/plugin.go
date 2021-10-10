@@ -18,8 +18,7 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Base{
-		Name:         Name,
-		OnMiddleware: Middleware,
+		Name: Name,
 		OnInit: func(ent plugin.Entry) {
 			var cfg = GetDefaultCfg()
 			_ = config.Decode(Name, &cfg)
@@ -32,48 +31,47 @@ func init() {
 				xerror.Panic(cfg.Build())
 			})
 		},
+		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
+			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+				var tracer = opentracing.GlobalTracer()
+				if tracer == nil {
+					return xerror.Fmt("tracer is nil")
+				}
+
+				var (
+					span              opentracing.Span
+					err               error
+					parentSpanContext opentracing.SpanContext
+				)
+
+				if !req.Client() {
+					// 服务端tracing, 从header中解析链路信息
+					parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
+					if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
+						zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
+					}
+					span = opentracing.StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
+				} else {
+					// 客户端tracing, 从context获取span
+					span = opentracing.SpanFromContext(ctx)
+					if span != nil {
+						parentSpanContext = span.Context()
+					}
+
+					span = opentracing.StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanContext), ext.SpanKindRPCClient)
+					if err = tracer.Inject(span.Context(), opentracing.TextMap, textMapCarrier(req.Header())); err != nil {
+						zap.S().Errorf("opentracing: failed serializing trace information: %v", err)
+					}
+				}
+
+				var reqId = request_id.GetReqID(ctx)
+				span.SetTag(request_id.Name, reqId)
+
+				defer span.Finish()
+				err = next(opentracing.ContextWithSpan(ctx, span), req, resp)
+				SetIfErr(span, err)
+				return err
+			}
+		},
 	})
-}
-
-func Middleware(next types.MiddleNext) types.MiddleNext {
-	return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
-		var tracer = opentracing.GlobalTracer()
-		if tracer == nil {
-			return xerror.Fmt("tracer is nil")
-		}
-
-		var (
-			span              opentracing.Span
-			err               error
-			parentSpanContext opentracing.SpanContext
-		)
-
-		if !req.Client() {
-			// 服务端tracing, 从header中解析链路信息
-			parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
-			if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
-				zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
-			}
-			span = opentracing.StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
-		} else {
-			// 客户端tracing, 从context获取span
-			span = opentracing.SpanFromContext(ctx)
-			if span != nil {
-				parentSpanContext = span.Context()
-			}
-
-			span = opentracing.StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanContext), ext.SpanKindRPCClient)
-			if err = tracer.Inject(span.Context(), opentracing.TextMap, textMapCarrier(req.Header())); err != nil {
-				zap.S().Errorf("opentracing: failed serializing trace information: %v", err)
-			}
-		}
-
-		var reqId = request_id.GetReqID(ctx)
-		span.SetTag(request_id.Name, reqId)
-
-		defer span.Finish()
-		err = next(opentracing.ContextWithSpan(ctx, span), req, resp)
-		SetIfErr(span, err)
-		return err
-	}
 }

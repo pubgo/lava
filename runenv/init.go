@@ -11,7 +11,7 @@ import (
 // 默认的全局配置
 var (
 	Domain                 = "lug"
-	CatchSigpipe           = true
+	CatchSigpipe           = false
 	Block                  = true
 	Trace                  = false
 	Addr                   = ":8080"
@@ -36,9 +36,9 @@ func init() {
 
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVar(&DebugAddr, "da", DebugAddr, "debug addr")
+	flags.StringVarP(&Addr, "addr", "a", Addr, "server(http|grpc|ws|...) address")
+	flags.StringVar(&DebugAddr, "debug-addr", DebugAddr, "debug server address")
 	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
-	flags.StringVarP(&Addr, "addr", "a", Addr, "service address")
 	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
 	flags.StringVarP(&Level, "level", "l", Level, "log level(debug|info|warn|error|panic|fatal)")
 	flags.BoolVar(&CatchSigpipe, "catch-sigpipe", CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")

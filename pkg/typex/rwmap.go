@@ -67,6 +67,17 @@ func (t *RwMap) Each(fn func(name string, val interface{})) {
 	}
 }
 
+func (t *RwMap) Range(fn func(name string, val interface{}) bool) {
+	t.rw.RLock()
+	defer t.rw.RUnlock()
+
+	for k, v := range t.data {
+		if !fn(k, v) {
+			break
+		}
+	}
+}
+
 func (t *RwMap) Set(key string, val interface{}) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
@@ -74,7 +85,7 @@ func (t *RwMap) Set(key string, val interface{}) {
 	if t.data == nil {
 		t.data = make(map[string]interface{}, 8)
 	}
-	
+
 	t.data[key] = val
 }
 

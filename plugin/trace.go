@@ -12,7 +12,7 @@ func init() {
 		var data typex.Map
 		for k, v := range All() {
 			for i := range v {
-				data.Set(fmt.Sprintf("%s.%s", k, v[i].String()), v[i])
+				data.Set(fmt.Sprintf("%s.%s", k, v[i].Id()), v[i])
 			}
 		}
 		return data.Map()

@@ -6,8 +6,8 @@ import (
 )
 
 // cfgMerge 合并etcd Cfg
-func cfgMerge(cfg Cfg) (cfg1 Cfg, err error) {
-	cfg1 = GetDefaultCfg()
-	err = xerror.WrapF(merge.Copy(&cfg1, &cfg), "config merge error")
-	return
+func cfgMerge(cfg Cfg) *Cfg {
+	cfg1 := GetDefaultCfg()
+	xerror.Panic(merge.Copy(cfg1, &cfg), "config merge error")
+	return cfg1
 }

@@ -2,10 +2,13 @@ package debug
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/pkg/browser"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lug/logger"
@@ -17,8 +20,12 @@ import (
 )
 
 func init() {
+	var openWeb bool
 	plugin.Register(&plugin.Base{
 		Name: Name,
+		OnFlags: func(flags *pflag.FlagSet) {
+			flags.BoolVar(&openWeb, "web", openWeb, "open web browser")
+		},
 		OnInit: func(ent plugin.Entry) {
 			serveMux := mux.GetDefaultServeMux()
 			for k, v := range serveMux.M {
@@ -36,6 +43,11 @@ func init() {
 					}
 					zap.L().Info("Server [debug] Closed OK")
 				})
+				if openWeb {
+					fx.Go(func(ctx context.Context) {
+						xerror.Panic(browser.OpenURL(fmt.Sprintf("http://localhost:%s",gutil.GetPort(runenv.DebugAddr))))
+					})
+				}
 			})
 
 			ent.BeforeStop(func() {

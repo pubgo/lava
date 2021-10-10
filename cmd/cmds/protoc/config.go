@@ -5,9 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
-
 	"github.com/pubgo/lug/pkg/env"
 )
 
@@ -21,10 +18,6 @@ var colorSuccess = color.New(color.FgHiGreen)
 var colorInfo = color.New(color.FgHiGreen)
 var colorError = color.New(color.FgHiRed)
 
-func init() {
-	xerror.Panic(pathutil.IsNotExistMkDir(protoPath))
-}
-
 var cfg Cfg
 
 type Cfg struct {
@@ -34,9 +27,10 @@ type Cfg struct {
 }
 
 type depend struct {
-	Name string `yaml:"name,omitempty"`
-	Url  string `yaml:"url,omitempty"`
-	Path string `yaml:"path,omitempty"`
+	Name    string `yaml:"name,omitempty"`
+	Url     string `yaml:"url,omitempty"`
+	Path    string `yaml:"path,omitempty"`
+	Version string `yaml:"version,omitempty"`
 }
 
 type plugin struct {

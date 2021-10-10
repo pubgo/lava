@@ -25,6 +25,7 @@ type Entry interface {
 
 type Plugin interface {
 	String() string
+	Id() string
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	Init(ent Entry) error
