@@ -2865,7 +2865,7 @@
   },
   "externalDocs": {
     "description": "生成随机id",
-    "url": "https://github.com/pubgo/lug/tree/master/example/gid"
+    "url": "https://github.com/pubgo/lava/tree/master/example/gid"
   },
   "x-grpc-gateway-baz-list": [
     "one",

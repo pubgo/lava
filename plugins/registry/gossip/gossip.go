@@ -16,10 +16,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/mitchellh/hashstructure"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/plugins/registry"
-	pb "github.com/pubgo/lug/plugins/registry/gossip/proto"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/registry"
+	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
+	"github.com/pubgo/lava/types"
 	"go.uber.org/zap"
 )
 

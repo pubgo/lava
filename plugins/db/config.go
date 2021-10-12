@@ -12,8 +12,8 @@ import (
 	xl "xorm.io/xorm/log"
 	"xorm.io/xorm/names"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/runenv"
 )
 
 var Name = "db"

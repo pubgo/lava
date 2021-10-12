@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/pubgo/lug/pkg/ctxutil"
+	"github.com/pubgo/lava/pkg/ctxutil"
 )
 
 // serviceFromMethod returns the service

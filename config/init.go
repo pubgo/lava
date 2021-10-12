@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/pubgo/lug/pkg/env"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/runenv"
 )
 
 func init() {
@@ -75,7 +75,7 @@ func initWithDir(v *viper.Viper) (err error) {
 		return filepath.Join(str, "."+runenv.Project, CfgName)
 	})
 
-	pathList = typex.StrOf(filepath.Join(".lug", CfgName), pathList...)
+	pathList = typex.StrOf(filepath.Join(".lava", CfgName), pathList...)
 	for i := range pathList {
 		if addConfigPath(v, pathList[i]) {
 			return

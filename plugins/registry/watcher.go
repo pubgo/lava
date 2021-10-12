@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 
 	"time"
 )

@@ -11,22 +11,22 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/healthy"
-	v "github.com/pubgo/lug/internal/cmds/version"
-	"github.com/pubgo/lug/internal/luglog"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/vars"
-	"github.com/pubgo/lug/version"
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/healthy"
+	v "github.com/pubgo/lava/internal/cmds/version"
+	"github.com/pubgo/lava/internal/logs"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/vars"
+	"github.com/pubgo/lava/version"
+	"github.com/pubgo/lava/watcher"
 )
 
 const name = "runtime"
 
-var logs = luglog.Named(name)
+var log = logs.Named(name)
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
@@ -40,7 +40,7 @@ func handleSignal() {
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		go func() {
 			<-sigChan
-			logs.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
+			log.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
 			signal.Ignore(syscall.SIGPIPE)
 		}()
 	}
@@ -52,48 +52,48 @@ func handleSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runenv.Signal = <-ch
-	logs.Infof("signal [%s] trigger", runenv.Signal.String())
+	log.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Info("before-start running")
+	log.Info("before-start running")
 	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range beforeList {
 		xerror.PanicF(xerror.Try(beforeList[i]), "before start error: %s", stack.Func(beforeList[i]))
 	}
-	logs.Info("before-start over")
+	log.Info("before-start over")
 
 	xerror.Panic(ent.Start())
 
-	logs.Info("after-start running")
+	log.Info("after-start running")
 	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range afterList {
 		xerror.PanicF(xerror.Try(afterList[i]), "after start error: %s", stack.Func(afterList[i]))
 	}
-	logs.Info("after-start over")
+	log.Info("after-start over")
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Infof("service [%s] before-stop running", ent.Options().Name)
+	log.Infof("service [%s] before-stop running", ent.Options().Name)
 	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range beforeList {
 		logger.Logs(beforeList[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(beforeList[i]))))
 	}
-	logs.Infof("service [%s] before-stop over", ent.Options().Name)
+	log.Infof("service [%s] before-stop over", ent.Options().Name)
 
 	xerror.Panic(ent.Stop())
 
-	logs.Infof("service [%s] after-stop running", ent.Options().Name)
+	log.Infof("service [%s] after-stop running", ent.Options().Name)
 	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range afterList {
 		logger.Logs(afterList[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(afterList[i]))))
 	}
-	logs.Infof("service [%s] after-stop over", ent.Options().Name)
+	log.Infof("service [%s] after-stop over", ent.Options().Name)
 	return nil
 }
 

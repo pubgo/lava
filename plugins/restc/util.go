@@ -1,7 +1,7 @@
 package restc
 
 import (
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/x/byteutil"
 )
 

@@ -1,0 +1,151 @@
+app:
+  project: "lava"
+  name: "lava"
+  version: "v0.0.1"
+  home: ""
+  debug: true
+  watcher: false
+watcher:
+  driver: "noop"
+  name: "default"
+recovery:
+  enabled: true
+mux:
+  debug: true
+task_entry:
+  enabled: true
+  broker: "nsq"
+  consumers:
+    - driver: nsq
+      name: default
+rest_entry:
+  enabled: true
+  prefork: false
+  server_header: ""
+  strict_routing: false
+  case_sensitive: false
+  immutable: false
+  unescape_path: false
+  etag: false
+  body_limit: 4194304
+  concurrency: 262144
+  read_timeout: 0
+  write_timeout: 0
+  idle_timeout: 0
+  read_buffer_size: 4096
+  write_buffer_size: 4096
+  compressed_file_suffix: .fiber.gz
+  proxy_header: ''
+  get_only: false
+  disable_keepalive: false
+  disable_default_date: false
+  disable_default_content_type: false
+  disable_header_normalizing: false
+  disable_startup_message: true
+  reduce_memory_usage: false
+  views:
+    dir: ""
+    ext: ".html"
+ws:
+  enabled: true
+  configs:
+    default:
+      origins: ["*"]
+redis:
+  enabled: true
+  codis:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisSale:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisApiBusinessTwo:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redlock_0:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+mongodb:
+  enabled: true
+  default:
+    url: "mongodb://localhost:8080"
+nsq:
+  default:
+    address: "localhost:4150"
+    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+  test_shanghai:
+    address: "localhost:4150"
+    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+http:
+  test: ""
+
+db:
+  default:
+    driver: "sqlite3x"
+    source: "./db/sqlite.db"
+
+registry:
+  driver: "mdns"
+  ttl: "5s"
+tracing:
+  driver: "jaeger"
+  serviceName: "test"
+  disabled: true
+
+metric:
+  driver: "prometheus"
+  path: "/etcd"
+
+logger:
+  level: debug
+  development: true
+  disableCaller: false
+  disableStacktrace: true
+  encoding: console
+  encoderConfig:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: 'N'
+    callerKey: C
+    stacktraceKey: S
+    levelEncoder: capitalColor
+    timeEncoder: "2006-01-02 15:04:05"
+    durationEncoder: string
+    callerEncoder: full
+  outputPaths:
+    - stderr
+  errorOutputPaths:
+    - stderr
+  filterSuffix:
+    - "--grpc-component"
+  #initialFields:
+  #  name: test
+grpc_entry:
+  write_buffer_size: 1024
+  read_buffer_size: 1024
+  initial_window_size: 1
+  initial_conn_window_size: 1
+  keepalive_params:
+    max_connection_idle: 1s
+    max_connection_age: 2s
+    max_connection_age_grace: 2s
+    time: 1s
+    timeout: 1s
+  keepalive_policy:
+    permit_without_stream: true
+    min_time: 1s
+  codec: json
+  cp: gzip
+  dc: gzip
+  max_receive_message_size: 1
+  max_send_message_size: 1
+  max_concurrent_streams: 1
+  creds: tls
+  connection_timeout: 2s
+  max_header_list_size: 2
+  header_table_size: 1

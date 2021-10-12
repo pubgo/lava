@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/pkg/fastrand"
+	"github.com/pubgo/lava/pkg/fastrand"
 )
 
 var Discard = zap.NewNop()

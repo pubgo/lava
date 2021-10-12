@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/x/byteutil"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 var _ types.Response = (*httpResponse)(nil)

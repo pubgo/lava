@@ -4,8 +4,8 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/plugin"
 )
 
 func init() { plugin.Register(&plg) }

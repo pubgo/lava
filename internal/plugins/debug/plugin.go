@@ -3,23 +3,23 @@ package debug
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lug/internal/luglog"
+	"github.com/pubgo/lava/internal/logs"
 	"net/http"
 
 	"github.com/pkg/browser"
-	"github.com/pubgo/lug/debug"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/pkg/gutil"
-	"github.com/pubgo/lug/pkg/netutil"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 )
 
 func init() {
-	var logs=luglog.Named(debug.Name)
+	var logs= logs.Named(debug.Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{

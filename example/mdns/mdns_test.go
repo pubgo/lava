@@ -12,7 +12,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	server, err := zeroconf.RegisterProxy("t1", "t", "lug.local.", 1234, "kkk", []string{"127.0.0.1"}, []string{"hello1"}, nil)
+	server, err := zeroconf.RegisterProxy("t1", "t", "lava.local.", 1234, "kkk", []string{"127.0.0.1"}, []string{"hello1"}, nil)
 	xerror.Panic(err)
 	_ = server
 	q.Q(server)

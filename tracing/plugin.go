@@ -9,12 +9,12 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/pkg/fastrand"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/plugins/request_id"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/pkg/fastrand"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/request_id"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

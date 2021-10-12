@@ -8,18 +8,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/pubgo/lug/pkg/ctxutil"
-	"github.com/pubgo/lug/pkg/k8s"
-	"github.com/pubgo/lug/plugins/registry"
+	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/pkg/k8s"
+	"github.com/pubgo/lava/plugins/registry"
 )
 
 // Defines the key name of specific fields
-// lug needs to cooperate with the following fields to run properly on Kubernetes:
-// lug-service-id: define the ID of the service
-// lug-service-app: define the name of the service
-// lug-service-version: define the version of the service
-// lug-service-metadata: define the metadata of the service
-// lug-service-protocols: define the protocols of the service
+// lava needs to cooperate with the following fields to run properly on Kubernetes:
+// lava-service-id: define the ID of the service
+// lava-service-app: define the name of the service
+// lava-service-version: define the version of the service
+// lava-service-metadata: define the metadata of the service
+// lava-service-protocols: define the protocols of the service
 //
 // Example Deployment:
 //
@@ -38,13 +38,13 @@ import (
 //    metadata:
 //      labels:
 //        app: nginx
-//        lug-service-id: "56991810-c77f-4a95-8190-393efa9c1a61"
-//        lug-service-app: "nginx"
-//        lug-service-version: "v3.5.0"
+//        lava-service-id: "56991810-c77f-4a95-8190-393efa9c1a61"
+//        lava-service-app: "nginx"
+//        lava-service-version: "v3.5.0"
 //      annotations:
-//        lug-service-protocols: |
+//        lava-service-protocols: |
 //          {"80": "http"}
-//        lug-service-metadata: |
+//        lava-service-metadata: |
 //          {"region": "sh", "zone": "sh001", "cluster": "pd"}
 //    spec:
 //      containers:
@@ -55,17 +55,17 @@ import (
 
 const (
 	// LabelsKeyServiceID is used to define the ID of the service
-	LabelsKeyServiceID = "lug-service-id"
+	LabelsKeyServiceID = "lava-service-id"
 	// LabelsKeyServiceName is used to define the name of the service
-	LabelsKeyServiceName = "lug-service-app"
+	LabelsKeyServiceName = "lava-service-app"
 	// LabelsKeyServiceVersion is used to define the version of the service
-	LabelsKeyServiceVersion = "lug-service-version"
+	LabelsKeyServiceVersion = "lava-service-version"
 	// AnnotationsKeyMetadata is used to define the metadata of the service
-	AnnotationsKeyMetadata = "lug-service-metadata"
+	AnnotationsKeyMetadata = "lava-service-metadata"
 	// AnnotationsKeyProtocolMap is used to define the protocols of the service
-	// Through the value of this field, lug can obtain the application layer protocol corresponding to the port
+	// Through the value of this field, lava can obtain the application layer protocol corresponding to the port
 	// Example value: {"80": "http", "8081": "grpc"}
-	AnnotationsKeyProtocolMap = "lug-service-protocols"
+	AnnotationsKeyProtocolMap = "lava-service-protocols"
 )
 
 func init() {

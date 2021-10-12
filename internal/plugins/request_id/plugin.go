@@ -6,9 +6,9 @@ import (
 
 	"github.com/segmentio/ksuid"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 const Name = "request_id"

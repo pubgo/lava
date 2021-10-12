@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lava/logger"
 )
 
 var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)

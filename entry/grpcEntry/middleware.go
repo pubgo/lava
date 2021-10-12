@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/xerror"

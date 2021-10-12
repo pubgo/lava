@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 func init() {

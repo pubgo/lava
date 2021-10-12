@@ -1,6 +1,6 @@
 WORKDIR=`pwd`
-Domain=lugo
-VersionBase=github.com/pubgo/lug/example/gid
+Domain=lava
+VersionBase=github.com/pubgo/lava/example/gid
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=8 HEAD)
@@ -26,14 +26,14 @@ ci:
 	@golangci-lint run -v --timeout=5m
 
 proto-gen:
-	debug=1 lug protoc gen
+	debug=1 lava protoc gen
 
 proto-rm:
 	@rm -rf proto/**/*.go
 
 proto-vendor:
-	lug protoc vendor
-	lug protoc ls
+	lava protoc vendor
+	lava protoc ls
 
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html

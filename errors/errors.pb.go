@@ -120,7 +120,7 @@ func file_errors_proto_rawDescGZIP() []byte {
 
 var file_errors_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_errors_proto_goTypes = []interface{}{
-	(*Error)(nil), // 0: lug.errors.Error
+	(*Error)(nil), // 0: lava.errors.Error
 }
 var file_errors_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type

@@ -18,8 +18,8 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lug")
-	CfgPath = ".lug/config/config.yaml"
+	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lava")
+	CfgPath = ".lava/config/config.yaml"
 	cfg     = &conf{v: viper.New()}
 )
 

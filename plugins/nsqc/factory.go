@@ -1,9 +1,9 @@
 package nsqc
 
 import (
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/pkg/typex"
 
 	"github.com/pubgo/xerror"
 

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/xgen"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/xgen"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/x/byteutil"

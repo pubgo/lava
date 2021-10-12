@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 func (t *restEntry) handlerLugMiddle(middlewares []types.Middleware) func(fbCtx *fiber.Ctx) error {

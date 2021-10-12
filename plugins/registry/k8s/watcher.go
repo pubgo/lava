@@ -9,9 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/pubgo/lug/pkg/k8s"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/pkg/k8s"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)

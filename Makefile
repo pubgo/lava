@@ -1,6 +1,6 @@
 WORKDIR=`pwd`
-Domain=lugo
-VersionBase=github.com/pubgo/lug
+Domain=lava
+VersionBase=github.com/pubgo/lava
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=8 HEAD)
@@ -16,12 +16,12 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	@go build ${LDFLAGS} -mod vendor -tags trace -v -o main cmd/lug/main.go
+	@go build ${LDFLAGS} -mod vendor -tags trace -v -o main cmd/lava/main.go
 
 .PHONY: install
 install:
-	@go build ${LDFLAGS} -mod vendor -tags trace -o lug -v cmd/lug/*.go
-	@mv lug ${GOPATH}/bin/lug
+	@go build ${LDFLAGS} -mod vendor -tags trace -o lava -v cmd/lava/*.go
+	@mv lava ${GOPATH}/bin/lava
 
 build_hello_test:
 	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
@@ -38,23 +38,23 @@ proto-gen:
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
 	rm -rf example/proto/login/*.json
-	lug protoc ls
-	lug protoc gen
+	lava protoc ls
+	lava protoc gen
 
 proto-vendor:
 	rm -rf example/proto/hello/*.go
 	rm -rf example/proto/hello/*.json
 	rm -rf example/proto/login/*.go
 	rm -rf example/proto/login/*.json
-	lug protoc vendor-rm
-	lug protoc vendor
-	lug protoc ls
-	lug protoc gen
+	lava protoc vendor-rm
+	lava protoc vendor
+	lava protoc ls
+	lava protoc gen
 
 
 .PHONY: gen
 proto-plugin-gen:
-	cd cmd/protoc-gen-lug && go install .
+	cd cmd/protoc-gen-lava && go install .
 
 .PHONY: example
 example:

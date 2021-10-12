@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
 
-	"github.com/pubgo/lug/pkg/env"
-	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/gutil"
 )
 
 func getFileByRecursion(file string, path string) string {

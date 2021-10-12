@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pubgo/lug/plugins/db/sqlite"
+	"github.com/pubgo/lava/plugins/db/sqlite"
 	"github.com/pubgo/xerror"
 )
 

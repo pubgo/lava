@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/xgen"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/xgen"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"

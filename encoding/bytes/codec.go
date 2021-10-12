@@ -3,7 +3,7 @@ package bytes
 import (
 	"reflect"
 
-	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/xerror"
 )
 

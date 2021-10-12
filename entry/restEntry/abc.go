@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lava/entry"
 )
 
 type Handler = fiber.Handler

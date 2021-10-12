@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 const Name = "plugin"

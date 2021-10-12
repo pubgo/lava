@@ -5,7 +5,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/pubgo/lug/version"
+	"github.com/pubgo/lava/version"
 
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"

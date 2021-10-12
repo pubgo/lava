@@ -20,10 +20,10 @@ func main() {
 	pkgs, err := packages.Load(cfg, flag.Args()...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load: %v\n", err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	// Print the names of the source files

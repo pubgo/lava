@@ -4,19 +4,19 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/pubgo/lug/pkg/env"
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/spf13/pflag"
 )
 
 // 默认的全局配置
 var (
-	Domain                 = "lug"
+	Domain                 = "lava"
 	CatchSigpipe           = false
 	Block                  = true
 	Trace                  = false
 	Addr                   = ":8080"
 	DebugAddr              = ":8081"
-	Project                = "lug"
+	Project                = "lava"
 	Level                  = "debug"
 	Mode                   = "dev"
 	Signal       os.Signal = syscall.Signal(0)

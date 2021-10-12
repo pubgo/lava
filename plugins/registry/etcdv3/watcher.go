@@ -6,9 +6,9 @@ import (
 
 	clientV3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/pubgo/lug/plugins/etcdv3"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/plugins/etcdv3"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 type Watcher struct {

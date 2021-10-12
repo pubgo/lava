@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 
 	"github.com/afex/hystrix-go/hystrix"
 )

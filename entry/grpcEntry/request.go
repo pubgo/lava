@@ -1,8 +1,8 @@
 package grpcEntry
 
 import (
-	"github.com/pubgo/lug/encoding"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/encoding"
+	"github.com/pubgo/lava/types"
 
 	"google.golang.org/grpc"
 )

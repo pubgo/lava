@@ -1,7 +1,7 @@
 package msgpack
 
 import (
-	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lava/encoding"
 	msgpack "github.com/vmihailenco/msgpack/v5"
 )
 

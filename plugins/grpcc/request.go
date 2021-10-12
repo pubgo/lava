@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 var _ types.Request = (*request)(nil)

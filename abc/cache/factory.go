@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/typex"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"

@@ -9,16 +9,16 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
-	"github.com/pubgo/lug/pkg/gutil"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/runenv"
 )
 
 var Cmd = &cobra.Command{
 	Use:   "health",
 	Short: "health check",
 	Example: gutil.ExampleFmt(
-		"lug health",
-		"lug health localhost:8081",
+		"lava health",
+		"lava health localhost:8081",
 	),
 	Run: func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()

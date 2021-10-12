@@ -1,7 +1,7 @@
 //go:build tools
 // +build tools
 
-package lug
+package lava
 
 import (
 	_ "github.com/favadi/protoc-go-inject-tag"

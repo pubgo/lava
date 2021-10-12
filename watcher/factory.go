@@ -3,9 +3,9 @@ package watcher
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/types"
 )
 
 type Factory func(cfg typex.M) (Watcher, error)

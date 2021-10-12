@@ -2,21 +2,21 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/lava/entry/grpcEntry"
 
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lug"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/example/gid/grpc_entry/handler"
-	"github.com/pubgo/lug/healthy"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/example/gid/grpc_entry/handler"
+	"github.com/pubgo/lava/healthy"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/types"
 )
 
 var name = "test-grpc"
 
 func GetEntry() entry.Entry {
-	ent := lug.NewGrpc(name)
+	ent := grpcEntry.New(name)
 	ent.Description("entry grpc test")
 	ent.Register(handler.NewTestAPIHandler())
 	ent.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {

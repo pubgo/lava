@@ -11,8 +11,8 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/types"
 )
 
 type Cfg struct {

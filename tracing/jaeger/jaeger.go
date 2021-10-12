@@ -11,9 +11,9 @@ import (
 	"github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-lib/metrics/prometheus"
 
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/tracing"
-	"github.com/pubgo/lug/tracing/jaeger/reporter"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/tracing"
+	"github.com/pubgo/lava/tracing/jaeger/reporter"
 )
 
 var _ = jaeger.NewNullReporter()

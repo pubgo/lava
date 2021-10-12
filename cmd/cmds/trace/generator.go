@@ -43,7 +43,7 @@ func rewrite(filename string, del bool) ([]byte, error) {
 	} else {
 		pkgImport = astutil.AddImport
 	}
-	pkgImport(fileSet, oldAST, "github.com/pubgo/lug/pkg/functrace")
+	pkgImport(fileSet, oldAST, "github.com/pubgo/lava/pkg/functrace")
 
 	// inject code into each function declaration
 	addDeferTraceIntoFuncDec(oldAST, del)

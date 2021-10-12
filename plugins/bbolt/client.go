@@ -8,9 +8,9 @@ import (
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/internal/resource"
-	"github.com/pubgo/lug/tracing"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/resource"
+	"github.com/pubgo/lava/tracing"
 )
 
 func Get(name ...string) *Client {

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/lug/version"
+	"github.com/pubgo/lava/version"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -20,9 +20,9 @@ var Cmd = &cobra.Command{
 	Aliases: typex.StrOf("v"),
 	Short:   "Print the dependency package information",
 	Example: trim(`
-lug version
-lug version json
-lug version t`),
+lava version
+lava version json
+lava version t`),
 	Run: func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()
 

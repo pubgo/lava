@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 	"gopkg.in/yaml.v2"
 
-	"github.com/pubgo/lug/errors"
+	"github.com/pubgo/lava/errors"
 )
 
 func Decode(data []byte, c interface{}) (err error) {

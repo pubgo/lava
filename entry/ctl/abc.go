@@ -5,7 +5,7 @@ import (
 
 	"github.com/pubgo/x/fx"
 
-	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lava/entry"
 )
 
 type Handler func(fx.Ctx)

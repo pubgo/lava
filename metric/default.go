@@ -3,7 +3,7 @@ package metric
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lava/logger"
 )
 
 var defaultScope Scope

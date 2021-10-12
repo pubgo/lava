@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/pubgo/lug/internal/luglog"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/internal/logs"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -84,7 +84,7 @@ func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 		return
 	}
 
-	luglog.Named(Name).Infof("plugin [%s] watch init", p.Name)
+	logs.Named(Name).Infof("plugin [%s] watch init", p.Name)
 	return xerror.Try(func() { p.OnWatch(name, r) })
 }
 

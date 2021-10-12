@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/pkg/modutil"
+	"github.com/pubgo/lava/pkg/modutil"
 )
 
 func main() {

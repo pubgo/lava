@@ -2,7 +2,7 @@ package json
 
 import (
 	json "github.com/json-iterator/go"
-	"github.com/pubgo/lug/encoding"
+	"github.com/pubgo/lava/encoding"
 )
 
 var (

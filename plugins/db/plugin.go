@@ -6,11 +6,11 @@ import (
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm/schemas"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/internal/resource"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/internal/resource"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

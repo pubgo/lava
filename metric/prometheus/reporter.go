@@ -7,8 +7,8 @@ import (
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/metric"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/metric"
 )
 
 const Name = "prometheus"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 const name = "recovery"

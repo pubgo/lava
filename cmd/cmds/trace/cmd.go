@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/pubgo/lug/pkg/gutil"
+	"github.com/pubgo/lava/pkg/gutil"
 )
 
 func Cmd() *cobra.Command {
@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "trace",
 		Short:   "func trace",
-		Example: gutil.ExampleFmt(`lug trace path`),
+		Example: gutil.ExampleFmt(`lava trace path`),
 		Run: func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
 

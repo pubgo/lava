@@ -1,9 +1,9 @@
 package entry
 
 import (
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/entry/grpcEntry"
-	"github.com/pubgo/lug/example/gid/handler"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/entry/grpcEntry"
+	"github.com/pubgo/lava/example/gid/handler"
 )
 
 func Gid() entry.Entry {

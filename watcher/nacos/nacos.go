@@ -10,10 +10,10 @@ import (
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/plugins/nacos"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugins/nacos"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

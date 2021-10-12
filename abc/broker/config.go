@@ -1,7 +1,7 @@
 package broker
 
 import (
-	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lava/config"
 
 	"github.com/pubgo/xerror"
 )

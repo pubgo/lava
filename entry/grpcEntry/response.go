@@ -3,7 +3,7 @@ package grpcEntry
 import (
 	"encoding/json"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 
 	"google.golang.org/grpc"
 )

@@ -3,9 +3,9 @@ package bbolt
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/internal/resource"
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/internal/resource"
+	"github.com/pubgo/lava/plugin"
 )
 
 func init() {

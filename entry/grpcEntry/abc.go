@@ -3,7 +3,7 @@ package grpcEntry
 import (
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lava/entry"
 )
 
 type options struct{}

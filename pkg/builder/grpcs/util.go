@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	enc "github.com/pubgo/lug/encoding"
-	"github.com/pubgo/lug/xgen"
+	enc "github.com/pubgo/lava/encoding"
+	"github.com/pubgo/lava/xgen"
 )
 
 func EnableHealth(srv string, s *grpc.Server) {

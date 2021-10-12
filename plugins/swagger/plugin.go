@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/xerror"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	"github.com/pubgo/lug/debug"
+	"github.com/pubgo/lava/debug"
 )
 
 func Init(names func() []string, asset func(name string) []byte) {

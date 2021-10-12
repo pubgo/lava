@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var sources typex.SMap

@@ -10,9 +10,9 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
 
-	"github.com/pubgo/lug/errors"
-	"github.com/pubgo/lug/example/gid/protopb/proto/gid"
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/example/gid/protopb/proto/gid"
+	"github.com/pubgo/lava/logger"
 )
 
 var _ gid.IdServer = (*Id)(nil)

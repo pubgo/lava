@@ -3,7 +3,7 @@ package watcher
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lava/config"
 )
 
 const Name = "watcher"

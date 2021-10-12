@@ -1,7 +1,7 @@
 package bbolt
 
 import (
-	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lava/consts"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/lug/config"
+	"github.com/pubgo/lava/config"
 )
 
 const Name = "bbolt"

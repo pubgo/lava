@@ -5,7 +5,7 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava/plugin"
 )
 
 func init() {

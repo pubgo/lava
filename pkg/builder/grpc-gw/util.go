@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lug/xgen"
+	"github.com/pubgo/lava/xgen"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 )

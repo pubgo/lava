@@ -4,8 +4,8 @@ import (
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 type Factory func(cfg map[string]interface{}) (Broker, error)

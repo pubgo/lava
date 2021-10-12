@@ -3,7 +3,7 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 type (

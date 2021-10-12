@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/pubgo/lug"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/plugin"
 )
 
 var name = "test-ctl"

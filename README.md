@@ -1,4 +1,4 @@
-# [lug](https://www.notion.so/barrylog/golug-96142de3b0444b6c905886efac96eeb0)
+# [lava](https://www.notion.so/barrylog/lava-96142de3b0444b6c905886efac96eeb0)
 
 1. protoc
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip
@@ -9,14 +9,14 @@
     go install -v github.com/vektra/mockery/cmd/mockery
 
 1. 配置管理
-1. golug是一个高度抽象和集成的微服务框架
-2. golug集成了config, log, command, plugin, grpc, http(fiber), task, broker等组件
-3. golug使用方便, 统一入口
-4. golug把http, grpc等server抽象成统一的entry, 统一使用习惯
-5. golug统一运行入口, 让多个服务同时集成和运行
-6. golug对grpc的protobuf进行定制处理, 让grpc server register更加方便
-7. golug 抽象plugin, 跟随config的动态化加载,
-8. golug config和watcher分离, config从本地文件加载, watcher可以从远程的任何的组件watch, 比如etcd
+1. lava是一个高度抽象和集成的微服务框架
+2. lava集成了config, log, command, plugin, grpc, http(fiber), task, broker等组件
+3. lava使用方便, 统一入口
+4. lava把http, grpc等server抽象成统一的entry, 统一使用习惯
+5. lava统一运行入口, 让多个服务同时集成和运行
+6. lava对grpc的protobuf进行定制处理, 让grpc server register更加方便
+7. lava抽象plugin, 跟随config的动态化加载,
+8. lava config和watcher分离, config从本地文件加载, watcher可以从远程的任何的组件watch, 比如etcd
 
 
 ## 功能特性
@@ -37,8 +37,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/golug"
-	"github.com/pubgo/golug/golug_entry"
+	"github.com/pubgo/lava"
 	"github.com/pubgo/xerror"
 )
 

@@ -10,12 +10,12 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/pkg/ctxutil"
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/vars"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/vars"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}

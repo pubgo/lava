@@ -1,7 +1,7 @@
 package map_store
 
 import (
-	cache2 "github.com/pubgo/lug/abc/cache"
+	cache2 "github.com/pubgo/lava/abc/cache"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 

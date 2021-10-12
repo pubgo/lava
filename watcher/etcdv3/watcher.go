@@ -7,10 +7,10 @@ import (
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/plugins/etcdv3"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/watcher"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugins/etcdv3"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

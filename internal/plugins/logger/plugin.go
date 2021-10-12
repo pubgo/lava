@@ -9,13 +9,13 @@ import (
 	"github.com/pubgo/xlog/xlog_config"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/plugins/request_id"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/request_id"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 )
 
 const name = "logger"

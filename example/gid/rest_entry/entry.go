@@ -4,9 +4,9 @@ import (
 	"context"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/entry/restEntry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/entry/restEntry"
+	"github.com/pubgo/lava/types"
 )
 
 var name = "test-http"

@@ -12,8 +12,8 @@ import (
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/plugins/registry"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugins/registry"
 )
 
 func init() {

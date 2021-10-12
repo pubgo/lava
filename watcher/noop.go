@@ -3,7 +3,7 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var _ Watcher = (*nullWatcher)(nil)

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/memberlist"
-	registry "github.com/pubgo/lug/plugins/registry"
+	registry "github.com/pubgo/lava/plugins/registry"
 )
 
 type secretKey struct{}

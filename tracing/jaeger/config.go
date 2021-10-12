@@ -1,7 +1,7 @@
 package jaeger
 
 import (
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/xerror"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 )

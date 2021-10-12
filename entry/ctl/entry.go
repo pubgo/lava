@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/runenv"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"

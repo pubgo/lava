@@ -3,8 +3,8 @@ package tracing
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var factories typex.SMap

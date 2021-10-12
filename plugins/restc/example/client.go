@@ -8,9 +8,9 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/plugins/hystrix"
-	"github.com/pubgo/lug/plugins/restc"
+	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/plugins/hystrix"
+	"github.com/pubgo/lava/plugins/restc"
 )
 
 const (

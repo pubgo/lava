@@ -6,7 +6,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lava/consts"
 )
 
 var clientM sync.Map

@@ -1,8 +1,8 @@
 package restEntry
 
 import (
-	"github.com/pubgo/lug/logger"
-	fb "github.com/pubgo/lug/pkg/builder/fiber"
+	"github.com/pubgo/lava/logger"
+	fb "github.com/pubgo/lava/pkg/builder/fiber"
 	"go.uber.org/zap"
 )
 

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/types"
-	"github.com/pubgo/lug/version"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/version"
 
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"

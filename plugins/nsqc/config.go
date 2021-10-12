@@ -1,7 +1,7 @@
 package nsqc
 
 import (
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lava/logger"
 	"go.uber.org/zap"
 
 	"time"

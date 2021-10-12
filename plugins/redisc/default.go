@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/pubgo/lug/pkg/ctxutil"
+	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )

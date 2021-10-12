@@ -12,13 +12,13 @@ import (
 	"go.uber.org/zap"
 	_ "net/http/pprof"
 
-	"github.com/pubgo/lug/example/gid/protopb/proto/hello"
-	"github.com/pubgo/lug/plugins/grpcc"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/plugins/registry/mdns"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/tracing"
-	_ "github.com/pubgo/lug/tracing/jaeger"
+	"github.com/pubgo/lava/example/gid/protopb/proto/hello"
+	"github.com/pubgo/lava/plugins/grpcc"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/registry/mdns"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/tracing"
+	_ "github.com/pubgo/lava/tracing/jaeger"
 )
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {

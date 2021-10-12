@@ -8,7 +8,7 @@ import (
 	"go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lug/pkg/retry"
+	"github.com/pubgo/lava/pkg/retry"
 )
 
 const Name = "etcdv3"

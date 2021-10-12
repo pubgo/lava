@@ -3,8 +3,8 @@ package etcdv3
 import (
 	"go.etcd.io/etcd/client/v3"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/internal/resource"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/resource"
 )
 
 // Get 获取etcd client

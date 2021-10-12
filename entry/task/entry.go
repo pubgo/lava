@@ -1,8 +1,8 @@
 package task
 
 import (
-	"github.com/pubgo/lug/abc/broker"
-	"github.com/pubgo/lug/entry/base"
+	"github.com/pubgo/lava/abc/broker"
+	"github.com/pubgo/lava/entry/base"
 
 	"github.com/pubgo/xerror"
 )

@@ -22,19 +22,22 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/pkg/cliutil"
-	"github.com/pubgo/lug/pkg/env"
-	"github.com/pubgo/lug/pkg/gutil"
-	"github.com/pubgo/lug/pkg/modutil"
-	"github.com/pubgo/lug/pkg/shutil"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/cli"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/modutil"
+	"github.com/pubgo/lava/pkg/shutil"
 )
 
 func Cmd() *cobra.Command {
 	var protoRoot = "proto"
-	var protoCfg = ".lug/protobuf.yaml"
+	var protoCfg = ".lava/protobuf.yaml"
 
-	var cmd = cliutil.Cmd(func(cmd *cobra.Command) {
+	return cli.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
+		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
+		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
+
 		cmd.Use = "protoc"
 		cmd.Short = "protobuf generation, configuration and management"
 		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
@@ -50,14 +53,8 @@ func Cmd() *cobra.Command {
 				xerror.Assert(dep.Name == "" || dep.Url == "", "name和url都不能为空")
 			}
 		}
-	})
-	cliutil.Flags(cmd, func(flags *pflag.FlagSet) {
-		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
-		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
-	})
 
-	cmd.AddCommand(
-		&cobra.Command{
+		cmd.AddCommand(&cobra.Command{
 			Use:   "download",
 			Short: "下载缺失protobuf依赖并把版本信息写入配置文件",
 			Run: func(cmd *cobra.Command, args []string) {
@@ -110,9 +107,8 @@ func Cmd() *cobra.Command {
 				}
 				xerror.Panic(ioutil.WriteFile(protoCfg, xerror.PanicBytes(yaml.Marshal(cfg)), 0755))
 			},
-		},
-
-		&cobra.Command{
+		})
+		cmd.AddCommand(&cobra.Command{
 			Use: "gen",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
@@ -149,7 +145,7 @@ func Cmd() *cobra.Command {
 				// swagger加载和注册
 				var code = gutil.CodeFormat(
 					"package docs",
-					`import "github.com/pubgo/lug/plugins/swagger"`,
+					`import "github.com/pubgo/lava/plugins/swagger"`,
 					fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
 					`func init() {swagger.Init(AssetNames, MustAsset)}`,
 				)
@@ -158,9 +154,8 @@ func Cmd() *cobra.Command {
 				_ = os.RemoveAll(path)
 				xerror.Panic(ioutil.WriteFile(path, []byte(code), 0755))
 			},
-		},
-
-		&cobra.Command{
+		})
+		cmd.AddCommand(&cobra.Command{
 			Use: "ls",
 			Run: func(cmd *cobra.Command, args []string) {
 				var infoList, err = ioutil.ReadDir(protoPath)
@@ -170,9 +165,8 @@ func Cmd() *cobra.Command {
 					colorInfo.Println(info.Name())
 				}
 			},
-		},
-
-		&cobra.Command{
+		})
+		cmd.AddCommand(&cobra.Command{
 			Use: "vendor",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
@@ -221,9 +215,8 @@ func Cmd() *cobra.Command {
 					}))
 				}
 			},
-		},
-
-		&cobra.Command{
+		})
+		cmd.AddCommand(&cobra.Command{
 			Use: "api",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
@@ -429,9 +422,8 @@ func Cmd() *cobra.Command {
 					}
 				}
 			},
-		},
-	)
-	return cmd
+		})
+	})
 }
 
 func copyFile(dstFilePath string, srcFilePath string) (written int64, err error) {

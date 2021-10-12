@@ -3,7 +3,7 @@ package jump_test
 import (
 	"testing"
 
-	"github.com/pubgo/lug/pkg/jump"
+	"github.com/pubgo/lava/pkg/jump"
 )
 
 func TestHash(t *testing.T) {

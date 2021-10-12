@@ -5,7 +5,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lava/consts"
 )
 
 func Get(names ...string) *Client {

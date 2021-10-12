@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	"github.com/pubgo/lug/pkg/env"
+	"github.com/pubgo/lava/pkg/env"
 )
 
 var (
-	protoPath = filepath.Join(filepath.Join(env.Pwd, ".lug"), "proto")
+	protoPath = filepath.Join(filepath.Join(env.Pwd, ".lava"), "proto")
 	modPath   = filepath.Join(os.Getenv("GOPATH"), "/pkg/mod")
 )
 
@@ -31,9 +31,4 @@ type depend struct {
 	Url     string `yaml:"url,omitempty"`
 	Path    string `yaml:"path,omitempty"`
 	Version string `yaml:"version,omitempty"`
-}
-
-type plugin struct {
-	Name string   `yaml:"name,omitempty"`
-	Out  []string `yaml:"out,omitempty"`
 }

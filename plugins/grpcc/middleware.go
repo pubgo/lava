@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/types"
 )
 
 func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientInterceptor {

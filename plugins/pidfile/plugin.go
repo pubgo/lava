@@ -1,9 +1,9 @@
 package pidfile
 
 import (
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/plugin"
 )
 
 func init() { plugin.Register(plg) }

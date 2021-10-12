@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"

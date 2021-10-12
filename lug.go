@@ -1,10 +1,10 @@
-package lug
+package lava
 
 import (
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry"
-	"github.com/pubgo/lug/internal/runtime"
-	"github.com/pubgo/lug/plugin"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/internal/runtime"
+	"github.com/pubgo/lava/plugin"
 )
 
 func BeforeStart(fn func()) { entry.BeforeStart(fn) }

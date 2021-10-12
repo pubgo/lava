@@ -7,10 +7,10 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/runenv"
 )
 
 func init() {

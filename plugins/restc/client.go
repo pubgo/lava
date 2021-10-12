@@ -9,9 +9,9 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/tracing"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/tracing"
+	"github.com/pubgo/lava/types"
 )
 
 const (

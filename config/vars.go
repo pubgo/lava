@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lug/vars"
+	"github.com/pubgo/lava/vars"
 )
 
 func init() {

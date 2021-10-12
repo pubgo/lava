@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lug/debug"
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/xerror"
 
 	g "github.com/maragudk/gomponents"

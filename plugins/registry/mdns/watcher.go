@@ -8,10 +8,10 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug/logger"
-	"github.com/pubgo/lug/pkg/typex"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)

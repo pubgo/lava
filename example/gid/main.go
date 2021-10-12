@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/pubgo/lug"
-	"github.com/pubgo/lug/example/gid/entry"
+	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/example/gid/entry"
 )
 
 func main() {
-	lug.Run(
+	lava.Run(
 		"gid service",
 		entry.Gid(),
 	)

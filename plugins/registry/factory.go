@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/pubgo/lug/pkg/typex"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 

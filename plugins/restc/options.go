@@ -5,8 +5,8 @@ import (
 
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lug/pkg/retry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/types"
 )
 
 type Option func(opts *Cfg)

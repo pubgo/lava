@@ -1,7 +1,7 @@
 package restEntry
 
 import (
-	"github.com/pubgo/lug/vars"
+	"github.com/pubgo/lava/vars"
 )
 
 func trace(t *restEntry) {

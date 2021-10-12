@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/plugin"
-	"github.com/pubgo/lug/plugins/grpcc/balancer/p2c"
-	"github.com/pubgo/lug/plugins/grpcc/balancer/resolver"
-	"github.com/pubgo/lug/plugins/registry"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/grpcc/balancer/p2c"
+	"github.com/pubgo/lava/plugins/grpcc/balancer/resolver"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 const (

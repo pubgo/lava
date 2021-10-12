@@ -1,7 +1,7 @@
 package ctl
 
 import (
-	"github.com/pubgo/lug/consts"
+	"github.com/pubgo/lava/consts"
 
 	"github.com/pubgo/xerror"
 )

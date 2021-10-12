@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/pubgo/lug/logger"
+	"github.com/pubgo/lava/logger"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package watcher
 import (
 	"strings"
 
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/runenv"
 )
 
 func trimProject(key string) string {

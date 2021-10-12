@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry/base"
-	"github.com/pubgo/lug/logger"
-	fb "github.com/pubgo/lug/pkg/builder/fiber"
-	"github.com/pubgo/lug/runenv"
-	"github.com/pubgo/lug/types"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/logger"
+	fb "github.com/pubgo/lava/pkg/builder/fiber"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
@@ -95,7 +95,7 @@ func newEntry(name string) *restEntry {
 		xerror.Panic(ent.srv.Build(ent.cfg.Cfg))
 
 		// 加载组件middleware
-		// lug middleware比fiber Middleware的先加载
+		// lava middleware比fiber Middleware的先加载
 		ent.srv.Get().Use(ent.handlerLugMiddle(ent.Options().Middlewares))
 
 		// 依赖注入router

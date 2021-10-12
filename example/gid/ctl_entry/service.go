@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/entry/ctl"
-	db2 "github.com/pubgo/lug/plugins/db"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/entry/ctl"
+	db2 "github.com/pubgo/lava/plugins/db"
 
 	"github.com/pubgo/x/fx"
 	"go.uber.org/zap"

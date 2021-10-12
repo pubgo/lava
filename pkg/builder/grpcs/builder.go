@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/pubgo/lug/runenv"
+	"github.com/pubgo/lava/runenv"
 )
 
 type Builder struct {

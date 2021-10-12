@@ -11,8 +11,8 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lug/plugins/nacos"
-	"github.com/pubgo/lug/plugins/registry"
+	"github.com/pubgo/lava/plugins/nacos"
+	"github.com/pubgo/lava/plugins/registry"
 )
 
 func init() {

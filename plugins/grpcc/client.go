@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/pubgo/lug/consts"
-	"github.com/pubgo/lug/internal/resource"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/resource"
 )
 
 func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
