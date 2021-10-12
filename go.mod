@@ -10,6 +10,7 @@ require (
 	github.com/arl/statsviz v0.4.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/bigwhite/functrace v0.0.0-20210622013229-318a19dbb29a
+	github.com/edsrzf/mmap-go v1.0.0
 	github.com/emicklei/proto v1.9.1
 	github.com/fasthttp/websocket v1.4.3-rc.3
 	github.com/fatedier/golib v0.2.0
@@ -26,9 +27,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
-	github.com/go-logr/logr v1.1.0
-	github.com/go-logr/stdr v1.1.0
-	github.com/go-logr/zapr v1.1.0
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.21
 	github.com/go-openapi/spec v0.20.2
@@ -38,7 +36,6 @@ require (
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
@@ -159,6 +156,9 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
+	github.com/go-logr/logr v1.1.0 // indirect
+	github.com/go-logr/stdr v1.1.0 // indirect
+	github.com/go-logr/zapr v1.1.0 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-openapi/analysis v0.19.10 // indirect
 	github.com/go-openapi/errors v0.19.6 // indirect
@@ -171,6 +171,7 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/golang-jwt/jwt v3.2.1+incompatible // indirect
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/btree v1.0.0 // indirect

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lug/mux"
+	"github.com/pubgo/lug/debug"
 	"github.com/pubgo/xerror"
 
 	g "github.com/maragudk/gomponents"
@@ -29,13 +29,13 @@ func init() {
 		})
 	}
 
-	mux.Get("/debug/expvar/{name}", func(w http.ResponseWriter, request *http.Request) {
+	debug.Get("/debug/expvar/{name}", func(w http.ResponseWriter, request *http.Request) {
 		var name = chi.URLParam(request, "name")
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprintln(w, expvar.Get(name).String())
 	})
 
-	mux.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
+	debug.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
 		var keys []string
 		expvar.Do(func(kv expvar.KeyValue) {
 			keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))

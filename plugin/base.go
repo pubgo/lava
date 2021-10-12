@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"reflect"
 
+	"github.com/pubgo/lug/internal/luglog"
+	"github.com/pubgo/lug/types"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"go.uber.org/zap"
-
-	"github.com/pubgo/lug/types"
 )
 
 var _ json.Marshaler = (*Base)(nil)
@@ -54,10 +53,6 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func (p *Base) Middleware() types.Middleware {
-	return p.OnMiddleware
-}
-
 func (p *Base) Vars(f func(name string, data func() interface{})) error {
 	if p.OnVars == nil {
 		return nil
@@ -73,8 +68,9 @@ func (p *Base) Health() func(ctx context.Context) error {
 	return p.OnHealth
 }
 
-func (p *Base) String() string { return p.Descriptor }
-func (p *Base) Id() string     { return p.Name }
+func (p *Base) Middleware() types.Middleware { return p.OnMiddleware }
+func (p *Base) String() string               { return p.Descriptor }
+func (p *Base) Id() string                   { return p.Name }
 func (p *Base) Init(ent Entry) error {
 	if p.OnInit == nil {
 		return nil
@@ -88,7 +84,7 @@ func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 		return
 	}
 
-	zap.S().Infof("plugin [%s] watch init", p.Name)
+	luglog.Named(Name).Infof("plugin [%s] watch init", p.Name)
 	return xerror.Try(func() { p.OnWatch(name, r) })
 }
 
@@ -108,8 +104,6 @@ func (p *Base) Flags() *pflag.FlagSet {
 		return flags
 	}
 
-	xerror.TryCatch(func() { p.OnFlags(flags) }, func(err error) {
-		zap.L().Fatal("flags callback", zap.Any("err", err))
-	})
+	xerror.TryThrow(func() { p.OnFlags(flags) }, "flags callback")
 	return flags
 }

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/pubgo/lug/config"
-	"github.com/pubgo/lug/entry/rest"
+	"github.com/pubgo/lug/entry/restEntry"
 	"github.com/pubgo/lug/example/gid/protopb/proto/hello"
 	"github.com/pubgo/lug/logger"
 	db2 "github.com/pubgo/lug/plugins/db"
@@ -57,7 +57,7 @@ func (t *Service) VersionTest(ctx context.Context, in *hello.TestReq) (out *hell
 }
 
 func init() {
-	rest.Provider(func(r rest.Router) {
+	restEntry.Provider(func(r restEntry.Router) {
 		r.Use(func(ctx *fiber.Ctx) error {
 			fmt.Println("ok")
 			return ctx.Next()

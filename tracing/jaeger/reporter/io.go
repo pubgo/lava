@@ -1,6 +1,7 @@
 package reporter
 
 import (
+	"github.com/pubgo/lug/logger"
 	"io"
 	"time"
 
@@ -59,9 +60,8 @@ func (t *ioReporter) loop() {
 }
 
 func (t *ioReporter) Report(span *jaeger.Span) {
-
 	if t.count.Load() > 1024 {
-		zap.L().Error("The maximum number of spans has been exceeded",
+		logger.GetSugar("jaeger").Error("The maximum number of spans has been exceeded",
 			zap.Int("count", 1024),
 			zap.String("pkg", "ioReporter"))
 		return

@@ -4,15 +4,15 @@ import (
 	"context"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lug"
 	"github.com/pubgo/lug/entry"
+	"github.com/pubgo/lug/entry/restEntry"
 	"github.com/pubgo/lug/types"
 )
 
 var name = "test-http"
 
 func GetEntry() entry.Entry {
-	ent := lug.NewRest(name)
+	ent := restEntry.New(name)
 	ent.Description("entry http test")
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {

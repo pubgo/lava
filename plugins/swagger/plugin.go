@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/xerror"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	"github.com/pubgo/lug/mux"
+	"github.com/pubgo/lug/debug"
 )
 
 func Init(names func() []string, asset func(name string) []byte) {
@@ -29,7 +29,7 @@ func Init(names func() []string, asset func(name string) []byte) {
 		</body>
 		</html>
 		`))
-	mux.Get("/swagger", func(writer http.ResponseWriter, request *http.Request) {
+	debug.Get("/swagger", func(writer http.ResponseWriter, request *http.Request) {
 		var keys []string
 		for _, r := range names() {
 			keys = append(keys, strings.TrimSuffix(r, ".swagger.json"))
@@ -37,7 +37,7 @@ func Init(names func() []string, asset func(name string) []byte) {
 		xerror.Panic(homeTmpl.Execute(writer, keys))
 	})
 
-	mux.Get("/swagger/*", func(writer http.ResponseWriter, request *http.Request) {
+	debug.Get("/swagger/*", func(writer http.ResponseWriter, request *http.Request) {
 		var s ServeCmd
 		if strings.HasSuffix(request.RequestURI, "swagger.json") {
 			writer.Header().Set("Content-Type", "application/json")

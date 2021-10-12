@@ -22,8 +22,6 @@ import (
 )
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
-	cfg.Middlewares = append(cfg.Middlewares, tracing.Middleware)
-
 	fmt.Println("service", cfg)
 })
 

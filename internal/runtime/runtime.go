@@ -15,6 +15,7 @@ import (
 	"github.com/pubgo/lug/entry"
 	"github.com/pubgo/lug/healthy"
 	v "github.com/pubgo/lug/internal/cmds/version"
+	"github.com/pubgo/lug/internal/luglog"
 	"github.com/pubgo/lug/logger"
 	"github.com/pubgo/lug/plugin"
 	"github.com/pubgo/lug/runenv"
@@ -23,12 +24,9 @@ import (
 	"github.com/pubgo/lug/watcher"
 )
 
-var logs = zap.L()
+const name = "runtime"
 
-func init() {
-	logger.On(func(log *zap.Logger) { logs = log.Named("runtime") })
-}
-
+var logs = luglog.Named(name)
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
@@ -54,48 +52,48 @@ func handleSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runenv.Signal = <-ch
-	logs.Sugar().Infof("signal [%s] trigger", runenv.Signal.String())
+	logs.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Sugar().Info("before-start running")
+	logs.Info("before-start running")
 	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range beforeList {
 		xerror.PanicF(xerror.Try(beforeList[i]), "before start error: %s", stack.Func(beforeList[i]))
 	}
-	logs.Sugar().Info("before-start over")
+	logs.Info("before-start over")
 
 	xerror.Panic(ent.Start())
 
-	logs.Sugar().Info("after-start running")
+	logs.Info("after-start running")
 	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range afterList {
 		xerror.PanicF(xerror.Try(afterList[i]), "after start error: %s", stack.Func(afterList[i]))
 	}
-	logs.Sugar().Info("after-start over")
+	logs.Info("after-start over")
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Sugar().Infof("service [%s] before-stop running", ent.Options().Name)
+	logs.Infof("service [%s] before-stop running", ent.Options().Name)
 	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range beforeList {
 		logger.Logs(beforeList[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(beforeList[i]))))
 	}
-	logs.Sugar().Infof("service [%s] before-stop over", ent.Options().Name)
+	logs.Infof("service [%s] before-stop over", ent.Options().Name)
 
 	xerror.Panic(ent.Stop())
 
-	logs.Sugar().Infof("service [%s] after-stop running", ent.Options().Name)
+	logs.Infof("service [%s] after-stop running", ent.Options().Name)
 	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range afterList {
 		logger.Logs(afterList[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(afterList[i]))))
 	}
-	logs.Sugar().Infof("service [%s] after-stop over", ent.Options().Name)
+	logs.Infof("service [%s] after-stop over", ent.Options().Name)
 	return nil
 }
 

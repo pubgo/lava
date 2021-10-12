@@ -59,14 +59,6 @@ lug version t`),
 	},
 }
 
-func shortSum(sum string) string {
-	sum = strings.Trim(sum, "h1:")
-	if len(sum) > 10 {
-		return sum[:10]
-	}
-	return sum
-}
-
 func replace(dep *debug.Module) string {
 	if dep == nil {
 		return ""

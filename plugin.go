@@ -17,8 +17,9 @@ import (
 	// 默认编码
 	_ "github.com/pubgo/lug/encoding/json"
 	_ "github.com/pubgo/lug/encoding/protobuf"
-	// debug服务
-	_ "github.com/pubgo/lug/internal/debug"
+
+	// 加载debug插件
+	_ "github.com/pubgo/lug/internal/plugins/debug"
 
 	// 默认metric加载
 	_ "github.com/pubgo/lug/metric/prometheus"
