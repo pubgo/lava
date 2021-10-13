@@ -13,14 +13,14 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
-	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/xgen"
 )
 
 var Cmd = &cobra.Command{
 	Use:     "rest.http",
 	Short:   "gen rest.http from protobuf",
-	Example: gutil.ExampleFmt(`lava rest.http`),
+	Example: lavax.ExampleFmt(`lava rest.http`),
 	Run: func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	pathutil2 "github.com/pubgo/lava/pkg/pathutil"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -25,7 +26,7 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/cli"
 	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/shutil"
 )
@@ -76,7 +77,7 @@ func Cmd() *cobra.Command {
 
 					// go.mod 中版本不存在, 就下载
 					if version == "" {
-						var list, err = gutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						var list, err = pathutil2.Glob(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
@@ -90,7 +91,7 @@ func Cmd() *cobra.Command {
 
 					if version == "" {
 						xerror.Panic(shutil.Bash("go", "get", "-d", url+"/...").Run())
-						var list, err = gutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						var list, err = pathutil2.Glob(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
@@ -143,7 +144,7 @@ func Cmd() *cobra.Command {
 				xerror.Panic(shutil.Bash(shell).Run())
 
 				// swagger加载和注册
-				var code = gutil.CodeFormat(
+				var code = lavax.CodeFormat(
 					"package docs",
 					`import "github.com/pubgo/lava/plugins/swagger"`,
 					fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
@@ -190,7 +191,7 @@ func Cmd() *cobra.Command {
 					// 加载路径
 					url = filepath.Join(url, dep.Path)
 
-					if !gutil.DirExists(url) {
+					if !lavax.DirExists(url) {
 						url = filepath.Join(modPath, url)
 					}
 

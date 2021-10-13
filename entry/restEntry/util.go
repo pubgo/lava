@@ -4,13 +4,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/xgen"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/xgen"
 )
 
 func register(server fiber.Router, handler interface{}) (err error) {

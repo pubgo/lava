@@ -7,8 +7,8 @@
 package hello
 
 import (
+	binding "github.com/pubgo/lava/pkg/binding"
 	fiber "github.com/pubgo/lava/pkg/builder/fiber"
-	gutil "github.com/pubgo/lava/pkg/gutil"
 	grpcc "github.com/pubgo/lava/plugins/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	byteutil "github.com/pubgo/x/byteutil"
@@ -16,7 +16,6 @@ import (
 	grpc "google.golang.org/grpc"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
-	strings "strings"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -95,16 +94,9 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.Version(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -122,16 +114,9 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.VersionTest(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))

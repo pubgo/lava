@@ -14,7 +14,7 @@ type options struct{}
 type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
-	Register(srv interface{})
+	Register(srv interface{}, opts ...Opt)
 }
 
 func Provider(fn func(r Router)) {

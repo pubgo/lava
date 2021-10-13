@@ -7,8 +7,8 @@
 package gid
 
 import (
+	binding "github.com/pubgo/lava/pkg/binding"
 	fiber "github.com/pubgo/lava/pkg/builder/fiber"
-	gutil "github.com/pubgo/lava/pkg/gutil"
 	grpcc "github.com/pubgo/lava/plugins/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	byteutil "github.com/pubgo/x/byteutil"
@@ -18,7 +18,6 @@ import (
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	reflect "reflect"
-	strings "strings"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -82,16 +81,9 @@ func RegisterIdRestServer(app fiber.Router, server IdServer) {
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.Types(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -374,16 +366,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.GetQuery(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -394,16 +379,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.GetRepeatedQuery(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -428,16 +406,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.Timeout(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -448,16 +419,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.ErrorWithDetails(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -482,16 +446,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.CheckGetQueryParams(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -502,16 +459,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.CheckNestedEnumGetQueryParams(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -529,16 +479,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.OverwriteResponseContentType(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -549,16 +492,9 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.CheckStatus(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -602,16 +538,9 @@ func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseSe
 		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
 			k := byteutil.ToStr(key)
 			v := byteutil.ToStr(val)
-			if strings.Contains(v, ",") && gutil.EqualFieldType(req, reflect.Slice, k) {
-				values := strings.Split(v, ",")
-				for i := 0; i < len(values); i++ {
-					data[k] = append(data[k], values[i])
-				}
-			} else {
-				data[k] = append(data[k], v)
-			}
+			data[k] = append(data[k], v)
 		})
-		xerror.Panic(gutil.MapFormByTag(req, data, "json"))
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.Empty(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))

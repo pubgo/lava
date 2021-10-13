@@ -13,7 +13,6 @@ func init() {
 }
 
 func home() func(writer http.ResponseWriter, r *http.Request) {
-
 	var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>
 		<head>

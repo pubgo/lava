@@ -16,7 +16,7 @@ import (
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
 	"github.com/pubgo/lava/pkg/builder/grpcs"
 	"github.com/pubgo/lava/pkg/ctxutil"
-	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/grpcc"
 	"github.com/pubgo/lava/plugins/registry"
@@ -254,7 +254,7 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Sugar().Infof("Server [%s] Listening on http://localhost:%s", g.cfg.name, gutil.GetPort(runenv.Addr))
+	logs.Sugar().Infof("Server [%s] Listening on http://localhost:%s", g.cfg.name, lavax.GetPort(runenv.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.

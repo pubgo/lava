@@ -1,11 +1,17 @@
 package task
 
 import (
+	"github.com/pubgo/xerror"
+
 	"github.com/pubgo/lava/abc/broker"
 	"github.com/pubgo/lava/entry/base"
-
-	"github.com/pubgo/xerror"
 )
+
+func newEntry(name string) *taskEntry {
+	return &taskEntry{Entry: base.New(name)}
+}
+
+func New(name string) Entry { return newEntry(name) }
 
 var _ Entry = (*taskEntry)(nil)
 
@@ -48,9 +54,3 @@ func (t *taskEntry) Start() (err error) {
 
 	return nil
 }
-
-func newEntry(name string) *taskEntry {
-	return &taskEntry{Entry: base.New(name)}
-}
-
-func New(name string) Entry { return newEntry(name) }

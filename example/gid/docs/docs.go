@@ -194,7 +194,7 @@ func swaggerProtoGidA_bit_of_everythingSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/gid/a_bit_of_everything.swagger.json", size: 11085, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/gid/a_bit_of_everything.swagger.json", size: 11085, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -214,7 +214,7 @@ func swaggerProtoGidEcho_serviceSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/gid/echo_service.swagger.json", size: 23481, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/gid/echo_service.swagger.json", size: 23481, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -234,7 +234,7 @@ func swaggerProtoGidIdSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/gid/id.swagger.json", size: 86717, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/gid/id.swagger.json", size: 86717, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -254,7 +254,7 @@ func swaggerProtoHelloApiSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/api.swagger.json", size: 11289, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/api.swagger.json", size: 11289, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -274,7 +274,7 @@ func swaggerProtoHelloApi1SwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/api1.swagger.json", size: 4565, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/api1.swagger.json", size: 4565, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -294,7 +294,7 @@ func swaggerProtoHelloExampleSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/example.swagger.json", size: 10394, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/example.swagger.json", size: 10394, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -314,7 +314,7 @@ func swaggerProtoHelloHelloworldSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/helloworld.swagger.json", size: 27127, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/helloworld.swagger.json", size: 27127, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -334,7 +334,7 @@ func swaggerProtoHelloProto3SwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/proto3.swagger.json", size: 4567, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/proto3.swagger.json", size: 4567, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -354,7 +354,7 @@ func swaggerProtoHelloTransportSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/hello/transport.swagger.json", size: 4927, mode: os.FileMode(420), modTime: time.Unix(1634033401, 0)}
+	info := bindataFileInfo{name: "swagger/proto/hello/transport.swagger.json", size: 4927, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -374,7 +374,7 @@ func swaggerProtoLoginBindSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/login/bind.swagger.json", size: 13193, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/login/bind.swagger.json", size: 13193, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -394,7 +394,7 @@ func swaggerProtoLoginCodeSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/login/code.swagger.json", size: 10812, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/login/code.swagger.json", size: 10812, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -414,7 +414,7 @@ func swaggerProtoLoginLoginSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/login/login.swagger.json", size: 7993, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/login/login.swagger.json", size: 7993, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -434,12 +434,12 @@ func swaggerProtoLoginMergeSwaggerJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger/proto/login/merge.swagger.json", size: 6570, mode: os.FileMode(420), modTime: time.Unix(1634033400, 0)}
+	info := bindataFileInfo{name: "swagger/proto/login/merge.swagger.json", size: 6570, mode: os.FileMode(420), modTime: time.Unix(1634089696, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _swaggerGo = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2c\xcb\x31\xae\xc2\x30\x0c\x80\xe1\x3d\xa7\xb0\x3a\xbd\x4a\xaf\x4d\x53\x18\xa0\x1b\x23\x03\xdc\x21\x4d\x83\xb1\x68\x9a\xa8\xb6\x61\x40\xdc\x1d\x81\x18\xff\x5f\xfa\x8a\x0f\x37\x8f\x11\xa6\x1c\xd8\x18\x4a\x25\xaf\x02\x15\x92\x5c\x75\x6c\x43\x4e\xb6\xe8\x88\xd9\xce\xfe\xee\x6d\x99\x15\x69\x61\xcb\x0f\x8f\x18\xd7\xca\x18\x6b\x61\x54\x9a\x27\x10\x4a\x71\x80\xbe\xeb\x5d\xe3\xba\xc6\xf5\xe0\x76\x43\xb7\x1f\xb6\x1b\x73\xd1\x25\x00\x2d\x24\x7f\x35\x3c\xe1\x47\xdb\xe3\x67\x1c\x98\xa3\x9c\x7d\x8a\xfc\x0f\x27\x65\xf9\x76\x0d\x2f\xf3\x0e\x00\x00\xff\xff\x2f\x20\xd3\xf5\x95\x00\x00\x00")
+var _swaggerGo = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2c\xcb\x4b\x0a\xc2\x30\x10\x80\xe1\x7d\x4e\x31\x74\x65\xc1\x36\x4d\x7d\x80\xdd\xb9\x74\xa1\x77\x48\xd3\x18\x07\x9b\x07\x9d\x19\x5d\x88\x77\x17\xc5\xe5\xff\xc3\x57\xac\xbb\xdb\xe0\x61\xca\x8e\x94\xc2\x58\xf2\xc2\x50\x05\xe4\x9b\x8c\xad\xcb\x51\x17\x19\x43\xd6\xb3\x7d\x58\x5d\x66\x09\x98\x48\xd3\xd3\x86\xe0\x97\x4a\x29\xad\x61\x14\x9c\x27\x60\x8c\x7e\x80\xbe\xeb\x4d\x63\xba\xc6\x6c\xa0\x3b\x0c\xdb\xfd\xb0\x33\xea\x2a\xc9\x01\x26\xe4\x55\x0d\x2f\xf8\xd3\xf6\xf4\x1d\x47\x22\xcf\x17\x1b\x3d\xad\xe1\x2c\xc4\xbf\xae\xe1\xad\x3e\x01\x00\x00\xff\xff\x2e\xfd\x59\x4d\x95\x00\x00\x00")
 
 func swaggerGoBytes() ([]byte, error) {
 	return bindataRead(
@@ -454,7 +454,7 @@ func swaggerGo() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "swagger.go", size: 149, mode: os.FileMode(493), modTime: time.Unix(1634033383, 0)}
+	info := bindataFileInfo{name: "swagger.go", size: 149, mode: os.FileMode(493), modTime: time.Unix(1634089611, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

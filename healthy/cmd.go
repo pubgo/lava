@@ -9,14 +9,14 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
-	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/runenv"
 )
 
 var Cmd = &cobra.Command{
 	Use:   "health",
 	Short: "health check",
-	Example: gutil.ExampleFmt(
+	Example: lavax.ExampleFmt(
 		"lava health",
 		"lava health localhost:8081",
 	),
@@ -28,7 +28,7 @@ var Cmd = &cobra.Command{
 			addr = args[0]
 		}
 
-		var resp, err = http.Get(fmt.Sprintf("http://localhost:%s/health", gutil.GetPort(addr)))
+		var resp, err = http.Get(fmt.Sprintf("http://localhost:%s/health", lavax.GetPort(addr)))
 		xerror.Panic(err)
 		xerror.Assert(resp.StatusCode != http.StatusOK, "health check")
 		_, _ = io.Copy(os.Stdout, resp.Body)

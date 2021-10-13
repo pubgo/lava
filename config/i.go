@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-
 	"io"
 	_ "unsafe"
+
+	"github.com/spf13/viper"
 )
 
 //go:linkname unmarshalReader github.com/spf13/viper.(*Viper).unmarshalReader

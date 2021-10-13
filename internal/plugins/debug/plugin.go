@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/browser"
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/pkg/gutil"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
@@ -37,7 +37,7 @@ func init() {
 			ent.AfterStart(func() {
 				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
 				fx.GoDelay(func() {
-					logs.Infof("Server [debug] Listening on http://localhost:%s", gutil.GetPort(runenv.DebugAddr))
+					logs.Infof("Server [debug] Listening on http://localhost:%s", lavax.GetPort(runenv.DebugAddr))
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 						logs.Error("Server [debug] Listen Error", logger.Err(err))
 						return
@@ -46,7 +46,7 @@ func init() {
 				})
 				if openWeb {
 					fx.Go(func(ctx context.Context) {
-						xerror.Panic(browser.OpenURL(fmt.Sprintf("http://localhost:%s", gutil.GetPort(runenv.DebugAddr))))
+						xerror.Panic(browser.OpenURL(fmt.Sprintf("http://localhost:%s", lavax.GetPort(runenv.DebugAddr))))
 					})
 				}
 			})

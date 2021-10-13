@@ -1,8 +1,6 @@
 package grpcEntry
 
 import (
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/entry"
 )
 
@@ -11,6 +9,8 @@ type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
 	Register(handler interface{}, opts ...Opt)
-	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
-	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
+	//UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
+	//StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }
+
+

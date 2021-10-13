@@ -1,0 +1,26 @@
+POST http://localhost:8900/hello.TestApi/Version
+Content-Type: application/grpc+json
+
+{"input":"hello"}
+
+###
+GET http://localhost:8900/hello.TestApi/Version?input=hello1
+Content-Type: application/grpc+uri
+
+### TestStream3
+POST http://localhost:8900//hello.Transport/TestStream3
+Content-Type: application/grpc+json
+
+{
+ "header":{"hello":"ok"}
+}
+
+### TestStream2
+POST http://localhost:8900/hello.Transport/TestStream2
+Content-Type: application/grpc+json
+
+{"header":{"hello":"ok"}}
+
+
+### TestStream2
+GET http://localhost:8888

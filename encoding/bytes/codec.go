@@ -3,8 +3,9 @@ package bytes
 import (
 	"reflect"
 
-	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/encoding"
 )
 
 var Name = "bytes"

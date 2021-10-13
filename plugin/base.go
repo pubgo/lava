@@ -49,7 +49,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	data["commands"] = p.getFuncStack(p.OnCommands)
 	data["flags"] = p.getFuncStack(p.OnFlags)
 	data["watch"] = p.getFuncStack(p.OnWatch)
-	data["vars"] = p.getFuncStack(p.OnVars)
+	data["vars.go"] = p.getFuncStack(p.OnVars)
 	return json.Marshal(data)
 }
 

@@ -5,10 +5,10 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/pubgo/lava/version"
-
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/version"
 )
 
 func init() {

@@ -1,15 +1,16 @@
 package encoding
 
 import (
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var data typex.Map
 
 func Register(name string, cdc Codec) {
-	xerror.Assert(cdc == nil || name == "" || cdc.Name() == "", "[cdc] %s is null", name)
+	defer xerror.RespExit()
+	xerror.Assert(cdc == nil || name == "" || cdc.Name() == "", "codec[%s] is null", name)
 	xerror.Assert(data.Has(name), "[cdc] %s already exists", name)
 	data.Set(name, cdc)
 }
@@ -31,8 +32,4 @@ func Each(fn func(name string, cdc Codec)) {
 	data.Each(func(name string, val interface{}) {
 		fn(name, val.(Codec))
 	})
-}
-
-func init() {
-	vars.Watch(Name, func() interface{} { return Keys() })
 }
