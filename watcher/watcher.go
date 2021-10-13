@@ -42,7 +42,7 @@ func Init() (err error) {
 
 		// get远程配置, 获取项目下所有配置
 		xerror.Panic(defaultWatcher.GetCallback(
-			ctxutil.Timeout().Context(), name,
+			ctxutil.Timeout(), name,
 			func(resp *Response) { onWatch(name, resp) }),
 		)
 

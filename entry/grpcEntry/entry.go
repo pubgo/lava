@@ -15,7 +15,6 @@ import (
 	"github.com/pubgo/lava/logger"
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
 	"github.com/pubgo/lava/pkg/builder/grpcs"
-	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/grpcc"
@@ -227,7 +226,7 @@ func (g *grpcEntry) Stop() (err error) {
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
 	logs.Info("[ExitProgress] Start Shutdown.")
-	if err := g.gw.Get().Shutdown(ctxutil.Default().Context()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
+	if err := g.gw.Get().Shutdown(context.Background()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
 		logs.Error("[grpc-gw] Shutdown Error", logger.Err(err))
 	} else {
 		logs.Info("[ExitProgress] Shutdown Ok.")

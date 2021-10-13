@@ -22,6 +22,10 @@ type testapiHandler struct {
 	Db *db2.Client `dix:""`
 }
 
+func (h *testapiHandler) Init() {
+
+}
+
 func (h *testapiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
 	panic("implement me")
 }

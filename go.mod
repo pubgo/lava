@@ -72,6 +72,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.2-0.20190409134802-7e037d187b0c
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/panjf2000/gnet v1.4.5
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
@@ -81,6 +82,7 @@ require (
 	github.com/pubgo/xerror v0.4.13
 	github.com/pubgo/xlog v0.2.8
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+	github.com/reugn/go-quartz v0.3.7
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
 	github.com/segmentio/nsq-go v1.2.4

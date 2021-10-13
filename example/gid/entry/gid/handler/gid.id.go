@@ -4,22 +4,33 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
 
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/gid/protopb/proto/gid"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/scheduler"
 )
 
 var _ gid.IdServer = (*Id)(nil)
+var _ entry.InitHandler = (*Id)(nil)
 
 type Id struct {
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
+	Cron      *scheduler.Scheduler `dix:""`
+}
+
+func (id *Id) Init() {
+	id.Cron.Every("", time.Second, func(name string) {
+
+	})
 }
 
 func NewId() *Id {

@@ -51,7 +51,7 @@ func init() {
 					parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 					if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
 						// 百分之一的概率
-						if fastrand.Probability(0.01) {
+						if fastrand.Probability(10) {
 							zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
 						}
 					}

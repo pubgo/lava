@@ -28,13 +28,6 @@ type Entry interface {
 	Commands(commands ...*cobra.Command)
 }
 
-type Opt func(o *Opts)
-type Opts struct {
-	Name         string
-	BeforeStarts []func()
-	AfterStarts  []func()
-	BeforeStops  []func()
-	AfterStops   []func()
-	Command      *cobra.Command
-	Middlewares  []types.Middleware
+type InitHandler interface {
+	Init()
 }

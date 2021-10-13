@@ -2,12 +2,7 @@ package fastrand
 
 import (
 	"github.com/valyala/fastrand"
-	"testing"
 )
-
-func TestName(t *testing.T) {
-
-}
 
 // Uint32 returns pseudorandom uint32.
 // It is safe calling this function from concurrent goroutines.
@@ -17,9 +12,9 @@ func Uint32() uint32 { return fastrand.Uint32() }
 // It is safe calling this function from concurrent goroutines.
 func Uint32n(maxN uint32) uint32 { return fastrand.Uint32n(maxN) }
 
-// Probability 小于prob的概率, prob is in the range [0,1.0)
-func Probability(prob float64) bool {
-	if prob > float64(Uint32()) {
+// Probability 小于prob的概率, prob is in the range [0,1000)
+func Probability(prob uint32) bool {
+	if prob > Uint32n(1000) {
 		return true
 	}
 	return false
