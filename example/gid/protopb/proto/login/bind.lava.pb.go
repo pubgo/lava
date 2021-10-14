@@ -103,6 +103,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandlerServer), nil)
 }
 func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {

@@ -2,10 +2,10 @@ package grpc_entry
 
 import (
 	"context"
-	"github.com/pubgo/lava/entry/grpcEntry"
-	"github.com/pubgo/lava/example/gid/entry/grpc_entry/handler"
 
 	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/entry/grpcEntry"
+	"github.com/pubgo/lava/example/gid/entry/grpc_entry/handler"
 	"github.com/pubgo/lava/healthy"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/types"

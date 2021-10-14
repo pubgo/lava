@@ -4,11 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/entry"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
+	"github.com/soheilhy/cmux"
+	"go.uber.org/atomic"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
@@ -17,20 +26,12 @@ import (
 	"github.com/pubgo/lava/pkg/builder/grpcs"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/grpcc"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
-
-	"github.com/google/uuid"
-	"github.com/pubgo/dix"
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
-	"github.com/soheilhy/cmux"
-	"go.uber.org/atomic"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 var _ Entry = (*grpcEntry)(nil)
@@ -46,9 +47,8 @@ type grpcEntry struct {
 	registered  atomic.Bool
 	registryMap map[string][]*registry.Endpoint
 
-	handlers  []interface{}
-	endpoints []*registry.Endpoint
-	client    *grpc.ClientConn
+	handlers []interface{}
+	client   *grpc.ClientConn
 
 	middleOnce     sync.Once
 	cancelRegister context.CancelFunc
@@ -75,7 +75,7 @@ func (g *grpcEntry) handleError() {
 			return true
 		}
 
-		logs.Error("grpcEntry mux handleError", logger.Err(err), logger.Name(g.cfg.name))
+		logs.Error("grpcEntry mux handleError", logger.WithErr(err), logger.Name(g.cfg.name))
 		return false
 	})
 }
@@ -137,14 +137,13 @@ func (g *grpcEntry) register() (err error) {
 	node.Metadata["transport"] = "grpc"
 
 	services := &registry.Service{
-		Name:      g.cfg.name,
-		Version:   version.Version,
-		Nodes:     []*registry.Node{node},
-		Endpoints: g.endpoints,
+		Name:    g.cfg.name,
+		Version: version.Version,
+		Nodes:   []*registry.Node{node},
 	}
 
 	if !g.registered.Load() {
-		logs.Info("Registering node", logger.Id(node.Id), logger.Name(g.cfg.name))
+		logs.Infow("Registering node", logger.Id(node.Id), logger.Name(g.cfg.name))
 	}
 
 	// registry options
@@ -219,7 +218,7 @@ func (g *grpcEntry) Stop() (err error) {
 
 	// deRegister self
 	if err := g.deRegister(); err != nil {
-		logs.Info("[grpc] server deRegister error", logger.Err(err))
+		logs.Info("[grpc] server deRegister error", logger.WithErr(err))
 	}
 
 	// Add sleep for those requests which have selected this port.
@@ -227,7 +226,7 @@ func (g *grpcEntry) Stop() (err error) {
 
 	logs.Info("[ExitProgress] Start Shutdown.")
 	if err := g.gw.Get().Shutdown(context.Background()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-		logs.Error("[grpc-gw] Shutdown Error", logger.Err(err))
+		logs.Error("[grpc-gw] Shutdown Error", logger.WithErr(err))
 	} else {
 		logs.Info("[ExitProgress] Shutdown Ok.")
 	}
@@ -247,13 +246,12 @@ func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
 	xerror.Assert(!grpcs.FindHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
 
 	g.handlers = append(g.handlers, handler)
-	g.endpoints = append(g.endpoints, newRpcHandler(handler)...)
 }
 
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Sugar().Infof("Server [%s] Listening on http://localhost:%s", g.cfg.name, lavax.GetPort(runenv.Addr))
+	logs.Infof("Server [%s] Listening on http://localhost:%s", g.cfg.name, lavax.GetPort(runenv.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
@@ -261,26 +259,26 @@ func (g *grpcEntry) Start() (gErr error) {
 	g.handleError()
 
 	// 启动grpc服务
-	fx.GoDelay(func() {
+	syncx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
 		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
-			logs.Error("[grpc] Server Stop", logger.Err(err))
+			logs.Error("[grpc] Server Stop", logger.WithErr(err))
 		}
 	})
 
 	// 启动grpc网关
-	fx.GoDelay(func() {
+	syncx.GoDelay(func() {
 		logs.Info("[grpc-gw] Server Staring")
 		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed && errors.Is(err, net.ErrClosed) {
-			logs.Error("[grpc-gw] Server Stop", logger.Err(err))
+			logs.Error("[grpc-gw] Server Stop", logger.WithErr(err))
 		}
 	})
 
 	// 启动net网络
-	fx.GoDelay(func() {
+	syncx.GoDelay(func() {
 		logs.Info("[cmux] Server Staring")
 		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			logs.Error("[cmux] Server Stop", logger.Err(err))
+			logs.Error("[cmux] Server Stop", logger.WithErr(err))
 		}
 	})
 
@@ -297,7 +295,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	// register self
 	xerror.Panic(g.register(), "[grpc] try to register self")
 
-	g.cancelRegister = fx.Go(func(ctx context.Context) {
+	g.cancelRegister = syncx.GoCtx(func(ctx context.Context) {
 		if g.registry == nil {
 			return
 		}
@@ -315,9 +313,9 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.Sugar().Infow("[grpc] server register", "registry", g.registry.String(), "interval", interval)
+				logs.Infof("project(%s) register ok, registry=>%s, interval=>%s", runenv.Project, g.registry.String(), interval.String())
 				if err := g.register(); err != nil {
-					logs.Error("[grpc] server register on interval", logger.Err(err))
+					logs.Desugar().Error("project(%s) register error", logger.WithErr(err)...)
 				}
 			case <-ctx.Done():
 				logs.Info("[grpc] register cancelled")
@@ -364,16 +362,25 @@ func newEntry(name string) *grpcEntry {
 		// 默认middleware注册
 		g.srv.UnaryInterceptor(g.handlerUnaryMiddle(g.Options().Middlewares))
 		g.srv.StreamInterceptor(g.handlerStreamMiddle(g.Options().Middlewares))
+
 		// 自定义middleware注册
 		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
 		g.srv.StreamInterceptor(g.streamServerInterceptors...)
 
 		// grpc serve初始化
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
+
 		// 初始化handlers
 		for i := range g.handlers {
-			xerror.Panic(dix.Inject(g.handlers[i]))
-			xerror.PanicF(grpcs.Register(g.srv.Get(), g.handlers[i]), "grpc register handler error")
+			var srv = g.handlers[i]
+			xerror.PanicF(dix.Inject(srv), "%#v", g.handlers[i])
+
+			// 如果handler实现了InitHandler接口
+			if init, ok := srv.(entry.InitHandler); ok {
+				init.Init()
+			}
+
+			xerror.PanicF(grpcs.Register(g.srv.Get(), srv), "grpc register handler error: %#v", srv)
 		}
 	})
 

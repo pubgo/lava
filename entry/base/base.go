@@ -29,6 +29,7 @@ func newEntry(name string) *Entry {
 }
 
 var _ entry.Entry = (*Entry)(nil)
+var _ entry.Runtime = (*Entry)(nil)
 
 type Entry struct {
 	kind        string
@@ -83,6 +84,8 @@ func (t *Entry) InitRT() {
 
 	xerror.Assert(runenv.Project != t.Options().Name, "project name not match(%s, %s)", runenv.Project, t.Options().Name)
 	xerror.Assert(t.init == nil, "init is nil")
+
+	// 执行entry的init
 	t.init()
 }
 

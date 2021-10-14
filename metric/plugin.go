@@ -8,7 +8,6 @@ import (
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
 )
@@ -29,7 +28,7 @@ func init() {
 			var opts = tally.ScopeOptions{Prefix: runenv.Project}
 			xerror.Exit(fc(config.GetMap(Name), &opts))
 			scope, closer := tally.NewRootScope(opts, time.Second)
-			ent.AfterStop(func() { logger.ErrLog(closer.Close()) })
+			ent.AfterStop(func() { xerror.Panic(closer.Close()) })
 			setDefault(scope)
 		},
 		OnVars: func(w func(name string, data func() interface{})) {

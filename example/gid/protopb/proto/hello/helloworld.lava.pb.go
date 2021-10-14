@@ -50,6 +50,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterGreeterServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterGreeterRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterGreeterHandlerServer), nil)
 }
 func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {

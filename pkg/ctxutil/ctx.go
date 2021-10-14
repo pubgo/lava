@@ -2,9 +2,10 @@ package ctxutil
 
 import (
 	"context"
-	"github.com/pubgo/lava/consts"
 	"sync"
 	"time"
+
+	"github.com/pubgo/lava/consts"
 )
 
 var _ Ctx = (*ctxImpl)(nil)
@@ -12,6 +13,7 @@ var _ Ctx = (*ctxImpl)(nil)
 type ctxImpl struct {
 	cancel []func()
 	mu     sync.RWMutex
+	ctx    context.Context
 }
 
 func (c *ctxImpl) addCancel(cancel func()) {

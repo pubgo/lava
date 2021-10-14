@@ -8,12 +8,14 @@ import (
 	"sync"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
+
+const Name = "config"
 
 var (
 	CfgType = "yaml"
@@ -111,7 +113,7 @@ func (t *conf) Decode(name string, fn interface{}) (b bool) {
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
 	if t.Get(name) == nil {
-		zap.S().Warnf("config key [%s] not found", name)
+		logz.Named(Name).Warnf("config key [%s] not found", name)
 		return false
 	}
 

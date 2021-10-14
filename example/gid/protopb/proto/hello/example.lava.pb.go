@@ -95,6 +95,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterUserServiceServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterUserServiceRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterUserServiceHandlerServer), nil)
 }
 func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {

@@ -92,6 +92,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterCodeServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterCodeRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCodeHandlerServer), nil)
 }
 func RegisterCodeRestServer(app fiber.Router, server CodeServer) {

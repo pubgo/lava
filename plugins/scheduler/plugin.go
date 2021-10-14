@@ -1,6 +1,9 @@
 package scheduler
 
 import (
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
+
 	"github.com/pubgo/lava/plugin"
 )
 
@@ -10,12 +13,9 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
-			ent.BeforeStart(func() {
-				quart.scheduler.Start()
-			})
-			ent.AfterStop(func() {
-				quart.scheduler.Stop()
-			})
+			quart.scheduler.Start()
+			xerror.Panic(dix.Provider(quart))
+			ent.AfterStop(quart.scheduler.Stop)
 		},
 	})
 }

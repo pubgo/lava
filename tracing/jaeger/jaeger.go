@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-lib/metrics/prometheus"
 
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/tracing"
 	"github.com/pubgo/lava/tracing/jaeger/reporter"
@@ -30,8 +30,7 @@ func init() {
 		var cfg = GetDefaultCfg()
 		cfg.ServiceName = runenv.Project
 
-		xerror.Panic(merge.MapStruct(&cfg, cfgMap))
-		return New(cfg)
+		return New(merge.MapStruct(cfg, cfgMap).(*Cfg))
 	}))
 }
 

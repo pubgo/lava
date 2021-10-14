@@ -64,6 +64,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterIdServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterIdRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterIdHandlerServer), nil)
 }
 func RegisterIdRestServer(app fiber.Router, server IdServer) {
@@ -315,6 +316,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceRestServer), mthList)
 }
 func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEverythingServiceServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -528,6 +530,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandlerServer), nil)
 }
 func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
@@ -574,6 +577,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsRestServer), mthList)
 }
 func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

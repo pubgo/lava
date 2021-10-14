@@ -1,15 +1,13 @@
 package logger
 
 import (
-	"reflect"
-
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )
 
-func Err(err error) zap.Field {
-	return zap.Any("err", err)
+func WithErr(err error, fields ...zap.Field) []zap.Field {
+	return append(fields, zap.String("err", err.Error()), zap.Any("err_stack", err))
 }
 
 func Name(name string) zap.Field {
@@ -24,49 +22,24 @@ func Id(id string) zap.Field {
 	return zap.String("id", id)
 }
 
-func UIntPrt(p interface{}) zap.Field {
-	return zap.Uintptr("ptr", uintptr(reflect.ValueOf(p).Pointer()))
-}
-
-func Try(fn func(), fields ...zap.Field) (gErr error) {
-	xerror.Assert(fn == nil, "[fn] should not be nil")
-
-	defer xerror.Resp(func(err xerror.XErr) {
-		zap.L().Error(err.Error(), append(fields, Err(err), FuncStack(fn))...)
-		gErr = err
-	})
-
-	fn()
-	return
-}
-
-func ErrWith(name string, err error) {
+func TryWith(fn func(), fields ...zap.Field) *zap.Logger {
+	var err error
+	xerror.TryWith(&err, fn)
 	if err == nil {
-		return
+		return Discard
 	}
 
-	zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error(), Err(err), Name(name))
+	return zap.L().With(WithErr(err, fields...)...)
 }
 
-func ErrLog(err error, fields ...zap.Field) {
+func ErrWith(err error, fields ...zap.Field) *zap.Logger {
 	if err == nil {
-		return
+		return Discard
 	}
 
-	zap.L().WithOptions(zap.AddCallerSkip(1)).Error(err.Error(), append(fields, Err(err))...)
+	return zap.L().With(WithErr(err, fields...)...)
 }
 
 func FuncStack(fn interface{}) zap.Field {
 	return zap.String("stack", stack.Func(fn))
-}
-
-func Logs(fn func(), fields ...zap.Field) {
-	xerror.Assert(fn == nil, "[fn] should not be nil")
-
-	defer xerror.Resp(func(err xerror.XErr) {
-		zap.L().Error(err.Error(), append(fields, Err(err), FuncStack(fn))...)
-	})
-
-	fn()
-	return
 }

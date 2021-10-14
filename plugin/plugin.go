@@ -1,9 +1,8 @@
 package plugin
 
 import (
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/internal/logs"
 )
 
 const defaultModule = "__global"
@@ -47,7 +46,7 @@ func Register(pg Plugin, opts ...Opt) {
 	xerror.Assert(pg == nil, "plugin[pg] is nil")
 	xerror.Assert(pg.Id() == "", "plugin name is null")
 	
-	logs.Named(Name, 1).Infof("register plugin[%s]", pg.Id())
+	logz.Named(Name, 1).Infof("register plugin[%s]", pg.Id())
 	opt := options{Module: defaultModule}
 	for _, o := range opts {
 		o(&opt)

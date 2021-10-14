@@ -92,6 +92,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterMergeServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterMergeRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterMergeHandlerServer), nil)
 }
 func RegisterMergeRestServer(app fiber.Router, server MergeServer) {

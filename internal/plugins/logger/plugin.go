@@ -51,7 +51,6 @@ func init() {
 				now := time.Now()
 				var params = make([]zap.Field, 0, 10)
 				params = append(params, zap.String("service", req.Service()))
-				params = append(params, zap.String("start_time", now.Format(time.RFC3339)))
 
 				var respBody interface{}
 				err = next(logger.CtxWithLogger(ctx, log), req, func(rsp types.Response) error {

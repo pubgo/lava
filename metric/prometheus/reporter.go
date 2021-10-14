@@ -5,9 +5,9 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
-	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/metric"
 )
 
@@ -24,7 +24,7 @@ func init() {
 		opts.CachedReporter, err = proCfg.NewReporter(
 			prometheus.ConfigurationOptions{
 				OnError: func(e error) {
-					zap.L().Error("metric error", logger.Err(e), logger.Pkg("metric.prometheus"))
+					logz.With(Name, logger.WithErr(e)...).Errorf("metric.prometheus error")
 				},
 			})
 		return xerror.Wrap(err)

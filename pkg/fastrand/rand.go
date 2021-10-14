@@ -20,6 +20,15 @@ func Probability(prob uint32) bool {
 	return false
 }
 
+// Sampling 采样率, [rate] is in the range [0,1)
+func Sampling(rate float32) bool {
+	rate = rate * 100
+	if rate > float32(Uint32n(100)) {
+		return true
+	}
+	return false
+}
+
 // Perm
 // returns a random permutation of the range [0,n).
 func Perm(n uint32) []uint32 {

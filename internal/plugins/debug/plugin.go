@@ -3,7 +3,7 @@ package debug
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/logs"
+	"github.com/pubgo/lava/logz"
 	"net/http"
 
 	"github.com/pkg/browser"
@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	var logs= logs.Named(debug.Name)
+	var logs= logz.Named(debug.Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{
@@ -39,7 +39,7 @@ func init() {
 				fx.GoDelay(func() {
 					logs.Infof("Server [debug] Listening on http://localhost:%s", lavax.GetPort(runenv.DebugAddr))
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-						logs.Error("Server [debug] Listen Error", logger.Err(err))
+						logs.Error("Server [debug] Listen Error", logger.WithErr(err))
 						return
 					}
 					logs.Info("Server [debug] Closed OK")
@@ -53,7 +53,7 @@ func init() {
 
 			ent.BeforeStop(func() {
 				if err := server.Shutdown(context.Background()); err != nil {
-					logs.Error("Server [debug] Shutdown Error", logger.Err(err))
+					logs.Error("Server [debug] Shutdown Error", logger.WithErr(err))
 				}
 			})
 		},

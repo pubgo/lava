@@ -94,6 +94,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterEchoServiceServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterEchoServiceRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterEchoServiceHandlerServer), nil)
 }
 func RegisterEchoServiceRestServer(app fiber.Router, server EchoServiceServer) {

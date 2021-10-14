@@ -3,12 +3,13 @@ package restEntry
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/logz"
 	"net/http"
 	"sync"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/internal/logs"
 	"github.com/pubgo/lava/logger"
 	fb "github.com/pubgo/lava/pkg/builder/fiber"
 	"github.com/pubgo/lava/runenv"
@@ -73,11 +74,17 @@ func (t *restEntry) Register(srv interface{}, opts ...Opt) {
 
 	xerror.Assert(srv == nil, "[srv] should not be nil")
 
-	// 检查是否实现了grpc handler
+	// 检查是否实现了handler
 	xerror.Assert(!checkHandle(srv).IsValid(), "[srv] 没有找到对应的service实现")
 
 	t.handlers = append(t.handlers, func() {
 		xerror.Panic(dix.Inject(srv))
+
+		// 如果handler实现了InitHandler接口
+		if init, ok := srv.(entry.InitHandler); ok {
+			init.Init()
+		}
+
 		xerror.PanicF(register(t.srv.Get(), srv), "[rest] grpc handler register error")
 	})
 }
@@ -87,13 +94,13 @@ func (t *restEntry) Start() error {
 		// 启动server后等待
 		fx.GoDelay(func() {
 
-			logs.Named(Name).Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
+			logz.Named(Name).Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
 			if err := t.srv.Get().Listen(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logs.Named(Name).Error("Server Close Error", logger.Err(err))
+				logz.Named(Name).Error("Server Close Error", logger.WithErr(err))
 				return
 			}
 
-			logs.Named(Name).Info("Server Closed OK")
+			logz.Named(Name).Info("Server Closed OK")
 		})
 	})
 }
@@ -101,14 +108,14 @@ func (t *restEntry) Start() error {
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Named(Name).Info("Server Shutdown")
+	logz.Named(Name).Info("Server Shutdown")
 
 	if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logs.Named(Name).Error("Server Shutdown Error", logger.Err(err))
+		logz.Named(Name).Error("Server Shutdown Error", logger.WithErr(err))
 		return err
 	}
 
-	logs.Named(Name).Info("Server Shutdown Ok")
+	logz.Named(Name).Info("Server Shutdown Ok")
 
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type Runtime interface {
-	InitRT() error
+	InitRT()
 	Start() error
 	Stop() error
 	Options() Opts

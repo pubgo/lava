@@ -6,27 +6,25 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/pubgo/x/stack"
-	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/healthy"
 	v "github.com/pubgo/lava/internal/cmds/version"
-	"github.com/pubgo/lava/internal/logs"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
+	"github.com/pubgo/x/stack"
+	"github.com/pubgo/xerror"
+	"github.com/spf13/cobra"
 )
 
 const name = "runtime"
 
-var log = logs.Named(name)
+var log = logz.Named(name)
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
@@ -38,11 +36,11 @@ func handleSignal() {
 	if runenv.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGPIPE)
-		go func() {
+		syncx.GoSafe(func() {
 			<-sigChan
-			log.Warn("Caught SIGPIPE (ignoring all future SIGPIPEs)")
+			log.Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
 			signal.Ignore(syscall.SIGPIPE)
-		}()
+		})
 	}
 
 	if !runenv.Block {
@@ -61,39 +59,43 @@ func start(ent entry.Runtime) (err error) {
 	log.Info("before-start running")
 	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range beforeList {
-		xerror.PanicF(xerror.Try(beforeList[i]), "before start error: %s", stack.Func(beforeList[i]))
+		xerror.TryCatch(beforeList[i], func(err error) {
+			xerror.PanicF(err, "before-start error: %s", stack.Func(beforeList[i]))
+		})
 	}
-	log.Info("before-start over")
+	log.Info("before-start ok")
 
 	xerror.Panic(ent.Start())
 
 	log.Info("after-start running")
 	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range afterList {
-		xerror.PanicF(xerror.Try(afterList[i]), "after start error: %s", stack.Func(afterList[i]))
+		xerror.TryCatch(afterList[i], func(err error) {
+			xerror.Panic(err, "after-start error")
+		})
 	}
-	log.Info("after-start over")
+	log.Info("after-start ok")
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	log.Infof("service [%s] before-stop running", ent.Options().Name)
+	log.Info("before-stop running")
 	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range beforeList {
-		logger.Logs(beforeList[i], zap.String("msg", fmt.Sprintf("before stop error: %s", stack.Func(beforeList[i]))))
+		logz.TryWith(name, beforeList[i]).Errorf("before-stop error: %s", stack.Func(beforeList[i]))
 	}
-	log.Infof("service [%s] before-stop over", ent.Options().Name)
+	log.Info("before-stop ok")
 
 	xerror.Panic(ent.Stop())
 
-	log.Infof("service [%s] after-stop running", ent.Options().Name)
+	log.Info("after-stop running")
 	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range afterList {
-		logger.Logs(afterList[i], zap.String("msg", fmt.Sprintf("after stop error: %s", stack.Func(afterList[i]))))
+		logz.TryWith(name, afterList[i]).Errorf("after-stop error: %s", stack.Func(beforeList[i]))
 	}
-	log.Infof("service [%s] after-stop over", ent.Options().Name)
+	log.Info("after-stop ok")
 	return nil
 }
 
@@ -106,7 +108,10 @@ func Run(description string, entries ...entry.Entry) {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
 		_, ok := ent.(entry.Runtime)
-		xerror.Assert(!ok, "[ent] not implement runtime")
+		if !ok {
+			panic(fmt.Sprintf("[ent] not implement runtime, ent:%#v", ent))
+		}
+
 	}
 
 	rootCmd.Short = description
@@ -160,17 +165,17 @@ func Run(description string, entries ...entry.Entry) {
 			// config初始化
 			xerror.Panic(config.Init())
 
-			// watcher初始化
-			xerror.Panic(watcher.Init())
-
 			// plugin初始化
 			plugins := plugin.ListWithDefault(plugin.Module(runenv.Project))
 			for _, plg := range plugins {
 				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
 			}
 
+			// watcher初始化
+			xerror.Panic(watcher.Init())
+
 			// entry初始化
-			xerror.PanicF(entRT.InitRT(), runenv.Project)
+			entRT.InitRT()
 		}
 
 		cmd.Run = func(cmd *cobra.Command, args []string) {
@@ -186,50 +191,51 @@ func Run(description string, entries ...entry.Entry) {
 	xerror.Panic(rootCmd.Execute())
 }
 
-func Start(ent entry.Entry) {
-	defer xerror.RespExit()
-
-	xerror.Assert(ent == nil, "[ent] should not be nil")
-
-	entRun, ok := ent.(entry.Runtime)
-	xerror.Assert(!ok, "[ent] not implement runtime")
-
-	opt := entRun.Options()
-	xerror.Assert(opt.Name == "", "[name] should not be empty")
-
-	plugins := plugin.ListWithDefault(plugin.Module(entRun.Options().Name))
-	for _, pl := range plugins {
-		// 加载flag
-		_ = pl.Flags()
-	}
-
-	// config初始化
-	runenv.Project = entRun.Options().Name
-	xerror.Panic(config.Init())
-	xerror.Panic(watcher.Init())
-
-	// entry初始化
-	xerror.Panic(entRun.InitRT())
-
-	// plugin初始化
-	for _, pg := range plugins {
-		key := pg.String()
-		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
-
-		// watch key
-		watcher.Watch(key, pg.Watch)
-	}
-
-	xerror.Panic(start(entRun))
-}
-
-func Stop(ent entry.Entry) {
-	defer xerror.RespExit()
-
-	xerror.Assert(ent == nil, "[ent] should not be nil")
-
-	entRun, ok := ent.(entry.Runtime)
-	xerror.Assert(!ok, "[ent] not implement runtime")
-
-	xerror.Panic(stop(entRun))
-}
+//func Start(ent entry.Entry) {
+//	defer xerror.RespExit()
+//
+//	xerror.Assert(ent == nil, "[ent] should not be nil")
+//
+//	entRun, ok := ent.(entry.Runtime)
+//	xerror.Assert(!ok, "[ent] not implement runtime")
+//
+//	opt := entRun.Options()
+//	xerror.Assert(opt.Name == "", "[name] should not be empty")
+//
+//	plugins := plugin.ListWithDefault(plugin.Module(entRun.Options().Name))
+//	for _, pl := range plugins {
+//		// 加载flag
+//		_ = pl.Flags()
+//	}
+//
+//	// config初始化
+//	runenv.Project = entRun.Options().Name
+//	xerror.Panic(config.Init())
+//
+//	// plugin初始化
+//	for _, pg := range plugins {
+//		key := pg.String()
+//		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
+//
+//		// watch key
+//		watcher.Watch(key, pg.Watch)
+//	}
+//
+//	xerror.Panic(watcher.Init())
+//
+//	// entry初始化
+//	entRun.InitRT()
+//
+//	xerror.Panic(start(entRun))
+//}
+//
+//func Stop(ent entry.Entry) {
+//	defer xerror.RespExit()
+//
+//	xerror.Assert(ent == nil, "[ent] should not be nil")
+//
+//	entRun, ok := ent.(entry.Runtime)
+//	xerror.Assert(!ok, "[ent] not implement runtime")
+//
+//	xerror.Panic(stop(entRun))
+//}

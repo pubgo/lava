@@ -1,13 +1,11 @@
 package grpcEntry
 
 import (
+	"github.com/pubgo/lava/logz"
 	"time"
 
-	"github.com/pubgo/lava/logger"
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
 	"github.com/pubgo/lava/pkg/builder/grpcs"
-
-	"go.uber.org/zap"
 )
 
 const Name = "grpc_entry"
@@ -30,11 +28,7 @@ const (
 	DefaultSleepAfterDeregister = time.Second * 2
 )
 
-var logs *zap.Logger
-
-func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named(Name) })
-}
+var logs = logz.Named(Name)
 
 type Cfg struct {
 	Grpc                 *grpcs.Cfg    `json:"grpc"`

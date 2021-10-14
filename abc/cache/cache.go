@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pubgo/lava/logger"
-
 	"github.com/pkg/errors"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
@@ -179,7 +177,7 @@ func (p *cacheImpl) defaultEvicted(k string, v []byte) {
 		return
 	}
 
-	logger.Logs(func() { onEvicted(k, v) })
+	onEvicted(k, v)
 }
 
 func (p *cacheImpl) OnEvicted(f func(k string, v []byte)) {

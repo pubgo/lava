@@ -1,13 +1,13 @@
 package scheduler
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
@@ -28,14 +28,17 @@ func (s Scheduler) do(fn func(name string)) {
 }
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
+	logz.Named(Name, 1).Infof("register scheduler(%s) Once(%s)", name, delay)
 	Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true}.do(fn)
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
+	logz.Named(Name, 1).Infof("register scheduler(%s) Every(%s)", name, dur)
 	Scheduler{scheduler: s.scheduler, dur: dur, key: name}.do(fn)
 }
 
 func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
+	logz.Named(Name, 1).Infof("register scheduler(%s) Cron(%s)", name, expr)
 	Scheduler{scheduler: s.scheduler, cron: expr, key: name}.do(fn)
 }
 
@@ -69,9 +72,14 @@ type nameJob struct {
 func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
-	logger.GetSugar(Name).Infof("%s scheduler start", t.name)
+	var now = time.Now()
+	defer func() {
+		logz.Named(Name).Infof("scheduler(%s) trigger ok, duration=>%s", t.name, time.Since(now))
+	}()
+
 	defer xerror.Resp(func(err xerror.XErr) {
-		logger.GetName(Name).Sugar().Errorw(fmt.Sprintf("%s scheduler error", t.name), "err", err, "err_msg", err.Error())
+		logz.With(Name, logger.WithErr(err)...).Errorf("scheduler(%s) trigger error, duration=>%s", t.name, time.Since(now))
 	})
+
 	t.fn(t.name)
 }

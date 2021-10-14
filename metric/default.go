@@ -2,8 +2,6 @@ package metric
 
 import (
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/logger"
 )
 
 var defaultScope Scope
@@ -26,11 +24,3 @@ func NewTimer(name string) Timer                          { return Root().Timer(
 func NewHistogram(name string, buckets Buckets) Histogram { return Root().Histogram(name, buckets) }
 func WithTagged(tags Tags) Scope                          { return Root().Tagged(tags) }
 func WithSubScope(name string) Scope                      { return Root().SubScope(name) }
-
-func TimeRecord(t Timer, fn func()) {
-	defer xerror.Resp(func(err xerror.XErr) { logger.ErrLog(err) })
-
-	var start = t.Start()
-	fn()
-	start.Stop()
-}

@@ -81,6 +81,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterTransportServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterTransportRestServer), mthList)
 }
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

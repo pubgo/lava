@@ -17,7 +17,7 @@ func Copy(dst interface{}, src interface{}, opts ...Option) interface{} {
 		opts[i](&optList)
 	}
 
-	xerror.PanicF(copier.CopyWithOption(&dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
+	xerror.PanicF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
 	return dst
 }
 

@@ -59,6 +59,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(reflect.ValueOf(RegisterLoginServer), mthList)
+	xgen.Add(reflect.ValueOf(RegisterLoginRestServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterLoginHandlerServer), nil)
 }
 func RegisterLoginRestServer(app fiber.Router, server LoginServer) {

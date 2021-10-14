@@ -112,6 +112,8 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		g.P("})")
 	}
 	g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "Server),mthList)")
+	g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "RestServer),mthList)")
+
 	if !isDefault {
 		g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "HandlerServer),nil)")
 	}

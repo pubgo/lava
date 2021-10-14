@@ -8,7 +8,7 @@ import (
 var _ jLog.Logger = (*logger)(nil)
 
 func newLog(name string) *logger {
-	return &logger{logs: zap.L().Named(name).WithOptions(zap.AddCallerSkip(2), zap.Fields(zap.Bool("tracing", true)))}
+	return &logger{logs: zap.L().Named(name).WithOptions(zap.AddCallerSkip(4), zap.Fields(zap.Bool("tracing", true)))}
 }
 
 type logger struct {

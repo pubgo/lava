@@ -1,13 +1,13 @@
 package nsqc
 
 import (
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/pkg/typex"
+	"runtime"
 
 	"github.com/pubgo/xerror"
 
-	"runtime"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var clients typex.SMap
@@ -42,7 +42,7 @@ func Update(name string, cfg Cfg) error {
 		// 当old etcd client没有被使用的时候, 那么就关闭
 		runtime.SetFinalizer(oldClient, func(cc *nsqClient) {
 			logs.Info("old client gc", logger.Name(name), logger.UIntPrt(cc))
-			//logs.Error("old client close error", logger.Name(name), logger.Err(err))
+			//logz.Error("old client close error", logger.Name(name), logger.WithErr(err))
 		})
 
 		logs.Info("update client", logger.Name(name))

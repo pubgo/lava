@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
-
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 var logs *zap.Logger
@@ -103,8 +104,8 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	w, err := r.Watch(target.Endpoint)
 	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
 
-	cancel := fx.Go(func(ctx context.Context) {
-		defer logger.Logs(func() { xerror.Panic(w.Stop()) })
+	cancel := syncx.GoCtx(func(ctx context.Context) {
+		defer func() { xerror.Panic(w.Stop()) }()
 
 		for {
 			select {
@@ -132,7 +133,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					var addrs = d.getAddrList(target.Endpoint)
 					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 				}, func(err error) {
-					logs.Error("update state error", logger.Err(err))
+					logz.WithErr("balancer.resolver", err).Error("update state error")
 				})
 			}
 		}
