@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/pubgo/x/merge"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm/schemas"
@@ -22,10 +22,7 @@ func init() {
 			}
 
 			for name := range cfgList {
-				cfg := DefaultCfg()
-				xerror.Panic(merge.Copy(&cfg, cfgList[name]))
-				cfgList[name] = cfg
-
+				cfgList[name] = merge.Copy(DefaultCfg(), cfgList[name]).(*Cfg)
 				var db = cfgList[name].Build()
 				resource.Update(Name, name, &Client{db: db})
 

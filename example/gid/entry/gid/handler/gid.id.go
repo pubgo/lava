@@ -3,12 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
-	"math/rand"
-	"time"
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/errors"

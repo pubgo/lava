@@ -20,7 +20,7 @@ func init() {
 			for name, cfg := range cfgList {
 				var bk = xerror.PanicErr(cfg.Build(name)).(Broker)
 				brokers.Set(name, bk)
-				xerror.Exit(dix.Provider(map[string]interface{}{name: bk}))
+				xerror.Exit(dix.ProviderNs(name, bk))
 			}
 		},
 

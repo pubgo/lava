@@ -25,19 +25,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func GetIdClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli IdClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli IdClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&idClient{c})
-		return
-	}
+func GetIdClient(srv string, opts ...func(cfg *grpcc.Cfg)) IdClient {
+	return &idClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler
@@ -90,19 +79,8 @@ func RegisterIdRestServer(app fiber.Router, server IdServer) {
 		return xerror.Wrap(ctx.JSON(resp))
 	})
 }
-func GetABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli ABitOfEverythingServiceClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli ABitOfEverythingServiceClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&aBitOfEverythingServiceClient{c})
-		return
-	}
+func GetABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) ABitOfEverythingServiceClient {
+	return &aBitOfEverythingServiceClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler
@@ -502,19 +480,8 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		return xerror.Wrap(ctx.JSON(resp))
 	})
 }
-func GetCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli CamelCaseServiceNameClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli CamelCaseServiceNameClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&camelCaseServiceNameClient{c})
-		return
-	}
+func GetCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) CamelCaseServiceNameClient {
+	return &camelCaseServiceNameClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler
@@ -549,19 +516,8 @@ func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseSe
 		return xerror.Wrap(ctx.JSON(resp))
 	})
 }
-func GetAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli AnotherServiceWithNoBindingsClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli AnotherServiceWithNoBindingsClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&anotherServiceWithNoBindingsClient{c})
-		return
-	}
+func GetAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) AnotherServiceWithNoBindingsClient {
+	return &anotherServiceWithNoBindingsClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler

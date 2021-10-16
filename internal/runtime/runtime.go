@@ -6,6 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/x/stack"
+	"github.com/pubgo/xerror"
+	"github.com/spf13/cobra"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/healthy"
@@ -17,9 +21,6 @@ import (
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
-	"github.com/pubgo/x/stack"
-	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
 )
 
 const name = "runtime"
@@ -59,9 +60,7 @@ func start(ent entry.Runtime) (err error) {
 	log.Info("before-start running")
 	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range beforeList {
-		xerror.TryCatch(beforeList[i], func(err error) {
-			xerror.PanicF(err, "before-start error: %s", stack.Func(beforeList[i]))
-		})
+		xerror.TryThrow(beforeList[i], "before-start error", stack.Func(beforeList[i]))
 	}
 	log.Info("before-start ok")
 
@@ -70,9 +69,7 @@ func start(ent entry.Runtime) (err error) {
 	log.Info("after-start running")
 	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range afterList {
-		xerror.TryCatch(afterList[i], func(err error) {
-			xerror.Panic(err, "after-start error")
-		})
+		xerror.TryThrow(afterList[i], "after-start error", stack.Func(afterList[i]))
 	}
 	log.Info("after-start ok")
 	return
@@ -93,7 +90,7 @@ func stop(ent entry.Runtime) (err error) {
 	log.Info("after-stop running")
 	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range afterList {
-		logz.TryWith(name, afterList[i]).Errorf("after-stop error: %s", stack.Func(beforeList[i]))
+		logz.TryWith(name, afterList[i]).Errorf("after-stop error: %s", stack.Func(afterList[i]))
 	}
 	log.Info("after-stop ok")
 	return nil

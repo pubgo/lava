@@ -73,9 +73,7 @@ func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
 	var now = time.Now()
-	defer func() {
-		logz.Named(Name).Infof("scheduler(%s) trigger ok, duration=>%s", t.name, time.Since(now))
-	}()
+	defer func() { logz.Named(Name).Infof("scheduler(%s) trigger ok, duration=>%s", t.name, time.Since(now)) }()
 
 	defer xerror.Resp(func(err xerror.XErr) {
 		logz.With(Name, logger.WithErr(err)...).Errorf("scheduler(%s) trigger error, duration=>%s", t.name, time.Since(now))

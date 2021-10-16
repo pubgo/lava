@@ -7,17 +7,16 @@ import (
 	"time"
 	_ "unsafe"
 
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	_ "net/http/pprof"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/gid/protopb/proto/hello"
+	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/grpcc"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/plugins/registry/mdns"
 	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/tracing"
 	_ "github.com/pubgo/lava/tracing/jaeger"
 )
 
@@ -30,22 +29,18 @@ func main() {
 
 	runenv.Project = "test-client"
 
-	var cfg = tracing.GetDefaultCfg()
-	xerror.Exit(cfg.Build())
+	// 初始化配置
+	xerror.Exit(config.Init())
 
-	xerror.Exit(registry.Init(mdns.Name, nil))
+	// 初始化注册中心
+	xerror.Exit(plugin.Get(registry.Name).Init(nil))
 
-	_ = fx.Tick(func(ctx fx.Ctx) {
+	defer xerror.RespDebug()
+
+	for range time.Tick(time.Second * 5) {
 		zap.L().Debug("客户端访问")
-
-		defer xerror.RespDebug()
-
-		xerror.Panic(testApiSrv(func(cli hello.TestApiClient) {
-			var out, err1 = cli.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
-			xerror.Panic(err1)
-			fmt.Printf("%#v \n", out)
-		}))
-
-	}, time.Second*5)
-	select {}
+		var out, err1 = testApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
+		xerror.Panic(err1)
+		fmt.Printf("%#v \n", out)
+	}
 }

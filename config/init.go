@@ -112,7 +112,6 @@ func Init() error { return getCfg().Init() }
 // flag可以指定配置文件位置
 // 始化配置文件
 func (t *conf) Init() (err error) {
-
 	defer xerror.RespErr(&err)
 
 	t.rw.Lock()

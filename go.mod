@@ -77,9 +77,9 @@ require (
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.28
+	github.com/pubgo/dix v0.1.29
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.13
+	github.com/pubgo/xerror v0.4.14
 	github.com/pubgo/xlog v0.2.8
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
 	github.com/reugn/go-quartz v0.3.7
@@ -233,6 +233,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/xlab/treeprint v1.0.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
 	go.mongodb.org/mongo-driver v1.3.4 // indirect
 	go.opentelemetry.io/otel v0.20.0 // indirect

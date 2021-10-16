@@ -34,27 +34,25 @@ func Update(kind string, name string, srv Resource) {
 	check(kind, name)
 	xerror.Assert(srv == nil, "[srv] should not be nil")
 
-	logz.Named(Name).Infof("create or update resource, kind=>%s, name=>%s", kind, name)
-
 	var id = join(kind, name)
 	var oldClient, ok = sources.Load(id)
 
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		logz.Named(Name).Infof("update resource, name=>%s", name)
-		oldClient.(*resourceWrap).srv = srv
+		logz.Named(Name).Infof("update resource[%s,%s]", kind, name)
+		oldClient.(*resourceWrap).Update(srv)
 		return
 	}
 
 	// 资源不存在, 创建新资源
 
-	logz.Named(Name).Infof("create resource, name=>%s", name)
+	logz.Named(Name).Infof("create resource[%s,%s]", kind, name)
 
-	var newClient = &resourceWrap{kind: kind, srv: srv}
+	var newClient = &resourceWrap{Resource: srv, kind: kind}
 	sources.Set(id, newClient)
 
 	// 依赖注入
-	xerror.Panic(dix.Provider(map[string]interface{}{name: srv}))
+	xerror.Panic(dix.ProviderNs(name, srv))
 
 	// 当resource被gc时, 关闭resource
 	runtime.SetFinalizer(newClient, func(cc Resource) {
@@ -66,7 +64,7 @@ func Update(kind string, name string, srv Resource) {
 		})
 
 		xerror.Panic(cc.Close())
-		logz.Named(Name).Infof("old resource close ok, name=>%s, id=>%p", name, cc)
+		logz.Named(Name).Infof("old resource[%s,%p] close ok", name, cc)
 	})
 }
 
@@ -75,7 +73,7 @@ func Get(kind string, name string) Resource {
 	check(kind, name)
 	var id = join(kind, name)
 	if val, ok := sources.Load(id); ok {
-		return val.(*resourceWrap).srv
+		return val.(*resourceWrap).Resource
 	}
 	return nil
 }
@@ -87,7 +85,7 @@ func GetByKind(kind string) map[string]Resource {
 	sources.Range(func(key, val interface{}) bool {
 		var name = key.(string)
 		if val.(*resourceWrap).kind == kind {
-			ss[name] = val.(*resourceWrap).srv
+			ss[name] = val.(*resourceWrap).Resource
 		}
 		return true
 	})
@@ -100,7 +98,7 @@ func GetOne(kind string) Resource {
 	var ss Resource
 	sources.Range(func(_, val interface{}) bool {
 		if val.(*resourceWrap).kind == kind {
-			ss = val.(*resourceWrap).srv
+			ss = val.(*resourceWrap).Resource
 			return false
 		}
 		return true

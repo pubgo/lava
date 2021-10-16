@@ -31,3 +31,7 @@ type Entry interface {
 type InitHandler interface {
 	Init()
 }
+
+type WatchHandler interface {
+	Watch() (name string)
+}

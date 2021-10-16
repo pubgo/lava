@@ -33,9 +33,9 @@ func (t *WaitGroup) check() {
 	if t.Count() >= t.Concurrent {
 		runtime.Gosched()
 
-		// 百分之一的概率, 打印log
-		if fastrand.Probability(10) {
-			logger.GetName(Name).Sugar().Errorf("WaitGroup current(%d) concurrent number exceeds the maximum(%d) concurrent number of the system", t.Count(), t.Concurrent)
+		// 百分之一的采样率, 打印log
+		if fastrand.Sampling(0.01) {
+			logger.GetName(Name).Sugar().Warnf("WaitGroup current(%d) concurrent number exceeds the maximum(%d) concurrent number of the system", t.Count(), t.Concurrent)
 		}
 	}
 }

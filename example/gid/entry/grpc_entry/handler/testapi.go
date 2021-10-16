@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/gid/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
-	db2 "github.com/pubgo/lava/plugins/db"
+	"github.com/pubgo/lava/plugins/db"
 )
 
 func NewTestAPIHandler() hello.TestApiServer {
@@ -19,7 +19,7 @@ func NewTestAPIHandler() hello.TestApiServer {
 }
 
 type testapiHandler struct {
-	Db *db2.Client `dix:""`
+	Db *db.Client `dix:""`
 }
 
 func (h *testapiHandler) Init() {

@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/pubgo/lava/logz"
 	"go.uber.org/atomic"
+
+	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/vars"
 )
 
 const Name = "goroutine"
@@ -24,7 +27,7 @@ func SetMaxConcurrent(concurrent uint32) {
 }
 
 func init() {
-	logz.Named(Name).Infof("default maxConcurrent=>%d", maxConcurrent)
+	vars.Watch(Name, func() interface{} {
+		return typex.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent}
+	})
 }
-
-//调度

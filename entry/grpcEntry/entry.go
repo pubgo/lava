@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/x/q"
+	"github.com/pubgo/x/stack"
 	"net"
 	"strconv"
 	"strings"
@@ -224,17 +227,17 @@ func (g *grpcEntry) Stop() (err error) {
 	// Add sleep for those requests which have selected this port.
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
-	logs.Info("[ExitProgress] Start Shutdown.")
+	logs.Info("[grpc-gw] Start Shutdown.")
 	if err := g.gw.Get().Shutdown(context.Background()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
 		logs.Error("[grpc-gw] Shutdown Error", logger.WithErr(err))
 	} else {
-		logs.Info("[ExitProgress] Shutdown Ok.")
+		logs.Info("[grpc-gw] Shutdown Ok.")
 	}
 
 	// stop the grpc server
-	logs.Info("[ExitProgress] Start GracefulStop.")
+	logs.Info("[grpc] Start GracefulStop.")
 	g.srv.Get().GracefulStop()
-	logs.Info("[ExitProgress] GracefulStop Ok.")
+	logs.Info("[grpc] GracefulStop Ok.")
 
 	return
 }
@@ -373,10 +376,15 @@ func newEntry(name string) *grpcEntry {
 		// 初始化handlers
 		for i := range g.handlers {
 			var srv = g.handlers[i]
-			xerror.PanicF(dix.Inject(srv), "%#v", g.handlers[i])
+			xerror.TryCatch(func() (interface{}, error) { return nil, dix.Inject(srv) }, func(err error) {
+				q.Q(srv)
+				fmt.Println(dix.Graph())
+				xerror.PanicF(err, "%#v", srv)
+			})
 
 			// 如果handler实现了InitHandler接口
 			if init, ok := srv.(entry.InitHandler); ok {
+				logz.Named(Name).Infof("handler init->%s", stack.Func(init.Init))
 				init.Init()
 			}
 

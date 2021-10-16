@@ -31,5 +31,6 @@ type Client struct {
 	db *xorm.Engine
 }
 
-func (c *Client) Close() error      { return c.db.Close() }
-func (c *Client) Get() *xorm.Engine { return c.db }
+func (c *Client) Close() error           { return c.db.Close() }
+func (c *Client) Get() *xorm.Engine      { return c.db }
+func (c *Client) Update(val interface{}) { c.db = val.(*Client).db }

@@ -20,19 +20,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func GetLoginClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli LoginClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli LoginClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&loginClient{c})
-		return
-	}
+func GetLoginClient(srv string, opts ...func(cfg *grpcc.Cfg)) LoginClient {
+	return &loginClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler

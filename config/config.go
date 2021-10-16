@@ -21,7 +21,7 @@ var (
 	CfgType = "yaml"
 	CfgName = "config"
 	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lava")
-	CfgPath = ".lava/config/config.yaml"
+	CfgPath = ""
 	cfg     = &conf{v: viper.New()}
 )
 

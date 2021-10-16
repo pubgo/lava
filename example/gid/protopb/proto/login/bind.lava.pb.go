@@ -20,19 +20,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func GetBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli BindTelephoneClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli BindTelephoneClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&bindTelephoneClient{c})
-		return
-	}
+func GetBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) BindTelephoneClient {
+	return &bindTelephoneClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler

@@ -78,6 +78,21 @@ func GoChan(fn func(), cb ...func(err error)) chan struct{} {
 	return ch
 }
 
+// GoErr 异常处理安全并发
+func GoErr(err *error, fn func()) {
+	if fn == nil {
+		panic("[GoSafe] [fn] is nil")
+	}
+
+	var dec = checkConcurrent("GoErr", fn)
+
+	go func() {
+		defer xerror.RespErr(err)
+		defer dec()
+		fn()
+	}()
+}
+
 // GoSafe 安全并发处理
 func GoSafe(fn func(), cb ...func(err error)) {
 	if fn == nil {
@@ -195,29 +210,61 @@ func GoTimeout(dur time.Duration, fn func()) (gErr error) {
 	}
 }
 
-func Async(fn func(ctx context.Context) (interface{}, error), parent ...context.Context) *AsyncValue {
+func newPromise() *Promise { return &Promise{ch: make(chan interface{})} }
+
+type Promise struct {
+	err error
+	ch  chan interface{}
+}
+
+func (t *Promise) Err() error                  { return t.err }
+func (t *Promise) close()                      { close(t.ch) }
+func (t *Promise) Unwrap() <-chan interface{}  { return t.ch }
+func (t *Promise) Await() (interface{}, error) { return <-t.ch, t.err }
+
+func Yield(fn func() (interface{}, error)) *Promise {
 	if fn == nil {
-		panic("[Async] [fn] should not be nil")
+		panic("[Yield] [fn] should not be nil")
 	}
 
-	var asyncVal = newValue()
-
-	var p = context.Background()
-	if len(parent) > 0 {
-		p = parent[0]
-	}
-
-	var ctx, cancel = context.WithCancel(p)
-	asyncVal.cancel = cancel
+	var p = newPromise()
 	GoSafe(func() {
-		var val, err = fn(ctx)
-		asyncVal.ch <- struct{}{}
-		asyncVal.value = val
-		asyncVal.err = err
-	}, func(err error) {
-		asyncVal.ch <- struct{}{}
-		asyncVal.err = err
+		defer p.close()
+		defer xerror.RespErr(&p.err)
+		val, err := fn()
+		p.err = err
+		p.ch <- val
 	})
 
-	return asyncVal
+	return p
+}
+
+func YieldMap(fn func(in chan<- *Promise) error) *Promise {
+	if fn == nil {
+		panic("[YieldMap] [fn] should not be nil")
+	}
+
+	var p = &Promise{ch: make(chan interface{})}
+	var in = make(chan *Promise)
+
+	GoSafe(func() {
+		defer p.close()
+		for pp := range in {
+			for val := range pp.Unwrap() {
+				p.ch <- val
+			}
+
+			if pp.Err() != nil {
+				p.err = pp.Err()
+			}
+		}
+	})
+
+	GoSafe(func() {
+		defer close(in)
+		defer xerror.RespErr(&p.err)
+		p.err = fn(in)
+	})
+
+	return p
 }

@@ -28,12 +28,34 @@ func GetClient(service string, opts ...func(cfg *Cfg)) *Client {
 
 var _ resource.Resource = (*Client)(nil)
 
+var _ grpc.ClientConnInterface = (*Client)(nil)
+
 type Client struct {
 	cfg     *Cfg
 	service string
 	mu      sync.Mutex
 	optFn   func(cfg *Cfg)
 	conn    *grpc.ClientConn
+}
+
+func (t *Client) Update(val interface{}) { t.conn = val.(*Client).conn }
+
+func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
+	var conn, err = t.Get()
+	if err != nil {
+		return xerror.Wrap(err)
+	}
+	return xerror.Wrap(conn.Invoke(ctx, method, args, reply, opts...))
+}
+
+func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	var conn, err = t.Get()
+	if err != nil {
+		return nil, xerror.Wrap(err)
+	}
+
+	var c, err1 = conn.NewStream(ctx, desc, method, opts...)
+	return c, xerror.Wrap(err1)
 }
 
 func (t *Client) Close() error {

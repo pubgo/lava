@@ -77,6 +77,7 @@ func (p *Base) Init(ent Entry) error {
 		return nil
 	}
 
+	logz.Named(Name).Infof("plugin[%s] init", p.Name)
 	return xerror.Try(func() { p.OnInit(ent) })
 }
 

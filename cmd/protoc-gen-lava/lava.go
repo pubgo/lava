@@ -68,19 +68,8 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Get", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) func(func(cli ", service.GoName, "Client)) error {")
-	g.P("client := ", grpccCall("GetClient"), "(srv, opts...)")
-	g.P("return func(fn func(cli ", service.GoName, "Client)) (err error) {")
-	g.P("defer ", xerrorCall("RespErr"), "(&err)")
-	g.P()
-	g.P("c, err := client.Get()")
-	g.P("if err!=nil{")
-	g.P(`return `, xerrorCall("WrapF"), `(err, "srv: %s", srv)`)
-	g.P("}")
-	g.P()
-	g.P("fn(&", protoutil.UnExport(service.GoName), "Client{c})")
-	g.P("return")
-	g.P("}")
+	g.P("func Get", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), "))", service.GoName, "Client{")
+	g.P("return &", protoutil.UnExport(service.GoName), "Client{", grpccCall("GetClient"), "(srv, opts...)}")
 	g.P("}")
 }
 

@@ -81,7 +81,7 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Sugar().Debugf("discovBuilder Build %#v", target)
+	logs.Sugar().Debugf("discovBuilder Build, target=>%#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
@@ -129,11 +129,11 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					d.updateService(res.Service)
 				}
 
-				xerror.TryCatch(func() {
-					var addrs = d.getAddrList(target.Endpoint)
-					xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+				xerror.TryCatch(func() (interface{}, error) {
+					var addrList = d.getAddrList(target.Endpoint)
+					return nil, cc.UpdateState(newState(addrList))
 				}, func(err error) {
-					logz.WithErr("balancer.resolver", err).Error("update state error")
+					logz.WithErr("balancer.resolver", err).Error("update resolver address error")
 				})
 			}
 		}

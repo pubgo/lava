@@ -23,19 +23,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli TestApiClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&testApiClient{c})
-		return
-	}
+func GetTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiClient {
+	return &testApiClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler
@@ -130,19 +119,8 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		return xerror.Wrap(ctx.JSON(resp))
 	})
 }
-func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli TestApiV2Client)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli TestApiV2Client)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&testApiV2Client{c})
-		return
-	}
+func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiV2Client {
+	return &testApiV2Client{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler

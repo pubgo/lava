@@ -25,8 +25,8 @@ func httpHandle(writer http.ResponseWriter, request *http.Request) {
 	xerror.Panic(healthList.Each(func(name string, r interface{}) {
 		dt[name] = &health{}
 		dt[name].Cost = fx.CostWith(func() {
-			xerror.TryCatch(func() {
-				xerror.Panic(r.(HealthCheck)(ctxutil.Timeout(time.Second * 2)))
+			xerror.TryCatch(func() (interface{}, error) {
+				return nil, r.(HealthCheck)(ctxutil.Timeout(time.Second * 2))
 			}, func(err error) {
 				dt[name].Err = err
 				writer.WriteHeader(http.StatusInternalServerError)

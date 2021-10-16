@@ -22,19 +22,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func GetGreeterClient(srv string, opts ...func(cfg *grpcc.Cfg)) func(func(cli GreeterClient)) error {
-	client := grpcc.GetClient(srv, opts...)
-	return func(fn func(cli GreeterClient)) (err error) {
-		defer xerror.RespErr(&err)
-
-		c, err := client.Get()
-		if err != nil {
-			return xerror.WrapF(err, "srv: %s", srv)
-		}
-
-		fn(&greeterClient{c})
-		return
-	}
+func GetGreeterClient(srv string, opts ...func(cfg *grpcc.Cfg)) GreeterClient {
+	return &greeterClient{grpcc.GetClient(srv, opts...)}
 }
 func init() {
 	var mthList []xgen.GrpcRestHandler
