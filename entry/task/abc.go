@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/pubgo/lava/abc/broker"
+	"github.com/pubgo/lava/broker"
 	"github.com/pubgo/lava/entry"
 )
 
