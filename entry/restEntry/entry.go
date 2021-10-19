@@ -41,7 +41,7 @@ func newEntry(name string) *restEntry {
 
 		// 加载组件middleware
 		// lava middleware比fiber Middleware的先加载
-		ent.srv.Get().Use(ent.handlerLugMiddle(ent.Options().Middlewares))
+		ent.srv.Get().Use(ent.handlerMiddle(ent.Options().Middlewares))
 
 		// 依赖注入router
 		xerror.Exit(dix.Provider(ent.srv.Get()))

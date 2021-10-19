@@ -5,6 +5,7 @@ package gid;
 option go_package = "./;gid";
 
 import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/wrappers.proto";
@@ -76,6 +77,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 // Id 生成随机ID服务
 service Id {
+  option (google.api.default_host) = "localhost:8080";
+
   // Generate 生成ID
   rpc Generate(GenerateRequest) returns (GenerateResponse) {
     option (google.api.http) = {

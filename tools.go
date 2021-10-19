@@ -26,4 +26,16 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
+
+	// Render markdown on the CLI, with pizzazz!
+	_ "github.com/charmbracelet/glow"
+
+	// An interactive web UI for gRPC, along the lines of postman
+	_ "github.com/fullstorydev/grpcui/cmd/grpcui"
+
+	// Simple gRPC benchmarking and load testing tool
+	_ "github.com/bojand/ghz"
+
+	// A simple zero-config tool to make locally trusted development certificates with any names you'd like.
+	_ "filippo.io/mkcert"
 )

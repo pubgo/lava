@@ -2,24 +2,27 @@ package debug
 
 import (
 	"context"
+	"expvar"
 	"fmt"
-	"github.com/pubgo/lava/logz"
+	varView "github.com/go-echarts/statsview/expvar"
 	"net/http"
 
 	"github.com/pkg/browser"
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/xerror"
+	"github.com/spf13/pflag"
+
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
-	"github.com/spf13/pflag"
 )
 
 func init() {
-	var logs= logz.Named(debug.Name)
+	var logs = logz.Named(debug.Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{
@@ -28,6 +31,12 @@ func init() {
 			flags.BoolVar(&openWeb, "web", openWeb, "open web browser")
 		},
 		OnInit: func(ent plugin.Entry) {
+			debug.InitView()
+
+			expvar.Do(func(value expvar.KeyValue) {
+				debug.AddView(varView.NewExpvarViewer(value.Key))
+			})
+
 			serveMux := debug.GetDefaultServeMux()
 			for k, v := range serveMux.M {
 				debug.Get(k, v.H.ServeHTTP)

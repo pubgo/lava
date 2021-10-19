@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
-func (t *restEntry) handlerLugMiddle(middlewares []types.Middleware) func(fbCtx *fiber.Ctx) error {
+func (t *restEntry) handlerMiddle(middlewares []types.Middleware) func(fbCtx *fiber.Ctx) error {
 	var handler = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		var reqCtx = req.(*httpRequest)
 

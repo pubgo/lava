@@ -5,14 +5,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pubgo/lava/pkg/protoutil"
 	"google.golang.org/protobuf/compiler/protogen"
+	gp "google.golang.org/protobuf/proto"
+
+	"github.com/pubgo/lava/pkg/protoutil"
+	"github.com/pubgo/lava/proto/lava/sqlx"
 )
 
 var (
 	contextCall  = protoutil.Import("context")
 	reflectCall  = protoutil.Import("reflect")
 	stringsCall  = protoutil.Import("strings")
+	sqlCall      = protoutil.Import("database/sql")
+	sqlxCall     = protoutil.Import("github.com/jmoiron/sqlx")
 	grpcCall     = protoutil.Import("google.golang.org/grpc")
 	codesCall    = protoutil.Import("google.golang.org/grpc/codes")
 	statusCall   = protoutil.Import("google.golang.org/grpc/status")
@@ -64,6 +69,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 		genClient(gen, file, g, service)
 		genRpcInfo(gen, file, g, service)
 		genRestRouter(gen, file, g, service)
+		genSql(gen, file, g, service)
 	}
 }
 
@@ -71,6 +77,26 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.P("func Get", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), "))", service.GoName, "Client{")
 	g.P("return &", protoutil.UnExport(service.GoName), "Client{", grpccCall("GetClient"), "(srv, opts...)}")
 	g.P("}")
+}
+
+func genSql(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
+	for _, mth := range service.Methods {
+		if !gp.HasExtension(mth.Desc.Options(), sqlx.E_Query) && !gp.HasExtension(mth.Desc.Options(), sqlx.E_Exec) {
+			continue
+		}
+
+		//func NamedExecContext(ctx context.Context, e ExtContext, query string, arg interface{}) (sql.Result, error) {
+
+		if opts, ok := gp.GetExtension(mth.Desc.Options(), sqlx.E_Exec).(string); ok {
+			g.P("func ", service.GoName, mth.GoName, "Exec(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(", sqlCall("Result"), ", error){")
+			g.P(`return db.NamedExecContext(ctx,"`, opts, `",arg)`)
+			g.P("}")
+		}
+
+		//if opts, ok := gp.GetExtension(mth.Desc.Options(), sqlx.E_Query).(string); ok {
+		//}
+
+	}
 }
 
 func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {

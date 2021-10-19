@@ -13,6 +13,11 @@ type value func() interface{}
 func (f value) Value() interface{} { return f() }
 func (f value) String() string {
 	dt := f()
+
+	if _, ok := dt.(string); ok {
+		return dt.(string)
+	}
+
 	v := xerror.PanicBytes(jsonx.Marshal(dt))
 	return byteutil.ToStr(v)
 }

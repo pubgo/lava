@@ -8,7 +8,7 @@ import (
 
 func Command(cb func(cmd *cobra.Command, flags *pflag.FlagSet)) *cobra.Command {
 	var cmd = &cobra.Command{}
-	cb(cmd, cmd.Flags())
+	cb(cmd, cmd.PersistentFlags())
 	return cmd
 }
 

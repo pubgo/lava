@@ -2,9 +2,6 @@ package restEntry
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
-
 	"github.com/pubgo/lava/entry"
 )
 
@@ -16,7 +13,6 @@ type Entry interface {
 	entry.Entry
 	Register(srv interface{}, opts ...Opt)
 }
-
-func Provider(fn func(r Router)) {
-	xerror.Exit(dix.Provider(fn))
+type RestRouter interface {
+	Router(r Router)
 }

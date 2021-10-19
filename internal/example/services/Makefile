@@ -26,7 +26,7 @@ ci:
 	@golangci-lint run -v --timeout=5m
 
 proto-gen:
-	debug=1 lava protoc gen
+	debug=1 lava protoc gen --swagger
 
 proto-rm:
 	@rm -rf proto/**/*.go

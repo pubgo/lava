@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	pathutil2 "github.com/pubgo/lava/pkg/pathutil"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -16,7 +15,7 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/mattn/go-zglob/fastwalk"
-	"github.com/pubgo/x/pathutil"
+	pathutil2 "github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -28,23 +27,26 @@ import (
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
+	"github.com/pubgo/lava/pkg/pathutil"
 	"github.com/pubgo/lava/pkg/shutil"
 )
 
 func Cmd() *cobra.Command {
 	var protoRoot = "proto"
 	var protoCfg = ".lava/protobuf.yaml"
+	var swagger bool
 
 	return cli.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
 		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
+		flags.BoolVar(&swagger, "swagger", swagger, "gen swagger file")
 
 		cmd.Use = "protoc"
 		cmd.Short = "protobuf generation, configuration and management"
 		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
 
-			xerror.Panic(pathutil.IsNotExistMkDir(protoPath))
+			xerror.Panic(pathutil2.IsNotExistMkDir(protoPath))
 
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
@@ -66,7 +68,7 @@ func Cmd() *cobra.Command {
 					var url = dep.Url
 
 					// 跳过本地指定的目录, url是绝对路径
-					if pathutil.IsDir(url) {
+					if pathutil2.IsDir(url) {
 						continue
 					}
 
@@ -77,7 +79,7 @@ func Cmd() *cobra.Command {
 
 					// go.mod 中版本不存在, 就下载
 					if version == "" {
-						var list, err = pathutil2.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						var list, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
@@ -91,7 +93,7 @@ func Cmd() *cobra.Command {
 
 					if version == "" {
 						xerror.Panic(shutil.Bash("go", "get", "-d", url+"/...").Run())
-						var list, err = pathutil2.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						var list, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
@@ -138,6 +140,10 @@ func Cmd() *cobra.Command {
 					xerror.Panic(shutil.Bash(data).Run(), data)
 					return true
 				})
+
+				if !swagger {
+					return
+				}
 
 				// 把生成的openapi嵌入到go代码
 				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
@@ -209,7 +215,7 @@ func Cmd() *cobra.Command {
 						}
 
 						var newPath = filepath.Join(newUrl, strings.TrimPrefix(path, url))
-						xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(newPath)))
+						xerror.Panic(pathutil2.IsNotExistMkDir(filepath.Dir(newPath)))
 						xerror.PanicErr(copyFile(newPath, path))
 
 						return nil

@@ -14,6 +14,8 @@ deps:
   url: github.com/gogo/protobuf
   path: /gogoproto
   version: v1.3.2
+- name: lava
+  url: /Users/barry/gopath/src/github.com/pubgo/lava/proto/lava
 - name: google/protobuf
   url: /usr/local/include/google/protobuf
 plugins:
