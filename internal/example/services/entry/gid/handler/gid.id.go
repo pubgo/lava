@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/plugins/logger"
+	"github.com/pubgo/lava/plugins/metric"
 	"math/rand"
 	"time"
 
@@ -14,8 +16,6 @@ import (
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/gid"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
 

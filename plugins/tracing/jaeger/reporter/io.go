@@ -1,7 +1,7 @@
 package reporter
 
 import (
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/logger"
 	"io"
 	"time"
 

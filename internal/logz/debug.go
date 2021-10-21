@@ -2,14 +2,14 @@ package logz
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog/xlog_config"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/logger"
+	"github.com/pubgo/lava/runenv"
 )
 
 var Discard = zap.NewNop()

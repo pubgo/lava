@@ -2,6 +2,7 @@ package rest_entry
 
 import (
 	"context"
+	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
 	"go.uber.org/zap"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
-	"github.com/pubgo/lava/logger"
 	db2 "github.com/pubgo/lava/plugins/db"
 )
 

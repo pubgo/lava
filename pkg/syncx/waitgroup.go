@@ -1,12 +1,12 @@
 package syncx
 
 import (
+	"github.com/pubgo/lava/plugins/logger"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	_ "unsafe"
 
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 

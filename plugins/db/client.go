@@ -1,22 +1,23 @@
 package db
 
 import (
-	"github.com/pubgo/lava/pkg/lavax"
-	resource2 "github.com/pubgo/lava/resource"
 	"xorm.io/xorm"
+
+	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/resource"
 )
 
-func Get(names ...string) *xorm.Engine {
-	c := resource2.Get(Name, lavax.GetDefault())
+func Get(names ...string) *Client {
+	c := resource.Get(Name, lavax.GetDefault(names...))
 	if c == nil {
 		return nil
 	}
 
-	return c.(*Client).Engine
+	return c.(*Client)
 }
 
 func GetCallback(name string, cb func(*xorm.Engine)) {
-	c := resource2.Get(Name, lavax.GetDefault())
+	c := resource.Get(Name, lavax.GetDefault())
 	if c == nil {
 		return
 	}
@@ -24,7 +25,7 @@ func GetCallback(name string, cb func(*xorm.Engine)) {
 	cb(c.(*Client).Engine)
 }
 
-var _ resource2.Resource = (*Client)(nil)
+var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
 	*xorm.Engine

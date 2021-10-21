@@ -1,7 +1,7 @@
 package task
 
 import (
-	broker2 "github.com/pubgo/lava/broker"
+	broker3 "github.com/pubgo/lava/plugins/broker"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/entry/base"
@@ -16,19 +16,19 @@ func New(name string) Entry { return newEntry(name) }
 var _ Entry = (*taskEntry)(nil)
 
 type entryTaskHandler struct {
-	handler broker2.Handler
-	opts    *broker2.SubOpts
+	handler broker3.Handler
+	opts    *broker3.SubOpts
 }
 
 type taskEntry struct {
 	*base.Entry
 	cfg      Cfg
-	broker   broker2.Broker
+	broker   broker3.Broker
 	handlers []entryTaskHandler
 }
 
 func (t *taskEntry) Register(topic string, handler Handler, opts ...*Opts) {
-	var taskHandler = entryTaskHandler{handler: handler, opts: new(broker2.SubOpts)}
+	var taskHandler = entryTaskHandler{handler: handler, opts: new(broker3.SubOpts)}
 	if len(opts) > 0 && opts[0] != nil {
 		taskHandler.opts = opts[0]
 	}
@@ -41,7 +41,7 @@ func (t *taskEntry) Stop() (err error) { return nil }
 func (t *taskEntry) Start() (err error) {
 	defer xerror.RespErr(&err)
 
-	t.broker = broker2.Get(t.cfg.Broker)
+	t.broker = broker3.Get(t.cfg.Broker)
 	for i := range t.handlers {
 		handler := t.handlers[i]
 		brk := t.broker

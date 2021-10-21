@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/plugin"
 )
 

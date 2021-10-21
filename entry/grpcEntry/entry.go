@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
 	"net"
@@ -24,7 +25,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logger"
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
 	"github.com/pubgo/lava/pkg/builder/grpcs"
 	"github.com/pubgo/lava/pkg/lavax"

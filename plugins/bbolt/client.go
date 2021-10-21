@@ -2,8 +2,6 @@ package bbolt
 
 import (
 	"context"
-	"github.com/pubgo/lava/pkg/lavax"
-	resource2 "github.com/pubgo/lava/resource"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
@@ -11,18 +9,20 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/tracing"
+	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/resource"
 )
 
 func Get(name ...string) *Client {
-	var val = resource2.Get(Name, lavax.GetDefault(name...))
+	var val = resource.Get(Name, lavax.GetDefault(name...))
 	if val != nil {
 		return val.(*Client)
 	}
 	return nil
 }
 
-var _ resource2.Resource = (*Client)(nil)
+var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
 	*bolt.DB

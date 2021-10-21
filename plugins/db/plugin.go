@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm/schemas"
@@ -9,8 +8,9 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/watcher"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

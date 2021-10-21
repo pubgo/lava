@@ -1,7 +1,7 @@
 package grpcEntry
 
 import (
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/internal/logz"
 	"time"
 
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"

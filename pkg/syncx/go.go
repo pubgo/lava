@@ -3,6 +3,7 @@ package syncx
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/plugins/logger"
 	"runtime"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 

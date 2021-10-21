@@ -3,6 +3,7 @@ package traceRecord
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/plugins/tracing"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -12,7 +13,6 @@ import (
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/fastrand"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/tracing"
 	"github.com/pubgo/lava/types"
 )
 

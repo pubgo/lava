@@ -3,8 +3,8 @@ package tracing
 import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/watcher"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/xerror"
 )
 

@@ -1,7 +1,7 @@
 package map_store
 
 import (
-	"github.com/pubgo/lava/cache"
+	cache2 "github.com/pubgo/lava/plugins/cache"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
@@ -11,7 +11,7 @@ import (
 const Name = "map"
 
 func init() {
-	cache.Register(Name, func(cfgMap map[string]interface{}) (cache.IStore, error) {
+	cache2.Register(Name, func(cfgMap map[string]interface{}) (cache2.IStore, error) {
 		var cfg Cfg
 
 		if cfgMap != nil {
@@ -27,7 +27,7 @@ type item struct {
 	expired time.Time
 }
 
-var _ cache.IStore = (*storeImpl)(nil)
+var _ cache2.IStore = (*storeImpl)(nil)
 
 type storeImpl struct {
 	cfg      Cfg
@@ -38,7 +38,7 @@ type storeImpl struct {
 func (s *storeImpl) GetExpired(key string) (obj []byte, expired time.Time, err error) {
 	var dt, ok = s.data[key]
 	if !ok {
-		return nil, time.Time{}, cache.ErrNotFound
+		return nil, time.Time{}, cache2.ErrNotFound
 	}
 
 	return dt.value, dt.expired, nil
@@ -51,7 +51,7 @@ func (s *storeImpl) OnEvicted(f func(key string, obj []byte)) {
 func (s *storeImpl) Get(key string) (obj []byte, err error) {
 	var dt, ok = s.data[key]
 	if !ok {
-		return nil, cache.ErrNotFound
+		return nil, cache2.ErrNotFound
 	}
 
 	return dt.value, nil

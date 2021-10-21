@@ -1,11 +1,10 @@
 package nsqc
 
 import (
+	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logger"
 )
 
 var Name = "nsq"

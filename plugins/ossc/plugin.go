@@ -1,12 +1,12 @@
 package ossc
 
 import (
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )

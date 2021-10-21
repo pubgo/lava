@@ -2,11 +2,10 @@ package jwt
 
 import (
 	"errors"
+	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/pubgo/lava/logger"
 )
 
 //DefaultManager can be replaced

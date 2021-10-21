@@ -2,11 +2,11 @@ package syncx
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/logz"
 	"runtime"
 
 	"go.uber.org/atomic"
 
-	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )

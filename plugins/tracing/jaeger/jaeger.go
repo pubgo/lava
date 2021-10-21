@@ -1,6 +1,8 @@
 package jaeger
 
 import (
+	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"net/http"
 	"strings"
 
@@ -12,8 +14,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/tracing"
-	"github.com/pubgo/lava/tracing/jaeger/reporter"
 )
 
 var _ = jaeger.NewNullReporter()

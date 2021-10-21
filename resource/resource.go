@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"github.com/pubgo/lava/internal/logz"
 	"runtime"
 	"strings"
 
@@ -9,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

@@ -2,6 +2,8 @@ package runtime
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/logz"
+	watcher2 "github.com/pubgo/lava/plugins/watcher"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,13 +16,11 @@ import (
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/healthy"
 	v "github.com/pubgo/lava/internal/cmds/version"
-	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
-	"github.com/pubgo/lava/watcher"
 )
 
 const name = "runtime"
@@ -150,7 +150,7 @@ func Run(description string, entries ...entry.Entry) {
 
 					// 注册watcher
 					logz.Named(name).Infof("plugin [%s] watch register", plg.Id())
-					watcher.Watch("plugin/"+plg.Id(), plg.Watch)
+					watcher2.Watch("plugin/"+plg.Id(), plg.Watch)
 
 					// 注册debug
 					healthy.Register(plg.Id(), plg.Health())
@@ -171,7 +171,7 @@ func Run(description string, entries ...entry.Entry) {
 			}
 
 			// watcher初始化
-			xerror.Panic(watcher.Init())
+			xerror.Panic(watcher2.Init())
 
 			// entry初始化
 			entRT.InitRT()

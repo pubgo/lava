@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/lava/entry/grpcEntry"
 	"github.com/pubgo/lava/healthy"
 	"github.com/pubgo/lava/internal/example/services/entry/grpc_entry/handler"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/types"
 )
 

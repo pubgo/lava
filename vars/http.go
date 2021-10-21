@@ -3,6 +3,7 @@ package vars
 import (
 	"expvar"
 	"fmt"
+	"github.com/pubgo/lava/mux"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,8 +11,6 @@ import (
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/mux"
 )
 
 func init() {

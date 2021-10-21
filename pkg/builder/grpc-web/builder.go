@@ -2,9 +2,9 @@ package grpcWeb
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/plugins/logger"
 	"net/http"
 
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/xgen"
 
 	"github.com/pubgo/xerror"

@@ -3,6 +3,8 @@ package restEntry
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/plugins/logger"
 	"net/http"
 	"sync"
 
@@ -14,8 +16,6 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logz"
 	fb "github.com/pubgo/lava/pkg/builder/fiber"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"

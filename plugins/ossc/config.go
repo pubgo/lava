@@ -1,7 +1,7 @@
 package ossc
 
 import (
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/logger"
 	"go.uber.org/zap"
 )
 

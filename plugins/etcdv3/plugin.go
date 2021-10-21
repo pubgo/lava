@@ -1,12 +1,12 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/lava/plugins/watcher"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/watcher"
 )
 
 func init() {

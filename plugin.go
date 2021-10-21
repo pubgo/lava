@@ -3,10 +3,10 @@ package lava
 // 加载插件
 import (
 	// 加载debug插件
-	_ "github.com/pubgo/lava/debug"
+	_ "github.com/pubgo/lava/plugins/debug"
 
 	// 加载metric插件
-	_ "github.com/pubgo/lava/metric"
+	_ "github.com/pubgo/lava/plugins/metric"
 
 	_ "github.com/pubgo/lava/plugins/automaxprocs"
 

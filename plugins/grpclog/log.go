@@ -2,12 +2,11 @@ package grpclog
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/plugins/logger"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
-
-	"github.com/pubgo/lava/logger"
 )
 
 var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)

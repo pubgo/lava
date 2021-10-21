@@ -4,7 +4,6 @@ import (
 	"context"
 	"expvar"
 	"fmt"
-	"github.com/pubgo/lava/mux"
 	"net/http"
 
 	varView "github.com/go-echarts/statsview/expvar"
@@ -13,11 +12,12 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/runenv"
 )
 

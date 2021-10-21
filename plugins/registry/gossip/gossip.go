@@ -4,6 +4,7 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/plugins/logger"
 	"io/ioutil"
 	"net"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/mitchellh/hashstructure"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 	"github.com/pubgo/lava/types"

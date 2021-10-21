@@ -2,6 +2,7 @@ package restc
 
 import (
 	"context"
+	"github.com/pubgo/lava/plugins/tracing"
 	"net/url"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/pkg/retry"
-	"github.com/pubgo/lava/tracing"
 	"github.com/pubgo/lava/types"
 )
 

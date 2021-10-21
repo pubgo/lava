@@ -2,12 +2,12 @@ package logRecord
 
 import (
 	"context"
+	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"

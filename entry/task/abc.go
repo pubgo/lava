@@ -1,8 +1,8 @@
 package task
 
 import (
-	"github.com/pubgo/lava/broker"
 	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/plugins/broker"
 )
 
 type Handler = broker.Handler

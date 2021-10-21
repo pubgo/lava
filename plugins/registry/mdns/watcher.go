@@ -2,10 +2,10 @@ package mdns
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
