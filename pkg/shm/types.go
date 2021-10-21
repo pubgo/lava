@@ -1,20 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package shm
 
 import (
@@ -43,7 +26,7 @@ func checkConsistency(path string, size int) error {
 	return nil
 }
 
-type ShmSpan struct {
+type Span struct {
 	origin []byte
 	name   string
 
@@ -52,8 +35,8 @@ type ShmSpan struct {
 	size   int
 }
 
-func NewShmSpan(name string, data []byte) *ShmSpan {
-	return &ShmSpan{
+func NewShmSpan(name string, data []byte) *Span {
+	return &Span{
 		name:   name,
 		origin: data,
 		data:   uintptr(unsafe.Pointer(&data[0])),
@@ -61,7 +44,7 @@ func NewShmSpan(name string, data []byte) *ShmSpan {
 	}
 }
 
-func (s *ShmSpan) Alloc(size int) (uintptr, error) {
+func (s *Span) Alloc(size int) (uintptr, error) {
 	if s.offset+size > s.size {
 		return 0, errNotEnough
 	}
@@ -71,10 +54,10 @@ func (s *ShmSpan) Alloc(size int) (uintptr, error) {
 	return ptr, nil
 }
 
-func (s *ShmSpan) Data() uintptr {
+func (s *Span) Data() uintptr {
 	return s.data
 }
 
-func (s *ShmSpan) Origin() []byte {
+func (s *Span) Origin() []byte {
 	return s.origin
 }

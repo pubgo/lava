@@ -1,10 +1,10 @@
 package broker
 
 import (
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
@@ -21,7 +21,7 @@ func Register(name string, broker Factory) {
 }
 
 func Get(names ...string) Broker {
-	val, ok := brokers.Load(consts.GetDefault(names...))
+	val, ok := brokers.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}

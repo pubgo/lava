@@ -11,26 +11,23 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/ctxutil"
-	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/vars"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
-var callbacks typex.Map
 
 func Init() (err error) {
 	defer xerror.RespErr(&err)
 
-	if !config.Decode(Name, &cfg) {
-		return
-	}
+	_ = config.Decode(Name, &cfg)
 
 	defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
 
-	// 获取所有watch的项目
+	// 获取所有需要watch的项目
 	projects := cfg.Projects
 	if !strutil.Contains(projects, runenv.Project) {
 		projects = append(projects, runenv.Project)
@@ -43,8 +40,11 @@ func Init() (err error) {
 		// get远程配置, 获取项目下所有配置
 		xerror.Panic(defaultWatcher.GetCallback(
 			ctxutil.Timeout(), name,
-			func(resp *Response) { onWatch(name, resp) }),
-		)
+			func(resp *Response) {
+				resp.Event = types.EventType_UPDATE
+				onWatch(name, resp)
+			},
+		))
 
 		// watch远程配置
 		defaultWatcher.WatchCallback(
@@ -52,34 +52,14 @@ func Init() (err error) {
 			func(resp *Response) { onWatch(name, resp) },
 		)
 	}
-
-	vars.Watch(Name+"_callback", func() interface{} {
-		var dt []string
-		callbacks.Each(func(key string, _ interface{}) { dt = append(dt, key) })
-		return dt
-	})
-
-	vars.Watch(Name, func() interface{} {
-		var dt = make(map[string]string)
-		for name, f := range factories {
-			dt[name] = stack.Func(f)
-		}
-		return dt
-	})
-
 	return
 }
 
 func onWatch(name string, resp *Response) {
-	var logs = zap.S().Named("watcher").With(zap.String("project", name))
+	var logs = logz.Named(Name).With(zap.String("watch-project", name))
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		logs.Errorw(
-			"watcher callback error",
-			zap.Any("resp", resp),
-			zap.Any("err", err),
-			zap.Any("err_msg", err.Error()),
-		)
+		logs.Desugar().Error("watch callback error", logger.WithErr(err, zap.Any("resp", resp))...)
 	})
 
 	// value为空就skip
@@ -90,23 +70,24 @@ func onWatch(name string, resp *Response) {
 	var key = KeyToDot(resp.Key)
 
 	logs.Infow(
-		"watcher callback",
+		"watch callback",
 		zap.Any("key", key),
 		zap.Any("event", resp.Event.String()),
 		zap.Any("version", resp.Version),
 		zap.Any("value", string(resp.Value)),
 	)
 
-	// 把数据设置到全局配置管理中
-	// value都必须是kv类型的数据
+	// 把数据更新到全局配置中
+	// value必须是kv类型
 	var dt = make(map[string]interface{})
-	xerror.PanicF(types.Decode(resp.Value, &dt), "value都必须是kv类型的数据, key=>%s, value=>%s", resp.Key, resp.Value)
+	xerror.PanicF(types.Decode(resp.Value, &dt), "value必须是kv类型, key=>%s, value=>%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
 		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
 			config.GetCfg().Set(trimProject(key), dt)
 		} else {
+			// 非本项目配置, 项目前缀要带上名字
 			config.GetCfg().Set(key, dt)
 		}
 	})
@@ -116,6 +97,7 @@ func onWatch(name string, resp *Response) {
 			// 本项目配置, 去掉本项目前缀
 			config.GetCfg().Set(trimProject(key), nil)
 		} else {
+			// 非本项目配置, 项目前缀要带上名字
 			config.GetCfg().Set(key, nil)
 		}
 	})
@@ -128,13 +110,11 @@ func onWatch(name string, resp *Response) {
 	// 以name为前缀的所有的callbacks
 	callbacks.Each(func(k string, plg interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logs.Error("watch callback handle error",
-				zap.String("watch-key", k),
-				zap.Any("resp", resp),
-				zap.Any("err", err),
-				zap.Any("err_msg", err.Error()),
-				zap.Any("stack", stack.Func(plg)),
-			)
+			logs.Desugar().Error("watch callback handle error",
+				logger.WithErr(err,
+					zap.String("watch-key", k),
+					zap.Any("resp", resp),
+					zap.Any("stack", stack.Func(plg)))...)
 		})
 
 		// 检查是否是以key为前缀, `.`是连接符和分隔符
@@ -142,8 +122,10 @@ func onWatch(name string, resp *Response) {
 			return
 		}
 
+		// 去掉watch前缀
+		var watchKey = strings.Trim(strings.TrimPrefix(key, k), ".")
+
 		// 执行watch callback
-		var prefix = strings.Trim(strings.TrimPrefix(key, k), ".")
-		xerror.Panic(plg.(func(name string, r *types.WatchResp) error)(prefix, resp))
+		xerror.Panic(plg.(func(name string, r *types.WatchResp) error)(watchKey, resp))
 	})
 }

@@ -81,21 +81,26 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 
 func genSql(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
 	for _, mth := range service.Methods {
-		if !gp.HasExtension(mth.Desc.Options(), sqlx.E_Query) && !gp.HasExtension(mth.Desc.Options(), sqlx.E_Exec) {
+		var opts = mth.Desc.Options()
+		if !gp.HasExtension(opts, sqlx.E_Query) && !gp.HasExtension(opts, sqlx.E_Exec) {
 			continue
 		}
 
-		//func NamedExecContext(ctx context.Context, e ExtContext, query string, arg interface{}) (sql.Result, error) {
-
-		if opts, ok := gp.GetExtension(mth.Desc.Options(), sqlx.E_Exec).(string); ok {
-			g.P("func ", service.GoName, mth.GoName, "Exec(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(", sqlCall("Result"), ", error){")
-			g.P(`return db.NamedExecContext(ctx,"`, opts, `",arg)`)
+		if sql, ok := gp.GetExtension(opts, sqlx.E_Exec).(string); ok {
+			g.P("func ", service.GoName, "_", mth.GoName, "Exec(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(", sqlCall("Result"), ", error){")
+			g.P(`return db.NamedExecContext(ctx,"`, sql, `",arg)`)
 			g.P("}")
 		}
 
-		//if opts, ok := gp.GetExtension(mth.Desc.Options(), sqlx.E_Query).(string); ok {
-		//}
-
+		if sql, ok := gp.GetExtension(opts, sqlx.E_Query).(string); ok {
+			g.P("func ", service.GoName, "_", mth.GoName, "Query(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")([]", mth.Output.GoIdent, ", error){")
+			g.P(`var rows, err = db.NamedQueryContext(ctx,"`, sql, `",arg)`)
+			g.P("if err!=nil{return nil, err}")
+			g.P("")
+			g.P("var resp []", mth.Output.GoIdent)
+			g.P("return resp,sqlx.StructScan(rows, &resp)")
+			g.P("}")
+		}
 	}
 }
 

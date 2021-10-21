@@ -14,7 +14,3 @@ extend google.protobuf.MethodOptions {
   optional string query = 560004;
   optional string exec = 560005;
 }
-
-extend google.protobuf.ServiceOptions {
-  optional string ql = 560000;
-}

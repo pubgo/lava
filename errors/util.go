@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -76,4 +77,12 @@ func IsGrpcAcceptable(err error) bool {
 	default:
 		return true
 	}
+}
+
+func IsMemoryErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(err.Error(), "invalid memory address or nil pointer dereference")
 }

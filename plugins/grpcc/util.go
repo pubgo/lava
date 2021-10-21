@@ -31,9 +31,6 @@ func serviceFromMethod(m string) string {
 }
 
 func HealthCheck(srv string, conn *grpc.ClientConn) error {
-	var ctx = ctxutil.New()
-	defer ctx.Cancel()
-
-	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctx.Context(), &grpc_health_v1.HealthCheckRequest{Service: srv})
+	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctxutil.Timeout(), &grpc_health_v1.HealthCheckRequest{Service: srv})
 	return xerror.Wrap(err)
 }

@@ -2,10 +2,10 @@ package healthy
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/lavax"
 
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
@@ -16,7 +16,7 @@ type HealthCheck func(ctx context.Context) error
 var healthList typex.SMap
 
 func Get(names ...string) HealthCheck {
-	val, ok := healthList.Load(consts.GetDefault(names...))
+	val, ok := healthList.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}
@@ -33,8 +33,11 @@ func List() (val []HealthCheck) {
 }
 
 func Register(name string, r HealthCheck) {
-	defer xerror.RespExit()
-	xerror.Assert(name == "" || r == nil, "[name,r] is null")
+	if r == nil {
+		return
+	}
+
+	xerror.Assert(name == "", "[name] is null")
 	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)
 }

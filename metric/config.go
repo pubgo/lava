@@ -1,13 +1,19 @@
 package metric
 
+import "time"
+
 var Name = "metric"
 
 type Cfg struct {
-	Driver string `json:"driver"`
+	Driver    string        `json:"driver"`
+	Interval  time.Duration `json:"interval"`
+	Separator string        `json:"separator"`
 }
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Driver: "noop",
+		Driver:    "noop",
+		Interval:  time.Second,
+		Separator: "_",
 	}
 }

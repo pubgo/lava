@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/pubgo/lava/resource"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -8,17 +9,23 @@ import (
 
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/pkg/lavax"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
 
+var _ resource.Resource = (*Scheduler)(nil)
+
 type Scheduler struct {
+	resource.Base
 	scheduler quartz.Scheduler
 	key       string
 	cron      string
 	dur       time.Duration
 	once      bool
 }
+
+func (s Scheduler) Kind() string { return Name }
 
 func (s Scheduler) do(fn func(name string)) {
 	var trigger = s.getTrigger()
@@ -72,12 +79,9 @@ type nameJob struct {
 func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
-	var now = time.Now()
-	defer func() { logz.Named(Name).Infof("scheduler(%s) trigger ok, duration=>%s", t.name, time.Since(now)) }()
-
-	defer xerror.Resp(func(err xerror.XErr) {
-		logz.With(Name, logger.WithErr(err)...).Errorf("scheduler(%s) trigger error, duration=>%s", t.name, time.Since(now))
-	})
-
-	t.fn(t.name)
+	var (
+		dur, err = lavax.Cost(func() { t.fn(t.name) })
+		logs     = logz.Named(Name).With(logger.Name(t.name), logger.Duration(dur))
+	)
+	logz.Logs(logs, err)("scheduler trigger")
 }

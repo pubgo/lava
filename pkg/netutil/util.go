@@ -3,15 +3,40 @@ package netutil
 import (
 	"errors"
 	"net"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pubgo/xerror"
 )
 
+func GetLocalIP() string {
+	localIP := "localhost"
+
+	// skip the error since we don't want to break RPC calls because of it
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return localIP
+	}
+
+	for _, addr := range addresses {
+		items := strings.Split(addr.String(), "/")
+		if len(items) < 2 || items[0] == "127.0.0.1" {
+			continue
+		}
+
+		if match, err := regexp.MatchString(`\d+\.\d+\.\d+\.\d+`, items[0]); err == nil && match {
+			localIP = items[0]
+		}
+	}
+
+	return localIP
+}
+
+
 // LocalIP gets the first NIC's IP address.
 func LocalIP() (string, error) {
 	addrList, err := net.InterfaceAddrs()
-
 	if nil != err {
 		return "", xerror.Wrap(err)
 	}

@@ -1,8 +1,7 @@
 package metric
 
 import (
-	"time"
-
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
@@ -23,13 +22,19 @@ func init() {
 			xerror.Assert(driver == "", "metric driver is null")
 
 			fc := Get(driver)
-			xerror.Assert(fc == nil, "metric driver %s not found", driver)
+			xerror.Assert(fc == nil, "metric driver [%s] not found", driver)
 
-			var opts = tally.ScopeOptions{Prefix: runenv.Project}
+			var opts = tally.ScopeOptions{
+				Tags:      Tags{"project": runenv.Project},
+				Separator: cfg.Separator,
+			}
 			xerror.Exit(fc(config.GetMap(Name), &opts))
-			scope, closer := tally.NewRootScope(opts, time.Second)
+
+			scope, closer := tally.NewRootScope(opts, cfg.Interval)
 			ent.AfterStop(func() { xerror.Panic(closer.Close()) })
-			setDefault(scope)
+
+			// 资源更新
+			resource.Update("", &Resource{scope})
 		},
 		OnVars: func(w func(name string, data func() interface{})) {
 			w(Name, func() interface{} {

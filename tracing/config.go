@@ -25,6 +25,6 @@ func (cfg Cfg) Build() (err error) {
 
 func GetDefaultCfg() Cfg {
 	return Cfg{
-		Driver: "jaeger",
+		Driver: "noop",
 	}
 }

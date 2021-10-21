@@ -6,12 +6,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/xerror"
-
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/mux"
 )
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 		for i := range keys {
 			nodes = append(nodes, h.A(g.Text(keys[i]), g.Attr("href", keys[i])), h.Br())
 		}
+
 		return c.HTML5(c.HTML5Props{
 			Title:    "/debug/expvar",
 			Language: "en",
@@ -29,13 +30,13 @@ func init() {
 		})
 	}
 
-	debug.Get("/debug/expvar/{name}", func(w http.ResponseWriter, request *http.Request) {
+	mux.Get("/debug/expvar/{name}", func(w http.ResponseWriter, request *http.Request) {
 		var name = chi.URLParam(request, "name")
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		fmt.Fprintln(w, expvar.Get(name).String())
 	})
 
-	debug.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
+	mux.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
 		var keys []string
 		expvar.Do(func(kv expvar.KeyValue) {
 			keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))

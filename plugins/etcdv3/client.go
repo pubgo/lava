@@ -1,15 +1,14 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/lava/pkg/lavax"
+	resource2 "github.com/pubgo/lava/resource"
 	"go.etcd.io/etcd/client/v3"
-
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/resource"
 )
 
 // Get 获取etcd client
 func Get(names ...string) *Client {
-	var c = resource.Get(Name, consts.GetDefault(names...))
+	var c = resource2.Get(Name, lavax.GetDefault(names...))
 	if c != nil {
 		return c.(*Client)
 	}
@@ -20,16 +19,19 @@ func Get(names ...string) *Client {
 func Update(name string, cfg Cfg) {
 	etcdCfg := cfgMerge(cfg)
 	client := etcdCfg.Build()
-	resource.Update(Name, name, &Client{client})
+	resource2.Update(name, &Client{client})
 }
 
 // Delete 删除etcd client
 func Delete(name string) {
-	resource.Remove(Name, name)
+	resource2.Remove(Name, name)
 }
 
-var _ resource.Resource = (*Client)(nil)
+var _ resource2.Resource = (*Client)(nil)
 
 type Client struct {
 	*clientv3.Client
 }
+
+func (c *Client) UpdateResObj(val interface{}) { c.Client = val.(*Client).Client }
+func (c *Client) Kind() string                 { return Name }

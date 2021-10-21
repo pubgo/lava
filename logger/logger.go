@@ -6,6 +6,8 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/runenv"
 )
 
 var Discard = zap.NewNop()
@@ -39,11 +41,19 @@ func GetSugar(name string) *zap.SugaredLogger {
 	return l.Sugar()
 }
 
-func init() {
-	On(func(log *zap.Logger) {
-		loggerMap.Range(func(key, value interface{}) bool {
-			loggerMap.Store(key, log.Named(key.(string)))
-			return true
-		})
+func Init(log *zap.Logger) {
+	// 业务日志
+	bisLog := log.Named(runenv.Project)
+
+	// 全局替换
+	zap.ReplaceGlobals(bisLog)
+
+	// 依赖注入
+	xerror.Exit(dix.Provider(bisLog))
+	xerror.Exit(dix.ProviderNs("lava", log))
+
+	loggerMap.Range(func(key, value interface{}) bool {
+		loggerMap.Store(key, bisLog.Named(key.(string)))
+		return true
 	})
 }

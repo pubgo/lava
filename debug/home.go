@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"github.com/pubgo/lava/mux"
 	"html/template"
 	"net/http"
 
@@ -28,7 +29,7 @@ func home() func(writer http.ResponseWriter, r *http.Request) {
 
 	return func(writer http.ResponseWriter, req *http.Request) {
 		var keys []string
-		for _, r := range Mux().Routes() {
+		for _, r := range mux.Mux().Routes() {
 			keys = append(keys, r.Pattern)
 		}
 		xerror.Panic(homeTmpl.Execute(writer, keys))

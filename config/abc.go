@@ -1,15 +1,22 @@
 package config
 
-import "io"
+import (
+	"errors"
+	"io"
+)
+
+var ErrKeyNotFound = errors.New("config key not found")
 
 type Config interface {
-	Decode(name string, fn interface{}) (b bool)
+	Decode(name string, fn interface{}) error
 	Get(key string) interface{}
 	Set(string, interface{})
 	GetString(key string) string
-	ConfigFileUsed() string
+	ConfigPath() string
 	AllKeys() []string
 	MergeConfig(in io.Reader) error
-	AllSettings() map[string]interface{}
-	GetStringMap(key string) map[string]interface{}
+	All() map[string]interface{}
+	GetMap(key string) map[string]interface{}
 }
+
+

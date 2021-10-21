@@ -1,36 +1,34 @@
 package db
 
 import (
+	"github.com/pubgo/lava/pkg/lavax"
+	resource2 "github.com/pubgo/lava/resource"
 	"xorm.io/xorm"
-
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/resource"
 )
 
 func Get(names ...string) *xorm.Engine {
-	c := resource.Get(Name, consts.GetDefault())
+	c := resource2.Get(Name, lavax.GetDefault())
 	if c == nil {
 		return nil
 	}
 
-	return c.(*Client).db
+	return c.(*Client).Engine
 }
 
 func GetCallback(name string, cb func(*xorm.Engine)) {
-	c := resource.Get(Name, consts.GetDefault())
+	c := resource2.Get(Name, lavax.GetDefault())
 	if c == nil {
 		return
 	}
 
-	cb(c.(*Client).db)
+	cb(c.(*Client).Engine)
 }
 
-var _ resource.Resource = (*Client)(nil)
+var _ resource2.Resource = (*Client)(nil)
 
 type Client struct {
-	db *xorm.Engine
+	*xorm.Engine
 }
 
-func (c *Client) Close() error           { return c.db.Close() }
-func (c *Client) Get() *xorm.Engine      { return c.db }
-func (c *Client) Update(val interface{}) { c.db = val.(*Client).db }
+func (c *Client) UpdateResObj(val interface{}) { c.Engine = val.(*Client).Engine }
+func (c *Client) Kind() string                 { return Name }

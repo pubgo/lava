@@ -19,4 +19,5 @@ func TestSnakeCase(t *testing.T) {
 	xerror.AssertEqual(snake("aaBB/ccDD"), "aa_bb/cc_dd")
 	t.Log(Pwd)
 	t.Log(Home)
+	t.Log(Hostname)
 }

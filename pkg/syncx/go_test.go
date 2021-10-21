@@ -8,7 +8,7 @@ import (
 )
 
 func httpGetList() *Promise {
-	return YieldMap(func(in chan<- *Promise) error {
+	return YieldGroup(func(in chan<- *Promise) error {
 		for i := 2; i > 0; i-- {
 			in <- Yield(func() (interface{}, error) { return http.Get("https://www.baidu.com") })
 		}

@@ -2,17 +2,19 @@ package ossc
 
 import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"go.uber.org/atomic"
+	"github.com/pubgo/lava/resource"
 )
 
+var _ resource.Resource = (*Client)(nil)
+
 type Client struct {
-	atomic.Value
+	*oss.Client
 }
+
+func (t *Client) Close() error                 { return nil }
+func (t *Client) UpdateResObj(val interface{}) { t.Client = val.(*Client).Client }
+func (t *Client) Kind() string                 { return Name }
 
 func (t *Client) Bucket(name string) (*oss.Bucket, error) {
-	return t.Get().Bucket(name)
-}
-
-func (t *Client) Get() *oss.Client {
-	return t.Load().(*oss.Client)
+	return t.Bucket(name)
 }

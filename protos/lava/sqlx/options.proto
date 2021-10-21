@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package lava.sqlx;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/proto/lava/sqlx;sqlx";
+
+extend google.protobuf.MessageOptions {
+  string sqlx = 90001;
+}
+
+extend google.protobuf.MethodOptions {
+  optional string query = 560004;
+  optional string exec = 560005;
+}
+
+extend google.protobuf.ServiceOptions {
+  optional string ql = 560000;
+}

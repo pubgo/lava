@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
 
 	"github.com/pubgo/x/stack"
@@ -19,7 +19,7 @@ func Register(name string, store Factory) {
 }
 
 func GetStore(names ...string) IStore {
-	val, ok := factories.Load(consts.GetDefault(names...))
+	val, ok := factories.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}

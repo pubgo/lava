@@ -3,22 +3,22 @@ package restEntry
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/logz"
 	"net/http"
 	"sync"
-
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logger"
-	fb "github.com/pubgo/lava/pkg/builder/fiber"
-	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/types"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
+	fb "github.com/pubgo/lava/pkg/builder/fiber"
+	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 )
 
 func newEntry(name string) *restEntry {

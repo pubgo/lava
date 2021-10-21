@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/types"
 )
 
@@ -50,7 +49,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	data["commands"] = p.getFuncStack(p.OnCommands)
 	data["flags"] = p.getFuncStack(p.OnFlags)
 	data["watch"] = p.getFuncStack(p.OnWatch)
-	data["vars.go"] = p.getFuncStack(p.OnVars)
+	data["expvar"] = p.getFuncStack(p.OnVars)
 	return json.Marshal(data)
 }
 
@@ -64,7 +63,7 @@ func (p *Base) Vars(f func(name string, data func() interface{})) error {
 
 func (p *Base) Health() func(ctx context.Context) error {
 	if p.OnHealth == nil {
-		return func(ctx context.Context) error { return nil }
+		return nil
 	}
 	return p.OnHealth
 }
@@ -77,8 +76,8 @@ func (p *Base) Init(ent Entry) error {
 		return nil
 	}
 
-	logz.Named(Name).Infof("plugin[%s] init", p.Name)
-	return xerror.Try(func() { p.OnInit(ent) })
+	p.OnInit(ent)
+	return nil
 }
 
 func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
@@ -86,7 +85,6 @@ func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
 		return
 	}
 
-	logz.Named(Name).Infof("plugin [%s] watch init", p.Name)
 	return xerror.Try(func() { p.OnWatch(name, r) })
 }
 

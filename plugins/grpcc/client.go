@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/resource"
 	"sync"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/resource"
 )
 
 func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
@@ -38,7 +38,8 @@ type Client struct {
 	conn    *grpc.ClientConn
 }
 
-func (t *Client) Update(val interface{}) { t.conn = val.(*Client).conn }
+func (t *Client) UpdateResObj(val interface{}) { t.conn = val.(*Client).conn }
+func (t *Client) Kind() string                 { return Name }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	var conn, err = t.Get()

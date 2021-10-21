@@ -13,7 +13,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
-			if !config.Decode(Name, &cfgList) {
+			if config.Decode(Name, &cfgList) != nil {
 				return
 			}
 
@@ -23,7 +23,6 @@ func init() {
 				xerror.Exit(dix.ProviderNs(name, bk))
 			}
 		},
-
 		OnVars: func(w func(name string, data func() interface{})) {
 			w(Name+"_factory", func() interface{} {
 				var data = make(map[string]string)

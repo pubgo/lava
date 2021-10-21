@@ -2,7 +2,7 @@ package debug
 
 import (
 	"context"
-	"fmt"
+	"github.com/pubgo/lava/mux"
 	"net/http"
 
 	"github.com/go-echarts/go-echarts/v2/components"
@@ -31,11 +31,40 @@ var smgr1 *viewer.StatsMgr
 func AddView(view viewer.Viewer) {
 	view.SetStatsMgr(smgr1)
 	page1.AddCharts(view.View())
-	HandleFunc("/debug/statsview/view/"+view.Name(), view.Serve)
+	mux.HandleFunc("/debug/statsview/view/"+view.Name(), view.Serve)
 }
 
 func InitView() {
-	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithAddr("localhost:8081"))
+	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithTemplate(`
+$(function () { setInterval({{ .ViewID }}_sync, {{ .Interval }}); });
+function {{ .ViewID }}_sync() {
+    $.ajax({
+        type: "GET",
+        url: "/debug/statsview/view/{{ .Route }}",
+        dataType: "json",
+        success: function (result) {
+            let opt = goecharts_{{ .ViewID }}.getOption();
+
+            let x = opt.xAxis[0].data;
+            x.push(result.time);
+            if (x.length > {{ .MaxPoints }}) {
+                x = x.slice(1);
+            }
+            opt.xAxis[0].data = x;
+
+            for (let i = 0; i < result.values.length; i++) {
+                let y = opt.series[i].data;
+                y.push({ value: result.values[i] });
+                if (y.length > {{ .MaxPoints }}) {
+                    y = y.slice(1);
+                }
+                opt.series[i].data = y;
+
+                goecharts_{{ .ViewID }}.setOption(opt);
+            }
+        }
+    });
+}`))
 	_ = New()
 
 	templates.PageTpl = `
@@ -58,7 +87,7 @@ func New() *ViewManager {
 	page := components.NewPage()
 	page1 = page
 	page.PageTitle = "statsview"
-	page.AssetsHost = fmt.Sprintf("http://%s/debug/statsview/statics/", viewer.LinkAddr())
+	page.AssetsHost = "/debug/statsview/statics/"
 	page.Assets.JSAssets.Add("jquery.min.js")
 
 	mgr := &ViewManager{}
@@ -80,7 +109,7 @@ func New() *ViewManager {
 
 	for _, v := range mgr.Views {
 		page.AddCharts(v.View())
-		HandleFunc("/debug/statsview/view/"+v.Name(), v.Serve)
+		mux.HandleFunc("/debug/statsview/view/"+v.Name(), v.Serve)
 	}
 
 	http.HandleFunc("/debug/statsview", func(w http.ResponseWriter, _ *http.Request) {
@@ -88,19 +117,19 @@ func New() *ViewManager {
 	})
 
 	staticsPrev := "/debug/statsview/statics/"
-	HandleFunc(staticsPrev+"echarts.min.js", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc(staticsPrev+"echarts.min.js", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte(statics.EchartJS))
 	})
 
-	HandleFunc(staticsPrev+"jquery.min.js", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc(staticsPrev+"jquery.min.js", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte(statics.JqueryJS))
 	})
 
-	HandleFunc(staticsPrev+"themes/westeros.js", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc(staticsPrev+"themes/westeros.js", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte(statics.WesterosJS))
 	})
 
-	HandleFunc(staticsPrev+"themes/macarons.js", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc(staticsPrev+"themes/macarons.js", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte(statics.MacaronsJS))
 	})
 

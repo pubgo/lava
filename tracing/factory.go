@@ -1,9 +1,9 @@
 package tracing
 
 import (
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
@@ -12,7 +12,7 @@ var factories typex.SMap
 type Factory func(cfg map[string]interface{}) error
 
 func Get(names ...string) Factory {
-	val, ok := factories.Load(consts.GetDefault(names...))
+	val, ok := factories.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}

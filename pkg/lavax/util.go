@@ -1,10 +1,12 @@
 package lavax
 
 import (
+	"github.com/pubgo/lava/consts"
 	"go/format"
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/pubgo/xerror"
 )
@@ -91,4 +93,36 @@ func FileExists(path string) bool {
 	} else {
 		return false
 	}
+}
+
+func FirstNotEmpty(fx ...func() string) string {
+	var str string
+	for i := range fx {
+		str = strings.TrimSpace(fx[i]())
+		if str != "" {
+			return str
+		}
+	}
+	return ""
+}
+
+func IfEmpty(str string, fx func()) {
+	if str == "" {
+		fx()
+	}
+}
+
+func GetDefault(names ...string) string {
+	var name = consts.Default
+	if len(names) > 0 && names[0] != "" {
+		name = names[0]
+	}
+	return name
+}
+
+func Cost(fn func()) (dur time.Duration, err error) {
+	defer func(t time.Time) { dur = time.Since(t) }(time.Now())
+	defer xerror.RespErr(&err)
+	fn()
+	return
 }

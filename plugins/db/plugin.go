@@ -1,13 +1,13 @@
 package db
 
 import (
-	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"xorm.io/xorm/schemas"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/internal/resource"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/watcher"
@@ -17,14 +17,14 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
-			if !config.Decode(Name, &cfgList) {
+			if config.Decode(Name, &cfgList) != nil {
 				return
 			}
 
 			for name := range cfgList {
 				cfgList[name] = merge.Copy(DefaultCfg(), cfgList[name]).(*Cfg)
 				var db = cfgList[name].Build()
-				resource.Update(Name, name, &Client{db: db})
+				resource.Update(name, &Client{Engine: db})
 
 			}
 		},
@@ -38,7 +38,7 @@ func init() {
 				cfgList[name] = cfg
 
 				var db = cfgList[name].Build()
-				resource.Update(Name, name, &Client{db: db})
+				resource.Update(name, &Client{Engine: db})
 			})
 
 			w.OnDelete(func() { resource.Remove(Name, name) })
@@ -48,7 +48,7 @@ func init() {
 			w(Name+"_dbMetas", func() interface{} {
 				var dbMetas = make(map[string][]*schemas.Table)
 				for name, res := range resource.GetByKind(Name) {
-					dbMetas[name] = xerror.PanicErr(res.(*Client).Get().DBMetas()).([]*schemas.Table)
+					dbMetas[name] = xerror.PanicErr(res.(*Client).DBMetas()).([]*schemas.Table)
 				}
 				return dbMetas
 			})
@@ -57,7 +57,7 @@ func init() {
 				var sqlList = make(map[string]string)
 				for name, res := range resource.GetByKind(Name) {
 					var b strutil.Builder
-					xerror.Panic(res.(*Client).Get().DumpAll(&b))
+					xerror.Panic(res.(*Client).DumpAll(&b))
 					b.Reset()
 					sqlList[name] = b.String()
 				}

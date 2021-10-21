@@ -28,6 +28,6 @@ func SetMaxConcurrent(concurrent uint32) {
 
 func init() {
 	vars.Watch(Name, func() interface{} {
-		return typex.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent}
+		return typex.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent.Load()}
 	})
 }

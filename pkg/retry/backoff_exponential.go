@@ -1,16 +1,11 @@
 package retry
 
 import (
-	"github.com/pubgo/xerror"
-
 	"sync/atomic"
 	"time"
-)
 
-type exponentialBackoff struct {
-	base    time.Duration
-	attempt uint64
-}
+	"github.com/pubgo/xerror"
+)
 
 // NewExponential creates a new exponential backoff using the starting value of
 // base and doubling on each failure (1, 2, 4, 8, 16, 32, 64...), up to max.
@@ -18,8 +13,12 @@ type exponentialBackoff struct {
 // retry.
 func NewExponential(base time.Duration) Backoff {
 	xerror.Assert(base <= 0, "base must be greater than 0")
-
 	return &exponentialBackoff{base: base}
+}
+
+type exponentialBackoff struct {
+	base    time.Duration
+	attempt uint64
 }
 
 // Next implements Backoff. It is safe for concurrent use.

@@ -12,7 +12,7 @@ func init() {
 		Name: Name,
 		OnInit: func(ent plugin.Entry) {
 			var cfg = GetDefaultCfg()
-			if !config.Decode(Name, &cfg) {
+			if config.Decode(Name, &cfg) != nil {
 				return
 			}
 

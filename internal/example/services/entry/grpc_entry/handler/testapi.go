@@ -42,8 +42,8 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello2.TestReq) (out *
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
-		log.Info("dix db ok", zap.Any("err", h.Db.Get().Ping()))
-		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigFileUsed()))
+		log.Info("dix db ok", zap.Any("err", h.Db.Ping()))
+		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))
 	}
 
 	out = &hello2.TestApiOutput{

@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 )
 
@@ -37,6 +38,10 @@ func Get(name string, opts ...Opt) Plugin {
 		o(&mOpts)
 	}
 	return plugins[mOpts.Module][name]
+}
+
+func Middleware(name string, middleware types.Middleware, opts ...Opt) {
+	Register(&Base{Name: name, OnMiddleware: middleware}, opts...)
 }
 
 func Register(pg Plugin, opts ...Opt) {

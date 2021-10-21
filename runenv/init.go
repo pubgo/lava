@@ -25,7 +25,7 @@ var (
 // 从环境变量中获取系统默认值
 func init() {
 	// 运行环境
-	env.GetWith(&Mode, "mode", "runenv", "run_mode", "run_env")
+	env.GetWith(&Mode, "run_mode", "run_env")
 
 	// 服务group,domain
 	env.GetWith(&Domain, "domain", "service_domain", "project_domain")

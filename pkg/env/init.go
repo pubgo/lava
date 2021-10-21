@@ -5,27 +5,42 @@ import (
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	dir "github.com/mitchellh/go-homedir"
 	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"
+
+	"github.com/pubgo/lava/pkg/lavax"
 )
 
-// Prefix 环境变量的前缀
-var Prefix string
+// Prefix 系统环境变量前缀
+var Prefix = os.Getenv(strings.ToUpper("env_prefix"))
 
 // Pwd 当前目录
 var Pwd = xerror.PanicStr(os.Getwd())
 
+var Hostname = lavax.FirstNotEmpty(
+	func() string {
+		return os.Getenv("HOSTNAME")
+	}, func() string {
+		var h, err = os.Hostname()
+		xerror.Exit(err)
+		return h
+	},
+)
+
 // Home the home directory for the current user
-var Home = homedir.HomeDir()
+var Home = lavax.FirstNotEmpty(
+	func() string {
+		var h, err = dir.Dir()
+		xerror.Exit(err)
+		return h
+	},
+	func() string {
+		return homedir.HomeDir()
+	},
+)
 
 func init() {
-	// env_prefix 获取系统环境变量前缀
-	envDt, ok := Lookup("env_prefix")
-	envDt = trim(envDt)
-	if ok && envDt != "" {
-		Prefix = envDt
-	}
-
 	// 环境变量处理, key转大写, 同时把-./转换为_
 	// a-b=>a_b, a.b=>a_b, a/b=>a_b, HelloWorld=>hello_world
 	replacer := strings.NewReplacer("-", "_", ".", "_", "/", "_")

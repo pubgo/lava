@@ -239,9 +239,9 @@ func Yield(fn func() (interface{}, error)) *Promise {
 	return p
 }
 
-func YieldMap(fn func(in chan<- *Promise) error) *Promise {
+func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
 	if fn == nil {
-		panic("[YieldMap] [fn] should not be nil")
+		panic("[YieldGroup] [fn] should not be nil")
 	}
 
 	var p = &Promise{ch: make(chan interface{})}

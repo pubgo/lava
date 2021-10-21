@@ -18,9 +18,7 @@ var _ Backoff = (BackoffFunc)(nil)
 type BackoffFunc func() (time.Duration, bool)
 
 // Next implements Backoff.
-func (b BackoffFunc) Next() (time.Duration, bool) {
-	return b()
-}
+func (b BackoffFunc) Next() (time.Duration, bool) { return b() }
 
 // WithJitter wraps a backoff function and adds the specified jitter. j can be
 // interpreted as "+/- j". For example, if j were 5 seconds and the backoff
@@ -112,7 +110,6 @@ func WithCappedDuration(cap time.Duration, next Backoff) Backoff {
 // amount of time.
 func WithMaxDuration(timeout time.Duration, next Backoff) Backoff {
 	start := time.Now()
-
 	return BackoffFunc(func() (time.Duration, bool) {
 		diff := timeout - time.Since(start)
 		if diff <= 0 {

@@ -149,7 +149,8 @@ func Run(description string, entries ...entry.Entry) {
 				for _, plg := range plugins {
 
 					// 注册watcher
-					watcher.Watch(plg.Id(), plg.Watch)
+					logz.Named(name).Infof("plugin [%s] watch register", plg.Id())
+					watcher.Watch("plugin/"+plg.Id(), plg.Watch)
 
 					// 注册debug
 					healthy.Register(plg.Id(), plg.Health())
@@ -165,6 +166,7 @@ func Run(description string, entries ...entry.Entry) {
 			// plugin初始化
 			plugins := plugin.ListWithDefault(plugin.Module(runenv.Project))
 			for _, plg := range plugins {
+				logz.Named(name).Infof("plugin [%s] init", plg.Id())
 				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
 			}
 

@@ -30,8 +30,8 @@ type Cfg struct {
 	DrainTimeout   time.Duration `json:"drain_timeout"`
 }
 
-func (t Cfg) Build() (c *nsqClient, err error) {
-	return &nsqClient{cfg: t}, nil
+func (t Cfg) Build() (c *Client, err error) {
+	return &Client{cfg: t}, nil
 }
 
 func GetDefaultCfg() Cfg {

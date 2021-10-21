@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/pubgo/lava/types"
 )
 

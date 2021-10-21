@@ -5,24 +5,24 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
-	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/lava/version"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
+
+	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/version"
 )
 
-var trim = strings.TrimSpace
 var Cmd = &cobra.Command{
 	Use:     "version",
 	Aliases: typex.StrOf("v"),
 	Short:   "Print the dependency package information",
-	Example: trim(`
-lava version
-lava version json
-lava version t`),
+	Example: lavax.ExampleFmt(
+		"lava version",
+		"lava version json",
+		"lava version t"),
 	Run: func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()
 

@@ -14,6 +14,7 @@ require (
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/bigwhite/functrace v0.0.0-20210622013229-318a19dbb29a
 	github.com/bojand/ghz v0.105.0
+	github.com/casbin/casbin/v2 v2.1.2
 	github.com/charmbracelet/glow v1.4.1
 	github.com/edsrzf/mmap-go v1.0.0
 	github.com/emicklei/proto v1.9.1
@@ -42,6 +43,7 @@ require (
 	github.com/gofiber/template v1.6.6
 	github.com/gofiber/websocket/v2 v2.0.5
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.5.2
@@ -85,7 +87,7 @@ require (
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.29
+	github.com/pubgo/dix v0.1.30
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.14
 	github.com/pubgo/xlog v0.2.8
@@ -102,6 +104,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/http-swagger v1.1.1
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
+	github.com/tidwall/btree v0.6.1
 	github.com/tinylib/msgp v1.1.6
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible
@@ -141,6 +144,7 @@ require (
 require (
 	cloud.google.com/go v0.65.0 // indirect
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -236,7 +240,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.5 // indirect
 	github.com/miekg/dns v1.1.27 // indirect
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/muesli/gitcha v0.2.0 // indirect
@@ -245,7 +249,6 @@ require (
 	github.com/muesli/sasquatch v0.0.0-20200811221207-66979d92330a // indirect
 	github.com/muesli/termenv v0.8.1 // indirect
 	github.com/panjf2000/ants/v2 v2.4.5 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
@@ -297,3 +300,5 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20180114231543-2291e8f0f237 // indirect
 	xorm.io/builder v0.3.7 // indirect
 )
+
+require github.com/stretchr/objx v0.2.0 // indirect

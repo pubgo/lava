@@ -1,20 +1,34 @@
 package nsqc
 
 import (
+	"github.com/pubgo/lava/resource"
+	"sync"
+
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/segmentio/nsq-go"
-
-	"sync"
 )
 
-type nsqClient struct {
+var _ resource.Resource = (*Client)(nil)
+
+type Client struct {
 	mu   sync.Mutex
 	cfg  Cfg
 	stop []func()
 }
 
-func (t *nsqClient) Consumer(topic string, channel string) (c *nsq.Consumer, err error) {
+func (t *Client) Close() error {
+	return xerror.Try(func() {
+		for i := range t.stop {
+			t.stop[i]()
+		}
+	})
+}
+
+func (t *Client) UpdateResObj(val interface{}) {}
+func (t *Client) Kind() string                 { return Name }
+
+func (t *Client) Consumer(topic string, channel string) (c *nsq.Consumer, err error) {
 	defer xerror.RespErr(&err)
 
 	t.mu.Lock()
@@ -36,7 +50,7 @@ func (t *nsqClient) Consumer(topic string, channel string) (c *nsq.Consumer, err
 	return consumer, nil
 }
 
-func (t *nsqClient) Producer(topic string) (p *nsq.Producer, err error) {
+func (t *Client) Producer(topic string) (p *nsq.Producer, err error) {
 	defer xerror.RespErr(&err)
 
 	t.mu.Lock()

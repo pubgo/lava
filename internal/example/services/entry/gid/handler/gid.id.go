@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	gid2 "github.com/pubgo/lava/internal/example/services/protopb/proto/gid"
 	"math/rand"
 	"time"
 
@@ -14,21 +13,28 @@ import (
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/internal/example/services/protopb/proto/gid"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
 
-var _ gid2.IdServer = (*Id)(nil)
+var _ gid.IdServer = (*Id)(nil)
 var _ entry.InitHandler = (*Id)(nil)
 
 type Id struct {
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler `dix:""`
+	Metric    *metric.Resource     `dix:""`
 }
 
 func (id *Id) Init() {
 	id.Cron.Every("test gid", time.Second*2, func(name string) {
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+		//"time": time.Now().Format("15:04:05")
+		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
 		fmt.Println("test cron every")
 	})
 }
@@ -51,8 +57,8 @@ func NewId() *Id {
 	}
 }
 
-func (id *Id) Generate(ctx context.Context, req *gid2.GenerateRequest) (*gid2.GenerateResponse, error) {
-	var rsp = new(gid2.GenerateResponse)
+func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.GenerateResponse, error) {
+	var rsp = new(gid.GenerateResponse)
 	var log = logger.GetLog(ctx)
 
 	if len(req.Type) == 0 {
@@ -94,8 +100,8 @@ func (id *Id) Generate(ctx context.Context, req *gid2.GenerateRequest) (*gid2.Ge
 	return rsp, nil
 }
 
-func (id *Id) Types(ctx context.Context, req *gid2.TypesRequest) (*gid2.TypesResponse, error) {
-	var rsp = new(gid2.TypesResponse)
+func (id *Id) Types(ctx context.Context, req *gid.TypesRequest) (*gid.TypesResponse, error) {
+	var rsp = new(gid.TypesResponse)
 	rsp.Types = []string{
 		"uuid",
 		"shortid",

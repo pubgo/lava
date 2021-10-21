@@ -33,8 +33,8 @@ func (t *Service) Version(ctx context.Context, in *hello.TestReq) (out *hello.Te
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if t.Db != nil {
-		log.Info("dix db ok", zap.Any("err", t.Db.Get().Ping()))
-		log.Info("dix config ok", zap.String("cfg", t.Cfg.ConfigFileUsed()))
+		log.Info("dix db ok", zap.Any("err", t.Db.Ping()))
+		log.Info("dix config ok", zap.String("cfg", t.Cfg.ConfigPath()))
 	}
 
 	out = &hello.TestApiOutput{

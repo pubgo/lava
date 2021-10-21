@@ -1,9 +1,9 @@
 package watcher
 
 import (
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/types"
 )
@@ -11,6 +11,7 @@ import (
 type Factory func(cfg typex.M) (Watcher, error)
 
 var factories = make(map[string]Factory)
+var callbacks typex.Map
 
 func Register(name string, w Factory) {
 	xerror.Assert(name == "" || w == nil, "watcher [name,w] should not be null")
@@ -19,7 +20,7 @@ func Register(name string, w Factory) {
 }
 
 func Get(names ...string) Factory {
-	val, ok := factories[consts.GetDefault(names...)]
+	val, ok := factories[lavax.GetDefault(names...)]
 	if !ok {
 		return nil
 	}

@@ -29,7 +29,7 @@ type Cfg struct {
 	RejectOldCluster     bool              `json:"reject_old_cluster"`
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
-	backoff              retry.Handler
+	retry                retry.Retry
 }
 
 func (t Cfg) Build() (c *clientv3.Client) {
@@ -39,7 +39,7 @@ func (t Cfg) Build() (c *clientv3.Client) {
 
 	var err error
 	// 创建etcd client对象
-	xerror.PanicF(t.backoff.Do(func(i int) error {
+	xerror.PanicF(t.retry.Do(func(i int) error {
 		c, err = clientv3.New(cfg)
 		return xerror.Wrap(err)
 	}), "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
@@ -49,7 +49,7 @@ func (t Cfg) Build() (c *clientv3.Client) {
 
 func GetDefaultCfg() *Cfg {
 	return &Cfg{
-		backoff:     retry.New(),
+		retry:       retry.Default(),
 		DialTimeout: time.Second * 2,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	}

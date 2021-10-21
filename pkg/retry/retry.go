@@ -1,14 +1,14 @@
 package retry
 
 import (
-	"github.com/pubgo/xerror"
-
 	"time"
+
+	"github.com/pubgo/xerror"
 )
 
-type Handler func() Backoff
+type Retry func() Backoff
 
-func (d Handler) Do(f func(i int) error) (err error) {
+func (d Retry) Do(f func(i int) error) (err error) {
 	var wrap = func(i int) (err error) {
 		defer xerror.RespErr(&err)
 		return f(i)
@@ -29,11 +29,16 @@ func (d Handler) Do(f func(i int) error) (err error) {
 	}
 }
 
-func New(bs ...Backoff) Handler {
+func New(bs ...Backoff) Retry {
 	var b = WithMaxRetries(3, NewConstant(DefaultConstant))
 	if len(bs) > 0 {
 		b = bs[0]
 	}
 
+	return func() Backoff { return b }
+}
+
+func Default() Retry {
+	var b = WithMaxRetries(3, NewConstant(time.Millisecond*10))
 	return func() Backoff { return b }
 }

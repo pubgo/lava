@@ -1,8 +1,19 @@
 package metric
 
 import (
+	"github.com/pubgo/lava/resource"
 	"github.com/uber-go/tally"
 )
+
+var _ resource.Resource = (*Resource)(nil)
+
+type Resource struct {
+	tally.Scope
+}
+
+func (m *Resource) Close() error                 { return nil }
+func (m *Resource) UpdateResObj(val interface{}) { m.Scope = val.(Resource).Scope }
+func (m *Resource) Kind() string                 { return Name }
 
 type Tags = map[string]string
 type Counter = tally.Counter

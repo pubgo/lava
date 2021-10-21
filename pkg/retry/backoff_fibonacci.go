@@ -1,26 +1,25 @@
 package retry
 
 import (
-	"github.com/pubgo/xerror"
-
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/pubgo/xerror"
 )
-
-type state [2]time.Duration
-
-type fibonacciBackoff struct {
-	state unsafe.Pointer
-}
 
 // NewFibonacci creates a new Fibonacci backoff using the starting value of
 // base. The wait time is the sum of the previous two wait times on each failed
 // attempt (1, 1, 2, 3, 5, 8, 13...).
 func NewFibonacci(base time.Duration) Backoff {
 	xerror.Assert(base <= 0, "base must be greater than 0")
-
 	return &fibonacciBackoff{state: unsafe.Pointer(&state{0, base})}
+}
+
+type state [2]time.Duration
+
+type fibonacciBackoff struct {
+	state unsafe.Pointer
 }
 
 // Next implements Backoff. It is safe for concurrent use.

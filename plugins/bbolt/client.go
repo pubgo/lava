@@ -2,6 +2,8 @@ package bbolt
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/lavax"
+	resource2 "github.com/pubgo/lava/resource"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
@@ -9,26 +11,25 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/resource"
 	"github.com/pubgo/lava/tracing"
 )
 
 func Get(name ...string) *Client {
-	var val = resource.Get(Name, consts.GetDefault(name...))
+	var val = resource2.Get(Name, lavax.GetDefault(name...))
 	if val != nil {
 		return val.(*Client)
 	}
 	return nil
 }
 
-var _ resource.Resource = (*Client)(nil)
+var _ resource2.Resource = (*Client)(nil)
 
 type Client struct {
-	db *bolt.DB
+	*bolt.DB
 }
 
-func (t *Client) Close() error  { return t.db.Close() }
-func (t *Client) Get() *bolt.DB { return t.db }
+func (t *Client) Kind() string                 { return Name }
+func (t *Client) UpdateResObj(val interface{}) { t.DB = val.(*Client).DB }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
@@ -47,7 +48,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...strin
 
 	ext.DBType.Set(span, Name)
 
-	return t.db.View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+	return t.DB.View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }
 
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
@@ -61,5 +62,5 @@ func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...str
 
 	ext.DBType.Set(span, Name)
 
-	return t.db.Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+	return t.DB.Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }

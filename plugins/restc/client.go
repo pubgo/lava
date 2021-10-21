@@ -93,8 +93,7 @@ func doUrl(ctx context.Context, c *clientImpl, mth string, url string, requests 
 }
 
 func doFunc(c *clientImpl) types.MiddleNext {
-	var backoff = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
-
+	var r = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
 	return func(ctx context.Context, req types.Request, callback func(rsp types.Response) error) error {
 		var resp = fasthttp.AcquireResponse()
 
@@ -103,7 +102,7 @@ func doFunc(c *clientImpl) types.MiddleNext {
 			ext.HTTPStatusCode.Set(span, uint16(resp.StatusCode()))
 		}()
 
-		xerror.Panic(backoff.Do(func(i int) error {
+		xerror.Panic(r.Do(func(i int) error {
 			if c.cfg.Timeout > 0 {
 				return xerror.Wrap(c.client.DoTimeout(req.(*request).req, resp, c.cfg.Timeout))
 			}
