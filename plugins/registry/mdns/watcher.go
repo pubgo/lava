@@ -2,17 +2,19 @@ package mdns
 
 import (
 	"context"
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
+	"github.com/pubgo/x/fx"
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
 )
 
+var logs = logz.New(Name)
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
@@ -35,10 +37,13 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	results := make(chan *registry.Result)
 	return &Watcher{results: results, cancel: fx.Tick(func(_ctx fx.Ctx) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logz.Named(Name).Desugar().Error("watcher error", logger.WithErr(err)...)
+			logs.WithErr(err).Error("watcher error")
 		})
 
-		logz.Named(Name).Infof("[mdns] registry watch service(%s) on interval(%s)", service, ttl)
+		logs.With(
+			zap.String("service", service),
+			zap.String("interval", ttl.String()),
+		).Info("[mdns] registry watcher")
 
 		var nodes typex.SMap
 		services, err := m.GetService(service)

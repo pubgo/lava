@@ -1,7 +1,6 @@
 package reporter
 
 import (
-	"github.com/pubgo/lava/plugins/logger"
 	"io"
 	"time"
 
@@ -14,11 +13,13 @@ import (
 	j "github.com/uber/jaeger-client-go/thrift-gen/jaeger"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/internal/logz"
 )
 
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
-func NewIoReporter(writer io.Writer, batch int) jaeger.Reporter {
+func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
 	var reporter = &ioReporter{
 		writer:    writer,
 		batchSize: batch,
@@ -31,7 +32,7 @@ func NewIoReporter(writer io.Writer, batch int) jaeger.Reporter {
 }
 
 type ioReporter struct {
-	batchSize int
+	batchSize int32
 	writer    io.Writer
 
 	count     atomic.Int32
@@ -59,12 +60,14 @@ func (t *ioReporter) loop() {
 	}
 }
 
+var logs = logz.New("jaeger.reporter")
+
 func (t *ioReporter) Report(span *jaeger.Span) {
-	if t.count.Load() > 1024 {
-		logger.GetSugar("jaeger").Error("The maximum number of spans has been exceeded",
-			zap.Int("count", 1024),
-			zap.String("pkg", "ioReporter"))
-		return
+	if t.count.Load() > t.batchSize {
+		logs.With(
+			zap.Int32("batch", t.batchSize),
+			zap.Int32("count", t.count.Load()),
+		).Error("The maximum number of spans has been exceeded")
 	}
 
 	if t.process == nil {

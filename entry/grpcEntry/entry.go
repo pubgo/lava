@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
-	"github.com/pubgo/x/q"
-	"github.com/pubgo/x/stack"
 	"net"
 	"strconv"
 	"strings"
@@ -17,6 +12,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/x/q"
+	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
@@ -25,12 +22,15 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/internal/logz"
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
 	"github.com/pubgo/lava/pkg/builder/grpcs"
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/grpcc"
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
@@ -38,6 +38,7 @@ import (
 )
 
 var _ Entry = (*grpcEntry)(nil)
+var logs = logz.New(Name)
 
 type grpcEntry struct {
 	*base.Entry
@@ -51,7 +52,7 @@ type grpcEntry struct {
 	registryMap map[string][]*registry.Endpoint
 
 	handlers []interface{}
-	client   *grpc.ClientConn
+	//client   *grpc.ClientConn
 
 	middleOnce     sync.Once
 	cancelRegister context.CancelFunc
@@ -265,23 +266,23 @@ func (g *grpcEntry) Start() (gErr error) {
 	syncx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
 		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
-			logs.Error("[grpc] Server Stop", logger.WithErr(err))
+			logs.WithErr(err).Error("[grpc] Server Stop")
 		}
 	})
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {
 		logs.Info("[grpc-gw] Server Staring")
-		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed && errors.Is(err, net.ErrClosed) {
-			logs.Error("[grpc-gw] Server Stop", logger.WithErr(err))
+		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed {
+			logs.WithErr(err).Error("[grpc-gw] Server Stop")
 		}
 	})
 
 	// 启动net网络
 	syncx.GoDelay(func() {
 		logs.Info("[cmux] Server Staring")
-		if err := g.serve(); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-			logs.Error("[cmux] Server Stop", logger.WithErr(err))
+		if err := g.serve(); err != nil && !errors.Is(err, net.ErrClosed) {
+			logs.WithErr(err).Error("[cmux] Server Stop")
 		}
 	})
 
@@ -289,10 +290,9 @@ func (g *grpcEntry) Start() (gErr error) {
 	logs.Info("[grpc] Client Connecting")
 	conn, err := grpcc.NewDirect(runenv.Addr)
 	xerror.Panic(err)
-	g.client = conn
-	xerror.Panic(grpcc.HealthCheck(g.cfg.name, g.client))
+	xerror.Panic(grpcc.HealthCheck(g.cfg.name, conn))
 	for i := range g.handlers {
-		xerror.PanicF(g.gw.Register(g.client, g.handlers[i]), "gw register handler error")
+		xerror.PanicF(g.gw.Register(conn, g.handlers[i]), "gw register handler error")
 	}
 
 	// register self
@@ -316,10 +316,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.Infof("project(%s) register ok, registry=>%s, interval=>%s", runenv.Project, g.registry.String(), interval.String())
-				if err := g.register(); err != nil {
-					logs.Desugar().Error("project(%s) register error", logger.WithErr(err)...)
-				}
+				logs.Logs(g.register(), zap.String("registry", g.registry.String()), zap.String("interval", interval.String()))("service register")
 			case <-ctx.Done():
 				logs.Info("[grpc] register cancelled")
 				return
@@ -337,7 +334,7 @@ func newEntry(name string) *grpcEntry {
 		gw:    grpcGw.New(name),
 		cfg: Cfg{
 			name:                 name,
-			hostname:             getHostname(),
+			hostname:             env.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
 			Gw:                   grpcGw.GetDefaultCfg(),
@@ -383,8 +380,8 @@ func newEntry(name string) *grpcEntry {
 			})
 
 			// 如果handler实现了InitHandler接口
-			if init, ok := srv.(entry.InitHandler); ok {
-				logz.Named(Name).Infof("handler init->%s", stack.Func(init.Init))
+			if init, ok := srv.(interface{ Init() }); ok {
+				logs.Infof("handler init->%s", stack.Func(init.Init))
 				init.Init()
 			}
 

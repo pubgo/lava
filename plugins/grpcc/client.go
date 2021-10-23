@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/resource"
 	"sync"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/resource"
 )
 
 func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {

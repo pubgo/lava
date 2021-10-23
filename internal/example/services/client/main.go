@@ -16,8 +16,8 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/grpcc"
 	"github.com/pubgo/lava/plugins/registry"
+	_ "github.com/pubgo/lava/plugins/tracing/jaeger"
 	"github.com/pubgo/lava/runenv"
-	_ "github.com/pubgo/lava/tracing/jaeger"
 )
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {

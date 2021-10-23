@@ -40,7 +40,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterGreeterServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterGreeterRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterGreeterHandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterGreeterHandler), nil)
 }
 func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

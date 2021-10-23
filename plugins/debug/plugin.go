@@ -22,7 +22,7 @@ import (
 )
 
 func init() {
-	var logs = logz.Named(Name)
+	var logs = logz.New(Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{

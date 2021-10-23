@@ -2,6 +2,7 @@ package healthy
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/pkg/clix"
 	"io"
 	"net/http"
 	"os"
@@ -16,7 +17,7 @@ import (
 var Cmd = &cobra.Command{
 	Use:   "health",
 	Short: "health check",
-	Example: lavax.ExampleFmt(
+	Example: clix.ExampleFmt(
 		"lava health",
 		"lava health localhost:8081",
 	),

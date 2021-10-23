@@ -3,8 +3,6 @@ package restEntry
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
 	"net/http"
 	"sync"
 
@@ -14,12 +12,14 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/internal/logz"
 	fb "github.com/pubgo/lava/pkg/builder/fiber"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
+
+var logs = logz.New(Name)
 
 func newEntry(name string) *restEntry {
 	var ent = &restEntry{
@@ -81,7 +81,7 @@ func (t *restEntry) Register(srv interface{}, opts ...Opt) {
 		xerror.Panic(dix.Inject(srv))
 
 		// 如果handler实现了InitHandler接口
-		if init, ok := srv.(entry.InitHandler); ok {
+		if init, ok := srv.(interface{ Init() }); ok {
 			init.Init()
 		}
 
@@ -94,13 +94,12 @@ func (t *restEntry) Start() error {
 		// 启动server后等待
 		fx.GoDelay(func() {
 
-			logz.Named(Name).Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
+			logs.Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
 			if err := t.srv.Get().Listen(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logz.Named(Name).Error("Server Close Error", logger.WithErr(err))
+				logs.WithErr(err).Error("Server Closed Error")
 				return
 			}
-
-			logz.Named(Name).Info("Server Closed OK")
+			logs.Info("Server Closed OK")
 		})
 	})
 }
@@ -108,14 +107,12 @@ func (t *restEntry) Start() error {
 func (t *restEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
-	logz.Named(Name).Info("Server Shutdown")
-
-	if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logz.Named(Name).Error("Server Shutdown Error", logger.WithErr(err))
+	err = t.srv.Get().Shutdown()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logs.WithErr(err).Error("Server Shutdown Error")
 		return err
 	}
-
-	logz.Named(Name).Info("Server Shutdown Ok")
+	logs.Info("Server Shutdown Ok")
 
 	return nil
 }

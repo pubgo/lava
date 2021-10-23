@@ -3,7 +3,6 @@ package syncx
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/plugins/logger"
 	"runtime"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/pkg/fastrand"
+	"github.com/pubgo/lava/plugins/logger"
 )
 
 func checkConcurrent(name string, fn interface{}) func() {
@@ -160,11 +160,11 @@ func GoDelay(fn func(), durations ...time.Duration) {
 		dur = durations[0]
 	}
 
-	GoSafe(fn, func(err error) { dur = 0 })
+	xerror.Assert(dur == 0, "[dur] should not be 0")
 
-	if dur != 0 {
-		time.Sleep(dur)
-	}
+	time.Sleep(dur)
+
+	GoSafe(fn)
 
 	return
 }

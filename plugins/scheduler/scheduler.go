@@ -1,18 +1,19 @@
 package scheduler
 
 import (
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
-	"github.com/pubgo/lava/resource"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/reugn/go-quartz/quartz"
+	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/resource"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
+var logs = logz.New(Name)
 
 var _ resource.Resource = (*Scheduler)(nil)
 
@@ -35,17 +36,17 @@ func (s Scheduler) do(fn func(name string)) {
 }
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
-	logz.Named(Name, 1).Infof("register scheduler(%s) Once(%s)", name, delay)
+	logs.DepthS(1).Infof("register scheduler(%s) Once(%s)", name, delay)
 	Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true}.do(fn)
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
-	logz.Named(Name, 1).Infof("register scheduler(%s) Every(%s)", name, dur)
+	logs.DepthS(1).Infof("register scheduler(%s) Every(%s)", name, dur)
 	Scheduler{scheduler: s.scheduler, dur: dur, key: name}.do(fn)
 }
 
 func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
-	logz.Named(Name, 1).Infof("register scheduler(%s) Cron(%s)", name, expr)
+	logs.DepthS(1).Infof("register scheduler(%s) Cron(%s)", name, expr)
 	Scheduler{scheduler: s.scheduler, cron: expr, key: name}.do(fn)
 }
 
@@ -81,7 +82,10 @@ func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) 
 func (t nameJob) Execute() {
 	var (
 		dur, err = lavax.Cost(func() { t.fn(t.name) })
-		logs     = logz.Named(Name).With(logger.Name(t.name), logger.Duration(dur))
+		log      = logs.With(
+			zap.String("job-name", t.name),
+			zap.String("job-cost", dur.String()),
+		)
 	)
-	logz.Logs(logs, err)("scheduler trigger")
+	logz.Logs(log, err)("scheduler trigger")
 }

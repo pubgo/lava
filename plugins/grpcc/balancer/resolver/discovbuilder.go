@@ -3,24 +3,19 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
 )
 
-var logs *zap.Logger
-
-func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named("balancer.resolver") })
-}
+var logs = logz.New("balancer.resolver")
 
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
@@ -81,7 +76,7 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Sugar().Debugf("discovBuilder Build, target=>%#v", target)
+	logs.Infof("discovBuilder Build, target=>%#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
@@ -98,7 +93,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	var addrs = d.getAddrList(target.Endpoint)
 	xerror.Assert(len(addrs) == 0, "service none available")
 
-	logs.Sugar().Infof("discovBuilder Addrs %#v", addrs)
+	logs.Infof("discovBuilder Addrs %#v", addrs)
 	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
 
 	w, err := r.Watch(target.Endpoint)
@@ -133,7 +128,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					var addrList = d.getAddrList(target.Endpoint)
 					return nil, cc.UpdateState(newState(addrList))
 				}, func(err error) {
-					logz.WithErr("balancer.resolver", err).Error("update resolver address error")
+					logs.WithErr(err).Error("update resolver address error")
 				})
 			}
 		}

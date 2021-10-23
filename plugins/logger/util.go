@@ -1,10 +1,11 @@
 package logger
 
 import (
+	"time"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
-	"time"
 )
 
 func WithErr(err error, fields ...zap.Field) []zap.Field {

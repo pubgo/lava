@@ -1,6 +1,7 @@
 package jaeger
 
 import (
+	"github.com/pubgo/lava/internal/logz"
 	jLog "github.com/uber/jaeger-client-go/log"
 	"go.uber.org/zap"
 )
@@ -8,7 +9,7 @@ import (
 var _ jLog.Logger = (*logger)(nil)
 
 func newLog(name string) *logger {
-	return &logger{logs: zap.L().Named(name).WithOptions(zap.AddCallerSkip(4), zap.Fields(zap.Bool("tracing", true)))}
+	return &logger{logs: logz.New(name).Depth(2)}
 }
 
 type logger struct {

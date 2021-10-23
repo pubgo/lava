@@ -15,6 +15,7 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/mattn/go-zglob/fastwalk"
+	"github.com/pubgo/lava/consts"
 	pathutil2 "github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -22,8 +23,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/cli"
+	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
@@ -34,12 +34,10 @@ import (
 func Cmd() *cobra.Command {
 	var protoRoot = "proto"
 	var protoCfg = ".lava/protobuf.yaml"
-	var swagger bool
 
-	return cli.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
+	return clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
 		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
-		flags.BoolVar(&swagger, "swagger", swagger, "gen swagger file")
 
 		cmd.Use = "protoc"
 		cmd.Short = "protobuf generation, configuration and management"
@@ -56,6 +54,27 @@ func Cmd() *cobra.Command {
 				xerror.Assert(dep.Name == "" || dep.Url == "", "name和url都不能为空")
 			}
 		}
+
+		cmd.AddCommand(&cobra.Command{
+			Use:   "bindata",
+			Short: "gen swagger",
+			Run: func(cmd *cobra.Command, args []string) {
+				// 把生成的openapi嵌入到go代码
+				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
+				xerror.Panic(shutil.Bash(shell).Run())
+
+				// swagger加载和注册
+				var code = lavax.CodeFormat(
+					"package docs",
+					`import "github.com/pubgo/lava/plugins/swagger"`,
+					fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
+					`func init() {swagger.Init(AssetNames, MustAsset)}`,
+				)
+
+				const path = "docs/swagger.go"
+				_ = os.RemoveAll(path)
+				xerror.Panic(ioutil.WriteFile(path, []byte(code), 0755))
+			}})
 
 		cmd.AddCommand(&cobra.Command{
 			Use:   "download",
@@ -140,26 +159,6 @@ func Cmd() *cobra.Command {
 					xerror.Panic(shutil.Bash(data).Run(), data)
 					return true
 				})
-
-				if !swagger {
-					return
-				}
-
-				// 把生成的openapi嵌入到go代码
-				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
-				xerror.Panic(shutil.Bash(shell).Run())
-
-				// swagger加载和注册
-				var code = lavax.CodeFormat(
-					"package docs",
-					`import "github.com/pubgo/lava/plugins/swagger"`,
-					fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
-					`func init() {swagger.Init(AssetNames, MustAsset)}`,
-				)
-
-				const path = "docs/swagger.go"
-				_ = os.RemoveAll(path)
-				xerror.Panic(ioutil.WriteFile(path, []byte(code), 0755))
 			},
 		})
 		cmd.AddCommand(&cobra.Command{

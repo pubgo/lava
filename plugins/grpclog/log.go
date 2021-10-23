@@ -2,24 +2,25 @@ package grpclog
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/plugins/logger"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
+
+	"github.com/pubgo/lava/internal/logz"
 )
 
-var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)
-var _ grpclog.DepthLoggerV2 = (*loggerWrapper)(nil)
-
 func init() {
-	logger.On(func(log *zap.Logger) {
+	logz.On(func(z *logz.LogZ) {
 		grpclog.SetLoggerV2(&loggerWrapper{
-			log:      log.Named("grpc").WithOptions(zap.AddCallerSkip(4)),
-			depthLog: log.Named("grpc-component").WithOptions(zap.AddCallerSkip(2)),
+			log:      logz.New("grpc").Depth(4),
+			depthLog: logz.New("grpc-component").Depth(2),
 		})
 	})
 }
+
+var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)
+var _ grpclog.DepthLoggerV2 = (*loggerWrapper)(nil)
 
 type loggerWrapper struct {
 	log           *zap.Logger

@@ -8,11 +8,12 @@ import (
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/plugins/metric"
 )
 
 const Name = "prometheus"
+
+var logs = logz.New(Name)
 
 func init() {
 	metric.Register(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
@@ -23,7 +24,7 @@ func init() {
 		reporter, err := proCfg.NewReporter(
 			prometheus.ConfigurationOptions{
 				OnError: func(e error) {
-					logz.With(Name, logger.WithErr(e)...).Errorf("metric.prometheus error")
+					logs.WithErr(e).Error("metric.prometheus error")
 				},
 			},
 		)

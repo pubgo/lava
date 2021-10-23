@@ -1,6 +1,7 @@
 package env
 
 import (
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -19,9 +20,8 @@ var Prefix = os.Getenv(strings.ToUpper("env_prefix"))
 var Pwd = xerror.PanicStr(os.Getwd())
 
 var Hostname = lavax.FirstNotEmpty(
+	func() string { return os.Getenv("HOSTNAME") },
 	func() string {
-		return os.Getenv("HOSTNAME")
-	}, func() string {
 		var h, err = os.Hostname()
 		xerror.Exit(err)
 		return h
@@ -30,14 +30,26 @@ var Hostname = lavax.FirstNotEmpty(
 
 // Home the home directory for the current user
 var Home = lavax.FirstNotEmpty(
+	homedir.HomeDir,
 	func() string {
 		var h, err = dir.Dir()
 		xerror.Exit(err)
 		return h
 	},
+)
+
+var Namespace = lavax.FirstNotEmpty(
+	func() string { return os.Getenv("NAMESPACE") },
+	func() string { return os.Getenv("POD_NAMESPACE") },
 	func() string {
-		return homedir.HomeDir()
+		if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
+			if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
+				return ns
+			}
+		}
+		return ""
 	},
+	func() string { return "default" },
 )
 
 func init() {

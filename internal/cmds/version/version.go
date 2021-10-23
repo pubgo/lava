@@ -3,6 +3,7 @@ package version
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/pkg/clix"
 	"os"
 	"runtime/debug"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/version"
 )
 
@@ -19,7 +19,7 @@ var Cmd = &cobra.Command{
 	Use:     "version",
 	Aliases: typex.StrOf("v"),
 	Short:   "Print the dependency package information",
-	Example: lavax.ExampleFmt(
+	Example: clix.ExampleFmt(
 		"lava version",
 		"lava version json",
 		"lava version t"),

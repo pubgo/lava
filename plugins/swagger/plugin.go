@@ -3,7 +3,6 @@ package swagger
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/mux"
 	"html/template"
 	"net/http"
 	"strings"
@@ -13,6 +12,8 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/pubgo/xerror"
 	httpSwagger "github.com/swaggo/http-swagger"
+
+	"github.com/pubgo/lava/mux"
 )
 
 func Init(names func() []string, asset func(name string) []byte) {

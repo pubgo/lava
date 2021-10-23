@@ -27,11 +27,3 @@ type Entry interface {
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
 }
-
-type InitHandler interface {
-	Init()
-}
-
-type WatchHandler interface {
-	Watch() (name string)
-}

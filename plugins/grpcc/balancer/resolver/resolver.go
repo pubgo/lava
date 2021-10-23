@@ -38,7 +38,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.Sugar().Infof("[grpc] %s ResolveNow", r.builder)
+	logs.Infof("[grpc] %s ResolveNow", r.builder)
 }
 
 // 关于 grpc 命名的介绍

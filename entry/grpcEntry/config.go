@@ -1,7 +1,6 @@
 package grpcEntry
 
 import (
-	"github.com/pubgo/lava/internal/logz"
 	"time"
 
 	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
@@ -27,8 +26,6 @@ const (
 
 	DefaultSleepAfterDeregister = time.Second * 2
 )
-
-var logs = logz.Named(Name)
 
 type Cfg struct {
 	Grpc                 *grpcs.Cfg    `json:"grpc"`

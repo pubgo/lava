@@ -2,8 +2,7 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/internal/logz"
-	watcher2 "github.com/pubgo/lava/plugins/watcher"
+	"github.com/pubgo/dix"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,8 +15,10 @@ import (
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/healthy"
 	v "github.com/pubgo/lava/internal/cmds/version"
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/watcher"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
@@ -25,7 +26,7 @@ import (
 
 const name = "runtime"
 
-var log = logz.Named(name)
+var logs = logz.New(name)
 var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 
 func init() {
@@ -39,7 +40,7 @@ func handleSignal() {
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		syncx.GoSafe(func() {
 			<-sigChan
-			log.Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
+			logs.Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
 			signal.Ignore(syscall.SIGPIPE)
 		})
 	}
@@ -51,48 +52,48 @@ func handleSignal() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runenv.Signal = <-ch
-	log.Infof("signal [%s] trigger", runenv.Signal.String())
+	logs.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	log.Info("before-start running")
+	logs.Info("before-start running")
 	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 	for i := range beforeList {
 		xerror.TryThrow(beforeList[i], "before-start error", stack.Func(beforeList[i]))
 	}
-	log.Info("before-start ok")
+	logs.Info("before-start ok")
 
 	xerror.Panic(ent.Start())
 
-	log.Info("after-start running")
+	logs.Info("after-start running")
 	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 	for i := range afterList {
 		xerror.TryThrow(afterList[i], "after-start error", stack.Func(afterList[i]))
 	}
-	log.Info("after-start ok")
+	logs.Info("after-start ok")
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	log.Info("before-stop running")
+	logs.Info("before-stop running")
 	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 	for i := range beforeList {
-		logz.TryWith(name, beforeList[i]).Errorf("before-stop error: %s", stack.Func(beforeList[i]))
+		logs.TryWith(beforeList[i]).Errorf("before-stop error: %s", stack.Func(beforeList[i]))
 	}
-	log.Info("before-stop ok")
+	logs.Info("before-stop ok")
 
 	xerror.Panic(ent.Stop())
 
-	log.Info("after-stop running")
+	logs.Info("after-stop running")
 	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 	for i := range afterList {
-		logz.TryWith(name, afterList[i]).Errorf("after-stop error: %s", stack.Func(afterList[i]))
+		logs.TryWith(afterList[i]).Errorf("after-stop error: %s", stack.Func(afterList[i]))
 	}
-	log.Info("after-stop ok")
+	logs.Info("after-stop ok")
 	return nil
 }
 
@@ -144,13 +145,19 @@ func Run(description string, entries ...entry.Entry) {
 			// 项目名初始化
 			runenv.Project = entRT.Options().Name
 
+			// config初始化
+			xerror.Panic(config.Init())
+
+			// 配置依赖注入
+			xerror.Exit(dix.Provider(config.GetCfg()))
+
 			xerror.TryThrow(func() {
 				plugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
 				for _, plg := range plugins {
 
 					// 注册watcher
-					logz.Named(name).Infof("plugin [%s] watch register", plg.Id())
-					watcher2.Watch("plugin/"+plg.Id(), plg.Watch)
+					logs.Infof("plugin [%s] watch register", plg.Id())
+					watcher.Watch("plugin/"+plg.Id(), plg.Watch)
 
 					// 注册debug
 					healthy.Register(plg.Id(), plg.Health())
@@ -160,18 +167,15 @@ func Run(description string, entries ...entry.Entry) {
 				}
 			})
 
-			// config初始化
-			xerror.Panic(config.Init())
-
 			// plugin初始化
 			plugins := plugin.ListWithDefault(plugin.Module(runenv.Project))
 			for _, plg := range plugins {
-				logz.Named(name).Infof("plugin [%s] init", plg.Id())
+				logs.Infof("plugin [%s] init", plg.Id())
 				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
 			}
 
 			// watcher初始化
-			xerror.Panic(watcher2.Init())
+			xerror.Panic(watcher.Init())
 
 			// entry初始化
 			entRT.InitRT()

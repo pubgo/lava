@@ -2,11 +2,11 @@ package syncx
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/internal/logz"
 	"runtime"
 
 	"go.uber.org/atomic"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
@@ -15,6 +15,7 @@ const Name = "goroutine"
 
 var maxConcurrent uint32 = 100000
 var curConcurrent atomic.Uint32
+var logs = logz.New(Name)
 
 func SetMaxConcurrent(concurrent uint32) {
 	if runtime.NumCPU()*100 > int(concurrent) {
@@ -23,7 +24,7 @@ func SetMaxConcurrent(concurrent uint32) {
 
 	maxConcurrent = concurrent
 
-	logz.Named(Name).Infof("set maxConcurrent=>%d", maxConcurrent)
+	logs.Infof("set maxConcurrent=>%d", maxConcurrent)
 }
 
 func init() {

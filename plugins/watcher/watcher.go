@@ -3,8 +3,6 @@ package watcher
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/logger"
 	"strings"
 
 	"github.com/pubgo/x/stack"
@@ -13,12 +11,15 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
+var logs = logz.New(Name)
 
 func Init() (err error) {
 	defer xerror.RespErr(&err)
@@ -56,10 +57,10 @@ func Init() (err error) {
 }
 
 func onWatch(name string, resp *Response) {
-	var logs = logz.Named(Name).With(zap.String("watch-project", name))
+	var log = logs.With(zap.String("watch-project", name))
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		logs.Desugar().Error("watch callback error", logger.WithErr(err, zap.Any("resp", resp))...)
+		log.Error("watch callback error", logger.WithErr(err, zap.Any("resp", resp))...)
 	})
 
 	// value为空就skip
@@ -110,7 +111,7 @@ func onWatch(name string, resp *Response) {
 	// 以name为前缀的所有的callbacks
 	callbacks.Each(func(k string, plg interface{}) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logs.Desugar().Error("watch callback handle error",
+			log.Error("watch callback handle error",
 				logger.WithErr(err,
 					zap.String("watch-key", k),
 					zap.Any("resp", resp),

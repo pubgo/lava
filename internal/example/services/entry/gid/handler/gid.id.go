@@ -3,24 +3,21 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/plugins/logger"
-	"github.com/pubgo/lava/plugins/metric"
 	"math/rand"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
 
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/gid"
+	"github.com/pubgo/lava/plugins/logger"
+	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
 
 var _ gid.IdServer = (*Id)(nil)
-var _ entry.InitHandler = (*Id)(nil)
 
 type Id struct {
 	Snowflake *snowflake.Snowflake
@@ -30,13 +27,13 @@ type Id struct {
 }
 
 func (id *Id) Init() {
-	id.Cron.Every("test gid", time.Second*2, func(name string) {
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-		//"time": time.Now().Format("15:04:05")
-		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
-		fmt.Println("test cron every")
-	})
+	//id.Cron.Every("test gid", time.Second*2, func(name string) {
+	//	//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+	//	//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+	//	//"time": time.Now().Format("15:04:05")
+	//	id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
+	//	fmt.Println("test cron every")
+	//})
 }
 
 func NewId() *Id {

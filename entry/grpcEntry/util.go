@@ -2,21 +2,12 @@ package grpcEntry
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/xerror"
 )
-
-func getHostname() string {
-	if name, err := os.Hostname(); err != nil {
-		return "unknown"
-	} else {
-		return name
-	}
-}
 
 func extractValue(v reflect.Type) *registry.Value {
 	defer xerror.RespExit("extractValue")

@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"github.com/pubgo/lava/internal/logz"
 	"runtime"
 	"strings"
 
@@ -10,16 +9,18 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
 const Name = "resource"
 
 var sources typex.SMap
+var logs = logz.New(Name)
 
 // Remove 删除资源
 func Remove(kind string, name string) {
-	logz.Named(Name).Infof("delete resource, kind=>%s, name=>%s", kind, name)
+	logs.Infof("delete resource, kind=>%s, name=>%s", kind, name)
 	check(kind, name)
 	sources.Delete(join(kind, name))
 }
@@ -46,13 +47,13 @@ func Update(name string, srv Resource) {
 
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		logz.Named(Name).Infof("update resource[%s,%s]", kind, name)
+		logs.Infof("update resource[%s,%s]", kind, name)
 		oldClient.(Resource).UpdateResObj(srv)
 		return
 	}
 
 	// 资源不存在, 创建新资源
-	logz.Named(Name).Infof("create resource[%s,%s]", kind, name)
+	logs.Infof("create resource[%s,%s]", kind, name)
 
 	sources.Set(id, srv)
 
@@ -62,14 +63,14 @@ func Update(name string, srv Resource) {
 	// 当resource被gc时, 关闭resource
 	runtime.SetFinalizer(srv, func(cc Resource) {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logz.Named(Name).Error("old resource close error",
+			logs.Error("old resource close error",
 				zap.Any("name", name),
 				zap.Any("err", err),
 				zap.Any("err_msg", err.Error()))
 		})
 
 		xerror.Panic(cc.Close())
-		logz.Named(Name).Infof("old resource[%s,%p] close ok", name, cc)
+		logs.Infof("old resource[%s,%p] close ok", name, cc)
 	})
 }
 

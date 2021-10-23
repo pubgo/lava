@@ -2,6 +2,7 @@ package grpc_gw
 
 import (
 	"context"
+	"github.com/rs/cors"
 	"net/http"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -50,7 +51,7 @@ func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	tOpts = append(tOpts, t.opts...)
 
 	t.mux = gw.NewServeMux(tOpts...)
-	t.srv = &http.Server{Handler: t.mux}
+	t.srv = &http.Server{Handler: cors.Default().Handler(t.mux)}
 
 	return nil
 }

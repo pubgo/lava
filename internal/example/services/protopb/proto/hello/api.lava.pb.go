@@ -74,7 +74,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterTestApiRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiHandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterTestApiHandler), nil)
 }
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -148,7 +148,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
 	xgen.Add(reflect.ValueOf(RegisterTestApiV2RestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2HandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterTestApiV2Handler), nil)
 }
 func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

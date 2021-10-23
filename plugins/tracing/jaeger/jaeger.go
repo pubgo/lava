@@ -1,8 +1,6 @@
 package jaeger
 
 import (
-	"github.com/pubgo/lava/plugins/tracing"
-	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"net/http"
 	"strings"
 
@@ -13,6 +11,8 @@ import (
 	"github.com/uber/jaeger-lib/metrics/prometheus"
 
 	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"github.com/pubgo/lava/runenv"
 )
 
@@ -27,9 +27,8 @@ const (
 
 func init() {
 	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
-		var cfg = GetDefaultCfg()
+		var cfg = DefaultCfg()
 		cfg.ServiceName = runenv.Project
-
 		return New(merge.MapStruct(cfg, cfgMap).(*Cfg))
 	}))
 }
@@ -40,10 +39,9 @@ func New(cfg *Cfg) error {
 		cfg.ServiceName = runenv.Project
 	}
 
-	var logs = newLog("tracing")
 	trace, _, err := cfg.NewTracer(
-		config.Reporter(reporter.NewIoReporter(logs, cfg.BatchSize)),
-		config.Logger(logs),
+		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
+		config.Logger(newLog("tracing")),
 		config.Metrics(prometheus.New()),
 		config.Sampler(jaeger.NewConstSampler(true)),
 	)

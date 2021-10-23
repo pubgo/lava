@@ -54,7 +54,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterIdServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterIdRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterIdHandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterIdHandler), nil)
 }
 func RegisterIdRestServer(app fiber.Router, server IdServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -498,7 +498,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandler), nil)
 }
 func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

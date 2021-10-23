@@ -90,8 +90,7 @@ require (
 	github.com/pubgo/dix v0.1.30
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.14
-	github.com/pubgo/xlog v0.2.8
-	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+	github.com/pubgo/xlog v0.2.10
 	github.com/reugn/go-quartz v0.3.7
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
@@ -256,6 +255,7 @@ require (
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rs/cors v1.7.0
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
@@ -301,4 +301,8 @@ require (
 	xorm.io/builder v0.3.7 // indirect
 )
 
-require github.com/stretchr/objx v0.2.0 // indirect
+require (
+	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+)

@@ -93,7 +93,7 @@ func init() {
 	})
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
 	xgen.Add(reflect.ValueOf(RegisterBindTelephoneRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandlerServer), nil)
+	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandler), nil)
 }
 func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
