@@ -2,10 +2,10 @@ package jwt
 
 import (
 	"errors"
-	"github.com/pubgo/lava/plugins/logger"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/pubgo/lava/internal/logz"
 )
 
 //DefaultManager can be replaced
@@ -14,6 +14,8 @@ var DefaultManager Manager = &jwtTokenManager{}
 var (
 	ErrInvalidExp = errors.New("expire time is illegal")
 )
+
+var logs = logz.New(Name)
 
 //jwt claims RFC 7519
 //https://tools.ietf.org/html/rfc7519#section-4.1.2
@@ -105,18 +107,18 @@ func (j *jwtTokenManager) Verify(tokenString string, f SecretFunc, opts ...Optio
 		return claims, nil
 	} else if ok := errors.As(err, ve); ok {
 		if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-			logger.GetName(Name).Error("not a valid jwt")
+			logs.Error("not a valid jwt")
 			return nil, err
 		} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
 			// Token is either expired or not active yet
-			logger.GetName(Name).Error("token expired")
+			logs.Error("token expired")
 			return nil, err
 		} else {
-			logger.GetName(Name).Error("parse token err:" + err.Error())
+			logs.WithErr(err).Error("parse token err")
 			return nil, err
 		}
 	} else {
-		logger.GetName(Name).Error("parse token err:" + err.Error())
+		logs.WithErr(err).Error("parse token err")
 		return nil, err
 	}
 }

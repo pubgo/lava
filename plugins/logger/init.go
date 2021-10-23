@@ -36,13 +36,13 @@ func init() {
 		log = log.With(zap.Namespace("fields"))
 
 		// 业务日志
-		bisLog := log.Named(runenv.Project)
+		globalLog = log.Named(runenv.Project)
 
 		// 全局替换
-		zap.ReplaceGlobals(bisLog)
+		zap.ReplaceGlobals(globalLog)
 
 		// 依赖注入
-		xerror.Exit(dix.Provider(bisLog))
+		xerror.Exit(dix.Provider(globalLog))
 		xerror.Exit(dix.ProviderNs("lava", log))
 	})
 }

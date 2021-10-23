@@ -109,25 +109,3 @@ func getName(name string) *zap.Logger {
 	loggerMap.LoadOrStore(name, l)
 	return l
 }
-
-// GetName 通过名字获取log
-func GetName(name string) *zap.Logger {
-	if val, ok := loggerMap.Load(name); ok {
-		return val.(*zap.Logger)
-	}
-
-	var l = zap.L().Named(name)
-	loggerMap.LoadOrStore(name, l)
-	return l
-}
-
-// GetSugar 通过名字获取sugar log
-func GetSugar(name string) *zap.SugaredLogger {
-	if val, ok := loggerMap.Load(name); ok {
-		return val.(*zap.Logger).Sugar()
-	}
-
-	var l = zap.L().Named(name)
-	loggerMap.LoadOrStore(name, l)
-	return l.Sugar()
-}

@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/pkg/fastrand"
-	"github.com/pubgo/lava/plugins/logger"
 )
 
 func checkConcurrent(name string, fn interface{}) func() {
@@ -23,26 +22,20 @@ func checkConcurrent(name string, fn interface{}) func() {
 
 		// 百分之一的采样, 打印log, 让监控获取信息
 		if fastrand.Sampling(0.01) {
-			logger.GetName(Name).Error(
-				"The current concurrent number exceeds the maximum concurrent number of the system",
+			logs.With(
 				zap.String("name", name),
 				zap.Uint32("current", curConcurrent.Load()),
 				zap.Uint32("max", maxConcurrent),
 				zap.String("fn", stack.Func(fn)),
-			)
+			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
 		}
 	}
 
 	return func() { curConcurrent.Dec() }
 }
 
-func logErr(name string, fn interface{}, err xerror.XErr) {
-	logger.GetName(Name).Error(
-		err.Error(),
-		zap.String("name", name),
-		zap.String("fn", stack.Func(fn)),
-		zap.String("err_stack", err.Error()),
-	)
+func logErr(fn interface{}, err xerror.XErr) {
+	logs.WithErr(err, zap.String("fn", stack.Func(fn))).Error(err.Error())
 }
 
 // GoChan 通过chan的方式同步执行并发任务
@@ -63,7 +56,7 @@ func GoChan(fn func(), cb ...func(err error)) chan struct{} {
 				return
 			}
 
-			logErr("GoChan", fn, err)
+			logErr(fn, err)
 
 			if len(cb) > 0 {
 				defer xerror.RespExit()
@@ -108,7 +101,7 @@ func GoSafe(fn func(), cb ...func(err error)) {
 				return
 			}
 
-			logErr("GoSafe", fn, err)
+			logErr(fn, err)
 
 			if len(cb) > 0 {
 				defer xerror.RespExit()
@@ -138,7 +131,7 @@ func GoCtx(fn func(ctx context.Context), cb ...func(err error)) context.CancelFu
 				return
 			}
 
-			logErr("GoCtx", fn, err)
+			logErr(fn, err)
 
 			if len(cb) > 0 {
 				defer xerror.RespExit()
@@ -195,7 +188,7 @@ func GoTimeout(dur time.Duration, fn func()) (gErr error) {
 
 			gErr = err
 
-			logErr("GoTimeout", fn, err)
+			logErr(fn, err)
 		})
 		defer dec()
 
