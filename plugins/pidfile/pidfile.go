@@ -1,14 +1,14 @@
 package pidfile
 
 import (
-	"github.com/pubgo/x/pathutil"
-
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"syscall"
+
+	"github.com/pubgo/x/pathutil"
 )
 
 var pidPath = filepath.Join(os.Getenv("HOME"), "pidfile")

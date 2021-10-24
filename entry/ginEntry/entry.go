@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugins/logger"
 	"net/http"
 	"sync"
 

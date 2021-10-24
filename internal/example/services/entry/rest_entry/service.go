@@ -2,7 +2,8 @@ package rest_entry
 
 import (
 	"context"
-	"github.com/pubgo/lava/plugins/logger"
+	db2 "github.com/pubgo/lava/clients/db"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"go.uber.org/zap"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
-	db2 "github.com/pubgo/lava/plugins/db"
 )
 
 var _ hello.TestApiServer = (*Service)(nil)

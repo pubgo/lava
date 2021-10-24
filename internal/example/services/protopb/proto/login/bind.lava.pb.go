@@ -7,12 +7,11 @@
 package login
 
 import (
-	fiber "github.com/pubgo/lava/pkg/builder/fiber"
-	grpcc "github.com/pubgo/lava/plugins/grpcc"
+	fiber "github.com/pubgo/lava/builder/fiber"
+	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
-	reflect "reflect"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -91,9 +90,9 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterBindTelephoneServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterBindTelephoneRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterBindTelephoneHandler), nil)
+	xgen.Add(RegisterBindTelephoneServer, mthList)
+	xgen.Add(RegisterBindTelephoneRestServer, nil)
+	xgen.Add(RegisterBindTelephoneHandler, nil)
 }
 func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

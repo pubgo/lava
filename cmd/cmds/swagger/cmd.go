@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rs/cors"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/spec"
@@ -24,7 +23,6 @@ import (
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugins/logger"
 )
 
 var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
@@ -115,10 +113,9 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 			xerror.Panic(browser.OpenURL("http://localhost:8082"))
 		})
 
-
-		handler := cors.Default().Handler(mux.Mux())
-		if err := http.ListenAndServe(":8082",handler ); err != nil && err != http.ErrServerClosed {
-			logz.Named("swagger").Error("Server [debug] Listen Error", logger.WithErr(err))
+		var logs = logz.New("swagger")
+		if err := http.ListenAndServe(":8082", mux.Mux()); err != nil && err != http.ErrServerClosed {
+			logs.WithErr(err).Error("Server [swagger] Listen Error")
 			return
 		}
 	}

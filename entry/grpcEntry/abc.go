@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/lava/entry"
 
 	// grpc log插件加载
-	_ "github.com/pubgo/lava/plugins/grpclog"
+	_ "github.com/pubgo/lava/internal/plugins/grpclog"
 )
 
 type options struct{}

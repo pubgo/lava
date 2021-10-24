@@ -7,9 +7,9 @@
 package gid
 
 import (
+	fiber "github.com/pubgo/lava/builder/fiber"
+	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
-	fiber "github.com/pubgo/lava/pkg/builder/fiber"
-	grpcc "github.com/pubgo/lava/plugins/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
@@ -17,7 +17,6 @@ import (
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
-	reflect "reflect"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -52,9 +51,9 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterIdServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterIdRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterIdHandler), nil)
+	xgen.Add(RegisterIdServer, mthList)
+	xgen.Add(RegisterIdRestServer, nil)
+	xgen.Add(RegisterIdHandler, nil)
 }
 func RegisterIdRestServer(app fiber.Router, server IdServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -293,8 +292,8 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterABitOfEverythingServiceRestServer), mthList)
+	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
+	xgen.Add(RegisterABitOfEverythingServiceRestServer, nil)
 }
 func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEverythingServiceServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -496,9 +495,9 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterCamelCaseServiceNameHandler), nil)
+	xgen.Add(RegisterCamelCaseServiceNameServer, mthList)
+	xgen.Add(RegisterCamelCaseServiceNameRestServer, nil)
+	xgen.Add(RegisterCamelCaseServiceNameHandler, nil)
 }
 func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -532,8 +531,8 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterAnotherServiceWithNoBindingsRestServer), mthList)
+	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
+	xgen.Add(RegisterAnotherServiceWithNoBindingsRestServer, nil)
 }
 func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

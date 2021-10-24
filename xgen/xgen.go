@@ -19,8 +19,8 @@ type GrpcRestHandler struct {
 
 var data sync.Map
 
-func Add(key reflect.Value, value interface{}) {
-	data.Store(key, value)
+func Add(key interface{}, value interface{}) {
+	data.Store(reflect.ValueOf(key), value)
 }
 
 func List() map[reflect.Value]interface{} {

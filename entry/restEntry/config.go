@@ -1,7 +1,7 @@
 package restEntry
 
 import (
-	fb "github.com/pubgo/lava/pkg/builder/fiber"
+	fb "github.com/pubgo/lava/builder/fiber"
 )
 
 const Name = "rest_entry"

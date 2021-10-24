@@ -21,10 +21,10 @@ var (
 	grpcCall     = protoutil.Import("google.golang.org/grpc")
 	codesCall    = protoutil.Import("google.golang.org/grpc/codes")
 	statusCall   = protoutil.Import("google.golang.org/grpc/status")
-	grpccCall    = protoutil.Import("github.com/pubgo/lava/plugins/grpcc")
+	grpccCall    = protoutil.Import("github.com/pubgo/lava/clients/grpcc")
 	xerrorCall   = protoutil.Import("github.com/pubgo/xerror")
 	xgenCall     = protoutil.Import("github.com/pubgo/lava/xgen")
-	fiberCall    = protoutil.Import("github.com/pubgo/lava/pkg/builder/fiber")
+	fiberCall    = protoutil.Import("github.com/pubgo/lava/builder/fiber")
 	bindingCall  = protoutil.Import("github.com/pubgo/lava/pkg/binding")
 	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
 )
@@ -131,11 +131,11 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
 		g.P("})")
 	}
-	g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "Server),mthList)")
-	g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "RestServer),mthList)")
+	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
+	g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
 
 	if !isDefault {
-		g.P(xgenCall("Add"), "(", reflectCall("ValueOf"), "(Register", service.GoName, "Handler),nil)")
+		g.P(xgenCall("Add"), "(Register", service.GoName, "Handler ,nil)")
 	}
 	g.P("}")
 }

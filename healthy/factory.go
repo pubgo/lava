@@ -2,10 +2,10 @@ package healthy
 
 import (
 	"context"
-	"github.com/pubgo/lava/pkg/lavax"
 
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

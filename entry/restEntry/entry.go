@@ -3,6 +3,7 @@ package restEntry
 import (
 	"context"
 	"errors"
+	fb "github.com/pubgo/lava/builder/fiber"
 	"net/http"
 	"sync"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/internal/logz"
-	fb "github.com/pubgo/lava/pkg/builder/fiber"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
@@ -61,9 +61,9 @@ var _ Entry = (*restEntry)(nil)
 
 type restEntry struct {
 	*base.Entry
-	cfg        Cfg
-	srv        fb.Builder
-	handlers   []func()
+	cfg      Cfg
+	srv      fb.Builder
+	handlers []func()
 	middleOnce sync.Once
 	handler    func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
 }

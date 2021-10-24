@@ -10,7 +10,7 @@ import (
 
 // 替换std默认log
 func init() {
-	On(func(*LogZ) {
+	On(func(*Log) {
 		var stdLog = log.Default()
 		*stdLog = *zap.NewStdLog(getName("std"))
 	})

@@ -7,15 +7,14 @@
 package hello
 
 import (
+	fiber "github.com/pubgo/lava/builder/fiber"
+	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
-	fiber "github.com/pubgo/lava/pkg/builder/fiber"
-	grpcc "github.com/pubgo/lava/plugins/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	reflect "reflect"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -72,9 +71,9 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterTestApiServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiRestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiHandler), nil)
+	xgen.Add(RegisterTestApiServer, mthList)
+	xgen.Add(RegisterTestApiRestServer, nil)
+	xgen.Add(RegisterTestApiHandler, nil)
 }
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -146,9 +145,9 @@ func init() {
 		ClientStream: false,
 		ServerStream: false,
 	})
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2Server), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2RestServer), mthList)
-	xgen.Add(reflect.ValueOf(RegisterTestApiV2Handler), nil)
+	xgen.Add(RegisterTestApiV2Server, mthList)
+	xgen.Add(RegisterTestApiV2RestServer, nil)
+	xgen.Add(RegisterTestApiV2Handler, nil)
 }
 func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")

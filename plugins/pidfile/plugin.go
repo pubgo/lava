@@ -2,20 +2,19 @@ package pidfile
 
 import (
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/plugin"
 )
 
-func init() { plugin.Register(plg) }
+func init() {
+	plugin.Register(&plugin.Base{
+		Name: Name,
+		OnInit: func(ent plugin.Entry) {
+			var cfg Cfg
+			_ = config.Decode(Name, &cfg)
 
-var plg = &plugin.Base{
-	Name: Name,
-	OnInit: func(ent entry.Entry) {
-		var cfg Cfg
-		_ = config.Decode(Name, &cfg)
-
-		if cfg.PidPath != "" {
-			pidPath = cfg.PidPath
-		}
-	},
+			if cfg.PidPath != "" {
+				pidPath = cfg.PidPath
+			}
+		},
+	})
 }

@@ -2,9 +2,9 @@ package restEntry
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/x/byteutil"
 
-	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/types"
 )
 

@@ -2,6 +2,7 @@ package etcdv3
 
 import (
 	"context"
+	"github.com/pubgo/lava/clients/etcdv3"
 	watcher2 "github.com/pubgo/lava/plugins/watcher"
 
 	"github.com/pubgo/x/merge"
@@ -9,7 +10,6 @@ import (
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/etcdv3"
 	"github.com/pubgo/lava/types"
 )
 

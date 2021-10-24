@@ -2,10 +2,9 @@ package rest_entry
 
 import (
 	"context"
-	"github.com/pubgo/lava/plugins/logger"
-
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/restEntry"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/types"
 )
 

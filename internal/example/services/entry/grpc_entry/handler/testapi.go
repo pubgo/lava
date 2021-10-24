@@ -3,15 +3,15 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/clients/db"
 	hello2 "github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
-	"github.com/pubgo/lava/plugins/logger"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/plugins/db"
 )
 
 func NewTestAPIHandler() hello2.TestApiServer {

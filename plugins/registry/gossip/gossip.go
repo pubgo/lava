@@ -4,7 +4,6 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/plugins/logger"
 	"io/ioutil"
 	"net"
 	"os"
@@ -17,10 +16,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/memberlist"
 	"github.com/mitchellh/hashstructure"
+	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 	"github.com/pubgo/lava/types"
-	"go.uber.org/zap"
 )
 
 // use registry.Result int32 values after it switches from string to int32 types
@@ -48,11 +49,7 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs *zap.Logger
-
-func init() {
-	logs = logger.On(func(log *zap.Logger) { logs = log.Named("gossip") })
-}
+var logs = logz.New("gossip")
 
 func actionTypeString(t int32) types.EventType {
 	switch t {
@@ -261,7 +258,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 
 	g.Unlock()
 
-	logs.Sugar().Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
+	logs.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
 
 	// try connect
 	return g.connect(curAddrs)
@@ -279,7 +276,7 @@ func (b *broadcast) Message() []byte {
 		return nil
 	}
 	if l := len(up); l > MaxPacketSize {
-		logs.Sugar().Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
+		logs.Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
 	}
 	return up
 }
@@ -418,10 +415,10 @@ func (g *gossipRegistry) connect(addrs []string) error {
 		// got a tick, try to connect
 		case <-ticker.C:
 			if _, err := fn(); err == nil {
-				logs.Sugar().Infof("[gossip] connect success for %v", g.addrs)
+				logs.Infof("[gossip] connect success for %v", g.addrs)
 				return nil
 			} else {
-				logs.Sugar().Infof("[gossip] connect failed for %v", g.addrs)
+				logs.Infof("[gossip] connect failed for %v", g.addrs)
 			}
 		}
 	}
@@ -810,7 +807,8 @@ func NewRegistry(opts ...registry.Opt) registry.Registry {
 
 	// configure the gossiper
 	if err := configure(g, opts...); err != nil {
-		logs.Sugar().Fatalf("[gossip] Error configuring registry: %v", err)
+		logs.WithErr(err).Error("[gossip] Error configuring registry")
+		xerror.Panic(err)
 	}
 	// wait for setup
 	<-time.After(g.interval * 2)

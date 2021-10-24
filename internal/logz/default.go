@@ -1,6 +1,7 @@
 package logz
 
 import (
+	"github.com/pubgo/lava/logger"
 	"sync"
 
 	"github.com/pubgo/dix"
@@ -9,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/runenv"
 )
 
@@ -49,12 +49,12 @@ func init() {
 			loggerMap.Store(key, debugLog.Named(key.(string)))
 			return true
 		})
-		xerror.Exit(dix.Provider(&LogZ{}))
+		xerror.Exit(dix.Provider(&Log{}))
 	}))
 }
 
-type LogZ struct{}
+type Log struct{}
 
-func On(fn func(*LogZ)) {
+func On(fn func(*Log)) {
 	xerror.Exit(dix.Provider(fn))
 }

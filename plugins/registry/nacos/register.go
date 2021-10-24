@@ -3,6 +3,7 @@ package nacos
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/clients/nacos"
 	"net"
 	"strconv"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/plugins/nacos"
 	"github.com/pubgo/lava/plugins/registry"
 )
 

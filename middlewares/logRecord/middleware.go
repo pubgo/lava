@@ -2,6 +2,7 @@ package logRecord
 
 import (
 	"context"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/types"
 )
 

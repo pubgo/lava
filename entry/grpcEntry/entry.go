@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,17 +21,17 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava/builder/grpc-gw"
+	"github.com/pubgo/lava/builder/grpcs"
+	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/internal/logz"
-	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
-	"github.com/pubgo/lava/pkg/builder/grpcs"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugins/grpcc"
-	"github.com/pubgo/lava/plugins/logger"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
@@ -45,7 +46,7 @@ type grpcEntry struct {
 	cfg Cfg
 	mux cmux.CMux
 	srv grpcs.Builder
-	gw  grpcGw.Builder
+	gw  grpc_gw.Builder
 
 	registry    registry.Registry
 	registered  atomic.Bool
@@ -265,7 +266,10 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动grpc服务
 	syncx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
-		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil && err != cmux.ErrListenerClosed {
+		if err := g.srv.Get().Serve(g.matchHttp2()); err != nil &&
+			err != cmux.ErrListenerClosed &&
+			!errors.Is(err, http.ErrServerClosed) &&
+			!errors.Is(err, net.ErrClosed) {
 			logs.WithErr(err).Error("[grpc] Server Stop")
 		}
 	})
@@ -273,7 +277,11 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动grpc网关
 	syncx.GoDelay(func() {
 		logs.Info("[grpc-gw] Server Staring")
-		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil && err != cmux.ErrListenerClosed {
+		//ErrServerClosed
+		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil &&
+			!errors.Is(err, cmux.ErrListenerClosed) &&
+			!errors.Is(err, http.ErrServerClosed) &&
+			!errors.Is(err, net.ErrClosed) {
 			logs.WithErr(err).Error("[grpc-gw] Server Stop")
 		}
 	})
@@ -281,7 +289,9 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动net网络
 	syncx.GoDelay(func() {
 		logs.Info("[cmux] Server Staring")
-		if err := g.serve(); err != nil && !errors.Is(err, net.ErrClosed) {
+		if err := g.serve(); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) &&
+			!errors.Is(err, net.ErrClosed) {
 			logs.WithErr(err).Error("[cmux] Server Stop")
 		}
 	})
@@ -331,13 +341,13 @@ func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
 		Entry: base.New(name),
 		srv:   grpcs.New(name),
-		gw:    grpcGw.New(name),
+		gw:    grpc_gw.New(name),
 		cfg: Cfg{
 			name:                 name,
 			hostname:             env.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
-			Gw:                   grpcGw.GetDefaultCfg(),
+			Gw:                   grpc_gw.GetDefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
 			SleepAfterDeRegister: time.Second * 2,

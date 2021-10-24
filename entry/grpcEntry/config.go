@@ -1,10 +1,9 @@
 package grpcEntry
 
 import (
+	grpcGw "github.com/pubgo/lava/builder/grpc-gw"
+	"github.com/pubgo/lava/builder/grpcs"
 	"time"
-
-	grpcGw "github.com/pubgo/lava/pkg/builder/grpc-gw"
-	"github.com/pubgo/lava/pkg/builder/grpcs"
 )
 
 const Name = "grpc_entry"
@@ -28,9 +27,9 @@ const (
 )
 
 type Cfg struct {
-	Grpc                 *grpcs.Cfg    `json:"grpc"`
-	Gw                   *grpcGw.Cfg   `json:"gw"`
-	Address              string        `json:"address"`
+	Grpc                 *grpcs.Cfg  `json:"grpc"`
+	Gw                   *grpcGw.Cfg `json:"gw"`
+	Address              string      `json:"address"`
 	Advertise            string        `json:"advertise"`
 	RegisterTTL          time.Duration `json:"register_ttl"`
 	RegisterInterval     time.Duration `json:"register_interval"`

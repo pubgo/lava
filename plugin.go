@@ -3,19 +3,19 @@ package lava
 // 加载插件
 import (
 	// 加载debug插件
-	_ "github.com/pubgo/lava/plugins/debug"
+	_ "github.com/pubgo/lava/internal/plugins/debug"
 
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 
-	_ "github.com/pubgo/lava/plugins/automaxprocs"
+	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
 	_ "github.com/pubgo/lava/plugins/registry/mdns"
 
 	// 编码加载
-	_ "github.com/pubgo/lava/encoding/json"
-	_ "github.com/pubgo/lava/encoding/protobuf"
+	_ "github.com/pubgo/lava/pkg/encoding/json"
+	_ "github.com/pubgo/lava/pkg/encoding/protobuf"
 )
 
 // 加载拦截器, 注意加载顺序

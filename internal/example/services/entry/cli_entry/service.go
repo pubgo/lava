@@ -2,12 +2,11 @@ package cli_entry
 
 import (
 	"fmt"
+	db2 "github.com/pubgo/lava/clients/db"
 	"time"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/entry/cliEntry"
-	db2 "github.com/pubgo/lava/plugins/db"
-
 	"github.com/pubgo/x/fx"
 	"go.uber.org/zap"
 )

@@ -2,6 +2,7 @@ package nacos
 
 import (
 	"context"
+	"github.com/pubgo/lava/clients/nacos"
 	watcher2 "github.com/pubgo/lava/plugins/watcher"
 
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
@@ -12,7 +13,6 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/nacos"
 	"github.com/pubgo/lava/types"
 )
 

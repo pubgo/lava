@@ -1,6 +1,7 @@
 package mux
 
 import (
+	"github.com/rs/cors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -12,6 +13,8 @@ import (
 var app = func() *chi.Mux {
 	var route = chi.NewRouter()
 	route.Use(middleware.Logger)
+	// 跨域处理
+	route.Use(cors.Default().Handler)
 	route.Use(func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if request.URL.Query().Get("stack") != "" {
