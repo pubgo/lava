@@ -3,7 +3,6 @@ package vars
 import (
 	"expvar"
 	"fmt"
-	"github.com/pubgo/lava/mux"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +10,8 @@ import (
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/mux"
 )
 
 func init() {
@@ -29,17 +30,19 @@ func init() {
 		})
 	}
 
-	mux.Get("/debug/expvar/{name}", func(w http.ResponseWriter, request *http.Request) {
-		var name = chi.URLParam(request, "name")
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		fmt.Fprintln(w, expvar.Get(name).String())
-	})
-
-	mux.Get("/debug/expvar", func(w http.ResponseWriter, request *http.Request) {
-		var keys []string
-		expvar.Do(func(kv expvar.KeyValue) {
-			keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))
+	mux.Route("/debug/expvar", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, request *http.Request) {
+			var keys []string
+			expvar.Do(func(kv expvar.KeyValue) {
+				keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))
+			})
+			xerror.Panic(index(keys).Render(w))
 		})
-		xerror.Panic(index(keys).Render(w))
+
+		r.Get("/{name}", func(w http.ResponseWriter, request *http.Request) {
+			var name = chi.URLParam(request, "name")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprintln(w, expvar.Get(name).String())
+		})
 	})
 }

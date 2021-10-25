@@ -5,7 +5,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/lava/pkg/env"
-	"github.com/spf13/pflag"
 )
 
 // 默认的全局配置
@@ -32,15 +31,4 @@ func init() {
 
 	// 开启trace
 	env.GetBoolVal(&Trace, "trace", "trace_log", "tracelog")
-}
-
-func DefaultFlags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet("app", pflag.PanicOnError)
-	flags.StringVarP(&Addr, "addr", "a", Addr, "server(http|grpc|ws|...) address")
-	flags.StringVar(&DebugAddr, "debug-addr", DebugAddr, "debug server address")
-	flags.BoolVarP(&Trace, "trace", "t", Trace, "enable trace")
-	flags.StringVarP(&Mode, "mode", "m", Mode, "running mode(dev|test|stag|prod|release)")
-	flags.StringVarP(&Level, "level", "l", Level, "log level(debug|info|warn|error|panic|fatal)")
-	flags.BoolVar(&CatchSigpipe, "catch-sigpipe", CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")
-	return flags
 }

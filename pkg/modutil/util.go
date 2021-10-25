@@ -31,9 +31,7 @@ func GoModPath() string {
 
 func LoadVersions() map[string]string {
 	var path = GoModPath()
-	if path == "" {
-
-	}
+	xerror.Assert(path == "", "go.mod not exists")
 
 	var modBytes = xerror.PanicBytes(ioutil.ReadFile(path))
 

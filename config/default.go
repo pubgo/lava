@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/runenv"
 )
 
 var (
@@ -38,5 +39,11 @@ func getCfg() *configImpl {
 func DefaultFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("", pflag.PanicOnError)
 	flags.StringVarP(&CfgPath, "config", "c", CfgPath, "config path")
+	flags.StringVarP(&runenv.Addr, "addr", "a", runenv.Addr, "server(http|grpc|ws|...) address")
+	flags.StringVar(&runenv.DebugAddr, "debug-addr", runenv.DebugAddr, "debug server address")
+	flags.BoolVarP(&runenv.Trace, "trace", "t", runenv.Trace, "enable trace")
+	flags.StringVarP(&runenv.Mode, "mode", "m", runenv.Mode, "running mode(dev|test|stag|prod|release)")
+	flags.StringVarP(&runenv.Level, "level", "l", runenv.Level, "log level(debug|info|warn|error|panic|fatal)")
+	flags.BoolVar(&runenv.CatchSigpipe, "catch-sigpipe", runenv.CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")
 	return flags
 }

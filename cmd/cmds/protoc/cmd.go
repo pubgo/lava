@@ -82,11 +82,12 @@ func Cmd() *cobra.Command {
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 
+				// 解析go.mod并获取所有pkg版本
 				var versions = modutil.LoadVersions()
 				for i, dep := range cfg.Depends {
 					var url = dep.Url
 
-					// 跳过本地指定的目录, url是绝对路径
+					// url是本地目录, 不做检查
 					if pathutil2.IsDir(url) {
 						continue
 					}
@@ -96,15 +97,16 @@ func Cmd() *cobra.Command {
 						version = dep.Version
 					}
 
-					// go.mod 中版本不存在, 就下载
+					// go.mod中version不存在, 并且protobuf.yaml也没有指定
 					if version == "" {
-						var list, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						// go pkg缓存
+						var localPkg, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
-						for i := range list {
-							if strings.HasPrefix(list[i], name+"@") {
-								version = strings.TrimPrefix(list[i], name+"@")
+						for j := range localPkg {
+							if strings.HasPrefix(localPkg[j], name+"@") {
+								version = strings.TrimPrefix(localPkg[j], name+"@")
 								break
 							}
 						}
@@ -112,17 +114,12 @@ func Cmd() *cobra.Command {
 
 					if version == "" {
 						xerror.Panic(shutil.Bash("go", "get", "-d", url+"/...").Run())
-						var list, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
-						xerror.Panic(err)
 
-						var _, name = filepath.Split(url)
-						for i := range list {
-							if strings.HasPrefix(list[i], name+"@") {
-								version = strings.TrimPrefix(list[i], name+"@")
-								break
-							}
-						}
-						xerror.Assert(version == "", "version为空")
+						// 再次解析go.mod然后获取版本信息
+						versions = modutil.LoadVersions()
+						version = versions[url]
+
+						xerror.Assert(version == "", "%s version为空", url)
 					}
 
 					cfg.Depends[i].Version = version

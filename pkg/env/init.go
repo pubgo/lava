@@ -10,6 +10,9 @@ import (
 	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"
 
+	// env文件加载
+	_ "github.com/joho/godotenv/autoload"
+
 	"github.com/pubgo/lava/pkg/lavax"
 )
 

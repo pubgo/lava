@@ -1,13 +1,13 @@
 package mux
 
 import (
-	"github.com/rs/cors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/maruel/panicparse/v2/stack/webstack"
 	"github.com/pubgo/xerror"
+	"github.com/rs/cors"
 )
 
 var app = func() *chi.Mux {

@@ -95,7 +95,6 @@ require (
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
 	github.com/segmentio/nsq-go v1.2.4
-	github.com/shirou/gopsutil/v3 v3.21.2
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
@@ -214,6 +213,7 @@ require (
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19 // indirect
 	github.com/kisielk/errcheck v1.5.0 // indirect
@@ -222,7 +222,6 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/lestrrat-go/strftime v1.0.3 // indirect
 	github.com/lestrrat/go-file-rotatelogs v0.0.0-20180223000712-d3151e2a480f // indirect
 	github.com/lestrrat/go-strftime v0.0.0-20180220042222-ba3bf9c1d042 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -240,6 +239,7 @@ require (
 	github.com/miekg/dns v1.1.27 // indirect
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/go-ps v1.0.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/muesli/gitcha v0.2.0 // indirect
@@ -291,6 +291,7 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	honnef.co/go/tools v0.1.1 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
@@ -301,8 +302,4 @@ require (
 	xorm.io/builder v0.3.7 // indirect
 )
 
-require (
-	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-)
+require github.com/shirou/gopsutil/v3 v3.21.2 // indirect

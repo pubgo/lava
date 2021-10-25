@@ -2,11 +2,11 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/pubgo/dix"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
@@ -114,7 +114,6 @@ func Run(description string, entries ...entry.Entry) {
 
 	rootCmd.Short = description
 	rootCmd.Long = description
-	rootCmd.PersistentFlags().AddFlagSet(runenv.DefaultFlags())
 	rootCmd.PersistentFlags().AddFlagSet(config.DefaultFlags())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { return xerror.Wrap(cmd.Help()) }
 
@@ -152,14 +151,15 @@ func Run(description string, entries ...entry.Entry) {
 			xerror.Exit(dix.Provider(config.GetCfg()))
 
 			xerror.TryThrow(func() {
+				// 获取本项目所有plugin
 				plugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
 				for _, plg := range plugins {
 
 					// 注册watcher
 					logs.Infof("plugin [%s] watch register", plg.Id())
-					watcher.Watch("plugin/"+plg.Id(), plg.Watch)
+					watcher.Watch("watcher/"+plg.Id(), plg.Watch)
 
-					// 注册debug
+					// 注册健康检查
 					healthy.Register(plg.Id(), plg.Health())
 
 					// 注册vars

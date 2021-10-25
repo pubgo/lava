@@ -2,11 +2,9 @@ package debug
 
 import (
 	"context"
-	"expvar"
 	"fmt"
 	"net/http"
 
-	varView "github.com/go-echarts/statsview/expvar"
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
@@ -32,13 +30,9 @@ func init() {
 		OnInit: func(ent plugin.Entry) {
 			InitView()
 
-			expvar.Do(func(value expvar.KeyValue) {
-				AddView(varView.NewExpvarViewer(value.Key))
-			})
-
 			serveMux := GetDefaultServeMux()
 			for k, v := range serveMux.M {
-				mux.Get(k, v.H.ServeHTTP)
+				mux.HandleFunc(k, v.H.ServeHTTP)
 			}
 
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}
