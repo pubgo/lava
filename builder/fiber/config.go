@@ -34,8 +34,9 @@ type Cfg struct {
 	DisableHeaderNormalizing  bool          `json:"disable_header_normalizing"`
 	DisableStartupMessage     bool          `json:"disable_startup_message"`
 	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
+	Websocket                 *WsCfg        `json:"websocket" yaml:"websocket"`
 }
 
-func GetDefaultCfg() fiber.Config {
+func DefaultCfg() fiber.Config {
 	return fiber.New().Config()
 }

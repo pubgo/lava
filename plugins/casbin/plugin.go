@@ -11,7 +11,7 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Base{
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			e, _ := casbin.NewEnforcer("authz_model.conf", "authz_policy.csv")
 			_, err := e.DeleteRolesForUser("cathy")
 			xerror.Panic(err)

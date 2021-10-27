@@ -11,24 +11,12 @@ import (
 
 const Name = "plugin"
 
-type Opt func(o *options)
-type options struct {
-	Module string
-}
-
-type Entry interface {
-	AfterStop(func())
-	BeforeStop(func())
-	AfterStart(func())
-	BeforeStart(func())
-}
-
 type Plugin interface {
 	String() string
-	Id() string
+	UniqueName() string
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
-	Init(ent Entry) error
+	Init() error
 	Watch(name string, r *types.WatchResp) error
 	Vars(func(name string, data func() interface{})) error
 	Health() func(ctx context.Context) error

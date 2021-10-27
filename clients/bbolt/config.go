@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 const Name = "bbolt"
@@ -35,8 +35,7 @@ type Cfg struct {
 func (t *Cfg) BuildOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
-	xerror.Panic(merge.CopyStruct(options, t))
-	return options
+	return merge.Struct(options, t).(*bolt.Options)
 }
 
 func (t *Cfg) Build() *bolt.DB {

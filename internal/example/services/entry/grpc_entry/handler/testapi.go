@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pubgo/lava/clients/db"
+	"github.com/pubgo/lava/entry"
 	hello2 "github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
 	"time"
@@ -14,7 +15,9 @@ import (
 	"github.com/pubgo/lava/config"
 )
 
-func NewTestAPIHandler() hello2.TestApiServer {
+var _ entry.InitHandler = (*testapiHandler)(nil)
+
+func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
 }
 

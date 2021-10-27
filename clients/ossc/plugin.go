@@ -1,20 +1,19 @@
 package ossc
 
 import (
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
 )
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			if config.Decode(Name, &cfgList) != nil {
 				return
 			}
@@ -38,7 +37,6 @@ func init() {
 			})
 
 			r.OnDelete(func() {
-				logs.Debug("delete client", logger.Name(name))
 				resource.Remove(Name, name)
 			})
 		},

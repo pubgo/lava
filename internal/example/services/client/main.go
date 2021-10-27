@@ -33,7 +33,7 @@ func main() {
 	xerror.Exit(config.Init())
 
 	// 初始化注册中心
-	xerror.Exit(plugin.Get(registry.Name).Init(nil))
+	xerror.Exit(plugin.Get(registry.Name).Init())
 
 	defer xerror.RespDebug()
 

@@ -1,6 +1,8 @@
 package entry
 
-import "sync"
+import (
+	"sync"
+)
 
 var beforeStarts []func()
 var afterStarts []func()

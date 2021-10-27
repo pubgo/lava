@@ -2,19 +2,12 @@ package grpcs
 
 import (
 	"fmt"
-	encoding2 "github.com/pubgo/lava/pkg/encoding"
-	"reflect"
 
-	"github.com/pubgo/x/fx"
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/channelz/service"
-	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
-
-	"github.com/pubgo/lava/xgen"
 )
 
 func EnableHealth(srv string, s *grpc.Server) {
@@ -32,12 +25,6 @@ func EnableDebug(s *grpc.Server) {
 	service.RegisterChannelzServiceToServer(s)
 }
 
-func InitEncoding() {
-	encoding2.Each(func(_ string, cdc encoding2.Codec) {
-		encoding.RegisterCodec(cdc)
-	})
-}
-
 // ListGRPCResources is a helper function that lists all URLs that are registered on gRPC server.
 //
 // This makes it easy to register all the relevant routes in your HTTP router of choice.
@@ -49,36 +36,4 @@ func ListGRPCResources(server *grpc.Server) []string {
 		}
 	}
 	return ret
-}
-
-func Register(server *grpc.Server, handler interface{}) error {
-	xerror.Assert(server == nil, "[server] should not be nil")
-
-	var v = FindHandle(handler)
-	if v.IsValid() {
-		_ = fx.WrapValue(v, server, handler)
-		return nil
-	}
-
-	return xerror.Fmt("register [%#v] 没有找到匹配的interface", handler)
-}
-
-func FindHandle(handler interface{}) reflect.Value {
-	xerror.Assert(handler == nil, "[handler] should not be nil")
-
-	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
-	for v := range xgen.List() {
-		v1 := v.Type()
-		if v1.Kind() != reflect.Func || v1.NumIn() < 2 || v1.In(1).Kind() != reflect.Interface {
-			continue
-		}
-
-		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "grpc.ServiceRegistrar" {
-			continue
-		}
-
-		return v
-	}
-
-	return reflect.Value{}
 }

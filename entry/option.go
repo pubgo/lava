@@ -14,5 +14,7 @@ type Opts struct {
 	BeforeStops  []func()
 	AfterStops   []func()
 	Command      *cobra.Command
+	Handlers     []InitHandler
+	Exclude     func() []string
 	Middlewares  []types.Middleware
 }

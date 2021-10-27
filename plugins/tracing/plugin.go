@@ -11,7 +11,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			var cfg = GetDefaultCfg()
 			_ = config.Decode(Name, &cfg)
 			xerror.Panic(cfg.Build())

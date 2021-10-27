@@ -12,7 +12,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			if config.Decode(Name, &cfgList) != nil {
 				return
 			}

@@ -1,9 +1,10 @@
 package logz
 
 import (
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/logger"
 )
 
 func New(name string) *Logger {

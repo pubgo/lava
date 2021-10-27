@@ -3,7 +3,6 @@ package version
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/pkg/clix"
 	"os"
 	"runtime/debug"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
+	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/version"
 )
 

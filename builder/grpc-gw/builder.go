@@ -2,27 +2,20 @@ package grpc_gw
 
 import (
 	"context"
-	"github.com/rs/cors"
 	"net/http"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type Builder struct {
 	name string
-	srv  *http.Server
 	mux  *gw.ServeMux
 	opts []gw.ServeMuxOption
 }
 
-func (t *Builder) Get() *http.Server { return t.srv }
-func (t *Builder) Register(conn *grpc.ClientConn, handler interface{}) (err error) {
-	return Register(context.Background(), t.mux, conn, handler)
-}
-
+func (t *Builder) Get() *gw.ServeMux { return t.mux }
 func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	t.opts = opts
 
@@ -51,7 +44,6 @@ func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	tOpts = append(tOpts, t.opts...)
 
 	t.mux = gw.NewServeMux(tOpts...)
-	t.srv = &http.Server{Handler: cors.Default().Handler(t.mux)}
 
 	return nil
 }

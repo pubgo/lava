@@ -8,12 +8,24 @@ import (
 
 	"github.com/panjf2000/gnet"
 	"github.com/panjf2000/gnet/pool/goroutine"
-	_ "github.com/panjf2000/gnet/pool/goroutine"
 )
 
 var _ = goroutine.Default()
 
 type Cfg struct {
+	srv interface{}
+}
+
+func (t *Cfg) Build() error {
+	return nil
+}
+
+func (t *Cfg) Get() interface{} {
+	if t.srv == nil {
+		panic("please init gnet")
+	}
+
+	return t.srv
 }
 
 func init() {

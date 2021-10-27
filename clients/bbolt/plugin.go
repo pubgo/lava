@@ -11,7 +11,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			xerror.PanicF(config.Decode(Name, &cfgMap), "config [%s] not found", Name)
 
 			for k, v := range cfgMap {

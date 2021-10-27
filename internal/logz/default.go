@@ -1,7 +1,6 @@
 package logz
 
 import (
-	"github.com/pubgo/lava/logger"
 	"sync"
 
 	"github.com/pubgo/dix"
@@ -10,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/runenv"
 )
 

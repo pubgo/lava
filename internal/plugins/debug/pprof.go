@@ -2,20 +2,18 @@ package debug
 
 import (
 	_ "expvar"
+	"github.com/felixge/fgprof"
 	"github.com/go-chi/chi/v5"
-	"github.com/pubgo/lava/mux"
-	"net/http"
+	_ "golang.org/x/net/trace"
 	"net/http/pprof"
 
-	"github.com/arl/statsviz"
-	"github.com/felixge/fgprof"
-	_ "golang.org/x/net/trace"
+	"github.com/pubgo/lava/mux"
 )
 
 const Name = "debug"
 
 func init() {
-	http.HandleFunc("/debug/fgprof", fgprof.Handler().ServeHTTP)
+	mux.Get("/debug/fgprof", fgprof.Handler().ServeHTTP)
 }
 
 func init() {
@@ -30,13 +28,5 @@ func init() {
 		r.Get("/heap", pprof.Handler("heap").ServeHTTP)
 		r.Get("/mutex", pprof.Handler("mutex").ServeHTTP)
 		r.Get("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-	})
-}
-
-func init() {
-	mux.Route("/debug/statsviz", func(r chi.Router) {
-		r.Get("/ws", statsviz.Ws)
-		r.Get("/", statsviz.Index)
-		r.Get("/", statsviz.Index)
 	})
 }

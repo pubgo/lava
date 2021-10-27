@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
 
@@ -21,9 +20,13 @@ type Entry interface {
 	BeforeStop(func())
 	AfterStart(func())
 	BeforeStart(func())
-	Plugin(plugins ...plugin.Plugin)
+	Exclude(func() []string)
 	Middleware(middleware types.Middleware)
 	Description(description ...string)
 	Flags(fn func(flags *pflag.FlagSet))
 	Commands(commands ...*cobra.Command)
+}
+
+type InitHandler interface {
+	Init()
 }

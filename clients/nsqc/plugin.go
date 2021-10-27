@@ -12,7 +12,7 @@ func init() { plugin.Register(&plg) }
 
 var plg = plugin.Base{
 	Name: Name,
-	OnInit: func(ent plugin.Entry) {
+	OnInit: func() {
 		config.Decode(Name, &cfgList)
 
 		for k, v := range cfgList {

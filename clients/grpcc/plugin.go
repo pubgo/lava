@@ -17,7 +17,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			_ = config.Decode(Name, &cfgMap)
 			for name := range cfgMap {
 				var defCfg = DefaultCfg()

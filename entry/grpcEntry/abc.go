@@ -7,9 +7,7 @@ import (
 	_ "github.com/pubgo/lava/internal/plugins/grpclog"
 )
 
-type options struct{}
-type Opt func(opts *options)
 type Entry interface {
 	entry.Entry
-	Register(handler interface{}, opts ...Opt)
+	Register(handler entry.InitHandler)
 }

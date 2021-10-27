@@ -9,7 +9,7 @@ type Cfg struct {
 	RequestID bool          `json:"req_id"`
 }
 
-func GetDefaultCfg() Cfg {
+func DefaultCfg() Cfg {
 	return Cfg{
 		Timeout:   60 * time.Second,
 		Logger:    true,

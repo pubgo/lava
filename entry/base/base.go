@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
@@ -38,12 +37,14 @@ type Entry struct {
 	middlewares []types.Middleware
 }
 
-func (t *Entry) BeforeStart(f func()) { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
-func (t *Entry) BeforeStop(f func())  { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
-func (t *Entry) AfterStart(f func())  { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
-func (t *Entry) AfterStop(f func())   { t.opts.AfterStops = append(t.opts.AfterStops, f) }
-func (t *Entry) Start() error         { panic("start unimplemented") }
-func (t *Entry) Stop() error          { panic("stop unimplemented") }
+func (t *Entry) Exclude(f func() []string)           { t.opts.Exclude = f }
+func (t *Entry) RegisterHandler(h entry.InitHandler) { t.opts.Handlers = append(t.opts.Handlers, h) }
+func (t *Entry) BeforeStart(f func())                { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
+func (t *Entry) BeforeStop(f func())                 { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
+func (t *Entry) AfterStart(f func())                 { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
+func (t *Entry) AfterStop(f func())                  { t.opts.AfterStops = append(t.opts.AfterStops, f) }
+func (t *Entry) Start() error                        { panic("start unimplemented") }
+func (t *Entry) Stop() error                         { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts {
 	var opts = t.opts
 	opts.Middlewares = append(t.middlewares[:len(t.middlewares):len(t.middlewares)], t.opts.Middlewares...)
@@ -66,17 +67,6 @@ func (t *Entry) MiddlewareInter(middleware types.Middleware) {
 	}
 
 	t.middlewares = append(t.middlewares, middleware)
-}
-
-// Plugin 注册插件
-func (t *Entry) Plugin(plugins ...plugin.Plugin) {
-	defer xerror.RespExit()
-
-	for _, plg := range plugins {
-		xerror.Assert(plg == nil || plg.Id() == "", "[plg] should not be nil")
-		xerror.Assert(t.opts.Name == "", "please init project name")
-		plugin.Register(plg, plugin.Module(t.opts.Name))
-	}
 }
 
 func (t *Entry) InitRT() {

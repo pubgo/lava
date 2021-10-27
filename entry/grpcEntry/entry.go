@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,14 +19,17 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding"
 
-	"github.com/pubgo/lava/builder/grpc-gw"
+	grpcGw "github.com/pubgo/lava/builder/grpc-gw"
 	"github.com/pubgo/lava/builder/grpcs"
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/logger"
+	encoding2 "github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -38,6 +40,8 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
+func New(name string) Entry { return newEntry(name) }
+
 var _ Entry = (*grpcEntry)(nil)
 var logs = logz.New(Name)
 
@@ -46,16 +50,12 @@ type grpcEntry struct {
 	cfg Cfg
 	mux cmux.CMux
 	srv grpcs.Builder
-	gw  grpc_gw.Builder
+	gw  grpcGw.Builder
 
 	registry    registry.Registry
 	registered  atomic.Bool
 	registryMap map[string][]*registry.Endpoint
 
-	handlers []interface{}
-	//client   *grpc.ClientConn
-
-	middleOnce     sync.Once
 	cancelRegister context.CancelFunc
 
 	wrapperUnary  func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
@@ -229,13 +229,6 @@ func (g *grpcEntry) Stop() (err error) {
 	// Add sleep for those requests which have selected this port.
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
-	logs.Info("[grpc-gw] Start Shutdown.")
-	if err := g.gw.Get().Shutdown(context.Background()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
-		logs.Error("[grpc-gw] Shutdown Error", logger.WithErr(err))
-	} else {
-		logs.Info("[grpc-gw] Shutdown Ok.")
-	}
-
 	// stop the grpc server
 	logs.Info("[grpc] Start GracefulStop.")
 	g.srv.Get().GracefulStop()
@@ -244,13 +237,12 @@ func (g *grpcEntry) Stop() (err error) {
 	return
 }
 
-func (g *grpcEntry) Register(handler interface{}, opts ...Opt) {
+func (g *grpcEntry) Register(handler entry.InitHandler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.Assert(!grpcs.FindHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
-
-	g.handlers = append(g.handlers, handler)
+	xerror.Assert(!FindGrpcHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
+	g.RegisterHandler(handler)
 }
 
 func (g *grpcEntry) Start() (gErr error) {
@@ -276,9 +268,18 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {
-		logs.Info("[grpc-gw] Server Staring")
-		//ErrServerClosed
-		if err := g.gw.Get().Serve(g.matchHttp1()); err != nil &&
+		var s = http.Server{Handler: g.gw.Get()}
+		g.BeforeStop(func() {
+			logs.Info("[grpc-gw] Start Shutdown.")
+			if err := s.Shutdown(context.Background()); err != nil && !strings.Contains(err.Error(), net.ErrClosed.Error()) {
+				logs.Error("[grpc-gw] Shutdown Error", logger.WithErr(err))
+			} else {
+				logs.Info("[grpc-gw] Shutdown Ok.")
+			}
+		})
+
+		logs.Info("[grpc-gw] Server Starting")
+		if err := s.Serve(g.matchHttp1()); err != nil &&
 			!errors.Is(err, cmux.ErrListenerClosed) &&
 			!errors.Is(err, http.ErrServerClosed) &&
 			!errors.Is(err, net.ErrClosed) {
@@ -288,7 +289,7 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动net网络
 	syncx.GoDelay(func() {
-		logs.Info("[cmux] Server Staring")
+		logs.Info("[cmux] Server Starting")
 		if err := g.serve(); err != nil &&
 			!errors.Is(err, http.ErrServerClosed) &&
 			!errors.Is(err, net.ErrClosed) {
@@ -301,8 +302,8 @@ func (g *grpcEntry) Start() (gErr error) {
 	conn, err := grpcc.NewDirect(runenv.Addr)
 	xerror.Panic(err)
 	xerror.Panic(grpcc.HealthCheck(g.cfg.name, conn))
-	for i := range g.handlers {
-		xerror.PanicF(g.gw.Register(conn, g.handlers[i]), "gw register handler error")
+	for _, h := range g.Options().Handlers {
+		xerror.PanicF(RegisterGw(context.Background(), g.gw.Get(), conn, h), "gw register handler error")
 	}
 
 	// register self
@@ -341,13 +342,13 @@ func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
 		Entry: base.New(name),
 		srv:   grpcs.New(name),
-		gw:    grpc_gw.New(name),
+		gw:    grpcGw.New(name),
 		cfg: Cfg{
 			name:                 name,
 			hostname:             env.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
-			Gw:                   grpc_gw.GetDefaultCfg(),
+			Gw:                   grpcGw.DefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
 			SleepAfterDeRegister: time.Second * 2,
@@ -358,7 +359,9 @@ func newEntry(name string) *grpcEntry {
 		defer xerror.RespExit()
 
 		// encoding register
-		grpcs.InitEncoding()
+		encoding2.Each(func(_ string, cdc encoding2.Codec) {
+			encoding.RegisterCodec(cdc)
+		})
 
 		// grpc_entry配置解析
 		_ = config.Decode(Name, &g.cfg)
@@ -381,8 +384,7 @@ func newEntry(name string) *grpcEntry {
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
 
 		// 初始化handlers
-		for i := range g.handlers {
-			var srv = g.handlers[i]
+		for _, srv := range g.Options().Handlers {
 			xerror.TryCatch(func() (interface{}, error) { return nil, dix.Inject(srv) }, func(err error) {
 				q.Q(srv)
 				fmt.Println(dix.Graph())
@@ -390,16 +392,12 @@ func newEntry(name string) *grpcEntry {
 			})
 
 			// 如果handler实现了InitHandler接口
-			if init, ok := srv.(interface{ Init() }); ok {
-				logs.Infof("handler init->%s", stack.Func(init.Init))
-				init.Init()
-			}
+			logs.Infof("handler init->%s", stack.Func(srv.Init))
+			srv.Init()
 
-			xerror.PanicF(grpcs.Register(g.srv.Get(), srv), "grpc register handler error: %#v", srv)
+			xerror.PanicF(RegisterGrpc(g.srv.Get(), srv), "grpc register handler error: %#v", srv)
 		}
 	})
 
 	return g
 }
-
-func New(name string) Entry { return newEntry(name) }

@@ -1,17 +1,18 @@
 package debug
 
 import (
-	"github.com/pubgo/lava/mux"
 	"html/template"
 	"net/http"
 	"strings"
 
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/mux"
 )
 
 func init() {
-	http.HandleFunc("/", home())
-	http.Handle("/debug", http.RedirectHandler("/", http.StatusTemporaryRedirect))
+	mux.Get("/", home())
+	mux.Get("/debug", home())
 }
 
 func home() func(writer http.ResponseWriter, r *http.Request) {
@@ -31,7 +32,7 @@ func home() func(writer http.ResponseWriter, r *http.Request) {
 	return func(writer http.ResponseWriter, req *http.Request) {
 		var keys []string
 		for _, r := range mux.Mux().Routes() {
-			keys = append(keys, strings.TrimSuffix(r.Pattern, "/*"))
+			keys = append(keys, strings.TrimSuffix(r.Pattern, "*"))
 		}
 		xerror.Panic(homeTmpl.Execute(writer, keys))
 	}

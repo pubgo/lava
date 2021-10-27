@@ -15,7 +15,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			_ = config.Decode(Name, &cfgMap)
 			for _, cfg := range cfgMap {
 				var ncp vo.NacosClientParam

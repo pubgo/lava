@@ -38,4 +38,10 @@ import (
 
 	// A simple zero-config tool to make locally trusted development certificates with any names you'd like.
 	_ "filippo.io/mkcert"
+
+	// Evans: more expressive universal gRPC client
+	_ "github.com/ktr0731/evans"
+
+	// Bit is a modern Git CLI
+	_ "github.com/chriswalz/bit"
 )

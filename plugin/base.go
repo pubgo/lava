@@ -22,7 +22,7 @@ type Base struct {
 	Url          string
 	OnHealth     func(ctx context.Context) error
 	OnMiddleware types.Middleware
-	OnInit       func(ent Entry)
+	OnInit       func()
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnWatch      func(name string, resp *types.WatchResp)
@@ -70,13 +70,13 @@ func (p *Base) Health() func(ctx context.Context) error {
 
 func (p *Base) Middleware() types.Middleware { return p.OnMiddleware }
 func (p *Base) String() string               { return p.Descriptor }
-func (p *Base) Id() string                   { return p.Name }
-func (p *Base) Init(ent Entry) error {
+func (p *Base) UniqueName() string           { return p.Name }
+func (p *Base) Init() error {
 	if p.OnInit == nil {
 		return nil
 	}
 
-	p.OnInit(ent)
+	p.OnInit()
 	return nil
 }
 

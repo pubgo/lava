@@ -8,6 +8,7 @@ import (
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
+	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
@@ -130,7 +131,7 @@ func Run(description string, entries ...entry.Entry) {
 		// 注册plugin的command和flags
 		// 先注册全局, 后注册项目相关
 		xerror.TryThrow(func() {
-			entPlugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
+			entPlugins := plugin.All()
 			for _, plg := range entPlugins {
 				cmd.PersistentFlags().AddFlagSet(plg.Flags())
 				ent.Commands(plg.Commands())
@@ -140,6 +141,12 @@ func Run(description string, entries ...entry.Entry) {
 
 		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
+			var exclude = func() []string {
+				if entRT.Options().Exclude == nil {
+					return nil
+				}
+				return entRT.Options().Exclude()
+			}()
 
 			// 项目名初始化
 			runenv.Project = entRT.Options().Name
@@ -152,15 +159,18 @@ func Run(description string, entries ...entry.Entry) {
 
 			xerror.TryThrow(func() {
 				// 获取本项目所有plugin
-				plugins := plugin.ListWithDefault(plugin.Module(entRT.Options().Name))
+				plugins := plugin.All()
 				for _, plg := range plugins {
+					if strutil.Contain(exclude, plg.UniqueName()) {
+						continue
+					}
 
 					// 注册watcher
-					logs.Infof("plugin [%s] watch register", plg.Id())
-					watcher.Watch("watcher/"+plg.Id(), plg.Watch)
+					logs.Infof("plugin [%s] watch register", plg.UniqueName())
+					watcher.Watch("watcher/"+plg.UniqueName(), plg.Watch)
 
 					// 注册健康检查
-					healthy.Register(plg.Id(), plg.Health())
+					healthy.Register(plg.UniqueName(), plg.Health())
 
 					// 注册vars
 					xerror.Panic(plg.Vars(vars.Watch))
@@ -168,10 +178,14 @@ func Run(description string, entries ...entry.Entry) {
 			})
 
 			// plugin初始化
-			plugins := plugin.ListWithDefault(plugin.Module(runenv.Project))
+			plugins := plugin.All()
 			for _, plg := range plugins {
-				logs.Infof("plugin [%s] init", plg.Id())
-				xerror.PanicF(plg.Init(ent), "plugin [%s] init error", plg.String())
+				if strutil.Contain(exclude, plg.UniqueName()) {
+					continue
+				}
+
+				logs.Infof("plugin [%s] init", plg.UniqueName())
+				xerror.PanicF(plg.Init(), "plugin [%s] init error", plg.String())
 			}
 
 			// watcher初始化

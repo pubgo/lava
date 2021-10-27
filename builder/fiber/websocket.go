@@ -12,8 +12,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Config ...
-type Config struct {
+// WsCfg ...
+type WsCfg struct {
 	// Filter defines a function to skip middleware.
 	// Optional. Default: nil
 	Filter func(*fiber.Ctx) bool
@@ -42,9 +42,9 @@ type Config struct {
 
 // NewWs returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
-func NewWs(handler func(*fiber.Ctx, *Conn), config ...Config) fiber.Handler {
+func NewWs(handler func(*fiber.Ctx, *Conn), config ...WsCfg) fiber.Handler {
 	// Init config
-	var cfg Config
+	var cfg WsCfg
 	if len(config) > 0 {
 		cfg = config[0]
 	}

@@ -2,7 +2,6 @@ package healthy
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/clix"
 	"io"
 	"net/http"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 
+	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/runenv"
 )

@@ -8,13 +8,14 @@ import (
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/version"
 )
 
 func init() {
-	http.HandleFunc("/env", envHandle)
-	http.HandleFunc("/version", versionHandle)
-	http.HandleFunc("/dep", depHandle)
+	mux.Get("/debug/env", envHandle)
+	mux.Get("/debug/version", versionHandle)
+	mux.Get("/debug/dep", depHandle)
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

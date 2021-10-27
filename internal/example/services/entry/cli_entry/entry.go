@@ -22,9 +22,9 @@ func GetEntry() entry.Entry {
 		},
 	})
 
-	ent.Plugin(&plugin.Base{
+	plugin.Register(&plugin.Base{
 		Name: "hello",
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			fmt.Println("hello plugin")
 		},
 	})

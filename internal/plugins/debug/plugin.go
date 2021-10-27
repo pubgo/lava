@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/pflag"
 
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/lavax"
@@ -27,16 +28,17 @@ func init() {
 		OnFlags: func(flags *pflag.FlagSet) {
 			flags.BoolVar(&openWeb, "web", openWeb, "open web browser")
 		},
-		OnInit: func(ent plugin.Entry) {
+		OnInit: func() {
 			InitView()
 
-			serveMux := GetDefaultServeMux()
-			for k, v := range serveMux.M {
-				mux.HandleFunc(k, v.H.ServeHTTP)
-			}
+			//serveMux := GetDefaultServeMux()
+			//for k, v := range serveMux.M {
+			//	mux.Mux()
+			//	mux.HandleFunc(k, v.H.ServeHTTP)
+			//}
 
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}
-			ent.AfterStart(func() {
+			entry.AfterStart(func() {
 				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
 				syncx.GoDelay(func() {
 					logs.Infof("Server [debug] Listening on http://localhost:%s", lavax.GetPort(runenv.DebugAddr))
@@ -54,7 +56,7 @@ func init() {
 				}
 			})
 
-			ent.AfterStop(func() {
+			entry.AfterStop(func() {
 				if err := server.Shutdown(context.Background()); err != nil {
 					logs.WithErr(err).Error("Server [debug] Shutdown Error")
 				}

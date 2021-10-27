@@ -1,7 +1,12 @@
 package grpcEntry
 
 import (
+	"context"
 	"fmt"
+	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/lava/xgen"
+	"github.com/pubgo/x/fx"
+	"google.golang.org/grpc"
 	"reflect"
 	"strings"
 
@@ -143,4 +148,61 @@ func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	}
 
 	return endpoints
+}
+
+
+func RegisterGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, handler interface{}) (err error) {
+	defer xerror.RespErr(&err)
+
+	xerror.Assert(conn == nil, "[conn] should not be nil")
+	xerror.Assert(mux == nil, "[mux] should not be nil")
+	xerror.Assert(ctx == nil, "[ctx] should not be nil")
+	xerror.Assert(handler == nil, "[handler] should not be nil")
+
+	for v, _ := range xgen.List() {
+		if v.Type().Kind() != reflect.Func {
+			continue
+		}
+
+		var ff, ok = v.Interface().(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)
+		if !ok {
+			continue
+		}
+		xerror.Panic(ff(ctx, mux, conn))
+	}
+
+	return nil
+}
+
+
+func RegisterGrpc(server *grpc.Server, handler interface{}) error {
+	xerror.Assert(server == nil, "[server] should not be nil")
+
+	var v = FindGrpcHandle(handler)
+	if v.IsValid() {
+		_ = fx.WrapValue(v, server, handler)
+		return nil
+	}
+
+	return xerror.Fmt("register [%#v] 没有找到匹配的interface", handler)
+}
+
+func FindGrpcHandle(handler interface{}) reflect.Value {
+	xerror.Assert(handler == nil, "[handler] should not be nil")
+
+	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()
+	for v := range xgen.List() {
+		v1 := v.Type()
+		if v1.Kind() != reflect.Func || v1.NumIn() < 2 || v1.In(1).Kind() != reflect.Interface {
+			continue
+		}
+
+		if !hd.Implements(v1.In(1)) || v1.In(0).String() != "grpc.ServiceRegistrar" {
+			continue
+		}
+
+		return v
+	}
+
+	return reflect.Value{}
 }
