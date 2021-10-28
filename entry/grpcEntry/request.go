@@ -1,10 +1,10 @@
 package grpcEntry
 
 import (
-	encoding2 "github.com/pubgo/lava/pkg/encoding"
-	"github.com/pubgo/lava/types"
-
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/pkg/encoding"
+	"github.com/pubgo/lava/types"
 )
 
 var _ types.Request = (*rpcRequest)(nil)
@@ -35,9 +35,9 @@ func (r *rpcRequest) Payload() interface{} {
 }
 
 func (r *rpcRequest) Body() ([]byte, error) {
-	var cdc = encoding2.Get(r.cdc)
+	var cdc = encoding.Get(r.cdc)
 	if cdc == nil {
-		return nil, encoding2.ErrNotFound
+		return nil, encoding.ErrNotFound
 	}
 
 	return cdc.Marshal(r.payload)

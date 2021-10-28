@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/pubgo/lava/clients/db"
 	"github.com/pubgo/lava/entry"
 	hello2 "github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
@@ -23,6 +24,10 @@ func NewTestAPIHandler() *testapiHandler {
 
 type testapiHandler struct {
 	Db *db.Client `dix:""`
+}
+
+func (h *testapiHandler) Group(r *gin.RouterGroup) {
+	panic("implement me")
 }
 
 func (h *testapiHandler) Init() {

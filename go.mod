@@ -121,7 +121,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/mod v0.4.2
-	golang.org/x/net v0.0.0-20210510120150-4163338589ed
+	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210820121016-41cdb8703e55
 	golang.org/x/tools v0.1.5
@@ -168,6 +168,8 @@ require (
 	github.com/charmbracelet/glamour v0.2.1-0.20210402234443-abe9cda419ba // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/chris-ramon/douceur v0.2.0 // indirect
+	github.com/chriswalz/bit v1.1.2
+	github.com/chyroc/go-aliyundrive v0.1.0
 	github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403 // indirect
 	github.com/cncf/xds/go v0.0.0-20210805033703-aa0b78936158 // indirect
 	github.com/containerd/console v1.0.1 // indirect
@@ -222,7 +224,7 @@ require (
 	github.com/kisielk/errcheck v1.6.0 // indirect
 	github.com/klauspost/compress v1.13.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.2 // indirect
-	github.com/kr/pretty v0.2.1 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/ktr0731/evans v0.10.0
 	github.com/leodido/go-urn v1.2.0 // indirect
@@ -308,26 +310,46 @@ require (
 )
 
 require (
+	github.com/apex/log v1.9.0 // indirect
+	github.com/c4milo/unpackit v0.0.0-20170704181138-4ed373e9ef1c // indirect
+	github.com/chriswalz/complete/v3 v3.0.13 // indirect
+	github.com/chyroc/gorequests v0.26.0 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
+	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
+	github.com/juju/go4 v0.0.0-20160222163258-40d72ab9641a // indirect
+	github.com/juju/persistent-cookiejar v0.0.0-20171026135701-d5e5a8405ef9 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/ktr0731/go-multierror v0.0.0-20171204182908-b7773ae21874 // indirect
 	github.com/ktr0731/go-prompt v0.2.2-0.20190609072126-7894cc3f2925 // indirect
 	github.com/ktr0731/go-shellstring v0.1.3 // indirect
 	github.com/ktr0731/go-updater v0.1.5 // indirect
 	github.com/ktr0731/grpc-web-go-client v0.2.7 // indirect
+	github.com/lithammer/fuzzysearch v1.1.1 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/manifoldco/promptui v0.8.0 // indirect
 	github.com/mattn/go-pipeline v0.0.0-20190323144519-32d779b32768 // indirect
 	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
+	github.com/posener/script v1.1.5 // indirect
+	github.com/rogpeppe/go-internal v1.6.2 // indirect
+	github.com/rs/zerolog v1.20.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.5 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+	github.com/thoas/go-funk v0.7.0 // indirect
 	github.com/tj/go-spin v1.1.0 // indirect
+	github.com/tj/go-update v2.2.4+incompatible // indirect
+	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/zchee/go-xdgbasedir v1.0.3 // indirect
+	gopkg.in/errgo.v1 v1.0.1 // indirect
+	gopkg.in/retry.v1 v1.0.3 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )

@@ -10,9 +10,77 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/chyroc/go-aliyundrive"
+	"github.com/pubgo/x/q"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func listAllFile(ins *aliyundrive.AliyunDrive, prefix string, driveID, parentID string, liftCount *int) {
+	if *liftCount < 0 {
+		return
+	}
+	next := ""
+	for {
+		resp, err := ins.File.GetFileList(context.TODO(), &aliyundrive.GetFileListReq{
+			DriveID:      driveID,
+			ParentFileID: parentID,
+			Marker:       next,
+		})
+		if err != nil {
+			panic(err)
+		}
+		next = resp.NextMarker
+		for _, v := range resp.Items {
+			fmt.Println(prefix, v.Name, v.Type)
+			*liftCount--
+			if v.Type == "folder" {
+				listAllFile(ins, prefix+"  ", driveID, v.FileID, liftCount)
+			}
+		}
+		if next == "" {
+			break
+		}
+	}
+}
+
+func TestListFile(t *testing.T) {
+	ins := aliyundrive.New()
+	ctx := context.TODO()
+
+	user, err := ins.Auth.LoginByQrcode(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	liftCount := 3
+	listAllFile(ins, "", user.DefaultDriveID, "", &liftCount)
+}
+
+func TestShare(t *testing.T) {
+	ins := aliyundrive.New()
+	ctx := context.TODO()
+
+	sharedInfo, err := ins.ShareLink.GetShareByAnonymous(ctx, &aliyundrive.GetShareByAnonymousReq{ShareID: ""})
+	if err != nil {
+		panic(err)
+	}
+	q.Q(sharedInfo)
+}
+
+func TestLogin(t *testing.T) {
+	ins := aliyundrive.New(
+		// aliyundrive.WithLogger(aliyundrive.NewLoggerStdout(), aliyundrive.LogLevelTrace),
+	)
+	ctx := context.TODO()
+
+	user, err := ins.Auth.LoginByQrcode(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	q.Q(user)
+}
 
 var fs Fs
 

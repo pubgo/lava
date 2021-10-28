@@ -3,7 +3,7 @@ package etcdv3
 import (
 	"github.com/pubgo/lava/pkg/lavax"
 	resource2 "github.com/pubgo/lava/resource"
-	"go.etcd.io/etcd/client/v3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // Get 获取etcd client
@@ -13,13 +13,6 @@ func Get(names ...string) *Client {
 		return c.(*Client)
 	}
 	return nil
-}
-
-// Update 更新client
-func Update(name string, cfg Cfg) {
-	etcdCfg := cfgMerge(cfg)
-	client := etcdCfg.Build()
-	resource2.Update(name, &Client{client})
 }
 
 // Delete 删除etcd client

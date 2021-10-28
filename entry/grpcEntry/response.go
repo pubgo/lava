@@ -3,9 +3,9 @@ package grpcEntry
 import (
 	"encoding/json"
 
-	"github.com/pubgo/lava/types"
-
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/types"
 )
 
 var _ types.Response = (*rpcResponse)(nil)

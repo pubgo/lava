@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/lava/types"
-
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+
+	"github.com/pubgo/lava/types"
 )
 
 func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.UnaryServerInterceptor {

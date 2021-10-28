@@ -3,15 +3,16 @@ package grpcEntry
 import (
 	"context"
 	"fmt"
-	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lava/xgen"
-	"github.com/pubgo/x/fx"
-	"google.golang.org/grpc"
 	"reflect"
 	"strings"
 
-	"github.com/pubgo/lava/plugins/registry"
+	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
+	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/xgen"
 )
 
 func extractValue(v reflect.Type) *registry.Value {
@@ -150,7 +151,6 @@ func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	return endpoints
 }
 
-
 func RegisterGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
@@ -173,7 +173,6 @@ func RegisterGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, ha
 
 	return nil
 }
-
 
 func RegisterGrpc(server *grpc.Server, handler interface{}) error {
 	xerror.Assert(server == nil, "[server] should not be nil")
