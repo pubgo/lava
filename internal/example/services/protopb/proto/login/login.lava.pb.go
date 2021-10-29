@@ -7,6 +7,7 @@
 package login
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
@@ -47,8 +48,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterLoginServer, mthList)
-	xgen.Add(RegisterLoginRestServer, nil)
 	xgen.Add(RegisterLoginHandler, nil)
+	xgen.Add(RegisterLoginRestServer, nil)
+	xgen.Add(RegisterLoginGinServer, nil)
 }
 func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -65,5 +67,22 @@ func RegisterLoginRestServer(app fiber.Router, server LoginServer) {
 		var resp, err = server.Authenticate(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterLoginGinServer(r gin.IRouter, server LoginServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/user/login/login", func(ctx *gin.Context) {
+		var req = new(LoginRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Login(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/user/login/authenticate", func(ctx *gin.Context) {
+		var req = new(AuthenticateRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Authenticate(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

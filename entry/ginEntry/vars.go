@@ -14,7 +14,7 @@ func trace(t *ginEntry) {
 
 		var data = make(map[string]string)
 		for _, r := range t.srv.Routes() {
-			data[r.Method+"/"+r.Path] = func() string {
+			data[r.Method+" "+r.Path] = func() string {
 				if r.Handler != "" {
 					return r.Handler
 				}

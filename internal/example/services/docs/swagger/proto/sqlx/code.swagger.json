@@ -346,7 +346,7 @@
         "nowTime": {
           "type": "string",
           "format": "int64",
-          "title": "时间戳"
+          "title": "时间戳\n@gotags: valid:\"ip\" custom_tag:\"custom_value\""
         },
         "data": {
           "type": "object",

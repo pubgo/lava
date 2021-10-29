@@ -7,7 +7,7 @@ import (
 
 type Handler interface {
 	entry.InitHandler
-	Group(r *gin.RouterGroup)
+	Router(r gin.IRouter)
 }
 
 type Entry interface {

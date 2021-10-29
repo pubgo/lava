@@ -1,38 +1,39 @@
 deps:
-- name: google
-  url: github.com/googleapis/googleapis
-  path: /google
-  version: v0.0.0-20211008232417-177c62af7f18
-- name: protoc-gen-openapiv2
-  url: github.com/grpc-ecosystem/grpc-gateway/v2
-  path: /protoc-gen-openapiv2
-  version: v2.5.0
-- name: go-proto-validators
-  url: github.com/mwitkow/go-proto-validators
-  version: v0.3.2
-- name: gogoproto
-  url: github.com/gogo/protobuf
-  path: /gogoproto
-  version: v1.3.2
-- name: lava
-  url: /Users/barry/gopath/src/github.com/pubgo/lava/proto/lava
-- name: google/protobuf
-  url: /usr/local/include/google/protobuf
+  - name: google
+    url: github.com/googleapis/googleapis
+    path: /google
+    version: v0.0.0-20211008232417-177c62af7f18
+  - name: protoc-gen-openapiv2
+    url: github.com/grpc-ecosystem/grpc-gateway/v2
+    path: /protoc-gen-openapiv2
+    version: v2.5.0
+  - name: go-proto-validators
+    url: github.com/mwitkow/go-proto-validators
+    version: v0.3.2
+  - name: gogoproto
+    url: github.com/gogo/protobuf
+    path: /gogoproto
+    version: v1.3.2
+  - name: lava
+    url: /Users/barry/gopath/src/github.com/pubgo/lava/proto/lava
+  - name: google/protobuf
+    url: /usr/local/include/google/protobuf
 plugins:
   go:
-  - paths=source_relative:protopb
+    - paths=source_relative:protopb
   go-grpc:
-  - paths=source_relative
-  - require_unimplemented_servers=false:protopb
+    - paths=source_relative
+    - require_unimplemented_servers=false:protopb
   govalidators:
-  - paths=source_relative:protopb
+    - paths=source_relative:protopb
   grpc-gateway:
-  - paths=source_relative
-  - allow_repeated_fields_in_body=true:protopb
+    - paths=source_relative
+    - allow_repeated_fields_in_body=true:protopb
   lava:
-  - rest=true
-  - paths=source_relative:protopb
+    - gin=true
+    - rest=true
+    - paths=source_relative:protopb
   openapiv2:
-  - logtostderr=true
-  - allow_repeated_fields_in_body=true
-  - repeated_path_param_separator=ssv:./docs/swagger
+    - logtostderr=true
+    - allow_repeated_fields_in_body=true
+    - repeated_path_param_separator=ssv:./docs/swagger

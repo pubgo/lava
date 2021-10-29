@@ -24,6 +24,7 @@ func init() {
 			now := time.Now()
 			var params = make([]zap.Field, 0, 10)
 			params = append(params, zap.String("service", req.Service()))
+			params = append(params, zap.String("method", req.Method()))
 			params = append(params, zap.String("endpoint", req.Endpoint()))
 
 			var respBody interface{}

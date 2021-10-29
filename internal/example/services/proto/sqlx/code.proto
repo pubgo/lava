@@ -71,6 +71,7 @@ message SendCodeResponse {
   // msg
   string msg = 2 [(gogoproto.jsontag) = "msg"];
   // 时间戳
+  // @gotags: valid:"ip" custom_tag:"custom_value"
   int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
   // 数据
   map<string, string> data = 4 [(gogoproto.jsontag) = "data"];

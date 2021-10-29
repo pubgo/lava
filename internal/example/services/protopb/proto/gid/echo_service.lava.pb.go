@@ -7,6 +7,7 @@
 package gid
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
@@ -82,8 +83,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterEchoServiceServer, mthList)
-	xgen.Add(RegisterEchoServiceRestServer, nil)
 	xgen.Add(RegisterEchoServiceHandler, nil)
+	xgen.Add(RegisterEchoServiceRestServer, nil)
+	xgen.Add(RegisterEchoServiceGinServer, nil)
 }
 func RegisterEchoServiceRestServer(app fiber.Router, server EchoServiceServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -127,5 +129,43 @@ func RegisterEchoServiceRestServer(app fiber.Router, server EchoServiceServer) {
 		var resp, err = server.EchoUnauthorized(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterEchoServiceGinServer(r gin.IRouter, server EchoServiceServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/v1/example/echo/{id}", func(ctx *gin.Context) {
+		var req = new(SimpleMessage)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Echo(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/v1/example/echo_body", func(ctx *gin.Context) {
+		var req = new(SimpleMessage)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.EchoBody(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("DELETE", "/v1/example/echo_delete", func(ctx *gin.Context) {
+		var req = new(SimpleMessage)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.EchoDelete(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("PATCH", "/v1/example/echo_patch", func(ctx *gin.Context) {
+		var req = new(DynamicMessageUpdate)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.EchoPatch(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("GET", "/v1/example/echo_unauthorized", func(ctx *gin.Context) {
+		var req = new(SimpleMessage)
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
+		var resp, err = server.EchoUnauthorized(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

@@ -2,6 +2,7 @@ package timeout
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/httpx"
 	"os"
 	"time"
 
@@ -26,6 +27,10 @@ func init() {
 		}
 
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+			if httpx.IsWebsocket(req.Header()) {
+				return nil
+			}
+
 			if t := req.Header().Get("LAVA-REQUEST-TIMEOUT"); t != "" {
 				var dur, err = time.ParseDuration(t)
 				if dur != 0 && err == nil {

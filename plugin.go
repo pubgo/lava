@@ -4,7 +4,6 @@ package lava
 import (
 	// 加载debug插件
 	_ "github.com/pubgo/lava/internal/plugins/debug"
-
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 

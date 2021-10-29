@@ -7,6 +7,7 @@
 package hello
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
@@ -38,8 +39,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterGreeterServer, mthList)
-	xgen.Add(RegisterGreeterRestServer, nil)
 	xgen.Add(RegisterGreeterHandler, nil)
+	xgen.Add(RegisterGreeterRestServer, nil)
+	xgen.Add(RegisterGreeterGinServer, nil)
 }
 func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -55,5 +57,15 @@ func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
 		var resp, err = server.SayHello(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterGreeterGinServer(r gin.IRouter, server GreeterServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("GET", "/say/{name}", func(ctx *gin.Context) {
+		var req = new(HelloRequest)
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
+		var resp, err = server.SayHello(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

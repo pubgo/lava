@@ -7,6 +7,7 @@
 package hello
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
@@ -70,6 +71,7 @@ func init() {
 	})
 	xgen.Add(RegisterTransportServer, mthList)
 	xgen.Add(RegisterTransportRestServer, nil)
+	xgen.Add(RegisterTransportGinServer, nil)
 }
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -79,5 +81,15 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 		var resp, err = server.TestStream3(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterTransportGinServer(r gin.IRouter, server TransportServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/hello/transport/test-stream3", func(ctx *gin.Context) {
+		var req = new(Message)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.TestStream3(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

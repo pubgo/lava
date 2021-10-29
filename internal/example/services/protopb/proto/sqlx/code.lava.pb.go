@@ -9,6 +9,7 @@ package sqlx
 import (
 	context "context"
 	sql "database/sql"
+	gin "github.com/gin-gonic/gin"
 	sqlx "github.com/jmoiron/sqlx"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
@@ -83,8 +84,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterCodeServer, mthList)
-	xgen.Add(RegisterCodeRestServer, nil)
 	xgen.Add(RegisterCodeHandler, nil)
+	xgen.Add(RegisterCodeRestServer, nil)
+	xgen.Add(RegisterCodeGinServer, nil)
 }
 func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -122,6 +124,44 @@ func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
 		var resp, err = server.GetSendStatus(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/user/code/send-code", func(ctx *gin.Context) {
+		var req = new(SendCodeRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.SendCode(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/user/code/verify", func(ctx *gin.Context) {
+		var req = new(VerifyRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Verify(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/user/code/is-check-image-code", func(ctx *gin.Context) {
+		var req = new(IsCheckImageCodeRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.IsCheckImageCode(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/user/code/verify-image-code", func(ctx *gin.Context) {
+		var req = new(VerifyImageCodeRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.VerifyImageCode(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/user/code/get-send-status", func(ctx *gin.Context) {
+		var req = new(GetSendStatusRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.GetSendStatus(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }
 func Code_SendCodeExec(ctx context.Context, db *sqlx.DB, arg *SendCodeRequest) (sql.Result, error) {

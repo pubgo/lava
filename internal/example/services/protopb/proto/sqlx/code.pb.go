@@ -117,6 +117,7 @@ type SendCodeResponse struct {
 	// msg
 	Msg string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	// 时间戳
+	// @gotags: valid:"ip" custom_tag:"custom_value"
 	NowTime int64 `protobuf:"varint,3,opt,name=nowTime,proto3" json:"nowTime,omitempty"`
 	// 数据
 	Data map[string]string `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`

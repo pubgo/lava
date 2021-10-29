@@ -35,7 +35,6 @@ type Cfg struct {
 	RegisterTTL          time.Duration `json:"register_ttl"`
 	RegisterInterval     time.Duration `json:"register_interval"`
 	SleepAfterDeRegister time.Duration `json:"sleepAfterDeRegister"`
-	GwPrefix             string        `json:"prefix"`
 
 	id       string
 	name     string

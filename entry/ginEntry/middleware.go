@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pubgo/x/q"
 
 	"github.com/pubgo/lava/types"
 )
@@ -17,7 +18,7 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 		reqCtx.ctx.Next()
 
 		// response回调
-		return rsp(&httpResponse{header: reqCtx.Header(), ctx: reqCtx.ctx})
+		return rsp(&httpResponse{ctx: reqCtx.ctx})
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -27,9 +28,10 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 	return func(c *gin.Context) {
 		if err := handler(
 			c.Request.Context(),
-			&httpRequest{ctx: c, header: c.Request.Header},
+			&httpRequest{ctx: c},
 			func(_ types.Response) error { return nil },
 		); err != nil {
+			q.Q(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "msg": err})
 		}
 	}

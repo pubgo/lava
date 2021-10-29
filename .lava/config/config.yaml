@@ -121,8 +121,6 @@ logger:
     - stderr
   errorOutputPaths:
     - stderr
-  filterSuffix:
-    - "--grpc-component"
   #initialFields:
   #  name: test
 grpc_entry:

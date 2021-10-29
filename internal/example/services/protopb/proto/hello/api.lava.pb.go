@@ -7,6 +7,7 @@
 package hello
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
@@ -72,8 +73,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiServer, mthList)
-	xgen.Add(RegisterTestApiRestServer, nil)
 	xgen.Add(RegisterTestApiHandler, nil)
+	xgen.Add(RegisterTestApiRestServer, nil)
+	xgen.Add(RegisterTestApiGinServer, nil)
 }
 func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -118,6 +120,37 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		return xerror.Wrap(ctx.JSON(resp))
 	})
 }
+func RegisterTestApiGinServer(r gin.IRouter, server TestApiServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("GET", "/v1/version", func(ctx *gin.Context) {
+		var req = new(TestReq)
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
+		var resp, err = server.Version(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/v1/version1", func(ctx *gin.Context) {
+		var req = new(structpb.Value)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Version1(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("GET", "/v1/example/versiontest", func(ctx *gin.Context) {
+		var req = new(TestReq)
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
+		var resp, err = server.VersionTest(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("SQL", "/sql", func(ctx *gin.Context) {
+		var req = new(TestReq)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.VersionTestCustom(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+}
 func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiV2Client {
 	return &testApiV2Client{grpcc.GetClient(srv, opts...)}
 }
@@ -146,8 +179,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiV2Server, mthList)
-	xgen.Add(RegisterTestApiV2RestServer, nil)
 	xgen.Add(RegisterTestApiV2Handler, nil)
+	xgen.Add(RegisterTestApiV2RestServer, nil)
+	xgen.Add(RegisterTestApiV2GinServer, nil)
 }
 func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -164,5 +198,22 @@ func RegisterTestApiV2RestServer(app fiber.Router, server TestApiV2Server) {
 		var resp, err = server.VersionTest1(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterTestApiV2GinServer(r gin.IRouter, server TestApiV2Server) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/v2/example/version/{name}", func(ctx *gin.Context) {
+		var req = new(TestReq)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.Version1(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("POST", "/v2/example/versiontest", func(ctx *gin.Context) {
+		var req = new(TestReq)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.VersionTest1(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

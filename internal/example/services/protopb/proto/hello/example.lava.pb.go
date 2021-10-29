@@ -7,6 +7,7 @@
 package hello
 
 import (
+	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
@@ -83,8 +84,9 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterUserServiceServer, mthList)
-	xgen.Add(RegisterUserServiceRestServer, nil)
 	xgen.Add(RegisterUserServiceHandler, nil)
+	xgen.Add(RegisterUserServiceRestServer, nil)
+	xgen.Add(RegisterUserServiceGinServer, nil)
 }
 func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
@@ -114,5 +116,29 @@ func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
 		var resp, err = server.UpdateUser(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
+	})
+}
+func RegisterUserServiceGinServer(r gin.IRouter, server UserServiceServer) {
+	xerror.Assert(r == nil || server == nil, "router or server is nil")
+	r.Handle("POST", "/api/v1/users", func(ctx *gin.Context) {
+		var req = new(User)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.AddUser(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("GET", "/api/v1/users", func(ctx *gin.Context) {
+		var req = new(User)
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
+		var resp, err = server.GetUser(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
+	})
+	r.Handle("PATCH", "/api/v1/users/{user.id}", func(ctx *gin.Context) {
+		var req = new(UpdateUserRequest)
+		xerror.Panic(ctx.ShouldBindJSON(req))
+		var resp, err = server.UpdateUser(ctx, req)
+		xerror.Panic(err)
+		ctx.JSON(200, resp)
 	})
 }

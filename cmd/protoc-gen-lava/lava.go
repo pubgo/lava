@@ -25,6 +25,7 @@ var (
 	xerrorCall   = protoutil.Import("github.com/pubgo/xerror")
 	xgenCall     = protoutil.Import("github.com/pubgo/lava/xgen")
 	fiberCall    = protoutil.Import("github.com/pubgo/lava/builder/fiber")
+	ginCall      = protoutil.Import("github.com/gin-gonic/gin")
 	bindingCall  = protoutil.Import("github.com/pubgo/lava/pkg/binding")
 	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
 )
@@ -69,6 +70,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 		genClient(gen, file, g, service)
 		genRpcInfo(gen, file, g, service)
 		genRestRouter(gen, file, g, service)
+		genGinRouter(gen, file, g, service)
 		genSql(gen, file, g, service)
 	}
 }
@@ -131,12 +133,21 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
 		g.P("})")
 	}
+	// grpc
 	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
-	g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
-
 	if !isDefault {
+		// grpc gw
 		g.P(xgenCall("Add"), "(Register", service.GoName, "Handler ,nil)")
 	}
+
+	if genRest {
+		g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
+	}
+
+	if genGin {
+		g.P(xgenCall("Add"), "(Register", service.GoName, "GinServer, nil)")
+	}
+
 	g.P("}")
 }
 
@@ -195,6 +206,41 @@ func genRestRouter(gen *protogen.Plugin, file *protogen.File, g *protogen.Genera
 		g.P(`var resp,err=server.`, m.GoName, `(ctx.UserContext(),req)`)
 		g.P(`xerror.Panic(err)`)
 		g.P(`return xerror.Wrap(ctx.JSON(resp))`)
+		g.P(`})`)
+	}
+	g.P(`}`)
+}
+
+func genGinRouter(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
+	if !genGin {
+		return
+	}
+
+	g.P(`func Register`, service.GoName, `GinServer(r `, ginCall("IRouter"), `, server `, service.GoName, `Server) {`)
+	g.P(xerrorCall("Assert"), `(r == nil || server == nil, "router or server is nil")`)
+	for _, m := range service.Methods {
+		// 过滤掉stream
+		if m.Desc.IsStreamingClient() || m.Desc.IsStreamingServer() {
+			continue
+		}
+
+		hr, err := protoutil.ExtractAPIOptions(m.Desc)
+		if err != nil || hr == nil {
+			hr = protoutil.DefaultAPIOptions(string(file.GoPackageName), service.GoName, m.GoName)
+		}
+		method, path := protoutil.ExtractHttpMethod(hr)
+		method = strings.ToUpper(method)
+
+		g.P(`r.Handle("`, method, `","`, path, `", func(ctx *`, ginCall("Context"), `) {`)
+		g.P(`var req = new(`, g.QualifiedGoIdent(m.Input.GoIdent), `)`)
+		if method == http.MethodGet {
+			g.P(`xerror.Panic(`, bindingCall("MapFormByTag"), `(req, ctx.Request.URL.Query(), "json"))`)
+		} else {
+			g.P(`xerror.Panic(ctx.ShouldBindJSON(req))`)
+		}
+		g.P(`var resp,err=server.`, m.GoName, `(ctx,req)`)
+		g.P(`xerror.Panic(err)`)
+		g.P(`ctx.JSON(200,resp)`)
 		g.P(`})`)
 	}
 	g.P(`}`)

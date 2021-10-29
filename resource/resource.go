@@ -20,7 +20,7 @@ var logs = logz.New(Name)
 
 // Remove 删除资源
 func Remove(kind string, name string) {
-	logs.Infof("delete resource, kind=>%s, name=>%s", kind, name)
+	logs.Infow("delete resource", "kind", kind, "name", name)
 	check(kind, name)
 	sources.Delete(join(kind, name))
 }

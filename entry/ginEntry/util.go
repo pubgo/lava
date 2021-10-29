@@ -25,6 +25,7 @@ func register(server gin.IRouter, handler interface{}) (err error) {
 	return xerror.Fmt("register [%#v] 没有找到匹配的interface", handler)
 }
 
+// RegisterLoginServiceGinServer(r gin.IRouter, server LoginServiceServer)
 func checkHandle(handler interface{}) reflect.Value {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
@@ -34,7 +35,7 @@ func checkHandle(handler interface{}) reflect.Value {
 
 		if v1.Kind() != reflect.Func ||
 			v1.NumIn() < 2 ||
-			v1.In(0).String() != "fiber.Router" ||
+			v1.In(0).String() != "gin.IRouter" ||
 			v1.In(1).Kind() != reflect.Interface ||
 			!hd.Implements(v1.In(1)) {
 			continue

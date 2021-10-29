@@ -1,10 +1,8 @@
 package ginEntry
 
 import (
-	"context"
 	"errors"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/dix"
@@ -17,33 +15,39 @@ import (
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/types"
 )
 
+func New(name string) Entry { return newEntry(name) }
+
 func newEntry(name string) *ginEntry {
-	var ent = &ginEntry{
-		Entry: base.New(name),
-		srv:   gin.New(),
-	}
+	gin.SetMode(gin.ReleaseMode)
+	var ent = &ginEntry{Entry: base.New(name), srv: gin.New()}
 
 	ent.OnInit(func() {
 		defer xerror.RespExit()
 
 		trace(ent)
 
-		// 解析rest_entry配置
 		_ = config.Decode(Name, &ent.cfg)
 
 		// 外部配置更新到gin
 		merge.Struct(&ent.srv, ent.cfg)
 
 		// 加载组件middleware
-		// lava middleware比fiber Middleware的先加载
+		// lava middleware比gin Middleware的先加载
 		ent.srv.Use(ent.handlerMiddle(ent.Options().Middlewares))
 
 		// 初始化router
 		for _, h := range ent.Options().Handlers {
+			// 依赖注入handler
 			xerror.Panic(dix.Inject(h))
+
+			xerror.PanicF(register(ent.srv, h), "[gin] grpc handler register error")
+
+			// 初始化router
+			h.(Handler).Router(ent.srv)
+
+			// handler初始化
 			h.Init()
 		}
 	})
@@ -51,27 +55,22 @@ func newEntry(name string) *ginEntry {
 	return ent
 }
 
-func New(name string) Entry { return newEntry(name) }
-
-var logs = logz.New("ginEntry")
+var logs = logz.New(Name)
 var _ Entry = (*ginEntry)(nil)
 
 type ginEntry struct {
 	*base.Entry
-	cfg        Cfg
-	srv        *gin.Engine
-	middleOnce sync.Once
-	handler    func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
+	cfg Cfg
+	srv *gin.Engine
 }
 
 func (t *ginEntry) Register(handler Handler) {
 	defer xerror.RespExit()
 
-	xerror.Assert(t.srv == nil, "[srv] should not be nil")
+	xerror.Assert(handler == nil, "[handler] should not be nil")
 
-	// 检查是否实现了handler
-	xerror.Assert(!checkHandle(t.srv).IsValid(), "[srv] 没有找到对应的service实现")
-	xerror.PanicF(register(t.srv, handler), "[rest] grpc handler register error")
+	// 检查是否实现了 <Handler>
+	xerror.Assert(!checkHandle(handler).IsValid(), "[handler] 没有找到对应的service实现")
 	t.RegisterHandler(handler)
 }
 
@@ -84,7 +83,6 @@ func (t *ginEntry) Start() error {
 				logs.Error("Server Close Error", logger.WithErr(err))
 				return
 			}
-
 			logs.Info("Server Closed OK")
 		})
 	})

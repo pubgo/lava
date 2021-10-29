@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/dix"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
@@ -33,7 +32,6 @@ func (t *Client) Kind() string                 { return Name }
 func (t *Client) UpdateResObj(val interface{}) { t.DB = val.(*Client).DB }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
-	dix.Provider()
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
 	xerror.Panic(err, "create bucket error")
 	return bk
