@@ -1,7 +1,5 @@
 package ginEntry
 
-import "github.com/gin-gonic/gin"
-
 const Name = "rest_entry"
 
 type Cfg struct {
@@ -16,9 +14,4 @@ type Cfg struct {
 	UnescapePathValues     bool
 	MaxMultipartMemory     int64
 	RemoveExtraSlash       bool
-}
-
-func (t Cfg) Build() *gin.Engine {
-	var eng = gin.New()
-	return eng
 }

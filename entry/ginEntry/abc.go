@@ -1,12 +1,16 @@
 package ginEntry
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/pubgo/lava/entry"
 )
 
-type options struct{}
-type Opt func(opts *options)
+type Handler interface {
+	entry.InitHandler
+	Group(r *gin.RouterGroup)
+}
+
 type Entry interface {
 	entry.Entry
-	Register(srv interface{}, opts ...Opt)
+	Register(handler Handler)
 }

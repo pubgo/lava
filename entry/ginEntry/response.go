@@ -2,8 +2,6 @@ package ginEntry
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pubgo/x/byteutil"
-
 	"github.com/pubgo/lava/types"
 )
 
@@ -15,7 +13,7 @@ type httpResponse struct {
 }
 
 func (h *httpResponse) Write(p []byte) (n int, err error) {
-	return h.ctx.Write(p)
+	return h.ctx.Writer.Write(p)
 }
 
 func (h *httpResponse) Header() types.Header {
@@ -23,15 +21,15 @@ func (h *httpResponse) Header() types.Header {
 }
 
 func (h *httpResponse) Body() ([]byte, error) {
-	return h.ctx.Response().Body(), nil
+	return nil, nil
 }
 
 func (h *httpResponse) Payload() interface{} {
-	return h.ctx.Response().Body()
+	return nil
 }
 
 func (h *httpResponse) Codec() string {
-	return byteutil.ToStr(h.ctx.Response().Header.ContentType())
+	return ""
 }
 
 func (h *httpResponse) Send(i interface{}) error {

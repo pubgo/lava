@@ -11,16 +11,17 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
 
-func newEntry(name string) *restEntry {
-	var ent = &restEntry{
+func newEntry(name string) *ginEntry {
+	var ent = &ginEntry{
 		Entry: base.New(name),
 		srv:   gin.New(),
 	}
@@ -33,16 +34,17 @@ func newEntry(name string) *restEntry {
 		// 解析rest_entry配置
 		_ = config.Decode(Name, &ent.cfg)
 
+		// 外部配置更新到gin
+		merge.Struct(&ent.srv, ent.cfg)
+
 		// 加载组件middleware
 		// lava middleware比fiber Middleware的先加载
 		ent.srv.Use(ent.handlerMiddle(ent.Options().Middlewares))
 
-		// 依赖注入router
-		xerror.Exit(dix.Provider(ent.srv.Get()))
-
 		// 初始化router
-		for i := range ent.handlers {
-			ent.handlers[i]()
+		for _, h := range ent.Options().Handlers {
+			xerror.Panic(dix.Inject(h))
+			h.Init()
 		}
 	})
 
@@ -51,64 +53,54 @@ func newEntry(name string) *restEntry {
 
 func New(name string) Entry { return newEntry(name) }
 
-var _ Entry = (*restEntry)(nil)
+var logs = logz.New("ginEntry")
+var _ Entry = (*ginEntry)(nil)
 
-type restEntry struct {
+type ginEntry struct {
 	*base.Entry
 	cfg        Cfg
 	srv        *gin.Engine
-	handlers   []func()
 	middleOnce sync.Once
 	handler    func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
 }
 
-// Register 注册grpc handler
-func (t *restEntry) Register(srv interface{}, opts ...Opt) {
+func (t *ginEntry) Register(handler Handler) {
 	defer xerror.RespExit()
 
-	xerror.Assert(srv == nil, "[srv] should not be nil")
+	xerror.Assert(t.srv == nil, "[srv] should not be nil")
 
 	// 检查是否实现了handler
-	xerror.Assert(!checkHandle(srv).IsValid(), "[srv] 没有找到对应的service实现")
-
-	t.handlers = append(t.handlers, func() {
-		xerror.Panic(dix.Inject(srv))
-
-		// 如果handler实现了InitHandler接口
-		if init, ok := srv.(entry.InitHandler); ok {
-			init.Init()
-		}
-
-		xerror.PanicF(register(t.srv.Get(), srv), "[rest] grpc handler register error")
-	})
+	xerror.Assert(!checkHandle(t.srv).IsValid(), "[srv] 没有找到对应的service实现")
+	xerror.PanicF(register(t.srv, handler), "[rest] grpc handler register error")
+	t.RegisterHandler(handler)
 }
 
-func (t *restEntry) Start() error {
+func (t *ginEntry) Start() error {
 	return xerror.Try(func() {
 		// 启动server后等待
 		syncx.GoDelay(func() {
-			logz.Named(Name).Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
-			if err := t.srv.Get().Listen(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logz.Named(Name).Error("Server Close Error", logger.WithErr(err))
+			logs.Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
+			if err := t.srv.Run(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				logs.Error("Server Close Error", logger.WithErr(err))
 				return
 			}
 
-			logz.Named(Name).Info("Server Closed OK")
+			logs.Info("Server Closed OK")
 		})
 	})
 }
 
-func (t *restEntry) Stop() (err error) {
+func (t *ginEntry) Stop() (err error) {
 	defer xerror.RespErr(&err)
 
-	logz.Named(Name).Info("Server Shutdown")
+	logs.Info("Server Shutdown")
 
-	if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logz.Named(Name).Error("Server Shutdown Error", logger.WithErr(err))
-		return err
-	}
+	//if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	//	logs.Error("Server Shutdown Error", logger.WithErr(err))
+	//	return err
+	//}
 
-	logz.Named(Name).Info("Server Shutdown Ok")
+	logs.Info("Server Shutdown Ok")
 
 	return nil
 }

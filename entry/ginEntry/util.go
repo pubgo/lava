@@ -4,16 +4,14 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/x/byteutil"
+	"github.com/gin-gonic/gin"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/xgen"
 )
 
-func register(server fiber.Router, handler interface{}) (err error) {
+func register(server gin.IRouter, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(server == nil, "[server] should not be nil")
@@ -46,14 +44,6 @@ func checkHandle(handler interface{}) reflect.Value {
 	}
 
 	return reflect.Value{}
-}
-
-func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) types.Header {
-	var h = types.HeaderGet()
-	request.VisitAll(func(key, value []byte) {
-		h.Add(byteutil.ToStr(key), byteutil.ToStr(value))
-	})
-	return h
 }
 
 func getPort(addr string) string {

@@ -2,7 +2,6 @@ package ginEntry
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pubgo/x/byteutil"
 
 	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
@@ -24,27 +23,25 @@ func (r *httpRequest) Header() types.Header {
 }
 
 func (r *httpRequest) Payload() interface{} {
-	return r.ctx.Body()
+	return nil
 }
 
 func (r *httpRequest) Body() ([]byte, error) {
-	return r.ctx.Body(), nil
+	return nil, nil
 }
 
-func (r *httpRequest) ContentType() string {
-	return byteutil.ToStr(r.ctx.Request().Header.ContentType())
-}
+func (r *httpRequest) ContentType() string { return r.ctx.ContentType() }
 
 func (r *httpRequest) Service() string {
-	return r.ctx.OriginalURL()
+	return r.ctx.Request.Host
 }
 
 func (r *httpRequest) Method() string {
-	return r.ctx.Method()
+	return r.ctx.Request.Method
 }
 
 func (r *httpRequest) Endpoint() string {
-	return r.ctx.OriginalURL()
+	return r.ctx.Request.RequestURI
 }
 
 func (r *httpRequest) Codec() string {

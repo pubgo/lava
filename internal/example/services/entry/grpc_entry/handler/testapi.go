@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/lava/clients/db"
-	"github.com/pubgo/lava/entry"
 	hello2 "github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
 	"time"
@@ -15,8 +14,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 )
-
-var _ entry.InitHandler = (*testapiHandler)(nil)
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
