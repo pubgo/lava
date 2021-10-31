@@ -44,4 +44,7 @@ import (
 
 	// Bit is a modern Git CLI
 	_ "github.com/chriswalz/bit"
+
+	// This is a simple tool to sign, verify and show JSON Web Tokens from the command line.
+	_ "github.com/golang-jwt/jwt/v4/cmd/jwt"
 )

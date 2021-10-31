@@ -8,7 +8,6 @@ import (
 var _ types.Request = (*request)(nil)
 
 type request struct {
-	header types.Header
 	req    *Request
 }
 
@@ -41,7 +40,7 @@ func (r *request) ContentType() string {
 }
 
 func (r *request) Header() types.Header {
-	return r.header
+	return types.Header(r.req.Header)
 }
 
 func (r *request) Payload() interface{} {
