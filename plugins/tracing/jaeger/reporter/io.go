@@ -22,7 +22,7 @@ var _ jaeger.Reporter = (*ioReporter)(nil)
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
 	var reporter = &ioReporter{
 		writer:    writer,
-		batchSize: batch,
+		batchSize: 1,
 		unbounded: syncutil.NewUnbounded(),
 		domain:    e.NewFromDomain(false, nil, ""),
 	}
@@ -101,7 +101,7 @@ func (t *ioReporter) saveSpan(span interface{}) (gErr error) {
 		return xerror.Wrap(err)
 	}
 
-	_, err = t.writer.Write(s)
+	_, err = t.writer.Write(append(s, '\n'))
 	if err != nil {
 		return xerror.Wrap(err)
 	}

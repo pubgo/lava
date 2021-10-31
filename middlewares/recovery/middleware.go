@@ -19,7 +19,7 @@ func init() {
 				case error:
 					gErr = err
 				default:
-					gErr = fmt.Errorf("%#v\n", err)
+					gErr = fmt.Errorf("%#v", err)
 				}
 			}()
 

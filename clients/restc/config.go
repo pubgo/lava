@@ -2,16 +2,15 @@ package restc
 
 import (
 	"crypto/tls"
+	"net/http"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpproxy"
 
 	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
 
@@ -41,11 +40,9 @@ type Cfg struct {
 	KeyPath                       string
 	Insecure                      bool
 	Header                        map[string]string
-	retryIf                       fasthttp.RetryIfFunc
 	backoff                       retry.Backoff
 	tlsConfig                     *tls.Config
-	dial                          fasthttp.DialFunc
-	middles                       []types.Middleware
+	Middlewares                   []string
 }
 
 func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
@@ -55,23 +52,8 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 		opts[i](&t)
 	}
 
-	c := &fasthttp.Client{}
+	c := &http.Client{Transport: DefaultPooledTransport()}
 	xerror.Panic(merge.CopyStruct(c, t))
-
-	if t.Proxy {
-		if t.Socks5 != "" {
-			if !strings.Contains(t.Socks5, "://") {
-				t.Socks5 = "socks5://" + t.Socks5
-			}
-			c.Dial = fasthttpproxy.FasthttpSocksDialer(t.Socks5)
-		} else {
-			c.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(defaultHTTPTimeout)
-		}
-	}
-
-	if t.dial != nil {
-		c.Dial = t.dial
-	}
 
 	var certs []tls.Certificate
 	if t.CertPath != "" && t.KeyPath != "" {
@@ -79,31 +61,22 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 		xerror.Panic(err)
 		certs = append(certs, c)
 	}
-	c.TLSConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
+	//c.TLSConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
-	var dftHeader fasthttp.RequestHeader
-	dftHeader.SetMethod(fasthttp.MethodGet)
-	dftHeader.SetContentType(defaultContentType)
-	dftHeader.Set(fasthttp.HeaderConnection, "close")
-	if t.KeepAlive {
-		dftHeader.Set(fasthttp.HeaderConnection, "keep-alive")
-	}
-
-	if t.Token != "" {
-		dftHeader.Set(fasthttp.HeaderAuthorization, t.Token)
-	}
-
-	if t.Header != nil {
-		for k, v := range t.Header {
-			dftHeader.Set(k, v)
+	var middlewares []types.Middleware
+	for _, name := range t.Middlewares {
+		var mid = plugin.Get(name).Middleware()
+		if mid == nil {
+			continue
 		}
+		middlewares = append(middlewares, plugin.Get(name).Middleware())
 	}
 
 	// 加载插件
-	var client = &clientImpl{client: c, defaultHeader: &dftHeader}
+	var client = &clientImpl{client: c}
 	client.do = doFunc(client)
-	for i := len(t.middles); i > 0; i-- {
-		client.do = t.middles[i-1](client.do)
+	for i := len(middlewares); i > 0; i-- {
+		client.do = middlewares[i-1](client.do)
 	}
 	return client, nil
 }

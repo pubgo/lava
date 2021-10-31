@@ -1,10 +1,8 @@
 package debug
 
 import (
-	_ "expvar"
 	"github.com/felixge/fgprof"
 	"github.com/go-chi/chi/v5"
-	_ "golang.org/x/net/trace"
 	"net/http/pprof"
 
 	"github.com/pubgo/lava/mux"

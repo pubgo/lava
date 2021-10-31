@@ -3,7 +3,6 @@ package restapi
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/pkg/clix"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -13,15 +12,17 @@ import (
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
+	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/xgen"
 )
 
-var Cmd = &cobra.Command{
-	Use:     "rest.http",
-	Short:   "gen rest.http from protobuf",
-	Example: clix.ExampleFmt(`lava rest.http`),
-	Run: func(cmd *cobra.Command, args []string) {
+var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
+	cmd.Use = "rest.http"
+	cmd.Short = "gen rest.http from protobuf"
+	cmd.Example = clix.ExampleFmt(`lava rest.http`)
+	cmd.Run = func(cmd *cobra.Command, args []string) {
 		defer xerror.RespExit()
 
 		for _, val := range xgen.List() {
@@ -58,5 +59,5 @@ var Cmd = &cobra.Command{
 			xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(name)))
 			xerror.Panic(ioutil.WriteFile(name, []byte(strings.Join(data, "")), 0755))
 		}
-	},
-}
+	}
+})

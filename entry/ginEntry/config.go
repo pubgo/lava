@@ -1,6 +1,12 @@
 package ginEntry
 
+import "github.com/gin-gonic/gin"
+
 const Name = "gin_entry"
+
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 type Cfg struct {
 	RedirectTrailingSlash  bool     `json:"redirect_trailing_slash" yaml:"redirect_trailing_slash"`

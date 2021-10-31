@@ -20,13 +20,15 @@ type Base struct {
 	Name         string
 	Descriptor   string
 	Url          string
+	Docs         interface{}
 	OnHealth     func(ctx context.Context) error
 	OnMiddleware types.Middleware
 	OnInit       func()
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnWatch      func(name string, resp *types.WatchResp)
-	OnVars       func(w func(name string, data func() interface{}))
+	OnVars       func(w func(name string, data func() interface {
+	}))
 }
 
 func (p *Base) getFuncStack(val interface{}) string {

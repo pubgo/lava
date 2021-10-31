@@ -15,12 +15,8 @@ type response struct {
 	resp   interface{}
 }
 
-func (r *response) Write(p []byte) (n int, err error) {
-	panic("implement me")
-}
-
-func (r *response) Codec() string {
-	return r.req.Codec()
+func (r *response) Stream() bool {
+	return r.stream != nil
 }
 
 func (r *response) Header() types.Header {
@@ -33,16 +29,4 @@ func (r *response) Body() ([]byte, error) {
 
 func (r *response) Payload() interface{} {
 	return r.resp
-}
-
-func (r *response) Send(i interface{}) error {
-	return r.stream.SendMsg(i)
-}
-
-func (r *response) Recv(i interface{}) error {
-	return r.stream.RecvMsg(i)
-}
-
-func (r *response) Stream() bool {
-	return r.stream != nil
 }

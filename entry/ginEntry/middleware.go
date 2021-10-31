@@ -5,8 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pubgo/x/q"
-
 	"github.com/pubgo/lava/types"
 )
 
@@ -31,8 +29,7 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 			&httpRequest{ctx: c},
 			func(_ types.Response) error { return nil },
 		); err != nil {
-			q.Q(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "msg": err})
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "msg": err})
 		}
 	}
 }

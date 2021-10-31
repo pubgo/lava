@@ -14,11 +14,6 @@ type rpcResponse struct {
 	stream grpc.ServerStream
 	header types.Header
 	dt     interface{}
-	ct     string
-}
-
-func (h *rpcResponse) Write(p []byte) (n int, err error) {
-	panic("implement me")
 }
 
 func (h *rpcResponse) Header() types.Header {
@@ -35,16 +30,4 @@ func (h *rpcResponse) Payload() interface{} {
 
 func (h *rpcResponse) Stream() bool {
 	return h.stream != nil
-}
-
-func (h *rpcResponse) Codec() string {
-	return h.ct
-}
-
-func (h *rpcResponse) Send(i interface{}) error {
-	return h.stream.SendMsg(i)
-}
-
-func (h *rpcResponse) Recv(i interface{}) error {
-	return h.stream.RecvMsg(i)
 }

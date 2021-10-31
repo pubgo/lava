@@ -20,7 +20,6 @@ import (
 func New(name string) Entry { return newEntry(name) }
 
 func newEntry(name string) *ginEntry {
-	gin.SetMode(gin.ReleaseMode)
 	var ent = &ginEntry{Entry: base.New(name), srv: gin.New()}
 
 	ent.OnInit(func() {

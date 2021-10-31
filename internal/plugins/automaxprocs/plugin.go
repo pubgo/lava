@@ -5,15 +5,19 @@ import (
 	"go.uber.org/automaxprocs/maxprocs"
 
 	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/plugin"
 )
 
 func init() {
 	const name = "automaxprocs"
-
-	// https://pkg.go.dev/go.uber.org/automaxprocs
-	// Automatically set GOMAXPROCS to match Linux container CPU quota.
-	logz.On(func(_ *logz.Log) {
-		var logs = logz.New(name).DepthS(1)
-		xerror.ExitErr(maxprocs.Set(maxprocs.Logger(logs.Infof))).(func())()
+	var logs = logz.New(name)
+	plugin.Register(&plugin.Base{
+		Name:       name,
+		Url:        "https://pkg.go.dev/go.uber.org/automaxprocs",
+		Descriptor: "Automatically set GOMAXPROCS to match Linux container CPU quota.",
+		OnInit: func() {
+			var l = maxprocs.Logger(func(s string, i ...interface{}) { logs.DepthS(1).Infof(s, i...) })
+			xerror.ExitErr(maxprocs.Set(l)).(func())()
+		},
 	})
 }

@@ -41,6 +41,69 @@ import (
 )
 
 func New(name string) Entry { return newEntry(name) }
+func newEntry(name string) *grpcEntry {
+	var g = &grpcEntry{
+		Entry: base.New(name),
+		srv:   grpcs.New(name),
+		gw:    grpcGw.New(name),
+		cfg: Cfg{
+			name:                 name,
+			hostname:             env.Hostname,
+			id:                   uuid.New().String(),
+			Grpc:                 grpcs.GetDefaultCfg(),
+			Gw:                   grpcGw.DefaultCfg(),
+			RegisterTTL:          time.Minute,
+			RegisterInterval:     time.Second * 30,
+			SleepAfterDeRegister: time.Second * 2,
+		},
+	}
+
+	g.OnInit(func() {
+		defer xerror.RespExit()
+
+		// encoding register
+		encoding2.Each(func(_ string, cdc encoding2.Codec) {
+			encoding.RegisterCodec(cdc)
+		})
+
+		// grpc_entry配置解析
+		_ = config.Decode(Name, &g.cfg)
+
+		// 注册中心初始化
+		g.registry = registry.Default()
+
+		// 网关初始化
+		xerror.Panic(g.gw.Build(g.cfg.Gw))
+
+		// 默认middleware注册
+		g.srv.UnaryInterceptor(g.handlerUnaryMiddle(g.Options().Middlewares))
+		g.srv.StreamInterceptor(g.handlerStreamMiddle(g.Options().Middlewares))
+
+		// 自定义middleware注册
+		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
+		g.srv.StreamInterceptor(g.streamServerInterceptors...)
+
+		// grpc serve初始化
+		xerror.Panic(g.srv.Build(g.cfg.Grpc))
+
+		// 初始化handlers
+		for _, srv := range g.Options().Handlers {
+			xerror.TryCatch(func() (interface{}, error) { return nil, dix.Inject(srv) }, func(err error) {
+				q.Q(srv)
+				fmt.Println(dix.Graph())
+				xerror.PanicF(err, "%#v", srv)
+			})
+
+			// 如果handler实现了InitHandler接口
+			logs.Infof("handler init->%s", stack.Func(srv.Init))
+			srv.Init()
+
+			xerror.PanicF(registerGrpc(g.srv.Get(), srv), "grpc register handler error: %#v", srv)
+		}
+	})
+
+	return g
+}
 
 var _ Entry = (*grpcEntry)(nil)
 var logs = logz.New(Name)
@@ -241,7 +304,7 @@ func (g *grpcEntry) Register(handler entry.InitHandler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.Assert(!FindGrpcHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
+	xerror.Assert(!findGrpcHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
 	g.RegisterHandler(handler)
 }
 
@@ -303,7 +366,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	xerror.Panic(err)
 	xerror.Panic(grpcc.HealthCheck(g.cfg.name, conn))
 	for _, h := range g.Options().Handlers {
-		xerror.PanicF(RegisterGw(context.Background(), g.gw.Get(), conn, h), "gw register handler error")
+		xerror.PanicF(registerGw(context.Background(), g.gw.Get(), conn, h), "gw register handler error")
 	}
 
 	// register self
@@ -336,68 +399,4 @@ func (g *grpcEntry) Start() (gErr error) {
 	})
 
 	return nil
-}
-
-func newEntry(name string) *grpcEntry {
-	var g = &grpcEntry{
-		Entry: base.New(name),
-		srv:   grpcs.New(name),
-		gw:    grpcGw.New(name),
-		cfg: Cfg{
-			name:                 name,
-			hostname:             env.Hostname,
-			id:                   uuid.New().String(),
-			Grpc:                 grpcs.GetDefaultCfg(),
-			Gw:                   grpcGw.DefaultCfg(),
-			RegisterTTL:          time.Minute,
-			RegisterInterval:     time.Second * 30,
-			SleepAfterDeRegister: time.Second * 2,
-		},
-	}
-
-	g.OnInit(func() {
-		defer xerror.RespExit()
-
-		// encoding register
-		encoding2.Each(func(_ string, cdc encoding2.Codec) {
-			encoding.RegisterCodec(cdc)
-		})
-
-		// grpc_entry配置解析
-		_ = config.Decode(Name, &g.cfg)
-
-		// 注册中心初始化
-		g.registry = registry.Default()
-
-		// 网关初始化
-		xerror.Panic(g.gw.Build(g.cfg.Gw))
-
-		// 默认middleware注册
-		g.srv.UnaryInterceptor(g.handlerUnaryMiddle(g.Options().Middlewares))
-		g.srv.StreamInterceptor(g.handlerStreamMiddle(g.Options().Middlewares))
-
-		// 自定义middleware注册
-		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
-		g.srv.StreamInterceptor(g.streamServerInterceptors...)
-
-		// grpc serve初始化
-		xerror.Panic(g.srv.Build(g.cfg.Grpc))
-
-		// 初始化handlers
-		for _, srv := range g.Options().Handlers {
-			xerror.TryCatch(func() (interface{}, error) { return nil, dix.Inject(srv) }, func(err error) {
-				q.Q(srv)
-				fmt.Println(dix.Graph())
-				xerror.PanicF(err, "%#v", srv)
-			})
-
-			// 如果handler实现了InitHandler接口
-			logs.Infof("handler init->%s", stack.Func(srv.Init))
-			srv.Init()
-
-			xerror.PanicF(RegisterGrpc(g.srv.Get(), srv), "grpc register handler error: %#v", srv)
-		}
-	})
-
-	return g
 }

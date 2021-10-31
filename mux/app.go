@@ -13,6 +13,7 @@ import (
 var app = func() *chi.Mux {
 	var route = chi.NewRouter()
 	route.Use(middleware.Logger)
+
 	// 跨域处理
 	route.Use(cors.Default().Handler)
 	route.Use(func(handler http.Handler) http.Handler {

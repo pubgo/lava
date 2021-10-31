@@ -11,18 +11,18 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
+	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
 func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.UnaryServerInterceptor {
 	wrapperUnary := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
-		ctx = metadata.NewIncomingContext(ctx, metadata.MD(req.Header()))
+		ctx = metadata.NewIncomingContext(ctx, req.Header())
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return err
 		}
-
-		return xerror.Wrap(rsp(&rpcResponse{ct: req.ContentType(), dt: dt, header: req.Header()}))
+		return xerror.Wrap(rsp(&rpcResponse{dt: dt, header: req.Header()}))
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -37,11 +37,11 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 
 		// get content type
 		ct := defaultContentType
-		if c := md.Get("x-content-type"); len(c) != 0 {
+		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		if c := md.Get("content-type"); len(c) != 0 {
+		if c := md.Get("content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
@@ -57,7 +57,7 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 		delete(md, "timeout")
 
 		// set the timeout if we have it
-		if len(to) != 0 {
+		if len(to) != 0 && to[0] != "" {
 			if dur, err := time.ParseDuration(to[0]); err == nil {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
@@ -65,32 +65,35 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 			}
 		}
 
-		// create a client.Request
-		request := &rpcRequest{
-			service:     serviceFromMethod(info.FullMethod),
-			method:      info.FullMethod,
-			handler:     handler,
-			contentType: ct,
-			cdc:         ct,
-			payload:     req,
-			header:      types.Header(md),
-		}
-		return resp, wrapperUnary(ctx, request, func(rsp types.Response) error { resp = rsp.Payload(); return nil })
+		err = wrapperUnary(
+			ctx,
+			&rpcRequest{
+				service:     serviceFromMethod(info.FullMethod),
+				method:      info.FullMethod,
+				handler:     handler,
+				contentType: ct,
+				cdc:         encoding.Mapping[ct],
+				payload:     req,
+				header:      md,
+			},
+			func(rsp types.Response) error {
+				resp = rsp.Payload()
+				return nil
+			},
+		)
+
+		return
 	}
 }
 
 func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.StreamServerInterceptor {
 	wrapperStream := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		var reqCtx = req.(*rpcRequest)
-		ctx = metadata.NewIncomingContext(ctx, metadata.MD(req.Header()))
-		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{
-			WrappedContext: ctx,
-			ServerStream:   reqCtx.stream,
-		})
+		ctx = metadata.NewIncomingContext(ctx, req.Header())
+		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream})
 		if err != nil {
 			return err
 		}
-
 		return rsp(&rpcResponse{stream: reqCtx.stream, header: req.Header()})
 	}
 
@@ -105,13 +108,12 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 			md = make(metadata.MD)
 		}
 
-		// get content type
 		ct := defaultContentType
-		if c := md.Get("x-content-type"); len(c) != 0 {
+		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		if c := md.Get("content-type"); len(c) != 0 {
+		if c := md.Get("content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
@@ -135,18 +137,20 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 			}
 		}
 
-		// create a client.Request
-		request := &rpcRequest{
-			stream:        stream,
-			srv:           srv,
-			handlerStream: handler,
-			header:        types.Header(md),
-			method:        info.FullMethod,
-			service:       serviceFromMethod(info.FullMethod),
-			contentType:   ct,
-			cdc:           ct,
-		}
-		return wrapperStream(ctx, request, func(_ types.Response) error { return nil })
+		return wrapperStream(
+			ctx,
+			&rpcRequest{
+				stream:        stream,
+				srv:           srv,
+				handlerStream: handler,
+				header:        md,
+				method:        info.FullMethod,
+				service:       serviceFromMethod(info.FullMethod),
+				contentType:   ct,
+				cdc:           encoding.Mapping[ct],
+			},
+			func(_ types.Response) error { return nil },
+		)
 	}
 }
 

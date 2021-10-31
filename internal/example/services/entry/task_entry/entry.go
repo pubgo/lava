@@ -2,10 +2,10 @@ package task_entry
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/entry/task"
 	"github.com/pubgo/lava/plugins/broker"
 
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/entry/task"
 )
 
 var name = "test-task"

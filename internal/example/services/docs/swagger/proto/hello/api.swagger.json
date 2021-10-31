@@ -22,7 +22,6 @@
     "application/json"
   ],
   "paths": {
-    "/sql": {},
     "/v1/example/versiontest": {
       "get": {
         "summary": "VersionTest rpc",

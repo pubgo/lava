@@ -1,8 +1,7 @@
 package resource
 
-import "github.com/pubgo/xerror"
+import "errors"
 
 var (
-	Err         = xerror.New("resource")
-	ErrKindNull = Err.New("kind and name should not be null")
+	ErrKindNull = errors.New("resource: kind and name should not be null")
 )

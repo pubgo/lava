@@ -33,8 +33,7 @@ PATCH http://localhost:8080/v1/example/echo_patch
 Content-Type: application/json
 
 {
- "body": "",
- "update_mask": ""
+ "body": ""
 }
 
 ### gid.EchoService.EchoUnauthorized

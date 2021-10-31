@@ -61,15 +61,14 @@ var _ Entry = (*restEntry)(nil)
 
 type restEntry struct {
 	*base.Entry
-	cfg      Cfg
-	srv      fb.Builder
-	handlers []func()
+	cfg Cfg
+	srv fb.Builder
+	handlers   []func()
 	middleOnce sync.Once
 	handler    func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
 }
 
-// Register 注册grpc handler
-func (t *restEntry) Register(srv interface{}, opts ...Opt) {
+func (t *restEntry) Register(srv Handler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(srv == nil, "[srv] should not be nil")
@@ -81,9 +80,7 @@ func (t *restEntry) Register(srv interface{}, opts ...Opt) {
 		xerror.Panic(dix.Inject(srv))
 
 		// 如果handler实现了InitHandler接口
-		if init, ok := srv.(interface{ Init() }); ok {
-			init.Init()
-		}
+		srv.Init()
 
 		xerror.PanicF(register(t.srv.Get(), srv), "[rest] grpc handler register error")
 	})

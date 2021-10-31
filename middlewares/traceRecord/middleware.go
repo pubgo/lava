@@ -3,7 +3,6 @@ package traceRecord
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/plugins/tracing"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -13,11 +12,14 @@ import (
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/fastrand"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/types"
 )
 
+const Name = "traceRecord"
+
 func init() {
-	plugin.Middleware("traceRecord", func(next types.MiddleNext) types.MiddleNext {
+	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var tracer = opentracing.GlobalTracer()
 			if tracer == nil {

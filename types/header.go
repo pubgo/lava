@@ -1,15 +1,16 @@
 package types
 
 import (
-	"net/http"
 	"sync"
+
+	"google.golang.org/grpc/metadata"
 )
 
-type Header = http.Header
+type Header = metadata.MD
 
 var headerPool = sync.Pool{
 	New: func() interface{} {
-		return make(http.Header)
+		return make(metadata.MD)
 	},
 }
 

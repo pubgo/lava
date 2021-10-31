@@ -1,10 +1,9 @@
 package grpcc
 
 import (
-	"net/http"
-
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -20,7 +19,15 @@ type request struct {
 	invoker    grpc.UnaryInvoker
 	streamer   grpc.Streamer
 	desc       *grpc.StreamDesc
-	header     http.Header
+	header     types.Header
+}
+
+func (r *request) Kind() string {
+	return Name
+}
+
+func (r *request) Codec() encoding.Codec {
+	return encoding.Get(encoding.Mapping[r.ct])
 }
 
 func (r *request) Client() bool {
@@ -53,10 +60,6 @@ func (r *request) Payload() interface{} {
 
 func (r *request) Body() ([]byte, error) {
 	return nil, nil
-}
-
-func (r *request) Codec() string {
-	return r.ct
 }
 
 func (r *request) Stream() bool {

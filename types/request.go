@@ -1,24 +1,37 @@
 package types
 
+import "github.com/pubgo/lava/pkg/encoding"
+
 // Request is a synchronous request interface
 type Request interface {
 	Client() bool
+
+	Kind() string
+
 	// Service name requested
 	Service() string
+
 	// Method The action requested
 	Method() string
+
 	// Endpoint name requested
 	Endpoint() string
+
 	// ContentType Content type provided
 	ContentType() string
+
 	// Header of the request
 	Header() Header
-	// Payload is the initial decoded value
+
+	// Codec The encoded message
+	Codec() encoding.Codec
+
+	// Payload is the decoded value
 	Payload() interface{}
+
 	// Body the encode request body
 	Body() ([]byte, error)
-	// Codec The encoded message stream
-	Codec() string
+
 	// Stream Indicates whether its a stream
 	Stream() bool
 }

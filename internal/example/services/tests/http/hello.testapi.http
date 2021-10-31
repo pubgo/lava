@@ -1,0 +1,25 @@
+### hello.TestApi.Version
+GET http://localhost:8080/v1/version
+Content-Type: application/json
+
+### hello.TestApi.Version1
+POST http://localhost:8080/v1/version1
+Content-Type: application/json
+
+{}
+
+### hello.TestApi.VersionTest
+GET http://localhost:8080/v1/example/versiontest
+Content-Type: application/json
+
+### hello.TestApi.VersionTestCustom
+POST http://localhost:8080/hello/test-api/version-test-custom
+Content-Type: application/json
+
+{
+ "headers": "",
+ "input": "",
+ "lists": "",
+ "name": ""
+}
+

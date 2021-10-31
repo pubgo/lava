@@ -11,12 +11,12 @@ type httpResponse struct {
 	ctx *gin.Context
 }
 
-func (h *httpResponse) Write(p []byte) (n int, err error) {
-	return h.ctx.Writer.Write(p)
+func (h *httpResponse) Stream() bool {
+	return false
 }
 
 func (h *httpResponse) Header() types.Header {
-	return h.ctx.Writer.Header()
+	return types.Header(h.ctx.Writer.Header())
 }
 
 func (h *httpResponse) Body() ([]byte, error) {
@@ -25,20 +25,4 @@ func (h *httpResponse) Body() ([]byte, error) {
 
 func (h *httpResponse) Payload() interface{} {
 	return nil
-}
-
-func (h *httpResponse) Codec() string {
-	return ""
-}
-
-func (h *httpResponse) Send(i interface{}) error {
-	panic("implement me")
-}
-
-func (h *httpResponse) Recv(i interface{}) error {
-	panic("implement me")
-}
-
-func (h *httpResponse) Stream() bool {
-	return false
 }

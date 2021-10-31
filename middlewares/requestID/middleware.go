@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/segmentio/ksuid"
-
-	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
@@ -17,10 +14,11 @@ func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (gErr error) {
 			var header = req.Header()
-			var resID = header.Get(httpx.HeaderXRequestID)
-			if resID == "" {
-				resID = ksuid.New().String()
-				req.Header().Set(httpx.HeaderXRequestID, resID)
+			var resID = header.Get(Name)
+			var resIDStr string
+			if len(resID) == 0 || resID[0] == "" {
+				resIDStr = GetWith(ctx)
+				req.Header().Set(Name, resIDStr)
 			}
 
 			defer func() {
@@ -29,11 +27,11 @@ func init() {
 				case error:
 					gErr = err
 				default:
-					gErr = fmt.Errorf("%#v\n", err)
+					gErr = fmt.Errorf("%#v", err)
 				}
 			}()
 
-			return next(WithReqID(ctx, resID), req, resp)
+			return next(WithReqID(ctx, resIDStr), req, resp)
 		}
 	})
 }

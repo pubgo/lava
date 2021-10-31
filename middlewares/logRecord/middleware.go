@@ -2,21 +2,21 @@ package logRecord
 
 import (
 	"context"
-	"github.com/pubgo/lava/logger"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
 
-const name = "logRecord"
+const Name = "logRecord"
 
 func init() {
-	plugin.Middleware(name, func(next types.MiddleNext) types.MiddleNext {
+	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (err error) {
 			var reqId = requestID.GetWith(ctx)
 			var log = zap.L().With(zap.String(requestID.Name, reqId))
@@ -26,6 +26,7 @@ func init() {
 			params = append(params, zap.String("service", req.Service()))
 			params = append(params, zap.String("method", req.Method()))
 			params = append(params, zap.String("endpoint", req.Endpoint()))
+			params = append(params, zap.Bool("client", req.Client()))
 
 			var respBody interface{}
 			err = next(logger.CtxWithLogger(ctx, log), req, func(rsp types.Response) error {

@@ -1,16 +1,17 @@
-package rest_entry
+package version_entry
 
 import (
 	"context"
-	db2 "github.com/pubgo/lava/clients/db"
-	"github.com/pubgo/lava/logger"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 
+	db2 "github.com/pubgo/lava/clients/db"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
+	"github.com/pubgo/lava/logger"
 )
 
 var _ hello.TestApiServer = (*Service)(nil)
@@ -18,6 +19,13 @@ var _ hello.TestApiServer = (*Service)(nil)
 type Service struct {
 	Db  *db2.Client   `dix:""`
 	Cfg config.Config `dix:""`
+}
+
+func (t *Service) Init() {
+
+}
+
+func (t *Service) Router(r gin.IRouter) {
 }
 
 func (t *Service) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
@@ -46,7 +54,6 @@ func (t *Service) Version(ctx context.Context, in *hello.TestReq) (out *hello.Te
 }
 
 func (t *Service) VersionTest(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-
 	out = &hello.TestApiOutput{
 		Msg: in.Input + "_test",
 	}

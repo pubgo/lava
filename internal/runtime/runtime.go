@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/cmds/restapi"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,6 +34,7 @@ var rootCmd = &cobra.Command{Use: runenv.Domain, Version: version.Version}
 func init() {
 	rootCmd.AddCommand(v.Cmd)
 	rootCmd.AddCommand(healthy.Cmd)
+	rootCmd.AddCommand(restapi.Cmd)
 }
 
 func handleSignal() {

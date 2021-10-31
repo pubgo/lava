@@ -14,7 +14,7 @@ func tailFile(filename string, config tail.Config, done chan bool) {
 		return
 	}
 	for line := range t.Lines {
-		fmt.Println(line.Text)
+		fmt.Println(line.Err,line.Time,line.Num,line.SeekInfo)
 	}
 	err = t.Wait()
 	if err != nil {

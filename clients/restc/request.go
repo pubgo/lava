@@ -1,8 +1,8 @@
 package restc
 
 import (
+	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/x/byteutil"
 )
 
 var _ types.Request = (*request)(nil)
@@ -10,6 +10,14 @@ var _ types.Request = (*request)(nil)
 type request struct {
 	header types.Header
 	req    *Request
+}
+
+func (r *request) Kind() string {
+	return Name
+}
+
+func (r *request) Codec() encoding.Codec {
+	return encoding.Get(encoding.Mapping[r.ContentType()])
 }
 
 func (r *request) Client() bool {
@@ -21,15 +29,15 @@ func (r *request) Service() string {
 }
 
 func (r *request) Method() string {
-	return byteutil.ToStr(r.req.Header.Method())
+	return r.req.Method
 }
 
 func (r *request) Endpoint() string {
-	return r.req.URI().String()
+	return r.req.RequestURI
 }
 
 func (r *request) ContentType() string {
-	return byteutil.ToStr(r.req.Header.ContentType())
+	return r.ContentType()
 }
 
 func (r *request) Header() types.Header {
@@ -41,11 +49,7 @@ func (r *request) Payload() interface{} {
 }
 
 func (r *request) Body() ([]byte, error) {
-	return r.req.Body(), nil
-}
-
-func (r *request) Codec() string {
-	return byteutil.ToStr(r.req.Header.ContentType())
+	return nil, nil
 }
 
 func (r *request) Stream() bool {

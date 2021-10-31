@@ -45,13 +45,6 @@ service TestApi {
 
   // VersionTest rpc custom
   rpc VersionTestCustom(hello.TestReq) returns (hello.TestApiOutput) {
-    option (google.api.http) = {
-      custom: {
-        kind: "sql"
-        // SELECT * FROM authors ORDER BY name where name=:name;
-        path: "/sql"
-      }
-    };
   }
 }
 

@@ -22,6 +22,14 @@ type rpcRequest struct {
 	payload       interface{}
 }
 
+func (r *rpcRequest) Codec() encoding.Codec {
+	return encoding.Get(r.cdc)
+}
+
+func (r *rpcRequest) Kind() string {
+	return Name
+}
+
 func (r *rpcRequest) Client() bool {
 	return false
 }
@@ -57,10 +65,6 @@ func (r *rpcRequest) Method() string {
 
 func (r *rpcRequest) Endpoint() string {
 	return r.method
-}
-
-func (r *rpcRequest) Codec() string {
-	return r.cdc
 }
 
 func (r *rpcRequest) Stream() bool {

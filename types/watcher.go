@@ -23,13 +23,13 @@ func Decode(data []byte, c interface{}) (err error) {
 		return
 	}
 
-	// "hcl"
-	if err = hcl.Unmarshal(data, &c); err == nil {
+	// "toml"
+	if err = toml.Unmarshal(data, &c); err == nil {
 		return
 	}
 
-	// "toml"
-	if err = toml.Unmarshal(data, &c); err == nil {
+	// "hcl"
+	if err = hcl.Unmarshal(data, &c); err == nil {
 		return
 	}
 

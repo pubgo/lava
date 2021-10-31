@@ -66,14 +66,13 @@ func init() {
 		Output:       &TestApiOutput{},
 		Service:      "hello.TestApi",
 		Name:         "VersionTestCustom",
-		Method:       "sql",
-		Path:         "/sql",
-		DefaultUrl:   false,
+		Method:       "POST",
+		Path:         "/hello/test-api/version-test-custom",
+		DefaultUrl:   true,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiServer, mthList)
-	xgen.Add(RegisterTestApiHandler, nil)
 	xgen.Add(RegisterTestApiRestServer, nil)
 	xgen.Add(RegisterTestApiGinServer, nil)
 }
@@ -112,7 +111,7 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
 	})
-	app.Add("SQL", "/sql", func(ctx *fiber.Ctx) error {
+	app.Add("POST", "/hello/test-api/version-test-custom", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
 		xerror.Panic(ctx.BodyParser(req))
 		var resp, err = server.VersionTestCustom(ctx.UserContext(), req)
@@ -143,7 +142,7 @@ func RegisterTestApiGinServer(r gin.IRouter, server TestApiServer) {
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("SQL", "/sql", func(ctx *gin.Context) {
+	r.Handle("POST", "/hello/test-api/version-test-custom", func(ctx *gin.Context) {
 		var req = new(TestReq)
 		xerror.Panic(ctx.ShouldBindJSON(req))
 		var resp, err = server.VersionTestCustom(ctx, req)

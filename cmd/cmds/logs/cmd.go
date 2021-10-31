@@ -2,6 +2,8 @@ package logs
 
 import (
 	"fmt"
+	"github.com/mattn/go-zglob/fastwalk"
+	"github.com/pubgo/xerror"
 	"io"
 	"os"
 
@@ -42,9 +44,15 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		}
 
 		done := make(chan bool)
-		for _, filename := range args {
-			go tailFile(filename, config, done)
-		}
+		xerror.Panic(fastwalk.FastWalk(args[0], func(path string, typ os.FileMode) error {
+			if typ.IsDir() {
+				return nil
+			}
+
+			go tailFile(path, config, done)
+
+			return nil
+		}))
 
 		for range args {
 			<-done

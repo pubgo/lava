@@ -151,7 +151,7 @@ func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	return endpoints
 }
 
-func RegisterGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, handler interface{}) (err error) {
+func registerGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(conn == nil, "[conn] should not be nil")
@@ -174,10 +174,10 @@ func RegisterGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, ha
 	return nil
 }
 
-func RegisterGrpc(server *grpc.Server, handler interface{}) error {
+func registerGrpc(server *grpc.Server, handler interface{}) error {
 	xerror.Assert(server == nil, "[server] should not be nil")
 
-	var v = FindGrpcHandle(handler)
+	var v = findGrpcHandle(handler)
 	if v.IsValid() {
 		_ = fx.WrapValue(v, server, handler)
 		return nil
@@ -186,7 +186,7 @@ func RegisterGrpc(server *grpc.Server, handler interface{}) error {
 	return xerror.Fmt("register [%#v] 没有找到匹配的interface", handler)
 }
 
-func FindGrpcHandle(handler interface{}) reflect.Value {
+func findGrpcHandle(handler interface{}) reflect.Value {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
 	hd := reflect.New(reflect.Indirect(reflect.ValueOf(handler)).Type()).Type()

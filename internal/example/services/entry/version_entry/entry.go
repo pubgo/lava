@@ -1,9 +1,10 @@
-package rest_entry
+package version_entry
 
 import (
 	"context"
+
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/entry/restEntry"
+	"github.com/pubgo/lava/entry/ginEntry"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/types"
 )
@@ -11,8 +12,8 @@ import (
 var name = "test-http"
 
 func GetEntry() entry.Entry {
-	ent := restEntry.New(name)
-	ent.Description("entry http test")
+	ent := ginEntry.New(name)
+	ent.Description("version http test")
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var log = logger.GetLog(ctx)
