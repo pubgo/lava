@@ -46,12 +46,28 @@ func TestPromise_Unwrap(t *testing.T) {
 }
 
 func TestGoChan(t *testing.T) {
-	<-GoChan(func() {
+	var now = time.Now()
+	defer func() {
+		fmt.Println(time.Since(now))
+	}()
+
+	var val1 = GoChan(func() Value {
+		time.Sleep(time.Millisecond)
 		fmt.Println("2")
-		panic("hello")
-	}, func(err error) {
-		//panic("hello")
+		//return WithErr(errors.New("error"))
+		return WithVal("hello")
 	})
 
-	fmt.Println("1")
+	var val2 = GoChan(func() Value {
+		time.Sleep(time.Millisecond)
+		fmt.Println("3")
+		//return WithErr(errors.New("error"))
+		return WithVal("hello")
+	})
+
+	Wait(val1, val2)
+
+	//_, _ = <-val1, <-val2
+
+	fmt.Println("1", val2, val1)
 }

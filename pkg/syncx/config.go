@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/vars"
 )
 
-const Name = "goroutine"
+const Name = "syncx"
 
 var maxConcurrent uint32 = 100000
 var curConcurrent atomic.Uint32

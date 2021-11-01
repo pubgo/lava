@@ -25,7 +25,7 @@ func checkConcurrent(name string, fn interface{}) func() {
 			logs.With(
 				zap.String("name", name),
 				zap.Uint32("current", curConcurrent.Load()),
-				zap.Uint32("max", maxConcurrent),
+				zap.Uint32("maximum", maxConcurrent),
 				zap.String("fn", stack.Func(fn)),
 			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
 		}
@@ -38,34 +38,44 @@ func logErr(fn interface{}, err xerror.XErr) {
 	logs.WithErr(err, zap.String("fn", stack.Func(fn))).Error(err.Error())
 }
 
+func Wait(val ...chan Value) []Value {
+	var valList = make([]Value, len(val))
+	for i := range val {
+		valList[i] = <-val[i]
+	}
+	return valList
+}
+
 // GoChan 通过chan的方式同步执行并发任务
-func GoChan(fn func(), cb ...func(err error)) chan struct{} {
+func GoChan(fn func() Value) chan Value {
 	if fn == nil {
 		panic("[GoChan] [fn] is nil")
 	}
 
 	var dec = checkConcurrent("GoChan", fn)
 
-	var ch = make(chan struct{})
+	var ch = make(chan Value)
 
 	go func() {
-		close(ch)
-		defer xerror.Resp(func(err xerror.XErr) {
-			// 过滤Canceled类型的错误
-			if errors.Is(err, context.Canceled) {
-				return
-			}
+		defer func() {
+			xerror.Resp(func(err xerror.XErr) {
+				// 过滤Canceled类型的错误
+				if errors.Is(err, context.Canceled) {
+					return
+				}
 
-			logErr(fn, err)
+				ch <- WithErr(xerror.Wrap(err, "GoChan", stack.Func(fn)))
+			})
+			close(ch)
+			dec()
+		}()
 
-			if len(cb) > 0 {
-				defer xerror.RespExit()
-				cb[0](err)
-			}
-		})
-		defer dec()
-
-		fn()
+		var val = fn()
+		if val == nil {
+			ch <- &valueImpl{}
+		} else {
+			ch <- val
+		}
 	}()
 
 	return ch
