@@ -21,3 +21,11 @@ func GetWith(ctx context.Context) string {
 	}
 	return ksuid.New().String()
 }
+
+func getReqID(ctx context.Context) string {
+	var reqId, ok = ctx.Value(reqIdKey{}).(string)
+	if ok {
+		return reqId
+	}
+	return ""
+}

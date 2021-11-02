@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/version"
 )
 
 var _ jaeger.Reporter = (*ioReporter)(nil)
@@ -22,7 +23,7 @@ var _ jaeger.Reporter = (*ioReporter)(nil)
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
 	var reporter = &ioReporter{
 		writer:    writer,
-		batchSize: 1,
+		batchSize: batch,
 		unbounded: syncutil.NewUnbounded(),
 		domain:    e.NewFromDomain(false, nil, ""),
 	}
@@ -72,6 +73,7 @@ func (t *ioReporter) Report(span *jaeger.Span) {
 
 	if t.process == nil {
 		t.process = jaeger.BuildJaegerProcessThrift(span)
+		t.process.Tags = append(t.process.Tags, &j.Tag{Key: "version", VStr: &version.Version})
 	}
 
 	jSpan := jaeger.BuildJaegerThrift(span)

@@ -39,6 +39,7 @@ func New(cfg *Cfg) error {
 		cfg.ServiceName = runenv.Project
 	}
 
+	//span.SetTag("version", version.Version)
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
 		config.Logger(newLog("tracing")),

@@ -17,7 +17,7 @@ type Plugin interface {
 	Flags() *pflag.FlagSet
 	Commands() *cobra.Command
 	Init() error
-	Watch(name string, r *types.WatchResp) error
+	Watch() func(name string, r *types.WatchResp) error
 	Vars(func(name string, data func() interface{})) error
 	Health() func(ctx context.Context) error
 	Middleware() types.Middleware

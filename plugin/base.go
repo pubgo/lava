@@ -27,8 +27,7 @@ type Base struct {
 	OnCommands   func(cmd *cobra.Command)
 	OnFlags      func(flags *pflag.FlagSet)
 	OnWatch      func(name string, resp *types.WatchResp)
-	OnVars       func(w func(name string, data func() interface {
-	}))
+	OnVars       func(w func(name string, data func() interface{}))
 }
 
 func (p *Base) getFuncStack(val interface{}) string {
@@ -82,12 +81,14 @@ func (p *Base) Init() error {
 	return nil
 }
 
-func (p *Base) Watch(name string, r *types.WatchResp) (err error) {
+func (p *Base) Watch() func(name string, r *types.WatchResp) (err error) {
 	if p.OnWatch == nil {
-		return
+		return nil
 	}
 
-	return xerror.Try(func() { p.OnWatch(name, r) })
+	return func(name string, r *types.WatchResp) (err error) {
+		return xerror.Try(func() { p.OnWatch(name, r) })
+	}
 }
 
 func (p *Base) Commands() *cobra.Command {

@@ -22,20 +22,56 @@ func (t *Logger) With(args ...zap.Field) *zap.Logger {
 	return getName(t.name).With(args...)
 }
 
+func (t *Logger) Step(msg string, fn func() error, fields ...zap.Field) {
+	var log = t.Depth(1)
+	log = log.With(fields...)
+
+	log.Info(msg)
+
+	var err error
+	xerror.TryWith(&err, func() { err = fn() })
+
+	if err == nil {
+		log.Info(msg + " ok")
+		return
+	}
+
+	log.Error(msg+" error", logger.WithErr(err)...)
+}
+
+func (t *Logger) Logs(msg string, fn func() error, fields ...zap.Field) {
+	var log = t.Depth(1)
+	var err error
+	xerror.TryWith(&err, func() { err = fn() })
+
+	if err == nil {
+		log.Info(msg, fields...)
+		return
+	}
+
+	log.Error(msg, logger.WithErr(err, fields...)...)
+}
+
+func (t *Logger) LogAndThrow(msg string, fn func() error, fields ...zap.Field) {
+	var log = t.Depth(1)
+	var err error
+	xerror.TryWith(&err, func() { err = fn() })
+
+	if err == nil {
+		log.Info(msg, fields...)
+		return
+	}
+
+	log.Error(msg, logger.WithErr(err, fields...)...)
+	panic(err)
+}
+
 func (t *Logger) WithErr(err error, fields ...zap.Field) *zap.Logger {
 	if err == nil {
 		return Discard
 	}
 
 	return t.With(logger.WithErr(err, fields...)...)
-}
-
-func (t *Logger) Logs(err error, fields ...zap.Field) func(msg string, fields ...zap.Field) {
-	if err == nil {
-		return t.With(fields...).Info
-	}
-
-	return t.With(logger.WithErr(err, fields...)...).Error
 }
 
 func (t *Logger) Depth(depth ...int) *zap.Logger {

@@ -2,7 +2,8 @@ package recovery
 
 import (
 	"context"
-	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
@@ -19,7 +20,7 @@ func init() {
 				case error:
 					gErr = err
 				default:
-					gErr = fmt.Errorf("%#v", err)
+					gErr = status.Errorf(codes.Internal, "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
 				}
 			}()
 

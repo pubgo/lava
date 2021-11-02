@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/runenv"
 )
 
@@ -25,17 +24,6 @@ var debugLog = func() *zap.Logger {
 	var log = cfg.Build(runenv.Project)
 	return log.Named("lava")
 }()
-
-func Logs(l *zap.Logger, err error) func(msg string, fields ...zap.Field) {
-	if err == nil {
-		return l.Info
-	}
-
-	for _, f := range logger.WithErr(err) {
-		l = l.With(f)
-	}
-	return l.Error
-}
 
 func init() {
 	type sysLog struct {

@@ -7,16 +7,17 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/middlewares/requestID"
-	"github.com/pubgo/lava/pkg/fastrand"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/types"
 )
 
 const Name = "traceRecord"
+
+var logs = logz.New(Name)
 
 func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
@@ -32,15 +33,13 @@ func init() {
 				parentSpanContext opentracing.SpanContext
 			)
 
+			// 请求trace解析和注入
 			if !req.Client() {
 				// 服务端请求
-				// 从请求header中解析链路信息
+				// 从header中解析链路信息
 				parentSpanContext, err = tracer.Extract(opentracing.TextMap, textMapCarrier(req.Header()))
 				if err != nil && !errors.Is(err, opentracing.ErrSpanContextNotFound) {
-					// 百分之一的概率
-					if fastrand.Probability(10) {
-						zap.S().Errorf("opentracing: failed parsing trace information: %v", err)
-					}
+					logs.WithErr(err).Error("opentracing: failed parsing trace information")
 				}
 				span = opentracing.StartSpan(req.Endpoint(), ext.RPCServerOption(parentSpanContext))
 			} else {
@@ -53,16 +52,19 @@ func init() {
 
 				span = opentracing.StartSpan(req.Endpoint(), opentracing.ChildOf(parentSpanContext), ext.SpanKindRPCClient)
 				if err = tracer.Inject(span.Context(), opentracing.TextMap, textMapCarrier(req.Header())); err != nil {
-					zap.S().Errorf("opentracing: failed serializing trace information: %v", err)
+					logs.WithErr(err).Error("opentracing: failed serializing trace information")
 				}
 			}
 
+			// request-id绑定
 			var reqId = requestID.GetWith(ctx)
 			span.SetTag(requestID.Name, reqId)
 
 			defer span.Finish()
 			err = next(opentracing.ContextWithSpan(ctx, span), req, resp)
+
 			tracing.SetIfErr(span, err)
+
 			return err
 		}
 	})

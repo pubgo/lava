@@ -3,9 +3,10 @@ package logger
 import (
 	"sync"
 
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )
+
+type Fields []zap.Field
 
 var Discard = zap.NewNop()
 var globalLog = zap.L()
@@ -25,22 +26,6 @@ type Logger struct {
 
 func (t *Logger) With(args ...zap.Field) *zap.Logger {
 	return getName(t.name).With(args...)
-}
-
-func (t *Logger) WithErr(err error, fields ...zap.Field) *zap.Logger {
-	if err == nil {
-		return Discard
-	}
-
-	return t.With(WithErr(err, fields...)...)
-}
-
-func (t *Logger) Logs(err error, fields ...zap.Field) func(msg string, fields ...zap.Field) {
-	if err == nil {
-		return t.With(fields...).Info
-	}
-
-	return t.With(WithErr(err, fields...)...).Error
 }
 
 func (t *Logger) Depth(depth ...int) *zap.Logger {
@@ -88,16 +73,6 @@ func (t *Logger) Warn(args ...interface{}) {
 
 func (t *Logger) Warnw(msg string, keysAndValues ...interface{}) {
 	t.DepthS(1).Warnw(msg, keysAndValues...)
-}
-
-func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
-	var err error
-	xerror.TryWith(&err, fn)
-	if err == nil {
-		return Discard.Sugar()
-	}
-
-	return globalLog.Named(t.name).With(WithErr(err, FuncStack(fn))...).Sugar()
 }
 
 func getName(name string) *zap.Logger {

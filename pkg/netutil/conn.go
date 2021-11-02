@@ -110,9 +110,21 @@ func WithChmod(mask os.FileMode) SockOpt {
 	}
 }
 
+func MustGetPort(addrOrNet interface{}) int {
+	return xerror.PanicErr(GetPort(addrOrNet)).(int)
+}
+
 // GetPort returns the port of an endpoint address.
-func GetPort(addr net.Addr) (int, error) {
-	_, port, err := net.SplitHostPort(addr.String())
+func GetPort(addrOrNet interface{}) (int, error) {
+	var addr string
+	switch addrNet := addrOrNet.(type) {
+	case net.Addr:
+		addr = addrNet.String()
+	case string:
+		addr = addrNet
+	}
+
+	_, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		return -1, err
 	}

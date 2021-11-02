@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
@@ -41,7 +40,7 @@ func init() {
 			entry.AfterStart(func() {
 				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
 				syncx.GoDelay(func() {
-					logs.Infof("Server [debug] Listening on http://localhost:%s", lavax.GetPort(runenv.DebugAddr))
+					logs.Infof("Server [debug] Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runenv.DebugAddr))
 					if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 						logs.WithErr(err).Error("Server [debug] Listen Error")
 						return
@@ -51,7 +50,7 @@ func init() {
 
 				if openWeb {
 					syncx.GoDelay(func() {
-						xerror.Panic(browser.OpenURL(fmt.Sprintf("http://localhost:%s", lavax.GetPort(runenv.DebugAddr))))
+						xerror.Panic(browser.OpenURL(fmt.Sprintf("http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runenv.DebugAddr))))
 					})
 				}
 			})

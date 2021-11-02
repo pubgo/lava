@@ -47,4 +47,8 @@ import (
 
 	// This is a simple tool to sign, verify and show JSON Web Tokens from the command line.
 	_ "github.com/golang-jwt/jwt/v4/cmd/jwt"
+
+	// This is a small reverse proxy that can front existing gRPC servers and expose their functionality using gRPC-Web protocol,
+	//	allowing for the gRPC services to be consumed from browsers.
+	_ "github.com/improbable-eng/grpc-web/go/grpcwebproxy"
 )

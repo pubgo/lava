@@ -80,12 +80,10 @@ type nameJob struct {
 func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
-	var (
-		dur, err = lavax.Cost(func() { t.fn(t.name) })
-		log      = logs.With(
-			zap.String("job-name", t.name),
-			zap.String("job-cost", dur.String()),
-		)
+	var dur, err = lavax.Cost(func() { t.fn(t.name) })
+	logs.Logs("scheduler trigger",
+		func() error { return err },
+		zap.String("job-name", t.name),
+		zap.Int64("job-cost", dur.Microseconds()),
 	)
-	logz.Logs(log, err)("scheduler trigger")
 }

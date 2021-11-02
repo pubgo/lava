@@ -17,7 +17,9 @@ func Init(name string) {
 
 	runenv.Project = name
 
+	// 配置初始化
 	xerror.Panic(config.Init())
+
 	// 配置依赖注入
 	xerror.Exit(dix.Provider(config.GetCfg()))
 
@@ -26,7 +28,7 @@ func Init(name string) {
 	for _, plg := range plugins {
 
 		// 注册watcher
-		watcher.Watch("watcher/"+plg.UniqueName(), plg.Watch)
+		watcher.Watch(plg.UniqueName(), plg.Watch)
 
 		// 注册健康检查
 		healthy.Register(plg.UniqueName(), plg.Health())
@@ -34,6 +36,7 @@ func Init(name string) {
 		// 注册vars
 		xerror.Panic(plg.Vars(vars.Watch))
 
-		xerror.PanicF(plg.Init(), "plugin [%s] init error", plg.String())
+		// plugin初始化
+		xerror.PanicF(plg.Init(), "plugin [%s] init error", plg.UniqueName())
 	}
 }

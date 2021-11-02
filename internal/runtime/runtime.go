@@ -2,7 +2,7 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/internal/cmds/restapi"
+	"github.com/pubgo/lava/logger"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +16,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/healthy"
+	"github.com/pubgo/lava/internal/cmds/restapi"
 	v "github.com/pubgo/lava/internal/cmds/version"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/syncx"
@@ -61,42 +62,46 @@ func handleSignal() {
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Info("before-start running")
-	beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
-	for i := range beforeList {
-		xerror.TryThrow(beforeList[i], "before-start error", stack.Func(beforeList[i]))
-	}
-	logs.Info("before-start ok")
+	logs.LogAndThrow("before-start running", func() error {
+		beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
+		for i := range beforeList {
+			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
+		}
+		return nil
+	})
 
 	xerror.Panic(ent.Start())
 
-	logs.Info("after-start running")
-	afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
-	for i := range afterList {
-		xerror.TryThrow(afterList[i], "after-start error", stack.Func(afterList[i]))
-	}
-	logs.Info("after-start ok")
+	logs.LogAndThrow("after-start running", func() error {
+		afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
+		for i := range afterList {
+			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
+		}
+		return nil
+	})
 	return
 }
 
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.Info("before-stop running")
-	beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
-	for i := range beforeList {
-		logs.TryWith(beforeList[i]).Errorf("before-stop error: %s", stack.Func(beforeList[i]))
-	}
-	logs.Info("before-stop ok")
+	logs.LogAndThrow("before-stop running", func() error {
+		beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
+		for i := range beforeList {
+			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
+		}
+		return nil
+	})
 
 	xerror.Panic(ent.Stop())
 
-	logs.Info("after-stop running")
-	afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
-	for i := range afterList {
-		logs.TryWith(afterList[i]).Errorf("after-stop error: %s", stack.Func(afterList[i]))
-	}
-	logs.Info("after-stop ok")
+	logs.LogAndThrow("after-stop running", func() error {
+		afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
+		for i := range afterList {
+			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
+		}
+		return nil
+	})
 	return nil
 }
 
@@ -168,8 +173,15 @@ func Run(description string, entries ...entry.Entry) {
 					}
 
 					// 注册watcher
-					logs.Infof("plugin [%s] watch register", plg.UniqueName())
-					watcher.Watch("watcher/"+plg.UniqueName(), plg.Watch)
+					if plg.Watch() != nil {
+						logs.LogAndThrow("plugin register watcher",
+							func() error {
+								watcher.Watch(plg.UniqueName(), plg.Watch())
+								return nil
+							},
+							logger.Name(plg.UniqueName()),
+						)
+					}
 
 					// 注册健康检查
 					healthy.Register(plg.UniqueName(), plg.Health())
@@ -186,8 +198,7 @@ func Run(description string, entries ...entry.Entry) {
 					continue
 				}
 
-				logs.Infof("plugin [%s] init", plg.UniqueName())
-				xerror.PanicF(plg.Init(), "plugin [%s] init error", plg.String())
+				logs.Logs("plugin init", plg.Init, logger.Name(plg.UniqueName()))
 			}
 
 			// watcher初始化
@@ -199,9 +210,11 @@ func Run(description string, entries ...entry.Entry) {
 
 		cmd.Run = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
+			logs.Info("start")
 			xerror.Panic(start(entRT))
 			handleSignal()
-			xerror.Panic(stop(entRT))
+			logs.Info("stop")
+			logs.WithErr(stop(entRT)).Error("stop error")
 		}
 
 		rootCmd.AddCommand(cmd)

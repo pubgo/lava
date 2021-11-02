@@ -16,7 +16,7 @@ func init() {
 		Url:        "https://pkg.go.dev/go.uber.org/automaxprocs",
 		Descriptor: "Automatically set GOMAXPROCS to match Linux container CPU quota.",
 		OnInit: func() {
-			var l = maxprocs.Logger(func(s string, i ...interface{}) { logs.DepthS(1).Infof(s, i...) })
+			var l = maxprocs.Logger(func(s string, i ...interface{}) { logs.DepthS(2).Infof(s, i...) })
 			xerror.ExitErr(maxprocs.Set(l)).(func())()
 		},
 	})

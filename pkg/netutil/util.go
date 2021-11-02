@@ -8,8 +8,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/pubgo/xerror"
 )
 
 func GetLocalIP() string {
@@ -33,25 +31,6 @@ func GetLocalIP() string {
 	}
 
 	return localIP
-}
-
-
-// LocalIP gets the first NIC's IP address.
-func LocalIP() (string, error) {
-	addrList, err := net.InterfaceAddrs()
-	if nil != err {
-		return "", xerror.Wrap(err)
-	}
-
-	for _, address := range addrList {
-		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
-			if ipNet.IP.To4() != nil {
-				return ipNet.IP.String(), nil
-			}
-		}
-	}
-
-	return "", xerror.Fmt("can't get local IP")
 }
 
 // CheckPort 检查端口是否被占用

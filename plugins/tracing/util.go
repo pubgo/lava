@@ -11,12 +11,13 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/byteutil"
 	"github.com/valyala/fasthttp"
+
+	errs "github.com/pubgo/lava/errors"
 )
 
 const (
-	TraceId                = "trace_id"
-	KeyErrorMessage        = "err_msg"
-	KeyContextErrorMessage = "ctx_err_msg"
+	TraceId   = "trace_id"
+	KeyErrMsg = "err_msg"
 )
 
 // SetIfErr add error info
@@ -25,8 +26,14 @@ func SetIfErr(span opentracing.Span, err error) {
 		return
 	}
 
+	err1, ok := errs.FromError(err)
+	// 非系统错误,或者是业务错误
+	if !ok || err1.Code > errs.MaxCode {
+		return
+	}
+
 	ext.Error.Set(span, true)
-	span.SetTag(KeyErrorMessage, err.Error())
+	span.SetTag(KeyErrMsg, err.Error())
 }
 
 // SetIfCtxErr record context error
@@ -35,10 +42,12 @@ func SetIfCtxErr(span opentracing.Span, ctx context.Context) {
 		return
 	}
 
-	if err := ctx.Err(); err != nil {
-		ext.Error.Set(span, true)
-		span.SetTag(KeyContextErrorMessage, err.Error())
+	err := ctx.Err()
+	if err == nil {
+		return
 	}
+
+	SetIfErr(span, err)
 }
 
 // InjectHeaders injects the outbound HTTP request with the given span's context to ensure

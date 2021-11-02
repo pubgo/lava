@@ -47,13 +47,13 @@ func Update(name string, srv Resource) {
 
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		logs.Infof("update resource[%s,%s]", kind, name)
+		logs.Infow("update resource", "kind", kind, "name", name)
 		oldClient.(Resource).UpdateResObj(srv)
 		return
 	}
 
 	// 资源不存在, 创建新资源
-	logs.Infof("create resource[%s,%s]", kind, name)
+	logs.Infow("create resource", "kind", kind, "name", name)
 
 	sources.Set(id, srv)
 
@@ -62,15 +62,10 @@ func Update(name string, srv Resource) {
 
 	// 当resource被gc时, 关闭resource
 	runtime.SetFinalizer(srv, func(cc Resource) {
-		defer xerror.Resp(func(err xerror.XErr) {
-			logs.Error("old resource close error",
-				zap.Any("name", name),
-				zap.Any("err", err),
-				zap.Any("err_msg", err.Error()))
-		})
-
-		xerror.Panic(cc.Close())
-		logs.Infof("old resource[%s,%p] close ok", name, cc)
+		logs.Logs("old resource close", cc.Close,
+			zap.String("kind", kind),
+			zap.String("name", name),
+		)
 	})
 }
 

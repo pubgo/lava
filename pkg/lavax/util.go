@@ -65,11 +65,6 @@ func DotJoin(str ...string) string {
 	return strings.Join(str, ".")
 }
 
-func GetPort(addr string) string {
-	var addrList = strings.Split(addr, ":")
-	return addrList[len(addrList)-1]
-}
-
 // DirExists function to check if directory exists?
 func DirExists(path string) bool {
 	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
@@ -91,11 +86,9 @@ func FileExists(path string) bool {
 }
 
 func FirstNotEmpty(fx ...func() string) string {
-	var str string
 	for i := range fx {
-		str = strings.TrimSpace(fx[i]())
-		if str != "" {
-			return str
+		if s := strings.TrimSpace(fx[i]()); s != "" {
+			return s
 		}
 	}
 	return ""
