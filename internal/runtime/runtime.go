@@ -62,19 +62,21 @@ func handleSignal() {
 func start(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.LogAndThrow("before-start running", func() error {
+	logs.StepAndThrow("before-start running", func() error {
 		beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 		for i := range beforeList {
+			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
 		}
 		return nil
 	})
 
-	xerror.Panic(ent.Start())
+	logs.StepAndThrow("server start", ent.Start)
 
-	logs.LogAndThrow("after-start running", func() error {
+	logs.StepAndThrow("after-start running", func() error {
 		afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
 		for i := range afterList {
+			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
 		}
 		return nil
@@ -85,19 +87,21 @@ func start(ent entry.Runtime) (err error) {
 func stop(ent entry.Runtime) (err error) {
 	defer xerror.RespErr(&err)
 
-	logs.LogAndThrow("before-stop running", func() error {
+	logs.Step("before-stop running", func() error {
 		beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 		for i := range beforeList {
+			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
 		}
 		return nil
 	})
 
-	xerror.Panic(ent.Stop())
+	logs.Step("server stop", ent.Stop)
 
-	logs.LogAndThrow("after-stop running", func() error {
+	logs.Step("after-stop running", func() error {
 		afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
 		for i := range afterList {
+			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
 		}
 		return nil
@@ -210,10 +214,8 @@ func Run(description string, entries ...entry.Entry) {
 
 		cmd.Run = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
-			logs.Info("start")
 			xerror.Panic(start(entRT))
 			handleSignal()
-			logs.Info("stop")
 			logs.WithErr(stop(entRT)).Error("stop error")
 		}
 

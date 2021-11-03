@@ -32,7 +32,7 @@ func init() {
 
 	xerror.Exit(dix.Provider(func(s sysLog) {
 		// 系统日志, 用于记录模块和组件的信息
-		debugLog = s.Log.Named("lava").With(zap.String("project", runenv.Project))
+		debugLog = s.Log.Named("lava")
 		loggerMap.Range(func(key, value interface{}) bool {
 			loggerMap.Store(key, debugLog.Named(key.(string)))
 			return true

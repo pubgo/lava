@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/x/q"
 	"net"
 	"net/http"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
 	"go.uber.org/atomic"
@@ -149,7 +149,8 @@ func (g *grpcEntry) handleError() {
 		if errors.Is(err, net.ErrClosed) {
 			return true
 		}
-		logs.WithErr(err).Error("grpcEntry mux handleError", logger.Name(g.cfg.name))
+
+		logs.WithErr(err).Error("grpcEntry mux handleError")
 		return false
 	})
 }
@@ -317,6 +318,7 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
 	g.mux = cmux.New(ln)
+	g.mux.SetReadTimeout(g.cfg.Gw.Timeout)
 	g.handleError()
 
 	// 启动grpc服务
@@ -336,6 +338,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动grpc网关
 	syncx.GoDelay(func() {
 		var s = http.Server{Handler: g.gw.Get()}
+		// grpc服务关闭之前关闭gateway
 		g.BeforeStop(func() {
 			logs.Logs("[grpc-gw] Shutdown", func() error {
 				if err := s.Shutdown(context.Background()); err != nil && !errors.Is(err, net.ErrClosed) {

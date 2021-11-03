@@ -2,12 +2,13 @@ package logs
 
 import (
 	"fmt"
-	"github.com/mattn/go-zglob/fastwalk"
-	"github.com/pubgo/xerror"
 	"io"
 	"os"
 
+	"github.com/blevesearch/bleve/v2"
+	"github.com/mattn/go-zglob/fastwalk"
 	"github.com/nxadm/tail"
+	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -39,6 +40,10 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 			os.Exit(1)
 		}
 
+		mapping := bleve.NewIndexMapping()
+		index, err := bleve.New("logs/bleve", mapping)
+		xerror.Panic(err)
+
 		if n != 0 {
 			config.Location = &tail.SeekInfo{Offset: -n, Whence: io.SeekEnd}
 		}
@@ -49,7 +54,7 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 				return nil
 			}
 
-			go tailFile(path, config, done)
+			go tailFile(index, path, config, done)
 
 			return nil
 		}))

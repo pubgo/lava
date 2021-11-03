@@ -29,13 +29,6 @@ func init() {
 		},
 		OnInit: func() {
 			InitView()
-
-			//serveMux := GetDefaultServeMux()
-			//for k, v := range serveMux.M {
-			//	mux.Mux()
-			//	mux.HandleFunc(k, v.H.ServeHTTP)
-			//}
-
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}
 			entry.AfterStart(func() {
 				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)

@@ -33,6 +33,7 @@ func init() {
 		if env.Namespace == "" {
 			log = log.With(zap.String("env", env.Namespace))
 		}
+		log = log.With(zap.String("project", runenv.Project))
 		log = log.With(zap.Namespace("fields"))
 
 		// 业务日志

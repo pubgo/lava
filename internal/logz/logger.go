@@ -22,6 +22,24 @@ func (t *Logger) With(args ...zap.Field) *zap.Logger {
 	return getName(t.name).With(args...)
 }
 
+func (t *Logger) StepAndThrow(msg string, fn func() error, fields ...zap.Field) {
+	var log = t.Depth(1)
+	log = log.With(fields...)
+
+	log.Info(msg)
+
+	var err error
+	xerror.TryWith(&err, func() { err = fn() })
+
+	if err == nil {
+		log.Info(msg + " ok")
+		return
+	}
+
+	log.Error(msg+" error", logger.WithErr(err)...)
+	panic(err)
+}
+
 func (t *Logger) Step(msg string, fn func() error, fields ...zap.Field) {
 	var log = t.Depth(1)
 	log = log.With(fields...)
