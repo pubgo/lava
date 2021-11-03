@@ -35,6 +35,8 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 	cmd.Use = "logs"
 	cmd.Short = "logs query"
 	cmd.Run = func(cmd *cobra.Command, args []string) {
+		defer xerror.RespExit()
+
 		if len(args) < 1 {
 			fmt.Println("need one or more files as arguments")
 			os.Exit(1)
@@ -42,7 +44,19 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 
 		mapping := bleve.NewIndexMapping()
 		index, err := bleve.New("logs/bleve", mapping)
-		xerror.Panic(err)
+		if err == bleve.ErrorIndexPathExists {
+			index, err = bleve.Open("logs/bleve")
+			xerror.Panic(err)
+		}
+
+		//bleve.NewQueryStringQuery()
+
+		//pquery := bleve.NewTermQuery(strings.Join(args[1:], " "))
+		//pquery.SetField()
+		////(query, limit, skip, explain)
+		//bleve.NewSearchRequestOptions()
+
+		go searchInit(index, "logs", ":8095")
 
 		if n != 0 {
 			config.Location = &tail.SeekInfo{Offset: -n, Whence: io.SeekEnd}
@@ -62,5 +76,6 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		for range args {
 			<-done
 		}
+		select {}
 	}
 })
