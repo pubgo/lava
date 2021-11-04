@@ -1,9 +1,7 @@
 package resource
 
-import "io"
-
 type Resource interface {
-	io.Closer
+	Close() error
 	UpdateResObj(val interface{})
 	Kind() string
 }

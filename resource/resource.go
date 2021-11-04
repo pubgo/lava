@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 
@@ -72,8 +73,7 @@ func Update(name string, srv Resource) {
 // Get 根据类型和名字获取一个资源
 func Get(kind string, name string) Resource {
 	check(kind, name)
-	var id = join(kind, name)
-	if val, ok := sources.Load(id); ok {
+	if val, ok := sources.Load(join(kind, name)); ok {
 		return val.(Resource)
 	}
 	return nil
@@ -128,6 +128,6 @@ func join(names ...string) string {
 
 func check(kind string, name string) {
 	if kind == "" || name == "" {
-		xerror.Panic(ErrKindNull, "kind:", kind, "name:", name)
+		xerror.Panic(fmt.Errorf("resource: kind and name should not be null"), "kind:", kind, "name:", name)
 	}
 }

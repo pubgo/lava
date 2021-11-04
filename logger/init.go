@@ -34,10 +34,9 @@ func init() {
 			log = log.With(zap.String("env", env.Namespace))
 		}
 		log = log.With(zap.String("project", runenv.Project))
-		log = log.With(zap.Namespace("fields"))
 
 		// 业务日志
-		globalLog = log.Named(runenv.Project)
+		globalLog = log.Named(runenv.Project).With(zap.Namespace("fields"))
 
 		// 全局替换
 		zap.ReplaceGlobals(globalLog)

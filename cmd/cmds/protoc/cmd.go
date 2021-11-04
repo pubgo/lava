@@ -61,7 +61,7 @@ func Cmd() *cobra.Command {
 			Run: func(cmd *cobra.Command, args []string) {
 				// 把生成的openapi嵌入到go代码
 				var shell = `go-bindata -fs -pkg docs -o docs/docs.go -prefix docs/ -ignore=docs\\.go docs/...`
-				xerror.Panic(shutil.Bash(shell).Run())
+				xerror.Panic(shutil.Shell(shell).Run())
 
 				// swagger加载和注册
 				var code = lavax.CodeFormat(
@@ -113,7 +113,7 @@ func Cmd() *cobra.Command {
 					}
 
 					if version == "" {
-						xerror.Panic(shutil.Bash("go", "get", "-d", url+"/...").Run())
+						xerror.Panic(shutil.Shell("go", "get", "-d", url+"/...").Run())
 
 						// 再次解析go.mod然后获取版本信息
 						versions = modutil.LoadVersions()
@@ -153,7 +153,7 @@ func Cmd() *cobra.Command {
 					}
 					data = data + " " + filepath.Join(in, "*.proto")
 
-					xerror.Panic(shutil.Bash(data).Run(), data)
+					xerror.Panic(shutil.Shell(data).Run(), data)
 					return true
 				})
 			},

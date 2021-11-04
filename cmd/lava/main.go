@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/pubgo/lava/cmd/cmds/hello"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/pubgo/lava/cmd/cmds/hello"
 	"github.com/pubgo/lava/cmd/cmds/logs"
+	"github.com/pubgo/lava/cmd/cmds/mage"
 	"github.com/pubgo/lava/cmd/cmds/protoc"
 	"github.com/pubgo/lava/cmd/cmds/swagger"
 	"github.com/pubgo/lava/cmd/cmds/trace"
@@ -24,5 +25,6 @@ func main() {
 		cmd.AddCommand(swagger.Cmd)
 		cmd.AddCommand(logs.Cmd)
 		cmd.AddCommand(hello.Cmd)
+		cmd.AddCommand(mage.Cmd)
 	})
 }

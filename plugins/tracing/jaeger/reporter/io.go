@@ -15,7 +15,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/version"
 )
 
 var _ jaeger.Reporter = (*ioReporter)(nil)
@@ -73,7 +72,7 @@ func (t *ioReporter) Report(span *jaeger.Span) {
 
 	if t.process == nil {
 		t.process = jaeger.BuildJaegerProcessThrift(span)
-		t.process.Tags = append(t.process.Tags, &j.Tag{Key: "version", VStr: &version.Version})
+		//&j.Tag{Key: "version", VStr: &version.Version}
 	}
 
 	jSpan := jaeger.BuildJaegerThrift(span)

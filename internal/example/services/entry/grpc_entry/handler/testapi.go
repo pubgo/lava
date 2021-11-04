@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -36,10 +35,6 @@ type testapiHandler struct {
 	Cron *scheduler.Scheduler `dix:""`
 }
 
-func (h *testapiHandler) Group(r *gin.RouterGroup) {
-	panic("implement me")
-}
-
 func (h *testapiHandler) Init() {
 	h.Cron.Every("test grpc client", time.Second*2, func(name string) {
 		zap.L().Debug("客户端访问")
@@ -65,7 +60,7 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
-		log.Info("dix db ok", zap.Any("err", h.Db.Ping()))
+		log.Info("dix db ok", logger.WithErr(h.Db.Ping())...)
 		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))
 	}
 
@@ -77,7 +72,6 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 }
 
 func (h *testapiHandler) VersionTest(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-
 	out = &hello.TestApiOutput{
 		Msg: in.Input + "_test",
 	}

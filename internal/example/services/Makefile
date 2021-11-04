@@ -16,7 +16,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	go build ${LDFLAGS} -v -o main ./*.go
+	go build ${LDFLAGS} -v -o main cmd/*.go
 
 .PHONY: test./ma
 test:

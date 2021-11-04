@@ -3,20 +3,21 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/igm/sockjs-go/v3/sockjs"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/xerror"
 	"github.com/teris-io/shortid"
-	"math/rand"
-	"net/http"
-	"time"
 
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/gid"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )

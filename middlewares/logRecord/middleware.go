@@ -3,7 +3,6 @@ package logRecord
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/version"
 	"time"
 
 	"go.uber.org/zap"
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/version"
 )
 
 const Name = "logRecord"
@@ -36,19 +36,20 @@ func init() {
 				params = append(params, zap.String("origin", origin))
 			}
 
+			var reqId = requestID.GetWith(ctx)
+
 			now := time.Now()
-			params = append(params, zap.Int64("start-time", now.Unix()))
+			params = append(params, zap.String("requestId", reqId))
+			params = append(params, zap.Int64("startTime", now.UnixMicro()))
 			params = append(params, zap.String("service", req.Service()))
 			params = append(params, zap.String("method", req.Method()))
 			params = append(params, zap.String("endpoint", req.Endpoint()))
 			params = append(params, zap.Bool("client", req.Client()))
 			params = append(params, zap.String("version", version.Version))
 
-			var reqId = requestID.GetWith(ctx)
-
 			var respBody interface{}
 			err = next(
-				logger.CtxWithLogger(ctx, zap.L().With(zap.String(requestID.Name, reqId))),
+				logger.CtxWithLogger(ctx, zap.L().With(zap.String("requestId", reqId))),
 				req,
 				func(rsp types.Response) error {
 					respBody = rsp.Payload()
