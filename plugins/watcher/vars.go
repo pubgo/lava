@@ -15,9 +15,11 @@ func init() {
 	})
 
 	vars.Watch(Name+"_callbacks", func() interface{} {
-		var data = make(map[string]string)
-		for k, v := range callbacks.Map() {
-			data[k] = stack.Func(v)
+		var data = make(map[string][]string)
+		for k, v := range callbacks {
+			for i := range v {
+				data[k] = append(data[k], stack.Func(v[i]))
+			}
 		}
 		return data
 	})

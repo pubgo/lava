@@ -2,6 +2,7 @@ package hello
 
 import (
 	"github.com/pubgo/lava/pkg/clix"
+	"github.com/pubgo/lava/pkg/shutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"net/http"
@@ -23,6 +24,8 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 			Description: "An Hello World! example",
 		})
 
+
+		shutil.GoModGraph()
 		http.ListenAndServe(":8088", nil)
 	}
 })

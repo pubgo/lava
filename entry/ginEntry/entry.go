@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/merge"
@@ -43,7 +44,9 @@ func newEntry(name string) *ginEntry {
 			xerror.PanicF(register(ent.srv, h), "[gin] grpc handler register error")
 
 			// 初始化router
-			h.(Handler).Router(ent.srv)
+			if _h, ok := h.(Router); ok {
+				_h.Router(ent.srv)
+			}
 
 			// handler初始化
 			h.Init()
@@ -62,12 +65,12 @@ type ginEntry struct {
 	srv *gin.Engine
 }
 
-func (t *ginEntry) Register(handler Handler) {
+func (t *ginEntry) Register(handler entry.InitHandler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
-	// 检查是否实现了 <Handler>
+	// 检查是否实现了 <Router>
 	xerror.Assert(!checkHandle(handler).IsValid(), "[handler] 没有找到对应的service实现")
 	t.RegisterHandler(handler)
 }

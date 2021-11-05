@@ -5,12 +5,11 @@ import (
 	"github.com/pubgo/lava/entry"
 )
 
-type Handler interface {
-	entry.InitHandler
+type Router interface {
 	Router(r gin.IRouter)
 }
 
 type Entry interface {
 	entry.Entry
-	Register(handler Handler)
+	Register(entry.InitHandler)
 }

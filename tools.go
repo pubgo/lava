@@ -51,4 +51,7 @@ import (
 	// This is a small reverse proxy that can front existing gRPC servers and expose their functionality using gRPC-Web protocol,
 	//	allowing for the gRPC services to be consumed from browsers.
 	_ "github.com/improbable-eng/grpc-web/go/grpcwebproxy"
+
+	// Package profiling exposes methods to manage profiling within gRPC.
+	_ "google.golang.org/grpc/profiling/cmd"
 )

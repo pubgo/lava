@@ -3,7 +3,6 @@ package watcher
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/logger"
 	"strings"
 
 	"github.com/pubgo/x/stack"
@@ -57,10 +56,10 @@ func Init() (err error) {
 }
 
 func onWatch(name string, resp *Response) {
-	var log = logs.With(zap.String("watch-project", name))
+	var project = zap.String("watch-project", name)
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		log.Error("watch callback error", logger.WithErr(err, zap.Any("resp", resp))...)
+		logs.WithErr(err, project, zap.Any("resp", resp)).Error("watch callback error")
 	})
 
 	// value为空就skip
@@ -72,6 +71,7 @@ func onWatch(name string, resp *Response) {
 
 	logs.Infow(
 		"watch callback",
+		project,
 		zap.Any("key", key),
 		zap.Any("event", resp.Event.String()),
 		zap.Any("version", resp.Version),
@@ -109,15 +109,7 @@ func onWatch(name string, resp *Response) {
 	}
 
 	// 以name为前缀的所有的callbacks
-	callbacks.Each(func(k string, plg interface{}) {
-		defer xerror.Resp(func(err xerror.XErr) {
-			log.Error("watch callback handle error",
-				logger.WithErr(err,
-					zap.String("watch-key", k),
-					zap.Any("resp", resp),
-					zap.Any("stack", stack.Func(plg)))...)
-		})
-
+	for k, v := range callbacks {
 		// 检查是否是以key为前缀, `.`是连接符和分隔符
 		if !strings.HasPrefix(key+".", k+".") {
 			return
@@ -127,6 +119,13 @@ func onWatch(name string, resp *Response) {
 		var watchKey = strings.Trim(strings.TrimPrefix(key, k), ".")
 
 		// 执行watch callback
-		xerror.Panic(plg.(func(name string, r *types.WatchResp) error)(watchKey, resp))
-	})
+		for i := range v {
+			logs.Logs("watch callback handle", func() error { return v[i](watchKey, resp) },
+				project,
+				zap.String("watch-key", k),
+				zap.Any("watch-resp", resp),
+				zap.Any("watch-stack", stack.Func(v[i])),
+			)
+		}
+	}
 }

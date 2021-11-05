@@ -12,6 +12,12 @@ type WatchResp struct {
 	Version int64
 }
 
+//Decode
+
+func (t *WatchResp) Decode(c interface{}) error {
+	return Decode(t.Value, c)
+}
+
 func (t *WatchResp) OnPut(fn func()) {
 	xerror.Panic(t.checkEventType())
 	if t.Event == EventType_UPDATE {

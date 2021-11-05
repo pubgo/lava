@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/channelz/service"
+	srvChannel "google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/profiling"
+	srvProfile "google.golang.org/grpc/profiling/service"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -22,7 +24,10 @@ func EnableReflection(s *grpc.Server) {
 
 func EnableDebug(s *grpc.Server) {
 	grpc.EnableTracing = true
-	service.RegisterChannelzServiceToServer(s)
+	srvChannel.RegisterChannelzServiceToServer(s)
+	profiling.Enable(true)
+	srvProfile.Init(&srvProfile.ProfilingConfig{})
+
 }
 
 // ListGRPCResources is a helper function that lists all URLs that are registered on gRPC server.

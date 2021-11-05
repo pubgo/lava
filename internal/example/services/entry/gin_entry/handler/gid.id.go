@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/entry/ginEntry"
 	"math/rand"
 	"net/http"
 	"time"
@@ -23,6 +24,7 @@ import (
 )
 
 var _ gid.IdServer = (*Id)(nil)
+var _ ginEntry.Router = (*Id)(nil)
 
 type Id struct {
 	Snowflake *snowflake.Snowflake

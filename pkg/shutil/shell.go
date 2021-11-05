@@ -26,7 +26,7 @@ func MustRun(args ...string) string {
 	return xerror.PanicStr(Run(args...))
 }
 
-func GoMod() (string, error) {
+func GoModGraph() (string, error) {
 	return Run("go", "mod", "graph")
 }
 

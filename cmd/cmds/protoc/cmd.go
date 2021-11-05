@@ -15,14 +15,14 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/mattn/go-zglob/fastwalk"
-	"github.com/pubgo/lava/consts"
-	pathutil2 "github.com/pubgo/x/pathutil"
+	path2 "github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
@@ -33,21 +33,24 @@ import (
 
 func Cmd() *cobra.Command {
 	var protoRoot = "proto"
-	var protoCfg = ".lava/protobuf.yaml"
+	var protoCfg = "protobuf.yaml"
 
 	return clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-		flags.StringVar(&protoRoot, "root", protoRoot, "protobuf directory")
-		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf build config")
+		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf config")
 
 		cmd.Use = "protoc"
 		cmd.Short = "protobuf generation, configuration and management"
 		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
 
-			xerror.Panic(pathutil2.IsNotExistMkDir(protoPath))
+			xerror.Panic(path2.IsNotExistMkDir(protoPath))
 
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
+
+			if cfg.Root != "" {
+				protoRoot = cfg.Root
+			}
 
 			// protobuf文件检查
 			for _, dep := range cfg.Depends {
@@ -77,8 +80,8 @@ func Cmd() *cobra.Command {
 			}})
 
 		cmd.AddCommand(&cobra.Command{
-			Use:   "download",
-			Short: "下载缺失protobuf依赖并把版本信息写入配置文件",
+			Use:   "tidy",
+			Short: "检查缺失protobuf依赖并把版本信息写入protobuf.yaml",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 
@@ -88,7 +91,7 @@ func Cmd() *cobra.Command {
 					var url = dep.Url
 
 					// url是本地目录, 不做检查
-					if pathutil2.IsDir(url) {
+					if path2.IsDir(url) {
 						continue
 					}
 
@@ -128,7 +131,8 @@ func Cmd() *cobra.Command {
 			},
 		})
 		cmd.AddCommand(&cobra.Command{
-			Use: "gen",
+			Use:   "gen",
+			Short: "编译protobuf文件",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 
@@ -153,24 +157,15 @@ func Cmd() *cobra.Command {
 					}
 					data = data + " " + filepath.Join(in, "*.proto")
 
+					fmt.Println(data+"\n")
 					xerror.Panic(shutil.Shell(data).Run(), data)
 					return true
 				})
 			},
 		})
 		cmd.AddCommand(&cobra.Command{
-			Use: "ls",
-			Run: func(cmd *cobra.Command, args []string) {
-				var infoList, err = ioutil.ReadDir(protoPath)
-				xerror.Panic(err)
-
-				for _, info := range infoList {
-					colorInfo.Println(info.Name())
-				}
-			},
-		})
-		cmd.AddCommand(&cobra.Command{
-			Use: "vendor",
+			Use:   "vendor",
+			Short: "把项目protobuf依赖同步到.lava/proto中",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 
@@ -211,7 +206,7 @@ func Cmd() *cobra.Command {
 						}
 
 						var newPath = filepath.Join(newUrl, strings.TrimPrefix(path, url))
-						xerror.Panic(pathutil2.IsNotExistMkDir(filepath.Dir(newPath)))
+						xerror.Panic(path2.IsNotExistMkDir(filepath.Dir(newPath)))
 						xerror.PanicErr(copyFile(newPath, path))
 
 						return nil
@@ -220,7 +215,8 @@ func Cmd() *cobra.Command {
 			},
 		})
 		cmd.AddCommand(&cobra.Command{
-			Use: "api",
+			Use:   "api",
+			Short: "生成http rest测试",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 

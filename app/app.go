@@ -28,7 +28,7 @@ func Init(name string) {
 	for _, plg := range plugins {
 
 		// 注册watcher
-		watcher.Watch(plg.UniqueName(), plg.Watch)
+		watcher.Watch(plg.UniqueName(), plg.Watch())
 
 		// 注册健康检查
 		healthy.Register(plg.UniqueName(), plg.Health())

@@ -1,13 +1,12 @@
 package runtime
 
 import (
-	"fmt"
-	"github.com/pubgo/lava/logger"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
@@ -19,6 +18,7 @@ import (
 	"github.com/pubgo/lava/internal/cmds/restapi"
 	v "github.com/pubgo/lava/internal/cmds/version"
 	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/watcher"
@@ -59,9 +59,7 @@ func handleSignal() {
 	logs.Infof("signal [%s] trigger", runenv.Signal.String())
 }
 
-func start(ent entry.Runtime) (err error) {
-	defer xerror.RespErr(&err)
-
+func start(ent entry.Runtime) {
 	logs.StepAndThrow("before-start running", func() error {
 		beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 		for i := range beforeList {
@@ -81,12 +79,9 @@ func start(ent entry.Runtime) (err error) {
 		}
 		return nil
 	})
-	return
 }
 
-func stop(ent entry.Runtime) (err error) {
-	defer xerror.RespErr(&err)
-
+func stop(ent entry.Runtime) {
 	logs.Step("before-stop running", func() error {
 		beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
 		for i := range beforeList {
@@ -106,7 +101,6 @@ func stop(ent entry.Runtime) (err error) {
 		}
 		return nil
 	})
-	return nil
 }
 
 func Run(description string, entries ...entry.Entry) {
@@ -118,10 +112,7 @@ func Run(description string, entries ...entry.Entry) {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
 		_, ok := ent.(entry.Runtime)
-		if !ok {
-			panic(fmt.Sprintf("[ent] not implement runtime, ent:%#v", ent))
-		}
-
+		xerror.Assert(!ok, "[ent] not implement runtime, \n%s", q.Sq(ent))
 	}
 
 	rootCmd.Short = description
@@ -168,33 +159,6 @@ func Run(description string, entries ...entry.Entry) {
 			// 配置依赖注入
 			xerror.Exit(dix.Provider(config.GetCfg()))
 
-			xerror.TryThrow(func() {
-				// 获取本项目所有plugin
-				plugins := plugin.All()
-				for _, plg := range plugins {
-					if strutil.Contain(exclude, plg.UniqueName()) {
-						continue
-					}
-
-					// 注册watcher
-					if plg.Watch() != nil {
-						logs.LogAndThrow("plugin register watcher",
-							func() error {
-								watcher.Watch(plg.UniqueName(), plg.Watch())
-								return nil
-							},
-							logger.Name(plg.UniqueName()),
-						)
-					}
-
-					// 注册健康检查
-					healthy.Register(plg.UniqueName(), plg.Health())
-
-					// 注册vars
-					xerror.Panic(plg.Vars(vars.Watch))
-				}
-			})
-
 			// plugin初始化
 			plugins := plugin.All()
 			for _, plg := range plugins {
@@ -202,21 +166,35 @@ func Run(description string, entries ...entry.Entry) {
 					continue
 				}
 
+				// 注册watcher
+				if plg.Watch() != nil {
+					logs.LogAndThrow("plugin register watcher",
+						func() error { watcher.Watch(plg.UniqueName(), plg.Watch()); return nil },
+						logger.Name(plg.UniqueName()),
+					)
+				}
+
+				// 注册健康检查
+				healthy.Register(plg.UniqueName(), plg.Health())
+
+				// 注册vars
+				xerror.Panic(plg.Vars(vars.Watch))
+
 				logs.Logs("plugin init", plg.Init, logger.Name(plg.UniqueName()))
 			}
 
-			// watcher初始化
-			xerror.Panic(watcher.Init())
-
 			// entry初始化
 			entRT.InitRT()
+
+			// watcher初始化, 最后初始化, 从远程获取最新的配置
+			xerror.Panic(watcher.Init())
 		}
 
 		cmd.Run = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
-			xerror.Panic(start(entRT))
+			start(entRT)
 			handleSignal()
-			logs.WithErr(stop(entRT)).Error("stop error")
+			stop(entRT)
 		}
 
 		rootCmd.AddCommand(cmd)
@@ -224,52 +202,3 @@ func Run(description string, entries ...entry.Entry) {
 
 	xerror.Panic(rootCmd.Execute())
 }
-
-//func Start(ent entry.Entry) {
-//	defer xerror.RespExit()
-//
-//	xerror.Assert(ent == nil, "[ent] should not be nil")
-//
-//	entRun, ok := ent.(entry.Runtime)
-//	xerror.Assert(!ok, "[ent] not implement runtime")
-//
-//	opt := entRun.Options()
-//	xerror.Assert(opt.Name == "", "[name] should not be empty")
-//
-//	plugins := plugin.ListWithDefault(plugin.Module(entRun.Options().Name))
-//	for _, pl := range plugins {
-//		// 加载flag
-//		_ = pl.Flags()
-//	}
-//
-//	// config初始化
-//	runenv.Project = entRun.Options().Name
-//	xerror.Panic(config.Init())
-//
-//	// plugin初始化
-//	for _, pg := range plugins {
-//		key := pg.String()
-//		xerror.PanicF(pg.Init(ent), "plugin [%s] init error", key)
-//
-//		// watch key
-//		watcher.Watch(key, pg.Watch)
-//	}
-//
-//	xerror.Panic(watcher.Init())
-//
-//	// entry初始化
-//	entRun.InitRT()
-//
-//	xerror.Panic(start(entRun))
-//}
-//
-//func Stop(ent entry.Entry) {
-//	defer xerror.RespExit()
-//
-//	xerror.Assert(ent == nil, "[ent] should not be nil")
-//
-//	entRun, ok := ent.(entry.Runtime)
-//	xerror.Assert(!ok, "[ent] not implement runtime")
-//
-//	xerror.Panic(stop(entRun))
-//}

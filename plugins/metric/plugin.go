@@ -10,11 +10,15 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 )
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
+		OnWatch: func(name string, resp *types.WatchResp) error {
+			return nil
+		},
 		OnInit: func() {
 			var cfg = GetDefaultCfg()
 			_ = config.Decode(Name, &cfg)

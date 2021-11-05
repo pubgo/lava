@@ -1,17 +1,18 @@
 package watcher
 
 import (
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/types"
 )
 
-type Factory func(cfg typex.M) (Watcher, error)
+type Factory = func(cfg typex.M) (Watcher, error)
+type Handler = func(name string, r *types.WatchResp) error
 
 var factories = make(map[string]Factory)
-var callbacks typex.Map
+var callbacks = make(map[string][]Handler)
 
 func Register(name string, w Factory) {
 	xerror.Assert(name == "" || w == nil, "watcher [name,w] should not be null")
@@ -28,9 +29,8 @@ func Get(names ...string) Factory {
 	return val
 }
 
-func Watch(name string, callback func(name string, r *types.WatchResp) error) {
+func Watch(name string, callback ...Handler) {
 	name = KeyToDot(name)
-	xerror.Assert(name == "" || callback == nil, "[name, callback] should not be null")
-	xerror.Assert(callbacks.Has(name), "callback [%s] already exists", name)
-	callbacks.Set(name, callback)
+	xerror.Assert(name == "" || len(callback) == 0, "[name, callback] should not be null")
+	callbacks[name] = append(callbacks[name], callback...)
 }

@@ -28,7 +28,8 @@ func init() {
 
 			}
 		},
-		OnWatch: func(name string, w *watcher.Response) {
+		OnWatch: func(name string, w *watcher.Response) (err error) {
+			defer xerror.RespErr(&err)
 			w.OnPut(func() {
 				cfg, ok := cfgList[name]
 				if !ok {
@@ -42,6 +43,7 @@ func init() {
 			})
 
 			w.OnDelete(func() { resource.Remove(Name, name) })
+			return nil
 		},
 		OnVars: func(w func(name string, data func() interface{})) {
 			w(Name+"_cfg", func() interface{} { return cfgList })
