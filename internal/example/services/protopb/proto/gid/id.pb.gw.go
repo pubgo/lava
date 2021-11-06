@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -1456,6 +1457,42 @@ func local_request_ABitOfEverythingService_DeepPathEcho_0(ctx context.Context, m
 
 }
 
+var (
+	filter_ABitOfEverythingService_NoBindings_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ABitOfEverythingService_NoBindings_0(ctx context.Context, marshaler runtime.Marshaler, client ABitOfEverythingServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq durationpb.Duration
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ABitOfEverythingService_NoBindings_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.NoBindings(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ABitOfEverythingService_NoBindings_0(ctx context.Context, marshaler runtime.Marshaler, server ABitOfEverythingServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq durationpb.Duration
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ABitOfEverythingService_NoBindings_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.NoBindings(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_ABitOfEverythingService_Timeout_0(ctx context.Context, marshaler runtime.Marshaler, client ABitOfEverythingServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
@@ -1924,6 +1961,24 @@ func local_request_CamelCaseServiceName_Empty_0(ctx context.Context, marshaler r
 
 }
 
+func request_AnotherServiceWithNoBindings_NoBindings_0(ctx context.Context, marshaler runtime.Marshaler, client AnotherServiceWithNoBindingsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.NoBindings(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_AnotherServiceWithNoBindings_NoBindings_0(ctx context.Context, marshaler runtime.Marshaler, server AnotherServiceWithNoBindingsServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.NoBindings(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterIdHandlerServer registers the http handlers for service Id to "mux".
 // UnaryRPC     :call IdServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -2238,6 +2293,29 @@ func RegisterABitOfEverythingServiceHandlerServer(ctx context.Context, mux *runt
 
 	})
 
+	mux.Handle("GET", pattern_ABitOfEverythingService_NoBindings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gid.ABitOfEverythingService/NoBindings", runtime.WithHTTPPathPattern("/v2/example/NoBindings"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ABitOfEverythingService_NoBindings_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ABitOfEverythingService_NoBindings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ABitOfEverythingService_Timeout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -2474,6 +2552,38 @@ func RegisterCamelCaseServiceNameHandlerServer(ctx context.Context, mux *runtime
 		}
 
 		forward_CamelCaseServiceName_Empty_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+// RegisterAnotherServiceWithNoBindingsHandlerServer registers the http handlers for service AnotherServiceWithNoBindings to "mux".
+// UnaryRPC     :call AnotherServiceWithNoBindingsServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAnotherServiceWithNoBindingsHandlerFromEndpoint instead.
+func RegisterAnotherServiceWithNoBindingsHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AnotherServiceWithNoBindingsServer) error {
+
+	mux.Handle("GET", pattern_AnotherServiceWithNoBindings_NoBindings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gid.AnotherServiceWithNoBindings/NoBindings", runtime.WithHTTPPathPattern("/v2/another/no-bindings"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AnotherServiceWithNoBindings_NoBindings_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_AnotherServiceWithNoBindings_NoBindings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -2831,6 +2941,26 @@ func RegisterABitOfEverythingServiceHandlerClient(ctx context.Context, mux *runt
 
 	})
 
+	mux.Handle("GET", pattern_ABitOfEverythingService_NoBindings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gid.ABitOfEverythingService/NoBindings", runtime.WithHTTPPathPattern("/v2/example/NoBindings"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ABitOfEverythingService_NoBindings_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ABitOfEverythingService_NoBindings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ABitOfEverythingService_Timeout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -3037,6 +3167,8 @@ var (
 
 	pattern_ABitOfEverythingService_DeepPathEcho_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "example", "deep_path", "single_nested.name"}, ""))
 
+	pattern_ABitOfEverythingService_NoBindings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "example", "NoBindings"}, ""))
+
 	pattern_ABitOfEverythingService_Timeout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "example", "timeout"}, ""))
 
 	pattern_ABitOfEverythingService_ErrorWithDetails_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "example", "errorwithdetails"}, ""))
@@ -3078,6 +3210,8 @@ var (
 	forward_ABitOfEverythingService_GetRepeatedQuery_0 = runtime.ForwardResponseMessage
 
 	forward_ABitOfEverythingService_DeepPathEcho_0 = runtime.ForwardResponseMessage
+
+	forward_ABitOfEverythingService_NoBindings_0 = runtime.ForwardResponseMessage
 
 	forward_ABitOfEverythingService_Timeout_0 = runtime.ForwardResponseMessage
 
@@ -3165,4 +3299,73 @@ var (
 
 var (
 	forward_CamelCaseServiceName_Empty_0 = runtime.ForwardResponseMessage
+)
+
+// RegisterAnotherServiceWithNoBindingsHandlerFromEndpoint is same as RegisterAnotherServiceWithNoBindingsHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterAnotherServiceWithNoBindingsHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterAnotherServiceWithNoBindingsHandler(ctx, mux, conn)
+}
+
+// RegisterAnotherServiceWithNoBindingsHandler registers the http handlers for service AnotherServiceWithNoBindings to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterAnotherServiceWithNoBindingsHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterAnotherServiceWithNoBindingsHandlerClient(ctx, mux, NewAnotherServiceWithNoBindingsClient(conn))
+}
+
+// RegisterAnotherServiceWithNoBindingsHandlerClient registers the http handlers for service AnotherServiceWithNoBindings
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "AnotherServiceWithNoBindingsClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "AnotherServiceWithNoBindingsClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "AnotherServiceWithNoBindingsClient" to call the correct interceptors.
+func RegisterAnotherServiceWithNoBindingsHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AnotherServiceWithNoBindingsClient) error {
+
+	mux.Handle("GET", pattern_AnotherServiceWithNoBindings_NoBindings_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gid.AnotherServiceWithNoBindings/NoBindings", runtime.WithHTTPPathPattern("/v2/another/no-bindings"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AnotherServiceWithNoBindings_NoBindings_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_AnotherServiceWithNoBindings_NoBindings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_AnotherServiceWithNoBindings_NoBindings_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v2", "another", "no-bindings"}, ""))
+)
+
+var (
+	forward_AnotherServiceWithNoBindings_NoBindings_0 = runtime.ForwardResponseMessage
 )

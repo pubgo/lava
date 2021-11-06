@@ -22,6 +22,43 @@
     "application/json"
   ],
   "paths": {
+    "/v1/example/versionTestCustom": {
+      "get": {
+        "summary": "VersionTest rpc custom",
+        "operationId": "TestApi_VersionTestCustom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloTestApiOutput"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TestApi"
+        ]
+      }
+    },
     "/v1/example/versiontest": {
       "get": {
         "summary": "VersionTest rpc",

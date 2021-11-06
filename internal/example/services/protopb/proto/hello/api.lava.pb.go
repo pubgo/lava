@@ -66,13 +66,14 @@ func init() {
 		Output:       &TestApiOutput{},
 		Service:      "hello.TestApi",
 		Name:         "VersionTestCustom",
-		Method:       "POST",
-		Path:         "/hello/test-api/version-test-custom",
-		DefaultUrl:   true,
+		Method:       "GET",
+		Path:         "/v1/example/versionTestCustom",
+		DefaultUrl:   false,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiServer, mthList)
+	xgen.Add(RegisterTestApiHandler, nil)
 	xgen.Add(RegisterTestApiRestServer, nil)
 	xgen.Add(RegisterTestApiGinServer, nil)
 }
@@ -111,9 +112,15 @@ func RegisterTestApiRestServer(app fiber.Router, server TestApiServer) {
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
 	})
-	app.Add("POST", "/hello/test-api/version-test-custom", func(ctx *fiber.Ctx) error {
+	app.Add("GET", "/v1/example/versionTestCustom", func(ctx *fiber.Ctx) error {
 		var req = new(TestReq)
-		xerror.Panic(ctx.BodyParser(req))
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			data[k] = append(data[k], v)
+		})
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.VersionTestCustom(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -142,9 +149,9 @@ func RegisterTestApiGinServer(r gin.IRouter, server TestApiServer) {
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/hello/test-api/version-test-custom", func(ctx *gin.Context) {
+	r.Handle("GET", "/v1/example/versionTestCustom", func(ctx *gin.Context) {
 		var req = new(TestReq)
-		xerror.Panic(ctx.ShouldBindJSON(req))
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
 		var resp, err = server.VersionTestCustom(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)

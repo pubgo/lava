@@ -10,7 +10,9 @@ import (
 	gin "github.com/gin-gonic/gin"
 	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
+	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
+	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
@@ -63,9 +65,9 @@ func init() {
 		Output:       &Message{},
 		Service:      "hello.Transport",
 		Name:         "TestStream3",
-		Method:       "POST",
-		Path:         "/hello/transport/test-stream3",
-		DefaultUrl:   true,
+		Method:       "GET",
+		Path:         "/v1/Transport/TestStream3",
+		DefaultUrl:   false,
 		ClientStream: false,
 		ServerStream: false,
 	})
@@ -75,9 +77,15 @@ func init() {
 }
 func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/hello/transport/test-stream3", func(ctx *fiber.Ctx) error {
+	app.Add("GET", "/v1/Transport/TestStream3", func(ctx *fiber.Ctx) error {
 		var req = new(Message)
-		xerror.Panic(ctx.BodyParser(req))
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			data[k] = append(data[k], v)
+		})
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.TestStream3(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -85,9 +93,9 @@ func RegisterTransportRestServer(app fiber.Router, server TransportServer) {
 }
 func RegisterTransportGinServer(r gin.IRouter, server TransportServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/hello/transport/test-stream3", func(ctx *gin.Context) {
+	r.Handle("GET", "/v1/Transport/TestStream3", func(ctx *gin.Context) {
 		var req = new(Message)
-		xerror.Panic(ctx.ShouldBindJSON(req))
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
 		var resp, err = server.TestStream3(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)

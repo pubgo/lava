@@ -206,9 +206,9 @@ func init() {
 		Output:       &emptypb.Empty{},
 		Service:      "gid.ABitOfEverythingService",
 		Name:         "NoBindings",
-		Method:       "POST",
-		Path:         "/gid/a-bit-of-everything-service/no-bindings",
-		DefaultUrl:   true,
+		Method:       "GET",
+		Path:         "/v2/example/NoBindings",
+		DefaultUrl:   false,
 		ClientStream: false,
 		ServerStream: false,
 	})
@@ -312,6 +312,7 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
+	xgen.Add(RegisterABitOfEverythingServiceHandler, nil)
 	xgen.Add(RegisterABitOfEverythingServiceRestServer, nil)
 	xgen.Add(RegisterABitOfEverythingServiceGinServer, nil)
 }
@@ -392,9 +393,15 @@ func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEv
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
 	})
-	app.Add("POST", "/gid/a-bit-of-everything-service/no-bindings", func(ctx *fiber.Ctx) error {
+	app.Add("GET", "/v2/example/NoBindings", func(ctx *fiber.Ctx) error {
 		var req = new(durationpb.Duration)
-		xerror.Panic(ctx.BodyParser(req))
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			data[k] = append(data[k], v)
+		})
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.NoBindings(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -564,9 +571,9 @@ func RegisterABitOfEverythingServiceGinServer(r gin.IRouter, server ABitOfEveryt
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/gid/a-bit-of-everything-service/no-bindings", func(ctx *gin.Context) {
+	r.Handle("GET", "/v2/example/NoBindings", func(ctx *gin.Context) {
 		var req = new(durationpb.Duration)
-		xerror.Panic(ctx.ShouldBindJSON(req))
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
 		var resp, err = server.NoBindings(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
@@ -692,21 +699,28 @@ func init() {
 		Output:       &emptypb.Empty{},
 		Service:      "gid.AnotherServiceWithNoBindings",
 		Name:         "NoBindings",
-		Method:       "POST",
-		Path:         "/gid/another-service-with-no-bindings/no-bindings",
-		DefaultUrl:   true,
+		Method:       "GET",
+		Path:         "/v2/another/no-bindings",
+		DefaultUrl:   false,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
+	xgen.Add(RegisterAnotherServiceWithNoBindingsHandler, nil)
 	xgen.Add(RegisterAnotherServiceWithNoBindingsRestServer, nil)
 	xgen.Add(RegisterAnotherServiceWithNoBindingsGinServer, nil)
 }
 func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
 	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/gid/another-service-with-no-bindings/no-bindings", func(ctx *fiber.Ctx) error {
+	app.Add("GET", "/v2/another/no-bindings", func(ctx *fiber.Ctx) error {
 		var req = new(emptypb.Empty)
-		xerror.Panic(ctx.BodyParser(req))
+		data := make(map[string][]string)
+		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
+			k := byteutil.ToStr(key)
+			v := byteutil.ToStr(val)
+			data[k] = append(data[k], v)
+		})
+		xerror.Panic(binding.MapFormByTag(req, data, "json"))
 		var resp, err = server.NoBindings(ctx.UserContext(), req)
 		xerror.Panic(err)
 		return xerror.Wrap(ctx.JSON(resp))
@@ -714,9 +728,9 @@ func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server Ano
 }
 func RegisterAnotherServiceWithNoBindingsGinServer(r gin.IRouter, server AnotherServiceWithNoBindingsServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/gid/another-service-with-no-bindings/no-bindings", func(ctx *gin.Context) {
+	r.Handle("GET", "/v2/another/no-bindings", func(ctx *gin.Context) {
 		var req = new(emptypb.Empty)
-		xerror.Panic(ctx.ShouldBindJSON(req))
+		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
 		var resp, err = server.NoBindings(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
