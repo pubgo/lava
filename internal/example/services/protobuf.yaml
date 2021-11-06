@@ -1,4 +1,5 @@
-root: proto
+root:
+  - proto
 deps:
 - name: google
   url: github.com/googleapis/googleapis

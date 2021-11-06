@@ -45,6 +45,9 @@ service TestApi {
 
   // VersionTest rpc custom
   rpc VersionTestCustom(hello.TestReq) returns (hello.TestApiOutput) {
+    option (google.api.http) = {
+      get: "/v1/example/versionTestCustom"
+    };
   }
 }
 

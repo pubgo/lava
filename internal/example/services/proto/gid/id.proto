@@ -547,7 +547,11 @@ service ABitOfEverythingService {
       body: "*"
     };
   }
-  rpc NoBindings(google.protobuf.Duration) returns (google.protobuf.Empty) {}
+  rpc NoBindings(google.protobuf.Duration) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/v2/example/NoBindings",
+    };
+  }
   rpc Timeout(google.protobuf.Empty) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       get: "/v2/example/timeout",
@@ -611,5 +615,9 @@ service camelCaseServiceName {
   }
 }
 service AnotherServiceWithNoBindings {
-  rpc NoBindings(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc NoBindings(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get: "/v2/another/no-bindings",
+    };
+  }
 }

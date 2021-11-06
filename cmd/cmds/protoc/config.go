@@ -24,7 +24,7 @@ func init() {
 var cfg Cfg
 
 type Cfg struct {
-	Root    string              `yaml:"root,omitempty"`
+	Root    []string            `yaml:"root,omitempty"`
 	Depends []depend            `yaml:"deps,omitempty"`
 	Input   []string            `yaml:"input,omitempty"`
 	Plugins map[string][]string `yaml:"plugins,omitempty"`

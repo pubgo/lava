@@ -2,8 +2,9 @@ package protoc
 
 import (
 	"bufio"
-	"context"
 	"fmt"
+	"github.com/pubgo/x/q"
+	"github.com/pubgo/x/strutil"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -14,8 +15,7 @@ import (
 	"time"
 
 	"github.com/emicklei/proto"
-	"github.com/mattn/go-zglob/fastwalk"
-	path2 "github.com/pubgo/x/pathutil"
+	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -27,29 +27,28 @@ import (
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
-	"github.com/pubgo/lava/pkg/pathutil"
 	"github.com/pubgo/lava/pkg/shutil"
 )
 
 func Cmd() *cobra.Command {
-	var protoRoot = "proto"
+	var protoRoot []string
 	var protoCfg = "protobuf.yaml"
 
 	return clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		flags.StringVar(&protoCfg, "config", protoCfg, "protobuf config")
-
 		cmd.Use = "protoc"
 		cmd.Short = "protobuf generation, configuration and management"
 		cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 			defer xerror.RespExit()
 
-			xerror.Panic(path2.IsNotExistMkDir(protoPath))
+			xerror.Panic(pathutil.IsNotExistMkDir(protoPath))
 
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
 
-			if cfg.Root != "" {
-				protoRoot = cfg.Root
+			protoRoot = append(protoRoot, cfg.Root...)
+			if !strutil.Contain(protoRoot, "proto") {
+				protoRoot = append(protoRoot, "proto")
 			}
 
 			// protobuf文件检查
@@ -91,7 +90,7 @@ func Cmd() *cobra.Command {
 					var url = dep.Url
 
 					// url是本地目录, 不做检查
-					if path2.IsDir(url) {
+					if pathutil.IsDir(url) {
 						continue
 					}
 
@@ -103,13 +102,17 @@ func Cmd() *cobra.Command {
 					// go.mod中version不存在, 并且protobuf.yaml也没有指定
 					if version == "" {
 						// go pkg缓存
-						var localPkg, err = pathutil.Glob(filepath.Dir(filepath.Join(modPath, url)))
+						var localPkg, err = ioutil.ReadDir(filepath.Dir(filepath.Join(modPath, url)))
 						xerror.Panic(err)
 
 						var _, name = filepath.Split(url)
 						for j := range localPkg {
-							if strings.HasPrefix(localPkg[j], name+"@") {
-								version = strings.TrimPrefix(localPkg[j], name+"@")
+							if !localPkg[j].IsDir() {
+								continue
+							}
+
+							if strings.HasPrefix(localPkg[j].Name(), name+"@") {
+								version = strings.TrimPrefix(localPkg[j].Name(), name+"@")
 								break
 							}
 						}
@@ -137,14 +140,30 @@ func Cmd() *cobra.Command {
 				defer xerror.RespExit()
 
 				var protoList sync.Map
-				xerror.Panic(fastwalk.FastWalk(protoRoot, func(path string, typ os.FileMode) error {
-					if typ.IsDir() {
-						return nil
+
+				for i := range protoRoot {
+					if pathutil.IsNotExist(protoRoot[i]) {
+						zap.S().Warnf("file %s not flund", protoRoot[i])
+						continue
 					}
 
-					protoList.Store(filepath.Dir(path), struct{}{})
-					return nil
-				}))
+					xerror.Panic(filepath.Walk(protoRoot[i], func(path string, info fs.FileInfo, err error) error {
+						if err != nil {
+							return err
+						}
+
+						if info.IsDir() {
+							return nil
+						}
+
+						if !strings.HasSuffix(info.Name(), ".proto") {
+							return nil
+						}
+
+						protoList.Store(filepath.Dir(path), struct{}{})
+						return nil
+					}))
+				}
 
 				protoList.Range(func(key, _ interface{}) bool {
 					var in = key.(string)
@@ -157,7 +176,7 @@ func Cmd() *cobra.Command {
 					}
 					data = data + " " + filepath.Join(in, "*.proto")
 
-					fmt.Println(data+"\n")
+					fmt.Println(data + "\n")
 					xerror.Panic(shutil.Shell(data).Run(), data)
 					return true
 				})
@@ -206,7 +225,7 @@ func Cmd() *cobra.Command {
 						}
 
 						var newPath = filepath.Join(newUrl, strings.TrimPrefix(path, url))
-						xerror.Panic(path2.IsNotExistMkDir(filepath.Dir(newPath)))
+						xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(newPath)))
 						xerror.PanicErr(copyFile(newPath, path))
 
 						return nil
@@ -215,211 +234,75 @@ func Cmd() *cobra.Command {
 			},
 		})
 		cmd.AddCommand(&cobra.Command{
-			Use:   "api",
-			Short: "生成http rest测试",
+			Use:   "check",
+			Short: "protobuf文件检查",
 			Run: func(cmd *cobra.Command, args []string) {
 				defer xerror.RespExit()
 
-				var (
-					Ctx       = context.Background()
-					Task      = make(chan struct{}, 1)
-					Stop      = make(chan struct{}, 1)
-					Package   = os.Getenv("PROTO_DIR")
-					Imports   = make(map[string][]*proto.Import)
-					ProtoFile string
-				)
+				var protoList sync.Map
+				for i := range protoRoot {
+					if pathutil.IsNotExist(protoRoot[i]) {
+						zap.S().Warnf("file %s not flund", protoRoot[i])
+						continue
+					}
 
-				const (
-					Annotations = "google/api/annotations.proto"
-				)
+					xerror.Panic(filepath.Walk(protoRoot[i], func(path string, info fs.FileInfo, err error) error {
+						if err != nil {
+							return err
+						}
 
-				var handleImport = func(i *proto.Import) {
-					Imports[i.Filename] = append(Imports[i.Filename], i)
+						if info.IsDir() {
+							return nil
+						}
+
+						if !strings.HasSuffix(info.Name(), ".proto") {
+							return nil
+						}
+
+						protoList.Store(path, struct{}{})
+						return nil
+					}))
 				}
 
-				var InsertImport = func(s *proto.Service) error {
-					fileBytes, err := ioutil.ReadFile(ProtoFile)
-					if err != nil {
-						return fmt.Errorf("ioutil.ReadFile %s err: %s ", ProtoFile, err)
-					}
-
-					offset := 0
-					if s.Comment != nil {
-						offset = s.Comment.Position.Offset - s.Comment.Position.Column
-					} else {
-						offset = s.Position.Offset - s.Position.Column
-					}
-
-					insert := fmt.Sprintf("import \"%s\"; \n", Annotations)
-					fileBytes = InsertByteSlice(fileBytes, []byte(insert), offset)
-					return ioutil.WriteFile(ProtoFile, fileBytes, 0777)
-				}
-
-				var CheckImport = func(s *proto.Service) {
-					if _, ok := Imports[Annotations]; !ok {
-						Task <- struct{}{}
-						if err := InsertImport(s); err != nil {
-							Stop <- struct{}{}
-							fmt.Printf("InsertImport error: %v", err.Error())
-						}
-						fmt.Println("Import annotations.")
-					}
-				}
-
-				var InsertOption = func(r *proto.RPC) error {
-					fileBytes, err := ioutil.ReadFile(ProtoFile)
-					if err != nil {
-						return fmt.Errorf("ioutil.ReadFile %s err: %v ", ProtoFile, err)
-					}
-
-					if _, ok := r.Parent.(*proto.Service); !ok {
-						return fmt.Errorf("ioutil.ReadFile %s err: %v ", ProtoFile, err)
-					}
-
-					insert := fmt.Sprintf(`rpc %s (%s) returns (%s) {
-        option (google.api.http) = {
-          post: "/%s/%s/%s"
-          body: "*"
-        };
-    }`, r.Name, r.RequestType, r.ReturnsType, Package, snakeString(r.Parent.(*proto.Service).Name), snakeString(r.Name))
-
-					// rpc 结束方式很多种
-					// {}
-					// ;
-					// {};
-					// {} ;
-					// {
-					//  } ;
-					// {
-					//  }
-					end := r.Position.Offset
-					for {
-						if end >= len(fileBytes) {
-							Stop <- struct{}{}
-							return fmt.Errorf(" Invalid rpc format")
-						}
-
-						if fileBytes[end] == '}' {
-							next := end
-							for {
-								next++
-								if len(fileBytes) <= next {
-									break
-								} else if fileBytes[next] == '\n' {
-									break
-								} else if fileBytes[next] == ';' {
-									end = next
-									break
-								}
-							}
-							end++
-							break
-						}
-
-						if fileBytes[end] == ';' {
-							end++
-							break
-						}
-						end++
-					}
-
-					fileBytes = ReplaceByteSlice(fileBytes, []byte(insert), r.Position.Offset, end)
-
-					return ioutil.WriteFile(ProtoFile, fileBytes, 0777)
-				}
-
-				var handleService = func(s *proto.Service) {
-
-					for _, element := range s.Elements {
-
-						select {
-						case <-Task:
-							Task <- struct{}{}
-							return
-						case <-Stop:
-							Stop <- struct{}{}
-						default:
-						}
-
-						CheckImport(s)
-
-						select {
-						case <-Task:
-							Task <- struct{}{}
-							return
-						case <-Stop:
-							Stop <- struct{}{}
-							return
-						default:
-						}
-
-						if rpc, ok := element.(*proto.RPC); ok {
-							if len(rpc.Options) == 0 {
-								Task <- struct{}{}
-								if err := InsertOption(rpc); err != nil {
-									Stop <- struct{}{}
-								}
-								fmt.Printf("Rpc %s Insert option.\n", rpc.Name)
-								return
-							}
-						}
-					}
-				}
-				var Walk = func(cancelFunc context.CancelFunc, protoFile string) {
+				var handler = func(protoFile string) {
 					reader, err := os.Open(protoFile)
-					if err != nil {
-						fmt.Printf("os.Open error: %s \n", err.Error())
-						cancelFunc()
-						return
-					}
+					xerror.Panic(err, protoFile)
 					defer reader.Close()
 
 					parser := proto.NewParser(reader)
 					definition, err := parser.Parse()
-					if err != nil {
-						fmt.Printf("proto.NewParser error: %s \n", err.Error())
-						cancelFunc()
-						return
-					}
+					xerror.Panic(err, protoFile)
 
-					proto.Walk(
-						definition,
-						proto.WithImport(handleImport),
-						proto.WithService(handleService),
-					)
+					proto.Walk(definition, proto.WithRPC(func(rpc *proto.RPC) {
+						if rpc.StreamsRequest || rpc.StreamsReturns {
+							return
+						}
 
-					select {
-					case <-Stop:
-						cancelFunc()
-					case <-Task:
-					default:
-						cancelFunc()
-						fmt.Println("Done.")
-					}
+						var hasHttp bool
+						for _, e := range rpc.Elements {
+							var opt, ok = e.(*proto.Option)
+							if !ok {
+								continue
+							}
+
+							if strings.Contains(opt.Name, "google.api.http") {
+								hasHttp = true
+							}
+						}
+
+						if !hasHttp {
+							q.Q(rpc)
+							panic(fmt.Errorf("method=>%s path=>%s 请设置gateway url", rpc.Name, protoFile))
+						}
+					}))
 				}
 
-				if len(os.Args) < 2 {
-					fmt.Println("Invalid proto file")
-					os.Exit(1)
-				}
-				ProtoFile = os.Args[1]
-				fmt.Printf("Start checking proto file :%s \n", ProtoFile)
+				protoList.Range(func(key, _ interface{}) bool {
+					defer xerror.RespExit(key)
 
-				if Package != "" {
-					Package = strings.ToLower(strings.Split(Package, "-")[0])
-				} else {
-					Package = "micro"
-				}
-
-				ctx, cancel := context.WithCancel(Ctx)
-				for {
-					select {
-					case <-ctx.Done():
-						return
-					default:
-						Walk(cancel, ProtoFile)
-					}
-				}
+					handler(key.(string))
+					return true
+				})
 			},
 		})
 	})

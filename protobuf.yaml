@@ -19,3 +19,5 @@ deps:
 plugins:
   go:
   - paths=source_relative:.
+root:
+  - types
