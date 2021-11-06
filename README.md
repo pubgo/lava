@@ -1,4 +1,4 @@
-# [lava文档](https://www.notion.so/barrylog/lava-96142de3b0444b6c905886efac96eeb0)
+# [lava文档](https://www.yuque.com/pubgo/lava/readme)
 
 1. protoc
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protoc-3.7.1-linux-x86_64.zip
