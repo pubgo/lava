@@ -24,8 +24,8 @@ func checkConcurrent(name string, fn interface{}) func() {
 		if fastrand.Sampling(0.01) {
 			logs.With(
 				zap.String("name", name),
-				zap.Uint32("current", curConcurrent.Load()),
-				zap.Uint32("maximum", maxConcurrent),
+				zap.Int64("current", curConcurrent.Load()),
+				zap.Int64("maximum", maxConcurrent),
 				zap.String("fn", stack.Func(fn)),
 			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
 		}

@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/pubgo/xerror"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runenv"
 )
 
@@ -36,14 +37,54 @@ func getCfg() *configImpl {
 	return cfg
 }
 
-func DefaultFlags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet("", pflag.PanicOnError)
-	flags.StringVarP(&CfgPath, "config", "c", CfgPath, "config path")
-	flags.StringVarP(&runenv.Addr, "addr", "a", runenv.Addr, "server(http|grpc|ws|...) address")
-	flags.StringVar(&runenv.DebugAddr, "debug-addr", runenv.DebugAddr, "debug server address")
-	flags.BoolVarP(&runenv.Trace, "trace", "t", runenv.Trace, "enable trace")
-	flags.StringVarP(&runenv.Mode, "mode", "m", runenv.Mode, "running mode(dev|test|stag|prod|release)")
-	flags.StringVarP(&runenv.Level, "level", "l", runenv.Level, "log level(debug|info|warn|error|panic|fatal)")
-	flags.BoolVar(&runenv.CatchSigpipe, "catch-sigpipe", runenv.CatchSigpipe, "catch and ignore SIGPIPE on stdout and stderr if specified")
-	return flags
+func DefaultFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Name:        "config",
+			Destination: &CfgPath,
+			Aliases:     typex.StrOf("c"),
+			Usage:       "config path",
+			Value:       CfgPath,
+		},
+		&cli.StringFlag{
+			Name:        "addr",
+			Destination: &runenv.Addr,
+			Aliases:     typex.StrOf("a"),
+			Usage:       "server(http|grpc|ws|...) address",
+			Value:       runenv.Addr,
+		},
+		&cli.StringFlag{
+			Name:        "debug-addr",
+			Destination: &runenv.DebugAddr,
+			Usage:       "debug server address",
+			Value:       runenv.DebugAddr,
+		},
+		&cli.BoolFlag{
+			Name:        "trace",
+			Destination: &runenv.Trace,
+			Aliases:     typex.StrOf("t"),
+			Usage:       "enable trace",
+			Value:       runenv.Trace,
+		},
+		&cli.StringFlag{
+			Name:        "mode",
+			Destination: &runenv.Mode,
+			Aliases:     typex.StrOf("m"),
+			Usage:       "running mode(dev|test|stag|prod|release)",
+			Value:       runenv.Mode,
+		},
+		&cli.StringFlag{
+			Name:        "level",
+			Destination: &runenv.Level,
+			Aliases:     typex.StrOf("l"),
+			Usage:       "log level(debug|info|warn|error|panic|fatal)",
+			Value:       runenv.Level,
+		},
+		&cli.BoolFlag{
+			Name:        "catch-sigpipe",
+			Destination: &runenv.CatchSigpipe,
+			Usage:       "catch and ignore SIGPIPE on stdout and stderr if specified",
+			Value:       runenv.CatchSigpipe,
+		},
+	}
 }

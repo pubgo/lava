@@ -1,10 +1,8 @@
 package entry
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
 	"github.com/pubgo/lava/types"
+	"github.com/urfave/cli/v2"
 )
 
 type Runtime interface {
@@ -23,8 +21,8 @@ type Entry interface {
 	Exclude(func() []string)
 	Middleware(middleware types.Middleware)
 	Description(description ...string)
-	Flags(fn func(flags *pflag.FlagSet))
-	Commands(commands ...*cobra.Command)
+	Flags(flags cli.Flag)
+	Commands(commands *cli.Command)
 }
 
 type InitHandler interface {

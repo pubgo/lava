@@ -3,24 +3,8 @@ package clix
 import (
 	"strings"
 
-	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 )
-
-func Command(cb func(cmd *cobra.Command, flags *pflag.FlagSet)) *cobra.Command {
-	var cmd = &cobra.Command{}
-	cb(cmd, cmd.PersistentFlags())
-	return cmd
-}
-
-func Execute(cb func(cmd *cobra.Command, flags *pflag.FlagSet)) {
-	defer xerror.RespExit()
-
-	var cmd = &cobra.Command{}
-	cb(cmd, cmd.Flags())
-	xerror.Panic(cmd.Execute())
-}
 
 func ExampleFmt(data ...string) string {
 	var str = ""
@@ -29,3 +13,5 @@ func ExampleFmt(data ...string) string {
 	}
 	return "  " + strings.TrimSpace(str)
 }
+
+type Flags []cli.Flag

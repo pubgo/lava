@@ -95,8 +95,6 @@ require (
 	github.com/segmentio/ksuid v1.0.3
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/soheilhy/cmux v0.1.4
-	github.com/spf13/cobra v1.1.3
-	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/http-swagger v1.1.1
@@ -383,6 +381,8 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
+	github.com/spf13/cobra v1.1.3 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
 	github.com/thoas/go-funk v0.7.0 // indirect
 	github.com/tj/go-spin v1.1.0 // indirect

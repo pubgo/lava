@@ -7,8 +7,7 @@ import (
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/types"
 )
@@ -24,8 +23,8 @@ type Base struct {
 	OnHealth     func(ctx context.Context) error
 	OnMiddleware types.Middleware
 	OnInit       func()
-	OnCommands   func(cmd *cobra.Command)
-	OnFlags      func(flags *pflag.FlagSet)
+	OnCommands   func() *cli.Command
+	OnFlags      func() []cli.Flag
 	OnWatch      func(name string, resp *types.WatchResp) error
 	OnVars       func(w func(name string, data func() interface{}))
 }
@@ -89,22 +88,18 @@ func (p *Base) Watch() func(name string, r *types.WatchResp) (err error) {
 	return p.OnWatch
 }
 
-func (p *Base) Commands() *cobra.Command {
+func (p *Base) Commands() *cli.Command {
 	if p.OnCommands == nil {
 		return nil
 	}
 
-	cmd := &cobra.Command{Use: p.Name}
-	xerror.TryThrow(func() { p.OnCommands(cmd) }, "commands callback error")
-	return cmd
+	return p.OnCommands()
 }
 
-func (p *Base) Flags() *pflag.FlagSet {
-	flags := pflag.NewFlagSet(p.Name, pflag.PanicOnError)
+func (p *Base) Flags() []cli.Flag {
 	if p.OnFlags == nil {
-		return flags
+		return nil
 	}
 
-	xerror.TryThrow(func() { p.OnFlags(flags) }, "flags callback")
-	return flags
+	return p.OnFlags()
 }

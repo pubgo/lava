@@ -2,32 +2,37 @@ package trace
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/clix"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/mattn/go-zglob/fastwalk"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
+
+	"github.com/pubgo/lava/pkg/clix"
 )
 
-func Cmd() *cobra.Command {
+func Cmd() *cli.Command {
 	var del bool
-	var flags = pflag.NewFlagSet("", pflag.ContinueOnError)
-	flags.BoolVar(&del, "del", false, "delete inject trace")
-
-	var cmd = &cobra.Command{
-		Use:     "trace",
-		Short:   "func trace",
-		Example: clix.ExampleFmt(`lava trace path`),
-		Run: func(cmd *cobra.Command, args []string) {
+	var cmd = &cli.Command{
+		Name:        "trace",
+		Usage:       "func trace",
+		Description: clix.ExampleFmt(`lava trace path`),
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "del",
+				Value:       false,
+				Usage:       "delete inject trace",
+				Destination: &del,
+			},
+		},
+		Action: func(ctx *cli.Context) error {
 			defer xerror.RespExit()
 
 			var path = "./"
-			if len(args) > 0 {
-				path = args[0]
+			if ctx.NArg() > 0 {
+				path = ctx.Args().First()
 			}
 
 			path = xerror.PanicStr(filepath.Abs(path))
@@ -68,9 +73,9 @@ func Cmd() *cobra.Command {
 				fmt.Printf("add trace ok\n")
 			}
 
+			return nil
+
 		},
 	}
-	cmd.Flags().AddFlagSet(flags)
-
 	return cmd
 }

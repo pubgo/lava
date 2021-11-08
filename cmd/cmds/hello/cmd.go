@@ -4,17 +4,12 @@ import (
 	"net/http"
 
 	"github.com/maxence-charriere/go-app/v9/pkg/app"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
-	"github.com/pubgo/lava/pkg/clix"
-	"github.com/pubgo/lava/pkg/shutil"
+	"github.com/urfave/cli/v2"
 )
 
-var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-	cmd.Use = "hello"
-	cmd.Short = "hello"
-	cmd.Run = func(cmd *cobra.Command, args []string) {
+var Cmd = &cli.Command{
+	Name: "hello",
+	Action: func(context *cli.Context) error {
 		// Components routing:
 		app.Route("/", &hello{})
 		app.Route("/hello", &hello{})
@@ -26,7 +21,7 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 			Description: "An Hello World! example",
 		})
 
-		shutil.GoModGraph()
 		http.ListenAndServe(":8088", nil)
-	}
-})
+		return nil
+	},
+}

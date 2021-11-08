@@ -11,18 +11,17 @@ import (
 
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/xgen"
 )
 
-var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-	cmd.Use = "rest.http"
-	cmd.Short = "gen rest.http from protobuf"
-	cmd.Example = clix.ExampleFmt(`lava rest.http`)
-	cmd.Run = func(cmd *cobra.Command, args []string) {
+var Cmd = &cli.Command{
+	Name:        "rest.http",
+	Usage:       "gen rest.http from protobuf",
+	Description: clix.ExampleFmt(`lava rest.http`),
+	Action: func(ctx *cli.Context) error {
 		defer xerror.RespExit()
 
 		for _, val := range xgen.List() {
@@ -59,5 +58,6 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 			xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(name)))
 			xerror.Panic(ioutil.WriteFile(name, []byte(strings.Join(data, "")), 0755))
 		}
-	}
-})
+		return nil
+	},
+}
