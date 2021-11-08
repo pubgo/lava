@@ -1,7 +1,7 @@
 package entry
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/types"
 )
@@ -13,8 +13,8 @@ type Opts struct {
 	AfterStarts  []func()
 	BeforeStops  []func()
 	AfterStops   []func()
-	Command      *cobra.Command
+	Command      *cli.Command
 	Handlers     []InitHandler
-	Exclude     func() []string
+	Exclude      func() []string
 	Middlewares  []types.Middleware
 }

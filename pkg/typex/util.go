@@ -1,6 +1,8 @@
 package typex
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type M map[string]interface{}
 

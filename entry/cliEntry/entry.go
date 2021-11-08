@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
@@ -93,9 +93,18 @@ func newEntry(name string) *ctlEntry {
 		handlers: make(map[string]options),
 	}
 
-	ent.Flags(func(flags *pflag.FlagSet) {
-		flags.StringVar(&ent.name, "name", consts.Default, "cliEntry name")
-		flags.BoolVar(&ent.listNames, "list", false, "list cliEntry name")
+	ent.Flags(&cli.StringFlag{
+		Name:        "name",
+		Value:       consts.Default,
+		Destination: &ent.name,
+		Usage:       "cliEntry name",
+	})
+
+	ent.Flags(&cli.BoolFlag{
+		Name:        "list",
+		Value:       false,
+		Destination: &ent.listNames,
+		Usage:       "list cliEntry name",
 	})
 
 	ent.OnInit(func() {

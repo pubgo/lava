@@ -5,13 +5,11 @@ import (
 	"strings"
 
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/version"
 )
 
 func New(name string) *Entry { return newEntry(name) }
@@ -23,7 +21,7 @@ func newEntry(name string) *Entry {
 
 	return &Entry{opts: entry.Opts{
 		Name:    name,
-		Command: &cobra.Command{Use: name, Version: version.Version},
+		Command: &cli.Command{Name: name},
 	}}
 }
 
@@ -79,40 +77,36 @@ func (t *Entry) InitRT() {
 	t.init()
 }
 
-func (t *Entry) Flags(fn func(flags *pflag.FlagSet)) {
-	defer xerror.RespExit()
-	fn(t.opts.Command.PersistentFlags())
+func (t *Entry) Flags(flag cli.Flag) {
+	if flag == nil {
+		return
+	}
+
+	t.opts.Command.Flags = append(t.opts.Command.Flags, flag)
 }
 
 func (t *Entry) Description(description ...string) {
-	t.opts.Command.Short = fmt.Sprintf("%s service", t.opts.Name)
+	t.opts.Command.Usage = fmt.Sprintf("%s service", t.opts.Name)
 
 	if len(description) > 0 {
-		t.opts.Command.Short = description[0]
+		t.opts.Command.Usage = description[0]
 	}
 
 	if len(description) > 1 {
-		t.opts.Command.Long = description[1]
+		t.opts.Command.UsageText = description[1]
 	}
 
 	if len(description) > 2 {
-		t.opts.Command.Example = description[2]
+		t.opts.Command.Description = description[2]
 	}
 
 	return
 }
 
-func (t *Entry) Commands(commands ...*cobra.Command) {
-	rootCmd := t.opts.Command
-	for _, cmd := range commands {
-		if cmd == nil {
-			continue
-		}
-
-		if rootCmd.Name() == cmd.Name() {
-			return
-		}
-
-		rootCmd.AddCommand(cmd)
+func (t *Entry) Commands(cmd *cli.Command) {
+	if cmd == nil {
+		return
 	}
+
+	t.opts.Command.Subcommands = append(t.opts.Command.Subcommands, cmd)
 }

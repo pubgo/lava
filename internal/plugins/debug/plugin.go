@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/pflag"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/logz"
@@ -24,8 +24,15 @@ func init() {
 	var openWeb bool
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnFlags: func(flags *pflag.FlagSet) {
-			flags.BoolVar(&openWeb, "web", openWeb, "open web browser")
+		OnFlags: func() []cli.Flag {
+			return []cli.Flag{
+				&cli.BoolFlag{
+					Name:        "debug.web",
+					Value:       openWeb,
+					Destination: &openWeb,
+					Usage:       "open web browser with debug mode",
+				},
+			}
 		},
 		OnInit: func() {
 			InitView()

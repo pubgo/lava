@@ -15,9 +15,8 @@ import (
 	"github.com/go-openapi/spec"
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
@@ -25,11 +24,11 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 )
 
-var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-	cmd.Use = "swagger"
-	cmd.Short = "start swagger web"
-	cmd.Example = clix.ExampleFmt(`lava rest.http`)
-	cmd.Run = func(cmd *cobra.Command, args []string) {
+var Cmd = &cli.Command{
+	Name:        "swagger",
+	Usage:       "start swagger web",
+	Description: clix.ExampleFmt(`lava rest.http`),
+	Action: func(ctx *cli.Context) error {
 		var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>
 		<head>
@@ -116,10 +115,11 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		var logs = logz.New("swagger")
 		if err := http.ListenAndServe(":8082", mux.Mux()); err != nil && err != http.ErrServerClosed {
 			logs.WithErr(err).Error("Server [swagger] Listen Error")
-			return
+			return nil
 		}
-	}
-})
+		return nil
+	},
+}
 
 // ServeCmd to serve a swagger spec with docs ui
 type ServeCmd struct {

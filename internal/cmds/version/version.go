@@ -9,32 +9,32 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/version"
 )
 
-var Cmd = &cobra.Command{
-	Use:     "version",
+var Cmd = &cli.Command{
+	Name:    "version",
 	Aliases: typex.StrOf("v"),
-	Short:   "Print the dependency package information",
-	Example: clix.ExampleFmt(
+	Usage:   "Print the dependency package information",
+	Description: clix.ExampleFmt(
 		"lava version",
 		"lava version json",
 		"lava version t"),
-	Run: func(cmd *cobra.Command, args []string) {
+	Action: func(ctx *cli.Context) error {
 		defer xerror.RespExit()
 
 		info, ok := debug.ReadBuildInfo()
 		if !ok {
-			return
+			return nil
 		}
 
 		var typ string
 
-		if len(args) > 0 {
-			typ = args[0]
+		if ctx.NArg() > 0 {
+			typ = ctx.Args().First()
 		}
 
 		switch typ {
@@ -56,6 +56,7 @@ var Cmd = &cobra.Command{
 			}
 			table.Render()
 		}
+		return nil
 	},
 }
 

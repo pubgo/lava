@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"os"
+
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmd/cmds/hello"
 	"github.com/pubgo/lava/cmd/cmds/logs"
@@ -10,21 +12,23 @@ import (
 	"github.com/pubgo/lava/cmd/cmds/protoc"
 	"github.com/pubgo/lava/cmd/cmds/swagger"
 	"github.com/pubgo/lava/cmd/cmds/trace"
-	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/version"
 )
 
 func main() {
-	clix.Execute(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-		runenv.Project = "lava"
-		cmd.Use = runenv.Project
-		cmd.Version = version.Version
-		cmd.AddCommand(trace.Cmd())
-		cmd.AddCommand(protoc.Cmd())
-		cmd.AddCommand(swagger.Cmd)
-		cmd.AddCommand(logs.Cmd)
-		cmd.AddCommand(hello.Cmd)
-		cmd.AddCommand(mage.Cmd)
-	})
+	runenv.Project = "lava"
+
+	xerror.Exit((&cli.App{
+		Name:    runenv.Project,
+		Version: version.Version,
+		Commands: cli.Commands{
+			trace.Cmd(),
+			protoc.Cmd(),
+			swagger.Cmd,
+			logs.Cmd,
+			hello.Cmd,
+			mage.Cmd,
+		},
+	}).Run(os.Args))
 }

@@ -2,13 +2,14 @@ package cli_entry
 
 import (
 	"fmt"
-	db2 "github.com/pubgo/lava/clients/db"
 	"time"
 
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/entry/cliEntry"
 	"github.com/pubgo/x/fx"
 	"go.uber.org/zap"
+
+	db2 "github.com/pubgo/lava/clients/db"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/entry/cliEntry"
 )
 
 var _ cliEntry.Service = (*Service)(nil)

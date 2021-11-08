@@ -11,21 +11,18 @@ import (
 	"github.com/magefile/mage/mage"
 	"github.com/manifoldco/promptui"
 	"github.com/manifoldco/promptui/list"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
-	"github.com/pubgo/lava/pkg/clix"
+	"github.com/urfave/cli/v2"
 )
 
-var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
-	cmd.Use = "mage"
-	cmd.Short = "mage install"
-	cmd.Run = func(cmd *cobra.Command, args []string) {
+var Cmd = &cli.Command{
+	Name:  "mage",
+	Usage: "mage install",
+	Action: func(ctx *cli.Context) error {
 		cmds := exec.Command("mage", "-l")
 		cmds.Stderr = os.Stderr
 		out, err := cmds.Output()
 		if err != nil {
-			return
+			return err
 		}
 
 		scan := bufio.NewScanner(bytes.NewBuffer(out))
@@ -65,7 +62,7 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 		_, result, err := prompt.Run()
 
 		if err != nil {
-			return
+			return err
 		}
 
 		result = strings.Split(result, " ")[0]
@@ -74,8 +71,9 @@ var Cmd = clix.Command(func(cmd *cobra.Command, flags *pflag.FlagSet) {
 
 		os.Args = append(os.Args, result)
 		os.Exit(mage.Main())
-	}
-})
+		return nil
+	},
+}
 
 const (
 	maxSize = 10
