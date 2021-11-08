@@ -4,8 +4,6 @@ import (
 	"reflect"
 )
 
-type M map[string]interface{}
-
 // StrOf string slice
 func StrOf(s1 string, ss ...string) []string {
 	return append(append(make([]string, 0, len(ss)+1), s1), ss...)

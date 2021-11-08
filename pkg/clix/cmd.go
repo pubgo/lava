@@ -2,8 +2,6 @@ package clix
 
 import (
 	"strings"
-
-	"github.com/urfave/cli/v2"
 )
 
 func ExampleFmt(data ...string) string {
@@ -13,5 +11,3 @@ func ExampleFmt(data ...string) string {
 	}
 	return "  " + strings.TrimSpace(str)
 }
-
-type Flags []cli.Flag

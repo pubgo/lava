@@ -1,12 +1,10 @@
 package ginEntry
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
+	"reflect"
 
 	"github.com/pubgo/lava/xgen"
 )
@@ -44,9 +42,4 @@ func checkHandle(handler interface{}) reflect.Value {
 	}
 
 	return reflect.Value{}
-}
-
-func getPort(addr string) string {
-	var addrList = strings.Split(addr, ":")
-	return addrList[len(addrList)-1]
 }

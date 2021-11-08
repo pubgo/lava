@@ -20,7 +20,7 @@ import (
 var defaultWatcher Watcher = &nullWatcher{}
 var logs = logz.New(Name)
 
-func Init() (err error) {
+func Init(projects ...string) (err error) {
 	defer xerror.RespErr(&err)
 
 	_ = config.Decode(Name, &cfg)
@@ -28,7 +28,6 @@ func Init() (err error) {
 	defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
 
 	// 获取所有需要watch的项目
-	projects := cfg.Projects
 	if !strutil.Contains(projects, runenv.Project) {
 		projects = append(projects, runenv.Project)
 	}
@@ -102,11 +101,6 @@ func onWatch(name string, resp *Response) {
 			config.GetCfg().Set(key, nil)
 		}
 	})
-
-	// 过滤掉Exclude中的project, 不执行callback
-	if strutil.Contains(cfg.Exclude, name) {
-		return
-	}
 
 	// 以name为前缀的所有的callbacks
 	for k, v := range callbacks {

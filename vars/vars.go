@@ -54,7 +54,7 @@ func (f value) String() string {
 	return byteutil.ToStr(v)
 }
 
-func Watch(name string, data func() interface{}) {
+func Register(name string, data func() interface{}) {
 	expvar.Publish(name, value(data))
 }
 

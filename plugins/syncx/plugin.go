@@ -8,9 +8,8 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/pkg/clix"
-	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 const Name = "syncx"
@@ -33,12 +32,12 @@ func SetMaxConcurrent(concurrent int64) {
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnFlags: func() []cli.Flag {
-			return clix.Flags{
+		OnFlags: func() types.Flags {
+			return types.Flags{
 				&cli.Int64Flag{
 					Name:        "concurrent",
 					Usage:       "Set maximum concurrency",
-					EnvVars:     typex.StrOf("lava-max-concurrency"),
+					EnvVars:     types.EnvOf("lava-max-concurrency"),
 					Value:       maxConcurrent,
 					Destination: &maxConcurrent,
 				},
@@ -47,9 +46,9 @@ func init() {
 		OnInit: func() {
 			SetMaxConcurrent(maxConcurrent)
 		},
-		OnVars: func(w func(name string, data func() interface{})) {
-			w(Name, func() interface{} {
-				return typex.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent.Load()}
+		OnVars: func(v types.Vars) {
+			v.Do(Name, func() interface{} {
+				return types.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent.Load()}
 			})
 		},
 	})

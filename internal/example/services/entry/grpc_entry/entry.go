@@ -2,10 +2,11 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/lava/plugins/healthy"
+	"net/http"
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/grpcEntry"
-	"github.com/pubgo/lava/healthy"
 	"github.com/pubgo/lava/internal/example/services/entry/grpc_entry/handler"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/types"
@@ -26,7 +27,7 @@ func GetEntry() entry.Entry {
 	})
 
 	// 健康检查
-	healthy.Register(name, func(ctx context.Context) error {
+	healthy.Register(name, func(req *http.Request) error {
 		return nil
 	})
 

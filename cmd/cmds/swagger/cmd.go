@@ -3,6 +3,7 @@ package swagger
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/plugins/syncx"
 	"html/template"
 	"io/fs"
 	"io/ioutil"
@@ -21,7 +22,6 @@ import (
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/clix"
-	"github.com/pubgo/lava/pkg/syncx"
 )
 
 var Cmd = &cli.Command{

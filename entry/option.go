@@ -8,13 +8,13 @@ import (
 
 type Opt func(o *Opts)
 type Opts struct {
-	Name         string
-	BeforeStarts []func()
-	AfterStarts  []func()
-	BeforeStops  []func()
-	AfterStops   []func()
-	Command      *cli.Command
-	Handlers     []InitHandler
-	Exclude      func() []string
-	Middlewares  []types.Middleware
+	Name          string
+	BeforeStarts  []func()
+	AfterStarts   []func()
+	BeforeStops   []func()
+	AfterStops    []func()
+	Command       *cli.Command
+	Handlers      []InitHandler
+	WatchProjects []string
+	Middlewares   []types.Middleware
 }

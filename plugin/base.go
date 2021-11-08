@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"context"
 	"encoding/json"
 	"reflect"
 
@@ -20,13 +19,13 @@ type Base struct {
 	Descriptor   string
 	Url          string
 	Docs         interface{}
-	OnHealth     func(ctx context.Context) error
+	OnHealth     types.Healthy
 	OnMiddleware types.Middleware
 	OnInit       func()
-	OnCommands   func() *cli.Command
-	OnFlags      func() []cli.Flag
-	OnWatch      func(name string, resp *types.WatchResp) error
-	OnVars       func(w func(name string, data func() interface{}))
+	OnCommands   func() *types.Command
+	OnFlags      func() types.Flags
+	OnWatch      types.Watcher
+	OnVars       func(v types.Vars)
 }
 
 func (p *Base) getFuncStack(val interface{}) string {
@@ -39,8 +38,9 @@ func (p *Base) getFuncStack(val interface{}) string {
 
 func (p *Base) MarshalJSON() ([]byte, error) {
 	defer xerror.RespRaise()
-	var data = make(map[string]string)
+	var data = make(map[string]interface{})
 	data["name"] = p.Name
+	data["docs"] = p.Docs
 	data["descriptor"] = p.Descriptor
 	data["url"] = p.Url
 	data["health"] = p.getFuncStack(p.OnHealth)
@@ -53,7 +53,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func (p *Base) Vars(f func(name string, data func() interface{})) error {
+func (p *Base) Vars(f types.Vars) error {
 	if p.OnVars == nil {
 		return nil
 	}
@@ -61,7 +61,7 @@ func (p *Base) Vars(f func(name string, data func() interface{})) error {
 	return xerror.Try(func() { p.OnVars(f) })
 }
 
-func (p *Base) Health() func(ctx context.Context) error {
+func (p *Base) Health() types.Healthy {
 	if p.OnHealth == nil {
 		return nil
 	}
@@ -80,7 +80,7 @@ func (p *Base) Init() error {
 	return nil
 }
 
-func (p *Base) Watch() func(name string, r *types.WatchResp) (err error) {
+func (p *Base) Watch() types.Watcher {
 	if p.OnWatch == nil {
 		return nil
 	}
@@ -96,7 +96,7 @@ func (p *Base) Commands() *cli.Command {
 	return p.OnCommands()
 }
 
-func (p *Base) Flags() []cli.Flag {
+func (p *Base) Flags() types.Flags {
 	if p.OnFlags == nil {
 		return nil
 	}

@@ -5,8 +5,8 @@ import (
 )
 
 func trace(t *restEntry) {
-	vars.Watch(t.Options().Name+"_cfg", func() interface{} { return t.cfg })
-	vars.Watch(t.Options().Name+"_rest_router", func() interface{} {
+	vars.Register(t.Options().Name+"_cfg", func() interface{} { return t.cfg })
+	vars.Register(t.Options().Name+"_rest_router", func() interface{} {
 		if t.srv.Get() == nil {
 			return nil
 		}

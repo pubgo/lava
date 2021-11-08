@@ -53,12 +53,6 @@ func DefaultFlags() []cli.Flag {
 			Usage:       "server(http|grpc|ws|...) address",
 			Value:       runenv.Addr,
 		},
-		&cli.StringFlag{
-			Name:        "debug-addr",
-			Destination: &runenv.DebugAddr,
-			Usage:       "debug server address",
-			Value:       runenv.DebugAddr,
-		},
 		&cli.BoolFlag{
 			Name:        "trace",
 			Destination: &runenv.Trace,

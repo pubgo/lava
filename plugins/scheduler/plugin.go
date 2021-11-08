@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
 )
@@ -14,7 +13,7 @@ func init() {
 		OnInit: func() {
 			quart.scheduler.Start()
 			resource.Update("", quart)
-			entry.BeforeStop(quart.scheduler.Stop)
+			plugin.BeforeStop(quart.scheduler.Stop)
 		},
 	})
 }

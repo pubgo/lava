@@ -6,8 +6,8 @@ import (
 )
 
 func trace(t *ginEntry) {
-	vars.Watch(t.Options().Name+"_cfg", func() interface{} { return t.cfg })
-	vars.Watch(t.Options().Name+"_gin_router", func() interface{} {
+	vars.Register(t.Options().Name+"_cfg", func() interface{} { return t.cfg })
+	vars.Register(t.Options().Name+"_gin_router", func() interface{} {
 		if t.srv == nil {
 			return nil
 		}

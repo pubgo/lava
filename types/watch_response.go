@@ -4,6 +4,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type Watcher func(name string, r *WatchResp) error
+
 type WatchResp struct {
 	Type    string
 	Event   EventType

@@ -7,8 +7,8 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/watcher"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
 )
@@ -45,9 +45,9 @@ func init() {
 			w.OnDelete(func() { resource.Remove(Name, name) })
 			return nil
 		},
-		OnVars: func(w func(name string, data func() interface{})) {
-			w(Name+"_cfg", func() interface{} { return cfgList })
-			w(Name+"_dbMetas", func() interface{} {
+		OnVars: func(v types.Vars) {
+			v(Name+"_cfg", func() interface{} { return cfgList })
+			v(Name+"_dbMetas", func() interface{} {
 				var dbMetas = make(map[string][]*schemas.Table)
 				for name, res := range resource.GetByKind(Name) {
 					dbMetas[name] = xerror.PanicErr(res.(*Client).DBMetas()).([]*schemas.Table)
@@ -55,7 +55,7 @@ func init() {
 				return dbMetas
 			})
 
-			w(Name+"_sqlList", func() interface{} {
+			v(Name+"_sqlList", func() interface{} {
 				var sqlList = make(map[string]string)
 				for name, res := range resource.GetByKind(Name) {
 					var b strutil.Builder

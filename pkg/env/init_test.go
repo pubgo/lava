@@ -2,14 +2,14 @@ package env
 
 import (
 	"testing"
-	
+
 	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
 )
 
 func TestSnakeCase(t *testing.T) {
 	defer xerror.RespTest(t)
-
+	
 	var snake = strcase.ToSnake
 	xerror.AssertEqual(snake("a.b"), "a_b")
 	xerror.AssertEqual(snake("a.b"), "a_b")

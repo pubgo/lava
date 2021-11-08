@@ -16,7 +16,6 @@ import (
 )
 
 const (
-	TraceId   = "trace_id"
 	KeyErrMsg = "err_msg"
 )
 

@@ -2,10 +2,10 @@ package requestID
 
 import (
 	"context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/segmentio/ksuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/lavax"

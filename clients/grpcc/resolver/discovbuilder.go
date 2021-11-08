@@ -3,13 +3,13 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/plugins/syncx"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
 )

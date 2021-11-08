@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	vars.Watch(Name+"_factories", func() interface{} {
+	vars.Register(Name+"_factories", func() interface{} {
 		var data = make(map[string]string)
 		for k, v := range factories {
 			data[k] = stack.Func(v)
@@ -14,7 +14,7 @@ func init() {
 		return data
 	})
 
-	vars.Watch(Name+"_callbacks", func() interface{} {
+	vars.Register(Name+"_callbacks", func() interface{} {
 		var data = make(map[string][]string)
 		for k, v := range callbacks {
 			for i := range v {

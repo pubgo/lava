@@ -1,38 +1,35 @@
 package healthy
 
 import (
-	"context"
-
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/types"
 )
 
 const Name = "health"
 
-type HealthCheck func(ctx context.Context) error
-
 var healthList typex.SMap
 
-func Get(names ...string) HealthCheck {
+func Get(names ...string) types.Healthy {
 	val, ok := healthList.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}
 
-	return val.(HealthCheck)
+	return val.(types.Healthy)
 }
 
-func List() (val []HealthCheck) {
+func List() (val []types.Healthy) {
 	healthList.Range(func(_, value interface{}) bool {
-		val = append(val, value.(HealthCheck))
+		val = append(val, value.(types.Healthy))
 		return true
 	})
 	return
 }
 
-func Register(name string, r HealthCheck) {
+func Register(name string, r types.Healthy) {
 	if r == nil {
 		return
 	}

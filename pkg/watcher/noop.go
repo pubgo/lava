@@ -3,13 +3,13 @@ package watcher
 import (
 	"context"
 
-	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/types"
 )
 
 var _ Watcher = (*nullWatcher)(nil)
 
 func init() {
-	Register("noop", func(cfg typex.M) (Watcher, error) { return new(nullWatcher), nil })
+	Register("noop", func(cfg types.M) (Watcher, error) { return new(nullWatcher), nil })
 }
 
 type nullWatcher struct{}
@@ -22,6 +22,8 @@ func (e *nullWatcher) GetCallback(ctx context.Context, key string, fn func(resp 
 }
 func (e *nullWatcher) WatchCallback(ctx context.Context, key string, fn func(resp *Response), opts ...Opt) {
 }
-func (e *nullWatcher) Close(ctx context.Context, opts ...Opt)                              {}
-func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response { return nil }
-func (e *nullWatcher) Name() string                                                        { return "noop" }
+func (e *nullWatcher) Close(ctx context.Context, opts ...Opt) {}
+func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response {
+	return nil
+}
+func (e *nullWatcher) Name() string { return "noop" }

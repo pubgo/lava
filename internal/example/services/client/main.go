@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/clients/grpcc"
 	"net/http"
 	"time"
 	_ "unsafe"
@@ -12,6 +11,7 @@ import (
 	"go.uber.org/zap"
 	_ "net/http/pprof"
 
+	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
 	"github.com/pubgo/lava/plugin"

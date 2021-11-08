@@ -2,9 +2,9 @@ package gcnotifier
 
 import (
 	"github.com/CAFxX/gcnotifier"
+	"github.com/pubgo/lava/plugins/syncx"
 
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runenv"
 )

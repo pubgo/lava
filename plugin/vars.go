@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	vars.Watch(Name, func() interface{} {
+	vars.Register(Name, func() interface{} {
 		var data typex.Map
 		for k, v := range All() {
 			data.Set(k, v)

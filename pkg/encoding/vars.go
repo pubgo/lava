@@ -5,5 +5,5 @@ import (
 )
 
 func init() {
-	vars.Watch(Name, func() interface{} { return Keys() })
+	vars.Register(Name, func() interface{} { return Keys() })
 }

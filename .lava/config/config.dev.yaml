@@ -87,7 +87,6 @@ db:
   default:
     driver: "sqlite3x"
     source: "./db/sqlite.db"
-
 registry:
   driver: "mdns"
   ttl: "5s"

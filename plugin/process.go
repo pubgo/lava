@@ -1,4 +1,4 @@
-package entry
+package plugin
 
 import (
 	"sync"

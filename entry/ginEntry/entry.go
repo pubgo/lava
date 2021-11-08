@@ -13,7 +13,8 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runenv"
 )
 
@@ -79,7 +80,7 @@ func (t *ginEntry) Start() error {
 	return xerror.Try(func() {
 		// 启动server后等待
 		syncx.GoDelay(func() {
-			logs.Infof("Server Listening On http://localhost:%s", getPort(runenv.Addr))
+			logs.Infof("Server Listening On http://localhost:%s", netutil.MustGetPort(runenv.Addr))
 			logs.Logs("Server Close", func() error {
 				if err := t.srv.Run(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					return err

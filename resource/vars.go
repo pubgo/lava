@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	vars.Watch(Name, func() interface{} {
+	vars.Register(Name, func() interface{} {
 		var data = make(map[string]map[string]string)
 		sources.Range(func(key, val interface{}) bool {
 			var kind = val.(Resource).Kind()

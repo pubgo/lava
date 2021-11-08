@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	vars.Watch("xgen", func() interface{} {
+	vars.Register("xgen", func() interface{} {
 		var dt typex.Map
 		for k, v := range List() {
 			var mthList, ok = v.([]GrpcRestHandler)

@@ -11,10 +11,8 @@ const Name = "watcher"
 var cfg = DefaultCfg()
 
 type Cfg struct {
-	SkipNull bool     `json:"skip_null"`
-	Driver   string   `json:"driver"`
-	Projects []string `json:"projects"`
-	Exclude  []string `json:"exclude"`
+	SkipNull bool   `json:"skip_null"`
+	Driver   string `json:"driver"`
 }
 
 func (cfg Cfg) Build() (_ Watcher, err error) {

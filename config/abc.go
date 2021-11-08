@@ -3,10 +3,6 @@ package config
 import (
 	"errors"
 	"io"
-
-	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
-
 )
 
 var ErrKeyNotFound = errors.New("config key not found")
@@ -21,8 +17,4 @@ type Config interface {
 	MergeConfig(in io.Reader) error
 	All() map[string]interface{}
 	GetMap(key string) map[string]interface{}
-}
-
-func On(fn func(cfg Config)) {
-	xerror.Exit(dix.Provider(fn))
 }

@@ -2,36 +2,36 @@ package healthy
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/mux"
+	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/types"
 )
 
 func init() {
-	http.HandleFunc("/health", httpHandle)
+	mux.Get("/health", httpHandle)
 }
 
 type health struct {
 	Cost string `json:"cost,omitempty"`
 	Err  error  `json:"err,omitempty"`
+	Msg  string `json:"err_msg,omitempty"`
 }
 
 func httpHandle(writer http.ResponseWriter, request *http.Request) {
 	var dt = make(map[string]*health)
 	xerror.Panic(healthList.Each(func(name string, r interface{}) {
-		dt[name] = &health{}
-		dt[name].Cost = fx.CostWith(func() {
-			xerror.TryCatch(func() (interface{}, error) {
-				return nil, r.(HealthCheck)(ctxutil.Timeout(time.Second * 2))
-			}, func(err error) {
-				dt[name].Err = err
-				writer.WriteHeader(http.StatusInternalServerError)
-			})
-		}).String()
+		var h = &health{}
+		var dur, err = lavax.Cost(func() { xerror.Panic(r.(types.Healthy)(request)) })
+		h.Cost = dur.String()
+		if err != nil {
+			h.Msg = err.Error()
+			h.Err = err
+		}
+		dt[name] = h
 	}))
 
 	var bts, err = jsonx.Marshal(dt)

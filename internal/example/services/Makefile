@@ -1,6 +1,6 @@
 WORKDIR=`pwd`
 Domain=lava
-VersionBase=github.com/pubgo/lava/example/services
+VersionBase=github.com/pubgo/lava
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=8 HEAD)

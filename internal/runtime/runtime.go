@@ -1,28 +1,26 @@
 package runtime
 
 import (
+	"github.com/pubgo/lava/plugins/healthy"
+	"github.com/pubgo/lava/plugins/syncx"
 	"os"
 	"os/signal"
 	"sort"
 	"syscall"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
-	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/healthy"
 	"github.com/pubgo/lava/internal/cmds/restapi"
 	v "github.com/pubgo/lava/internal/cmds/version"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/watcher"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
@@ -36,7 +34,6 @@ var app = &cli.App{
 	Version: version.Version,
 	Commands: cli.Commands{
 		v.Cmd,
-		healthy.Cmd,
 		restapi.Cmd,
 	},
 }
@@ -64,7 +61,7 @@ func handleSignal() {
 
 func start(ent entry.Runtime) {
 	logs.StepAndThrow("before-start running", func() error {
-		beforeList := append(entry.GetBeforeStartsList(), ent.Options().BeforeStarts...)
+		beforeList := append(plugin.GetBeforeStartsList(), ent.Options().BeforeStarts...)
 		for i := range beforeList {
 			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
@@ -75,7 +72,7 @@ func start(ent entry.Runtime) {
 	logs.StepAndThrow("server start", ent.Start)
 
 	logs.StepAndThrow("after-start running", func() error {
-		afterList := append(entry.GetAfterStartsList(), ent.Options().AfterStarts...)
+		afterList := append(plugin.GetAfterStartsList(), ent.Options().AfterStarts...)
 		for i := range afterList {
 			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
@@ -86,7 +83,7 @@ func start(ent entry.Runtime) {
 
 func stop(ent entry.Runtime) {
 	logs.Step("before-stop running", func() error {
-		beforeList := append(entry.GetBeforeStopsList(), ent.Options().BeforeStops...)
+		beforeList := append(plugin.GetBeforeStopsList(), ent.Options().BeforeStops...)
 		for i := range beforeList {
 			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
@@ -97,7 +94,7 @@ func stop(ent entry.Runtime) {
 	logs.Step("server stop", ent.Stop)
 
 	logs.Step("after-stop running", func() error {
-		afterList := append(entry.GetAfterStopsList(), ent.Options().AfterStops...)
+		afterList := append(plugin.GetAfterStopsList(), ent.Options().AfterStops...)
 		for i := range afterList {
 			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
@@ -120,62 +117,56 @@ func Run(description string, entries ...entry.Entry) {
 
 	app.Usage = description
 	app.Description = description
+
+	// 注册默认flags
 	app.Flags = append(app.Flags, config.DefaultFlags()...)
+
+	// 注册全局plugin
+	for _, plg := range plugin.All() {
+		app.Flags = append(app.Flags, plg.Flags()...)
+
+		var cmd = plg.Commands()
+		if cmd != nil {
+			// 检查Command是否注册
+			xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+			app.Commands = append(app.Commands, cmd)
+		}
+
+		// 注册健康检查
+		if plg.Health() != nil {
+			healthy.Register(plg.UniqueName(), plg.Health())
+		}
+
+		// 注册vars
+		xerror.Panic(plg.Vars(vars.Register))
+
+		// 注册watcher
+		if plg.Watch() != nil {
+			watcher.Watch(plg.UniqueName(), plg.Watch())
+		}
+	}
 
 	for i := range entries {
 		ent := entries[i]
 		entRT := ent.(entry.Runtime)
 		cmd := entRT.Options().Command
 
-		// 检查Command是否注册
+		// 检查项目Command是否注册
 		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
-
-		// 注册plugin的command和flags
-		// 先注册全局, 后注册项目相关
-		for _, plg := range plugin.All() {
-			cmd.Flags = append(cmd.Flags, plg.Flags()...)
-			ent.Commands(plg.Commands())
-			entRT.MiddlewareInter(plg.Middleware())
-		}
 
 		cmd.Before = func(ctx *cli.Context) error {
 			defer xerror.RespExit()
-			var exclude = func() []string {
-				if entRT.Options().Exclude == nil {
-					return nil
-				}
-				return entRT.Options().Exclude()
-			}()
-
 			// 项目名初始化
 			runenv.Project = entRT.Options().Name
 
-			// config初始化
+			// 本地配置初始化
 			xerror.Panic(config.Init())
 
-			// 配置依赖注入
-			xerror.Exit(dix.Provider(config.GetCfg()))
+			// 日志初始化
+			logger.Init()
 
 			// plugin初始化
 			for _, plg := range plugin.All() {
-				if strutil.Contain(exclude, plg.UniqueName()) {
-					continue
-				}
-
-				// 注册watcher
-				if plg.Watch() != nil {
-					logs.LogAndThrow("plugin register watcher",
-						func() error { watcher.Watch(plg.UniqueName(), plg.Watch()); return nil },
-						logger.Name(plg.UniqueName()),
-					)
-				}
-
-				// 注册健康检查
-				healthy.Register(plg.UniqueName(), plg.Health())
-
-				// 注册vars
-				xerror.Panic(plg.Vars(vars.Watch))
-
 				logs.Logs("plugin init", plg.Init, logger.Name(plg.UniqueName()))
 			}
 
@@ -183,7 +174,7 @@ func Run(description string, entries ...entry.Entry) {
 			entRT.InitRT()
 
 			// watcher初始化, 最后初始化, 从远程获取最新的配置
-			xerror.Panic(watcher.Init())
+			xerror.Panic(watcher.Init(entRT.Options().WatchProjects...))
 			return nil
 		}
 

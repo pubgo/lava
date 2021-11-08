@@ -7,6 +7,7 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 func init() {
@@ -23,8 +24,8 @@ func init() {
 				xerror.Exit(dix.ProviderNs(name, bk))
 			}
 		},
-		OnVars: func(w func(name string, data func() interface{})) {
-			w(Name+"_factory", func() interface{} {
+		OnVars: func(v types.Vars) {
+			v(Name+"_factory", func() interface{} {
 				var data = make(map[string]string)
 				xerror.Panic(factories.Each(func(name string, fc Factory) {
 					data[name] = stack.Func(fc)
@@ -32,7 +33,7 @@ func init() {
 				return data
 			})
 
-			w(Name, func() interface{} {
+			v(Name, func() interface{} {
 				var data = make(map[string]string)
 				xerror.Panic(brokers.Each(func(name string, fc Broker) {
 					data[name] = fc.String()
