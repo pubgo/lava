@@ -7,6 +7,8 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
+var _ resolver.Builder = (*directBuilder)(nil)
+
 // directBuilder creates a directBuilder which is used to factory direct resolvers.
 // example:
 //   direct://<authority>/127.0.0.1:9000,127.0.0.2:9000

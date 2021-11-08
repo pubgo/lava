@@ -20,15 +20,15 @@ func (x RunMode) String() string {
 }
 
 const (
-	RunMode_dev     RunMode = 0
-	RunMode_test    RunMode = 1
-	RunMode_stag    RunMode = 2
-	RunMode_prod    RunMode = 3
-	RunMode_release RunMode = 4
-	RunMode_unknown RunMode = 5
+	RunmodeDev     RunMode = 0
+	RunmodeTest    RunMode = 1
+	RunmodeStag    RunMode = 2
+	RunmodeProd    RunMode = 3
+	RunmodeRelease RunMode = 4
+	RunModeUnknown RunMode = 5
 )
 
-var RunMode_value = map[string]int32{
+var RunmodeValue = map[string]int32{
 	"dev":     0,
 	"test":    1,
 	"stag":    2,
@@ -39,7 +39,7 @@ var RunMode_value = map[string]int32{
 
 // CheckMode 运行环境检查
 func CheckMode() bool {
-	if _, ok := RunMode_value[Mode]; ok {
+	if _, ok := RunmodeValue[Mode]; ok {
 		return ok
 	}
 
@@ -47,21 +47,21 @@ func CheckMode() bool {
 }
 
 func IsDev() bool {
-	return Mode == RunMode_dev.String()
+	return Mode == RunmodeDev.String()
 }
 
 func IsTest() bool {
-	return Mode == RunMode_test.String()
+	return Mode == RunmodeTest.String()
 }
 
 func IsStag() bool {
-	return Mode == RunMode_stag.String()
+	return Mode == RunmodeStag.String()
 }
 
 func IsProd() bool {
-	return Mode == RunMode_prod.String()
+	return Mode == RunmodeProd.String()
 }
 
 func IsRelease() bool {
-	return Mode == RunMode_release.String()
+	return Mode == RunmodeRelease.String()
 }

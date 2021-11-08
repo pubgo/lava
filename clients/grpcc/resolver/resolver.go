@@ -6,13 +6,16 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/plugins/registry"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
+var logs = logz.New("balancer.resolver")
+
 const (
-	DirectScheme    = "direct"
+	DirectScheme = "direct"
 	DiscovScheme = "discov"
 	EndpointSep  = ","
 )
@@ -20,11 +23,6 @@ const (
 var (
 	Replica = 1
 )
-
-func init() {
-	resolver.Register(&directBuilder{})
-	resolver.Register(&discovBuilder{})
-}
 
 type baseResolver struct {
 	builder string

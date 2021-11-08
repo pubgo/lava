@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/pubgo/lava/logger"
 	"os"
 	"os/signal"
 	"syscall"
@@ -18,7 +19,6 @@ import (
 	"github.com/pubgo/lava/internal/cmds/restapi"
 	v "github.com/pubgo/lava/internal/cmds/version"
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/watcher"

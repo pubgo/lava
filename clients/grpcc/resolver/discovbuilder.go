@@ -9,13 +9,12 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
 )
 
-var logs = logz.New("balancer.resolver")
+var _ resolver.Builder = (*discovBuilder)(nil)
 
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address

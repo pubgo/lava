@@ -16,7 +16,7 @@ import (
 func checkConcurrent(name string, fn interface{}) func() {
 	curConcurrent.Inc()
 
-	// 阻塞, 等待任务处理完毕
+	// 阻塞,等待任务执行完毕
 	for curConcurrent.Load() > maxConcurrent {
 		runtime.Gosched()
 
@@ -46,7 +46,10 @@ func Wait(val ...chan Value) []Value {
 	return valList
 }
 
-// GoChan 通过chan的方式同步执行并发任务
+// Async 通过chan的方式同步执行异步任务
+func Async(fn func() Value) chan Value { return GoChan(fn) }
+
+// GoChan 通过chan的方式同步执行异步任务
 func GoChan(fn func() Value) chan Value {
 	if fn == nil {
 		panic("[GoChan] [fn] is nil")

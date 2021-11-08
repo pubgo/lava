@@ -166,7 +166,7 @@ func (t *configImpl) Init() (err error) {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
-	xerror.Assert(!runenv.CheckMode(), "mode(%s) not match in all(%v)", runenv.Mode, runenv.RunMode_value)
+	xerror.Assert(!runenv.CheckMode(), "mode(%s) not match in all(%v)", runenv.Mode, runenv.RunmodeValue)
 
 	// 配置处理
 	v := t.v

@@ -2,7 +2,6 @@ package grpc_entry
 
 import (
 	"context"
-
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/grpcEntry"
 	"github.com/pubgo/lava/healthy"

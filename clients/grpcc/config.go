@@ -2,8 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/clients/grpcc/balancer/p2c"
-	"github.com/pubgo/lava/clients/grpcc/balancer/resolver"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -12,6 +10,8 @@ import (
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
 
+	"github.com/pubgo/lava/clients/grpcc/lb/p2c"
+	"github.com/pubgo/lava/clients/grpcc/resolver"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/registry"
@@ -112,11 +112,11 @@ type Cfg struct {
 	// MaxRecvMsgSize maximum message that Client can receive (4 MB).
 	MaxRecvMsgSize     int                            `json:"max_recv_msg_size"`
 	NoProxy            bool                           `json:"no_proxy"`
-	Proxy            bool             `json:"proxy"`
-	ConnectParams    connectParams    `json:"connect_params"`
-	ClientParameters clientParameters `json:"client_parameters"`
-	Call             callParameters   `json:"call"`
-	Middlewares      []string         `json:"-"`
+	Proxy              bool                           `json:"proxy"`
+	ConnectParams      connectParams                  `json:"connect_params"`
+	ClientParameters   clientParameters               `json:"client_parameters"`
+	Call               callParameters                 `json:"call"`
+	Middlewares        []string                       `json:"-"`
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`

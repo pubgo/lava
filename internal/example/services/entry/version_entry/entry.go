@@ -2,7 +2,6 @@ package version_entry
 
 import (
 	"context"
-
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/ginEntry"
 	"github.com/pubgo/lava/logger"

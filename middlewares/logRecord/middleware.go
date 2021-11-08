@@ -3,12 +3,12 @@ package logRecord
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"

@@ -31,6 +31,10 @@ var Hostname = lavax.FirstNotEmpty(
 	},
 )
 
+func init() {
+
+}
+
 // Home the home directory for the current user
 var Home = lavax.FirstNotEmpty(
 	homedir.HomeDir,

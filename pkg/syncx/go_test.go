@@ -51,13 +51,13 @@ func TestGoChan(t *testing.T) {
 		fmt.Println(time.Since(now))
 	}()
 
-	var val1 = GoChan(func() Value {
+	var val1 = Async(func() Value {
 		time.Sleep(time.Millisecond)
 		fmt.Println("2")
 		//return WithErr(errors.New("error"))
 		return WithVal("hello")
 	})
-
+	
 	var val2 = GoChan(func() Value {
 		time.Sleep(time.Millisecond)
 		fmt.Println("3")

@@ -18,6 +18,11 @@ import (
 
 	// 用于系统诊断
 	_ "github.com/pubgo/lava/internal/plugins/gops"
+
+	// gc plugin
+	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
+
+	_ "github.com/pubgo/lava/internal/plugins/machineid"
 )
 
 // 加载拦截器, 注意加载顺序

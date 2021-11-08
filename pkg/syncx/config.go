@@ -17,6 +17,7 @@ var maxConcurrent uint32 = 100000
 var curConcurrent atomic.Uint32
 var logs = logz.New(Name)
 
+// SetMaxConcurrent 设置最大并发数
 func SetMaxConcurrent(concurrent uint32) {
 	if runtime.NumCPU()*100 > int(concurrent) {
 		panic(fmt.Sprintf("concurrent should more than %d", runtime.NumCPU()*100))

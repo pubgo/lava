@@ -2,6 +2,7 @@ package version_entry
 
 import (
 	"context"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,6 @@ import (
 	db2 "github.com/pubgo/lava/clients/db"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
-	"github.com/pubgo/lava/logger"
 )
 
 var _ hello.TestApiServer = (*Service)(nil)

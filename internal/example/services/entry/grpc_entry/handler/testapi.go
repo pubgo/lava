@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logger"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -13,7 +14,6 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/logRecord"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/middlewares/traceRecord"

@@ -6,9 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type (
-	loggerKey struct{}
-)
+type loggerKey struct{}
 
 func CtxWithLogger(parent context.Context, logger *zap.Logger) context.Context {
 	return context.WithValue(parent, loggerKey{}, logger)
