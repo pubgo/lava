@@ -13,4 +13,4 @@
 9. tracing和metric自动集成, 通过reqId打通业务日志和tracing日志
 10. 统一抽象的middleware, gin和grpc的server以及client共享一套middleware抽象
 
-## (example)[./internal/example/services]
+## [example](./internal/example/services)
