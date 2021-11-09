@@ -24,10 +24,16 @@ func init() {
 var cfg Cfg
 
 type Cfg struct {
-	Root    []string            `yaml:"root,omitempty"`
-	Depends []depend            `yaml:"deps,omitempty"`
-	Input   []string            `yaml:"input,omitempty"`
-	Plugins map[string][]string `yaml:"plugins,omitempty"`
+	Root    []string `yaml:"root,omitempty"`
+	Depends []depend `yaml:"deps,omitempty"`
+	Input   []string `yaml:"input,omitempty"`
+	Plugins []plugin `yaml:"plugins,omitempty"`
+}
+
+type plugin struct {
+	Name string      `yaml:"name,omitempty"`
+	Out  string      `yaml:"out,omitempty"`
+	Opt  interface{} `yaml:"opt,omitempty"`
 }
 
 type depend struct {

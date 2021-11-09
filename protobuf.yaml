@@ -17,8 +17,8 @@ deps:
   - name: google/protobuf
     url: /usr/local/include/google/protobuf
 plugins:
-  go:
-    - paths=source_relative:.
+  - name: "go"
+    opt: "paths=source_relative"
 root:
   - types
   - proto

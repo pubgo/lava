@@ -21,21 +21,42 @@ deps:
   - name: google/protobuf
     url: /usr/local/include/google/protobuf
 plugins:
-  go:
-    - paths=source_relative:protopb
-  go-grpc:
-    - require_unimplemented_servers=false
-    - paths=source_relative:protopb
-  govalidators:
-    - paths=source_relative:protopb
-  grpc-gateway:
-    - allow_repeated_fields_in_body=true
-    - paths=source_relative:protopb
-  lava:
-    - gin=true
-    - rest=true
-    - paths=source_relative:protopb
-  openapiv2:
-    - logtostderr=true
-    - allow_repeated_fields_in_body=true
-    - repeated_path_param_separator=ssv:./docs/swagger
+  - name: "go"
+    opt: "paths=source_relative"
+    out: "protopb"
+
+  - name: "go-grpc"
+    opt:
+      - "require_unimplemented_servers=false"
+      - "paths=source_relative"
+    out: "protopb"
+
+  - name: "govalidators"
+    out: "protopb"
+    opt: "paths=source_relative"
+
+  - name: "grpc-gateway"
+    out: "protopb"
+    opt:
+      - "allow_repeated_fields_in_body=true"
+      - "paths=source_relative"
+
+  - name: "lava"
+    out: "protopb"
+    opt:
+      - "gin=true"
+      - "rest=true"
+      - "paths=source_relative"
+
+  - name: "openapiv2"
+    out: "./docs/swagger"
+    opt:
+      - "logtostderr=true"
+      - "allow_repeated_fields_in_body=true"
+      - "repeated_path_param_separator=ssv"
+
+  - name: "doc"
+    out: "./docs/markdown"
+    opt:
+#      - "html,index.html"
+      - "markdown,index.md"

@@ -169,9 +169,49 @@ func Cmd() *cli.Command {
 						var in = key.(string)
 
 						var data = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
-						for name, out := range cfg.Plugins {
-							if len(out) > 0 {
-								data += fmt.Sprintf(" --%s_out=%s", name, strings.Join(out, ","))
+						for i := range cfg.Plugins {
+							var plg = cfg.Plugins[i]
+
+							var name = plg.Name
+
+							var out = func() string {
+								// https://github.com/pseudomuto/protoc-gen-doc
+								// 目录特殊处理
+								if name == "doc" {
+									var out = filepath.Join(plg.Out, in)
+									xerror.Panic(pathutil.IsNotExistMkDir(out))
+									return out
+								}
+
+								if plg.Out != "" {
+									return plg.Out
+								}
+
+								return "."
+							}()
+
+							var opts = func(dt interface{}) []string {
+								switch _dt := dt.(type) {
+								case string:
+									if _dt != "" {
+										return []string{_dt}
+									}
+								case []string:
+									return _dt
+								case []interface{}:
+									var dtList []string
+									for i := range _dt {
+										dtList = append(dtList, _dt[i].(string))
+									}
+									return dtList
+								}
+								return nil
+							}(plg.Opt)
+
+							data += fmt.Sprintf(" --%s_out=%s", name, out)
+
+							if len(opts) > 0 {
+								data += fmt.Sprintf(" --%s_opt=%s", name, strings.Join(opts, ","))
 							}
 						}
 						data = data + " " + filepath.Join(in, "*.proto")

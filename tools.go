@@ -54,4 +54,7 @@ import (
 
 	// Package profiling exposes methods to manage profiling within gRPC.
 	_ "google.golang.org/grpc/profiling/cmd"
+
+	// Documentation generator plugin for Google Protocol Buffers
+	_ "github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
 )
