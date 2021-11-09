@@ -9,7 +9,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			var cfg = GetDefaultCfg()
 			_ = config.Decode(Name, &cfg)
 			xerror.Panic(cfg.Build())

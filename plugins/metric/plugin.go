@@ -18,7 +18,7 @@ func init() {
 		OnWatch: func(name string, resp *types.WatchResp) error {
 			return nil
 		},
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			var cfg = GetDefaultCfg()
 			_ = config.Decode(Name, &cfg)
 
@@ -35,7 +35,7 @@ func init() {
 			xerror.Exit(fc(config.GetMap(Name), &opts))
 
 			scope, closer := tally.NewRootScope(opts, cfg.Interval)
-			plugin.AfterStop(func() { xerror.Panic(closer.Close()) })
+			p.AfterStop(func() { xerror.Panic(closer.Close()) })
 
 			// 资源更新
 			resource.Update("", &Resource{scope})

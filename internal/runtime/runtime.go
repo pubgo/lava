@@ -1,8 +1,6 @@
 package runtime
 
 import (
-	"github.com/pubgo/lava/plugins/healthy"
-	"github.com/pubgo/lava/plugins/syncx"
 	"os"
 	"os/signal"
 	"sort"
@@ -21,6 +19,8 @@ import (
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/healthy"
+	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
@@ -61,7 +61,11 @@ func handleSignal() {
 
 func start(ent entry.Runtime) {
 	logs.StepAndThrow("before-start running", func() error {
-		beforeList := append(plugin.GetBeforeStartsList(), ent.Options().BeforeStarts...)
+		var beforeList []func()
+		for _, p := range plugin.All() {
+			beforeList = append(beforeList, p.BeforeStarts()...)
+		}
+		beforeList = append(beforeList, ent.Options().BeforeStarts...)
 		for i := range beforeList {
 			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
@@ -72,7 +76,11 @@ func start(ent entry.Runtime) {
 	logs.StepAndThrow("server start", ent.Start)
 
 	logs.StepAndThrow("after-start running", func() error {
-		afterList := append(plugin.GetAfterStartsList(), ent.Options().AfterStarts...)
+		var afterList []func()
+		for _, p := range plugin.All() {
+			afterList = append(afterList, p.AfterStarts()...)
+		}
+		afterList = append(afterList, ent.Options().AfterStarts...)
 		for i := range afterList {
 			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
@@ -83,7 +91,11 @@ func start(ent entry.Runtime) {
 
 func stop(ent entry.Runtime) {
 	logs.Step("before-stop running", func() error {
-		beforeList := append(plugin.GetBeforeStopsList(), ent.Options().BeforeStops...)
+		var beforeList []func()
+		for _, p := range plugin.All() {
+			beforeList = append(beforeList, p.BeforeStops()...)
+		}
+		beforeList = append(beforeList, ent.Options().BeforeStops...)
 		for i := range beforeList {
 			logs.Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
@@ -94,7 +106,11 @@ func stop(ent entry.Runtime) {
 	logs.Step("server stop", ent.Stop)
 
 	logs.Step("after-stop running", func() error {
-		afterList := append(plugin.GetAfterStopsList(), ent.Options().AfterStops...)
+		var afterList []func()
+		for _, p := range plugin.All() {
+			afterList = append(afterList, p.AfterStops()...)
+		}
+		afterList = append(afterList, ent.Options().AfterStops...)
 		for i := range afterList {
 			logs.Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))

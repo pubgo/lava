@@ -10,10 +10,10 @@ const Name = "scheduler"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			quart.scheduler.Start()
 			resource.Update("", quart)
-			plugin.BeforeStop(quart.scheduler.Stop)
+			p.BeforeStop(quart.scheduler.Stop)
 		},
 	})
 }

@@ -43,7 +43,7 @@ func init() {
 				},
 			}
 		},
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			SetMaxConcurrent(maxConcurrent)
 		},
 		OnVars: func(v types.Vars) {

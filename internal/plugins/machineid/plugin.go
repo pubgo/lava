@@ -15,7 +15,7 @@ var logs = logz.New(Name)
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			id, err := machineid.ID()
 			xerror.Panic(err)
 			logs.Infof("machineid=>%s", id)

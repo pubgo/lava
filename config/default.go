@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 )
 
 var (
@@ -20,12 +20,6 @@ var (
 	CfgPath = ""
 	cfg     = &configImpl{v: viper.New()}
 )
-
-func init() {
-	env.GetWith(&CfgType, "cfg_type", "config_type")
-	env.GetWith(&CfgName, "cfg_name", "config_name")
-	env.GetWith(&Home, "project_home", "config_home", "config_dir")
-}
 
 func Init() error                                  { return getCfg().Init() }
 func GetCfg() Config                               { return getCfg() }
@@ -59,13 +53,16 @@ func DefaultFlags() []cli.Flag {
 			Aliases:     typex.StrOf("t"),
 			Usage:       "enable trace",
 			Value:       runenv.Trace,
+			EnvVars:     types.EnvOf("trace", "trace-log", "tracelog"),
 		},
+		// 运行环境
 		&cli.StringFlag{
 			Name:        "mode",
 			Destination: &runenv.Mode,
 			Aliases:     typex.StrOf("m"),
 			Usage:       "running mode(dev|test|stag|prod|release)",
 			Value:       runenv.Mode,
+			EnvVars:     types.EnvOf("run-mode", "run-env"),
 		},
 		&cli.StringFlag{
 			Name:        "level",

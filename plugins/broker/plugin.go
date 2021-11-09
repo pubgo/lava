@@ -13,7 +13,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			if config.Decode(Name, &cfgList) != nil {
 				return
 			}

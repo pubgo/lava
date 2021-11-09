@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -20,7 +19,7 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 			return err
 		}
 
-		return xerror.Wrap(rsp(&response{req: reqCtx, resp: reqCtx.reply}))
+		return rsp(&response{req: reqCtx, resp: reqCtx.reply})
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {

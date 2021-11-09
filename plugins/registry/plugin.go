@@ -10,7 +10,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			var cfg = GetDefaultCfg()
 			if config.Decode(Name, &cfg) != nil {
 				return

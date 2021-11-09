@@ -25,7 +25,7 @@ func GetEntry() entry.Entry {
 
 	plugin.Register(&plugin.Base{
 		Name: "hello",
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			fmt.Println("hello plugin")
 		},
 	})

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.17.3
-// source: event.proto
+// source: types/event.proto
 
 package types
 
@@ -56,11 +56,11 @@ func (x EventType) String() string {
 }
 
 func (EventType) Descriptor() protoreflect.EnumDescriptor {
-	return file_event_proto_enumTypes[0].Descriptor()
+	return file_types_event_proto_enumTypes[0].Descriptor()
 }
 
 func (EventType) Type() protoreflect.EnumType {
-	return &file_event_proto_enumTypes[0]
+	return &file_types_event_proto_enumTypes[0]
 }
 
 func (x EventType) Number() protoreflect.EnumNumber {
@@ -69,38 +69,38 @@ func (x EventType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EventType.Descriptor instead.
 func (EventType) EnumDescriptor() ([]byte, []int) {
-	return file_event_proto_rawDescGZIP(), []int{0}
+	return file_types_event_proto_rawDescGZIP(), []int{0}
 }
 
-var File_event_proto protoreflect.FileDescriptor
+var File_types_event_proto protoreflect.FileDescriptor
 
-var file_event_proto_rawDesc = []byte{
-	0x0a, 0x0b, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x05, 0x74,
-	0x79, 0x70, 0x65, 0x73, 0x2a, 0x3c, 0x0a, 0x09, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x79, 0x70,
-	0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0a,
-	0x0a, 0x06, 0x43, 0x52, 0x45, 0x41, 0x54, 0x45, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x55, 0x50,
-	0x44, 0x41, 0x54, 0x45, 0x10, 0x02, 0x12, 0x0a, 0x0a, 0x06, 0x44, 0x45, 0x4c, 0x45, 0x54, 0x45,
-	0x10, 0x03, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x3b, 0x74, 0x79, 0x70, 0x65, 0x73, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+var file_types_event_proto_rawDesc = []byte{
+	0x0a, 0x11, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x12, 0x05, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2a, 0x3c, 0x0a, 0x09, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f,
+	0x57, 0x4e, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x43, 0x52, 0x45, 0x41, 0x54, 0x45, 0x10, 0x01,
+	0x12, 0x0a, 0x0a, 0x06, 0x55, 0x50, 0x44, 0x41, 0x54, 0x45, 0x10, 0x02, 0x12, 0x0a, 0x0a, 0x06,
+	0x44, 0x45, 0x4c, 0x45, 0x54, 0x45, 0x10, 0x03, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x3b, 0x74,
+	0x79, 0x70, 0x65, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_event_proto_rawDescOnce sync.Once
-	file_event_proto_rawDescData = file_event_proto_rawDesc
+	file_types_event_proto_rawDescOnce sync.Once
+	file_types_event_proto_rawDescData = file_types_event_proto_rawDesc
 )
 
-func file_event_proto_rawDescGZIP() []byte {
-	file_event_proto_rawDescOnce.Do(func() {
-		file_event_proto_rawDescData = protoimpl.X.CompressGZIP(file_event_proto_rawDescData)
+func file_types_event_proto_rawDescGZIP() []byte {
+	file_types_event_proto_rawDescOnce.Do(func() {
+		file_types_event_proto_rawDescData = protoimpl.X.CompressGZIP(file_types_event_proto_rawDescData)
 	})
-	return file_event_proto_rawDescData
+	return file_types_event_proto_rawDescData
 }
 
-var file_event_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_event_proto_goTypes = []interface{}{
+var file_types_event_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_types_event_proto_goTypes = []interface{}{
 	(EventType)(0), // 0: types.EventType
 }
-var file_event_proto_depIdxs = []int32{
+var file_types_event_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -108,27 +108,27 @@ var file_event_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_event_proto_init() }
-func file_event_proto_init() {
-	if File_event_proto != nil {
+func init() { file_types_event_proto_init() }
+func file_types_event_proto_init() {
+	if File_types_event_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_event_proto_rawDesc,
+			RawDescriptor: file_types_event_proto_rawDesc,
 			NumEnums:      1,
 			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_event_proto_goTypes,
-		DependencyIndexes: file_event_proto_depIdxs,
-		EnumInfos:         file_event_proto_enumTypes,
+		GoTypes:           file_types_event_proto_goTypes,
+		DependencyIndexes: file_types_event_proto_depIdxs,
+		EnumInfos:         file_types_event_proto_enumTypes,
 	}.Build()
-	File_event_proto = out.File
-	file_event_proto_rawDesc = nil
-	file_event_proto_goTypes = nil
-	file_event_proto_depIdxs = nil
+	File_types_event_proto = out.File
+	file_types_event_proto_rawDesc = nil
+	file_types_event_proto_goTypes = nil
+	file_types_event_proto_depIdxs = nil
 }

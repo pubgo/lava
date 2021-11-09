@@ -41,10 +41,10 @@ func init() {
 				},
 			}
 		},
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			InitView()
 			var server = &http.Server{Addr: runenv.DebugAddr, Handler: mux.Mux()}
-			plugin.AfterStart(func() {
+			p.AfterStart(func() {
 				xerror.Assert(netutil.CheckPort("tcp4", runenv.DebugAddr), "server: %s already exists", runenv.DebugAddr)
 				syncx.GoDelay(func() {
 					logs.Infof("Server [debug] Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runenv.DebugAddr))
@@ -62,7 +62,7 @@ func init() {
 				}
 			})
 
-			plugin.AfterStop(func() {
+			p.AfterStop(func() {
 				if err := server.Shutdown(context.Background()); err != nil {
 					logs.WithErr(err).Error("Server [debug] Shutdown Error")
 				}

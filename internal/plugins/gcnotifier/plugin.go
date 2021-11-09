@@ -19,7 +19,7 @@ func init() {
 
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			syncx.GoSafe(func() {
 				var gc = gcnotifier.New()
 				defer gc.Close()
