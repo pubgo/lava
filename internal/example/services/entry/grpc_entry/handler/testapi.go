@@ -31,7 +31,7 @@ func NewTestAPIHandler() *testapiHandler {
 }
 
 type testapiHandler struct {
-	Db   *db.Client           `dix:""`
+	Db   *xorm.Client         `dix:""`
 	Cron *scheduler.Scheduler `dix:""`
 }
 

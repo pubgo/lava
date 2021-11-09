@@ -1,7 +1,6 @@
-package db
+package xorm
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -58,6 +57,9 @@ func Range(db *xorm.Session, data interface{}, page, perPage int, where string, 
 	return count, xerror.Wrap(ses.Limit(perPage, start).Find(data))
 }
 
+func GetOne(db *xorm.Session, task interface{}) {
+}
+
 func InsertOne(db *xorm.Session, task interface{}) (err error) {
 	_, err = db.InsertOne(task)
 	return xerror.Wrap(err)
@@ -68,16 +70,12 @@ func Insert(db *xorm.Session, beans ...interface{}) (err error) {
 	return xerror.Wrap(err)
 }
 
-func UpdateById(db *xorm.Session, task map[string]interface{}, names ...string, ) error {
-	xerror.Assert(len(names) == 0, "[names] should not be zero")
-
-	switch len(names) {
-	case 1:
-		db = db.ID(xerror.PanicErr(strconv.Atoi(names[0])).(int))
-	case 2:
-		db = db.Where(names[0]+"=?", names[1])
+func UpdateById(db *xorm.Session, task map[string]interface{}, query interface{}, args ...interface{}) error {
+	switch len(args) {
+	case 0:
+		db = db.ID(query)
 	default:
-		return xerror.Fmt("[names] length should be less than 2")
+		db = db.Where(query, args...)
 	}
 
 	_, err := db.Update(task)

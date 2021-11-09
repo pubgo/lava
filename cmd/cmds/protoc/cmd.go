@@ -218,6 +218,9 @@ func Cmd() *cli.Command {
 
 						fmt.Println(data + "\n")
 						xerror.Panic(shutil.Shell(data).Run(), data)
+
+						//xerror.Panic(shutil.Shell(fmt.Sprintf(`protoc-go-inject-tag -verbose -input="%s/*.go"`, in)).Run(), data)
+
 						return true
 					})
 					return nil

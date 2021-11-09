@@ -1,4 +1,4 @@
-package db
+package xorm
 
 import (
 	"os"
