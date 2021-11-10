@@ -7,6 +7,7 @@ option go_package = "./;sqlx";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "lava/sqlx/options.proto";
+import "tagger/tagger.proto";
 
 // 验证码
 service Code {
@@ -54,7 +55,11 @@ service Code {
 
 message SendCodeRequest {
   // 区号
-  string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+  string nationCode = 1 [
+    (gogoproto.jsontag) = "nationCode",
+    (tagger.tags) = "json:\"replacePrevious\""
+  ];
+
   // 电话
   string telephone = 2 [(gogoproto.jsontag) = "telephone"];
   // 发送类型,call ,sms

@@ -2,7 +2,7 @@ package xorm
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/clients/db/sqlite"
+	"github.com/pubgo/lava/clients/xorm/sqlite"
 	"testing"
 
 	"github.com/pubgo/xerror"

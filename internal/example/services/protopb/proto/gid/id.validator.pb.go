@@ -7,15 +7,17 @@ import (
 	fmt "fmt"
 	math "math"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/protobuf/types/known/emptypb"
 	_ "google.golang.org/protobuf/types/known/wrapperspb"
 	_ "google.golang.org/genproto/googleapis/rpc/status"
-	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	_ "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/descriptorpb"
+	_ "google.golang.org/protobuf/types/known/fieldmaskpb"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "github.com/gogo/protobuf/gogoproto"
+	_ "google.golang.org/protobuf/types/known/structpb"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 
@@ -24,10 +26,13 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-func (this *GenerateRequest) Validate() error {
+func (this *Tag) Validate() error {
 	return nil
 }
 func (this *GenerateResponse) Validate() error {
+	return nil
+}
+func (this *GenerateRequest) Validate() error {
 	return nil
 }
 func (this *TypesRequest) Validate() error {

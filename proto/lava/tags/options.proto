@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package lava.sqlx;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/proto/lava/sqlx;sqlx";
+
+
+message Tag {
+  string key = 1;
+  string value = 2;
+}
+
+// Tags are applied at the field level
+extend google.protobuf.FieldOptions {
+  repeated Tag tags = 100000;
+}
+
+extend google.protobuf.OneofOptions {
+  repeated Tag oneof_tags = 100000;
+}

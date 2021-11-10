@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/pubgo/lava/clients/db"
+	"github.com/pubgo/lava/clients/xorm"
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"

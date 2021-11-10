@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+// https://github.com/srikrsna/protoc-gen-gotag/blob/master/module/replace.go
+
 var (
 	rComment = regexp.MustCompile(`^//.*?@(?i:gotags?|inject_tags?):\s*(.*)$`)
 	rInject  = regexp.MustCompile("`.+`$")
@@ -210,7 +212,7 @@ func (ti tagItems) override(nti tagItems) tagItems {
 }
 
 func newTagItems(tag string) tagItems {
-	items := []tagItem{}
+	var items []tagItem
 	splitted := rTags.FindAllString(tag, -1)
 
 	for _, t := range splitted {

@@ -35,6 +35,7 @@
     - [GenerateRequest](#gid.GenerateRequest)
     - [GenerateResponse](#gid.GenerateResponse)
     - [MessageWithBody](#gid.MessageWithBody)
+    - [Tag](#gid.Tag)
     - [TypesRequest](#gid.TypesRequest)
     - [TypesResponse](#gid.TypesResponse)
     - [UpdateBookRequest](#gid.UpdateBookRequest)
@@ -42,6 +43,9 @@
   
     - [ABitOfEverything.Nested.DeepEnum](#gid.ABitOfEverything.Nested.DeepEnum)
     - [NumericEnum](#gid.NumericEnum)
+  
+    - [File-level Extensions](#proto/gid/id.proto-extensions)
+    - [File-level Extensions](#proto/gid/id.proto-extensions)
   
     - [ABitOfEverythingService](#gid.ABitOfEverythingService)
     - [AnotherServiceWithNoBindings](#gid.AnotherServiceWithNoBindings)
@@ -574,6 +578,22 @@ Generate a unique ID. Defaults to uuid.
 
 
 
+<a name="gid.Tag"></a>
+
+### Tag
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| value | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="gid.TypesRequest"></a>
 
 ### TypesRequest
@@ -662,6 +682,15 @@ NumericEnum is one or zero.
 
 
  
+
+
+<a name="proto/gid/id.proto-extensions"></a>
+
+### File-level Extensions
+| Extension | Type | Base | Number | Description |
+| --------- | ---- | ---- | ------ | ----------- |
+| tags | Tag | .google.protobuf.FieldOptions | 100000 |  |
+| oneof_tags | Tag | .google.protobuf.OneofOptions | 100000 |  |
 
  
 

@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/x/fx"
 	"go.uber.org/zap"
 
-	db2 "github.com/pubgo/lava/clients/db"
+	db2 "github.com/pubgo/lava/clients/xorm"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/entry/cliEntry"
 )

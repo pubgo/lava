@@ -280,6 +280,7 @@ require (
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/srikrsna/protoc-gen-gotag v0.6.2
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14 // indirect
 	github.com/swaggo/swag v1.7.0 // indirect
@@ -351,6 +352,7 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/fatih/color v1.12.0 // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.2+incompatible // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -372,6 +374,7 @@ require (
 	github.com/ktr0731/grpc-web-go-client v0.2.7 // indirect
 	github.com/lithammer/fuzzysearch v1.1.1 // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
+	github.com/lyft/protoc-gen-star v0.5.3 // indirect
 	github.com/mattn/go-pipeline v0.0.0-20190323144519-32d779b32768 // indirect
 	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect

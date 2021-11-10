@@ -11,6 +11,7 @@ import (
 	_ "github.com/gogo/protobuf/protoc-gen-gogo"
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/gordonklaus/ineffassign"
+	_ "github.com/srikrsna/protoc-gen-gotag"
 
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"

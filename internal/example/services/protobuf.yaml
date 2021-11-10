@@ -1,6 +1,10 @@
 root:
   - proto
 deps:
+  - name: tagger
+    url: github.com/srikrsna/protoc-gen-gotag
+    path: /tagger
+    version: v0.6.2
   - name: google
     url: github.com/googleapis/googleapis
     path: /google
@@ -21,42 +25,37 @@ deps:
   - name: google/protobuf
     url: /usr/local/include/google/protobuf
 plugins:
-  - name: "go"
-    opt: "paths=source_relative"
-    out: "protopb"
-
-  - name: "go-grpc"
+  - name: go
+    out: protopb
+    opt: paths=source_relative
+  - name: go-grpc
+    out: protopb
     opt:
-      - "require_unimplemented_servers=false"
-      - "paths=source_relative"
-    out: "protopb"
-
-  - name: "govalidators"
-    out: "protopb"
-    opt: "paths=source_relative"
-
-  - name: "grpc-gateway"
-    out: "protopb"
+      - require_unimplemented_servers=false
+      - paths=source_relative
+  - name: govalidators
+    out: protopb
+    opt: paths=source_relative
+  - name: grpc-gateway
+    out: protopb
     opt:
-      - "allow_repeated_fields_in_body=true"
-      - "paths=source_relative"
-
-  - name: "lava"
-    out: "protopb"
+      - allow_repeated_fields_in_body=true
+      - paths=source_relative
+  - name: openapiv2
+    out: ./docs/swagger
     opt:
-      - "gin=true"
-      - "rest=true"
-      - "paths=source_relative"
-
-  - name: "openapiv2"
-    out: "./docs/swagger"
+      - logtostderr=true
+      - allow_repeated_fields_in_body=true
+      - repeated_path_param_separator=ssv
+  - name: doc
+    out: ./docs/markdown
     opt:
-      - "logtostderr=true"
-      - "allow_repeated_fields_in_body=true"
-      - "repeated_path_param_separator=ssv"
-
-  - name: "doc"
-    out: "./docs/markdown"
+      - markdown,index.md
+  - name: lava
+    out: protopb
     opt:
-#      - "html,index.html"
-      - "markdown,index.md"
+      - gin=true
+      - rest=true
+      - paths=source_relative
+#  - name: gotag
+#    out: "outdir=./protopb"
