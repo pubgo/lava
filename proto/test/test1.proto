@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "./;test";
+
+import "proto/lava/tags.proto";
+
+message GenerateResponse1 {
+  string id = 1;
+  string type = 2 [
+    (lava.tags) = {key:"json",value:"types"},
+    (lava.tags) = {key:"yaml",value:"types"}
+  ];
+}
+

@@ -9,8 +9,7 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	_ "github.com/gogo/protobuf/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
-	_ "github.com/pubgo/lava/proto/lava/sqlx"
-	_ "github.com/srikrsna/protoc-gen-gotag/tagger"
+	_ "github.com/pubgo/lava/proto/lava"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 )
 

@@ -8,7 +8,6 @@ package login
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	xerror "github.com/pubgo/xerror"
@@ -82,46 +81,7 @@ func init() {
 	})
 	xgen.Add(RegisterCodeServer, mthList)
 	xgen.Add(RegisterCodeHandler, nil)
-	xgen.Add(RegisterCodeRestServer, nil)
 	xgen.Add(RegisterCodeGinServer, nil)
-}
-func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
-		var req = new(SendCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.SendCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Verify(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(IsCheckImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.IsCheckImageCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.VerifyImageCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
-		var req = new(GetSendStatusRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.GetSendStatus(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")

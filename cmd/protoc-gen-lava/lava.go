@@ -9,7 +9,7 @@ import (
 	gp "google.golang.org/protobuf/proto"
 
 	"github.com/pubgo/lava/pkg/protoutil"
-	"github.com/pubgo/lava/proto/lava/sqlx"
+	"github.com/pubgo/lava/proto/lava"
 )
 
 var (
@@ -84,19 +84,19 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 func genSql(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
 	for _, mth := range service.Methods {
 		var opts = mth.Desc.Options()
-		if !gp.HasExtension(opts, sqlx.E_Query) && !gp.HasExtension(opts, sqlx.E_Exec) {
+		if !gp.HasExtension(opts, lava.E_Sqlx) {
 			continue
 		}
 
-		if sql, ok := gp.GetExtension(opts, sqlx.E_Exec).(string); ok {
+		if sql, ok := gp.GetExtension(opts, lava.E_Sqlx).(*lava.Sql); ok {
 			g.P("func ", service.GoName, "_", mth.GoName, "Exec(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(", sqlCall("Result"), ", error){")
-			g.P(`return db.NamedExecContext(ctx,"`, sql, `",arg)`)
+			g.P(`return db.NamedExecContext(ctx,"`, sql.Query, `",arg)`)
 			g.P("}")
 		}
 
-		if sql, ok := gp.GetExtension(opts, sqlx.E_Query).(string); ok {
+		if sql, ok := gp.GetExtension(opts, lava.E_Sqlx).(*lava.Sql); ok {
 			g.P("func ", service.GoName, "_", mth.GoName, "Query(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")([]", mth.Output.GoIdent, ", error){")
-			g.P(`var rows, err = db.NamedQueryContext(ctx,"`, sql, `",arg)`)
+			g.P(`var rows, err = db.NamedQueryContext(ctx,"`, sql.Exec, `",arg)`)
 			g.P("if err!=nil{return nil, err}")
 			g.P("")
 			g.P("var resp []", mth.Output.GoIdent)
@@ -140,9 +140,9 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		g.P(xgenCall("Add"), "(Register", service.GoName, "Handler ,nil)")
 	}
 
-	if genRest {
-		g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
-	}
+	//if genRest {
+	//	g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
+	//}
 
 	if genGin {
 		g.P(xgenCall("Add"), "(Register", service.GoName, "GinServer, nil)")

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "./;test";
+
+import "proto/lava/tags.proto";
+
+message GenerateResponse {
+  string id = 1;
+
+  oneof image {
+    string media_file = 12 [
+      (lava.tags) = {key:"json1",value:"media_file"}
+    ];
+    bytes data = 13;
+    int64 ad_id_to_copy_image_from = 14;
+  }
+
+  oneof image1 {
+    string media_file1 = 15;
+    bytes data1 = 16;
+    int64 ad_id_to_copy_image_from1 = 17;
+  }
+
+  string type = 2 [
+    (lava.tags) = {key:"json",value:"types,omitempty"},
+    (lava.tags) = {key:"yaml1",value:"types,omitempty"}
+  ];
+}
+

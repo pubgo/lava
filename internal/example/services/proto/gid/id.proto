@@ -83,23 +83,11 @@ message Tag {
   string value = 2;
 }
 
-// Tags are applied at the field level
-extend google.protobuf.FieldOptions {
-  repeated Tag tags = 100000;
-}
-
-extend google.protobuf.OneofOptions {
-  repeated Tag oneof_tags = 100000;
-}
-
 message GenerateResponse {
   // the unique id generated
   string id = 1;
   // the type of id generated
-  string type = 2 [
-    (tags) = {key:"json",value:"types"},
-    (tags) = {key:"",value:""}
-  ];
+  string type = 2;
 }
 
 

@@ -6,8 +6,7 @@ option go_package = "./;sqlx";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "lava/sqlx/options.proto";
-import "tagger/tagger.proto";
+import "lava/sqlx.proto";
 
 // 验证码
 service Code {
@@ -17,7 +16,9 @@ service Code {
       post: "/user/code/send-code"
       body: "*"
     };
-    option (lava.sqlx.exec) = "insert into";
+    option (lava.sqlx) = {
+      query: "insert into",
+    };
   }
 
   // 校验
@@ -56,8 +57,7 @@ service Code {
 message SendCodeRequest {
   // 区号
   string nationCode = 1 [
-    (gogoproto.jsontag) = "nationCode",
-    (tagger.tags) = "json:\"replacePrevious\""
+    (gogoproto.jsontag) = "nationCode"
   ];
 
   // 电话

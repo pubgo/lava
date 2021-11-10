@@ -8,7 +8,6 @@ package login
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	xerror "github.com/pubgo/xerror"
@@ -93,53 +92,7 @@ func init() {
 	})
 	xgen.Add(RegisterBindTelephoneServer, mthList)
 	xgen.Add(RegisterBindTelephoneHandler, nil)
-	xgen.Add(RegisterBindTelephoneRestServer, nil)
 	xgen.Add(RegisterBindTelephoneGinServer, nil)
-}
-func RegisterBindTelephoneRestServer(app fiber.Router, server BindTelephoneServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/user/bind-telephone/check", func(ctx *fiber.Ctx) error {
-		var req = new(CheckRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Check(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/bind-telephone/bind-verify", func(ctx *fiber.Ctx) error {
-		var req = new(BindVerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.BindVerify(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/bind-telephone/bind-change", func(ctx *fiber.Ctx) error {
-		var req = new(BindChangeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.BindChange(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/bind-telephone/automatic-bind", func(ctx *fiber.Ctx) error {
-		var req = new(AutomaticBindRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.AutomaticBind(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *fiber.Ctx) error {
-		var req = new(BindPhoneParseRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.BindPhoneParse(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *fiber.Ctx) error {
-		var req = new(BindPhoneParseByOneClickRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.BindPhoneParseByOneClick(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterBindTelephoneGinServer(r gin.IRouter, server BindTelephoneServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")

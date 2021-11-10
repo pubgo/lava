@@ -11,7 +11,6 @@ import (
 	sql "database/sql"
 	gin "github.com/gin-gonic/gin"
 	sqlx "github.com/jmoiron/sqlx"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	xerror "github.com/pubgo/xerror"
@@ -85,46 +84,7 @@ func init() {
 	})
 	xgen.Add(RegisterCodeServer, mthList)
 	xgen.Add(RegisterCodeHandler, nil)
-	xgen.Add(RegisterCodeRestServer, nil)
 	xgen.Add(RegisterCodeGinServer, nil)
-}
-func RegisterCodeRestServer(app fiber.Router, server CodeServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/user/code/send-code", func(ctx *fiber.Ctx) error {
-		var req = new(SendCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.SendCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/verify", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Verify(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/is-check-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(IsCheckImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.IsCheckImageCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/verify-image-code", func(ctx *fiber.Ctx) error {
-		var req = new(VerifyImageCodeRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.VerifyImageCode(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/user/code/get-send-status", func(ctx *fiber.Ctx) error {
-		var req = new(GetSendStatusRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.GetSendStatus(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
@@ -165,10 +125,10 @@ func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
 	})
 }
 func Code_SendCodeExec(ctx context.Context, db *sqlx.DB, arg *SendCodeRequest) (sql.Result, error) {
-	return db.NamedExecContext(ctx, "insert into", arg)
+	return db.NamedExecContext(ctx, "0xc000304730", arg)
 }
 func Code_SendCodeQuery(ctx context.Context, db *sqlx.DB, arg *SendCodeRequest) ([]SendCodeResponse, error) {
-	var rows, err = db.NamedQueryContext(ctx, "", arg)
+	var rows, err = db.NamedQueryContext(ctx, "<nil>", arg)
 	if err != nil {
 		return nil, err
 	}

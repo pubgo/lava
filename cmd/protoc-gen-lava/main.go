@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -26,6 +27,7 @@ func main() {
 			}
 
 			generateFile(gen, f)
+			generateTag(gen, f)
 		}
 		return nil
 	})

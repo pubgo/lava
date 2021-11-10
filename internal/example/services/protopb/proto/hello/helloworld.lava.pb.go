@@ -8,11 +8,9 @@ package hello
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
@@ -40,24 +38,7 @@ func init() {
 	})
 	xgen.Add(RegisterGreeterServer, mthList)
 	xgen.Add(RegisterGreeterHandler, nil)
-	xgen.Add(RegisterGreeterRestServer, nil)
 	xgen.Add(RegisterGreeterGinServer, nil)
-}
-func RegisterGreeterRestServer(app fiber.Router, server GreeterServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("GET", "/say/{name}", func(ctx *fiber.Ctx) error {
-		var req = new(HelloRequest)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.SayHello(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterGreeterGinServer(r gin.IRouter, server GreeterServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")

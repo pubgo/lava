@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package lava.sqlx;
+package lava;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/pubgo/lava/proto/lava/sqlx;sqlx";
+option go_package = "github.com/pubgo/lava/proto/lava;lava";
 
 
 message Tag {

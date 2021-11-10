@@ -8,11 +8,9 @@ package gid
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -54,31 +52,7 @@ func init() {
 	})
 	xgen.Add(RegisterIdServer, mthList)
 	xgen.Add(RegisterIdHandler, nil)
-	xgen.Add(RegisterIdRestServer, nil)
 	xgen.Add(RegisterIdGinServer, nil)
-}
-func RegisterIdRestServer(app fiber.Router, server IdServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/v1/id/generate", func(ctx *fiber.Ctx) error {
-		var req = new(GenerateRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Generate(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/id/types", func(ctx *fiber.Ctx) error {
-		var req = new(TypesRequest)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.Types(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterIdGinServer(r gin.IRouter, server IdServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
@@ -313,198 +287,7 @@ func init() {
 	})
 	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
 	xgen.Add(RegisterABitOfEverythingServiceHandler, nil)
-	xgen.Add(RegisterABitOfEverythingServiceRestServer, nil)
 	xgen.Add(RegisterABitOfEverythingServiceGinServer, nil)
-}
-func RegisterABitOfEverythingServiceRestServer(app fiber.Router, server ABitOfEverythingServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Create(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v1/example/a_bit_of_everything", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.CreateBody(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v1/{parent=publishers/*}/books", func(ctx *fiber.Ctx) error {
-		var req = new(CreateBookRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.CreateBook(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("PATCH", "/v1/{book.name=publishers/*/books/*}", func(ctx *fiber.Ctx) error {
-		var req = new(UpdateBookRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.UpdateBook(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("PUT", "/v1/example/a_bit_of_everything/{uuid}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Update(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("PUT", "/v2/example/a_bit_of_everything/{abe.uuid}", func(ctx *fiber.Ctx) error {
-		var req = new(UpdateV2Request)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.UpdateV2(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/a_bit_of_everything/query/{uuid}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.GetQuery(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/a_bit_of_everything_repeated/{path_repeated_float_value}/{path_repeated_double_value}/{path_repeated_int64_value}/{path_repeated_uint64_value}/{path_repeated_int32_value}/{path_repeated_fixed64_value}/{path_repeated_fixed32_value}/{path_repeated_bool_value}/{path_repeated_string_value}/{path_repeated_bytes_value}/{path_repeated_uint32_value}/{path_repeated_enum_value}/{path_repeated_sfixed32_value}/{path_repeated_sfixed64_value}/{path_repeated_sint32_value}/{path_repeated_sint64_value}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverythingRepeated)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.GetRepeatedQuery(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v1/example/deep_path/{single_nested.name}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.DeepPathEcho(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v2/example/NoBindings", func(ctx *fiber.Ctx) error {
-		var req = new(durationpb.Duration)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.NoBindings(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v2/example/timeout", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.Timeout(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v2/example/errorwithdetails", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.ErrorWithDetails(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v2/example/withbody/{id}", func(ctx *fiber.Ctx) error {
-		var req = new(MessageWithBody)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.GetMessageWithBody(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v2/example/postwithemptybody/{name}", func(ctx *fiber.Ctx) error {
-		var req = new(Body)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.PostWithEmptyBody(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/a_bit_of_everything/params/get/{single_nested.name}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.CheckGetQueryParams(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/a_bit_of_everything/params/get/nested_enum/{single_nested.ok}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.CheckNestedEnumGetQueryParams(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v1/example/a_bit_of_everything/params/post/{string_value}", func(ctx *fiber.Ctx) error {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.CheckPostQueryParams(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v2/example/overwriteresponsecontenttype", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.OverwriteResponseContentType(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/checkStatus", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.CheckStatus(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterABitOfEverythingServiceGinServer(r gin.IRouter, server ABitOfEverythingServiceServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
@@ -660,24 +443,7 @@ func init() {
 	})
 	xgen.Add(RegisterCamelCaseServiceNameServer, mthList)
 	xgen.Add(RegisterCamelCaseServiceNameHandler, nil)
-	xgen.Add(RegisterCamelCaseServiceNameRestServer, nil)
 	xgen.Add(RegisterCamelCaseServiceNameGinServer, nil)
-}
-func RegisterCamelCaseServiceNameRestServer(app fiber.Router, server CamelCaseServiceNameServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("GET", "/v2/example/empty", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.Empty(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterCamelCaseServiceNameGinServer(r gin.IRouter, server CamelCaseServiceNameServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
@@ -707,24 +473,7 @@ func init() {
 	})
 	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
 	xgen.Add(RegisterAnotherServiceWithNoBindingsHandler, nil)
-	xgen.Add(RegisterAnotherServiceWithNoBindingsRestServer, nil)
 	xgen.Add(RegisterAnotherServiceWithNoBindingsGinServer, nil)
-}
-func RegisterAnotherServiceWithNoBindingsRestServer(app fiber.Router, server AnotherServiceWithNoBindingsServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("GET", "/v2/another/no-bindings", func(ctx *fiber.Ctx) error {
-		var req = new(emptypb.Empty)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.NoBindings(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterAnotherServiceWithNoBindingsGinServer(r gin.IRouter, server AnotherServiceWithNoBindingsServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")

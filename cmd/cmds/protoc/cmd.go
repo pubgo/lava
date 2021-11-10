@@ -15,7 +15,6 @@ import (
 	"github.com/emicklei/proto"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/x/q"
-	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -44,9 +43,6 @@ func Cmd() *cli.Command {
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
 
 			protoRoot = append(protoRoot, cfg.Root...)
-			if !strutil.Contain(protoRoot, "proto") {
-				protoRoot = append(protoRoot, "proto")
-			}
 
 			// protobuf文件检查
 			for _, dep := range cfg.Depends {
@@ -168,7 +164,10 @@ func Cmd() *cli.Command {
 					protoList.Range(func(key, _ interface{}) bool {
 						var in = key.(string)
 
-						var data = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
+						var data = ""
+						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
+						var lavaOut = ""
+						var lavaOpt = ""
 						for i := range cfg.Plugins {
 							var plg = cfg.Plugins[i]
 
@@ -208,19 +207,24 @@ func Cmd() *cli.Command {
 								return nil
 							}(plg.Opt)
 
+							if name == "lava" {
+								lavaOut = fmt.Sprintf(" --%s_out=%s", name, out)
+								lavaOpt = fmt.Sprintf(" --%s_opt=%s", name, strings.Join(opts, ","))
+								continue
+							}
+
 							data += fmt.Sprintf(" --%s_out=%s", name, out)
 
 							if len(opts) > 0 {
 								data += fmt.Sprintf(" --%s_opt=%s", name, strings.Join(opts, ","))
 							}
 						}
-						data = data + " " + filepath.Join(in, "*.proto")
-
+						data = base + data + " " + filepath.Join(in, "*.proto")
 						fmt.Println(data + "\n")
 						xerror.Panic(shutil.Shell(data).Run(), data)
-
-						//xerror.Panic(shutil.Shell(fmt.Sprintf(`protoc-go-inject-tag -verbose -input="%s/*.go"`, in)).Run(), data)
-
+						data = base + lavaOut + lavaOpt + " " + filepath.Join(in, "*.proto")
+						fmt.Println(data + "\n")
+						xerror.Panic(shutil.Shell(data).Run(), data)
 						return true
 					})
 					return nil

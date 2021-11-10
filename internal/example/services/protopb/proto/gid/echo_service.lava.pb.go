@@ -8,11 +8,9 @@ package gid
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
@@ -84,52 +82,7 @@ func init() {
 	})
 	xgen.Add(RegisterEchoServiceServer, mthList)
 	xgen.Add(RegisterEchoServiceHandler, nil)
-	xgen.Add(RegisterEchoServiceRestServer, nil)
 	xgen.Add(RegisterEchoServiceGinServer, nil)
-}
-func RegisterEchoServiceRestServer(app fiber.Router, server EchoServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/v1/example/echo/{id}", func(ctx *fiber.Ctx) error {
-		var req = new(SimpleMessage)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.Echo(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("POST", "/v1/example/echo_body", func(ctx *fiber.Ctx) error {
-		var req = new(SimpleMessage)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.EchoBody(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("DELETE", "/v1/example/echo_delete", func(ctx *fiber.Ctx) error {
-		var req = new(SimpleMessage)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.EchoDelete(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("PATCH", "/v1/example/echo_patch", func(ctx *fiber.Ctx) error {
-		var req = new(DynamicMessageUpdate)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.EchoPatch(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/v1/example/echo_unauthorized", func(ctx *fiber.Ctx) error {
-		var req = new(SimpleMessage)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.EchoUnauthorized(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterEchoServiceGinServer(r gin.IRouter, server EchoServiceServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")

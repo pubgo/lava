@@ -8,11 +8,9 @@ package hello
 
 import (
 	gin "github.com/gin-gonic/gin"
-	fiber "github.com/pubgo/lava/builder/fiber"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	byteutil "github.com/pubgo/x/byteutil"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -85,38 +83,7 @@ func init() {
 	})
 	xgen.Add(RegisterUserServiceServer, mthList)
 	xgen.Add(RegisterUserServiceHandler, nil)
-	xgen.Add(RegisterUserServiceRestServer, nil)
 	xgen.Add(RegisterUserServiceGinServer, nil)
-}
-func RegisterUserServiceRestServer(app fiber.Router, server UserServiceServer) {
-	xerror.Assert(app == nil || server == nil, "app or server is nil")
-	app.Add("POST", "/api/v1/users", func(ctx *fiber.Ctx) error {
-		var req = new(User)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.AddUser(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("GET", "/api/v1/users", func(ctx *fiber.Ctx) error {
-		var req = new(User)
-		data := make(map[string][]string)
-		ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {
-			k := byteutil.ToStr(key)
-			v := byteutil.ToStr(val)
-			data[k] = append(data[k], v)
-		})
-		xerror.Panic(binding.MapFormByTag(req, data, "json"))
-		var resp, err = server.GetUser(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
-	app.Add("PATCH", "/api/v1/users/{user.id}", func(ctx *fiber.Ctx) error {
-		var req = new(UpdateUserRequest)
-		xerror.Panic(ctx.BodyParser(req))
-		var resp, err = server.UpdateUser(ctx.UserContext(), req)
-		xerror.Panic(err)
-		return xerror.Wrap(ctx.JSON(resp))
-	})
 }
 func RegisterUserServiceGinServer(r gin.IRouter, server UserServiceServer) {
 	xerror.Assert(r == nil || server == nil, "router or server is nil")
