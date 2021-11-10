@@ -7,14 +7,12 @@
 package sqlx
 
 import (
-	context "context"
-	sql "database/sql"
 	gin "github.com/gin-gonic/gin"
-	sqlx "github.com/jmoiron/sqlx"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
 	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
+	gorm "gorm.io/gorm"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -124,15 +122,6 @@ func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
 		ctx.JSON(200, resp)
 	})
 }
-func Code_SendCodeExec(ctx context.Context, db *sqlx.DB, arg *SendCodeRequest) (sql.Result, error) {
-	return db.NamedExecContext(ctx, "0xc000304730", arg)
-}
-func Code_SendCodeQuery(ctx context.Context, db *sqlx.DB, arg *SendCodeRequest) ([]SendCodeResponse, error) {
-	var rows, err = db.NamedQueryContext(ctx, "<nil>", arg)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp []SendCodeResponse
-	return resp, sqlx.StructScan(rows, &resp)
+func Code_SendCodeRaw(db *gorm.DB, arg *SendCodeRequest) *gorm.DB {
+	return db.Exec("insert into", arg)
 }

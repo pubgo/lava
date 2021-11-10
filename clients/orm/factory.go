@@ -1,12 +1,12 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/types"
 )
 
 type Factory func(cfg types.CfgMap) (gorm.Dialector, error)
