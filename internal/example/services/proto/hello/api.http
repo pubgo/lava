@@ -1,0 +1,8 @@
+### hello.TestApiV2.Version1
+, POST http://localhost:8080/v2/example/version/{name}
+Content-Type: application/json
+
+### hello.TestApiV2.VersionTest1
+, POST http://localhost:8080/v2/example/versiontest
+Content-Type: application/json
+

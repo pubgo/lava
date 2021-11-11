@@ -2,35 +2,15 @@
 POST http://localhost:8080/hello/transport/test-stream
 Content-Type: application/json
 
-{
- "body": "",
- "header": ""
-}
-
 ### hello.Transport.TestStream1
 POST http://localhost:8080/hello/transport/test-stream1
 Content-Type: application/json
-
-{
- "body": "",
- "header": ""
-}
 
 ### hello.Transport.TestStream2
 POST http://localhost:8080/hello/transport/test-stream2
 Content-Type: application/json
 
-{
- "body": "",
- "header": ""
-}
-
 ### hello.Transport.TestStream3
-POST http://localhost:8080/hello/transport/test-stream3
+GET http://localhost:8080/v1/Transport/TestStream3
 Content-Type: application/json
-
-{
- "body": "",
- "header": ""
-}
 

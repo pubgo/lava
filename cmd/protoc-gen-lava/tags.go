@@ -7,6 +7,9 @@ import (
 	"go/printer"
 	"go/token"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/structtag"
@@ -18,14 +21,18 @@ import (
 	"github.com/pubgo/lava/proto/lava"
 )
 
-func generateTag(gen *protogen.Plugin, file *protogen.File) {
+func generateTag(rootDir string, gen *protogen.Plugin, file *protogen.File) {
 	defer xerror.RespExit(file.GeneratedFilenamePrefix)
 
 	if len(file.Messages) == 0 {
 		return
 	}
 
+	var sep = string(os.PathSeparator)
+	var rootDirList = strings.Split(strings.Trim(rootDir, sep), sep)
+
 	var path = fmt.Sprintf("%s.pb.go", file.GeneratedFilenamePrefix)
+	path = filepath.Join(rootDir, strings.Join(strings.Split(path, sep)[len(rootDirList)-1:], sep))
 	if pathutil.IsNotExist(path) {
 		return
 	}
@@ -34,8 +41,18 @@ func generateTag(gen *protogen.Plugin, file *protogen.File) {
 
 	for i := range file.Messages {
 		var name, tt = tags.HandleMessage(file.Messages[i])
+		if len(tt) == 0 {
+			continue
+		}
+
 		tags[name] = tt
 	}
+
+	if len(tags) == 0 {
+		return
+	}
+
+	log.Println("retag:",path)
 
 	fs := token.NewFileSet()
 	fn, err := parser.ParseFile(fs, path, nil, parser.ParseComments)

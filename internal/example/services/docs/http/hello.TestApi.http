@@ -1,4 +1,5 @@
 ### hello.TestApi.Version
+// Version rpc
 GET http://localhost:8080/v1/version
 Content-Type: application/json
 
@@ -6,20 +7,13 @@ Content-Type: application/json
 POST http://localhost:8080/v1/version1
 Content-Type: application/json
 
-{}
-
 ### hello.TestApi.VersionTest
+// VersionTest rpc
 GET http://localhost:8080/v1/example/versiontest
 Content-Type: application/json
 
 ### hello.TestApi.VersionTestCustom
-POST http://localhost:8080/hello/test-api/version-test-custom
+// VersionTest rpc custom
+GET http://localhost:8080/v1/example/versionTestCustom
 Content-Type: application/json
-
-{
- "headers": "",
- "input": "",
- "lists": "",
- "name": ""
-}
 

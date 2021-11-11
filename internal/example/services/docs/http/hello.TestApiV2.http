@@ -2,21 +2,7 @@
 POST http://localhost:8080/v2/example/version/{name}
 Content-Type: application/json
 
-{
- "headers": "",
- "input": "",
- "lists": "",
- "name": ""
-}
-
 ### hello.TestApiV2.VersionTest1
 POST http://localhost:8080/v2/example/versiontest
 Content-Type: application/json
-
-{
- "headers": "",
- "input": "",
- "lists": "",
- "name": ""
-}
 

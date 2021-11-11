@@ -4,9 +4,11 @@ package lava
 import (
 	// 加载debug插件
 	_ "github.com/pubgo/lava/internal/plugins/debug"
+
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 
+	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
@@ -14,6 +16,8 @@ import (
 
 	// 编码加载
 	_ "github.com/pubgo/lava/pkg/encoding/json"
+
+	// 加载protobuf编码
 	_ "github.com/pubgo/lava/pkg/encoding/protobuf"
 
 	// 用于系统诊断
@@ -22,6 +26,7 @@ import (
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
+	// machineid 获取机器ID
 	_ "github.com/pubgo/lava/internal/plugins/machineid"
 )
 

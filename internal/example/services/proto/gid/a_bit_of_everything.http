@@ -1,0 +1,34 @@
+### gid.LoginService.Login
+, // Login
+//
+// {{.MethodDescriptorProto.Name}} is a call with the method(s) {{$first := true}}{{range .Bindings}}{{if $first}}{{$first = false}}{{else}}, {{end}}{{.HTTPMethod}}{{end}} within the "{{.Service.Name}}" service.
+// It takes in "{{.RequestType.Name}}" and returns a "{{.ResponseType.Name}}".
+//
+// ## {{.RequestType.Name}}
+// | Field ID    | Name      | Type                                                       | Description                  |
+// | ----------- | --------- | ---------------------------------------------------------  | ---------------------------- | {{range .RequestType.Fields}}
+// | {{.Number}} | {{.Name}} | {{if eq .Label.String "LABEL_REPEATED"}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}
+//
+// ## {{.ResponseType.Name}}
+// | Field ID    | Name      | Type                                                       | Description                  |
+// | ----------- | --------- | ---------------------------------------------------------- | ---------------------------- | {{range .ResponseType.Fields}}
+// | {{.Number}} | {{.Name}} | {{if eq .Label.String "LABEL_REPEATED"}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}POST http://localhost:8080/v1/example/login
+Content-Type: application/json
+
+### gid.LoginService.Logout
+, // Logout
+//
+// {{.MethodDescriptorProto.Name}} is a call with the method(s) {{$first := true}}{{range .Bindings}}{{if $first}}{{$first = false}}{{else}}, {{end}}{{.HTTPMethod}}{{end}} within the "{{.Service.Name}}" service.
+// It takes in "{{.RequestType.Name}}" and returns a "{{.ResponseType.Name}}".
+//
+// ## {{.RequestType.Name}}
+// | Field ID    | Name      | Type                                                       | Description                  |
+// | ----------- | --------- | ---------------------------------------------------------  | ---------------------------- | {{range .RequestType.Fields}}
+// | {{.Number}} | {{.Name}} | {{if eq .Label.String "LABEL_REPEATED"}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}
+//
+// ## {{.ResponseType.Name}}
+// | Field ID    | Name      | Type                                                       | Description                  |
+// | ----------- | --------- | ---------------------------------------------------------- | ---------------------------- | {{range .ResponseType.Fields}}
+// | {{.Number}} | {{.Name}} | {{if eq .Label.String "LABEL_REPEATED"}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}POST http://localhost:8080/v1/example/logout
+Content-Type: application/json
+

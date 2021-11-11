@@ -16,18 +16,18 @@ import (
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
 type Tag struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Key	string	`protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Value	string	`protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 func (x *Tag) Reset() {
@@ -43,7 +43,7 @@ func (x *Tag) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Tag) ProtoMessage()	{}
+func (*Tag) ProtoMessage() {}
 
 func (x *Tag) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_lava_tags_proto_msgTypes[0]
@@ -78,12 +78,12 @@ func (x *Tag) GetValue() string {
 
 var file_proto_lava_tags_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
-		ExtendedType:	(*descriptorpb.FieldOptions)(nil),
-		ExtensionType:	([]*Tag)(nil),
-		Field:		100000,
-		Name:		"lava.tags",
-		Tag:		"bytes,100000,rep,name=tags",
-		Filename:	"proto/lava/tags.proto",
+		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
+		ExtensionType: ([]*Tag)(nil),
+		Field:         100000,
+		Name:          "lava.tags",
+		Tag:           "bytes,100000,rep,name=tags",
+		Filename:      "proto/lava/tags.proto",
 	},
 }
 
@@ -113,8 +113,8 @@ var file_proto_lava_tags_proto_rawDesc = []byte{
 }
 
 var (
-	file_proto_lava_tags_proto_rawDescOnce	sync.Once
-	file_proto_lava_tags_proto_rawDescData	= file_proto_lava_tags_proto_rawDesc
+	file_proto_lava_tags_proto_rawDescOnce sync.Once
+	file_proto_lava_tags_proto_rawDescData = file_proto_lava_tags_proto_rawDesc
 )
 
 func file_proto_lava_tags_proto_rawDescGZIP() []byte {
@@ -126,20 +126,20 @@ func file_proto_lava_tags_proto_rawDescGZIP() []byte {
 
 var file_proto_lava_tags_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_lava_tags_proto_goTypes = []interface{}{
-	(*Tag)(nil),				// 0: lava.Tag
-	(*descriptorpb.FieldOptions)(nil),	// 1: google.protobuf.FieldOptions
+	(*Tag)(nil),                       // 0: lava.Tag
+	(*descriptorpb.FieldOptions)(nil), // 1: google.protobuf.FieldOptions
 }
 var file_proto_lava_tags_proto_depIdxs = []int32{
-	1,	// 0: lava.tags:extendee -> google.protobuf.FieldOptions
-	0,	// 1: lava.tags:type_name -> lava.Tag
-	2,	// [2:2] is the sub-list for method output_type
-	2,	// [2:2] is the sub-list for method input_type
-	1,	// [1:2] is the sub-list for extension type_name
-	0,	// [0:1] is the sub-list for extension extendee
-	0,	// [0:0] is the sub-list for field type_name
+	1, // 0: lava.tags:extendee -> google.protobuf.FieldOptions
+	0, // 1: lava.tags:type_name -> lava.Tag
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	1, // [1:2] is the sub-list for extension type_name
+	0, // [0:1] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
-func init()	{ file_proto_lava_tags_proto_init() }
+func init() { file_proto_lava_tags_proto_init() }
 func file_proto_lava_tags_proto_init() {
 	if File_proto_lava_tags_proto != nil {
 		return
@@ -161,17 +161,17 @@ func file_proto_lava_tags_proto_init() {
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
-			GoPackagePath:	reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor:	file_proto_lava_tags_proto_rawDesc,
-			NumEnums:	0,
-			NumMessages:	1,
-			NumExtensions:	1,
-			NumServices:	0,
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_proto_lava_tags_proto_rawDesc,
+			NumEnums:      0,
+			NumMessages:   1,
+			NumExtensions: 1,
+			NumServices:   0,
 		},
-		GoTypes:		file_proto_lava_tags_proto_goTypes,
-		DependencyIndexes:	file_proto_lava_tags_proto_depIdxs,
-		MessageInfos:		file_proto_lava_tags_proto_msgTypes,
-		ExtensionInfos:		file_proto_lava_tags_proto_extTypes,
+		GoTypes:           file_proto_lava_tags_proto_goTypes,
+		DependencyIndexes: file_proto_lava_tags_proto_depIdxs,
+		MessageInfos:      file_proto_lava_tags_proto_msgTypes,
+		ExtensionInfos:    file_proto_lava_tags_proto_extTypes,
 	}.Build()
 	File_proto_lava_tags_proto = out.File
 	file_proto_lava_tags_proto_rawDesc = nil

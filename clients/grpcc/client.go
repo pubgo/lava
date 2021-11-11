@@ -102,7 +102,8 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 		return t.conn, nil
 	}
 
-	t.cfg = getCfg(consts.Default)
+	// 获取服务的自定义配置
+	t.cfg = getCfg(t.service)
 	t.optFn(t.cfg)
 
 	t.conn, err = t.cfg.Build(t.service)

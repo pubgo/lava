@@ -1,0 +1,10 @@
+### login.Login.Login
+// 登录注册获取凭证,cookie,token
+POST http://localhost:8080/user/login/login
+Content-Type: application/json
+
+### login.Login.Authenticate
+// 使用凭证获取用户信息
+POST http://localhost:8080/user/login/authenticate
+Content-Type: application/json
+

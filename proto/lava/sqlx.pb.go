@@ -16,18 +16,18 @@ import (
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
 type Sql struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Query	*string	`protobuf:"bytes,1,opt,name=query,proto3,oneof" json:"query,omitempty"`
-	Exec	*string	`protobuf:"bytes,2,opt,name=exec,proto3,oneof" json:"exec,omitempty"`
+	Query *string `protobuf:"bytes,1,opt,name=query,proto3,oneof" json:"query,omitempty"`
+	Exec  *string `protobuf:"bytes,2,opt,name=exec,proto3,oneof" json:"exec,omitempty"`
 }
 
 func (x *Sql) Reset() {
@@ -43,7 +43,7 @@ func (x *Sql) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Sql) ProtoMessage()	{}
+func (*Sql) ProtoMessage() {}
 
 func (x *Sql) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_lava_sqlx_proto_msgTypes[0]
@@ -78,12 +78,12 @@ func (x *Sql) GetExec() string {
 
 var file_proto_lava_sqlx_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
-		ExtendedType:	(*descriptorpb.MethodOptions)(nil),
-		ExtensionType:	(*Sql)(nil),
-		Field:		560004,
-		Name:		"lava.sqlx",
-		Tag:		"bytes,560004,opt,name=sqlx",
-		Filename:	"proto/lava/sqlx.proto",
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*Sql)(nil),
+		Field:         560004,
+		Name:          "lava.sqlx",
+		Tag:           "bytes,560004,opt,name=sqlx",
+		Filename:      "proto/lava/sqlx.proto",
 	},
 }
 
@@ -115,8 +115,8 @@ var file_proto_lava_sqlx_proto_rawDesc = []byte{
 }
 
 var (
-	file_proto_lava_sqlx_proto_rawDescOnce	sync.Once
-	file_proto_lava_sqlx_proto_rawDescData	= file_proto_lava_sqlx_proto_rawDesc
+	file_proto_lava_sqlx_proto_rawDescOnce sync.Once
+	file_proto_lava_sqlx_proto_rawDescData = file_proto_lava_sqlx_proto_rawDesc
 )
 
 func file_proto_lava_sqlx_proto_rawDescGZIP() []byte {
@@ -128,20 +128,20 @@ func file_proto_lava_sqlx_proto_rawDescGZIP() []byte {
 
 var file_proto_lava_sqlx_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_proto_lava_sqlx_proto_goTypes = []interface{}{
-	(*Sql)(nil),				// 0: lava.sql
-	(*descriptorpb.MethodOptions)(nil),	// 1: google.protobuf.MethodOptions
+	(*Sql)(nil),                        // 0: lava.sql
+	(*descriptorpb.MethodOptions)(nil), // 1: google.protobuf.MethodOptions
 }
 var file_proto_lava_sqlx_proto_depIdxs = []int32{
-	1,	// 0: lava.sqlx:extendee -> google.protobuf.MethodOptions
-	0,	// 1: lava.sqlx:type_name -> lava.sql
-	2,	// [2:2] is the sub-list for method output_type
-	2,	// [2:2] is the sub-list for method input_type
-	1,	// [1:2] is the sub-list for extension type_name
-	0,	// [0:1] is the sub-list for extension extendee
-	0,	// [0:0] is the sub-list for field type_name
+	1, // 0: lava.sqlx:extendee -> google.protobuf.MethodOptions
+	0, // 1: lava.sqlx:type_name -> lava.sql
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	1, // [1:2] is the sub-list for extension type_name
+	0, // [0:1] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
-func init()	{ file_proto_lava_sqlx_proto_init() }
+func init() { file_proto_lava_sqlx_proto_init() }
 func file_proto_lava_sqlx_proto_init() {
 	if File_proto_lava_sqlx_proto != nil {
 		return
@@ -164,17 +164,17 @@ func file_proto_lava_sqlx_proto_init() {
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
-			GoPackagePath:	reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor:	file_proto_lava_sqlx_proto_rawDesc,
-			NumEnums:	0,
-			NumMessages:	1,
-			NumExtensions:	1,
-			NumServices:	0,
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_proto_lava_sqlx_proto_rawDesc,
+			NumEnums:      0,
+			NumMessages:   1,
+			NumExtensions: 1,
+			NumServices:   0,
 		},
-		GoTypes:		file_proto_lava_sqlx_proto_goTypes,
-		DependencyIndexes:	file_proto_lava_sqlx_proto_depIdxs,
-		MessageInfos:		file_proto_lava_sqlx_proto_msgTypes,
-		ExtensionInfos:		file_proto_lava_sqlx_proto_extTypes,
+		GoTypes:           file_proto_lava_sqlx_proto_goTypes,
+		DependencyIndexes: file_proto_lava_sqlx_proto_depIdxs,
+		MessageInfos:      file_proto_lava_sqlx_proto_msgTypes,
+		ExtensionInfos:    file_proto_lava_sqlx_proto_extTypes,
 	}.Build()
 	File_proto_lava_sqlx_proto = out.File
 	file_proto_lava_sqlx_proto_rawDesc = nil

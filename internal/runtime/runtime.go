@@ -13,8 +13,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/internal/cmds/restapi"
-	v "github.com/pubgo/lava/internal/cmds/version"
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/watcher"
@@ -32,10 +30,6 @@ var logs = logz.New(name)
 var app = &cli.App{
 	Name:    runenv.Domain,
 	Version: version.Version,
-	Commands: cli.Commands{
-		v.Cmd,
-		restapi.Cmd,
-	},
 }
 
 func handleSignal() {

@@ -1,0 +1,24 @@
+### login.BindTelephone.Check
+, // 检查是否可以绑定POST http://localhost:8080/user/bind-telephone/check
+Content-Type: application/json
+
+### login.BindTelephone.BindVerify
+, // 通过验证码,校验手机号是否可以接收验证码POST http://localhost:8080/user/bind-telephone/bind-verify
+Content-Type: application/json
+
+### login.BindTelephone.BindChange
+, // 通过验证码,进行手机号绑定,换绑POST http://localhost:8080/user/bind-telephone/bind-change
+Content-Type: application/json
+
+### login.BindTelephone.AutomaticBind
+, // 手机号绑定,不通过验证码POST http://localhost:8080/user/bind-telephone/automatic-bind
+Content-Type: application/json
+
+### login.BindTelephone.BindPhoneParse
+, // 绑定手机号解析，通过第三方小程序code换取手机号POST http://localhost:8080/user/bind-telephone/bind-phone-parse
+Content-Type: application/json
+
+### login.BindTelephone.BindPhoneParseByOneClick
+, // 绑定手机号解析，通过阿里一键POST http://localhost:8080/user/bind-telephone/bind-phone-parse-by-one-click
+Content-Type: application/json
+

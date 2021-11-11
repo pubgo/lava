@@ -1,6 +1,4 @@
 ### gid.AnotherServiceWithNoBindings.NoBindings
-POST http://localhost:8080/gid/another-service-with-no-bindings/no-bindings
+GET http://localhost:8080/v2/another/no-bindings
 Content-Type: application/json
-
-{}
 
