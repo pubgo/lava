@@ -83,10 +83,10 @@ nsq:
 http:
   test: ""
 
-db:
+gorm:
   default:
-    driver: "sqlite3x"
-    source: "./db/sqlite.db"
+    driver: "sqlite3"
+    dsn: "sqlite.db"
 
 registry:
   driver: "mdns"

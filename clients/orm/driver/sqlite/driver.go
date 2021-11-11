@@ -1,7 +1,8 @@
 package sqlite
 
 import (
-	"fmt"
+	"github.com/pubgo/x/q"
+	"github.com/pubgo/xerror"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -11,12 +12,12 @@ import (
 )
 
 func init() {
-	orm.Register("sqlite3", func(cfg types.CfgMap) (gorm.Dialector, error) {
+	orm.Register("sqlite3", func(cfg types.CfgMap) gorm.Dialector {
 		var dsn, ok = cfg["dsn"].(string)
-		if !ok {
-			return nil, fmt.Errorf("dns not found")
-		}
-
-		return sqlite.Open(dsn), nil
+		xerror.AssertFn(!ok || dsn == "", func() string {
+			q.Q(cfg)
+			return "dns not found"
+		})
+		return sqlite.Open(dsn)
 	})
 }

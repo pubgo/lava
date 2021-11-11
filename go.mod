@@ -64,7 +64,7 @@ require (
 	github.com/json-iterator/go v1.1.11
 	github.com/klauspost/crc32 v1.2.0 // indirect
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
-	github.com/lib/pq v1.10.1
+	github.com/lib/pq v1.10.2
 	github.com/lucas-clemente/quic-go v0.19.3
 	github.com/m3db/prometheus_client_golang v0.8.1 // indirect
 	github.com/m3db/prometheus_client_model v0.1.0 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/mwitkow/go-proto-validators v0.3.2
 	github.com/nacos-group/nacos-sdk-go v1.0.9
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/opentracing/opentracing-go v1.1.0
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/panjf2000/gnet v1.4.5
 	github.com/pelletier/go-toml v1.9.3
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
@@ -115,7 +115,7 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/mod v0.5.0
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
@@ -307,7 +307,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1 // indirect
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -315,9 +315,11 @@ require (
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gorm.io/datatypes v1.0.3
 	gorm.io/driver/mysql v1.1.3
 	gorm.io/driver/sqlite v1.2.3
 	gorm.io/gorm v1.22.2
+	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816
 	honnef.co/go/tools v0.2.0 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
 	k8s.io/api v0.21.1 // indirect

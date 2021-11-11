@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/pubgo/xerror"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -22,13 +23,10 @@ type Config struct {
 }
 
 func init() {
-	orm.Register("mysql", func(cfg types.CfgMap) (gorm.Dialector, error) {
+	orm.Register("mysql", func(cfg types.CfgMap) gorm.Dialector {
 		var conf = DefaultCfg()
-		if err := cfg.Decode(&conf); err != nil {
-			return nil, err
-		}
-
-		return mysql.New(*merge.Struct(&mysql.Config{}, conf).(*mysql.Config)), nil
+		xerror.Panic(cfg.Decode(&conf))
+		return mysql.New(*merge.Struct(&mysql.Config{}, conf).(*mysql.Config))
 	})
 }
 

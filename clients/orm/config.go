@@ -5,9 +5,15 @@ import (
 
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	opentracing "gorm.io/plugin/opentracing"
 
+	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/plugins/tracing"
 )
+
+var logs = logz.New(Name)
 
 var cfgMap = make(map[string]*Cfg)
 
@@ -28,14 +34,29 @@ type Cfg struct {
 	MaxConnOpen                              int           `json:"max_conn_open" yaml:"max_conn_open"`
 }
 
-func (t Cfg) Build() *gorm.DB {
-	var dialect = factories.Get(t.Driver).(gorm.Dialector)
-	xerror.Assert(dialect == nil, "dialect[%s] not found", t.Driver)
-	db, err := gorm.Open(dialect, merge.Struct(&gorm.Config{}, t).(*gorm.Config))
+func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
+	var log = merge.Struct(&gorm.Config{}, t).(*gorm.Config)
+	log.Logger = logger.New(
+		logPrintf(logs.Infof),
+		logger.Config{
+			SlowThreshold:             time.Second,   // Slow SQL threshold
+			LogLevel:                  logger.Silent, // Log level
+			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,         // Disable color
+		},
+	)
+
+	db, err := gorm.Open(dialect, log)
 	xerror.Panic(err)
+
+	// 添加链路
+	xerror.Panic(db.Use(opentracing.New(
+		opentracing.WithErrorTagHook(tracing.SetIfErr),
+	)))
 
 	sqlDB, err := db.DB()
 	xerror.Panic(err)
+	xerror.Panic(sqlDB.Ping())
 
 	if t.MaxConnTime != 0 {
 		sqlDB.SetConnMaxLifetime(t.MaxConnTime)
@@ -54,6 +75,8 @@ func (t Cfg) Build() *gorm.DB {
 
 func DefaultCfg() *Cfg {
 	return &Cfg{
+		//SkipDefaultTransaction: true,
+		PrepareStmt: true,
 		MaxConnTime: time.Hour,
 		MaxConnIdle: 10,
 		MaxConnOpen: 100,

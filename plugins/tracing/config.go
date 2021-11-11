@@ -7,6 +7,8 @@ import (
 
 const Name = "tracing"
 
+var cfg = GetDefaultCfg()
+
 type Cfg struct {
 	Driver string `json:"driver"`
 }

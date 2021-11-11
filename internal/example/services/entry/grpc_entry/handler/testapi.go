@@ -2,23 +2,40 @@ package handler
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"github.com/pubgo/lava/logger"
 	"time"
 
+	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
+	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/clients/xorm"
 	"github.com/pubgo/lava/clients/grpcc"
+	"github.com/pubgo/lava/clients/orm"
+	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/example/services/protopb/proto/hello"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/logRecord"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/middlewares/traceRecord"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
+
+type User struct {
+	gorm.Model
+	ID           uint
+	Name         string
+	Email        *string
+	Age          uint8
+	Birthday     time.Time
+	MemberNumber sql.NullString
+	ActivatedAt  sql.NullTime
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
 	cfg.Middlewares = append(cfg.Middlewares, requestID.Name)
@@ -31,11 +48,16 @@ func NewTestAPIHandler() *testapiHandler {
 }
 
 type testapiHandler struct {
-	Db   *xorm.Client         `dix:""`
+	Db   *orm.Client          `dix:""`
 	Cron *scheduler.Scheduler `dix:""`
 }
 
 func (h *testapiHandler) Init() {
+	xerror.Panic(h.Db.AutoMigrate(&User{}))
+	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
+	xerror.Panic(h.Db.Create(&user).Error)
+	q.Q(user)
+
 	h.Cron.Every("test grpc client", time.Second*2, func(name string) {
 		zap.L().Debug("客户端访问")
 		var out, err1 = testApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
@@ -60,7 +82,10 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
-		log.Info("dix db ok", logger.WithErr(h.Db.Ping())...)
+		var user User
+		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
+		log.Info("data", zap.Any("data", user))
+		log.Info("dix db ok", logger.WithErr(h.Db.Raw("select 1").Error)...)
 		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))
 	}
 

@@ -3,6 +3,7 @@ package traceRecord
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -23,6 +24,7 @@ func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var tracer = opentracing.GlobalTracer()
+			fmt.Println(tracer==nil,req.Client())
 			if tracer == nil {
 				return xerror.Fmt("tracer is nil")
 			}

@@ -177,7 +177,8 @@ func Run(description string, entries ...entry.Entry) {
 
 			// plugin初始化
 			for _, plg := range plugin.All() {
-				logs.Logs("plugin init", plg.Init, logger.Name(plg.UniqueName()))
+				entRT.MiddlewareInter(plg.Middleware())
+				logs.LogAndThrow("plugin init", plg.Init, logger.Name(plg.UniqueName()))
 			}
 
 			// entry初始化
