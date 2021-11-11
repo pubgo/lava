@@ -5,7 +5,3 @@ type VM interface {
 	Init() error
 	Import()
 }
-
-func init() {
-
-}

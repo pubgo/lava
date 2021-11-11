@@ -33,12 +33,28 @@ func (t Cfg) Build() *gorm.DB {
 	xerror.Assert(dialect == nil, "dialect[%s] not found", t.Driver)
 	db, err := gorm.Open(dialect, merge.Struct(&gorm.Config{}, t).(*gorm.Config))
 	xerror.Panic(err)
+
+	sqlDB, err := db.DB()
+	xerror.Panic(err)
+
+	if t.MaxConnTime != 0 {
+		sqlDB.SetConnMaxLifetime(t.MaxConnTime)
+	}
+
+	if t.MaxConnIdle != 0 {
+		sqlDB.SetMaxIdleConns(t.MaxConnIdle)
+	}
+
+	if t.MaxConnOpen != 0 {
+		sqlDB.SetMaxOpenConns(t.MaxConnOpen)
+	}
+
 	return db
 }
 
 func DefaultCfg() *Cfg {
 	return &Cfg{
-		MaxConnTime: time.Second * 5,
+		MaxConnTime: time.Hour,
 		MaxConnIdle: 10,
 		MaxConnOpen: 100,
 	}

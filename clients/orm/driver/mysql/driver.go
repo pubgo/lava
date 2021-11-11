@@ -1,4 +1,4 @@
-package driver
+package mysql
 
 import (
 	"gorm.io/driver/mysql"
@@ -23,11 +23,24 @@ type Config struct {
 
 func init() {
 	orm.Register("mysql", func(cfg types.CfgMap) (gorm.Dialector, error) {
-		var conf = Config{}
+		var conf = DefaultCfg()
 		if err := cfg.Decode(&conf); err != nil {
 			return nil, err
 		}
 
 		return mysql.New(*merge.Struct(&mysql.Config{}, conf).(*mysql.Config)), nil
 	})
+}
+
+var datetimePrecision = 2
+
+func DefaultCfg() *Config {
+	return &Config{
+		DefaultStringSize:         256,                // add default size for string fields, by default, will use db type `longtext` for fields without size, not a primary key, no index defined and don't have default values
+		DisableDatetimePrecision:  true,               // disable datetime precision support, which not supported before MySQL 5.6
+		DefaultDatetimePrecision:  &datetimePrecision, // default datetime precision
+		DontSupportRenameIndex:    true,               // drop & create index when rename index, rename index not supported before MySQL 5.7, MariaDB
+		DontSupportRenameColumn:   true,               // use change when rename column, rename rename not supported before MySQL 8, MariaDB
+		SkipInitializeWithVersion: false,              // smart configure based on used version
+	}
 }
