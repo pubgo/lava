@@ -13,7 +13,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			if config.Decode(Name, &cfgList) != nil {
 				return
 			}
@@ -25,7 +25,7 @@ func init() {
 				cfgList[k] = cfg
 			}
 		},
-		OnWatch: func(name string, r *types.WatchResp) {
+		OnWatch: func(name string, r *types.WatchResp) error {
 			r.OnPut(func() {
 				// 解析etcd配置
 				var cfg ClientCfg
@@ -39,9 +39,10 @@ func init() {
 			r.OnDelete(func() {
 				resource.Remove(Name, name)
 			})
+			return nil
 		},
-		OnVars: func(w func(name string, data func() interface{})) {
-			w(Name, func() interface{} { return cfgList })
+		OnVars: func(v types.Vars) {
+			v(Name, func() interface{} { return cfgList })
 		},
 	})
 }

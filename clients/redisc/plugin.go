@@ -14,7 +14,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			_ = config.Decode(Name, &cfgMap)
 			for k, v := range cfgMap {
 				client := redis.NewClient(merge.Struct(DefaultCfg(), v).(*redis.Options))

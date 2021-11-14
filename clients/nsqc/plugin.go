@@ -6,14 +6,15 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/types"
 )
 
 func init() { plugin.Register(&plg) }
 
 var plg = plugin.Base{
 	Name: Name,
-	OnInit: func() {
-		config.Decode(Name, &cfgList)
+	OnInit: func(p plugin.Process) {
+		xerror.Panic(config.Decode(Name, &cfgList))
 
 		for k, v := range cfgList {
 			cfg := GetDefaultCfg()
@@ -23,7 +24,7 @@ var plg = plugin.Base{
 			cfgList[k] = cfg
 		}
 	},
-	OnVars: func(w func(name string, data func() interface{})) {
-		w(Name, func() interface{} { return cfgList })
+	OnVars: func(v types.Vars) {
+		v(Name, func() interface{} { return cfgList })
 	},
 }
