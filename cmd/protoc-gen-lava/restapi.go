@@ -33,20 +33,6 @@ func genRestApiTest(gen *protogen.Plugin, file *protogen.File, g *protogen.Gener
 
 		data = append(data, fmt.Sprintf("%s http://localhost:8080%s\n", method, path))
 		data = append(data, fmt.Sprintf("Content-Type: application/json\n\n"))
-		//if method != http.MethodGet {
-		//	var params = make(map[string]string)
-		//	// g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
-		//	// g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
-		//	var tt = reflect.TypeOf(handler.Input).Elem()
-		//	for i := tt.NumField() - 1; i >= 0; i-- {
-		//		var f = tt.Field(i)
-		//		var tag = f.Tag.Get("json")
-		//		if tag != "" {
-		//			params[strings.Split(tag, ",")[0]] = ""
-		//		}
-		//	}
-		//	data = append(data, fmt.Sprintf("%s\n\n", xerror.PanicBytes(json.MarshalIndent(params, "", " "))))
-		//}
 	}
 	xerror.Panic(pathutil.IsNotExistMkDir(testDir))
 	xerror.Panic(ioutil.WriteFile(filepath.Join(testDir, genPath), []byte(strings.Join(data, "")), 0755))
