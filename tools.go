@@ -4,14 +4,9 @@
 package lava
 
 import (
-	_ "github.com/favadi/protoc-go-inject-tag"
 	_ "github.com/fullstorydev/grpcurl/cmd/grpcurl"
-	_ "github.com/go-bindata/go-bindata/v3/go-bindata"
-	_ "github.com/gogo/protobuf/protoc-gen-gofast"
-	_ "github.com/gogo/protobuf/protoc-gen-gogo"
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/gordonklaus/ineffassign"
-	_ "github.com/srikrsna/protoc-gen-gotag"
 
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
@@ -29,7 +24,7 @@ import (
 	_ "google.golang.org/protobuf/cmd/protoc-gen-go"
 
 	// Render markdown on the CLI, with pizzazz!
-	_ "github.com/charmbracelet/glow"
+	//_ "github.com/charmbracelet/glow"
 
 	// An interactive web UI for gRPC, along the lines of postman
 	_ "github.com/fullstorydev/grpcui/cmd/grpcui"

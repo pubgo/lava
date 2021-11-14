@@ -14,6 +14,14 @@ type Client struct {
 	*gorm.DB
 }
 
+func (c *Client) Ping() error {
+	var db, err = c.DB.DB()
+	if err != nil {
+		return err
+	}
+	return db.Ping()
+}
+
 func (c *Client) Close() error {
 	var db, err = c.DB.DB()
 	if err != nil {
