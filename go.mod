@@ -76,7 +76,7 @@ require (
 	github.com/pubgo/dix v0.1.31
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.14
-	github.com/pubgo/xlog v0.2.10
+	github.com/pubgo/xlog v0.2.11
 	github.com/reugn/go-quartz v0.3.7
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
 	github.com/segmentio/ksuid v1.0.3
