@@ -2,7 +2,6 @@ package gen_lava
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/cmd/protoc-gen-lava"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -35,6 +34,6 @@ func genRestApiTest(gen *protogen.Plugin, file *protogen.File, g *protogen.Gener
 		data = append(data, fmt.Sprintf("%s http://localhost:8080%s\n", method, path))
 		data = append(data, fmt.Sprintf("Content-Type: application/json\n\n"))
 	}
-	xerror.Panic(pathutil.IsNotExistMkDir(main.testDir))
-	xerror.Panic(ioutil.WriteFile(filepath.Join(main.testDir, genPath), []byte(strings.Join(data, "")), 0755))
+	xerror.Panic(pathutil.IsNotExistMkDir(testDir))
+	xerror.Panic(ioutil.WriteFile(filepath.Join(testDir, genPath), []byte(strings.Join(data, "")), 0755))
 }
