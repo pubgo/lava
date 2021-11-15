@@ -263,7 +263,13 @@ func Cmd() *cli.Command {
 
 						url = xerror.PanicStr(filepath.Abs(url))
 						var newUrl = filepath.Join(protoPath, dep.Name)
-						xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) error {
+						xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) (gErr error) {
+							if err != nil {
+								return err
+							}
+
+							defer xerror.RespErr(&gErr)
+
 							if info.IsDir() {
 								return nil
 							}
@@ -361,18 +367,13 @@ func Cmd() *cli.Command {
 
 func copyFile(dstFilePath string, srcFilePath string) (written int64, err error) {
 	srcFile, err := os.Open(srcFilePath)
-	if err != nil {
-		fmt.Printf("打开源文件错误，错误信息=%v\n", err)
-	}
+	xerror.Panic(err, "打开源文件错误，错误信息")
 
 	defer srcFile.Close()
 	reader := bufio.NewReader(srcFile)
 
 	dstFile, err := os.OpenFile(dstFilePath, os.O_WRONLY|os.O_CREATE, 0777)
-	if err != nil {
-		fmt.Printf("打开目标文件错误，错误信息=%v\n", err)
-		return
-	}
+	xerror.Panic(err, "打开目标文件错误，错误信息")
 
 	writer := bufio.NewWriter(dstFile)
 	defer dstFile.Close()
