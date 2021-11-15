@@ -3,7 +3,6 @@ on:
   create:
     tags:
       - v*
-
 jobs:
   release:
     name: Release on GitHub

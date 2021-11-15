@@ -1,4 +1,4 @@
-package main
+package gen_lava
 
 import (
 	"fmt"
@@ -30,8 +30,8 @@ var (
 	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
 )
 
-// generateFile generates a .lava.pb.go file containing service definitions.
-func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
+// GenerateFile generates a .lava.pb.go file containing service definitions.
+func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	if len(file.Services) == 0 {
 		return nil
 	}

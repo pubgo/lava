@@ -1,4 +1,4 @@
-package main
+package gen_lava
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 	"github.com/pubgo/lava/proto/lava"
 )
 
-func generateTag(rootDir string, gen *protogen.Plugin, file *protogen.File) {
+func GenerateTag(gen *protogen.Plugin, file *protogen.File) {
 	defer xerror.RespExit(file.GeneratedFilenamePrefix)
 
 	if len(file.Messages) == 0 {
@@ -29,10 +29,10 @@ func generateTag(rootDir string, gen *protogen.Plugin, file *protogen.File) {
 	}
 
 	var sep = string(os.PathSeparator)
-	var rootDirList = strings.Split(strings.Trim(rootDir, sep), sep)
+	var rootDirList = strings.Split(strings.Trim(path, sep), sep)
 
 	var path = fmt.Sprintf("%s.pb.go", file.GeneratedFilenamePrefix)
-	path = filepath.Join(rootDir, strings.Join(strings.Split(path, sep)[len(rootDirList)-1:], sep))
+	path = filepath.Join(path, strings.Join(strings.Split(path, sep)[len(rootDirList)-1:], sep))
 	if pathutil.IsNotExist(path) {
 		return
 	}
