@@ -49,7 +49,7 @@ func (la *loadAggregate) Next() (interface{}, func(info balancer.DoneInfo)) {
 			y += 1
 		}
 
-		// 获取来那个个连接中使用数最小的那个
+		// 获取连接中使用数最小的那个
 		election, alternative = la.items[x], la.items[y]
 		if election.loadCount > alternative.loadCount {
 			election = alternative
