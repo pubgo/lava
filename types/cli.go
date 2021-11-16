@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type Flags []cli.Flag
+type Flags=[]cli.Flag
 type Command = cli.Command
 
 func EnvOf(str ...string) []string {

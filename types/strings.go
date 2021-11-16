@@ -1,3 +1,3 @@
 package types
 
-type Strs []string
+type Strs=[]string
