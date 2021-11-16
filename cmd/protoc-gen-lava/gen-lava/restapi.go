@@ -23,15 +23,14 @@ func genRestApiTest(gen *protogen.Plugin, file *protogen.File, g *protogen.Gener
 		if err != nil || hr == nil {
 			hr = protoutil.DefaultAPIOptions(string(file.GoPackageName), service.GoName, m.GoName)
 		}
-		method, path := protoutil.ExtractHttpMethod(hr)
-
-		data = append(data, fmt.Sprintf("### %s.%s.%s\n", file.GoPackageName, service.GoName, m.GoName))
+		method, url := protoutil.ExtractHttpMethod(hr)
 
 		if m.Comments.Leading.String() != "" {
 			data = append(data, strings.TrimSpace(m.Comments.Leading.String())+"\n")
 		}
+		data = append(data, fmt.Sprintf("### %s.%s.%s\n", file.GoPackageName, service.GoName, m.GoName))
 
-		data = append(data, fmt.Sprintf("%s http://localhost:8080%s\n", method, path))
+		data = append(data, fmt.Sprintf("%s http://localhost:8080%s\n", method, url))
 		data = append(data, fmt.Sprintf("Content-Type: application/json\n\n"))
 	}
 	xerror.Panic(pathutil.IsNotExistMkDir(testDir))
