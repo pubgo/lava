@@ -1,0 +1,477 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/sqlx/code.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Code"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/user/code/get-send-status": {
+      "post": {
+        "summary": "获取发送状态",
+        "operationId": "Code_GetSendStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/sqlxGetSendStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sqlxGetSendStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Code"
+        ]
+      }
+    },
+    "/user/code/is-check-image-code": {
+      "post": {
+        "summary": "是否校验图片验证码",
+        "operationId": "Code_IsCheckImageCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/sqlxIsCheckImageCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sqlxIsCheckImageCodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Code"
+        ]
+      }
+    },
+    "/user/code/send-code": {
+      "post": {
+        "summary": "发送",
+        "operationId": "Code_SendCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/sqlxSendCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sqlxSendCodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Code"
+        ]
+      }
+    },
+    "/user/code/verify": {
+      "post": {
+        "summary": "校验",
+        "operationId": "Code_Verify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/sqlxVerifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sqlxVerifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Code"
+        ]
+      }
+    },
+    "/user/code/verify-image-code": {
+      "post": {
+        "summary": "校验图片验证码",
+        "operationId": "Code_VerifyImageCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/sqlxVerifyImageCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/sqlxVerifyImageCodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Code"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "sqlxGetSendStatusRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "sendType": {
+          "type": "string",
+          "title": "发送类型"
+        },
+        "template": {
+          "type": "string",
+          "title": "模板"
+        },
+        "signR": {
+          "type": "string",
+          "format": "int64",
+          "title": "是否越狱标示"
+        },
+        "ip": {
+          "type": "string",
+          "title": "ip"
+        }
+      }
+    },
+    "sqlxGetSendStatusResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "$ref": "#/definitions/sqlxSendStatus",
+          "title": "数据"
+        }
+      }
+    },
+    "sqlxIsCheckImageCodeRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "scene": {
+          "type": "string",
+          "title": "场景"
+        }
+      }
+    },
+    "sqlxIsCheckImageCodeResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "boolean",
+          "title": "数据"
+        }
+      }
+    },
+    "sqlxSendCodeRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "电话"
+        },
+        "sendType": {
+          "type": "string",
+          "title": "发送类型,call ,sms"
+        },
+        "ip": {
+          "type": "string",
+          "title": "ip"
+        },
+        "template": {
+          "type": "string",
+          "title": "模板"
+        }
+      }
+    },
+    "sqlxSendCodeResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳\n@gotags: valid:\"ip\" custom_tag:\"custom_value\""
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "sqlxSendStatus": {
+      "type": "object",
+      "properties": {
+        "needImageCode": {
+          "type": "boolean",
+          "title": "需要图形验证码"
+        },
+        "forceCall": {
+          "type": "boolean",
+          "title": "强制语音"
+        },
+        "isForbidden": {
+          "type": "boolean",
+          "title": "被禁止"
+        },
+        "numberLimit": {
+          "type": "boolean",
+          "title": "数量超限制"
+        }
+      }
+    },
+    "sqlxVerifyImageCodeRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "ticket": {
+          "type": "string",
+          "title": "图形验证码ticket"
+        },
+        "randStr": {
+          "type": "string",
+          "title": "图形验证码randStr"
+        },
+        "ip": {
+          "type": "string",
+          "title": "图形验证码ip"
+        },
+        "scene": {
+          "type": "string",
+          "title": "场景"
+        }
+      }
+    },
+    "sqlxVerifyImageCodeResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        }
+      }
+    },
+    "sqlxVerifyRequest": {
+      "type": "object",
+      "properties": {
+        "nationCode": {
+          "type": "string",
+          "title": "区号"
+        },
+        "telephone": {
+          "type": "string",
+          "title": "手机号"
+        },
+        "code": {
+          "type": "string",
+          "title": "验证码"
+        },
+        "template": {
+          "type": "string",
+          "title": "模板"
+        }
+      }
+    },
+    "sqlxVerifyResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    }
+  }
+}

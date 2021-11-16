@@ -1,0 +1,10 @@
+### gid.User.Generate
+// Generate 生成ID
+POST http://localhost:8080/v1/id/generate
+Content-Type: application/json
+
+### gid.User.Types
+// Types id类型
+GET http://localhost:8080/v1/id/types
+Content-Type: application/json
+

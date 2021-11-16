@@ -1,0 +1,4 @@
+### gid.AnotherServiceWithNoBindings.NoBindings
+GET http://localhost:8080/v2/another/no-bindings
+Content-Type: application/json
+

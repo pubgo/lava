@@ -1,0 +1,4 @@
+### hello.Greeter.SayHello
+GET http://localhost:8080/say/{name}
+Content-Type: application/json
+

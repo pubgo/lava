@@ -1,0 +1,25 @@
+### login.Merge.Telephone
+// 手机号合并,换绑,手机号更换
+POST http://localhost:8080/user/merge/telephone
+Content-Type: application/json
+
+### login.Merge.TelephoneCheck
+// 手机号账户合并检查
+POST http://localhost:8080/user/merge/telephone-check
+Content-Type: application/json
+
+### login.Merge.WeChat
+// 微信账户绑定
+POST http://localhost:8080/user/merge/we-chat
+Content-Type: application/json
+
+### login.Merge.WeChatCheck
+// 微信合并检查
+POST http://localhost:8080/user/merge/we-chat-check
+Content-Type: application/json
+
+### login.Merge.WeChatUnMerge
+// 解除微信绑定, 必须拥有手机号
+POST http://localhost:8080/user/merge/we-chat-un-merge
+Content-Type: application/json
+

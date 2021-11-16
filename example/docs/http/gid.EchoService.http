@@ -1,0 +1,30 @@
+### gid.EchoService.Echo
+// Echo method receives a simple message and returns it.
+//
+// The message posted as the id parameter will also be
+// returned.
+POST http://localhost:8080/v1/example/echo/{id}
+Content-Type: application/json
+
+### gid.EchoService.EchoBody
+// EchoBody method receives a simple message and returns it.
+POST http://localhost:8080/v1/example/echo_body
+Content-Type: application/json
+
+### gid.EchoService.EchoDelete
+// EchoDelete method receives a simple message and returns it.
+DELETE http://localhost:8080/v1/example/echo_delete
+Content-Type: application/json
+
+### gid.EchoService.EchoPatch
+// EchoPatch method receives a NonStandardUpdateRequest and returns it.
+PATCH http://localhost:8080/v1/example/echo_patch
+Content-Type: application/json
+
+### gid.EchoService.EchoUnauthorized
+// EchoUnauthorized method receives a simple message and returns it. It must
+// always return a google.rpc.Code of `UNAUTHENTICATED` and a HTTP Status code
+// of 401.
+GET http://localhost:8080/v1/example/echo_unauthorized
+Content-Type: application/json
+

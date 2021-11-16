@@ -69,7 +69,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 	for _, service := range file.Services {
 		genClient(gen, file, g, service)
 		genRpcInfo(gen, file, g, service)
-		genRestApiTest(gen, file, g, service)
+		//genRestApiTest(gen, file, g, service)
 		//genRestRouter(gen, file, g, service)
 		genGinRouter(gen, file, g, service)
 		genSql(gen, file, g, service)

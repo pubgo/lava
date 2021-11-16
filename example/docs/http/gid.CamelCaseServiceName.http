@@ -1,0 +1,4 @@
+### gid.CamelCaseServiceName.Empty
+GET http://localhost:8080/v2/example/empty
+Content-Type: application/json
+

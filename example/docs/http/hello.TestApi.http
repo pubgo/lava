@@ -1,0 +1,19 @@
+### hello.TestApi.Version
+// Version rpc
+GET http://localhost:8080/v1/version
+Content-Type: application/json
+
+### hello.TestApi.Version1
+POST http://localhost:8080/v1/version1
+Content-Type: application/json
+
+### hello.TestApi.VersionTest
+// VersionTest rpc
+GET http://localhost:8080/v1/example/versiontest
+Content-Type: application/json
+
+### hello.TestApi.VersionTestCustom
+// VersionTest rpc custom
+GET http://localhost:8080/v1/example/versionTestCustom
+Content-Type: application/json
+

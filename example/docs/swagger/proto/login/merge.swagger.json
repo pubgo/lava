@@ -1,0 +1,286 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "账户合并相关",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Merge"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/user/merge/telephone": {
+      "post": {
+        "summary": "手机号合并,换绑,手机号更换",
+        "operationId": "Merge_Telephone",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginTelephoneRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Merge"
+        ]
+      }
+    },
+    "/user/merge/telephone-check": {
+      "post": {
+        "summary": "手机号账户合并检查",
+        "operationId": "Merge_TelephoneCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginTelephoneRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Merge"
+        ]
+      }
+    },
+    "/user/merge/we-chat": {
+      "post": {
+        "summary": "微信账户绑定",
+        "operationId": "Merge_WeChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginWeChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Merge"
+        ]
+      }
+    },
+    "/user/merge/we-chat-check": {
+      "post": {
+        "summary": "微信合并检查",
+        "operationId": "Merge_WeChatCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginWeChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Merge"
+        ]
+      }
+    },
+    "/user/merge/we-chat-un-merge": {
+      "post": {
+        "summary": "解除微信绑定, 必须拥有手机号",
+        "operationId": "Merge_WeChatUnMerge",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/loginReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/loginWeChatUnMergeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Merge"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "loginReply": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "format": "int64",
+          "title": "code"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "nowTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "时间戳"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "数据"
+        }
+      }
+    },
+    "loginTelephoneRequest": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "登陆用户"
+        },
+        "targetTelephone": {
+          "type": "string",
+          "title": "新手机号"
+        },
+        "isNewProcess": {
+          "type": "boolean",
+          "title": "是否走新流程"
+        }
+      }
+    },
+    "loginWeChatRequest": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "登陆用户"
+        },
+        "targetUid": {
+          "type": "string",
+          "format": "int64",
+          "title": "要合并的用户"
+        }
+      }
+    },
+    "loginWeChatUnMergeRequest": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "format": "int64",
+          "title": "登陆用户"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
