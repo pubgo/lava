@@ -7,8 +7,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/loggerInter"
 	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
@@ -49,7 +49,7 @@ func init() {
 
 			var respBody interface{}
 			err = next(
-				logger.CtxWithLogger(ctx, zap.L().With(zap.String("requestId", reqId))),
+				loggerInter.CtxWithLogger(ctx, zap.L().With(zap.String("requestId", reqId))),
 				req,
 				func(rsp types.Response) error {
 					respBody = rsp.Payload()

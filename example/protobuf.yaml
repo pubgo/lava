@@ -53,3 +53,5 @@ plugins:
       - gin=true
       - path=protopb
       - paths=source_relative
+  - name: "errors"
+    opt: "paths=source_relative"

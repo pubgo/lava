@@ -54,7 +54,8 @@ proto-vendor:
 
 .PHONY: gen
 proto-plugin-gen:
-	cd cmd/protoc-gen-lava && go install .
+	cd cmd/protoc-gen-lava && go install -v .
+	cd cmd/protoc-gen-errors && go install -v .
 
 .PHONY: example
 example:

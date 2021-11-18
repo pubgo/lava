@@ -2,11 +2,14 @@ package errors
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -88,4 +91,37 @@ func IsMemoryErr(err error) bool {
 	}
 
 	return strings.Contains(err.Error(), "invalid memory address or nil pointer dereference")
+}
+
+// FromError try to convert an error to *Error.
+// It supports wrapped errors.
+func FromError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	if se := new(Error); errors.As(err, &se) {
+		return se
+	}
+
+	// grpc error
+	gs, ok := status.FromError(err)
+	if ok {
+		ret := New("lava.grpc.error", int32(gs.Code()), gs.Message())
+		for _, detail := range gs.Details() {
+			switch d := detail.(type) {
+			case *errdetails.ErrorInfo:
+				ret.Reason = d.Reason
+				return ret.WithMetadata(d.Metadata)
+			}
+		}
+		return ret
+	}
+
+	return &Error{
+		Code:     2,
+		Reason:   "lava.unknown.error",
+		Message:  err.Error(),
+		Metadata: map[string]string{"detail": fmt.Sprintf("%v", err)},
+	}
 }

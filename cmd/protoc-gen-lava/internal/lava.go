@@ -1,4 +1,4 @@
-package gen_lava
+package internal
 
 import (
 	"fmt"

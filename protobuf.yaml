@@ -19,8 +19,11 @@ deps:
 plugins:
   - name: "go"
     opt: "paths=source_relative"
+  - name: "errors"
+    opt: "paths=source_relative"
   - name: "lava"
     opt: "paths=source_relative"
 root:
   - types
   - proto
+  - errors

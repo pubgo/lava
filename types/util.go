@@ -8,6 +8,5 @@ func (t CfgMap) Decode(dst interface{}) error {
 	return merge.MapStruct(dst, &t)
 }
 
-
-type M=map[string]interface{}
-type List=[]interface{}
+type M = map[string]interface{}
+type List = []interface{}

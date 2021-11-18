@@ -1,4 +1,4 @@
-package gen_lava
+package internal
 
 import (
 	"fmt"
@@ -30,39 +30,36 @@ func GenerateTag(gen *protogen.Plugin, file *protogen.File) {
 
 	var sep = string(os.PathSeparator)
 	var rootDirList = strings.Split(strings.Trim(path, sep), sep)
+	pbPath := filepath.Join(path, strings.Join(strings.Split(file.GeneratedFilenamePrefix, sep)[len(rootDirList)-1:], sep))
+	pbPath = fmt.Sprintf("%s.pb.go", pbPath)
+	xerror.Assert(pathutil.IsNotExist(pbPath), "path=>%s not found", pbPath)
 
-	var path = fmt.Sprintf("%s.pb.go", file.GeneratedFilenamePrefix)
-	path = filepath.Join(path, strings.Join(strings.Split(path, sep)[len(rootDirList)-1:], sep))
-	if pathutil.IsNotExist(path) {
-		return
-	}
-
-	var tags = make(StructTags)
+	var tagMap = make(StructTags)
 
 	for i := range file.Messages {
-		var name, tt = tags.HandleMessage(file.Messages[i])
+		var name, tt = tagMap.HandleMessage(file.Messages[i])
 		if len(tt) == 0 {
 			continue
 		}
 
-		tags[name] = tt
+		tagMap[name] = tt
 	}
 
-	if len(tags) == 0 {
+	if len(tagMap) == 0 {
 		return
 	}
 
-	log.Println("retag:", path)
+	log.Println("retag:", pbPath)
 
 	fs := token.NewFileSet()
-	fn, err := parser.ParseFile(fs, path, nil, parser.ParseComments)
+	fn, err := parser.ParseFile(fs, pbPath, nil, parser.ParseComments)
 	xerror.Exit(err)
 
-	xerror.Exit(Retag(fn, tags))
+	xerror.Exit(Retag(fn, tagMap))
 
 	var buf strings.Builder
 	xerror.Exit(printer.Fprint(&buf, fs, fn))
-	xerror.Exit(ioutil.WriteFile(path, []byte(buf.String()), 0755))
+	xerror.Exit(ioutil.WriteFile(pbPath, []byte(buf.String()), 0755))
 }
 
 type StructTags map[string]map[string]*structtag.Tags
