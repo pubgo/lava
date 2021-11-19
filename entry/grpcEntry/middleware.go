@@ -16,17 +16,17 @@ import (
 )
 
 func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.UnaryServerInterceptor {
-	wrapperUnary := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+	unaryWrapper := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		ctx = metadata.NewIncomingContext(ctx, req.Header())
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return err
 		}
-		return xerror.Wrap(rsp(&rpcResponse{dt: dt, header: req.Header()}))
+		return rsp(&rpcResponse{dt: dt, header: req.Header()})
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapperUnary = middlewares[i](wrapperUnary)
+		unaryWrapper = middlewares[i](unaryWrapper)
 	}
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -65,21 +65,20 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 			}
 		}
 
-		err = wrapperUnary(
-			ctx,
+		var cdc = encoding.GetCdc(ct)
+		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
+
+		err = unaryWrapper(ctx,
 			&rpcRequest{
 				service:     serviceFromMethod(info.FullMethod),
 				method:      info.FullMethod,
 				handler:     handler,
 				contentType: ct,
-				cdc:         encoding.Mapping[ct],
+				cdc:         cdc,
 				payload:     req,
 				header:      md,
 			},
-			func(rsp types.Response) error {
-				resp = rsp.Payload()
-				return nil
-			},
+			func(rsp types.Response) error { resp = rsp.Payload(); return nil },
 		)
 
 		return
@@ -87,9 +86,9 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 }
 
 func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.StreamServerInterceptor {
-	wrapperStream := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
-		var reqCtx = req.(*rpcRequest)
+	streamWrapper := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		ctx = metadata.NewIncomingContext(ctx, req.Header())
+		var reqCtx = req.(*rpcRequest)
 		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream})
 		if err != nil {
 			return err
@@ -98,7 +97,7 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapperStream = middlewares[i](wrapperStream)
+		streamWrapper = middlewares[i](streamWrapper)
 	}
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -133,12 +132,14 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 			if dur, err := time.ParseDuration(to[0]); err == nil {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
-				_ = cancel
+				defer cancel()
 			}
 		}
 
-		return wrapperStream(
-			ctx,
+		var cdc = encoding.GetCdc(ct)
+		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
+		
+		return streamWrapper(ctx,
 			&rpcRequest{
 				stream:        stream,
 				srv:           srv,
@@ -147,7 +148,7 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 				method:        info.FullMethod,
 				service:       serviceFromMethod(info.FullMethod),
 				contentType:   ct,
-				cdc:           encoding.Mapping[ct],
+				cdc:           cdc,
 			},
 			func(_ types.Response) error { return nil },
 		)

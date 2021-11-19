@@ -14,7 +14,6 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
-	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
@@ -38,9 +37,7 @@ type User struct {
 }
 
 var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
-	cfg.Middlewares = append(cfg.Middlewares, requestID.Name)
-	cfg.Middlewares = append(cfg.Middlewares, logRecord.Name)
-	cfg.Middlewares = append(cfg.Middlewares, traceRecord.Name)
+	cfg.Middlewares = append(cfg.Middlewares, requestID.Name, logRecord.Name, traceRecord.Name)
 })
 
 func NewTestAPIHandler() *testapiHandler {

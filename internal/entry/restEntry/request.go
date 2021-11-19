@@ -48,7 +48,7 @@ func (r *httpRequest) Endpoint() string {
 }
 
 func (r *httpRequest) Codec() string {
-	return encoding.Mapping[r.ContentType()]
+	return encoding.cdcMapping[r.ContentType()]
 }
 
 func (r *httpRequest) Stream() bool {

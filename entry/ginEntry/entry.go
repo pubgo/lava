@@ -36,6 +36,7 @@ func newEntry(name string) *ginEntry {
 		// 加载组件middleware
 		// lava middleware比gin Middleware的先加载
 		ent.srv.Use(ent.handlerMiddle(ent.Options().Middlewares))
+		ent.srv.Use(ent.middlewares...)
 
 		// 初始化router
 		for _, h := range ent.Options().Handlers {
@@ -64,6 +65,13 @@ type ginEntry struct {
 	*base.Entry
 	cfg Cfg
 	srv *gin.Engine
+
+	// 全局middleware
+	middlewares []gin.HandlerFunc
+}
+
+func (t *ginEntry) Use(middleware ...gin.HandlerFunc) {
+	t.middlewares = append(t.middlewares, middleware...)
 }
 
 func (t *ginEntry) Register(handler entry.InitHandler) {

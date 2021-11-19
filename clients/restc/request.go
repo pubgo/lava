@@ -8,49 +8,20 @@ import (
 var _ types.Request = (*request)(nil)
 
 type request struct {
-	req    *Request
+	service string
+	req     *Request
+	ct      string
+	cdc     encoding.Codec
 }
 
-func (r *request) Kind() string {
-	return Name
-}
-
-func (r *request) Codec() encoding.Codec {
-	return encoding.Get(encoding.Mapping[r.ContentType()])
-}
-
-func (r *request) Client() bool {
-	return true
-}
-
-func (r *request) Service() string {
-	return ""
-}
-
-func (r *request) Method() string {
-	return r.req.Method
-}
-
-func (r *request) Endpoint() string {
-	return r.req.RequestURI
-}
-
-func (r *request) ContentType() string {
-	return r.ContentType()
-}
-
-func (r *request) Header() types.Header {
-	return types.Header(r.req.Header)
-}
-
-func (r *request) Payload() interface{} {
-	return nil
-}
-
-func (r *request) Body() ([]byte, error) {
-	return nil, nil
-}
-
-func (r *request) Stream() bool {
-	return false
-}
+func (r *request) Kind() string          { return Name }
+func (r *request) Codec() encoding.Codec { return r.cdc }
+func (r *request) Client() bool          { return true }
+func (r *request) Service() string       { return r.service }
+func (r *request) Method() string        { return r.req.Method }
+func (r *request) Endpoint() string      { return r.req.RequestURI }
+func (r *request) ContentType() string   { return r.ct }
+func (r *request) Header() types.Header  { return types.Header(r.req.Header) }
+func (r *request) Payload() interface{}  { return nil }
+func (r *request) Read() ([]byte, error) { return nil, nil }
+func (r *request) Stream() bool          { return false }

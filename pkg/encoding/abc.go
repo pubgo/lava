@@ -11,7 +11,11 @@ type Codec interface {
 	Unmarshal(data []byte, v interface{}) error
 }
 
-var Mapping = map[string]string{
+func GetCdc(ct string) Codec {
+	return Get(cdcMapping[ct])
+}
+
+var cdcMapping = map[string]string{
 	"application/json":         "json",
 	"application/proto":        "proto",
 	"application/protobuf":     "proto",

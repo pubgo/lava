@@ -75,7 +75,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/dix v0.1.31
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.14
+	github.com/pubgo/xerror v0.4.16
 	github.com/pubgo/xlog v0.2.11
 	github.com/reugn/go-quartz v0.3.7
 	github.com/savsgio/gotils v0.0.0-20210520110740-c57c45b83e0a // indirect
@@ -218,7 +218,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.8
-	github.com/open2b/scriggo v0.53.4
 	github.com/panjf2000/ants/v2 v2.4.5 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -342,6 +341,7 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76 // indirect
+	github.com/open2b/scriggo v0.53.4 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
 	github.com/posener/script v1.1.5 // indirect
 	github.com/pseudomuto/protokit v0.2.0 // indirect

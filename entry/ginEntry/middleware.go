@@ -1,10 +1,16 @@
 package ginEntry
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -24,12 +30,30 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 	}
 
 	return func(c *gin.Context) {
-		if err := handler(
-			c.Request.Context(),
-			&httpRequest{ctx: c},
-			func(_ types.Response) error { return nil },
-		); err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "msg": err})
+		var ct = c.ContentType()
+		var cdc = encoding.GetCdc(ct)
+		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
+
+		var data []byte
+		var err error
+
+		if c.Request.Body != nil {
+			data, err = ioutil.ReadAll(c.Request.Body)
+			xerror.Panic(err)
+			c.Request.Body = ioutil.NopCloser(bytes.NewReader(data))
+		}
+
+		err = handler(c.Request.Context(),
+			&httpRequest{
+				data: data,
+				ctx:  c,
+				cdc:  cdc,
+				ct:   ct,
+			},
+			func(_ types.Response) error { return nil })
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, errors.FromError(err))
 		}
 	}
 }

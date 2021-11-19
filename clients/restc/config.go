@@ -69,7 +69,7 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 		if mid == nil {
 			continue
 		}
-		middlewares = append(middlewares, plugin.Get(name).Middleware())
+		middlewares = append(middlewares, mid)
 	}
 
 	// 加载插件

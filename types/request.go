@@ -4,8 +4,10 @@ import "github.com/pubgo/lava/pkg/encoding"
 
 // Request is a synchronous request interface
 type Request interface {
+	// Client server or client
 	Client() bool
 
+	// Kind server or client kind
 	Kind() string
 
 	// Service name requested
@@ -29,8 +31,8 @@ type Request interface {
 	// Payload is the decoded value
 	Payload() interface{}
 
-	// Body the encode request body
-	Body() ([]byte, error)
+	// Read the encode request body
+	Read() ([]byte, error)
 
 	// Stream Indicates whether its a stream
 	Stream() bool

@@ -11,5 +11,6 @@ type Router interface {
 
 type Entry interface {
 	entry.Entry
+	Use(middleware ...gin.HandlerFunc)
 	Register(entry.InitHandler)
 }

@@ -1,8 +1,6 @@
 package grpcEntry
 
 import (
-	"encoding/json"
-
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/types"
@@ -16,18 +14,6 @@ type rpcResponse struct {
 	dt     interface{}
 }
 
-func (h *rpcResponse) Header() types.Header {
-	return h.header
-}
-
-func (h *rpcResponse) Body() ([]byte, error) {
-	return json.Marshal(h.dt)
-}
-
-func (h *rpcResponse) Payload() interface{} {
-	return h.dt
-}
-
-func (h *rpcResponse) Stream() bool {
-	return h.stream != nil
-}
+func (h *rpcResponse) Header() types.Header { return h.header }
+func (h *rpcResponse) Payload() interface{} { return h.dt }
+func (h *rpcResponse) Stream() bool         { return h.stream != nil }

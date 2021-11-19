@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/runenv"
 )
 
 var logs = logz.New(Name)
@@ -36,20 +37,26 @@ type Cfg struct {
 
 func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 	var log = merge.Struct(&gorm.Config{}, t).(*gorm.Config)
+
+	var level = logger.Info
+	if runenv.IsProd() || runenv.IsRelease() {
+		level = logger.Error
+	}
+
 	log.Logger = logger.New(
 		logPrintf(logs.Infof),
 		logger.Config{
-			SlowThreshold:             time.Second,   // Slow SQL threshold
-			LogLevel:                  logger.Silent, // Log level
-			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-			Colorful:                  false,         // Disable color
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  level,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
 		},
 	)
 
 	db, err := gorm.Open(dialect, log)
 	xerror.Panic(err)
 
-	// 添加链路
+	// 添加链路追踪
 	xerror.Panic(db.Use(opentracing.New(
 		opentracing.WithErrorTagHook(tracing.SetIfErr),
 	)))

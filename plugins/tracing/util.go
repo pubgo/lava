@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/x/byteutil"
 	"github.com/valyala/fasthttp"
 
-	errs "github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/errors"
 )
 
 const (
@@ -25,9 +25,9 @@ func SetIfErr(span opentracing.Span, err error) {
 		return
 	}
 
-	err1, ok := errs.FromError(err)
+	err1 := errors.FromError(err)
 	// 非系统错误,或者是业务错误
-	if !ok || err1.Code > errs.MaxCode {
+	if err1.Code > errors.MaxCode {
 		return
 	}
 
