@@ -7,7 +7,7 @@ import (
 	pb "google.golang.org/protobuf/proto"
 )
 
-var Name = "protobuf"
+var Name = "proto"
 
 func init() {
 	encoding.Register(Name, protobufCodec{})
