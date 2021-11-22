@@ -1,7 +1,7 @@
 package protobuf
 
 import (
-	proto "github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/xerror"
 	pb "google.golang.org/protobuf/proto"

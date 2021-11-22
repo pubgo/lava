@@ -37,7 +37,7 @@ func Update(name string, srv Resource) {
 	xerror.Assert(srv == nil, "[srv] should not be nil")
 
 	if name == "" {
-		name = consts.Default
+		name = consts.KeyDefault
 	}
 
 	kind := srv.Kind()

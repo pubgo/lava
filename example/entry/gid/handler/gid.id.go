@@ -91,7 +91,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.BadRequest("id.generate", "unsupported id type")
+		return nil, errors.InvalidArgument("id.generate", "unsupported id type")
 	}
 
 	return rsp, nil

@@ -7,7 +7,9 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var defaultClient = xerror.ExitErr(DefaultCfg().Build()).(Client)
+var defaultClient = xerror.ExitErr(DefaultCfg().Build(func(cfg *Cfg) {
+	cfg.Middlewares = append(cfg.Middlewares, "x-request-id", "logRecord", "traceRecord", "timeout", "recovery")
+})).(Client)
 
 func Do(ctx context.Context, req *Request) (*Response, error) { return defaultClient.Do(ctx, req) }
 
@@ -15,22 +17,22 @@ func Get(ctx context.Context, url string, requests ...func(req *Request)) (*Resp
 	return defaultClient.Get(ctx, url, requests...)
 }
 
-func Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return defaultClient.Delete(ctx, url, requests...)
+func Delete(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return defaultClient.Delete(ctx, url, data, requests...)
 }
 
-func Post(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return defaultClient.Post(ctx, url, requests...)
+func Post(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return defaultClient.Post(ctx, url, data, requests...)
 }
 
 func PostForm(ctx context.Context, url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
 	return defaultClient.PostForm(ctx, url, val, requests...)
 }
 
-func Put(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return defaultClient.Put(ctx, url, requests...)
+func Put(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return defaultClient.Put(ctx, url, data, requests...)
 }
 
-func Patch(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return defaultClient.Patch(ctx, url, requests...)
+func Patch(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return defaultClient.Patch(ctx, url, data, requests...)
 }

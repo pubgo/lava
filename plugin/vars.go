@@ -8,8 +8,8 @@ import (
 func init() {
 	vars.Register(Name, func() interface{} {
 		var data typex.Map
-		for k, v := range All() {
-			data.Set(k, v)
+		for _, v := range All() {
+			data.Set(v.UniqueName(), v)
 		}
 		return data.Map()
 	})

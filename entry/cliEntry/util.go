@@ -13,7 +13,7 @@ func register(t *ctlEntry, run Handler, optList ...Opt) options {
 	}
 
 	if opts.Name == "" {
-		opts.Name = consts.Default
+		opts.Name = consts.KeyDefault
 	}
 
 	xerror.Assert(t.handlers[opts.Name].handler != nil, "handler [%s] already exists", opts.Name)

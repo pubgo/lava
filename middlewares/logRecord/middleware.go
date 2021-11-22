@@ -24,7 +24,7 @@ func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (err error) {
 			// TODO 考虑pool优化
-			var params = make([]zap.Field, 0, 15)
+			var params = make([]zap.Field, 0, 20)
 
 			referer := types.HeaderGet(req.Header(), httpx.HeaderReferer)
 			if referer != "" {

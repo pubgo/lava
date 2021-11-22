@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
 
+	json "github.com/json-iterator/go"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/bytebufferpool"
 
 	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/pkg/httpx"
@@ -33,42 +34,25 @@ type clientImpl struct {
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err error) {
-	var ct = filterFlags(req.Header.Get(httpx.HeaderContentType))
-	var cdc = encoding.GetCdc(ct)
-	xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
 
-	var data []byte
-	if req.Body != nil {
-		data, err = ioutil.ReadAll(req.Body)
-		xerror.Panic(err)
-		req.Body = ioutil.NopCloser(bytes.NewReader(data))
-	}
-
-	return resp, c.do(ctx,
-		&request{
-			ct:  ct,
-			cdc: cdc,
-			req: req,
-		},
-		func(res types.Response) error { resp = res.(*response).resp; return nil },
-	)
+	return resp, c.do(ctx, req, func(res types.Response) error { resp = res.(*response).resp; return nil })
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodGet, url, requests...)
+	return doRequest(ctx, c, http.MethodGet, url, nil, requests...)
 }
 
-func (c *clientImpl) Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodDelete, url, requests...)
+func (c *clientImpl) Delete(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return doRequest(ctx, c, http.MethodDelete, url, data, requests...)
 }
 
-func (c *clientImpl) Post(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodPost, url, requests...)
+func (c *clientImpl) Post(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return doRequest(ctx, c, http.MethodPost, url, data, requests...)
 }
 
 func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, requests ...func(req *Request)) (*Response, error) {
-	var resp, err = doRequest(ctx, c, http.MethodPost, url, func(req *Request) {
-		req.Header.Set(httpx.HeaderContentType, "application/x-www-form-urlencoded")
+	var resp, err = doRequest(ctx, c, http.MethodPost, url, nil, func(req *Request) {
+		req.Request.Header.Set(httpx.HeaderContentType, "application/x-www-form-urlencoded")
 		req.GetBody = func() (io.ReadCloser, error) {
 			return io.NopCloser(bytes.NewReader(strutil.ToBytes(val.Encode()))), nil
 		}
@@ -80,27 +64,58 @@ func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, r
 	return resp, err
 }
 
-func (c *clientImpl) Put(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodPut, url, requests...)
+func (c *clientImpl) Put(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return doRequest(ctx, c, http.MethodPut, url, data, requests...)
 }
 
-func (c *clientImpl) Patch(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodPatch, url, requests...)
+func (c *clientImpl) Patch(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	return doRequest(ctx, c, http.MethodPatch, url, data, requests...)
 }
 
-func doRequest(ctx context.Context, c *clientImpl, mth string, url string, requests ...func(req *Request)) (*Response, error) {
-	req, err := http.NewRequestWithContext(ctx, mth, url, nil)
+func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
+	var body []byte
+	switch data.(type) {
+	case nil:
+		body = nil
+	case string:
+		body = strutil.ToBytes(data.(string))
+	case []byte:
+		body = data.([]byte)
+	default:
+		bb := bytebufferpool.Get()
+		defer bytebufferpool.Put(bb)
+
+		var enc = json.NewEncoder(bb)
+		if err := enc.Encode(data); err != nil {
+			return nil, err
+		}
+		body = bb.Bytes()
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	var request = &Request{}
+	req, err := http.NewRequestWithContext(ctx, mth, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, xerror.Wrap(err, mth, url)
 	}
-
 	req.Header.Set(httpx.HeaderContentType, defaultContentType)
 
+	request.Request = req
 	if len(requests) > 0 {
-		requests[0](req)
+		requests[0](request)
 	}
 
-	resp, err := c.Do(ctx, req)
+	var ct = filterFlags(req.Header.Get(httpx.HeaderContentType))
+	var cdc = encoding.GetCdc(ct)
+	xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
+	request.ct = ct
+	request.cdc = cdc
+	request.data = body
+
+	resp, err := c.Do(ctx, request)
 	if err != nil {
 		return nil, xerror.Wrap(err, mth, url)
 	}

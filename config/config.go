@@ -118,9 +118,9 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 }
 
 func (t *configImpl) Decode(name string, fn interface{}) (err error) {
-	t.check()
-
 	defer xerror.RespErr(&err)
+
+	t.check()
 
 	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
 	if t.Get(name) == nil {

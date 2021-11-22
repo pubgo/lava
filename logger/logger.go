@@ -10,7 +10,6 @@ type Fields []zap.Field
 
 var Discard = zap.NewNop()
 var globalLog = zap.L()
-
 var loggerMap sync.Map
 
 func New(name string) *Logger {

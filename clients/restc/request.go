@@ -1,27 +1,30 @@
 package restc
 
 import (
+	"net/http"
+
 	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
-var _ types.Request = (*request)(nil)
+var _ types.Request = (*Request)(nil)
 
-type request struct {
+type Request struct {
+	*http.Request
 	service string
-	req     *Request
 	ct      string
 	cdc     encoding.Codec
+	data    []byte
 }
 
-func (r *request) Kind() string          { return Name }
-func (r *request) Codec() encoding.Codec { return r.cdc }
-func (r *request) Client() bool          { return true }
-func (r *request) Service() string       { return r.service }
-func (r *request) Method() string        { return r.req.Method }
-func (r *request) Endpoint() string      { return r.req.RequestURI }
-func (r *request) ContentType() string   { return r.ct }
-func (r *request) Header() types.Header  { return types.Header(r.req.Header) }
-func (r *request) Payload() interface{}  { return nil }
-func (r *request) Read() ([]byte, error) { return nil, nil }
-func (r *request) Stream() bool          { return false }
+func (r *Request) Kind() string          { return Name }
+func (r *Request) Codec() encoding.Codec { return r.cdc }
+func (r *Request) Client() bool          { return true }
+func (r *Request) Service() string       { return r.service }
+func (r *Request) Method() string        { return r.Request.Method }
+func (r *Request) Endpoint() string      { return r.Request.RequestURI }
+func (r *Request) ContentType() string   { return r.ct }
+func (r *Request) Header() types.Header  { return types.Header(r.Request.Header) }
+func (r *Request) Payload() interface{}  { return r.data }
+func (r *Request) Read() ([]byte, error) { return r.data, nil }
+func (r *Request) Stream() bool          { return false }

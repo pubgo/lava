@@ -12,14 +12,10 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/middlewares/logRecord"
-	"github.com/pubgo/lava/middlewares/requestID"
-	"github.com/pubgo/lava/middlewares/traceRecord"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
 
@@ -36,9 +32,7 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-var testApiSrv = hello.GetTestApiClient("test-grpc", func(cfg *grpcc.Cfg) {
-	cfg.Middlewares = append(cfg.Middlewares, requestID.Name, logRecord.Name, traceRecord.Name)
-})
+var testApiSrv = hello.GetTestApiClient("test-grpc")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
@@ -82,7 +76,13 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		var user User
 		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
 		log.Info("data", zap.Any("data", user))
-		log.Info("dix db ok", logger.WithErr(h.Db.Raw("select 1").Error)...)
+
+		log.Info("dix db ok", logger.WithErr(h.Db.Raw("select * from users limit 1").First(&user).Error)...)
+		log.Info("data", zap.Any("data", user))
+
+		log.Info("dix db ok", logger.WithErr(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)...)
+		log.Info("data", zap.Any("data", user))
+
 		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))
 	}
 

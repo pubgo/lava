@@ -38,7 +38,7 @@ func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 }
 
 func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
-	name := consts.Default
+	name := consts.KeyDefault
 	if len(names) > 0 {
 		name = names[0]
 	}
@@ -52,7 +52,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...strin
 }
 
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
-	name := consts.Default
+	name := consts.KeyDefault
 	if len(names) > 0 {
 		name = names[0]
 	}

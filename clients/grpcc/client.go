@@ -15,7 +15,7 @@ import (
 )
 
 func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
-	return getCfg(consts.Default, opts...).BuildDirect(addr)
+	return getCfg(consts.KeyDefault, opts...).BuildDirect(addr)
 }
 
 func GetClient(service string, opts ...func(cfg *Cfg)) *Client {

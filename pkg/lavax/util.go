@@ -101,7 +101,7 @@ func IfEmpty(str string, fx func()) {
 }
 
 func GetDefault(names ...string) string {
-	var name = consts.Default
+	var name = consts.KeyDefault
 	if len(names) > 0 && names[0] != "" {
 		name = names[0]
 	}

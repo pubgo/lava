@@ -119,7 +119,7 @@ func FromError(err error) *Error {
 	}
 
 	return &Error{
-		Code:     2,
+		Code:     int32(Err2GrpcCode(err)),
 		Reason:   "lava.unknown.error",
 		Message:  err.Error(),
 		Metadata: map[string]string{"detail": fmt.Sprintf("%v", err)},
@@ -150,8 +150,8 @@ func Convert(err error) *status.Status {
 
 // GrpcToHTTPStatusCode gRPC转HTTP Code
 // example:
-// spbStatus := status.FromContextError(err)
-// httpStatusCode := ecode.GrpcToHTTPStatusCode(spbStatus.Code())
+//   spbStatus := status.FromContextError(err)
+//   httpStatusCode := ecode.GrpcToHTTPStatusCode(spbStatus.Code())
 func GrpcToHTTPStatusCode(statusCode codes.Code) int {
 	switch statusCode {
 	case codes.OK:

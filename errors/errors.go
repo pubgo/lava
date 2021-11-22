@@ -1,67 +1,27 @@
 package errors
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 
+	"github.com/pubgo/xerror"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
-//func (e *Error) Error() string {
-//	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v", e.Code, e.Reason, e.Message, e.Metadata)
-//}
-
-// GRPCStatus returns the Status represented by se.
+// GRPCStatus 实现grpc status的GRPCStatus接口
 func (x *Error) GRPCStatus() *status.Status {
-	s, _ := status.New(codes.Code(x.Code), x.Message).
+	s, err := status.New(codes.Code(x.Code), x.Message).
 		WithDetails(&errdetails.ErrorInfo{
 			Reason:   x.Reason,
 			Metadata: x.Metadata,
 		})
+	xerror.Panic(err)
 	return s
-}
-
-// Is matches each error in the chain with the target value.
-func (x *Error) Is(err error) bool {
-	if se := new(Error); errors.As(err, &se) {
-		return se.Reason == x.Reason
-	}
-	return false
-}
-
-// WithDetail with an MD formed by the mapping of key, value.
-func (x *Error) WithMetadata(m map[string]string) *Error {
-	err := proto.Clone(x).(*Error)
-	err.Metadata = m
-	return err
-}
-
-func (x *Error) Error() string {
-	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v", x.Code, x.Reason, x.Message, x.Metadata)
-}
-
-func (x *Error) As(target interface{}) bool {
-	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
-	if err, ok := t1.(*Error); ok {
-		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
-		return true
-	}
-	return false
-}
-
-// Is matches each error in the chain with the target value.
-func (x *Error) Is1(target error) bool {
-	err, ok := target.(*Error)
-	if ok {
-		return x.Code == err.Code
-	}
-	return false
 }
 
 // HTTPStatus returns the Status represented by se.
@@ -106,8 +66,40 @@ func (x *Error) HTTPStatus() int {
 	}
 }
 
+// Is matches each error in the chain with the target value.
+func (x *Error) Is(err error) bool {
+	if err1, ok := err.(*Error); ok {
+		return x.Code == err1.Code && x.Reason == err1.Reason
+	}
+
+	if se := new(Error); errors.As(err, &se) {
+		return se.Reason == x.Reason && se.Code == x.Code
+	}
+	return false
+}
+
+func (x *Error) As(target interface{}) bool {
+	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
+	if err, ok := t1.(*Error); ok {
+		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
+		return true
+	}
+	return false
+}
+
+// WithMetadata with an MD formed by the mapping of key, value.
+func (x *Error) WithMetadata(m map[string]string) *Error {
+	err := proto.Clone(x).(*Error)
+	err.Metadata = m
+	return err
+}
+
+func (x *Error) Error() string {
+	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v", x.Code, x.Reason, x.Message, x.Metadata)
+}
+
 // Code returns the status code.
-func Code1(err error) int32 {
+func Code(err error) int32 {
 	if err == nil {
 		return 0 // ok
 	}
@@ -131,7 +123,7 @@ func New(reason string, code int32, msg string, args ...interface{}) *Error {
 func BadRequest(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    400,
+		Code:    int32(codes.InvalidArgument),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -140,7 +132,7 @@ func BadRequest(id, format string, a ...interface{}) error {
 func Unauthorized(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    401,
+		Code:    int32(codes.Unauthenticated),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -149,7 +141,7 @@ func Unauthorized(id, format string, a ...interface{}) error {
 func Forbidden(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    403,
+		Code:    int32(codes.PermissionDenied),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -158,16 +150,7 @@ func Forbidden(id, format string, a ...interface{}) error {
 func NotFound(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    404,
-		Message: fmt.Sprintf(format, a...),
-	}
-}
-
-// MethodNotAllowed generates a 405 error.
-func MethodNotAllowed(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    405,
+		Code:    int32(codes.NotFound),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -176,7 +159,7 @@ func MethodNotAllowed(id, format string, a ...interface{}) error {
 func Timeout(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    408,
+		Code:    int32(codes.DeadlineExceeded),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -185,7 +168,7 @@ func Timeout(id, format string, a ...interface{}) error {
 func Conflict(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    409,
+		Code:    int32(codes.AlreadyExists),
 		Message: fmt.Sprintf(format, a...),
 	}
 }
@@ -194,46 +177,8 @@ func Conflict(id, format string, a ...interface{}) error {
 func InternalServerError(id, format string, a ...interface{}) error {
 	return &Error{
 		Reason:  id,
-		Code:    500,
+		Code:    int32(codes.Internal),
 		Message: fmt.Sprintf(format, a...),
-	}
-}
-
-type IgnorableError struct {
-	Err       string `json:"error"`
-	Ignorable bool   `json:"ignorable"`
-}
-
-func (e *IgnorableError) Error() string {
-	b, _ := json.Marshal(e)
-	return string(b)
-}
-
-// UnwrapIgnorableError tries to parse a JSON string into an error. If that
-// fails, it will set the given string as the error Status.
-func UnwrapIgnorableError(err string) (bool, string) {
-	if err == "" {
-		return false, err
-	}
-
-	igErr := new(IgnorableError)
-	uErr := json.Unmarshal([]byte(err), igErr)
-	if uErr != nil {
-		return false, err
-	}
-
-	return igErr.Ignorable, igErr.Err
-}
-
-// IgnoreError generates a -1 error.
-func WrapIgnorableError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	return &IgnorableError{
-		Err:       err.Error(),
-		Ignorable: true,
 	}
 }
 

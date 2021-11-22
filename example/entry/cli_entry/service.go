@@ -20,7 +20,7 @@ type Service struct {
 
 func (t *Service) Run() map[string]cliEntry.Handler {
 	return map[string]cliEntry.Handler{
-		consts.Default: func(ctx fx.Ctx) {
+		consts.KeyDefault: func(ctx fx.Ctx) {
 			fmt.Println("db ping:", t.Db.Ping())
 			zap.L().Info("cliEntry hello once")
 		},

@@ -95,7 +95,7 @@ func newEntry(name string) *ctlEntry {
 
 	ent.Flags(&cli.StringFlag{
 		Name:        "name",
-		Value:       consts.Default,
+		Value:       consts.KeyDefault,
 		Destination: &ent.name,
 		Usage:       "cliEntry name",
 	})

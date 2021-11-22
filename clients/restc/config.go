@@ -42,7 +42,7 @@ type Cfg struct {
 	Header                        map[string]string
 	backoff                       retry.Backoff
 	tlsConfig                     *tls.Config
-	Middlewares                   []string
+	Middlewares                   []types.Middleware
 }
 
 func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
@@ -64,14 +64,17 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	//c.TLSConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
 	var middlewares []types.Middleware
-	for _, name := range t.Middlewares {
-		var mid = plugin.Get(name).Middleware()
-		if mid == nil {
+	// 加载全局
+	for _, plg := range plugin.All() {
+		if plg.Middleware() == nil {
 			continue
 		}
-		middlewares = append(middlewares, mid)
+		middlewares = append(middlewares, plg.Middleware())
 	}
 
+	// 最后加载业务自定义
+	middlewares = append(middlewares, t.Middlewares...)
+	
 	// 加载插件
 	var client = &clientImpl{client: c}
 	client.do = doFunc(client)

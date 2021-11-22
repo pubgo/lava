@@ -116,7 +116,7 @@ type Cfg struct {
 	ConnectParams      connectParams                  `json:"connect_params"`
 	ClientParameters   clientParameters               `json:"client_parameters"`
 	Call               callParameters                 `json:"call"`
-	Middlewares        []string                       `json:"-"`
+	Middlewares        []types.Middleware             `json:"-"`
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
@@ -236,14 +236,16 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
 
 	var middlewares []types.Middleware
-	for _, name := range t.Middlewares {
-		var mid = plugin.Get(name).Middleware()
-		if mid == nil {
+	// 加载全局
+	for _, plg := range plugin.All() {
+		if plg.Middleware() == nil {
 			continue
 		}
-
-		middlewares = append(middlewares, plugin.Get(name).Middleware())
+		middlewares = append(middlewares, plg.Middleware())
 	}
+
+	// 最后加载业务自定义
+	middlewares = append(middlewares, t.Middlewares...)
 
 	var unaryInterceptors = append([]grpc.UnaryClientInterceptor{unaryInterceptor(middlewares)}, t.UnaryInterceptors...)
 	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptors...))
@@ -260,8 +262,8 @@ func getCfg(name string, opts ...func(cfg *Cfg)) *Cfg {
 		return cfgMap[name]
 	}
 
-	if cfgMap[consts.Default] != nil {
-		return cfgMap[consts.Default]
+	if cfgMap[consts.KeyDefault] != nil {
+		return cfgMap[consts.KeyDefault]
 	}
 
 	return DefaultCfg(opts...)

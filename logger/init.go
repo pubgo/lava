@@ -18,7 +18,7 @@ func Init() {
 	defer xerror.RespExit()
 
 	var cfg = xlog_config.NewProdConfig()
-	if runenv.IsDev() || runenv.IsTest() {
+	if runenv.IsDev() || runenv.IsTest() || runenv.IsStag() {
 		cfg = xlog_config.NewDevConfig()
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
@@ -29,7 +29,7 @@ func Init() {
 
 	// 全局log设置
 	var log = cfg.Build(runenv.Project)
-	if env.Namespace == "" {
+	if env.Namespace != "" {
 		log = log.With(zap.String("env", env.Namespace))
 	}
 	log = log.With(zap.String("project", runenv.Project))
