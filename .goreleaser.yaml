@@ -21,6 +21,17 @@ builds:
       - windows
     goarch:
       - amd64
+  - main: ./cmd/protoc-gen-errors/main.go
+    id: protoc-gen-errors
+    binary: protoc-gen-errors
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
 archives:
   - name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
     format: binary
