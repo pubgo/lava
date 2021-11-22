@@ -48,8 +48,12 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 		delete(md, "x-content-type")
 
 		// get peer from context
-		if p, ok := peer.FromContext(ctx); ok {
-			md.Set("remote", p.Addr.String())
+		if p := getPeerIP(md, ctx); p != "" {
+			md.Set("remote-ip", p)
+		}
+
+		if p := getPeerName(md); p != "" {
+			md.Set("remote-name", p)
 		}
 
 		// timeout for server deadline
@@ -138,7 +142,7 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 
 		var cdc = encoding.GetCdc(ct)
 		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-		
+
 		return streamWrapper(ctx,
 			&rpcRequest{
 				stream:        stream,

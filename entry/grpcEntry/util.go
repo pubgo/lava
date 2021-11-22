@@ -3,8 +3,12 @@ package grpcEntry
 import (
 	"context"
 	"fmt"
+	"net"
 	"reflect"
 	"strings"
+
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/x/fx"
@@ -12,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/xgen"
 )
 
@@ -204,4 +209,33 @@ func findGrpcHandle(handler interface{}) reflect.Value {
 	}
 
 	return reflect.Value{}
+}
+
+// getPeerName 获取对端应用名称
+func getPeerName(md metadata.MD) string {
+	return types.HeaderGet(md, "app")
+}
+
+// getPeerIP 获取对端ip
+func getPeerIP(md metadata.MD, ctx context.Context) string {
+	clientIP := types.HeaderGet(md, "client-ip")
+	if clientIP != "" {
+		return clientIP
+	}
+
+	// 从grpc里取对端ip
+	pr, ok2 := peer.FromContext(ctx)
+	if !ok2 {
+		return ""
+	}
+
+	if pr.Addr == net.Addr(nil) {
+		return ""
+	}
+
+	addSlice := strings.Split(pr.Addr.String(), ":")
+	if len(addSlice) > 1 {
+		return addSlice[0]
+	}
+	return ""
 }

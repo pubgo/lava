@@ -3,6 +3,8 @@ package reflectx
 import (
 	"fmt"
 	"strconv"
+
+	_ "github.com/goccy/go-reflect"
 )
 
 // ParseTag parses a golang struct tag into a map.
