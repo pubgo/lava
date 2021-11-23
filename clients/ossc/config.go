@@ -1,24 +1,15 @@
 package ossc
 
-import (
-	"github.com/pubgo/lava/logger"
-)
-
 var Name = "oss"
-var cfgList = make(map[string]ClientCfg)
-var logs = logger.Name(Name)
+var cfgList = make(map[string]Cfg)
 
-type ClientCfg struct {
+type Cfg struct {
 	Endpoint        string
 	AccessKeyID     string
 	AccessKeySecret string
 	Bucket          string
 }
 
-func GetCfg() map[string]ClientCfg {
-	return cfgList
-}
-
-func GetDefaultCfg() ClientCfg {
-	return ClientCfg{}
+func DefaultCfg() Cfg {
+	return Cfg{}
 }

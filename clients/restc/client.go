@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	json "github.com/json-iterator/go"
+	json "github.com/goccy/go-json"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/bytebufferpool"
@@ -72,6 +72,7 @@ func (c *clientImpl) Patch(ctx context.Context, url string, data interface{}, re
 	return doRequest(ctx, c, http.MethodPatch, url, data, requests...)
 }
 
+// doRequest data:[bytes|string|map|struct]
 func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
 	var body []byte
 	switch data.(type) {
@@ -85,8 +86,7 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 		bb := bytebufferpool.Get()
 		defer bytebufferpool.Put(bb)
 
-		var enc = json.NewEncoder(bb)
-		if err := enc.Encode(data); err != nil {
+		if err := json.NewEncoder(bb).Encode(data); err != nil {
 			return nil, err
 		}
 		body = bb.Bytes()

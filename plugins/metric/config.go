@@ -10,7 +10,7 @@ type Cfg struct {
 	Separator string        `json:"separator"`
 }
 
-func GetDefaultCfg() Cfg {
+func DefaultCfg() Cfg {
 	return Cfg{
 		Driver:    "noop",
 		Interval:  time.Second,

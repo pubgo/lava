@@ -35,7 +35,7 @@ func (p2c *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) 
 	// info 可以根据具体的method做负载
 	// 可以根据context的value(可以是userID等, 或者权重)做负载
 
-	item, done := p2c.pickerAgl.Next()
+	item, done := p2c.pickerAgl.Next(info)
 	if item == nil {
 		return balancer.PickResult{}, xerror.Wrap(balancer.ErrNoSubConnAvailable)
 	}

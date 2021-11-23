@@ -11,14 +11,14 @@ import (
 var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
-	*redis.Client
+	cli *redis.Client
 }
 
-func (t *Client) UpdateResObj(val interface{}) { t.Client = val.(*Client).Client }
+func (t *Client) UpdateResObj(val interface{}) { t.cli = val.(*Client).cli }
 func (t *Client) Kind() string                 { return Name }
+func (t *Client) Close() error                 { return t.cli.Close() }
 func (t *Client) Get(ctx context.Context, options ...func(*redis.Options)) *redis.Client {
-	var client = t.Client
-	cc := client.WithContext(ctx)
+	cc := t.cli.WithContext(ctx)
 	opts := cc.Options()
 
 	// 默认的读写超时时间为 1s

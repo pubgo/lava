@@ -15,11 +15,8 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnWatch: func(name string, resp *types.WatchResp) error {
-			return nil
-		},
 		OnInit: func(p plugin.Process) {
-			var cfg = GetDefaultCfg()
+			var cfg = DefaultCfg()
 			_ = config.Decode(Name, &cfg)
 
 			driver := cfg.Driver
@@ -35,13 +32,12 @@ func init() {
 			xerror.Exit(fc(config.GetMap(Name), &opts))
 
 			scope, closer := tally.NewRootScope(opts, cfg.Interval)
-			p.AfterStop(func() { xerror.Panic(closer.Close()) })
 
 			// 资源更新
-			resource.Update("", &Resource{scope})
+			resource.Update("", &Resource{Scope: scope, Closer: closer})
 		},
 		OnVars: func(v types.Vars) {
-			v.Do(Name, func() interface{} {
+			v.Do(Name+"_factory", func() interface{} {
 				var dt = make(map[string]string)
 				xerror.Panic(reporters.Each(func(name string, r Factory) {
 					dt[name] = stack.Func(r)

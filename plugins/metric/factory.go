@@ -1,10 +1,10 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
@@ -23,7 +23,6 @@ func Get(names ...string) Factory {
 
 func Register(name string, r Factory) {
 	defer xerror.RespExit()
-
 	xerror.Assert(name == "" || r == nil, "[name,reporter] is null")
 	xerror.Assert(reporters.Has(name), "reporter [%s] already exists", name)
 	reporters.Set(name, r)

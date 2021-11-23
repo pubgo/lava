@@ -17,7 +17,10 @@ import (
 
 func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
-		ctx = metadata.NewIncomingContext(ctx, req.Header())
+		if len(req.Header()) > 0 {
+			_ = grpc.SetHeader(ctx, req.Header())
+		}
+
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return err

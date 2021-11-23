@@ -89,11 +89,11 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
-	var addrs = d.getAddrList(target.Endpoint)
-	xerror.Assert(len(addrs) == 0, "service none available")
+	var address = d.getAddrList(target.Endpoint)
+	xerror.Assert(len(address) == 0, "service none available")
 
-	logs.Infof("discovBuilder Addrs %#v", addrs)
-	xerror.PanicF(cc.UpdateState(newState(addrs)), "update resolver address: %v", addrs)
+	logs.Infof("discovBuilder Addrs %#v", address)
+	xerror.PanicF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
 	w, err := r.Watch(target.Endpoint)
 	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)

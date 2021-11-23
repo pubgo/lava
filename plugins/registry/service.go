@@ -26,9 +26,9 @@ func (t Node) GetPort() int {
 		return t.Port
 	}
 
-	addrs := strings.Split(t.Address, ":")
-	if len(addrs) > 1 {
-		port, _ := strconv.Atoi(addrs[len(addrs)-1])
+	adders := strings.Split(t.Address, ":")
+	if len(adders) > 1 {
+		port, _ := strconv.Atoi(adders[len(adders)-1])
 		return port
 	}
 

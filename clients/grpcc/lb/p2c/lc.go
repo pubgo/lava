@@ -32,7 +32,7 @@ func (la *loadAggregate) Add(n interface{}) {
 	la.items = append(la.items, &node{item: n})
 }
 
-func (la *loadAggregate) Next() (interface{}, func(info balancer.DoneInfo)) {
+func (la *loadAggregate) Next(info balancer.PickInfo) (interface{}, func(info balancer.DoneInfo)) {
 	var election, alternative *node
 	switch len(la.items) {
 	case 0:

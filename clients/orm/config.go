@@ -19,17 +19,17 @@ var logs = logz.New(Name)
 var cfgMap = make(map[string]*Cfg)
 
 type Cfg struct {
-	Driver                                   string        `json:"driver"`
-	SkipDefaultTransaction                   bool          `json:"skip_default_transaction"`
-	FullSaveAssociations                     bool          `json:"full_save_associations"`
-	DryRun                                   bool          `json:"dry_run"`
-	PrepareStmt                              bool          `json:"prepare_stmt"`
-	DisableAutomaticPing                     bool          `json:"disable_automatic_ping"`
-	DisableForeignKeyConstraintWhenMigrating bool          `json:"disable_foreign_key_constraint_when_migrating"`
-	DisableNestedTransaction                 bool          `json:"disable_nested_transaction"`
-	AllowGlobalUpdate                        bool          `json:"allow_global_update"`
-	QueryFields                              bool          `json:"query_fields"`
-	CreateBatchSize                          int           `json:"create_batch_size"`
+	Driver                                   string        `json:"driver" yaml:"driver"`
+	SkipDefaultTransaction                   bool          `json:"skip_default_transaction" yaml:"skip_default_transaction"`
+	FullSaveAssociations                     bool          `json:"full_save_associations" yaml:"full_save_associations"`
+	DryRun                                   bool          `json:"dry_run" yaml:"dry_run"`
+	PrepareStmt                              bool          `json:"prepare_stmt" yaml:"prepare_stmt"`
+	DisableAutomaticPing                     bool          `json:"disable_automatic_ping" yaml:"disable_automatic_ping"`
+	DisableForeignKeyConstraintWhenMigrating bool          `json:"disable_foreign_key_constraint_when_migrating" yaml:"disable_foreign_key_constraint_when_migrating"`
+	DisableNestedTransaction                 bool          `json:"disable_nested_transaction" yaml:"disable_nested_transaction"`
+	AllowGlobalUpdate                        bool          `json:"allow_global_update" yaml:"allow_global_update"`
+	QueryFields                              bool          `json:"query_fields" yaml:"query_fields"`
+	CreateBatchSize                          int           `json:"create_batch_size" yaml:"create_batch_size"`
 	MaxConnTime                              time.Duration `json:"max_conn_time" yaml:"max_conn_time"`
 	MaxConnIdle                              int           `json:"max_conn_idle" yaml:"max_conn_idle"`
 	MaxConnOpen                              int           `json:"max_conn_open" yaml:"max_conn_open"`
@@ -61,6 +61,7 @@ func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 		opentracing.WithErrorTagHook(tracing.SetIfErr),
 	)))
 
+	// 服务连接校验
 	sqlDB, err := db.DB()
 	xerror.Panic(err)
 	xerror.Panic(sqlDB.Ping())

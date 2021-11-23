@@ -52,7 +52,7 @@ func BuildDiscovTarget(service string, endpoints ...string) string {
 	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), service)
 }
 
-//对targets打散
+// reshuffle 打散targets
 func reshuffle(targets []resolver.Address) []resolver.Address {
 	rand.Shuffle(len(targets), func(i, j int) { targets[i], targets[j] = targets[j], targets[i] })
 	return targets

@@ -19,7 +19,7 @@ func init() {
 			for k, v := range cfgMap {
 				client := redis.NewClient(merge.Struct(DefaultCfg(), v).(*redis.Options))
 				xerror.PanicF(client.Ping(ctxutil.Timeout()).Err(), "redis(%s)连接失败", k)
-				resource.Update(k, &Client{client})
+				resource.Update(k, &Client{cli: client})
 			}
 		},
 	})

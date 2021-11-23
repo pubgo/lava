@@ -14,7 +14,3 @@ type Client struct {
 func (t *Client) Close() error                 { return nil }
 func (t *Client) UpdateResObj(val interface{}) { t.Client = val.(*Client).Client }
 func (t *Client) Kind() string                 { return Name }
-
-func (t *Client) Bucket(name string) (*oss.Bucket, error) {
-	return t.Bucket(name)
-}
