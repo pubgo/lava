@@ -9,4 +9,4 @@ func (t CfgMap) Decode(dst interface{}) error {
 }
 
 type M = map[string]interface{}
-type List = []interface{}
+type L = []interface{}

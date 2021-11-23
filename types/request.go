@@ -7,7 +7,7 @@ type Request interface {
 	// Client server or client
 	Client() bool
 
-	// Kind server or client kind
+	// Kind [http|grpc...]
 	Kind() string
 
 	// Service name requested
@@ -34,6 +34,6 @@ type Request interface {
 	// Read the encode request body
 	Read() ([]byte, error)
 
-	// Stream Indicates whether its a stream
+	// Stream Indicates whether it's a stream
 	Stream() bool
 }

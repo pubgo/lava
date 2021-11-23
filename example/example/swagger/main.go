@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
-	"io/ioutil"
 )
 
 func main() {
@@ -23,8 +24,8 @@ func main() {
 	})
 	xerror.Panic(err)
 	fmt.Println(specDoc.Spec().Host)
-	for k,v:=range specDoc.Spec().Paths.Paths{
-		fmt.Println(k,v)
+	for k, v := range specDoc.Spec().Paths.Paths {
+		fmt.Println(k, v)
 		q.Q(v.Post)
 	}
 }

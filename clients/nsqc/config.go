@@ -1,13 +1,11 @@
 package nsqc
 
 import (
-	"github.com/pubgo/lava/logger"
 	"time"
 )
 
 var Name = "nsq"
 var cfgList = make(map[string]Cfg)
-var logs = logger.Name(Name)
 
 type Cfg struct {
 	Name           string        `json:"name"`
