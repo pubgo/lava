@@ -123,12 +123,13 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	g.P("var mthList []", xgenCall("GrpcRestHandler"))
 
 	var isDefault bool
+
 	for _, m := range service.Methods {
 		g.P("mthList = append(mthList, ", xgenCall("GrpcRestHandler"), "{")
 		g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
 		g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
-		g.P(fmt.Sprintf(`Service:"%s.%s",`, file.GoPackageName, service.GoName))
-		g.P(fmt.Sprintf(`Name:"%s",`, m.GoName))
+		g.P(fmt.Sprintf(`Service:"%s",`, service.Desc.FullName()))
+		g.P(fmt.Sprintf(`Name:"%s",`, m.Desc.Name()))
 
 		var defaultUrl bool
 		hr, err := protoutil.ExtractAPIOptions(m.Desc)
