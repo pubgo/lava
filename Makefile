@@ -33,24 +33,6 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
-proto-gen:
-	rm -rf example/proto/hello/*.go
-	rm -rf example/proto/hello/*.json
-	rm -rf example/proto/login/*.go
-	rm -rf example/proto/login/*.json
-	lava protoc ls
-	lava protoc gen
-
-proto-vendor:
-	rm -rf example/proto/hello/*.go
-	rm -rf example/proto/hello/*.json
-	rm -rf example/proto/login/*.go
-	rm -rf example/proto/login/*.json
-	lava protoc vendor-rm
-	lava protoc vendor
-	lava protoc ls
-	lava protoc gen
-
 
 .PHONY: gen
 proto-plugin-gen:

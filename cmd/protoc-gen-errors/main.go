@@ -4,6 +4,8 @@ import (
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
+
+	"github.com/pubgo/lava/cmd/protoc-gen-errors/internal"
 )
 
 func main() {
@@ -15,7 +17,7 @@ func main() {
 				continue
 			}
 
-			GenerateFile(gen, f)
+			internal.GenerateFile(gen, f)
 		}
 		return nil
 	})
