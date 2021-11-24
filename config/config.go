@@ -242,11 +242,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 		return nil
 	}
 
-	var pathList = strListMap(getPathList(), func(str string) string {
-		return filepath.Join(str, "."+runenv.Project, CfgName)
-	})
-
-	pathList = typex.StrOf(filepath.Join(".lava", CfgName), pathList...)
+	var pathList = strListMap(getPathList(), func(str string) string { return filepath.Join(str, ".lava", CfgName) })
 	for i := range pathList {
 		if t.addConfigPath(v, pathList[i]) {
 			return
@@ -260,7 +256,9 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 func (t *configImpl) initApp(v *viper.Viper) error {
 	// .lava/config/config.dev.yaml
 	var path = filepath.Join(Home, "config", fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
-	xerror.Assert(!pathutil.IsExist(path), "%s not found", path)
+	if !pathutil.IsExist(path) {
+		return nil
+	}
 
 	// 读取配置
 	dt := xerror.PanicStr(iox.ReadText(path))

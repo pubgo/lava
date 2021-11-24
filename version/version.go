@@ -34,5 +34,9 @@ func init() {
 		runenv.Domain = Domain
 	}
 
+	if Version == "" {
+		Version = "v0.0.1"
+	}
+
 	xerror.ExitErr(ver.NewVersion(Version))
 }

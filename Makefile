@@ -33,7 +33,6 @@ test:
 ci:
 	@golangci-lint run -v --timeout=5m
 
-
 .PHONY: gen
 proto-plugin-gen:
 	cd cmd/protoc-gen-lava && go install -v .
