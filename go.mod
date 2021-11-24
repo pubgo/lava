@@ -2,8 +2,6 @@ module github.com/pubgo/lava
 
 go 1.17
 
-replace github.com/go-echarts/statsview => github.com/pubgo/statsview v0.3.5
-
 require (
 	filippo.io/mkcert v1.4.3
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect

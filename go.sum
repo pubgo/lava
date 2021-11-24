@@ -557,6 +557,8 @@ github.com/go-critic/go-critic v0.5.6/go.mod h1:cVjj0DfqewQVIlIAGexPCaGaZDAqGE29
 github.com/go-echarts/go-echarts/v2 v2.2.3/go.mod h1:6TOomEztzGDVDkOSCFBq3ed7xOYfbOqhaBzD0YV771A=
 github.com/go-echarts/go-echarts/v2 v2.2.4 h1:SKJpdyNIyD65XjbUZjzg6SwccTNXEgmh+PlaO23g2H0=
 github.com/go-echarts/go-echarts/v2 v2.2.4/go.mod h1:6TOomEztzGDVDkOSCFBq3ed7xOYfbOqhaBzD0YV771A=
+github.com/go-echarts/statsview v0.3.4 h1:CCuytRAutdnF901NrR4BzSjHXjUp8OyA3/iopgG/1/Y=
+github.com/go-echarts/statsview v0.3.4/go.mod h1:AehKjL9cTFMeIo5QdV8sQO43vFmfY65X5GMWa3XMciY=
 github.com/go-errors/errors v1.0.1 h1:LUHzmkK3GUKUrL/1gfBUxAHzcev3apQlezX/+O7ma6w=
 github.com/go-errors/errors v1.0.1/go.mod h1:f4zRHt4oKfwPJE5k8C9vpYG+aDHdBFUsgrm6/TyX73Q=
 github.com/go-git/gcfg v1.5.0/go.mod h1:5m20vg6GwYabIxaOonVkTdrILxQMpEShl1xiMF4ua+E=
@@ -1646,8 +1648,6 @@ github.com/pseudomuto/protokit v0.2.0 h1:hlnBDcy3YEDXH7kc9gV+NLaN0cDzhDvD1s7Y6FZ
 github.com/pseudomuto/protokit v0.2.0/go.mod h1:2PdH30hxVHsup8KpBTOXTBeMVhJZVio3Q8ViKSAXT0Q=
 github.com/pubgo/dix v0.1.31 h1:liuO2AuPt4mTgrpVHFtNLqXj7l2ldFqXjiG65Bk2V3U=
 github.com/pubgo/dix v0.1.31/go.mod h1:vVW2ct5FgYVCnvTZ8jnK6BPI4VXUPuuehL2DTyoK0Kk=
-github.com/pubgo/statsview v0.3.5 h1:m2XNfHYBBpcLpFuiS7kY/yVLF5PK1GmEQghQJ9XPVQI=
-github.com/pubgo/statsview v0.3.5/go.mod h1:AehKjL9cTFMeIo5QdV8sQO43vFmfY65X5GMWa3XMciY=
 github.com/pubgo/x v0.3.36 h1:6MRqb1Rrmvpwb9UkTfxRRP5eVmIK/wxqxPNsMtALFng=
 github.com/pubgo/x v0.3.36/go.mod h1:i3n1XrT39kzcgA8gt886bfCSg6u6uwohbwAtC8h8ePI=
 github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56mxJQ=
