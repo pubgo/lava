@@ -18,7 +18,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -112,11 +111,7 @@ var Cmd = &cli.Command{
 			xerror.Panic(browser.OpenURL("http://localhost:8082"))
 		})
 
-		var logs = logz.New("swagger")
-		if err := http.ListenAndServe(":8082", mux.Mux()); err != nil && err != http.ErrServerClosed {
-			logs.WithErr(err).Error("Server [swagger] Listen Error")
-			return nil
-		}
+		_ = http.ListenAndServe(":8082", mux.Mux())
 		return nil
 	},
 }

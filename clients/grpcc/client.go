@@ -18,12 +18,32 @@ func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
 	return getCfg(consts.KeyDefault, opts...).BuildDirect(addr)
 }
 
+var clients sync.Map
+var mu sync.Mutex
+
 func GetClient(service string, opts ...func(cfg *Cfg)) *Client {
 	var fn = func(cfg *Cfg) {}
 	if len(opts) > 0 {
 		fn = opts[0]
 	}
-	return &Client{service: service, optFn: fn}
+
+	var cli, ok = clients.Load(service)
+	if ok {
+		return cli.(*Client)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	// 双检
+	cli, ok = clients.Load(service)
+	if ok {
+		return cli.(*Client)
+	}
+
+	cli = &Client{service: service, optFn: fn}
+	clients.Store(service, cli)
+	return cli.(*Client)
 }
 
 var _ resource.Resource = (*Client)(nil)

@@ -70,17 +70,17 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
 	var log = logger.GetLog(ctx)
-	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
+	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
 		var user User
 		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
 		log.Info("data", zap.Any("data", user))
 
-		log.Info("dix db ok", logger.WithErr(h.Db.Raw("select * from users limit 1").First(&user).Error)...)
+		xerror.Panic(h.Db.Raw("select * from users limit 1").First(&user).Error)
 		log.Info("data", zap.Any("data", user))
 
-		log.Info("dix db ok", logger.WithErr(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)...)
+		xerror.Panic(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
 		log.Info("data", zap.Any("data", user))
 
 		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))

@@ -69,7 +69,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "snowflake":
 		id, err := id.Snowflake.Mint()
 		if err != nil {
-			log.Sugar().Errorf("Failed to generate snowflake id: %v", err)
+			log.Errorf("Failed to generate snowflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint snowflake id")
 		}
 		rsp.Type = "snowflake"
@@ -77,7 +77,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "bigflake":
 		id, err := id.Bigflake.Mint()
 		if err != nil {
-			log.Sugar().Errorf("Failed to generate bigflake id: %v", err)
+			log.Errorf("Failed to generate bigflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint bigflake id")
 		}
 		rsp.Type = "bigflake"
@@ -85,7 +85,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "shortid":
 		id, err := shortid.Generate()
 		if err != nil {
-			log.Sugar().Errorf("Failed to generate shortid id: %v", err)
+			log.Errorf("Failed to generate shortid id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to generate short id")
 		}
 		rsp.Type = "shortid"

@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -139,7 +140,7 @@ func Cmd() *cli.Command {
 
 					for i := range protoRoot {
 						if pathutil.IsNotExist(protoRoot[i]) {
-							zap.S().Warnf("file %s not flund", protoRoot[i])
+							log.Printf("file %s not flund", protoRoot[i])
 							continue
 						}
 

@@ -236,7 +236,8 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
 
 	var middlewares []types.Middleware
-	// 加载全局
+
+	// 加载全局middleware
 	for _, plg := range plugin.All() {
 		if plg.Middleware() == nil {
 			continue

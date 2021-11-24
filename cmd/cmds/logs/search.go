@@ -3,13 +3,14 @@ package logs
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/blevesearch/bleve/v2"
 	bleveHttp "github.com/blevesearch/bleve/v2/http"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/xerror"
-	"log"
-	"net/http"
 
 	// import general purpose configuration
 	_ "github.com/blevesearch/bleve/v2/config"
