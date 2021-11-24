@@ -75,15 +75,15 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	if h.Db != nil {
 		var user User
 		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
-		log.Info("data", zap.Any("data", user))
+		log.Infow("data", "data", user)
 
 		xerror.Panic(h.Db.Raw("select * from users limit 1").First(&user).Error)
-		log.Info("data", zap.Any("data", user))
+		log.Infow("data", "data", user)
 
 		xerror.Panic(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
-		log.Info("data", zap.Any("data", user))
+		log.Infow("data", "data", user)
 
-		log.Info("dix config ok", zap.String("cfg", config.GetCfg().ConfigPath()))
+		log.Infow("dix config ok", "cfg", config.GetCfg().ConfigPath())
 	}
 
 	out = &hello.TestApiOutput{

@@ -1,9 +1,12 @@
 package logger
 
-import "github.com/pubgo/lava/types"
+import (
+	"github.com/pubgo/lava/types"
+)
 
 type Logger interface {
 	With(args types.M) Logger
+	WithErr(err error) Logger
 
 	Debug(args ...interface{})
 	Info(args ...interface{})
