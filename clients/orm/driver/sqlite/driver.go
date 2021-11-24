@@ -1,8 +1,10 @@
 package sqlite
 
 import (
+	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
+	"path/filepath"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -18,6 +20,7 @@ func init() {
 			q.Q(cfg)
 			return "dns not found"
 		})
+		_ = pathutil.IsNotExistMkDir(filepath.Dir(dsn))
 		return sqlite.Open(dsn)
 	})
 }

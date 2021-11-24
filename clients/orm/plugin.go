@@ -18,8 +18,8 @@ func init() {
 			xerror.Panic(config.Decode(Name, &cfgMap))
 			for name := range cfgMap {
 				var t = merge.Copy(DefaultCfg(), cfgMap[name]).(*Cfg)
-				var factory = factories.Get(cfgMap[name].Driver).(Factory)
-				xerror.Assert(factory == nil, "factory[%s] not found", t.Driver)
+				var factory, ok = factories.Get(cfgMap[name].Driver).(Factory)
+				xerror.Assert(factory == nil || !ok, "factory[%s] not found", t.Driver)
 				dialect := factory(config.GetMap(Name, name))
 				var db = t.Build(dialect)
 				resource.Update(name, &Client{DB: db})
