@@ -15,7 +15,6 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -329,6 +328,31 @@ func Cmd() *cli.Command {
 						definition, err := parser.Parse()
 						xerror.Panic(err, protoFile)
 
+						var pkg string
+						proto.Walk(definition, proto.WithPackage(func(p *proto.Package) {
+							var replacer = strings.NewReplacer(".", "/", "-", "/")
+							pkg = replacer.Replace(p.Name)
+						}))
+
+						//pkg= "/" + protoutil.Camel2Case(fmt.Sprintf("%s/%s/%s", protoutil.Camel2Case(pkg), protoutil.Camel2Case(srv), protoutil.Camel2Case(mth)))
+						//hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
+
+						//proto.Walk(definition, proto.WithService(func(service *proto.Service) {
+						//	for _, element := range service.Elements {
+						//		rpc, ok := element.(*proto.RPC)
+						//		if !ok {
+						//			continue
+						//		}
+						//
+						//		if len(rpc.Options) == 0 {
+						//			if err := InsertOption(rpc); err != nil {
+						//			}
+						//			fmt.Printf("Rpc %s Insert option.\n", rpc.Name)
+						//			return
+						//		}
+						//	}
+						//}))
+
 						proto.Walk(definition, proto.WithRPC(func(rpc *proto.RPC) {
 							if rpc.StreamsRequest || rpc.StreamsReturns {
 								return
@@ -347,8 +371,7 @@ func Cmd() *cli.Command {
 							}
 
 							if !hasHttp {
-								q.Q(rpc)
-								panic(fmt.Errorf("method=>%s path=>%s 请设置gateway url", rpc.Name, protoFile))
+								panic(fmt.Errorf("method=>%s.%s path=>%s 请设置gateway url", pkg, rpc.Name, protoFile))
 							}
 						}))
 					}

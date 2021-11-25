@@ -433,7 +433,7 @@ func init() {
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &emptypb.Empty{},
 		Output:       &emptypb.Empty{},
-		Service:      "gid.CamelCaseServiceName",
+		Service:      "gid.camelCaseServiceName",
 		Name:         "Empty",
 		Method:       "GET",
 		Path:         "/v2/example/empty",

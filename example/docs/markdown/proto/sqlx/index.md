@@ -4,21 +4,21 @@
 ## Table of Contents
 
 - [proto/sqlx/code.proto](#proto/sqlx/code.proto)
-    - [GetSendStatusRequest](#sqlx.GetSendStatusRequest)
-    - [GetSendStatusResponse](#sqlx.GetSendStatusResponse)
-    - [IsCheckImageCodeRequest](#sqlx.IsCheckImageCodeRequest)
-    - [IsCheckImageCodeResponse](#sqlx.IsCheckImageCodeResponse)
-    - [SendCodeRequest](#sqlx.SendCodeRequest)
-    - [SendCodeResponse](#sqlx.SendCodeResponse)
-    - [SendCodeResponse.DataEntry](#sqlx.SendCodeResponse.DataEntry)
-    - [SendStatus](#sqlx.SendStatus)
-    - [VerifyImageCodeRequest](#sqlx.VerifyImageCodeRequest)
-    - [VerifyImageCodeResponse](#sqlx.VerifyImageCodeResponse)
-    - [VerifyRequest](#sqlx.VerifyRequest)
-    - [VerifyResponse](#sqlx.VerifyResponse)
-    - [VerifyResponse.DataEntry](#sqlx.VerifyResponse.DataEntry)
+    - [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest)
+    - [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse)
+    - [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest)
+    - [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse)
+    - [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest)
+    - [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse)
+    - [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry)
+    - [SendStatus](#hello.v1.sqlx.SendStatus)
+    - [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest)
+    - [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse)
+    - [VerifyRequest](#hello.v1.sqlx.VerifyRequest)
+    - [VerifyResponse](#hello.v1.sqlx.VerifyResponse)
+    - [VerifyResponse.DataEntry](#hello.v1.sqlx.VerifyResponse.DataEntry)
   
-    - [Code](#sqlx.Code)
+    - [Code](#hello.v1.sqlx.Code)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -31,7 +31,7 @@
 
 
 
-<a name="sqlx.GetSendStatusRequest"></a>
+<a name="hello.v1.sqlx.GetSendStatusRequest"></a>
 
 ### GetSendStatusRequest
 
@@ -51,7 +51,7 @@
 
 
 
-<a name="sqlx.GetSendStatusResponse"></a>
+<a name="hello.v1.sqlx.GetSendStatusResponse"></a>
 
 ### GetSendStatusResponse
 
@@ -62,14 +62,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [SendStatus](#sqlx.SendStatus) |  | 数据 |
+| data | [SendStatus](#hello.v1.sqlx.SendStatus) |  | 数据 |
 
 
 
 
 
 
-<a name="sqlx.IsCheckImageCodeRequest"></a>
+<a name="hello.v1.sqlx.IsCheckImageCodeRequest"></a>
 
 ### IsCheckImageCodeRequest
 
@@ -86,7 +86,7 @@
 
 
 
-<a name="sqlx.IsCheckImageCodeResponse"></a>
+<a name="hello.v1.sqlx.IsCheckImageCodeResponse"></a>
 
 ### IsCheckImageCodeResponse
 
@@ -104,7 +104,7 @@
 
 
 
-<a name="sqlx.SendCodeRequest"></a>
+<a name="hello.v1.sqlx.SendCodeRequest"></a>
 
 ### SendCodeRequest
 
@@ -123,7 +123,7 @@
 
 
 
-<a name="sqlx.SendCodeResponse"></a>
+<a name="hello.v1.sqlx.SendCodeResponse"></a>
 
 ### SendCodeResponse
 
@@ -134,14 +134,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 @gotags: valid:&#34;ip&#34; custom_tag:&#34;custom_value&#34; |
-| data | [SendCodeResponse.DataEntry](#sqlx.SendCodeResponse.DataEntry) | repeated | 数据 |
+| data | [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="sqlx.SendCodeResponse.DataEntry"></a>
+<a name="hello.v1.sqlx.SendCodeResponse.DataEntry"></a>
 
 ### SendCodeResponse.DataEntry
 
@@ -157,7 +157,7 @@
 
 
 
-<a name="sqlx.SendStatus"></a>
+<a name="hello.v1.sqlx.SendStatus"></a>
 
 ### SendStatus
 
@@ -175,7 +175,7 @@
 
 
 
-<a name="sqlx.VerifyImageCodeRequest"></a>
+<a name="hello.v1.sqlx.VerifyImageCodeRequest"></a>
 
 ### VerifyImageCodeRequest
 
@@ -195,7 +195,7 @@
 
 
 
-<a name="sqlx.VerifyImageCodeResponse"></a>
+<a name="hello.v1.sqlx.VerifyImageCodeResponse"></a>
 
 ### VerifyImageCodeResponse
 
@@ -212,7 +212,7 @@
 
 
 
-<a name="sqlx.VerifyRequest"></a>
+<a name="hello.v1.sqlx.VerifyRequest"></a>
 
 ### VerifyRequest
 
@@ -230,7 +230,7 @@
 
 
 
-<a name="sqlx.VerifyResponse"></a>
+<a name="hello.v1.sqlx.VerifyResponse"></a>
 
 ### VerifyResponse
 
@@ -241,14 +241,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [VerifyResponse.DataEntry](#sqlx.VerifyResponse.DataEntry) | repeated | 数据 |
+| data | [VerifyResponse.DataEntry](#hello.v1.sqlx.VerifyResponse.DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="sqlx.VerifyResponse.DataEntry"></a>
+<a name="hello.v1.sqlx.VerifyResponse.DataEntry"></a>
 
 ### VerifyResponse.DataEntry
 
@@ -270,18 +270,26 @@
  
 
 
-<a name="sqlx.Code"></a>
+<a name="hello.v1.sqlx.Code"></a>
 
 ### Code
 验证码
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| SendCode | [SendCodeRequest](#sqlx.SendCodeRequest) | [SendCodeResponse](#sqlx.SendCodeResponse) | 发送 |
-| Verify | [VerifyRequest](#sqlx.VerifyRequest) | [VerifyResponse](#sqlx.VerifyResponse) | 校验 |
-| IsCheckImageCode | [IsCheckImageCodeRequest](#sqlx.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#sqlx.IsCheckImageCodeResponse) | 是否校验图片验证码 |
-| VerifyImageCode | [VerifyImageCodeRequest](#sqlx.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#sqlx.VerifyImageCodeResponse) | 校验图片验证码 |
-| GetSendStatus | [GetSendStatusRequest](#sqlx.GetSendStatusRequest) | [GetSendStatusResponse](#sqlx.GetSendStatusResponse) | 获取发送状态 |
+| SendCode | [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest) | [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse) | 发送 |
+| Verify | [VerifyRequest](#hello.v1.sqlx.VerifyRequest) | [VerifyResponse](#hello.v1.sqlx.VerifyResponse) | 校验
+
+option (google.api.http) = { post: &#34;/user/code/verify&#34; body: &#34;*&#34; }; |
+| IsCheckImageCode | [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse) | 是否校验图片验证码
+
+option (google.api.http) = { post: &#34;/user/code/is-check-image-code&#34; body: &#34;*&#34; }; |
+| VerifyImageCode | [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse) | 校验图片验证码
+
+option (google.api.http) = { post: &#34;/user/code/verify-image-code&#34; body: &#34;*&#34; }; |
+| GetSendStatus | [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest) | [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse) | 获取发送状态
+
+option (google.api.http) = { post: &#34;/user/code/get-send-status&#34; body: &#34;*&#34; }; |
 
  
 

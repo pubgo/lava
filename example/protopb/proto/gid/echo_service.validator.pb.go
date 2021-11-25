@@ -52,7 +52,7 @@ func (this *DynamicMessage) Validate() error {
 func (this *DynamicMessageUpdate) Validate() error {
 	if this.Body != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Body); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Read", err)
+			return github_com_mwitkow_go_proto_validators.FieldError("Body", err)
 		}
 	}
 	return nil

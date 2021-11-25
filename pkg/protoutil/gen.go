@@ -184,7 +184,7 @@ func CamelCase(s string) string {
 func DefaultAPIOptions(pkg string, srv string, mth string) *options.HttpRule {
 	return &options.HttpRule{
 		Pattern: &options.HttpRule_Post{
-			Post: "/" + camel2Case(fmt.Sprintf("%s/%s/%s", camel2Case(pkg), camel2Case(srv), camel2Case(mth))),
+			Post: "/" + Camel2Case(fmt.Sprintf("%s/%s/%s", Camel2Case(pkg), Camel2Case(srv), Camel2Case(mth))),
 		},
 		Body: "*",
 	}
@@ -254,9 +254,9 @@ func UnExport(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
 
-// camel2Case
+// Camel2Case
 // 驼峰式写法转为下划线写法
-func camel2Case(name string) string {
+func Camel2Case(name string) string {
 	name = trim(name)
 	buf := new(bytes.Buffer)
 	for i, r := range name {

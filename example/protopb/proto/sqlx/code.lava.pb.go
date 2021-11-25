@@ -4,7 +4,7 @@
 // - protoc         v3.17.3
 // source: proto/sqlx/code.proto
 
-package sqlx
+package sqlx_pb
 
 import (
 	gin "github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ func init() {
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &SendCodeRequest{},
 		Output:       &SendCodeResponse{},
-		Service:      "sqlx.Code",
+		Service:      "hello.v1.sqlx.Code",
 		Name:         "SendCode",
 		Method:       "POST",
 		Path:         "/user/code/send-code",
@@ -39,49 +39,48 @@ func init() {
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &VerifyRequest{},
 		Output:       &VerifyResponse{},
-		Service:      "sqlx.Code",
+		Service:      "hello.v1.sqlx.Code",
 		Name:         "Verify",
 		Method:       "POST",
-		Path:         "/user/code/verify",
-		DefaultUrl:   false,
+		Path:         "/hello/v1/sqlx/code/verify",
+		DefaultUrl:   true,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &IsCheckImageCodeRequest{},
 		Output:       &IsCheckImageCodeResponse{},
-		Service:      "sqlx.Code",
+		Service:      "hello.v1.sqlx.Code",
 		Name:         "IsCheckImageCode",
 		Method:       "POST",
-		Path:         "/user/code/is-check-image-code",
-		DefaultUrl:   false,
+		Path:         "/hello/v1/sqlx/code/is-check-image-code",
+		DefaultUrl:   true,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &VerifyImageCodeRequest{},
 		Output:       &VerifyImageCodeResponse{},
-		Service:      "sqlx.Code",
+		Service:      "hello.v1.sqlx.Code",
 		Name:         "VerifyImageCode",
 		Method:       "POST",
-		Path:         "/user/code/verify-image-code",
-		DefaultUrl:   false,
+		Path:         "/hello/v1/sqlx/code/verify-image-code",
+		DefaultUrl:   true,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &GetSendStatusRequest{},
 		Output:       &GetSendStatusResponse{},
-		Service:      "sqlx.Code",
+		Service:      "hello.v1.sqlx.Code",
 		Name:         "GetSendStatus",
 		Method:       "POST",
-		Path:         "/user/code/get-send-status",
-		DefaultUrl:   false,
+		Path:         "/hello/v1/sqlx/code/get-send-status",
+		DefaultUrl:   true,
 		ClientStream: false,
 		ServerStream: false,
 	})
 	xgen.Add(RegisterCodeServer, mthList)
-	xgen.Add(RegisterCodeHandler, nil)
 	xgen.Add(RegisterCodeGinServer, nil)
 }
 func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
@@ -93,28 +92,28 @@ func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/user/code/verify", func(ctx *gin.Context) {
+	r.Handle("POST", "/sqlx-pb/code/verify", func(ctx *gin.Context) {
 		var req = new(VerifyRequest)
 		xerror.Panic(ctx.ShouldBindJSON(req))
 		var resp, err = server.Verify(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/user/code/is-check-image-code", func(ctx *gin.Context) {
+	r.Handle("POST", "/sqlx-pb/code/is-check-image-code", func(ctx *gin.Context) {
 		var req = new(IsCheckImageCodeRequest)
 		xerror.Panic(ctx.ShouldBindJSON(req))
 		var resp, err = server.IsCheckImageCode(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/user/code/verify-image-code", func(ctx *gin.Context) {
+	r.Handle("POST", "/sqlx-pb/code/verify-image-code", func(ctx *gin.Context) {
 		var req = new(VerifyImageCodeRequest)
 		xerror.Panic(ctx.ShouldBindJSON(req))
 		var resp, err = server.VerifyImageCode(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})
-	r.Handle("POST", "/user/code/get-send-status", func(ctx *gin.Context) {
+	r.Handle("POST", "/sqlx-pb/code/get-send-status", func(ctx *gin.Context) {
 		var req = new(GetSendStatusRequest)
 		xerror.Panic(ctx.ShouldBindJSON(req))
 		var resp, err = server.GetSendStatus(ctx, req)

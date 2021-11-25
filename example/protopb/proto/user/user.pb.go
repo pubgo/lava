@@ -1099,7 +1099,7 @@ func (x *Body) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Read.ProtoReflect.Descriptor instead.
+// Deprecated: Use Body.ProtoReflect.Descriptor instead.
 func (*Body) Descriptor() ([]byte, []int) {
 	return file_proto_user_user_proto_rawDescGZIP(), []int{10}
 }
@@ -2194,7 +2194,7 @@ var file_proto_user_user_proto_goTypes = []interface{}{
 	(*ABitOfEverything)(nil),              // 9: gid.ABitOfEverything
 	(*ABitOfEverythingRepeated)(nil),      // 10: gid.ABitOfEverythingRepeated
 	(*CheckStatusResponse)(nil),           // 11: gid.CheckStatusResponse
-	(*Body)(nil),                          // 12: gid.Read
+	(*Body)(nil),                          // 12: gid.Body
 	(*MessageWithBody)(nil),               // 13: gid.MessageWithBody
 	(*UpdateV2Request)(nil),               // 14: gid.UpdateV2Request
 	(*Book)(nil),                          // 15: gid.Book
@@ -2228,7 +2228,7 @@ var file_proto_user_user_proto_depIdxs = []int32{
 	18, // 13: gid.ABitOfEverything.nested_annotation:type_name -> gid.ABitOfEverything.Nested
 	0,  // 14: gid.ABitOfEverythingRepeated.path_repeated_enum_value:type_name -> gid.NumericEnum
 	24, // 15: gid.CheckStatusResponse.status:type_name -> google.rpc.Status
-	12, // 16: gid.MessageWithBody.data:type_name -> gid.Read
+	12, // 16: gid.MessageWithBody.data:type_name -> gid.Body
 	9,  // 17: gid.UpdateV2Request.abe:type_name -> gid.ABitOfEverything
 	25, // 18: gid.UpdateV2Request.update_mask:type_name -> google.protobuf.FieldMask
 	23, // 19: gid.Book.create_time:type_name -> google.protobuf.Timestamp
@@ -2253,7 +2253,7 @@ var file_proto_user_user_proto_depIdxs = []int32{
 	22, // 38: gid.ABitOfEverythingService.Timeout:input_type -> google.protobuf.Empty
 	22, // 39: gid.ABitOfEverythingService.ErrorWithDetails:input_type -> google.protobuf.Empty
 	13, // 40: gid.ABitOfEverythingService.GetMessageWithBody:input_type -> gid.MessageWithBody
-	12, // 41: gid.ABitOfEverythingService.PostWithEmptyBody:input_type -> gid.Read
+	12, // 41: gid.ABitOfEverythingService.PostWithEmptyBody:input_type -> gid.Body
 	9,  // 42: gid.ABitOfEverythingService.CheckGetQueryParams:input_type -> gid.ABitOfEverything
 	9,  // 43: gid.ABitOfEverythingService.CheckNestedEnumGetQueryParams:input_type -> gid.ABitOfEverything
 	9,  // 44: gid.ABitOfEverythingService.CheckPostQueryParams:input_type -> gid.ABitOfEverything
