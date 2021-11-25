@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/emicklei/proto"
+	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
@@ -24,6 +25,7 @@ import (
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
+	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
 )
 
@@ -297,7 +299,7 @@ func Cmd() *cli.Command {
 					var protoList sync.Map
 					for i := range protoRoot {
 						if pathutil.IsNotExist(protoRoot[i]) {
-							zap.S().Warnf("file %s not flund", protoRoot[i])
+							log.Printf("proto root (%s) not flund\n", protoRoot[i])
 							continue
 						}
 
@@ -319,66 +321,69 @@ func Cmd() *cli.Command {
 						}))
 					}
 
+					// 处理检测gateway url
 					var handler = func(protoFile string) {
-						reader, err := os.Open(protoFile)
-						xerror.Panic(err, protoFile)
-						defer reader.Close()
+						var data, err = iox.ReadText(protoFile)
+						xerror.Panic(err)
 
-						parser := proto.NewParser(reader)
+						parser := proto.NewParser(strings.NewReader(data))
 						definition, err := parser.Parse()
 						xerror.Panic(err, protoFile)
 
+						// package name
 						var pkg string
 						proto.Walk(definition, proto.WithPackage(func(p *proto.Package) {
 							var replacer = strings.NewReplacer(".", "/", "-", "/")
 							pkg = replacer.Replace(p.Name)
 						}))
 
-						//pkg= "/" + protoutil.Camel2Case(fmt.Sprintf("%s/%s/%s", protoutil.Camel2Case(pkg), protoutil.Camel2Case(srv), protoutil.Camel2Case(mth)))
-						//hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
-
-						//proto.Walk(definition, proto.WithService(func(service *proto.Service) {
-						//	for _, element := range service.Elements {
-						//		rpc, ok := element.(*proto.RPC)
-						//		if !ok {
-						//			continue
-						//		}
-						//
-						//		if len(rpc.Options) == 0 {
-						//			if err := InsertOption(rpc); err != nil {
-						//			}
-						//			fmt.Printf("Rpc %s Insert option.\n", rpc.Name)
-						//			return
-						//		}
-						//	}
-						//}))
-
-						proto.Walk(definition, proto.WithRPC(func(rpc *proto.RPC) {
-							if rpc.StreamsRequest || rpc.StreamsReturns {
-								return
-							}
-
-							var hasHttp bool
-							for _, e := range rpc.Elements {
-								var opt, ok = e.(*proto.Option)
+						var rpcList []*proto.RPC
+						proto.Walk(definition, proto.WithService(func(srv *proto.Service) {
+							for _, e := range srv.Elements {
+								var rpc, ok = e.(*proto.RPC)
 								if !ok {
 									continue
 								}
 
-								if strings.Contains(opt.Name, "google.api.http") {
+								rpcList = append(rpcList, rpc)
+							}
+						}))
+
+						var dataLine = strings.Split(data, "\n")
+						for i := range rpcList {
+							rpc := rpcList[i]
+							insert := fmt.Sprintf(`
+rpc %s (%s) returns (%s) {
+  option (google.api.http) = {
+    post: "%s"
+    body: "*"
+  };`, rpc.Name, rpc.RequestType, rpc.ReturnsType, "/"+protoutil.Camel2Case(fmt.Sprintf("%s/%s/%s", protoutil.Camel2Case(pkg), protoutil.Camel2Case(rpc.Parent.(*proto.Service).Name), protoutil.Camel2Case(rpc.Name))))
+
+							var hasHttp bool
+							for i := range rpc.Options {
+								if rpc.Options[i].Name == "(google.api.http)" {
 									hasHttp = true
 								}
 							}
 
-							if !hasHttp {
-								panic(fmt.Errorf("method=>%s.%s path=>%s 请设置gateway url", pkg, rpc.Name, protoFile))
+							// 如果option为0, 那么可以整体替换, 通过正则表达式
+							if len(rpc.Options) == 0 || !hasHttp {
+								_ = insert
+								var rpcData = strings.Trim(dataLine[rpc.Position.Line-1], ";")
+								// 以}结尾
+								if rpcData[len(rpcData)-1] == '}' {
+									dataLine[rpc.Position.Line-1] = insert + "\n}\n"
+								} else {
+									dataLine[rpc.Position.Line-1] = insert
+								}
 							}
-						}))
-					}
+						}
 
+						data = strings.Join(dataLine, "\n")
+						xerror.Panic(ioutil.WriteFile(protoFile, []byte(data), 0755))
+					}
 					protoList.Range(func(key, _ interface{}) bool {
 						defer xerror.RespExit(key)
-
 						handler(key.(string))
 						return true
 					})

@@ -10,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/proto/lava"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 )
 
 var (
@@ -138,7 +137,7 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 			defaultUrl = true
 			isDefault = true
 
-			var replacer = strings.NewReplacer(".","/","-","/")
+			var replacer = strings.NewReplacer(".", "/", "-", "/")
 			hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
 		}
 		method, path := protoutil.ExtractHttpMethod(hr)
