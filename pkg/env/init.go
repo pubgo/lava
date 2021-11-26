@@ -1,6 +1,7 @@
 package env
 
 import (
+	"github.com/joho/godotenv"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -32,7 +33,13 @@ var Hostname = lavax.FirstNotEmpty(
 )
 
 func init() {
+	initEnv()
+}
 
+// Load 加载env文件
+func Load(filenames ...string) {
+	xerror.Panic(godotenv.Load(filenames...))
+	initEnv()
 }
 
 // Home the home directory for the current user
@@ -59,7 +66,7 @@ var Namespace = lavax.FirstNotEmpty(
 	func() string { return "default" },
 )
 
-func init() {
+func initEnv() {
 	// 环境变量处理, key转大写, 同时把-./转换为_
 	// a-b=>a_b, a.b=>a_b, a/b=>a_b, HelloWorld=>hello_world
 	replacer := strings.NewReplacer("-", "_", ".", "_", "/", "_")
