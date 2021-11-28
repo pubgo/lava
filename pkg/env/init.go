@@ -1,7 +1,6 @@
 package env
 
 import (
-	"github.com/joho/godotenv"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -33,12 +32,6 @@ var Hostname = lavax.FirstNotEmpty(
 )
 
 func init() {
-	initEnv()
-}
-
-// Load 加载env文件
-func Load(filenames ...string) {
-	xerror.Panic(godotenv.Load(filenames...))
 	initEnv()
 }
 
