@@ -55,6 +55,11 @@ service Code {
   }
 }
 
+message Response {
+  int32 code = 1;
+  map<string, string> headers = 2;
+}
+
 message SendCodeRequest {
   // 区号
   string nationCode = 1 [
@@ -82,6 +87,7 @@ message SendCodeResponse {
   int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
   // 数据
   map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+  Response response = 6;
 }
 
 message VerifyRequest {

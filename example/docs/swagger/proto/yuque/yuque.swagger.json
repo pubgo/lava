@@ -1,0 +1,389 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "yuque restful api interface",
+    "version": "2.0",
+    "contact": {
+      "name": "barry",
+      "url": "https://github.com/kooksee",
+      "email": "kooksee@163.com"
+    },
+    "license": {
+      "name": "Apache 2.0 License"
+    }
+  },
+  "tags": [
+    {
+      "name": "Yuque"
+    }
+  ],
+  "host": "www.yuque.com",
+  "basePath": "/api/v2",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/groups": {
+      "post": {
+        "summary": "创建 Group",
+        "operationId": "Yuque_CreateGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2CreateGroupResp"
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2CreateGroupReq"
+            }
+          }
+        ],
+        "tags": [
+          "Yuque"
+        ]
+      }
+    },
+    "/user": {
+      "get": {
+        "summary": "获取认证的用户的个人信息",
+        "operationId": "Yuque_UserInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoResp"
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Yuque"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "获取单个用户信息",
+        "operationId": "Yuque_UserInfoById",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoResp"
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "login",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Yuque"
+        ]
+      }
+    },
+    "/users/{login}": {
+      "get": {
+        "summary": "获取单个用户信息",
+        "operationId": "Yuque_UserInfoByLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoResp"
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "login",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Yuque"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v2CreateGroupReq": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v2CreateGroupResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v2CreateGroupRespData"
+          }
+        },
+        "response": {
+          "$ref": "#/definitions/yuquev2Response"
+        }
+      }
+    },
+    "v2CreateGroupRespData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "v2UserInfoResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v2UserInfoRespData"
+        },
+        "response": {
+          "$ref": "#/definitions/yuquev2Response"
+        }
+      }
+    },
+    "v2UserInfoRespData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "type": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "yuquev2Response": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "url": "https://www.yuque.com/yuque/developer/api"
+  }
+}

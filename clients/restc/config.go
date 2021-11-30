@@ -43,6 +43,7 @@ type Cfg struct {
 	backoff                       retry.Backoff
 	tlsConfig                     *tls.Config
 	Middlewares                   []types.Middleware
+	BasePath                      string
 }
 
 func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
@@ -61,7 +62,7 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 		xerror.Panic(err)
 		certs = append(certs, c)
 	}
-	//c.TLSConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
+	t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
 	var middlewares []types.Middleware
 	// 加载全局
@@ -74,7 +75,7 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 
 	// 最后加载业务自定义
 	middlewares = append(middlewares, t.Middlewares...)
-	
+
 	// 加载插件
 	var client = &clientImpl{client: c}
 	client.do = doFunc(client)

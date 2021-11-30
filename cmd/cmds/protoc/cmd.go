@@ -3,6 +3,7 @@ package protoc
 import (
 	"bufio"
 	"fmt"
+	"github.com/pubgo/lava/types"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -36,6 +37,14 @@ func Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "protoc",
 		Usage: "protobuf generation, configuration and management",
+		Flags: types.Flags{
+			&cli.StringFlag{
+				Name:        "protobuf",
+				Usage:       "protobuf config path",
+				Value:       protoCfg,
+				Destination: &protoCfg,
+			},
+		},
 		Before: func(ctx *cli.Context) error {
 			defer xerror.RespExit()
 

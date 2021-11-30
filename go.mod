@@ -81,7 +81,6 @@ require (
 	github.com/segmentio/nsq-go v1.2.4
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/viper v1.8.1
-	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/http-swagger v1.1.1
 	github.com/tinylib/msgp v1.1.6
 	github.com/twmb/murmur3 v1.1.5 // indirect
@@ -100,7 +99,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/image v0.0.0-20191206065243-da761ea9ff43
 	golang.org/x/mod v0.5.0
-	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365
 	golang.org/x/tools v0.1.5
@@ -139,7 +138,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/chriswalz/bit v1.1.2
-	github.com/chyroc/go-aliyundrive v0.1.0
 	github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403 // indirect
 	github.com/cncf/xds/go v0.0.0-20210805033703-aa0b78936158 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -166,6 +164,7 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/goccy/go-json v0.7.10
 	github.com/goccy/go-reflect v1.1.0
@@ -177,6 +176,7 @@ require (
 	github.com/google/gofuzz v1.1.1-0.20200604201612-c04b05f3adfa // indirect
 	github.com/google/pprof v0.0.0-20210226084205-cbba55b83ad5 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
+	github.com/goplus/reflectx v0.6.5
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
@@ -243,6 +243,7 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/valyala/bytebufferpool v1.0.0
+	github.com/valyala/fasttemplate v1.0.1
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xlab/treeprint v1.0.0 // indirect
@@ -298,6 +299,7 @@ require (
 	github.com/blevesearch/zapx/v15 v15.3.1 // indirect
 	github.com/c4milo/unpackit v0.0.0-20170704181138-4ed373e9ef1c // indirect
 	github.com/chriswalz/complete/v3 v3.0.13 // indirect
+	github.com/chyroc/go-aliyundrive v0.1.0 // indirect
 	github.com/chyroc/gorequests v0.26.0 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/couchbase/ghistogram v0.1.0 // indirect
@@ -354,6 +356,7 @@ require (
 	github.com/spf13/cobra v1.1.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/steveyen/gtreap v0.1.0 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/thoas/go-funk v0.7.0 // indirect
 	github.com/tj/go-spin v1.1.0 // indirect
 	github.com/tj/go-update v2.2.4+incompatible // indirect

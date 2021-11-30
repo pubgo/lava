@@ -1,0 +1,156 @@
+syntax = "proto3";
+
+package yuque.v2;
+
+option go_package = "./;yuque_pb";
+
+import "google/api/annotations.proto";
+import "lava/tags.proto";
+import "google/api/client.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  host: "www.yuque.com",
+  base_path:"/api/v2",
+  info: {
+    title: "yuque restful api interface";
+    version: "2.0";
+    contact: {
+      name: "barry";
+      url: "https://github.com/kooksee";
+      email: "kooksee@163.com";
+    };
+    license: {
+      name: "Apache 2.0 License";
+    };
+  };
+  external_docs: {
+    url: "https://www.yuque.com/yuque/developer/api";
+  }
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+  responses: {
+    key: "200";
+    value: {
+      description: "成功";
+    }
+  }
+  responses: {
+    key: "400";
+    value: {
+      description: "请求的参数不正确，或缺少必要信息，请对比文档";
+    }
+  }
+  responses: {
+    key: "401";
+    value: {
+      description: "需要用户认证的接口用户信息不正确";
+    }
+  }
+  responses: {
+    key: "403";
+    value: {
+      description: "缺少对应功能的权限";
+    }
+  }
+  responses: {
+    key: "404";
+    value: {
+      description: "数据不存在，或未开放";
+    }
+  }
+  responses: {
+    key: "500";
+    value: {
+      description: "服务器异常";
+    }
+  }
+};
+
+service Yuque {
+  option (google.api.default_host) = "www.yuque.com";
+
+  // 获取认证的用户的个人信息
+  rpc UserInfo (google.protobuf.Empty) returns (UserInfoResp) {
+    option (google.api.http) = {
+      get: "/user"
+    };
+  }
+
+  // 获取单个用户信息
+  rpc UserInfoByLogin (UserInfoReq) returns (UserInfoResp) {
+    option (google.api.http) = {
+      get: "/users/{login}"
+    };
+  }
+
+  // 获取单个用户信息
+  rpc UserInfoById (UserInfoReq) returns (UserInfoResp) {
+    option (google.api.http) = {
+      get: "/users/{id}"
+    };
+  }
+
+  // 创建 Group
+  rpc CreateGroup (CreateGroupReq) returns (CreateGroupResp) {
+    option (google.api.http) = {
+      post: "/groups"
+      body: "*"
+    };
+  }
+}
+
+message Response {
+  int32 code = 1;
+  map<string, string> headers = 2;
+}
+
+message CreateGroupResp {
+  message Data {
+    uint32 id = 1;
+    string login = 2;
+    string name = 3;
+    string avatar_url = 4;
+    string description = 5;
+    string created_at = 6;
+    string updated_at = 7;
+  }
+
+  repeated Data data = 1;
+  Response response = 2;
+}
+
+message CreateGroupReq {
+  string login = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message UserInfoResp {
+  message Data {
+    uint32 id = 1;
+    string type = 2;
+    string login = 3;
+    string name = 4;
+    string description = 5;
+    string avatar_url = 6;
+    string created_at = 7;
+    string updated_at = 8;
+  }
+
+  Data data = 1;
+  Response response = 2;
+}
+
+message UserInfoReq {
+  string login = 1 [
+    (lava.tags) = {key:"path",value:"login"}
+  ];
+
+  string id = 2 [
+    (lava.tags) = {key:"path",value:"id"}
+  ];
+}

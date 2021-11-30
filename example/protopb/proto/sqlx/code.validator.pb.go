@@ -18,11 +18,20 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+func (this *Response) Validate() error {
+	// Validation of proto3 map<> fields is unsupported.
+	return nil
+}
 func (this *SendCodeRequest) Validate() error {
 	return nil
 }
 func (this *SendCodeResponse) Validate() error {
 	// Validation of proto3 map<> fields is unsupported.
+	if this.Response != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Response); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Response", err)
+		}
+	}
 	return nil
 }
 func (this *VerifyRequest) Validate() error {

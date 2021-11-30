@@ -7,9 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var defaultClient = xerror.ExitErr(DefaultCfg().Build(func(cfg *Cfg) {
-	cfg.Middlewares = append(cfg.Middlewares, "x-request-id", "logRecord", "traceRecord", "timeout", "recovery")
-})).(Client)
+var defaultClient = xerror.ExitErr(DefaultCfg().Build()).(Client)
 
 func Do(ctx context.Context, req *Request) (*Response, error) { return defaultClient.Do(ctx, req) }
 

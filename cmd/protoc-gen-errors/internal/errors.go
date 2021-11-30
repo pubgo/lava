@@ -58,8 +58,6 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P("const _ = ", grpcCall("SupportPackageIsVersion7"))
 	g.P()
 
-	g.QualifiedGoIdent(errorsCall(""))
-
 	generateFileContent(gen, file, g)
 	return g
 }
@@ -75,7 +73,10 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 
 	if index == 0 {
 		g.Skip()
+		return
 	}
+
+	g.QualifiedGoIdent(errorsCall(""))
 }
 
 func genError(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, enum *protogen.Enum) (ret bool) {

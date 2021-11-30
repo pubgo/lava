@@ -2,8 +2,8 @@ package protoutil
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
+	"github.com/pubgo/lava/xgen"
 	"go/format"
 	"io"
 	"io/ioutil"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	pongo2 "github.com/flosch/pongo2/v4"
+	pongo "github.com/flosch/pongo2/v4"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -21,6 +21,30 @@ import (
 	gp "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func RpcInfo(file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method) *xgen.GrpcRestHandler {
+	var data = new(xgen.GrpcRestHandler)
+
+	data.Input = g.QualifiedGoIdent(m.Input.GoIdent)
+	data.Output = g.QualifiedGoIdent(m.Output.GoIdent)
+	data.Service = fmt.Sprintf("%s", service.GoName)
+	data.Name = fmt.Sprintf(`%s`, m.Desc.Name())
+
+	var defaultUrl bool
+	hr, err := ExtractAPIOptions(m.Desc)
+	if err != nil || hr == nil {
+		defaultUrl = true
+		var replacer = strings.NewReplacer(".", "/", "-", "/")
+		hr = DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
+	}
+	method, path := ExtractHttpMethod(hr)
+	data.Method = method
+	data.Path = path
+	data.DefaultUrl = defaultUrl
+	data.ClientStream = m.Desc.IsStreamingClient()
+	data.ServerStream = m.Desc.IsStreamingServer()
+	return data
+}
 
 func Append(s *string, args ...string) {
 	*s += "\n"
@@ -284,29 +308,33 @@ func Import(name string) func(id string) protogen.GoIdent {
 	}
 }
 
-func NewGenWrap(g *protogen.GeneratedFile) *GenWrap {
-	return &GenWrap{g: g}
+func ImportV1(name string) func(g *protogen.GeneratedFile, id string) string {
+	var pkg = protogen.GoImportPath(name)
+	return func(g *protogen.GeneratedFile, id string) string {
+		return g.QualifiedGoIdent(pkg.Ident(id))
+	}
 }
 
-type GenWrap struct {
-	g *protogen.GeneratedFile
-}
+type Context = pongo.Context
 
-func (t *GenWrap) Fmt(tpl string, m pongo2.Context) {
-	t.g.P(Template(tpl, m))
-}
-
-type Context = pongo2.Context
-
-func Template(tpl string, m pongo2.Context) string {
+func Gen(g *protogen.GeneratedFile, tpl string, m pongo.Context) {
 	m["unExport"] = UnExport
 
-	temp, err := pongo2.FromString(tpl)
+	temp, err := pongo.FromString(tpl)
 	xerror.PanicF(err, tpl)
 
-	w := bytes.NewBuffer(nil)
-	xerror.PanicF(temp.ExecuteWriter(m, w), tpl)
-	return w.String()
+	xerror.PanicF(temp.ExecuteWriter(m, g), tpl)
+}
+
+func Template(tpl string, m pongo.Context) string {
+	m["unExport"] = UnExport
+
+	temp, err := pongo.FromString(strings.TrimSpace(tpl))
+	xerror.PanicF(err, tpl)
+
+	var g = bytes.NewBuffer(nil)
+	xerror.PanicF(temp.ExecuteWriter(m, g), tpl)
+	return g.String()
 }
 
 func goZeroValue(f *descriptor.FieldDescriptorProto) string {
@@ -438,28 +466,8 @@ func ParseRequest(r io.Reader) (*plugin.CodeGeneratorRequest, error) {
 	return req, nil
 }
 
-func ParseParameter(args string) {
-	if args == "" {
-		return
-	}
-
-	for _, arg := range strings.Split(args, ",") {
-		spec := strings.SplitN(arg, "=", 2)
-		if len(spec) == 1 {
-			xerror.PanicF(flag.CommandLine.Set(spec[0], ""), "Cannot set flag %s", args)
-			continue
-		}
-
-		key, value := spec[0], spec[1]
-		if strings.HasPrefix(key, "M") {
-			continue
-		}
-
-		xerror.PanicF(flag.CommandLine.Set(key, value), "Cannot set flag %s", arg)
-	}
-}
-
-func SourceCode(buf *bytes.Buffer) (string, error) {
+// CodeFormat go code format
+func CodeFormat(buf *bytes.Buffer) (string, error) {
 	code, err := format.Source(buf.Bytes())
 	return string(code), err
 }
