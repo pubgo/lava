@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package lava;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/proto/lava;lava";
+
+message Response {
+  int32 code = 1;
+  map<string, string> headers = 2;
+}
+
+// Tags are applied at the field level
+extend google.protobuf.FieldOptions {
+  string query = 100001;
+  string param = 100002;
+}

@@ -8,6 +8,7 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 
 	"github.com/pubgo/lava/cmd/protoc-gen-resty/internal"
+	"github.com/pubgo/lava/pkg/protoutil"
 )
 
 func main() {
@@ -16,6 +17,11 @@ func main() {
 	var flags flag.FlagSet
 	flags.StringVar(&internal.PathTag, "path-tag", internal.PathTag, "router path params tag")
 	flags.StringVar(&internal.QueryTag, "query-tag", internal.QueryTag, "router path query tag")
+
+	if protoutil.IsHelp() {
+		flags.PrintDefaults()
+		return
+	}
 
 	opts := &protogen.Options{ParamFunc: flags.Set}
 	opts.Run(func(gen *protogen.Plugin) error {

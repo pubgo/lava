@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"unicode"
 
@@ -50,6 +51,11 @@ func Append(s *string, args ...string) {
 	*s += "\n"
 	*s += strings.Join(args, "\n")
 	*s += "\n"
+}
+
+func IsHelp() bool {
+	var arg = strings.TrimSpace(os.Args[len(os.Args)-1])
+	return arg == "--help" || arg == "-h"
 }
 
 // baseName

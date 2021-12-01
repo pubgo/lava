@@ -5,7 +5,8 @@ package yuque.v2;
 option go_package = "./;yuque_pb";
 
 import "google/api/annotations.proto";
-import "lava/tags.proto";
+import "lava/lava.proto";
+import "lava/resty.proto";
 import "google/api/client.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/protobuf/empty.proto";
@@ -103,11 +104,6 @@ service Yuque {
   }
 }
 
-message Response {
-  int32 code = 1;
-  map<string, string> headers = 2;
-}
-
 message CreateGroupResp {
   message Data {
     uint32 id = 1;
@@ -120,12 +116,17 @@ message CreateGroupResp {
   }
 
   repeated Data data = 1;
-  Response response = 2;
+  lava.Response response = 2;
 }
 
 message CreateGroupReq {
+  // login
   string login = 1;
+
+  // 组织名称
   string name = 2;
+
+  // 介绍
   string description = 3;
 }
 
@@ -142,15 +143,15 @@ message UserInfoResp {
   }
 
   Data data = 1;
-  Response response = 2;
+  lava.Response response = 2;
 }
 
 message UserInfoReq {
   string login = 1 [
-    (lava.tags) = {key:"path",value:"login"}
+    (lava.tags) = {key:"param",value:"login"}
   ];
 
   string id = 2 [
-    (lava.tags) = {key:"path",value:"id"}
+    (lava.tags) = {key:"param",value:"id"}
   ];
 }

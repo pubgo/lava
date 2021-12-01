@@ -7,8 +7,6 @@
     - [CreateGroupReq](#yuque.v2.CreateGroupReq)
     - [CreateGroupResp](#yuque.v2.CreateGroupResp)
     - [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data)
-    - [Response](#yuque.v2.Response)
-    - [Response.HeadersEntry](#yuque.v2.Response.HeadersEntry)
     - [UserInfoReq](#yuque.v2.UserInfoReq)
     - [UserInfoResp](#yuque.v2.UserInfoResp)
     - [UserInfoResp.Data](#yuque.v2.UserInfoResp.Data)
@@ -34,9 +32,9 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| login | [string](#string) |  |  |
-| name | [string](#string) |  |  |
-| description | [string](#string) |  |  |
+| login | [string](#string) |  | login |
+| name | [string](#string) |  | 组织名称 |
+| description | [string](#string) |  | 介绍 |
 
 
 
@@ -52,7 +50,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | data | [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data) | repeated |  |
-| response | [Response](#yuque.v2.Response) |  |  |
+| response | [lava.Response](#lava.Response) |  |  |
 
 
 
@@ -74,38 +72,6 @@
 | description | [string](#string) |  |  |
 | created_at | [string](#string) |  |  |
 | updated_at | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="yuque.v2.Response"></a>
-
-### Response
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| code | [int32](#int32) |  |  |
-| headers | [Response.HeadersEntry](#yuque.v2.Response.HeadersEntry) | repeated |  |
-
-
-
-
-
-
-<a name="yuque.v2.Response.HeadersEntry"></a>
-
-### Response.HeadersEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
 
 
 
@@ -137,7 +103,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | data | [UserInfoResp.Data](#yuque.v2.UserInfoResp.Data) |  |  |
-| response | [Response](#yuque.v2.Response) |  |  |
+| response | [lava.Response](#lava.Response) |  |  |
 
 
 

@@ -10,6 +10,7 @@ import (
 	context "context"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
+	lava "github.com/pubgo/lava/proto/lava"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	strings "strings"
@@ -42,14 +43,16 @@ func (c *yuqueResty) UserInfo(ctx context.Context, in *emptypb.Empty, opts ...fu
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		} else {
-			if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-				req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
 			}
 		}
 	}
@@ -58,11 +61,12 @@ func (c *yuqueResty) UserInfo(ctx context.Context, in *emptypb.Empty, opts ...fu
 		return nil, err
 	}
 	out := new(UserInfoResp)
+
 	var headers = make(map[string]string)
 	for k, v := range resp.Header() {
 		headers[k] = strings.Join(v, ",")
 	}
-	out.Response = &Response{
+	out.Response = &lava.Response{
 		Code:    int32(resp.StatusCode()),
 		Headers: headers,
 	}
@@ -80,14 +84,16 @@ func (c *yuqueResty) UserInfoByLogin(ctx context.Context, in *UserInfoReq, opts 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		} else {
-			if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-				req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
 			}
 		}
 	}
@@ -96,11 +102,12 @@ func (c *yuqueResty) UserInfoByLogin(ctx context.Context, in *UserInfoReq, opts 
 		return nil, err
 	}
 	out := new(UserInfoResp)
+
 	var headers = make(map[string]string)
 	for k, v := range resp.Header() {
 		headers[k] = strings.Join(v, ",")
 	}
-	out.Response = &Response{
+	out.Response = &lava.Response{
 		Code:    int32(resp.StatusCode()),
 		Headers: headers,
 	}
@@ -118,14 +125,16 @@ func (c *yuqueResty) UserInfoById(ctx context.Context, in *UserInfoReq, opts ...
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		} else {
-			if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-				req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
 			}
 		}
 	}
@@ -134,11 +143,12 @@ func (c *yuqueResty) UserInfoById(ctx context.Context, in *UserInfoReq, opts ...
 		return nil, err
 	}
 	out := new(UserInfoResp)
+
 	var headers = make(map[string]string)
 	for k, v := range resp.Header() {
 		headers[k] = strings.Join(v, ",")
 	}
-	out.Response = &Response{
+	out.Response = &lava.Response{
 		Code:    int32(resp.StatusCode()),
 		Headers: headers,
 	}
@@ -156,14 +166,16 @@ func (c *yuqueResty) CreateGroup(ctx context.Context, in *CreateGroupReq, opts .
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		} else {
-			if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-				req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
 			}
 		}
 	}
@@ -173,11 +185,12 @@ func (c *yuqueResty) CreateGroup(ctx context.Context, in *CreateGroupReq, opts .
 		return nil, err
 	}
 	out := new(CreateGroupResp)
+
 	var headers = make(map[string]string)
 	for k, v := range resp.Header() {
 		headers[k] = strings.Join(v, ",")
 	}
-	out.Response = &Response{
+	out.Response = &lava.Response{
 		Code:    int32(resp.StatusCode()),
 		Headers: headers,
 	}

@@ -241,6 +241,21 @@
     }
   },
   "definitions": {
+    "lavaResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -275,13 +290,16 @@
       "type": "object",
       "properties": {
         "login": {
-          "type": "string"
+          "type": "string",
+          "title": "login"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "组织名称"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "title": "介绍"
         }
       }
     },
@@ -295,7 +313,7 @@
           }
         },
         "response": {
-          "$ref": "#/definitions/yuquev2Response"
+          "$ref": "#/definitions/lavaResponse"
         }
       }
     },
@@ -333,7 +351,7 @@
           "$ref": "#/definitions/v2UserInfoRespData"
         },
         "response": {
-          "$ref": "#/definitions/yuquev2Response"
+          "$ref": "#/definitions/lavaResponse"
         }
       }
     },
@@ -364,21 +382,6 @@
         },
         "updatedAt": {
           "type": "string"
-        }
-      }
-    },
-    "yuquev2Response": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "headers": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
         }
       }
     }

@@ -1,6 +1,6 @@
 package internal
 
-var PathTag = "path"
-var QueryTag = "uri"
+var PathTag = "param"
+var QueryTag = "query"
 
 const version = "v0.1.0"

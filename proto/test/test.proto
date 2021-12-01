@@ -4,7 +4,7 @@ package test;
 
 option go_package = "./;test";
 
-import "proto/lava/tags.proto";
+import "proto/lava/lava.proto";
 
 message GenerateResponse {
   string id = 1;

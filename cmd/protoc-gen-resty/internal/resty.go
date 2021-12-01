@@ -16,9 +16,8 @@ var (
 	reflectCall = protoutil.Import("reflect")
 	restyCall   = protoutil.Import("github.com/go-resty/resty/v2")
 	jsonCall    = protoutil.Import("github.com/goccy/go-json")
-	httpCall    = protoutil.Import("net/http")
-	fmtCall     = protoutil.Import("fmt")
 	stringsCall = protoutil.Import("strings")
+	lavaCall    = protoutil.Import("github.com/pubgo/lava/proto/lava")
 )
 
 // GenerateFile generates a .lava.pb.go file containing service definitions.
@@ -45,8 +44,6 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.QualifiedGoIdent(restyCall(""))
 	g.QualifiedGoIdent(reflectCall(""))
 	g.QualifiedGoIdent(jsonCall(""))
-	//g.QualifiedGoIdent(httpCall(""))
-	//g.QualifiedGoIdent(fmtCall(""))
 	g.QualifiedGoIdent(stringsCall(""))
 
 	generateFileContent(gen, file, g)
@@ -114,23 +111,25 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P("for i := range opts {")
 	g.P("opts[i](req)")
 	g.P("}")
-	g.P(`var rv = reflect.ValueOf(in)`)
-	g.P(`var rt = reflect.TypeOf(in)`)
-	g.P(`for i := rt.NumField(); i > 0; i-- {`)
-	g.P(`if path := rt.Field(i).Tag.Get("`, PathTag, `"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}else{`)
+	g.P("if in != nil {")
+	g.P(`var rv = reflect.ValueOf(in).Elem()`)
+	g.P(`var rt = reflect.TypeOf(in).Elem()`)
+	g.P(`for i := 0; i < rt.NumField(); i++ {`)
+	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, PathTag, `"); ok && val != ""{
+			req.SetPathParam(val, rv.Field(i).String())
+			continue
+		}`)
 
 	switch mth {
 	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`if uri := rt.Field(i).Tag.Get("`, QueryTag, `"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+		g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, QueryTag, `"); ok && val != ""{
+			req.SetQueryParam(val, rv.Field(i).String())
 		}`)
 	}
 
 	if mth == http.MethodGet || mth == http.MethodHead || mth == http.MethodOptions {
-		g.P(`if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+		g.P(`if val,ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+			req.SetQueryParam(val, rv.Field(i).String())
 		}`)
 	}
 	g.P(`}}`)
@@ -147,14 +146,15 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P("out := new(", method.Output.GoIdent, ")")
 	for i := range method.Output.Fields {
 		if method.Output.Fields[i].GoName == "Response" {
-			g.P(`var headers = make(map[string]string)
-	for k, v := range resp.Header() {
-		headers[k] = strings.Join(v, ",")
-	}
-	out.Response = &Response{
-		Code:    int32(resp.StatusCode()),
-		Headers: headers,
-	}`)
+			g.P(`
+			var headers = make(map[string]string)
+			for k, v := range resp.Header() {
+				headers[k] = strings.Join(v, ",")
+			}
+			out.Response = &`, lavaCall("Response"), `{
+				Code:    int32(resp.StatusCode()),
+				Headers: headers,
+			}`)
 		}
 	}
 

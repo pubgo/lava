@@ -13,6 +13,7 @@
 *.db
 .lava/db
 .lava/proto
+.env
 
 # Test binary, built with `go test -c`
 *.test
