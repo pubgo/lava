@@ -53,4 +53,7 @@ import (
 
 	// Documentation generator plugin for Google Protocol Buffers
 	_ "github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc"
+
+	// Fast, configurable, extensible, flexible, and beautiful linter for Go
+	_ "github.com/mgechev/revive"
 )

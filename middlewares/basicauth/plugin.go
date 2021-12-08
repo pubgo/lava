@@ -18,11 +18,11 @@ func init() {
 		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
 			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 				subject := req.Header().Get(HeaderAuth)
-				if subject == "" {
+				if len(subject) == 0 || subject[0] == "" {
 					return ErrNoHeader
 				}
 
-				u, p, err := decode(subject)
+				u, p, err := decode(subject[0])
 				if err != nil {
 					panic("can not decode base 64:" + err.Error())
 					return ErrNoHeader

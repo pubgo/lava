@@ -14,7 +14,7 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 )
 
 var _ jaeger.Reporter = (*ioReporter)(nil)

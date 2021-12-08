@@ -3,17 +3,17 @@ package debug
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/plugins/syncx"
 	"net/http"
 
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )

@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"

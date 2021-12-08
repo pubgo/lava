@@ -13,8 +13,8 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/internal/logz"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"

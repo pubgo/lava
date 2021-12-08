@@ -1,15 +1,14 @@
 package logz
 
 import (
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/logger"
 )
 
 func New(name string) *Logger {
-	if name == "" {
-		panic("[name] should not be null")
-	}
+	xerror.Assert(name == "", "[name] should not be null")
 	return &Logger{name: name}
 }
 
@@ -85,7 +84,7 @@ func (t *Logger) LogAndThrow(msg string, fn func() error, fields ...zap.Field) {
 
 func (t *Logger) WithErr(err error, fields ...zap.Field) *zap.Logger {
 	if err == nil {
-		return Discard
+		return discard
 	}
 
 	return t.With(logger.WithErr(err, fields...)...)
@@ -142,7 +141,7 @@ func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
 	var err error
 	xerror.TryWith(&err, fn)
 	if err == nil {
-		return Discard.Sugar()
+		return discard.Sugar()
 	}
 
 	return debugLog.Named(t.name).With(logger.WithErr(err, logger.FuncStack(fn))...).Sugar()
@@ -154,6 +153,6 @@ func getName(name string) *zap.Logger {
 	}
 
 	var l = debugLog.Named(name)
-	loggerMap.LoadOrStore(name, l)
+	loggerMap.Store(name, l)
 	return l
 }

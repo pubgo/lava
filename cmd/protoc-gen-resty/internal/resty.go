@@ -44,7 +44,6 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.QualifiedGoIdent(restyCall(""))
 	g.QualifiedGoIdent(reflectCall(""))
 	g.QualifiedGoIdent(jsonCall(""))
-	g.QualifiedGoIdent(stringsCall(""))
 
 	generateFileContent(gen, file, g)
 	return g
@@ -72,6 +71,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.P()
 
 	g.P("func New", clientName, " (client *", restyCall("Client"), ") ", clientName, " {")
+	g.P(`client.SetContentLength(true)`)
 	g.P("return &", unExport(clientName), "{client: client}")
 	g.P("}")
 	g.P()
@@ -111,32 +111,48 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P("for i := range opts {")
 	g.P("opts[i](req)")
 	g.P("}")
+
+	switch mth {
+	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
+		g.P(`var body map[string]interface{}`)
+	}
+
 	g.P("if in != nil {")
 	g.P(`var rv = reflect.ValueOf(in).Elem()`)
 	g.P(`var rt = reflect.TypeOf(in).Elem()`)
 	g.P(`for i := 0; i < rt.NumField(); i++ {`)
+
+	// url param
 	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, PathTag, `"); ok && val != ""{
 			req.SetPathParam(val, rv.Field(i).String())
 			continue
 		}`)
 
+	// url query
+	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, QueryTag, `"); ok && val != ""{
+			req.SetQueryParam(val, rv.Field(i).String())
+			continue
+		}`)
+
 	switch mth {
 	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, QueryTag, `"); ok && val != ""{
-			req.SetQueryParam(val, rv.Field(i).String())
-		}`)
-	}
-
-	if mth == http.MethodGet || mth == http.MethodHead || mth == http.MethodOptions {
+		g.P(`if body == nil {
+				body = make(map[string]interface{})
+			}`)
+		g.P(`if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}`)
+	default:
 		g.P(`if val,ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
 			req.SetQueryParam(val, rv.Field(i).String())
 		}`)
 	}
+
 	g.P(`}}`)
 
 	switch mth {
 	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P("req.SetBody(in)")
+		g.P("req.SetBody(body)")
 	}
 
 	g.P(`var resp, err = req.Execute("`, mth, `","`, path, `")`)
@@ -149,7 +165,7 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 			g.P(`
 			var headers = make(map[string]string)
 			for k, v := range resp.Header() {
-				headers[k] = strings.Join(v, ",")
+				headers[k] = `, stringsCall("Join"), `(v, ",")
 			}
 			out.Response = &`, lavaCall("Response"), `{
 				Code:    int32(resp.StatusCode()),

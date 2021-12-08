@@ -3,7 +3,7 @@
 
 ## Table of Contents
 
-- [proto/yuque/yuque.proto](#proto/yuque/yuque.proto)
+- [proto/yuque_pb/yuque.proto](#proto/yuque_pb/yuque.proto)
     - [CreateGroupReq](#yuque.v2.CreateGroupReq)
     - [CreateGroupResp](#yuque.v2.CreateGroupResp)
     - [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data)
@@ -17,10 +17,10 @@
 
 
 
-<a name="proto/yuque/yuque.proto"></a>
+<a name="proto/yuque_pb/yuque.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## proto/yuque/yuque.proto
+## proto/yuque_pb/yuque.proto
 
 
 
@@ -86,8 +86,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| login | [string](#string) |  |  |
-| id | [string](#string) |  |  |
+| login | [string](#string) |  | login or id |
 
 
 
@@ -147,7 +146,6 @@
 | ----------- | ------------ | ------------- | ------------|
 | UserInfo | [.google.protobuf.Empty](#google.protobuf.Empty) | [UserInfoResp](#yuque.v2.UserInfoResp) | 获取认证的用户的个人信息 |
 | UserInfoByLogin | [UserInfoReq](#yuque.v2.UserInfoReq) | [UserInfoResp](#yuque.v2.UserInfoResp) | 获取单个用户信息 |
-| UserInfoById | [UserInfoReq](#yuque.v2.UserInfoReq) | [UserInfoResp](#yuque.v2.UserInfoResp) | 获取单个用户信息 |
 | CreateGroup | [CreateGroupReq](#yuque.v2.CreateGroupReq) | [CreateGroupResp](#yuque.v2.CreateGroupResp) | 创建 Group |
 
  

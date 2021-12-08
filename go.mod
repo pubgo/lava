@@ -176,7 +176,6 @@ require (
 	github.com/google/gofuzz v1.1.1-0.20200604201612-c04b05f3adfa // indirect
 	github.com/google/pprof v0.0.0-20210226084205-cbba55b83ad5 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
-	github.com/goplus/reflectx v0.6.5
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
@@ -212,6 +211,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/maxence-charriere/go-app/v9 v9.1.2
+	github.com/mcuadros/go-defaults v1.2.0
+	github.com/mgechev/revive v1.0.7
 	github.com/miekg/dns v1.1.35 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-ps v1.0.0
@@ -243,7 +244,6 @@ require (
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/valyala/bytebufferpool v1.0.0
-	github.com/valyala/fasttemplate v1.0.1
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xlab/treeprint v1.0.0 // indirect
@@ -298,6 +298,7 @@ require (
 	github.com/blevesearch/zapx/v14 v14.3.1 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.1 // indirect
 	github.com/c4milo/unpackit v0.0.0-20170704181138-4ed373e9ef1c // indirect
+	github.com/chavacava/garif v0.0.0-20210405164556-e8a0a408d6af // indirect
 	github.com/chriswalz/complete/v3 v3.0.13 // indirect
 	github.com/chyroc/go-aliyundrive v0.1.0 // indirect
 	github.com/chyroc/gorequests v0.26.0 // indirect
@@ -313,6 +314,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	github.com/goplus/reflectx v0.6.5 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
@@ -337,6 +339,7 @@ require (
 	github.com/mattn/go-pipeline v0.0.0-20190323144519-32d779b32768 // indirect
 	github.com/mattn/go-sqlite3 v1.14.9 // indirect
 	github.com/mattn/go-tty v0.0.3 // indirect
+	github.com/mgechev/dots v0.0.0-20190921121421-c36f7dcfbb81 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/copystructure v1.1.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
@@ -361,6 +364,7 @@ require (
 	github.com/tj/go-spin v1.1.0 // indirect
 	github.com/tj/go-update v2.2.4+incompatible // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
+	github.com/valyala/fasttemplate v1.0.1 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	github.com/zchee/go-xdgbasedir v1.0.3 // indirect
 	gopkg.in/errgo.v1 v1.0.1 // indirect

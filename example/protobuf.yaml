@@ -1,5 +1,5 @@
 root:
-  - proto/yuque
+  - proto/yuque_pb
 deps:
   - name: google
     url: github.com/googleapis/googleapis

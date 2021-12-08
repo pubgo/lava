@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/runenv"

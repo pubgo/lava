@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-lava v0.1.0
 // - protoc         v3.17.3
-// source: proto/yuque/yuque.proto
+// source: proto/yuque_pb/yuque.proto
 
 package yuque_pb
 
@@ -49,17 +49,6 @@ func init() {
 		ServerStream: false,
 	})
 	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UserInfoReq{},
-		Output:       &UserInfoResp{},
-		Service:      "yuque.v2.Yuque",
-		Name:         "UserInfoById",
-		Method:       "GET",
-		Path:         "/users/{id}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-	mthList = append(mthList, xgen.GrpcRestHandler{
 		Input:        &CreateGroupReq{},
 		Output:       &CreateGroupResp{},
 		Service:      "yuque.v2.Yuque",
@@ -87,13 +76,6 @@ func RegisterYuqueGinServer(r gin.IRouter, server YuqueServer) {
 		var req = new(UserInfoReq)
 		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
 		var resp, err = server.UserInfoByLogin(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/users/{id}", func(ctx *gin.Context) {
-		var req = new(UserInfoReq)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.UserInfoById(ctx, req)
 		xerror.Panic(err)
 		ctx.JSON(200, resp)
 	})

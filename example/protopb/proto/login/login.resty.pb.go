@@ -8,12 +8,9 @@ package login
 
 import (
 	context "context"
-	fmt "fmt"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
-	http "net/http"
 	reflect "reflect"
-	strings "strings"
 )
 
 type LoginResty interface {
@@ -24,6 +21,7 @@ type LoginResty interface {
 }
 
 func NewLoginResty(client *v2.Client) LoginResty {
+	client.SetContentLength(true)
 	return &loginResty{client: client}
 }
 
@@ -39,23 +37,31 @@ func (c *loginResty) Login(ctx context.Context, in *LoginRequest, opts ...func(r
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/login/login")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(LoginResponse)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -72,23 +78,31 @@ func (c *loginResty) Authenticate(ctx context.Context, in *AuthenticateRequest, 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/login/authenticate")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(AuthenticateResponse)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {

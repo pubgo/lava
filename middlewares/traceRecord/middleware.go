@@ -9,7 +9,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/tracing"
@@ -24,7 +24,7 @@ func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			var tracer = opentracing.GlobalTracer()
-			fmt.Println(tracer==nil,req.Client())
+			fmt.Println(tracer == nil, req.Client())
 			if tracer == nil {
 				return xerror.Fmt("tracer is nil")
 			}

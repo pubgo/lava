@@ -22,8 +22,6 @@ type YuqueClient interface {
 	UserInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserInfoResp, error)
 	// 获取单个用户信息
 	UserInfoByLogin(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error)
-	// 获取单个用户信息
-	UserInfoById(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error)
 	// 创建 Group
 	CreateGroup(ctx context.Context, in *CreateGroupReq, opts ...grpc.CallOption) (*CreateGroupResp, error)
 }
@@ -54,15 +52,6 @@ func (c *yuqueClient) UserInfoByLogin(ctx context.Context, in *UserInfoReq, opts
 	return out, nil
 }
 
-func (c *yuqueClient) UserInfoById(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error) {
-	out := new(UserInfoResp)
-	err := c.cc.Invoke(ctx, "/yuque.v2.Yuque/UserInfoById", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *yuqueClient) CreateGroup(ctx context.Context, in *CreateGroupReq, opts ...grpc.CallOption) (*CreateGroupResp, error) {
 	out := new(CreateGroupResp)
 	err := c.cc.Invoke(ctx, "/yuque.v2.Yuque/CreateGroup", in, out, opts...)
@@ -80,8 +69,6 @@ type YuqueServer interface {
 	UserInfo(context.Context, *emptypb.Empty) (*UserInfoResp, error)
 	// 获取单个用户信息
 	UserInfoByLogin(context.Context, *UserInfoReq) (*UserInfoResp, error)
-	// 获取单个用户信息
-	UserInfoById(context.Context, *UserInfoReq) (*UserInfoResp, error)
 	// 创建 Group
 	CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error)
 }
@@ -95,9 +82,6 @@ func (UnimplementedYuqueServer) UserInfo(context.Context, *emptypb.Empty) (*User
 }
 func (UnimplementedYuqueServer) UserInfoByLogin(context.Context, *UserInfoReq) (*UserInfoResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfoByLogin not implemented")
-}
-func (UnimplementedYuqueServer) UserInfoById(context.Context, *UserInfoReq) (*UserInfoResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserInfoById not implemented")
 }
 func (UnimplementedYuqueServer) CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGroup not implemented")
@@ -150,24 +134,6 @@ func _Yuque_UserInfoByLogin_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Yuque_UserInfoById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserInfoReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(YuqueServer).UserInfoById(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/yuque.v2.Yuque/UserInfoById",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuqueServer).UserInfoById(ctx, req.(*UserInfoReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Yuque_CreateGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateGroupReq)
 	if err := dec(in); err != nil {
@@ -199,14 +165,10 @@ var _Yuque_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Yuque_UserInfoByLogin_Handler,
 		},
 		{
-			MethodName: "UserInfoById",
-			Handler:    _Yuque_UserInfoById_Handler,
-		},
-		{
 			MethodName: "CreateGroup",
 			Handler:    _Yuque_CreateGroup_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/yuque/yuque.proto",
+	Metadata: "proto/yuque_pb/yuque.proto",
 }

@@ -8,15 +8,12 @@ package gid
 
 import (
 	context "context"
-	fmt "fmt"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
-	http "net/http"
 	reflect "reflect"
-	strings "strings"
 )
 
 type UserResty interface {
@@ -27,6 +24,7 @@ type UserResty interface {
 }
 
 func NewUserResty(client *v2.Client) UserResty {
+	client.SetContentLength(true)
 	return &userResty{client: client}
 }
 
@@ -42,23 +40,31 @@ func (c *userResty) Generate(ctx context.Context, in *GenerateRequest, opts ...f
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/id/generate")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(GenerateResponse)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -75,25 +81,26 @@ func (c *userResty) Types(ctx context.Context, in *TypesRequest, opts ...func(re
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/id/types")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(TypesResponse)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -216,6 +223,7 @@ type ABitOfEverythingServiceResty interface {
 }
 
 func NewABitOfEverythingServiceResty(client *v2.Client) ABitOfEverythingServiceResty {
+	client.SetContentLength(true)
 	return &aBitOfEverythingServiceResty{client: client}
 }
 
@@ -231,23 +239,31 @@ func (c *aBitOfEverythingServiceResty) Create(ctx context.Context, in *ABitOfEve
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -264,23 +280,31 @@ func (c *aBitOfEverythingServiceResty) CreateBody(ctx context.Context, in *ABitO
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/example/a_bit_of_everything")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -297,23 +321,31 @@ func (c *aBitOfEverythingServiceResty) CreateBook(ctx context.Context, in *Creat
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/{parent=publishers/*}/books")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Book)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -330,23 +362,31 @@ func (c *aBitOfEverythingServiceResty) UpdateBook(ctx context.Context, in *Updat
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("PATCH", "/v1/{book.name=publishers/*/books/*}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Book)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -363,23 +403,31 @@ func (c *aBitOfEverythingServiceResty) Update(ctx context.Context, in *ABitOfEve
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("PUT", "/v1/example/a_bit_of_everything/{uuid}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -396,23 +444,31 @@ func (c *aBitOfEverythingServiceResty) UpdateV2(ctx context.Context, in *UpdateV
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("PUT", "/v2/example/a_bit_of_everything/{abe.uuid}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -429,25 +485,26 @@ func (c *aBitOfEverythingServiceResty) GetQuery(ctx context.Context, in *ABitOfE
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/example/a_bit_of_everything/query/{uuid}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -464,25 +521,26 @@ func (c *aBitOfEverythingServiceResty) GetRepeatedQuery(ctx context.Context, in 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/example/a_bit_of_everything_repeated/{path_repeated_float_value}/{path_repeated_double_value}/{path_repeated_int64_value}/{path_repeated_uint64_value}/{path_repeated_int32_value}/{path_repeated_fixed64_value}/{path_repeated_fixed32_value}/{path_repeated_bool_value}/{path_repeated_string_value}/{path_repeated_bytes_value}/{path_repeated_uint32_value}/{path_repeated_enum_value}/{path_repeated_sfixed32_value}/{path_repeated_sfixed64_value}/{path_repeated_sint32_value}/{path_repeated_sint64_value}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverythingRepeated)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -499,23 +557,31 @@ func (c *aBitOfEverythingServiceResty) DeepPathEcho(ctx context.Context, in *ABi
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/example/deep_path/{single_nested.name}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -532,25 +598,26 @@ func (c *aBitOfEverythingServiceResty) NoBindings(ctx context.Context, in *durat
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/example/NoBindings")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -567,25 +634,26 @@ func (c *aBitOfEverythingServiceResty) Timeout(ctx context.Context, in *emptypb.
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/example/timeout")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -602,25 +670,26 @@ func (c *aBitOfEverythingServiceResty) ErrorWithDetails(ctx context.Context, in 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/example/errorwithdetails")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -637,23 +706,31 @@ func (c *aBitOfEverythingServiceResty) GetMessageWithBody(ctx context.Context, i
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v2/example/withbody/{id}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -670,23 +747,31 @@ func (c *aBitOfEverythingServiceResty) PostWithEmptyBody(ctx context.Context, in
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v2/example/postwithemptybody/{name}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -703,25 +788,26 @@ func (c *aBitOfEverythingServiceResty) CheckGetQueryParams(ctx context.Context, 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/example/a_bit_of_everything/params/get/{single_nested.name}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -738,25 +824,26 @@ func (c *aBitOfEverythingServiceResty) CheckNestedEnumGetQueryParams(ctx context
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/example/a_bit_of_everything/params/get/nested_enum/{single_nested.ok}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -773,23 +860,31 @@ func (c *aBitOfEverythingServiceResty) CheckPostQueryParams(ctx context.Context,
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/v1/example/a_bit_of_everything/params/post/{string_value}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(ABitOfEverything)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -806,25 +901,26 @@ func (c *aBitOfEverythingServiceResty) OverwriteResponseContentType(ctx context.
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/example/overwriteresponsecontenttype")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(wrapperspb.StringValue)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -841,25 +937,26 @@ func (c *aBitOfEverythingServiceResty) CheckStatus(ctx context.Context, in *empt
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/example/checkStatus")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(CheckStatusResponse)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -873,6 +970,7 @@ type CamelCaseServiceNameResty interface {
 }
 
 func NewCamelCaseServiceNameResty(client *v2.Client) CamelCaseServiceNameResty {
+	client.SetContentLength(true)
 	return &camelCaseServiceNameResty{client: client}
 }
 
@@ -888,25 +986,26 @@ func (c *camelCaseServiceNameResty) Empty(ctx context.Context, in *emptypb.Empty
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/example/empty")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -920,6 +1019,7 @@ type AnotherServiceWithNoBindingsResty interface {
 }
 
 func NewAnotherServiceWithNoBindingsResty(client *v2.Client) AnotherServiceWithNoBindingsResty {
+	client.SetContentLength(true)
 	return &anotherServiceWithNoBindingsResty{client: client}
 }
 
@@ -935,25 +1035,26 @@ func (c *anotherServiceWithNoBindingsResty) NoBindings(ctx context.Context, in *
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v2/another/no-bindings")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {

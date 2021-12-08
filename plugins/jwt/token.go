@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/pubgo/lava/internal/logz"
+
+	"github.com/pubgo/lava/logz"
 )
 
 //DefaultManager can be replaced

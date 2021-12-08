@@ -8,13 +8,10 @@ package hello
 
 import (
 	context "context"
-	fmt "fmt"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	http "net/http"
 	reflect "reflect"
-	strings "strings"
 )
 
 type UserServiceResty interface {
@@ -26,6 +23,7 @@ type UserServiceResty interface {
 }
 
 func NewUserServiceResty(client *v2.Client) UserServiceResty {
+	client.SetContentLength(true)
 	return &userServiceResty{client: client}
 }
 
@@ -41,23 +39,31 @@ func (c *userServiceResty) AddUser(ctx context.Context, in *User, opts ...func(r
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/api/v1/users")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -74,25 +80,26 @@ func (c *userServiceResty) GetUser(ctx context.Context, in *User, opts ...func(r
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/api/v1/users")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(emptypb.Empty)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -109,25 +116,26 @@ func (c *userServiceResty) ListUsers(ctx context.Context, in *ListUsersRequest, 
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/api/v1/users")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(User)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -144,25 +152,26 @@ func (c *userServiceResty) ListUsersByRole(ctx context.Context, in *UserRole, op
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/api/v1/users/role")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(User)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -179,23 +188,31 @@ func (c *userServiceResty) UpdateUser(ctx context.Context, in *UpdateUserRequest
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("PATCH", "/api/v1/users/{user.id}")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(User)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {

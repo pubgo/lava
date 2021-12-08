@@ -8,12 +8,9 @@ package login
 
 import (
 	context "context"
-	fmt "fmt"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
-	http "net/http"
 	reflect "reflect"
-	strings "strings"
 )
 
 type MergeResty interface {
@@ -30,6 +27,7 @@ type MergeResty interface {
 }
 
 func NewMergeResty(client *v2.Client) MergeResty {
+	client.SetContentLength(true)
 	return &mergeResty{client: client}
 }
 
@@ -45,23 +43,31 @@ func (c *mergeResty) Telephone(ctx context.Context, in *TelephoneRequest, opts .
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/merge/telephone")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Reply)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -78,23 +84,31 @@ func (c *mergeResty) TelephoneCheck(ctx context.Context, in *TelephoneRequest, o
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/merge/telephone-check")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Reply)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -111,23 +125,31 @@ func (c *mergeResty) WeChat(ctx context.Context, in *WeChatRequest, opts ...func
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/merge/we-chat")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Reply)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -144,23 +166,31 @@ func (c *mergeResty) WeChatCheck(ctx context.Context, in *WeChatRequest, opts ..
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/merge/we-chat-check")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Reply)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -177,23 +207,31 @@ func (c *mergeResty) WeChatUnMerge(ctx context.Context, in *WeChatUnMergeRequest
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/user/merge/we-chat-un-merge")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Reply)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {

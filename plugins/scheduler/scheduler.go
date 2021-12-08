@@ -7,7 +7,7 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/resource"
 )

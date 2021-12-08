@@ -39,14 +39,18 @@ func New(cfg *Cfg) error {
 		cfg.ServiceName = runenv.Project
 	}
 
+	sampler, err := jaeger.NewProbabilisticSampler(0.01)
+	xerror.Exit(err)
+
 	//span.SetTag("version", version.Version)
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
 		config.Logger(newLog("tracing")),
 		config.Metrics(prometheus.New()),
-		config.Sampler(jaeger.NewConstSampler(true)),
+		config.Sampler(sampler),
 	)
 	xerror.Exit(err)
+
 	opentracing.SetGlobalTracer(trace)
 	return nil
 }

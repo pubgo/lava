@@ -5,7 +5,7 @@ import (
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/metric"

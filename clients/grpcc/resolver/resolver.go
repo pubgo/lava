@@ -6,10 +6,11 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/pubgo/lava/internal/logz"
-	"github.com/pubgo/lava/plugins/registry"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/plugins/registry"
 )
 
 var logs = logz.New("balancer.resolver")

@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+// Decode decode env to v
 func Decode(v interface{}) error {
 	var envMap = make(map[string]string)
 	for _, env := range os.Environ() {

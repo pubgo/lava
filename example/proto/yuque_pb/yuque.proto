@@ -88,13 +88,6 @@ service Yuque {
     };
   }
 
-  // 获取单个用户信息
-  rpc UserInfoById (UserInfoReq) returns (UserInfoResp) {
-    option (google.api.http) = {
-      get: "/users/{id}"
-    };
-  }
-
   // 创建 Group
   rpc CreateGroup (CreateGroupReq) returns (CreateGroupResp) {
     option (google.api.http) = {
@@ -147,11 +140,8 @@ message UserInfoResp {
 }
 
 message UserInfoReq {
+  // login or id
   string login = 1 [
     (lava.tags) = {key:"param",value:"login"}
-  ];
-
-  string id = 2 [
-    (lava.tags) = {key:"param",value:"id"}
   ];
 }

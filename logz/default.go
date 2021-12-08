@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/runenv"
 )
 
-var Discard = zap.NewNop()
+var discard = zap.NewNop()
 var loggerMap sync.Map
 var debugLog = func() *zap.Logger {
 	defer xerror.RespExit()
@@ -27,6 +27,7 @@ var debugLog = func() *zap.Logger {
 
 func init() {
 	type sysLog struct {
+		// log依赖注入, ns:lava
 		Log *zap.Logger `dix:"lava"`
 	}
 

@@ -8,12 +8,9 @@ package hello
 
 import (
 	context "context"
-	fmt "fmt"
 	v2 "github.com/go-resty/resty/v2"
 	go_json "github.com/goccy/go-json"
-	http "net/http"
 	reflect "reflect"
-	strings "strings"
 )
 
 type TransportResty interface {
@@ -24,6 +21,7 @@ type TransportResty interface {
 }
 
 func NewTransportResty(client *v2.Client) TransportResty {
+	client.SetContentLength(true)
 	return &transportResty{client: client}
 }
 
@@ -39,23 +37,31 @@ func (c *transportResty) TestStream(ctx context.Context, in *Message, opts ...fu
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/hello/transport/test-stream")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Message)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -72,23 +78,31 @@ func (c *transportResty) TestStream1(ctx context.Context, in *Message, opts ...f
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/hello/transport/test-stream1")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Message)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -105,23 +119,31 @@ func (c *transportResty) TestStream2(ctx context.Context, in *Message, opts ...f
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	var body map[string]interface{}
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if body == nil {
+				body = make(map[string]interface{})
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				body[val] = rv.Field(i).String()
+			}
 		}
 	}
-	req.SetBody(in)
+	req.SetBody(body)
 	var resp, err = req.Execute("POST", "/hello/transport/test-stream2")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Message)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
@@ -138,25 +160,26 @@ func (c *transportResty) TestStream3(ctx context.Context, in *Message, opts ...f
 	for i := range opts {
 		opts[i](req)
 	}
-	var rv = reflect.ValueOf(in)
-	var rt = reflect.TypeOf(in)
-	for i := rt.NumField(); i > 0; i-- {
-		if path := rt.Field(i).Tag.Get("path"); path != "" {
-			req.SetPathParam(path, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("uri"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
-		}
-		if uri := rt.Field(i).Tag.Get("json"); uri != "" {
-			req.SetQueryParam(uri, rv.Field(i).String())
+	if in != nil {
+		var rv = reflect.ValueOf(in).Elem()
+		var rt = reflect.TypeOf(in).Elem()
+		for i := 0; i < rt.NumField(); i++ {
+			if val, ok := rt.Field(i).Tag.Lookup("param"); ok && val != "" {
+				req.SetPathParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("query"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+				continue
+			}
+			if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
+				req.SetQueryParam(val, rv.Field(i).String())
+			}
 		}
 	}
 	var resp, err = req.Execute("GET", "/v1/Transport/TestStream3")
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("code error: %d", resp.StatusCode())
 	}
 	out := new(Message)
 	if err := go_json.Unmarshal(resp.Body(), out); err != nil {
