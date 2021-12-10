@@ -17,6 +17,7 @@ import (
 	"github.com/pubgo/lava/logz"
 )
 
+var logs = logz.New("jaeger.reporter")
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
@@ -60,8 +61,6 @@ func (t *ioReporter) loop() {
 	}
 }
 
-var logs = logz.New("jaeger.reporter")
-
 func (t *ioReporter) Report(span *jaeger.Span) {
 	if t.count.Load() > t.batchSize {
 		logs.With(
@@ -72,14 +71,12 @@ func (t *ioReporter) Report(span *jaeger.Span) {
 
 	if t.process == nil {
 		t.process = jaeger.BuildJaegerProcessThrift(span)
-		//&j.Tag{Key: "version", VStr: &version.Version}
 	}
 
 	jSpan := jaeger.BuildJaegerThrift(span)
 	sp := t.domain.FromDomainEmbedProcess(toDomainSpan(jSpan, t.process))
 	for _, ref := range sp.References {
 		if ref.RefType == e.ChildOf {
-			// *The reason of this field be deprecated is unknown*.
 			sp.ParentSpanID = ref.SpanID
 		}
 	}

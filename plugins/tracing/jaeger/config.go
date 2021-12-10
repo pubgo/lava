@@ -27,7 +27,7 @@ func DefaultCfg() *Cfg {
 	xerror.Panic(err)
 	return &Cfg{
 		Configuration: cfg,
-		BatchSize:     1000,
+		BatchSize:     100,
 		Logger: &lumberjack.Logger{
 			Filename:   fmt.Sprintf("./logs/trace/%s.log", runenv.Project),
 			MaxSize:    50, // mb

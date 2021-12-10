@@ -7,14 +7,14 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
 
-	logz2 "github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logz"
 )
 
 func init() {
-	logz2.On(func(z *logz2.Log) {
+	logz.On(func(z *logz.Log) {
 		grpclog.SetLoggerV2(&loggerWrapper{
-			log:      logz2.New("grpc").Depth(4),
-			depthLog: logz2.New("grpc-component").Depth(2),
+			log:      logz.New("grpc").Depth(4),
+			depthLog: logz.New("grpc-component").Depth(2),
 		})
 	})
 }

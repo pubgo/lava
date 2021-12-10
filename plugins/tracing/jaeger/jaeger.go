@@ -14,11 +14,13 @@ import (
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/version"
 )
 
 var _ = jaeger.NewNullReporter()
 
 const (
+	// molten兼容
 	phpRequestTraceID      = "x-w-traceid"
 	phpRequestSpanID       = "x-w-spanid"
 	phpRequestParentSpanID = "x-w-parentspanid"
@@ -29,6 +31,7 @@ func init() {
 	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
 		var cfg = DefaultCfg()
 		cfg.ServiceName = runenv.Project
+		cfg.Tags = append(cfg.Tags, opentracing.Tag{Key: "version", Value: version.Version})
 		return New(merge.MapStruct(cfg, cfgMap).(*Cfg))
 	}))
 }
@@ -39,15 +42,17 @@ func New(cfg *Cfg) error {
 		cfg.ServiceName = runenv.Project
 	}
 
-	sampler, err := jaeger.NewProbabilisticSampler(0.01)
-	xerror.Exit(err)
+	if cfg.Sampler != nil {
+		cfg.Sampler = &config.SamplerConfig{
+			Type:  jaeger.SamplerTypeProbabilistic,
+			Param: 0.01,
+		}
+	}
 
-	//span.SetTag("version", version.Version)
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
 		config.Logger(newLog("tracing")),
 		config.Metrics(prometheus.New()),
-		config.Sampler(sampler),
 	)
 	xerror.Exit(err)
 
@@ -55,6 +60,7 @@ func New(cfg *Cfg) error {
 	return nil
 }
 
+// spanFromPHPRequest 解析php-molten组件链路
 func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {
 	defer xerror.RespErr(&err)
 
