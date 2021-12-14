@@ -147,6 +147,9 @@ func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
 	return debugLog.Named(t.name).With(logger.WithErr(err, logger.FuncStack(fn))...).Sugar()
 }
 
+// GetLog get zap logger with name
+func GetLog(name string) *zap.Logger { return getName(name) }
+
 func getName(name string) *zap.Logger {
 	if val, ok := loggerMap.Load(name); ok {
 		return val.(*zap.Logger)

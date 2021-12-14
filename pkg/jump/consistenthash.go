@@ -2,6 +2,8 @@ package jump
 
 import (
 	"sync"
+
+	"go.uber.org/atomic"
 )
 
 const (
@@ -13,11 +15,14 @@ const (
 )
 
 type node struct {
-	// 节点的ip
+	// 节点ip
 	ip string
 
-	// 每个节点默认的权重
+	// 节点权重
 	weight int
+
+	// 连接数
+	conn atomic.Uint32
 }
 
 func (t *node) String() string {
@@ -26,7 +31,7 @@ func (t *node) String() string {
 
 type (
 	// Func defines the hash method.
-	//哈希函数
+	// 哈希函数
 	Func func(data []byte) uint64
 
 	// A ConsistentHash is a ring hash implementation.
@@ -34,11 +39,14 @@ type (
 	ConsistentHash struct {
 		//哈希函数
 		hashFunc Func
+
 		//虚拟节点放大因子
 		//确定node的虚拟节点数量
 		replicas int
+
 		// 虚拟节点和物理映射
 		nodes map[uint16]*node
+
 		//读写锁
 		lock sync.RWMutex
 	}
@@ -55,6 +63,18 @@ func NewCustomConsistentHash(replicas int, fn Func) *ConsistentHash {
 		hashFunc: fn,
 		replicas: replicas,
 	}
+}
+
+// AddNode 添加节点
+func AddNode(t *ConsistentHash, n *node) {
+	// 根据node权重计算虚拟节点
+	t.nodes[1] = n
+}
+
+// GetNode 获取节点
+func GetNode(t *ConsistentHash, key string) *node {
+	var bucket = HashString(key, t.replicas)
+	return t.nodes[uint16(bucket)]
 }
 
 // 初始化

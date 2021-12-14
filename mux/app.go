@@ -36,3 +36,7 @@ var app = func() *chi.Mux {
 func Mux() *chi.Mux {
 	return app
 }
+
+func App() *chi.Mux {
+	return app
+}

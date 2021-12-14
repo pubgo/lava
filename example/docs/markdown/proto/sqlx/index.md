@@ -8,8 +8,6 @@
     - [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse)
     - [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest)
     - [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse)
-    - [Response](#hello.v1.sqlx.Response)
-    - [Response.HeadersEntry](#hello.v1.sqlx.Response.HeadersEntry)
     - [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest)
     - [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse)
     - [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry)
@@ -106,38 +104,6 @@
 
 
 
-<a name="hello.v1.sqlx.Response"></a>
-
-### Response
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| code | [int32](#int32) |  |  |
-| headers | [Response.HeadersEntry](#hello.v1.sqlx.Response.HeadersEntry) | repeated |  |
-
-
-
-
-
-
-<a name="hello.v1.sqlx.Response.HeadersEntry"></a>
-
-### Response.HeadersEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
-
-
-
-
-
-
 <a name="hello.v1.sqlx.SendCodeRequest"></a>
 
 ### SendCodeRequest
@@ -169,7 +135,7 @@
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 @gotags: valid:&#34;ip&#34; custom_tag:&#34;custom_value&#34; |
 | data | [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry) | repeated | 数据 |
-| response | [Response](#hello.v1.sqlx.Response) |  |  |
+| response | [lava.Response](#lava.Response) |  |  |
 
 
 

@@ -183,6 +183,21 @@
     }
   },
   "definitions": {
+    "lavaResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -306,21 +321,6 @@
         }
       }
     },
-    "sqlxResponse": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "headers": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "sqlxSendCodeRequest": {
       "type": "object",
       "properties": {
@@ -371,7 +371,7 @@
           "title": "数据"
         },
         "response": {
-          "$ref": "#/definitions/sqlxResponse"
+          "$ref": "#/definitions/lavaResponse"
         }
       }
     },
