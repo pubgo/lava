@@ -36,5 +36,5 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	}
 
 	xerror.PanicF(cc.UpdateState(newState(addrList)), "update resolver address: %v", addrList)
-	return &baseResolver{cc: cc, builder: DirectScheme}, nil
+	return &baseResolver{builder: DirectScheme}, nil
 }

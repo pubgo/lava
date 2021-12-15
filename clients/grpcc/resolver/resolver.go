@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/plugins/registry"
 )
 
 var logs = logz.New("balancer.resolver")
@@ -28,11 +27,12 @@ var (
 type baseResolver struct {
 	builder string
 	cancel  context.CancelFunc
-	cc      resolver.ClientConn
-	r       registry.Watcher
 }
 
 func (r *baseResolver) Close() {
+	if r.cancel == nil {
+		return
+	}
 	r.cancel()
 }
 
