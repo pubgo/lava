@@ -13,7 +13,7 @@ import (
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 var _ resource.Resource = (*Scheduler)(nil)
 

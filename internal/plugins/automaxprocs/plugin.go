@@ -10,7 +10,7 @@ import (
 
 func init() {
 	const name = "automaxprocs"
-	var logs = logz.New(name)
+	var logs = logz.Component(name)
 	plugin.Register(&plugin.Base{
 		Name:       name,
 		Url:        "https://pkg.go.dev/go.uber.org/automaxprocs",

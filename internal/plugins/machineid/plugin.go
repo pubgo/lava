@@ -10,7 +10,7 @@ import (
 
 const Name = "machineid"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
 	plugin.Register(&plugin.Base{

@@ -18,7 +18,7 @@ import (
 
 const Name = "logRecord"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {

@@ -13,10 +13,10 @@ import (
 
 const Name = "prometheus"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
-	metric.Register(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
+	metric.RegisterFactory(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
 		opts.Separator = prometheus.DefaultSeparator
 		opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 

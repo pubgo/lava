@@ -62,7 +62,7 @@ func newEntry(name string) *ginEntry {
 	return ent
 }
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 var _ Entry = (*ginEntry)(nil)
 
 type ginEntry struct {

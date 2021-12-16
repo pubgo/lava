@@ -3,11 +3,9 @@ package grpcc
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/consts"
@@ -90,7 +88,7 @@ func (t *Client) CheckHealth(opts ...grpc.CallOption) (*grpc_health_v1.HealthChe
 func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 	defer xerror.RespErr(&err)
 
-	if t.conn != nil && t.conn.GetState() == connectivity.Ready {
+	if t.conn != nil {
 		return t.conn, nil
 	}
 
@@ -98,8 +96,7 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 	defer t.mu.Unlock()
 
 	// 双检, 避免多次创建
-	time.Sleep(time.Millisecond * 10)
-	if t.conn != nil && t.conn.GetState() == connectivity.Ready {
+	if t.conn != nil {
 		return t.conn, nil
 	}
 

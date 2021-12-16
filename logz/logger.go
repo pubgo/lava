@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/logger"
 )
 
-func New(name string) *Logger {
+func Component(name string) *Logger {
 	xerror.Assert(name == "", "[name] should not be null")
 	return &Logger{name: name}
 }

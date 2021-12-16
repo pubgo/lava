@@ -16,7 +16,7 @@ var (
 	ErrInvalidExp = errors.New("expire time is illegal")
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 //jwt claims RFC 7519
 //https://tools.ietf.org/html/rfc7519#section-4.1.2

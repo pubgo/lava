@@ -113,7 +113,7 @@ func newEntry(name string) *grpcEntry {
 }
 
 var _ Entry = (*grpcEntry)(nil)
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 type grpcEntry struct {
 	*base.Entry

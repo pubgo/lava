@@ -3,7 +3,6 @@ package protoc
 import (
 	"bufio"
 	"fmt"
-	"github.com/pubgo/lava/types"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -28,6 +27,7 @@ import (
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
+	"github.com/pubgo/lava/types"
 )
 
 var protoRoot []string

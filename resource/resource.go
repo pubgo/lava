@@ -17,7 +17,7 @@ import (
 const Name = "resource"
 
 var sources typex.SMap
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 // Remove 删除资源
 func Remove(kind string, name string) {
@@ -58,7 +58,7 @@ func Update(name string, srv Resource) {
 
 	sources.Set(id, srv)
 
-	// 依赖注入
+	// 只在资源创建的时候更新一次,依赖注入
 	xerror.Panic(dix.ProviderNs(name, srv))
 
 	// 当resource被gc时, 关闭resource

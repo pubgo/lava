@@ -24,10 +24,12 @@ import (
 type codec struct{}
 
 func (c *codec) Marshal(v interface{}) ([]byte, error) {
+	fmt.Println(v)
 	return json.Marshal(v)
 }
 
 func (c *codec) Unmarshal(data []byte, v interface{}) error {
+	fmt.Println(data)
 	return json.Unmarshal(data, v)
 }
 
@@ -60,7 +62,7 @@ func init() {
 }
 
 func main() {
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ForceServerCodec(encoding.GetCodec("json")))
 	hello.RegisterTestApiServer(grpcServer, handler.NewTestAPIHandler())
 	hello.RegisterTransportServer(grpcServer, &trans{})
 

@@ -22,7 +22,7 @@ const (
 	Name = "grpcc"
 
 	// DefaultTimeout 默认的连接超时时间
-	DefaultTimeout     = 3 * time.Second
+	DefaultTimeout     = 2 * time.Second
 	defaultContentType = "application/grpc"
 )
 
@@ -98,16 +98,18 @@ type Cfg struct {
 	DisableServiceConfig bool          `json:"disable_service_config"`
 	DefaultServiceConfig string        `json:"default_service_config"`
 	DisableRetry         bool          `json:"disable_retry"`
-	MaxHeaderListSize    uint32        `json:"max_header_list_size"`
-	DisableHealthCheck   bool          `json:"disable_health_check"`
-	BalancerName         string        `json:"balancer_name"`
-	Insecure             bool          `json:"insecure"`
-	Block                bool          `json:"block"`
-	IdleNum              uint32        `json:"idle_num"`
-	WriteBuffer          int           `json:"write_buffer"`
-	ReadBuffer           int           `json:"read_buffer"`
-	WindowSize           int32         `json:"window_size"`
-	ConnWindowSize       int32         `json:"conn_window_size"`
+
+	// MaxHeaderListSize 每次调用允许发送的header的最大条数
+	MaxHeaderListSize  uint32 `json:"max_header_list_size"`
+	DisableHealthCheck bool   `json:"disable_health_check"`
+	BalancerName       string `json:"balancer_name"`
+	Insecure           bool   `json:"insecure"`
+	Block              bool   `json:"block"`
+	IdleNum            uint32 `json:"idle_num"`
+	WriteBuffer        int    `json:"write_buffer"`
+	ReadBuffer         int    `json:"read_buffer"`
+	WindowSize         int32  `json:"window_size"`
+	ConnWindowSize     int32  `json:"conn_window_size"`
 
 	// MaxRecvMsgSize maximum message that Client can receive (4 MB).
 	MaxRecvMsgSize     int                            `json:"max_recv_msg_size"`
@@ -122,6 +124,7 @@ type Cfg struct {
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
 }
 
+// Build 服务发现模式,通过配置中心连接服务
 func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
@@ -136,11 +139,10 @@ func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
 	return conn, xerror.WrapF(gErr, "DialContext error, target:%s\n", target)
 }
 
-// BuildDirect 直连模式
+// BuildDirect 直连模式,target=>localhost:8080,localhost:8081,localhost:8082
 func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	// 直连模式,target=>localhost:8080,localhost:8081,localhost:8082
 	target = resolver.BuildDirectTarget(target)
 
 	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
@@ -165,7 +167,7 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 		opts = append(opts, grpc.WithBalancerName(t.BalancerName))
 	}
 
-	if t.Proxy {
+	if !t.Proxy {
 		opts = append(opts, grpc.WithNoProxy())
 	}
 

@@ -15,6 +15,7 @@ import (
 )
 
 type Cfg struct {
+	Trace                         bool
 	Token                         string
 	KeepAlive                     bool
 	Timeout                       time.Duration
@@ -58,13 +59,15 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 
 	var certs []tls.Certificate
 	if t.CertPath != "" && t.KeyPath != "" {
-		c, err := tls.LoadX509KeyPair(t.CertPath, t.KeyPath)
-		xerror.Panic(err)
-		certs = append(certs, c)
+		_c, _err := tls.LoadX509KeyPair(t.CertPath, t.KeyPath)
+		xerror.Panic(_err)
+		certs = append(certs, _c)
 	}
 	t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
 	var middlewares []types.Middleware
+
+	// 加载插件
 	// 加载全局
 	for _, plg := range plugin.All() {
 		if plg.Middleware() == nil {
@@ -76,7 +79,6 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	// 最后加载业务自定义
 	middlewares = append(middlewares, t.Middlewares...)
 
-	// 加载插件
 	var client = &clientImpl{client: c}
 	client.do = doFunc(client)
 	for i := len(middlewares); i > 0; i-- {
@@ -95,6 +97,7 @@ func DefaultCfg() Cfg {
 		backoff:             retry.NewNoop(),
 		MaxIdleConnDuration: 90 * time.Second,
 		MaxConnWaitTimeout:  30 * time.Second,
-		MaxConnsPerHost:     runtime.GOMAXPROCS(0) + 1, // http client缓存数量
+		// http client缓存数量
+		MaxConnsPerHost: runtime.GOMAXPROCS(0) + 1,
 	}
 }

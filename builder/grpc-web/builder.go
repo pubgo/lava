@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/xgen"
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 type Builder struct {
 	name      string

@@ -24,8 +24,8 @@ func init() {
 var cfg Cfg
 
 type Cfg struct {
-	Root []string `yaml:"root,omitempty"`
-	//Exclude []string `yaml:"exclude,omitempty"`
+	Version string   `yaml:"version,omitempty"`
+	Root    []string `yaml:"root,omitempty"`
 	Depends []depend `yaml:"deps,omitempty"`
 	Input   []string `yaml:"input,omitempty"`
 	Plugins []plugin `yaml:"plugins,omitempty"`

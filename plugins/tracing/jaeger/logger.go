@@ -9,7 +9,7 @@ import (
 var _ jLog.Logger = (*logger)(nil)
 
 func newLog(name string) *logger {
-	return &logger{logs: logz.New(name).Depth(2)}
+	return &logger{logs: logz.Component(name).Depth(2)}
 }
 
 type logger struct {

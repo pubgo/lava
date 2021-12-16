@@ -37,14 +37,12 @@ func (t Cfg) Build() (c *clientv3.Client) {
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
-	var err error
 	// 创建etcd client对象
-	xerror.PanicF(t.retry.Do(func(i int) error {
-		c, err = clientv3.New(cfg)
-		return xerror.Wrap(err)
-	}), "[etcd] newClient error, err: %v, cfgList: %#v", err, cfg)
-
-	return
+	return xerror.PanicErr(t.retry.DoVal(
+		func(i int) (interface{}, error) {
+			return clientv3.New(cfg)
+		}),
+	).(*clientv3.Client)
 }
 
 func GetDefaultCfg() *Cfg {

@@ -16,7 +16,7 @@ const Name = "syncx"
 
 var maxConcurrent int64 = 100000
 var curConcurrent atomic.Int64
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 // SetMaxConcurrent 设置最大并发数
 func SetMaxConcurrent(concurrent int64) {

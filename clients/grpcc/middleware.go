@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/lavax"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -34,19 +35,18 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 		}
 
 		// get content type
-		ct := defaultContentType
-		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {
-			ct = c[0]
-		}
-
-		if c := md.Get("content-type"); len(c) != 0 && c[0] != "" {
-			ct = c[0]
-		}
+		ct := lavax.FirstNotEmpty(func() string {
+			return types.HeaderGet(md, "content-type")
+		}, func() string {
+			return types.HeaderGet(md, "x-content-type")
+		}, func() string {
+			return defaultContentType
+		})
 
 		delete(md, "x-content-type")
 
 		// get peer from context
-		if p, ok := peer.FromContext(ctx); ok {
+		if p, _ok := peer.FromContext(ctx); _ok {
 			md.Set("remote", p.Addr.String())
 		}
 
@@ -107,14 +107,13 @@ func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientIntercep
 		}
 
 		// get content type
-		ct := defaultContentType
-		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {
-			ct = c[0]
-		}
-
-		if c := md.Get("content-type"); len(c) != 0 && c[0] != "" {
-			ct = c[0]
-		}
+		ct := lavax.FirstNotEmpty(func() string {
+			return types.HeaderGet(md, "content-type")
+		}, func() string {
+			return types.HeaderGet(md, "x-content-type")
+		}, func() string {
+			return defaultContentType
+		})
 
 		delete(md, "x-content-type")
 

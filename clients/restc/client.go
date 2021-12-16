@@ -8,14 +8,11 @@ import (
 	"net/url"
 	"time"
 
-	json "github.com/goccy/go-json"
-	"github.com/pubgo/x/strutil"
-	"github.com/pubgo/xerror"
-	"github.com/valyala/bytebufferpool"
-
 	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/x/strutil"
+	"github.com/pubgo/xerror"
 )
 
 const (
@@ -34,52 +31,18 @@ type clientImpl struct {
 	clientTrace *clientTrace
 }
 
-func (c *clientImpl) TraceInfo() TraceInfo {
-	ct := c.clientTrace
-
-	if ct == nil {
-		return TraceInfo{}
+func (c *clientImpl) RoundTripper(f func(transport http.RoundTripper) http.RoundTripper) error {
+	if f == nil {
+		return nil
 	}
 
-	ti := TraceInfo{
-		DNSLookup:      ct.dnsDone.Sub(ct.dnsStart),
-		TLSHandshake:   ct.tlsHandshakeDone.Sub(ct.tlsHandshakeStart),
-		ServerTime:     ct.gotFirstResponseByte.Sub(ct.gotConn),
-		IsConnReused:   ct.gotConnInfo.Reused,
-		IsConnWasIdle:  ct.gotConnInfo.WasIdle,
-		ConnIdleTime:   ct.gotConnInfo.IdleTime,
-		RequestAttempt: c.cfg.RetryCount,
+	transport := f(c.client.Transport)
+	if transport == nil {
+		return xerror.New("transport is nil")
 	}
 
-	// Calculate the total time accordingly,
-	// when connection is reused
-	if ct.gotConnInfo.Reused {
-		ti.TotalTime = ct.endTime.Sub(ct.getConn)
-	} else {
-		ti.TotalTime = ct.endTime.Sub(ct.dnsStart)
-	}
-
-	// Only calculate on successful connections
-	if !ct.connectDone.IsZero() {
-		ti.TCPConnTime = ct.connectDone.Sub(ct.dnsDone)
-	}
-
-	// Only calculate on successful connections
-	if !ct.gotConn.IsZero() {
-		ti.ConnTime = ct.gotConn.Sub(ct.getConn)
-	}
-
-	// Only calculate on successful connections
-	if !ct.gotFirstResponseByte.IsZero() {
-		ti.ResponseTime = ct.endTime.Sub(ct.gotFirstResponseByte)
-	}
-
-	// Capture remote address info when connection is non-nil
-	if ct.gotConnInfo.Conn != nil {
-		ti.RemoteAddr = ct.gotConnInfo.Conn.RemoteAddr()
-	}
-
-	return ti
+	c.client.Transport = f(c.client.Transport)
+	return nil
 }
 
 func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *Request)) (*http.Response, error) {
@@ -104,8 +67,8 @@ func (c *clientImpl) Post(ctx context.Context, url string, data interface{}, opt
 
 func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, opts ...func(req *Request)) (*Response, error) {
 	var resp, err = doRequest(ctx, c, http.MethodPost, url, nil, func(req *Request) {
-		req.Request.Header.Set(httpx.HeaderContentType, "application/x-www-form-urlencoded")
-		req.GetBody = func() (io.ReadCloser, error) {
+		req.req.Header.Set(httpx.HeaderContentType, "application/x-www-form-urlencoded")
+		req.req.GetBody = func() (io.ReadCloser, error) {
 			return io.NopCloser(bytes.NewReader(strutil.ToBytes(val.Encode()))), nil
 		}
 
@@ -126,23 +89,9 @@ func (c *clientImpl) Patch(ctx context.Context, url string, data interface{}, op
 
 // doRequest data:[bytes|string|map|struct]
 func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data interface{}, opts ...func(req *Request)) (*Response, error) {
-	var body []byte
-	switch data.(type) {
-	case nil:
-		body = nil
-	case string:
-		body = strutil.ToBytes(data.(string))
-	case []byte:
-		body = data.([]byte)
-	default:
-		// TODO 其他类型检测
-		bb := bytebufferpool.Get()
-		defer bytebufferpool.Put(bb)
-
-		if err := json.NewEncoder(bb).Encode(data); err != nil {
-			return nil, err
-		}
-		body = bb.Bytes()
+	rf, err := getBodyReader(data)
+	if err != nil {
+		return nil, err
 	}
 
 	if ctx == nil {
@@ -150,13 +99,20 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 	}
 
 	var request = &Request{}
-	req, err := http.NewRequestWithContext(ctx, mth, url, bytes.NewReader(body))
+
+	// Enable trace
+	if c.cfg.Trace {
+		request.clientTrace = &clientTrace{}
+		ctx = request.clientTrace.createContext(ctx)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, mth, url, bytes.NewReader(rf))
 	if err != nil {
 		return nil, xerror.Wrap(err, mth, url)
 	}
 	req.Header.Set(httpx.HeaderContentType, defaultContentType)
 
-	request.Request = req
+	request.req = req
 	if len(opts) > 0 {
 		opts[0](request)
 	}
@@ -166,7 +122,7 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 	xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
 	request.ct = ct
 	request.cdc = cdc
-	request.data = body
+	request.data = rf
 
 	resp, err := c.Do(ctx, request)
 	if err != nil {

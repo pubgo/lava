@@ -1,32 +1,12 @@
 package restc
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
 	"runtime"
 	"time"
 )
-
-func createTransport(localAddr net.Addr) *http.Transport {
-	dialer := &net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
-		DualStack: true,
-	}
-	if localAddr != nil {
-		dialer.LocalAddr = localAddr
-	}
-	return &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-	}
-}
 
 // DefaultTransport returns a new http.Transport with similar default values to
 // http.DefaultTransport, but with idle connections and keepalives disabled.
@@ -55,6 +35,12 @@ func DefaultPooledTransport() *http.Transport {
 		ExpectContinueTimeout: 1 * time.Second,
 		ForceAttemptHTTP2:     true,
 		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+		//MaxIdleConnsPerHost:    100,
+		MaxResponseHeaderBytes: 4096, // net/http default is 10Mb
+		TLSClientConfig: &tls.Config{
+			Renegotiation:      tls.RenegotiateOnceAsClient,
+			InsecureSkipVerify: true,
+		},
 	}
 	return transport
 }

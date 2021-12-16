@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	Register("noop", func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
+	RegisterFactory("noop", func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
 		opts.Reporter = tally.NullStatsReporter
 		return nil
 	})

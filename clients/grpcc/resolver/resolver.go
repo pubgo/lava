@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/logz"
 )
 
-var logs = logz.New("balancer.resolver")
+var logs = logz.Component("balancer.resolver")
 
 const (
 	DirectScheme = "direct"
@@ -40,15 +40,16 @@ func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 	logs.Infof("[grpc] %s ResolveNow", r.builder)
 }
 
-// 关于 grpc 命名的介绍
-// https://github.com/grpc/grpc/blob/master/doc/naming.md
+// gRPC名称解析
+// 	https://github.com/grpc/grpc/blob/master/doc/naming.md
+// 	dns:[//authority/]host[:port]
 
 // BuildDirectTarget direct:///localhost:8080,localhost:8081
 func BuildDirectTarget(endpoints ...string) string {
 	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
 }
 
-// BuildDiscovTarget discov://etcd/test-service
+// BuildDiscovTarget discov:///test-service
 func BuildDiscovTarget(service string, endpoints ...string) string {
 	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), service)
 }

@@ -49,7 +49,7 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs = logz.New("gossip")
+var logs = logz.Component("gossip")
 
 func actionTypeString(t int32) types.EventType {
 	switch t {

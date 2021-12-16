@@ -12,7 +12,7 @@ type Response = http.Response
 
 // Client http clientImpl interface
 type Client interface {
-	TraceInfo() TraceInfo
+	RoundTripper(func(transport http.RoundTripper) http.RoundTripper) error
 	Do(ctx context.Context, req *Request) (*http.Response, error)
 	Head(ctx context.Context, url string, opts ...func(req *Request)) (*http.Response, error)
 	Get(ctx context.Context, url string, opts ...func(req *Request)) (*http.Response, error)

@@ -10,7 +10,7 @@ import (
 )
 
 var Name = "gc"
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
 	if runenv.IsProd() || runenv.IsRelease() {

@@ -18,7 +18,7 @@ import (
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func Init(projects ...string) (err error) {
 	defer xerror.RespErr(&err)

@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/runenv"
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 var cfgMap = make(map[string]*Cfg)
 

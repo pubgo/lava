@@ -1,3 +1,4 @@
+version: v1
 deps:
   - name: google
     url: github.com/googleapis/googleapis

@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/pubgo/lava/pkg/encoding"
+	"fmt"
 	_ "github.com/pubgo/lava/pkg/encoding/bytes"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding"
 	"testing"
 )
 
@@ -34,13 +36,21 @@ func TestName(t *testing.T) {
 	conn, err := grpc.DialContext(context.Background(), "localhost:8900", grpc.WithInsecure(), grpc.WithBlock())
 	//var conn, err = grpcc.NewDirect("localhost:8900", func(cfg *grpcc.Cfg) {})
 	xerror.Panic(err)
-	var data []byte
-	xerror.Panic(conn.Invoke(
-		context.Background(),
-		"/hello.TestApi/Version", []byte(`{"input":"11111"}`), &data,
-		grpc.ForceCodec(encoding.Get("bytes")),
-	))
-	select {}
 
-	//fmt.Println(resp.Body)
+	//var cli = hello.NewTestApiClient(conn)
+	//o, err := cli.Version(context.Background(), &hello.TestReq{Input: "hello1"}, grpc.ForceCodec(encoding.GetCodec("json")))
+	//xerror.Panic(err)
+	//fmt.Printf("%v", o)
+
+	// 可以通过sidecar代理的方式, 转发请求, 同时实现负载限流等
+	var data = make(types.M)
+	err = conn.Invoke(
+		context.Background(),
+		"/hello.TestApi/Version", types.M{"input": "error"}, &data,
+		//"/hello.TestApi/Version", types.M{"input": "hello"}, &data,
+		grpc.ForceCodec(encoding.GetCodec("json")),
+	)
+	fmt.Println(err)
+	fmt.Println(data)
+	//select {}
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/pubgo/lava/logz"
 )
 
-var logs = logz.New("jaeger.reporter")
+var logs = logz.Component("jaeger.reporter")
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {

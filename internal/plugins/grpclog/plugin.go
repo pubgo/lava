@@ -13,8 +13,8 @@ import (
 func init() {
 	logz.On(func(z *logz.Log) {
 		grpclog.SetLoggerV2(&loggerWrapper{
-			log:      logz.New("grpc").Depth(4),
-			depthLog: logz.New("grpc-component").Depth(2),
+			log:      logz.Component("grpc").Depth(4),
+			depthLog: logz.Component("grpc-component").Depth(2),
 		})
 	})
 }

@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	var logs = logz.New(Name)
+	var logs = logz.Component(Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{

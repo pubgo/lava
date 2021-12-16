@@ -26,7 +26,7 @@ import (
 
 const name = "runtime"
 
-var logs = logz.New(name)
+var logs = logz.Component(name)
 var app = &cli.App{
 	Name:    runenv.Domain,
 	Version: version.Version,

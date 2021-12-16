@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {

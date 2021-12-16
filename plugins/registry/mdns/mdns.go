@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/syncx"
 )
 
 func init() {
@@ -82,7 +82,7 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
 	return services, xerror.Try(func() {
 		entries := make(chan *zeroconf.ServiceEntry)
-		_ = fx.Go(func(ctx context.Context) {
+		syncx.GoSafe(func() {
 			for s := range entries {
 				services = append(services, &registry.Service{
 					Name: s.Service,

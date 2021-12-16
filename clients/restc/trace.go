@@ -85,8 +85,7 @@ type clientTrace struct {
 //_______________________________________________________________________
 
 func (t *clientTrace) createContext(ctx context.Context) context.Context {
-	return httptrace.WithClientTrace(
-		ctx,
+	return httptrace.WithClientTrace(ctx,
 		&httptrace.ClientTrace{
 			DNSStart: func(_ httptrace.DNSStartInfo) {
 				t.dnsStart = time.Now()
