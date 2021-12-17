@@ -3,6 +3,7 @@ package ginEntry
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/encoding"
 	"io/ioutil"
 	"net/http"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 

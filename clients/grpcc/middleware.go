@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/pkg/lavax"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 

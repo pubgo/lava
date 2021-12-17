@@ -1,6 +1,8 @@
 package types
 
-import "github.com/pubgo/lava/pkg/encoding"
+import (
+	"github.com/pubgo/lava/encoding"
+)
 
 // Request is a synchronous request interface
 type Request interface {

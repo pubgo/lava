@@ -14,10 +14,10 @@ import (
 	_ "github.com/pubgo/lava/plugins/registry/mdns"
 
 	// 编码加载
-	_ "github.com/pubgo/lava/pkg/encoding/json"
+	_ "github.com/pubgo/lava/encoding/json"
 
 	// 加载protobuf编码
-	_ "github.com/pubgo/lava/pkg/encoding/protobuf"
+	_ "github.com/pubgo/lava/encoding/protobuf"
 
 	// 用于系统诊断
 	_ "github.com/pubgo/lava/internal/plugins/gops"

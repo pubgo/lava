@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	encoding3 "github.com/pubgo/lava/encoding"
 	"net"
 	"net/http"
 	"strconv"
@@ -28,7 +29,6 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logz"
-	encoding2 "github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
@@ -60,7 +60,7 @@ func newEntry(name string) *grpcEntry {
 		defer xerror.RespExit()
 
 		// encoding register
-		encoding2.Each(func(_ string, cdc encoding2.Codec) {
+		encoding3.Each(func(_ string, cdc encoding3.Codec) {
 			encoding.RegisterCodec(cdc)
 		})
 

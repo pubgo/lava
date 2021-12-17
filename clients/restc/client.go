@@ -3,12 +3,12 @@ package restc
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/encoding"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/x/strutil"

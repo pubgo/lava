@@ -1,18 +1,18 @@
 package grpcc
 
 import (
+	"github.com/pubgo/lava/encoding"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
 var _ types.Request = (*request)(nil)
 
 type request struct {
-	ct         string
-	cdc        encoding.Codec
-	opts       []grpc.CallOption
+	ct   string
+	cdc  encoding.Codec
+	opts []grpc.CallOption
 	method     string
 	service    string
 	req, reply interface{}

@@ -2,7 +2,7 @@ package bytes
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/encoding"
+	"github.com/pubgo/lava/encoding"
 )
 
 func init() { encoding.Register("bytes", &Codec{}) }
