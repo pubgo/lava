@@ -3,7 +3,6 @@ package protoutil
 import (
 	"bytes"
 	"fmt"
-	"github.com/pubgo/lava/xgen"
 	"go/format"
 	"io"
 	"io/ioutil"
@@ -21,6 +20,8 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 	gp "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/xgen"
 )
 
 func RpcInfo(file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method) *xgen.GrpcRestHandler {
