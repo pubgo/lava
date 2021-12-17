@@ -1,9 +1,11 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/resource"
-	"github.com/uber-go/tally"
 	"io"
+
+	"github.com/uber-go/tally"
+
+	"github.com/pubgo/lava/resource"
 )
 
 var _ resource.Resource = (*Resource)(nil)

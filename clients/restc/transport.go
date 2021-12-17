@@ -1,6 +1,7 @@
 package restc
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
 	"runtime"
@@ -34,6 +35,12 @@ func DefaultPooledTransport() *http.Transport {
 		ExpectContinueTimeout: 1 * time.Second,
 		ForceAttemptHTTP2:     true,
 		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
+		//MaxIdleConnsPerHost:    100,
+		MaxResponseHeaderBytes: 4096, // net/http default is 10Mb
+		TLSClientConfig: &tls.Config{
+			Renegotiation:      tls.RenegotiateOnceAsClient,
+			InsecureSkipVerify: true,
+		},
 	}
 	return transport
 }

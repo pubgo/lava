@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -36,13 +36,17 @@ func newEntry(name string) *ginEntry {
 		// 加载组件middleware
 		// lava middleware比gin Middleware的先加载
 		ent.srv.Use(ent.handlerMiddle(ent.Options().Middlewares))
+
+		// 注册使用方middleware
 		ent.srv.Use(ent.middlewares...)
 
 		// 初始化router
 		for _, h := range ent.Options().Handlers {
 			// 依赖注入handler
+			// 会把tag为dix的field进行依赖注入
 			xerror.Panic(dix.Inject(h))
 
+			// register 注册handler
 			xerror.PanicF(register(ent.srv, h), "[gin] grpc handler register error")
 
 			// 初始化router
@@ -58,7 +62,7 @@ func newEntry(name string) *ginEntry {
 	return ent
 }
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 var _ Entry = (*ginEntry)(nil)
 
 type ginEntry struct {
@@ -66,7 +70,7 @@ type ginEntry struct {
 	cfg Cfg
 	srv *gin.Engine
 
-	// 全局middleware
+	// 使用方middleware
 	middlewares []gin.HandlerFunc
 }
 

@@ -12,7 +12,7 @@ var Discard = zap.NewNop()
 var globalLog = zap.L()
 var loggerMap sync.Map
 
-func New(name string) *nameLogger {
+func Component(name string) *nameLogger {
 	if name == "" {
 		panic("[name] should not be null")
 	}

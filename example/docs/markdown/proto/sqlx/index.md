@@ -135,6 +135,7 @@
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 @gotags: valid:&#34;ip&#34; custom_tag:&#34;custom_value&#34; |
 | data | [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry) | repeated | 数据 |
+| response | [lava.Response](#lava.Response) |  |  |
 
 
 
@@ -278,18 +279,10 @@
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | SendCode | [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest) | [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse) | 发送 |
-| Verify | [VerifyRequest](#hello.v1.sqlx.VerifyRequest) | [VerifyResponse](#hello.v1.sqlx.VerifyResponse) | 校验
-
-option (google.api.http) = { post: &#34;/user/code/verify&#34; body: &#34;*&#34; }; |
-| IsCheckImageCode | [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse) | 是否校验图片验证码
-
-option (google.api.http) = { post: &#34;/user/code/is-check-image-code&#34; body: &#34;*&#34; }; |
-| VerifyImageCode | [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse) | 校验图片验证码
-
-option (google.api.http) = { post: &#34;/user/code/verify-image-code&#34; body: &#34;*&#34; }; |
-| GetSendStatus | [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest) | [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse) | 获取发送状态
-
-option (google.api.http) = { post: &#34;/user/code/get-send-status&#34; body: &#34;*&#34; }; |
+| Verify | [VerifyRequest](#hello.v1.sqlx.VerifyRequest) | [VerifyResponse](#hello.v1.sqlx.VerifyResponse) | 校验 |
+| IsCheckImageCode | [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse) | 是否校验图片验证码 |
+| VerifyImageCode | [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse) | 校验图片验证码 |
+| GetSendStatus | [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest) | [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse) | 获取发送状态 |
 
  
 

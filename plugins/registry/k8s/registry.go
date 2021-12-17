@@ -1,14 +1,15 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
+	"github.com/pubgo/lava/consts"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/pkg/k8s"
 	"github.com/pubgo/lava/plugins/registry"
 )
@@ -105,13 +106,13 @@ func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOp
 func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registry.Service, err error) {
 	defer xerror.RespErr(&err)
 
-	var ctx = ctxutil.Timeout()
-	defer ctx.Cancel()
+	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
+	defer cancel()
 
 	endpoints, err := s.client.
 		CoreV1().
 		Endpoints(k8s.Namespace()).
-		List(ctx.Context(), metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)})
+		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)})
 	xerror.Panic(err)
 
 	var resp []*registry.Service

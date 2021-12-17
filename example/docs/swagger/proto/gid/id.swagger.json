@@ -1906,8 +1906,13 @@
     "/v1/id/generate": {
       "post": {
         "summary": "Generate 生成ID",
+        "description": "Connect to a secure WebSocket to receive streaming notifications (see reference for notification to consumer for schema of messages received on websocket).",
         "operationId": "Id_Generate",
         "responses": {
+          "101": {
+            "description": "Upgrade to Websockets",
+            "schema": {}
+          },
           "200": {
             "description": "A successful response.",
             "schema": {
@@ -1933,19 +1938,25 @@
         ],
         "tags": [
           "Id"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/id/types": {
       "get": {
         "summary": "Types id类型",
+        "description": "Registers a producer to begin publishing notifications in the local MEC environment.",
         "operationId": "Id_Types",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/gidTypesResponse"
             }
+          },
+          "400": {
+            "description": "Invalid content, a required property is missing",
+            "schema": {}
           },
           "default": {
             "description": "An unexpected error response.",
@@ -1956,7 +1967,8 @@
         },
         "tags": [
           "Id"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/{book.name=publishers/*/books/*}": {

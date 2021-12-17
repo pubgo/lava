@@ -6,8 +6,8 @@ option go_package = "./;sqlx_pb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "lava/sqlx.proto";
-import "lava/tags.proto";
+import "lava/lava.proto";
+import "lava/resty.proto";
 
 // 验证码
 service Code {
@@ -82,6 +82,7 @@ message SendCodeResponse {
   int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
   // 数据
   map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+  lava.Response response = 6;
 }
 
 message VerifyRequest {

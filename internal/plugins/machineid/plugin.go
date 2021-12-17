@@ -4,13 +4,13 @@ import (
 	"github.com/denisbrodbeck/machineid"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/plugin"
 )
 
 const Name = "machineid"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
 	plugin.Register(&plugin.Base{

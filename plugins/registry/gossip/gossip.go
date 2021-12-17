@@ -18,7 +18,7 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 	"github.com/pubgo/lava/types"
@@ -49,7 +49,7 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs = logz.New("gossip")
+var logs = logz.Component("gossip")
 
 func actionTypeString(t int32) types.EventType {
 	switch t {

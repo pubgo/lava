@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/atomic"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
@@ -16,7 +16,7 @@ const Name = "syncx"
 
 var maxConcurrent int64 = 100000
 var curConcurrent atomic.Int64
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 // SetMaxConcurrent 设置最大并发数
 func SetMaxConcurrent(concurrent int64) {

@@ -3,7 +3,6 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/plugins/syncx"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -11,6 +10,7 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/types"
 )
 
@@ -133,5 +133,5 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		}
 	})
 
-	return &baseResolver{cc: cc, r: w, cancel: cancel, builder: DiscovScheme}, nil
+	return &baseResolver{cancel: cancel, builder: DiscovScheme}, nil
 }

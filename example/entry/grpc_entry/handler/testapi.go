@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,10 +87,16 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		log.Infow("dix config ok", "cfg", config.GetCfg().ConfigPath())
 	}
 
+
+
 	out = &hello.TestApiOutput{
 		Msg: in.Input,
 	}
-	time.Sleep(time.Millisecond * 10)
+
+	if in.Input == "error" {
+		return out, errors.New("error test")
+	}
+
 	return
 }
 

@@ -8,11 +8,11 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/xgen"
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 type Builder struct {
 	name      string

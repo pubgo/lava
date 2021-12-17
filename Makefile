@@ -37,6 +37,7 @@ ci:
 proto-plugin-gen:
 	cd cmd/protoc-gen-lava && go install -v .
 	cd cmd/protoc-gen-errors && go install -v .
+	cd cmd/protoc-gen-resty && go install -v .
 
 .PHONY: example
 example:

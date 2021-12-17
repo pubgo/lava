@@ -90,6 +90,7 @@ func (p *Base) Health() types.Healthy {
 	if p.OnHealth == nil {
 		return nil
 	}
+
 	return p.OnHealth
 }
 

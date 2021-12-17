@@ -5,7 +5,7 @@ import (
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/metric"
@@ -13,10 +13,10 @@ import (
 
 const Name = "prometheus"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
-	metric.Register(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
+	metric.RegisterFactory(Name, func(cfg map[string]interface{}, opts *tally.ScopeOptions) error {
 		opts.Separator = prometheus.DefaultSeparator
 		opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 

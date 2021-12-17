@@ -22,7 +22,7 @@ func init() {
 			driver := cfg.Driver
 			xerror.Assert(driver == "", "metric driver is null")
 
-			fc := Get(driver)
+			fc := GetFactory(driver)
 			xerror.Assert(fc == nil, "metric driver [%s] not found", driver)
 
 			var opts = tally.ScopeOptions{

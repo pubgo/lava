@@ -32,6 +32,17 @@ builds:
       - windows
     goarch:
       - amd64
+  - main: ./cmd/protoc-gen-resty/main.go
+    id: protoc-gen-resty
+    binary: protoc-gen-resty
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
 archives:
   - name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
     format: binary

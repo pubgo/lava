@@ -2,14 +2,16 @@ package jump
 
 import (
 	"hash"
-	"hash/crc64"
+	"hash/maphash"
 	"io"
 	"sync"
 )
 
-var hasher = sync.Pool{
+var hashPool = sync.Pool{
 	New: func() interface{} {
-		return crc64.New(crc64.MakeTable(crc64.ECMA))
+		var h = &maphash.Hash{}
+		h.SetSeed(maphash.MakeSeed())
+		return h
 	},
 }
 
@@ -32,18 +34,18 @@ func Hash(key uint64, numBuckets int) int32 {
 func HashString(key string, numBuckets int) int32 {
 	// jump.Hash returns values from 0.
 	k := Hash(Sum64(key), numBuckets)
-
 	return k
 }
 
 // Sum64 ...
 func Sum64(key string) uint64 {
-	h := hasher.Get().(hash.Hash64)
+	h := hashPool.Get().(hash.Hash64)
 	if _, err := io.WriteString(h, key); err != nil {
 		panic(err)
 	}
+
 	r := h.Sum64()
 	h.Reset()
-	hasher.Put(h)
+	hashPool.Put(h)
 	return r
 }

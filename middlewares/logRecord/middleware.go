@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/internal/loggerInter"
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
@@ -18,7 +18,7 @@ import (
 
 const Name = "logRecord"
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {

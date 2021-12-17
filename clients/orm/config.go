@@ -8,13 +8,13 @@ import (
 	"gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
-	"github.com/pubgo/lava/internal/logz"
+	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/runenv"
 )
 
-var logs = logz.New(Name)
+var logs = logz.Component(Name)
 
 var cfgMap = make(map[string]*Cfg)
 

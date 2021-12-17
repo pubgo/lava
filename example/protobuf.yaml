@@ -1,5 +1,5 @@
 root:
-  - proto
+  - proto/yuque_pb
 deps:
   - name: google
     url: github.com/googleapis/googleapis
@@ -54,4 +54,8 @@ plugins:
       - path=protopb
       - paths=source_relative
   - name: "errors"
+    out: "protopb"
+    opt: "paths=source_relative"
+  - name: "resty"
+    out: "protopb"
     opt: "paths=source_relative"

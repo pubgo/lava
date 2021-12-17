@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/lava/xgen"
 )
 
+// register 注册handler
 func register(server gin.IRouter, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
@@ -24,6 +25,8 @@ func register(server gin.IRouter, handler interface{}) (err error) {
 	return xerror.Fmt("register [%#v] 没有找到匹配的interface", handler)
 }
 
+// checkHandle 检查handler是否存在
+//   handler=>func RegisterExampleGinServer(r gin.IRouter, server ExampleServer)
 func checkHandle(handler interface{}) reflect.Value {
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 

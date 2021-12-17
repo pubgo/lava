@@ -10,6 +10,6 @@ type response struct {
 	resp *Response
 }
 
-func (r *response) Header() types.Header { return nil }
+func (r *response) Header() types.Header { return types.Header(r.resp.Header) }
 func (r *response) Payload() interface{} { return nil }
 func (r *response) Stream() bool         { return false }

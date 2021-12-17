@@ -15,7 +15,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(p plugin.Process) {
-			_ = config.Decode(Name, &cfgMap)
+			xerror.Panic(config.Decode(Name, &cfgMap))
 			for k, v := range cfgMap {
 				client := redis.NewClient(merge.Struct(DefaultCfg(), v).(*redis.Options))
 				xerror.PanicF(client.Ping(ctxutil.Timeout()).Err(), "redis(%s)连接失败", k)

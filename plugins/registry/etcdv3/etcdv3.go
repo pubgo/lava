@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/pubgo/lava/clients/etcdv3"
 	"path"
 	"strings"
 	"sync"
@@ -16,6 +15,7 @@ import (
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	"go.etcd.io/etcd/client/v3"
 
+	"github.com/pubgo/lava/clients/etcdv3"
 	"github.com/pubgo/lava/plugins/registry"
 )
 

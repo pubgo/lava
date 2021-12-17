@@ -87,7 +87,7 @@ func FileExists(path string) bool {
 
 func FirstNotEmpty(fx ...func() string) string {
 	for i := range fx {
-		if s := strings.TrimSpace(fx[i]()); s != "" {
+		if s := fx[i](); s != "" {
 			return s
 		}
 	}

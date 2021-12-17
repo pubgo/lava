@@ -77,15 +77,26 @@ func (t StructTags) HandleMessage(msg *protogen.Message) (string, map[string]*st
 	}
 
 	return msgName, tags
-
-	//msg.Messages
-	//msg.Oneofs
 }
 
 // HandleOneOf
 // TODO 未实现
-func (t StructTags) HandleOneOf(one *protogen.Oneof) map[string]*structtag.Tags {
-	return make(map[string]*structtag.Tags)
+func (t StructTags) HandleOneOf(one *protogen.Oneof) *structtag.Tags {
+	var opts = one.Desc.Options()
+	if !gp.HasExtension(opts, lava.E_Tags) {
+		return nil
+	}
+
+	var tags = gp.GetExtension(opts, lava.E_Tags).([]*lava.Tag)
+	if len(tags) == 0 {
+		return nil
+	}
+
+	var tt = new(structtag.Tags)
+	for _, tag := range tags {
+		xerror.Panic(tt.Set(&structtag.Tag{Key: tag.Key, Name: tag.Value}))
+	}
+	return tt
 }
 
 func (t StructTags) HandleField(field *protogen.Field) (string, *structtag.Tags) {
@@ -109,39 +120,6 @@ func (t StructTags) HandleField(field *protogen.Field) (string, *structtag.Tags)
 type Visit func(node ast.Node) (w ast.Visitor)
 
 func (v Visit) Visit(node ast.Node) (w ast.Visitor) { return v(node) }
-
-type tags struct {
-	tags StructTags
-}
-
-func (t *tags) FileNode(n ast.Node) {
-	ast.Walk(Visit(func(node ast.Node) (w ast.Visitor) {
-		tp, ok := n.(*ast.TypeSpec)
-		if !ok {
-			return nil
-		}
-
-		switch tp.Type.(type) {
-		case *ast.StructType:
-			ast.Walk(t.StructNode(n), n)
-			return nil
-		}
-
-		return nil
-	}), n)
-}
-
-func (t *tags) TypeNode(n ast.Node) {
-
-}
-
-func (t *tags) StructNode(n ast.Node) Visit {
-	return nil
-}
-
-func (t *tags) FieldNode(n ast.Node) {
-
-}
 
 // Retag updates the existing tags with the map passed and modifies existing tags if any of the keys are matched.
 // First key to the tags argument is the name of the struct, the second key corresponds to field names.

@@ -8,7 +8,7 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnInit: func() {
+		OnInit: func(p plugin.Process) {
 			var cfg Cfg
 			_ = config.Decode(Name, &cfg)
 

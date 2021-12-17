@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 )
@@ -101,12 +103,82 @@ func flush(w http.ResponseWriter) {
 	f.Flush()
 }
 
-//if len(b) == 5 && (b[0]&(1<<7) == (1<<7) || b[0] == 0) {
-//	return 0, nil
-//}
+const (
+	// header to detect if it is a grpc+json request
+	contentTypeGRPCJSON = "application/grpc+json"
 
-//if grpcPreamble[0]&(1<<7) == (1 << 7) { // MSB signifies the trailer parser
-//	w.w.Write(payloadBytes)
-//} else {
-//	w.w.Write(payloadBytes)
-//}
+	grpcNoCompression byte = 0x00
+
+	headerContentLength  = "Content-Length"
+	headerGRPCMessage    = "Grpc-Message"
+	headerGRPCStatusCode = "Grpc-Status"
+	headerUseInsecure    = "Grpc-Insecure"
+
+	defaultClientTimeout = time.Second * 60
+)
+
+// https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md
+func modifyRequestToJSONgRPC(r *http.Request) *http.Request {
+	var body []byte
+	// read body so we can add the grpc prefix
+	if r.Body != nil {
+		body, _ = ioutil.ReadAll(r.Body)
+	}
+
+	b := make([]byte, 0, len(body)+5)
+	buff := bytes.NewBuffer(b)
+
+	// grpc prefix is
+	// 	1 byte: compression indicator
+	// 	4 bytes: content length (excluding prefix)
+	_ = buff.WriteByte(grpcNoCompression) // 0 or 1, indicates compressed payload
+
+	lenBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(lenBytes, uint32(len(body)))
+
+	_, _ = buff.Write(lenBytes)
+	_, _ = buff.Write(body)
+
+	// create new request
+	req, _ := http.NewRequest(r.Method, r.URL.String(), buff)
+	req.Header = r.Header
+
+	// remove content length header
+	req.Header.Del(headerContentLength)
+
+	return req
+
+}
+
+func isJSONGRPC(r *http.Request) bool {
+	h := r.Header.Get("Content-Type")
+
+	if h == contentTypeGRPCJSON {
+		return true
+	}
+
+	return false
+}
+
+func handleGRPCResponse(resp *http.Response) (*http.Response, error) {
+	code := resp.Header.Get(headerGRPCStatusCode)
+	if code != "0" && code != "" {
+		buff := bytes.NewBuffer(nil)
+		grpcMessage := resp.Header.Get(headerGRPCMessage)
+		j, _ := json.Marshal(grpcMessage)
+		buff.WriteString(`{"error":` + string(j) + ` ,"code":` + code + `}`)
+
+		resp.Body = ioutil.NopCloser(buff)
+		resp.StatusCode = 500
+
+		return resp, nil
+	}
+
+	prefix := make([]byte, 5)
+	_, _ = resp.Body.Read(prefix)
+
+	resp.Header.Del(headerContentLength)
+
+	return resp, nil
+
+}
