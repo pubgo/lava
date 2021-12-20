@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	_ "github.com/pubgo/lava/pkg/encoding/bytes"
+	"testing"
+
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
-	"testing"
+
+	_ "github.com/pubgo/lava/encoding/bytes"
 )
 
 func TestName(t *testing.T) {

@@ -1,9 +1,9 @@
 package restc
 
 import (
-	"github.com/pubgo/lava/encoding"
 	"net/http"
 
+	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -23,9 +23,9 @@ type Request struct {
 	clientTrace *clientTrace
 	req         *http.Request
 	service     string
-	ct   string
-	cdc  encoding.Codec
-	data []byte
+	ct          string
+	cdc         encoding.Codec
+	data        []byte
 	// Metrics contains the metrics for the request.
 	Metrics Metrics
 }

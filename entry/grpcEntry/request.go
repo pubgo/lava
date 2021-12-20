@@ -1,9 +1,9 @@
 package grpcEntry
 
 import (
-	"github.com/pubgo/lava/encoding"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -16,9 +16,9 @@ type rpcRequest struct {
 	srv           interface{}
 	service       string
 	method        string
-	contentType string
-	cdc         encoding.Codec
-	header      types.Header
+	contentType   string
+	cdc           encoding.Codec
+	header        types.Header
 	payload       interface{}
 }
 

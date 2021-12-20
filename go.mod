@@ -128,6 +128,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blevesearch/bleve/v2 v2.2.2
+	github.com/bradleyjkemp/memviz v0.2.3
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23 // indirect
 	github.com/c-bata/go-prompt v0.2.6
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
@@ -262,6 +263,7 @@ require (
 	honnef.co/go/tools v0.2.0 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
 	k8s.io/api v0.21.1 // indirect
+	nhooyr.io/websocket v1.8.7
 	rsc.io/goversion v1.2.0 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20180114231543-2291e8f0f237 // indirect

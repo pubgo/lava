@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	_ "github.com/pubgo/lava/pkg/encoding/json"
+	_ "github.com/pubgo/lava/encoding/json"
 	"github.com/pubgo/xerror"
 )
 
