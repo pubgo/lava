@@ -13,31 +13,6 @@ import (
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 
-func checkConcurrent(name string, fn interface{}) func() {
-	curConcurrent.Inc()
-
-	// 阻塞,等待任务执行完毕
-	for curConcurrent.Load() > maxConcurrent {
-		runtime.Gosched()
-
-		// 百分之一的采样, 打印log, 让监控获取信息
-		if fastrand.Sampling(0.01) {
-			logs.With(
-				zap.String("name", name),
-				zap.Int64("current", curConcurrent.Load()),
-				zap.Int64("maximum", maxConcurrent),
-				zap.String("fn", stack.Func(fn)),
-			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
-		}
-	}
-
-	return func() { curConcurrent.Dec() }
-}
-
-func logErr(fn interface{}, err xerror.XErr) {
-	logs.WithErr(err, zap.String("fn", stack.Func(fn))).Error(err.Error())
-}
-
 func Wait(val ...chan Value) []Value {
 	var valList = make([]Value, len(val))
 	for i := range val {
@@ -273,4 +248,30 @@ func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
 	})
 
 	return p
+}
+
+// checkConcurrent 检查当前goroutine数量
+func checkConcurrent(name string, fn interface{}) func() {
+	curConcurrent.Inc()
+
+	// 阻塞,等待任务执行完毕
+	for curConcurrent.Load() > maxConcurrent {
+		runtime.Gosched()
+
+		// 采样率(1%), 打印log, 让监控获取信息
+		if fastrand.Sampling(0.01) {
+			logs.With(
+				zap.String("name", name),
+				zap.Int64("current", curConcurrent.Load()),
+				zap.Int64("maximum", maxConcurrent),
+				zap.String("fn", stack.Func(fn)),
+			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
+		}
+	}
+
+	return func() { curConcurrent.Dec() }
+}
+
+func logErr(fn interface{}, err xerror.XErr) {
+	logs.WithErr(err, zap.String("fn", stack.Func(fn))).Error(err.Error())
 }

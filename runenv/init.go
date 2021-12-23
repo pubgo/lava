@@ -3,11 +3,13 @@ package runenv
 import (
 	"os"
 	"syscall"
+
+	"github.com/pubgo/lava/version"
 )
 
 // 默认的全局配置
 var (
-	Domain                 = "lava"
+	Domain                 = version.Domain
 	CatchSigpipe           = false
 	Block                  = true
 	Trace                  = false

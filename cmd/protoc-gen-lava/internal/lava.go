@@ -2,14 +2,10 @@ package internal
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
-	"google.golang.org/protobuf/compiler/protogen"
-	gp "google.golang.org/protobuf/proto"
-
 	"github.com/pubgo/lava/pkg/protoutil"
-	"github.com/pubgo/lava/proto/lava"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 var (
@@ -28,6 +24,7 @@ var (
 	ginCall      = protoutil.Import("github.com/gin-gonic/gin")
 	bindingCall  = protoutil.Import("github.com/pubgo/lava/pkg/binding")
 	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
+	runtimeCall  = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
 )
 
 // GenerateFile generates a .lava.pb.go file containing service definitions.
@@ -71,8 +68,8 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 		genRpcInfo(gen, file, g, service)
 		//genRestApiTest(gen, file, g, service)
 		//genRestRouter(gen, file, g, service)
-		genGinRouter(gen, file, g, service)
-		genSql(gen, file, g, service)
+		//genGinRouter(gen, file, g, service)
+		//genSql(gen, file, g, service)
 	}
 }
 
@@ -80,42 +77,6 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.P("func Get", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), "))", service.GoName, "Client{")
 	g.P("return &", protoutil.UnExport(service.GoName), "Client{", grpccCall("GetClient"), "(srv, opts...)}")
 	g.P("}")
-}
-
-func genSql(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	for _, mth := range service.Methods {
-		var opts = mth.Desc.Options()
-		if !gp.HasExtension(opts, lava.E_Sqlx) {
-			continue
-		}
-
-		//func Code_SendCodeExec(db *gorm.DB, arg *SendCodeRequest) *gorm.DB {
-		//	return db.Raw("insert into", arg)
-		//	return db.Exec("insert into", arg)
-		//}
-
-		if sql, ok := gp.GetExtension(opts, lava.E_Sqlx).(*lava.Sql); ok && sql.Exec != nil {
-			g.P("func ", service.GoName, "_", mth.GoName, "Exec(", "db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(*", sqlxCall("DB"), "){")
-			g.P(`return db.Exec("`, *sql.Query, `",arg)`)
-			g.P("}")
-		}
-
-		if sql, ok := gp.GetExtension(opts, lava.E_Sqlx).(*lava.Sql); ok && sql.Query != nil {
-			g.P("func ", service.GoName, "_", mth.GoName, "Raw(", "db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")(*", sqlxCall("DB"), "){")
-			g.P(`return db.Exec("`, *sql.Query, `",arg)`)
-			g.P("}")
-		}
-
-		//if sql, ok := gp.GetExtension(opts, lava.E_Sqlx).(*lava.Sql); ok && sql.Query != nil {
-		//	g.P("func ", service.GoName, "_", mth.GoName, "Query(ctx ", contextCall("Context"), ", db *", sqlxCall("DB"), ",  arg *", g.QualifiedGoIdent(mth.Input.GoIdent), ")([]", mth.Output.GoIdent, ", error){")
-		//	g.P(`var rows, err = db.NamedQueryContext(ctx,"`, *sql.Exec, `",arg)`)
-		//	g.P("if err!=nil{return nil, err}")
-		//	g.P("")
-		//	g.P("var resp []", mth.Output.GoIdent)
-		//	g.P("return resp,sqlx.StructScan(rows, &resp)")
-		//	g.P("}")
-		//}
-	}
 }
 
 func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
@@ -151,17 +112,26 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	// grpc
 	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
 	if !isDefault {
+		g.QualifiedGoIdent(contextCall(""))
+		g.QualifiedGoIdent(grpcCall(""))
+		g.QualifiedGoIdent(runtimeCall(""))
+		g.P(protoutil.Template(`
+var register{{name}}GrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+	return Register{{name}}HandlerClient(ctx, mux, New{{name}}Client(conn))
+}
+`, protoutil.Context{"name": service.GoName}))
+
 		// grpc gw
-		g.P(xgenCall("Add"), "(Register", service.GoName, "Handler ,nil)")
+		g.P(xgenCall("Add"), "(register", service.GoName, "GrpcClient ,nil)")
 	}
 
 	//if genRest {
 	//	g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
 	//}
 
-	if genGin {
-		g.P(xgenCall("Add"), "(Register", service.GoName, "GinServer, nil)")
-	}
+	//if genGin {
+	//	g.P(xgenCall("Add"), "(Register", service.GoName, "GinServer, nil)")
+	//}
 
 	g.P("}")
 }
@@ -176,87 +146,4 @@ func protocVersion(gen *protogen.Plugin) string {
 		suffix = "-" + s
 	}
 	return fmt.Sprintf("v%d.%d.%d%s", v.GetMajor(), v.GetMinor(), v.GetPatch(), suffix)
-}
-
-//func genRestRouter(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-//	if !genRest {
-//		return
-//	}
-//
-//	g.P(`func Register`, service.GoName, `RestServer(app `, fiberCall("Router"), `, server `, service.GoName, `Server) {`)
-//	g.P(xerrorCall("Assert"), `(app == nil || server == nil, "app or server is nil")`)
-//	for _, m := range service.Methods {
-//		if m.Desc.IsStreamingClient() || m.Desc.IsStreamingServer() {
-//			continue
-//		}
-//
-//		hr, err := protoutil.ExtractAPIOptions(m.Desc)
-//		if err != nil || hr == nil {
-//			hr = protoutil.DefaultAPIOptions(string(file.GoPackageName), service.GoName, m.GoName)
-//		}
-//		method, path := protoutil.ExtractHttpMethod(hr)
-//		method = strings.ToUpper(method)
-//
-//		g.P(`app.Add("`, method, `","`, path, `", func(ctx *`, fiberCall("Ctx"), `) error {`)
-//		g.P(`var req = new(`, g.QualifiedGoIdent(m.Input.GoIdent), `)`)
-//		if method == http.MethodGet {
-//			g.P(`data := make(map[string][]string)`)
-//			g.P(`ctx.Context().QueryArgs().VisitAll(func(key []byte, val []byte) {`)
-//			g.P(`	k := `, byteutilCall("ToStr"), `(key)`)
-//			g.P(`	v := `, byteutilCall("ToStr"), `(val)`)
-//			g.P(`	data[k] = append(data[k], v)`)
-//			//g.P(`	if `, stringsCall("Contains"), `(v, ",") && `, bindingCall("EqualFieldType"), `(req, `, reflectCall("Slice"), `, k) {`)
-//			//g.P(`		values := `, stringsCall("Split"), `(v, ",")`)
-//			//g.P(`		for i := 0; i < len(values); i++ {`)
-//			//g.P(`			data[k] = append(data[k], values[i])`)
-//			//g.P(`		}`)
-//			//g.P(`	} else {`)
-//
-//			//g.P(`	}`)
-//			g.P(`})`)
-//			g.P(`xerror.Panic(`, bindingCall("MapFormByTag"), `(req, data, "json"))`)
-//		} else {
-//			g.P(`xerror.Panic(ctx.BodyParser(req))`)
-//		}
-//		g.P(`var resp,err=server.`, m.GoName, `(ctx.UserContext(),req)`)
-//		g.P(`xerror.Panic(err)`)
-//		g.P(`return xerror.Wrap(ctx.JSON(resp))`)
-//		g.P(`})`)
-//	}
-//	g.P(`}`)
-//}
-
-func genGinRouter(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	if !genGin {
-		return
-	}
-
-	g.P(`func Register`, service.GoName, `GinServer(r `, ginCall("IRouter"), `, server `, service.GoName, `Server) {`)
-	g.P(xerrorCall("Assert"), `(r == nil || server == nil, "router or server is nil")`)
-	for _, m := range service.Methods {
-		// 过滤掉stream
-		if m.Desc.IsStreamingClient() || m.Desc.IsStreamingServer() {
-			continue
-		}
-
-		hr, err := protoutil.ExtractAPIOptions(m.Desc)
-		if err != nil || hr == nil {
-			hr = protoutil.DefaultAPIOptions(string(file.GoPackageName), service.GoName, m.GoName)
-		}
-		method, path := protoutil.ExtractHttpMethod(hr)
-		method = strings.ToUpper(method)
-
-		g.P(`r.Handle("`, method, `","`, path, `", func(ctx *`, ginCall("Context"), `) {`)
-		g.P(`var req = new(`, g.QualifiedGoIdent(m.Input.GoIdent), `)`)
-		if method == http.MethodGet {
-			g.P(`xerror.Panic(`, bindingCall("MapFormByTag"), `(req, ctx.Request.URL.Query(), "json"))`)
-		} else {
-			g.P(`xerror.Panic(ctx.ShouldBindJSON(req))`)
-		}
-		g.P(`var resp,err=server.`, m.GoName, `(ctx,req)`)
-		g.P(`xerror.Panic(err)`)
-		g.P(`ctx.JSON(200,resp)`)
-		g.P(`})`)
-	}
-	g.P(`}`)
 }

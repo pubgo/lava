@@ -16,9 +16,10 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(p plugin.Process) {
+			//TODO hook
 			id, err := machineid.ID()
 			xerror.Panic(err)
-			logs.Infof("machineid=>%s", id)
+			logs.Infow("machineid", "value", id)
 		},
 	})
 }

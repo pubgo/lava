@@ -2,8 +2,12 @@ package lava
 
 // 加载插件
 import (
+	// 加载version插件
+	_ "github.com/pubgo/lava/version"
+
 	// 加载debug插件
 	_ "github.com/pubgo/lava/internal/plugins/debug"
+
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 
@@ -25,7 +29,7 @@ import (
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
-	// machineid 获取机器ID
+	// machineID 获取机器ID
 	_ "github.com/pubgo/lava/internal/plugins/machineid"
 )
 

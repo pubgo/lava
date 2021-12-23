@@ -1,6 +1,8 @@
 package metric
 
 import (
+	"context"
+
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
@@ -11,6 +13,8 @@ import (
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
+
+var g = tally.NoopScope
 
 func init() {
 	plugin.Register(&plugin.Base{
@@ -32,9 +36,18 @@ func init() {
 			xerror.Exit(fc(config.GetMap(Name), &opts))
 
 			scope, closer := tally.NewRootScope(opts, cfg.Interval)
+			g = scope
 
 			// 资源更新
 			resource.Update("", &Resource{Scope: scope, Closer: closer})
+		},
+		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
+			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+
+				ctx = ctxWith(ctx, g)
+
+				return next(ctx, req, resp)
+			}
 		},
 		OnVars: func(v types.Vars) {
 			v.Do(Name+"_factory", func() interface{} {

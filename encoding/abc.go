@@ -11,7 +11,8 @@ type Codec interface {
 	Unmarshal(data []byte, v interface{}) error
 }
 
-func GetCdc(ct string) Codec {
+// GetWithCT get codec with content type
+func GetWithCT(ct string) Codec {
 	return Get(cdcMapping[ct])
 }
 

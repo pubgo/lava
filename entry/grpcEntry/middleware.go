@@ -72,7 +72,7 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
+		var cdc = encoding.GetWithCT(ct)
 		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
 
 		err = unaryWrapper(ctx,
@@ -143,7 +143,7 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
+		var cdc = encoding.GetWithCT(ct)
 		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
 
 		return streamWrapper(ctx,

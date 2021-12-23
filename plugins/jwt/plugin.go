@@ -17,10 +17,10 @@ func init() {
 		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
 			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 				v := req.Header().Get("Authorization")
-				if v == "" {
+				if v[0] == "" {
 					return ErrNoHeader
 				}
-				s := strings.Split(v, " ")
+				s := strings.Split(v[0], " ")
 				if len(s) != 2 {
 					return ErrNoHeader
 				}

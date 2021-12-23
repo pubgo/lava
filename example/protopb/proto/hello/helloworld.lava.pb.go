@@ -7,11 +7,10 @@
 package hello
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -37,16 +36,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterGreeterServer, mthList)
-	xgen.Add(RegisterGreeterHandler, nil)
-	xgen.Add(RegisterGreeterGinServer, nil)
-}
-func RegisterGreeterGinServer(r gin.IRouter, server GreeterServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/say/{name}", func(ctx *gin.Context) {
-		var req = new(HelloRequest)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.SayHello(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerGreeterGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterGreeterHandlerClient(ctx, mux, NewGreeterClient(conn))
+	}
+	xgen.Add(registerGreeterGrpcClient, nil)
 }

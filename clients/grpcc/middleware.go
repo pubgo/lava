@@ -2,15 +2,13 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/encoding"
-	"github.com/pubgo/lava/pkg/lavax"
 	"time"
 
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/types"
 )
 
@@ -63,13 +61,9 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
-		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-
 		return unaryWrapper(ctx,
 			&request{
 				ct:      ct,
-				cdc:     cdc,
 				header:  md,
 				service: serviceFromMethod(method),
 				opts:    opts,
@@ -135,13 +129,9 @@ func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientIntercep
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
-		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-
 		return nil, wrapperStream(ctx,
 			&request{
 				ct:       ct,
-				cdc:      cdc,
 				service:  serviceFromMethod(method),
 				header:   md,
 				opts:     opts,

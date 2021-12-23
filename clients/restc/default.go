@@ -15,8 +15,8 @@ func Get(ctx context.Context, url string, requests ...func(req *Request)) (*Resp
 	return defaultClient.Get(ctx, url, requests...)
 }
 
-func Delete(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {
-	return defaultClient.Delete(ctx, url, data, requests...)
+func Delete(ctx context.Context, url string, requests ...func(req *Request)) (*Response, error) {
+	return defaultClient.Delete(ctx, url, requests...)
 }
 
 func Post(ctx context.Context, url string, data interface{}, requests ...func(req *Request)) (*Response, error) {

@@ -4,20 +4,24 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/url"
 
 	"github.com/goccy/go-json"
+	"github.com/pubgo/x/strutil"
 	"github.com/valyala/bytebufferpool"
 )
 
 func getBodyReader(rawBody interface{}) ([]byte, error) {
 	switch body := rawBody.(type) {
-	// If a regular byte slice, we can read it over and over via new
-	// readers
+	case nil:
+		return nil, nil
+
 	case []byte:
 		return body, nil
 
-	// If a bytes.Buffer we can read the underlying byte slice over and
-	// over
+	case string:
+		return strutil.ToBytes(body), nil
+
 	case *bytes.Buffer:
 		return body.Bytes(), nil
 
@@ -51,6 +55,12 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 			return nil, err
 		}
 		return buf, nil
+
+	case url.Values:
+		return strutil.ToBytes(body.Encode()), nil
+
+	case json.Marshaler:
+		return body.MarshalJSON()
 
 	default:
 		bb := bytebufferpool.Get()

@@ -7,10 +7,10 @@
 package login
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -80,44 +80,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterCodeServer, mthList)
-	xgen.Add(RegisterCodeHandler, nil)
-	xgen.Add(RegisterCodeGinServer, nil)
-}
-func RegisterCodeGinServer(r gin.IRouter, server CodeServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/user/code/send-code", func(ctx *gin.Context) {
-		var req = new(SendCodeRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.SendCode(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/code/verify", func(ctx *gin.Context) {
-		var req = new(VerifyRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Verify(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/code/is-check-image-code", func(ctx *gin.Context) {
-		var req = new(IsCheckImageCodeRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.IsCheckImageCode(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/code/verify-image-code", func(ctx *gin.Context) {
-		var req = new(VerifyImageCodeRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.VerifyImageCode(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/code/get-send-status", func(ctx *gin.Context) {
-		var req = new(GetSendStatusRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.GetSendStatus(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerCodeGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterCodeHandlerClient(ctx, mux, NewCodeClient(conn))
+	}
+	xgen.Add(registerCodeGrpcClient, nil)
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/internal/plugins/version"
 	"github.com/pubgo/lava/mux"
-	"github.com/pubgo/lava/version"
 )
 
 func init() {

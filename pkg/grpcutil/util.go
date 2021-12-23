@@ -2,6 +2,7 @@ package grpcutil
 
 import (
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/admin"
 	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -21,4 +22,8 @@ func EnableReflection(s *grpc.Server) {
 func EnableDebug(s *grpc.Server) {
 	grpc.EnableTracing = true
 	service.RegisterChannelzServiceToServer(s)
+}
+
+func EnableAdmin(s grpc.ServiceRegistrar) (cleanup func(), _ error) {
+	return admin.Register(s)
 }

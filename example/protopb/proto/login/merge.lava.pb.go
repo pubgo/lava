@@ -7,10 +7,10 @@
 package login
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -80,44 +80,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterMergeServer, mthList)
-	xgen.Add(RegisterMergeHandler, nil)
-	xgen.Add(RegisterMergeGinServer, nil)
-}
-func RegisterMergeGinServer(r gin.IRouter, server MergeServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/user/merge/telephone", func(ctx *gin.Context) {
-		var req = new(TelephoneRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Telephone(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/merge/telephone-check", func(ctx *gin.Context) {
-		var req = new(TelephoneRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.TelephoneCheck(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/merge/we-chat", func(ctx *gin.Context) {
-		var req = new(WeChatRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.WeChat(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/merge/we-chat-check", func(ctx *gin.Context) {
-		var req = new(WeChatRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.WeChatCheck(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/merge/we-chat-un-merge", func(ctx *gin.Context) {
-		var req = new(WeChatUnMergeRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.WeChatUnMerge(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerMergeGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterMergeHandlerClient(ctx, mux, NewMergeClient(conn))
+	}
+	xgen.Add(registerMergeGrpcClient, nil)
 }

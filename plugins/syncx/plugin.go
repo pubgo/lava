@@ -14,9 +14,13 @@ import (
 
 const Name = "syncx"
 
-var maxConcurrent int64 = 100000
-var curConcurrent atomic.Int64
 var logs = logz.Component(Name)
+
+// 最大goroutine数量
+var maxConcurrent int64 = 100000
+
+// 当前goroutine数量
+var curConcurrent atomic.Int64
 
 // SetMaxConcurrent 设置最大并发数
 func SetMaxConcurrent(concurrent int64) {
@@ -26,7 +30,7 @@ func SetMaxConcurrent(concurrent int64) {
 
 	maxConcurrent = concurrent
 
-	logs.Infof("set maxConcurrent=>%d", maxConcurrent)
+	logs.Infow("set maxConcurrent", "vale", maxConcurrent)
 }
 
 func init() {
@@ -43,9 +47,7 @@ func init() {
 				},
 			}
 		},
-		OnInit: func(p plugin.Process) {
-			SetMaxConcurrent(maxConcurrent)
-		},
+		OnInit: func(p plugin.Process) { SetMaxConcurrent(maxConcurrent) },
 		OnVars: func(v types.Vars) {
 			v.Do(Name, func() interface{} {
 				return types.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent.Load()}

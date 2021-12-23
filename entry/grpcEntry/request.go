@@ -22,14 +22,15 @@ type rpcRequest struct {
 	payload       interface{}
 }
 
-func (r *rpcRequest) Codec() encoding.Codec { return r.cdc }
-func (r *rpcRequest) Kind() string          { return Name }
-func (r *rpcRequest) Client() bool          { return false }
-func (r *rpcRequest) Header() types.Header  { return r.header }
-func (r *rpcRequest) Payload() interface{}  { return r.payload }
-func (r *rpcRequest) Read() ([]byte, error) { return r.cdc.Marshal(r.payload) }
-func (r *rpcRequest) ContentType() string   { return r.contentType }
-func (r *rpcRequest) Service() string       { return r.service }
-func (r *rpcRequest) Method() string        { return r.method }
-func (r *rpcRequest) Endpoint() string      { return r.method }
-func (r *rpcRequest) Stream() bool          { return r.stream != nil }
+func (r *rpcRequest) Operation() string {
+	return r.method
+}
+
+func (r *rpcRequest) Kind() string         { return Name }
+func (r *rpcRequest) Client() bool         { return false }
+func (r *rpcRequest) Header() types.Header { return r.header }
+func (r *rpcRequest) Payload() interface{} { return r.payload }
+func (r *rpcRequest) ContentType() string  { return r.contentType }
+func (r *rpcRequest) Service() string      { return r.service }
+func (r *rpcRequest) Endpoint() string     { return r.method }
+func (r *rpcRequest) Stream() bool         { return r.stream != nil }

@@ -11,6 +11,7 @@ import (
 
 type Entry interface {
 	entry.Entry
+	grpc.ServiceRegistrar
 	Register(handler entry.InitHandler)
 	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
 	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)

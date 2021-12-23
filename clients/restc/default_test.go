@@ -11,10 +11,10 @@ import (
 
 func TestName(t *testing.T) {
 	defer xerror.RespTest(t)
-	var resp, err = Get(nil, "http://baidu.com")
+	var resp, err = Get(nil, "http://baidu.com", func(req *Request) {})
 	xerror.Panic(err)
-	xerror.Assert(resp.StatusCode != http.StatusOK, "code error")
-	dt, err := ioutil.ReadAll(resp.Body)
+	xerror.Assert(resp.Response().StatusCode != http.StatusOK, "code error")
+	dt, err := ioutil.ReadAll(resp.Response().Body)
 	xerror.Panic(err)
 	t.Log(string(dt))
 }

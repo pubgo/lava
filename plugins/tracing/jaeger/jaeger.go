@@ -45,7 +45,7 @@ func New(cfg *Cfg) error {
 	if cfg.Sampler != nil {
 		cfg.Sampler = &config.SamplerConfig{
 			Type:  jaeger.SamplerTypeProbabilistic,
-			Param: 0.01,
+			Param: 1,
 		}
 	}
 

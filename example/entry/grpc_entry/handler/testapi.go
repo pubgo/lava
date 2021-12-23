@@ -87,8 +87,6 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		log.Infow("dix config ok", "cfg", config.GetCfg().ConfigPath())
 	}
 
-
-
 	out = &hello.TestApiOutput{
 		Msg: in.Input,
 	}

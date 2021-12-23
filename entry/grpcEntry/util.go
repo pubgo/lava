@@ -156,7 +156,7 @@ func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	return endpoints
 }
 
-func registerGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, handler interface{}) (err error) {
+func registerGw(ctx context.Context, mux *gw.ServeMux, conn grpc.ClientConnInterface, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(conn == nil, "[conn] should not be nil")
@@ -164,12 +164,12 @@ func registerGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, ha
 	xerror.Assert(ctx == nil, "[ctx] should not be nil")
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 
-	for v, _ := range xgen.List() {
+	for v := range xgen.List() {
 		if v.Type().Kind() != reflect.Func {
 			continue
 		}
 
-		var ff, ok = v.Interface().(func(context.Context, *gw.ServeMux, *grpc.ClientConn) error)
+		var ff, ok = v.Interface().(func(context.Context, *gw.ServeMux, grpc.ClientConnInterface) error)
 		if !ok {
 			continue
 		}
@@ -179,7 +179,7 @@ func registerGw(ctx context.Context, mux *gw.ServeMux, conn *grpc.ClientConn, ha
 	return nil
 }
 
-func registerGrpc(server *grpc.Server, handler interface{}) error {
+func registerGrpc(server grpc.ServiceRegistrar, handler interface{}) error {
 	xerror.Assert(server == nil, "[server] should not be nil")
 
 	var v = findGrpcHandle(handler)
@@ -238,4 +238,12 @@ func getPeerIP(md metadata.MD, ctx context.Context) string {
 		return addSlice[0]
 	}
 	return ""
+}
+
+func ignoreMuxError(err error) bool {
+	if err == nil {
+		return true
+	}
+	return strings.Contains(err.Error(), "use of closed network connection") ||
+		strings.Contains(err.Error(), "mux: server closed")
 }

@@ -3,13 +3,13 @@ package ginEntry
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/encoding"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/types"
 )
@@ -31,7 +31,7 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 
 	return func(c *gin.Context) {
 		var ct = c.ContentType()
-		var cdc = encoding.GetCdc(ct)
+		var cdc = encoding.GetWithCT(ct)
 		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
 
 		var data []byte

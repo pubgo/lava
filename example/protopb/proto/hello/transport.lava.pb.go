@@ -7,11 +7,8 @@
 package hello
 
 import (
-	gin "github.com/gin-gonic/gin"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -70,15 +67,4 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTransportServer, mthList)
-	xgen.Add(RegisterTransportGinServer, nil)
-}
-func RegisterTransportGinServer(r gin.IRouter, server TransportServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/v1/Transport/TestStream3", func(ctx *gin.Context) {
-		var req = new(Message)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.TestStream3(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
 }

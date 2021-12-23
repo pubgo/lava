@@ -32,7 +32,7 @@ func (t *WaitGroup) check() {
 	if t.Count() >= t.Concurrent {
 		runtime.Gosched()
 
-		// 百分之一的采样率, 打印log
+		// 采样率(%1), 打印log
 		if fastrand.Sampling(0.01) {
 			logs.Warnf("WaitGroup current(%d) concurrent number exceeds the maximum(%d) concurrent number of the system", t.Count(), t.Concurrent)
 		}

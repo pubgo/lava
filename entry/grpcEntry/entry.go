@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/google/uuid"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
@@ -20,13 +22,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 
-	grpcGw "github.com/pubgo/lava/builder/grpc-gw"
-	"github.com/pubgo/lava/builder/grpcs"
-	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
 	encoding3 "github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
+	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
+	grpcs2 "github.com/pubgo/lava/entry/grpcEntry/grpcs"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/env"
@@ -41,15 +42,16 @@ import (
 func New(name string) Entry { return newEntry(name) }
 func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
-		Entry: base.New(name),
-		srv:   grpcs.New(name),
-		gw:    grpcGw.New(name),
+		Entry:  base.New(name),
+		srv:    grpcs2.New(name),
+		gw:     grpc_gw.New(name),
+		inproc: &inprocgrpc.Channel{},
 		cfg: Cfg{
 			name:                 name,
 			hostname:             env.Hostname,
 			id:                   uuid.New().String(),
-			Grpc:                 grpcs.GetDefaultCfg(),
-			Gw:                   grpcGw.DefaultCfg(),
+			Grpc:                 grpcs2.GetDefaultCfg(),
+			Gw:                   grpc_gw.DefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
 			SleepAfterDeRegister: time.Second * 2,
@@ -81,6 +83,14 @@ func newEntry(name string) *grpcEntry {
 		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
 		g.srv.StreamInterceptor(g.streamServerInterceptors...)
 
+		// 内部middleware加载
+		g.inproc.WithServerUnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			append([]grpc.UnaryServerInterceptor{g.handlerUnaryMiddle(g.Options().Middlewares)}, g.unaryServerInterceptors...)...,
+		))
+		g.inproc.WithServerStreamInterceptor(grpc_middleware.ChainStreamServer(
+			append([]grpc.StreamServerInterceptor{g.handlerStreamMiddle(g.Options().Middlewares)}, g.streamServerInterceptors...)...,
+		))
+
 		// grpc serve初始化
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
 
@@ -88,7 +98,13 @@ func newEntry(name string) *grpcEntry {
 		for _, srv := range g.Options().Handlers {
 			// GRPC注册
 			logs.LogAndThrow("Handler Register", func() error {
-				return registerGrpc(g.srv.Get(), srv)
+				// 注册handle, 同时注册到grpc和inproc
+				return registerGrpc(g, srv)
+			})
+
+			// Gateway注册
+			logs.LogAndThrow("grpc gateway register handler", func() error {
+				return registerGw(context.Background(), g.gw.Get(), g.inproc, srv)
 			})
 
 			// Handler依赖注入
@@ -119,8 +135,11 @@ type grpcEntry struct {
 	*base.Entry
 	cfg Cfg
 	mux cmux.CMux
-	srv grpcs.Builder
-	gw  grpcGw.Builder
+	srv grpcs2.Builder
+	gw  grpc_gw.Builder
+
+	// inproc Channel is used to serve grpc gateway
+	inproc *inprocgrpc.Channel
 
 	registry    registry.Registry
 	registered  atomic.Bool
@@ -133,6 +152,11 @@ type grpcEntry struct {
 
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
+}
+
+func (g *grpcEntry) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
+	g.srv.Get().RegisterService(desc, impl)
+	g.inproc.RegisterService(desc, impl)
 }
 
 func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
@@ -372,17 +396,6 @@ func (g *grpcEntry) Start() (gErr error) {
 			return nil
 		})
 	})
-
-	// 启动本地grpc客户端
-	logs.Info("[grpc] Client Connecting")
-	conn, err := grpcc.NewDirect(runenv.Addr)
-	xerror.Panic(err)
-	xerror.Panic(grpcc.HealthCheck(g.cfg.name, conn))
-	for _, h := range g.Options().Handlers {
-		logs.LogAndThrow("grpc gateway register handler", func() error {
-			return registerGw(context.Background(), g.gw.Get(), conn, h)
-		})
-	}
 
 	// register self
 	logs.LogAndThrow("[grpc] try to register self", g.register)

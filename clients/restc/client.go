@@ -3,16 +3,17 @@ package restc
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/runenv"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/pubgo/lava/encoding"
-	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/httpx"
+	"github.com/pubgo/lava/types"
 )
 
 const (
@@ -25,10 +26,9 @@ var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	client      *http.Client
-	cfg         Cfg
-	do          types.MiddleNext
-	clientTrace *clientTrace
+	client *http.Client
+	cfg    Cfg
+	do     types.MiddleNext
 }
 
 func (c *clientImpl) RoundTripper(f func(transport http.RoundTripper) http.RoundTripper) error {
@@ -45,20 +45,20 @@ func (c *clientImpl) RoundTripper(f func(transport http.RoundTripper) http.Round
 	return nil
 }
 
-func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *Request)) (*http.Response, error) {
+func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error) {
 	return doRequest(ctx, c, http.MethodHead, url, nil, opts...)
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err error) {
-	return resp, c.do(ctx, req, func(res types.Response) error { resp = res.(*response).resp; return nil })
+	return resp, c.do(ctx, req, func(res types.Response) error { resp = res.(*Response); return nil })
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error) {
 	return doRequest(ctx, c, http.MethodGet, url, nil, opts...)
 }
 
-func (c *clientImpl) Delete(ctx context.Context, url string, data interface{}, opts ...func(req *Request)) (*Response, error) {
-	return doRequest(ctx, c, http.MethodDelete, url, data, opts...)
+func (c *clientImpl) Delete(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error) {
+	return doRequest(ctx, c, http.MethodDelete, url, nil, opts...)
 }
 
 func (c *clientImpl) Post(ctx context.Context, url string, data interface{}, opts ...func(req *Request)) (*Response, error) {
@@ -89,7 +89,7 @@ func (c *clientImpl) Patch(ctx context.Context, url string, data interface{}, op
 
 // doRequest data:[bytes|string|map|struct]
 func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data interface{}, opts ...func(req *Request)) (*Response, error) {
-	rf, err := getBodyReader(data)
+	reader, err := getBodyReader(data)
 	if err != nil {
 		return nil, err
 	}
@@ -98,31 +98,29 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 		ctx = context.Background()
 	}
 
-	var request = &Request{}
-
-	// Enable trace
-	if c.cfg.Trace {
-		request.clientTrace = &clientTrace{}
-		ctx = request.clientTrace.createContext(ctx)
+	var body io.Reader
+	if reader != nil {
+		body = bytes.NewReader(reader)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, mth, url, bytes.NewReader(rf))
+	req, err := http.NewRequestWithContext(ctx, mth, url, body)
 	if err != nil {
 		return nil, xerror.Wrap(err, mth, url)
 	}
 	req.Header.Set(httpx.HeaderContentType, defaultContentType)
 
+	var request = &Request{service: runenv.Project}
 	request.req = req
+	request.ct = filterFlags(req.Header.Get(httpx.HeaderContentType))
+	request.data = reader
 	if len(opts) > 0 {
 		opts[0](request)
 	}
 
-	var ct = filterFlags(req.Header.Get(httpx.HeaderContentType))
-	var cdc = encoding.GetCdc(ct)
-	xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-	request.ct = ct
-	request.cdc = cdc
-	request.data = rf
+	// Enable trace
+	if c.cfg.Trace {
+		ctx = (&clientTrace{}).createContext(ctx)
+	}
 
 	resp, err := c.Do(ctx, request)
 	if err != nil {
