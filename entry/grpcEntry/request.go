@@ -3,7 +3,6 @@ package grpcEntry
 import (
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -16,14 +15,10 @@ type rpcRequest struct {
 	srv           interface{}
 	service       string
 	method        string
+	url           string
 	contentType   string
-	cdc           encoding.Codec
 	header        types.Header
 	payload       interface{}
-}
-
-func (r *rpcRequest) Operation() string {
-	return r.method
 }
 
 func (r *rpcRequest) Kind() string         { return Name }
@@ -32,5 +27,6 @@ func (r *rpcRequest) Header() types.Header { return r.header }
 func (r *rpcRequest) Payload() interface{} { return r.payload }
 func (r *rpcRequest) ContentType() string  { return r.contentType }
 func (r *rpcRequest) Service() string      { return r.service }
-func (r *rpcRequest) Endpoint() string     { return r.method }
+func (r *rpcRequest) Operation() string    { return r.method }
+func (r *rpcRequest) Endpoint() string     { return r.url }
 func (r *rpcRequest) Stream() bool         { return r.stream != nil }

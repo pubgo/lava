@@ -48,7 +48,12 @@ func (h *testapiHandler) Init() {
 	xerror.Panic(h.Db.AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
 	xerror.Panic(h.Db.Create(&user).Error)
+
 	q.Q(user)
+
+	//buf := &bytes.Buffer{}
+	//memviz.Map(buf, &user)
+	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
 	h.Cron.Every("test grpc client", time.Second*2, func(name string) {
 		zap.L().Debug("客户端访问")

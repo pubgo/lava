@@ -21,6 +21,7 @@ var defaultWebOptions = []grpcweb.Option{
 	}),
 }
 
+// grpcWeb 暂时不上生产
 func (g *grpcEntry) grpcWeb(opts ...grpcweb.Option) error {
 	if !g.cfg.GrpcWeb {
 		return nil

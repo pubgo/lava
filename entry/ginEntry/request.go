@@ -3,7 +3,6 @@ package ginEntry
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -13,7 +12,6 @@ type httpRequest struct {
 	data        []byte
 	ctx         *gin.Context
 	contentType string
-	cdc         encoding.Codec
 	ct          string
 }
 

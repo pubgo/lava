@@ -31,22 +31,22 @@ func newEntry(name string) *ginEntry {
 		_ = config.Decode(Name, &ent.cfg)
 
 		// 外部配置更新到gin
-		merge.Struct(&ent.srv, ent.cfg)
+		merge.Struct(ent.srv, ent.cfg)
 
 		// 加载组件middleware
-		// lava middleware比gin Middleware的先加载
-		ent.srv.Use(ent.handlerMiddle(ent.Options().Middlewares))
+		// lava Middleware比gin Middleware的先加载
+		ent.srv.Use(handlerMiddle(ent.Options().Middlewares))
 
-		// 注册使用方middleware
+		// 注册使用者的middleware
 		ent.srv.Use(ent.middlewares...)
 
 		// 初始化router
 		for _, h := range ent.Options().Handlers {
 			// 依赖注入handler
-			// 会把tag为dix的field进行依赖注入
+			// 会把tag为dix的field进行对象注入
 			xerror.Panic(dix.Inject(h))
 
-			// register 注册handler
+			// 注册handler
 			xerror.PanicF(register(ent.srv, h), "[gin] grpc handler register error")
 
 			// 初始化router
@@ -104,16 +104,5 @@ func (t *ginEntry) Start() error {
 }
 
 func (t *ginEntry) Stop() (err error) {
-	defer xerror.RespErr(&err)
-
-	logs.Info("Server Shutdown")
-
-	//if err := t.srv.Get().Shutdown(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-	//	logs.Error("Server Shutdown Error", logger.WithErr(err))
-	//	return err
-	//}
-
-	logs.Info("Server Shutdown Ok")
-
 	return nil
 }

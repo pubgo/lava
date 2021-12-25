@@ -156,6 +156,7 @@ func newRpcHandler(handler interface{}) []*registry.Endpoint {
 	return endpoints
 }
 
+// registerGw 找到<func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error>
 func registerGw(ctx context.Context, mux *gw.ServeMux, conn grpc.ClientConnInterface, handler interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
@@ -179,6 +180,7 @@ func registerGw(ctx context.Context, mux *gw.ServeMux, conn grpc.ClientConnInter
 	return nil
 }
 
+// registerGrpc 找到<Register${Srv}Server(s grpc.ServiceRegistrar, srv ${Srv}Server)>
 func registerGrpc(server grpc.ServiceRegistrar, handler interface{}) error {
 	xerror.Assert(server == nil, "[server] should not be nil")
 

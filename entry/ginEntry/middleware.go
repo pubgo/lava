@@ -4,17 +4,15 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/types"
 )
 
-func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Context) {
+func handlerMiddle(middlewares []types.Middleware) func(c *gin.Context) {
 	var handler = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
 		var reqCtx = req.(*httpRequest)
 
@@ -30,10 +28,6 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 	}
 
 	return func(c *gin.Context) {
-		var ct = c.ContentType()
-		var cdc = encoding.GetWithCT(ct)
-		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-
 		var data []byte
 		var err error
 
@@ -47,13 +41,13 @@ func (t *ginEntry) handlerMiddle(middlewares []types.Middleware) func(c *gin.Con
 			&httpRequest{
 				data: data,
 				ctx:  c,
-				cdc:  cdc,
-				ct:   ct,
+				ct:   c.ContentType(),
 			},
 			func(_ types.Response) error { return nil })
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, errors.FromError(err))
+			var e = errors.FromError(err)
+			c.AbortWithError(e.HTTPStatus(), e)
 		}
 	}
 }

@@ -26,8 +26,23 @@ func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	var tOpts []gw.ServeMuxOption
 	tOpts = append(tOpts,
 		gw.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
-			return metadata.MD(r.URL.Query())
+			// gateway标识
+			// 传递给后端的grpc服务
+			var md = metadata.Pairs("grpc-gateway", "1")
+
+			// FullPath
+			if _url, ok := gw.HTTPPathPattern(ctx); ok {
+				md.Set("url", _url)
+			}
+
+			// FullMethod
+			if _url, ok := gw.RPCMethod(ctx); ok {
+				md.Set("operation", _url)
+			}
+
+			return md
 		}),
+
 		// header处理
 		gw.WithIncomingHeaderMatcher(func(key string) (string, bool) { return key, true }),
 		gw.WithMarshalerOption(gw.MIMEWildcard, &gw.HTTPBodyMarshaler{

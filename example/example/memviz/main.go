@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/bradleyjkemp/memviz"
+	"github.com/pubgo/xerror"
 )
 
 type tree struct {
@@ -14,6 +16,13 @@ type tree struct {
 }
 
 func main() {
+	defer xerror.Resp(func(err xerror.XErr) {
+		err.Debug()
+	})
+
+	var ss *tree
+	fmt.Println(ss.id)
+
 	root := &tree{
 		id: 0,
 		left: &tree{
