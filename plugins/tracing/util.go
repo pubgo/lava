@@ -179,3 +179,7 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 func CreateChild(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
 	return FromCtx(ctx).CreateChild(name, opts...)
 }
+
+func CreateFollows(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
+	return FromCtx(ctx).CreateFollows(name, opts...)
+}

@@ -1,6 +1,7 @@
 package runenv
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 
@@ -20,3 +21,7 @@ var (
 	Mode                   = "dev"
 	Signal       os.Signal = syscall.Signal(0)
 )
+
+func Name() string {
+	return fmt.Sprintf("%s-%s", Domain, Project)
+}

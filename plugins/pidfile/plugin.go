@@ -1,6 +1,11 @@
 package pidfile
 
 import (
+	"path/filepath"
+
+	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/xerror"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
 )
@@ -9,12 +14,13 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(p plugin.Process) {
-			var cfg Cfg
-			_ = config.Decode(Name, &cfg)
+			pidPath = filepath.Join(config.Home, "pidfile")
 
-			if cfg.PidPath != "" {
-				pidPath = cfg.PidPath
-			}
+			_ = pathutil.IsNotExistMkDir(pidPath)
+
+			p.AfterStart(func() {
+				xerror.Panic(SavePid())
+			})
 		},
 	})
 }

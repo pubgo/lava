@@ -20,6 +20,10 @@ type loggerWrapper struct {
 }
 
 func (t *loggerWrapper) WithErr(err error) Logger {
+	if err == nil {
+		return t
+	}
+
 	return &loggerWrapper{SugaredLogger: t.SugaredLogger.With(zap.String("err", err.Error()), zap.Any("err_stack", err))}
 }
 
