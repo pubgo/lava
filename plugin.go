@@ -2,8 +2,12 @@ package lava
 
 // 加载插件
 import (
+	// 加载version插件
+	_ "github.com/pubgo/lava/version"
+
 	// 加载debug插件
 	_ "github.com/pubgo/lava/internal/plugins/debug"
+
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 
@@ -14,10 +18,10 @@ import (
 	_ "github.com/pubgo/lava/plugins/registry/mdns"
 
 	// 编码加载
-	_ "github.com/pubgo/lava/pkg/encoding/json"
+	_ "github.com/pubgo/lava/encoding/json"
 
 	// 加载protobuf编码
-	_ "github.com/pubgo/lava/pkg/encoding/protobuf"
+	_ "github.com/pubgo/lava/encoding/protobuf"
 
 	// 用于系统诊断
 	_ "github.com/pubgo/lava/internal/plugins/gops"
@@ -25,7 +29,7 @@ import (
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
-	// machineid 获取机器ID
+	// machineID 获取机器ID
 	_ "github.com/pubgo/lava/internal/plugins/machineid"
 )
 
@@ -35,11 +39,8 @@ import (
 	_ "github.com/pubgo/lava/middlewares/logRecord"
 
 	// 加载trace记录拦截器
-	_ "github.com/pubgo/lava/middlewares/traceRecord"
+	//_ "github.com/pubgo/lava/middlewares/traceRecord"
 
 	// 加载timeout拦截器
 	_ "github.com/pubgo/lava/middlewares/timeout"
-
-	// 加载recovery拦截器, 最后一项, 最靠近业务handler
-	_ "github.com/pubgo/lava/middlewares/recovery"
 )

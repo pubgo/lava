@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/google/uuid"
+	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
@@ -20,16 +22,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 
-	grpcGw "github.com/pubgo/lava/builder/grpc-gw"
-	"github.com/pubgo/lava/builder/grpcs"
-	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/config"
+	encoding3 "github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
+	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
 	"github.com/pubgo/lava/logz"
-	encoding2 "github.com/pubgo/lava/pkg/encoding"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -41,15 +40,16 @@ import (
 func New(name string) Entry { return newEntry(name) }
 func newEntry(name string) *grpcEntry {
 	var g = &grpcEntry{
-		Entry: base.New(name),
-		srv:   grpcs.New(name),
-		gw:    grpcGw.New(name),
+		Entry:  base.New(name),
+		srv:    grpcs.New(name),
+		gw:     grpc_gw.New(name),
+		inproc: &inprocgrpc.Channel{},
 		cfg: Cfg{
 			name:                 name,
-			hostname:             env.Hostname,
+			hostname:             runenv.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
-			Gw:                   grpcGw.DefaultCfg(),
+			Gw:                   grpc_gw.DefaultCfg(),
 			RegisterTTL:          time.Minute,
 			RegisterInterval:     time.Second * 30,
 			SleepAfterDeRegister: time.Second * 2,
@@ -59,53 +59,75 @@ func newEntry(name string) *grpcEntry {
 	g.OnInit(func() {
 		defer xerror.RespExit()
 
-		// encoding register
-		encoding2.Each(func(_ string, cdc encoding2.Codec) {
+		// 编码注册
+		encoding3.Each(func(_ string, cdc encoding3.Codec) {
 			encoding.RegisterCodec(cdc)
 		})
 
-		// grpc_entry配置解析
+		// 配置解析
 		_ = config.Decode(Name, &g.cfg)
 
-		// 注册中心初始化
+		// 注册中心加载
 		g.registry = registry.Default()
 
 		// 网关初始化
 		xerror.Panic(g.gw.Build(g.cfg.Gw))
 
-		// 默认middleware注册
+		// 注册系统middleware
 		g.srv.UnaryInterceptor(g.handlerUnaryMiddle(g.Options().Middlewares))
 		g.srv.StreamInterceptor(g.handlerStreamMiddle(g.Options().Middlewares))
 
-		// 自定义middleware注册
+		// 注册自定义middleware
 		g.srv.UnaryInterceptor(g.unaryServerInterceptors...)
 		g.srv.StreamInterceptor(g.streamServerInterceptors...)
+
+		// 加载inproc的middleware
+		g.inproc.WithServerUnaryInterceptor(grpcMiddle.ChainUnaryServer(
+			append([]grpc.UnaryServerInterceptor{
+				g.handlerUnaryMiddle(g.Options().Middlewares)}, g.unaryServerInterceptors...)...,
+		))
+		g.inproc.WithServerStreamInterceptor(grpcMiddle.ChainStreamServer(
+			append([]grpc.StreamServerInterceptor{
+				g.handlerStreamMiddle(g.Options().Middlewares)}, g.streamServerInterceptors...)...,
+		))
 
 		// grpc serve初始化
 		xerror.Panic(g.srv.Build(g.cfg.Grpc))
 
 		// 初始化handlers
 		for _, srv := range g.Options().Handlers {
-			// GRPC注册
-			logs.LogAndThrow("Handler Register", func() error {
-				return registerGrpc(g.srv.Get(), srv)
+			// 注册grpc handler
+			logs.LogAndThrow("Grpc Handler Register", func() error {
+				// 注册handler, 同时注册到grpc和inproc
+				return registerGrpc(g, srv)
 			})
 
-			// Handler依赖注入
+			// 注册gateway handler
+			// 进程内通信, 通过inproc绑定grpc serve和client
+			logs.LogAndThrow("Gateway Handler Register ", func() error {
+				return registerGw(context.Background(), g.gw.Get(), g.inproc, srv)
+			})
+
+			// Handler对象注入
 			logs.LogAndThrow("Handler Dependency Injection",
 				func() error {
-					if err := dix.Inject(srv); err != nil {
-						q.Q(srv)
-						fmt.Println(dix.Graph())
-						return err
+					err := dix.Inject(srv)
+					if err == nil {
+						return nil
 					}
-					return nil
+
+					// 对象详情
+					q.Q(srv)
+
+					// 当前依赖注入对象graph
+					fmt.Println(dix.Graph())
+					return err
 				},
 				zap.String("handler", fmt.Sprintf("%#v", srv)),
 			)
 
 			// Handler初始化
-			logs.LogAndThrow("Handler Init", func() error { return xerror.Try(srv.Init) })
+			logs.LogAndThrow("Handler initCfg", func() error { return xerror.Try(srv.Init) })
 		}
 	})
 
@@ -120,7 +142,10 @@ type grpcEntry struct {
 	cfg Cfg
 	mux cmux.CMux
 	srv grpcs.Builder
-	gw  grpcGw.Builder
+	gw  grpc_gw.Builder
+
+	// inproc Channel is used to serve grpc gateway
+	inproc *inprocgrpc.Channel
 
 	registry    registry.Registry
 	registered  atomic.Bool
@@ -133,6 +158,12 @@ type grpcEntry struct {
 
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
+}
+
+func (g *grpcEntry) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
+	g.srv.Get().RegisterService(desc, impl)
+	// 进程内grpc serve注册
+	g.inproc.RegisterService(desc, impl)
 }
 
 func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
@@ -150,7 +181,7 @@ func (g *grpcEntry) handleError() {
 			return true
 		}
 
-		logs.WithErr(err).Error("grpcEntry mux handleError")
+		logs.WithErr(err).Error("grpcEntry cmux handleError")
 		return false
 	})
 }
@@ -216,7 +247,7 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		logs.Infow("Registering Node", logger.Id(node.Id), logger.Name(g.cfg.name))
+		logs.Infow("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
 	}
 
 	// registry options
@@ -373,19 +404,8 @@ func (g *grpcEntry) Start() (gErr error) {
 		})
 	})
 
-	// 启动本地grpc客户端
-	logs.Info("[grpc] Client Connecting")
-	conn, err := grpcc.NewDirect(runenv.Addr)
-	xerror.Panic(err)
-	xerror.Panic(grpcc.HealthCheck(g.cfg.name, conn))
-	for _, h := range g.Options().Handlers {
-		logs.LogAndThrow("grpc gateway register handler", func() error {
-			return registerGw(context.Background(), g.gw.Get(), conn, h)
-		})
-	}
-
 	// register self
-	logs.LogAndThrow("[grpc] try to register self", g.register)
+	logs.LogAndThrow("[grpc] start to register", g.register)
 
 	g.cancelRegister = syncx.GoCtx(func(ctx context.Context) {
 		if g.registry == nil {

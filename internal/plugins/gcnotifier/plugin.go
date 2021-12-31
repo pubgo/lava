@@ -24,6 +24,7 @@ func init() {
 				var gc = gcnotifier.New()
 				defer gc.Close()
 
+				// TODO hook
 				for range gc.AfterGC() {
 					logs.Infow("gc notify")
 				}

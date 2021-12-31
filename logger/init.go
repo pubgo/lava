@@ -6,15 +6,13 @@ import (
 	"github.com/pubgo/xlog/xlog_config"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runenv"
 )
 
 const name = "logger"
 
-func Init() {
+func Init(opts ...func(cfg *xlog_config.Config)) {
 	defer xerror.RespExit()
 
 	var cfg = xlog_config.NewProdConfig()
@@ -23,24 +21,30 @@ func Init() {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	_ = config.Decode(name, &cfg)
 	cfg.Level = runenv.Level
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
+	if len(opts) > 0 && opts[0] != nil {
+		opts[0](&cfg)
+	}
+
 	// 全局log设置
 	var log = cfg.Build(runenv.Project)
-	if env.Namespace != "" {
-		log = log.With(zap.String("env", env.Namespace))
+	if runenv.Namespace != "" {
+		log = log.With(zap.String("env", runenv.Namespace))
 	}
 	log = log.With(zap.String("project", runenv.Project))
 
 	// 业务日志
-	globalLog = log.Named(runenv.Project).With(zap.Namespace("fields"))
+	appLog := log.Named(runenv.Project).With(zap.Namespace("fields"))
+
+	globalLog = appLog.Named(runenv.Project).With(zap.Namespace("fields")).Sugar()
+	globalNext = globalLog.Desugar().WithOptions(zap.AddCallerSkip(1)).Sugar()
 
 	// 全局替换
-	zap.ReplaceGlobals(globalLog)
+	zap.ReplaceGlobals(appLog)
 
 	// 依赖注入
-	xerror.Exit(dix.Provider(globalLog))
+	xerror.Exit(dix.Provider(appLog))
 	xerror.Exit(dix.ProviderNs("lava", log))
 }

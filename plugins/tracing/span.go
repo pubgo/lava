@@ -1,6 +1,7 @@
 package tracing
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
@@ -8,6 +9,14 @@ import (
 )
 
 func NewSpan(sp opentracing.Span) *Span {
+	if sp == nil {
+		panic("opentracing.Span is nil")
+	}
+
+	if _sp, ok := sp.(*Span); ok {
+		return _sp
+	}
+
 	return &Span{Span: sp}
 }
 
@@ -33,6 +42,10 @@ func (s *Span) CreateFollows(name string, opts ...opentracing.StartSpanOption) *
 func (s *Span) SetOperationName(name string) opentracing.Span {
 	s.Span = s.Span.SetOperationName(name)
 	return s
+}
+
+func (s *Span) WithCtx(ctx context.Context) context.Context {
+	return opentracing.ContextWithSpan(ctx, s)
 }
 
 func (s *Span) SetTag(key string, value interface{}) opentracing.Span {

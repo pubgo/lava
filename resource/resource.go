@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"fmt"
 	"runtime"
 	"strings"
 
@@ -46,15 +45,17 @@ func Update(name string, srv Resource) {
 	var id = join(kind, name)
 	var oldClient, ok = sources.Load(id)
 
+	var log = logs.With(zap.String("kind", kind), zap.String("name", name))
+
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		logs.Infow("update resource", "kind", kind, "name", name)
+		log.Info("update resource")
 		oldClient.(Resource).UpdateResObj(srv)
 		return
 	}
 
 	// 资源不存在, 创建新资源
-	logs.Infow("create resource", "kind", kind, "name", name)
+	log.Info("create resource")
 
 	sources.Set(id, srv)
 
@@ -70,64 +71,10 @@ func Update(name string, srv Resource) {
 	})
 }
 
-// Get 根据类型和名字获取一个资源
-func Get(kind string, name string) Resource {
-	check(kind, name)
-	if val, ok := sources.Load(join(kind, name)); ok {
-		return val.(Resource)
-	}
-	return nil
-}
-
-// GetByKind 通过资源类型获取资源列表
-func GetByKind(kind string) map[string]Resource {
-	check(kind, "check")
-	var ss = make(map[string]Resource)
-	sources.Range(func(key, val interface{}) bool {
-		var name = key.(string)
-		if val.(Resource).Kind() == kind {
-			ss[name] = val.(Resource)
-		}
-		return true
-	})
-	return ss
-}
-
-// GetOne 根据类型获取一个资源
-func GetOne(kind string) Resource {
-	check(kind, "check")
-	var ss Resource
-	sources.Range(func(_, val interface{}) bool {
-		if val.(Resource).Kind() == kind {
-			ss = val.(Resource)
-			return false
-		}
-		return true
-	})
-	return ss
-}
-
-// GetAllKind 获取所有的资源类型
-func GetAllKind() []string {
-	var ss []string
-	var set = make(map[string]struct{})
-	sources.Range(func(_, val interface{}) bool {
-		set[val.(Resource).Kind()] = struct{}{}
-		return true
-	})
-
-	for k := range set {
-		ss = append(ss, k)
-	}
-	return ss
-}
-
 func join(names ...string) string {
 	return strings.Join(names, "-")
 }
 
 func check(kind string, name string) {
-	if kind == "" || name == "" {
-		xerror.Panic(fmt.Errorf("resource: kind and name should not be null"), "kind:", kind, "name:", name)
-	}
+	xerror.Assert(kind == "" || name == "", "resource: kind(%s) and name(%s) should not be null", kind, name)
 }

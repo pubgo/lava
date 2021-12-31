@@ -3,7 +3,6 @@ package restc
 import (
 	"crypto/tls"
 	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -15,55 +14,37 @@ import (
 )
 
 type Cfg struct {
-	Trace                         bool
-	Token                         string
-	KeepAlive                     bool
-	Timeout                       time.Duration
-	RetryCount                    uint32
-	Name                          string
-	NoDefaultUserAgentHeader      bool
-	DialDualStack                 bool
-	MaxConnsPerHost               int
-	MaxIdleConnDuration           time.Duration
-	MaxConnDuration               time.Duration
-	MaxIdemponentCallAttempts     int
-	ReadBufferSize                int
-	WriteBufferSize               int
-	ReadTimeout                   time.Duration
-	WriteTimeout                  time.Duration
-	MaxResponseBodySize           int
-	DisableHeaderNamesNormalizing bool
-	DisablePathNormalizing        bool
-	MaxConnWaitTimeout            time.Duration
-	Proxy                         bool
-	Socks5                        string
-	CertPath                      string
-	KeyPath                       string
-	Insecure                      bool
-	Header                        map[string]string
-	backoff                       retry.Backoff
-	tlsConfig                     *tls.Config
-	Middlewares                   []types.Middleware
-	BasePath                      string
+	Trace       bool
+	Token       string
+	Timeout     time.Duration
+	RetryCount  uint32
+	Proxy       bool
+	Socks5      string
+	Insecure    bool
+	Header      map[string]string
+	Middlewares []types.Middleware
+	BasePath    string
+
+	backoff   retry.Backoff
+	tlsConfig *tls.Config
 }
 
-func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
+func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	defer xerror.RespErr(&err)
 
 	for i := range opts {
-		opts[i](&t)
+		opts[i](t)
+	}
+
+	if t.Timeout != 0 {
+		t.backoff = retry.NewConstant(t.Timeout)
 	}
 
 	c := &http.Client{Transport: DefaultPooledTransport()}
 	xerror.Panic(merge.CopyStruct(c, t))
 
-	var certs []tls.Certificate
-	if t.CertPath != "" && t.KeyPath != "" {
-		_c, _err := tls.LoadX509KeyPair(t.CertPath, t.KeyPath)
-		xerror.Panic(_err)
-		certs = append(certs, _c)
-	}
-	t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
+	//var certs []tls.Certificate
+	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
 	var middlewares []types.Middleware
 
@@ -76,7 +57,7 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 		middlewares = append(middlewares, plg.Middleware())
 	}
 
-	// 最后加载业务自定义
+	// 加载业务自定义
 	middlewares = append(middlewares, t.Middlewares...)
 
 	var client = &clientImpl{client: c}
@@ -87,17 +68,10 @@ func (t Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	return client, nil
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
-		DialDualStack:       true,
-		Timeout:             defaultHTTPTimeout,
-		ReadTimeout:         defaultHTTPTimeout,
-		WriteTimeout:        defaultHTTPTimeout,
-		RetryCount:          defaultRetryCount,
-		backoff:             retry.NewNoop(),
-		MaxIdleConnDuration: 90 * time.Second,
-		MaxConnWaitTimeout:  30 * time.Second,
-		// http client缓存数量
-		MaxConnsPerHost: runtime.GOMAXPROCS(0) + 1,
+func DefaultCfg() *Cfg {
+	return &Cfg{
+		Timeout:    defaultHTTPTimeout,
+		RetryCount: defaultRetryCount,
+		backoff:    retry.NewNoop(),
 	}
 }

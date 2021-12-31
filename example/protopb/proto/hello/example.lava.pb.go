@@ -7,11 +7,10 @@
 package hello
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -82,30 +81,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterUserServiceServer, mthList)
-	xgen.Add(RegisterUserServiceHandler, nil)
-	xgen.Add(RegisterUserServiceGinServer, nil)
-}
-func RegisterUserServiceGinServer(r gin.IRouter, server UserServiceServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/api/v1/users", func(ctx *gin.Context) {
-		var req = new(User)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.AddUser(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/api/v1/users", func(ctx *gin.Context) {
-		var req = new(User)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.GetUser(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("PATCH", "/api/v1/users/{user.id}", func(ctx *gin.Context) {
-		var req = new(UpdateUserRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.UpdateUser(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerUserServiceGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
+	xgen.Add(registerUserServiceGrpcClient, nil)
 }

@@ -23,4 +23,7 @@ Content-Type: application/grpc+json
 
 
 ### TestStream2
-GET http://localhost:8900
+# uber-jaeger开启链路，{trace-id}:{span-id}:{parent-span-id}:{flags}
+GET http://localhost:8080/v1/version?input=hello111
+uber-trace-id: 123456:123456:123456:1
+trace-id: 123456:123456:123456:1

@@ -7,10 +7,10 @@
 package login
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -47,23 +47,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterLoginServer, mthList)
-	xgen.Add(RegisterLoginHandler, nil)
-	xgen.Add(RegisterLoginGinServer, nil)
-}
-func RegisterLoginGinServer(r gin.IRouter, server LoginServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/user/login/login", func(ctx *gin.Context) {
-		var req = new(LoginRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Login(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/login/authenticate", func(ctx *gin.Context) {
-		var req = new(AuthenticateRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Authenticate(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerLoginGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterLoginHandlerClient(ctx, mux, NewLoginClient(conn))
+	}
+	xgen.Add(registerLoginGrpcClient, nil)
 }

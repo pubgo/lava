@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Prefix 系统环境变量前缀
+var Prefix = os.Getenv(strings.ToUpper("env_prefix"))
+
 var trim = strings.TrimSpace
 
 func handleKey(key string) string {

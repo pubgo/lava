@@ -39,9 +39,7 @@ func (t Cfg) Build() (c *clientv3.Client) {
 
 	// 创建etcd client对象
 	return xerror.PanicErr(t.retry.DoVal(
-		func(i int) (interface{}, error) {
-			return clientv3.New(cfg)
-		}),
+		func(i int) (interface{}, error) { return clientv3.New(cfg) }),
 	).(*clientv3.Client)
 }
 

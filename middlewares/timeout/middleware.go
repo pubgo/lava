@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
@@ -25,6 +23,8 @@ func init() {
 				return nil
 			}
 
+			// 从header中获取超时设置
+			//	key: x-request-timeout
 			if t := types.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
 				var dur, err = time.ParseDuration(t)
 				if dur != 0 && err == nil {
@@ -47,7 +47,7 @@ func init() {
 					case error:
 						err = c
 					default:
-						err = status.Errorf(codes.Internal, "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
+						err = errors.Internal("timeout", "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
 					}
 					close(done)
 				}()
@@ -57,7 +57,7 @@ func init() {
 
 			select {
 			case <-ctx.Done():
-				return status.Error(codes.DeadlineExceeded, req.Endpoint())
+				return errors.DeadlineExceeded("timeout", req.Endpoint())
 			case <-done:
 				return err
 			}

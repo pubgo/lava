@@ -8,23 +8,18 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/runenv"
 )
 
-var pidPath = filepath.Join(os.Getenv("HOME"), "pidfile")
+const Name = "pidfile"
+
+var pidPath = filepath.Join(config.Home, "pidfile")
 
 const pidPerm os.FileMode = 0666
 
-type PidManager struct {
-	name string
-}
-
-func New(name string) *PidManager {
-	return &PidManager{name: name}
-}
-
-func (pm *PidManager) GetPid() (int, error) {
-	f, err := pm.GetPidF()
+func GetPid() (int, error) {
+	f, err := GetPidF()
 	if err != nil {
 		return 0, err
 	}
@@ -37,28 +32,17 @@ func (pm *PidManager) GetPid() (int, error) {
 	return strconv.Atoi(string(p))
 }
 
-func (pm *PidManager) GetPidF() (string, error) {
-	if !pathutil.Exist(pidPath) {
-		if err := os.MkdirAll(pidPath, pidPerm); err != nil {
-			return "", err
-		}
-	}
-
-	filename := fmt.Sprintf("%s-%s.pid", pm.GetBinName(), pm.name)
-	fullPath := filepath.Join(pidPath, filename)
-	return fullPath, nil
+func GetPidF() (string, error) {
+	filename := fmt.Sprintf("%s.pid", runenv.Name())
+	return filepath.Join(pidPath, filename), nil
 }
 
-func (pm *PidManager) SavePid() error {
-	f, err := pm.GetPidF()
+func SavePid() error {
+	f, err := GetPidF()
 	if err != nil {
 		return err
 	}
 
 	pid := syscall.Getpid()
 	return ioutil.WriteFile(f, []byte(strconv.Itoa(pid)), pidPerm)
-}
-
-func (pm *PidManager) GetBinName() string {
-	return filepath.Base(os.Args[0])
 }

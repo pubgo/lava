@@ -33,7 +33,7 @@ type TraceInfo struct {
 	// ServerTime is a duration that server took to respond first byte.
 	ServerTime time.Duration
 
-	// ResponseTime is a duration since first response byte from server to
+	// ResponseTime is a duration since first Response byte from server to
 	// request completion.
 	ResponseTime time.Duration
 

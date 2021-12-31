@@ -14,3 +14,4 @@ package main
 // https://github.com/mercari/grpc-http-proxy
 // https://github.com/mwitkow/grpc-proxy
 // https://github.com/bradleyjkemp/grpc-tools/tree/master/grpc-proxy
+// https://github.com/robberphex/grpc-in-memory pipe

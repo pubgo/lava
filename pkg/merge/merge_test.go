@@ -1,8 +1,9 @@
 package merge
 
 import (
-	"github.com/pubgo/x/q"
 	"testing"
+
+	"github.com/pubgo/x/q"
 )
 
 type dst struct {

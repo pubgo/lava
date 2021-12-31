@@ -4,13 +4,16 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 )
 
 func Component(name string) *Logger {
 	xerror.Assert(name == "", "[name] should not be null")
 	return &Logger{name: name}
 }
+
+// GetLog get zap logger with name
+func GetLog(name string) *zap.Logger { return getName(name) }
 
 type Logger struct {
 	name string
@@ -34,7 +37,7 @@ func (t *Logger) StepAndThrow(msg string, fn func() error, fields ...zap.Field) 
 		return
 	}
 
-	log.Error(msg+" error", logger.WithErr(err)...)
+	log.Error(msg+" error", logutil.WithErr(err)...)
 	panic(err)
 }
 
@@ -52,7 +55,7 @@ func (t *Logger) Step(msg string, fn func() error, fields ...zap.Field) {
 		return
 	}
 
-	log.Error(msg+" error", logger.WithErr(err)...)
+	log.Error(msg+" error", logutil.WithErr(err)...)
 }
 
 func (t *Logger) Logs(msg string, fn func() error, fields ...zap.Field) {
@@ -65,7 +68,7 @@ func (t *Logger) Logs(msg string, fn func() error, fields ...zap.Field) {
 		return
 	}
 
-	log.Error(msg, logger.WithErr(err, fields...)...)
+	log.Error(msg, logutil.WithErr(err, fields...)...)
 }
 
 func (t *Logger) LogAndThrow(msg string, fn func() error, fields ...zap.Field) {
@@ -78,7 +81,7 @@ func (t *Logger) LogAndThrow(msg string, fn func() error, fields ...zap.Field) {
 		return
 	}
 
-	log.Error(msg, logger.WithErr(err, fields...)...)
+	log.Error(msg, logutil.WithErr(err, fields...)...)
 	panic(err)
 }
 
@@ -87,7 +90,7 @@ func (t *Logger) WithErr(err error, fields ...zap.Field) *zap.Logger {
 		return discard
 	}
 
-	return t.With(logger.WithErr(err, fields...)...)
+	return t.With(logutil.WithErr(err, fields...)...)
 }
 
 func (t *Logger) Depth(depth ...int) *zap.Logger {
@@ -144,18 +147,15 @@ func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
 		return discard.Sugar()
 	}
 
-	return debugLog.Named(t.name).With(logger.WithErr(err, logger.FuncStack(fn))...).Sugar()
+	return debugLog.Named(t.name).With(logutil.WithErr(err, logutil.FuncStack(fn))...).Sugar()
 }
 
-// GetLog get zap logger with name
-func GetLog(name string) *zap.Logger { return getName(name) }
-
-func getName(name string) *zap.Logger {
+func getName(name string, opts ...zap.Option) *zap.Logger {
 	if val, ok := loggerMap.Load(name); ok {
 		return val.(*zap.Logger)
 	}
 
-	var l = debugLog.Named(name)
+	var l = debugLog.Named(name).WithOptions(opts...)
 	loggerMap.Store(name, l)
 	return l
 }

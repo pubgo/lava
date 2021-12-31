@@ -7,11 +7,10 @@
 package hello
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 )
@@ -71,39 +70,10 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiServer, mthList)
-	xgen.Add(RegisterTestApiHandler, nil)
-	xgen.Add(RegisterTestApiGinServer, nil)
-}
-func RegisterTestApiGinServer(r gin.IRouter, server TestApiServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/v1/version", func(ctx *gin.Context) {
-		var req = new(TestReq)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.Version(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v1/version1", func(ctx *gin.Context) {
-		var req = new(structpb.Value)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Version1(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/versiontest", func(ctx *gin.Context) {
-		var req = new(TestReq)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.VersionTest(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/versionTestCustom", func(ctx *gin.Context) {
-		var req = new(TestReq)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.VersionTestCustom(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerTestApiGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterTestApiHandlerClient(ctx, mux, NewTestApiClient(conn))
+	}
+	xgen.Add(registerTestApiGrpcClient, nil)
 }
 func GetTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiV2Client {
 	return &testApiV2Client{grpcc.GetClient(srv, opts...)}
@@ -133,23 +103,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterTestApiV2Server, mthList)
-	xgen.Add(RegisterTestApiV2Handler, nil)
-	xgen.Add(RegisterTestApiV2GinServer, nil)
-}
-func RegisterTestApiV2GinServer(r gin.IRouter, server TestApiV2Server) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/v2/example/version/{name}", func(ctx *gin.Context) {
-		var req = new(TestReq)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Version1(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v2/example/versiontest", func(ctx *gin.Context) {
-		var req = new(TestReq)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.VersionTest1(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerTestApiV2GrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterTestApiV2HandlerClient(ctx, mux, NewTestApiV2Client(conn))
+	}
+	xgen.Add(registerTestApiV2GrpcClient, nil)
 }

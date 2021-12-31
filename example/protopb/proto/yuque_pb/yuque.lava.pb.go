@@ -7,11 +7,10 @@
 package yuque_pb
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -60,30 +59,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterYuqueServer, mthList)
-	xgen.Add(RegisterYuqueHandler, nil)
-	xgen.Add(RegisterYuqueGinServer, nil)
-}
-func RegisterYuqueGinServer(r gin.IRouter, server YuqueServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/user", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.UserInfo(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/users/{login}", func(ctx *gin.Context) {
-		var req = new(UserInfoReq)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.UserInfoByLogin(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/groups", func(ctx *gin.Context) {
-		var req = new(CreateGroupReq)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.CreateGroup(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerYuqueGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterYuqueHandlerClient(ctx, mux, NewYuqueClient(conn))
+	}
+	xgen.Add(registerYuqueGrpcClient, nil)
 }

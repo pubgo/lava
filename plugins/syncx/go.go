@@ -3,6 +3,7 @@ package syncx
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/logger/logutil"
 	"runtime"
 	"time"
 
@@ -12,42 +13,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/fastrand"
 )
-
-func checkConcurrent(name string, fn interface{}) func() {
-	curConcurrent.Inc()
-
-	// 阻塞,等待任务执行完毕
-	for curConcurrent.Load() > maxConcurrent {
-		runtime.Gosched()
-
-		// 百分之一的采样, 打印log, 让监控获取信息
-		if fastrand.Sampling(0.01) {
-			logs.With(
-				zap.String("name", name),
-				zap.Int64("current", curConcurrent.Load()),
-				zap.Int64("maximum", maxConcurrent),
-				zap.String("fn", stack.Func(fn)),
-			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
-		}
-	}
-
-	return func() { curConcurrent.Dec() }
-}
-
-func logErr(fn interface{}, err xerror.XErr) {
-	logs.WithErr(err, zap.String("fn", stack.Func(fn))).Error(err.Error())
-}
-
-func Wait(val ...chan Value) []Value {
-	var valList = make([]Value, len(val))
-	for i := range val {
-		valList[i] = <-val[i]
-	}
-	return valList
-}
-
-// Async 通过chan的方式同步执行异步任务
-func Async(fn func() Value) chan Value { return GoChan(fn) }
 
 // GoChan 通过chan的方式同步执行异步任务
 func GoChan(fn func() Value) chan Value {
@@ -216,61 +181,28 @@ func GoTimeout(dur time.Duration, fn func()) (gErr error) {
 	}
 }
 
-func newPromise() *Promise { return &Promise{ch: make(chan interface{})} }
+// checkConcurrent 检查当前goroutine数量
+func checkConcurrent(name string, fn interface{}) func() {
+	curConcurrent.Inc()
 
-type Promise struct {
-	err error
-	ch  chan interface{}
-}
+	// 阻塞,等待任务执行完毕
+	for curConcurrent.Load() > maxConcurrent {
+		runtime.Gosched()
 
-func (t *Promise) Err() error                  { return t.err }
-func (t *Promise) close()                      { close(t.ch) }
-func (t *Promise) Unwrap() <-chan interface{}  { return t.ch }
-func (t *Promise) Await() (interface{}, error) { return <-t.ch, t.err }
-
-func Yield(fn func() (interface{}, error)) *Promise {
-	if fn == nil {
-		panic("[Yield] [fn] should not be nil")
-	}
-
-	var p = newPromise()
-	GoSafe(func() {
-		defer p.close()
-		defer xerror.RespErr(&p.err)
-		val, err := fn()
-		p.err = err
-		p.ch <- val
-	})
-
-	return p
-}
-
-func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
-	if fn == nil {
-		panic("[YieldGroup] [fn] should not be nil")
-	}
-
-	var p = &Promise{ch: make(chan interface{})}
-	var in = make(chan *Promise)
-
-	GoSafe(func() {
-		defer p.close()
-		for pp := range in {
-			for val := range pp.Unwrap() {
-				p.ch <- val
-			}
-
-			if pp.Err() != nil {
-				p.err = pp.Err()
-			}
+		// 采样率(1%), 打印log, 让监控获取信息
+		if fastrand.Sampling(0.01) {
+			logs.With(
+				zap.String("name", name),
+				zap.Int64("current", curConcurrent.Load()),
+				zap.Int64("maximum", maxConcurrent),
+				logutil.FuncStack(fn),
+			).Error("The current concurrent number exceeds the maximum concurrent number of the system")
 		}
-	})
+	}
 
-	GoSafe(func() {
-		defer close(in)
-		defer xerror.RespErr(&p.err)
-		p.err = fn(in)
-	})
+	return func() { curConcurrent.Dec() }
+}
 
-	return p
+func logErr(fn interface{}, err xerror.XErr) {
+	logs.WithErr(err, logutil.FuncStack(fn)).Error(err.Error())
 }

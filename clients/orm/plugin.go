@@ -1,11 +1,11 @@
 package orm
 
 import (
+	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"

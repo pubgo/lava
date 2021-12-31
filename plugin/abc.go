@@ -1,12 +1,15 @@
 package plugin
 
 import (
+	"encoding/json"
+
 	"github.com/pubgo/lava/types"
 )
 
 const Name = "plugin"
 
 type Plugin interface {
+	json.Marshaler
 	String() string
 	UniqueName() string
 	Flags() types.Flags

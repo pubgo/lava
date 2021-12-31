@@ -1,14 +1,13 @@
 package jaeger
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
-	"github.com/uber/jaeger-lib/metrics/prometheus"
+	"github.com/uber/jaeger-client-go/rpcmetrics"
+	"github.com/uber/jaeger-lib/metrics"
+	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
@@ -19,14 +18,6 @@ import (
 
 var _ = jaeger.NewNullReporter()
 
-const (
-	// molten兼容
-	phpRequestTraceID      = "x-w-traceid"
-	phpRequestSpanID       = "x-w-spanid"
-	phpRequestParentSpanID = "x-w-parentspanid"
-	phpRequestSampleID     = "x-w-sampled"
-)
-
 func init() {
 	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
 		var cfg = DefaultCfg()
@@ -36,7 +27,9 @@ func init() {
 	}))
 }
 
-func New(cfg *Cfg) error {
+func New(cfg *Cfg) (err error) {
+	defer xerror.RespErr(&err)
+
 	cfg.Disabled = false
 	if cfg.ServiceName == "" {
 		cfg.ServiceName = runenv.Project
@@ -45,41 +38,22 @@ func New(cfg *Cfg) error {
 	if cfg.Sampler != nil {
 		cfg.Sampler = &config.SamplerConfig{
 			Type:  jaeger.SamplerTypeProbabilistic,
-			Param: 0.01,
+			Param: 1,
 		}
 	}
 
+	metricsFactory := jprom.New().
+		Namespace(metrics.NSOptions{Name: runenv.Domain, Tags: nil}).
+		Namespace(metrics.NSOptions{Name: runenv.Project, Tags: nil})
+
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
-		config.Logger(newLog("tracing")),
-		config.Metrics(prometheus.New()),
+		config.Logger(newLog(tracing.Name)),
+		config.Metrics(metricsFactory),
+		config.Observer(rpcmetrics.NewObserver(metricsFactory, rpcmetrics.DefaultNameNormalizer)),
 	)
-	xerror.Exit(err)
+	xerror.Panic(err, "cannot initialize Jaeger Tracer")
 
 	opentracing.SetGlobalTracer(trace)
 	return nil
-}
-
-// spanFromPHPRequest 解析php-molten组件链路
-func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {
-	defer xerror.RespErr(&err)
-
-	if req == nil {
-		return span, xerror.Fmt("context is nil")
-	}
-
-	var sampleIDStr = strings.Join(req.Header.Values(phpRequestSampleID), ",")
-	var traceIDStr = strings.Join(req.Header.Values(phpRequestTraceID), ",")
-	traceID, err := jaeger.TraceIDFromString(traceIDStr)
-	xerror.Panic(err)
-
-	var spanIDStr = strings.Join(req.Header.Values(phpRequestSpanID), ",")
-	spanID, err := jaeger.SpanIDFromString(spanIDStr)
-	xerror.Panic(err)
-
-	var pSpanIDStr = strings.Join(req.Header.Values(phpRequestParentSpanID), ",")
-	pSpanID, err := jaeger.SpanIDFromString(pSpanIDStr)
-	xerror.Panic(err)
-
-	return jaeger.NewSpanContext(traceID, spanID, pSpanID, sampleIDStr == "", nil), nil
 }

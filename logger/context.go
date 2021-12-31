@@ -19,7 +19,19 @@ type loggerWrapper struct {
 	*zap.SugaredLogger
 }
 
+func (t *loggerWrapper) Depth(depth ...int) Logger {
+	if len(depth) == 0 || depth[0] == 0 {
+		return t
+	}
+
+	return &loggerWrapper{SugaredLogger: t.SugaredLogger.Desugar().WithOptions(zap.AddCallerSkip(depth[0])).Sugar()}
+}
+
 func (t *loggerWrapper) WithErr(err error) Logger {
+	if err == nil {
+		return t
+	}
+
 	return &loggerWrapper{SugaredLogger: t.SugaredLogger.With(zap.String("err", err.Error()), zap.Any("err_stack", err))}
 }
 

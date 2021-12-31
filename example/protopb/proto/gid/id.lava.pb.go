@@ -7,11 +7,10 @@
 package gid
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	binding "github.com/pubgo/lava/pkg/binding"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -51,25 +50,10 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterIdServer, mthList)
-	xgen.Add(RegisterIdHandler, nil)
-	xgen.Add(RegisterIdGinServer, nil)
-}
-func RegisterIdGinServer(r gin.IRouter, server IdServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/v1/id/generate", func(ctx *gin.Context) {
-		var req = new(GenerateRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Generate(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/id/types", func(ctx *gin.Context) {
-		var req = new(TypesRequest)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.Types(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerIdGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterIdHandlerClient(ctx, mux, NewIdClient(conn))
+	}
+	xgen.Add(registerIdGrpcClient, nil)
 }
 func GetABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) ABitOfEverythingServiceClient {
 	return &aBitOfEverythingServiceClient{grpcc.GetClient(srv, opts...)}
@@ -286,144 +270,10 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
-	xgen.Add(RegisterABitOfEverythingServiceHandler, nil)
-	xgen.Add(RegisterABitOfEverythingServiceGinServer, nil)
-}
-func RegisterABitOfEverythingServiceGinServer(r gin.IRouter, server ABitOfEverythingServiceServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Create(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v1/example/a_bit_of_everything", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.CreateBody(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v1/{parent=publishers/*}/books", func(ctx *gin.Context) {
-		var req = new(CreateBookRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.CreateBook(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("PATCH", "/v1/{book.name=publishers/*/books/*}", func(ctx *gin.Context) {
-		var req = new(UpdateBookRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.UpdateBook(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("PUT", "/v1/example/a_bit_of_everything/{uuid}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Update(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("PUT", "/v2/example/a_bit_of_everything/{abe.uuid}", func(ctx *gin.Context) {
-		var req = new(UpdateV2Request)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.UpdateV2(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/a_bit_of_everything/query/{uuid}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.GetQuery(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/a_bit_of_everything_repeated/{path_repeated_float_value}/{path_repeated_double_value}/{path_repeated_int64_value}/{path_repeated_uint64_value}/{path_repeated_int32_value}/{path_repeated_fixed64_value}/{path_repeated_fixed32_value}/{path_repeated_bool_value}/{path_repeated_string_value}/{path_repeated_bytes_value}/{path_repeated_uint32_value}/{path_repeated_enum_value}/{path_repeated_sfixed32_value}/{path_repeated_sfixed64_value}/{path_repeated_sint32_value}/{path_repeated_sint64_value}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverythingRepeated)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.GetRepeatedQuery(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v1/example/deep_path/{single_nested.name}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.DeepPathEcho(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v2/example/NoBindings", func(ctx *gin.Context) {
-		var req = new(durationpb.Duration)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.NoBindings(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v2/example/timeout", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.Timeout(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v2/example/errorwithdetails", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.ErrorWithDetails(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v2/example/withbody/{id}", func(ctx *gin.Context) {
-		var req = new(MessageWithBody)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.GetMessageWithBody(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v2/example/postwithemptybody/{name}", func(ctx *gin.Context) {
-		var req = new(Body)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.PostWithEmptyBody(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/a_bit_of_everything/params/get/{single_nested.name}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.CheckGetQueryParams(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/a_bit_of_everything/params/get/nested_enum/{single_nested.ok}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.CheckNestedEnumGetQueryParams(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/v1/example/a_bit_of_everything/params/post/{string_value}", func(ctx *gin.Context) {
-		var req = new(ABitOfEverything)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.CheckPostQueryParams(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v2/example/overwriteresponsecontenttype", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.OverwriteResponseContentType(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("GET", "/v1/example/checkStatus", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.CheckStatus(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerABitOfEverythingServiceGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterABitOfEverythingServiceHandlerClient(ctx, mux, NewABitOfEverythingServiceClient(conn))
+	}
+	xgen.Add(registerABitOfEverythingServiceGrpcClient, nil)
 }
 func GetCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) CamelCaseServiceNameClient {
 	return &camelCaseServiceNameClient{grpcc.GetClient(srv, opts...)}
@@ -442,18 +292,10 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterCamelCaseServiceNameServer, mthList)
-	xgen.Add(RegisterCamelCaseServiceNameHandler, nil)
-	xgen.Add(RegisterCamelCaseServiceNameGinServer, nil)
-}
-func RegisterCamelCaseServiceNameGinServer(r gin.IRouter, server CamelCaseServiceNameServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/v2/example/empty", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.Empty(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerCamelCaseServiceNameGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterCamelCaseServiceNameHandlerClient(ctx, mux, NewCamelCaseServiceNameClient(conn))
+	}
+	xgen.Add(registerCamelCaseServiceNameGrpcClient, nil)
 }
 func GetAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) AnotherServiceWithNoBindingsClient {
 	return &anotherServiceWithNoBindingsClient{grpcc.GetClient(srv, opts...)}
@@ -472,16 +314,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
-	xgen.Add(RegisterAnotherServiceWithNoBindingsHandler, nil)
-	xgen.Add(RegisterAnotherServiceWithNoBindingsGinServer, nil)
-}
-func RegisterAnotherServiceWithNoBindingsGinServer(r gin.IRouter, server AnotherServiceWithNoBindingsServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("GET", "/v2/another/no-bindings", func(ctx *gin.Context) {
-		var req = new(emptypb.Empty)
-		xerror.Panic(binding.MapFormByTag(req, ctx.Request.URL.Query(), "json"))
-		var resp, err = server.NoBindings(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerAnotherServiceWithNoBindingsGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterAnotherServiceWithNoBindingsHandlerClient(ctx, mux, NewAnotherServiceWithNoBindingsClient(conn))
+	}
+	xgen.Add(registerAnotherServiceWithNoBindingsGrpcClient, nil)
 }

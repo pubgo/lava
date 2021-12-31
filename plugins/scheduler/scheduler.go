@@ -18,7 +18,6 @@ var logs = logz.Component(Name)
 var _ resource.Resource = (*Scheduler)(nil)
 
 type Scheduler struct {
-	resource.Base
 	scheduler quartz.Scheduler
 	key       string
 	cron      string
@@ -26,7 +25,9 @@ type Scheduler struct {
 	once      bool
 }
 
-func (s Scheduler) Kind() string { return Name }
+func (s Scheduler) Close() error                 { return nil }
+func (s Scheduler) UpdateResObj(val interface{}) {}
+func (s Scheduler) Kind() string                 { return Name }
 
 func (s Scheduler) do(fn func(name string)) {
 	var trigger = s.getTrigger()

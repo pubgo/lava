@@ -34,6 +34,7 @@ type User struct {
 }
 
 var testApiSrv = hello.GetTestApiClient("test-grpc")
+var ll = logger.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
@@ -48,7 +49,12 @@ func (h *testapiHandler) Init() {
 	xerror.Panic(h.Db.AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
 	xerror.Panic(h.Db.Create(&user).Error)
+
 	q.Q(user)
+
+	//buf := &bytes.Buffer{}
+	//memviz.Map(buf, &user)
+	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
 	h.Cron.Every("test grpc client", time.Second*2, func(name string) {
 		zap.L().Debug("客户端访问")
@@ -72,6 +78,7 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
 	var log = logger.GetLog(ctx)
 	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
+	ll.Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
 		var user User
@@ -86,8 +93,6 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 
 		log.Infow("dix config ok", "cfg", config.GetCfg().ConfigPath())
 	}
-
-
 
 	out = &hello.TestApiOutput{
 		Msg: in.Input,

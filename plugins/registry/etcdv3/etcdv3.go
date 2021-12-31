@@ -17,10 +17,11 @@ import (
 
 	"github.com/pubgo/lava/clients/etcdv3"
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 func init() {
-	registry.Register(Name, func(m map[string]interface{}) (registry.Registry, error) {
+	registry.Register(Name, func(m types.CfgMap) (registry.Registry, error) {
 		var cfg Cfg
 		xerror.Panic(merge.MapStruct(&cfg, m))
 		return &Registry{

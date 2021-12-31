@@ -1,7 +1,7 @@
 package gossip
 
 import (
-	registry "github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/registry"
 )
 
 type gossipWatcher struct {

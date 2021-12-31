@@ -3,15 +3,16 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/consts"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/k8s"
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/types"
 )
 
 // Defines the key name of specific fields
@@ -70,7 +71,7 @@ const (
 )
 
 func init() {
-	registry.Register(name, func(m map[string]interface{}) (_ registry.Registry, err error) {
+	registry.Register(name, func(m types.CfgMap) (_ registry.Registry, err error) {
 		defer xerror.RespErr(&err)
 
 		var cfg Cfg

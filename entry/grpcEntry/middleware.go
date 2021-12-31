@@ -6,12 +6,10 @@ import (
 	"time"
 
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/pkg/encoding"
 	"github.com/pubgo/lava/types"
 )
 
@@ -72,16 +70,19 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
-		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
+		// 从gateway获取url
+		var url = info.FullMethod
+		if _url, ok := md["url"]; ok {
+			url = _url[0]
+		}
 
 		err = unaryWrapper(ctx,
 			&rpcRequest{
 				service:     serviceFromMethod(info.FullMethod),
 				method:      info.FullMethod,
+				url:         url,
 				handler:     handler,
 				contentType: ct,
-				cdc:         cdc,
 				payload:     req,
 				header:      md,
 			},
@@ -143,9 +144,6 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 			}
 		}
 
-		var cdc = encoding.GetCdc(ct)
-		xerror.Assert(cdc == nil, "contentType(%s) codec not found", ct)
-
 		return streamWrapper(ctx,
 			&rpcRequest{
 				stream:        stream,
@@ -155,7 +153,6 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 				method:        info.FullMethod,
 				service:       serviceFromMethod(info.FullMethod),
 				contentType:   ct,
-				cdc:           cdc,
 			},
 			func(_ types.Response) error { return nil },
 		)

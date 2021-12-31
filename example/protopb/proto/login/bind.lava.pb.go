@@ -7,10 +7,10 @@
 package login
 
 import (
-	gin "github.com/gin-gonic/gin"
+	context "context"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
 	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -91,51 +91,8 @@ func init() {
 		ServerStream: false,
 	})
 	xgen.Add(RegisterBindTelephoneServer, mthList)
-	xgen.Add(RegisterBindTelephoneHandler, nil)
-	xgen.Add(RegisterBindTelephoneGinServer, nil)
-}
-func RegisterBindTelephoneGinServer(r gin.IRouter, server BindTelephoneServer) {
-	xerror.Assert(r == nil || server == nil, "router or server is nil")
-	r.Handle("POST", "/user/bind-telephone/check", func(ctx *gin.Context) {
-		var req = new(CheckRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.Check(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/bind-telephone/bind-verify", func(ctx *gin.Context) {
-		var req = new(BindVerifyRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.BindVerify(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/bind-telephone/bind-change", func(ctx *gin.Context) {
-		var req = new(BindChangeRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.BindChange(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/bind-telephone/automatic-bind", func(ctx *gin.Context) {
-		var req = new(AutomaticBindRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.AutomaticBind(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/bind-telephone/bind-phone-parse", func(ctx *gin.Context) {
-		var req = new(BindPhoneParseRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.BindPhoneParse(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
-	r.Handle("POST", "/user/bind-telephone/bind-phone-parse-by-one-click", func(ctx *gin.Context) {
-		var req = new(BindPhoneParseByOneClickRequest)
-		xerror.Panic(ctx.ShouldBindJSON(req))
-		var resp, err = server.BindPhoneParseByOneClick(ctx, req)
-		xerror.Panic(err)
-		ctx.JSON(200, resp)
-	})
+	var registerBindTelephoneGrpcClient = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterBindTelephoneHandlerClient(ctx, mux, NewBindTelephoneClient(conn))
+	}
+	xgen.Add(registerBindTelephoneGrpcClient, nil)
 }

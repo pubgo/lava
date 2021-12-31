@@ -1,12 +1,12 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/resource"
 )
 
 type Factory func(cfg map[string]interface{}, opts *tally.ScopeOptions) error

@@ -6,10 +6,13 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/byteutil"
+	"github.com/pubgo/xerror"
+	"github.com/uber/jaeger-client-go"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/errors"
@@ -178,4 +181,40 @@ func FromHTTPRequest(tracer opentracing.Tracer, operationName string) HandlerFun
 
 func CreateChild(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
 	return FromCtx(ctx).CreateChild(name, opts...)
+}
+
+func CreateFollows(ctx context.Context, name string, opts ...opentracing.StartSpanOption) *Span {
+	return FromCtx(ctx).CreateFollows(name, opts...)
+}
+
+const (
+	// molten兼容
+	phpRequestTraceID      = "x-w-traceid"
+	phpRequestSpanID       = "x-w-spanid"
+	phpRequestParentSpanID = "x-w-parentspanid"
+	phpRequestSampleID     = "x-w-sampled"
+)
+
+// spanFromPHPRequest 解析php-molten组件链路
+func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {
+	defer xerror.RespErr(&err)
+
+	if req == nil {
+		return span, xerror.Fmt("context is nil")
+	}
+
+	var sampleIDStr = strings.Join(req.Header.Values(phpRequestSampleID), ",")
+	var traceIDStr = strings.Join(req.Header.Values(phpRequestTraceID), ",")
+	traceID, err := jaeger.TraceIDFromString(traceIDStr)
+	xerror.Panic(err)
+
+	var spanIDStr = strings.Join(req.Header.Values(phpRequestSpanID), ",")
+	spanID, err := jaeger.SpanIDFromString(spanIDStr)
+	xerror.Panic(err)
+
+	var pSpanIDStr = strings.Join(req.Header.Values(phpRequestParentSpanID), ",")
+	pSpanID, err := jaeger.SpanIDFromString(pSpanIDStr)
+	xerror.Panic(err)
+
+	return jaeger.NewSpanContext(traceID, spanID, pSpanID, sampleIDStr == "", nil), nil
 }

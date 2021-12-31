@@ -10,12 +10,13 @@ import (
 func doFunc(c *clientImpl) types.MiddleNext {
 	var r = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
 	return func(ctx context.Context, req types.Request, callback func(rsp types.Response) error) error {
+		var req1 = req.(*Request).req.WithContext(ctx)
 		return r.Do(func(i int) error {
-			resp, err := c.client.Do(req.(*Request).req.WithContext(ctx))
+			resp, err := c.client.Do(req1)
 			if err != nil {
 				return err
 			}
-			return callback(&response{resp: resp})
+			return callback(&Response{resp: resp})
 		})
 	}
 }

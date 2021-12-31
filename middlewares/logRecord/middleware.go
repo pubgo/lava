@@ -9,9 +9,9 @@ import (
 
 	"github.com/pubgo/lava/internal/loggerInter"
 	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
@@ -42,13 +42,14 @@ func init() {
 			params = append(params, zap.String("requestId", reqId))
 			params = append(params, zap.Int64("startTime", now.UnixMicro()))
 			params = append(params, zap.String("service", req.Service()))
-			params = append(params, zap.String("method", req.Method()))
+			params = append(params, zap.String("operation", req.Operation()))
 			params = append(params, zap.String("endpoint", req.Endpoint()))
 			params = append(params, zap.Bool("client", req.Client()))
 			params = append(params, zap.String("version", version.Version))
 
 			var respBody interface{}
 			err = next(
+				// 集成logger到context
 				loggerInter.CtxWithLogger(ctx, zap.L().With(zap.String("requestId", reqId))),
 				req,
 				func(rsp types.Response) error {
