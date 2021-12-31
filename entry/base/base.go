@@ -35,7 +35,6 @@ type Entry struct {
 	middlewares []types.Middleware
 }
 
-func (t *Entry) Watcher(projects ...string)          { t.opts.WatchProjects = append(t.opts.WatchProjects, projects...) }
 func (t *Entry) RegisterHandler(h entry.InitHandler) { t.opts.Handlers = append(t.opts.Handlers, h) }
 func (t *Entry) BeforeStart(f func())                { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
 func (t *Entry) BeforeStop(f func())                 { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }

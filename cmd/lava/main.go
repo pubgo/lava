@@ -14,8 +14,6 @@ import (
 )
 
 func main() {
-	runenv.Project = "lava"
-
 	xerror.Exit((&cli.App{
 		Name:    runenv.Project,
 		Version: version.Version,

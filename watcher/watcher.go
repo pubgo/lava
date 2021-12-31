@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runenv"
@@ -20,21 +19,28 @@ import (
 var defaultWatcher Watcher = &nullWatcher{}
 var logs = logz.Component(Name)
 
-func Init(projects ...string) (err error) {
+// Init 初始化watcher
+//	projects: 项目名字
+func Init(opts ...func(cfg *Cfg)) (err error) {
 	defer xerror.RespErr(&err)
 
-	_ = config.Decode(Name, &cfg)
+	if len(opts) > 0 && opts[0] != nil {
+		opts[0](&cfg)
+	}
 
-	defaultWatcher = xerror.PanicErr(cfg.Build()).(Watcher)
+	xerror.Assert(cfg.Set == nil, "config set is nil")
+	xerror.Assert(cfg.GetMap == nil, "config get map is nil")
+
+	defaultWatcher = xerror.PanicErr(cfg.Build(cfg.GetMap(Name))).(Watcher)
 
 	// 获取所有需要watch的项目
-	if !strutil.Contains(projects, runenv.Project) {
-		projects = append(projects, runenv.Project)
+	if !strutil.Contains(cfg.Projects, runenv.Project) {
+		cfg.Projects = append(cfg.Projects, runenv.Project)
 	}
 
 	// 项目prefix
-	for i := range projects {
-		var name = projects[i]
+	for i := range cfg.Projects {
+		var name = cfg.Projects[i]
 
 		// get远程配置, 获取项目下所有配置
 		xerror.Panic(defaultWatcher.GetCallback(
@@ -85,20 +91,20 @@ func onWatch(name string, resp *Response) {
 	resp.OnPut(func() {
 		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
-			config.GetCfg().Set(trimProject(key), dt)
+			cfg.Set(trimProject(key), dt)
 		} else {
 			// 非本项目配置, 项目前缀要带上名字
-			config.GetCfg().Set(key, dt)
+			cfg.Set(key, dt)
 		}
 	})
 
 	resp.OnDelete(func() {
 		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
-			config.GetCfg().Set(trimProject(key), nil)
+			cfg.Set(trimProject(key), nil)
 		} else {
 			// 非本项目配置, 项目前缀要带上名字
-			config.GetCfg().Set(key, nil)
+			cfg.Set(key, nil)
 		}
 	})
 

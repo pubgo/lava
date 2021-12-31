@@ -4,9 +4,9 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/pkg/env"
 	"io/ioutil"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -194,7 +194,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 	}
 
 	// machine hostname
-	hostname, _ := os.Hostname()
+	hostname := env.Hostname
 
 	// set the name
 	c.Name = strings.Join([]string{"micro", hostname, uuid.New().String()}, "-")

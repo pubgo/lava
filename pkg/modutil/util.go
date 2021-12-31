@@ -1,6 +1,7 @@
 package modutil
 
 import (
+	"github.com/pubgo/lava/runenv"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
 
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 )
 
@@ -26,7 +26,7 @@ func getFileByRecursion(file string, path string) string {
 }
 
 func GoModPath() string {
-	return getFileByRecursion("go.mod", env.Pwd)
+	return getFileByRecursion("go.mod", runenv.Pwd)
 }
 
 func LoadVersions() map[string]string {

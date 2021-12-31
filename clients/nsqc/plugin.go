@@ -1,30 +1,36 @@
 package nsqc
 
 import (
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
 )
 
-func init() { plugin.Register(&plg) }
+func init() {
+	plugin.Register(&plugin.Base{
+		Name: Name,
+		OnInit: func(p plugin.Process) {
+			xerror.Panic(config.Decode(Name, &cfgList))
 
-var plg = plugin.Base{
-	Name: Name,
-	OnInit: func(p plugin.Process) {
-		xerror.Panic(config.Decode(Name, &cfgList))
+			for name, v := range cfgList {
+				cfg := GetDefaultCfg()
+				merge.Copy(&cfg, v)
 
-		for k, v := range cfgList {
-			cfg := GetDefaultCfg()
-			xerror.Panic(merge.Copy(&cfg, v))
+				xerror.Assert(name == "", "[name] should not be null")
 
-			xerror.Panic(Update(k, cfg))
-			cfgList[k] = cfg
-		}
-	},
-	OnVars: func(v types.Vars) {
-		v(Name, func() interface{} { return cfgList })
-	},
+				// 创建新的客户端
+				client, err := cfg.Build()
+				xerror.Panic(err)
+				resource.Update(name, client)
+				cfgList[name] = cfg
+			}
+		},
+		OnVars: func(v types.Vars) {
+			v(Name, func() interface{} { return cfgList })
+		},
+	})
 }

@@ -9,19 +9,21 @@ import (
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xlog/xlog_config"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
+	"github.com/pubgo/lava/watcher"
 )
 
 const name = "runtime"
@@ -170,22 +172,27 @@ func Run(description string, entries ...entry.Entry) {
 			runenv.Project = entRT.Options().Name
 
 			// 本地配置初始化
-			xerror.Panic(config.Init())
+			config.Init()
 
 			// 日志初始化
-			logger.Init()
+			logger.Init(func(cfg *xlog_config.Config) {
+				_ = config.Decode(name, &cfg)
+			})
 
 			// plugin初始化
 			for _, plg := range plugin.All() {
 				entRT.MiddlewareInter(plg.Middleware())
-				logs.LogAndThrow("plugin init", plg.Init, logger.Name(plg.UniqueName()))
+				logs.LogAndThrow("plugin init", plg.Init, zap.String("plugin-name", plg.UniqueName()))
 			}
 
 			// entry初始化
 			entRT.InitRT()
 
 			// watcher初始化, 最后初始化, 从远程获取最新的配置
-			xerror.Panic(watcher.Init(entRT.Options().WatchProjects...))
+			xerror.Panic(watcher.Init(func(cfg *watcher.Cfg) {
+				cfg.Set = config.GetCfg().Set
+				cfg.GetMap = config.GetMap
+			}))
 			return nil
 		}
 

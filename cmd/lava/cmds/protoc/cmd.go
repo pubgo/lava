@@ -22,11 +22,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
+	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
 
@@ -75,7 +75,7 @@ func Cmd() *cli.Command {
 						"package docs",
 						`import "github.com/pubgo/lava/plugins/swagger"`,
 						fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
-						`func init() {swagger.Init(AssetNames, MustAsset)}`,
+						`func init() {swagger.initCfg(AssetNames, MustAsset)}`,
 					)
 
 					const path = "docs/swagger.go"
@@ -176,7 +176,7 @@ func Cmd() *cli.Command {
 						var in = key.(string)
 
 						var data = ""
-						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, env.Pwd)
+						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, runenv.Pwd)
 						var lavaOut = ""
 						var lavaOpt = ""
 						for i := range cfg.Plugins {

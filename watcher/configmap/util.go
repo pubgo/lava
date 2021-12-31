@@ -1,6 +1,5 @@
 package configmap
 
-
 import (
 	"strings"
 
@@ -8,6 +7,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
+
+// TODO 未完成
 
 func getClient(configPath string) (*kubernetes.Clientset, error) {
 	var config *rest.Config

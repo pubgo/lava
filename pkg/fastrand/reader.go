@@ -11,7 +11,7 @@ import (
 
 // Read is a helper function that calls rr.Read on b.
 // It always fills b completely.
-func Read(b []byte) { rr.Read(b) }
+func Read(b []byte) { _, _ = rr.Read(b) }
 
 // randReader
 // A randReader produces random values via repeated hashing. The entropy field

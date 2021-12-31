@@ -18,7 +18,6 @@ type Entry interface {
 	BeforeStop(func())
 	AfterStart(func())
 	BeforeStart(func())
-	Watcher(projects ...string)
 	Middleware(middleware types.Middleware)
 	Description(description ...string)
 	Flags(flags cli.Flag)

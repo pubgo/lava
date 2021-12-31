@@ -14,13 +14,29 @@ import (
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
+	"github.com/pubgo/lava/types"
 )
 
-func init() {
-	registry.Register(Name, NewWithMap)
+const (
+	zeroconfService  = "_netdrop._tcp"
+	zeroconfDomain   = "local."
+	zeroconfInstance = "netdrop"
+)
+
+func announce(port int) (shutdown func(), err error) {
+	server, err := zeroconf.Register("netdrop", zeroconfService, zeroconfDomain, port, []string{"github.com/klingtnet/netdrop server"}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register zerconf service")
+	}
+
+	return server.Shutdown, nil
 }
 
-func NewWithMap(m map[string]interface{}) (registry.Registry, error) {
+func init() {
+	registry.Register(Name, New)
+}
+
+func New(m types.CfgMap) (registry.Registry, error) {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
 
@@ -50,6 +66,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		return nil
 	}
 
+	//err = resolver.Lookup(ctx, zeroconfInstance, zeroconfService, zeroconfDomain, serviceCh)
 	server, err := zeroconf.Register(node.Id, service.Name, "local.", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 

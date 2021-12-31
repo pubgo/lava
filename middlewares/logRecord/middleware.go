@@ -9,9 +9,9 @@ import (
 
 	"github.com/pubgo/lava/internal/loggerInter"
 	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/middlewares/requestID"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )

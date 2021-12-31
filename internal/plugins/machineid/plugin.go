@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/lava/plugin"
 )
 
+// Name deviceId
 const Name = "machineid"
 
 var logs = logz.Component(Name)
@@ -16,7 +17,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(p plugin.Process) {
-			//TODO hook
+			// TODO hook
 			id, err := machineid.ID()
 			xerror.Panic(err)
 			logs.Infow("machineid", "value", id)

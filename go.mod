@@ -86,7 +86,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1
-	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
 )
@@ -118,7 +117,8 @@ require (
 	github.com/fullstorydev/grpchan v1.1.0
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-errors/errors v1.0.1 // indirect
-	github.com/go-logr/logr v1.2.1 // indirect
+	github.com/go-logr/logr v1.2.2 // indirect
+	github.com/go-logr/zapr v1.2.2
 	github.com/go-openapi/analysis v0.19.10 // indirect
 	github.com/go-openapi/errors v0.19.6 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -176,6 +176,7 @@ require (
 	github.com/pseudomuto/protoc-gen-doc v1.3.2
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/cors v1.7.0
+	github.com/rsocket/rsocket-go v0.8.6
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
@@ -209,6 +210,7 @@ require (
 	gorm.io/gorm v1.22.2
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816
 	k8s.io/api v0.21.1 // indirect
+	k8s.io/klog/v2 v2.40.0
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
@@ -226,6 +228,7 @@ require (
 	github.com/jhump/protoreflect v1.10.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
+	github.com/jjeffcaii/reactor-go v0.5.1 // indirect
 	github.com/jonboulle/clockwork v0.2.0 // indirect
 	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/lunixbochs/vtclean v1.0.0 // indirect
@@ -235,6 +238,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/onsi/ginkgo v1.16.1 // indirect
 	github.com/onsi/gomega v1.11.0 // indirect
+	github.com/panjf2000/ants/v2 v2.4.4 // indirect
 	github.com/pseudomuto/protokit v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect

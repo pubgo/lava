@@ -30,7 +30,7 @@ func Sampling(rate float32) bool {
 }
 
 // Perm
-// returns a random permutation of the range [0,n).
+// 	returns a random permutation of the range [0,n).
 func Perm(n uint32) []uint32 {
 	m := make([]uint32, n)
 	for i := uint32(1); i < n; i++ {
@@ -62,7 +62,7 @@ func Shuffle(n int, swap func(i, j int)) {
 }
 
 // Random
-// return random string from string slice
+// 	return random string from string slice
 func Random(ss []string) []string {
 	for i := uint32(len(ss)) - 1; i > 0; i-- {
 		num := Uint32n(i + 1)

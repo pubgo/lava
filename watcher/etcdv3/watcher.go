@@ -3,19 +3,19 @@ package etcdv3
 import (
 	"context"
 
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
 	"github.com/pubgo/lava/clients/etcdv3"
-	"github.com/pubgo/lava/pkg/watcher"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {
 	watcher.Register(Name, func(cfg types.M) (watcher.Watcher, error) {
 		var c Cfg
-		xerror.Exit(merge.MapStruct(&c, cfg))
+		merge.MapStruct(&c, cfg)
 		return newWatcher(c.Prefix, c.Name), nil
 	})
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/x/typex"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 
@@ -117,20 +116,20 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 	return t.v.UnmarshalKey(key, rawVal, opts...)
 }
 
-func (t *configImpl) Decode(name string, fn interface{}) (err error) {
+func (t *configImpl) Decode(name string, val interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	t.check()
 
-	xerror.Assert(name == "" || fn == nil, "[name,fn] should not be nil")
+	xerror.Assert(name == "" || val == nil, "[name,val] should not be nil")
 	if t.Get(name) == nil {
 		return ErrKeyNotFound
 	}
 
-	vfn := reflect.ValueOf(fn)
+	vfn := reflect.ValueOf(val)
 	switch vfn.Type().Kind() {
 	case reflect.Func: // func(cfg *Cfg)
-		xerror.Assert(vfn.Type().NumIn() != 1, "[fn] input num should be 1")
+		xerror.Assert(vfn.Type().NumIn() != 1, "[val] input num should be 1")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
 		ret := fx.WrapRaw(t.UnmarshalKey)(name, mthIn,
@@ -141,13 +140,13 @@ func (t *configImpl) Decode(name string, fn interface{}) (err error) {
 				"config key [%s] decode error", name)
 		}
 
-		vfn.Call(typex.ValueOf(mthIn))
+		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.WrapF(t.UnmarshalKey(name, fn,
+		return xerror.WrapF(t.UnmarshalKey(name, val,
 			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" },
 		), "config key [%s] decode error", name)
 	default:
-		return xerror.Fmt("[fn] type error,name=>%s, refer=>%#v", name, fn)
+		return xerror.Fmt("[val] type error,name=>%s, refer=>%#v", name, val)
 	}
 
 	return nil
@@ -158,14 +157,14 @@ func (t *configImpl) Decode(name string, fn interface{}) (err error) {
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
-func (t *configImpl) Init() (err error) {
-	defer func() { t.init = err == nil }()
-
-	defer xerror.RespErr(&err)
+func (t *configImpl) initCfg() {
+	defer func() { t.init = true }()
+	defer xerror.RespExit()
 
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
+	// 检查运行环境
 	xerror.Assert(!runenv.CheckMode(), "mode(%s) not match in all(%v)", runenv.Mode, runenv.RunmodeValue)
 
 	// 配置处理
@@ -188,7 +187,7 @@ func (t *configImpl) Init() (err error) {
 
 	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
 
-	// 处理配置文件中的环境变量
+	// 处理配置中的环境变量
 	dt = env.Expand(dt)
 
 	// 重新加载配置
@@ -196,7 +195,6 @@ func (t *configImpl) Init() (err error) {
 
 	// 加载自定义配置
 	xerror.Panic(t.initApp(v))
-	return nil
 }
 
 func (t *configImpl) addConfigPath(v *viper.Viper, in string) bool {
@@ -242,7 +240,9 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 		return nil
 	}
 
-	var pathList = strListMap(getPathList(), func(str string) string { return filepath.Join(str, ".lava", CfgName) })
+	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, ".lava", CfgName) })
+	xerror.Assert(len(pathList) == 0, "paths is 0")
+
 	for i := range pathList {
 		if t.addConfigPath(v, pathList[i]) {
 			return
@@ -272,24 +272,4 @@ func (t *configImpl) initApp(v *viper.Viper) error {
 	// 合并自定义配置
 	xerror.Panic(v.MergeConfigMap(c))
 	return nil
-}
-
-func getPathList() (paths []string) {
-	var wd = xerror.PanicStr(filepath.Abs("./"))
-	for {
-		if wd == "/" {
-			break
-		}
-
-		paths = append(paths, wd)
-		wd = filepath.Dir(wd)
-	}
-	return
-}
-
-func strListMap(strList []string, fn func(str string) string) []string {
-	for i := range strList {
-		strList[i] = fn(strList[i])
-	}
-	return strList
 }

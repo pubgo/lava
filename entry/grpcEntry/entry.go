@@ -28,9 +28,7 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
-	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -48,7 +46,7 @@ func newEntry(name string) *grpcEntry {
 		inproc: &inprocgrpc.Channel{},
 		cfg: Cfg{
 			name:                 name,
-			hostname:             env.Hostname,
+			hostname:             runenv.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
 			Gw:                   grpc_gw.DefaultCfg(),
@@ -129,7 +127,7 @@ func newEntry(name string) *grpcEntry {
 			)
 
 			// Handler初始化
-			logs.LogAndThrow("Handler Init", func() error { return xerror.Try(srv.Init) })
+			logs.LogAndThrow("Handler initCfg", func() error { return xerror.Try(srv.Init) })
 		}
 	})
 
@@ -249,7 +247,7 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		logs.Infow("Registering Node", logger.Id(node.Id), logger.Name(g.cfg.name))
+		logs.Infow("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
 	}
 
 	// registry options

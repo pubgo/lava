@@ -7,6 +7,7 @@ import (
 type Logger interface {
 	With(args types.M) Logger
 	WithErr(err error) Logger
+	Depth(depth ...int) Logger
 
 	Debug(args ...interface{})
 	Info(args ...interface{})

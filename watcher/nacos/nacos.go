@@ -11,8 +11,8 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/nacos"
-	"github.com/pubgo/lava/pkg/watcher"
 	"github.com/pubgo/lava/types"
+	watcher "github.com/pubgo/lava/watcher"
 )
 
 func init() {

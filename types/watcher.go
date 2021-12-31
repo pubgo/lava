@@ -71,5 +71,5 @@ func Decode(data []byte, c interface{}) (err error) {
 		return
 	}
 
-	return errors.Unknown("config.watcher.decode", "data=>%s, c=>%T", data, c)
+	return errors.Unknown("types.decode", "data=>%s, c=>%T", data, c)
 }

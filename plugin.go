@@ -39,11 +39,8 @@ import (
 	_ "github.com/pubgo/lava/middlewares/logRecord"
 
 	// 加载trace记录拦截器
-	_ "github.com/pubgo/lava/middlewares/traceRecord"
+	//_ "github.com/pubgo/lava/middlewares/traceRecord"
 
 	// 加载timeout拦截器
 	_ "github.com/pubgo/lava/middlewares/timeout"
-
-	// 加载recovery拦截器, 最后一项, 最靠近业务handler
-	_ "github.com/pubgo/lava/middlewares/recovery"
 )

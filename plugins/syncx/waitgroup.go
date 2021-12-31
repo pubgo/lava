@@ -9,6 +9,8 @@ import (
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 
+const DefaultConcurrent = 16
+
 //go:linkname state sync.(*WaitGroup).state
 func state(*sync.WaitGroup) (*uint64, *uint32)
 
@@ -25,7 +27,7 @@ func (t *WaitGroup) Count() uint32 {
 
 func (t *WaitGroup) check() {
 	if t.Concurrent == 0 {
-		panic("please set concurrent")
+		t.Concurrent = DefaultConcurrent
 	}
 
 	// 阻塞, 等待任务处理完毕
@@ -34,11 +36,19 @@ func (t *WaitGroup) check() {
 
 		// 采样率(%1), 打印log
 		if fastrand.Sampling(0.01) {
-			logs.Warnf("WaitGroup current(%d) concurrent number exceeds the maximum(%d) concurrent number of the system", t.Count(), t.Concurrent)
+			logs.Warnw("WaitGroup current concurrent number exceeds the maximum concurrent number of the system",
+				"current", t.Count(), "maximum", t.Concurrent)
 		}
 	}
 }
 
+func (t *WaitGroup) Go(f func()) {
+	t.Inc()
+	GoSafe(func() {
+		defer t.Done()
+		f()
+	})
+}
 func (t *WaitGroup) Inc()          { t.check(); t.wg.Add(1) }
 func (t *WaitGroup) Dec()          { t.wg.Done() }
 func (t *WaitGroup) Done()         { t.wg.Done() }

@@ -34,6 +34,7 @@ type User struct {
 }
 
 var testApiSrv = hello.GetTestApiClient("test-grpc")
+var ll = logger.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
@@ -77,6 +78,7 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
 	var log = logger.GetLog(ctx)
 	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
+	ll.Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	if h.Db != nil {
 		var user User

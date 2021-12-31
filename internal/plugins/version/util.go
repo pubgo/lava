@@ -1,23 +1,26 @@
 package version
 
 import (
-	"github.com/pubgo/lava/version"
 	"runtime"
 
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/version"
 )
 
 func GetVer() map[string]interface{} {
 	return map[string]interface{}{
-		"data":       version.Data,
-		"build_time": version.BuildTime,
-		"version":    version.Version,
-		"go_root":    runtime.GOROOT(),
-		"go_arch":    runtime.GOARCH,
-		"go_os":      runtime.GOOS,
-		"go_version": runtime.Version(),
-		"commit_id":  version.CommitID,
-		"project":    runenv.Project,
-		"domain":     version.Domain,
+		"project":       runenv.Project,
+		"data":          version.Data,
+		"build_time":    version.BuildTime,
+		"version":       version.Version,
+		"tag":           version.Tag,
+		"commit_id":     version.CommitID,
+		"domain":        version.Domain,
+		"go_root":       runtime.GOROOT(),
+		"go_arch":       runtime.GOARCH,
+		"go_os":         runtime.GOOS,
+		"go_version":    runtime.Version(),
+		"num_cpu":       runtime.NumCPU(),
+		"num_goroutine": runtime.NumGoroutine(),
 	}
 }

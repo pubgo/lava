@@ -1,13 +1,24 @@
 package nsqc
 
 import (
-	"github.com/pubgo/lava/resource"
 	"sync"
 
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"github.com/segmentio/nsq-go"
+
+	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/resource"
 )
+
+func Get(names ...string) *Client {
+	var name = lavax.GetDefault(names...)
+	val := resource.Get(Name, name)
+	if val == nil {
+		return nil
+	}
+	return val.(*Client)
+}
 
 var _ resource.Resource = (*Client)(nil)
 
@@ -35,7 +46,7 @@ func (t *Client) Consumer(topic string, channel string) (c *nsq.Consumer, err er
 	defer t.mu.Unlock()
 
 	var cfg nsq.ConsumerConfig
-	xerror.Panic(merge.MapStruct(&cfg, t.cfg))
+	merge.Struct(&cfg, t.cfg)
 	cfg.Topic = topic
 	cfg.Channel = channel
 
@@ -57,7 +68,7 @@ func (t *Client) Producer(topic string) (p *nsq.Producer, err error) {
 	defer t.mu.Unlock()
 
 	var cfg nsq.ProducerConfig
-	xerror.Panic(merge.CopyStruct(&cfg, t.cfg))
+	merge.Struct(&cfg, t.cfg)
 	cfg.Topic = topic
 
 	producer := xerror.PanicErr(nsq.StartProducer(cfg)).(*nsq.Producer)
