@@ -2,6 +2,7 @@ package nacos
 
 import (
 	"context"
+	"github.com/pubgo/lava/event"
 
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/model"
@@ -16,7 +17,7 @@ import (
 )
 
 func init() {
-	watcher.Register(Name, func(cfg types.M) (watcher.Watcher, error) {
+	watcher.RegisterFactory(Name, func(cfg types.M) (watcher.Watcher, error) {
 		var c Cfg
 		xerror.Panic(merge.MapStruct(&c, cfg))
 		return NewNacos(c)
@@ -56,7 +57,7 @@ func (cm *nacosWatcher) Get(ctx context.Context, group string, opts ...watcher.O
 	for i := range cfgMap.PageItems {
 		var item = cfgMap.PageItems[i]
 		data[i] = &watcher.Response{
-			Event: types.EventType_UPDATE,
+			Event: event.EventType_UPDATE,
 			Key:   item.DataId,
 			Value: strutil.ToBytes(item.Content),
 		}
@@ -85,7 +86,7 @@ func (cm *nacosWatcher) Watch(ctx context.Context, dataId string, opts ...watche
 			resp <- &watcher.Response{
 				Key:   dataId,
 				Value: strutil.ToBytes(data),
-				Event: types.EventType_UPDATE,
+				Event: event.EventType_UPDATE,
 			}
 		},
 	}

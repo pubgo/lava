@@ -2,6 +2,7 @@ package ossc
 
 import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
@@ -25,10 +26,10 @@ func init() {
 				cfgList[k] = cfg
 			}
 		},
-		OnWatch: func(name string, r *types.WatchResp) error {
+		OnWatch: func(name string, r *watcher.Response) error {
 			r.OnPut(func() {
 				var cfg Cfg
-				xerror.PanicF(types.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
+				xerror.PanicF(r.Decode(&cfg), "etcd conf parse error, cfg: %s", r.Value)
 
 				cfg1 := DefaultCfg()
 				xerror.Panic(merge.Copy(&cfg1, &cfg), "config merge error")

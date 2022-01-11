@@ -13,6 +13,3 @@ func (t CfgMap) Decode(dst interface{}, opts ...func(cfg *mapstructure.DecoderCo
 	merge.MapStruct(dst, t, opts...)
 	return
 }
-
-type M = map[string]interface{}
-type L = []interface{}

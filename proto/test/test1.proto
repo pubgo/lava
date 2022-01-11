@@ -9,8 +9,7 @@ import "proto/lava/lava.proto";
 message GenerateResponse1 {
   string id = 1;
   string type = 2 [
-    (lava.tags) = {key:"json",value:"types"},
-    (lava.tags) = {key:"yaml",value:"types"}
+    (lava.tags) = {key : "json", value : "types"},
+    (lava.tags) = {key : "yaml", value : "types"}
   ];
 }
-

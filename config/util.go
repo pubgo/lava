@@ -8,6 +8,7 @@ import (
 )
 
 // getPathList 递归得到当前目录到跟目录中所有的目录路径
+//	[./, ../, ../../, ..., /]
 func getPathList() (paths []string) {
 	var wd = xerror.PanicStr(filepath.Abs(""))
 	for {

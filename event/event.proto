@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package types;
+package event;
 
-option go_package = "github.com/pubgo/lava/types;types";
+option go_package = "github.com/pubgo/lava/event;event";
 
 enum EventType {
   UNKNOWN = 0;

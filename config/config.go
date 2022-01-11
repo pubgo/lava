@@ -17,7 +17,10 @@ import (
 
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 )
+
+var errType = reflect.TypeOf((*error)(nil)).Elem()
 
 var _ Config = (*configImpl)(nil)
 
@@ -27,17 +30,7 @@ type configImpl struct {
 	init bool
 }
 
-func (t *configImpl) check() {
-	if t.init {
-		return
-	}
-
-	panic("please init config")
-}
-
 func (t *configImpl) All() map[string]interface{} {
-	t.check()
-
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -45,8 +38,6 @@ func (t *configImpl) All() map[string]interface{} {
 }
 
 func (t *configImpl) MergeConfig(in io.Reader) error {
-	t.check()
-
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
@@ -54,26 +45,13 @@ func (t *configImpl) MergeConfig(in io.Reader) error {
 }
 
 func (t *configImpl) AllKeys() []string {
-	t.check()
-
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
 	return t.v.AllKeys()
 }
 
-func (t *configImpl) ConfigPath() string {
-	t.check()
-
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
-	return t.v.ConfigFileUsed()
-}
-
-func (t *configImpl) GetMap(key string) map[string]interface{} {
-	t.check()
-
+func (t *configImpl) GetMap(key string) types.CfgMap {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -81,8 +59,6 @@ func (t *configImpl) GetMap(key string) map[string]interface{} {
 }
 
 func (t *configImpl) Get(key string) interface{} {
-	t.check()
-
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -90,8 +66,6 @@ func (t *configImpl) Get(key string) interface{} {
 }
 
 func (t *configImpl) GetString(key string) string {
-	t.check()
-
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
@@ -99,27 +73,26 @@ func (t *configImpl) GetString(key string) string {
 }
 
 func (t *configImpl) Set(key string, value interface{}) {
-	t.check()
-
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
 	t.v.Set(key, value)
 }
 
-func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
-	t.check()
-
+func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...func(*mapstructure.DecoderConfig)) error {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
-	return t.v.UnmarshalKey(key, rawVal, opts...)
+	var opts1 = []viper.DecoderConfigOption{func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }}
+	for i := range opts {
+		opts1 = append(opts1, opts[i])
+	}
+
+	return t.v.UnmarshalKey(key, rawVal, opts1...)
 }
 
 func (t *configImpl) Decode(name string, val interface{}) (err error) {
 	defer xerror.RespErr(&err)
-
-	t.check()
 
 	xerror.Assert(name == "" || val == nil, "[name,val] should not be nil")
 	if t.Get(name) == nil {
@@ -128,23 +101,21 @@ func (t *configImpl) Decode(name string, val interface{}) (err error) {
 
 	vfn := reflect.ValueOf(val)
 	switch vfn.Type().Kind() {
-	case reflect.Func: // func(cfg *Cfg)
+	case reflect.Func: // func(cfg *Struct)error
 		xerror.Assert(vfn.Type().NumIn() != 1, "[val] input num should be 1")
+		xerror.Assert(vfn.Type().NumOut() != 1, "[val] output num should be 1")
+		xerror.Assert(!vfn.Type().Out(0).Implements(errType), "[val] output should be error type")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := fx.WrapRaw(t.UnmarshalKey)(name, mthIn,
-			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" })
+		ret := fx.WrapRaw(t.UnmarshalKey)(name, mthIn)
 
 		if !ret[0].IsNil() {
-			xerror.PanicF(ret[0].Interface().(error),
-				"config key [%s] decode error", name)
+			xerror.PanicF(ret[0].Interface().(error), "config key [%s] decode error", name)
 		}
 
 		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.WrapF(t.UnmarshalKey(name, val,
-			func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" },
-		), "config key [%s] decode error", name)
+		return xerror.WrapF(t.UnmarshalKey(name, val), "config key [%s] decode error", name)
 	default:
 		return xerror.Fmt("[val] type error,name=>%s, refer=>%#v", name, val)
 	}
@@ -184,6 +155,7 @@ func (t *configImpl) initCfg() {
 	// 然后获取配置了
 	xerror.PanicF(t.initWithDir(v), "config file load error")
 	Home = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
+	CfgPath = v.ConfigFileUsed()
 
 	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
 
@@ -241,7 +213,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 	}
 
 	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, ".lava", CfgName) })
-	xerror.Assert(len(pathList) == 0, "paths is 0")
+	xerror.Assert(len(pathList) == 0, "paths is ")
 
 	for i := range pathList {
 		if t.addConfigPath(v, pathList[i]) {
@@ -254,8 +226,8 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 
 // 监控配置中的app自定义配置
 func (t *configImpl) initApp(v *viper.Viper) error {
-	// .lava/config/config.dev.yaml
-	var path = filepath.Join(Home, "config", fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
+	// .lava/config/config.[env].yaml
+	var path = filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
 	if !pathutil.IsExist(path) {
 		return nil
 	}

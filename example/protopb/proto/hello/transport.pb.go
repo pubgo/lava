@@ -54,6 +54,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 		}
 		return ms
 	}
+
 	return mi.MessageOf(x)
 }
 

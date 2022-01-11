@@ -4,5 +4,3 @@ watcher:
   projects:
     - "hello"
     - "hello1"
-  exclude:
-    - "hello"

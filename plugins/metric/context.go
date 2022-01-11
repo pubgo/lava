@@ -12,7 +12,7 @@ func ctxWith(parent context.Context, scope tally.Scope) context.Context {
 	return context.WithValue(parent, metricKey{}, scope)
 }
 
-func GetMetric(ctx context.Context) tally.Scope {
+func GetWithCtx(ctx context.Context) tally.Scope {
 	var l, ok = ctx.Value(metricKey{}).(tally.Scope)
 	if ok {
 		return l

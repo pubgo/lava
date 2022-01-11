@@ -10,10 +10,8 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
-	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/errors"
 )
@@ -59,31 +57,6 @@ func InjectHeaders(span opentracing.Span, request *http.Request) error {
 		span.Context(),
 		opentracing.HTTPHeaders,
 		opentracing.HTTPHeadersCarrier(request.Header))
-}
-
-func CreateSpanFromFast(r *fasthttp.Request, name string) opentracing.Span {
-	tracer := opentracing.GlobalTracer()
-
-	var header = make(http.Header)
-	r.Header.VisitAll(func(key, value []byte) {
-		header.Add(byteutil.ToStr(key), byteutil.ToStr(value))
-	})
-
-	// If headers contain trace data, create child span from parent; else, create root span
-	var span opentracing.Span
-	if tracer != nil {
-		spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
-		if err != nil {
-			span = tracer.StartSpan(name)
-		} else {
-			span = tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
-		}
-	}
-
-	ext.HTTPMethod.Set(span, byteutil.ToStr(r.Header.Method()))
-	ext.HTTPUrl.Set(span, r.URI().String())
-
-	return span // caller must defer span.finish()
 }
 
 // Extract extracts the inbound HTTP request to obtain the parent span's context to ensure
@@ -218,3 +191,28 @@ func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) 
 
 	return jaeger.NewSpanContext(traceID, spanID, pSpanID, sampleIDStr == "", nil), nil
 }
+
+// func CreateSpanFromFast(r *fasthttp.Request, name string) opentracing.Span {
+// 	tracer := opentracing.GlobalTracer()
+
+// 	var header = make(http.Header)
+// 	r.Header.VisitAll(func(key, value []byte) {
+// 		header.Add(byteutil.ToStr(key), byteutil.ToStr(value))
+// 	})
+
+// 	// If headers contain trace data, create child span from parent; else, create root span
+// 	var span opentracing.Span
+// 	if tracer != nil {
+// 		spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(header))
+// 		if err != nil {
+// 			span = tracer.StartSpan(name)
+// 		} else {
+// 			span = tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
+// 		}
+// 	}
+
+// 	ext.HTTPMethod.Set(span, byteutil.ToStr(r.Header.Method()))
+// 	ext.HTTPUrl.Set(span, r.URI().String())
+
+// 	return span // caller must defer span.finish()
+// }

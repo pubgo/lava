@@ -2,6 +2,7 @@ package etcdv3
 
 import (
 	"context"
+	"github.com/pubgo/lava/event"
 
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -13,7 +14,7 @@ import (
 )
 
 func init() {
-	watcher.Register(Name, func(cfg types.M) (watcher.Watcher, error) {
+	watcher.RegisterFactory(Name, func(cfg types.M) (watcher.Watcher, error) {
 		var c Cfg
 		merge.MapStruct(&c, cfg)
 		return newWatcher(c.Prefix, c.Name), nil
@@ -60,7 +61,7 @@ func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher.Opt) 
 	for i := range resp.Kvs {
 		e := resp.Kvs[i]
 		responses = append(responses, &watcher.Response{
-			Event:   types.EventType_UPDATE,
+			Event:   event.EventType_UPDATE,
 			Key:     string(e.Key),
 			Value:   e.Value,
 			Version: e.Version,
@@ -127,13 +128,13 @@ func (w *watcherImpl) Name() string {
 	return w.prefix
 }
 
-func convert(ty mvccpb.Event_EventType) types.EventType {
+func convert(ty mvccpb.Event_EventType) event.EventType {
 	switch ty {
 	case mvccpb.DELETE:
-		return types.EventType_DELETE
+		return event.EventType_DELETE
 	case mvccpb.PUT:
-		return types.EventType_UPDATE
+		return event.EventType_UPDATE
 	default:
-		return types.EventType_UNKNOWN
+		return event.EventType_UNKNOWN
 	}
 }

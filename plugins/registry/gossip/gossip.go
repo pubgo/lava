@@ -4,7 +4,6 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/pkg/env"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -18,10 +17,11 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/pubgo/xerror"
 
+	event2 "github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/runenv"
 )
 
 // use registry.Result int32 values after it switches from string to int32 types
@@ -51,16 +51,16 @@ var (
 
 var logs = logz.Component("gossip")
 
-func actionTypeString(t int32) types.EventType {
+func actionTypeString(t int32) event2.EventType {
 	switch t {
 	case actionTypeCreate:
-		return types.EventType_CREATE
+		return event2.EventType_CREATE
 	case actionTypeDelete:
-		return types.EventType_DELETE
+		return event2.EventType_DELETE
 	case actionTypeUpdate:
-		return types.EventType_UPDATE
+		return event2.EventType_UPDATE
 	default:
-		return types.EventType_UNKNOWN
+		return event2.EventType_UNKNOWN
 	}
 }
 
@@ -194,7 +194,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 	}
 
 	// machine hostname
-	hostname := env.Hostname
+	hostname := runenv.Hostname
 
 	// set the name
 	c.Name = strings.Join([]string{"micro", hostname, uuid.New().String()}, "-")
@@ -341,7 +341,7 @@ func (d *delegate) LocalState(join bool) []byte {
 
 	d.updates <- &update{
 		Update: &pb.Update{
-			Action: int32(types.EventType_UPDATE),
+			Action: int32(event2.EventType_UPDATE),
 		},
 		sync: syncCh,
 	}
@@ -426,7 +426,7 @@ func (g *gossipRegistry) connect(addrs []string) error {
 	return nil
 }
 
-func (g *gossipRegistry) publish(action types.EventType, services []*registry.Service) {
+func (g *gossipRegistry) publish(action event2.EventType, services []*registry.Service) {
 	g.RLock()
 	for _, sub := range g.watchers {
 		go func(sub chan *registry.Result) {

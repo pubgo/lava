@@ -126,3 +126,10 @@ func List() map[string]string {
 	}
 	return data
 }
+
+func KeyOf(str ...string) []string {
+	for i := range str {
+		str[i] = strings.ToUpper(str[i])
+	}
+	return str
+}

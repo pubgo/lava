@@ -2,6 +2,7 @@ package mdns
 
 import (
 	"context"
+	"github.com/pubgo/lava/event"
 	"time"
 
 	"github.com/pubgo/x/fx"
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 )
 
 var logs = logz.Component(Name)
@@ -61,7 +61,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 
 			allNodes.Set(id, n)
 			results <- &registry.Result{
-				Action:  types.EventType_UPDATE,
+				Action:  event.EventType_UPDATE,
 				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 			}
 		}))
@@ -73,7 +73,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 
 			allNodes.Delete(id)
 			results <- &registry.Result{
-				Action:  types.EventType_DELETE,
+				Action:  event.EventType_DELETE,
 				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 			}
 		}))

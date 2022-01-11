@@ -10,10 +10,11 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/types"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
@@ -21,17 +22,12 @@ var logs = logz.Component(Name)
 
 // Init 初始化watcher
 //	projects: 项目名字
-func Init(opts ...func(cfg *Cfg)) (err error) {
+func Init(conf config.Config) (err error) {
 	defer xerror.RespErr(&err)
 
-	if len(opts) > 0 && opts[0] != nil {
-		opts[0](&cfg)
-	}
+	xerror.Assert(conf == nil, "conf is nil")
 
-	xerror.Assert(cfg.Set == nil, "config set is nil")
-	xerror.Assert(cfg.GetMap == nil, "config get map is nil")
-
-	defaultWatcher = xerror.PanicErr(cfg.Build(cfg.GetMap(Name))).(Watcher)
+	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(Watcher)
 
 	// 获取所有需要watch的项目
 	if !strutil.Contains(cfg.Projects, runenv.Project) {
@@ -46,7 +42,7 @@ func Init(opts ...func(cfg *Cfg)) (err error) {
 		xerror.Panic(defaultWatcher.GetCallback(
 			ctxutil.Timeout(), name,
 			func(resp *Response) {
-				resp.Event = types.EventType_UPDATE
+				resp.Event = event.EventType_UPDATE
 				onWatch(name, resp)
 			},
 		))
@@ -86,25 +82,25 @@ func onWatch(name string, resp *Response) {
 	// 把数据更新到全局配置中
 	// value必须是kv类型
 	var dt = make(map[string]interface{})
-	xerror.PanicF(types.Decode(resp.Value, &dt), "value必须是kv类型, key=>%s, value=>%s", resp.Key, resp.Value)
+	xerror.PanicF(resp.Decode(&dt), "value必须是kv类型, key=>%s, value=>%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
 		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
-			cfg.Set(trimProject(key), dt)
+			cfg.cfg.Set(trimProject(key), dt)
 		} else {
 			// 非本项目配置, 项目前缀要带上名字
-			cfg.Set(key, dt)
+			cfg.cfg.Set(key, dt)
 		}
 	})
 
 	resp.OnDelete(func() {
 		if name == runenv.Project {
 			// 本项目配置, 去掉本项目前缀
-			cfg.Set(trimProject(key), nil)
+			cfg.cfg.Set(trimProject(key), nil)
 		} else {
 			// 非本项目配置, 项目前缀要带上名字
-			cfg.Set(key, nil)
+			cfg.cfg.Set(key, nil)
 		}
 	})
 

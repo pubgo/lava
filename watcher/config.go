@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 )
 
@@ -9,14 +11,16 @@ const Name = "watcher"
 var cfg = DefaultCfg()
 
 type Cfg struct {
-	SkipNull bool                                        `json:"skip_null"`
-	Driver   string                                      `json:"driver"`
-	Projects []string                                    `json:"projects"`
-	Set      func(string, interface{})                   `json:"-" yaml:"-"`
-	GetMap   func(keys ...string) map[string]interface{} `json:"-" yaml:"-"`
+	SkipNull bool   `json:"skip_null"`
+	Driver   string `json:"driver"`
+
+	// Projects 需要watcher的项目
+	Projects []string `json:"projects"`
+
+	cfg config.Config
 }
 
-func (cfg Cfg) Build(data map[string]interface{}) (_ Watcher, err error) {
+func (cfg Cfg) Build(data types.M) (_ Watcher, err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

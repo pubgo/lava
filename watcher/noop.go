@@ -9,7 +9,7 @@ import (
 var _ Watcher = (*nullWatcher)(nil)
 
 func init() {
-	Register("noop", func(cfg types.M) (Watcher, error) { return new(nullWatcher), nil })
+	RegisterFactory("noop", func(cfg types.M) (Watcher, error) { return new(nullWatcher), nil })
 }
 
 type nullWatcher struct{}

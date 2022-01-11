@@ -5,8 +5,6 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-const Name = "tracing"
-
 var cfg = GetDefaultCfg()
 
 type Cfg struct {

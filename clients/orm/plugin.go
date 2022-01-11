@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
@@ -9,6 +8,7 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {
@@ -33,7 +33,8 @@ func init() {
 				if !ok {
 					cfg = DefaultCfg()
 				}
-				xerror.Panic(types.Decode(w.Value, &cfg))
+
+				xerror.Panic(w.Decode(&cfg))
 				var factory = factories.Get(cfgMap[name].Driver).(Factory)
 				dialect := factory(config.GetMap(Name, name))
 				var db = cfg.Build(dialect)

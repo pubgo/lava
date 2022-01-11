@@ -9,6 +9,8 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
+const Name = "etcdv3"
+
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
@@ -23,7 +25,7 @@ func init() {
 		OnWatch: func(name string, r *types.WatchResp) error {
 			r.OnPut(func() {
 				var cfg Cfg
-				xerror.PanicF(types.Decode(r.Value, &cfg), "etcd conf parse error, cfg: %s", r.Value)
+				xerror.PanicF(r.Decode(&cfg), "etcd conf parse error, cfg: %s", r.Value)
 				etcdCfg := cfgMerge(cfg)
 				client := etcdCfg.Build()
 				resource.Update(name, &Client{client})

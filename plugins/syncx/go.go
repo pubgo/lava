@@ -3,7 +3,6 @@ package syncx
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/logger/logutil"
 	"runtime"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 
@@ -190,6 +190,7 @@ func checkConcurrent(name string, fn interface{}) func() {
 		runtime.Gosched()
 
 		// 采样率(1%), 打印log, 让监控获取信息
+		// todo: 采样率变量
 		if fastrand.Sampling(0.01) {
 			logs.With(
 				zap.String("name", name),

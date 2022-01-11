@@ -2,6 +2,7 @@ package nacos
 
 import (
 	"fmt"
+	watcher2 "github.com/pubgo/lava/event"
 	"log"
 	"net"
 	"reflect"
@@ -12,7 +13,6 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/vo"
 
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 )
 
 type watcher struct {
@@ -93,7 +93,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 		nw.Unlock()
 
 		for _, v := range services {
-			nw.next <- &registry.Result{Action: types.EventType_CREATE, Service: buildRegistryService(&v)}
+			nw.next <- &registry.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&v)}
 			return
 		}
 	} else {
@@ -103,7 +103,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 				if subscribeService.InstanceId == cacheService.InstanceId {
 					if !reflect.DeepEqual(subscribeService, cacheService) {
 						//update instance
-						nw.next <- &registry.Result{Action: types.EventType_UPDATE, Service: buildRegistryService(&subscribeService)}
+						nw.next <- &registry.Result{Action: watcher2.EventType_UPDATE, Service: buildRegistryService(&subscribeService)}
 						return
 					}
 					create = false
@@ -113,7 +113,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 			if create {
 				log.Println("create", subscribeService.ServiceName, subscribeService.Port)
 
-				nw.next <- &registry.Result{Action: types.EventType_CREATE, Service: buildRegistryService(&subscribeService)}
+				nw.next <- &registry.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&subscribeService)}
 
 				nw.Lock()
 				nw.cacheServices[serviceName] = append(nw.cacheServices[serviceName], subscribeService)
@@ -131,7 +131,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 			}
 			if del {
 				log.Println("del", cacheService.ServiceName, cacheService.Port)
-				nw.next <- &registry.Result{Action: types.EventType_DELETE, Service: buildRegistryService(&cacheService)}
+				nw.next <- &registry.Result{Action: watcher2.EventType_DELETE, Service: buildRegistryService(&cacheService)}
 
 				nw.Lock()
 				nw.cacheServices[serviceName][index] = model.SubscribeService{}

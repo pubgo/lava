@@ -5,13 +5,11 @@ import (
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"go.etcd.io/etcd/client/v3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/pkg/retry"
 )
-
-const Name = "etcdv3"
 
 var cfgList = make(map[string]Cfg)
 

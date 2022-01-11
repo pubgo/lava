@@ -8,48 +8,23 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/event"
 )
 
-type Watcher func(name string, r *WatchResp) error
+type Watcher = func(name string, r *WatchResp) error
 
 type WatchResp struct {
 	Type    string
-	Event   EventType
+	Event   event.EventType
 	Key     string
 	Value   []byte
 	Version int64
 }
 
-// Decode ...
-func (t *WatchResp) Decode(c interface{}) error {
-	return Decode(t.Value, c)
-}
-
-func (t *WatchResp) OnPut(fn func()) {
-	xerror.Panic(t.checkEventType())
-	if t.Event == EventType_UPDATE {
-		fn()
-	}
-}
-
-func (t *WatchResp) OnDelete(fn func()) {
-	xerror.Panic(t.checkEventType())
-	if t.Event == EventType_DELETE {
-		fn()
-	}
-}
-
-func (t *WatchResp) checkEventType() error {
-	switch t.Event {
-	case EventType_UPDATE, EventType_DELETE:
-		return nil
-	default:
-		return xerror.Fmt("unknown event: %s", t.Event)
-	}
-}
-
-func Decode(data []byte, c interface{}) (err error) {
+func (t *WatchResp) Decode(c interface{}) (err error) {
 	defer xerror.RespErr(&err)
+
+	var data = t.Value
 
 	// "yaml", "yml"
 	if err = yaml.Unmarshal(data, &c); err == nil {
@@ -71,5 +46,28 @@ func Decode(data []byte, c interface{}) (err error) {
 		return
 	}
 
-	return errors.Unknown("types.decode", "data=>%s, c=>%T", data, c)
+	return errors.Unknown("watcher.decode", "data=>%s, c=>%T", data, c)
+}
+
+func (t *WatchResp) OnPut(fn func()) {
+	xerror.Panic(t.checkEventType())
+	if t.Event == event.EventType_UPDATE || t.Event == event.EventType_CREATE {
+		fn()
+	}
+}
+
+func (t *WatchResp) OnDelete(fn func()) {
+	xerror.Panic(t.checkEventType())
+	if t.Event == event.EventType_DELETE {
+		fn()
+	}
+}
+
+func (t *WatchResp) checkEventType() error {
+	switch t.Event {
+	case event.EventType_UPDATE, event.EventType_DELETE, event.EventType_CREATE:
+		return nil
+	default:
+		return xerror.Fmt("unknown event: %s", t.Event)
+	}
 }

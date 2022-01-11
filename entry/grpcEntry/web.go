@@ -27,6 +27,10 @@ func (g *grpcEntry) grpcWeb(opts ...grpcweb.Option) error {
 		return nil
 	}
 
+	//var server *grpcweb.WrappedGrpcServer
+	//_ = server.IsAcceptableGrpcCorsRequest
+	//_ = server.IsGrpcWebRequest
+
 	h := grpcweb.WrapServer(g.srv.Get(), append(defaultWebOptions, opts...)...)
 	for _, v := range grpcweb.ListGRPCResources(g.srv.Get()) {
 		xerror.Panic(g.gw.Get().HandlePath("POST", v, func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {

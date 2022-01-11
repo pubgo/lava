@@ -189,10 +189,7 @@ func Run(description string, entries ...entry.Entry) {
 			entRT.InitRT()
 
 			// watcher初始化, 最后初始化, 从远程获取最新的配置
-			xerror.Panic(watcher.Init(func(cfg *watcher.Cfg) {
-				cfg.Set = config.GetCfg().Set
-				cfg.GetMap = config.GetMap
-			}))
+			xerror.Panic(watcher.Init(config.GetCfg()))
 			return nil
 		}
 

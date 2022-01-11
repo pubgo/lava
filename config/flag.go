@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runenv"
 	"github.com/pubgo/lava/types"
 )
@@ -13,38 +13,38 @@ func DefaultFlags() []cli.Flag {
 		&cli.StringFlag{
 			Name:        "config",
 			Destination: &CfgPath,
-			Aliases:     typex.StrOf("c"),
+			Aliases:     types.StrList{"c"},
 			Usage:       "config path",
 			Value:       CfgPath,
 		},
 		&cli.StringFlag{
 			Name:        "addr",
 			Destination: &runenv.Addr,
-			Aliases:     typex.StrOf("a"),
+			Aliases:     types.StrList{"a"},
 			Usage:       "server(http|grpc|ws|...) address",
 			Value:       runenv.Addr,
 		},
 		&cli.BoolFlag{
 			Name:        "trace",
 			Destination: &runenv.Trace,
-			Aliases:     typex.StrOf("t"),
+			Aliases:     types.StrList{"t"},
 			Usage:       "enable trace",
 			Value:       runenv.Trace,
-			EnvVars:     types.EnvOf("trace", "trace-log", "tracelog"),
+			EnvVars:     env.KeyOf("trace", "trace-log", "tracelog"),
 		},
 		// 运行环境
 		&cli.StringFlag{
 			Name:        "mode",
 			Destination: &runenv.Mode,
-			Aliases:     typex.StrOf("m"),
+			Aliases:     types.StrList{"m"},
 			Usage:       "running mode(dev|test|stag|prod|release)",
 			Value:       runenv.Mode,
-			EnvVars:     types.EnvOf("lava-run-mode", "lava-run-env"),
+			EnvVars:     env.KeyOf("lava-run-mode", "lava-run-env"),
 		},
 		&cli.StringFlag{
 			Name:        "level",
 			Destination: &runenv.Level,
-			Aliases:     typex.StrOf("l"),
+			Aliases:     types.StrList{"l"},
 			Usage:       "log level(debug|info|warn|error|panic|fatal)",
 			Value:       runenv.Level,
 		},

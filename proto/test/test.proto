@@ -10,9 +10,8 @@ message GenerateResponse {
   string id = 1;
 
   oneof image {
-    string media_file = 12 [
-      (lava.tags) = {key:"json1",value:"media_file"}
-    ];
+    string media_file = 12
+        [ (lava.tags) = {key : "json1", value : "media_file"} ];
     bytes data = 13;
     int64 ad_id_to_copy_image_from = 14;
   }
@@ -24,8 +23,7 @@ message GenerateResponse {
   }
 
   string type = 2 [
-    (lava.tags) = {key:"json",value:"types,omitempty"},
-    (lava.tags) = {key:"yaml1",value:"types,omitempty"}
+    (lava.tags) = {key : "json", value : "types,omitempty"},
+    (lava.tags) = {key : "yaml1", value : "types,omitempty"}
   ];
 }
-

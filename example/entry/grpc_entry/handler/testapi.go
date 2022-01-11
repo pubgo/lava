@@ -17,6 +17,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
 
@@ -80,6 +81,10 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.Infof("Received Helloworld.Call request, name: %s", in.Input)
 
+	var m = metric.GetWithCtx(ctx)
+	m.Counter("test-counter").Inc(1)
+	defer m.Timer("test-timer").Start().Stop()
+
 	if h.Db != nil {
 		var user User
 		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
@@ -91,7 +96,7 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		xerror.Panic(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
 		log.Infow("data", "data", user)
 
-		log.Infow("dix config ok", "cfg", config.GetCfg().ConfigPath())
+		log.Infow("dix config ok", "cfg", config.CfgPath)
 	}
 
 	out = &hello.TestApiOutput{

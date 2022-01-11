@@ -3,7 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
-
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/k8s"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)
@@ -49,7 +48,7 @@ func (t *Watcher) Next() (*registry.Result, error) {
 			xerror.Panic(err)
 
 			var resp = &registry.Result{
-				Action: types.EventType_UPDATE,
+				Action: event.EventType_UPDATE,
 				Service: &registry.Service{
 					Name: t.service,
 				},

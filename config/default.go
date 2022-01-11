@@ -6,6 +6,8 @@ import (
 
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
+
+	"github.com/pubgo/lava/types"
 )
 
 var (
@@ -16,15 +18,21 @@ var (
 	cfg     = &configImpl{v: viper.New()}
 )
 
-// Init 初始化配置
-func Init() { getCfg().initCfg() }
+// Init 配置初始化
+func Init() { cfg.initCfg() }
 
-// GetCfg 获取配置obj
-func GetCfg() Config      { return getCfg() }
-func getCfg() *configImpl { return cfg }
+// GetCfg 获取内存配置
+func GetCfg() Config { return getCfg() }
+func getCfg() *configImpl {
+	if !cfg.init {
+		panic("please init config")
+	}
+
+	return cfg
+}
 
 // Decode decode config to *struct|callback(*struct)
 func Decode(name string, fn interface{}) error { return getCfg().Decode(name, fn) }
 
 // GetMap 通过key获取配置map
-func GetMap(keys ...string) map[string]interface{} { return getCfg().GetMap(strings.Join(keys, ".")) }
+func GetMap(keys ...string) types.CfgMap { return getCfg().GetMap(strings.Join(keys, ".")) }

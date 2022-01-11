@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/event"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/types"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -117,7 +117,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				}
 
 				// 注册中心删除服务
-				if res.Action == types.EventType_DELETE {
+				if res.Action == event.EventType_DELETE {
 					d.delService(res.Service)
 				} else {
 					d.updateService(res.Service)

@@ -1,22 +1,21 @@
 package config
 
 import (
-	"errors"
 	"io"
 
-	"github.com/spf13/viper"
+	"github.com/mitchellh/mapstructure"
+
+	"github.com/pubgo/lava/types"
 )
 
-var ErrKeyNotFound = errors.New("config key not found")
-
+type DecoderConfig = mapstructure.DecoderConfig
 type Config interface {
-	UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error
-	Decode(name string, fn interface{}) error
+	UnmarshalKey(key string, rawVal interface{}, opts ...func(*DecoderConfig)) error
+	Decode(name string, fnOrPtr interface{}) error
 	Get(key string) interface{}
 	Set(string, interface{})
 	GetString(key string) string
-	GetMap(key string) map[string]interface{}
-	ConfigPath() string
+	GetMap(key string) types.CfgMap
 	AllKeys() []string
 	MergeConfig(in io.Reader) error
 	All() map[string]interface{}

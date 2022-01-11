@@ -10,12 +10,12 @@ import (
 	"sync"
 
 	hash "github.com/mitchellh/hashstructure"
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	"go.etcd.io/etcd/client/v3"
 
 	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
 )
@@ -23,7 +23,7 @@ import (
 func init() {
 	registry.Register(Name, func(m types.CfgMap) (registry.Registry, error) {
 		var cfg Cfg
-		xerror.Panic(merge.MapStruct(&cfg, m))
+		merge.MapStruct(&cfg, m)
 		return &Registry{
 			cfg:      cfg,
 			register: make(map[string]uint64),

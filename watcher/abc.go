@@ -8,9 +8,9 @@ import (
 
 type (
 	Response = types.WatchResp
-	CallBack func(name string, resp *Response) error
 	Opt      func(*options)
 	options  struct{}
+	Factory  = func(cfg types.M) (Watcher, error)
 )
 
 // Watcher ...

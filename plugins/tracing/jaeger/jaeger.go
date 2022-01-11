@@ -9,21 +9,22 @@ import (
 	"github.com/uber/jaeger-lib/metrics"
 	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
-	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
 
 var _ = jaeger.NewNullReporter()
 
 func init() {
-	xerror.Exit(tracing.Register(Name, func(cfgMap map[string]interface{}) error {
+	xerror.Exit(tracing.RegisterFactory(Name, func(cfgMap types.CfgMap) error {
 		var cfg = DefaultCfg()
 		cfg.ServiceName = runenv.Project
 		cfg.Tags = append(cfg.Tags, opentracing.Tag{Key: "version", Value: version.Version})
-		return New(merge.MapStruct(cfg, cfgMap).(*Cfg))
+		xerror.Panic(cfgMap.Decode(cfg))
+		return New(cfg)
 	}))
 }
 

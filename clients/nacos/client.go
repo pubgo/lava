@@ -3,8 +3,9 @@ package nacos
 import (
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/lavax"
 )
 
 func Get(names ...string) *Client {

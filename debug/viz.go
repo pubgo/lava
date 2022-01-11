@@ -1,15 +1,14 @@
 package debug
 
 import (
-	"os"
+	"bytes"
 
 	"github.com/bradleyjkemp/memviz"
-	"github.com/pubgo/xerror"
 )
 
-// Memviz 获取对象可视化内存
-func Memviz(filename string, is ...interface{}) {
-	var f, err = os.Create(filename)
-	xerror.Panic(err)
-	memviz.Map(f, is...)
+// Memviz 对象内存转化为graphviz
+func Memviz(is ...interface{}) []byte {
+	var data = bytes.NewBuffer(nil)
+	memviz.Map(data, is...)
+	return data.Bytes()
 }

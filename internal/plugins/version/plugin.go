@@ -22,7 +22,7 @@ func init() {
 		OnCommands: func() *types.Command {
 			return &cli.Command{
 				Name:    "version",
-				Aliases: types.Strs{"v"},
+				Aliases: types.StrList{"v"},
 				Usage:   "Print the dependency package information",
 				Description: clix.ExampleFmt(
 					"lava version",

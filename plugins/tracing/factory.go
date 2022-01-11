@@ -11,7 +11,7 @@ var factories typex.SMap
 
 type Factory func(cfg map[string]interface{}) error
 
-func Get(names ...string) Factory {
+func GetFactory(names ...string) Factory {
 	val, ok := factories.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
@@ -20,7 +20,7 @@ func Get(names ...string) Factory {
 	return val.(Factory)
 }
 
-func Register(name string, r Factory) (err error) {
+func RegisterFactory(name string, r Factory) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(name == "" || r == nil, "[name,tracer] is null")

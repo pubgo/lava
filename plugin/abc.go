@@ -9,6 +9,7 @@ import (
 const Name = "plugin"
 
 type Plugin interface {
+	Process
 	json.Marshaler
 	String() string
 	UniqueName() string
@@ -19,10 +20,6 @@ type Plugin interface {
 	Vars(types.Vars) error
 	Health() types.Healthy
 	Middleware() types.Middleware
-	BeforeStarts() []func()
-	AfterStarts() []func()
-	BeforeStops() []func()
-	AfterStops() []func()
 }
 
 type Process interface {

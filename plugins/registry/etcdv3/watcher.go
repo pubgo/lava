@@ -2,13 +2,13 @@ package etcdv3
 
 import (
 	"context"
-	"github.com/pubgo/lava/clients/etcdv3"
 	"time"
 
 	clientV3 "go.etcd.io/etcd/client/v3"
 
+	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 )
 
 type Watcher struct {
@@ -67,17 +67,17 @@ func (w *Watcher) Next() (*registry.Result, error) {
 
 		for _, ev := range resp.Events {
 			service := decode(ev.Kv.Value)
-			var action types.EventType
+			var action event.EventType
 
 			switch ev.Type {
 			case clientV3.EventTypePut:
 				if ev.IsCreate() {
-					action = types.EventType_CREATE
+					action = event.EventType_CREATE
 				} else if ev.IsModify() {
-					action = types.EventType_UPDATE
+					action = event.EventType_UPDATE
 				}
 			case clientV3.EventTypeDelete:
-				action = types.EventType_DELETE
+				action = event.EventType_DELETE
 
 				// get service from prevKv
 				service = decode(ev.PrevKv.Value)

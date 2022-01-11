@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 
-	"github.com/bradleyjkemp/memviz"
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/xerror"
 )
 
@@ -39,10 +38,5 @@ func main() {
 	root.left.right = leaf
 	root.right.left = leaf
 
-	buf := &bytes.Buffer{}
-	memviz.Map(buf, &root)
-	err := ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644)
-	if err != nil {
-		panic(err)
-	}
+	xerror.Panic(ioutil.WriteFile("example-tree-data", debug.Memviz(&root), 0644))
 }

@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 
 	"github.com/rsocket/rsocket-go"
+	"github.com/rsocket/rsocket-go/core/transport"
 	"github.com/rsocket/rsocket-go/extension"
 	"github.com/rsocket/rsocket-go/payload"
 	"github.com/rsocket/rsocket-go/rx"
@@ -53,7 +55,12 @@ func server(readyCh chan struct{}) {
 			return rsocket.NewAbstractSocket(requestChannelHandler), nil
 		}).
 		// specify transport
-		Transport(rsocket.TCPServer().SetAddr(":7878").Build()).
+		//Transport(rsocket.TCPServer().SetAddr(":7878").Build()).
+		Transport(func(ctx context.Context) (transport.ServerTransport, error) {
+			return transport.NewTCPServerTransport(func(ctx context.Context) (net.Listener, error) {
+				return nil, nil
+			}), nil
+		}).
 		// serve will block execution unless an error occurred
 		Serve(context.Background())
 
@@ -67,6 +74,10 @@ func client() {
 		panic(err)
 	}
 	defer client.Close()
+
+	rsocket.Connect().Acceptor(func(ctx context.Context, socket rsocket.RSocket) rsocket.RSocket {
+		return nil
+	})
 
 	// strings to count the words
 	sentences := []payload.Payload{

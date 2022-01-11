@@ -18,6 +18,8 @@ import (
 
 var logs = logz.Component(Name)
 
+const Name = "tracing"
+
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
