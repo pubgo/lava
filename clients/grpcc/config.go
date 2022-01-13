@@ -148,6 +148,7 @@ func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
 	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
 	defer cancel()
 
+	grpc.WithResolvers()
 	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
 	return conn, xerror.WrapF(gErr, "DialContext error, target:%s", target)
 }

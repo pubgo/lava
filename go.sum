@@ -1205,6 +1205,8 @@ github.com/rs/zerolog v1.13.0/go.mod h1:YbFCdg8HfsridGWAh22vktObvhZbQsZXe4/zB0OK
 github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThCjNc=
 github.com/rsocket/rsocket-go v0.8.6 h1:7/nR2cfUcgAkt/8DmV+zRhsrPvepXugFSdbl0agmrxI=
 github.com/rsocket/rsocket-go v0.8.6/go.mod h1:NhUzuOWcPBI4Of1drSHrfiRK+NZqqk3ixHPFWnnKf8Q=
+github.com/rsocket/rsocket-rpc-go v0.0.1 h1:7KbdKQn0PwS8f94hJxi/npOYylyU+rKJEgH7ThWO1Kc=
+github.com/rsocket/rsocket-rpc-go v0.0.1/go.mod h1:kYfucVrSW2GPWH/rwxLmf2HNEoQ1s79fHFu7eSDilS8=
 github.com/russross/blackfriday v1.5.2 h1:HyvC0ARfnZBqnXwABFeSZHpKvJHJJfPz81GNueLj0oo=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=

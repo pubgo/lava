@@ -38,7 +38,7 @@ func newWatcher(r *Registry, timeout time.Duration, opts ...registry.WatchOpt) (
 		watchPath = servicePath(prefix, wo.Service) + "/"
 	}
 
-	resp, err := r.client.Get(ctx, watchPath, clientV3.WithPrefix())
+	resp, err := r.client.Get().Get(ctx, watchPath, clientV3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func newWatcher(r *Registry, timeout time.Duration, opts ...registry.WatchOpt) (
 	return &Watcher{
 		revision: resp.Header.Revision,
 		stop:     stop,
-		w:        r.client.Watch(ctx, watchPath, clientV3.WithPrefix(), clientV3.WithPrevKV(), clientV3.WithRev(resp.Header.Revision)),
+		w:        r.client.Get().Watch(ctx, watchPath, clientV3.WithPrefix(), clientV3.WithPrevKV(), clientV3.WithRev(resp.Header.Revision)),
 		client:   r.client,
 		timeout:  timeout,
 	}, nil

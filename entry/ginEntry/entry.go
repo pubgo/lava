@@ -78,7 +78,7 @@ func (t *ginEntry) Use(middleware ...gin.HandlerFunc) {
 	t.middlewares = append(t.middlewares, middleware...)
 }
 
-func (t *ginEntry) Register(handler entry.InitHandler) {
+func (t *ginEntry) Register(handler entry.Handler) {
 	defer xerror.RespExit()
 
 	xerror.Assert(handler == nil, "[handler] should not be nil")
@@ -93,7 +93,7 @@ func (t *ginEntry) Start() error {
 		// 启动server后等待
 		syncx.GoDelay(func() {
 			logs.Infof("Server Listening On http://localhost:%s", netutil.MustGetPort(runenv.Addr))
-			logs.Logs("Server Close", func() error {
+			logs.LogOrErr("Server Close", func() error {
 				if err := t.srv.Run(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					return err
 				}

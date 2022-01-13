@@ -1,7 +1,10 @@
 package tracing
 
-import "github.com/pubgo/xerror"
+import (
+	"github.com/pubgo/lava/types"
+	"github.com/pubgo/xerror"
+)
 
 func init() {
-	xerror.Exit(Register("noop", func(cfg map[string]interface{}) error { return nil }))
+	xerror.Exit(RegisterFactory("noop", func(cfg types.CfgMap) error { return nil }))
 }

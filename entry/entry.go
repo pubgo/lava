@@ -24,6 +24,9 @@ type Entry interface {
 	Commands(commands *cli.Command)
 }
 
-type InitHandler interface {
+type Handler interface {
 	Init()
 }
+
+// AssertHandler handler校验
+func AssertHandler(Handler) error { return nil }

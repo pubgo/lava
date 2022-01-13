@@ -35,13 +35,13 @@ type Entry struct {
 	middlewares []types.Middleware
 }
 
-func (t *Entry) RegisterHandler(h entry.InitHandler) { t.opts.Handlers = append(t.opts.Handlers, h) }
-func (t *Entry) BeforeStart(f func())                { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
-func (t *Entry) BeforeStop(f func())                 { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
-func (t *Entry) AfterStart(f func())                 { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
-func (t *Entry) AfterStop(f func())                  { t.opts.AfterStops = append(t.opts.AfterStops, f) }
-func (t *Entry) Start() error                        { panic("start unimplemented") }
-func (t *Entry) Stop() error                         { panic("stop unimplemented") }
+func (t *Entry) RegisterHandler(h entry.Handler) { t.opts.Handlers = append(t.opts.Handlers, h) }
+func (t *Entry) BeforeStart(f func())            { t.opts.BeforeStarts = append(t.opts.BeforeStarts, f) }
+func (t *Entry) BeforeStop(f func())             { t.opts.BeforeStops = append(t.opts.BeforeStops, f) }
+func (t *Entry) AfterStart(f func())             { t.opts.AfterStarts = append(t.opts.AfterStarts, f) }
+func (t *Entry) AfterStop(f func())              { t.opts.AfterStops = append(t.opts.AfterStops, f) }
+func (t *Entry) Start() error                    { panic("start unimplemented") }
+func (t *Entry) Stop() error                     { panic("stop unimplemented") }
 func (t *Entry) Options() entry.Opts {
 	var opts = t.opts
 	opts.Middlewares = append(t.middlewares[:len(t.middlewares):len(t.middlewares)], t.opts.Middlewares...)

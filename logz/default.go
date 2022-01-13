@@ -12,8 +12,14 @@ import (
 	"github.com/pubgo/lava/runenv"
 )
 
+// logz 记录系统框架或者组件的信息, 规范的结构化的可以用来分析的日志信息
+
+var name = "logz"
 var discard = zap.NewNop()
 var loggerMap sync.Map
+var loggerNextMap sync.Map
+
+// 默认log
 var debugLog = func() *zap.Logger {
 	defer xerror.RespExit()
 	cfg := xlog_config.NewDevConfig()
@@ -21,9 +27,10 @@ var debugLog = func() *zap.Logger {
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 	cfg.Rotate = nil
 
-	var log = cfg.Build(runenv.Project)
+	var log = cfg.Build(runenv.Name())
 	return log.Named("lava")
 }()
+var debugNext = debugLog.WithOptions(zap.AddCallerSkip(1)).Sugar()
 
 func init() {
 	type sysLog struct {
@@ -38,12 +45,21 @@ func init() {
 			loggerMap.Store(key, debugLog.Named(key.(string)))
 			return true
 		})
+
+		debugNext = debugLog.WithOptions(zap.AddCallerSkip(1)).Sugar()
+		loggerNextMap.Range(func(key, value interface{}) bool {
+			loggerNextMap.Store(key, debugNext.Named(key.(string)))
+			return true
+		})
+
+		// 依赖触发
 		xerror.Exit(dix.Provider(&Log{}))
 	}))
 }
 
 type Log struct{}
 
+// On log 依赖注入
 func On(fn func(*Log)) {
 	xerror.Exit(dix.Provider(fn))
 }

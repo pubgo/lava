@@ -15,8 +15,9 @@ type Resource struct {
 	io.Closer
 }
 
-func (m *Resource) UpdateResObj(val interface{}) { m.Scope = val.(Resource).Scope }
-func (m *Resource) Kind() string                 { return Name }
+func (m *Resource) Unwrap() io.Closer               { return m.Closer }
+func (m *Resource) UpdateObj(val resource.Resource) { m.Scope = val.(*Resource).Scope }
+func (m *Resource) Kind() string                    { return Name }
 
 type Tags = map[string]string
 type Counter = tally.Counter

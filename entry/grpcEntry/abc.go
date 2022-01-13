@@ -12,7 +12,7 @@ import (
 type Entry interface {
 	entry.Entry
 	grpc.ServiceRegistrar
-	Register(handler entry.InitHandler)
+	Register(handler entry.Handler)
 	UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor)
 	StreamInterceptor(interceptors ...grpc.StreamServerInterceptor)
 }

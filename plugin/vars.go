@@ -9,7 +9,7 @@ func init() {
 	vars.Register(Name, func() interface{} {
 		var data typex.Map
 		for _, v := range All() {
-			data.Set(v.UniqueName(), v)
+			data.Set(v.ID(), v)
 		}
 		return data.Map()
 	})

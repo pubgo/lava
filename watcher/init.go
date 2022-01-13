@@ -116,7 +116,7 @@ func onWatch(name string, resp *Response) {
 
 		// 执行watch callback
 		for i := range v {
-			logs.Logs("watch callback handle", func() error { return v[i](watchKey, resp) },
+			logs.LogOrErr("watch callback handle", func() error { return v[i](watchKey, resp) },
 				project,
 				zap.String("watch-key", k),
 				zap.Any("watch-resp", resp),

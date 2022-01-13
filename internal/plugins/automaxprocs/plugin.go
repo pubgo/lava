@@ -1,6 +1,8 @@
 package automaxprocs
 
 import (
+	"fmt"
+
 	"github.com/pubgo/xerror"
 	"go.uber.org/automaxprocs/maxprocs"
 
@@ -10,14 +12,14 @@ import (
 
 func init() {
 	const name = "automaxprocs"
-	var logs = logz.Component(name)
+	var log = func(s string, i ...interface{}) { logz.Component(name).Depth(2).Info(fmt.Sprintf(s, i...)) }
+
 	plugin.Register(&plugin.Base{
 		Name:       name,
 		Url:        "https://pkg.go.dev/go.uber.org/automaxprocs",
 		Descriptor: "Automatically set GOMAXPROCS to match Linux container CPU quota.",
 		OnInit: func(p plugin.Process) {
-			var l = maxprocs.Logger(func(s string, i ...interface{}) { logs.DepthS(2).Infof(s, i...) })
-			xerror.ExitErr(maxprocs.Set(l)).(func())()
+			xerror.ExitErr(maxprocs.Set(maxprocs.Logger(log))).(func())()
 		},
 	})
 }

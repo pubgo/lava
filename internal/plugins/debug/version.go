@@ -3,8 +3,9 @@ package debug
 import (
 	"net/http"
 	"os"
-	"runtime/debug"
+	rd "runtime/debug"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
@@ -13,9 +14,11 @@ import (
 )
 
 func init() {
-	mux.Get("/debug/env", envHandle)
-	mux.Get("/debug/version", versionHandle)
-	mux.Get("/debug/dep", depHandle)
+	mux.Debug(func(r chi.Router) {
+		r.Get("/env", envHandle)
+		r.Get("/version", versionHandle)
+		r.Get("/dep", depHandle)
+	})
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {
@@ -37,7 +40,7 @@ func versionHandle(writer http.ResponseWriter, request *http.Request) {
 func depHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	info, ok := debug.ReadBuildInfo()
+	info, ok := rd.ReadBuildInfo()
 	if !ok {
 		writer.WriteHeader(http.StatusNoContent)
 		xerror.PanicErr(writer.Write([]byte("")))

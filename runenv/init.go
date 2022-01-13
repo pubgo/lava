@@ -69,6 +69,7 @@ var (
 			xerror.Exit(err)
 			return h
 		},
+		func() string { return "." },
 	)
 )
 

@@ -78,7 +78,7 @@ function {{ .ViewID }}_sync() {
 func New() *ViewManager {
 	page := components.NewPage()
 	page.PageTitle = "statsview"
-	page.AssetsHost = "/debug/statsview/statics/"
+	page.AssetsHost = mux.DebugPrefix("/statsview/statics/")
 	page.Assets.JSAssets.Add("jquery.min.js")
 
 	mgr := &ViewManager{}
@@ -97,7 +97,7 @@ func New() *ViewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	mux.Route("/debug/statsview", func(r chi.Router) {
+	mux.Route(mux.DebugPrefix("/statsview"), func(r chi.Router) {
 		r.Get("/", func(writer http.ResponseWriter, request *http.Request) { page.Render(writer) })
 
 		for _, v := range mgr.Views {

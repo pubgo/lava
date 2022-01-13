@@ -9,12 +9,12 @@ import (
 func init() {
 	vars.Register(Name, func() interface{} {
 		var data = make(map[string]map[string]string)
-		sources.Range(func(key, val interface{}) bool {
+		sources.Range(func(name string, val interface{}) bool {
 			var kind = val.(Resource).Kind()
 			if data[kind] == nil {
 				data[kind] = make(map[string]string)
 			}
-			data[kind][key.(string)] = fmt.Sprintf("%#v", val)
+			data[kind][name] = fmt.Sprintf("%#v", val)
 			return true
 		})
 		return data

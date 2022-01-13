@@ -29,18 +29,13 @@ import (
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
-	// machineID 获取机器ID
-	_ "github.com/pubgo/lava/internal/plugins/machineid"
-)
+	// 加载拦截器, 注意加载顺序
 
-// 加载拦截器, 注意加载顺序
-import (
 	// 加载log记录拦截器
-	_ "github.com/pubgo/lava/middlewares/logRecord"
+	_ "github.com/pubgo/lava/plugins/logRecord"
 
-	// 加载trace记录拦截器
-	//_ "github.com/pubgo/lava/middlewares/traceRecord"
+	// tracing插件, 依赖加载
 
 	// 加载timeout拦截器
-	_ "github.com/pubgo/lava/middlewares/timeout"
+	_ "github.com/pubgo/lava/plugins/timeout"
 )

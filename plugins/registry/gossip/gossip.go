@@ -422,8 +422,6 @@ func (g *gossipRegistry) connect(addrs []string) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 func (g *gossipRegistry) publish(action event2.EventType, services []*registry.Service) {

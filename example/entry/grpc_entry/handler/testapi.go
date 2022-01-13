@@ -15,6 +15,7 @@ import (
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugins/metric"
@@ -41,15 +42,17 @@ func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
 }
 
+var _ = entry.AssertHandler(&testapiHandler{})
+
 type testapiHandler struct {
 	Db   *orm.Client          `dix:""`
 	Cron *scheduler.Scheduler `dix:""`
 }
 
 func (h *testapiHandler) Init() {
-	xerror.Panic(h.Db.AutoMigrate(&User{}))
+	xerror.Panic(h.Db.Get().AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
-	xerror.Panic(h.Db.Create(&user).Error)
+	xerror.Panic(h.Db.Get().Create(&user).Error)
 
 	q.Q(user)
 
@@ -87,13 +90,13 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 
 	if h.Db != nil {
 		var user User
-		xerror.Panic(h.Db.WithContext(ctx).First(&user).Error)
+		xerror.Panic(h.Db.Get().WithContext(ctx).First(&user).Error)
 		log.Infow("data", "data", user)
 
-		xerror.Panic(h.Db.Raw("select * from users limit 1").First(&user).Error)
+		xerror.Panic(h.Db.Get().Raw("select * from users limit 1").First(&user).Error)
 		log.Infow("data", "data", user)
 
-		xerror.Panic(h.Db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
+		xerror.Panic(h.Db.Get().Model(&User{}).Where("Age = ?", 18).First(&user).Error)
 		log.Infow("data", "data", user)
 
 		log.Infow("dix config ok", "cfg", config.CfgPath)

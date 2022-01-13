@@ -9,8 +9,10 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
-func GetLog(ctx context.Context) Logger {
-	return &loggerWrapper{SugaredLogger: loggerInter.GetLog(ctx).Sugar()}
+// GetLog get log from context
+//	从context中获取的log会自动注入request-id
+func GetLog(ctx context.Context, fields ...zap.Field) Logger {
+	return &loggerWrapper{SugaredLogger: loggerInter.GetLog(ctx).With(fields...).Sugar()}
 }
 
 var _ Logger = (*loggerWrapper)(nil)

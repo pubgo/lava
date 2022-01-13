@@ -43,7 +43,9 @@ func Map(name string) *expvar.Map {
 type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
-func (f value) String() string {
+func (f value) String() (r string) {
+	defer xerror.Resp(func(err xerror.XErr) { r = err.Stack() })
+
 	dt := f()
 
 	if _, ok := dt.(string); ok {

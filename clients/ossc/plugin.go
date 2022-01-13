@@ -2,7 +2,6 @@ package ossc
 
 import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 func init() {
@@ -22,7 +22,7 @@ func init() {
 				xerror.Panic(merge.Copy(&cfg, &v))
 				client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 				xerror.Panic(err)
-				resource.Update(k, &Client{client})
+				resource.Update(k, &Client{&wrapper{client}})
 				cfgList[k] = cfg
 			}
 		},
@@ -35,7 +35,7 @@ func init() {
 				xerror.Panic(merge.Copy(&cfg1, &cfg), "config merge error")
 				client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 				xerror.Panic(err)
-				resource.Update(name, &Client{client})
+				resource.Update(name, &Client{&wrapper{client}})
 				cfgList[name] = cfg
 			})
 

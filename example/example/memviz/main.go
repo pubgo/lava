@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/xerror"
 )
 
@@ -38,5 +38,5 @@ func main() {
 	root.left.right = leaf
 	root.right.left = leaf
 
-	xerror.Panic(ioutil.WriteFile("example-tree-data", debug.Memviz(&root), 0644))
+	xerror.Panic(ioutil.WriteFile("example-tree-data", lavax.Memviz(&root), 0644))
 }

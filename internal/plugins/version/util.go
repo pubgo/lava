@@ -9,6 +9,7 @@ import (
 
 func GetVer() map[string]interface{} {
 	return map[string]interface{}{
+		"device_id":     runenv.DeviceId,
 		"project":       runenv.Project,
 		"data":          version.Data,
 		"build_time":    version.BuildTime,

@@ -32,8 +32,7 @@ func Get(kind string, name string) Resource {
 func GetByKind(kind string) map[string]Resource {
 	check(kind, "check")
 	var ss = make(map[string]Resource)
-	sources.Range(func(key, val interface{}) bool {
-		var name = key.(string)
+	sources.Range(func(name string, val interface{}) bool {
 		if val.(Resource).Kind() == kind {
 			ss[name] = val.(Resource)
 		}
@@ -46,7 +45,7 @@ func GetByKind(kind string) map[string]Resource {
 func GetOne(kind string) Resource {
 	check(kind, "check")
 	var ss Resource
-	sources.Range(func(_, val interface{}) bool {
+	sources.Range(func(_ string, val interface{}) bool {
 		if val.(Resource).Kind() == kind {
 			ss = val.(Resource)
 			return false
@@ -60,7 +59,7 @@ func GetOne(kind string) Resource {
 func GetAllKind() []string {
 	var ss []string
 	var set = make(map[string]struct{})
-	sources.Range(func(_, val interface{}) bool {
+	sources.Range(func(_ string, val interface{}) bool {
 		set[val.(Resource).Kind()] = struct{}{}
 		return true
 	})

@@ -56,7 +56,7 @@ func handleSignal() {
 }
 
 func start(ent entry.Runtime) {
-	logs.StepAndThrow("before-start running", func() error {
+	logs.OkOrErr("before-start running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {
 			beforeList = append(beforeList, p.BeforeStarts()...)
@@ -69,9 +69,9 @@ func start(ent entry.Runtime) {
 		return nil
 	})
 
-	logs.StepAndThrow("server start", ent.Start)
+	logs.OkOrErr("server start", ent.Start)
 
-	logs.StepAndThrow("after-start running", func() error {
+	logs.OkOrErr("after-start running", func() error {
 		var afterList []func()
 		for _, p := range plugin.All() {
 			afterList = append(afterList, p.AfterStarts()...)
@@ -86,7 +86,7 @@ func start(ent entry.Runtime) {
 }
 
 func stop(ent entry.Runtime) {
-	logs.Step("before-stop running", func() error {
+	logs.OkOrPanic("before-stop running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {
 			beforeList = append(beforeList, p.BeforeStops()...)
@@ -99,9 +99,9 @@ func stop(ent entry.Runtime) {
 		return nil
 	})
 
-	logs.Step("server stop", ent.Stop)
+	logs.OkOrPanic("server stop", ent.Stop)
 
-	logs.Step("after-stop running", func() error {
+	logs.OkOrPanic("after-stop running", func() error {
 		var afterList []func()
 		for _, p := range plugin.All() {
 			afterList = append(afterList, p.AfterStops()...)
@@ -146,7 +146,7 @@ func Run(description string, entries ...entry.Entry) {
 
 		// 注册健康检查
 		if plg.Health() != nil {
-			healthy.Register(plg.UniqueName(), plg.Health())
+			healthy.Register(plg.ID(), plg.Health())
 		}
 
 		// 注册vars
@@ -154,7 +154,7 @@ func Run(description string, entries ...entry.Entry) {
 
 		// 注册watcher
 		if plg.Watch() != nil {
-			watcher.Watch(plg.UniqueName(), plg.Watch())
+			watcher.Watch(plg.ID(), plg.Watch())
 		}
 	}
 
@@ -182,7 +182,7 @@ func Run(description string, entries ...entry.Entry) {
 			// plugin初始化
 			for _, plg := range plugin.All() {
 				entRT.MiddlewareInter(plg.Middleware())
-				logs.LogAndThrow("plugin init", plg.Init, zap.String("plugin-name", plg.UniqueName()))
+				logs.LogOrPanic("plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
 			}
 
 			// entry初始化

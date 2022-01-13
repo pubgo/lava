@@ -47,6 +47,7 @@ func Use(middlewares ...func(http.Handler) http.Handler)             { app.Use(m
 func With(middlewares ...func(http.Handler) http.Handler) chi.Router { return app.With(middlewares...) }
 func Group(fn func(r chi.Router)) chi.Router                         { return app.Group(fn) }
 func Route(pattern string, fn func(r chi.Router)) chi.Router         { return app.Route(pattern, fn) }
+func Debug(fn func(r chi.Router)) chi.Router                         { return app.Route("/debug", fn) }
 func Mount(pattern string, h http.Handler)                           { app.Mount(pattern, h) }
 func Handle(pattern string, h http.Handler)                          { app.Handle(pattern, h) }
 func HandleFunc(pattern string, h http.HandlerFunc)                  { app.HandleFunc(pattern, h) }

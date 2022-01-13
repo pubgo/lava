@@ -71,7 +71,7 @@ func init() {
 
 			// 微秒
 			params = append(params, zap.Int64("duration", time.Since(now).Microseconds()))
-			logs.Logs(req.Endpoint(), func() error { return err }, params...)
+			logs.LogOrErr(req.Endpoint(), func() error { return err }, params...)
 			return
 		}
 	})

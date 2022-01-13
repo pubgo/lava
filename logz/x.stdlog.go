@@ -12,6 +12,7 @@ import (
 func init() {
 	On(func(*Log) {
 		var stdLog = log.Default()
+		// 接管系统默认log
 		*stdLog = *zap.NewStdLog(getName("std"))
 	})
 }

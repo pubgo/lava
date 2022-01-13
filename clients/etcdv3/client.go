@@ -1,9 +1,12 @@
 package etcdv3
 
 import (
+	"io"
+
+	client3 "go.etcd.io/etcd/client/v3"
+
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/resource"
-	client3 "go.etcd.io/etcd/client/v3"
 )
 
 // Get 获取etcd client
@@ -18,8 +21,10 @@ func Get(names ...string) *Client {
 var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
-	*client3.Client
+	v *client3.Client
 }
 
-func (c *Client) UpdateResObj(val interface{}) { c.Client = val.(*Client).Client }
-func (c *Client) Kind() string                 { return Name }
+func (c *Client) Unwrap() io.Closer               { return c.v }
+func (c *Client) UpdateObj(val resource.Resource) { c.v = val.(*Client).v }
+func (c *Client) Kind() string                    { return Name }
+func (c *Client) Get() *client3.Client            { return c.v }

@@ -97,19 +97,19 @@ func newEntry(name string) *grpcEntry {
 		// 初始化handlers
 		for _, srv := range g.Options().Handlers {
 			// 注册grpc handler
-			logs.LogAndThrow("Grpc Handler Register", func() error {
+			logs.LogOrPanic("Grpc Handler Register", func() error {
 				// 注册handler, 同时注册到grpc和inproc
 				return registerGrpc(g, srv)
 			})
 
 			// 注册gateway handler
 			// 进程内通信, 通过inproc绑定grpc serve和client
-			logs.LogAndThrow("Gateway Handler Register ", func() error {
+			logs.LogOrPanic("Gateway Handler Register ", func() error {
 				return registerGw(context.Background(), g.gw.Get(), g.inproc, srv)
 			})
 
 			// Handler对象注入
-			logs.LogAndThrow("Handler Dependency Injection",
+			logs.LogOrPanic("Handler Dependency Injection",
 				func() error {
 					err := dix.Inject(srv)
 					if err == nil {
@@ -127,7 +127,7 @@ func newEntry(name string) *grpcEntry {
 			)
 
 			// Handler初始化
-			logs.LogAndThrow("Handler initCfg", func() error { return xerror.Try(srv.Init) })
+			logs.LogOrPanic("Handler initCfg", func() error { return xerror.Try(srv.Init) })
 		}
 	})
 
@@ -252,7 +252,7 @@ func (g *grpcEntry) register() (err error) {
 
 	// registry options
 	opts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
-	logs.LogAndThrow("[grpc] register", func() error { return g.registry.Register(services, opts...) })
+	logs.LogOrPanic("[grpc] register", func() error { return g.registry.Register(services, opts...) })
 
 	// already registered? don't need to register subscribers
 	if g.registered.Load() {
@@ -302,7 +302,7 @@ func (g *grpcEntry) deRegister() (err error) {
 		Nodes:   []*registry.Node{node},
 	}
 
-	logs.Logs("deregister node",
+	logs.LogOrErr("deregister node",
 		func() error { return g.registry.Deregister(services) },
 		zap.String("id", node.Id))
 
@@ -322,19 +322,19 @@ func (g *grpcEntry) Stop() (err error) {
 	}
 
 	// deRegister self
-	logs.Logs("[grpc] server deRegister", g.deRegister)
+	logs.LogOrErr("[grpc] server deRegister", g.deRegister)
 
 	// Add sleep for those requests which have selected this port.
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
-	logs.Logs("[grpc] GracefulStop", func() error {
+	logs.LogOrErr("[grpc] GracefulStop", func() error {
 		g.srv.Get().GracefulStop()
 		return nil
 	})
 	return
 }
 
-func (g *grpcEntry) Register(handler entry.InitHandler) {
+func (g *grpcEntry) Register(handler entry.Handler) {
 	defer xerror.RespExit()
 	xerror.Assert(handler == nil, "[handler] should not be nil")
 	xerror.Assert(!findGrpcHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
@@ -355,7 +355,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动grpc服务
 	syncx.GoDelay(func() {
 		logs.Info("[grpc] Server Starting")
-		logs.Logs("[grpc] Server Stop", func() error {
+		logs.LogOrErr("[grpc] Server Stop", func() error {
 			if err := g.srv.Get().Serve(g.matchHttp2()); err != nil &&
 				err != cmux.ErrListenerClosed &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -371,7 +371,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		var s = http.Server{Handler: g.gw.Get()}
 		// grpc服务关闭之前关闭gateway
 		g.BeforeStop(func() {
-			logs.Logs("[grpc-gw] Shutdown", func() error {
+			logs.LogOrErr("[grpc-gw] Shutdown", func() error {
 				if err := s.Shutdown(context.Background()); err != nil && !errors.Is(err, net.ErrClosed) {
 					return err
 				}
@@ -380,7 +380,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		})
 
 		logs.Info("[grpc-gw] Server Starting")
-		logs.Logs("[grpc-gw] Server Stop", func() error {
+		logs.LogOrErr("[grpc-gw] Server Stop", func() error {
 			if err := s.Serve(g.matchHttp1()); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -394,7 +394,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	// 启动net网络
 	syncx.GoDelay(func() {
 		logs.Info("[cmux] Server Starting")
-		logs.Logs("[cmux] Server Stop", func() error {
+		logs.LogOrErr("[cmux] Server Stop", func() error {
 			if err := g.serve(); err != nil &&
 				!errors.Is(err, http.ErrServerClosed) &&
 				!errors.Is(err, net.ErrClosed) {
@@ -405,7 +405,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	})
 
 	// register self
-	logs.LogAndThrow("[grpc] start to register", g.register)
+	logs.LogOrPanic("[grpc] start to register", g.register)
 
 	g.cancelRegister = syncx.GoCtx(func(ctx context.Context) {
 		if g.registry == nil {
@@ -425,7 +425,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.Logs("service register",
+				logs.LogOrErr("service register",
 					g.register,
 					zap.String("registry", g.registry.String()),
 					zap.String("interval", interval.String()),

@@ -2,6 +2,7 @@ package redisc
 
 import (
 	"context"
+	"io"
 
 	"github.com/go-redis/redis/v8"
 
@@ -14,9 +15,9 @@ type Client struct {
 	cli *redis.Client
 }
 
-func (t *Client) UpdateResObj(val interface{}) { t.cli = val.(*Client).cli }
-func (t *Client) Kind() string                 { return Name }
-func (t *Client) Close() error                 { return t.cli.Close() }
+func (t *Client) Unwrap() io.Closer               { return t.cli }
+func (t *Client) UpdateObj(val resource.Resource) { t.cli = val.(*Client).cli }
+func (t *Client) Kind() string                    { return Name }
 func (t *Client) Get(ctx context.Context, options ...func(*redis.Options)) *redis.Client {
 	cc := t.cli.WithContext(ctx)
 	opts := cc.Options()

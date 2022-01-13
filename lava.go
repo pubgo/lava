@@ -1,7 +1,6 @@
 package lava
 
 import (
-	_ "github.com/hashicorp/memberlist"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/runtime"
 )

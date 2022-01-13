@@ -12,6 +12,7 @@ import (
 
 const name = "logger"
 
+// Init logger
 func Init(opts ...func(cfg *xlog_config.Config)) {
 	defer xerror.RespExit()
 
@@ -36,15 +37,14 @@ func Init(opts ...func(cfg *xlog_config.Config)) {
 	log = log.With(zap.String("project", runenv.Project))
 
 	// 业务日志
-	appLog := log.Named(runenv.Project).With(zap.Namespace("fields"))
+	appLog := log.Named(runenv.Name()).With(zap.Namespace("fields"))
 
-	globalLog = appLog.Named(runenv.Project).With(zap.Namespace("fields")).Sugar()
-	globalNext = globalLog.Desugar().WithOptions(zap.AddCallerSkip(1)).Sugar()
+	globalLog = appLog.Sugar()
+	globalNext = appLog.WithOptions(zap.AddCallerSkip(1)).Sugar()
 
-	// 全局替换
+	// 替换全局zap
 	zap.ReplaceGlobals(appLog)
 
-	// 依赖注入
-	xerror.Exit(dix.Provider(appLog))
+	// 用于logz触发
 	xerror.Exit(dix.ProviderNs("lava", log))
 }

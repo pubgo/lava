@@ -134,6 +134,8 @@ func (p *cacheImpl) getSet(key string, d time.Duration, fn ...getCallback) (_ []
 			xerror.Panic(err)
 		}))
 
+		_ = val
+
 		return dt, xerror.Wrap(p.Set(key, dt, d))
 	}
 

@@ -1,34 +1,23 @@
 package nsqc
 
 import (
+	"io"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"github.com/segmentio/nsq-go"
 
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/resource"
 )
 
-func Get(names ...string) *Client {
-	var name = lavax.GetDefault(names...)
-	val := resource.Get(Name, name)
-	if val == nil {
-		return nil
-	}
-	return val.(*Client)
-}
+var _ io.Closer = (*wrapper)(nil)
 
-var _ resource.Resource = (*Client)(nil)
-
-type Client struct {
-	mu   sync.Mutex
-	cfg  Cfg
+type wrapper struct {
 	stop []func()
 }
 
-func (t *Client) Close() error {
+func (t *wrapper) Close() error {
 	return xerror.Try(func() {
 		for i := range t.stop {
 			t.stop[i]()
@@ -36,8 +25,15 @@ func (t *Client) Close() error {
 	})
 }
 
-func (t *Client) UpdateResObj(val interface{}) {}
-func (t *Client) Kind() string                 { return Name }
+type Client struct {
+	mu  sync.Mutex
+	cfg Cfg
+	v   *wrapper
+}
+
+func (t *Client) Unwrap() io.Closer               { return t.v }
+func (t *Client) UpdateObj(val resource.Resource) {}
+func (t *Client) Kind() string                    { return Name }
 
 func (t *Client) Consumer(topic string, channel string) (c *nsq.Consumer, err error) {
 	defer xerror.RespErr(&err)
@@ -57,7 +53,7 @@ func (t *Client) Consumer(topic string, channel string) (c *nsq.Consumer, err er
 		}
 	}
 
-	t.stop = append(t.stop, consumer.Stop)
+	t.v.stop = append(t.v.stop, consumer.Stop)
 	return consumer, nil
 }
 
@@ -73,6 +69,6 @@ func (t *Client) Producer(topic string) (p *nsq.Producer, err error) {
 
 	producer := xerror.PanicErr(nsq.StartProducer(cfg)).(*nsq.Producer)
 
-	t.stop = append(t.stop, producer.Stop)
+	t.v.stop = append(t.v.stop, producer.Stop)
 	return producer, nil
 }

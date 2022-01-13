@@ -25,18 +25,12 @@ func init() {
 		var cfg Cfg
 		merge.MapStruct(&cfg, m)
 		return &Registry{
+			client:   etcdv3.Get(cfg.Driver),
 			cfg:      cfg,
 			register: make(map[string]uint64),
 			leases:   make(map[string]clientv3.LeaseID),
 		}, nil
 	})
-}
-
-func NewRegistry() registry.Registry {
-	return &Registry{
-		register: make(map[string]uint64),
-		leases:   make(map[string]clientv3.LeaseID),
-	}
 }
 
 type Registry struct {
@@ -84,7 +78,7 @@ func (e *Registry) Deregister(s *registry.Service, opts ...registry.DeregOpt) er
 	defer cancel()
 
 	for _, node := range s.Nodes {
-		_, err := e.client.Delete(ctx, nodePath(e.cfg.Prefix, s.Name, node.Id))
+		_, err := e.client.Get().Delete(ctx, nodePath(e.cfg.Prefix, s.Name, node.Id))
 		if err != nil {
 			return err
 		}
@@ -101,7 +95,7 @@ func (e *Registry) Register(s *registry.Service, opts ...registry.RegOpt) error 
 	//refreshing lease if existing
 	leaseID, ok := e.leases[s.Name]
 	if ok {
-		if _, err := e.client.KeepAliveOnce(context.TODO(), leaseID); err != nil {
+		if _, err := e.client.Get().KeepAliveOnce(context.TODO(), leaseID); err != nil {
 			if err != rpctypes.ErrLeaseNotFound {
 				return err
 			}
@@ -144,7 +138,7 @@ func (e *Registry) Register(s *registry.Service, opts ...registry.RegOpt) error 
 
 	var lgr *clientv3.LeaseGrantResponse
 	if options.TTL.Seconds() > 0 {
-		lgr, err = e.client.Grant(ctx, int64(options.TTL.Seconds()))
+		lgr, err = e.client.Get().Grant(ctx, int64(options.TTL.Seconds()))
 		if err != nil {
 			return err
 		}
@@ -153,9 +147,9 @@ func (e *Registry) Register(s *registry.Service, opts ...registry.RegOpt) error 
 	for _, node := range s.Nodes {
 		service.Nodes = []*registry.Node{node}
 		if lgr != nil {
-			_, err = e.client.Put(ctx, nodePath(e.cfg.Prefix, service.Name, node.Id), encode(service), clientv3.WithLease(lgr.ID))
+			_, err = e.client.Get().Put(ctx, nodePath(e.cfg.Prefix, service.Name, node.Id), encode(service), clientv3.WithLease(lgr.ID))
 		} else {
-			_, err = e.client.Put(ctx, nodePath(e.cfg.Prefix, service.Name, node.Id), encode(service))
+			_, err = e.client.Get().Put(ctx, nodePath(e.cfg.Prefix, service.Name, node.Id), encode(service))
 		}
 		if err != nil {
 			return err
@@ -178,7 +172,7 @@ func (e *Registry) GetService(name string, opts ...registry.GetOpt) ([]*registry
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	rsp, err := e.client.Get(ctx, servicePath(e.cfg.Prefix, name)+"/", clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
+	rsp, err := e.client.Get().Get(ctx, servicePath(e.cfg.Prefix, name)+"/", clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +216,7 @@ func (e *Registry) ListService(opts ...registry.ListOpt) ([]*registry.Service, e
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	rsp, err := e.client.Get(ctx, e.cfg.Prefix, clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
+	rsp, err := e.client.Get().Get(ctx, e.cfg.Prefix, clientv3.WithPrefix(), clientv3.WithSort(clientv3.SortByKey, clientv3.SortDescend))
 	if err != nil {
 		return nil, err
 	}

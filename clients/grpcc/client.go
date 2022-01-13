@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"io"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -56,9 +57,10 @@ type Client struct {
 	conn    *grpc.ClientConn
 }
 
-func (t *Client) UpdateResObj(val interface{}) { t.conn = val.(*Client).conn }
-func (t *Client) Kind() string                 { return Name }
-func (t *Client) Close() error                 { return t.conn.Close() }
+func (t *Client) Unwrap() io.Closer               { return t.conn }
+func (t *Client) UpdateObj(val resource.Resource) { t.conn = val.(*Client).conn }
+func (t *Client) Kind() string                    { return Name }
+func (t *Client) Close() error                    { return t.conn.Close() }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	var conn, err = t.Get()

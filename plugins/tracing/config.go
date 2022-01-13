@@ -17,7 +17,7 @@ func (cfg Cfg) Build() (err error) {
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "tracer driver is null")
 
-	fc := Get(driver)
+	fc := GetFactory(driver)
 	xerror.Assert(fc == nil, "tracer driver [%s] not found", driver)
 
 	return fc(config.GetMap(Name))

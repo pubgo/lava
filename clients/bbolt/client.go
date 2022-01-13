@@ -2,6 +2,7 @@ package bbolt
 
 import (
 	"context"
+	"io"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
@@ -25,11 +26,13 @@ func Get(name ...string) *Client {
 var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
-	*bolt.DB
+	v *bolt.DB
 }
 
-func (t *Client) Kind() string                 { return Name }
-func (t *Client) UpdateResObj(val interface{}) { t.DB = val.(*Client).DB }
+func (t *Client) Unwrap() io.Closer               { return t.Get() }
+func (t *Client) Kind() string                    { return Name }
+func (t *Client) UpdateObj(val resource.Resource) { t.v = val.(*Client).v }
+func (t *Client) Get() *bolt.DB                   { return t.v }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
@@ -48,7 +51,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...strin
 
 	ext.DBType.Set(span, Name)
 
-	return t.DB.View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+	return t.Get().View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }
 
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
@@ -62,5 +65,5 @@ func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...str
 
 	ext.DBType.Set(span, Name)
 
-	return t.DB.Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+	return t.Get().Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }

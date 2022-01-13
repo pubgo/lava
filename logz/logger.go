@@ -12,9 +12,6 @@ func Component(name string) *Logger {
 	return &Logger{name: name}
 }
 
-// GetLog get zap logger with name
-func GetLog(name string) *zap.Logger { return getName(name) }
-
 type Logger struct {
 	name string
 }
@@ -23,7 +20,7 @@ func (t *Logger) With(args ...zap.Field) *zap.Logger {
 	return getName(t.name).With(args...)
 }
 
-func (t *Logger) StepAndThrow(msg string, fn func() error, fields ...zap.Field) {
+func (t *Logger) OkOrErr(msg string, fn func() error, fields ...zap.Field) {
 	var log = t.Depth(1)
 	log = log.With(fields...)
 
@@ -41,7 +38,7 @@ func (t *Logger) StepAndThrow(msg string, fn func() error, fields ...zap.Field) 
 	panic(err)
 }
 
-func (t *Logger) Step(msg string, fn func() error, fields ...zap.Field) {
+func (t *Logger) OkOrPanic(msg string, fn func() error, fields ...zap.Field) {
 	var log = t.Depth(1)
 	log = log.With(fields...)
 
@@ -58,7 +55,7 @@ func (t *Logger) Step(msg string, fn func() error, fields ...zap.Field) {
 	log.Error(msg+" error", logutil.WithErr(err)...)
 }
 
-func (t *Logger) Logs(msg string, fn func() error, fields ...zap.Field) {
+func (t *Logger) LogOrErr(msg string, fn func() error, fields ...zap.Field) {
 	var log = t.Depth(1)
 	var err error
 	xerror.TryWith(&err, func() { err = fn() })
@@ -71,7 +68,7 @@ func (t *Logger) Logs(msg string, fn func() error, fields ...zap.Field) {
 	log.Error(msg, logutil.WithErr(err, fields...)...)
 }
 
-func (t *Logger) LogAndThrow(msg string, fn func() error, fields ...zap.Field) {
+func (t *Logger) LogOrPanic(msg string, fn func() error, fields ...zap.Field) {
 	var log = t.Depth(1)
 	var err error
 	xerror.TryWith(&err, func() { err = fn() })
@@ -100,44 +97,40 @@ func (t *Logger) Depth(depth ...int) *zap.Logger {
 	return getName(t.name)
 }
 
-func (t *Logger) DepthS(depth ...int) *zap.SugaredLogger {
-	return t.Depth(depth...).Sugar()
-}
-
 func (t *Logger) Infof(template string, args ...interface{}) {
-	t.DepthS(1).Infof(template, args...)
+	getNextName(t.name).Infof(template, args...)
 }
 
 func (t *Logger) Info(args ...interface{}) {
-	t.DepthS(1).Info(args...)
+	getNextName(t.name).Info(args...)
 }
 
 func (t *Logger) Infow(msg string, keysAndValues ...interface{}) {
-	t.DepthS(1).Infow(msg, keysAndValues...)
+	getNextName(t.name).Infow(msg, keysAndValues...)
 }
 
 func (t *Logger) Errorf(template string, args ...interface{}) {
-	t.DepthS(1).Errorf(template, args...)
+	getNextName(t.name).Errorf(template, args...)
 }
 
 func (t *Logger) Error(args ...interface{}) {
-	t.DepthS(1).Error(args...)
+	getNextName(t.name).Error(args...)
 }
 
 func (t *Logger) Errorw(msg string, keysAndValues ...interface{}) {
-	t.DepthS(1).Errorw(msg, keysAndValues...)
+	getNextName(t.name).Errorw(msg, keysAndValues...)
 }
 
 func (t *Logger) Warnf(template string, args ...interface{}) {
-	t.DepthS(1).Warnf(template, args...)
+	getNextName(t.name).Warnf(template, args...)
 }
 
 func (t *Logger) Warn(args ...interface{}) {
-	t.DepthS(1).Warn(args...)
+	getNextName(t.name).Warn(args...)
 }
 
 func (t *Logger) Warnw(msg string, keysAndValues ...interface{}) {
-	t.DepthS(1).Warnw(msg, keysAndValues...)
+	getNextName(t.name).Warnw(msg, keysAndValues...)
 }
 
 func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
@@ -150,12 +143,22 @@ func (t *Logger) TryWith(fn func()) *zap.SugaredLogger {
 	return debugLog.Named(t.name).With(logutil.WithErr(err, logutil.FuncStack(fn))...).Sugar()
 }
 
-func getName(name string, opts ...zap.Option) *zap.Logger {
+func getName(name string) *zap.Logger {
 	if val, ok := loggerMap.Load(name); ok {
 		return val.(*zap.Logger)
 	}
 
-	var l = debugLog.Named(name).WithOptions(opts...)
+	var l = debugLog.Named(name)
 	loggerMap.Store(name, l)
+	return l
+}
+
+func getNextName(name string) *zap.SugaredLogger {
+	if val, ok := loggerNextMap.Load(name); ok {
+		return val.(*zap.SugaredLogger)
+	}
+
+	var l = debugNext.Named(name).Desugar().Sugar()
+	loggerNextMap.Store(name, l)
 	return l
 }

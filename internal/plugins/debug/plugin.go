@@ -11,6 +11,7 @@ import (
 
 	"github.com/pubgo/lava/logz"
 	"github.com/pubgo/lava/mux"
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -37,7 +38,7 @@ func init() {
 					Destination: &runenv.DebugAddr,
 					Usage:       "debug server http address",
 					Value:       runenv.DebugAddr,
-					EnvVars:     types.EnvOf("lava-debug-addr"),
+					EnvVars:     env.KeyOf("lava-debug-addr"),
 				},
 			}
 		},

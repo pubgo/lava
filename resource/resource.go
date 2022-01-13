@@ -1,8 +1,11 @@
 package resource
 
 import (
+	"fmt"
+	"io"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
@@ -15,14 +18,15 @@ import (
 
 const Name = "resource"
 
-var sources typex.SMap
+var sources typex.RwMap
 var logs = logz.Component(Name)
+var mu sync.Mutex
 
 // Remove 删除资源
 func Remove(kind string, name string) {
-	logs.Infow("delete resource", "kind", kind, "name", name)
+	logs.Infow("resource delete", "kind", kind, "name", name)
 	check(kind, name)
-	sources.Delete(join(kind, name))
+	sources.Del(join(kind, name))
 }
 
 // Has 检查资源是否存在
@@ -33,7 +37,7 @@ func Has(kind string, name string) bool {
 
 // Update 更新资源
 func Update(name string, srv Resource) {
-	xerror.Assert(srv == nil, "[srv] should not be nil")
+	xerror.Assert(srv == nil || srv.Unwrap() == nil, "[srv] should not be nil")
 
 	if name == "" {
 		name = consts.KeyDefault
@@ -42,32 +46,44 @@ func Update(name string, srv Resource) {
 	kind := srv.Kind()
 	check(kind, name)
 
+	var fields = []zap.Field{
+		zap.String("kind", kind),
+		zap.String("name", name),
+		zap.String("resource", fmt.Sprintf("%#v", srv)),
+	}
+
+	var log = logs.With(fields...)
+
 	var id = join(kind, name)
+
+	// TODO 防止资源竞争
+	mu.Lock()
+	defer mu.Unlock()
+
 	var oldClient, ok = sources.Load(id)
-
-	var log = logs.With(zap.String("kind", kind), zap.String("name", name))
-
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
-		log.Info("update resource")
-		oldClient.(Resource).UpdateResObj(srv)
+		// 新老对象替换, 资源内部对象不同时替换
+		if oldClient.(Resource).Unwrap() != srv.Unwrap() {
+			log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldClient))).Info("resource update")
+			oldClient.(Resource).UpdateObj(srv)
+		}
 		return
 	}
 
 	// 资源不存在, 创建新资源
-	log.Info("create resource")
+	log.Info("resource create")
 
 	sources.Set(id, srv)
 
 	// 只在资源创建的时候更新一次,依赖注入
 	xerror.Panic(dix.ProviderNs(name, srv))
 
-	// 当resource被gc时, 关闭resource
-	runtime.SetFinalizer(srv, func(cc Resource) {
-		logs.Logs("old resource close", cc.Close,
-			zap.String("kind", kind),
-			zap.String("name", name),
-		)
+	log.Info("resource SetFinalizer")
+
+	// 当resource被gc时, 关闭  resource
+	runtime.SetFinalizer(srv.Unwrap(), func(cc io.Closer) {
+		logs.OkOrPanic("resource close", cc.Close, fields...)
 	})
 }
 

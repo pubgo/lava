@@ -5,11 +5,12 @@ import (
 
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/types"
 )
 
 var factories typex.SMap
 
-type Factory func(cfg map[string]interface{}) error
+type Factory func(cfg types.CfgMap) error
 
 func GetFactory(names ...string) Factory {
 	val, ok := factories.Load(lavax.GetDefault(names...))

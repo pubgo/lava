@@ -4,6 +4,8 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
+// logger 组件用于业务方的log记录, 主要用于handler中的log记录
+
 type Logger interface {
 	With(args types.M) Logger
 	WithErr(err error) Logger

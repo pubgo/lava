@@ -41,6 +41,7 @@ func (p *Base) AfterStarts() []func()  { return p.afterStarts }
 func (p *Base) BeforeStops() []func()  { return p.beforeStops }
 func (p *Base) AfterStops() []func()   { return p.afterStops }
 
+// getFuncStack 获取函数stack信息
 func (p *Base) getFuncStack(val interface{}) string {
 	r := reflect.ValueOf(val)
 	if !r.IsValid() || r.IsNil() {
@@ -96,8 +97,12 @@ func (p *Base) Health() types.Healthy {
 
 func (p *Base) Middleware() types.Middleware { return p.OnMiddleware }
 func (p *Base) String() string               { return p.Descriptor }
-func (p *Base) UniqueName() string           { return p.Name }
-func (p *Base) Init() error {
+func (p *Base) ID() string                   { return p.Name }
+func (p *Base) Init() (gErr error) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		gErr = err.WrapF("plugin: %s", p.Name)
+	})
+
 	if p.OnInit == nil {
 		return nil
 	}

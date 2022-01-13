@@ -2,7 +2,6 @@ package nacos
 
 import (
 	"context"
-	"github.com/pubgo/lava/event"
 
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/nacos"
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/types"
 	watcher "github.com/pubgo/lava/watcher"
 )

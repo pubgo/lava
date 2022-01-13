@@ -2,12 +2,12 @@ package etcdv3
 
 import (
 	"context"
-	"github.com/pubgo/lava/event"
 
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
 	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/watcher"
@@ -24,13 +24,17 @@ func init() {
 var _ watcher.Watcher = (*watcherImpl)(nil)
 
 func newWatcher(prefix string, name string) watcher.Watcher {
+	var cli = etcdv3.Get(name)
+	xerror.Assert(cli == nil, "etcd client is nil")
+
 	ctx, cancel := context.WithCancel(context.Background())
 	return &watcherImpl{
-		name:   name,
-		prefix: prefix,
-		ctx:    ctx,
-		cancel: cancel,
-		exitCh: make(chan struct{}),
+		name:    name,
+		prefix:  prefix,
+		ctx:     ctx,
+		cancel:  cancel,
+		exitCh:  make(chan struct{}),
+		etcdCli: cli,
 	}
 }
 
@@ -41,12 +45,7 @@ type watcherImpl struct {
 	prefix   string
 	revision int64
 	exitCh   chan struct{}
-}
-
-func (w *watcherImpl) getEtcd() *etcdv3.Client {
-	var cli = etcdv3.Get(w.name)
-	xerror.Assert(cli == nil, "etcd client is nil")
-	return cli
+	etcdCli  *etcdv3.Client
 }
 
 func (w *watcherImpl) Close(ctx context.Context, opts ...watcher.Opt) { close(w.exitCh) }
@@ -55,7 +54,7 @@ func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher.Opt) 
 
 	key = handleKey(key)
 
-	var resp, err = w.getEtcd().Get(ctx, key)
+	var resp, err = w.etcdCli.Get().Get(ctx, key)
 	xerror.Panic(err)
 
 	for i := range resp.Kvs {
@@ -89,7 +88,7 @@ func (w *watcherImpl) WatchCallback(ctx context.Context, key string, fn func(res
 	key = handleKey(key)
 
 	go func() {
-		for w := range w.getEtcd().Watch(ctx, key) {
+		for w := range w.etcdCli.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
 				fn(&watcher.Response{
@@ -108,7 +107,7 @@ func (w *watcherImpl) Watch(ctx context.Context, key string, opts ...watcher.Opt
 
 	var resp = make(chan *watcher.Response)
 	go func() {
-		for w := range etcdv3.Get().Watch(ctx, key) {
+		for w := range w.etcdCli.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
 				resp <- &watcher.Response{

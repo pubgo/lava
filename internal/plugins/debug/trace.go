@@ -1,11 +1,15 @@
 package debug
 
 import (
-	"github.com/pubgo/lava/mux"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/net/trace"
+
+	"github.com/pubgo/lava/mux"
 )
 
 func init() {
-	mux.Get("/debug/requests", trace.Traces)
-	mux.Get("/debug/events", trace.Events)
+	mux.Debug(func(r chi.Router) {
+		r.Get("/requests", trace.Traces)
+		r.Get("/events", trace.Events)
+	})
 }

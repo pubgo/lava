@@ -14,6 +14,6 @@ type Opts struct {
 	BeforeStops  []func()
 	AfterStops   []func()
 	Command      *cli.Command
-	Handlers     []InitHandler
+	Handlers     []Handler
 	Middlewares  []types.Middleware
 }

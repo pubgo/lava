@@ -8,6 +8,7 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
@@ -41,7 +42,7 @@ func init() {
 				&cli.Int64Flag{
 					Name:        "concurrent",
 					Usage:       "Set maximum concurrency",
-					EnvVars:     types.EnvOf("lava-max-concurrency"),
+					EnvVars:     env.KeyOf("lava-max-concurrency"),
 					Value:       maxConcurrent,
 					Destination: &maxConcurrent,
 				},

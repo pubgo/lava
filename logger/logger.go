@@ -11,8 +11,19 @@ import (
 type Fields []zap.Field
 
 var globalLog = zap.L().Sugar()
-var globalNext = zap.L().Sugar()
+var globalNext = zap.L().WithOptions(zap.AddCallerSkip(1)).Sugar()
 var loggerMap sync.Map
+var loggerNextMap sync.Map
+
+// L global zap log
+func L() *zap.Logger {
+	return zap.L()
+}
+
+// S global zap sugared log
+func S() *zap.SugaredLogger {
+	return zap.S()
+}
 
 func Component(name string) *nameLogger {
 	if name == "" {
@@ -30,8 +41,8 @@ func (t *nameLogger) WithErr(err error) Logger {
 		return t
 	}
 
-	var log = getName(t.name)
-	return &loggerWrapper{SugaredLogger: log.With(zap.String("err", err.Error()), zap.Any("err_stack", err))}
+	var log = getName(t.name).With(zap.String("err", err.Error()), zap.Any("err_stack", err))
+	return &loggerWrapper{SugaredLogger: log}
 }
 
 func (t *nameLogger) With(args types.M) Logger {
@@ -105,11 +116,11 @@ func getName(name string) *zap.SugaredLogger {
 }
 
 func getNextLog(name string) *zap.SugaredLogger {
-	if val, ok := loggerMap.Load(name); ok {
+	if val, ok := loggerNextMap.Load(name); ok {
 		return val.(*zap.SugaredLogger)
 	}
 
 	var l = globalNext.Named(name)
-	loggerMap.LoadOrStore(name, l)
+	loggerNextMap.LoadOrStore(name, l)
 	return l
 }

@@ -3,7 +3,6 @@ package debug
 import (
 	"net/http"
 	"sync"
-	"unsafe"
 )
 
 type ServeMux struct {
@@ -16,8 +15,4 @@ type ServeMux struct {
 type muxEntry struct {
 	H       http.Handler
 	Pattern string
-}
-
-func GetDefaultServeMux() *ServeMux {
-	return (*ServeMux)(unsafe.Pointer(http.DefaultServeMux))
 }
