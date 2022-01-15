@@ -20,7 +20,7 @@ func GetEntry() entry.Entry {
 	ent.Register(handler.NewTestAPIHandler())
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
-			var log = logger.GetLog(ctx)
+			var log = logger.GetFrom(ctx)
 			log.Info("test grpc entry")
 			return next(ctx, req, resp)
 		}

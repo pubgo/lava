@@ -1,4 +1,4 @@
-package runenv
+package runtime
 
 import (
 	"fmt"
@@ -9,11 +9,11 @@ import (
 
 	"github.com/denisbrodbeck/machineid"
 	dir "github.com/mitchellh/go-homedir"
+	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"
 
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/version"
-	"github.com/pubgo/xerror"
 )
 
 // 默认的全局配置
@@ -26,10 +26,10 @@ var (
 	DebugAddr    = ":8081"
 	Project      = "lava"
 	Level        = "debug"
-	Mode         = "dev"
+	Mode         = RunModeDev.String()
 
-	// DeviceId 设备ID
-	DeviceId = xerror.PanicErr(machineid.ID())
+	// DeviceID 设备ID
+	DeviceID = xerror.PanicErr(machineid.ID())
 
 	Signal os.Signal = syscall.Signal(0)
 
@@ -74,5 +74,6 @@ var (
 )
 
 func Name() string {
-	return fmt.Sprintf("%s-%s", Domain, Project)
+	// TODO 构建或启动生成
+	return fmt.Sprintf("%s.%s", Project, Domain)
 }

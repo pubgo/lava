@@ -23,7 +23,7 @@ type Id struct {
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler `dix:""`
-	Metric    *metric.Resource     `dix:""`
+	Metric    metric.Stats         `dix:""`
 }
 
 func (id *Id) Init() {
@@ -56,7 +56,7 @@ func NewId() *Id {
 
 func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.GenerateResponse, error) {
 	var rsp = new(gid.GenerateResponse)
-	var log = logger.GetLog(ctx)
+	var log = logger.GetFrom(ctx)
 
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
@@ -69,7 +69,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "snowflake":
 		id, err := id.Snowflake.Mint()
 		if err != nil {
-			log.Errorf("Failed to generate snowflake id: %v", err)
+			log.Sugar().Errorf("Failed to generate snowflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint snowflake id")
 		}
 		rsp.Type = "snowflake"
@@ -77,7 +77,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "bigflake":
 		id, err := id.Bigflake.Mint()
 		if err != nil {
-			log.Errorf("Failed to generate bigflake id: %v", err)
+			log.Sugar().Errorf("Failed to generate bigflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint bigflake id")
 		}
 		rsp.Type = "bigflake"
@@ -85,7 +85,7 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	case "shortid":
 		id, err := shortid.Generate()
 		if err != nil {
-			log.Errorf("Failed to generate shortid id: %v", err)
+			log.Sugar().Errorf("Failed to generate shortid id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to generate short id")
 		}
 		rsp.Type = "shortid"

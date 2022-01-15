@@ -4,25 +4,34 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog/xlog_config"
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/logger/logkey"
+	"github.com/pubgo/lava/runtime"
 )
 
 const name = "logger"
 
+var initialized atomic.Bool
+
 // Init logger
 func Init(opts ...func(cfg *xlog_config.Config)) {
+	defer func() {
+		// 初始化完成
+		initialized.Store(true)
+	}()
+
 	defer xerror.RespExit()
 
 	var cfg = xlog_config.NewProdConfig()
-	if runenv.IsDev() || runenv.IsTest() || runenv.IsStag() {
+	if runtime.IsDev() || runtime.IsTest() || runtime.IsStag() {
 		cfg = xlog_config.NewDevConfig()
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	cfg.Level = runenv.Level
+	cfg.Level = runtime.Level
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
 	if len(opts) > 0 && opts[0] != nil {
@@ -30,21 +39,28 @@ func Init(opts ...func(cfg *xlog_config.Config)) {
 	}
 
 	// 全局log设置
-	var log = cfg.Build(runenv.Project)
-	if runenv.Namespace != "" {
-		log = log.With(zap.String("env", runenv.Namespace))
+	var log = cfg.Build(runtime.Project).With(
+		zap.String(logkey.Env, runtime.Mode),
+		zap.String(logkey.Project, runtime.Name()),
+	)
+
+	if runtime.Namespace != "" {
+		log = log.With(zap.String(logkey.Namespace, runtime.Namespace))
 	}
-	log = log.With(zap.String("project", runenv.Project))
 
-	// 业务日志
-	appLog := log.Named(runenv.Name()).With(zap.Namespace("fields"))
+	// 基础日志对象, 包含namespace, env, project和项目
+	// TODO 版本??
+	baseLog := log.With(zap.Namespace(logkey.Fields))
 
-	globalLog = appLog.Sugar()
-	globalNext = appLog.WithOptions(zap.AddCallerSkip(1)).Sugar()
+	// 全局log
+	globalLog := baseLog.Named(logkey.Service)
 
-	// 替换全局zap
-	zap.ReplaceGlobals(appLog)
+	// 替换全局zap全局log
+	zap.ReplaceGlobals(globalLog)
 
-	// 用于logz触发
-	xerror.Exit(dix.ProviderNs("lava", log))
+	// 组件log
+	componentLog = baseLog.Named(logkey.Component)
+
+	// 依赖更新
+	xerror.Exit(dix.Provider(&Event{}))
 }

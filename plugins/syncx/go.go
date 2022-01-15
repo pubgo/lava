@@ -192,7 +192,7 @@ func checkConcurrent(name string, fn interface{}) func() {
 		// 采样率(1%), 打印log, 让监控获取信息
 		// todo: 采样率变量
 		if fastrand.Sampling(0.01) {
-			logs.With(
+			logs.L().With(
 				zap.String("name", name),
 				zap.Int64("current", curConcurrent.Load()),
 				zap.Int64("maximum", maxConcurrent),
@@ -205,5 +205,5 @@ func checkConcurrent(name string, fn interface{}) func() {
 }
 
 func logErr(fn interface{}, err xerror.XErr) {
-	logs.WithErr(err, logutil.FuncStack(fn)).Error(err.Error())
+	logs.WithErr(err).With(logutil.FuncStack(fn)).Error(err.Error())
 }

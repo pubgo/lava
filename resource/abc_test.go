@@ -7,16 +7,15 @@ import (
 	"testing"
 )
 
-var _ Resource = (*client)(nil)
-
 type client struct {
-	v *res
+	Resource
 }
 
-func (r *client) Unwrap() io.Closer      { return r.v }
-func (r *client) UpdateObj(val Resource) { r.v = val.(*client).v }
-func (r *client) Kind() string           { return "test-client" }
-func (r *client) Get() *res              { return r.v }
+func (r *client) Kind() string { return "test-client" }
+func (r *client) Get() (*res, func()) {
+	var rr, release = r.Resource.Load()
+	return rr.(*res), release
+}
 
 var _ io.Closer = (*res)(nil)
 
@@ -33,16 +32,22 @@ func TestName(t1 *testing.T) {
 
 		fmt.Printf("address for original %d, address for new %d\n", &xx, &yy)
 
-		var dd = &client{v: xx}
+		var dd = &client{New(xx)}
 		Update("", dd)
-		fmt.Println(dd.Get().name)
+		var rr, release = dd.Get()
+		fmt.Println(rr.name)
+		release()
 
-		Update("", &client{v: yy})
-		fmt.Println(dd.Get().name)
+		Update("", &client{New(yy)})
+		rr, release = dd.Get()
+		fmt.Println(rr.name)
+		release()
 
 		// 不会更新, yy对象未改变
-		Update("", &client{v: yy})
-		fmt.Println(dd.Get().name)
+		Update("", &client{New(yy)})
+		rr, release = dd.Get()
+		fmt.Println(rr.name)
+		release()
 
 		Remove("test-client", "default")
 		dd = nil

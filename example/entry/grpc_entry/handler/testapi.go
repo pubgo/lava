@@ -35,6 +35,7 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
+// running
 var testApiSrv = hello.GetTestApiClient("test-grpc")
 var ll = logger.Component("handler")
 
@@ -80,26 +81,26 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	var log = logger.GetLog(ctx)
-	log.Infof("Received Helloworld.Call request, name: %s", in.Input)
-	ll.Infof("Received Helloworld.Call request, name: %s", in.Input)
+	var log = logger.GetFrom(ctx)
+	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
+	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
-	var m = metric.GetWithCtx(ctx)
+	var m = metric.GetFrom(ctx)
 	m.Counter("test-counter").Inc(1)
 	defer m.Timer("test-timer").Start().Stop()
 
 	if h.Db != nil {
 		var user User
 		xerror.Panic(h.Db.Get().WithContext(ctx).First(&user).Error)
-		log.Infow("data", "data", user)
+		log.Sugar().Infow("data", "data", user)
 
 		xerror.Panic(h.Db.Get().Raw("select * from users limit 1").First(&user).Error)
-		log.Infow("data", "data", user)
+		log.Sugar().Infow("data", "data", user)
 
 		xerror.Panic(h.Db.Get().Model(&User{}).Where("Age = ?", 18).First(&user).Error)
-		log.Infow("data", "data", user)
+		log.Sugar().Infow("data", "data", user)
 
-		log.Infow("dix config ok", "cfg", config.CfgPath)
+		log.Sugar().Infow("dix config ok", "cfg", config.CfgPath)
 	}
 
 	out = &hello.TestApiOutput{

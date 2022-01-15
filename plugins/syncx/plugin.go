@@ -7,7 +7,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/atomic"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
@@ -15,7 +16,7 @@ import (
 
 const Name = "syncx"
 
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 // 最大goroutine数量
 var maxConcurrent int64 = 100000
@@ -31,7 +32,7 @@ func SetMaxConcurrent(concurrent int64) {
 
 	maxConcurrent = concurrent
 
-	logs.Infow("set maxConcurrent", "vale", maxConcurrent)
+	logs.S().Infow("set maxConcurrent", "vale", maxConcurrent)
 }
 
 func init() {
@@ -49,6 +50,12 @@ func init() {
 			}
 		},
 		OnInit: func(p plugin.Process) { SetMaxConcurrent(maxConcurrent) },
+		OnWatch: func(name string, r *types.WatchResp) error {
+			var concurrent int64
+			logutil.LogOrPanic(logs.L(), "max concurrent decode", func() error { return r.Decode(&concurrent) })
+			SetMaxConcurrent(concurrent)
+			return nil
+		},
 		OnVars: func(v types.Vars) {
 			v.Do(Name, func() interface{} {
 				return types.M{"maxConcurrent": maxConcurrent, "curConcurrent": curConcurrent.Load()}

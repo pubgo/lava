@@ -10,13 +10,13 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugin"
-	requestID2 "github.com/pubgo/lava/plugins/requestID"
+	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/types"
 )
 
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 const Name = "tracing"
 
@@ -27,11 +27,15 @@ func init() {
 			_ = config.Decode(Name, &cfg)
 			xerror.Panic(cfg.Build())
 		},
+		OnWatch: func(_ string, r *types.WatchResp) error {
+			_ = config.Decode(Name, &cfg)
+			return cfg.Build()
+		},
 		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
 			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 				var tracer = opentracing.GlobalTracer()
 				if tracer == nil {
-					logs.Warn("global tracer is nil, please init tracing")
+					logs.L().Warn("global tracer is nil, please init tracing")
 					return nil
 				}
 
@@ -65,7 +69,9 @@ func init() {
 				}
 
 				// request-id绑定
-				span.SetTag(requestID2.Name, requestID2.GetWith(ctx))
+				span.SetTag(requestID.Name, requestID.GetWith(ctx))
+
+				GetFrom(ctx).SetTag("sss", "")
 
 				defer span.Finish()
 				err = next(opentracing.ContextWithSpan(ctx, span), req, resp)

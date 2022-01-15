@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 type Builder struct {
@@ -55,7 +55,7 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 
 	EnableReflection(t.srv)
 	EnableHealth(t.name, t.srv)
-	if runenv.IsDev() || runenv.IsTest() {
+	if runtime.IsDev() || runtime.IsTest() {
 		EnableDebug(t.srv)
 	}
 

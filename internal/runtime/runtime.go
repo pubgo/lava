@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"sort"
@@ -16,11 +17,11 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
@@ -28,57 +29,55 @@ import (
 
 const name = "runtime"
 
-var logs = logz.Component(name)
+var logs = logger.Component(name)
 var app = &cli.App{
-	Name:    runenv.Domain,
+	Name:    runtime.Domain,
 	Version: version.Version,
 }
 
 func handleSignal() {
-	if runenv.CatchSigpipe {
+	if runtime.CatchSigpipe {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, syscall.SIGPIPE)
 		syncx.GoSafe(func() {
 			<-sigChan
-			logs.Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
+			logs.L().Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
 			signal.Ignore(syscall.SIGPIPE)
 		})
 	}
 
-	if !runenv.Block {
+	if !runtime.Block {
 		return
 	}
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	runenv.Signal = <-ch
-	logs.Infof("signal [%s] trigger", runenv.Signal.String())
+	runtime.Signal = <-ch
+	logs.S().Infof("signal [%s] trigger", runtime.Signal.String())
 }
 
 func start(ent entry.Runtime) {
-	logs.OkOrErr("before-start running", func() error {
+	logutil.OkOrPanic(logs.L(), "before-start running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {
 			beforeList = append(beforeList, p.BeforeStarts()...)
 		}
 		beforeList = append(beforeList, ent.Options().BeforeStarts...)
 		for i := range beforeList {
-			logs.Infof("running %s", stack.Func(beforeList[i]))
+			logs.S().Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
 		}
 		return nil
 	})
-
-	logs.OkOrErr("server start", ent.Start)
-
-	logs.OkOrErr("after-start running", func() error {
+	logutil.OkOrPanic(logs.L(), "server start", ent.Start)
+	logutil.OkOrPanic(logs.L(), "after-start running", func() error {
 		var afterList []func()
 		for _, p := range plugin.All() {
 			afterList = append(afterList, p.AfterStarts()...)
 		}
 		afterList = append(afterList, ent.Options().AfterStarts...)
 		for i := range afterList {
-			logs.Infof("running %s", stack.Func(afterList[i]))
+			logs.S().Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
 		}
 		return nil
@@ -86,29 +85,29 @@ func start(ent entry.Runtime) {
 }
 
 func stop(ent entry.Runtime) {
-	logs.OkOrPanic("before-stop running", func() error {
+	logutil.OkOrErr(logs.L(), "before-stop running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {
 			beforeList = append(beforeList, p.BeforeStops()...)
 		}
 		beforeList = append(beforeList, ent.Options().BeforeStops...)
 		for i := range beforeList {
-			logs.Infof("running %s", stack.Func(beforeList[i]))
+			logs.S().Infof("running %s", stack.Func(beforeList[i]))
 			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
 		}
 		return nil
 	})
 
-	logs.OkOrPanic("server stop", ent.Stop)
+	logutil.OkOrErr(logs.L(), "server stop", ent.Stop)
 
-	logs.OkOrPanic("after-stop running", func() error {
+	logutil.OkOrErr(logs.L(), "after-stop running", func() error {
 		var afterList []func()
 		for _, p := range plugin.All() {
 			afterList = append(afterList, p.AfterStops()...)
 		}
 		afterList = append(afterList, ent.Options().AfterStops...)
 		for i := range afterList {
-			logs.Infof("running %s", stack.Func(afterList[i]))
+			logs.S().Infof("running %s", stack.Func(afterList[i]))
 			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
 		}
 		return nil
@@ -168,8 +167,14 @@ func Run(description string, entries ...entry.Entry) {
 
 		cmd.Before = func(ctx *cli.Context) error {
 			defer xerror.RespExit()
+
+			// 运行环境检查
+			if _, ok := runtime.RunModeValue[runtime.Mode]; !ok {
+				panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
+			}
+
 			// 项目名初始化
-			runenv.Project = entRT.Options().Name
+			runtime.Project = entRT.Options().Name
 
 			// 本地配置初始化
 			config.Init()
@@ -182,7 +187,7 @@ func Run(description string, entries ...entry.Entry) {
 			// plugin初始化
 			for _, plg := range plugin.All() {
 				entRT.MiddlewareInter(plg.Middleware())
-				logs.LogOrPanic("plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
+				logutil.OkOrPanic(logs.L(), "plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
 			}
 
 			// entry初始化

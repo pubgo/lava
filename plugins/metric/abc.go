@@ -1,23 +1,8 @@
 package metric
 
 import (
-	"io"
-
 	"github.com/uber-go/tally"
-
-	"github.com/pubgo/lava/resource"
 )
-
-var _ resource.Resource = (*Resource)(nil)
-
-type Resource struct {
-	tally.Scope
-	io.Closer
-}
-
-func (m *Resource) Unwrap() io.Closer               { return m.Closer }
-func (m *Resource) UpdateObj(val resource.Resource) { m.Scope = val.(*Resource).Scope }
-func (m *Resource) Kind() string                    { return Name }
 
 type Tags = map[string]string
 type Counter = tally.Counter
@@ -26,6 +11,8 @@ type Timer = tally.Timer
 type Histogram = tally.Histogram
 type Capabilities = tally.Capabilities
 type Scope = tally.Scope
+type Metric = tally.Scope
+type Stats = tally.Scope
 type Buckets = tally.Buckets
 type BucketPair = tally.BucketPair
 type Stopwatch = tally.Stopwatch

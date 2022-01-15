@@ -7,14 +7,14 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 )
 
 func init() {
-	logz.On(func(*logz.Log) {
+	logger.On(func(*logger.Event) {
 		grpclog.SetLoggerV2(&loggerWrapper{
-			log:      logz.Component("grpc").Depth(4),
-			depthLog: logz.Component("grpc-component").Depth(2),
+			log:      logger.Component("grpc").L().WithOptions(zap.AddCallerSkip(4)),
+			depthLog: logger.Component("grpc-component").L().WithOptions(zap.AddCallerSkip(2)),
 		})
 	})
 }

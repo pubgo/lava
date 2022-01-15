@@ -29,7 +29,7 @@ func (h *hook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Cont
 }
 
 func (h *hook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	var span = tracing.FromCtx(ctx)
+	var span = tracing.GetFrom(ctx)
 
 	defer func() {
 		method, key := h.wrapperName(cmd)
@@ -49,7 +49,7 @@ func (h *hook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (c
 }
 
 func (h *hook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
-	span := tracing.FromCtx(ctx)
+	span := tracing.GetFrom(ctx)
 
 	defer func() {
 		method, key := h.wrapperPipelineName(cmds)

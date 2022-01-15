@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )
 
@@ -135,9 +135,6 @@ func (t *configImpl) initCfg() {
 	t.rw.Lock()
 	defer t.rw.Unlock()
 
-	// 检查运行环境
-	xerror.Assert(!runenv.CheckMode(), "mode(%s) not match in all(%v)", runenv.Mode, runenv.RunmodeValue)
-
 	// 配置处理
 	v := t.v
 
@@ -227,7 +224,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 // 监控配置中的app自定义配置
 func (t *configImpl) initApp(v *viper.Viper) error {
 	// .lava/config/config.[env].yaml
-	var path = filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, runenv.Mode, CfgType))
+	var path = filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, runtime.Mode, CfgType))
 	if !pathutil.IsExist(path) {
 		return nil
 	}

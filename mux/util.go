@@ -1,11 +1,20 @@
 package mux
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pubgo/lava/types"
+)
 
 func DebugPrefix(names ...string) string {
-	var ns []string
+	var ns = types.StrList{"debug"}
 	for i := range names {
-		ns = append(ns, strings.Trim(names[i], "/"))
+		var p = strings.TrimSpace(strings.Trim(names[i], "/"))
+		if p == "" {
+			continue
+		}
+
+		ns = append(ns, p)
 	}
-	return "/debug/" + strings.Join(ns, "/")
+	return strings.TrimSpace("/" + strings.Join(ns, "/"))
 }

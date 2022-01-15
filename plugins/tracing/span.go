@@ -44,6 +44,11 @@ func (s *Span) SetOperationName(name string) opentracing.Span {
 	return s
 }
 
+// SpanID 获取tracerID,spanID
+func (s *Span) SpanID() (string, string) {
+	return GetSpanID(s.Context())
+}
+
 func (s *Span) WithCtx(ctx context.Context) context.Context {
 	return opentracing.ContextWithSpan(ctx, s)
 }

@@ -12,19 +12,20 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
 const Name = "resource"
 
 var sources typex.RwMap
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 var mu sync.Mutex
 
 // Remove 删除资源
 func Remove(kind string, name string) {
-	logs.Infow("resource delete", "kind", kind, "name", name)
+	logs.S().Infow("resource delete", "kind", kind, "name", name)
 	check(kind, name)
 	sources.Del(join(kind, name))
 }
@@ -37,7 +38,7 @@ func Has(kind string, name string) bool {
 
 // Update 更新资源
 func Update(name string, srv Resource) {
-	xerror.Assert(srv == nil || srv.Unwrap() == nil, "[srv] should not be nil")
+	xerror.Assert(srv == nil || srv.getObj() == nil, "[srv] should not be nil")
 
 	if name == "" {
 		name = consts.KeyDefault
@@ -52,7 +53,7 @@ func Update(name string, srv Resource) {
 		zap.String("resource", fmt.Sprintf("%#v", srv)),
 	}
 
-	var log = logs.With(fields...)
+	var log = logs.L().With(fields...)
 
 	var id = join(kind, name)
 
@@ -64,9 +65,9 @@ func Update(name string, srv Resource) {
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
 		// 新老对象替换, 资源内部对象不同时替换
-		if oldClient.(Resource).Unwrap() != srv.Unwrap() {
+		if oldClient.(Resource).getObj() != srv.getObj() {
 			log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldClient))).Info("resource update")
-			oldClient.(Resource).UpdateObj(srv)
+			oldClient.(Resource).updateObj(srv.getObj())
 		}
 		return
 	}
@@ -82,8 +83,8 @@ func Update(name string, srv Resource) {
 	log.Info("resource SetFinalizer")
 
 	// 当resource被gc时, 关闭  resource
-	runtime.SetFinalizer(srv.Unwrap(), func(cc io.Closer) {
-		logs.OkOrPanic("resource close", cc.Close, fields...)
+	runtime.SetFinalizer(srv.getObj(), func(cc io.Closer) {
+		logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
 	})
 }
 

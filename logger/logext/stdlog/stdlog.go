@@ -1,4 +1,4 @@
-package logz
+package stdlog
 
 import (
 	"io"
@@ -6,14 +6,16 @@ import (
 
 	"github.com/pubgo/x/byteutil"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/logger"
 )
 
 // 替换std默认log
 func init() {
-	On(func(*Log) {
+	logger.On(func(*logger.Event) {
 		var stdLog = log.Default()
 		// 接管系统默认log
-		*stdLog = *zap.NewStdLog(getName("std"))
+		*stdLog = *zap.NewStdLog(logger.Component("std").L())
 	})
 }
 

@@ -26,7 +26,7 @@ import (
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )
 
@@ -176,7 +176,7 @@ func Cmd() *cli.Command {
 						var in = key.(string)
 
 						var data = ""
-						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, runenv.Pwd)
+						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, runtime.Pwd)
 						var lavaOut = ""
 						var lavaOpt = ""
 						for i := range cfg.Plugins {

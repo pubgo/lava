@@ -6,19 +6,15 @@ import (
 
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/resource"
+	"github.com/pubgo/lava/types"
 )
 
-type Factory func(cfg map[string]interface{}, opts *tally.ScopeOptions) error
+type Factory func(cfg types.CfgMap, opts *tally.ScopeOptions) error
 
-var reporters typex.SMap
-
-func Get() *Resource {
-	return resource.Get(Name, "").(*Resource)
-}
+var factories typex.SMap
 
 func GetFactory(names ...string) Factory {
-	val, ok := reporters.Load(lavax.GetDefault(names...))
+	val, ok := factories.Load(lavax.GetDefault(names...))
 	if !ok {
 		return nil
 	}
@@ -29,7 +25,7 @@ func GetFactory(names ...string) Factory {
 func RegisterFactory(name string, r Factory) {
 	defer xerror.RespExit()
 	xerror.Assert(name == "" || r == nil, "[name,r] is null")
-	xerror.Assert(reporters.Has(name), "reporter [%s] already exists", name)
-	reporters.Set(name, r)
+	xerror.Assert(factories.Has(name), "reporter [%s] already exists", name)
+	factories.Set(name, r)
 	return
 }

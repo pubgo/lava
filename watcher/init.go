@@ -12,13 +12,14 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/ctxutil"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 // Init 初始化watcher
 //	projects: 项目名字
@@ -30,8 +31,8 @@ func Init(conf config.Config) (err error) {
 	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(Watcher)
 
 	// 获取所有需要watch的项目
-	if !strutil.Contains(cfg.Projects, runenv.Project) {
-		cfg.Projects = append(cfg.Projects, runenv.Project)
+	if !strutil.Contains(cfg.Projects, runtime.Project) {
+		cfg.Projects = append(cfg.Projects, runtime.Project)
 	}
 
 	// 项目prefix
@@ -60,7 +61,10 @@ func onWatch(name string, resp *Response) {
 	var project = zap.String("watch-project", name)
 
 	defer xerror.Resp(func(err xerror.XErr) {
-		logs.WithErr(err, project, zap.Any("resp", resp)).Error("watch callback error")
+		logs.WithErr(err).With(
+			zap.Any("project", project),
+			zap.Any("resp", resp),
+		).Error("watch callback error")
 	})
 
 	// value为空就skip
@@ -70,14 +74,13 @@ func onWatch(name string, resp *Response) {
 
 	var key = KeyToDot(resp.Key)
 
-	logs.Infow(
-		"watch callback",
-		project,
+	logs.L().With(
+		zap.Any("project", project),
 		zap.Any("key", key),
 		zap.Any("event", resp.Event.String()),
 		zap.Any("version", resp.Version),
 		zap.Any("value", string(resp.Value)),
-	)
+	).Info("watch callback")
 
 	// 把数据更新到全局配置中
 	// value必须是kv类型
@@ -85,7 +88,7 @@ func onWatch(name string, resp *Response) {
 	xerror.PanicF(resp.Decode(&dt), "value必须是kv类型, key=>%s, value=>%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
-		if name == runenv.Project {
+		if name == runtime.Project {
 			// 本项目配置, 去掉本项目前缀
 			cfg.cfg.Set(trimProject(key), dt)
 		} else {
@@ -95,7 +98,7 @@ func onWatch(name string, resp *Response) {
 	})
 
 	resp.OnDelete(func() {
-		if name == runenv.Project {
+		if name == runtime.Project {
 			// 本项目配置, 去掉本项目前缀
 			cfg.cfg.Set(trimProject(key), nil)
 		} else {
@@ -116,12 +119,11 @@ func onWatch(name string, resp *Response) {
 
 		// 执行watch callback
 		for i := range v {
-			logs.LogOrErr("watch callback handle", func() error { return v[i](watchKey, resp) },
+			logutil.LogOrErr(logs.L(), "watch callback handle", func() error { return v[i](watchKey, resp) },
 				project,
 				zap.String("watch-key", k),
 				zap.Any("watch-resp", resp),
-				zap.Any("watch-stack", stack.Func(v[i])),
-			)
+				zap.Any("watch-stack", stack.Func(v[i])))
 		}
 	}
 }

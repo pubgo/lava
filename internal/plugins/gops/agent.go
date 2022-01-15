@@ -2,12 +2,12 @@ package gops
 
 import (
 	"github.com/google/gops/agent"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/xerror"
 )
 
 func init() {
-	if runenv.IsProd() || runenv.IsRelease() {
+	if runtime.IsProd() || runtime.IsRelease() {
 		return
 	}
 

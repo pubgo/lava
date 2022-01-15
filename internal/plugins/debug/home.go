@@ -1,7 +1,6 @@
 package debug
 
 import (
-	"github.com/go-chi/chi/v5"
 	"html/template"
 	"net/http"
 	"strings"
@@ -12,9 +11,7 @@ import (
 )
 
 func init() {
-	mux.Debug(func(r chi.Router) {
-		r.Get("/", home())
-	})
+	mux.DebugGet("/", home())
 }
 
 func home() func(writer http.ResponseWriter, r *http.Request) {

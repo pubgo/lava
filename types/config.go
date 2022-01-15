@@ -2,8 +2,9 @@ package types
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 type CfgMap map[string]interface{}

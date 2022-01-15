@@ -78,7 +78,7 @@ function {{ .ViewID }}_sync() {
 func New() *ViewManager {
 	page := components.NewPage()
 	page.PageTitle = "statsview"
-	page.AssetsHost = mux.DebugPrefix("/statsview/statics/")
+	page.AssetsHost = mux.DebugPrefix("statsview", "statics") + "/"
 	page.Assets.JSAssets.Add("jquery.min.js")
 
 	mgr := &ViewManager{}

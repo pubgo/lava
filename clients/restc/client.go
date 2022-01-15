@@ -3,7 +3,7 @@ package restc
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"io"
 	"net/http"
 	"net/url"
@@ -109,7 +109,7 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 	}
 	req.Header.Set(httpx.HeaderContentType, defaultContentType)
 
-	var request = &Request{service: runenv.Project}
+	var request = &Request{service: runtime.Project}
 	request.req = req
 	request.ct = filterFlags(req.Header.Get(httpx.HeaderContentType))
 	request.data = reader

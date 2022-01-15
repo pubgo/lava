@@ -9,10 +9,10 @@ import (
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 )
 
-var logs = logz.Component("balancer.resolver")
+var logs = logger.Component("balancer.resolver")
 
 const (
 	DirectScheme = "direct"
@@ -37,7 +37,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.Infof("[grpc] %s ResolveNow", r.builder)
+	logs.S().Infof("[grpc] %s ResolveNow", r.builder)
 }
 
 // gRPC名称解析

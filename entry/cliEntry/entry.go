@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 var _ Entry = (*ctlEntry)(nil)
@@ -57,7 +57,7 @@ func (t *ctlEntry) Start() (err error) {
 		for k := range t.handlers {
 			fmt.Println("name:", k)
 		}
-		runenv.Block = false
+		runtime.Block = false
 		return
 	}
 
@@ -68,7 +68,7 @@ func (t *ctlEntry) Start() (err error) {
 	xerror.Exit(dix.Inject(t.srv))
 
 	if opts.once {
-		runenv.Block = false
+		runtime.Block = false
 		opts.cancel = fx.Go(func(ctx context.Context) { opts.handler(fx.Ctx{Context: ctx}) })
 		return
 	}

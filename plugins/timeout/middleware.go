@@ -19,8 +19,9 @@ func init() {
 		var defaultTimeout = consts.DefaultTimeout
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
 			// 过滤 websocket 请求
-			if httpx.IsWebsocket(http.Header(req.Header())) {
-				return nil
+			// 过滤 stream
+			if httpx.IsWebsocket(http.Header(req.Header())) || req.Stream() {
+				return next(ctx, req, resp)
 			}
 
 			// 从header中获取超时设置

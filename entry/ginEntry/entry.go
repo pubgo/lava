@@ -11,11 +11,12 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 func New(name string) Entry { return newEntry(name) }
@@ -62,7 +63,7 @@ func newEntry(name string) *ginEntry {
 	return ent
 }
 
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 var _ Entry = (*ginEntry)(nil)
 
 type ginEntry struct {
@@ -92,9 +93,9 @@ func (t *ginEntry) Start() error {
 	return xerror.Try(func() {
 		// 启动server后等待
 		syncx.GoDelay(func() {
-			logs.Infof("Server Listening On http://localhost:%s", netutil.MustGetPort(runenv.Addr))
-			logs.LogOrErr("Server Close", func() error {
-				if err := t.srv.Run(runenv.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logs.S().Infof("Server Listening On http://localhost:%s", netutil.MustGetPort(runtime.Addr))
+			logutil.LogOrErr(logs.L(), "Server Close", func() error {
+				if err := t.srv.Run(runtime.Addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					return err
 				}
 				return nil

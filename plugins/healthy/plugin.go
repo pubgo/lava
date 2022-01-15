@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )
 
@@ -31,7 +31,7 @@ func init() {
 				Action: func(ctx *cli.Context) error {
 					defer xerror.RespExit()
 
-					var addr = runenv.DebugAddr
+					var addr = runtime.DebugAddr
 					if ctx.NArg() > 0 {
 						addr = ctx.Args().First()
 					}

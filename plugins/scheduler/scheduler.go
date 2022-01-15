@@ -7,12 +7,13 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/lavax"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 type Scheduler struct {
 	scheduler quartz.Scheduler
@@ -75,9 +76,8 @@ func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
 	var dur, err = lavax.Cost(func() { t.fn(t.name) })
-	logs.LogOrErr("scheduler trigger",
+	logutil.LogOrErr(logs.L(), "scheduler trigger",
 		func() error { return err },
 		zap.String("job-name", t.name),
-		zap.Int64("job-cost", dur.Microseconds()),
-	)
+		zap.Int64("job-cost", dur.Microseconds()))
 }

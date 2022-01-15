@@ -1,14 +1,17 @@
 package tracing
 
 import (
-	"github.com/pubgo/xerror"
-
+	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/xerror"
 )
 
 var factories typex.SMap
+
+// GetSpanID 从SpanContext中获取spanID
+var GetSpanID = func(ctx opentracing.SpanContext) (string, string) { return "", "" }
 
 type Factory func(cfg types.CfgMap) error
 

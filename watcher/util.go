@@ -3,11 +3,11 @@ package watcher
 import (
 	"strings"
 
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 func trimProject(key string) string {
-	return strings.Trim(strings.TrimPrefix(key, runenv.Project), ".")
+	return strings.Trim(strings.TrimPrefix(key, runtime.Project), ".")
 }
 
 // KeyToDot /projectName/foo/bar -->  projectName.foo.bar

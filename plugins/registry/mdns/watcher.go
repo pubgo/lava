@@ -2,19 +2,19 @@ package mdns
 
 import (
 	"context"
-	"github.com/pubgo/lava/event"
 	"time"
 
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 )
 
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
@@ -40,7 +40,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 			logs.WithErr(err).Error("watcher error")
 		})
 
-		logs.With(
+		logs.L().With(
 			zap.String("service", service),
 			zap.String("interval", ttl.String()),
 		).Info("[mdns] registry watcher")

@@ -18,10 +18,10 @@ import (
 	"github.com/pubgo/xerror"
 
 	event2 "github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 // use registry.Result int32 values after it switches from string to int32 types
@@ -49,7 +49,7 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs = logz.Component("gossip")
+var logs = logger.Component("gossip")
 
 func actionTypeString(t int32) event2.EventType {
 	switch t {
@@ -194,7 +194,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 	}
 
 	// machine hostname
-	hostname := runenv.Hostname
+	hostname := runtime.Hostname
 
 	// set the name
 	c.Name = strings.Join([]string{"micro", hostname, uuid.New().String()}, "-")
@@ -258,7 +258,7 @@ func configure(g *gossipRegistry, opts ...registry.Opt) error {
 
 	g.Unlock()
 
-	logs.Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
+	logs.S().Infof("[gossip] Registry Listening on %s", m.LocalNode().Address())
 
 	// try connect
 	return g.connect(curAddrs)
@@ -276,7 +276,7 @@ func (b *broadcast) Message() []byte {
 		return nil
 	}
 	if l := len(up); l > MaxPacketSize {
-		logs.Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
+		logs.S().Infof("[gossip] broadcast message size %d bigger then MaxPacketSize %d", l, MaxPacketSize)
 	}
 	return up
 }
@@ -415,10 +415,10 @@ func (g *gossipRegistry) connect(addrs []string) error {
 		// got a tick, try to connect
 		case <-ticker.C:
 			if _, err := fn(); err == nil {
-				logs.Infof("[gossip] connect success for %v", g.addrs)
+				logs.S().Infof("[gossip] connect success for %v", g.addrs)
 				return nil
 			} else {
-				logs.Infof("[gossip] connect failed for %v", g.addrs)
+				logs.S().Infof("[gossip] connect failed for %v", g.addrs)
 			}
 		}
 	}

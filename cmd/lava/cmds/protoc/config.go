@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/pubgo/lava/pkg/modutil"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 var (
-	protoPath = filepath.Join(runenv.Pwd, ".lava", "proto")
+	protoPath = filepath.Join(runtime.Pwd, ".lava", "proto")
 	modPath   = filepath.Join(os.Getenv("GOPATH"), "/pkg/mod")
 )
 

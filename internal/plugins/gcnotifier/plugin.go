@@ -3,17 +3,17 @@ package gcnotifier
 import (
 	"github.com/CAFxX/gcnotifier"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 var Name = "gc"
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 func init() {
-	if runenv.IsProd() || runenv.IsRelease() {
+	if runtime.IsProd() || runtime.IsRelease() {
 		return
 	}
 
@@ -26,7 +26,7 @@ func init() {
 
 				// TODO hook
 				for range gc.AfterGC() {
-					logs.Infow("gc notify")
+					logs.L().Info("gc notify")
 				}
 			})
 		},

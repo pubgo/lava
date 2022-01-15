@@ -36,7 +36,7 @@ func (t *WaitGroup) check() {
 
 		// 采样率(%1), 打印log
 		if fastrand.Sampling(0.01) {
-			logs.Warnw("WaitGroup current concurrent number exceeds the maximum concurrent number of the system",
+			logs.S().Warnw("WaitGroup current concurrent number exceeds the maximum concurrent number of the system",
 				"current", t.Count(), "maximum", t.Concurrent)
 		}
 	}

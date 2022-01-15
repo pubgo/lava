@@ -14,10 +14,10 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 )
 
-var logs = logz.Component("jaeger.reporter")
+var logs = logger.Component("jaeger.reporter")
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
@@ -63,7 +63,7 @@ func (t *ioReporter) loop() {
 
 func (t *ioReporter) Report(span *jaeger.Span) {
 	if t.count.Load() > t.batchSize {
-		logs.With(
+		logs.L().With(
 			zap.Int32("batch", t.batchSize),
 			zap.Int32("count", t.count.Load()),
 		).Error("The maximum number of spans has been exceeded")

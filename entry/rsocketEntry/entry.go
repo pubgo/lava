@@ -28,11 +28,11 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
@@ -46,7 +46,7 @@ func newEntry(name string) *grpcEntry {
 		inproc: &inprocgrpc.Channel{},
 		cfg: Cfg{
 			name:                 name,
-			hostname:             runenv.Hostname,
+			hostname:             runtime.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
 			Gw:                   grpc_gw.DefaultCfg(),
@@ -135,7 +135,7 @@ func newEntry(name string) *grpcEntry {
 }
 
 var _ Entry = (*grpcEntry)(nil)
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 type grpcEntry struct {
 	*base.Entry
@@ -214,7 +214,7 @@ func (g *grpcEntry) register() (err error) {
 	if len(g.cfg.Advertise) > 0 {
 		advt = g.cfg.Advertise
 	} else {
-		advt = runenv.Addr
+		advt = runtime.Addr
 	}
 
 	parts := strings.Split(advt, ":")
@@ -344,8 +344,8 @@ func (g *grpcEntry) Register(handler entry.Handler) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runenv.Addr))
-	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
+	logs.Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+	ln := xerror.PanicErr(netutil.Listen(runtime.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
 	g.mux = cmux.New(ln)

@@ -28,11 +28,12 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
@@ -46,7 +47,7 @@ func newEntry(name string) *grpcEntry {
 		inproc: &inprocgrpc.Channel{},
 		cfg: Cfg{
 			name:                 name,
-			hostname:             runenv.Hostname,
+			hostname:             runtime.Hostname,
 			id:                   uuid.New().String(),
 			Grpc:                 grpcs.GetDefaultCfg(),
 			Gw:                   grpc_gw.DefaultCfg(),
@@ -97,19 +98,19 @@ func newEntry(name string) *grpcEntry {
 		// 初始化handlers
 		for _, srv := range g.Options().Handlers {
 			// 注册grpc handler
-			logs.LogOrPanic("Grpc Handler Register", func() error {
+			logutil.LogOrPanic(logs.L(), "Grpc Handler Register", func() error {
 				// 注册handler, 同时注册到grpc和inproc
 				return registerGrpc(g, srv)
 			})
 
 			// 注册gateway handler
 			// 进程内通信, 通过inproc绑定grpc serve和client
-			logs.LogOrPanic("Gateway Handler Register ", func() error {
+			logutil.LogOrPanic(logs.L(), "Gateway Handler Register ", func() error {
 				return registerGw(context.Background(), g.gw.Get(), g.inproc, srv)
 			})
 
 			// Handler对象注入
-			logs.LogOrPanic("Handler Dependency Injection",
+			logutil.LogOrPanic(logs.L(), "Handler Dependency Injection",
 				func() error {
 					err := dix.Inject(srv)
 					if err == nil {
@@ -127,7 +128,7 @@ func newEntry(name string) *grpcEntry {
 			)
 
 			// Handler初始化
-			logs.LogOrPanic("Handler initCfg", func() error { return xerror.Try(srv.Init) })
+			logutil.LogOrPanic(logs.L(), "Handler initCfg", func() error { return xerror.Try(srv.Init) })
 		}
 	})
 
@@ -135,7 +136,7 @@ func newEntry(name string) *grpcEntry {
 }
 
 var _ Entry = (*grpcEntry)(nil)
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 type grpcEntry struct {
 	*base.Entry
@@ -214,7 +215,7 @@ func (g *grpcEntry) register() (err error) {
 	if len(g.cfg.Advertise) > 0 {
 		advt = g.cfg.Advertise
 	} else {
-		advt = runenv.Addr
+		advt = runtime.Addr
 	}
 
 	parts := strings.Split(advt, ":")
@@ -247,12 +248,12 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		logs.Infow("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
+		logs.L().Info("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
 	}
 
 	// registry options
 	opts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
-	logs.LogOrPanic("[grpc] register", func() error { return g.registry.Register(services, opts...) })
+	logutil.LogOrPanic(logs.L(), "[grpc] register", func() error { return g.registry.Register(services, opts...) })
 
 	// already registered? don't need to register subscribers
 	if g.registered.Load() {
@@ -302,9 +303,9 @@ func (g *grpcEntry) deRegister() (err error) {
 		Nodes:   []*registry.Node{node},
 	}
 
-	logs.LogOrErr("deregister node",
-		func() error { return g.registry.Deregister(services) },
-		zap.String("id", node.Id))
+	logutil.LogOrErr(logs.L(), "deregister node", func() error { return g.registry.Deregister(services) },
+		zap.String("id", node.Id),
+	)
 
 	if !g.registered.Load() {
 		return nil
@@ -322,12 +323,12 @@ func (g *grpcEntry) Stop() (err error) {
 	}
 
 	// deRegister self
-	logs.LogOrErr("[grpc] server deRegister", g.deRegister)
+	logutil.LogOrErr(logs.L(), "[grpc] server deRegister", g.deRegister)
 
 	// Add sleep for those requests which have selected this port.
 	time.Sleep(g.cfg.SleepAfterDeRegister)
 
-	logs.LogOrErr("[grpc] GracefulStop", func() error {
+	logutil.LogOrErr(logs.L(), "[grpc] GracefulStop", func() error {
 		g.srv.Get().GracefulStop()
 		return nil
 	})
@@ -344,8 +345,8 @@ func (g *grpcEntry) Register(handler entry.Handler) {
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runenv.Addr))
-	ln := xerror.PanicErr(netutil.Listen(runenv.Addr)).(net.Listener)
+	logs.S().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+	ln := xerror.PanicErr(netutil.Listen(runtime.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
 	g.mux = cmux.New(ln)
@@ -354,8 +355,8 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动grpc服务
 	syncx.GoDelay(func() {
-		logs.Info("[grpc] Server Starting")
-		logs.LogOrErr("[grpc] Server Stop", func() error {
+		logs.L().Info("[grpc] Server Starting")
+		logutil.LogOrErr(logs.L(), "[grpc] Server Stop", func() error {
 			if err := g.srv.Get().Serve(g.matchHttp2()); err != nil &&
 				err != cmux.ErrListenerClosed &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -371,7 +372,7 @@ func (g *grpcEntry) Start() (gErr error) {
 		var s = http.Server{Handler: g.gw.Get()}
 		// grpc服务关闭之前关闭gateway
 		g.BeforeStop(func() {
-			logs.LogOrErr("[grpc-gw] Shutdown", func() error {
+			logutil.LogOrErr(logs.L(), "[grpc-gw] Shutdown", func() error {
 				if err := s.Shutdown(context.Background()); err != nil && !errors.Is(err, net.ErrClosed) {
 					return err
 				}
@@ -379,8 +380,8 @@ func (g *grpcEntry) Start() (gErr error) {
 			})
 		})
 
-		logs.Info("[grpc-gw] Server Starting")
-		logs.LogOrErr("[grpc-gw] Server Stop", func() error {
+		logs.L().Info("[grpc-gw] Server Starting")
+		logutil.LogOrErr(logs.L(), "[grpc-gw] Server Stop", func() error {
 			if err := s.Serve(g.matchHttp1()); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -393,8 +394,8 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动net网络
 	syncx.GoDelay(func() {
-		logs.Info("[cmux] Server Starting")
-		logs.LogOrErr("[cmux] Server Stop", func() error {
+		logs.L().Info("[cmux] Server Starting")
+		logutil.LogOrErr(logs.L(), "[cmux] Server Stop", func() error {
 			if err := g.serve(); err != nil &&
 				!errors.Is(err, http.ErrServerClosed) &&
 				!errors.Is(err, net.ErrClosed) {
@@ -405,7 +406,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	})
 
 	// register self
-	logs.LogOrPanic("[grpc] start to register", g.register)
+	logutil.LogOrPanic(logs.L(), "[grpc] start to register", g.register)
 
 	g.cancelRegister = syncx.GoCtx(func(ctx context.Context) {
 		if g.registry == nil {
@@ -425,13 +426,13 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.LogOrErr("service register",
+				logutil.LogOrErr(logs.L(), "service register",
 					g.register,
 					zap.String("registry", g.registry.String()),
 					zap.String("interval", interval.String()),
 				)
 			case <-ctx.Done():
-				logs.Info("service register cancelled")
+				logs.L().Info("service register cancelled")
 				return
 			}
 		}

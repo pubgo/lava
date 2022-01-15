@@ -5,16 +5,16 @@ import (
 
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
-	"github.com/pubgo/lava/logz"
+	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
-var logs = logz.Component(Name)
+var logs = logger.Component(Name)
 
 var cfgMap = make(map[string]*Cfg)
 
@@ -38,14 +38,14 @@ type Cfg struct {
 func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 	var log = merge.Struct(&gorm.Config{}, t).(*gorm.Config)
 
-	var level = logger.Info
-	if runenv.IsProd() || runenv.IsRelease() {
-		level = logger.Error
+	var level = gl.Info
+	if runtime.IsProd() || runtime.IsRelease() {
+		level = gl.Error
 	}
 
-	log.Logger = logger.New(
-		logPrintf(logs.Infof),
-		logger.Config{
+	log.Logger = gl.New(
+		logPrintf(logs.S().Infof),
+		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,
 			IgnoreRecordNotFoundError: false,

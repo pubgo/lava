@@ -5,7 +5,6 @@ import (
 	"os"
 	rd "runtime/debug"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
@@ -14,11 +13,9 @@ import (
 )
 
 func init() {
-	mux.Debug(func(r chi.Router) {
-		r.Get("/env", envHandle)
-		r.Get("/version", versionHandle)
-		r.Get("/dep", depHandle)
-	})
+	mux.DebugGet("/env", envHandle)
+	mux.DebugGet("/version", versionHandle)
+	mux.DebugGet("/dep", depHandle)
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

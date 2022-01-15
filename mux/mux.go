@@ -47,7 +47,6 @@ func Use(middlewares ...func(http.Handler) http.Handler)             { app.Use(m
 func With(middlewares ...func(http.Handler) http.Handler) chi.Router { return app.With(middlewares...) }
 func Group(fn func(r chi.Router)) chi.Router                         { return app.Group(fn) }
 func Route(pattern string, fn func(r chi.Router)) chi.Router         { return app.Route(pattern, fn) }
-func Debug(fn func(r chi.Router)) chi.Router                         { return app.Route("/debug", fn) }
 func Mount(pattern string, h http.Handler)                           { app.Mount(pattern, h) }
 func Handle(pattern string, h http.Handler)                          { app.Handle(pattern, h) }
 func HandleFunc(pattern string, h http.HandlerFunc)                  { app.HandleFunc(pattern, h) }
@@ -56,6 +55,7 @@ func MethodFunc(method, pattern string, h http.HandlerFunc)          { app.Metho
 func Connect(pattern string, h http.HandlerFunc)                     { app.Connect(pattern, h) }
 func Delete(pattern string, h http.HandlerFunc)                      { app.Delete(pattern, h) }
 func Get(pattern string, h http.HandlerFunc)                         { app.Get(pattern, h) }
+func DebugGet(pattern string, h http.HandlerFunc)                    { app.Get(DebugPrefix(pattern), h) }
 func Head(pattern string, h http.HandlerFunc)                        { app.Head(pattern, h) }
 func Options(pattern string, h http.HandlerFunc)                     { app.Options(pattern, h) }
 func Patch(pattern string, h http.HandlerFunc)                       { app.Patch(pattern, h) }

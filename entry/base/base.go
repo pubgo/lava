@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )
 
@@ -69,7 +69,7 @@ func (t *Entry) MiddlewareInter(middleware types.Middleware) {
 func (t *Entry) InitRT() {
 	defer xerror.RespExit()
 
-	xerror.Assert(runenv.Project != t.Options().Name, "project name not match(%s, %s)", runenv.Project, t.Options().Name)
+	xerror.Assert(runtime.Project != t.Options().Name, "project name not match(%s, %s)", runtime.Project, t.Options().Name)
 	xerror.Assert(t.init == nil, "init is nil")
 
 	// 执行entry的init

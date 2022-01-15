@@ -7,7 +7,7 @@ import (
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 )
 
 type Cfg struct {
@@ -23,13 +23,13 @@ func DefaultCfg() *Cfg {
 	xerror.Exit(err)
 
 	cfg.Disabled = false
-	cfg.ServiceName = runenv.Project
+	cfg.ServiceName = runtime.Project
 	xerror.Panic(err)
 	return &Cfg{
 		Configuration: cfg,
 		BatchSize:     1,
 		Logger: &lumberjack.Logger{
-			Filename:   fmt.Sprintf("./logs/trace/%s.log", runenv.Project),
+			Filename:   fmt.Sprintf("./logs/trace/%s.log", runtime.Project),
 			MaxSize:    50, // mb
 			MaxBackups: 10,
 			MaxAge:     1, //days

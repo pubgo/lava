@@ -4,47 +4,25 @@ import (
 	"context"
 
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/internal/loggerInter"
-	"github.com/pubgo/lava/types"
 )
 
-// GetLog get log from context
-//	从context中获取的log会自动注入request-id
-func GetLog(ctx context.Context, fields ...zap.Field) Logger {
-	return &loggerWrapper{SugaredLogger: loggerInter.GetLog(ctx).With(fields...).Sugar()}
+type loggerKey struct{}
+
+// CreateCtxWith logger wrapper
+func CreateCtxWith(ctx context.Context, logger *zap.Logger) context.Context {
+	return context.WithValue(ctx, loggerKey{}, logger)
 }
 
-var _ Logger = (*loggerWrapper)(nil)
-
-type loggerWrapper struct {
-	*zap.SugaredLogger
-}
-
-func (t *loggerWrapper) Depth(depth ...int) Logger {
-	if len(depth) == 0 || depth[0] == 0 {
-		return t
+// GetFrom get log from context
+//	从context中获取log, log会带上注入的字段
+func GetFrom(ctx context.Context) *zap.Logger {
+	// 默认log
+	if ctx != nil {
+		var log, ok = ctx.Value(loggerKey{}).(*zap.Logger)
+		if ok && log != nil {
+			return log
+		}
 	}
 
-	return &loggerWrapper{SugaredLogger: t.SugaredLogger.Desugar().WithOptions(zap.AddCallerSkip(depth[0])).Sugar()}
-}
-
-func (t *loggerWrapper) WithErr(err error) Logger {
-	if err == nil {
-		return t
-	}
-
-	return &loggerWrapper{SugaredLogger: t.SugaredLogger.With(zap.String("err", err.Error()), zap.Any("err_stack", err))}
-}
-
-func (t *loggerWrapper) With(args types.M) Logger {
-	if args == nil || len(args) == 0 {
-		return t
-	}
-
-	var fields = make([]interface{}, len(args))
-	for k, v := range args {
-		fields = append(fields, zap.Any(k, v))
-	}
-	return &loggerWrapper{SugaredLogger: t.SugaredLogger.With(fields...)}
+	return L()
 }
