@@ -17,7 +17,7 @@ func init() {
 
 			for k, v := range cfgMap {
 				cfgMap[k] = merge.Struct(DefaultCfg(), v).(*Cfg)
-				resource.Update(k, &Client{cfgMap[k].Build()})
+				resource.Update(k, &Client{resource.New(cfgMap[k].Build())})
 			}
 		},
 	})

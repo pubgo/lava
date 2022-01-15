@@ -19,7 +19,7 @@ func init() {
 			for name, cfg := range cfgList {
 				etcdCfg := cfgMerge(cfg)
 				client := etcdCfg.Build()
-				resource.Update(name, &Client{client})
+				resource.Update(name, &Client{resource.New(client)})
 			}
 		},
 		OnWatch: func(name string, r *types.WatchResp) error {
@@ -28,7 +28,7 @@ func init() {
 				xerror.PanicF(r.Decode(&cfg), "etcd conf parse error, cfg: %s", r.Value)
 				etcdCfg := cfgMerge(cfg)
 				client := etcdCfg.Build()
-				resource.Update(name, &Client{client})
+				resource.Update(name, &Client{resource.New(client)})
 			})
 
 			r.OnDelete(func() {

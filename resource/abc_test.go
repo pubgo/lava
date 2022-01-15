@@ -13,7 +13,7 @@ type client struct {
 
 func (r *client) Kind() string { return "test-client" }
 func (r *client) Get() (*res, func()) {
-	var rr, release = r.Resource.Load()
+	var rr, release = r.Resource.LoadObj()
 	return rr.(*res), release
 }
 

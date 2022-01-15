@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"io"
 
 	"github.com/pubgo/xerror"
@@ -23,21 +24,26 @@ func (w *wrapper) Close() error {
 	return db.Close()
 }
 
-var _ resource.Resource = (*Client)(nil)
-
 type Client struct {
-	v *wrapper
+	resource.Resource
 }
 
 func (c *Client) Ping() error {
-	var db, err = c.v.DB.DB()
+	var db, err = c.get().DB()
 	if err != nil {
 		return err
 	}
 	return db.Ping()
 }
 
-func (c *Client) Unwrap() io.Closer              { return c.v }
-func (c *Client) Get() *gorm.DB                  { return c.v.DB }
-func (c Client) UpdateObj(val resource.Resource) { c.v = val.(*Client).v }
-func (c Client) Kind() string                    { return Name }
+func (c Client) Kind() string { return Name }
+func (c *Client) Load() (*gorm.DB, context.CancelFunc) {
+	var r, cancel = c.Resource.LoadObj()
+	return r.(*gorm.DB), cancel
+}
+
+func (c *Client) get() *gorm.DB {
+	var r, cancel = c.Resource.LoadObj()
+	defer cancel()
+	return r.(*gorm.DB)
+}

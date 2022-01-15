@@ -1,7 +1,7 @@
 package etcdv3
 
 import (
-	"io"
+	"context"
 
 	client3 "go.etcd.io/etcd/client/v3"
 
@@ -18,13 +18,13 @@ func Get(names ...string) *Client {
 	return nil
 }
 
-var _ resource.Resource = (*Client)(nil)
-
 type Client struct {
-	v *client3.Client
+	resource.Resource
 }
 
-func (c *Client) Unwrap() io.Closer               { return c.v }
-func (c *Client) UpdateObj(val resource.Resource) { c.v = val.(*Client).v }
-func (c *Client) Kind() string                    { return Name }
-func (c *Client) Get() *client3.Client            { return c.v }
+func (c *Client) Kind() string         { return Name }
+func (c *Client) Get() *client3.Client { return c.GetObj().(*client3.Client) }
+func (c *Client) Load() (*client3.Client, context.CancelFunc) {
+	var obj, cancel = c.LoadObj()
+	return obj.(*client3.Client), cancel
+}

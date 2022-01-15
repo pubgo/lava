@@ -7,19 +7,19 @@ import (
 )
 
 // Resource 资源对象接口
-// 	Resource 是真实对象的wrapper, 可以通过Unwrap获取真实的内部对象
+// 	Resource 是真实对象的wrapper, 可以通过getObj获取真实的内部对象
 type Resource interface {
-	// getObj 获取资源内部真实对象
-	getObj() io.Closer
+	// GetObj 获取资源内部真实对象
+	GetObj() io.Closer
 	// updateObj 获取资源对象
 	updateObj(obj io.Closer)
 
 	// Kind 资源类型
 	Kind() string
 
-	// Load 获取真实的资源对象
-	//	release 用完对象后记得release
-	Load() (obj interface{}, cancel context.CancelFunc)
+	// LoadObj 获取真实的资源对象
+	//	cancel 用完对象后记得 cancel
+	LoadObj() (obj interface{}, cancel context.CancelFunc)
 }
 
 func New(val io.Closer) Resource {
@@ -35,12 +35,12 @@ func (t *baseRes) Kind() string {
 	panic("implement me")
 }
 
-func (t *baseRes) Load() (interface{}, context.CancelFunc) {
+func (t *baseRes) LoadObj() (interface{}, context.CancelFunc) {
 	t.rw.RLock()
 	return t.v, t.rw.RUnlock
 }
 
-func (t *baseRes) getObj() io.Closer {
+func (t *baseRes) GetObj() io.Closer {
 	t.rw.RLock()
 	var v = t.v
 	t.rw.RUnlock()

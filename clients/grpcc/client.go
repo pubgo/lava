@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"io"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/ctxutil"
-	"github.com/pubgo/lava/resource"
 )
 
 func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
@@ -46,7 +44,6 @@ func GetClient(service string, opts ...func(cfg *Cfg)) *Client {
 	return cli.(*Client)
 }
 
-var _ resource.Resource = (*Client)(nil)
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
 type Client struct {
@@ -56,11 +53,6 @@ type Client struct {
 	optFn   func(cfg *Cfg)
 	conn    *grpc.ClientConn
 }
-
-func (t *Client) Unwrap() io.Closer               { return t.conn }
-func (t *Client) UpdateObj(val resource.Resource) { t.conn = val.(*Client).conn }
-func (t *Client) Kind() string                    { return Name }
-func (t *Client) Close() error                    { return t.conn.Close() }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	var conn, err = t.Get()

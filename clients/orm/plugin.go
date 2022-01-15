@@ -22,7 +22,7 @@ func init() {
 				xerror.Assert(factory == nil || !ok, "factory[%s] not found", t.Driver)
 				dialect := factory(config.GetMap(Name, name))
 				var db = t.Build(dialect)
-				resource.Update(name, &Client{&wrapper{db}})
+				resource.Update(name, &Client{resource.New(&wrapper{db})})
 				cfgMap[name] = t
 			}
 		},
@@ -38,7 +38,7 @@ func init() {
 				var factory = factories.Get(cfgMap[name].Driver).(Factory)
 				dialect := factory(config.GetMap(Name, name))
 				var db = cfg.Build(dialect)
-				resource.Update(name, &Client{&wrapper{db}})
+				resource.Update(name, &Client{resource.New(&wrapper{db})})
 				cfgMap[name] = cfg
 			})
 			return nil
@@ -48,7 +48,7 @@ func init() {
 			v(Name+"_stats", func() interface{} {
 				var data = make(map[string]interface{})
 				for k, v := range resource.GetByKind(Name) {
-					db, err := v.(*Client).Get().DB()
+					db, err := v.(*Client).get().DB()
 					if err != nil {
 						data[k] = err.Error()
 					} else {

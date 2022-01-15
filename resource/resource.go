@@ -38,7 +38,7 @@ func Has(kind string, name string) bool {
 
 // Update 更新资源
 func Update(name string, srv Resource) {
-	xerror.Assert(srv == nil || srv.getObj() == nil, "[srv] should not be nil")
+	xerror.Assert(srv == nil || srv.GetObj() == nil, "[srv] should not be nil")
 
 	if name == "" {
 		name = consts.KeyDefault
@@ -65,9 +65,9 @@ func Update(name string, srv Resource) {
 	// 资源存在, 更新老资源
 	if ok && oldClient != nil {
 		// 新老对象替换, 资源内部对象不同时替换
-		if oldClient.(Resource).getObj() != srv.getObj() {
+		if oldClient.(Resource).GetObj() != srv.GetObj() {
 			log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldClient))).Info("resource update")
-			oldClient.(Resource).updateObj(srv.getObj())
+			oldClient.(Resource).updateObj(srv.GetObj())
 		}
 		return
 	}
@@ -83,7 +83,7 @@ func Update(name string, srv Resource) {
 	log.Info("resource SetFinalizer")
 
 	// 当resource被gc时, 关闭  resource
-	runtime.SetFinalizer(srv.getObj(), func(cc io.Closer) {
+	runtime.SetFinalizer(srv.GetObj(), func(cc io.Closer) {
 		logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
 	})
 }
