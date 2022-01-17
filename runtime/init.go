@@ -1,7 +1,6 @@
 package runtime
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"
 
+	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/version"
 )
@@ -28,7 +28,7 @@ var (
 	Level        = "debug"
 	Mode         = RunModeDev.String()
 
-	// DeviceID 设备ID
+	// DeviceID 主机设备ID
 	DeviceID = xerror.PanicErr(machineid.ID())
 
 	Signal os.Signal = syscall.Signal(0)
@@ -73,7 +73,4 @@ var (
 	)
 )
 
-func Name() string {
-	// TODO 构建或启动生成
-	return fmt.Sprintf("%s.%s", Project, Domain)
-}
+func Name() string { return envs.Name() }

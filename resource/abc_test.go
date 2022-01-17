@@ -12,7 +12,7 @@ type client struct {
 }
 
 func (r *client) Kind() string { return "test-client" }
-func (r *client) Get() (*res, func()) {
+func (r *client) Get() (*res, Release) {
 	var rr, release = r.Resource.LoadObj()
 	return rr.(*res), release
 }
@@ -36,18 +36,18 @@ func TestName(t1 *testing.T) {
 		Update("", dd)
 		var rr, release = dd.Get()
 		fmt.Println(rr.name)
-		release()
+		release.Release()
 
 		Update("", &client{New(yy)})
 		rr, release = dd.Get()
 		fmt.Println(rr.name)
-		release()
+		release.Release()
 
 		// 不会更新, yy对象未改变
 		Update("", &client{New(yy)})
 		rr, release = dd.Get()
 		fmt.Println(rr.name)
-		release()
+		release.Release()
 
 		Remove("test-client", "default")
 		dd = nil

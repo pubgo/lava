@@ -16,6 +16,7 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/logger"
 	"github.com/pubgo/lava/logger/logutil"
 	"github.com/pubgo/lava/plugin"
@@ -168,13 +169,14 @@ func Run(description string, entries ...entry.Entry) {
 		cmd.Before = func(ctx *cli.Context) error {
 			defer xerror.RespExit()
 
+			// 项目名初始化
+			runtime.Project = entRT.Options().Name
+			envs.SetName(version.Domain, runtime.Project)
+
 			// 运行环境检查
 			if _, ok := runtime.RunModeValue[runtime.Mode]; !ok {
 				panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
 			}
-
-			// 项目名初始化
-			runtime.Project = entRT.Options().Name
 
 			// 本地配置初始化
 			config.Init()
@@ -184,13 +186,13 @@ func Run(description string, entries ...entry.Entry) {
 				_ = config.Decode(name, &cfg)
 			})
 
-			// plugin初始化
+			// 插件初始化
 			for _, plg := range plugin.All() {
 				entRT.MiddlewareInter(plg.Middleware())
 				logutil.OkOrPanic(logs.L(), "plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
 			}
 
-			// entry初始化
+			// entry初始化, 项目初始化
 			entRT.InitRT()
 
 			// watcher初始化, 最后初始化, 从远程获取最新的配置

@@ -8,7 +8,7 @@ import (
 
 type loggerKey struct{}
 
-// CreateCtxWith logger wrapper
+// CreateCtxWith create context with logger
 func CreateCtxWith(ctx context.Context, logger *zap.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey{}, logger)
 }
@@ -23,6 +23,5 @@ func GetFrom(ctx context.Context) *zap.Logger {
 			return log
 		}
 	}
-
 	return L()
 }
