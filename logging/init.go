@@ -4,7 +4,6 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xlog/xlog_config"
-	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
@@ -14,16 +13,16 @@ import (
 
 const name = "logger"
 
-var initialized atomic.Bool
+var initialized bool
 
 // Init logger
 func Init(opts ...func(cfg *xlog_config.Config)) {
 	defer func() {
 		// 初始化完成
-		initialized.Store(true)
+		initialized = true
 	}()
 
-	defer xerror.RespExit()
+	defer xerror.RespExit("logger init error")
 
 	var cfg = xlog_config.NewProdConfig()
 	if runtime.IsDev() || runtime.IsTest() || runtime.IsStag() {
@@ -62,5 +61,5 @@ func Init(opts ...func(cfg *xlog_config.Config)) {
 	componentLog = baseLog.Named(logkey.Component)
 
 	// 依赖更新
-	xerror.Exit(dix.Provider(&Event{}))
+	xerror.Panic(dix.Provider(&Event{}))
 }

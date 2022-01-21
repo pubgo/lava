@@ -37,7 +37,7 @@ func getName(name string, fields *[]zap.Field) *zap.Logger {
 		return val.(*zap.Logger)
 	}
 
-	if !initialized.Load() {
+	if !initialized {
 		return componentLog.Named(name).With(*fields...)
 	}
 

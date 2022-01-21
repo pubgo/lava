@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package transport;
+
+option go_package = "./;rsocket";
+
+message Request {
+  string method = 1;
+  string contentType = 2;
+  string requestId = 3;
+  map<string, string> header = 4;
+}
+
+message Response {
+  int32 code = 1;
+  string msg = 2;
+  Metadata metadata = 5;
+}
+
+message Metadata {
+  string version = 1;
+  string service = 2;
+  string method = 3;
+  string trace = 4;
+  string address = 5;
+  string requestId = 6;
+  map<string, string> header = 7;
+}
+
+// TODO 客户端信息
+// TODO 服务端信息
