@@ -37,7 +37,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...strin
 	ext.DBType.Set(span, Name)
 
 	var c, cancel = t.Resource.LoadObj()
-	defer cancel()
+	defer cancel.Release()
 
 	return c.(*bolt.DB).View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }
@@ -54,7 +54,7 @@ func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...str
 	ext.DBType.Set(span, Name)
 
 	var c, cancel = t.Resource.LoadObj()
-	defer cancel()
+	defer cancel.Release()
 
 	return c.(*bolt.DB).Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
 }

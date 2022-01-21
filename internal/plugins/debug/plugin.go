@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -20,7 +20,7 @@ import (
 )
 
 func init() {
-	var logs = logger.Component(Name)
+	var logs = logging.Component(Name)
 
 	var openWeb bool
 	plugin.Register(&plugin.Base{

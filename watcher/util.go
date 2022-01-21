@@ -7,7 +7,7 @@ import (
 )
 
 func trimProject(key string) string {
-	return strings.Trim(strings.TrimPrefix(key, runtime.Project), ".")
+	return strings.Trim(strings.TrimPrefix(key, runtime.Name()), ".")
 }
 
 // KeyToDot /projectName/foo/bar -->  projectName.foo.bar

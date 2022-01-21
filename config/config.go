@@ -55,7 +55,11 @@ func (t *configImpl) GetMap(key string) types.CfgMap {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
-	return t.v.GetStringMap(key)
+	var val = t.v.GetStringMap(key)
+	if val == nil {
+		return make(map[string]interface{})
+	}
+	return val
 }
 
 func (t *configImpl) Get(key string) interface{} {

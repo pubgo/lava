@@ -1,22 +1,39 @@
-package logger
+package logging
 
 import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog/xlog_config"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger/logkey"
+	"github.com/pubgo/lava/logging/log_config"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/runtime"
 )
 
 const name = "logger"
 
+// 默认log
+var componentLog = func() *zap.Logger {
+	defer xerror.RespExit()
+	var cfg = zap.NewDevelopmentConfig()
+	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(consts.DefaultTimeFormat)
+	var log, err = cfg.Build()
+	xerror.Exit(err)
+
+	log = log.Named(logkey.Debug)
+
+	// 全局
+	zap.ReplaceGlobals(log)
+	return log
+}()
+
 var initialized bool
 
 // Init logger
-func Init(opts ...func(cfg *xlog_config.Config)) {
+func Init(opts ...func(cfg *log_config.Config)) {
 	defer func() {
 		// 初始化完成
 		initialized = true
@@ -24,9 +41,9 @@ func Init(opts ...func(cfg *xlog_config.Config)) {
 
 	defer xerror.RespExit("logger init error")
 
-	var cfg = xlog_config.NewProdConfig()
+	var cfg = log_config.NewProdConfig()
 	if runtime.IsDev() || runtime.IsTest() || runtime.IsStag() {
-		cfg = xlog_config.NewDevConfig()
+		cfg = log_config.NewDevConfig()
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 

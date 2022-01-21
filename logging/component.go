@@ -1,28 +1,14 @@
-package logger
+package logging
 
 import (
 	"sync"
 
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog/xlog_config"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger/logkey"
-	"github.com/pubgo/lava/logger/logutil"
-	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/types"
 )
-
-// 默认log
-var componentLog = func() *zap.Logger {
-	defer xerror.RespExit()
-	cfg := xlog_config.NewDevConfig()
-	cfg.EncoderConfig.EncodeCaller = "full"
-	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
-	cfg.Rotate = nil
-	return cfg.Build(runtime.Name()).Named(logkey.Debug)
-}()
 
 var loggerMap sync.Map
 

@@ -4,13 +4,13 @@ import (
 	jLog "github.com/uber/jaeger-client-go/log"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 )
 
 var _ jLog.Logger = (*traceLog)(nil)
 
 func newLog(name string) *traceLog {
-	return &traceLog{logs: logger.Component(name).Depth(2)}
+	return &traceLog{logs: logging.Component(name).Depth(2)}
 }
 
 type traceLog struct {

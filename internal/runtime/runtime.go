@@ -10,15 +10,15 @@ import (
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xlog/xlog_config"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/envs"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/log_config"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -30,7 +30,7 @@ import (
 
 const name = "runtime"
 
-var logs = logger.Component(name)
+var logs = logging.Component(name)
 var app = &cli.App{
 	Name:    runtime.Domain,
 	Version: version.Version,
@@ -181,8 +181,11 @@ func Run(description string, entries ...entry.Entry) {
 			// 本地配置初始化
 			config.Init()
 
+			// 远程配置初始化, 从远程获取最新的配置
+			watcher.Init(config.GetCfg())
+
 			// 日志初始化
-			logger.Init(func(cfg *xlog_config.Config) {
+			logging.Init(func(cfg *log_config.Config) {
 				_ = config.Decode(name, &cfg)
 			})
 
@@ -195,8 +198,6 @@ func Run(description string, entries ...entry.Entry) {
 			// entry初始化, 项目初始化
 			entRT.InitRT()
 
-			// watcher初始化, 最后初始化, 从远程获取最新的配置
-			xerror.Panic(watcher.Init(config.GetCfg()))
 			return nil
 		}
 

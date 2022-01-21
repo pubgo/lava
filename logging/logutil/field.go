@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger/logkey"
+	"github.com/pubgo/lava/logging/logkey"
 )
 
 func Names(names ...string) string {

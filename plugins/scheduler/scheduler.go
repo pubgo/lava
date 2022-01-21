@@ -7,13 +7,13 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/lavax"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 type Scheduler struct {
 	scheduler quartz.Scheduler

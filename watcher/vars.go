@@ -14,7 +14,7 @@ func init() {
 		return data
 	})
 
-	vars.Register(Name+"_callbacks", func() interface{} {
+	vars.Register(Name+"_handlers", func() interface{} {
 		var data = make(map[string][]string)
 		for k, v := range callbacks {
 			for i := range v {

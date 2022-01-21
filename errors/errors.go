@@ -13,6 +13,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// MaxCode [0,1000]为系统错误, 业务错误code都大于1000
+const MaxCode = 1000
+
 // GRPCStatus 实现grpc status的GRPCStatus接口
 func (x *Error) GRPCStatus() *status.Status {
 	s, err := status.New(codes.Code(x.Code), x.Message).
@@ -96,6 +99,17 @@ func (x *Error) WithMetadata(m map[string]string) *Error {
 
 func (x *Error) Error() string {
 	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v", x.Code, x.Reason, x.Message, x.Metadata)
+}
+
+// Decode error 反序列化
+func Decode(data []byte) (*Error, error) {
+	var err Error
+	return &err, proto.Unmarshal(data, &err)
+}
+
+// Encode error 序列化
+func Encode(err *Error) ([]byte, error) {
+	return proto.Marshal(err)
 }
 
 // Code returns the status code.

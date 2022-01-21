@@ -1,6 +1,10 @@
 package resource
 
-import "github.com/pubgo/lava/pkg/lavax"
+import (
+	"io"
+
+	"github.com/pubgo/lava/pkg/lavax"
+)
 
 func Component(kind string, names ...string) *baseQuery {
 	name := lavax.GetDefault(names...)
@@ -12,11 +16,18 @@ type baseQuery struct {
 	kind, name string
 }
 
-func (t *baseQuery) Get() Resource {
+func (t *baseQuery) Get() io.Closer {
 	if val, ok := sources.Load(t.name); ok {
-		return val.(Resource)
+		return val.(Resource).GetObj()
 	}
 	return nil
+}
+
+func (t *baseQuery) Load() (interface{}, Release) {
+	if val, ok := sources.Load(t.name); ok {
+		return val.(Resource).LoadObj()
+	}
+	return nil, nil
 }
 
 // Get 根据类型和名字获取一个资源

@@ -9,12 +9,12 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 )
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {

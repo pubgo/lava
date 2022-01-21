@@ -8,7 +8,6 @@ import (
 	"github.com/segmentio/nsq-go"
 
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/resource"
 )
 
 var _ io.Closer = (*wrapper)(nil)
@@ -31,9 +30,8 @@ type Client struct {
 	v   *wrapper
 }
 
-func (t *Client) Unwrap() io.Closer               { return t.v }
-func (t *Client) UpdateObj(val resource.Resource) {}
-func (t *Client) Kind() string                    { return Name }
+func (t *Client) Kind() string { return Name }
+func (t *Client) Close() error { return t.v.Close() }
 
 func (t *Client) Consumer(topic string, channel string) (c *nsq.Consumer, err error) {
 	defer xerror.RespErr(&err)

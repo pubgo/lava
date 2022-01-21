@@ -2,6 +2,8 @@ package metric
 
 import (
 	"context"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
@@ -9,7 +11,7 @@ import (
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logger/logkey"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
@@ -38,7 +40,7 @@ func init() {
 			p.BeforeStop(func() { xerror.Panic(closer.Close()) })
 
 			// 全局对象注册
-			g.Store(scope)
+			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 
 			// 注入依赖scope
 			xerror.Panic(dix.Provider(scope))

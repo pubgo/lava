@@ -11,50 +11,69 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runtime"
 )
 
 var defaultWatcher Watcher = &nullWatcher{}
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 // Init 初始化watcher
-//	projects: 项目名字
-func Init(conf config.Config) (err error) {
-	defer xerror.RespErr(&err)
+func Init(conf config.Config) {
+	defer xerror.RespExit()
 
 	xerror.Assert(conf == nil, "conf is nil")
+	cfg.cfg = conf
 
 	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(Watcher)
 
 	// 获取所有需要watch的项目
-	if !strutil.Contains(cfg.Projects, runtime.Project) {
-		cfg.Projects = append(cfg.Projects, runtime.Project)
+	if !strutil.Contains(cfg.Projects, runtime.Name()) {
+		cfg.Projects = append(cfg.Projects, runtime.Name())
 	}
 
 	// 项目prefix
 	for i := range cfg.Projects {
-		var name = cfg.Projects[i]
+		var project = cfg.Projects[i]
 
-		// get远程配置, 获取项目下所有配置
-		xerror.Panic(defaultWatcher.GetCallback(
-			ctxutil.Timeout(), name,
-			func(resp *Response) {
-				resp.Event = event.EventType_UPDATE
-				onWatch(name, resp)
-			},
-		))
+		// get远程配置, 启动时, 获取项目下所有配置
+		xerror.Panic(defaultWatcher.GetCallback(ctxutil.Timeout(), project, func(resp *Response) { onInit(project, resp) }))
 
 		// watch远程配置
-		defaultWatcher.WatchCallback(
-			context.Background(), name,
-			func(resp *Response) { onWatch(name, resp) },
-		)
+		defaultWatcher.WatchCallback(context.Background(), project, func(resp *Response) { onWatch(project, resp) })
 	}
 	return
+}
+
+// onInit 初始化, 获取远程配置
+func onInit(name string, resp *Response) {
+	// 过滤空值
+	if cfg.SkipNull && len(bytes.TrimSpace(resp.Value)) == 0 {
+		return
+	}
+
+	var key = KeyToDot(resp.Key)
+
+	logutil.OkOrPanic(logs.L(), "watch get callback", func() error {
+		// 把远程配置更新到内存配置中
+		// value必须是json类型
+		var dt = make(map[string]interface{})
+		xerror.PanicF(resp.Decode(&dt), "value必须是json类型, key=>%s, value=>%s", resp.Key, resp.Value)
+
+		// 内存配置, 去掉本项目前缀, 其他项目保留项目前缀
+		cfg.cfg.Set(trimProject(key), dt)
+		return nil
+	},
+		zap.String("watch-project", name),
+		zap.Any("key", key),
+		zap.Any("event", resp.Event.String()),
+		zap.Any("version", resp.Version),
+		zap.Any("value", string(resp.Value)),
+		zap.Any("resp", resp),
+	)
+
 }
 
 func onWatch(name string, resp *Response) {
@@ -83,28 +102,18 @@ func onWatch(name string, resp *Response) {
 	).Info("watch callback")
 
 	// 把数据更新到全局配置中
-	// value必须是kv类型
+	// value必须是json类型
 	var dt = make(map[string]interface{})
-	xerror.PanicF(resp.Decode(&dt), "value必须是kv类型, key=>%s, value=>%s", resp.Key, resp.Value)
+	xerror.PanicF(resp.Decode(&dt), "value必须是json类型, key=>%s, value=>%s", resp.Key, resp.Value)
 
 	resp.OnPut(func() {
-		if name == runtime.Project {
-			// 本项目配置, 去掉本项目前缀
-			cfg.cfg.Set(trimProject(key), dt)
-		} else {
-			// 非本项目配置, 项目前缀要带上名字
-			cfg.cfg.Set(key, dt)
-		}
+		// 本项目配置, 去掉本项目前缀
+		cfg.cfg.Set(trimProject(key), dt)
 	})
 
 	resp.OnDelete(func() {
-		if name == runtime.Project {
-			// 本项目配置, 去掉本项目前缀
-			cfg.cfg.Set(trimProject(key), nil)
-		} else {
-			// 非本项目配置, 项目前缀要带上名字
-			cfg.cfg.Set(key, nil)
-		}
+		// 本项目配置, 去掉本项目前缀
+		cfg.cfg.Set(trimProject(key), nil)
 	})
 
 	// 以name为前缀的所有的callbacks
@@ -119,11 +128,12 @@ func onWatch(name string, resp *Response) {
 
 		// 执行watch callback
 		for i := range v {
-			logutil.LogOrErr(logs.L(), "watch callback handle", func() error { return v[i](watchKey, resp) },
+			var h = v[i]
+			logutil.LogOrErr(logs.L(), "watch callback handle", func() error { return h(watchKey, resp) },
 				project,
 				zap.String("watch-key", k),
 				zap.Any("watch-resp", resp),
-				zap.Any("watch-stack", stack.Func(v[i])))
+				zap.Any("watch-stack", stack.Func(h)))
 		}
 	}
 }

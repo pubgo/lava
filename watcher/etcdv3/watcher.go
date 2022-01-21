@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	watcher.RegisterFactory(Name, func(cfg types.M) (watcher.Watcher, error) {
+	watcher.RegisterFactory(Name, func(cfg types.CfgMap) (watcher.Watcher, error) {
 		var c Cfg
 		merge.MapStruct(&c, cfg)
 		return newWatcher(c.Prefix, c.Name), nil

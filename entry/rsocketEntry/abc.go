@@ -8,5 +8,4 @@ import (
 type Entry interface {
 	entry.Entry
 	grpc.ServiceRegistrar
-	Register(handler entry.Handler)
 }

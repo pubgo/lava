@@ -1,40 +1,29 @@
 package plugin
 
 import (
+	"github.com/pubgo/lava/internal/pluginInter"
 	"github.com/pubgo/lava/types"
-	"github.com/pubgo/xerror"
 )
 
-var plugins = make(map[string]Plugin)
-
-// pluginKeys 插件key列表, 用来保存插件的注册顺序, 依赖顺序等
-var pluginKeys []string
+const defaultPriority = uint(1000)
 
 // All 获取所有的插件
-func All() []Plugin {
-	var pluginList []Plugin
-	for _, key := range pluginKeys {
-		pluginList = append(pluginList, plugins[key])
-	}
-	return pluginList
-}
+func All() []Plugin { return pluginInter.All() }
 
 // Get 更具名字获取插件
-func Get(name string) Plugin { return plugins[name] }
+func Get(name string) Plugin { return pluginInter.Get(name) }
 
 // Middleware 简化Register的注册方法
-func Middleware(name string, middleware types.Middleware) {
-	Register(&Base{Name: name, OnMiddleware: middleware})
+func Middleware(name string, middleware types.Middleware, priority ...uint) {
+	Register(&Base{Name: name, OnMiddleware: middleware}, priority...)
 }
 
 // Register 插件注册
-func Register(pg Plugin) {
-	defer xerror.RespExit("register plugin error")
-
-	xerror.Assert(pg == nil, "plugin[pg] is nil")
-	xerror.Assert(pg.ID() == "", "plugin name is null")
-	xerror.Assert(plugins[pg.ID()] != nil, "plugin [%s] already exists", pg.ID())
-
-	pluginKeys = append(pluginKeys, pg.ID())
-	plugins[pg.ID()] = pg
+//	priority: 优先级
+func Register(pg Plugin, priority ...uint) {
+	var p = defaultPriority
+	if len(priority) != 0 {
+		p = priority[0]
+	}
+	pluginInter.Register(pg, p)
 }

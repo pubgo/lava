@@ -28,8 +28,8 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -136,7 +136,7 @@ func newEntry(name string) *grpcEntry {
 }
 
 var _ Entry = (*grpcEntry)(nil)
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 type grpcEntry struct {
 	*base.Entry

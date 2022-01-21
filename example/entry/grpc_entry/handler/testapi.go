@@ -17,7 +17,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
@@ -37,7 +37,7 @@ type User struct {
 
 // running
 var testApiSrv = hello.GetTestApiClient("test-grpc")
-var ll = logger.Component("handler")
+var ll = logging.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
@@ -81,7 +81,7 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	var log = logger.GetFrom(ctx)
+	var log = logging.GetLogger(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
 

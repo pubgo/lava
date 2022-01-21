@@ -1,4 +1,4 @@
-package util
+package sockets
 
 import (
 	"github.com/pubgo/lava/logging"

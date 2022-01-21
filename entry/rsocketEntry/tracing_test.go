@@ -1,4 +1,4 @@
-package rsocketEntry_test
+package rsocketEntry
 
 import (
 	"log"

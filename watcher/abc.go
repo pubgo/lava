@@ -10,7 +10,7 @@ type (
 	Response = types.WatchResp
 	Opt      func(*options)
 	options  struct{}
-	Factory  = func(cfg types.M) (Watcher, error)
+	Factory  = func(cfg types.CfgMap) (Watcher, error)
 )
 
 // Watcher ...

@@ -7,8 +7,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/atomic"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
@@ -16,7 +16,7 @@ import (
 
 const Name = "syncx"
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 // 最大goroutine数量
 var maxConcurrent int64 = 100000

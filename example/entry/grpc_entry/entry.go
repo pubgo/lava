@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/grpcEntry"
 	"github.com/pubgo/lava/example/entry/grpc_entry/handler"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/types"
 )
@@ -20,7 +20,7 @@ func GetEntry() entry.Entry {
 	ent.Register(handler.NewTestAPIHandler())
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
 		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
-			var log = logger.GetFrom(ctx)
+			var log = logging.GetLogger(ctx)
 			log.Info("test grpc entry")
 			return next(ctx, req, resp)
 		}

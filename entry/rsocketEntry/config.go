@@ -1,13 +1,13 @@
 package rsocketEntry
 
 import (
+	"github.com/rsocket/rsocket-go/core/transport"
 	"time"
 
-	grpcGw "github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
 )
 
-const Name = "grpc_entry"
+const Name = "rsocket_entry"
 
 const (
 	// DefaultMaxMsgSize define maximum message size that server can send or receive.
@@ -30,7 +30,6 @@ const (
 type Cfg struct {
 	GrpcWeb              bool          `json:"grpc_web"`
 	Grpc                 *grpcs.Cfg    `json:"grpc"`
-	Gw                   *grpcGw.Cfg   `json:"gw"`
 	Address              string        `json:"address"`
 	Advertise            string        `json:"advertise"`
 	RegisterTTL          time.Duration `json:"register_ttl"`
@@ -40,4 +39,8 @@ type Cfg struct {
 	id       string
 	name     string
 	hostname string
+}
+
+func init() {
+	transport.NewTCPServerTransport()
 }

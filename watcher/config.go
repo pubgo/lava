@@ -20,7 +20,7 @@ type Cfg struct {
 	cfg config.Config
 }
 
-func (cfg Cfg) Build(data types.M) (_ Watcher, err error) {
+func (cfg Cfg) Build(data types.CfgMap) (_ Watcher, err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

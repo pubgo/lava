@@ -1,9 +1,10 @@
-package socketutil
+package sockets
 
 import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pubgo/xerror"
@@ -301,9 +302,9 @@ type serverStream struct {
 	out         chan *ErrPayload
 	ctx         context.Context
 	onDone      context.CancelFunc
-	headers     metadata.MD
-	sendHeaders metadata.MD
-	trailers    metadata.MD
+	headers     map[string]string
+	sendHeaders map[string]string
+	trailers    map[string]string
 }
 
 func (s *serverStream) SetHeader(md metadata.MD) error {
@@ -316,10 +317,10 @@ func (s *serverStream) SendHeader(md metadata.MD) error {
 
 func (s *serverStream) setHeader(md metadata.MD, send bool) error {
 	if s.headers == nil {
-		s.headers = metadata.MD{}
+		s.headers = make(map[string]string)
 	}
 	for k, v := range md {
-		s.headers[k] = append(s.headers[k], v...)
+		s.headers[k] = strings.Join(v, ",")
 	}
 
 	if send {
@@ -355,7 +356,7 @@ func (s *serverStream) SendMsg(m interface{}) error {
 	var respMd Response
 	if s.sendHeaders != nil {
 		// TODO 元数据发送到客户端
-		respMd.Metadata.Header = s.sendHeaders
+		respMd.Headers = s.sendHeaders
 	}
 
 	md, err := proto.Marshal(&respMd)

@@ -1,4 +1,4 @@
-package socketutil
+package sockets
 
 import (
 	"google.golang.org/grpc"

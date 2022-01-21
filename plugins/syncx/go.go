@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/fastrand"
 )
 

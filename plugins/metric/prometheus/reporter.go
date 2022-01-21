@@ -6,9 +6,9 @@ import (
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logkey"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/types"
@@ -17,7 +17,7 @@ import (
 const Name = "prometheus"
 const urlPath = "/metrics"
 
-var logs = logger.Component(logutil.Names(metric.Name, Name))
+var logs = logging.Component(logutil.Names(metric.Name, Name))
 
 func init() {
 	metric.RegisterFactory(Name, func(cfg types.CfgMap, opts *tally.ScopeOptions) (err error) {

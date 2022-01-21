@@ -7,6 +7,7 @@ package registry
 type Registry interface {
 	String() string
 	Register(*Service, ...RegOpt) error
+	RegCallback(func() *Service, ...RegOpt) error
 	Deregister(*Service, ...DeregOpt) error
 	Watch(string, ...WatchOpt) (Watcher, error)
 	ListService(...ListOpt) ([]*Service, error)

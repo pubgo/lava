@@ -1,4 +1,4 @@
-package socketutil
+package sockets
 
 import "fmt"
 

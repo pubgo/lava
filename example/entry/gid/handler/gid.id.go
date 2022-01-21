@@ -12,7 +12,7 @@ import (
 
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/protopb/proto/gid"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 )
@@ -56,7 +56,7 @@ func NewId() *Id {
 
 func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.GenerateResponse, error) {
 	var rsp = new(gid.GenerateResponse)
-	var log = logger.GetFrom(ctx)
+	var log = logging.GetLogger(ctx)
 
 	if len(req.Type) == 0 {
 		req.Type = "uuid"

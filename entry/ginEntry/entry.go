@@ -11,8 +11,8 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/entry/base"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -63,7 +63,7 @@ func newEntry(name string) *ginEntry {
 	return ent
 }
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 var _ Entry = (*ginEntry)(nil)
 
 type ginEntry struct {

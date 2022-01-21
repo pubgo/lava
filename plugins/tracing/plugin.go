@@ -10,13 +10,13 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/types"
 )
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 const Name = "tracing"
 

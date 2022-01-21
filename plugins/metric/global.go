@@ -2,17 +2,13 @@ package metric
 
 import (
 	"sync/atomic"
+	"unsafe"
 
 	"github.com/uber-go/tally"
 )
 
-var g atomic.Value
+var g = unsafe.Pointer(&tally.NoopScope)
 
 func GetGlobal() tally.Scope {
-	var val = g.Load()
-	if val == nil {
-		return tally.NoopScope
-	}
-
-	return val.(tally.Scope)
+	return *(*tally.Scope)(atomic.LoadPointer(&g))
 }

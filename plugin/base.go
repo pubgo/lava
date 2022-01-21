@@ -26,6 +26,7 @@ type Base struct {
 	OnFlags      func() types.Flags
 	OnWatch      types.Watcher
 	OnVars       func(v types.Vars)
+
 	beforeStarts []func()
 	afterStarts  []func()
 	beforeStops  []func()

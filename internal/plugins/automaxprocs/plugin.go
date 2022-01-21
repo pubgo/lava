@@ -6,13 +6,13 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugin"
 )
 
 func init() {
 	const name = "automaxprocs"
-	var log = func(s string, i ...interface{}) { logger.Component(name).Depth(2).Info(fmt.Sprintf(s, i...)) }
+	var log = func(s string, i ...interface{}) { logging.Component(name).Depth(2).Info(fmt.Sprintf(s, i...)) }
 
 	plugin.Register(&plugin.Base{
 		Name:       name,

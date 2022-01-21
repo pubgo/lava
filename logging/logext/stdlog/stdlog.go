@@ -7,15 +7,15 @@ import (
 	"github.com/pubgo/x/byteutil"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 )
 
 // 替换std默认log
 func init() {
-	logger.On(func(*logger.Event) {
+	logging.On(func(*logging.Event) {
 		var stdLog = log.Default()
 		// 接管系统默认log
-		*stdLog = *zap.NewStdLog(logger.Component("std").L())
+		*stdLog = *zap.NewStdLog(logging.Component("std").L())
 	})
 }
 

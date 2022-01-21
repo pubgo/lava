@@ -1,4 +1,4 @@
-package plugin
+package pluginInter
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 
 const Name = "plugin"
 
-type Priority = int
 type Plugin interface {
 	json.Marshaler
 	// String 插件描述

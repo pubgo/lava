@@ -18,7 +18,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	event2 "github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 	"github.com/pubgo/lava/runtime"
@@ -49,7 +49,7 @@ var (
 	MaxPacketSize = 512
 )
 
-var logs = logger.Component("gossip")
+var logs = logging.Component("gossip")
 
 func actionTypeString(t int32) event2.EventType {
 	switch t {

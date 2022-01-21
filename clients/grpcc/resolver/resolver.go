@@ -9,10 +9,10 @@ import (
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 )
 
-var logs = logger.Component("balancer.resolver")
+var logs = logging.Component("balancer.resolver")
 
 const (
 	DirectScheme = "direct"

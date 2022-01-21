@@ -1,4 +1,4 @@
-package logger
+package logging
 
 import (
 	"context"
@@ -17,11 +17,13 @@ func CreateCtxWith(ctx context.Context, logger *zap.Logger) context.Context {
 //	从context中获取log, log会带上注入的字段
 func GetLogger(ctx context.Context) *zap.Logger {
 	// 默认log
-	if ctx != nil {
-		var log, ok = ctx.Value(loggerKey{}).(*zap.Logger)
-		if ok && log != nil {
-			return log
-		}
+	if ctx == nil {
+		return L()
 	}
+
+	if log, ok := ctx.Value(loggerKey{}).(*zap.Logger); ok && log != nil {
+		return log
+	}
+
 	return L()
 }

@@ -9,11 +9,12 @@ import (
 var _ Watcher = (*nullWatcher)(nil)
 
 func init() {
-	RegisterFactory("noop", func(cfg types.M) (Watcher, error) { return new(nullWatcher), nil })
+	RegisterFactory("noop", func(cfg types.CfgMap) (Watcher, error) { return new(nullWatcher), nil })
 }
 
 type nullWatcher struct{}
 
+func (e *nullWatcher) Name() string { return "noop" }
 func (e *nullWatcher) Get(ctx context.Context, key string, opts ...Opt) ([]*Response, error) {
 	return nil, nil
 }
@@ -26,4 +27,3 @@ func (e *nullWatcher) Close(ctx context.Context, opts ...Opt) {}
 func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...Opt) <-chan *Response {
 	return nil
 }
-func (e *nullWatcher) Name() string { return "noop" }

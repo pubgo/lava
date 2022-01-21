@@ -11,9 +11,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logkey"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
@@ -24,7 +24,7 @@ import (
 
 const Name = "logRecord"
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 func init() {
 	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
@@ -92,7 +92,7 @@ func init() {
 
 			err = next(
 				// 集成logger到context
-				logger.CreateCtxWith(ctx, zap.L().Named(logkey.Service).With(
+				logging.CreateCtxWith(ctx, zap.L().Named(logkey.Service).With(
 					zap.String("tracerID", tracerID),
 					zap.String("spanID", spanID),
 					zap.String("requestId", reqId),

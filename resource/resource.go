@@ -12,15 +12,15 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/logger"
-	"github.com/pubgo/lava/logger/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
 const Name = "resource"
 
 var sources typex.RwMap
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 var mu sync.Mutex
 
 // Remove 删除资源

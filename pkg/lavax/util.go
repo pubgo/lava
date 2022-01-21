@@ -94,6 +94,15 @@ func FirstNotEmpty(fx ...func() string) string {
 	return ""
 }
 
+func NotEmpty(strs ...string) string {
+	for i := range strs {
+		if s := strs[i]; s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
 func IfEmpty(str string, fx func()) {
 	if str == "" {
 		fx()

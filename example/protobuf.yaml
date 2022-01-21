@@ -1,5 +1,6 @@
 root:
   - proto
+  - rsocket
 deps:
   - name: google
     url: github.com/googleapis/googleapis

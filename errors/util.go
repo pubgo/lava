@@ -14,9 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// MaxCode [0,1000]为系统错误, 业务错误code都大于1000
-const MaxCode = 1000
-
 // Err2GrpcCode
 // converts a standard Go error into its canonical code. Note that
 // this is only used to translate the error returned by the server applications.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/logging/logutil"
 	"net"
 	"net/http"
 	"strconv"
@@ -28,7 +29,7 @@ import (
 	"github.com/pubgo/lava/entry/base"
 	"github.com/pubgo/lava/entry/grpcEntry/grpc-gw"
 	"github.com/pubgo/lava/entry/grpcEntry/grpcs"
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
@@ -135,7 +136,7 @@ func newEntry(name string) *grpcEntry {
 }
 
 var _ Entry = (*grpcEntry)(nil)
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 type grpcEntry struct {
 	*base.Entry
@@ -164,6 +165,10 @@ func (g *grpcEntry) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
 	g.srv.Get().RegisterService(desc, impl)
 	// 进程内grpc serve注册
 	g.inproc.RegisterService(desc, impl)
+
+	if initHandler, ok := impl.(entry.Handler); ok {
+		g.RegisterHandler(initHandler)
+	}
 }
 
 func (g *grpcEntry) UnaryInterceptor(interceptors ...grpc.UnaryServerInterceptor) {
@@ -247,8 +252,12 @@ func (g *grpcEntry) register() (err error) {
 	}
 
 	if !g.registered.Load() {
-		logs.Infow("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
+		logs.S().Infow("Registering Node", zap.String("id", node.Id), zap.String("name", g.cfg.name))
 	}
+
+	g.registry.RegisterX(func() *registry.Service {
+		return services
+	})
 
 	// registry options
 	opts := []registry.RegOpt{registry.TTL(g.cfg.RegisterTTL)}
@@ -334,17 +343,10 @@ func (g *grpcEntry) Stop() (err error) {
 	return
 }
 
-func (g *grpcEntry) Register(handler entry.Handler) {
-	defer xerror.RespExit()
-	xerror.Assert(handler == nil, "[handler] should not be nil")
-	xerror.Assert(!findGrpcHandle(handler).IsValid(), "register [%#v] 没有找到匹配的interface", handler)
-	g.RegisterHandler(handler)
-}
-
 func (g *grpcEntry) Start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logs.Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+	logs.S().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
 	ln := xerror.PanicErr(netutil.Listen(runtime.Addr)).(net.Listener)
 
 	// mux server acts as a reverse-proxy between HTTP and GRPC backends.
@@ -354,7 +356,7 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动grpc服务
 	syncx.GoDelay(func() {
-		logs.Info("[grpc] Server Starting")
+		logs.L().Info("[grpc] Server Starting")
 		logs.LogOrErr("[grpc] Server Stop", func() error {
 			if err := g.srv.Get().Serve(g.matchHttp2()); err != nil &&
 				err != cmux.ErrListenerClosed &&
@@ -379,8 +381,8 @@ func (g *grpcEntry) Start() (gErr error) {
 			})
 		})
 
-		logs.Info("[grpc-gw] Server Starting")
-		logs.LogOrErr("[grpc-gw] Server Stop", func() error {
+		logs.L().Info("[grpc-gw] Server Starting")
+		logutil.LogOrErr(logging.L(), "[grpc-gw] Server Stop", func() error {
 			if err := s.Serve(g.matchHttp1()); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -393,8 +395,8 @@ func (g *grpcEntry) Start() (gErr error) {
 
 	// 启动net网络
 	syncx.GoDelay(func() {
-		logs.Info("[cmux] Server Starting")
-		logs.LogOrErr("[cmux] Server Stop", func() error {
+		logs.L().Info("[cmux] Server Starting")
+		logutil.LogOrErr(logging.L(), "[cmux] Server Stop", func() error {
 			if err := g.serve(); err != nil &&
 				!errors.Is(err, http.ErrServerClosed) &&
 				!errors.Is(err, net.ErrClosed) {
@@ -405,7 +407,7 @@ func (g *grpcEntry) Start() (gErr error) {
 	})
 
 	// register self
-	logs.LogOrPanic("[grpc] start to register", g.register)
+	logutil.LogOrPanic(logs.L(), "[grpc] start to register", g.register)
 
 	g.cancelRegister = syncx.GoCtx(func(ctx context.Context) {
 		if g.registry == nil {
@@ -425,13 +427,13 @@ func (g *grpcEntry) Start() (gErr error) {
 		for {
 			select {
 			case <-tick.C:
-				logs.LogOrErr("service register",
+				logutil.LogOrErr(logs.L(), "service register",
 					g.register,
 					zap.String("registry", g.registry.String()),
 					zap.String("interval", interval.String()),
 				)
 			case <-ctx.Done():
-				logs.Info("service register cancelled")
+				logs.L().Info("service register cancelled")
 				return
 			}
 		}

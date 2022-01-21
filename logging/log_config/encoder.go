@@ -1,4 +1,4 @@
-package xlog_config
+package log_config
 
 import (
 	"net/url"

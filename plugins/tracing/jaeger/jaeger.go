@@ -9,7 +9,7 @@ import (
 	"github.com/uber/jaeger-lib/metrics"
 	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
-	"github.com/pubgo/lava/logger/logkey"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"github.com/pubgo/lava/runtime"

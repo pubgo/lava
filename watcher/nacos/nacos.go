@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	watcher.RegisterFactory(Name, func(cfg types.M) (watcher.Watcher, error) {
+	watcher.RegisterFactory(Name, func(cfg types.CfgMap) (watcher.Watcher, error) {
 		var c Cfg
 		xerror.Panic(merge.MapStruct(&c, cfg))
 		return NewNacos(c)

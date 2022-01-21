@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 )
 
 //DefaultManager can be replaced
@@ -16,7 +16,7 @@ var (
 	ErrInvalidExp = errors.New("expire time is illegal")
 )
 
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 //jwt claims RFC 7519
 //https://tools.ietf.org/html/rfc7519#section-4.1.2

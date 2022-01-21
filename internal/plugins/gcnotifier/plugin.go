@@ -3,14 +3,14 @@ package gcnotifier
 import (
 	"github.com/CAFxX/gcnotifier"
 
-	"github.com/pubgo/lava/logger"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runtime"
 )
 
 var Name = "gc"
-var logs = logger.Component(Name)
+var logs = logging.Component(Name)
 
 func init() {
 	if runtime.IsProd() || runtime.IsRelease() {

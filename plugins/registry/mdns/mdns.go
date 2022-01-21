@@ -7,42 +7,24 @@ import (
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/types"
 )
 
 const (
-	zeroconfService  = "_netdrop._tcp"
+	zeroconfService  = "_lava._tcp"
 	zeroconfDomain   = "local."
-	zeroconfInstance = "netdrop"
+	zeroconfInstance = "lava"
 )
 
-func announce(port int) (shutdown func(), err error) {
-	server, err := zeroconf.Register("netdrop", zeroconfService, zeroconfDomain, port, []string{"github.com/klingtnet/netdrop server"}, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to register zerconf service")
-	}
-
-	return server.Shutdown, nil
-}
-
-func init() {
-	registry.Register(Name, New)
-}
-
-func New(m types.CfgMap) (registry.Registry, error) {
+func New(cfg Cfg) (registry.Registry, error) {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
-
-	var r = &mdnsRegistry{resolver: resolver}
-	xerror.Panic(merge.MapStruct(&r.cfg, m))
-	return r, nil
+	return &mdnsRegistry{resolver: resolver, cfg: cfg}, nil
 }
 
 var _ registry.Registry = (*mdnsRegistry)(nil)
@@ -66,7 +48,6 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		return nil
 	}
 
-	//err = resolver.Lookup(ctx, zeroconfInstance, zeroconfService, zeroconfDomain, serviceCh)
 	server, err := zeroconf.Register(node.Id, service.Name, "local.", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 

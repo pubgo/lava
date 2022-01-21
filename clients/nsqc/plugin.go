@@ -1,12 +1,12 @@
 package nsqc
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
 )
 
@@ -25,8 +25,8 @@ func init() {
 				// 创建新的客户端
 				client, err := cfg.Build()
 				xerror.Panic(err)
-				resource.Update(name, client)
 				cfgList[name] = cfg
+				xerror.Panic(dix.Provider(client))
 			}
 		},
 		OnVars: func(v types.Vars) {

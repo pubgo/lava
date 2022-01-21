@@ -1,4 +1,4 @@
-package socketutil
+package sockets
 
 import "github.com/rsocket/rsocket-go/payload"
 
