@@ -670,6 +670,10 @@ func (g *gossipRegistry) run() {
 	}
 }
 
+func (g *gossipRegistry) RegCallback(f func() *registry.Service, opt ...registry.RegOpt) error {
+	return g.Register(f(), opt...)
+}
+
 func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {

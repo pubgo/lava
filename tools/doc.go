@@ -23,3 +23,6 @@ package tools
 // The proto and generated code files used by APISIX's external plugin mechanism
 // The repository code is auto generated using the FlatBuffers compiler, require to use flatc 2.0.0 to generate the code.
 // https://github.com/api7/ext-plugin-proto
+
+// A Golang lockfree thread-safe HashMap optimized for fastest read access.
+// https://github.com/cornelk/hashmap

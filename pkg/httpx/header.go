@@ -108,7 +108,7 @@ const (
 	HeaderAcceptSignature                 = "Accept-Signature"
 	HeaderAltSvc                          = "Alt-Svc"
 	HeaderDate                            = "Date"
-	HeaderIndex                           = "Index"
+	HeaderIndex                           = "index"
 	HeaderLargeAllocation                 = "Large-Allocation"
 	HeaderLink                            = "Link"
 	HeaderPushPolicy                      = "Push-Policy"

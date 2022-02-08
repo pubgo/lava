@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
 	"net"
 	"strings"
 	"time"
@@ -14,11 +11,9 @@ import (
 	"github.com/lucas-clemente/quic-go"
 	"github.com/pubgo/xerror"
 	"github.com/rsocket/rsocket-go"
-	"github.com/rsocket/rsocket-go/core"
 	"github.com/rsocket/rsocket-go/core/transport"
 	"github.com/rsocket/rsocket-go/payload"
 	"github.com/rsocket/rsocket-go/rx/flux"
-	"github.com/soheilhy/cmux"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging"
@@ -47,55 +42,24 @@ func server() {
 		})
 	})
 
-	ln := xerror.PanicErr(netutil.Listen(":7878")).(net.Listener)
-	mux := cmux.New(ln)
-	mux.SetReadTimeout(time.Second * 2)
-	mux.HandleError(func(err error) bool {
+	var cfg = netutil.DefaultCfg()
+	cfg.Port = 7878
+	cfg.HandleError = func(err error) bool {
 		logutil.LogOrErr(logging.L(), "mux error", func() error { return err })
 		return false
-	})
+	}
 
-	var sln = mux.Match(func(r io.Reader) bool {
-		br := bufio.NewReader(&io.LimitedReader{R: r, N: 4096})
-		l, part, err := br.ReadLine()
-		if err != nil || part {
-			logutil.LogOrErr(logging.L(), "ReadLine", func() error { return err })
-			return false
-		}
-
-		logging.L().Debug(string(l))
-
-		// 用于websocket匹配
-		if cmux.HTTP1()(bytes.NewBuffer(l)) {
-			return true
-		}
-
-		// 用于rsocket匹配
-		var frame = transport.NewLengthBasedFrameDecoder(bytes.NewBuffer(l))
-		data, err := frame.Read()
-		if err != nil {
-			logutil.LogOrErr(logging.L(), "frame.Read", func() error { return err })
-			return false
-		}
-
-		var header = core.ParseFrameHeader(data)
-		if header.Type().String() == "UNKNOWN" {
-			return false
-		}
-
-		logging.L().Debug(header.String())
-
-		return true
-	})
+	var lnFn = cfg.Rsocket()
+	var wsFn = cfg.Websocket()
 
 	syncx.GoDelay(func() {
-		xerror.Panic(mux.Serve())
+		xerror.Panic(cfg.Serve())
 	})
 
 	_, err1 := quic.ListenAddr(":7878", &tls.Config{InsecureSkipVerify: true}, nil)
 	xerror.Panic(err1)
 
-	err := rsocket.Receive().
+	var ts = rsocket.Receive().
 		OnStart(func() {
 			logging.L().Info("Server Start")
 		}).
@@ -105,6 +69,12 @@ func server() {
 				zap.String("data", string(setup.Data())),
 				zap.String("version", setup.Version().String()),
 			)
+
+			if string(setup.Data()) != "hello123" {
+				clientSocket.FireAndForget(payload.New([]byte("认证失败"), nil))
+				xerror.Panic(clientSocket.Close())
+				return nil, fmt.Errorf("client close")
+			}
 
 			go func() {
 				// 向客户端发送一条消息
@@ -128,23 +98,26 @@ func server() {
 
 			// register a new request channel srv
 			return rsocket.NewAbstractSocket(requestChannelHandler), nil
-		}).
+		})
 
-		// specify transport
-		//Transport(rsocket.TCPServer().SetAddr(":7878").Build()).
-		Transport(func(ctx context.Context) (transport.ServerTransport, error) {
-			return transport.NewWebsocketServerTransport(func(ctx context.Context) (net.Listener, error) {
-				return sln, nil
-			}, "/hello", nil), nil
+	// specify transport
+	go func() {
+		xerror.Panic(ts.Transport(func(ctx context.Context) (transport.ServerTransport, error) {
+			return transport.NewWebsocketServerTransport(
+				func(ctx context.Context) (net.Listener, error) { return wsFn(), nil },
+				"/hello", nil), nil
+		}).Serve(context.Background()))
+	}()
 
-			//return transport.NewTCPServerTransport(func(ctx context.Context) (net.Listener, error) {
-			//	return sln, nil
-			//}), nil
-		}).
-		// serve will block execution unless an error occurred
-		Serve(context.Background())
+	go func() {
+		xerror.Panic(ts.Transport(func(ctx context.Context) (transport.ServerTransport, error) {
+			return transport.NewTCPServerTransport(func(ctx context.Context) (net.Listener, error) {
+				return lnFn(), nil
+			}), nil
+		}).Serve(context.Background()))
+	}()
 
-	panic(err)
+	select {}
 }
 
 // wordCount function

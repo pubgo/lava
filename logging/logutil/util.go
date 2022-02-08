@@ -3,7 +3,16 @@ package logutil
 import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
+
+func Enabled(lvl zapcore.Level, loggers ...*zap.Logger) (*zap.Logger, bool) {
+	var log = zap.L()
+	if len(loggers) > 0 {
+		log = loggers[0]
+	}
+	return log, log.Core().Enabled(lvl)
+}
 
 func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
