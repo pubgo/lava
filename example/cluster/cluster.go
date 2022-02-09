@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"fmt"
-	"github.com/lucas-clemente/quic-go"
 	"time"
 
 	"github.com/hashicorp/memberlist"
@@ -15,27 +14,28 @@ import (
 var logs = logging.Component("cluster")
 
 type Cluster struct {
+	AddrList         []string
 	cfg              *memberlist.Config
 	memberList       *memberlist.Memberlist
 	eventDelegate    chan memberlist.NodeEvent
 	metadataDelegate *NodeMetadataDelegate
 	seedNodes        []string
-	broadcasts       *memberlist.TransmitLimitedQueue
+	broadcast        *memberlist.TransmitLimitedQueue
+	msgChan          chan []byte
 }
 
 func NewCluster(cfg *Config) (*Cluster, error) {
 	clusterLogger := zap.L().Named("cluster")
 
-	var eventDelegate = make(chan memberlist.NodeEvent)
-	nodeMetadataDelegate := NewNodeMetadataDelegate(nodeMetadata, clusterLogger)
+	var queue = &memberlist.TransmitLimitedQueue{RetransmitMult: 3}
 
-	quic.ApplicationError{}
-	quic.DialAddr()
+	var eventDelegate = make(chan memberlist.NodeEvent)
+	var msgChan = make(chan []byte)
 
 	config := cfg.Build()
 	config.Name = generateNodeName()
 	config.Events = &memberlist.ChannelEventDelegate{Ch: eventDelegate}
-	config.Delegate = nodeMetadataDelegate
+	config.Delegate = &delegate{queue: queue, msg: msgChan}
 	config.Transport = newNetTransport(clusterLogger, &netutil.Cfg{Addr: config.BindAddr, Port: config.BindPort})
 	config.Logger = zap.NewStdLog(clusterLogger)
 
@@ -45,12 +45,19 @@ func NewCluster(cfg *Config) (*Cluster, error) {
 		return nil, err
 	}
 
+	queue.NumNodes = func() int {
+		return member.NumMembers()
+	}
+
+	member.LocalNode()
+
 	member.SendBestEffort()
 
 	member.SendReliable()
 
 	// ping seed
 	member.Ping()
+
 	// 加入集群
 	member.Join()
 
@@ -63,24 +70,27 @@ func NewCluster(cfg *Config) (*Cluster, error) {
 	member.UpdateNode()
 
 	return &Cluster{
-		cfg:              config,
-		memberList:       member,
-		eventDelegate:    eventDelegate,
-		metadataDelegate: nodeMetadataDelegate,
-		broadcasts: &memberlist.TransmitLimitedQueue{
-			NumNodes: func() int {
-				return member.NumMembers()
-			},
-			RetransmitMult: 3,
-		},
+		cfg:           config,
+		memberList:    member,
+		eventDelegate: eventDelegate,
+		broadcast:     queue,
 	}, nil
 }
 
 func (c *Cluster) NodeEvent() <-chan memberlist.NodeEvent { return c.eventDelegate }
+func (c *Cluster) MsgChan() <-chan []byte                 { return c.msgChan }
 
 func (c *Cluster) Join(seeds []string) (int, error) {
-	c.broadcasts.QueueBroadcast()
 	return c.memberList.Join(seeds)
+}
+
+// Broadcast 广播数据
+func (c *Cluster) Broadcast(b memberlist.Broadcast) {
+	c.broadcast.QueueBroadcast(b)
+}
+
+func (c *Cluster) BroadcastData(msg []byte) {
+	c.broadcast.QueueBroadcast(&broadcast{msg: msg})
 }
 
 func (c *Cluster) Leave(timeout time.Duration) error {

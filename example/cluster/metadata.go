@@ -2,7 +2,82 @@ package cluster
 
 import (
 	"encoding/json"
+
+	"github.com/hashicorp/memberlist"
+	event2 "github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/plugins/registry"
+	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 )
+
+type delegate struct {
+	queue *memberlist.TransmitLimitedQueue
+	msg   chan []byte
+}
+
+func (d *delegate) NodeMeta(limit int) []byte { return []byte{} }
+
+func (d *delegate) NotifyMsg(b []byte) {
+	if len(b) == 0 {
+		return
+	}
+
+	go func() { d.msg <- b }()
+}
+
+func (d *delegate) GetBroadcasts(overhead, limit int) [][]byte {
+	return d.queue.GetBroadcasts(overhead, limit)
+}
+
+func (d *delegate) LocalState(join bool) []byte {
+	if !join {
+		return []byte{}
+	}
+
+	// 本节点的状态信息
+	syncCh := make(chan *registry.Service, 1)
+	services := map[string][]*registry.Service{}
+
+	d.updates <- &update{
+		Update: &pb.Update{
+			Action: int32(event2.EventType_UPDATE),
+		},
+		sync: syncCh,
+	}
+
+	for srv := range syncCh {
+		services[srv.Name] = append(services[srv.Name], srv)
+	}
+
+	b, _ := json.Marshal(services)
+	return b
+}
+
+// MergeRemoteState 合并其他节点的状态
+func (d *delegate) MergeRemoteState(buf []byte, join bool) {
+	if len(buf) == 0 {
+		return
+	}
+
+	if !join {
+		return
+	}
+
+	// 别的节点同步过来的节点信息
+	var services map[string][]*registry.Service
+	if err := json.Unmarshal(buf, &services); err != nil {
+		return
+	}
+
+	for _, service := range services {
+		for _, srv := range service {
+			d.updates <- &update{
+				Update:  &pb.Update{Action: actionTypeCreate},
+				Service: srv,
+				sync:    nil,
+			}
+		}
+	}
+}
 
 type NodeMetadata struct {
 	GrpcPort int `json:"grpc_port"`

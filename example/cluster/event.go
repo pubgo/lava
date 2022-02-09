@@ -20,13 +20,13 @@ var (
 		NodeEventTypeUnknown: "unknown",
 		NodeEventTypeJoin:    "join",
 		NodeEventTypeLeave:   "leave",
-		NodeEventTypeUpdate:  "update",
+		NodeEventTypeUpdate:  "msg",
 	}
 	NodeEventType_value = map[string]NodeEventType{
 		"unknown": NodeEventTypeUnknown,
 		"join":    NodeEventTypeJoin,
 		"leave":   NodeEventTypeLeave,
-		"update":  NodeEventTypeUpdate,
+		"msg":     NodeEventTypeUpdate,
 	}
 )
 

@@ -14,6 +14,5 @@ const (
 	DefaultReconnectInterval = 10 * time.Second
 	DefaultReconnectTimeout  = 6 * time.Hour
 	DefaultRefreshInterval   = 15 * time.Second
-	ExpiryTick               = time.Second * 1 // needs to be smaller than registry.RegisterTTL
-	MaxPacketSize            = 512
+	MaxGossipPacketSize      = 1400
 )

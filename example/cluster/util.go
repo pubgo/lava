@@ -1,15 +1,16 @@
 package cluster
 
 import (
+	"net"
+
 	"github.com/hashicorp/go-sockaddr"
 	"github.com/pkg/errors"
-	"net"
 )
 
 // OversizeMessage indicates whether or not the byte payload should be sent
 // via TCP.
 func OversizeMessage(b []byte) bool {
-	return len(b) > MaxGossipPacketSize/2
+	return len(b) > MaxPacketSize/2
 }
 
 ////////////////////////////////////////////////////////////////
