@@ -2,7 +2,10 @@ package cluster
 
 import (
 	"github.com/hashicorp/memberlist"
+	"time"
 )
+
+const broadcastTimeout = 5 * time.Second
 
 type broadcast struct {
 	msg    []byte

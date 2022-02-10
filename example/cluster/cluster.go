@@ -1,7 +1,9 @@
 package cluster
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/hashicorp/memberlist"
@@ -14,6 +16,7 @@ import (
 var logs = logging.Component("cluster")
 
 type Cluster struct {
+	nodeId           string
 	AddrList         []string
 	cfg              *memberlist.Config
 	memberList       *memberlist.Memberlist
@@ -164,4 +167,55 @@ func (c *Cluster) Start() error {
 func (c *Cluster) Stop() error {
 	c.cfg.Transport.Shutdown()
 	return nil
+}
+
+// mRandomNodes is used to select up to m random nodes. It is possible
+// that less than m nodes are returned.
+func (c *Cluster) mRandomNodes(m int, nodes []string) []string {
+	n := len(nodes)
+	mNodes := make([]string, 0, m)
+
+	c.memberList.SendReliable()
+	c.memberList.SendBestEffort()
+
+OUTER:
+	// Probe up to 3*n times, with large n this is not necessary
+	// since k << n, but with small n we want search to be
+	// exhaustive
+	for i := 0; i < 3*n && len(mNodes) < m; i++ {
+		// Get random node
+		idx := randomOffset(n)
+		node := nodes[idx]
+
+		if node == c.memberList.LocalNode().Name {
+			continue
+		}
+
+		// Check if we have this node already
+		for j := 0; j < len(mNodes); j++ {
+			if node == mNodes[j] {
+				continue OUTER
+			}
+		}
+
+		// Append the node
+		mNodes = append(mNodes, node)
+	}
+
+	return mNodes
+}
+
+// Returns a random offset between 0 and n
+func randomOffset(n int) int {
+	if n == 0 {
+		return 0
+	}
+
+	val, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		logs.S().Errorf("Failed to get a random offset: %v", err)
+		return 0
+	}
+
+	return int(val.Int64())
 }
