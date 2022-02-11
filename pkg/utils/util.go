@@ -1,4 +1,4 @@
-package lavax
+package utils
 
 import (
 	"encoding/json"

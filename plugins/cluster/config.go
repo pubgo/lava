@@ -11,8 +11,8 @@ import (
 
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/fastrand"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 const (
@@ -43,7 +43,7 @@ type Config struct {
 func (t *Config) Build() *memberlist.Config {
 	xerror.Assert(t.Addr == "", "Config.Addr should not be null")
 
-	t.SecretKey = lavax.FirstNotEmpty(
+	t.SecretKey = utils.FirstNotEmpty(
 		func() string { return t.SecretKey },
 		func() string { return env.Get("secret-key") },
 		func() string { return defaultSecretKey },

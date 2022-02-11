@@ -12,6 +12,7 @@ import (
 var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
+	resource.Resource
 	cli *redis.Client
 }
 

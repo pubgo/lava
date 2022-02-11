@@ -4,8 +4,8 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
@@ -14,7 +14,7 @@ type Factory func(cfg types.CfgMap, opts *tally.ScopeOptions) error
 var factories typex.SMap
 
 func GetFactory(names ...string) Factory {
-	val, ok := factories.Load(lavax.GetDefault(names...))
+	val, ok := factories.Load(utils.GetDefault(names...))
 	if !ok {
 		return nil
 	}

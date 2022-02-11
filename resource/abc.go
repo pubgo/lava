@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Release 释放资源
 type Release interface {
 	Release()
 }
@@ -53,7 +54,8 @@ func (t *baseRes) GetObj() io.Closer {
 }
 
 func (t *baseRes) updateObj(obj io.Closer) {
+	// TODO 注意：使用方不释放资源，会永远阻塞
 	t.rw.Lock()
-	defer t.rw.Unlock()
 	t.v = obj
+	t.rw.Unlock()
 }

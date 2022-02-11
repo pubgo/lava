@@ -3,8 +3,8 @@ package healthy
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
@@ -13,7 +13,7 @@ const Name = "health"
 var healthList typex.SMap
 
 func Get(names ...string) types.Healthy {
-	val, ok := healthList.Load(lavax.GetDefault(names...))
+	val, ok := healthList.Load(utils.GetDefault(names...))
 	if !ok {
 		return nil
 	}

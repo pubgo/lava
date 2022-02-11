@@ -1,4 +1,4 @@
-package lavax
+package utils
 
 // ToLowerBytes is the equivalent of bytes.ToLower
 func ToLowerBytes(b []byte) []byte {

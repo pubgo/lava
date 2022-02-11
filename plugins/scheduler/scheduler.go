@@ -9,7 +9,7 @@ import (
 
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
@@ -75,7 +75,7 @@ type nameJob struct {
 func (t nameJob) Description() string { return t.name }
 func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t nameJob) Execute() {
-	var dur, err = lavax.Cost(func() { t.fn(t.name) })
+	var dur, err = utils.Cost(func() { t.fn(t.name) })
 	logutil.LogOrErr(logs.L(), "scheduler trigger",
 		func() error { return err },
 		zap.String("job-name", t.name),

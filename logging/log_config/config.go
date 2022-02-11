@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 var (
@@ -94,22 +94,22 @@ func (t Config) Build(name string, opts ...zap.Option) (_ *zap.Logger) {
 	// 保留全局log level, 用于后期动态修改
 	globalLevel = &zapCfg.Level
 
-	key := lavax.NotEmpty(t.EncoderConfig.EncodeLevel, defaultKey)
+	key := utils.NotEmpty(t.EncoderConfig.EncodeLevel, defaultKey)
 	zapCfg.EncoderConfig.EncodeLevel = levelEncoder[key]
 
-	key = lavax.NotEmpty(t.EncoderConfig.EncodeTime, defaultKey)
+	key = utils.NotEmpty(t.EncoderConfig.EncodeTime, defaultKey)
 	zapCfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(key)
 	if encoder, ok := timeEncoder[key]; ok {
 		zapCfg.EncoderConfig.EncodeTime = encoder
 	}
 
-	key = lavax.NotEmpty(t.EncoderConfig.EncodeDuration, defaultKey)
+	key = utils.NotEmpty(t.EncoderConfig.EncodeDuration, defaultKey)
 	zapCfg.EncoderConfig.EncodeDuration = durationEncoder[key]
 
-	key = lavax.NotEmpty(t.EncoderConfig.EncodeCaller, defaultKey)
+	key = utils.NotEmpty(t.EncoderConfig.EncodeCaller, defaultKey)
 	zapCfg.EncoderConfig.EncodeCaller = callerEncoder[key]
 
-	key = lavax.NotEmpty(t.EncoderConfig.EncodeName, defaultKey)
+	key = utils.NotEmpty(t.EncoderConfig.EncodeName, defaultKey)
 	zapCfg.EncoderConfig.EncodeName = nameEncoder[key]
 
 	// 采样hook设置

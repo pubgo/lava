@@ -2,8 +2,8 @@ package tracing
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 )
@@ -16,7 +16,7 @@ var GetSpanID = func(ctx opentracing.SpanContext) (string, string) { return "", 
 type Factory func(cfg types.CfgMap) error
 
 func GetFactory(names ...string) Factory {
-	val, ok := factories.Load(lavax.GetDefault(names...))
+	val, ok := factories.Load(utils.GetDefault(names...))
 	if !ok {
 		return nil
 	}

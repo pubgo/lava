@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/types"
 )
@@ -28,7 +28,7 @@ func init() {
 				}
 			}()
 
-			rid := lavax.FirstNotEmpty(
+			rid := utils.FirstNotEmpty(
 				func() string { return getReqID(ctx) },
 				func() string { return types.HeaderGet(req.Header(), Name) },
 				func() string { return ksuid.New().String() },

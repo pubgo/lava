@@ -670,7 +670,7 @@ func (g *gossipRegistry) run() {
 	}
 }
 
-func (g *gossipRegistry) RegCallback(f func() *registry.Service, opt ...registry.RegOpt) error {
+func (g *gossipRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
 	return g.Register(f(), opt...)
 }
 

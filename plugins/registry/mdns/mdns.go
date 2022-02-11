@@ -35,6 +35,10 @@ type mdnsRegistry struct {
 	resolver *zeroconf.Resolver
 }
 
+func (m *mdnsRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
+	return m.Register(f(), opt...)
+}
+
 func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
 	defer xerror.RespErr(&err)
 

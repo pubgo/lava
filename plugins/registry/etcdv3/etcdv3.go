@@ -41,6 +41,10 @@ type Registry struct {
 	leases   map[string]clientv3.LeaseID
 }
 
+func (e *Registry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
+	return e.Register(f(), opt...)
+}
+
 func encode(s *registry.Service) string {
 	b, _ := json.Marshal(s)
 	return string(b)

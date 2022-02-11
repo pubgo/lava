@@ -33,6 +33,10 @@ type nacosRegistry struct {
 	cfg    Cfg
 }
 
+func (n *nacosRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
+	return n.Register(f(), opt...)
+}
+
 func (n *nacosRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
 	var options registry.RegOpts
 	for _, o := range opts {

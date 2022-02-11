@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	"github.com/pubgo/lava/internal/envs"
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
 
@@ -37,7 +37,7 @@ var (
 	Pwd = xerror.PanicStr(os.Getwd())
 
 	// Hostname 主机名
-	Hostname = lavax.FirstNotEmpty(
+	Hostname = utils.FirstNotEmpty(
 		func() string { return os.Getenv("HOSTNAME") },
 		func() string {
 			var h, err = os.Hostname()
@@ -47,7 +47,7 @@ var (
 	)
 
 	// Namespace 命名空间
-	Namespace = lavax.FirstNotEmpty(
+	Namespace = utils.FirstNotEmpty(
 		func() string { return os.Getenv("NAMESPACE") },
 		func() string { return os.Getenv("POD_NAMESPACE") },
 		func() string {
@@ -62,7 +62,7 @@ var (
 	)
 
 	// Homedir the home directory for the current user
-	Homedir = lavax.FirstNotEmpty(
+	Homedir = utils.FirstNotEmpty(
 		homedir.HomeDir,
 		func() string {
 			var h, err = dir.Dir()

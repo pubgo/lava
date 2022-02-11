@@ -3,7 +3,7 @@ package watcher
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
@@ -18,7 +18,7 @@ func RegisterFactory(name string, w Factory) {
 }
 
 func GetFactory(names ...string) Factory {
-	val, ok := factories[lavax.GetDefault(names...)]
+	val, ok := factories[utils.GetDefault(names...)]
 	if !ok {
 		return nil
 	}

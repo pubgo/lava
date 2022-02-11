@@ -5,11 +5,11 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func Get(names ...string) *Client {
-	var name = lavax.GetDefault(names...)
+	var name = utils.GetDefault(names...)
 	var cfg, ok = cfgMap[name]
 	if ok {
 		return cfg.c

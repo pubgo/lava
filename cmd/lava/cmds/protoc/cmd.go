@@ -22,10 +22,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )
@@ -71,7 +71,7 @@ func Cmd() *cli.Command {
 					xerror.Panic(shutil.Shell(shell).Run())
 
 					// swagger加载和注册
-					var code = lavax.CodeFormat(
+					var code = utils.CodeFormat(
 						"package docs",
 						`import "github.com/pubgo/lava/plugins/swagger"`,
 						fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
@@ -93,7 +93,7 @@ func Cmd() *cli.Command {
 					// 解析go.mod并获取所有pkg版本
 					var versions = modutil.LoadVersions()
 					for i, dep := range cfg.Depends {
-						var url = dep.Url
+						var url = os.ExpandEnv(dep.Url)
 
 						// url是本地目录, 不做检查
 						if pathutil.IsDir(url) {
@@ -255,7 +255,7 @@ func Cmd() *cli.Command {
 							continue
 						}
 
-						var url = dep.Url
+						var url = os.ExpandEnv(dep.Url)
 						var version = dep.Version
 
 						// 加载版本
@@ -266,7 +266,7 @@ func Cmd() *cli.Command {
 						// 加载路径
 						url = filepath.Join(url, dep.Path)
 
-						if !lavax.DirExists(url) {
+						if !utils.DirExists(url) {
 							url = filepath.Join(modPath, url)
 						}
 

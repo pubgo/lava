@@ -95,7 +95,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.18 // indirect
 	github.com/andybalholm/brotli v1.0.2 // indirect
-	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
+	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bradleyjkemp/memviz v0.2.3
@@ -174,7 +174,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/mosuka/rendezvous v0.1.7
 	github.com/panjf2000/ants/v2 v2.4.4
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -194,7 +193,6 @@ require (
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14 // indirect
 	github.com/swaggo/swag v1.7.0 // indirect
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
-	github.com/thanhpk/randstr v1.0.4
 	github.com/toolkits/concurrent v0.0.0-20150624120057-a4371d70e3e3 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/urfave/cli/v2 v2.3.0
@@ -224,6 +222,8 @@ require (
 	k8s.io/klog/v2 v2.40.0
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+require github.com/hashicorp/serf v0.9.5
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect

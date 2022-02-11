@@ -3,11 +3,11 @@ package resource
 import (
 	"io"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func Component(kind string, names ...string) *baseQuery {
-	name := lavax.GetDefault(names...)
+	name := utils.GetDefault(names...)
 	check(kind, name)
 	return &baseQuery{kind: kind, name: join(kind, name)}
 }

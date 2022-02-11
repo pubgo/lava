@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
@@ -33,7 +33,7 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 		}
 
 		// get content type
-		ct := lavax.FirstNotEmpty(func() string {
+		ct := utils.FirstNotEmpty(func() string {
 			return types.HeaderGet(md, "content-type")
 		}, func() string {
 			return types.HeaderGet(md, "x-content-type")
@@ -101,7 +101,7 @@ func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientIntercep
 		}
 
 		// get content type
-		ct := lavax.FirstNotEmpty(func() string {
+		ct := utils.FirstNotEmpty(func() string {
 			return types.HeaderGet(md, "content-type")
 		}, func() string {
 			return types.HeaderGet(md, "x-content-type")

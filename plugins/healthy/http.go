@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/mux"
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
@@ -25,7 +25,7 @@ func httpHandle(writer http.ResponseWriter, request *http.Request) {
 	var dt = make(map[string]*health)
 	xerror.Panic(healthList.Each(func(name string, r interface{}) {
 		var h = &health{}
-		var dur, err = lavax.Cost(func() { xerror.Panic(r.(types.Healthy)(request)) })
+		var dur, err = utils.Cost(func() { xerror.Panic(r.(types.Healthy)(request)) })
 		h.Cost = dur.String()
 		if err != nil {
 			h.Msg = err.Error()

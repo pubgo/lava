@@ -22,7 +22,7 @@ func init() {
 				xerror.Panic(merge.Copy(&cfg, &v))
 				client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 				xerror.Panic(err)
-				resource.Update(k, &Client{&wrapper{client}})
+				resource.Update(k, &Client{resource.New(&wrapper{client})})
 				cfgList[k] = cfg
 			}
 		},
@@ -35,7 +35,7 @@ func init() {
 				xerror.Panic(merge.Copy(&cfg1, &cfg), "config merge error")
 				client, err := oss.New(cfg.Endpoint, cfg.AccessKeyID, cfg.AccessKeySecret)
 				xerror.Panic(err)
-				resource.Update(name, &Client{&wrapper{client}})
+				resource.Update(name, &Client{resource.New(&wrapper{client})})
 				cfgList[name] = cfg
 			})
 

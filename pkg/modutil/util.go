@@ -9,12 +9,12 @@ import (
 	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func getFileByRecursion(file string, path string) string {
 	filePath := filepath.Join(path, file)
-	if lavax.FileExists(filePath) {
+	if utils.FileExists(filePath) {
 		return filePath
 	}
 

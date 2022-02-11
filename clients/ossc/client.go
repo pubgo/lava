@@ -1,9 +1,11 @@
 package ossc
 
 import (
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/pubgo/lava/resource"
 	"io"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+
+	"github.com/pubgo/lava/resource"
 )
 
 var _ io.Closer = (*wrapper)(nil)
@@ -17,9 +19,12 @@ func (w wrapper) Close() error { return nil }
 var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
-	v *wrapper
+	resource.Resource
 }
 
-func (t *Client) Unwrap() io.Closer               { return t.v }
-func (t *Client) UpdateObj(val resource.Resource) { t.v = val.(*Client).v }
-func (t *Client) Kind() string                    { return Name }
+func (t *Client) Kind() string     { return Name }
+func (t *Client) Get() *oss.Client { return t.GetObj().(*wrapper).Client }
+func (t *Client) Load() (*oss.Client, resource.Release) {
+	var obj, r = t.Resource.LoadObj()
+	return obj.(*wrapper).Client, r
+}

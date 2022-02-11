@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"context"
 	"io"
 
 	"github.com/pubgo/xerror"
@@ -37,13 +36,11 @@ func (c *Client) Ping() error {
 }
 
 func (c Client) Kind() string { return Name }
-func (c *Client) Load() (*gorm.DB, context.CancelFunc) {
+func (c *Client) Load() (*gorm.DB, resource.Release) {
 	var r, cancel = c.Resource.LoadObj()
-	return r.(*gorm.DB), cancel
+	return r.(*wrapper).DB, cancel
 }
 
 func (c *Client) get() *gorm.DB {
-	var r, cancel = c.Resource.LoadObj()
-	defer cancel()
-	return r.(*gorm.DB)
+	return c.Resource.GetObj().(*wrapper).DB
 }

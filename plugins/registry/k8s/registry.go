@@ -99,6 +99,10 @@ type Registry struct {
 	stopCh chan struct{}
 }
 
+func (s *Registry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
+	return s.Register(f(), opt...)
+}
+
 func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
 	return nil
 	//return s.Register(&registry.Service{Metadata: map[string]string{},})
