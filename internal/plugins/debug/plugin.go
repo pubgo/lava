@@ -3,6 +3,7 @@ package debug
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/pkg/syncx"
 	"net/http"
 
 	"github.com/pkg/browser"
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 )

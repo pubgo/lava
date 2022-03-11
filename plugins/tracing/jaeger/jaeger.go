@@ -9,12 +9,9 @@ import (
 	"github.com/uber/jaeger-lib/metrics"
 	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
-	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/plugins/tracing/jaeger/reporter"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
-	"github.com/pubgo/lava/version"
 )
 
 // GetSpanID 从SpanContext中获取tracerID和spanID
@@ -28,21 +25,7 @@ func GetSpanID(ctx opentracing.SpanContext) (string, string) {
 
 var _ = jaeger.NewNullReporter()
 
-func init() {
-	xerror.Exit(tracing.RegisterFactory(Name, func(cfgMap types.CfgMap) error {
-		defer func() {
-			tracing.GetSpanID = GetSpanID
-		}()
-
-		var cfg = DefaultCfg()
-		cfg.ServiceName = runtime.Project
-		cfg.Tags = append(cfg.Tags, opentracing.Tag{Key: logkey.Version, Value: version.Version})
-		xerror.Panic(cfgMap.Decode(cfg))
-		return New(cfg)
-	}))
-}
-
-func New(cfg *Cfg) (err error) {
+func New(cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	cfg.Disabled = false

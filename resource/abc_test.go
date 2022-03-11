@@ -11,7 +11,6 @@ type client struct {
 	Resource
 }
 
-func (r *client) Kind() string { return "test-client" }
 func (r *client) Get() (*res, Release) {
 	var rr, release = r.Resource.LoadObj()
 	return rr.(*res), release
@@ -26,25 +25,28 @@ type res struct {
 func (t *res) Close() error { return nil }
 
 func TestName(t1 *testing.T) {
+	const Name = "test"
+	const Kind = "test-client"
+
 	func() {
 		xx := &res{name: "123"}
 		yy := &res{name: "456"}
 
 		fmt.Printf("address for original %d, address for new %d\n", &xx, &yy)
 
-		var dd = &client{New(xx)}
-		Update("", dd)
+		var dd = &client{New(Name, Kind, xx)}
+		Update(dd)
 		var rr, release = dd.Get()
 		fmt.Println(rr.name)
 		release.Release()
 
-		Update("", &client{New(yy)})
+		Update(&client{New(Name, Kind, yy)})
 		rr, release = dd.Get()
 		fmt.Println(rr.name)
 		release.Release()
 
 		// 不会更新, yy对象未改变
-		Update("", &client{New(yy)})
+		Update(&client{New(Name, Kind, yy)})
 		rr, release = dd.Get()
 		fmt.Println(rr.name)
 		release.Release()

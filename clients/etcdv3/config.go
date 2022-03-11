@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"io"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -10,8 +11,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/retry"
 )
-
-var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
@@ -30,7 +29,7 @@ type Cfg struct {
 	retry                retry.Retry
 }
 
-func (t Cfg) Build() (c *clientv3.Client) {
+func (t Cfg) Build() io.Closer {
 	var cfg clientv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
@@ -41,7 +40,7 @@ func (t Cfg) Build() (c *clientv3.Client) {
 	).(*clientv3.Client)
 }
 
-func GetDefaultCfg() *Cfg {
+func DefaultCfg() *Cfg {
 	return &Cfg{
 		retry:       retry.Default(),
 		DialTimeout: time.Second * 2,

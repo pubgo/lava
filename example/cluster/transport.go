@@ -62,7 +62,7 @@ func newNetTransport(log *zap.Logger, netCfg *netutil.Cfg) *netTransport {
 	var logger = log.Named("transport")
 
 	netCfg.HandleError = func(err error) bool {
-		logger.Error("HandleError", logutil.WithErr(err)...)
+		logger.Error("HandleError", logutil.ErrField(err)...)
 		return false
 	}
 
@@ -82,7 +82,7 @@ func newNetTransport(log *zap.Logger, netCfg *netutil.Cfg) *netTransport {
 		if err := netCfg.Serve(); err != nil &&
 			!errors.Is(err, http.ErrServerClosed) &&
 			!errors.Is(err, net.ErrClosed) {
-			logger.Error("net close failed", logutil.WithErr(err)...)
+			logger.Error("net close failed", logutil.ErrField(err)...)
 		}
 	}()
 

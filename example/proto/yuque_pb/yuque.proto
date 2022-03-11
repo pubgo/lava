@@ -97,6 +97,85 @@ service Yuque {
   }
 }
 
+// doorman service config
+message DoormanConfig {
+  // gRPC port
+  uint32 grpc_port = 1;
+  // websocket port
+  uint32 wss_port = 2;
+}
+
+// facebook auth configuration
+message FacebookConfig {
+  string base_url = 1;
+  string auth_url = 2;
+  string avatar_url = 3;
+}
+
+// guardian service config
+message GuardianConfig {
+  // auth token secret
+  string token_secret = 1;
+  // auth db conn str
+  string conn_str = 2;
+  // auth token expiration
+  uint32 expiring_days = 3;
+  // facebook configuration
+  FacebookConfig facebook = 4;
+}
+
+service UserService {
+  // user signin
+  rpc Signin(UserInfoReq) returns (UserInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v1/users/signin"
+      body : "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary : "User signin"
+      description : "Sign in a user by using an auth provider"
+      tags : "Users"
+    };
+  }
+  // user resets password
+  rpc ResetPassword(UserInfoReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/api/v1/users/reset_password"
+      body : "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary : "User reset password"
+      description : "Reset password for users. For first time setting "
+          "password, old password should be empty string"
+      tags : "Users"
+      security : {
+        security_requirement : {
+          key : "ApiKey";
+          value : {}
+        }
+      }
+    };
+  }
+}
+
+// basic user information
+message User {
+  // user id
+  string id = 1;
+  // user's email
+  string email = 2;
+  // user's first name
+  string first_name = 3;
+  // user's last name
+  string last_name = 4;
+  // user's gender - Unspecified if none
+  string gender = 5;
+  // user's birthday in UTC timestamp, 0 if none
+  int64 birthday = 6;
+  // user's avatar
+  string avatar = 7;
+}
+
 message CreateGroupResp {
   message Data {
     uint32 id = 1;

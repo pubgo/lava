@@ -20,10 +20,9 @@ func Probability(prob uint32) bool {
 	return false
 }
 
-// Sampling 采样率, [rate] is in the range [0,1)
-func Sampling(rate float32) bool {
-	rate = rate * 100
-	if rate > float32(Uint32n(100)) {
+// Sampling 采样率, [rate] is in the range [0,100)
+func Sampling(rate uint8) bool {
+	if uint32(rate) > Uint32n(uint32(100)) {
 		return true
 	}
 	return false

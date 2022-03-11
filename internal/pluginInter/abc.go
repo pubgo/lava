@@ -3,6 +3,7 @@ package pluginInter
 import (
 	"encoding/json"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/types"
 )
 
@@ -10,6 +11,8 @@ const Name = "plugin"
 
 type Plugin interface {
 	json.Marshaler
+	// InitCfg init config
+	InitCfg(p config_type.Interface)
 	// String 插件描述
 	String() string
 	// ID 插件唯一名字
@@ -21,7 +24,7 @@ type Plugin interface {
 	// Init 插件初始化
 	Init() error
 	// Watch 配置变更通知
-	Watch() types.Watcher
+	Watch(name string, r *types.WatchResp) error
 	// Vars 插件可观测指标
 	Vars(types.Vars) error
 	// Health 插件健康检查

@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // CodeClient is the client API for Code service.
@@ -126,7 +127,7 @@ type UnsafeCodeServer interface {
 }
 
 func RegisterCodeServer(s grpc.ServiceRegistrar, srv CodeServer) {
-	s.RegisterService(&_Code_serviceDesc, srv)
+	s.RegisterService(&Code_ServiceDesc, srv)
 }
 
 func _Code_SendCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -219,7 +220,10 @@ func _Code_GetSendStatus_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Code_serviceDesc = grpc.ServiceDesc{
+// Code_ServiceDesc is the grpc.ServiceDesc for Code service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Code_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "hello.v1.sqlx.Code",
 	HandlerType: (*CodeServer)(nil),
 	Methods: []grpc.MethodDesc{

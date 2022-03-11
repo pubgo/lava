@@ -3,7 +3,6 @@ package tracing
 import (
 	"context"
 	"errors"
-
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/stack"

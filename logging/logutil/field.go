@@ -13,7 +13,7 @@ func Names(names ...string) string {
 	return strings.Join(names, ".")
 }
 
-func WithErr(err error, fields ...zap.Field) []zap.Field {
+func ErrField(err error, fields ...zap.Field) []zap.Field {
 	if err == nil {
 		return nil
 	}

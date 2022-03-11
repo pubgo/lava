@@ -1,14 +1,10 @@
 package watcher
 
 import (
-	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 )
-
-const Name = "watcher"
-
-var cfg = DefaultCfg()
 
 type Cfg struct {
 	SkipNull bool   `json:"skip_null"`
@@ -17,7 +13,7 @@ type Cfg struct {
 	// Projects 需要watcher的项目
 	Projects []string `json:"projects"`
 
-	cfg config.Config
+	cfg config_type.Interface
 }
 
 func (cfg Cfg) Build(data types.CfgMap) (_ Watcher, err error) {
@@ -25,9 +21,9 @@ func (cfg Cfg) Build(data types.CfgMap) (_ Watcher, err error) {
 
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "watcher driver is null")
-	xerror.Assert(factories[driver] == nil, "watcher driver [%s] not found", driver)
+	xerror.Assert(GetFactory(driver) == nil, "watcher driver [%s] not found", driver)
 
-	fc := factories[driver]
+	fc := GetFactory(driver)
 	return fc(data)
 }
 

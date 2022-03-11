@@ -16,7 +16,7 @@ func main() {
 				continue
 			}
 
-			genLava.GenerateFile(gen, f)
+			//genLava.GenerateFile(gen, f)
 			genLava.GenerateTag(gen, f)
 		}
 		return nil

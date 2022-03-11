@@ -15,6 +15,7 @@ import (
 var logs = logging.Component("balancer.resolver")
 
 const (
+	DnsScheme    = "dns"
 	DirectScheme = "direct"
 	DiscovScheme = "discov"
 	EndpointSep  = ","
@@ -44,14 +45,14 @@ func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
 // 	https://github.com/grpc/grpc/blob/master/doc/naming.md
 // 	dns:[//authority/]host[:port]
 
-// BuildDirectTarget direct:///localhost:8080,localhost:8081
+// BuildDirectTarget direct://localhost:8080,localhost:8081
 func BuildDirectTarget(endpoints ...string) string {
-	return fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(endpoints, EndpointSep))
+	return fmt.Sprintf("%s://%s", DirectScheme, strings.Join(endpoints, EndpointSep))
 }
 
-// BuildDiscovTarget discov:///test-service
-func BuildDiscovTarget(service string, endpoints ...string) string {
-	return fmt.Sprintf("%s://%s/%s", DiscovScheme, strings.Join(endpoints, EndpointSep), service)
+// BuildDiscovTarget discov://test-service
+func BuildDiscovTarget(service string, registry string) string {
+	return fmt.Sprintf("%s://%s?registry=%s", DiscovScheme, service, registry)
 }
 
 // reshuffle 打散targets

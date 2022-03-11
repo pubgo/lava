@@ -2,12 +2,20 @@ package plugin
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 
+	"github.com/huandu/go-clone"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
+	"github.com/spf13/cast"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/types"
 )
 
@@ -16,9 +24,10 @@ var _ Plugin = (*Base)(nil)
 
 type Base struct {
 	Name         string
-	Descriptor   string
+	Short        string
 	Url          string
 	Docs         interface{}
+	Builder      resource.Builder
 	OnHealth     types.Healthy
 	OnMiddleware types.Middleware
 	OnInit       func(p Process)
@@ -31,16 +40,20 @@ type Base struct {
 	afterStarts  []func()
 	beforeStops  []func()
 	afterStops   []func()
+
+	cfgMap *typex.RwMap
+	cfg    config_type.Interface
 }
 
-func (p *Base) BeforeStart(fn func())  { p.beforeStarts = append(p.beforeStarts, fn) }
-func (p *Base) AfterStart(fn func())   { p.afterStarts = append(p.afterStarts, fn) }
-func (p *Base) BeforeStop(fn func())   { p.beforeStops = append(p.beforeStops, fn) }
-func (p *Base) AfterStop(fn func())    { p.afterStops = append(p.afterStops, fn) }
-func (p *Base) BeforeStarts() []func() { return p.beforeStarts }
-func (p *Base) AfterStarts() []func()  { return p.afterStarts }
-func (p *Base) BeforeStops() []func()  { return p.beforeStops }
-func (p *Base) AfterStops() []func()   { return p.afterStops }
+func (p *Base) InitCfg(i config_type.Interface) { p.cfg = i }
+func (p *Base) BeforeStart(fn func())           { p.beforeStarts = append(p.beforeStarts, fn) }
+func (p *Base) AfterStart(fn func())            { p.afterStarts = append(p.afterStarts, fn) }
+func (p *Base) BeforeStop(fn func())            { p.beforeStops = append(p.beforeStops, fn) }
+func (p *Base) AfterStop(fn func())             { p.afterStops = append(p.afterStops, fn) }
+func (p *Base) BeforeStarts() []func()          { return p.beforeStarts }
+func (p *Base) AfterStarts() []func()           { return p.afterStarts }
+func (p *Base) BeforeStops() []func()           { return p.beforeStops }
+func (p *Base) AfterStops() []func()            { return p.afterStops }
 
 // getFuncStack 获取函数stack信息
 func (p *Base) getFuncStack(val interface{}) string {
@@ -56,7 +69,9 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	var data = make(map[string]interface{})
 	data["name"] = p.Name
 	data["docs"] = p.Docs
-	data["descriptor"] = p.Descriptor
+	data["default_cfg"] = p.Builder.Cfg()
+	data["cfg"] = p.cfgMap.Map()
+	data["descriptor"] = p.Short
 	data["url"] = p.Url
 	data["health"] = p.getFuncStack(p.OnHealth)
 	data["middleware"] = p.getFuncStack(p.OnMiddleware)
@@ -64,7 +79,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	data["commands"] = p.getFuncStack(p.OnCommands)
 	data["flags"] = p.getFuncStack(p.OnFlags)
 	data["watch"] = p.getFuncStack(p.OnWatch)
-	data["expvar"] = p.getFuncStack(p.OnVars)
+	data["exp-var"] = p.getFuncStack(p.OnVars)
 
 	var handler = func(fns []func()) (data []string) {
 		for i := range fns {
@@ -97,27 +112,79 @@ func (p *Base) Health() types.Healthy {
 }
 
 func (p *Base) Middleware() types.Middleware { return p.OnMiddleware }
-func (p *Base) String() string               { return p.Descriptor }
+func (p *Base) String() string               { return p.Short }
 func (p *Base) ID() string                   { return p.Name }
 func (p *Base) Init() (gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err.WrapF("plugin: %s", p.Name)
 	})
 
-	if p.OnInit == nil {
+	var val = p.cfg.Get(p.Name)
+	if val == nil {
 		return nil
 	}
 
-	p.OnInit(p)
+	for _, data := range cast.ToSlice(val) {
+		if p.cfgMap == nil {
+			p.cfgMap = &typex.RwMap{}
+		}
+
+		var dm, err = cast.ToStringMapE(data)
+		xerror.Panic(err)
+
+		var base = clone.Clone(p.Builder)
+		merge.MapStruct(base, dm)
+		delete(dm, "_id")
+
+		resId := base.(resource.Builder).GetResId()
+
+		if _, ok := p.cfgMap.Load(resId); ok {
+			return fmt.Errorf("res=>%s key=>%s,res key already exists", p.Name, resId)
+		}
+
+		cfg1 := clone.Clone(p.Builder.Cfg())
+		merge.MapStruct(cfg1, dm)
+		p.cfgMap.Set(resId, cfg1)
+	}
+
+	if p.cfgMap == nil {
+		p.cfgMap = &typex.RwMap{}
+		cfg1 := clone.Clone(p.Builder.Cfg())
+		merge.MapStruct(cfg1, p.cfg.GetMap(p.Name))
+		p.cfgMap.Set(consts.KeyDefault, cfg1)
+	}
+
+	// update resource
+	p.cfgMap.Range(func(key string, value interface{}) bool {
+		resource.Update(p.Name, key, value.(resource.Builder))
+		return true
+	})
+
+	if p.OnInit != nil {
+		p.OnInit(p)
+		return
+	}
 	return nil
 }
 
-func (p *Base) Watch() types.Watcher {
-	if p.OnWatch == nil {
-		return nil
+func (p *Base) Watch(name string, r *types.WatchResp) error {
+	var val, ok = p.cfgMap.Load(name)
+	if !ok {
+		// 配置不存在
+		cfg1 := clone.Clone(p.Builder.Cfg())
+		merge.MapStruct(cfg1, p.cfg.GetMap(p.Name, name))
+		p.cfgMap.Set(name, cfg1)
+	} else {
+		xerror.Panic(r.Decode(val))
+		p.cfgMap.Set(name, val)
 	}
 
-	return p.OnWatch
+	resource.Update(p.Name, name, val.(resource.Builder))
+
+	if p.OnWatch != nil {
+		xerror.Panic(p.OnWatch(name, r))
+	}
+	return nil
 }
 
 func (p *Base) Commands() *cli.Command {

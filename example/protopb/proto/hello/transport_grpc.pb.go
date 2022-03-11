@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // TransportClient is the client API for Transport service.
@@ -32,7 +33,7 @@ func NewTransportClient(cc grpc.ClientConnInterface) TransportClient {
 }
 
 func (c *transportClient) TestStream(ctx context.Context, opts ...grpc.CallOption) (Transport_TestStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Transport_serviceDesc.Streams[0], "/hello.Transport/TestStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &Transport_ServiceDesc.Streams[0], "/hello.Transport/TestStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +64,7 @@ func (x *transportTestStreamClient) Recv() (*Message, error) {
 }
 
 func (c *transportClient) TestStream1(ctx context.Context, opts ...grpc.CallOption) (Transport_TestStream1Client, error) {
-	stream, err := c.cc.NewStream(ctx, &_Transport_serviceDesc.Streams[1], "/hello.Transport/TestStream1", opts...)
+	stream, err := c.cc.NewStream(ctx, &Transport_ServiceDesc.Streams[1], "/hello.Transport/TestStream1", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +98,7 @@ func (x *transportTestStream1Client) CloseAndRecv() (*Message, error) {
 }
 
 func (c *transportClient) TestStream2(ctx context.Context, in *Message, opts ...grpc.CallOption) (Transport_TestStream2Client, error) {
-	stream, err := c.cc.NewStream(ctx, &_Transport_serviceDesc.Streams[2], "/hello.Transport/TestStream2", opts...)
+	stream, err := c.cc.NewStream(ctx, &Transport_ServiceDesc.Streams[2], "/hello.Transport/TestStream2", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +173,7 @@ type UnsafeTransportServer interface {
 }
 
 func RegisterTransportServer(s grpc.ServiceRegistrar, srv TransportServer) {
-	s.RegisterService(&_Transport_serviceDesc, srv)
+	s.RegisterService(&Transport_ServiceDesc, srv)
 }
 
 func _Transport_TestStream_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -266,7 +267,10 @@ func _Transport_TestStream3_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Transport_serviceDesc = grpc.ServiceDesc{
+// Transport_ServiceDesc is the grpc.ServiceDesc for Transport service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Transport_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "hello.Transport",
 	HandlerType: (*TransportServer)(nil),
 	Methods: []grpc.MethodDesc{

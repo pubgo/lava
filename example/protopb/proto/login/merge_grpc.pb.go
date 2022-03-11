@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // MergeClient is the client API for Merge service.
@@ -126,7 +127,7 @@ type UnsafeMergeServer interface {
 }
 
 func RegisterMergeServer(s grpc.ServiceRegistrar, srv MergeServer) {
-	s.RegisterService(&_Merge_serviceDesc, srv)
+	s.RegisterService(&Merge_ServiceDesc, srv)
 }
 
 func _Merge_Telephone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -219,7 +220,10 @@ func _Merge_WeChatUnMerge_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Merge_serviceDesc = grpc.ServiceDesc{
+// Merge_ServiceDesc is the grpc.ServiceDesc for Merge service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Merge_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "login.Merge",
 	HandlerType: (*MergeServer)(nil),
 	Methods: []grpc.MethodDesc{

@@ -15,6 +15,9 @@
   "tags": [
     {
       "name": "Yuque"
+    },
+    {
+      "name": "UserService"
     }
   ],
   "host": "www.yuque.com",
@@ -29,6 +32,119 @@
     "application/json"
   ],
   "paths": {
+    "/api/v1/users/reset_password": {
+      "post": {
+        "summary": "User reset password",
+        "description": "Reset password for users. For first time setting password, old password should be empty string",
+        "operationId": "UserService_ResetPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/signin": {
+      "post": {
+        "summary": "User signin",
+        "description": "Sign in a user by using an auth provider",
+        "operationId": "UserService_Signin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoResp"
+            }
+          },
+          "400": {
+            "description": "请求的参数不正确，或缺少必要信息，请对比文档",
+            "schema": {}
+          },
+          "401": {
+            "description": "需要用户认证的接口用户信息不正确",
+            "schema": {}
+          },
+          "403": {
+            "description": "缺少对应功能的权限",
+            "schema": {}
+          },
+          "404": {
+            "description": "数据不存在，或未开放",
+            "schema": {}
+          },
+          "500": {
+            "description": "服务器异常",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2UserInfoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/groups": {
       "post": {
         "summary": "创建 Group",
@@ -279,6 +395,15 @@
         },
         "updatedAt": {
           "type": "string"
+        }
+      }
+    },
+    "v2UserInfoReq": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string",
+          "title": "login or id"
         }
       }
     },

@@ -2,9 +2,10 @@ package watcher
 
 import (
 	"context"
-
 	"github.com/pubgo/lava/types"
 )
+
+const Name = "watcher"
 
 type (
 	Response = types.WatchResp

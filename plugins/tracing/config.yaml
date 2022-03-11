@@ -1,4 +1,5 @@
 tracing:
   driver: "jaeger"
-  serviceName: "test"
-  disabled: true
+  driver_config:
+    serviceName: "test"
+    disabled: true

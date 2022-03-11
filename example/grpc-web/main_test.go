@@ -36,7 +36,7 @@ func TestName(t *testing.T) {
 	//err := c.cc.Invoke(ctx, "/hello.TestApi/Version", in, out, opts...)
 
 	conn, err := grpc.DialContext(context.Background(), "localhost:8900", grpc.WithInsecure(), grpc.WithBlock())
-	//var conn, err = grpcc.NewDirect("localhost:8900", func(cfg *grpcc.Cfg) {})
+	//var conn, err = grpcc.NewDirect("localhost:8900", func(cfg *grpcc.Base) {})
 	xerror.Panic(err)
 
 	//var cli = hello.NewTestApiClient(conn)

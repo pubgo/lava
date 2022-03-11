@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/pubgo/lava/pkg/syncx"
 	"net"
 	"strings"
 	"time"
@@ -19,7 +20,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/plugins/syncx"
 )
 
 func main() {

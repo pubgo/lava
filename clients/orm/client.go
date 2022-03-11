@@ -28,19 +28,23 @@ type Client struct {
 }
 
 func (c *Client) Ping() error {
-	var db, err = c.get().DB()
+	var db, release = c.Load()
+	defer release.Release()
+
+	var _db, err = db.DB()
 	if err != nil {
 		return err
 	}
-	return db.Ping()
+	return _db.Ping()
 }
 
-func (c Client) Kind() string { return Name }
 func (c *Client) Load() (*gorm.DB, resource.Release) {
 	var r, cancel = c.Resource.LoadObj()
 	return r.(*wrapper).DB, cancel
 }
 
 func (c *Client) get() *gorm.DB {
-	return c.Resource.GetObj().(*wrapper).DB
+	var r, cancel = c.Resource.LoadObj()
+	defer cancel.Release()
+	return r.(*wrapper).DB
 }

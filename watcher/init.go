@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/ctxutil"
@@ -19,9 +19,10 @@ import (
 
 var defaultWatcher Watcher = &nullWatcher{}
 var logs = logging.Component(Name)
+var cfg = DefaultCfg()
 
 // Init 初始化watcher
-func Init(conf config.Config) {
+func Init(conf config_type.Interface) {
 	defer xerror.RespExit()
 
 	xerror.Assert(conf == nil, "conf is nil")

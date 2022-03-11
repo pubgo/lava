@@ -8,13 +8,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/x/fx"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
@@ -22,7 +23,7 @@ import (
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
 
-var _ Config = (*configImpl)(nil)
+var _ config_type.Interface = (*configImpl)(nil)
 
 type configImpl struct {
 	rw   sync.RWMutex
@@ -51,15 +52,25 @@ func (t *configImpl) AllKeys() []string {
 	return t.v.AllKeys()
 }
 
-func (t *configImpl) GetMap(key string) types.CfgMap {
+func (t *configImpl) GetArrayMap(keys ...string) []types.CfgMap {
+	return nil
+}
+
+func (t *configImpl) GetMap(keys ...string) types.CfgMap {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
-	var val = t.v.GetStringMap(key)
+	key := strings.Trim(strings.Join(keys, "."), ".")
+	var val = t.v.Get(key)
 	if val == nil {
-		return make(map[string]interface{})
+		return types.CfgMap{}
 	}
-	return val
+
+	for _, data := range cast.ToSlice(val) {
+		return cast.ToStringMap(data)
+	}
+
+	return t.v.GetStringMap(key)
 }
 
 func (t *configImpl) Get(key string) interface{} {
@@ -83,18 +94,6 @@ func (t *configImpl) Set(key string, value interface{}) {
 	t.v.Set(key, value)
 }
 
-func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...func(*mapstructure.DecoderConfig)) error {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
-	var opts1 = []viper.DecoderConfigOption{func(cfg *mapstructure.DecoderConfig) { cfg.TagName = "json" }}
-	for i := range opts {
-		opts1 = append(opts1, opts[i])
-	}
-
-	return t.v.UnmarshalKey(key, rawVal, opts1...)
-}
-
 func (t *configImpl) Decode(name string, val interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
@@ -111,7 +110,7 @@ func (t *configImpl) Decode(name string, val interface{}) (err error) {
 		xerror.Assert(!vfn.Type().Out(0).Implements(errType), "[val] output should be error type")
 
 		mthIn := reflect.New(vfn.Type().In(0).Elem())
-		ret := fx.WrapRaw(t.UnmarshalKey)(name, mthIn)
+		ret := fx.WrapRaw(t.v.UnmarshalKey)(name, mthIn)
 
 		if !ret[0].IsNil() {
 			xerror.PanicF(ret[0].Interface().(error), "config key [%s] decode error", name)
@@ -119,7 +118,7 @@ func (t *configImpl) Decode(name string, val interface{}) (err error) {
 
 		vfn.Call([]reflect.Value{mthIn})
 	case reflect.Ptr:
-		return xerror.WrapF(t.UnmarshalKey(name, val), "config key [%s] decode error", name)
+		return xerror.WrapF(t.v.UnmarshalKey(name, val), "config key [%s] decode error", name)
 	default:
 		return xerror.Fmt("[val] type error,name=>%s, refer=>%#v", name, val)
 	}

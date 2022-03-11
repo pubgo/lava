@@ -6,7 +6,7 @@ import (
 
 type Cfg struct {
 	Prefix   string   `json:"prefix"`
-	Driver   string   `json:"driver"`
+	Name     string   `json:"name"`
 	Projects []string `json:"projects"`
 }
 

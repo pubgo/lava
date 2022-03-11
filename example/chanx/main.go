@@ -41,7 +41,7 @@ func (t *pubSub) Sub(fn func(data <-chan interface{}), errHandlers ...func(err e
 
 	var funcStack = stack.Func(fn)
 	var errHandler = func(err error) {
-		t.logger.Error("subscriber handler failed", logutil.WithErr(err, zap.String(logkey.Stack, funcStack))...)
+		t.logger.Error("subscriber handler failed", logutil.ErrField(err, zap.String(logkey.Stack, funcStack))...)
 	}
 
 	if len(errHandlers) > 0 {

@@ -42,13 +42,16 @@ func Yield(fn func() (interface{}, error)) *Promise {
 	}
 
 	var p = newPromise()
-	GoSafe(func() {
-		defer p.close()
-		defer xerror.RespErr(&p.err)
+	go func() {
+		defer func() {
+			p.close()
+			xerror.RespErr(&p.err)
+		}()
+
 		val, err := fn()
 		p.err = err
 		p.ch <- val
-	})
+	}()
 
 	return p
 }
@@ -61,7 +64,7 @@ func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
 	var p = &Promise{ch: make(chan interface{})}
 	var in = make(chan *Promise)
 
-	GoSafe(func() {
+	go func() {
 		defer p.close()
 		for pp := range in {
 			for val := range pp.Unwrap() {
@@ -72,15 +75,15 @@ func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
 				p.err = pp.Err()
 			}
 		}
-	})
+	}()
 
-	GoSafe(func() {
+	go func() {
 		defer close(in)
 		defer xerror.RespErr(&p.err)
-		if _err := fn(in); _err != nil {
-			p.err = _err
+		if err := fn(in); err != nil {
+			p.err = err
 		}
-	})
+	}()
 
 	return p
 }

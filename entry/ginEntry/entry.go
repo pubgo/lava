@@ -2,6 +2,7 @@ package ginEntry
 
 import (
 	"errors"
+	"github.com/pubgo/lava/pkg/syncx"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,6 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runtime"
 )
 

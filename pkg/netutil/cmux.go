@@ -23,7 +23,7 @@ func DefaultCfg() *Cfg {
 		Port:        8080,
 		ReadTimeout: time.Second * 2,
 		HandleError: func(err error) bool {
-			zap.L().Named("cmux").Error("HandleError", logutil.WithErr(err)...)
+			zap.L().Named("cmux").Error("HandleError", logutil.ErrField(err)...)
 			return false
 		},
 	}

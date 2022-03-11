@@ -279,7 +279,7 @@ func (t *handlerMap) RequestChannel(msg flux.Flux) flux.Flux {
 				return <-pp.Err
 			}).DoOnError(func(e error) {
 				cancel()
-				logging.L().Error("err", logutil.WithErr(e)...)
+				logging.L().Error("err", logutil.ErrField(e)...)
 			}).DoOnComplete(func() { cancel() }).Subscribe(ctx)
 
 			for {

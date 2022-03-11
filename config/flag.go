@@ -48,11 +48,5 @@ func DefaultFlags() []cli.Flag {
 			Usage:       "log level(debug|info|warn|error|panic|fatal)",
 			Value:       runtime.Level,
 		},
-		&cli.BoolFlag{
-			Name:        "catch-sigpipe",
-			Destination: &runtime.CatchSigpipe,
-			Usage:       "catch and ignore SIGPIPE on stdout and stderr if specified",
-			Value:       runtime.CatchSigpipe,
-		},
 	}
 }

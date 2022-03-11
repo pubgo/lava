@@ -1,13 +1,24 @@
 package ossc
 
+import (
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/pubgo/xerror"
+	"io"
+)
+
 var Name = "oss"
-var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Endpoint        string
 	AccessKeyID     string
 	AccessKeySecret string
 	Bucket          string
+}
+
+func (c Cfg) Build() io.Closer {
+	client, err := oss.New(c.Endpoint, c.AccessKeyID, c.AccessKeySecret)
+	xerror.Panic(err)
+	return &wrapper{client}
 }
 
 func DefaultCfg() Cfg {

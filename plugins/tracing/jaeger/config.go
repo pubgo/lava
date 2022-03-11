@@ -18,14 +18,14 @@ type Cfg struct {
 
 const Name = "jaeger"
 
-func DefaultCfg() *Cfg {
+func DefaultCfg() Cfg {
 	cfg, err := jaegerCfg.FromEnv()
 	xerror.Exit(err)
 
 	cfg.Disabled = false
 	cfg.ServiceName = runtime.Project
 	xerror.Panic(err)
-	return &Cfg{
+	return Cfg{
 		Configuration: cfg,
 		BatchSize:     1,
 		Logger: &lumberjack.Logger{

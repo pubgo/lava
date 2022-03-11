@@ -20,8 +20,12 @@ type Client struct {
 	resource.Resource
 }
 
-func (c *Client) Kind() string         { return Name }
-func (c *Client) Get() *client3.Client { return c.GetObj().(*client3.Client) }
+func (c *Client) Get() *client3.Client {
+	var obj, r = c.Load()
+	defer r.Release()
+	return obj
+}
+
 func (c *Client) Load() (*client3.Client, resource.Release) {
 	var obj, cancel = c.LoadObj()
 	return obj.(*client3.Client), cancel

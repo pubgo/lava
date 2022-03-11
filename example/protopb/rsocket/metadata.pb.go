@@ -58,7 +58,7 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Request.ProtoReflect.Descriptor instead.
+// Deprecated: Use Request.ProtoReflect.Short instead.
 func (*Request) Descriptor() ([]byte, []int) {
 	return file_rsocket_metadata_proto_rawDescGZIP(), []int{0}
 }
@@ -128,7 +128,7 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Response.ProtoReflect.Descriptor instead.
+// Deprecated: Use Response.ProtoReflect.Short instead.
 func (*Response) Descriptor() ([]byte, []int) {
 	return file_rsocket_metadata_proto_rawDescGZIP(), []int{1}
 }
@@ -195,7 +195,7 @@ func (x *Metadata) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Metadata.ProtoReflect.Descriptor instead.
+// Deprecated: Use Metadata.ProtoReflect.Short instead.
 func (*Metadata) Descriptor() ([]byte, []int) {
 	return file_rsocket_metadata_proto_rawDescGZIP(), []int{2}
 }

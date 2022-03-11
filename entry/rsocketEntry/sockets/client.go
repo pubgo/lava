@@ -175,7 +175,7 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 			}).
 			DoOnError(func(err error) {
 				cancel()
-				logging.L().Error("err", logutil.WithErr(err)...)
+				logging.L().Error("err", logutil.ErrField(err)...)
 			}).
 			DoOnComplete(func() { cancel() }).
 			DoFinally(func(s rx.SignalType) { cancel() }).Subscribe(ctx)

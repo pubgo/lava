@@ -7,10 +7,15 @@
     - [CreateGroupReq](#yuque.v2.CreateGroupReq)
     - [CreateGroupResp](#yuque.v2.CreateGroupResp)
     - [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data)
+    - [DoormanConfig](#yuque.v2.DoormanConfig)
+    - [FacebookConfig](#yuque.v2.FacebookConfig)
+    - [GuardianConfig](#yuque.v2.GuardianConfig)
+    - [User](#yuque.v2.User)
     - [UserInfoReq](#yuque.v2.UserInfoReq)
     - [UserInfoResp](#yuque.v2.UserInfoResp)
     - [UserInfoResp.Data](#yuque.v2.UserInfoResp.Data)
   
+    - [UserService](#yuque.v2.UserService)
     - [Yuque](#yuque.v2.Yuque)
   
 - [Scalar Value Types](#scalar-value-types)
@@ -78,6 +83,78 @@
 
 
 
+<a name="yuque.v2.DoormanConfig"></a>
+
+### DoormanConfig
+doorman service config
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| grpc_port | [uint32](#uint32) |  | gRPC port |
+| wss_port | [uint32](#uint32) |  | websocket port |
+
+
+
+
+
+
+<a name="yuque.v2.FacebookConfig"></a>
+
+### FacebookConfig
+facebook auth configuration
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| base_url | [string](#string) |  |  |
+| auth_url | [string](#string) |  |  |
+| avatar_url | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="yuque.v2.GuardianConfig"></a>
+
+### GuardianConfig
+guardian service config
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| token_secret | [string](#string) |  | auth token secret |
+| conn_str | [string](#string) |  | auth db conn str |
+| expiring_days | [uint32](#uint32) |  | auth token expiration |
+| facebook | [FacebookConfig](#yuque.v2.FacebookConfig) |  | facebook configuration |
+
+
+
+
+
+
+<a name="yuque.v2.User"></a>
+
+### User
+basic user information
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| id | [string](#string) |  | user id |
+| email | [string](#string) |  | user&#39;s email |
+| first_name | [string](#string) |  | user&#39;s first name |
+| last_name | [string](#string) |  | user&#39;s last name |
+| gender | [string](#string) |  | user&#39;s gender - Unspecified if none |
+| birthday | [int64](#int64) |  | user&#39;s birthday in UTC timestamp, 0 if none |
+| avatar | [string](#string) |  | user&#39;s avatar |
+
+
+
+
+
+
 <a name="yuque.v2.UserInfoReq"></a>
 
 ### UserInfoReq
@@ -135,6 +212,17 @@
  
 
  
+
+
+<a name="yuque.v2.UserService"></a>
+
+### UserService
+
+
+| Method Name | Request Type | Response Type | Description |
+| ----------- | ------------ | ------------- | ------------|
+| Signin | [UserInfoReq](#yuque.v2.UserInfoReq) | [UserInfoResp](#yuque.v2.UserInfoResp) | user signin |
+| ResetPassword | [UserInfoReq](#yuque.v2.UserInfoReq) | [.google.protobuf.Empty](#google.protobuf.Empty) | user resets password |
 
 
 <a name="yuque.v2.Yuque"></a>

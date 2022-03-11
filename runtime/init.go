@@ -18,15 +18,14 @@ import (
 
 // 默认的全局配置
 var (
-	Domain       = version.Domain
-	CatchSigpipe = false
-	Block        = true
-	Trace        = false
-	Addr         = ":8080"
-	DebugAddr    = ":8081"
-	Project      = "lava"
-	Level        = "debug"
-	Mode         = RunModeDev.String()
+	Domain    = version.Domain
+	Block     = true
+	Trace     = false
+	Addr      = ":8080"
+	DebugAddr = ":8081"
+	Project   = "lava"
+	Level     = "debug"
+	Mode      = RunModeDev.String()
 
 	// DeviceID 主机设备ID
 	DeviceID = xerror.PanicErr(machineid.ID())

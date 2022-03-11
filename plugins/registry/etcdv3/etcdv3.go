@@ -24,8 +24,9 @@ func init() {
 	registry.Register(Name, func(m types.CfgMap) (registry.Registry, error) {
 		var cfg Cfg
 		merge.MapStruct(&cfg, m)
+
 		return &Registry{
-			client:   etcdv3.Get(cfg.Driver),
+			client:   etcdv3.Get(cfg.Name),
 			cfg:      cfg,
 			register: make(map[string]uint64),
 			leases:   make(map[string]clientv3.LeaseID),

@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/pubgo/dix"
-
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/vars"
 )

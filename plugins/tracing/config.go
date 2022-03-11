@@ -1,14 +1,14 @@
 package tracing
 
 import (
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
 )
 
-var cfg = GetDefaultCfg()
+var cfg = DefaultCfg()
 
 type Cfg struct {
-	Driver string `json:"driver"`
+	Driver    string                 `json:"driver"`
+	DriverCfg map[string]interface{} `json:"driver_config"`
 }
 
 func (cfg Cfg) Build() (err error) {
@@ -20,10 +20,10 @@ func (cfg Cfg) Build() (err error) {
 	fc := GetFactory(driver)
 	xerror.Assert(fc == nil, "tracer driver [%s] not found", driver)
 
-	return fc(config.GetMap(Name))
+	return fc(cfg.DriverCfg)
 }
 
-func GetDefaultCfg() Cfg {
+func DefaultCfg() Cfg {
 	return Cfg{
 		Driver: "noop",
 	}

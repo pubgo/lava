@@ -1,7 +1,6 @@
 package syncx
 
 import (
-	"runtime"
 	"sync"
 	"sync/atomic"
 	_ "unsafe"
@@ -19,7 +18,6 @@ type WaitGroup struct {
 	Concurrent uint32
 }
 
-func (t *WaitGroup) SetConcurrent(concurrent uint32) { t.Concurrent = concurrent }
 func (t *WaitGroup) Count() uint32 {
 	count, _ := state(&t.wg)
 	return uint32(atomic.LoadUint64(count) >> 32)
@@ -31,24 +29,13 @@ func (t *WaitGroup) check() {
 	}
 
 	// 阻塞, 等待任务处理完毕
-	if t.Count() >= t.Concurrent {
-		runtime.Gosched()
-
-		// 采样率(%1), 打印log
-		if fastrand.Sampling(0.01) {
-			logs.S().Warnw("WaitGroup current concurrent number exceeds the maximum concurrent number of the system",
-				"current", t.Count(), "maximum", t.Concurrent)
-		}
+	// 采样率(10), 打印log
+	if t.Count() >= t.Concurrent && fastrand.Sampling(10) {
+		logs.S().Warnw("WaitGroup current concurrent number exceeds the maximum concurrent number of the system",
+			"current", t.Count(), "maximum", t.Concurrent)
 	}
 }
 
-func (t *WaitGroup) Go(f func()) {
-	t.Inc()
-	GoSafe(func() {
-		defer t.Done()
-		f()
-	})
-}
 func (t *WaitGroup) Inc()          { t.check(); t.wg.Add(1) }
 func (t *WaitGroup) Dec()          { t.wg.Done() }
 func (t *WaitGroup) Done()         { t.wg.Done() }

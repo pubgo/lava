@@ -17,8 +17,6 @@ type Client struct {
 	resource.Resource
 }
 
-func (t *Client) Kind() string { return Name }
-
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
 	xerror.Panic(err, "create bucket error")

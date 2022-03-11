@@ -1,0 +1,9 @@
+orm:
+  default:
+    driver: "mysql"
+    driver_config:
+      dsn: ""
+  test:
+    driver: "sqlite3"
+    driver_config:
+      dsn: "./db.sqlite"

@@ -3,9 +3,7 @@ package runtime
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"sort"
-	"syscall"
 
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/x/stack"
@@ -21,40 +19,110 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"
-	"github.com/pubgo/lava/plugins/syncx"
+	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
 )
 
-const name = "runtime"
-
-var logs = logging.Component(name)
+var logs = logging.Component("runtime")
 var app = &cli.App{
 	Name:    runtime.Domain,
 	Version: version.Version,
 }
 
-func handleSignal() {
-	if runtime.CatchSigpipe {
-		sigChan := make(chan os.Signal, 1)
-		signal.Notify(sigChan, syscall.SIGPIPE)
-		syncx.GoSafe(func() {
-			<-sigChan
-			logs.L().Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
-			signal.Ignore(syscall.SIGPIPE)
-		})
+func Run(desc string, entries ...entry.Entry) {
+	defer xerror.RespExit()
+
+	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
+
+	for _, ent := range entries {
+		xerror.Assert(ent == nil, "[ent] should not be nil")
+
+		_, ok := ent.(entry.Runtime)
+		xerror.Assert(!ok, "[ent] not implement runtime, \n%s", q.Sq(ent))
 	}
 
-	if !runtime.Block {
-		return
+	app.Usage = desc
+	app.Description = desc
+
+	// 注册默认flags
+	app.Flags = append(app.Flags, config.DefaultFlags()...)
+
+	// 注册全局plugin
+	for _, plg := range plugin.All() {
+		app.Flags = append(app.Flags, plg.Flags()...)
+
+		var cmd = plg.Commands()
+		if cmd != nil {
+			// 检查Command是否注册
+			xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+			app.Commands = append(app.Commands, cmd)
+		}
+
+		// 注册健康检查
+		if plg.Health() != nil {
+			healthy.Register(plg.ID(), plg.Health())
+		}
+
+		// 注册vars
+		xerror.Panic(plg.Vars(vars.Register))
+
+		// 注册watcher
+		watcher.Watch(plg.ID(), plg.Watch)
 	}
 
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	runtime.Signal = <-ch
-	logs.S().Infof("signal [%s] trigger", runtime.Signal.String())
+	for i := range entries {
+		ent := entries[i]
+		entRT := ent.(entry.Runtime)
+		cmd := entRT.Options().Command
+
+		// 检查项目Command是否注册
+		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+
+		cmd.Action = func(ctx *cli.Context) error {
+			// 项目名初始化
+			runtime.Project = entRT.Options().Name
+			envs.SetName(version.Domain, runtime.Project)
+
+			// 运行环境检查
+			if _, ok := runtime.RunModeValue[runtime.Mode]; !ok {
+				panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
+			}
+
+			// 本地配置初始化
+			config.Init()
+			for _, plg := range plugin.All() {
+				plg.InitCfg(config.GetCfg())
+			}
+
+			// 日志初始化
+			logging.Init(func(cfg *log_config.Config) {
+				xerror.Panic(config.GetMap(logging.Name).Decode(cfg))
+			})
+
+			// 插件初始化
+			for _, plg := range plugin.All() {
+				entRT.MiddlewareInter(plg.Middleware())
+				logutil.OkOrPanic(logs.L(), "plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
+			}
+
+			// entry初始化, 项目初始化
+			entRT.InitRT()
+
+			start(entRT)
+			signal.Block()
+			stop(entRT)
+			return nil
+		}
+
+		app.Commands = append(app.Commands, cmd)
+	}
+
+	sort.Sort(cli.FlagsByName(app.Flags))
+	sort.Sort(cli.CommandsByName(app.Commands))
+	xerror.Panic(app.Run(os.Args))
 }
 
 func start(ent entry.Runtime) {
@@ -113,106 +181,4 @@ func stop(ent entry.Runtime) {
 		}
 		return nil
 	})
-}
-
-func Run(description string, entries ...entry.Entry) {
-	defer xerror.RespExit()
-
-	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
-
-	for _, ent := range entries {
-		xerror.Assert(ent == nil, "[ent] should not be nil")
-
-		_, ok := ent.(entry.Runtime)
-		xerror.Assert(!ok, "[ent] not implement runtime, \n%s", q.Sq(ent))
-	}
-
-	app.Usage = description
-	app.Description = description
-
-	// 注册默认flags
-	app.Flags = append(app.Flags, config.DefaultFlags()...)
-
-	// 注册全局plugin
-	for _, plg := range plugin.All() {
-		app.Flags = append(app.Flags, plg.Flags()...)
-
-		var cmd = plg.Commands()
-		if cmd != nil {
-			// 检查Command是否注册
-			xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
-			app.Commands = append(app.Commands, cmd)
-		}
-
-		// 注册健康检查
-		if plg.Health() != nil {
-			healthy.Register(plg.ID(), plg.Health())
-		}
-
-		// 注册vars
-		xerror.Panic(plg.Vars(vars.Register))
-
-		// 注册watcher
-		if plg.Watch() != nil {
-			watcher.Watch(plg.ID(), plg.Watch())
-		}
-	}
-
-	for i := range entries {
-		ent := entries[i]
-		entRT := ent.(entry.Runtime)
-		cmd := entRT.Options().Command
-
-		// 检查项目Command是否注册
-		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
-
-		cmd.Before = func(ctx *cli.Context) error {
-			defer xerror.RespExit()
-
-			// 项目名初始化
-			runtime.Project = entRT.Options().Name
-			envs.SetName(version.Domain, runtime.Project)
-
-			// 运行环境检查
-			if _, ok := runtime.RunModeValue[runtime.Mode]; !ok {
-				panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
-			}
-
-			// 本地配置初始化
-			config.Init()
-
-			// 远程配置初始化, 从远程获取最新的配置
-			watcher.Init(config.GetCfg())
-
-			// 日志初始化
-			logging.Init(func(cfg *log_config.Config) {
-				_ = config.Decode(name, &cfg)
-			})
-
-			// 插件初始化
-			for _, plg := range plugin.All() {
-				entRT.MiddlewareInter(plg.Middleware())
-				logutil.OkOrPanic(logs.L(), "plugin init", plg.Init, zap.String("plugin-name", plg.ID()))
-			}
-
-			// entry初始化, 项目初始化
-			entRT.InitRT()
-
-			return nil
-		}
-
-		cmd.Action = func(ctx *cli.Context) error {
-			defer xerror.RespExit()
-			start(entRT)
-			handleSignal()
-			stop(entRT)
-			return nil
-		}
-
-		app.Commands = append(app.Commands, cmd)
-	}
-
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-	xerror.Panic(app.Run(os.Args))
 }

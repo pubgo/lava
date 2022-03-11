@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/runtime"
 )
 
-const name = "logger"
+const Name = "logger"
 
 // 默认log
 var componentLog = func() *zap.Logger {
@@ -21,7 +21,7 @@ var componentLog = func() *zap.Logger {
 	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(consts.DefaultTimeFormat)
 	var log, err = cfg.Build()
-	xerror.Exit(err)
+	xerror.Panic(err)
 
 	log = log.Named(logkey.Debug)
 

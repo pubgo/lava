@@ -4,7 +4,7 @@
 package lava
 
 import (
-	//_ "github.com/fullstorydev/grpcurl/cmd/grpcurl"
+	_ "github.com/fullstorydev/grpcurl/cmd/grpcurl"
 	//_ "github.com/golang/mock/mockgen"
 	//_ "github.com/gordonklaus/ineffassign"
 	//_ "github.com/grpc-ecosystem/grpcdebug"
@@ -45,7 +45,6 @@ import (
 	//_ "google.golang.org/grpc/profiling/cmd"
 	// Fast, configurable, extensible, flexible, and beautiful linter for Go
 	//_ "github.com/mgechev/revive"
-
 	// leak check
 	//https://github.com/uber-go/goleak
 )

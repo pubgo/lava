@@ -3,7 +3,7 @@ package logging
 import "github.com/pubgo/lava/vars"
 
 func init() {
-	vars.Register(name, func() interface{} {
+	vars.Register(Name, func() interface{} {
 		var keys []string
 		loggerMap.Range(func(key, _ interface{}) bool {
 			keys = append(keys, key.(string))

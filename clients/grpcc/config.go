@@ -1,21 +1,22 @@
 package grpcc
 
 import (
-	"context"
 	"time"
 
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/pubgo/lava/clients/grpcc/lb/p2c"
-	"github.com/pubgo/lava/clients/grpcc/resolver"
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/types"
+
+	// 默认加载mdns注册中心
+	_ "github.com/pubgo/lava/plugins/registry/mdns"
+
+	// grpc log插件加载
+	_ "github.com/pubgo/lava/internal/plugins/grpclog"
 )
 
 const (
@@ -25,8 +26,6 @@ const (
 	DefaultTimeout     = 2 * time.Second
 	defaultContentType = "application/grpc"
 )
-
-var cfgMap = make(map[string]*Cfg)
 
 type callParameters struct {
 	Header                map[string]string `json:"header"`
@@ -82,7 +81,6 @@ func (t connectParams) toConnectParams() grpc.ConnectParams {
 
 // Cfg ...
 type Cfg struct {
-	Registry             string        `json:"registry"`
 	MaxMsgSize           int           `json:"max_msg_size"`
 	Codec                string        `json:"codec"`
 	Compressor           string        `json:"compressor"`
@@ -122,36 +120,12 @@ type Cfg struct {
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
+
+	registry    string
+	buildScheme string
 }
 
-// Build 服务发现模式,通过配置中心连接服务
-func (t Cfg) Build(target string) (conn *grpc.ClientConn, gErr error) {
-	defer xerror.RespErr(&gErr)
-
-	// 服务发现模式, 检查注册中心是否初始化完成
-	xerror.Assert(registry.Default() == nil, "please init registry")
-	target = resolver.BuildDiscovTarget(target, registry.Default().String())
-
-	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
-	defer cancel()
-
-	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
-	return conn, xerror.WrapF(gErr, "DialContext error, target:%s\n", target)
-}
-
-// BuildDirect 直连模式,target=>localhost:8080,localhost:8081,localhost:8082
-func (t Cfg) BuildDirect(target string) (conn *grpc.ClientConn, gErr error) {
-	defer xerror.RespErr(&gErr)
-
-	target = resolver.BuildDirectTarget(target)
-
-	ctx, cancel := context.WithTimeout(context.Background(), t.DialTimeout)
-	defer cancel()
-
-	grpc.WithResolvers()
-	conn, gErr = grpc.DialContext(ctx, target, append(t.ToOpts(), t.DialOptions...)...)
-	return conn, xerror.WrapF(gErr, "DialContext error, target:%s", target)
-}
+func (t Cfg) GetReg() string { return t.registry }
 
 func (t Cfg) ToOpts() []grpc.DialOption {
 	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
@@ -261,19 +235,7 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 
 var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
-func getCfg(name string, opts ...func(cfg *Cfg)) *Cfg {
-	if cfgMap[name] != nil {
-		return cfgMap[name]
-	}
-
-	if cfgMap[consts.KeyDefault] != nil {
-		return cfgMap[consts.KeyDefault]
-	}
-
-	return DefaultCfg(opts...)
-}
-
-func DefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
+func DefaultCfg(opts ...func(cfg *Cfg)) Cfg {
 	var cfg = Cfg{
 		Insecure:          true,
 		Block:             true,
@@ -301,9 +263,10 @@ func DefaultCfg(opts ...func(cfg *Cfg)) *Cfg {
 			MaxCallSendMsgSize: 1024 * 1024 * 4,
 		},
 	}
-
 	for i := range opts {
-		opts[i](&cfg)
+		if opts[i] != nil {
+			opts[i](&cfg)
+		}
 	}
-	return &cfg
+	return cfg
 }

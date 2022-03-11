@@ -6,8 +6,8 @@ app:
   debug: true
   watcher: false
 watcher:
-  driver: "noop"
-  name: "default"
+  resDriver: "noop"
+  resDriverId: "default"
 recovery:
   enabled: true
 mux:
@@ -50,7 +50,7 @@ ws:
   enabled: true
   configs:
     default:
-      origins: ["*"]
+      origins: [ "*" ]
 redis:
   enabled: true
   codis:
@@ -76,17 +76,19 @@ mongodb:
 nsq:
   default:
     address: "localhost:4150"
-    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+    lookup: [ "nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161" ]
   test_shanghai:
     address: "localhost:4150"
-    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+    lookup: [ "nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161" ]
 http:
   test: ""
-
 db:
-  default:
+  - _id: "default"
     driver: "sqlite3x"
     source: "./db/sqlite.db"
+db1:
+  driver: "sqlite3x"
+  source: "./db/sqlite.db"
 registry:
   driver: "mdns"
   ttl: "5s"

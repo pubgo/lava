@@ -27,7 +27,7 @@ func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) 
 		return
 	}
 
-	log.Error(msg+" error", WithErr(err)...)
+	log.Error(msg+" error", ErrField(err)...)
 	panic(err)
 }
 
@@ -44,7 +44,7 @@ func OkOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field
 		return
 	}
 
-	log.Error(msg+" error", WithErr(err)...)
+	log.Error(msg+" error", ErrField(err)...)
 }
 
 func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
@@ -58,7 +58,7 @@ func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field)
 		return
 	}
 
-	log.Error(msg, WithErr(err)...)
+	log.Error(msg, ErrField(err)...)
 }
 
 func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
@@ -72,6 +72,19 @@ func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Fiel
 		return
 	}
 
-	log.Error(msg, WithErr(err)...)
+	log.Error(msg, ErrField(err)...)
 	panic(err)
+}
+
+func ErrTry(log *zap.Logger, fn func(), fields ...zap.Field) {
+	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
+
+	var err error
+	xerror.TryWith(&err, fn)
+
+	if err == nil {
+		return
+	}
+
+	log.Error("panic catch", ErrField(err)...)
 }

@@ -13,6 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
+	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/entry"
@@ -36,7 +37,7 @@ type User struct {
 }
 
 // running
-var testApiSrv = hello.GetTestApiClient("test-grpc")
+var testApiSrv = hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
 var ll = logging.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
@@ -46,14 +47,18 @@ func NewTestAPIHandler() *testapiHandler {
 var _ = entry.AssertHandler(&testapiHandler{})
 
 type testapiHandler struct {
-	Db   *orm.Client          `dix:""`
-	Cron *scheduler.Scheduler `dix:""`
+	Db         *orm.Client          `dix:""`
+	Cron       *scheduler.Scheduler `dix:""`
+	TestApiSrv hello.TestApiClient  `dix:""`
 }
 
 func (h *testapiHandler) Init() {
-	xerror.Panic(h.Db.Get().AutoMigrate(&User{}))
+	var db, r = h.Db.Load()
+	defer r.Release()
+
+	xerror.Panic(db.AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
-	xerror.Panic(h.Db.Get().Create(&user).Error)
+	xerror.Panic(db.Create(&user).Error)
 
 	q.Q(user)
 
@@ -91,13 +96,17 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 
 	if h.Db != nil {
 		var user User
-		xerror.Panic(h.Db.Get().WithContext(ctx).First(&user).Error)
+
+		var db, r = h.Db.Load()
+		defer r.Release()
+
+		xerror.Panic(db.WithContext(ctx).First(&user).Error)
 		log.Sugar().Infow("data", "data", user)
 
-		xerror.Panic(h.Db.Get().Raw("select * from users limit 1").First(&user).Error)
+		xerror.Panic(db.Raw("select * from users limit 1").First(&user).Error)
 		log.Sugar().Infow("data", "data", user)
 
-		xerror.Panic(h.Db.Get().Model(&User{}).Where("Age = ?", 18).First(&user).Error)
+		xerror.Panic(db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
 		log.Sugar().Infow("data", "data", user)
 
 		log.Sugar().Infow("dix config ok", "cfg", config.CfgPath)

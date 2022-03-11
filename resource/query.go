@@ -18,7 +18,7 @@ type baseQuery struct {
 
 func (t *baseQuery) Get() io.Closer {
 	if val, ok := sources.Load(t.name); ok {
-		return val.(Resource).GetObj()
+		return val.(Resource).getObj()
 	}
 	return nil
 }

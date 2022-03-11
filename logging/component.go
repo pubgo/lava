@@ -42,7 +42,7 @@ func (t *namedLogger) WithErr(err error, fields ...zap.Field) *zap.Logger {
 		return t.L()
 	}
 
-	return t.L().With(logutil.WithErr(err, fields...)...)
+	return t.L().With(logutil.ErrField(err, fields...)...)
 }
 
 func (t *namedLogger) WithFunc(fn interface{}) *zap.Logger {

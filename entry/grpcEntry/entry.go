@@ -13,6 +13,7 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/google/uuid"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
+	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
@@ -31,8 +32,8 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/plugins/syncx"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
@@ -160,6 +161,9 @@ type grpcEntry struct {
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
 }
+
+func (g *grpcEntry) Mux() *gw.ServeMux              { return g.gw.Get() }
+func (g *grpcEntry) Conn() grpc.ClientConnInterface { return g.inproc }
 
 func (g *grpcEntry) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
 	g.srv.Get().RegisterService(desc, impl)

@@ -124,7 +124,7 @@ func Cmd() *cli.Command {
 							}
 						}
 
-						if version == "" {
+						if version == "" || pathutil.IsNotExist(fmt.Sprintf("%s@%s", url, version)) {
 							xerror.Panic(shutil.Shell("go", "get", "-d", url+"/...").Run())
 
 							// 再次解析go.mod然后获取版本信息
@@ -199,6 +199,8 @@ func Cmd() *cli.Command {
 
 								return "."
 							}()
+
+							_ = pathutil.IsNotExistMkDir(out)
 
 							var opts = func(dt interface{}) []string {
 								switch _dt := dt.(type) {

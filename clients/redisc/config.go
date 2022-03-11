@@ -1,14 +1,19 @@
 package redisc
 
 import (
+	"io"
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/pubgo/xerror"
+
 	"github.com/opentracing/opentracing-go/ext"
+
+	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 var Name = "redis"
-var cfgMap = make(map[string]*Cfg)
 
 const (
 	DbType                  = "redis"
@@ -37,6 +42,18 @@ type Cfg struct {
 	IdleCheckFrequency time.Duration `json:"idle_check_frequency" yaml:"idle_check_frequency"`
 }
 
-func DefaultCfg() *redis.Options {
-	return &redis.Options{}
+func (c Cfg) BuildClient() *redis.Client {
+	client := redis.NewClient(merge.Struct(&redis.Options{}, c).(*redis.Options))
+	xerror.PanicF(client.Ping(ctxutil.Timeout()).Err(), "redis(%v)连接失败", c)
+
+	// TODO 完善tracing
+	//client.AddHook()
+
+	return client
+}
+
+func (c Cfg) Build() io.Closer { return c.BuildClient() }
+
+func DefaultCfg() *Cfg {
+	return &Cfg{}
 }

@@ -13,7 +13,6 @@ var _ resource.Resource = (*Client)(nil)
 
 type Client struct {
 	resource.Resource
-	cli *redis.Client
 }
 
 func (t *Client) Unwrap() io.Closer               { return t.cli }

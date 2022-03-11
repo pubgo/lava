@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"io"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -14,9 +15,7 @@ import (
 	"github.com/pubgo/lava/pkg/merge"
 )
 
-const Name = "bbolt"
-
-var cfgMap = make(map[string]*Cfg)
+const Name = "bolt"
 
 type Cfg struct {
 	FileMode        fs.FileMode       `json:"file_mode"`
@@ -38,7 +37,7 @@ func (t *Cfg) BuildOpts() *bolt.Options {
 	return merge.Struct(options, t).(*bolt.Options)
 }
 
-func (t *Cfg) Build() *bolt.DB {
+func (t *Cfg) Build() io.Closer {
 	var opts = t.BuildOpts()
 	var path = filepath.Join(config.Home, t.Path)
 	xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(path)))

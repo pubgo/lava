@@ -6,52 +6,38 @@ import (
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/ctxutil"
+	"github.com/pubgo/lava/clients/grpcc/endpoint"
+	"github.com/pubgo/lava/clients/grpcc/resolver"
 )
 
-func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
-	return getCfg(consts.KeyDefault, opts...).BuildDirect(addr)
+func New(service string, opts ...func(cfg *Cfg)) *Client {
+	return NewClient(service, DefaultCfg(opts...))
 }
 
-var clients sync.Map
-var mu sync.Mutex
-
-func GetClient(service string, opts ...func(cfg *Cfg)) *Client {
-	var fn = func(cfg *Cfg) {}
-	if len(opts) > 0 {
-		fn = opts[0]
+// NewClient build grpc client
+func NewClient(service string, cfg Cfg) *Client {
+	var name = service
+	switch cfg.buildScheme {
+	case resolver.DiscovScheme:
+		service = resolver.BuildDiscovTarget(service, cfg.registry)
+	case resolver.DirectScheme:
+		service = resolver.BuildDirectTarget(service)
+	default:
+		service, name = endpoint.Interpret(service)
 	}
 
-	var cli, ok = clients.Load(service)
-	if ok {
-		return cli.(*Client)
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	// 双检
-	cli, ok = clients.Load(service)
-	if ok {
-		return cli.(*Client)
-	}
-
-	cli = &Client{service: service, optFn: fn}
-	clients.Store(service, cli)
-	return cli.(*Client)
+	return &Client{addr: service, cfg: cfg, name: name}
 }
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
 type Client struct {
-	cfg     *Cfg
-	service string
-	mu      sync.Mutex
-	optFn   func(cfg *Cfg)
-	conn    *grpc.ClientConn
+	cfg  Cfg
+	addr string
+	name string
+	mu   sync.Mutex
+	conn *grpc.ClientConn
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
@@ -73,14 +59,9 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 	return c, xerror.Wrap(err1, method)
 }
 
-func (t *Client) CheckHealth(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
-	ctx := ctxutil.Timeout()
-	return grpc_health_v1.NewHealthClient(t).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: t.service}, opts...)
-}
-
 // Get new grpc Client
-func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
-	defer xerror.RespErr(&err)
+func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
+	defer xerror.RespErr(&gErr)
 
 	if t.conn != nil {
 		return t.conn, nil
@@ -94,17 +75,12 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 		return t.conn, nil
 	}
 
-	// 获取服务的自定义配置
-	t.cfg = getCfg(t.service)
-
-	// 使用方自定义配置参数
-	if t.optFn != nil {
-		t.optFn(t.cfg)
-	}
-
 	// 创建grpc client
-	conn, err := t.cfg.Build(t.service)
-	xerror.PanicF(err, "dial %s error", t.service)
+	ctx, cancel := context.WithTimeout(context.Background(), t.cfg.DialTimeout)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, t.addr, append(t.cfg.ToOpts(), t.cfg.DialOptions...)...)
+	xerror.PanicF(err, "DialContext error, target:%s\n", t.addr)
 	t.conn = conn
 	return t.conn, nil
 }

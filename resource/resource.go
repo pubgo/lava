@@ -37,20 +37,19 @@ func Has(kind string, name string) bool {
 }
 
 // Update 更新资源
-func Update(name string, srv Resource) {
-	xerror.Assert(srv == nil || srv.GetObj() == nil, "[srv] should not be nil")
+func Update(name, kind string, b Builder) {
+	xerror.Assert(b == nil, "[b] should not be nil")
 
 	if name == "" {
 		name = consts.KeyDefault
 	}
 
-	kind := srv.Kind()
 	check(kind, name)
 
 	var fields = []zap.Field{
 		zap.String("kind", kind),
 		zap.String("name", name),
-		zap.String("resource", fmt.Sprintf("%#v", srv)),
+		zap.String("resource", fmt.Sprintf("%#v", b.Cfg())),
 	}
 
 	var log = logs.L().With(fields...)
@@ -61,31 +60,40 @@ func Update(name string, srv Resource) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	var oldClient, ok = sources.Load(id)
-	// 资源存在, 更新老资源
-	if ok && oldClient != nil {
-		// 新老对象替换, 资源内部对象不同时替换
-		if oldClient.(Resource).GetObj() != srv.GetObj() {
-			log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldClient))).Info("resource update")
-			oldClient.(Resource).updateObj(srv.GetObj())
-		}
+	oldSrv, ok := sources.Load(id)
+	if !ok {
+		// 资源不存在, 创建新资源
+		log.Info("resource create")
+
+		var srv = b.Wrapper(New(name, kind, b.Cfg().Build()))
+
+		sources.Set(id, srv)
+
+		// 只在资源创建的时候更新一次,依赖注入
+		xerror.Panic(dix.ProviderNs(name, srv))
+
+		log.Info("resource SetFinalizer")
+
+		// 当resource被gc时, 关闭  resource
+		runtime.SetFinalizer(srv.getObj(), func(cc io.Closer) {
+			logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
+		})
 		return
 	}
 
-	// 资源不存在, 创建新资源
-	log.Info("resource create")
+	// 资源存在, 更新老资源
+	// 新老对象替换, 资源内部对象不同时替换
+	if oldSrv.(*baseRes).cfg == b.Cfg() {
+		//	TODO 跳过去，配置未变更
+		return
+	}
 
-	sources.Set(id, srv)
+	var srv = b.Cfg().Build()
+	var resSrv = b.Wrapper(New(name, kind, srv))
+	oldSrv.(*baseRes).updateObj(resSrv.getObj())
 
-	// 只在资源创建的时候更新一次,依赖注入
-	xerror.Panic(dix.ProviderNs(name, srv))
-
-	log.Info("resource SetFinalizer")
-
-	// 当resource被gc时, 关闭  resource
-	runtime.SetFinalizer(srv.GetObj(), func(cc io.Closer) {
-		logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
-	})
+	log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldSrv))).Info("resource update")
+	return
 }
 
 func join(names ...string) string {

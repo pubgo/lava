@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/pkg/syncx"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/plugins/syncx"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)

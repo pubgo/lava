@@ -9,7 +9,7 @@ import (
 )
 
 // Decode decode env to *struct
-func Decode(v interface{}) error {
+func Decode(v interface{}) {
 	var envMap = make(map[string]string)
 	for _, env := range os.Environ() {
 		if envList := strings.SplitN(env, "=", 2); len(envList) == 2 && trim(envList[0]) != "" {
@@ -30,6 +30,5 @@ func Decode(v interface{}) error {
 
 	decoder, err := mapstructure.NewDecoder(cfg)
 	xerror.Panic(err)
-
-	return decoder.Decode(envMap)
+	xerror.Panic(decoder.Decode(envMap))
 }

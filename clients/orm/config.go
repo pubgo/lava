@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"io"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -14,28 +15,25 @@ import (
 	"github.com/pubgo/lava/runtime"
 )
 
-var logs = logging.Component(Name)
-
-var cfgMap = make(map[string]*Cfg)
-
 type Cfg struct {
-	Driver                                   string        `json:"driver" yaml:"driver"`
-	SkipDefaultTransaction                   bool          `json:"skip_default_transaction" yaml:"skip_default_transaction"`
-	FullSaveAssociations                     bool          `json:"full_save_associations" yaml:"full_save_associations"`
-	DryRun                                   bool          `json:"dry_run" yaml:"dry_run"`
-	PrepareStmt                              bool          `json:"prepare_stmt" yaml:"prepare_stmt"`
-	DisableAutomaticPing                     bool          `json:"disable_automatic_ping" yaml:"disable_automatic_ping"`
-	DisableForeignKeyConstraintWhenMigrating bool          `json:"disable_foreign_key_constraint_when_migrating" yaml:"disable_foreign_key_constraint_when_migrating"`
-	DisableNestedTransaction                 bool          `json:"disable_nested_transaction" yaml:"disable_nested_transaction"`
-	AllowGlobalUpdate                        bool          `json:"allow_global_update" yaml:"allow_global_update"`
-	QueryFields                              bool          `json:"query_fields" yaml:"query_fields"`
-	CreateBatchSize                          int           `json:"create_batch_size" yaml:"create_batch_size"`
-	MaxConnTime                              time.Duration `json:"max_conn_time" yaml:"max_conn_time"`
-	MaxConnIdle                              int           `json:"max_conn_idle" yaml:"max_conn_idle"`
-	MaxConnOpen                              int           `json:"max_conn_open" yaml:"max_conn_open"`
+	Driver                                   string                 `json:"driver" yaml:"driver"`
+	DriverCfg                                map[string]interface{} `json:"driver_config" yaml:"driver_config"`
+	SkipDefaultTransaction                   bool                   `json:"skip_default_transaction" yaml:"skip_default_transaction"`
+	FullSaveAssociations                     bool                   `json:"full_save_associations" yaml:"full_save_associations"`
+	DryRun                                   bool                   `json:"dry_run" yaml:"dry_run"`
+	PrepareStmt                              bool                   `json:"prepare_stmt" yaml:"prepare_stmt"`
+	DisableAutomaticPing                     bool                   `json:"disable_automatic_ping" yaml:"disable_automatic_ping"`
+	DisableForeignKeyConstraintWhenMigrating bool                   `json:"disable_foreign_key_constraint_when_migrating" yaml:"disable_foreign_key_constraint_when_migrating"`
+	DisableNestedTransaction                 bool                   `json:"disable_nested_transaction" yaml:"disable_nested_transaction"`
+	AllowGlobalUpdate                        bool                   `json:"allow_global_update" yaml:"allow_global_update"`
+	QueryFields                              bool                   `json:"query_fields" yaml:"query_fields"`
+	CreateBatchSize                          int                    `json:"create_batch_size" yaml:"create_batch_size"`
+	MaxConnTime                              time.Duration          `json:"max_conn_time" yaml:"max_conn_time"`
+	MaxConnIdle                              int                    `json:"max_conn_idle" yaml:"max_conn_idle"`
+	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
 }
 
-func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
+func (t Cfg) Build() io.Closer {
 	var log = merge.Struct(&gorm.Config{}, t).(*gorm.Config)
 
 	var level = gl.Info
@@ -44,7 +42,7 @@ func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 	}
 
 	log.Logger = gl.New(
-		logPrintf(logs.S().Infof),
+		logPrintf(logging.Component(Name).S().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,
@@ -52,6 +50,10 @@ func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 			Colorful:                  true,
 		},
 	)
+
+	var factory, ok = factories.Get(t.Driver).(Factory)
+	xerror.Assert(factory == nil || !ok, "factory[%s] not found", t.Driver)
+	dialect := factory(t.DriverCfg)
 
 	db, err := gorm.Open(dialect, log)
 	xerror.Panic(err)
@@ -78,7 +80,7 @@ func (t Cfg) Build(dialect gorm.Dialector) *gorm.DB {
 		sqlDB.SetMaxOpenConns(t.MaxConnOpen)
 	}
 
-	return db
+	return &wrapper{db}
 }
 
 func DefaultCfg() *Cfg {

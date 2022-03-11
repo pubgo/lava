@@ -18,8 +18,8 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Base{
-		Name:       "health",
-		Descriptor: "health check",
+		Name:  "health",
+		Short: "health check",
 		OnCommands: func() *types.Command {
 			return &cli.Command{
 				Name:  "health",

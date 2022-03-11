@@ -2,12 +2,13 @@ package config
 
 import (
 	"path/filepath"
-	"strings"
 
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher"
 )
 
 var (
@@ -19,10 +20,14 @@ var (
 )
 
 // Init 配置初始化
-func Init() { cfg.initCfg() }
+func Init() {
+	cfg.initCfg()
+
+	watcher.Init(getCfg())
+}
 
 // GetCfg 获取内存配置
-func GetCfg() Config { return getCfg() }
+func GetCfg() config_type.Interface { return getCfg() }
 func getCfg() *configImpl {
 	if !cfg.init {
 		panic("please init config")
@@ -35,4 +40,4 @@ func getCfg() *configImpl {
 func Decode(name string, fn interface{}) error { return getCfg().Decode(name, fn) }
 
 // GetMap 通过key获取配置map
-func GetMap(keys ...string) types.CfgMap { return getCfg().GetMap(strings.Join(keys, ".")) }
+func GetMap(keys ...string) types.CfgMap { return getCfg().GetMap(keys...) }

@@ -12,6 +12,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // TestApiClient is the client API for TestApi service.
@@ -109,7 +110,7 @@ type UnsafeTestApiServer interface {
 }
 
 func RegisterTestApiServer(s grpc.ServiceRegistrar, srv TestApiServer) {
-	s.RegisterService(&_TestApi_serviceDesc, srv)
+	s.RegisterService(&TestApi_ServiceDesc, srv)
 }
 
 func _TestApi_Version_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -184,7 +185,10 @@ func _TestApi_VersionTestCustom_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-var _TestApi_serviceDesc = grpc.ServiceDesc{
+// TestApi_ServiceDesc is the grpc.ServiceDesc for TestApi service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TestApi_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "hello.TestApi",
 	HandlerType: (*TestApiServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -270,7 +274,7 @@ type UnsafeTestApiV2Server interface {
 }
 
 func RegisterTestApiV2Server(s grpc.ServiceRegistrar, srv TestApiV2Server) {
-	s.RegisterService(&_TestApiV2_serviceDesc, srv)
+	s.RegisterService(&TestApiV2_ServiceDesc, srv)
 }
 
 func _TestApiV2_Version1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -309,7 +313,10 @@ func _TestApiV2_VersionTest1_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-var _TestApiV2_serviceDesc = grpc.ServiceDesc{
+// TestApiV2_ServiceDesc is the grpc.ServiceDesc for TestApiV2 service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var TestApiV2_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "hello.TestApiV2",
 	HandlerType: (*TestApiV2Server)(nil),
 	Methods: []grpc.MethodDesc{
