@@ -3,6 +3,7 @@ package vars
 import (
 	"expvar"
 	"fmt"
+	"github.com/pubgo/lava/debug/debug_mux"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,8 +11,6 @@ import (
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/mux"
 )
 
 func init() {
@@ -30,7 +29,7 @@ func init() {
 		})
 	}
 
-	mux.Route("/debug/expvar", func(r chi.Router) {
+	debug_mux.Route("/debug/expvar", func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, request *http.Request) {
 			var keys []string
 			expvar.Do(func(kv expvar.KeyValue) {

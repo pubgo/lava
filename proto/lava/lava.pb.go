@@ -57,7 +57,7 @@ func (x *Sql) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Sql.ProtoReflect.Short instead.
+// Deprecated: Use Sql.ProtoReflect.Descriptor instead.
 func (*Sql) Descriptor() ([]byte, []int) {
 	return file_proto_lava_lava_proto_rawDescGZIP(), []int{0}
 }
@@ -112,7 +112,7 @@ func (x *Tag) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Tag.ProtoReflect.Short instead.
+// Deprecated: Use Tag.ProtoReflect.Descriptor instead.
 func (*Tag) Descriptor() ([]byte, []int) {
 	return file_proto_lava_lava_proto_rawDescGZIP(), []int{1}
 }

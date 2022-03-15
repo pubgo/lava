@@ -2,7 +2,6 @@ package redisc
 
 import (
 	"context"
-	"io"
 
 	"github.com/go-redis/redis/v8"
 
@@ -15,11 +14,12 @@ type Client struct {
 	resource.Resource
 }
 
-func (t *Client) Unwrap() io.Closer               { return t.cli }
-func (t *Client) UpdateObj(val resource.Resource) { t.cli = val.(*Client).cli }
-func (t *Client) Kind() string                    { return Name }
+func (t *Client) cli() *redis.Client {
+	return t.GetRes().(*redis.Client)
+}
+
 func (t *Client) Get(ctx context.Context, options ...func(*redis.Options)) *redis.Client {
-	cc := t.cli.WithContext(ctx)
+	cc := t.cli().WithContext(ctx)
 	opts := cc.Options()
 
 	// 默认的读写超时时间为 1s

@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"io"
 	"time"
 )
 
@@ -17,3 +18,12 @@ const (
 	ExpiryTick               = time.Second * 1 // needs to be smaller than registry.RegisterTTL
 	MaxPacketSize            = 512
 )
+
+type CommitLog interface {
+	Delete() error
+	NewReader(offset int64, maxBytes int32) (io.Reader, error)
+	Truncate(int64) error
+	NewestOffset() int64
+	OldestOffset() int64
+	Append([]byte) (int64, error)
+}

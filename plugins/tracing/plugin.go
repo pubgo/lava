@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/lava/watcher/watcher_type"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
@@ -26,7 +27,7 @@ func init() {
 			_ = config.Decode(Name, &cfg)
 			xerror.Panic(cfg.Build())
 		},
-		OnWatch: func(_ string, r *types.WatchResp) error {
+		OnWatch: func(_ string, r *watcher_type.WatchResp) error {
 			_ = config.Decode(Name, &cfg)
 			return cfg.Build()
 		},

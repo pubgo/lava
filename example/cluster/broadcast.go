@@ -1,8 +1,9 @@
 package cluster
 
 import (
-	"github.com/hashicorp/memberlist"
 	"time"
+
+	"github.com/hashicorp/memberlist"
 )
 
 const broadcastTimeout = 5 * time.Second

@@ -4,11 +4,11 @@ import (
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/types"
 )
 
-type Factory func(cfg types.CfgMap) gorm.Dialector
+type Factory func(cfg config_type.CfgMap) gorm.Dialector
 
 var factories typex.SMap
 

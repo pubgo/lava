@@ -1,7 +1,9 @@
 package resource
 
 import (
+	"fmt"
 	"io"
+	"reflect"
 	"sync"
 	"time"
 
@@ -9,45 +11,62 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/reflectx"
 	"github.com/pubgo/lava/pkg/syncx"
 )
 
-type Base struct {
-	ResID     string                      `json:"_id" yaml:"_id"`
-	OnCfg     CfgBuilder                  `json:"-" yaml:"-"`
-	OnWrapper func(res Resource) Resource `json:"-" yaml:"-"`
+var _ BuilderFactory = (*Factory)(nil)
+
+type Factory struct {
+	ResID      string                                                          `json:"_id" yaml:"_id"`
+	OnBuilder  Builder                                                         `json:"-" yaml:"-"`
+	OnResource Resource                                                        `json:"-" yaml:"-"`
+	OnDi       func(obj inject.Object, field inject.Field) (interface{}, bool) `json:"-" yaml:"-"`
 }
 
-func (t Base) Wrapper(res Resource) Resource {
-	if t.OnWrapper == nil {
+func (t Factory) Di(kind string) func(obj inject.Object, field inject.Field) (interface{}, bool) {
+	if t.OnDi == nil {
+		return defaultDi(kind)
+	}
+	return t.OnDi
+}
+
+func (t Factory) Wrapper(res Resource) Resource {
+	if t.OnResource == nil {
 		return res
 	}
-	return t.OnWrapper(res)
+
+	var v = reflectx.Indirect(reflect.New(reflectx.Indirect(reflect.ValueOf(t.OnResource)).Type()))
+	// TODO Resource
+	var v1 = v.FieldByName("Resource")
+	if !v1.IsValid() {
+		panic(fmt.Sprintf("resource: %#v, has not field(Resource)", t.OnResource))
+	}
+	v1.Set(reflect.ValueOf(res))
+	return v1.Interface().(Resource)
 }
 
-func (t Base) GetResId() string {
+func (t Factory) GetResId() string {
 	if t.ResID == "" {
 		return consts.KeyDefault
 	}
 	return t.ResID
 }
 
-func (t Base) Cfg() CfgBuilder { return t.OnCfg }
+func (t Factory) Builder() Builder { return t.OnBuilder }
 
-type CfgBuilder interface {
+type Builder interface {
 	Build() io.Closer
 }
 
-type Builder interface {
-	Cfg() CfgBuilder
+type BuilderFactory interface {
+	Builder() Builder
 	GetResId() string
 	Wrapper(res Resource) Resource
-}
-
-// Release 释放资源
-type Release interface {
-	Release()
+	Di(kind string) func(obj inject.Object, field inject.Field) (interface{}, bool)
 }
 
 // Resource 资源对象接口
@@ -65,13 +84,23 @@ type Resource interface {
 	// Name 资源名字(ID)
 	Name() string
 
-	// LoadObj 获取真实的资源对象
+	// GetRes 获取真实的资源对象
 	//	r: 用完对象后记得 release, 不release会死锁
-	LoadObj() (obj interface{}, r Release)
+	GetRes() interface{}
+
+	// Done 资源释放
+	Done()
+
+	Log() *zap.Logger
 }
 
-func New(name string, kind string, val io.Closer) Resource {
-	return &baseRes{name: name, kind: kind, v: val}
+func newRes(name string, kind string, val io.Closer) Resource {
+	return &baseRes{
+		name: name,
+		kind: kind,
+		v:    val,
+		log:  zap.L().Named(logkey.Component).Named(kind).With(zap.String("name", name)),
+	}
 }
 
 type baseRes struct {
@@ -79,24 +108,27 @@ type baseRes struct {
 	name    string
 	v       io.Closer
 	rw      sync.RWMutex
-	cfg     CfgBuilder
+	cfg     Builder
 	counter atomic.Uint32
+	log     *zap.Logger
+}
+
+func (t *baseRes) Log() *zap.Logger { return t.log }
+
+func (t *baseRes) GetRes() interface{} {
+	t.rw.RLock()
+	t.counter.Inc()
+	// TODO counter check
+	return t.v
+}
+
+func (t *baseRes) Done() {
+	t.counter.Dec()
+	t.rw.RUnlock()
 }
 
 func (t *baseRes) Name() string { return t.name }
-
 func (t *baseRes) Kind() string { return t.kind }
-
-func (t *baseRes) Release() {
-	t.rw.RUnlock()
-	t.counter.Dec()
-}
-
-func (t *baseRes) LoadObj() (interface{}, Release) {
-	t.rw.RLock()
-	t.counter.Inc()
-	return t.v, t
-}
 
 func (t *baseRes) getObj() io.Closer {
 	t.rw.RLock()
@@ -106,17 +138,18 @@ func (t *baseRes) getObj() io.Closer {
 }
 
 func (t *baseRes) updateObj(obj io.Closer) {
-	// 如果长久未释放，就log error
-	syncx.GoMonitor(
+	// 资源更新5s超时, 打印log
+	// 方便log查看和监控
+	syncx.Monitor(
 		time.Second*5,
-		func() bool { return t.counter.Load() != 0 },
+		func() {
+			t.rw.Lock()
+			t.v = obj
+			t.rw.Unlock()
+			t.log.Info("resource update ok")
+		},
 		func(err error) {
-			logs.L().Error("resource update timeout",
-				logutil.ErrField(err, zap.String("kind", t.kind), zap.String("name", t.name))...)
+			t.log.Error("resource update fail", logutil.ErrField(err, zap.Uint32("curConn", t.counter.Load()))...)
 		},
 	)
-
-	t.rw.Lock()
-	t.v = obj
-	t.rw.Unlock()
 }

@@ -59,7 +59,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Error.ProtoReflect.Short instead.
+// Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
 	return file_errors_errors_proto_rawDescGZIP(), []int{0}
 }

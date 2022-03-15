@@ -3,13 +3,11 @@ package bbolt
 import (
 	"context"
 
-	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
-	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/resource"
 )
 
@@ -17,42 +15,68 @@ type Client struct {
 	resource.Resource
 }
 
+func (t *Client) Db() *bolt.DB {
+	return t.Resource.GetRes().(*bolt.DB)
+}
+
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
-	var bk, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
-	xerror.Panic(err, "create bucket error")
-	return bk
+	logutil.ErrRecord(t.Log(), "create bucket error", func() error {
+		var _, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
+		return err
+	})
+
+	return tx.Bucket([]byte(name))
 }
 
-func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
-	name := consts.KeyDefault
-	if len(names) > 0 {
-		name = names[0]
-	}
-
-	var span = tracing.CreateChild(ctx, name)
-	defer span.Finish()
-
-	ext.DBType.Set(span, Name)
-
-	var c, cancel = t.Resource.LoadObj()
-	defer cancel.Release()
-
-	return c.(*bolt.DB).View(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+func (t *Client) Set(ctx context.Context, key string, val []byte, names ...string) error {
+	return t.Update(ctx, func(bucket *bolt.Bucket) error {
+		return bucket.Put(utils.StoB(key), val)
+	}, names...)
 }
 
-func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket), names ...string) error {
-	name := consts.KeyDefault
-	if len(names) > 0 {
-		name = names[0]
-	}
+func (t *Client) Get(ctx context.Context, key string, names ...string) (val []byte, err error) {
+	return val, t.View(ctx, func(bucket *bolt.Bucket) error {
+		val = bucket.Get(utils.StoB(key))
+		return nil
+	}, names...)
+}
 
-	var span = tracing.CreateChild(ctx, name)
-	defer span.Finish()
+func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {
+	return t.View(ctx, func(bucket *bolt.Bucket) error { return bucket.ForEach(fn) }, names...)
+}
 
-	ext.DBType.Set(span, Name)
+func (t *Client) Delete(ctx context.Context, key string, names ...string) error {
+	return t.Update(ctx, func(bucket *bolt.Bucket) error {
+		return bucket.Delete(utils.StoB(key))
+	}, names...)
+}
 
-	var c, cancel = t.Resource.LoadObj()
-	defer cancel.Release()
+func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
+	name := utils.GetDefault(names...)
 
-	return c.(*bolt.DB).Update(func(tx *bolt.Tx) (err error) { return xerror.Try(func() { fn(t.bucket(name, tx)) }) })
+	//var span = tracing.CreateChild(ctx, name)
+	//defer span.Finish()
+	//ext.DBType.Set(span, Name)
+
+	var c = t.Db()
+	defer t.Resource.Done()
+
+	return c.View(func(tx *bolt.Tx) (err error) {
+		return fn(t.bucket(name, tx))
+	})
+}
+
+func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
+	name := utils.GetDefault(names...)
+
+	//var span = tracing.CreateChild(ctx, name)
+	//defer span.Finish()
+	//ext.DBType.Set(span, Name)
+
+	var c = t.Db()
+	defer t.Resource.Done()
+
+	return c.Update(func(tx *bolt.Tx) (err error) {
+		return fn(t.bucket(name, tx))
+	})
 }

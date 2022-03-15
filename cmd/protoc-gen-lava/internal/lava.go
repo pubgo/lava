@@ -121,7 +121,10 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 	g.P("}")
 	g.P()
 
-	g.QualifiedGoIdent(contextCall(""))
+	if !isDefault {
+		g.QualifiedGoIdent(contextCall(""))
+	}
+
 	g.QualifiedGoIdent(grpcCall(""))
 	g.QualifiedGoIdent(runtimeCall(""))
 	g.P(protoutil.Template(`

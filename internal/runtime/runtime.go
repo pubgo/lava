@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/log_config"
@@ -21,6 +20,7 @@ import (
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/server"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
@@ -32,7 +32,7 @@ var app = &cli.App{
 	Version: version.Version,
 }
 
-func Run(desc string, entries ...entry.Entry) {
+func Run(desc string, entries ...server.Entry) {
 	defer xerror.RespExit()
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
@@ -40,7 +40,7 @@ func Run(desc string, entries ...entry.Entry) {
 	for _, ent := range entries {
 		xerror.Assert(ent == nil, "[ent] should not be nil")
 
-		_, ok := ent.(entry.Runtime)
+		_, ok := ent.(server.Runtime)
 		xerror.Assert(!ok, "[ent] not implement runtime, \n%s", q.Sq(ent))
 	}
 
@@ -75,7 +75,7 @@ func Run(desc string, entries ...entry.Entry) {
 
 	for i := range entries {
 		ent := entries[i]
-		entRT := ent.(entry.Runtime)
+		entRT := ent.(server.Runtime)
 		cmd := entRT.Options().Command
 
 		// 检查项目Command是否注册
@@ -125,7 +125,7 @@ func Run(desc string, entries ...entry.Entry) {
 	xerror.Panic(app.Run(os.Args))
 }
 
-func start(ent entry.Runtime) {
+func start(ent server.Runtime) {
 	logutil.OkOrPanic(logs.L(), "before-start running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {
@@ -153,7 +153,7 @@ func start(ent entry.Runtime) {
 	})
 }
 
-func stop(ent entry.Runtime) {
+func stop(ent server.Runtime) {
 	logutil.OkOrErr(logs.L(), "before-stop running", func() error {
 		var beforeList []func()
 		for _, p := range plugin.All() {

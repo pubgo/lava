@@ -61,6 +61,19 @@ func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field)
 	log.Error(msg, ErrField(err)...)
 }
 
+func ErrRecord(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
+	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
+
+	var err error
+	xerror.TryWith(&err, func() { err = fn() })
+
+	if err == nil {
+		return
+	}
+
+	log.Error(msg, ErrField(err)...)
+}
+
 func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 

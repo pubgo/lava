@@ -6,12 +6,12 @@ import (
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/debug/debug_mux"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/plugins/metric"
-	"github.com/pubgo/lava/types"
 )
 
 const Name = "prometheus"
@@ -20,7 +20,7 @@ const urlPath = "/metrics"
 var logs = logging.Component(logutil.Names(metric.Name, Name))
 
 func init() {
-	metric.RegisterFactory(Name, func(cfg types.CfgMap, opts *tally.ScopeOptions) (err error) {
+	metric.RegisterFactory(Name, func(cfg config_type.CfgMap, opts *tally.ScopeOptions) (err error) {
 		defer xerror.RespErr(&err)
 
 		opts.Separator = prometheus.DefaultSeparator
@@ -36,7 +36,7 @@ func init() {
 			},
 		)
 		xerror.Panic(err1)
-		mux.DebugGet(urlPath, reporter.HTTPHandler().ServeHTTP)
+		debug_mux.DebugGet(urlPath, reporter.HTTPHandler().ServeHTTP)
 
 		opts.CachedReporter = reporter
 		return nil

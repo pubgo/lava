@@ -50,7 +50,7 @@ func (t *Cfg) Build() io.Closer {
 func DefaultCfg() *Cfg {
 	return &Cfg{
 		Path:     "./db/bolt",
-		FileMode: 0666,
+		FileMode: 0600,
 		Timeout:  consts.DefaultTimeout,
 	}
 }

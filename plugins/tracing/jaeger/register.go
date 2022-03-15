@@ -2,17 +2,17 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
 
 func init() {
-	tracing.RegisterFactory(Name, func(cfgMap types.CfgMap) error {
+	tracing.RegisterFactory(Name, func(cfgMap config_type.CfgMap) error {
 		tracing.GetSpanID = GetSpanID
 
 		var cfg = DefaultCfg()

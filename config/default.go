@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/watcher"
 )
 
@@ -27,7 +26,7 @@ func Init() {
 }
 
 // GetCfg 获取内存配置
-func GetCfg() config_type.Interface { return getCfg() }
+func GetCfg() config_type.IConfig { return getCfg() }
 func getCfg() *configImpl {
 	if !cfg.init {
 		panic("please init config")
@@ -40,4 +39,4 @@ func getCfg() *configImpl {
 func Decode(name string, fn interface{}) error { return getCfg().Decode(name, fn) }
 
 // GetMap 通过key获取配置map
-func GetMap(keys ...string) types.CfgMap { return getCfg().GetMap(keys...) }
+func GetMap(keys ...string) config_type.CfgMap { return getCfg().GetMap(keys...) }

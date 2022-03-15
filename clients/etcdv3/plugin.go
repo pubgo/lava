@@ -10,9 +10,9 @@ const Name = "etcdv3"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		Builder: resource.Base{
-			OnCfg:     DefaultCfg(),
-			OnWrapper: func(res resource.Resource) resource.Resource { return Client{res} },
+		Builder: resource.Factory{
+			OnBuilder:  DefaultCfg(),
+			OnResource: &Client{},
 		},
 	})
 }

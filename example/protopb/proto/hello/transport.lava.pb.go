@@ -7,7 +7,6 @@
 package hello
 
 import (
-	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"

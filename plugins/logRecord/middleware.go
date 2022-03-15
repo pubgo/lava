@@ -92,7 +92,7 @@ func init() {
 
 			err = next(
 				// 集成logger到context
-				logging.CreateCtxWith(ctx, zap.L().Named(logkey.Service).With(
+				logging.CreateCtx(ctx, zap.L().Named(logkey.Service).With(
 					zap.String("tracerID", tracerID),
 					zap.String("spanID", spanID),
 					zap.String("requestId", reqId),

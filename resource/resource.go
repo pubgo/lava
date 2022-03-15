@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
@@ -37,7 +38,7 @@ func Has(kind string, name string) bool {
 }
 
 // Update 更新资源
-func Update(name, kind string, b Builder) {
+func Update(name, kind string, b BuilderFactory) {
 	xerror.Assert(b == nil, "[b] should not be nil")
 
 	if name == "" {
@@ -49,7 +50,7 @@ func Update(name, kind string, b Builder) {
 	var fields = []zap.Field{
 		zap.String("kind", kind),
 		zap.String("name", name),
-		zap.String("resource", fmt.Sprintf("%#v", b.Cfg())),
+		zap.String("resource", fmt.Sprintf("%#v", b.Builder())),
 	}
 
 	var log = logs.L().With(fields...)
@@ -65,7 +66,7 @@ func Update(name, kind string, b Builder) {
 		// 资源不存在, 创建新资源
 		log.Info("resource create")
 
-		var srv = b.Wrapper(New(name, kind, b.Cfg().Build()))
+		var srv = b.Wrapper(newRes(name, kind, b.Builder().Build()))
 
 		sources.Set(id, srv)
 
@@ -78,18 +79,21 @@ func Update(name, kind string, b Builder) {
 		runtime.SetFinalizer(srv.getObj(), func(cc io.Closer) {
 			logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
 		})
+
+		// 依赖注入
+		inject.Register(srv, b.Di(kind))
 		return
 	}
 
 	// 资源存在, 更新老资源
 	// 新老对象替换, 资源内部对象不同时替换
-	if oldSrv.(*baseRes).cfg == b.Cfg() {
+	if oldSrv.(*baseRes).cfg == b.Builder() {
 		//	TODO 跳过去，配置未变更
 		return
 	}
 
-	var srv = b.Cfg().Build()
-	var resSrv = b.Wrapper(New(name, kind, srv))
+	var srv = b.Builder().Build()
+	var resSrv = b.Wrapper(newRes(name, kind, srv))
 	oldSrv.(*baseRes).updateObj(resSrv.getObj())
 
 	log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldSrv))).Info("resource update")
@@ -102,4 +106,15 @@ func join(names ...string) string {
 
 func check(kind string, name string) {
 	xerror.Assert(kind == "" || name == "", "resource: kind(%s) and name(%s) should not be null", kind, name)
+}
+
+func defaultDi(kind string) func(obj inject.Object, field inject.Field) (interface{}, bool) {
+	return func(obj inject.Object, field inject.Field) (interface{}, bool) {
+		var val = Get(kind, field.Name())
+		if val == nil {
+			// TODO log
+			return nil, false
+		}
+		return val, true
+	}
 }

@@ -1,18 +1,18 @@
 package healthy
 
 import (
+	"github.com/pubgo/lava/debug/debug_mux"
 	"net/http"
 
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/mux"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/types"
 )
 
 func init() {
-	mux.Get("/health", httpHandle)
+	debug_mux.Get("/health", httpHandle)
 }
 
 type health struct {

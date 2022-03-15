@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/memberlist"
+	"github.com/hashicorp/serf/serf"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging"
@@ -16,6 +17,17 @@ import (
 var logs = logging.Component("cluster")
 
 type Cluster struct {
+	shutdownCh   chan struct{}
+	raftNotifyCh <-chan bool
+	// reconcileCh is used to pass events from the serf handler to the raft leader to update its state.
+	reconcileCh chan serf.Member
+	serf        *serf.Serf
+	eventChLAN  chan serf.Event
+	//eventChLAN:       make(chan serf.Event, 256),
+	//		brokerLookup:     NewBrokerLookup(),
+	//		replicaLookup:    NewReplicaLookup(),
+	//		reconcileCh:      make(chan serf.Member, 32),
+
 	nodeId           string
 	AddrList         []string
 	cfg              *memberlist.Config
@@ -72,12 +84,24 @@ func NewCluster(cfg *Config) (*Cluster, error) {
 	// members.UpdateNode(10 * time.Second)
 	member.UpdateNode()
 
-	return &Cluster{
+	var c = &Cluster{
 		cfg:           config,
 		memberList:    member,
 		eventDelegate: eventDelegate,
 		broadcast:     queue,
-	}, nil
+	}
+	go c.lanEventHandler()
+
+	return c, nil
+}
+
+// Join is used to have the broker join the gossip ring.
+// The given address should be another broker listening on the Serf address.
+func (c *Cluster) JoinLAN(addrs ...string) error {
+	if _, err := c.serf.Join(addrs, true); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Cluster) NodeEvent() <-chan memberlist.NodeEvent { return c.eventDelegate }

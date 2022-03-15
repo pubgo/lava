@@ -3,6 +3,7 @@ package protojson
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/pubgo/lava/encoding"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -58,7 +59,7 @@ func (j *jsonCodec) Decode(data []byte, v interface{}) error {
 	if useNumber {
 		dec.UseNumber()
 	}
-	
+
 	return dec.Decode(v)
 }
 

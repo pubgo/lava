@@ -5,7 +5,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
@@ -41,13 +40,10 @@ func init() {
 
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
-
-			// 注入依赖scope
-			xerror.Panic(dix.Provider(scope))
 		},
 		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
 			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
-				return next(CreateCtxWith(ctx, GetGlobal()), req, resp)
+				return next(CreateCtx(ctx, GetGlobal()), req, resp)
 			}
 		},
 		OnVars: func(v types.Vars) {

@@ -1,35 +1,5 @@
 package resource
 
-import (
-	"io"
-
-	"github.com/pubgo/lava/pkg/utils"
-)
-
-func Component(kind string, names ...string) *baseQuery {
-	name := utils.GetDefault(names...)
-	check(kind, name)
-	return &baseQuery{kind: kind, name: join(kind, name)}
-}
-
-type baseQuery struct {
-	kind, name string
-}
-
-func (t *baseQuery) Get() io.Closer {
-	if val, ok := sources.Load(t.name); ok {
-		return val.(Resource).getObj()
-	}
-	return nil
-}
-
-func (t *baseQuery) Load() (interface{}, Release) {
-	if val, ok := sources.Load(t.name); ok {
-		return val.(Resource).LoadObj()
-	}
-	return nil, nil
-}
-
 // Get 根据类型和名字获取一个资源
 func Get(kind string, name string) Resource {
 	check(kind, name)

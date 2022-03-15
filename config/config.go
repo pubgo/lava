@@ -18,12 +18,11 @@ import (
 	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
 
-var _ config_type.Interface = (*configImpl)(nil)
+var _ config_type.IConfig = (*configImpl)(nil)
 
 type configImpl struct {
 	rw   sync.RWMutex
@@ -52,18 +51,14 @@ func (t *configImpl) AllKeys() []string {
 	return t.v.AllKeys()
 }
 
-func (t *configImpl) GetArrayMap(keys ...string) []types.CfgMap {
-	return nil
-}
-
-func (t *configImpl) GetMap(keys ...string) types.CfgMap {
+func (t *configImpl) GetMap(keys ...string) config_type.CfgMap {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
 	key := strings.Trim(strings.Join(keys, "."), ".")
 	var val = t.v.Get(key)
 	if val == nil {
-		return types.CfgMap{}
+		return config_type.CfgMap{}
 	}
 
 	for _, data := range cast.ToSlice(val) {

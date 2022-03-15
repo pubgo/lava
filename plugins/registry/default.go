@@ -1,15 +1,16 @@
 package registry
 
 import (
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/config/config_type"
 )
 
 var defaultRegistry Registry
 
 func Default() Registry { return defaultRegistry }
 
-func Init(driver string, cfg types.CfgMap) (err error) {
+func Init(driver string, cfg config_type.CfgMap) (err error) {
 	xerror.RespErr(&err)
 
 	if cfg == nil {

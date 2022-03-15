@@ -2,11 +2,13 @@ package watcher
 
 import (
 	"github.com/pubgo/lava/vars"
+	"github.com/pubgo/lava/watcher/watcher_type"
+
 	"github.com/pubgo/x/stack"
 )
 
 func init() {
-	vars.Register(Name+"_factories", func() interface{} {
+	vars.Register(watcher_type.Name+"_factories", func() interface{} {
 		var data = make(map[string]string)
 		for k, v := range factories {
 			data[k] = stack.Func(v)
@@ -14,7 +16,7 @@ func init() {
 		return data
 	})
 
-	vars.Register(Name+"_handlers", func() interface{} {
+	vars.Register(watcher_type.Name+"_handlers", func() interface{} {
 		var data = make(map[string][]string)
 		for k, v := range callbacks {
 			for i := range v {

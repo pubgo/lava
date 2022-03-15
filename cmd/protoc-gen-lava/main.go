@@ -1,10 +1,11 @@
 package main
 
 import (
-	genLava "github.com/pubgo/lava/cmd/protoc-gen-lava/internal"
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
+
+	genLava "github.com/pubgo/lava/cmd/protoc-gen-lava/internal"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 				continue
 			}
 
-			//genLava.GenerateFile(gen, f)
+			genLava.GenerateFile(gen, f)
 			genLava.GenerateTag(gen, f)
 		}
 		return nil

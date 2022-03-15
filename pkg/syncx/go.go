@@ -94,62 +94,43 @@ func GoDelay(fn func(), durations ...time.Duration) {
 	return
 }
 
-// GoMonitor check timeout
-func GoMonitor(timeout time.Duration, ok func() bool, errFn func(err error)) chan struct{} {
+func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 	if timeout <= 0 {
-		panic("[GoMonitor] [timeout] should not be less than zero")
+		panic("[Monitor] [timeout] should not be less than zero")
 	}
 
-	checkFn(ok, "[GoMonitor] [fn] is nil")
-	checkFn(errFn, "[GoMonitor] [fn] is nil")
-
-	var fn = func() error {
-		var done = make(chan struct{})
-		var gErr error
-
-		go func() {
-			defer func() {
-				xerror.RespErr(&gErr)
-				close(done)
-			}()
-
-			for ok() {
-				time.Sleep(time.Millisecond * 10)
-			}
-		}()
-
-		select {
-		case <-time.After(timeout):
-			return context.DeadlineExceeded
-		case <-done:
-			return gErr
-		}
-	}
+	checkFn(run, "[Monitor] [run] is nil")
+	checkFn(errFn, "[Monitor] [errFn] is nil")
 
 	var done = make(chan struct{})
 	go func() {
-		defer close(done)
-		for {
-			var err = fn()
-			if err == nil {
-				return
-			}
+		defer xerror.Resp(func(err xerror.XErr) {
+			logutil.ErrTry(logs.L(), func() { errFn(err) }, logutil.FuncStack(run))
+		})
 
-			logutil.ErrTry(logs.L(), func() { errFn(err) })
-		}
+		run()
+		close(done)
 	}()
-	return done
+
+	for {
+		select {
+		case <-time.After(timeout):
+			logutil.ErrTry(logs.L(), func() { errFn(context.DeadlineExceeded) }, logutil.FuncStack(run))
+		case <-done:
+			return
+		}
+	}
 }
 
-// GoTimeout 超时处理
-func GoTimeout(dur time.Duration, fn func()) (gErr error) {
+// Timeout 超时处理
+func Timeout(dur time.Duration, fn func()) (gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	if dur <= 0 {
-		panic("[GoTimeout] [dur] should not be less than zero")
+		panic("[Timeout] [dur] should not be less than zero")
 	}
 
-	checkFn(fn, "[GoTimeout] [fn] is nil")
+	checkFn(fn, "[Timeout] [fn] is nil")
 
 	var done = make(chan struct{})
 

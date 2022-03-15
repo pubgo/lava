@@ -56,7 +56,7 @@ func NewId() *Id {
 
 func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.GenerateResponse, error) {
 	var rsp = new(gid.GenerateResponse)
-	var log = logging.GetLogger(ctx)
+	var log = logging.GetLog(ctx)
 
 	if len(req.Type) == 0 {
 		req.Type = "uuid"

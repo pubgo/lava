@@ -28,9 +28,7 @@ type Client struct {
 }
 
 func (c *Client) Ping() error {
-	var db, release = c.Load()
-	defer release.Release()
-
+	var db = c.get()
 	var _db, err = db.DB()
 	if err != nil {
 		return err
@@ -38,13 +36,13 @@ func (c *Client) Ping() error {
 	return _db.Ping()
 }
 
-func (c *Client) Load() (*gorm.DB, resource.Release) {
-	var r, cancel = c.Resource.LoadObj()
-	return r.(*wrapper).DB, cancel
+func (c *Client) Load() *gorm.DB {
+	var r = c.Resource.GetRes()
+	return r.(*wrapper).DB
 }
 
 func (c *Client) get() *gorm.DB {
-	var r, cancel = c.Resource.LoadObj()
-	defer cancel.Release()
+	var r = c.Resource.GetRes()
+	defer c.Done()
 	return r.(*wrapper).DB
 }

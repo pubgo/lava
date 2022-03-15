@@ -3,6 +3,7 @@ package nacos
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/config/config_type"
 	"net"
 	"strconv"
 
@@ -13,11 +14,10 @@ import (
 
 	"github.com/pubgo/lava/clients/nacos"
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
-	registry.Register(Name, func(m types.CfgMap) (registry.Registry, error) {
+	registry.Register(Name, func(m config_type.CfgMap) (registry.Registry, error) {
 		var cfg Cfg
 		xerror.Panic(merge.MapStruct(&cfg, m))
 		var c = nacos.Get(cfg.Driver)

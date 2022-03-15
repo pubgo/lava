@@ -8,11 +8,11 @@ import (
 
 type metricKey struct{}
 
-func CreateCtxWith(parent context.Context, scope tally.Scope) context.Context {
+func CreateCtx(parent context.Context, scope tally.Scope) context.Context {
 	return context.WithValue(parent, metricKey{}, scope)
 }
 
-func GetFrom(ctx context.Context) tally.Scope {
+func GetMetric(ctx context.Context) tally.Scope {
 	var l, ok = ctx.Value(metricKey{}).(tally.Scope)
 	if ok {
 		return l

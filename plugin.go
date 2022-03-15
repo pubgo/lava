@@ -6,7 +6,7 @@ import (
 	_ "github.com/pubgo/lava/version"
 
 	// 加载debug插件
-	_ "github.com/pubgo/lava/internal/plugins/debug"
+	_ "github.com/pubgo/lava/debug/debug_plugin"
 
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
@@ -28,9 +28,10 @@ import (
 
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
+)
 
-	// 加载拦截器, 注意加载顺序
-
+// 加载middleware, 注意加载顺序
+import (
 	// 加载log记录拦截器
 	_ "github.com/pubgo/lava/plugins/logRecord"
 

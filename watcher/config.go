@@ -2,7 +2,7 @@ package watcher
 
 import (
 	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher/watcher_type"
 	"github.com/pubgo/xerror"
 )
 
@@ -13,10 +13,10 @@ type Cfg struct {
 	// Projects 需要watcher的项目
 	Projects []string `json:"projects"`
 
-	cfg config_type.Interface
+	cfg config_type.IConfig
 }
 
-func (cfg Cfg) Build(data types.CfgMap) (_ Watcher, err error) {
+func (cfg Cfg) Build(data config_type.CfgMap) (_ watcher_type.Watcher, err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

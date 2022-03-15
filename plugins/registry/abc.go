@@ -5,6 +5,7 @@ package registry
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, mdns, ...}
 type Registry interface {
+	Init()
 	String() string
 	Register(*Service, ...RegOpt) error
 	RegLoop(func() *Service, ...RegOpt) error

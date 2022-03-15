@@ -1,12 +1,12 @@
 package registry
 
 import (
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 )
 
-type Factory func(cfgMap types.CfgMap) (Registry, error)
+type Factory func(cfgMap config_type.CfgMap) (Registry, error)
 
 var factories typex.Map
 

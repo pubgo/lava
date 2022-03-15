@@ -1,8 +1,9 @@
 package registry
 
 import (
-	"github.com/pubgo/lava/event"
 	"time"
+
+	"github.com/pubgo/lava/event"
 )
 
 // Watcher is an interface that returns updates

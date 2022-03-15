@@ -16,11 +16,11 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
+	"github.com/pubgo/lava/server"
 )
 
 type User struct {
@@ -44,17 +44,18 @@ func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
 }
 
-var _ = entry.AssertHandler(&testapiHandler{})
+var _ = server.AssertHandler(&testapiHandler{})
 
 type testapiHandler struct {
+	server.Handler
 	Db         *orm.Client          `dix:""`
 	Cron       *scheduler.Scheduler `dix:""`
-	TestApiSrv hello.TestApiClient  `dix:""`
+	TestApiSrv hello.TestApiClient  `name:"hello"`
 }
 
 func (h *testapiHandler) Init() {
-	var db, r = h.Db.Load()
-	defer r.Release()
+	var db = h.Db.Load()
+	defer h.Db.Done()
 
 	xerror.Panic(db.AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
@@ -86,19 +87,19 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	var log = logging.GetLogger(ctx)
+	var log = logging.GetLog(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
-	var m = metric.GetFrom(ctx)
+	var m = metric.GetMetric(ctx)
 	m.Counter("test-counter").Inc(1)
 	defer m.Timer("test-timer").Start().Stop()
 
 	if h.Db != nil {
 		var user User
 
-		var db, r = h.Db.Load()
-		defer r.Release()
+		var db = h.Db.Load()
+		defer h.Db.Done()
 
 		xerror.Panic(db.WithContext(ctx).First(&user).Error)
 		log.Sugar().Infow("data", "data", user)

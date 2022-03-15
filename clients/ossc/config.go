@@ -1,9 +1,10 @@
 package ossc
 
 import (
+	"io"
+
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/pubgo/xerror"
-	"io"
 )
 
 var Name = "oss"

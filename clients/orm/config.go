@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugins/tracing"
 	"github.com/pubgo/lava/runtime"
@@ -42,7 +43,7 @@ func (t Cfg) Build() io.Closer {
 	}
 
 	log.Logger = gl.New(
-		logPrintf(logging.Component(Name).S().Infof),
+		logPrintf(zap.S().Named(logkey.Component).Named(Name).Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,

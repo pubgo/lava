@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
@@ -10,11 +11,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/clients/orm"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
-	orm.Register("sqlite3", func(cfg types.CfgMap) gorm.Dialector {
+	orm.Register("sqlite3", func(cfg config_type.CfgMap) gorm.Dialector {
 		var dsn, ok = cfg["dsn"].(string)
 		xerror.AssertFn(!ok || dsn == "", func() string {
 			q.Q(cfg)

@@ -1,9 +1,9 @@
 package tracing
 
 import (
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/config/config_type"
 )
 
 func init() {
-	RegisterFactory("noop", func(cfg types.CfgMap) error { return nil })
+	RegisterFactory("noop", func(cfg config_type.CfgMap) error { return nil })
 }

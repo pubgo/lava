@@ -67,7 +67,7 @@ func (x *GenerateResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GenerateResponse.ProtoReflect.Short instead.
+// Deprecated: Use GenerateResponse.ProtoReflect.Descriptor instead.
 func (*GenerateResponse) Descriptor() ([]byte, []int) {
 	return file_proto_test_test_proto_rawDescGZIP(), []int{0}
 }

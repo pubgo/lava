@@ -15,20 +15,21 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
-var defaultWatcher Watcher = &nullWatcher{}
-var logs = logging.Component(Name)
+var defaultWatcher watcher_type.Watcher = &nullWatcher{}
+var logs = logging.Component(watcher_type.Name)
 var cfg = DefaultCfg()
 
 // Init 初始化watcher
-func Init(conf config_type.Interface) {
+func Init(conf config_type.IConfig) {
 	defer xerror.RespExit()
 
 	xerror.Assert(conf == nil, "conf is nil")
 	cfg.cfg = conf
 
-	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(Watcher)
+	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(watcher_type.Name))).(watcher_type.Watcher)
 
 	// 获取所有需要watch的项目
 	if !strutil.Contains(cfg.Projects, runtime.Name()) {
@@ -40,16 +41,16 @@ func Init(conf config_type.Interface) {
 		var project = cfg.Projects[i]
 
 		// get远程配置, 启动时, 获取项目下所有配置
-		xerror.Panic(defaultWatcher.GetCallback(ctxutil.Timeout(), project, func(resp *Response) { onInit(project, resp) }))
+		xerror.Panic(defaultWatcher.GetCallback(ctxutil.Timeout(), project, func(resp *watcher_type.Response) { onInit(project, resp) }))
 
 		// watch远程配置
-		defaultWatcher.WatchCallback(context.Background(), project, func(resp *Response) { onWatch(project, resp) })
+		defaultWatcher.WatchCallback(context.Background(), project, func(resp *watcher_type.Response) { onWatch(project, resp) })
 	}
 	return
 }
 
 // onInit 初始化, 获取远程配置
-func onInit(name string, resp *Response) {
+func onInit(name string, resp *watcher_type.Response) {
 	// 过滤空值
 	if cfg.SkipNull && len(bytes.TrimSpace(resp.Value)) == 0 {
 		return
@@ -77,7 +78,7 @@ func onInit(name string, resp *Response) {
 
 }
 
-func onWatch(name string, resp *Response) {
+func onWatch(name string, resp *watcher_type.Response) {
 	var project = zap.String("watch-project", name)
 
 	defer xerror.Resp(func(err xerror.XErr) {

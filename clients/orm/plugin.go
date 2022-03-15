@@ -9,9 +9,9 @@ import (
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		Builder: resource.Base{
-			OnCfg:     DefaultCfg(),
-			OnWrapper: func(res resource.Resource) resource.Resource { return Client{res} },
+		Builder: resource.Factory{
+			OnBuilder:  DefaultCfg(),
+			OnResource: &Client{},
 		},
 		OnVars: func(v types.Vars) {
 			v.Publish(Name+"_stats", func() interface{} {

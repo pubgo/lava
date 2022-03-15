@@ -1,9 +1,10 @@
 package cluster
 
 import (
+	"time"
+	
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/serf/serf"
-	"time"
 )
 
 type Node struct {
