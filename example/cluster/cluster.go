@@ -17,6 +17,7 @@ import (
 var logs = logging.Component("cluster")
 
 type Cluster struct {
+	config       Config
 	shutdownCh   chan struct{}
 	raftNotifyCh <-chan bool
 	// reconcileCh is used to pass events from the serf handler to the raft leader to update its state.
@@ -28,6 +29,7 @@ type Cluster struct {
 	//		replicaLookup:    NewReplicaLookup(),
 	//		reconcileCh:      make(chan serf.Member, 32),
 
+	Log              *logging.Logger
 	nodeId           string
 	AddrList         []string
 	cfg              *memberlist.Config
@@ -66,23 +68,12 @@ func NewCluster(cfg *Config) (*Cluster, error) {
 
 	member.LocalNode()
 
-	member.SendBestEffort()
-
-	member.SendReliable()
-
-	// ping seed
-	member.Ping()
-
-	// 加入集群
-	member.Join()
-
 	// 广播本节点信息
 	// members.LocalNode().Meta, err = nodeMetadata.Bytes()
 	// if err != nil {
 	// 	nodeLogger.Error("Failed to set node metadata", zap.Error(err))
 	// }
 	// members.UpdateNode(10 * time.Second)
-	member.UpdateNode()
 
 	var c = &Cluster{
 		cfg:           config,
@@ -198,9 +189,6 @@ func (c *Cluster) Stop() error {
 func (c *Cluster) mRandomNodes(m int, nodes []string) []string {
 	n := len(nodes)
 	mNodes := make([]string, 0, m)
-
-	c.memberList.SendReliable()
-	c.memberList.SendBestEffort()
 
 OUTER:
 	// Probe up to 3*n times, with large n this is not necessary

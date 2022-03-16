@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
-	"go.uber.org/zap"
 )
 
 type IHello interface {
@@ -13,7 +12,7 @@ var _ error = (*hello)(nil)
 
 type hello struct {
 	IHello `json:"i_hello"`
-	L      *zap.Logger
+	L      *logging.Logger
 	Name   string
 }
 
@@ -23,7 +22,6 @@ func (h hello) Error() string {
 }
 
 func Register(err error) {
-	_ = logging.L()
 	inject.Inject(err)
 	err.Error()
 }

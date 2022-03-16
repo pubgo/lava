@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/hashicorp/serf/serf"
 	"net"
 	"strconv"
 	"time"
@@ -24,6 +25,9 @@ func generateNodeName() string {
 }
 
 type Config struct {
+	SerfLANConfig       serf.Config
+	ID                  string
+	NodeName            string
 	Addr                string
 	AdvertiseAddr       string
 	AdvertisePort       int

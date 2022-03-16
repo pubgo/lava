@@ -3,17 +3,19 @@ package cluster
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/logging"
+	"go.uber.org/zap"
 	"log"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/raft"
 	"github.com/hashicorp/serf/serf"
+
+	"github.com/pubgo/lava/runtime"
 )
 
 const (
@@ -33,18 +35,61 @@ var (
 
 const (
 	serfLANSnapshot   = "serf/local.snapshot"
+	serfWANSnapshot   = "serf/remote.snapshot"
 	raftState         = "raft/"
-	raftLogCacheSize  = 512
 	snapshotsRetained = 2
+
+	// raftLogCacheSize is the maximum number of logs to cache in-memory.
+	// This is used to reduce disk I/O for the recently committed entries.
+	raftLogCacheSize = 512
+
+	// raftRemoveGracePeriod is how long we wait to allow a RemovePeer
+	// to replicate to gracefully leave the cluster.
+	raftRemoveGracePeriod = 5 * time.Second
+
+	// serfEventChSize is the size of the buffered channel to get Serf
+	// events. If this is exhausted we will block Serf and Memberlist.
+	serfEventChSize = 2048
+
+	// reconcileChSize is the size of the buffered channel reconcile updates
+	// from Serf with the Catalog. If this is exhausted we will drop updates,
+	// and wait for a periodic reconcile.
+	reconcileChSize = 256
+
+	LeaderTransferMinVersion = "1.6.0"
+)
+
+const (
+	aclPolicyReplicationRoutineName       = "ACL policy replication"
+	aclRoleReplicationRoutineName         = "ACL role replication"
+	aclTokenReplicationRoutineName        = "ACL token replication"
+	aclTokenReapingRoutineName            = "acl token reaping"
+	aclUpgradeRoutineName                 = "legacy ACL token upgrade"
+	caRootPruningRoutineName              = "CA root pruning"
+	caRootMetricRoutineName               = "CA root expiration metric"
+	caSigningMetricRoutineName            = "CA signing expiration metric"
+	configReplicationRoutineName          = "config entry replication"
+	federationStateReplicationRoutineName = "federation state replication"
+	federationStateAntiEntropyRoutineName = "federation state anti-entropy"
+	federationStatePruningRoutineName     = "federation state pruning"
+	intentionMigrationRoutineName         = "intention config entry migration"
+	secondaryCARootWatchRoutineName       = "secondary CA roots watch"
+	intermediateCertRenewWatchRoutineName = "intermediate cert renew watch"
+	backgroundCAInitializationRoutineName = "CA initialization"
+	virtualIPCheckRoutineName             = "virtual IP version check"
+)
+
+var (
+	ErrWANFederationDisabled = fmt.Errorf("WAN Federation is disabled")
+)
+
+const (
+	PoolKindPartition = "partition"
+	PoolKindSegment   = "segment"
 )
 
 func init() {
 	spew.Config.Indent = ""
-
-	e := os.Getenv("JOCKODEBUG")
-	if strings.Contains(e, "broker=1") {
-		brokerVerboseLogs = true
-	}
 }
 
 // DefaultConfig returns a Consul-flavored Serf default configuration,
@@ -73,7 +118,6 @@ func GetTags(serf *serf.Serf) map[string]string {
 	for tag, value := range serf.LocalMember().Tags {
 		tags[tag] = value
 	}
-
 	return tags
 }
 
@@ -88,24 +132,14 @@ func (c *Cluster) setupSerf(config *serf.Config, ch chan serf.Event, path string
 	config.Init()
 	config.NodeName = c.config.NodeName
 	config.Tags["role"] = "lava"
+	config.Tags["port"] = "8080"
 	config.Tags["id"] = fmt.Sprintf("%d", c.config.ID)
-	config.Logger = log.NewStdLogger(log.New(log.DebugLevel, fmt.Sprintf("serf/%d: ", c.config.ID)))
-	config.MemberlistConfig.Logger = log.NewStdLogger(log.New(log.DebugLevel, fmt.Sprintf("memberlist/%d: ", c.config.ID)))
-	if c.config.Bootstrap {
-		config.Tags["bootstrap"] = "1"
-	}
-	if c.config.BootstrapExpect != 0 {
-		config.Tags["expect"] = fmt.Sprintf("%d", c.config.BootstrapExpect)
-	}
-	if c.config.NonVoter {
-		config.Tags["non_voter"] = "1"
-	}
-	config.Tags["raft_addr"] = c.config.RaftAddr
+	config.Logger = zap.NewStdLog(logging.Component("serf").L())
+	config.MemberlistConfig.Logger = zap.NewStdLog(logging.Component("memberlist").L())
 	config.Tags["serf_lan_addr"] = fmt.Sprintf("%s:%d", c.config.SerfLANConfig.MemberlistConfig.BindAddr, c.config.SerfLANConfig.MemberlistConfig.BindPort)
-	config.Tags["broker_addr"] = c.config.Addr
 	config.EventCh = ch
 	config.EnableNameConflictResolution = false
-	if !c.config.DevMode {
+	if runtime.IsProd() || runtime.IsStag() {
 		config.SnapshotPath = filepath.Join(c.config.DataDir, path)
 	}
 	return serf.Create(config)
@@ -134,35 +168,27 @@ func (c *Cluster) lanEventHandler() {
 // lanNodeJoin is used to handle join events on the LAN pool.
 func (c *Cluster) lanNodeJoin(me serf.MemberEvent) {
 	for _, m := range me.Members {
-		meta, ok := metadata.IsBroker(m)
+		meta, ok := IsLavaNode(m)
 		if !ok {
 			continue
 		}
-		log.Info.Printf("broker/%d: adding LAN server: %s", c.config.ID, meta.ID)
-		// update server lookup
-		c.brokerLookup.AddBroker(meta)
-		if c.config.BootstrapExpect != 0 {
-			c.maybeBootstrap()
-		}
+		c.Log.Sugar().Infof("broker/%d: adding LAN server: %s", c.config.ID, meta.ID)
 	}
 }
 
 func (c *Cluster) lanNodeFailed(me serf.MemberEvent) {
 	for _, m := range me.Members {
-		meta, ok := metadata.IsBroker(m)
+		meta, ok := IsLavaNode(m)
 		if !ok {
 			continue
 		}
-		log.Info.Printf("broker/%d: removing LAN server: %s", c.config.ID, m.Name)
+
+		c.Log.Sugar().Infof("broker/%d: removing LAN server: %s", c.config.ID, m.Name)
 		c.brokerLookup.RemoveBroker(meta)
 	}
 }
 
 func (c *Cluster) localMemberEvent(me serf.MemberEvent) {
-	if !c.isLeader() {
-		return
-	}
-
 	isReap := me.EventType() == serf.EventMemberReap
 
 	for _, m := range me.Members {
@@ -176,65 +202,8 @@ func (c *Cluster) localMemberEvent(me serf.MemberEvent) {
 	}
 }
 
-func (c *Cluster) maybeBootstrap() {
-	var index uint64
-	var err error
-	if c.config.DevMode {
-		index, err = c.raftInmem.LastIndex()
-	} else {
-		index, err = c.raftStore.LastIndex()
-	}
-	if err != nil {
-		log.Error.Printf("broker/%d: read last raft index error: %s", c.config.ID, err)
-		return
-	}
-	if index != 0 {
-		log.Info.Printf("broker/%d: raft data found, disabling bootstrap mode: index: %d, path: %s", c.config.ID, index, filepath.Join(c.config.DataDir, raftState))
-		c.config.BootstrapExpect = 0
-		return
-	}
-
-	members := c.LANMembers()
-	brokers := make([]metadata.Broker, 0, len(members))
-	for _, member := range members {
-		meta, ok := metadata.IsBroker(member)
-		if !ok {
-			continue
-		}
-		if meta.Expect != 0 && meta.Expect != c.config.BootstrapExpect {
-			log.Error.Printf("broker/%d: members expects conflicting node count: %s", c.config.ID, member.Name)
-			return
-		}
-		if meta.Bootstrap {
-			log.Error.Printf("broker/%d; member %s has bootstrap mode. expect disabled", c.config.ID, member.Name)
-			return
-		}
-		brokers = append(brokers, *meta)
-	}
-
-	if len(brokers) < c.config.BootstrapExpect {
-		log.Debug.Printf("broker/%d: maybe bootstrap: need more brokers: got: %d: expect: %d", c.config.ID, len(brokers), c.config.BootstrapExpect)
-		return
-	}
-
-	var configuration raft.Configuration
-	addrs := make([]string, 0, len(brokers))
-	for _, meta := range brokers {
-		addr := meta.RaftAddr
-		addrs = append(addrs, addr)
-		peer := raft.Server{
-			ID:      raft.ServerID(meta.ID.String()),
-			Address: raft.ServerAddress(addr),
-		}
-		configuration.Servers = append(configuration.Servers, peer)
-	}
-
-	log.Info.Printf("broker/%d: found expected number of peers, attempting bootstrap: addrs: %v", c.config.ID, addrs)
-	future := c.raft.BootstrapCluster(configuration)
-	if err := future.Error(); err != nil {
-		log.Error.Printf("broker/%d: bootstrap cluster error: %s", c.config.ID, err)
-	}
-	c.config.BootstrapExpect = 0
+func (c *Cluster) LANMembers() []serf.Member {
+	return c.serf.Members()
 }
 
 func (c *Cluster) reconcileReaped(known map[int32]struct{}) error {
@@ -243,6 +212,7 @@ func (c *Cluster) reconcileReaped(known map[int32]struct{}) error {
 	if err != nil {
 		return err
 	}
+
 	for _, node := range nodes {
 		if _, ok := known[node.Node]; ok {
 			continue
@@ -597,7 +567,7 @@ func (c *Cluster) removeServer(m serf.Member, meta *metadata.Broker) error {
 }
 
 func IsLavaNode(m serf.Member) (*Node, bool) {
-	if m.Tags["role"] != "jocko" {
+	if m.Tags["role"] != "lava" {
 		return nil, false
 	}
 

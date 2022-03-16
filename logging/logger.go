@@ -8,6 +8,8 @@ import (
 	"github.com/pubgo/lava/inject"
 )
 
+type Logger = zap.Logger
+
 type Fields = []zap.Field
 
 // L global zap log
@@ -28,7 +30,7 @@ func On(fn func(*Event)) {
 }
 
 func init() {
-	inject.Register((*zap.Logger)(nil), func(obj inject.Object, field inject.Field) (interface{}, bool) {
+	inject.Register((*Logger)(nil), func(obj inject.Object, field inject.Field) (interface{}, bool) {
 		var name = obj.Name()
 		if nm := field.Tag("name"); nm != "" {
 			name = nm

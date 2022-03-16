@@ -46,7 +46,7 @@ func server() {
 	cfg.Port = 7878
 	cfg.HandleError = func(err error) bool {
 		logutil.LogOrErr(logging.L(), "mux error", func() error { return err })
-		return false
+		return true
 	}
 
 	var lnFn = cfg.Rsocket()

@@ -117,13 +117,12 @@ func init() {
 	xgen.Add(RegisterUserServiceServer, mthList)
 }
 
-func RegisterUserServiceSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl UserServiceServer) {
+func RegisterUserServiceSrvServer(srv grpc.ServiceRegistrar, impl UserServiceServer) {
 	srv.RegisterService(&UserService_ServiceDesc, impl)
 
-	_ = RegisterUserServiceHandlerClient(context.Background(), srv.Mux(), NewUserServiceClient(srv.Conn()))
+	_= func(ctx context.Context, mux *runtime.ServeMux,conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
+
 
 }
