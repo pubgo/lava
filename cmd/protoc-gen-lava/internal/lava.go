@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pubgo/lava/pkg/protoutil"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -10,6 +9,7 @@ import (
 
 var (
 	contextCall  = protoutil.Import("context")
+	serviceCall  = protoutil.Import("github.com/pubgo/lava/service")
 	reflectCall  = protoutil.Import("reflect")
 	stringsCall  = protoutil.Import("strings")
 	sqlCall      = protoutil.Import("database/sql")
@@ -75,80 +75,70 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Init", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), "))", service.GoName, "Client{")
-	g.P(`var cfg = grpcc.DefaultCfg(opts...)`)
-	g.P("var cli = &", protoutil.UnExport(service.GoName), "Client{", grpccCall("NewClient"), "(srv, cfg)}")
-	g.QualifiedGoIdent(dixCall(""))
-	g.P(xerrorCall("Exit"), `(dix.ProviderNs(cfg.GetReg(), cli))`)
-	g.P(`return cli`)
+	g.P("func Init", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
+	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Client)(nil)))...)")
 	g.P("}")
 	g.P()
 }
 
 func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func init(){")
-	g.P("var mthList []", xgenCall("GrpcRestHandler"))
+	//g.P("func init(){")
+	//g.P("var mthList []", xgenCall("GrpcRestHandler"))
 
-	var isDefault bool
-
+	var isGw bool
 	for _, m := range service.Methods {
-		g.P("mthList = append(mthList, ", xgenCall("GrpcRestHandler"), "{")
-		g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
-		g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
-		g.P(fmt.Sprintf(`Service:"%s",`, service.Desc.FullName()))
-		g.P(fmt.Sprintf(`Name:"%s",`, m.Desc.Name()))
+		//g.P("mthList = append(mthList, ", xgenCall("GrpcRestHandler"), "{")
+		//g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
+		//g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
+		//g.P(fmt.Sprintf(`Service:"%s",`, service.Desc.FullName()))
+		//g.P(fmt.Sprintf(`Name:"%s",`, m.Desc.Name()))
 
-		var defaultUrl bool
+		//var defaultUrl bool
 		hr, err := protoutil.ExtractAPIOptions(m.Desc)
-		if err != nil || hr == nil {
-			defaultUrl = true
-			isDefault = true
+		if err == nil && hr != nil {
+			//defaultUrl = true
+			isGw = true
 
-			var replacer = strings.NewReplacer(".", "/", "-", "/")
-			hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
+			//var replacer = strings.NewReplacer(".", "/", "-", "/")
+			//hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
 		}
-		method, path := protoutil.ExtractHttpMethod(hr)
-		g.P(fmt.Sprintf(`Method:"%s",`, method))
-		g.P(fmt.Sprintf(`Path:"%s",`, path))
-		g.P(fmt.Sprintf(`DefaultUrl:%v,`, defaultUrl))
-		g.P("ClientStream:", m.Desc.IsStreamingClient(), ",")
-		g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
-		g.P("})")
-		g.P()
+		//method, path := protoutil.ExtractHttpMethod(hr)
+		//g.P(fmt.Sprintf(`Method:"%s",`, method))
+		//g.P(fmt.Sprintf(`Path:"%s",`, path))
+		//g.P(fmt.Sprintf(`DefaultUrl:%v,`, defaultUrl))
+		//g.P("ClientStream:", m.Desc.IsStreamingClient(), ",")
+		//g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
+		//g.P("})")
+		//g.P()
 	}
 	// grpc
-	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
-	g.P("}")
-	g.P()
+	//g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
+	//g.P("}")
+	//g.P()
 
-	if !isDefault {
-		g.QualifiedGoIdent(contextCall(""))
+	if enableLava {
+		if isGw {
+			g.QualifiedGoIdent(grpcCall(""))
+			g.QualifiedGoIdent(runtimeCall(""))
+			g.QualifiedGoIdent(contextCall(""))
+			g.QualifiedGoIdent(serviceCall(""))
+		}
+		g.P(protoutil.Template(`
+func Register{{name}}(srv service.Service, impl {{name}}Server) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = {{name}}_ServiceDesc
+	desc.GrpcClientFn = New{{name}}Client
+	{% if isGw %}
+    desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
 	}
-
-	g.QualifiedGoIdent(grpcCall(""))
-	g.QualifiedGoIdent(runtimeCall(""))
-	g.P(protoutil.Template(`
-func Register{{name}}SrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-},impl {{name}}Server) {
-	srv.RegisterService(&{{name}}_ServiceDesc, impl)
-	{% if !isDefault %}
-    _ = Register{{name}}HandlerClient(context.Background(), srv.Mux(), New{{name}}Client(srv.Conn()))
     {% endif %}
+	srv.RegisterService(desc)
 }
-`, protoutil.Context{"name": service.GoName, "isDefault": isDefault}))
-	g.P()
-
-	//if genRest {
-	//	g.P(xgenCall("Add"), "(Register", service.GoName, "RestServer, nil)")
-	//}
-
-	//if genGin {
-	//	g.P(xgenCall("Add"), "(Register", service.GoName, "GinServer, nil)")
-	//}
-
+`, protoutil.Context{"name": service.GoName, "isGw": isGw}))
+		g.P()
+	}
 }
 
 func protocVersion(gen *protogen.Plugin) string {

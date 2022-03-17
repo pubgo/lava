@@ -315,13 +315,6 @@ func Import(name string) func(id string) protogen.GoIdent {
 	}
 }
 
-func ImportV1(name string) func(g *protogen.GeneratedFile, id string) string {
-	var pkg = protogen.GoImportPath(name)
-	return func(g *protogen.GeneratedFile, id string) string {
-		return g.QualifiedGoIdent(pkg.Ident(id))
-	}
-}
-
 type Context = pongo.Context
 
 func Gen(g *protogen.GeneratedFile, tpl string, m pongo.Context) {

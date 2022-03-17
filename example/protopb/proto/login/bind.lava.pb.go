@@ -9,10 +9,8 @@ package login
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
 
@@ -21,97 +19,19 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) BindTelephoneClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &bindTelephoneClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*BindTelephoneClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &CheckRequest{},
-		Output:       &CheckResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "Check",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/check",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterBindTelephone(srv service.Service, impl BindTelephoneServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = BindTelephone_ServiceDesc
+	desc.GrpcClientFn = NewBindTelephoneClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &BindVerifyRequest{},
-		Output:       &BindVerifyResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "BindVerify",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/bind-verify",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &BindChangeRequest{},
-		Output:       &BindChangeResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "BindChange",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/bind-change",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &AutomaticBindRequest{},
-		Output:       &AutomaticBindResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "AutomaticBind",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/automatic-bind",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &BindPhoneParseRequest{},
-		Output:       &BindPhoneParseResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "BindPhoneParse",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/bind-phone-parse",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &BindPhoneParseByOneClickRequest{},
-		Output:       &BindPhoneParseByOneClickResponse{},
-		Service:      "login.BindTelephone",
-		Name:         "BindPhoneParseByOneClick",
-		Method:       "POST",
-		Path:         "/user/bind-telephone/bind-phone-parse-by-one-click",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterBindTelephoneServer, mthList)
-}
-
-func RegisterBindTelephoneSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl BindTelephoneServer) {
-	srv.RegisterService(&BindTelephone_ServiceDesc, impl)
-
-	_ = RegisterBindTelephoneHandlerClient(context.Background(), srv.Mux(), NewBindTelephoneClient(srv.Conn()))
-
+	srv.RegisterService(desc)
 }

@@ -22,7 +22,14 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 		panic("[fn] is nil")
 	}
 
-	injectHandlers[reflect.TypeOf(typ).String()] = fn
+	var typStr = reflect.TypeOf(typ).String()
+
+	t := reflect.TypeOf(typ)
+	for t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
+		typStr = t.Elem().String()
+	}
+
+	injectHandlers[typStr] = fn
 }
 
 func Inject(val interface{}) {

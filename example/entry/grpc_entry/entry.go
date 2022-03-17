@@ -4,18 +4,18 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/pubgo/lava/entry"
+	"github.com/pubgo/lava/entry/grpcEntry"
 	"github.com/pubgo/lava/example/entry/grpc_entry/handler"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/healthy"
-	"github.com/pubgo/lava/server"
-	"github.com/pubgo/lava/server/grpcEntry"
 	"github.com/pubgo/lava/types"
 )
 
 var name = "test-grpc"
 
-func GetEntry() server.Entry {
+func GetEntry() entry.Entry {
 	ent := grpcEntry.New(name)
 	ent.Description("entry grpc test")
 	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {

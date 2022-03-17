@@ -9,12 +9,9 @@ package hello
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,85 +19,19 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) UserServiceClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &userServiceClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserServiceClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &User{},
-		Output:       &emptypb.Empty{},
-		Service:      "hello.UserService",
-		Name:         "AddUser",
-		Method:       "POST",
-		Path:         "/api/v1/users",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterUserService(srv service.Service, impl UserServiceServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = UserService_ServiceDesc
+	desc.GrpcClientFn = NewUserServiceClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &User{},
-		Output:       &emptypb.Empty{},
-		Service:      "hello.UserService",
-		Name:         "GetUser",
-		Method:       "GET",
-		Path:         "/api/v1/users",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ListUsersRequest{},
-		Output:       &User{},
-		Service:      "hello.UserService",
-		Name:         "ListUsers",
-		Method:       "GET",
-		Path:         "/api/v1/users",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: true,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UserRole{},
-		Output:       &User{},
-		Service:      "hello.UserService",
-		Name:         "ListUsersByRole",
-		Method:       "GET",
-		Path:         "/api/v1/users/role",
-		DefaultUrl:   false,
-		ClientStream: true,
-		ServerStream: true,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UpdateUserRequest{},
-		Output:       &User{},
-		Service:      "hello.UserService",
-		Name:         "UpdateUser",
-		Method:       "PATCH",
-		Path:         "/api/v1/users/{user.id}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterUserServiceServer, mthList)
-}
-
-func RegisterUserServiceSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl UserServiceServer) {
-	srv.RegisterService(&UserService_ServiceDesc, impl)
-
-	_ = RegisterUserServiceHandlerClient(context.Background(), srv.Mux(), NewUserServiceClient(srv.Conn()))
-
+	srv.RegisterService(desc)
 }

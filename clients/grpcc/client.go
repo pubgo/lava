@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -9,7 +10,30 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/endpoint"
 	"github.com/pubgo/lava/clients/grpcc/resolver"
+	"github.com/pubgo/lava/inject"
 )
+
+var clients sync.Map
+
+func InitClient(srv string, opts ...func(cfg *Cfg)) {
+	var cfg = DefaultCfg(opts...)
+	xerror.Panic(cfg.Check())
+
+	var reg = cfg.GetReg()
+	var name = fmt.Sprintf("%s.%s.%s", srv, reg, cfg.Group)
+	if val, ok := clients.Load(name); ok && val != nil {
+		return
+	}
+
+	var cli = NewClient(srv, cfg)
+	xerror.PanicErr(cli.Get())
+
+	if cfg.clientType != nil {
+		inject.Register(cfg.clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
+			return clients.Load(fmt.Sprintf("%s.%s.%s", srv, reg, field.Name()))
+		})
+	}
+}
 
 func New(service string, opts ...func(cfg *Cfg)) *Client {
 	return NewClient(service, DefaultCfg(opts...))

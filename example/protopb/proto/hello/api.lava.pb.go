@@ -9,12 +9,9 @@ package hello
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,120 +19,36 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &testApiClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TestReq{},
-		Output:       &TestApiOutput{},
-		Service:      "hello.TestApi",
-		Name:         "Version",
-		Method:       "GET",
-		Path:         "/v1/version",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterTestApi(srv service.Service, impl TestApiServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = TestApi_ServiceDesc
+	desc.GrpcClientFn = NewTestApiClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &structpb.Value{},
-		Output:       &TestApiOutput1{},
-		Service:      "hello.TestApi",
-		Name:         "Version1",
-		Method:       "POST",
-		Path:         "/v1/version1",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TestReq{},
-		Output:       &TestApiOutput{},
-		Service:      "hello.TestApi",
-		Name:         "VersionTest",
-		Method:       "GET",
-		Path:         "/v1/example/versiontest",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TestReq{},
-		Output:       &TestApiOutput{},
-		Service:      "hello.TestApi",
-		Name:         "VersionTestCustom",
-		Method:       "GET",
-		Path:         "/v1/example/versionTestCustom",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterTestApiServer, mthList)
+	srv.RegisterService(desc)
 }
 
-func RegisterTestApiSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl TestApiServer) {
-	srv.RegisterService(&TestApi_ServiceDesc, impl)
-
-	_ = RegisterTestApiHandlerClient(context.Background(), srv.Mux(), NewTestApiClient(srv.Conn()))
-
+func InitTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiV2Client)(nil)))...)
 }
 
-func InitTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) TestApiV2Client {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &testApiV2Client{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
-}
+func RegisterTestApiV2(srv service.Service, impl TestApiV2Server) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = TestApiV2_ServiceDesc
+	desc.GrpcClientFn = NewTestApiV2Client
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TestReq{},
-		Output:       &TestApiOutput{},
-		Service:      "hello.TestApiV2",
-		Name:         "Version1",
-		Method:       "POST",
-		Path:         "/v2/example/version/{name}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TestReq{},
-		Output:       &TestApiOutput{},
-		Service:      "hello.TestApiV2",
-		Name:         "VersionTest1",
-		Method:       "POST",
-		Path:         "/v2/example/versiontest",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterTestApiV2Server, mthList)
-}
-
-func RegisterTestApiV2SrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl TestApiV2Server) {
-	srv.RegisterService(&TestApiV2_ServiceDesc, impl)
-
-	_ = RegisterTestApiV2HandlerClient(context.Background(), srv.Mux(), NewTestApiV2Client(srv.Conn()))
-
+	srv.RegisterService(desc)
 }

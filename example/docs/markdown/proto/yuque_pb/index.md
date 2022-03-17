@@ -3,33 +3,33 @@
 
 ## Table of Contents
 
-- [proto/yuque_pb/yuque.proto](#proto/yuque_pb/yuque.proto)
-    - [CreateGroupReq](#yuque.v2.CreateGroupReq)
-    - [CreateGroupResp](#yuque.v2.CreateGroupResp)
-    - [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data)
-    - [DoormanConfig](#yuque.v2.DoormanConfig)
-    - [FacebookConfig](#yuque.v2.FacebookConfig)
-    - [GuardianConfig](#yuque.v2.GuardianConfig)
-    - [User](#yuque.v2.User)
-    - [UserInfoReq](#yuque.v2.UserInfoReq)
-    - [UserInfoResp](#yuque.v2.UserInfoResp)
-    - [UserInfoResp.Data](#yuque.v2.UserInfoResp.Data)
+- [proto/yuque_pb/yuque.proto](#proto_yuque_pb_yuque-proto)
+    - [CreateGroupReq](#yuque-v2-CreateGroupReq)
+    - [CreateGroupResp](#yuque-v2-CreateGroupResp)
+    - [CreateGroupResp.Data](#yuque-v2-CreateGroupResp-Data)
+    - [DoormanConfig](#yuque-v2-DoormanConfig)
+    - [FacebookConfig](#yuque-v2-FacebookConfig)
+    - [GuardianConfig](#yuque-v2-GuardianConfig)
+    - [User](#yuque-v2-User)
+    - [UserInfoReq](#yuque-v2-UserInfoReq)
+    - [UserInfoResp](#yuque-v2-UserInfoResp)
+    - [UserInfoResp.Data](#yuque-v2-UserInfoResp-Data)
   
-    - [UserService](#yuque.v2.UserService)
-    - [Yuque](#yuque.v2.Yuque)
+    - [UserService](#yuque-v2-UserService)
+    - [Yuque](#yuque-v2-Yuque)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="proto/yuque_pb/yuque.proto"></a>
+<a name="proto_yuque_pb_yuque-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/yuque_pb/yuque.proto
 
 
 
-<a name="yuque.v2.CreateGroupReq"></a>
+<a name="yuque-v2-CreateGroupReq"></a>
 
 ### CreateGroupReq
 
@@ -46,7 +46,7 @@
 
 
 
-<a name="yuque.v2.CreateGroupResp"></a>
+<a name="yuque-v2-CreateGroupResp"></a>
 
 ### CreateGroupResp
 
@@ -54,15 +54,15 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| data | [CreateGroupResp.Data](#yuque.v2.CreateGroupResp.Data) | repeated |  |
-| response | [lava.Response](#lava.Response) |  |  |
+| data | [CreateGroupResp.Data](#yuque-v2-CreateGroupResp-Data) | repeated |  |
+| response | [lava.Response](#lava-Response) |  |  |
 
 
 
 
 
 
-<a name="yuque.v2.CreateGroupResp.Data"></a>
+<a name="yuque-v2-CreateGroupResp-Data"></a>
 
 ### CreateGroupResp.Data
 
@@ -83,7 +83,7 @@
 
 
 
-<a name="yuque.v2.DoormanConfig"></a>
+<a name="yuque-v2-DoormanConfig"></a>
 
 ### DoormanConfig
 doorman service config
@@ -99,7 +99,7 @@ doorman service config
 
 
 
-<a name="yuque.v2.FacebookConfig"></a>
+<a name="yuque-v2-FacebookConfig"></a>
 
 ### FacebookConfig
 facebook auth configuration
@@ -116,7 +116,7 @@ facebook auth configuration
 
 
 
-<a name="yuque.v2.GuardianConfig"></a>
+<a name="yuque-v2-GuardianConfig"></a>
 
 ### GuardianConfig
 guardian service config
@@ -127,14 +127,14 @@ guardian service config
 | token_secret | [string](#string) |  | auth token secret |
 | conn_str | [string](#string) |  | auth db conn str |
 | expiring_days | [uint32](#uint32) |  | auth token expiration |
-| facebook | [FacebookConfig](#yuque.v2.FacebookConfig) |  | facebook configuration |
+| facebook | [FacebookConfig](#yuque-v2-FacebookConfig) |  | facebook configuration |
 
 
 
 
 
 
-<a name="yuque.v2.User"></a>
+<a name="yuque-v2-User"></a>
 
 ### User
 basic user information
@@ -155,7 +155,7 @@ basic user information
 
 
 
-<a name="yuque.v2.UserInfoReq"></a>
+<a name="yuque-v2-UserInfoReq"></a>
 
 ### UserInfoReq
 
@@ -170,7 +170,7 @@ basic user information
 
 
 
-<a name="yuque.v2.UserInfoResp"></a>
+<a name="yuque-v2-UserInfoResp"></a>
 
 ### UserInfoResp
 
@@ -178,15 +178,15 @@ basic user information
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| data | [UserInfoResp.Data](#yuque.v2.UserInfoResp.Data) |  |  |
-| response | [lava.Response](#lava.Response) |  |  |
+| data | [UserInfoResp.Data](#yuque-v2-UserInfoResp-Data) |  |  |
+| response | [lava.Response](#lava-Response) |  |  |
 
 
 
 
 
 
-<a name="yuque.v2.UserInfoResp.Data"></a>
+<a name="yuque-v2-UserInfoResp-Data"></a>
 
 ### UserInfoResp.Data
 
@@ -214,27 +214,27 @@ basic user information
  
 
 
-<a name="yuque.v2.UserService"></a>
+<a name="yuque-v2-UserService"></a>
 
 ### UserService
 
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Signin | [UserInfoReq](#yuque.v2.UserInfoReq) | [UserInfoResp](#yuque.v2.UserInfoResp) | user signin |
-| ResetPassword | [UserInfoReq](#yuque.v2.UserInfoReq) | [.google.protobuf.Empty](#google.protobuf.Empty) | user resets password |
+| Signin | [UserInfoReq](#yuque-v2-UserInfoReq) | [UserInfoResp](#yuque-v2-UserInfoResp) | user signin |
+| ResetPassword | [UserInfoReq](#yuque-v2-UserInfoReq) | [.google.protobuf.Empty](#google-protobuf-Empty) | user resets password |
 
 
-<a name="yuque.v2.Yuque"></a>
+<a name="yuque-v2-Yuque"></a>
 
 ### Yuque
 
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| UserInfo | [.google.protobuf.Empty](#google.protobuf.Empty) | [UserInfoResp](#yuque.v2.UserInfoResp) | 获取认证的用户的个人信息 |
-| UserInfoByLogin | [UserInfoReq](#yuque.v2.UserInfoReq) | [UserInfoResp](#yuque.v2.UserInfoResp) | 获取单个用户信息 |
-| CreateGroup | [CreateGroupReq](#yuque.v2.CreateGroupReq) | [CreateGroupResp](#yuque.v2.CreateGroupResp) | 创建 Group |
+| UserInfo | [.google.protobuf.Empty](#google-protobuf-Empty) | [UserInfoResp](#yuque-v2-UserInfoResp) | 获取认证的用户的个人信息 |
+| UserInfoByLogin | [UserInfoReq](#yuque-v2-UserInfoReq) | [UserInfoResp](#yuque-v2-UserInfoResp) | 获取单个用户信息 |
+| CreateGroup | [CreateGroupReq](#yuque-v2-CreateGroupReq) | [CreateGroupResp](#yuque-v2-CreateGroupResp) | 创建 Group |
 
  
 

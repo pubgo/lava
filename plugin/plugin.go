@@ -1,14 +1,22 @@
 package plugin
 
 import (
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/internal/pluginInter"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/xerror"
 )
 
 const defaultPriority = uint(1000)
 
 // All 获取所有的插件
 func All() []Plugin { return pluginInter.All() }
+
+func Init(p config_type.IConfig, plugins ...Plugin) {
+	for _, plg := range append(All(), plugins...) {
+		xerror.Panic(plg.Init(p))
+	}
+}
 
 // Get 更具名字获取插件
 func Get(name string) Plugin { return pluginInter.Get(name) }

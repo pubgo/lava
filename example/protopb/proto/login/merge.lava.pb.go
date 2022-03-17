@@ -9,10 +9,8 @@ package login
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
 
@@ -21,85 +19,19 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitMergeClient(srv string, opts ...func(cfg *grpcc.Cfg)) MergeClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &mergeClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitMergeClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*MergeClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TelephoneRequest{},
-		Output:       &Reply{},
-		Service:      "login.Merge",
-		Name:         "Telephone",
-		Method:       "POST",
-		Path:         "/user/merge/telephone",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterMerge(srv service.Service, impl MergeServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = Merge_ServiceDesc
+	desc.GrpcClientFn = NewMergeClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TelephoneRequest{},
-		Output:       &Reply{},
-		Service:      "login.Merge",
-		Name:         "TelephoneCheck",
-		Method:       "POST",
-		Path:         "/user/merge/telephone-check",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &WeChatRequest{},
-		Output:       &Reply{},
-		Service:      "login.Merge",
-		Name:         "WeChat",
-		Method:       "POST",
-		Path:         "/user/merge/we-chat",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &WeChatRequest{},
-		Output:       &Reply{},
-		Service:      "login.Merge",
-		Name:         "WeChatCheck",
-		Method:       "POST",
-		Path:         "/user/merge/we-chat-check",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &WeChatUnMergeRequest{},
-		Output:       &Reply{},
-		Service:      "login.Merge",
-		Name:         "WeChatUnMerge",
-		Method:       "POST",
-		Path:         "/user/merge/we-chat-un-merge",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterMergeServer, mthList)
-}
-
-func RegisterMergeSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl MergeServer) {
-	srv.RegisterService(&Merge_ServiceDesc, impl)
-
-	_ = RegisterMergeHandlerClient(context.Background(), srv.Mux(), NewMergeClient(srv.Conn()))
-
+	srv.RegisterService(desc)
 }

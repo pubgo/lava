@@ -16,6 +16,7 @@ var logs = logging.Component("balancer.resolver")
 
 const (
 	DnsScheme    = "dns"
+	K8sScheme    = "k8s"
 	DirectScheme = "direct"
 	DiscovScheme = "discov"
 	EndpointSep  = ","

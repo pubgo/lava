@@ -120,10 +120,15 @@ type Cfg struct {
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
+	Service            string                         `json:"-"`
+	Group              string                         `json:"-"`
 
+	clientType  interface{}
 	registry    string
 	buildScheme string
 }
+
+func (t Cfg) Check() error { return nil }
 
 func (t Cfg) GetReg() string { return t.registry }
 

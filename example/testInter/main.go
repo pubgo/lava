@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
+	"reflect"
 )
 
 type IHello interface {
@@ -26,7 +28,17 @@ func Register(err error) {
 	err.Error()
 }
 
+func init1() IHello {
+	return nil
+}
+
 func main() {
+	var v = reflect.TypeOf((*IHello)(nil))
+	fmt.Println(v.Elem().Name())
+
 	//fmt.Println(reflect.TypeOf(&bbolt.Client{}).String())
 	Register(&hello{})
+	inject.Register((*IHello)(nil), func(obj inject.Object, field inject.Field) (interface{}, bool) {
+		return nil, true
+	})
 }

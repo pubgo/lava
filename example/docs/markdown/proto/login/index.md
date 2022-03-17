@@ -3,78 +3,78 @@
 
 ## Table of Contents
 
-- [proto/login/bind.proto](#proto/login/bind.proto)
-    - [AutomaticBindRequest](#login.AutomaticBindRequest)
-    - [AutomaticBindResponse](#login.AutomaticBindResponse)
-    - [BindChangeRequest](#login.BindChangeRequest)
-    - [BindChangeResponse](#login.BindChangeResponse)
-    - [BindData](#login.BindData)
-    - [BindPhoneParseByOneClickRequest](#login.BindPhoneParseByOneClickRequest)
-    - [BindPhoneParseByOneClickResponse](#login.BindPhoneParseByOneClickResponse)
-    - [BindPhoneParseByOneClickResponse.DataEntry](#login.BindPhoneParseByOneClickResponse.DataEntry)
-    - [BindPhoneParseRequest](#login.BindPhoneParseRequest)
-    - [BindPhoneParseResponse](#login.BindPhoneParseResponse)
-    - [BindPhoneParseResponse.DataEntry](#login.BindPhoneParseResponse.DataEntry)
-    - [BindVerifyRequest](#login.BindVerifyRequest)
-    - [BindVerifyResponse](#login.BindVerifyResponse)
-    - [BindVerifyResponse.DataEntry](#login.BindVerifyResponse.DataEntry)
-    - [CheckRequest](#login.CheckRequest)
-    - [CheckResponse](#login.CheckResponse)
-    - [CheckResponse.DataEntry](#login.CheckResponse.DataEntry)
+- [proto/login/bind.proto](#proto_login_bind-proto)
+    - [AutomaticBindRequest](#login-AutomaticBindRequest)
+    - [AutomaticBindResponse](#login-AutomaticBindResponse)
+    - [BindChangeRequest](#login-BindChangeRequest)
+    - [BindChangeResponse](#login-BindChangeResponse)
+    - [BindData](#login-BindData)
+    - [BindPhoneParseByOneClickRequest](#login-BindPhoneParseByOneClickRequest)
+    - [BindPhoneParseByOneClickResponse](#login-BindPhoneParseByOneClickResponse)
+    - [BindPhoneParseByOneClickResponse.DataEntry](#login-BindPhoneParseByOneClickResponse-DataEntry)
+    - [BindPhoneParseRequest](#login-BindPhoneParseRequest)
+    - [BindPhoneParseResponse](#login-BindPhoneParseResponse)
+    - [BindPhoneParseResponse.DataEntry](#login-BindPhoneParseResponse-DataEntry)
+    - [BindVerifyRequest](#login-BindVerifyRequest)
+    - [BindVerifyResponse](#login-BindVerifyResponse)
+    - [BindVerifyResponse.DataEntry](#login-BindVerifyResponse-DataEntry)
+    - [CheckRequest](#login-CheckRequest)
+    - [CheckResponse](#login-CheckResponse)
+    - [CheckResponse.DataEntry](#login-CheckResponse-DataEntry)
   
-    - [BindTelephone](#login.BindTelephone)
+    - [BindTelephone](#login-BindTelephone)
   
-- [proto/login/code.proto](#proto/login/code.proto)
-    - [GetSendStatusRequest](#login.GetSendStatusRequest)
-    - [GetSendStatusResponse](#login.GetSendStatusResponse)
-    - [IsCheckImageCodeRequest](#login.IsCheckImageCodeRequest)
-    - [IsCheckImageCodeResponse](#login.IsCheckImageCodeResponse)
-    - [SendCodeRequest](#login.SendCodeRequest)
-    - [SendCodeResponse](#login.SendCodeResponse)
-    - [SendCodeResponse.DataEntry](#login.SendCodeResponse.DataEntry)
-    - [SendStatus](#login.SendStatus)
-    - [VerifyImageCodeRequest](#login.VerifyImageCodeRequest)
-    - [VerifyImageCodeResponse](#login.VerifyImageCodeResponse)
-    - [VerifyRequest](#login.VerifyRequest)
-    - [VerifyResponse](#login.VerifyResponse)
-    - [VerifyResponse.DataEntry](#login.VerifyResponse.DataEntry)
+- [proto/login/code.proto](#proto_login_code-proto)
+    - [GetSendStatusRequest](#login-GetSendStatusRequest)
+    - [GetSendStatusResponse](#login-GetSendStatusResponse)
+    - [IsCheckImageCodeRequest](#login-IsCheckImageCodeRequest)
+    - [IsCheckImageCodeResponse](#login-IsCheckImageCodeResponse)
+    - [SendCodeRequest](#login-SendCodeRequest)
+    - [SendCodeResponse](#login-SendCodeResponse)
+    - [SendCodeResponse.DataEntry](#login-SendCodeResponse-DataEntry)
+    - [SendStatus](#login-SendStatus)
+    - [VerifyImageCodeRequest](#login-VerifyImageCodeRequest)
+    - [VerifyImageCodeResponse](#login-VerifyImageCodeResponse)
+    - [VerifyRequest](#login-VerifyRequest)
+    - [VerifyResponse](#login-VerifyResponse)
+    - [VerifyResponse.DataEntry](#login-VerifyResponse-DataEntry)
   
-    - [Code](#login.Code)
+    - [Code](#login-Code)
   
-- [proto/login/login.proto](#proto/login/login.proto)
-    - [AuthenticateRequest](#login.AuthenticateRequest)
-    - [AuthenticateRequest.CredentialsEntry](#login.AuthenticateRequest.CredentialsEntry)
-    - [AuthenticateResponse](#login.AuthenticateResponse)
-    - [Credentials](#login.Credentials)
-    - [Data](#login.Data)
-    - [LoginRequest](#login.LoginRequest)
-    - [LoginRequest.DataEntry](#login.LoginRequest.DataEntry)
-    - [LoginResponse](#login.LoginResponse)
-    - [PlatformInfo](#login.PlatformInfo)
+- [proto/login/login.proto](#proto_login_login-proto)
+    - [AuthenticateRequest](#login-AuthenticateRequest)
+    - [AuthenticateRequest.CredentialsEntry](#login-AuthenticateRequest-CredentialsEntry)
+    - [AuthenticateResponse](#login-AuthenticateResponse)
+    - [Credentials](#login-Credentials)
+    - [Data](#login-Data)
+    - [LoginRequest](#login-LoginRequest)
+    - [LoginRequest.DataEntry](#login-LoginRequest-DataEntry)
+    - [LoginResponse](#login-LoginResponse)
+    - [PlatformInfo](#login-PlatformInfo)
   
-    - [Login](#login.Login)
+    - [Login](#login-Login)
   
-- [proto/login/merge.proto](#proto/login/merge.proto)
-    - [Reply](#login.Reply)
-    - [Reply.DataEntry](#login.Reply.DataEntry)
-    - [TelephoneRequest](#login.TelephoneRequest)
-    - [WeChatRequest](#login.WeChatRequest)
-    - [WeChatUnMergeRequest](#login.WeChatUnMergeRequest)
+- [proto/login/merge.proto](#proto_login_merge-proto)
+    - [Reply](#login-Reply)
+    - [Reply.DataEntry](#login-Reply-DataEntry)
+    - [TelephoneRequest](#login-TelephoneRequest)
+    - [WeChatRequest](#login-WeChatRequest)
+    - [WeChatUnMergeRequest](#login-WeChatUnMergeRequest)
   
-    - [Merge](#login.Merge)
+    - [Merge](#login-Merge)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="proto/login/bind.proto"></a>
+<a name="proto_login_bind-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/login/bind.proto
 
 
 
-<a name="login.AutomaticBindRequest"></a>
+<a name="login-AutomaticBindRequest"></a>
 
 ### AutomaticBindRequest
 
@@ -92,7 +92,7 @@
 
 
 
-<a name="login.AutomaticBindResponse"></a>
+<a name="login-AutomaticBindResponse"></a>
 
 ### AutomaticBindResponse
 
@@ -103,14 +103,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | 消息 |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [BindData](#login.BindData) |  | 数据 |
+| data | [BindData](#login-BindData) |  | 数据 |
 
 
 
 
 
 
-<a name="login.BindChangeRequest"></a>
+<a name="login-BindChangeRequest"></a>
 
 ### BindChangeRequest
 
@@ -129,7 +129,7 @@
 
 
 
-<a name="login.BindChangeResponse"></a>
+<a name="login-BindChangeResponse"></a>
 
 ### BindChangeResponse
 
@@ -140,14 +140,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [BindData](#login.BindData) |  | 数据 |
+| data | [BindData](#login-BindData) |  | 数据 |
 
 
 
 
 
 
-<a name="login.BindData"></a>
+<a name="login-BindData"></a>
 
 ### BindData
 
@@ -162,7 +162,7 @@
 
 
 
-<a name="login.BindPhoneParseByOneClickRequest"></a>
+<a name="login-BindPhoneParseByOneClickRequest"></a>
 
 ### BindPhoneParseByOneClickRequest
 
@@ -179,7 +179,7 @@
 
 
 
-<a name="login.BindPhoneParseByOneClickResponse"></a>
+<a name="login-BindPhoneParseByOneClickResponse"></a>
 
 ### BindPhoneParseByOneClickResponse
 
@@ -190,14 +190,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | 消息 |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [BindPhoneParseByOneClickResponse.DataEntry](#login.BindPhoneParseByOneClickResponse.DataEntry) | repeated | 数据 |
+| data | [BindPhoneParseByOneClickResponse.DataEntry](#login-BindPhoneParseByOneClickResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.BindPhoneParseByOneClickResponse.DataEntry"></a>
+<a name="login-BindPhoneParseByOneClickResponse-DataEntry"></a>
 
 ### BindPhoneParseByOneClickResponse.DataEntry
 
@@ -213,7 +213,7 @@
 
 
 
-<a name="login.BindPhoneParseRequest"></a>
+<a name="login-BindPhoneParseRequest"></a>
 
 ### BindPhoneParseRequest
 
@@ -232,7 +232,7 @@
 
 
 
-<a name="login.BindPhoneParseResponse"></a>
+<a name="login-BindPhoneParseResponse"></a>
 
 ### BindPhoneParseResponse
 
@@ -243,14 +243,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | 消息 |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [BindPhoneParseResponse.DataEntry](#login.BindPhoneParseResponse.DataEntry) | repeated | 数据 |
+| data | [BindPhoneParseResponse.DataEntry](#login-BindPhoneParseResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.BindPhoneParseResponse.DataEntry"></a>
+<a name="login-BindPhoneParseResponse-DataEntry"></a>
 
 ### BindPhoneParseResponse.DataEntry
 
@@ -266,7 +266,7 @@
 
 
 
-<a name="login.BindVerifyRequest"></a>
+<a name="login-BindVerifyRequest"></a>
 
 ### BindVerifyRequest
 
@@ -285,7 +285,7 @@
 
 
 
-<a name="login.BindVerifyResponse"></a>
+<a name="login-BindVerifyResponse"></a>
 
 ### BindVerifyResponse
 
@@ -296,14 +296,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | 消息 |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [BindVerifyResponse.DataEntry](#login.BindVerifyResponse.DataEntry) | repeated | 数据 |
+| data | [BindVerifyResponse.DataEntry](#login-BindVerifyResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.BindVerifyResponse.DataEntry"></a>
+<a name="login-BindVerifyResponse-DataEntry"></a>
 
 ### BindVerifyResponse.DataEntry
 
@@ -319,7 +319,7 @@
 
 
 
-<a name="login.CheckRequest"></a>
+<a name="login-CheckRequest"></a>
 
 ### CheckRequest
 
@@ -337,7 +337,7 @@
 
 
 
-<a name="login.CheckResponse"></a>
+<a name="login-CheckResponse"></a>
 
 ### CheckResponse
 
@@ -348,14 +348,14 @@
 | code | [int64](#int64) |  | code,不为0为错误 |
 | msg | [string](#string) |  | 错误信息 |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [CheckResponse.DataEntry](#login.CheckResponse.DataEntry) | repeated | 数据 |
+| data | [CheckResponse.DataEntry](#login-CheckResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.CheckResponse.DataEntry"></a>
+<a name="login-CheckResponse-DataEntry"></a>
 
 ### CheckResponse.DataEntry
 
@@ -377,32 +377,32 @@
  
 
 
-<a name="login.BindTelephone"></a>
+<a name="login-BindTelephone"></a>
 
 ### BindTelephone
 绑定手机号
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Check | [CheckRequest](#login.CheckRequest) | [CheckResponse](#login.CheckResponse) | 检查是否可以绑定 |
-| BindVerify | [BindVerifyRequest](#login.BindVerifyRequest) | [BindVerifyResponse](#login.BindVerifyResponse) | 通过验证码,校验手机号是否可以接收验证码 |
-| BindChange | [BindChangeRequest](#login.BindChangeRequest) | [BindChangeResponse](#login.BindChangeResponse) | 通过验证码,进行手机号绑定,换绑 |
-| AutomaticBind | [AutomaticBindRequest](#login.AutomaticBindRequest) | [AutomaticBindResponse](#login.AutomaticBindResponse) | 手机号绑定,不通过验证码 |
-| BindPhoneParse | [BindPhoneParseRequest](#login.BindPhoneParseRequest) | [BindPhoneParseResponse](#login.BindPhoneParseResponse) | 绑定手机号解析，通过第三方小程序code换取手机号 |
-| BindPhoneParseByOneClick | [BindPhoneParseByOneClickRequest](#login.BindPhoneParseByOneClickRequest) | [BindPhoneParseByOneClickResponse](#login.BindPhoneParseByOneClickResponse) | 绑定手机号解析，通过阿里一键 |
+| Check | [CheckRequest](#login-CheckRequest) | [CheckResponse](#login-CheckResponse) | 检查是否可以绑定 |
+| BindVerify | [BindVerifyRequest](#login-BindVerifyRequest) | [BindVerifyResponse](#login-BindVerifyResponse) | 通过验证码,校验手机号是否可以接收验证码 |
+| BindChange | [BindChangeRequest](#login-BindChangeRequest) | [BindChangeResponse](#login-BindChangeResponse) | 通过验证码,进行手机号绑定,换绑 |
+| AutomaticBind | [AutomaticBindRequest](#login-AutomaticBindRequest) | [AutomaticBindResponse](#login-AutomaticBindResponse) | 手机号绑定,不通过验证码 |
+| BindPhoneParse | [BindPhoneParseRequest](#login-BindPhoneParseRequest) | [BindPhoneParseResponse](#login-BindPhoneParseResponse) | 绑定手机号解析，通过第三方小程序code换取手机号 |
+| BindPhoneParseByOneClick | [BindPhoneParseByOneClickRequest](#login-BindPhoneParseByOneClickRequest) | [BindPhoneParseByOneClickResponse](#login-BindPhoneParseByOneClickResponse) | 绑定手机号解析，通过阿里一键 |
 
  
 
 
 
-<a name="proto/login/code.proto"></a>
+<a name="proto_login_code-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/login/code.proto
 
 
 
-<a name="login.GetSendStatusRequest"></a>
+<a name="login-GetSendStatusRequest"></a>
 
 ### GetSendStatusRequest
 
@@ -422,7 +422,7 @@
 
 
 
-<a name="login.GetSendStatusResponse"></a>
+<a name="login-GetSendStatusResponse"></a>
 
 ### GetSendStatusResponse
 
@@ -433,14 +433,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [SendStatus](#login.SendStatus) |  | 数据 |
+| data | [SendStatus](#login-SendStatus) |  | 数据 |
 
 
 
 
 
 
-<a name="login.IsCheckImageCodeRequest"></a>
+<a name="login-IsCheckImageCodeRequest"></a>
 
 ### IsCheckImageCodeRequest
 
@@ -457,7 +457,7 @@
 
 
 
-<a name="login.IsCheckImageCodeResponse"></a>
+<a name="login-IsCheckImageCodeResponse"></a>
 
 ### IsCheckImageCodeResponse
 
@@ -475,7 +475,7 @@
 
 
 
-<a name="login.SendCodeRequest"></a>
+<a name="login-SendCodeRequest"></a>
 
 ### SendCodeRequest
 
@@ -494,7 +494,7 @@
 
 
 
-<a name="login.SendCodeResponse"></a>
+<a name="login-SendCodeResponse"></a>
 
 ### SendCodeResponse
 
@@ -505,14 +505,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [SendCodeResponse.DataEntry](#login.SendCodeResponse.DataEntry) | repeated | 数据 |
+| data | [SendCodeResponse.DataEntry](#login-SendCodeResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.SendCodeResponse.DataEntry"></a>
+<a name="login-SendCodeResponse-DataEntry"></a>
 
 ### SendCodeResponse.DataEntry
 
@@ -528,7 +528,7 @@
 
 
 
-<a name="login.SendStatus"></a>
+<a name="login-SendStatus"></a>
 
 ### SendStatus
 
@@ -546,7 +546,7 @@
 
 
 
-<a name="login.VerifyImageCodeRequest"></a>
+<a name="login-VerifyImageCodeRequest"></a>
 
 ### VerifyImageCodeRequest
 
@@ -566,7 +566,7 @@
 
 
 
-<a name="login.VerifyImageCodeResponse"></a>
+<a name="login-VerifyImageCodeResponse"></a>
 
 ### VerifyImageCodeResponse
 
@@ -583,7 +583,7 @@
 
 
 
-<a name="login.VerifyRequest"></a>
+<a name="login-VerifyRequest"></a>
 
 ### VerifyRequest
 
@@ -601,7 +601,7 @@
 
 
 
-<a name="login.VerifyResponse"></a>
+<a name="login-VerifyResponse"></a>
 
 ### VerifyResponse
 
@@ -612,14 +612,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [VerifyResponse.DataEntry](#login.VerifyResponse.DataEntry) | repeated | 数据 |
+| data | [VerifyResponse.DataEntry](#login-VerifyResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.VerifyResponse.DataEntry"></a>
+<a name="login-VerifyResponse-DataEntry"></a>
 
 ### VerifyResponse.DataEntry
 
@@ -641,31 +641,31 @@
  
 
 
-<a name="login.Code"></a>
+<a name="login-Code"></a>
 
 ### Code
 验证码
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| SendCode | [SendCodeRequest](#login.SendCodeRequest) | [SendCodeResponse](#login.SendCodeResponse) | 发送 |
-| Verify | [VerifyRequest](#login.VerifyRequest) | [VerifyResponse](#login.VerifyResponse) | 校验 |
-| IsCheckImageCode | [IsCheckImageCodeRequest](#login.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#login.IsCheckImageCodeResponse) | 是否校验图片验证码 |
-| VerifyImageCode | [VerifyImageCodeRequest](#login.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#login.VerifyImageCodeResponse) | 校验图片验证码 |
-| GetSendStatus | [GetSendStatusRequest](#login.GetSendStatusRequest) | [GetSendStatusResponse](#login.GetSendStatusResponse) | 获取发送状态 |
+| SendCode | [SendCodeRequest](#login-SendCodeRequest) | [SendCodeResponse](#login-SendCodeResponse) | 发送 |
+| Verify | [VerifyRequest](#login-VerifyRequest) | [VerifyResponse](#login-VerifyResponse) | 校验 |
+| IsCheckImageCode | [IsCheckImageCodeRequest](#login-IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#login-IsCheckImageCodeResponse) | 是否校验图片验证码 |
+| VerifyImageCode | [VerifyImageCodeRequest](#login-VerifyImageCodeRequest) | [VerifyImageCodeResponse](#login-VerifyImageCodeResponse) | 校验图片验证码 |
+| GetSendStatus | [GetSendStatusRequest](#login-GetSendStatusRequest) | [GetSendStatusResponse](#login-GetSendStatusResponse) | 获取发送状态 |
 
  
 
 
 
-<a name="proto/login/login.proto"></a>
+<a name="proto_login_login-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/login/login.proto
 
 
 
-<a name="login.AuthenticateRequest"></a>
+<a name="login-AuthenticateRequest"></a>
 
 ### AuthenticateRequest
 
@@ -673,14 +673,14 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| credentials | [AuthenticateRequest.CredentialsEntry](#login.AuthenticateRequest.CredentialsEntry) | repeated | 凭证,cookie:string or token:sting |
+| credentials | [AuthenticateRequest.CredentialsEntry](#login-AuthenticateRequest-CredentialsEntry) | repeated | 凭证,cookie:string or token:sting |
 
 
 
 
 
 
-<a name="login.AuthenticateRequest.CredentialsEntry"></a>
+<a name="login-AuthenticateRequest-CredentialsEntry"></a>
 
 ### AuthenticateRequest.CredentialsEntry
 
@@ -696,7 +696,7 @@
 
 
 
-<a name="login.AuthenticateResponse"></a>
+<a name="login-AuthenticateResponse"></a>
 
 ### AuthenticateResponse
 
@@ -707,14 +707,14 @@
 | code | [int64](#int64) |  | 错误码,0 为正常 |
 | msg | [string](#string) |  | 错误信息 |
 | nowTime | [int64](#int64) |  | 请求响应时间戳 |
-| data | [Data](#login.Data) |  | 数据 |
+| data | [Data](#login-Data) |  | 数据 |
 
 
 
 
 
 
-<a name="login.Credentials"></a>
+<a name="login-Credentials"></a>
 
 ### Credentials
 
@@ -728,14 +728,14 @@
 | isNew | [bool](#bool) |  | isNew |
 | isFirstRegister | [bool](#bool) |  | 是否首次注册 |
 | isBindTelephone | [bool](#bool) |  | 是否绑定手机号 |
-| platformInfo | [PlatformInfo](#login.PlatformInfo) |  | platformId |
+| platformInfo | [PlatformInfo](#login-PlatformInfo) |  | platformId |
 
 
 
 
 
 
-<a name="login.Data"></a>
+<a name="login-Data"></a>
 
 ### Data
 
@@ -763,7 +763,7 @@
 
 
 
-<a name="login.LoginRequest"></a>
+<a name="login-LoginRequest"></a>
 
 ### LoginRequest
 
@@ -772,7 +772,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | platformId | [int64](#int64) |  | 平台id ,对应 center 表 type 字段 |
-| data | [LoginRequest.DataEntry](#login.LoginRequest.DataEntry) | repeated | 登录相关信息,json,手机号登录参数 UserType int64 `json:&#34;userType&#34;` 	VerifyType string `json:&#34;verifyType&#34;` 	NationCode string `json:&#34;nationCode&#34;` 	Telephone string `json:&#34;telephone&#34;` 	Code string `json:&#34;code&#34;` 	LoginToken string `json:&#34;loginToken&#34;` 	DeviceId string `json:&#34;deviceId&#34;` 	SysMessageNum int64 `json:&#34;sysMessageNum&#34;` |
+| data | [LoginRequest.DataEntry](#login-LoginRequest-DataEntry) | repeated | 登录相关信息,json,手机号登录参数 UserType int64 `json:&#34;userType&#34;` 	VerifyType string `json:&#34;verifyType&#34;` 	NationCode string `json:&#34;nationCode&#34;` 	Telephone string `json:&#34;telephone&#34;` 	Code string `json:&#34;code&#34;` 	LoginToken string `json:&#34;loginToken&#34;` 	DeviceId string `json:&#34;deviceId&#34;` 	SysMessageNum int64 `json:&#34;sysMessageNum&#34;` |
 | scope | [string](#string) |  | 凭据类型,普通用户 base, 特权?超级? super |
 
 
@@ -780,7 +780,7 @@
 
 
 
-<a name="login.LoginRequest.DataEntry"></a>
+<a name="login-LoginRequest-DataEntry"></a>
 
 ### LoginRequest.DataEntry
 
@@ -796,7 +796,7 @@
 
 
 
-<a name="login.LoginResponse"></a>
+<a name="login-LoginResponse"></a>
 
 ### LoginResponse
 
@@ -807,14 +807,14 @@
 | code | [int64](#int64) |  | 错误码,0 为正常 |
 | msg | [string](#string) |  | 错误信息 |
 | nowTime | [int64](#int64) |  | 请求响应时间戳 |
-| data | [Credentials](#login.Credentials) |  | 数据 |
+| data | [Credentials](#login-Credentials) |  | 数据 |
 
 
 
 
 
 
-<a name="login.PlatformInfo"></a>
+<a name="login-PlatformInfo"></a>
 
 ### PlatformInfo
 
@@ -838,28 +838,28 @@
  
 
 
-<a name="login.Login"></a>
+<a name="login-Login"></a>
 
 ### Login
 统一登录入口
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Login | [LoginRequest](#login.LoginRequest) | [LoginResponse](#login.LoginResponse) | 登录注册获取凭证,cookie,token |
-| Authenticate | [AuthenticateRequest](#login.AuthenticateRequest) | [AuthenticateResponse](#login.AuthenticateResponse) | 使用凭证获取用户信息 |
+| Login | [LoginRequest](#login-LoginRequest) | [LoginResponse](#login-LoginResponse) | 登录注册获取凭证,cookie,token |
+| Authenticate | [AuthenticateRequest](#login-AuthenticateRequest) | [AuthenticateResponse](#login-AuthenticateResponse) | 使用凭证获取用户信息 |
 
  
 
 
 
-<a name="proto/login/merge.proto"></a>
+<a name="proto_login_merge-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/login/merge.proto
 
 
 
-<a name="login.Reply"></a>
+<a name="login-Reply"></a>
 
 ### Reply
 
@@ -870,14 +870,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [Reply.DataEntry](#login.Reply.DataEntry) | repeated | 数据 |
+| data | [Reply.DataEntry](#login-Reply-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="login.Reply.DataEntry"></a>
+<a name="login-Reply-DataEntry"></a>
 
 ### Reply.DataEntry
 
@@ -893,7 +893,7 @@
 
 
 
-<a name="login.TelephoneRequest"></a>
+<a name="login-TelephoneRequest"></a>
 
 ### TelephoneRequest
 
@@ -910,7 +910,7 @@
 
 
 
-<a name="login.WeChatRequest"></a>
+<a name="login-WeChatRequest"></a>
 
 ### WeChatRequest
 
@@ -926,7 +926,7 @@
 
 
 
-<a name="login.WeChatUnMergeRequest"></a>
+<a name="login-WeChatUnMergeRequest"></a>
 
 ### WeChatUnMergeRequest
 
@@ -947,18 +947,18 @@
  
 
 
-<a name="login.Merge"></a>
+<a name="login-Merge"></a>
 
 ### Merge
 账户合并
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Telephone | [TelephoneRequest](#login.TelephoneRequest) | [Reply](#login.Reply) | 手机号合并,换绑,手机号更换 |
-| TelephoneCheck | [TelephoneRequest](#login.TelephoneRequest) | [Reply](#login.Reply) | 手机号账户合并检查 |
-| WeChat | [WeChatRequest](#login.WeChatRequest) | [Reply](#login.Reply) | 微信账户绑定 |
-| WeChatCheck | [WeChatRequest](#login.WeChatRequest) | [Reply](#login.Reply) | 微信合并检查 |
-| WeChatUnMerge | [WeChatUnMergeRequest](#login.WeChatUnMergeRequest) | [Reply](#login.Reply) | 解除微信绑定, 必须拥有手机号 |
+| Telephone | [TelephoneRequest](#login-TelephoneRequest) | [Reply](#login-Reply) | 手机号合并,换绑,手机号更换 |
+| TelephoneCheck | [TelephoneRequest](#login-TelephoneRequest) | [Reply](#login-Reply) | 手机号账户合并检查 |
+| WeChat | [WeChatRequest](#login-WeChatRequest) | [Reply](#login-Reply) | 微信账户绑定 |
+| WeChatCheck | [WeChatRequest](#login-WeChatRequest) | [Reply](#login-Reply) | 微信合并检查 |
+| WeChatUnMerge | [WeChatUnMergeRequest](#login-WeChatUnMergeRequest) | [Reply](#login-Reply) | 解除微信绑定, 必须拥有手机号 |
 
  
 

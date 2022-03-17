@@ -9,14 +9,9 @@ package gid
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -24,370 +19,70 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitIdClient(srv string, opts ...func(cfg *grpcc.Cfg)) IdClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &idClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitIdClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*IdClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &GenerateRequest{},
-		Output:       &GenerateResponse{},
-		Service:      "gid.Id",
-		Name:         "Generate",
-		Method:       "POST",
-		Path:         "/v1/id/generate",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterId(srv service.Service, impl IdServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = Id_ServiceDesc
+	desc.GrpcClientFn = NewIdClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &TypesRequest{},
-		Output:       &TypesResponse{},
-		Service:      "gid.Id",
-		Name:         "Types",
-		Method:       "GET",
-		Path:         "/v1/id/types",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	xgen.Add(RegisterIdServer, mthList)
+	srv.RegisterService(desc)
 }
 
-func RegisterIdSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl IdServer) {
-	srv.RegisterService(&Id_ServiceDesc, impl)
-
-	_ = RegisterIdHandlerClient(context.Background(), srv.Mux(), NewIdClient(srv.Conn()))
-
+func InitABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*ABitOfEverythingServiceClient)(nil)))...)
 }
 
-func InitABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) ABitOfEverythingServiceClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &aBitOfEverythingServiceClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingServiceServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = ABitOfEverythingService_ServiceDesc
+	desc.GrpcClientFn = NewABitOfEverythingServiceClient
+
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
+
+	srv.RegisterService(desc)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "Create",
-		Method:       "POST",
-		Path:         "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CreateBody",
-		Method:       "POST",
-		Path:         "/v1/example/a_bit_of_everything",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &CreateBookRequest{},
-		Output:       &Book{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CreateBook",
-		Method:       "POST",
-		Path:         "/v1/{parent=publishers/*}/books",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UpdateBookRequest{},
-		Output:       &Book{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "UpdateBook",
-		Method:       "PATCH",
-		Path:         "/v1/{book.name=publishers/*/books/*}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "Update",
-		Method:       "PUT",
-		Path:         "/v1/example/a_bit_of_everything/{uuid}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UpdateV2Request{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "UpdateV2",
-		Method:       "PUT",
-		Path:         "/v2/example/a_bit_of_everything/{abe.uuid}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "GetQuery",
-		Method:       "GET",
-		Path:         "/v1/example/a_bit_of_everything/query/{uuid}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverythingRepeated{},
-		Output:       &ABitOfEverythingRepeated{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "GetRepeatedQuery",
-		Method:       "GET",
-		Path:         "/v1/example/a_bit_of_everything_repeated/{path_repeated_float_value}/{path_repeated_double_value}/{path_repeated_int64_value}/{path_repeated_uint64_value}/{path_repeated_int32_value}/{path_repeated_fixed64_value}/{path_repeated_fixed32_value}/{path_repeated_bool_value}/{path_repeated_string_value}/{path_repeated_bytes_value}/{path_repeated_uint32_value}/{path_repeated_enum_value}/{path_repeated_sfixed32_value}/{path_repeated_sfixed64_value}/{path_repeated_sint32_value}/{path_repeated_sint64_value}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "DeepPathEcho",
-		Method:       "POST",
-		Path:         "/v1/example/deep_path/{single_nested.name}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &durationpb.Duration{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "NoBindings",
-		Method:       "GET",
-		Path:         "/v2/example/NoBindings",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "Timeout",
-		Method:       "GET",
-		Path:         "/v2/example/timeout",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "ErrorWithDetails",
-		Method:       "GET",
-		Path:         "/v2/example/errorwithdetails",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &MessageWithBody{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "GetMessageWithBody",
-		Method:       "POST",
-		Path:         "/v2/example/withbody/{id}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &Body{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "PostWithEmptyBody",
-		Method:       "POST",
-		Path:         "/v2/example/postwithemptybody/{name}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CheckGetQueryParams",
-		Method:       "GET",
-		Path:         "/v1/example/a_bit_of_everything/params/get/{single_nested.name}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CheckNestedEnumGetQueryParams",
-		Method:       "GET",
-		Path:         "/v1/example/a_bit_of_everything/params/get/nested_enum/{single_nested.ok}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &ABitOfEverything{},
-		Output:       &ABitOfEverything{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CheckPostQueryParams",
-		Method:       "POST",
-		Path:         "/v1/example/a_bit_of_everything/params/post/{string_value}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &wrapperspb.StringValue{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "OverwriteResponseContentType",
-		Method:       "GET",
-		Path:         "/v2/example/overwriteresponsecontenttype",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &CheckStatusResponse{},
-		Service:      "gid.ABitOfEverythingService",
-		Name:         "CheckStatus",
-		Method:       "GET",
-		Path:         "/v1/example/checkStatus",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
+func InitCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*CamelCaseServiceNameClient)(nil)))...)
 }
 
-func RegisterABitOfEverythingServiceSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl ABitOfEverythingServiceServer) {
-	srv.RegisterService(&ABitOfEverythingService_ServiceDesc, impl)
+func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceNameServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = CamelCaseServiceName_ServiceDesc
+	desc.GrpcClientFn = NewCamelCaseServiceNameClient
 
-	_ = RegisterABitOfEverythingServiceHandlerClient(context.Background(), srv.Mux(), NewABitOfEverythingServiceClient(srv.Conn()))
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
+	srv.RegisterService(desc)
 }
 
-func InitCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) CamelCaseServiceNameClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &camelCaseServiceNameClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*AnotherServiceWithNoBindingsClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.camelCaseServiceName",
-		Name:         "Empty",
-		Method:       "GET",
-		Path:         "/v2/example/empty",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterAnotherServiceWithNoBindings(srv service.Service, impl AnotherServiceWithNoBindingsServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = AnotherServiceWithNoBindings_ServiceDesc
+	desc.GrpcClientFn = NewAnotherServiceWithNoBindingsClient
 
-	xgen.Add(RegisterCamelCaseServiceNameServer, mthList)
-}
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-func RegisterCamelCaseServiceNameSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl CamelCaseServiceNameServer) {
-	srv.RegisterService(&CamelCaseServiceName_ServiceDesc, impl)
-
-	_ = RegisterCamelCaseServiceNameHandlerClient(context.Background(), srv.Mux(), NewCamelCaseServiceNameClient(srv.Conn()))
-
-}
-
-func InitAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) AnotherServiceWithNoBindingsClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &anotherServiceWithNoBindingsClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
-}
-
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &emptypb.Empty{},
-		Service:      "gid.AnotherServiceWithNoBindings",
-		Name:         "NoBindings",
-		Method:       "GET",
-		Path:         "/v2/another/no-bindings",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
-}
-
-func RegisterAnotherServiceWithNoBindingsSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl AnotherServiceWithNoBindingsServer) {
-	srv.RegisterService(&AnotherServiceWithNoBindings_ServiceDesc, impl)
-
-	_ = RegisterAnotherServiceWithNoBindingsHandlerClient(context.Background(), srv.Mux(), NewAnotherServiceWithNoBindingsClient(srv.Conn()))
-
+	srv.RegisterService(desc)
 }

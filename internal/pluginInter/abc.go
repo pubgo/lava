@@ -2,18 +2,16 @@ package pluginInter
 
 import (
 	"encoding/json"
-	"github.com/pubgo/lava/watcher/watcher_type"
 
 	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
 const Name = "plugin"
 
 type Plugin interface {
 	json.Marshaler
-	// InitCfg init config
-	InitCfg(p config_type.IConfig)
 	// String 插件描述
 	String() string
 	// ID 插件唯一名字
@@ -23,7 +21,7 @@ type Plugin interface {
 	// Commands 插件启动子命令
 	Commands() *types.Command
 	// Init 插件初始化
-	Init() error
+	Init(cfg config_type.IConfig) error
 	// Watch 配置变更通知
 	Watch(name string, r *watcher_type.WatchResp) error
 	// Vars 插件可观测指标

@@ -7,11 +7,10 @@
 package hello
 
 import (
+	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
 
@@ -20,71 +19,19 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitTransportClient(srv string, opts ...func(cfg *grpcc.Cfg)) TransportClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &transportClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitTransportClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TransportClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &Message{},
-		Output:       &Message{},
-		Service:      "hello.Transport",
-		Name:         "TestStream",
-		Method:       "POST",
-		Path:         "/hello/transport/test-stream",
-		DefaultUrl:   true,
-		ClientStream: true,
-		ServerStream: true,
-	})
+func RegisterTransport(srv service.Service, impl TransportServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = Transport_ServiceDesc
+	desc.GrpcClientFn = NewTransportClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &Message{},
-		Output:       &Message{},
-		Service:      "hello.Transport",
-		Name:         "TestStream1",
-		Method:       "POST",
-		Path:         "/hello/transport/test-stream1",
-		DefaultUrl:   true,
-		ClientStream: true,
-		ServerStream: false,
-	})
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &Message{},
-		Output:       &Message{},
-		Service:      "hello.Transport",
-		Name:         "TestStream2",
-		Method:       "POST",
-		Path:         "/hello/transport/test-stream2",
-		DefaultUrl:   true,
-		ClientStream: false,
-		ServerStream: true,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &Message{},
-		Output:       &Message{},
-		Service:      "hello.Transport",
-		Name:         "TestStream3",
-		Method:       "GET",
-		Path:         "/v1/Transport/TestStream3",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterTransportServer, mthList)
-}
-
-func RegisterTransportSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl TransportServer) {
-	srv.RegisterService(&Transport_ServiceDesc, impl)
-
+	srv.RegisterService(desc)
 }

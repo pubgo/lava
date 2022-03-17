@@ -9,12 +9,9 @@ package yuque_pb
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	dix "github.com/pubgo/dix"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	xgen "github.com/pubgo/lava/xgen"
-	xerror "github.com/pubgo/xerror"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,107 +19,36 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitYuqueClient(srv string, opts ...func(cfg *grpcc.Cfg)) YuqueClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &yuqueClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
+func InitYuqueClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*YuqueClient)(nil)))...)
 }
 
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &emptypb.Empty{},
-		Output:       &UserInfoResp{},
-		Service:      "yuque.v2.Yuque",
-		Name:         "UserInfo",
-		Method:       "GET",
-		Path:         "/user",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
+func RegisterYuque(srv service.Service, impl YuqueServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = Yuque_ServiceDesc
+	desc.GrpcClientFn = NewYuqueClient
 
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UserInfoReq{},
-		Output:       &UserInfoResp{},
-		Service:      "yuque.v2.Yuque",
-		Name:         "UserInfoByLogin",
-		Method:       "GET",
-		Path:         "/users/{login}",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &CreateGroupReq{},
-		Output:       &CreateGroupResp{},
-		Service:      "yuque.v2.Yuque",
-		Name:         "CreateGroup",
-		Method:       "POST",
-		Path:         "/groups",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterYuqueServer, mthList)
-}
-
-func RegisterYuqueSrvServer(srv interface {
-	Mux() *runtime.ServeMux
-	Conn() grpc.ClientConnInterface
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}, impl YuqueServer) {
-	srv.RegisterService(&Yuque_ServiceDesc, impl)
-
-	_ = RegisterYuqueHandlerClient(context.Background(), srv.Mux(), NewYuqueClient(srv.Conn()))
-
-}
-
-func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) UserServiceClient {
-	var cfg = grpcc.DefaultCfg(opts...)
-	var cli = &userServiceClient{grpcc.NewClient(srv, cfg)}
-	xerror.Exit(dix.ProviderNs(cfg.GetReg(), cli))
-	return cli
-}
-
-func init() {
-	var mthList []xgen.GrpcRestHandler
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UserInfoReq{},
-		Output:       &UserInfoResp{},
-		Service:      "yuque.v2.UserService",
-		Name:         "Signin",
-		Method:       "POST",
-		Path:         "/api/v1/users/signin",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	mthList = append(mthList, xgen.GrpcRestHandler{
-		Input:        &UserInfoReq{},
-		Output:       &emptypb.Empty{},
-		Service:      "yuque.v2.UserService",
-		Name:         "ResetPassword",
-		Method:       "POST",
-		Path:         "/api/v1/users/reset_password",
-		DefaultUrl:   false,
-		ClientStream: false,
-		ServerStream: false,
-	})
-
-	xgen.Add(RegisterUserServiceServer, mthList)
-}
-
-func RegisterUserServiceSrvServer(srv grpc.ServiceRegistrar, impl UserServiceServer) {
-	srv.RegisterService(&UserService_ServiceDesc, impl)
-
-	_= func(ctx context.Context, mux *runtime.ServeMux,conn grpc.ClientConnInterface) error {
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
 		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
 	}
 
+	srv.RegisterService(desc)
+}
 
+func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserServiceClient)(nil)))...)
+}
+
+func RegisterUserService(srv service.Service, impl UserServiceServer) {
+	var desc service.Desc
+	desc.Handler = impl
+	desc.ServiceDesc = UserService_ServiceDesc
+	desc.GrpcClientFn = NewUserServiceClient
+
+	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	}
+
+	srv.RegisterService(desc)
 }

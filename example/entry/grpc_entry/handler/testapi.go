@@ -16,11 +16,11 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
-	"github.com/pubgo/lava/server"
 )
 
 type User struct {
@@ -44,10 +44,10 @@ func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
 }
 
-var _ = server.AssertHandler(&testapiHandler{})
+var _ = entry.AssertHandler(&testapiHandler{})
 
 type testapiHandler struct {
-	server.Handler
+	entry.Handler
 	Db         *orm.Client          `dix:""`
 	Cron       *scheduler.Scheduler `dix:""`
 	TestApiSrv hello.TestApiClient  `name:"hello"`
