@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/service/internal/fiber_builder"
+	"github.com/pubgo/lava/service/service_type"
 	"io"
 	"net"
 	"net/http"
@@ -35,7 +36,7 @@ import (
 	"github.com/pubgo/lava/types"
 )
 
-var _ Service = (*grpcEntry)(nil)
+var _ service_type.Service = (*grpcEntry)(nil)
 
 func newEntry(name string, desc string) *grpcEntry {
 	var g = &grpcEntry{
@@ -49,7 +50,7 @@ func newEntry(name string, desc string) *grpcEntry {
 			ReadTimeout: time.Second * 2,
 			HandleError: func(err error) bool {
 				zap.L().Named("cmux").Error("HandleError", logutil.ErrField(err)...)
-				return false
+				return true
 			},
 		},
 		cfg: Cfg{
@@ -73,7 +74,7 @@ type grpcEntry struct {
 	afterStops   []func()
 	pluginList   []plugin.Plugin
 	middlewares  []types.Middleware
-	services     []Desc
+	services     []service_type.Desc
 
 	cmd *cli.Command
 
@@ -148,8 +149,8 @@ func (t *grpcEntry) init() error {
 		)
 
 		switch srv.Handler.(type) {
-		case Handler:
-			var h = srv.Handler.(Handler)
+		case service_type.Handler:
+			var h = srv.Handler.(service_type.Handler)
 			// Handler初始化
 			logutil.LogOrPanic(logs.L(), "Handler initCfg", func() error {
 				return xerror.Try(func() {
@@ -195,26 +196,26 @@ func (t *grpcEntry) RegisterMatcher(priority int64, matches ...func(io.Reader) b
 	return t.net.handler(priority, matchList...)
 }
 
-func (t *grpcEntry) ServiceDesc() []Desc {
+func (t *grpcEntry) ServiceDesc() []service_type.Desc {
 	return t.services
 }
 
-func (t *grpcEntry) Options() Options {
+func (t *grpcEntry) Options() service_type.Options {
 	//TODO implement me
 	panic("implement me")
 }
 
 func (t *grpcEntry) GrpcClientInnerConn() grpc.ClientConnInterface { return t.inproc }
 
-func (t *grpcEntry) RegisterService(desc Desc) {
+func (t *grpcEntry) RegisterService(desc service_type.Desc) {
 	t.srv.Get().RegisterService(&desc.ServiceDesc, desc.Handler)
 	// 进程内grpc serve注册
 	t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.services = append(t.services, desc)
 
 	switch desc.Handler.(type) {
-	case Handler:
-		var h = desc.Handler.(Handler)
+	case service_type.Handler:
+		var h = desc.Handler.(service_type.Handler)
 		t.Flags(h.Flags()...)
 	}
 }

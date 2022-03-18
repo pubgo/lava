@@ -1,16 +1,15 @@
-package version
+package runtime
 
 import (
 	rt "runtime"
 
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 
-func GetVer() map[string]interface{} {
+func GetVersion() map[string]interface{} {
 	return map[string]interface{}{
-		"device_id":     runtime.DeviceID,
-		"project":       runtime.Project,
+		"device_id":     DeviceID,
+		"project":       Project,
 		"data":          version.Data,
 		"build_time":    version.BuildTime,
 		"version":       version.Version,

@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/service/service_type"
 	"os"
 	"sort"
 
@@ -23,7 +24,7 @@ import (
 	"github.com/pubgo/lava/watcher"
 )
 
-func Run(desc string, entries ...Service) {
+func Run(desc string, entries ...service_type.Service) {
 	defer xerror.RespExit()
 
 	xerror.Assert(len(entries) == 0, "[entries] should not be zero")

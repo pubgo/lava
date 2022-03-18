@@ -2,15 +2,13 @@ package debug
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/templates"
 	"github.com/go-echarts/statsview/statics"
 	"github.com/go-echarts/statsview/viewer"
-
-	"github.com/pubgo/lava/debug/debug_mux"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
 // ViewManager ...
@@ -26,7 +24,7 @@ func (vm *ViewManager) Register(views ...viewer.Viewer) {
 	vm.Views = append(vm.Views, views...)
 }
 
-func InitView() {
+func init() {
 	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithTemplate(`
 $(function () { setInterval({{ .ViewID }}_sync, {{ .Interval }}); });
 function {{ .ViewID }}_sync() {
@@ -78,7 +76,7 @@ function {{ .ViewID }}_sync() {
 func New() *ViewManager {
 	page := components.NewPage()
 	page.PageTitle = "statsview"
-	page.AssetsHost = debug_mux.DebugPrefix("statsview", "statics") + "/"
+	page.AssetsHost = "/debug/statsview/statics/"
 	page.Assets.JSAssets.Add("jquery.min.js")
 
 	mgr := &ViewManager{}
@@ -97,32 +95,34 @@ func New() *ViewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	debug_mux.Route(debug_mux.DebugPrefix("/statsview"), func(r chi.Router) {
-		r.Get("/", func(writer http.ResponseWriter, request *http.Request) { page.Render(writer) })
+	Route("/statsview", func(r fiber.Router) {
+		r.Get("/", func(ctx *fiber.Ctx) error { return page.Render(ctx) })
 
 		for _, v := range mgr.Views {
 			page.AddCharts(v.View())
-			r.Get("/view/"+v.Name(), v.Serve)
+			r.Get("/view/"+v.Name(), adaptor.HTTPHandlerFunc(v.Serve))
 		}
 
 		staticsPrev := "/statics/"
-		r.Get(staticsPrev+"echarts.min.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.EchartJS))
+		r.Get(staticsPrev+"echarts.min.js", func(ctx *fiber.Ctx) error {
+			var _, err = ctx.Write([]byte(statics.EchartJS))
+			return err
 		})
 
-		r.Get(staticsPrev+"jquery.min.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.JqueryJS))
+		r.Get(staticsPrev+"jquery.min.js", func(ctx *fiber.Ctx) error {
+			var _, err = ctx.Write([]byte(statics.JqueryJS))
+			return err
 		})
 
-		r.Get(staticsPrev+"themes/westeros.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.WesterosJS))
+		r.Get(staticsPrev+"themes/westeros.js", func(ctx *fiber.Ctx) error {
+			var _, err = ctx.Write([]byte(statics.WesterosJS))
+			return err
 		})
 
-		r.Get(staticsPrev+"themes/macarons.js", func(w http.ResponseWriter, _ *http.Request) {
-			w.Write([]byte(statics.MacaronsJS))
+		r.Get(staticsPrev+"themes/macarons.js", func(ctx *fiber.Ctx) error {
+			var _, err = ctx.Write([]byte(statics.MacaronsJS))
+			return err
 		})
-
 	})
-
 	return mgr
 }

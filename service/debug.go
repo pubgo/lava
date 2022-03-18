@@ -1,20 +1,13 @@
-package debug
+package service
 
 import (
-	"html/template"
-	"net/http"
-	"strings"
-
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/debug/debug_mux"
+	"html/template"
+	"strings"
 )
 
 func init() {
-	debug_mux.DebugGet("/", home())
-}
-
-func home() func(writer http.ResponseWriter, r *http.Request) {
 	var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>
 		<head>
@@ -27,12 +20,11 @@ func home() func(writer http.ResponseWriter, r *http.Request) {
 		</body>
 		</html>
 		`))
-
-	return func(writer http.ResponseWriter, req *http.Request) {
+	Get("/", func(ctx *fiber.Ctx) error {
 		var keys []string
-		for _, r := range debug_mux.Mux().Routes() {
+		for _, r := range Mux().Routes() {
 			keys = append(keys, strings.TrimSuffix(r.Pattern, "*"))
 		}
 		xerror.Panic(homeTmpl.Execute(writer, keys))
-	}
+	})
 }

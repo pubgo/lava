@@ -1,11 +1,11 @@
 package debug
 
 import (
-	"github.com/pubgo/lava/debug/debug_mux"
+	"github.com/gofiber/adaptor/v2"
 	"golang.org/x/net/trace"
 )
 
 func init() {
-	debug_mux.DebugGet("/requests", trace.Traces)
-	debug_mux.DebugGet("/events", trace.Events)
+	Get("/requests", adaptor.HTTPHandlerFunc(trace.Traces))
+	Get("/events", adaptor.HTTPHandlerFunc(trace.Events))
 }

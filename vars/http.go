@@ -3,14 +3,16 @@ package vars
 import (
 	"expvar"
 	"fmt"
-	"github.com/pubgo/lava/debug/debug_mux"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/debug"
 )
 
 func init() {
@@ -29,19 +31,20 @@ func init() {
 		})
 	}
 
-	debug_mux.Route("/debug/expvar", func(r chi.Router) {
-		r.Get("/", func(w http.ResponseWriter, request *http.Request) {
+	debug.Route("/debug/expvar", func(r fiber.Router) {
+		r.Get("/", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 			var keys []string
 			expvar.Do(func(kv expvar.KeyValue) {
 				keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))
 			})
 			xerror.Panic(index(keys).Render(w))
-		})
+		}))
 
-		r.Get("/{name}", func(w http.ResponseWriter, request *http.Request) {
-			var name = chi.URLParam(request, "name")
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			fmt.Fprintln(w, expvar.Get(name).String())
+		r.Get("/:name", func(ctx *fiber.Ctx) error {
+			var name = ctx.Params("name")
+			ctx.Response().Header.Set("Content-Type", "application/json; charset=utf-8")
+			fmt.Fprintln(ctx, expvar.Get(name).String())
+			return nil
 		})
 	})
 }

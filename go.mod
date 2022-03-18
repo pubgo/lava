@@ -38,7 +38,7 @@ require (
 	github.com/m3db/prometheus_common v0.1.0 // indirect
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/maragudk/gomponents v0.17.2
-	github.com/maruel/panicparse/v2 v2.2.0
+	github.com/maruel/panicparse/v2 v2.2.0 // indirect
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/mwitkow/go-proto-validators v0.3.2
@@ -139,7 +139,7 @@ require (
 	github.com/google/gofuzz v1.1.1-0.20200604201612-c04b05f3adfa // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack v0.5.5 // indirect
@@ -181,7 +181,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/pseudomuto/protoc-gen-doc v1.3.2
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/rsocket/rsocket-go v0.8.6
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
@@ -227,6 +227,7 @@ require (
 	github.com/antonmedv/expr v1.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/fullstorydev/grpcurl v1.8.6
+	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/websocket/v2 v2.0.18
 	github.com/hashicorp/raft v1.3.6
@@ -251,6 +252,10 @@ require (
 	github.com/go-logr/stdr v1.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
+	github.com/gofiber/adaptor v0.2.0 // indirect
+	github.com/gofiber/fiber v1.13.3 // indirect
+	github.com/gofiber/utils v0.1.2 // indirect
+	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

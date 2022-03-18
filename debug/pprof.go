@@ -4,28 +4,22 @@ import (
 	"net/http/pprof"
 
 	"github.com/felixge/fgprof"
-	"github.com/go-chi/chi/v5"
-
-	"github.com/pubgo/lava/debug/debug_mux"
+	adaptor "github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
-const Name = "debug"
-
 func init() {
-	debug_mux.DebugGet("/fgprof", fgprof.Handler().ServeHTTP)
-}
-
-func init() {
-	debug_mux.Route(debug_mux.DebugPrefix("/pprof"), func(r chi.Router) {
-		r.Get("/", pprof.Index)
-		r.Get("/cmdline", pprof.Cmdline)
-		r.Get("/profile", pprof.Profile)
-		r.Get("/symbol", pprof.Symbol)
-		r.Get("/trace", pprof.Trace)
-		r.Get("/allocs", pprof.Handler("allocs").ServeHTTP)
-		r.Get("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-		r.Get("/heap", pprof.Handler("heap").ServeHTTP)
-		r.Get("/mutex", pprof.Handler("mutex").ServeHTTP)
-		r.Get("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+	Get("/gprof", adaptor.HTTPHandler(fgprof.Handler()))
+	Route("/pprof", func(r fiber.Router) {
+		r.Get("/", adaptor.HTTPHandlerFunc(pprof.Index))
+		r.Get("/cmdline", adaptor.HTTPHandlerFunc(pprof.Cmdline))
+		r.Get("/profile", adaptor.HTTPHandlerFunc(pprof.Profile))
+		r.Get("/symbol", adaptor.HTTPHandlerFunc(pprof.Symbol))
+		r.Get("/trace", adaptor.HTTPHandlerFunc(pprof.Trace))
+		r.Get("/allocs", adaptor.HTTPHandler(pprof.Handler("allocs")))
+		r.Get("/goroutine", adaptor.HTTPHandler(pprof.Handler("goroutine")))
+		r.Get("/heap", adaptor.HTTPHandler(pprof.Handler("heap")))
+		r.Get("/mutex", adaptor.HTTPHandler(pprof.Handler("mutex")))
+		r.Get("/threadcreate", adaptor.HTTPHandler(pprof.Handler("threadcreate")))
 	})
 }

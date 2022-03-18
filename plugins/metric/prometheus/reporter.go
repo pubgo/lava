@@ -1,13 +1,13 @@
 package prometheus
 
 import (
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/debug/debug_mux"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
@@ -36,7 +36,7 @@ func init() {
 			},
 		)
 		xerror.Panic(err1)
-		debug_mux.DebugGet(urlPath, reporter.HTTPHandler().ServeHTTP)
+		debug.DebugGet(urlPath, reporter.HTTPHandler().ServeHTTP)
 
 		opts.CachedReporter = reporter
 		return nil

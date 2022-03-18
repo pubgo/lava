@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service"
+	service "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 

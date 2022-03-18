@@ -5,17 +5,17 @@ import (
 	"os"
 	rd "runtime/debug"
 
+	"github.com/gofiber/adaptor/v2"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/debug/debug_mux"
-	"github.com/pubgo/lava/internal/plugins/version"
+	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
-	debug_mux.DebugGet("/env", envHandle)
-	debug_mux.DebugGet("/version", versionHandle)
-	debug_mux.DebugGet("/dep", depHandle)
+	Get("/env", adaptor.HTTPHandlerFunc(envHandle))
+	Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
+	Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {
@@ -29,7 +29,7 @@ func envHandle(writer http.ResponseWriter, request *http.Request) {
 func versionHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt, err := jsonx.Marshal(version.GetVer())
+	dt, err := jsonx.Marshal(runtime.GetVersion())
 	xerror.Panic(err)
 	xerror.PanicErr(writer.Write(dt))
 }

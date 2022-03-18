@@ -1,7 +1,7 @@
 package healthy
 
 import (
-	"github.com/pubgo/lava/debug/debug_mux"
+	"github.com/pubgo/lava/debug"
 	"net/http"
 
 	"github.com/pubgo/x/jsonx"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	debug_mux.Get("/health", httpHandle)
+	debug.Get("/health", httpHandle)
 }
 
 type health struct {

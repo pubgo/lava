@@ -12,6 +12,7 @@ import (
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
@@ -44,7 +45,7 @@ func init() {
 
 					switch typ {
 					case "":
-						dt, err := json.MarshalIndent(GetVer(), "", "\t")
+						dt, err := json.MarshalIndent(runtime.GetVersion(), "", "\t")
 						xerror.Panic(err)
 						fmt.Println(string(dt))
 					case "json":
