@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/event"
 )
 
-type WatchResp struct {
+type Response struct {
 	Type    string
 	Event   event.EventType
 	Key     string
@@ -19,7 +19,7 @@ type WatchResp struct {
 	Version int64
 }
 
-func (t *WatchResp) Decode(c interface{}) (err error) {
+func (t *Response) Decode(c interface{}) (err error) {
 	defer xerror.RespErr(&err)
 
 	var data = t.Value
@@ -47,21 +47,21 @@ func (t *WatchResp) Decode(c interface{}) (err error) {
 	return errors.Unknown("watcher.decode", "data=>%s, c=>%T", data, c)
 }
 
-func (t *WatchResp) OnPut(fn func()) {
+func (t *Response) OnPut(fn func()) {
 	xerror.Panic(t.checkEventType())
 	if t.Event == event.EventType_UPDATE || t.Event == event.EventType_CREATE {
 		fn()
 	}
 }
 
-func (t *WatchResp) OnDelete(fn func()) {
+func (t *Response) OnDelete(fn func()) {
 	xerror.Panic(t.checkEventType())
 	if t.Event == event.EventType_DELETE {
 		fn()
 	}
 }
 
-func (t *WatchResp) checkEventType() error {
+func (t *Response) checkEventType() error {
 	switch t.Event {
 	case event.EventType_UPDATE, event.EventType_DELETE, event.EventType_CREATE:
 		return nil

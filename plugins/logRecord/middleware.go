@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 	"runtime/debug"
 	"time"
 
@@ -18,7 +20,6 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/plugins/tracing"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
 
@@ -27,17 +28,17 @@ const Name = "logRecord"
 var logs = logging.Component(Name)
 
 func init() {
-	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
-		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (err error) {
+	plugin.Middleware(Name, func(next service_type.MiddleNext) service_type.MiddleNext {
+		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) (err error) {
 			// TODO 考虑pool优化
 			var params = make([]zap.Field, 0, 20)
 
-			referer := types.HeaderGet(req.Header(), httpx.HeaderReferer)
+			referer := service.HeaderGet(req.Header(), httpx.HeaderReferer)
 			if referer != "" {
 				params = append(params, zap.String("referer", referer))
 			}
 
-			origin := types.HeaderGet(req.Header(), httpx.HeaderOrigin)
+			origin := service.HeaderGet(req.Header(), httpx.HeaderOrigin)
 			if origin != "" {
 				params = append(params, zap.String("origin", origin))
 			}
@@ -98,7 +99,7 @@ func init() {
 					zap.String("requestId", reqId),
 				)),
 				req,
-				func(rsp types.Response) error {
+				func(rsp service_type.Response) error {
 					respBody = rsp.Payload()
 					if !req.Client() {
 						rsp.Header().Set("Access-Control-Allow-Origin", origin)

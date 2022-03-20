@@ -2,6 +2,8 @@ package timeout
 
 import (
 	"context"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 	"time"
 
@@ -10,7 +12,6 @@ import (
 	"github.com/pubgo/lava/internal/pluginInter"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 const Name = "timeout"
@@ -18,9 +19,9 @@ const Name = "timeout"
 func init() {
 	pluginInter.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
+		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
 			var defaultTimeout = consts.DefaultTimeout
-			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				// 过滤 websocket 请求
 				// 过滤 stream
 				if httpx.IsWebsocket(http.Header(req.Header())) || req.Stream() {
@@ -29,7 +30,7 @@ func init() {
 
 				// 从header中获取超时设置
 				//	key: x-request-timeout
-				if t := types.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
+				if t := service.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
 					var dur, err = time.ParseDuration(t)
 					if dur != 0 && err == nil {
 						defaultTimeout = dur

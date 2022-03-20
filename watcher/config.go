@@ -6,6 +6,8 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+const Name = watcher_type.Name
+
 type Cfg struct {
 	SkipNull bool   `json:"skip_null"`
 	Driver   string `json:"driver"`

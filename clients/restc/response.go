@@ -1,19 +1,19 @@
 package restc
 
 import (
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 	"net/http/httptrace"
-
-	"github.com/pubgo/lava/types"
 )
 
-var _ types.Response = (*Response)(nil)
+var _ service_type.Response = (*Response)(nil)
 
 type Response struct {
 	resp *http.Response
 }
 
-func (r *Response) Header() types.Header     { return types.Header(r.resp.Header) }
+func (r *Response) Header() service.Header   { return service.Header(r.resp.Header) }
 func (r *Response) Response() *http.Response { return r.resp }
 func (r *Response) Payload() interface{}     { return nil }
 func (r *Response) Stream() bool             { return false }

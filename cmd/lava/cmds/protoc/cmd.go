@@ -3,6 +3,7 @@ package protoc
 import (
 	"bufio"
 	"fmt"
+	"github.com/pubgo/lava/pkg/typex"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -27,7 +28,6 @@ import (
 	"github.com/pubgo/lava/pkg/shutil"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 var protoRoot []string
@@ -37,7 +37,7 @@ func Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "protoc",
 		Usage: "protobuf generation, configuration and management",
-		Flags: types.Flags{
+		Flags: typex.Flags{
 			&cli.StringFlag{
 				Name:        "protobuf",
 				Usage:       "protobuf config path",

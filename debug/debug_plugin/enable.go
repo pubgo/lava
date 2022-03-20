@@ -1,20 +1,21 @@
-package debug
+package debug_plugin
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/service/service_type"
 
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 func Enable(srv service_type.Service) {
-	srv.Debug().Mount("/", app)
+	srv.Debug().Mount("/", debug.App())
 
 	var openWeb bool
 
@@ -41,5 +42,4 @@ func Enable(srv service_type.Service) {
 			})
 		}
 	})
-
 }

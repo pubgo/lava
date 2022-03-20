@@ -2,6 +2,7 @@ package grpcEntry
 
 import (
 	"context"
+	"github.com/pubgo/lava/service/service_type"
 	"strings"
 	"time"
 
@@ -9,12 +10,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/types"
 )
 
-func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+func (g *grpcEntry) handlerUnaryMiddle(middlewares []service_type.Middleware) grpc.UnaryServerInterceptor {
+	unaryWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		if len(req.Header()) > 0 {
 			_ = grpc.SetHeader(ctx, req.Header())
 		}
@@ -86,15 +85,15 @@ func (g *grpcEntry) handlerUnaryMiddle(middlewares []types.Middleware) grpc.Unar
 				payload:     req,
 				header:      md,
 			},
-			func(rsp types.Response) error { resp = rsp.Payload(); return nil },
+			func(rsp service_type.Response) error { resp = rsp.Payload(); return nil },
 		)
 
 		return
 	}
 }
 
-func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.StreamServerInterceptor {
-	streamWrapper := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+func (g *grpcEntry) handlerStreamMiddle(middlewares []service_type.Middleware) grpc.StreamServerInterceptor {
+	streamWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		ctx = metadata.NewIncomingContext(ctx, req.Header())
 		var reqCtx = req.(*rpcRequest)
 		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream})
@@ -154,7 +153,7 @@ func (g *grpcEntry) handlerStreamMiddle(middlewares []types.Middleware) grpc.Str
 				service:       serviceFromMethod(info.FullMethod),
 				contentType:   ct,
 			},
-			func(_ types.Response) error { return nil },
+			func(_ service_type.Response) error { return nil },
 		)
 	}
 }

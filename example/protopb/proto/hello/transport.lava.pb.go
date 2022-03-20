@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service/service_type"
+	service_type "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,14 +23,14 @@ func InitTransportClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TransportClient)(nil)))...)
 }
 
-func RegisterTransport(srv service.Service, impl TransportServer) {
-	var desc service.Desc
+func RegisterTransport(srv service_type.Service, impl TransportServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = Transport_ServiceDesc
 	desc.GrpcClientFn = NewTransportClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterTransportHandlerClient(ctx, mux, NewTransportClient(conn))
 	}
 
 	srv.RegisterService(desc)

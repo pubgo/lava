@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/resource"
+	"github.com/pubgo/lava/resource/resource_type"
 )
 
 const Name = "gorm"
@@ -24,7 +24,7 @@ func (w *wrapper) Close() error {
 }
 
 type Client struct {
-	resource.Resource
+	resource_type.Resource
 }
 
 func (c *Client) Ping() error {

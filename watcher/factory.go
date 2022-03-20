@@ -8,7 +8,7 @@ import (
 )
 
 var factories = make(map[string]watcher_type.Factory)
-var callbacks = make(map[string][]func(name string, r *watcher_type.WatchResp) error)
+var callbacks = make(map[string][]func(name string, r *watcher_type.Response) error)
 
 // RegisterFactory 注册watcher build factory
 func RegisterFactory(name string, w watcher_type.Factory) {
@@ -26,7 +26,7 @@ func GetFactory(names ...string) watcher_type.Factory {
 	return val
 }
 
-func Watch(name string, callback func(name string, r *watcher_type.WatchResp) error) {
+func Watch(name string, callback func(name string, r *watcher_type.Response) error) {
 	name = KeyToDot(name)
 	xerror.Assert(name == "" || callback == nil, "[name, callback] should not be null")
 	callbacks[name] = append(callbacks[name], callback)

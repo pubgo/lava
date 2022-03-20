@@ -11,19 +11,19 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/pkg/clix"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: "version",
-		OnCommands: func() *types.Command {
+		OnCommands: func() *typex.Command {
 			return &cli.Command{
 				Name:    "version",
-				Aliases: types.StrList{"v"},
+				Aliases: typex.StrOf("v"),
 				Usage:   "Print the dependency package information",
 				Description: clix.ExampleFmt(
 					"lava version",

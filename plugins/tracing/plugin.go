@@ -3,9 +3,11 @@ package tracing
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/vars/vars_type"
+
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/lava/watcher/watcher_type"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
@@ -13,7 +15,7 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
 var logs = logging.Component(Name)
@@ -27,12 +29,12 @@ func init() {
 			_ = config.Decode(Name, &cfg)
 			xerror.Panic(cfg.Build())
 		},
-		OnWatch: func(_ string, r *watcher_type.WatchResp) error {
+		OnWatch: func(_ string, r *watcher_type.Response) error {
 			_ = config.Decode(Name, &cfg)
 			return cfg.Build()
 		},
-		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
-			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				var tracer = opentracing.GlobalTracer()
 				if tracer == nil {
 					logs.L().Warn("global tracer is nil, please init tracing")
@@ -79,7 +81,7 @@ func init() {
 				return err
 			}
 		},
-		OnVars: func(v types.Vars) {
+		OnVars: func(v vars_type.Vars) {
 			v.Do(Name+"_cfg", func() interface{} { return cfg })
 			v.Do(Name+"_factory", func() interface{} {
 				var data = make(map[string]string)

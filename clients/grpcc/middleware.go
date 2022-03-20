@@ -9,11 +9,12 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 )
 
-func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+func unaryInterceptor(middlewares []service_type.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		var reqCtx = req.(*request)
 		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
 		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc); err != nil {
@@ -34,9 +35,9 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return types.HeaderGet(md, "content-type")
+			return service.HeaderGet(md, "content-type")
 		}, func() string {
-			return types.HeaderGet(md, "x-content-type")
+			return service.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return defaultContentType
 		})
@@ -73,13 +74,13 @@ func unaryInterceptor(middlewares []types.Middleware) grpc.UnaryClientIntercepto
 				cc:      cc,
 				invoker: invoker,
 			},
-			func(_ types.Response) error { return nil },
+			func(_ service_type.Response) error { return nil },
 		)
 	}
 }
 
-func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+func streamInterceptor(middlewares []service_type.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		var reqCtx = req.(*request)
 		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
 		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method)
@@ -102,9 +103,9 @@ func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientIntercep
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return types.HeaderGet(md, "content-type")
+			return service.HeaderGet(md, "content-type")
 		}, func() string {
-			return types.HeaderGet(md, "x-content-type")
+			return service.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return defaultContentType
 		})
@@ -140,7 +141,7 @@ func streamInterceptor(middlewares []types.Middleware) grpc.StreamClientIntercep
 				method:   method,
 				streamer: streamer,
 			},
-			func(rsp types.Response) error { resp = rsp.(*response).stream; return nil },
+			func(rsp service_type.Response) error { resp = rsp.(*response).stream; return nil },
 		)
 	}
 }

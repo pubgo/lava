@@ -93,6 +93,10 @@ func (f Field) Tag(name string) string {
 	return strings.TrimSpace(f.Field.Tag.Get(name))
 }
 
+func (f Field) Type() string {
+	return f.Field.Type.String()
+}
+
 func (f Field) Name() string {
 	var name = f.Tag("name")
 	if name != "" {

@@ -2,14 +2,14 @@ package restc
 
 import (
 	"context"
+	"github.com/pubgo/lava/service/service_type"
 
 	"github.com/pubgo/lava/pkg/retry"
-	"github.com/pubgo/lava/types"
 )
 
-func doFunc(c *clientImpl) types.MiddleNext {
+func doFunc(c *clientImpl) service_type.MiddleNext {
 	var r = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
-	return func(ctx context.Context, req types.Request, callback func(rsp types.Response) error) error {
+	return func(ctx context.Context, req service_type.Request, callback func(rsp service_type.Response) error) error {
 		var req1 = req.(*Request).req.WithContext(ctx)
 		return r.Do(func(i int) error {
 			resp, err := c.client.Do(req1)

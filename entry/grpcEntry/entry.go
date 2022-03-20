@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/service/service_type"
 	"net"
 	"net/http"
 	"strconv"
@@ -35,7 +36,6 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/version"
 )
 
@@ -145,7 +145,7 @@ type grpcEntry struct {
 	mux         cmux.CMux
 	srv         grpcs.Builder
 	gw          grpc_gw.Builder
-	middlewares []types.Middleware
+	middlewares []service_type.Middleware
 
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
@@ -156,8 +156,8 @@ type grpcEntry struct {
 
 	cancelRegister context.CancelFunc
 
-	wrapperUnary  func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
-	wrapperStream func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error
+	wrapperUnary  func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error
+	wrapperStream func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error
 
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor

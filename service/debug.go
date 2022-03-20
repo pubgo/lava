@@ -2,12 +2,11 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/xerror"
 	"html/template"
 	"strings"
 )
 
-func init() {
+func (t *implService) initDebug() {
 	var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>
 		<head>
@@ -20,11 +19,17 @@ func init() {
 		</body>
 		</html>
 		`))
-	Get("/", func(ctx *fiber.Ctx) error {
+
+	t.Debug().Get("/", func(ctx *fiber.Ctx) error {
 		var keys []string
-		for _, r := range Mux().Routes() {
-			keys = append(keys, strings.TrimSuffix(r.Pattern, "*"))
+		stack := t.gw.Get().Stack()
+		for m := range stack {
+			for r := range stack[m] {
+				route := stack[m][r]
+				keys = append(keys, strings.TrimSuffix(route.Path, "*"))
+			}
 		}
-		xerror.Panic(homeTmpl.Execute(writer, keys))
+
+		return homeTmpl.Execute(ctx, keys)
 	})
 }

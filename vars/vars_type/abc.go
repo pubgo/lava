@@ -1,4 +1,4 @@
-package types
+package vars_type
 
 type Vars func(name string, data func() interface{})
 

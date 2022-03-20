@@ -1,13 +1,15 @@
 package service_type
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
-	"github.com/urfave/cli/v2"
-	"google.golang.org/grpc"
 	"io"
 	"net"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/urfave/cli/v2"
+	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugin"
 )
 
 type Service interface {
@@ -15,7 +17,6 @@ type Service interface {
 	BeforeStops(...func())
 	AfterStarts(...func())
 	BeforeStarts(...func())
-	Description(usage string, description ...string)
 	Flags(flags ...cli.Flag)
 	RegisterService(desc Desc)
 	RegisterMatcher(priority int64, matches ...func(io.Reader) bool) func() net.Listener
@@ -25,13 +26,6 @@ type Service interface {
 	Options() Options
 	Debug() fiber.Router
 	Admin() fiber.Router
-
-	init() error
-	start() error
-	stop() error
-	plugins() []plugin.Plugin
-	command() *cli.Command
-	middleware(mid types.Middleware)
 }
 
 type Desc struct {
@@ -42,8 +36,8 @@ type Desc struct {
 }
 
 type Handler interface {
-	Init() func() error
-	Flags() types.Flags
+	Init() func()
+	Flags() typex.Flags
 	Router(r fiber.Router)
 }
 

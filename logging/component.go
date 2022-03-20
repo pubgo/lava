@@ -1,13 +1,13 @@
 package logging
 
 import (
+	"github.com/pubgo/lava/pkg/typex"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/types"
 )
 
 var loggerMap sync.Map
@@ -61,7 +61,7 @@ func (t *namedLogger) S() *zap.SugaredLogger {
 	return t.L().Sugar()
 }
 
-func (t *namedLogger) With(args types.M) *zap.Logger {
+func (t *namedLogger) With(args typex.M) *zap.Logger {
 	if args == nil || len(args) == 0 {
 		return t.L()
 	}

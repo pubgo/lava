@@ -2,6 +2,8 @@ package requestID
 
 import (
 	"context"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
@@ -10,14 +12,13 @@ import (
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 const Name = "x-request-id"
 
 func init() {
-	plugin.Middleware(Name, func(next types.MiddleNext) types.MiddleNext {
-		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) (gErr error) {
+	plugin.Middleware(Name, func(next service_type.MiddleNext) service_type.MiddleNext {
+		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) (gErr error) {
 			defer func() {
 				switch err := recover().(type) {
 				case nil:
@@ -30,7 +31,7 @@ func init() {
 
 			rid := utils.FirstNotEmpty(
 				func() string { return getReqID(ctx) },
-				func() string { return types.HeaderGet(req.Header(), Name) },
+				func() string { return service.HeaderGet(req.Header(), Name) },
 				func() string { return ksuid.New().String() },
 			)
 

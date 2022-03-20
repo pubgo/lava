@@ -2,12 +2,12 @@ package nsqc
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lava/vars/vars_type"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
@@ -29,7 +29,7 @@ func init() {
 				xerror.Panic(dix.Provider(client))
 			}
 		},
-		OnVars: func(v types.Vars) {
+		OnVars: func(v vars_type.Vars) {
 			v(Name, func() interface{} { return cfgList })
 		},
 	})

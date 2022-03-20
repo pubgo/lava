@@ -29,6 +29,7 @@ func InitClient(srv string, opts ...func(cfg *Cfg)) {
 	xerror.PanicErr(cli.Get())
 
 	if cfg.clientType != nil {
+		// 依赖注入
 		inject.Register(cfg.clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
 			return clients.Load(fmt.Sprintf("%s.%s.%s", srv, reg, field.Name()))
 		})

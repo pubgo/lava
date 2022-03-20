@@ -11,7 +11,6 @@ import (
 )
 
 type Builder struct {
-	name               string
 	srv                *grpc.Server
 	unaryInterceptors  []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
@@ -33,7 +32,7 @@ func (t *Builder) Get() *grpc.Server {
 	return t.srv
 }
 
-func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
+func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
 	return []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
@@ -45,7 +44,7 @@ func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
 	}
 }
 
-func (t *Builder) Build(cfg *Cfg) (err error) {
+func (t *Builder) Build(cfg Cfg) (err error) {
 	defer xerror.RespErr(&err)
 
 	opts := t.BuildOpts(cfg)
@@ -54,7 +53,7 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 	t.srv = grpc.NewServer(opts...)
 
 	EnableReflection(t.srv)
-	EnableHealth(t.name, t.srv)
+	EnableHealth("", t.srv)
 	if runtime.IsDev() || runtime.IsTest() {
 		EnableDebug(t.srv)
 	}
@@ -62,4 +61,4 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 	return nil
 }
 
-func New(name string) Builder { return Builder{name: name} }
+func New() Builder { return Builder{} }

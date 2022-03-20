@@ -1,7 +1,8 @@
-package healthy
+package healthy_plugin
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/pkg/typex"
 	"io"
 	"net/http"
 	"os"
@@ -13,14 +14,13 @@ import (
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name:  "health",
 		Short: "health check",
-		OnCommands: func() *types.Command {
+		OnCommands: func() *typex.Command {
 			return &cli.Command{
 				Name:  "health",
 				Usage: "health check",

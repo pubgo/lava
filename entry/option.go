@@ -1,9 +1,8 @@
 package entry
 
 import (
+	"github.com/pubgo/lava/service/service_type"
 	"github.com/urfave/cli/v2"
-
-	"github.com/pubgo/lava/types"
 )
 
 type Opt func(o *Opts)
@@ -15,5 +14,5 @@ type Opts struct {
 	AfterStops   []func()
 	Command      *cli.Command
 	Handlers     []Handler
-	Middlewares  []types.Middleware
+	Middlewares  []service_type.Middleware
 }

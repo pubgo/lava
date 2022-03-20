@@ -1,4 +1,4 @@
-package vars
+package vars_plugin
 
 import (
 	"expvar"

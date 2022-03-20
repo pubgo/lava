@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"github.com/pubgo/lava/pkg/typex"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 const Name = "signal"
@@ -32,8 +32,8 @@ func init() {
 				})
 			}
 		},
-		OnFlags: func() types.Flags {
-			return types.Flags{
+		OnFlags: func() typex.Flags {
+			return typex.Flags{
 				&cli.BoolFlag{
 					Name:        "catch-sigpipe",
 					Destination: &CatchSigpipe,

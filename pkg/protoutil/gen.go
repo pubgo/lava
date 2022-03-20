@@ -20,33 +20,31 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 	gp "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-
-	"github.com/pubgo/lava/xgen"
 )
 
-func RpcInfo(file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method) *xgen.GrpcRestHandler {
-	var data = new(xgen.GrpcRestHandler)
-
-	data.Input = g.QualifiedGoIdent(m.Input.GoIdent)
-	data.Output = g.QualifiedGoIdent(m.Output.GoIdent)
-	data.Service = fmt.Sprintf("%s", service.GoName)
-	data.Name = fmt.Sprintf(`%s`, m.Desc.Name())
-
-	var defaultUrl bool
-	hr, err := ExtractAPIOptions(m.Desc)
-	if err != nil || hr == nil {
-		defaultUrl = true
-		var replacer = strings.NewReplacer(".", "/", "-", "/")
-		hr = DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
-	}
-	method, path := ExtractHttpMethod(hr)
-	data.Method = method
-	data.Path = path
-	data.DefaultUrl = defaultUrl
-	data.ClientStream = m.Desc.IsStreamingClient()
-	data.ServerStream = m.Desc.IsStreamingServer()
-	return data
-}
+//func RpcInfo(file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service, m *protogen.Method) *xgen.GrpcRestHandler {
+//	var data = new(xgen.GrpcRestHandler)
+//
+//	data.Input = g.QualifiedGoIdent(m.Input.GoIdent)
+//	data.Output = g.QualifiedGoIdent(m.Output.GoIdent)
+//	data.Service = fmt.Sprintf("%s", service.GoName)
+//	data.Name = fmt.Sprintf(`%s`, m.Desc.Name())
+//
+//	var defaultUrl bool
+//	hr, err := ExtractAPIOptions(m.Desc)
+//	if err != nil || hr == nil {
+//		defaultUrl = true
+//		var replacer = strings.NewReplacer(".", "/", "-", "/")
+//		hr = DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
+//	}
+//	method, path := ExtractHttpMethod(hr)
+//	data.Method = method
+//	data.Path = path
+//	data.DefaultUrl = defaultUrl
+//	data.ClientStream = m.Desc.IsStreamingClient()
+//	data.ServerStream = m.Desc.IsStreamingServer()
+//	return data
+//}
 
 func Append(s *string, args ...string) {
 	*s += "\n"

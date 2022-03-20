@@ -1,4 +1,4 @@
-package types
+package typex
 
 import (
 	"github.com/urfave/cli/v2"

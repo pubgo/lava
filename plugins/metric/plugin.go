@@ -2,6 +2,9 @@ package metric
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/vars/vars_type"
 	"sync/atomic"
 	"unsafe"
 
@@ -13,7 +16,6 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
@@ -41,12 +43,12 @@ func init() {
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		},
-		OnMiddleware: func(next types.MiddleNext) types.MiddleNext {
-			return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				return next(CreateCtx(ctx, GetGlobal()), req, resp)
 			}
 		},
-		OnVars: func(v types.Vars) {
+		OnVars: func(v vars_type.Vars) {
 			v.Do(Name+"_factory", func() interface{} {
 				var dt = make(map[string]string)
 				xerror.Panic(factories.Each(func(name string, r Factory) {
@@ -57,7 +59,7 @@ func init() {
 
 			v.Do(Name+"_capabilities", func() interface{} {
 				var c = GetGlobal().Capabilities()
-				return types.M{
+				return typex.M{
 					"reporting": c.Reporting(),
 					"tagging":   c.Tagging(),
 				}

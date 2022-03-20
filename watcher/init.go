@@ -19,7 +19,7 @@ import (
 )
 
 var defaultWatcher watcher_type.Watcher = &nullWatcher{}
-var logs = logging.Component(watcher_type.Name)
+var logs = logging.Component(Name)
 var cfg = DefaultCfg()
 
 // Init 初始化watcher
@@ -29,7 +29,7 @@ func Init(conf config_type.IConfig) {
 	xerror.Assert(conf == nil, "conf is nil")
 	cfg.cfg = conf
 
-	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(watcher_type.Name))).(watcher_type.Watcher)
+	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(watcher_type.Watcher)
 
 	// 获取所有需要watch的项目
 	if !strutil.Contains(cfg.Projects, runtime.Name()) {

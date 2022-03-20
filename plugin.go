@@ -5,9 +5,6 @@ import (
 	// 加载version插件
 	_ "github.com/pubgo/lava/version"
 
-	// 加载debug插件
-	_ "github.com/pubgo/lava/debug/debug_plugin"
-
 	// 加载metric插件
 	_ "github.com/pubgo/lava/plugins/metric"
 

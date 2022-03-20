@@ -51,8 +51,8 @@ type Cfg struct {
 	WriteBufferSize       int64           `json:"write_buffer_size"`
 }
 
-func GetDefaultCfg() *Cfg {
-	return &Cfg{
+func GetDefaultCfg() Cfg {
+	return Cfg{
 		MaxRecvMsgSize:    DefaultMaxMsgSize,
 		MaxSendMsgSize:    DefaultMaxMsgSize,
 		WriteBufferSize:   32 * 1024,

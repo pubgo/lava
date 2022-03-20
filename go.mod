@@ -1,6 +1,6 @@
 module github.com/pubgo/lava
 
-go 1.17
+go 1.18
 
 require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
@@ -11,7 +11,6 @@ require (
 	github.com/felixge/fgprof v0.9.1
 	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/gin-gonic/gin v1.7.2
-	github.com/go-chi/chi/v5 v5.0.0
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-openapi/loads v0.19.5
@@ -38,7 +37,6 @@ require (
 	github.com/m3db/prometheus_common v0.1.0 // indirect
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/maragudk/gomponents v0.17.2
-	github.com/maruel/panicparse/v2 v2.2.0 // indirect
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/mwitkow/go-proto-validators v0.3.2
@@ -252,10 +250,7 @@ require (
 	github.com/go-logr/stdr v1.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gofiber/adaptor v0.2.0 // indirect
-	github.com/gofiber/fiber v1.13.3 // indirect
 	github.com/gofiber/utils v0.1.2 // indirect
-	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -278,7 +273,6 @@ require (
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	go.opentelemetry.io/otel v1.3.0 // indirect
 	go.opentelemetry.io/otel/internal/metric v0.25.0 // indirect
 	go.opentelemetry.io/otel/metric v0.25.0 // indirect

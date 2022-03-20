@@ -2,26 +2,24 @@ package pluginInter
 
 import (
 	"container/heap"
-
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var plugins = make(map[string]Plugin)
 
 // pluginKeys 插件key列表, 用来保存插件的注册顺序, 依赖顺序等
-var pluginKeys = new(priorityQueue)
+var pluginKeys typex.PriorityQueue
 
 // All 获取所有的插件
 func All() []Plugin {
-	var pluginList []Plugin
-	for _, key := range *pluginKeys {
-		pluginList = append(pluginList, plugins[key.Name])
+	var pluginList = make([]Plugin, len(pluginKeys))
+	for _, key := range pluginKeys {
+		pluginList = append(pluginList, plugins[key.Value.(string)])
 	}
 	return pluginList
 }
-
-// Get 根据名字获取插件
-func Get(name string) Plugin { return plugins[name] }
 
 // Register 插件注册
 //	priority: 优先级
@@ -38,5 +36,5 @@ func Register(pg Plugin, priority ...uint) {
 	}
 
 	plugins[pg.ID()] = pg
-	heap.Push(pluginKeys, item{Name: pg.ID(), Priority: p})
+	heap.Push(&pluginKeys, &typex.PriorityQueueItem{Priority: int64(p), Value: pg.ID()})
 }

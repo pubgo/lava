@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/service/service_type"
 	"os"
 	"sort"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
@@ -68,7 +68,7 @@ func Run(desc string, entries ...service_type.Service) {
 	}
 
 	for i := range entries {
-		ent := entries[i]
+		ent := entries[i].(*implService)
 		cmd := ent.command()
 
 		// 检查项目Command是否注册
@@ -99,7 +99,7 @@ func Run(desc string, entries ...service_type.Service) {
 				ent.AfterStarts(plg.AfterStarts()...)
 				ent.BeforeStops(plg.BeforeStops()...)
 				ent.AfterStops(plg.AfterStops()...)
-				logutil.OkOrPanic(logs.L(), "plugin init", func() error {
+				logutil.OkOrPanic(ent.L, "plugin init", func() error {
 					return plg.Init(config.GetCfg())
 				}, zap.String("plugin-name", plg.ID()))
 			}

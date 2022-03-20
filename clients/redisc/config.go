@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/pubgo/xerror"
-
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/pkg/merge"

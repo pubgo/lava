@@ -8,18 +8,16 @@ import (
 
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/types"
 )
 
 // getPeerName 获取对端应用名称
 func getPeerName(md metadata.MD) string {
-	return types.HeaderGet(md, "app")
+	return HeaderGet(md, "app")
 }
 
 // getPeerIP 获取对端ip
 func getPeerIP(md metadata.MD, ctx context.Context) string {
-	clientIP := types.HeaderGet(md, "client-ip")
+	clientIP := HeaderGet(md, "client-ip")
 	if clientIP != "" {
 		return clientIP
 	}
@@ -49,7 +47,7 @@ func ignoreMuxError(err error) bool {
 		strings.Contains(err.Error(), "mux: server closed")
 }
 
-func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) types.Header {
+func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) Header {
 	var h = metadata.MD{}
 	request.VisitAll(func(key, value []byte) {
 		h.Set(byteutil.ToStr(key), byteutil.ToStr(value))

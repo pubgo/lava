@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service/service_type"
+	service_type "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,8 +23,8 @@ func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserServiceClient)(nil)))...)
 }
 
-func RegisterUserService(srv service.Service, impl UserServiceServer) {
-	var desc service.Desc
+func RegisterUserService(srv service_type.Service, impl UserServiceServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = UserService_ServiceDesc
 	desc.GrpcClientFn = NewUserServiceClient

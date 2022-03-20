@@ -3,6 +3,7 @@ package grpcEntry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/service"
 	"net"
 	"reflect"
 	"strings"
@@ -16,7 +17,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/lava/xgen"
 )
 
@@ -215,12 +215,12 @@ func findGrpcHandle(handler interface{}) reflect.Value {
 
 // getPeerName 获取对端应用名称
 func getPeerName(md metadata.MD) string {
-	return types.HeaderGet(md, "app")
+	return service.HeaderGet(md, "app")
 }
 
 // getPeerIP 获取对端ip
 func getPeerIP(md metadata.MD, ctx context.Context) string {
-	clientIP := types.HeaderGet(md, "client-ip")
+	clientIP := service.HeaderGet(md, "client-ip")
 	if clientIP != "" {
 		return clientIP
 	}

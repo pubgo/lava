@@ -5,13 +5,11 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/pubgo/lava/resource"
+	"github.com/pubgo/lava/resource/resource_type"
 )
 
-var _ resource.Resource = (*Client)(nil)
-
 type Client struct {
-	resource.Resource
+	resource_type.Resource
 }
 
 func (t *Client) cli() *redis.Client {

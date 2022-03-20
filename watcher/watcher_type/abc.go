@@ -9,10 +9,10 @@ import (
 const Name = "watcher"
 
 type (
-	Response = WatchResp
-	Opt      func(*options)
-	options  struct{}
-	Factory  = func(cfg config_type.CfgMap) (Watcher, error)
+	Opt          func(*options)
+	options      struct{}
+	Factory      = func(cfg config_type.CfgMap) (Watcher, error)
+	WatchHandler = func(name string, r *Response) error
 )
 
 // Watcher ...

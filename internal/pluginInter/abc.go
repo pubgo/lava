@@ -2,9 +2,12 @@ package pluginInter
 
 import (
 	"encoding/json"
+	"github.com/pubgo/lava/vars/vars_type"
 
 	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/plugins/healthy/healthy_type"
+	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
@@ -17,19 +20,19 @@ type Plugin interface {
 	// ID 插件唯一名字
 	ID() string
 	// Flags 插件启动flags
-	Flags() types.Flags
+	Flags() typex.Flags
 	// Commands 插件启动子命令
-	Commands() *types.Command
+	Commands() *typex.Command
 	// Init 插件初始化
 	Init(cfg config_type.IConfig) error
 	// Watch 配置变更通知
-	Watch(name string, r *watcher_type.WatchResp) error
+	Watch(name string, r *watcher_type.Response) error
 	// Vars 插件可观测指标
-	Vars(types.Vars) error
+	Vars(vars_type.Vars) error
 	// Health 插件健康检查
-	Health() types.Healthy
+	Health() healthy_type.Handler
 	// Middleware 插件中间件拦截器
-	Middleware() types.Middleware
+	Middleware() service_type.Middleware
 	// BeforeStarts 在服务启动之前执行操作
 	//	初始化, 检查, 注册, 上报等
 	BeforeStarts() []func()

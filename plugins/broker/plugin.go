@@ -2,12 +2,12 @@ package broker
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lava/vars/vars_type"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 				xerror.Exit(dix.ProviderNs(name, bk))
 			}
 		},
-		OnVars: func(v types.Vars) {
+		OnVars: func(v vars_type.Vars) {
 			v(Name+"_factory", func() interface{} {
 				var data = make(map[string]string)
 				xerror.Panic(factories.Each(func(name string, fc Factory) {

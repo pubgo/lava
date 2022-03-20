@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/service/service_type"
 	"strings"
 
 	"github.com/pubgo/xerror"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/types"
 )
 
 func New(name string) *Entry { return newEntry(name) }
@@ -32,7 +32,7 @@ type Entry struct {
 	kind        string
 	init        func()
 	opts        entry.Opts
-	middlewares []types.Middleware
+	middlewares []service_type.Middleware
 }
 
 func (t *Entry) RegisterHandler(h entry.Handler) { t.opts.Handlers = append(t.opts.Handlers, h) }
@@ -50,7 +50,7 @@ func (t *Entry) Options() entry.Opts {
 
 func (t *Entry) OnInit(init func()) { t.init = init }
 
-func (t *Entry) Middleware(middleware types.Middleware) {
+func (t *Entry) Middleware(middleware service_type.Middleware) {
 	if middleware == nil {
 		return
 	}
@@ -58,7 +58,7 @@ func (t *Entry) Middleware(middleware types.Middleware) {
 	t.opts.Middlewares = append(t.opts.Middlewares, middleware)
 }
 
-func (t *Entry) MiddlewareInter(middleware types.Middleware) {
+func (t *Entry) MiddlewareInter(middleware service_type.Middleware) {
 	if middleware == nil {
 		return
 	}

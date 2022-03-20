@@ -1,4 +1,4 @@
-package types
+package service
 
 import (
 	"google.golang.org/grpc/metadata"

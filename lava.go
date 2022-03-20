@@ -8,3 +8,6 @@ import (
 func Run(desc string, entries ...entry.Entry) {
 	runtime.Run(desc, entries...)
 }
+
+func NewService(name string, desc string) {
+}

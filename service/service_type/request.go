@@ -1,4 +1,6 @@
-package types
+package service_type
+
+import "github.com/pubgo/lava/service"
 
 // Request is a synchronous request interface
 type Request interface {
@@ -24,7 +26,7 @@ type Request interface {
 	ContentType() string
 
 	// Header of the request
-	Header() Header
+	Header() service.Header
 
 	// Payload is the decoded value
 	Payload() interface{}

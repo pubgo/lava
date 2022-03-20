@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service/service_type"
+	service_type "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,14 +23,14 @@ func InitEchoServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*EchoServiceClient)(nil)))...)
 }
 
-func RegisterEchoService(srv service.Service, impl EchoServiceServer) {
-	var desc service.Desc
+func RegisterEchoService(srv service_type.Service, impl EchoServiceServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = EchoService_ServiceDesc
 	desc.GrpcClientFn = NewEchoServiceClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterEchoServiceHandlerClient(ctx, mux, NewEchoServiceClient(conn))
 	}
 
 	srv.RegisterService(desc)

@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service/service_type"
+	service_type "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,14 +23,14 @@ func InitYuqueClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*YuqueClient)(nil)))...)
 }
 
-func RegisterYuque(srv service.Service, impl YuqueServer) {
-	var desc service.Desc
+func RegisterYuque(srv service_type.Service, impl YuqueServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = Yuque_ServiceDesc
 	desc.GrpcClientFn = NewYuqueClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterYuqueHandlerClient(ctx, mux, NewYuqueClient(conn))
 	}
 
 	srv.RegisterService(desc)
@@ -40,8 +40,8 @@ func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserServiceClient)(nil)))...)
 }
 
-func RegisterUserService(srv service.Service, impl UserServiceServer) {
-	var desc service.Desc
+func RegisterUserService(srv service_type.Service, impl UserServiceServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = UserService_ServiceDesc
 	desc.GrpcClientFn = NewUserServiceClient

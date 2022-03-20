@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/pkg/typex"
 	"testing"
 
-	"github.com/pubgo/lava/types"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
@@ -45,10 +45,10 @@ func TestName(t *testing.T) {
 	//fmt.Printf("%v", o)
 
 	// 可以通过sidecar代理的方式, 转发请求, 同时实现负载限流等
-	var data = make(types.M)
+	var data = make(typex.M)
 	err = conn.Invoke(
 		context.Background(),
-		"/hello.TestApi/Version", types.M{"input": "error"}, &data,
+		"/hello.TestApi/Version", typex.M{"input": "error"}, &data,
 		//"/hello.TestApi/Version", types.M{"input": "hello"}, &data,
 		grpc.ForceCodec(encoding.GetCodec("json")),
 	)

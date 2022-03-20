@@ -2,6 +2,7 @@ package grpc_entry
 
 import (
 	"context"
+	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 
 	"github.com/pubgo/lava/entry"
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugins/healthy"
-	"github.com/pubgo/lava/types"
 )
 
 var name = "test-grpc"
@@ -18,8 +18,8 @@ var name = "test-grpc"
 func GetEntry() entry.Entry {
 	ent := grpcEntry.New(name)
 	ent.Description("entry grpc test")
-	ent.Middleware(func(next types.MiddleNext) types.MiddleNext {
-		return func(ctx context.Context, req types.Request, resp func(rsp types.Response) error) error {
+	ent.Middleware(func(next service_type.MiddleNext) service_type.MiddleNext {
+		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 			var log = logging.GetLog(ctx)
 			log.Info("test grpc entry")
 			return next(ctx, req, resp)

@@ -3,7 +3,7 @@ package plugin
 import (
 	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/internal/pluginInter"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/xerror"
 )
 
@@ -18,11 +18,8 @@ func Init(p config_type.IConfig, plugins ...Plugin) {
 	}
 }
 
-// Get 更具名字获取插件
-func Get(name string) Plugin { return pluginInter.Get(name) }
-
 // Middleware 简化Register的注册方法
-func Middleware(name string, middleware types.Middleware, priority ...uint) {
+func Middleware(name string, middleware service_type.Middleware, priority ...uint) {
 	Register(&Base{Name: name, OnMiddleware: middleware}, priority...)
 }
 

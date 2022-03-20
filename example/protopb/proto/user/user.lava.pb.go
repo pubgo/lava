@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service "github.com/pubgo/lava/service/service_type"
+	service_type "github.com/pubgo/lava/service/service_type"
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,14 +23,14 @@ func InitUserClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserClient)(nil)))...)
 }
 
-func RegisterUser(srv service.Service, impl UserServer) {
-	var desc service.Desc
+func RegisterUser(srv service_type.Service, impl UserServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = User_ServiceDesc
 	desc.GrpcClientFn = NewUserClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterUserHandlerClient(ctx, mux, NewUserClient(conn))
 	}
 
 	srv.RegisterService(desc)
@@ -40,14 +40,14 @@ func InitABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*ABitOfEverythingServiceClient)(nil)))...)
 }
 
-func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingServiceServer) {
-	var desc service.Desc
+func RegisterABitOfEverythingService(srv service_type.Service, impl ABitOfEverythingServiceServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = ABitOfEverythingService_ServiceDesc
 	desc.GrpcClientFn = NewABitOfEverythingServiceClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterABitOfEverythingServiceHandlerClient(ctx, mux, NewABitOfEverythingServiceClient(conn))
 	}
 
 	srv.RegisterService(desc)
@@ -57,14 +57,14 @@ func InitCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*CamelCaseServiceNameClient)(nil)))...)
 }
 
-func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceNameServer) {
-	var desc service.Desc
+func RegisterCamelCaseServiceName(srv service_type.Service, impl CamelCaseServiceNameServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = CamelCaseServiceName_ServiceDesc
 	desc.GrpcClientFn = NewCamelCaseServiceNameClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterCamelCaseServiceNameHandlerClient(ctx, mux, NewCamelCaseServiceNameClient(conn))
 	}
 
 	srv.RegisterService(desc)
@@ -74,14 +74,14 @@ func InitAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*AnotherServiceWithNoBindingsClient)(nil)))...)
 }
 
-func RegisterAnotherServiceWithNoBindings(srv service.Service, impl AnotherServiceWithNoBindingsServer) {
-	var desc service.Desc
+func RegisterAnotherServiceWithNoBindings(srv service_type.Service, impl AnotherServiceWithNoBindingsServer) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = AnotherServiceWithNoBindings_ServiceDesc
 	desc.GrpcClientFn = NewAnotherServiceWithNoBindingsClient
 
 	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return RegisterAnotherServiceWithNoBindingsHandlerClient(ctx, mux, NewAnotherServiceWithNoBindingsClient(conn))
 	}
 
 	srv.RegisterService(desc)

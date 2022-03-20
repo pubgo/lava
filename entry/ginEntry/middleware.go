@@ -3,17 +3,17 @@ package ginEntry
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/service/service_type"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/types"
 )
 
-func handlerMiddle(middlewares []types.Middleware) func(c *gin.Context) {
-	var handler = func(ctx context.Context, req types.Request, rsp func(response types.Response) error) error {
+func handlerMiddle(middlewares []service_type.Middleware) func(c *gin.Context) {
+	var handler = func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		var reqCtx = req.(*httpRequest)
 
 		// 执行最后的gin handler
@@ -43,7 +43,7 @@ func handlerMiddle(middlewares []types.Middleware) func(c *gin.Context) {
 				ctx:  c,
 				ct:   c.ContentType(),
 			},
-			func(_ types.Response) error { return nil })
+			func(_ service_type.Response) error { return nil })
 
 		if err != nil {
 			var e = errors.FromError(err)

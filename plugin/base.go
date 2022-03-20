@@ -15,8 +15,10 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/resource"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/plugins/healthy/healthy_type"
+	"github.com/pubgo/lava/resource/resource_type"
+	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/vars/vars_type"
 	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
@@ -24,26 +26,26 @@ var _ json.Marshaler = (*Base)(nil)
 var _ Plugin = (*Base)(nil)
 
 type Base struct {
-	Name         string
-	Short        string
-	Url          string
-	Docs         interface{}
-	Builder      resource.BuilderFactory
-	OnHealth     types.Healthy
-	OnMiddleware types.Middleware
-	OnInit       func(p Process)
-	OnCommands   func() *types.Command
-	OnFlags      func() types.Flags
-	OnWatch      func(name string, r *watcher_type.WatchResp) error
-	OnVars       func(v types.Vars)
+	Name           string
+	Short          string
+	Url            string
+	Docs           interface{}
+	BuilderFactory resource_type.BuilderFactory
+	OnHealth       healthy_type.Handler
+	OnMiddleware   service_type.Middleware
+	OnInit         func(p Process)
+	OnCommands     func() *typex.Command
+	OnFlags        func() typex.Flags
+	OnWatch        watcher_type.WatchHandler
+	OnVars         func(v vars_type.Vars)
 
 	beforeStarts []func()
 	afterStarts  []func()
 	beforeStops  []func()
 	afterStops   []func()
 
-	cfgMap *typex.RwMap
 	cfg    config_type.IConfig
+	cfgMap *typex.RwMap
 }
 
 func (p *Base) BeforeStart(fn func())  { p.beforeStarts = append(p.beforeStarts, fn) }
@@ -69,7 +71,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	var data = make(map[string]interface{})
 	data["name"] = p.Name
 	data["docs"] = p.Docs
-	data["default_cfg"] = p.Builder.Builder()
+	data["default_cfg"] = p.BuilderFactory.Builder()
 	data["cfg"] = p.cfgMap.Map()
 	data["descriptor"] = p.Short
 	data["url"] = p.Url
@@ -95,7 +97,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func (p *Base) Vars(f types.Vars) error {
+func (p *Base) Vars(f vars_type.Vars) error {
 	if p.OnVars == nil {
 		return nil
 	}
@@ -103,7 +105,7 @@ func (p *Base) Vars(f types.Vars) error {
 	return xerror.Try(func() { p.OnVars(f) })
 }
 
-func (p *Base) Health() types.Healthy {
+func (p *Base) Health() healthy_type.Handler {
 	if p.OnHealth == nil {
 		return nil
 	}
@@ -111,20 +113,20 @@ func (p *Base) Health() types.Healthy {
 	return p.OnHealth
 }
 
-func (p *Base) Middleware() types.Middleware { return p.OnMiddleware }
-func (p *Base) String() string               { return p.Short }
-func (p *Base) ID() string                   { return p.Name }
+func (p *Base) Middleware() service_type.Middleware { return p.OnMiddleware }
+func (p *Base) String() string                      { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
+func (p *Base) ID() string                          { return p.Name }
 func (p *Base) Init(cfg config_type.IConfig) (gErr error) {
+	p.cfg = cfg
+
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err.WrapF("plugin: %s", p.Name)
 	})
 
-	var val = p.cfg.Get(p.Name)
-	if val == nil {
-		return nil
-	}
+	var cfgVal = cfg.Get(p.Name)
+	xerror.Assert(cfgVal == nil, "config key(%s) not found", p.Name)
 
-	for _, data := range cast.ToSlice(val) {
+	for _, data := range cast.ToSlice(cfgVal) {
 		if p.cfgMap == nil {
 			p.cfgMap = &typex.RwMap{}
 		}
@@ -132,31 +134,32 @@ func (p *Base) Init(cfg config_type.IConfig) (gErr error) {
 		var dm, err = cast.ToStringMapE(data)
 		xerror.Panic(err)
 
-		var base = clone.Clone(p.Builder)
+		var base = clone.Clone(p.BuilderFactory)
 		merge.MapStruct(base, dm)
 		delete(dm, "_id")
 
-		resId := base.(resource.BuilderFactory).GetResId()
+		resId := base.(resource_type.BuilderFactory).GetResId()
 
 		if _, ok := p.cfgMap.Load(resId); ok {
 			return fmt.Errorf("res=>%s key=>%s,res key already exists", p.Name, resId)
 		}
 
-		cfg1 := clone.Clone(p.Builder.Builder())
-		merge.MapStruct(cfg1, dm)
-		p.cfgMap.Set(resId, cfg1)
+		resCfg := clone.Clone(p.BuilderFactory.Builder())
+		merge.MapStruct(resCfg, dm)
+		p.cfgMap.Set(resId, resCfg)
 	}
 
+	// if config is not slice
 	if p.cfgMap == nil {
 		p.cfgMap = &typex.RwMap{}
-		cfg1 := clone.Clone(p.Builder.Builder())
-		merge.MapStruct(cfg1, p.cfg.GetMap(p.Name))
-		p.cfgMap.Set(consts.KeyDefault, cfg1)
+		resCfg := clone.Clone(p.BuilderFactory.Builder())
+		merge.MapStruct(resCfg, cfg.GetMap(p.Name))
+		p.cfgMap.Set(consts.KeyDefault, resCfg)
 	}
 
 	// update resource
-	p.cfgMap.Range(func(key string, value interface{}) bool {
-		resource.Update(p.Name, key, value.(resource.BuilderFactory))
+	p.cfgMap.Range(func(key string, val interface{}) bool {
+		val.(resource_type.BuilderFactory).Update(p.Name, key)
 		return true
 	})
 
@@ -167,19 +170,18 @@ func (p *Base) Init(cfg config_type.IConfig) (gErr error) {
 	return nil
 }
 
-func (p *Base) Watch(name string, r *watcher_type.WatchResp) error {
+func (p *Base) Watch(name string, r *watcher_type.Response) error {
 	var val, ok = p.cfgMap.Load(name)
 	if !ok {
 		// 配置不存在
-		cfg1 := clone.Clone(p.Builder.Builder())
-		merge.MapStruct(cfg1, p.cfg.GetMap(p.Name, name))
-		p.cfgMap.Set(name, cfg1)
+		val = clone.Clone(p.BuilderFactory.Builder())
 	} else {
 		xerror.Panic(r.Decode(val))
-		p.cfgMap.Set(name, val)
 	}
 
-	resource.Update(p.Name, name, val.(resource.BuilderFactory))
+	val.(resource_type.BuilderFactory).Update(p.Name, name)
+
+	p.cfgMap.Set(name, val)
 
 	if p.OnWatch != nil {
 		xerror.Panic(p.OnWatch(name, r))
@@ -195,7 +197,7 @@ func (p *Base) Commands() *cli.Command {
 	return p.OnCommands()
 }
 
-func (p *Base) Flags() types.Flags {
+func (p *Base) Flags() typex.Flags {
 	if p.OnFlags == nil {
 		return nil
 	}

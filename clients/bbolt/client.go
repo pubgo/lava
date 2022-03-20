@@ -8,11 +8,11 @@ import (
 
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/resource"
+	"github.com/pubgo/lava/resource/resource_type"
 )
 
 type Client struct {
-	resource.Resource
+	resource_type.Resource
 }
 
 func (t *Client) Db() *bolt.DB {

@@ -9,7 +9,7 @@ import (
 
 var (
 	contextCall  = protoutil.Import("context")
-	serviceCall  = protoutil.Import("github.com/pubgo/lava/service")
+	serviceCall  = protoutil.Import("github.com/pubgo/lava/service/service_type")
 	reflectCall  = protoutil.Import("reflect")
 	stringsCall  = protoutil.Import("strings")
 	sqlCall      = protoutil.Import("database/sql")
@@ -124,14 +124,14 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 			g.QualifiedGoIdent(serviceCall(""))
 		}
 		g.P(protoutil.Template(`
-func Register{{name}}(srv service.Service, impl {{name}}Server) {
-	var desc service.Desc
+func Register{{name}}(srv service_type.Service, impl {{name}}Server) {
+	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = {{name}}_ServiceDesc
 	desc.GrpcClientFn = New{{name}}Client
 	{% if isGw %}
     desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+		return Register{{name}}HandlerClient(ctx, mux, New{{name}}Client(conn))
 	}
     {% endif %}
 	srv.RegisterService(desc)

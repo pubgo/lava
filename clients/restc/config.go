@@ -2,6 +2,7 @@ package restc
 
 import (
 	"crypto/tls"
+	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/retry"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 type Cfg struct {
@@ -22,7 +22,7 @@ type Cfg struct {
 	Socks5      string
 	Insecure    bool
 	Header      map[string]string
-	Middlewares []types.Middleware
+	Middlewares []service_type.Middleware
 	BasePath    string
 
 	backoff   retry.Backoff
@@ -46,7 +46,7 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	//var certs []tls.Certificate
 	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
-	var middlewares []types.Middleware
+	var middlewares []service_type.Middleware
 
 	// 加载插件
 	// 加载全局

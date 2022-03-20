@@ -6,8 +6,8 @@ import (
 
 var app = fiber.New()
 
-func Mux() fiber.Router { return app }
-func App() fiber.Router { return app }
+func Mux() *fiber.App { return app }
+func App() *fiber.App { return app }
 
 func Get(path string, handlers ...fiber.Handler) fiber.Router  { return app.Get(path, handlers...) }
 func Head(path string, handlers ...fiber.Handler) fiber.Router { return app.Head(path, handlers...) }
