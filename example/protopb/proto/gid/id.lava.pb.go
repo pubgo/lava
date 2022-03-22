@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitIdClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewIdClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*IdClient)(nil)))...)
 }
 
@@ -29,14 +33,18 @@ func RegisterId(srv service_type.Service, impl IdServer) {
 	desc.ServiceDesc = Id_ServiceDesc
 	desc.GrpcClientFn = NewIdClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterIdHandlerClient(ctx, mux, NewIdClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterIdHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
 }
 
 func InitABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewABitOfEverythingServiceClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*ABitOfEverythingServiceClient)(nil)))...)
 }
 
@@ -46,14 +54,18 @@ func RegisterABitOfEverythingService(srv service_type.Service, impl ABitOfEveryt
 	desc.ServiceDesc = ABitOfEverythingService_ServiceDesc
 	desc.GrpcClientFn = NewABitOfEverythingServiceClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterABitOfEverythingServiceHandlerClient(ctx, mux, NewABitOfEverythingServiceClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterABitOfEverythingServiceHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
 }
 
 func InitCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewCamelCaseServiceNameClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*CamelCaseServiceNameClient)(nil)))...)
 }
 
@@ -63,14 +75,18 @@ func RegisterCamelCaseServiceName(srv service_type.Service, impl CamelCaseServic
 	desc.ServiceDesc = CamelCaseServiceName_ServiceDesc
 	desc.GrpcClientFn = NewCamelCaseServiceNameClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterCamelCaseServiceNameHandlerClient(ctx, mux, NewCamelCaseServiceNameClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterCamelCaseServiceNameHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
 }
 
 func InitAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewAnotherServiceWithNoBindingsClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*AnotherServiceWithNoBindingsClient)(nil)))...)
 }
 
@@ -80,8 +96,8 @@ func RegisterAnotherServiceWithNoBindings(srv service_type.Service, impl Another
 	desc.ServiceDesc = AnotherServiceWithNoBindings_ServiceDesc
 	desc.GrpcClientFn = NewAnotherServiceWithNoBindingsClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterAnotherServiceWithNoBindingsHandlerClient(ctx, mux, NewAnotherServiceWithNoBindingsClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterAnotherServiceWithNoBindingsHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitYuqueClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewYuqueClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*YuqueClient)(nil)))...)
 }
 
@@ -29,14 +33,18 @@ func RegisterYuque(srv service_type.Service, impl YuqueServer) {
 	desc.ServiceDesc = Yuque_ServiceDesc
 	desc.GrpcClientFn = NewYuqueClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterYuqueHandlerClient(ctx, mux, NewYuqueClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterYuqueHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
 }
 
 func InitUserServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewUserServiceClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserServiceClient)(nil)))...)
 }
 
@@ -46,8 +54,8 @@ func RegisterUserService(srv service_type.Service, impl UserServiceServer) {
 	desc.ServiceDesc = UserService_ServiceDesc
 	desc.GrpcClientFn = NewUserServiceClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterUserServiceHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

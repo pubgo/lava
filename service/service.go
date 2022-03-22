@@ -96,10 +96,6 @@ func (t *implService) Debug() fiber2.Router {
 	return t.gw.Get().Group("/debug")
 }
 
-func (t *implService) Admin() fiber2.Router {
-	return t.gw.Get().Group("/admin")
-}
-
 func (t *implService) plugins() []plugin.Plugin { return t.pluginList }
 
 func (t *implService) middleware(mid service_type.Middleware) {
@@ -138,6 +134,8 @@ func (t *implService) init() error {
 	// 加载inproc的middleware
 	t.inproc.WithServerUnaryInterceptor(t.handlerUnaryMiddle(t.middlewares))
 	t.inproc.WithServerStreamInterceptor(t.handlerStreamMiddle(t.middlewares))
+
+	t.gw.Get().Use(t.handlerHttpMiddle(t.middlewares))
 
 	// 初始化 handlers
 	for _, srv := range t.ServiceDesc() {

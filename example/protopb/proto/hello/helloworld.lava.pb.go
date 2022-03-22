@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitGreeterClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewGreeterClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*GreeterClient)(nil)))...)
 }
 
@@ -29,8 +33,8 @@ func RegisterGreeter(srv service_type.Service, impl GreeterServer) {
 	desc.ServiceDesc = Greeter_ServiceDesc
 	desc.GrpcClientFn = NewGreeterClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterGreeterHandlerClient(ctx, mux, NewGreeterClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterGreeterHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitMergeClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewMergeClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*MergeClient)(nil)))...)
 }
 
@@ -29,8 +33,8 @@ func RegisterMerge(srv service_type.Service, impl MergeServer) {
 	desc.ServiceDesc = Merge_ServiceDesc
 	desc.GrpcClientFn = NewMergeClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterMergeHandlerClient(ctx, mux, NewMergeClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterMergeHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewTestApiClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiClient)(nil)))...)
 }
 
@@ -29,14 +33,18 @@ func RegisterTestApi(srv service_type.Service, impl TestApiServer) {
 	desc.ServiceDesc = TestApi_ServiceDesc
 	desc.GrpcClientFn = NewTestApiClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterTestApiHandlerClient(ctx, mux, NewTestApiClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterTestApiHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
 }
 
 func InitTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewTestApiV2Client(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiV2Client)(nil)))...)
 }
 
@@ -46,8 +54,8 @@ func RegisterTestApiV2(srv service_type.Service, impl TestApiV2Server) {
 	desc.ServiceDesc = TestApiV2_ServiceDesc
 	desc.GrpcClientFn = NewTestApiV2Client
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterTestApiV2HandlerClient(ctx, mux, NewTestApiV2Client(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterTestApiV2HandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

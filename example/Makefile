@@ -16,6 +16,10 @@ LDFLAGS=-ldflags " \
 -X '${VersionBase}/version.Data=hello' \
 "
 
+.PHONY: run
+run:
+	go run ${LDFLAGS} -v cmd/*.go test-grpc
+
 .PHONY: build
 build:
 	go build ${LDFLAGS} -v -o main cmd/*.go

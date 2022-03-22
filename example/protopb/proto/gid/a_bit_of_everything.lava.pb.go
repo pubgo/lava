@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitLoginServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewLoginServiceClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*LoginServiceClient)(nil)))...)
 }
 
@@ -29,8 +33,8 @@ func RegisterLoginService(srv service_type.Service, impl LoginServiceServer) {
 	desc.ServiceDesc = LoginService_ServiceDesc
 	desc.GrpcClientFn = NewLoginServiceClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterLoginServiceHandlerClient(ctx, mux, NewLoginServiceClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterLoginServiceHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

@@ -120,13 +120,6 @@ func translateEndpoint(ep string) (addr string, serverName string, requireCreds 
 	return ep, extractHostFromHostPort(ep), CREDS_OPTIONAL
 }
 
-// RequiresCredentials returns whether given endpoint requires
-// credentials/certificates for connection.
-func RequiresCredentials(ep string) CredsRequirement {
-	_, _, requireCreds := translateEndpoint(ep)
-	return requireCreds
-}
-
 // Interpret endpoint parses an endpoint of the form
 // (http|https)://<host>*|(unix|unixs)://<path>)
 // and returns low-level address (supported by 'net') to connect to,

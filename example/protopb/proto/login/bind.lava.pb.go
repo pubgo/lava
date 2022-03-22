@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitBindTelephoneClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewBindTelephoneClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*BindTelephoneClient)(nil)))...)
 }
 
@@ -29,8 +33,8 @@ func RegisterBindTelephone(srv service_type.Service, impl BindTelephoneServer) {
 	desc.ServiceDesc = BindTelephone_ServiceDesc
 	desc.GrpcClientFn = NewBindTelephoneClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterBindTelephoneHandlerClient(ctx, mux, NewBindTelephoneClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterBindTelephoneHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)

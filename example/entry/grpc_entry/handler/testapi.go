@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
@@ -16,12 +17,17 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/entry"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
+	"github.com/pubgo/lava/service/service_type"
 )
+
+func init() {
+	hello.InitTestApiClient("127.0.0.1:8080", grpcc.WithDiscov())
+}
 
 type User struct {
 	gorm.Model
@@ -36,24 +42,29 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-// running
-var testApiSrv = hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
 var ll = logging.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
 }
 
-var _ = entry.AssertHandler(&testapiHandler{})
+var _ service_type.Handler = (*testapiHandler)(nil)
 
 type testapiHandler struct {
-	entry.Handler
 	Db         *orm.Client          `dix:""`
 	Cron       *scheduler.Scheduler `dix:""`
-	TestApiSrv hello.TestApiClient  `name:"hello"`
+	TestApiSrv hello.TestApiClient
+	L          *logging.Logger `name:"testapiHandler"`
 }
 
-func (h *testapiHandler) Init() {
+func (h *testapiHandler) Flags() typex.Flags { return nil }
+
+func (h *testapiHandler) Router(r fiber.Router) {
+}
+
+func (h *testapiHandler) Init() func() {
+	defer xerror.RespExit()
+
 	var db = h.Db.Load()
 	defer h.Db.Done()
 
@@ -67,12 +78,16 @@ func (h *testapiHandler) Init() {
 	//memviz.Map(buf, &user)
 	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
-	h.Cron.Every("test grpc client", time.Second*2, func(name string) {
+	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
 		zap.L().Debug("客户端访问")
-		var out, err1 = testApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
+		var out, err1 = h.TestApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
 		xerror.Panic(err1)
 		fmt.Printf("%#v \n", out)
 	})
+
+	return func() {
+		h.L.Info("close")
+	}
 }
 
 func (h *testapiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {

@@ -20,6 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 func InitEchoServiceClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
+		return NewEchoServiceClient(cc)
+	}))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*EchoServiceClient)(nil)))...)
 }
 
@@ -29,8 +33,8 @@ func RegisterEchoService(srv service_type.Service, impl EchoServiceServer) {
 	desc.ServiceDesc = EchoService_ServiceDesc
 	desc.GrpcClientFn = NewEchoServiceClient
 
-	desc.GrpcGatewayFn = func(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-		return RegisterEchoServiceHandlerClient(ctx, mux, NewEchoServiceClient(conn))
+	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
+		return RegisterEchoServiceHandlerServer(context.Background(), mux, impl)
 	}
 
 	srv.RegisterService(desc)
