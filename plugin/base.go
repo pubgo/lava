@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/huandu/go-clone"
+	"github.com/kr/pretty"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cast"
@@ -17,6 +18,7 @@ import (
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/healthy/healthy_type"
 	"github.com/pubgo/lava/resource/resource_type"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/vars/vars_type"
 	"github.com/pubgo/lava/watcher/watcher_type"
@@ -44,7 +46,7 @@ type Base struct {
 	beforeStops  []func()
 	afterStops   []func()
 
-	cfg    config_type.IConfig
+	cfg    config_type.Config
 	cfgMap *typex.RwMap
 }
 
@@ -116,52 +118,52 @@ func (p *Base) Health() healthy_type.Handler {
 func (p *Base) Middleware() service_type.Middleware { return p.OnMiddleware }
 func (p *Base) String() string                      { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
 func (p *Base) ID() string                          { return p.Name }
-func (p *Base) Init(cfg config_type.IConfig) (gErr error) {
+func (p *Base) Init(cfg config_type.Config) (gErr error) {
 	p.cfg = cfg
 
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err.WrapF("plugin: %s", p.Name)
+		if runtime.IsDev() || runtime.IsTest() {
+			pretty.Println(p.Name, cfg.GetMap(p.Name))
+		}
 	})
 
 	var cfgVal = cfg.Get(p.Name)
-	xerror.Assert(cfgVal == nil, "config key(%s) not found", p.Name)
+	xerror.Assert(cfgVal == nil, "config(%s) not found", p.Name)
 
-	for _, data := range cast.ToSlice(cfgVal) {
+	if p.BuilderFactory != nil && p.BuilderFactory.IsValid() && cfgVal != nil {
+		for _, data := range cast.ToSlice(cfgVal) {
+			if p.cfgMap == nil {
+				p.cfgMap = &typex.RwMap{}
+			}
+
+			var dm, err = cast.ToStringMapE(data)
+			xerror.Panic(err)
+
+			resId := resource_type.GetResId(dm)
+
+			if _, ok := p.cfgMap.Load(resId); ok {
+				return fmt.Errorf("res=>%s key=>%s,res key already exists", p.Name, resId)
+			}
+
+			resCfg := clone.Clone(p.BuilderFactory.Builder())
+			merge.MapStruct(resCfg, dm)
+			p.cfgMap.Set(resId, resCfg)
+		}
+
+		// if config is not slice
 		if p.cfgMap == nil {
 			p.cfgMap = &typex.RwMap{}
+			resCfg := clone.Clone(p.BuilderFactory.Builder())
+			merge.MapStruct(resCfg, cfg.GetMap(p.Name))
+			p.cfgMap.Set(consts.KeyDefault, resCfg)
 		}
 
-		var dm, err = cast.ToStringMapE(data)
-		xerror.Panic(err)
-
-		var base = clone.Clone(p.BuilderFactory)
-		merge.MapStruct(base, dm)
-		delete(dm, "_id")
-
-		resId := base.(resource_type.BuilderFactory).GetResId()
-
-		if _, ok := p.cfgMap.Load(resId); ok {
-			return fmt.Errorf("res=>%s key=>%s,res key already exists", p.Name, resId)
-		}
-
-		resCfg := clone.Clone(p.BuilderFactory.Builder())
-		merge.MapStruct(resCfg, dm)
-		p.cfgMap.Set(resId, resCfg)
+		p.cfgMap.Range(func(key string, val interface{}) bool {
+			p.BuilderFactory.Update(key, p.Name, val.(resource_type.Builder))
+			return true
+		})
 	}
-
-	// if config is not slice
-	if p.cfgMap == nil {
-		p.cfgMap = &typex.RwMap{}
-		resCfg := clone.Clone(p.BuilderFactory.Builder())
-		merge.MapStruct(resCfg, cfg.GetMap(p.Name))
-		p.cfgMap.Set(consts.KeyDefault, resCfg)
-	}
-
-	// update resource
-	p.cfgMap.Range(func(key string, val interface{}) bool {
-		val.(resource_type.BuilderFactory).Update(p.Name, key)
-		return true
-	})
 
 	if p.OnInit != nil {
 		p.OnInit(p)
@@ -172,20 +174,21 @@ func (p *Base) Init(cfg config_type.IConfig) (gErr error) {
 
 func (p *Base) Watch(name string, r *watcher_type.Response) error {
 	var val, ok = p.cfgMap.Load(name)
-	if !ok {
-		// 配置不存在
-		val = clone.Clone(p.BuilderFactory.Builder())
-	} else {
-		xerror.Panic(r.Decode(val))
+	var newCfg = clone.Clone(p.BuilderFactory.Builder())
+	if ok {
+		newCfg = clone.Clone(val)
+	}
+	xerror.Panic(r.Decode(newCfg))
+
+	if !reflect.DeepEqual(val, newCfg) {
+		p.BuilderFactory.Update(p.Name, name, val.(resource_type.Builder))
+		p.cfgMap.Set(name, val)
+
+		if p.OnWatch != nil {
+			xerror.Panic(p.OnWatch(name, r))
+		}
 	}
 
-	val.(resource_type.BuilderFactory).Update(p.Name, name)
-
-	p.cfgMap.Set(name, val)
-
-	if p.OnWatch != nil {
-		xerror.Panic(p.OnWatch(name, r))
-	}
 	return nil
 }
 
@@ -198,8 +201,8 @@ func (p *Base) Commands() *cli.Command {
 }
 
 func (p *Base) Flags() typex.Flags {
-	if p.OnFlags == nil {
-		return nil
+	if p.OnFlags == nil || len(p.OnFlags()) == 0 {
+		return typex.Flags{}
 	}
 
 	return p.OnFlags()

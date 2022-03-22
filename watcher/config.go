@@ -15,7 +15,7 @@ type Cfg struct {
 	// Projects 需要watcher的项目
 	Projects []string `json:"projects"`
 
-	cfg config_type.IConfig
+	cfg config_type.Config
 }
 
 func (cfg Cfg) Build(data config_type.CfgMap) (_ watcher_type.Watcher, err error) {

@@ -14,8 +14,8 @@ type Builder interface {
 
 type BuilderFactory interface {
 	Builder() Builder
-	Update(name, kind string)
-	GetResId() string
+	Update(name, kind string, builder Builder)
+	IsValid() bool
 	Wrapper(res Resource) Resource
 	Di(kind string) func(obj inject.Object, field inject.Field) (interface{}, bool)
 }

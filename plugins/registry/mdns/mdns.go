@@ -4,13 +4,13 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/pkg/syncx"
 	"time"
 
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
 )
@@ -33,6 +33,9 @@ type mdnsRegistry struct {
 	cfg      Cfg
 	services typex.SMap
 	resolver *zeroconf.Resolver
+}
+
+func (m *mdnsRegistry) Init() {
 }
 
 func (m *mdnsRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {

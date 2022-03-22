@@ -1,10 +1,10 @@
 package service_type
 
-import "github.com/pubgo/lava/service"
+import "google.golang.org/grpc/metadata"
 
 // Response is the response writer for un encoded messages
 type Response interface {
-	Header() service.Header
+	Header() metadata.MD
 	Payload() interface{}
 	Stream() bool
 }

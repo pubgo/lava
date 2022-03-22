@@ -8,7 +8,7 @@ import (
 
 type (
 	DecoderConfig = mapstructure.DecoderConfig
-	IConfig       interface {
+	Config        interface {
 		Decode(name string, fnOrPtr interface{}) error
 		Get(key string) interface{}
 		Set(string, interface{})

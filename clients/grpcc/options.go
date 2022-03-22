@@ -1,6 +1,9 @@
 package grpcc
 
-import "github.com/pubgo/lava/clients/grpcc/resolver"
+import (
+	"github.com/pubgo/lava/clients/grpcc/resolver"
+	"google.golang.org/grpc"
+)
 
 func WithDirect() func(cfg *Cfg) {
 	return func(cfg *Cfg) { cfg.buildScheme = resolver.DirectScheme }
@@ -24,4 +27,8 @@ func WithRegistry(name string) func(cfg *Cfg) {
 
 func WithClientType(typ interface{}) func(cfg *Cfg) {
 	return func(cfg *Cfg) { cfg.clientType = typ }
+}
+
+func WithNewClientFunc(fn func(cc grpc.ClientConnInterface) interface{}) func(cfg *Cfg) {
+	return func(cfg *Cfg) { cfg.newClient = fn }
 }

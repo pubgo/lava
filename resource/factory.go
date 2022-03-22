@@ -2,11 +2,10 @@ package resource
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/logging/logutil"
-	"go.uber.org/zap"
-	"io"
 	"reflect"
-	"runtime"
+
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/inject"
@@ -17,18 +16,22 @@ import (
 var _ resource_type.BuilderFactory = (*Factory)(nil)
 
 type Factory struct {
-	ResID      string                                                          `json:"_id" yaml:"_id"`
-	CfgBuilder resource_type.Builder                                           `json:"-" yaml:"-"`
+	DefaultCfg resource_type.Builder                                           `json:"-" yaml:"-" inject:"required"`
 	ResType    resource_type.Resource                                          `json:"-" yaml:"-"`
 	OnDi       func(obj inject.Object, field inject.Field) (interface{}, bool) `json:"-" yaml:"-"`
 }
 
-func (f *Factory) Update(name, kind string) {
+func (f Factory) IsValid() bool { return f.DefaultCfg != nil }
+
+func (f Factory) Update(name, kind string, builder resource_type.Builder) {
 	if name == "" {
 		name = consts.KeyDefault
 	}
 
 	check(kind, name)
+
+	// 注入对象
+	inject.Inject(builder)
 
 	var fields = []zap.Field{
 		zap.String("kind", kind),
@@ -47,37 +50,19 @@ func (f *Factory) Update(name, kind string) {
 		// 资源不存在, 创建资源
 		log.Info("resource create")
 
-		var builder = f.Builder()
-		// 注入对象
-		inject.Inject(builder)
-
 		var srv = f.Wrapper(newRes(name, kind, builder.Build()))
 		// 注入对象
 		inject.Inject(srv)
+		log.Info("resource inject", zap.String("resource", fmt.Sprintf("%#v", srv)))
 
-		// 依赖注入
+		// 注册对象
 		inject.Register(srv, f.Di(kind))
 
 		resourceList.Set(id, srv)
-
-		log.Info("resource SetFinalizer")
-
-		// 当resource被gc时, 关闭resource
-		runtime.SetFinalizer(srv, func(cc io.Closer) {
-			logutil.OkOrPanic(logs.L(), "resource close", cc.Close, fields...)
-		})
 		return
 	}
 
-	// 资源存在, 更新老资源
-	// 新老对象替换, 资源内部对象不同时替换
-	if oldSrv.(*baseRes).builder == f.Builder() || reflect.DeepEqual(oldSrv.(*baseRes).builder, f.Builder()) {
-		// 配置未变更
-		return
-	}
-
-	var srv = f.Builder().Build()
-	var resSrv = f.Wrapper(newRes(name, kind, srv))
+	var resSrv = f.Wrapper(newRes(name, kind, builder.Build()))
 	oldSrv.(*baseRes).updateObj(resSrv.(*baseRes).getObj())
 
 	log.With(zap.String("old_resource", fmt.Sprintf("%#v", oldSrv))).Info("resource update")
@@ -91,25 +76,17 @@ func (f Factory) Di(kind string) func(obj inject.Object, field inject.Field) (in
 }
 
 func (f Factory) Wrapper(res resource_type.Resource) resource_type.Resource {
-	if f.ResType == nil {
-		return res
-	}
+	xerror.Assert(f.ResType == nil, "please set [ResType], kind=%s, name=%s", res.Kind(), res.Name())
 
-	var v = reflectx.Indirect(reflect.New(reflectx.Indirect(reflect.ValueOf(f.ResType)).Type()))
+	var obj = reflect.New(reflectx.Indirect(reflect.ValueOf(f.ResType)).Type())
+	var v = reflectx.Indirect(obj)
 	// find Resource field
 	var v1 = v.FieldByName("Resource")
 	if !v1.IsValid() {
 		panic(fmt.Sprintf("resource: %#v, has not field(Resource)", f.ResType))
 	}
 	v1.Set(reflect.ValueOf(res))
-	return v1.Interface().(resource_type.Resource)
+	return obj.Interface().(resource_type.Resource)
 }
 
-func (f Factory) GetResId() string {
-	if f.ResID == "" {
-		return consts.KeyDefault
-	}
-	return f.ResID
-}
-
-func (f Factory) Builder() resource_type.Builder { return f.CfgBuilder }
+func (f Factory) Builder() resource_type.Builder { return f.DefaultCfg }

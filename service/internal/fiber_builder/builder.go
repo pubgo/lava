@@ -29,12 +29,11 @@ func (t *Builder) Build(cfg Cfg) (err error) {
 
 	var fc = fiber.New().Config()
 	xerror.Panic(merge.CopyStruct(&fc, &cfg))
+	t.srv = fiber.New(fc)
 
 	if cfg.Templates.Dir != "" && cfg.Templates.Ext != "" {
 		fc.Views = html.New(cfg.Templates.Dir, cfg.Templates.Ext)
 	}
-
-	t.srv = fiber.New(fc)
 
 	t.srv.Use("/ws", func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client

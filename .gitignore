@@ -25,3 +25,4 @@ home/pidfile
 sqlite.db
 internal/example/services/logs
 logs
+bin

@@ -1,7 +1,9 @@
 package debug
 
 import (
+	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"net/http"
 )
 
 var app = fiber.New()
@@ -9,6 +11,8 @@ var app = fiber.New()
 func Mux() *fiber.App { return app }
 func App() *fiber.App { return app }
 
+func WrapFunc(h http.HandlerFunc) fiber.Handler                { return adaptor.HTTPHandlerFunc(h) }
+func Wrap(h http.Handler) fiber.Handler                        { return adaptor.HTTPHandler(h) }
 func Get(path string, handlers ...fiber.Handler) fiber.Router  { return app.Get(path, handlers...) }
 func Head(path string, handlers ...fiber.Handler) fiber.Router { return app.Head(path, handlers...) }
 func Post(path string, handlers ...fiber.Handler) fiber.Router { return app.Post(path, handlers...) }

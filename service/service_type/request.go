@@ -1,6 +1,8 @@
 package service_type
 
-import "github.com/pubgo/lava/service"
+import (
+	"google.golang.org/grpc/metadata"
+)
 
 // Request is a synchronous request interface
 type Request interface {
@@ -26,7 +28,7 @@ type Request interface {
 	ContentType() string
 
 	// Header of the request
-	Header() service.Header
+	Header() metadata.MD
 
 	// Payload is the decoded value
 	Payload() interface{}

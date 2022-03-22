@@ -28,7 +28,6 @@ type baseRes struct {
 	name    string
 	v       io.Closer
 	rw      sync.RWMutex
-	builder resource_type.Builder
 	counter atomic.Uint32
 	log     *zap.Logger
 }
@@ -38,7 +37,12 @@ func (t *baseRes) Log() *zap.Logger { return t.log }
 func (t *baseRes) GetRes() interface{} {
 	t.rw.RLock()
 	t.counter.Inc()
-	// TODO counter check
+
+	go func() {
+		if t.counter.Load() > 10 {
+			t.log.Error("curConn should be release", zap.Uint32("curConn", t.counter.Load()))
+		}
+	}()
 	return t.v
 }
 
@@ -60,11 +64,13 @@ func (t *baseRes) getObj() io.Closer {
 func (t *baseRes) updateObj(obj io.Closer) {
 	// 资源更新5s超时, 打印log
 	// 方便log查看和监控
-	syncx.Monitor(
+	go syncx.Monitor(
 		time.Second*5,
 		func() {
 			t.rw.Lock()
+			var oldPbj = t.v
 			t.v = obj
+			logutil.OkOrErr(t.log, "resource close", oldPbj.Close)
 			t.rw.Unlock()
 			t.log.Info("resource update ok")
 		},

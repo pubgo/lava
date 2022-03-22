@@ -13,6 +13,20 @@ import (
 
 var injectHandlers = make(map[string]func(obj Object, field Field) (interface{}, bool))
 
+const (
+	injectKey  = "inject"
+	nameKey    = "name"
+	injectExpr = "inject-expr"
+)
+
+func WithVal(val interface{}) func(obj Object, field Field) (interface{}, bool) {
+	if val == nil {
+		panic("[val] is nil")
+	}
+
+	return func(obj Object, field Field) (interface{}, bool) { return val, true }
+}
+
 func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bool)) {
 	if typ == nil {
 		panic("[typ] is nil")
@@ -25,7 +39,7 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 	var typStr = reflect.TypeOf(typ).String()
 
 	t := reflect.TypeOf(typ)
-	for t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
+	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
 		typStr = t.Elem().String()
 	}
 
@@ -33,21 +47,20 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 }
 
 func Inject(val interface{}) {
-	if val == nil {
-		panic("[val] is nil")
-	}
-
 	var v reflect.Value
 	switch val.(type) {
+	case nil:
+		panic("[val] is nil")
 	case reflect.Value:
 		v = val.(reflect.Value)
 	default:
 		v = reflect.ValueOf(val)
 	}
+
 	v = reflectx.Indirect(v)
 
 	if !v.CanSet() {
-		panic("[val] should be ptr or interface")
+		panic(fmt.Sprintf("[val=%#v] should be ptr or interface", val))
 	}
 
 	var obj = Object{Value: v}
@@ -84,6 +97,10 @@ func (o Object) Name() string {
 	return o.Value.Type().Name()
 }
 
+func (o Object) Type() string {
+	return o.Value.Type().String()
+}
+
 type Field struct {
 	Field reflect.StructField
 	val   interface{}
@@ -98,12 +115,12 @@ func (f Field) Type() string {
 }
 
 func (f Field) Name() string {
-	var name = f.Tag("name")
+	var name = f.Tag(nameKey)
 	if name != "" {
 		return name
 	}
 
-	var expr = f.Tag("inject-expr")
+	var expr = f.Tag(injectExpr)
 	if expr != "" {
 		out, err := exp.Eval(expr, f.val)
 		if err != nil {

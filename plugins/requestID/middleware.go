@@ -2,8 +2,6 @@ package requestID
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
@@ -12,6 +10,8 @@ import (
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 const Name = "x-request-id"

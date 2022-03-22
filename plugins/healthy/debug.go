@@ -1,7 +1,6 @@
 package healthy
 
 import (
-	"github.com/pubgo/lava/plugins/healthy/healthy_type"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/plugins/healthy/healthy_type"
 )
 
 func init() {

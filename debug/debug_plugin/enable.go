@@ -1,21 +1,17 @@
 package debug_plugin
 
 import (
-	"fmt"
-
 	"github.com/pkg/browser"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service/service_type"
 )
 
 func Enable(srv service_type.Service) {
-	srv.Debug().Mount("/", debug.App())
+	srv.Debug().Mount("/debug", debug.App())
 
 	var openWeb bool
 
@@ -26,19 +22,12 @@ func Enable(srv service_type.Service) {
 			Destination: &openWeb,
 			Usage:       "open web browser with debug",
 		},
-		&cli.StringFlag{
-			Name:        "debug.addr",
-			Destination: &runtime.DebugAddr,
-			Usage:       "debug server http address",
-			Value:       runtime.DebugAddr,
-			EnvVars:     env.KeyOf("lava-debug-addr"),
-		},
 	)
 
 	srv.AfterStarts(func() {
 		if openWeb {
 			syncx.GoDelay(func() {
-				xerror.Panic(browser.OpenURL(fmt.Sprintf("http://localhost:%d/debug", srv.Options().Port)))
+				xerror.Panic(browser.OpenURL("http://localhost:8080/debug"))
 			})
 		}
 	})

@@ -85,9 +85,7 @@ func GoDelay(fn func(), durations ...time.Duration) {
 
 	xerror.Assert(dur == 0, "[dur] should not be 0")
 
-	go func() {
-		logutil.ErrTry(logs.L(), fn)
-	}()
+	go logutil.ErrTry(logs.L(), fn)
 
 	time.Sleep(dur)
 

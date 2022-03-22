@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/service/internal/grpc_builder"
 )
 
-const Name = "grpc_entry"
+const Name = "service"
 
 const (
 	// DefaultMaxMsgSize define maximum message size that server can send or receive.

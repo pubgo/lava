@@ -2,18 +2,15 @@ package service
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/logging/logutil"
+	"go.uber.org/zap"
 	"os"
 	"sort"
-
-	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/log_config"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/signal"
@@ -22,6 +19,9 @@ import (
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 	"github.com/pubgo/lava/watcher"
+
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
 )
 
 func Run(desc string, entries ...service_type.Service) {
@@ -46,6 +46,10 @@ func Run(desc string, entries ...service_type.Service) {
 
 	// 注册全局plugin
 	for _, plg := range plugin.All() {
+		if plg == nil {
+			continue
+		}
+
 		app.Flags = append(app.Flags, plg.Flags()...)
 
 		var cmd = plg.Commands()
@@ -99,9 +103,10 @@ func Run(desc string, entries ...service_type.Service) {
 				ent.AfterStarts(plg.AfterStarts()...)
 				ent.BeforeStops(plg.BeforeStops()...)
 				ent.AfterStops(plg.AfterStops()...)
-				logutil.OkOrPanic(ent.L, "plugin init", func() error {
+
+				logutil.LogOrPanic(zap.L(), fmt.Sprintf("plugin(%s) init", plg.ID()), func() error {
 					return plg.Init(config.GetCfg())
-				}, zap.String("plugin-name", plg.ID()))
+				})
 			}
 
 			xerror.Panic(ent.init())

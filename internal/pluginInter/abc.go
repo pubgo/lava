@@ -24,7 +24,7 @@ type Plugin interface {
 	// Commands 插件启动子命令
 	Commands() *typex.Command
 	// Init 插件初始化
-	Init(cfg config_type.IConfig) error
+	Init(cfg config_type.Config) error
 	// Watch 配置变更通知
 	Watch(name string, r *watcher_type.Response) error
 	// Vars 插件可观测指标

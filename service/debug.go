@@ -1,9 +1,10 @@
 package service
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"html/template"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func (t *implService) initDebug() {

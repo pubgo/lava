@@ -1,13 +1,14 @@
 package lava
 
 import (
-	"github.com/pubgo/lava/entry"
-	"github.com/pubgo/lava/internal/runtime"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 )
 
-func Run(desc string, entries ...entry.Entry) {
-	runtime.Run(desc, entries...)
+func Run(desc string, entries ...service_type.Service) {
+	service.Run(desc, entries...)
 }
 
-func NewService(name string, desc string) {
+func NewService(name string, desc string) service_type.Service {
+	return service.New(name, desc)
 }

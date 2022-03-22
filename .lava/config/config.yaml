@@ -4,7 +4,8 @@ app:
   version: "v0.0.1"
   home: ""
   debug: true
-  watcher: false
+timeout:
+  - test
 watcher:
   driver: "noop"
   name: "default"
@@ -50,7 +51,7 @@ ws:
   enabled: true
   configs:
     default:
-      origins: ["*"]
+      origins: [ "*" ]
 redis:
   enabled: true
   codis:
@@ -76,10 +77,10 @@ mongodb:
 nsq:
   default:
     address: "localhost:4150"
-    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+    lookup: [ "nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161" ]
   test_shanghai:
     address: "localhost:4150"
-    lookup: ["nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161"]
+    lookup: [ "nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161" ]
 http:
   test: ""
 

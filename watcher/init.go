@@ -23,7 +23,7 @@ var logs = logging.Component(Name)
 var cfg = DefaultCfg()
 
 // Init 初始化watcher
-func Init(conf config_type.IConfig) {
+func Init(conf config_type.Config) {
 	defer xerror.RespExit()
 
 	xerror.Assert(conf == nil, "conf is nil")

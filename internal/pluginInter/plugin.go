@@ -15,8 +15,8 @@ var pluginKeys typex.PriorityQueue
 // All 获取所有的插件
 func All() []Plugin {
 	var pluginList = make([]Plugin, len(pluginKeys))
-	for _, key := range pluginKeys {
-		pluginList = append(pluginList, plugins[key.Value.(string)])
+	for i, key := range pluginKeys {
+		pluginList[i] = plugins[key.Value.(string)]
 	}
 	return pluginList
 }

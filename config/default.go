@@ -26,7 +26,7 @@ func Init() {
 }
 
 // GetCfg 获取内存配置
-func GetCfg() config_type.IConfig { return getCfg() }
+func GetCfg() config_type.Config { return getCfg() }
 func getCfg() *configImpl {
 	if !cfg.init {
 		panic("please init config")

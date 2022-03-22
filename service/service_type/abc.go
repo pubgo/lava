@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugin"
 )
 
 type Service interface {
@@ -21,11 +20,11 @@ type Service interface {
 	RegisterService(desc Desc)
 	RegisterMatcher(priority int64, matches ...func(io.Reader) bool) func() net.Listener
 	GrpcClientInnerConn() grpc.ClientConnInterface
-	Plugin(plugin plugin.Plugin)
+	Middleware(mid Middleware)
 	ServiceDesc() []Desc
 	Options() Options
+	Middlewares() []Middleware
 	Debug() fiber.Router
-	Admin() fiber.Router
 }
 
 type Desc struct {

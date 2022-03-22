@@ -41,7 +41,7 @@ var Cmd = &cli.Command{
 		</html>
 		`))
 
-		debug.Get("/", func(writer http.ResponseWriter, request *http.Request) {
+		debug.Get("/", debug.WrapFunc(func(writer http.ResponseWriter, request *http.Request) {
 			var names []string
 			xerror.Panic(filepath.Walk("./docs", func(path string, info fs.FileInfo, err error) error {
 				if strings.HasSuffix(path, ".swagger.json") {
@@ -50,9 +50,9 @@ var Cmd = &cli.Command{
 				return nil
 			}))
 			xerror.Panic(homeTmpl.Execute(writer, names))
-		})
+		}))
 
-		debug.Get("/docs/*", func(writer http.ResponseWriter, request *http.Request) {
+		debug.Get("/docs/*", debug.WrapFunc(func(writer http.ResponseWriter, request *http.Request) {
 			writer.Header().Set("Content-Type", "application/json")
 			var bytes, err = ioutil.ReadFile(strings.Trim(request.RequestURI, "/"))
 			xerror.Panic(err)
@@ -70,9 +70,9 @@ var Cmd = &cli.Command{
 			b, err := json.MarshalIndent(specDoc.Spec(), "", "  ")
 			xerror.Panic(err)
 			writer.Write(b)
-		})
+		}))
 
-		debug.Get("/swagger/*", func(writer http.ResponseWriter, request *http.Request) {
+		debug.Get("/swagger/*", debug.WrapFunc(func(writer http.ResponseWriter, request *http.Request) {
 			var s ServeCmd
 			var flavor = "swagger"
 			if f := request.URL.Query().Get("flavor"); f != "" {
@@ -105,13 +105,11 @@ var Cmd = &cli.Command{
 				)
 			}
 			handler.ServeHTTP(writer, request)
-		})
+		}))
 
 		syncx.GoDelay(func() {
 			xerror.Panic(browser.OpenURL("http://localhost:8082"))
 		})
-
-		_ = http.ListenAndServe(":8082", debug.Mux())
 		return nil
 	},
 }

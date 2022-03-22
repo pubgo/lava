@@ -57,7 +57,6 @@ var (
 			}
 			return ""
 		},
-		func() string { return "default" },
 	)
 
 	// Homedir the home directory for the current user

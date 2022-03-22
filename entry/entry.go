@@ -27,6 +27,3 @@ type Entry interface {
 type Handler interface {
 	Init()
 }
-
-// AssertHandler handler校验
-func AssertHandler(Handler) error { return nil }

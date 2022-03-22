@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -22,7 +23,7 @@ import (
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
 
-var _ config_type.IConfig = (*configImpl)(nil)
+var _ config_type.Config = (*configImpl)(nil)
 
 type configImpl struct {
 	rw   sync.RWMutex
@@ -151,6 +152,7 @@ func (t *configImpl) initCfg() {
 	xerror.PanicF(t.initWithDir(v), "config file load error")
 	Home = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
 	CfgPath = v.ConfigFileUsed()
+	os.Setenv("data", Home)
 
 	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
 

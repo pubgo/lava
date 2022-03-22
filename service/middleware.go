@@ -55,6 +55,7 @@ func (t *implService) handlerUnaryMiddle(middlewares []service_type.Middleware) 
 		if err != nil {
 			return err
 		}
+
 		return rsp(&rpcResponse{dt: dt, header: req.Header()})
 	}
 

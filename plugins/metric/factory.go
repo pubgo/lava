@@ -1,10 +1,10 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/pkg/utils"
 )

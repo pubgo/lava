@@ -12,7 +12,7 @@ const defaultPriority = uint(1000)
 // All 获取所有的插件
 func All() []Plugin { return pluginInter.All() }
 
-func Init(p config_type.IConfig, plugins ...Plugin) {
+func Init(p config_type.Config, plugins ...Plugin) {
 	for _, plg := range append(All(), plugins...) {
 		xerror.Panic(plg.Init(p))
 	}

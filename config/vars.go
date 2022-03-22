@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/pkg/typex"
-
 	"github.com/pubgo/lava/vars"
 )
 

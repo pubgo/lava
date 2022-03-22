@@ -11,7 +11,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		BuilderFactory: resource.Factory{
-			CfgBuilder: DefaultCfg(),
+			DefaultCfg: DefaultCfg(),
 			ResType:    &Client{},
 		},
 	})

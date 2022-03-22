@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/pubgo/lava/clients/grpcc/lb/p2c"
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/service/service_type"
 
@@ -124,6 +125,7 @@ type Cfg struct {
 	Group              string                         `json:"-"`
 
 	clientType  interface{}
+	newClient   func(cc grpc.ClientConnInterface) interface{}
 	registry    string
 	buildScheme string
 }
@@ -221,7 +223,7 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 
 	// 加载全局middleware
 	for _, plg := range plugin.All() {
-		if plg.Middleware() == nil {
+		if plg == nil || plg.Middleware() == nil {
 			continue
 		}
 		middlewares = append(middlewares, plg.Middleware())
@@ -242,6 +244,8 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 func DefaultCfg(opts ...func(cfg *Cfg)) Cfg {
 	var cfg = Cfg{
+		Group:             consts.KeyDefault,
+		registry:          "mdns",
 		Insecure:          true,
 		Block:             true,
 		BalancerName:      p2c.Name,

@@ -3,9 +3,10 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/pkg/syncx"
 	"sync"
 
+	"github.com/kr/pretty"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/resolver"
 
@@ -71,8 +72,11 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 }
 
 // Build discov://service_name
-func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
-	defer xerror.RespErr(&err)
+func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, gErr error) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		gErr = err
+		pretty.Println(target.URL.String())
+	})
 
 	logs.S().Infof("discovBuilder Build, target=>%#v", target)
 
@@ -80,22 +84,24 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	var r = registry.Default()
 	xerror.Assert(r == nil, "registry is nil")
 
+	var srv = target.URL.Host
+
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services, err := r.GetService(target.Endpoint)
+	services, err := r.GetService(srv)
 	xerror.Panic(err, "registry GetService error")
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
-	var address = d.getAddrList(target.Endpoint)
+	var address = d.getAddrList(srv)
 	xerror.Assert(len(address) == 0, "service none available")
 
 	logs.S().Infof("discovBuilder Addrs %#v", address)
 	xerror.PanicF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w, err := r.Watch(target.Endpoint)
-	xerror.PanicF(err, "target.Endpoint: %s", target.Endpoint)
+	w, err := r.Watch(srv)
+	xerror.PanicF(err, "target.Endpoint: %s", srv)
 
 	cancel := syncx.GoCtx(func(ctx context.Context) {
 		defer func() { xerror.Panic(w.Stop()) }()
@@ -123,7 +129,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				}
 
 				xerror.TryCatch(func() (interface{}, error) {
-					var addrList = d.getAddrList(target.Endpoint)
+					var addrList = d.getAddrList(srv)
 					return nil, cc.UpdateState(newState(addrList))
 				}, func(err error) {
 					logs.WithErr(err).Error("update resolver address error")

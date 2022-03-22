@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package endpoint
+package resolver
 
 import (
 	"fmt"
@@ -21,6 +21,15 @@ import (
 	"path"
 	"strings"
 )
+
+func hasPrefix(s string, prefix ...string) bool {
+	for i := range prefix {
+		if strings.HasPrefix(s, prefix[i]) {
+			return true
+		}
+	}
+	return false
+}
 
 type CredsRequirement int
 
@@ -91,13 +100,13 @@ func schemeToCredsRequirement(schema string) CredsRequirement {
 //   - https://golang.org/pkg/net/#Dial
 //   - https://github.com/grpc/grpc/blob/master/doc/naming.md
 func translateEndpoint(ep string) (addr string, serverName string, requireCreds CredsRequirement) {
-	if strings.HasPrefix(ep, "unix:") || strings.HasPrefix(ep, "unixs:") {
-		if strings.HasPrefix(ep, "unix:///") || strings.HasPrefix(ep, "unixs:///") {
+	if hasPrefix(ep, "unix:", "unixs:") {
+		if hasPrefix(ep, "unix:///", "unixs:///") {
 			// absolute path case
 			schema, absolutePath := mustSplit2(ep, "://")
 			return "unix://" + absolutePath, extractHostFromPath(absolutePath), schemeToCredsRequirement(schema)
 		}
-		if strings.HasPrefix(ep, "unix://") || strings.HasPrefix(ep, "unixs://") {
+		if hasPrefix(ep, "unix://", "unixs://") {
 			// legacy etcd local path
 			schema, localPath := mustSplit2(ep, "://")
 			return "unix:" + localPath, extractHostFromPath(localPath), schemeToCredsRequirement(schema)
@@ -116,6 +125,7 @@ func translateEndpoint(ep string) (addr string, serverName string, requireCreds 
 		}
 		return ep, _url.Hostname(), schemeToCredsRequirement(_url.Scheme)
 	}
+
 	// Handles plain addresses like 10.0.0.44:437.
 	return ep, extractHostFromHostPort(ep), CREDS_OPTIONAL
 }
