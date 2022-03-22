@@ -158,7 +158,7 @@ func (t *implService) init() error {
 		return ctx.Next()
 	})
 	t.gw.Get().Use(t.handlerHttpMiddle(t.middlewares))
-	t.gw.Get().Mount("/debug", t.debug)
+	t.gw.Get().Mount("/", t.debug)
 	//pretty.Println(t.gw.Get().Stack())
 
 	// 注册系统middleware
@@ -253,6 +253,7 @@ func (t *implService) start() (gErr error) {
 
 	var grpcLn = t.net.Grpc()
 	var gwLn = t.net.HTTP1Fast()
+	//var app=fiber2.New()
 	//t.net.handler(8, func(reader io.Reader) bool {
 	//	br := bufio.NewReader(&io.LimitedReader{R: reader, N: 4096})
 	//	l, part, err := br.ReadLine()
@@ -270,7 +271,7 @@ func (t *implService) start() (gErr error) {
 	syncx.GoDelay(func() {
 		t.L.Info("[grpc-gw] Server Starting")
 		logutil.LogOrErr(t.L, "[grpc-gw] Server Stop", func() error {
-			if err := t.gw.Get().Server().Serve(gwLn()); err != nil &&
+			if err := t.gw.Get().Listener(gwLn()); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
 				!errors.Is(err, net.ErrClosed) {
