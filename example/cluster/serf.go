@@ -3,7 +3,7 @@ package cluster
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/core/logging"
 	"go.uber.org/zap"
 	"log"
 	"math/rand"

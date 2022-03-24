@@ -116,7 +116,7 @@ service Id {
   // Types id类型
   rpc Types(TypesRequest) returns (TypesResponse) {
     option (google.api.http) = {
-      get: "/v1/id/types"
+      get: "/api/v1/id/types"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       description: "Registers a producer to begin publishing notifications in the local MEC environment.";

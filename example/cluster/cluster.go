@@ -4,17 +4,16 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/pubgo/lava/core/cmux"
+	logging2 "github.com/pubgo/lava/core/logging"
 	"math/big"
 	"time"
 
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/serf/serf"
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logging"
 )
 
-var logs = logging.Component("cluster")
+var logs = logging2.Component("cluster")
 
 type Cluster struct {
 	config       Config
@@ -29,7 +28,7 @@ type Cluster struct {
 	//		replicaLookup:    NewReplicaLookup(),
 	//		reconcileCh:      make(chan serf.Member, 32),
 
-	Log              *logging.Logger
+	Log              *logging2.Logger
 	nodeId           string
 	AddrList         []string
 	cfg              *memberlist.Config

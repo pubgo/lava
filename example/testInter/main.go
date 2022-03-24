@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/logging"
 	"reflect"
 )
 

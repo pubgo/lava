@@ -6,13 +6,13 @@ import (
 	_ "github.com/pubgo/lava/version"
 
 	// 加载metric插件
-	_ "github.com/pubgo/lava/plugins/metric"
+	_ "github.com/pubgo/lava/core/metric"
 
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
-	_ "github.com/pubgo/lava/plugins/registry/mdns"
+	_ "github.com/pubgo/lava/core/registry/mdns"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
@@ -30,7 +30,7 @@ import (
 // 加载middleware, 注意加载顺序
 import (
 	// 加载log记录拦截器
-	_ "github.com/pubgo/lava/plugins/logRecord"
+	_ "github.com/pubgo/lava/core/logging/log_plugin"
 
 	// tracing插件, 依赖加载
 

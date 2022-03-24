@@ -18,10 +18,10 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logutil"
 	encoding3 "github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -234,8 +234,11 @@ func (t *serviceImpl) start() (gErr error) {
 		return nil
 	})
 
-	var grpcLn = t.net.Grpc()
+	var grpcLn = t.net.HTTP2()
 	var gwLn = t.net.HTTP1Fast()
+	go func() {
+		fmt.Println(<-t.net.Any())
+	}()
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {

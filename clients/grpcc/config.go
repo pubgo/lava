@@ -14,10 +14,10 @@ import (
 	"github.com/pubgo/lava/service/service_type"
 
 	// 默认加载mdns注册中心
-	_ "github.com/pubgo/lava/plugins/registry/mdns"
+	_ "github.com/pubgo/lava/core/registry/mdns"
 
 	// grpc log插件加载
-	_ "github.com/pubgo/lava/logging/logext/grpclog"
+	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
 )
 
 const (

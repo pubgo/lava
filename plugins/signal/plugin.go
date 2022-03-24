@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/pkg/typex"
 	"os"
 	"os/signal"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"

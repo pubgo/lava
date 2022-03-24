@@ -2014,7 +2014,7 @@ func RegisterIdHandlerServer(ctx context.Context, mux *runtime.ServeMux, server 
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gid.Id/Types", runtime.WithHTTPPathPattern("/v1/id/types"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gid.Id/Types", runtime.WithHTTPPathPattern("/api/v1/id/types"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2652,7 +2652,7 @@ func RegisterIdHandlerClient(ctx context.Context, mux *runtime.ServeMux, client 
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gid.Id/Types", runtime.WithHTTPPathPattern("/v1/id/types"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gid.Id/Types", runtime.WithHTTPPathPattern("/api/v1/id/types"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2674,7 +2674,7 @@ func RegisterIdHandlerClient(ctx context.Context, mux *runtime.ServeMux, client 
 var (
 	pattern_Id_Generate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "id", "generate"}, ""))
 
-	pattern_Id_Types_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "id", "types"}, ""))
+	pattern_Id_Types_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "id", "types"}, ""))
 )
 
 var (

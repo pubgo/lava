@@ -2,11 +2,10 @@ package cluster
 
 import (
 	"encoding/json"
-	"github.com/pubgo/lava/plugins/registry/registry_type"
-
 	"github.com/hashicorp/memberlist"
+	pb "github.com/pubgo/lava/core/registry/gossip/proto"
+	"github.com/pubgo/lava/core/registry/registry_type"
 	event2 "github.com/pubgo/lava/event"
-	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 )
 
 type delegate struct {

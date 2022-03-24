@@ -3,6 +3,10 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/core/healthy/healthy_type"
+	"github.com/pubgo/lava/core/watcher/watcher_type"
+	"github.com/pubgo/lava/vars"
 	"reflect"
 
 	"github.com/huandu/go-clone"
@@ -12,15 +16,11 @@ import (
 	"github.com/spf13/cast"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/healthy/healthy_type"
 	"github.com/pubgo/lava/resource/resource_type"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/vars/vars_type"
-	"github.com/pubgo/lava/watcher/watcher_type"
 )
 
 var _ json.Marshaler = (*Base)(nil)
@@ -39,7 +39,7 @@ type Base struct {
 	OnCommands     func() *typex.Command
 	OnFlags        func() typex.Flags
 	OnWatch        watcher_type.WatchHandler
-	OnVars         func(v vars_type.Vars)
+	OnVars         func(v vars.Publisher)
 
 	beforeStarts []func()
 	afterStarts  []func()
@@ -99,7 +99,7 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func (p *Base) Vars(f vars_type.Vars) error {
+func (p *Base) Vars(f vars.Publisher) error {
 	if p.OnVars == nil {
 		return nil
 	}

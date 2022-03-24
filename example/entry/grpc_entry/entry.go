@@ -2,14 +2,14 @@ package grpc_entry
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/core/healthy"
+	"github.com/pubgo/lava/core/registry/registry_plugin"
 	"github.com/pubgo/lava/service/gateway"
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/debug/debug_plugin"
 	"github.com/pubgo/lava/example/entry/grpc_entry/handler"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
-	"github.com/pubgo/lava/plugins/healthy"
-	"github.com/pubgo/lava/plugins/registry/registry_plugin"
 	"github.com/pubgo/lava/service/service_type"
 )
 

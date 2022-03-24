@@ -18,20 +18,20 @@ import (
 func init() {
 	var index = func(keys []string) g.Node {
 		var nodes []g.Node
-		nodes = append(nodes, h.H1(g.Text("/debug/expvar")))
+		nodes = append(nodes, h.H1(g.Text("/expvar")))
 		nodes = append(nodes, h.A(g.Text("/debug"), g.Attr("href", "/debug")), h.Br())
 		for i := range keys {
 			nodes = append(nodes, h.A(g.Text(keys[i]), g.Attr("href", keys[i])), h.Br())
 		}
 
 		return c.HTML5(c.HTML5Props{
-			Title:    "/debug/expvar",
+			Title:    "/expvar",
 			Language: "en",
 			Body:     nodes,
 		})
 	}
 
-	debug.Route("/debug/expvar", func(r fiber.Router) {
+	debug.Route("/expvar", func(r fiber.Router) {
 		r.Get("/", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, request *http.Request) {
 			var keys []string
 			expvar.Do(func(kv expvar.KeyValue) {

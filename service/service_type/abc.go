@@ -1,7 +1,6 @@
 package service_type
 
 import (
-	service2 "github.com/pubgo/lava/internal/abc/service"
 	"net"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,16 +8,17 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/cmux"
+	"github.com/pubgo/lava/internal/abc/service_inter"
 	"github.com/pubgo/lava/plugin"
 )
 
-type Desc = service2.Desc
-type Handler = service2.Handler
-type Options = service2.Options
-type Middleware = service2.Middleware
-type HandlerFunc = service2.HandlerFunc
-type Request = service2.Request
-type Response = service2.Response
+type Desc = service_inter.Desc
+type Handler = service_inter.Handler
+type Options = service_inter.Options
+type Middleware = service_inter.Middleware
+type HandlerFunc = service_inter.HandlerFunc
+type Request = service_inter.Request
+type Response = service_inter.Response
 type Service interface {
 	AfterStops(...func())
 	BeforeStops(...func())

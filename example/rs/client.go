@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"sync"
 	"time"
 
@@ -12,9 +14,6 @@ import (
 	"github.com/rsocket/rsocket-go/payload"
 	"github.com/rsocket/rsocket-go/rx"
 	"github.com/rsocket/rsocket-go/rx/flux"
-
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 )
 
 func main() {

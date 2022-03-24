@@ -2,23 +2,23 @@ package service
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/config/config_flag"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/config/config_builder"
+	"github.com/pubgo/lava/core/healthy"
+	"github.com/pubgo/lava/core/logging/log_builder"
+	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/core/watcher"
 	"os"
 	"sort"
 
-	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/config/config_flag"
 	"github.com/pubgo/lava/internal/envs"
-	"github.com/pubgo/lava/logging/log_builder"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/healthy"
 	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
-	"github.com/pubgo/lava/watcher"
-
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -42,7 +42,7 @@ func Run(desc string, entries ...service_type.Service) {
 	app.Description = desc
 
 	// 注册默认flags
-	app.Flags = append(app.Flags, config_flag.DefaultFlags()...)
+	app.Flags = append(app.Flags, config_flag.Flags()...)
 
 	// 注册全局plugin
 	for _, plg := range plugin.All() {
@@ -89,7 +89,7 @@ func Run(desc string, entries ...service_type.Service) {
 			}
 
 			// 本地配置初始化
-			config.Init()
+			config_builder.Init()
 
 			// 日志初始化
 			log_builder.Init(config.GetCfg())

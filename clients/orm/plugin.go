@@ -3,7 +3,7 @@ package orm
 import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/resource"
-	"github.com/pubgo/lava/vars/vars_type"
+	"github.com/pubgo/lava/vars"
 )
 
 func init() {
@@ -13,7 +13,7 @@ func init() {
 			DefaultCfg: DefaultCfg(),
 			ResType:    &Client{},
 		},
-		OnVars: func(v vars_type.Vars) {
+		OnVars: func(v vars.Publisher) {
 			v.Publish(Name+"_stats", func() interface{} {
 				var data = make(map[string]interface{})
 				for k, v := range resource.GetByKind(Name) {

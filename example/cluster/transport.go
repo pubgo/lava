@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/core/cmux"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"net"
 	"net/http"
 	"sync"
@@ -15,8 +16,6 @@ import (
 	"github.com/hashicorp/memberlist"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logging/logutil"
 )
 
 const (

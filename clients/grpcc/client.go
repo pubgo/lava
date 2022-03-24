@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"net"
 	"strings"
 	"sync"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/resolver"
 	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/logging/logkey"
 )
 
 var clients sync.Map

@@ -9,7 +9,7 @@ import (
 	"github.com/soheilhy/cmux"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

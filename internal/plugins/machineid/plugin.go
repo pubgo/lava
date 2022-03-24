@@ -2,9 +2,9 @@ package machineid
 
 import (
 	"github.com/denisbrodbeck/machineid"
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/plugin"
 )
 

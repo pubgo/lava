@@ -9,14 +9,13 @@ import (
 	"github.com/pubgo/lava/runtime"
 )
 
-func DefaultFlags() []cli.Flag {
+func Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
 			Name:        "config",
 			Destination: &config.CfgPath,
 			Aliases:     typex.StrOf("c"),
-			Usage:       "config path",
-			Value:       config.CfgPath,
+			Usage:       "server config path",
 		},
 		&cli.StringFlag{
 			Name:        "addr",

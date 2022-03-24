@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/resource/resource_type"
 )

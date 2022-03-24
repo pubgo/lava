@@ -1,10 +1,10 @@
 package orm
 
 import (
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

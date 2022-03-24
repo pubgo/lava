@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"reflect"
 	"sync"
 	"time"
@@ -11,9 +13,6 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/logging/logutil"
 )
 
 type subscriber struct {

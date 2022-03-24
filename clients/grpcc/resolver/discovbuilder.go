@@ -3,6 +3,8 @@ package resolver
 import (
 	"context"
 	"fmt"
+	registry2 "github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/core/registry/registry_type"
 	"sync"
 
 	"github.com/kr/pretty"
@@ -11,8 +13,6 @@ import (
 
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugins/registry"
-	"github.com/pubgo/lava/plugins/registry/registry_type"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -82,7 +82,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.S().Infof("discovBuilder Build, target=>%#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
-	var r = registry.Default()
+	var r = registry2.Default()
 	xerror.Assert(r == nil, "registry is nil")
 
 	var srv = target.URL.Host
@@ -113,7 +113,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				return
 			default:
 				res, err := w.Next()
-				if err == registry.ErrWatcherStopped {
+				if err == registry2.ErrWatcherStopped {
 					return
 				}
 

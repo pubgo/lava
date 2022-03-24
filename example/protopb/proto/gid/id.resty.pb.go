@@ -98,7 +98,7 @@ func (c *idResty) Types(ctx context.Context, in *TypesRequest, opts ...func(req 
 			}
 		}
 	}
-	var resp, err = req.Execute("GET", "/v1/id/types")
+	var resp, err = req.Execute("GET", "/api/v1/id/types")
 	if err != nil {
 		return nil, err
 	}

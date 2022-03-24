@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"strings"
 	"sync"
 
@@ -8,10 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
 const Name = "resource"
@@ -31,12 +30,6 @@ func Remove(kind string, name string) {
 func Has(kind string, name string) bool {
 	check(kind, name)
 	return resourceList.Has(join(kind, name))
-}
-
-// Update 更新资源
-func Update(name, kind string, b resource_type.BuilderFactory) {
-
-	return
 }
 
 func join(names ...string) string {

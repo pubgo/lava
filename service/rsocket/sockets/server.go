@@ -3,6 +3,8 @@ package sockets
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"reflect"
 	"strings"
 
@@ -15,9 +17,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/metadata"
-
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 )
 
 var _ rsocket.RSocket = (*handlerMap)(nil)

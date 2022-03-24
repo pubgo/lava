@@ -6,7 +6,8 @@ app:
   debug: true
 watcher:
   driver: "noop"
-  name: "default"
+  driver_config:
+    name: "default"
 recovery:
   enabled: true
 mux:
@@ -147,7 +148,7 @@ grpc_entry:
 gorm:
   driver: "sqlite3"
   driver_config:
-    dsn: "${data}/db/sqlite.db"
+    dsn: "${cfg_dir}/db/sqlite.db"
 
 timeout: "default"
 signal: "default"

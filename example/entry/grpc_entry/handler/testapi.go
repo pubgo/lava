@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/config"
+	logging2 "github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/metric"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,11 +19,8 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/metric"
 	"github.com/pubgo/lava/plugins/scheduler"
 	"github.com/pubgo/lava/service/service_type"
 )
@@ -42,7 +42,7 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-var ll = logging.Component("handler")
+var ll = logging2.Component("handler")
 
 func NewTestAPIHandler() *testapiHandler {
 	return &testapiHandler{}
@@ -54,7 +54,7 @@ type testapiHandler struct {
 	Db         *orm.Client          `dix:""`
 	Cron       *scheduler.Scheduler `dix:""`
 	TestApiSrv hello.TestApiClient
-	L          *logging.Logger `name:"testapiHandler"`
+	L          *logging2.Logger `name:"testapiHandler"`
 }
 
 func (h *testapiHandler) Flags() typex.Flags { return nil }
@@ -102,7 +102,7 @@ func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 }
 
 func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	var log = logging.GetLog(ctx)
+	var log = logging2.GetLog(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
 

@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 
 	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/internal/abc/service"
+	"github.com/pubgo/lava/core/healthy/healthy_type"
+	"github.com/pubgo/lava/core/watcher/watcher_type"
+	"github.com/pubgo/lava/internal/abc/service_inter"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/healthy/healthy_type"
-	"github.com/pubgo/lava/vars/vars_type"
-	"github.com/pubgo/lava/watcher/watcher_type"
+	"github.com/pubgo/lava/vars"
 )
 
 const Name = "plugin"
 
-type Middleware = service.Middleware
+type Middleware = service_inter.Middleware
 type Plugin interface {
 	json.Marshaler
 	// String 插件描述
@@ -29,7 +29,7 @@ type Plugin interface {
 	// Watch 配置变更通知
 	Watch(name string, r *watcher_type.Response) error
 	// Vars 插件可观测指标
-	Vars(vars_type.Vars) error
+	Vars(vars.Publisher) error
 	// Health 插件健康检查
 	Health() healthy_type.Handler
 	// Middleware 插件中间件拦截器

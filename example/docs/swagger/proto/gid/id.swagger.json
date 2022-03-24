@@ -48,6 +48,35 @@
     "application/x-foo-mime"
   ],
   "paths": {
+    "/api/v1/id/types": {
+      "get": {
+        "summary": "Types id类型",
+        "description": "Registers a producer to begin publishing notifications in the local MEC environment.",
+        "operationId": "Id_Types",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/gidTypesResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid content, a required property is missing",
+            "schema": {}
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Id"
+        ],
+        "deprecated": true
+      }
+    },
     "/v1/example/a_bit_of_everything": {
       "post": {
         "operationId": "ABitOfEverythingService_CreateBody",
@@ -1936,35 +1965,6 @@
             }
           }
         ],
-        "tags": [
-          "Id"
-        ],
-        "deprecated": true
-      }
-    },
-    "/v1/id/types": {
-      "get": {
-        "summary": "Types id类型",
-        "description": "Registers a producer to begin publishing notifications in the local MEC environment.",
-        "operationId": "Id_Types",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/gidTypesResponse"
-            }
-          },
-          "400": {
-            "description": "Invalid content, a required property is missing",
-            "schema": {}
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
         "tags": [
           "Id"
         ],

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"github.com/pubgo/lava/config/config_type"
 	"path/filepath"
 
 	"github.com/pubgo/x/pathutil"
@@ -10,7 +11,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/clients/orm"
-	"github.com/pubgo/lava/config/config_type"
 )
 
 func init() {
