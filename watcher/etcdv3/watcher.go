@@ -9,7 +9,6 @@ import (
 	"github.com/pubgo/lava/clients/etcdv3"
 	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/watcher"
 	"github.com/pubgo/lava/watcher/watcher_type"
 )
@@ -17,7 +16,6 @@ import (
 func init() {
 	watcher.RegisterFactory(Name, func(cfg config_type.CfgMap) (watcher_type.Watcher, error) {
 		var c Cfg
-		inject.Inject(nil)
 		xerror.Panic(cfg.Decode(&c))
 		return newWatcher(c), nil
 	})
@@ -46,11 +44,10 @@ type watcherImpl struct {
 }
 
 func (w *watcherImpl) Init() {
-	inject.Inject(w)
 	xerror.Assert(w.Etcd == nil, "etcd client is nil")
 }
 
-func (w *watcherImpl) Close(ctx context.Context, opts ...watcher_type.Opt) { close(w.exitCh) }
+func (w *watcherImpl) Close() { close(w.exitCh) }
 func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher_type.Opt) (responses []*watcher_type.Response, gErr error) {
 	defer xerror.RespErr(&gErr)
 

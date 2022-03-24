@@ -6,12 +6,13 @@ import (
 	"sync"
 
 	"github.com/kr/pretty"
-	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -24,7 +25,7 @@ type discovBuilder struct {
 func (d *discovBuilder) Scheme() string { return DiscovScheme }
 
 // 删除服务
-func (d *discovBuilder) delService(services ...*registry.Service) {
+func (d *discovBuilder) delService(services ...*registry_type.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 删除服务信息
@@ -36,7 +37,7 @@ func (d *discovBuilder) delService(services ...*registry.Service) {
 }
 
 // 更新服务
-func (d *discovBuilder) updateService(services ...*registry.Service) {
+func (d *discovBuilder) updateService(services ...*registry_type.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 更新服务信息

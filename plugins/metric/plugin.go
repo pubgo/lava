@@ -43,7 +43,7 @@ func init() {
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		},
-		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
 			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				return next(CreateCtx(ctx, GetGlobal()), req, resp)
 			}

@@ -8,15 +8,18 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/plugin"
 )
 
 // 替换std默认log
 func init() {
-	logging.On(func(*logging.Event) {
-		var stdLog = log.Default()
-		// 接管系统默认log
-		*stdLog = *zap.NewStdLog(logging.Component("std").L())
-	})
+	plugin.RegisterProcess(
+		"logging-ext-std",
+		func(p plugin.Process) {
+			var stdLog = log.Default()
+			// 接管系统默认log
+			*stdLog = *zap.NewStdLog(logging.Component("std").L())
+		})
 }
 
 var _ io.Writer = (*std)(nil)

@@ -26,7 +26,7 @@ import (
 )
 
 func init() {
-	hello.InitTestApiClient("127.0.0.1:8080", grpcc.WithDiscov())
+	hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
 }
 
 type User struct {

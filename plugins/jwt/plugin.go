@@ -14,7 +14,7 @@ const Name = "jwt"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
 			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				v := req.Header().Get("Authorization")
 				if v[0] == "" {

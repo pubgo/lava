@@ -26,7 +26,7 @@ func (e *nullWatcher) GetCallback(ctx context.Context, key string, fn func(resp 
 }
 func (e *nullWatcher) WatchCallback(ctx context.Context, key string, fn func(resp *watcher_type.Response), opts ...watcher_type.Opt) {
 }
-func (e *nullWatcher) Close(ctx context.Context, opts ...watcher_type.Opt) {}
+func (e *nullWatcher) Close() {}
 func (e *nullWatcher) Watch(ctx context.Context, key string, opts ...watcher_type.Opt) <-chan *watcher_type.Response {
 	return nil
 }

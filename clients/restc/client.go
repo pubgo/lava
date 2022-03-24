@@ -28,7 +28,7 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	client *http.Client
 	cfg    Cfg
-	do     service_type.MiddleNext
+	do     service_type.HandlerFunc
 }
 
 func (c *clientImpl) RoundTripper(f func(transport http.RoundTripper) http.RoundTripper) error {

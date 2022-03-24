@@ -3,6 +3,7 @@ package nacos
 import (
 	"fmt"
 	watcher2 "github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"log"
 	"net"
 	"reflect"
@@ -17,20 +18,20 @@ import (
 
 type watcher struct {
 	n  *nacosRegistry
-	wo registry.WatchOpts
+	wo registry_type.WatchOpts
 
-	next chan *registry.Result
+	next chan *registry_type.Result
 	exit chan bool
 
 	sync.RWMutex
-	services      map[string][]*registry.Service
+	services      map[string][]*registry_type.Service
 	cacheServices map[string][]model.SubscribeService
 	param         *vo.SubscribeParam
 	Doms          []string
 }
 
-func newWatcher(nr *nacosRegistry, opts ...registry.WatchOpt) (registry.Watcher, error) {
-	var wo registry.WatchOpts
+func newWatcher(nr *nacosRegistry, opts ...registry_type.WatchOpt) (registry_type.Watcher, error) {
+	var wo registry_type.WatchOpts
 	for _, o := range opts {
 		o(&wo)
 	}
@@ -39,8 +40,8 @@ func newWatcher(nr *nacosRegistry, opts ...registry.WatchOpt) (registry.Watcher,
 		n:             nr,
 		wo:            wo,
 		exit:          make(chan bool),
-		next:          make(chan *registry.Result, 10),
-		services:      make(map[string][]*registry.Service),
+		next:          make(chan *registry_type.Result, 10),
+		services:      make(map[string][]*registry_type.Service),
 		cacheServices: make(map[string][]model.SubscribeService),
 		param:         new(vo.SubscribeParam),
 		Doms:          make([]string, 0),
@@ -93,7 +94,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 		nw.Unlock()
 
 		for _, v := range services {
-			nw.next <- &registry.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&v)}
+			nw.next <- &registry_type.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&v)}
 			return
 		}
 	} else {
@@ -103,7 +104,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 				if subscribeService.InstanceId == cacheService.InstanceId {
 					if !reflect.DeepEqual(subscribeService, cacheService) {
 						//update instance
-						nw.next <- &registry.Result{Action: watcher2.EventType_UPDATE, Service: buildRegistryService(&subscribeService)}
+						nw.next <- &registry_type.Result{Action: watcher2.EventType_UPDATE, Service: buildRegistryService(&subscribeService)}
 						return
 					}
 					create = false
@@ -113,7 +114,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 			if create {
 				log.Println("create", subscribeService.ServiceName, subscribeService.Port)
 
-				nw.next <- &registry.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&subscribeService)}
+				nw.next <- &registry_type.Result{Action: watcher2.EventType_CREATE, Service: buildRegistryService(&subscribeService)}
 
 				nw.Lock()
 				nw.cacheServices[serviceName] = append(nw.cacheServices[serviceName], subscribeService)
@@ -131,7 +132,7 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 			}
 			if del {
 				log.Println("del", cacheService.ServiceName, cacheService.Port)
-				nw.next <- &registry.Result{Action: watcher2.EventType_DELETE, Service: buildRegistryService(&cacheService)}
+				nw.next <- &registry_type.Result{Action: watcher2.EventType_DELETE, Service: buildRegistryService(&cacheService)}
 
 				nw.Lock()
 				nw.cacheServices[serviceName][index] = model.SubscribeService{}
@@ -143,14 +144,14 @@ func (nw *watcher) callBackHandle(services []model.SubscribeService, err error) 
 
 }
 
-func buildRegistryService(v *model.SubscribeService) (s *registry.Service) {
-	nodes := make([]*registry.Node, 0)
-	nodes = append(nodes, &registry.Node{
+func buildRegistryService(v *model.SubscribeService) (s *registry_type.Service) {
+	nodes := make([]*registry_type.Node, 0)
+	nodes = append(nodes, &registry_type.Node{
 		Id:       v.InstanceId,
 		Address:  net.JoinHostPort(v.Ip, fmt.Sprintf("%d", v.Port)),
 		Metadata: v.Metadata,
 	})
-	s = &registry.Service{
+	s = &registry_type.Service{
 		Name:     v.ServiceName,
 		Version:  "latest",
 		Metadata: v.Metadata,
@@ -159,7 +160,7 @@ func buildRegistryService(v *model.SubscribeService) (s *registry.Service) {
 	return
 }
 
-func (nw *watcher) Next() (r *registry.Result, err error) {
+func (nw *watcher) Next() (r *registry_type.Result, err error) {
 	select {
 	case <-nw.exit:
 		return nil, registry.ErrWatcherStopped

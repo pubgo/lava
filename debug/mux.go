@@ -1,9 +1,10 @@
 package debug
 
 import (
+	"net/http"
+
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 var app = fiber.New()

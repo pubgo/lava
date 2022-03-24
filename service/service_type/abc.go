@@ -1,16 +1,24 @@
 package service_type
 
 import (
-	"io"
+	service2 "github.com/pubgo/lava/internal/abc/service"
 	"net"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/core/cmux"
+	"github.com/pubgo/lava/plugin"
 )
 
+type Desc = service2.Desc
+type Handler = service2.Handler
+type Options = service2.Options
+type Middleware = service2.Middleware
+type HandlerFunc = service2.HandlerFunc
+type Request = service2.Request
+type Response = service2.Response
 type Service interface {
 	AfterStops(...func())
 	BeforeStops(...func())
@@ -18,33 +26,12 @@ type Service interface {
 	BeforeStarts(...func())
 	Flags(flags ...cli.Flag)
 	RegisterService(desc Desc)
-	RegisterMatcher(priority int64, matches ...func(io.Reader) bool) func() net.Listener
+	RegisterMatcher(priority int64, matches ...cmux.Matcher) chan net.Listener
 	GrpcClientInnerConn() grpc.ClientConnInterface
-	Middleware(mid Middleware)
+	Plugin(plg plugin.Plugin)
 	ServiceDesc() []Desc
 	Options() Options
 	Middlewares() []Middleware
-	Debug() fiber.Router
-}
-
-type Desc struct {
-	grpc.ServiceDesc
-	Handler       interface{}
-	GrpcClientFn  interface{}
-	GrpcGatewayFn interface{}
-}
-
-type Handler interface {
-	Init() func()
-	Flags() typex.Flags
-	Router(r fiber.Router)
-}
-
-type Options struct {
-	Id       string            `json:"id,omitempty"`
-	Name     string            `json:"name,omitempty"`
-	Version  string            `json:"version,omitempty"`
-	Port     int               `json:"port,omitempty"`
-	Address  string            `json:"address,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+	RegisterApp(prefix string, r *fiber.App)
+	RegisterRouter(prefix string, handlers ...fiber.Handler) fiber.Router
 }

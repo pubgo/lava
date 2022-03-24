@@ -17,7 +17,7 @@ import (
 	_ "github.com/pubgo/lava/plugins/registry/mdns"
 
 	// grpc log插件加载
-	_ "github.com/pubgo/lava/internal/plugins/grpclog"
+	_ "github.com/pubgo/lava/logging/logext/grpclog"
 )
 
 const (

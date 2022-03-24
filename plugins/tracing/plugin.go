@@ -33,7 +33,7 @@ func init() {
 			_ = config.Decode(Name, &cfg)
 			return cfg.Build()
 		},
-		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
 			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				var tracer = opentracing.GlobalTracer()
 				if tracer == nil {

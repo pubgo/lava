@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/lava/plugins/healthy/healthy_type"
 	"github.com/pubgo/lava/resource/resource_type"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/vars/vars_type"
 	"github.com/pubgo/lava/watcher/watcher_type"
 )
@@ -32,9 +31,10 @@ type Base struct {
 	Short          string
 	Url            string
 	Docs           interface{}
+	CfgNotCheck    bool
 	BuilderFactory resource_type.BuilderFactory
 	OnHealth       healthy_type.Handler
-	OnMiddleware   service_type.Middleware
+	OnMiddleware   Middleware
 	OnInit         func(p Process)
 	OnCommands     func() *typex.Command
 	OnFlags        func() typex.Flags
@@ -115,9 +115,9 @@ func (p *Base) Health() healthy_type.Handler {
 	return p.OnHealth
 }
 
-func (p *Base) Middleware() service_type.Middleware { return p.OnMiddleware }
-func (p *Base) String() string                      { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
-func (p *Base) ID() string                          { return p.Name }
+func (p *Base) Middleware() Middleware { return p.OnMiddleware }
+func (p *Base) String() string         { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
+func (p *Base) ID() string             { return p.Name }
 func (p *Base) Init(cfg config_type.Config) (gErr error) {
 	p.cfg = cfg
 
@@ -129,7 +129,9 @@ func (p *Base) Init(cfg config_type.Config) (gErr error) {
 	})
 
 	var cfgVal = cfg.Get(p.Name)
-	xerror.Assert(cfgVal == nil, "config(%s) not found", p.Name)
+	if !p.CfgNotCheck {
+		xerror.Assert(cfgVal == nil, "config(%s) not found", p.Name)
+	}
 
 	if p.BuilderFactory != nil && p.BuilderFactory.IsValid() && cfgVal != nil {
 		for _, data := range cast.ToSlice(cfgVal) {

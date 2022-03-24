@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	"github.com/pubgo/lava/service/internal/fiber_builder"
-	"github.com/pubgo/lava/service/internal/grpc_builder"
+	"github.com/pubgo/lava/pkg/fiber_builder"
+	"github.com/pubgo/lava/pkg/grpc_builder"
 )
 
 const Name = "service"
@@ -28,7 +28,6 @@ const (
 )
 
 type Cfg struct {
-	GrpcWeb   bool             `json:"grpc_web"`
 	Grpc      grpc_builder.Cfg `json:"grpc"`
 	Gw        fiber_builder.Cfg
 	Address   string `json:"address"`

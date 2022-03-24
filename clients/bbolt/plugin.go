@@ -6,11 +6,8 @@ import (
 )
 
 func init() {
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		BuilderFactory: resource.Factory{
-			DefaultCfg: DefaultCfg(),
-			ResType:    &Client{},
-		},
+	plugin.RegisterResource(Name, resource.Factory{
+		DefaultCfg: DefaultCfg(),
+		ResType:    &Client{},
 	})
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/internal/pluginInter"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/service"
@@ -17,9 +16,9 @@ import (
 const Name = "timeout"
 
 func init() {
-	pluginInter.Register(&plugin.Base{
+	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
 			var defaultTimeout = consts.DefaultTimeout
 			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				// 过滤 websocket 请求

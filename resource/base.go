@@ -15,12 +15,15 @@ import (
 )
 
 func newRes(name string, kind string, val io.Closer) resource_type.Resource {
-	return &baseRes{
+	var res = &baseRes{
 		name: name,
 		kind: kind,
 		v:    val,
 		log:  zap.L().Named(logkey.Component).Named(kind).With(zap.String("name", name)),
 	}
+
+	go res.loop()
+	return res
 }
 
 type baseRes struct {
@@ -30,6 +33,10 @@ type baseRes struct {
 	rw      sync.RWMutex
 	counter atomic.Uint32
 	log     *zap.Logger
+}
+
+func (t *baseRes) loop() {
+
 }
 
 func (t *baseRes) Log() *zap.Logger { return t.log }

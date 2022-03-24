@@ -8,11 +8,9 @@ import (
 const Name = "etcdv3"
 
 func init() {
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		BuilderFactory: resource.Factory{
+	plugin.RegisterResource(Name,
+		resource.Factory{
 			DefaultCfg: DefaultCfg(),
 			ResType:    &Client{},
-		},
-	})
+		})
 }

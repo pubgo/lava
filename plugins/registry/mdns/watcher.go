@@ -12,12 +12,13 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/registry"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 )
 
 var logs = logging.Component(Name)
-var _ registry.Watcher = (*Watcher)(nil)
+var _ registry_type.Watcher = (*Watcher)(nil)
 
-func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
+func newWatcher(m *mdnsRegistry, service string, opt ...registry_type.WatchOpt) *Watcher {
 	xerror.Assert(service == "", "[service] should not be null")
 
 	var allNodes typex.SMap
@@ -34,7 +35,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 		ttl = time.Second * 30
 	}
 
-	results := make(chan *registry.Result)
+	results := make(chan *registry_type.Result)
 	return &Watcher{results: results, cancel: fx.Tick(func(_ctx fx.Ctx) {
 		defer xerror.Resp(func(err xerror.XErr) {
 			logs.WithErr(err).Error("watcher error")
@@ -54,38 +55,38 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 			}
 		}
 
-		xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
+		xerror.Panic(nodes.Each(func(id string, n *registry_type.Node) {
 			if allNodes.Has(id) {
 				return
 			}
 
 			allNodes.Set(id, n)
-			results <- &registry.Result{
+			results <- &registry_type.Result{
 				Action:  event.EventType_UPDATE,
-				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				Service: &registry_type.Service{Name: service, Nodes: registry_type.Nodes{n}},
 			}
 		}))
 
-		xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
+		xerror.Panic(allNodes.Each(func(id string, n *registry_type.Node) {
 			if nodes.Has(id) {
 				return
 			}
 
 			allNodes.Delete(id)
-			results <- &registry.Result{
+			results <- &registry_type.Result{
 				Action:  event.EventType_DELETE,
-				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				Service: &registry_type.Service{Name: service, Nodes: registry_type.Nodes{n}},
 			}
 		}))
 	}, ttl)}
 }
 
 type Watcher struct {
-	results chan *registry.Result
+	results chan *registry_type.Result
 	cancel  context.CancelFunc
 }
 
-func (m *Watcher) Next() (*registry.Result, error) {
+func (m *Watcher) Next() (*registry_type.Result, error) {
 	result, ok := <-m.results
 	if !ok {
 		return nil, registry.ErrWatcherStopped

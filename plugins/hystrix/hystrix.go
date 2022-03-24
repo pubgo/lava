@@ -2,10 +2,11 @@ package hystrix
 
 import (
 	"context"
-	"github.com/pubgo/lava/service/service_type"
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
+
+	"github.com/pubgo/lava/service/service_type"
 )
 
 const (
@@ -44,7 +45,7 @@ func Middleware(opts ...Option) service_type.Middleware {
 		},
 	)
 
-	return func(next service_type.MiddleNext) service_type.MiddleNext {
+	return func(next service_type.HandlerFunc) service_type.HandlerFunc {
 		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 			return hystrix.Do(hOpts.HystrixCommandName, func() error {
 				return next(ctx, req, resp)

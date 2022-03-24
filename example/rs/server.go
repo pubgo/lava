@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/pkg/syncx"
 	"net"
 	"strings"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/netutil"
 )
 
 func main() {
@@ -42,7 +42,7 @@ func server() {
 		})
 	})
 
-	var cfg = netutil.DefaultCfg()
+	var cfg = cmux.DefaultCfg()
 	cfg.Port = 7878
 	cfg.HandleError = func(err error) bool {
 		logutil.LogOrErr(logging.L(), "mux error", func() error { return err })

@@ -15,7 +15,7 @@ const Name = "basic-auth"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service_type.MiddleNext) service_type.MiddleNext {
+		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
 			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
 				subject := req.Header().Get(HeaderAuth)
 				if len(subject) == 0 || subject[0] == "" {

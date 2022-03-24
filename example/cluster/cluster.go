@@ -3,6 +3,7 @@ package cluster
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/pubgo/lava/core/cmux"
 	"math/big"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/netutil"
 )
 
 var logs = logging.Component("cluster")
@@ -53,7 +53,7 @@ func NewCluster(cfg *Config) (*Cluster, error) {
 	config.Name = generateNodeName()
 	config.Events = &memberlist.ChannelEventDelegate{Ch: eventDelegate}
 	config.Delegate = &delegate{queue: queue, msg: msgChan}
-	config.Transport = newNetTransport(clusterLogger, &netutil.Cfg{Addr: config.BindAddr, Port: config.BindPort})
+	config.Transport = newNetTransport(clusterLogger, &cmux.Mux{Addr: config.BindAddr, Port: config.BindPort})
 	config.Logger = zap.NewStdLog(clusterLogger)
 
 	member, err := memberlist.Create(config)

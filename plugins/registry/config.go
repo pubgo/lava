@@ -1,7 +1,9 @@
 package registry
 
 import (
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"github.com/pubgo/xerror"
+	"time"
 )
 
 const DefaultPrefix = "/registry"
@@ -9,11 +11,12 @@ const DefaultPrefix = "/registry"
 var Name = "registry"
 
 type Cfg struct {
-	Driver    string                 `json:"driver" yaml:"driver"`
-	DriverCfg map[string]interface{} `json:"driver_config" yaml:"driver_config"`
+	RegisterInterval time.Duration          `yaml:"registerInterval"`
+	Driver           string                 `json:"driver" yaml:"driver"`
+	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
 }
 
-func (cfg Cfg) Build() (_ Registry, err error) {
+func (cfg Cfg) Build() (_ registry_type.Registry, err error) {
 	defer xerror.RespErr(&err)
 
 	var driver = cfg.Driver
@@ -24,7 +27,7 @@ func (cfg Cfg) Build() (_ Registry, err error) {
 	return fc(cfg.DriverCfg)
 }
 
-func GetDefaultCfg() Cfg {
+func DefaultCfg() Cfg {
 	return Cfg{
 		Driver: "mdns",
 	}

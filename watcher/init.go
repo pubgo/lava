@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/ctxutil"
@@ -30,6 +31,9 @@ func Init(conf config_type.Config) {
 	cfg.cfg = conf
 
 	defaultWatcher = xerror.PanicErr(cfg.Build(conf.GetMap(Name))).(watcher_type.Watcher)
+	// 依赖注入
+	inject.Inject(defaultWatcher)
+	defaultWatcher.Init()
 
 	// 获取所有需要watch的项目
 	if !strutil.Contains(cfg.Projects, runtime.Name()) {

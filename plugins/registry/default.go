@@ -1,14 +1,15 @@
 package registry
 
 import (
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config/config_type"
 )
 
-var defaultRegistry Registry
+var DefaultRegistry registry_type.Registry
 
-func Default() Registry { return defaultRegistry }
+func Default() registry_type.Registry { return DefaultRegistry }
 
 func Init(driver string, cfg config_type.CfgMap) (err error) {
 	xerror.RespErr(&err)
@@ -21,6 +22,6 @@ func Init(driver string, cfg config_type.CfgMap) (err error) {
 	xerror.Assert(!factories.Has(driver), "registry driver %s not found", driver)
 
 	var fc = factories.Get(driver).(Factory)
-	defaultRegistry = xerror.PanicErr(fc(cfg)).(Registry)
+	DefaultRegistry = xerror.PanicErr(fc(cfg)).(registry_type.Registry)
 	return nil
 }

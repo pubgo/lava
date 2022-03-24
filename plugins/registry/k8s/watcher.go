@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -13,7 +14,7 @@ import (
 	"github.com/pubgo/lava/plugins/registry"
 )
 
-var _ registry.Watcher = (*Watcher)(nil)
+var _ registry_type.Watcher = (*Watcher)(nil)
 
 // Watcher performs the conversion from channel to iterator
 // It reads the latest changes from the `chan []*registry.ServiceInstance`
@@ -36,7 +37,7 @@ func newWatcher(s *Registry, service string) *Watcher {
 }
 
 // Next will block until ServiceInstance changes
-func (t *Watcher) Next() (*registry.Result, error) {
+func (t *Watcher) Next() (*registry_type.Result, error) {
 	select {
 	case _, ok := <-t.watcher.ResultChan():
 		if ok {
@@ -47,9 +48,9 @@ func (t *Watcher) Next() (*registry.Result, error) {
 					metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", t.service)})
 			xerror.Panic(err)
 
-			var resp = &registry.Result{
+			var resp = &registry_type.Result{
 				Action: event.EventType_UPDATE,
-				Service: &registry.Service{
+				Service: &registry_type.Service{
 					Name: t.service,
 				},
 			}
@@ -63,7 +64,7 @@ func (t *Watcher) Next() (*registry.Result, error) {
 					}
 
 					for _, addr := range subset.Addresses {
-						resp.Service.Nodes = append(resp.Service.Nodes, &registry.Node{
+						resp.Service.Nodes = append(resp.Service.Nodes, &registry_type.Node{
 							Id:      string(addr.TargetRef.UID),
 							Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
 						})

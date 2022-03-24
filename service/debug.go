@@ -8,11 +8,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (t *implService) initDebug() {
+func (t *serviceImpl) initDebug() {
 	var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>
 		<head>
-		<title>/debug/routes</title>
+		<title>/app/routes</title>
 		</head>
 		<body>
 		{{range .}}
@@ -22,7 +22,7 @@ func (t *implService) initDebug() {
 		</html>
 		`))
 
-	t.Debug().Get("/", func(ctx *fiber.Ctx) error {
+	var handler = func(ctx *fiber.Ctx) error {
 		var keys []string
 		stack := t.gw.Get().Stack()
 		for m := range stack {
@@ -33,7 +33,10 @@ func (t *implService) initDebug() {
 		}
 
 		return html(ctx, homeTmpl, keys)
-	})
+	}
+
+	t.app.Get("/debug", handler)
+	t.app.Get("/", handler)
 }
 
 func html(ctx *fiber.Ctx, temp *template.Template, data any) error {

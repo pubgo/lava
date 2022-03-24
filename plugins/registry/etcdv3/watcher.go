@@ -2,6 +2,7 @@ package etcdv3
 
 import (
 	"context"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"time"
 
 	clientV3 "go.etcd.io/etcd/client/v3"
@@ -19,8 +20,8 @@ type Watcher struct {
 	timeout  time.Duration
 }
 
-func newWatcher(r *Registry, timeout time.Duration, opts ...registry.WatchOpt) (registry.Watcher, error) {
-	var wo registry.WatchOpts
+func newWatcher(r *Registry, timeout time.Duration, opts ...registry_type.WatchOpt) (registry_type.Watcher, error) {
+	var wo registry_type.WatchOpts
 	for _, o := range opts {
 		o(&wo)
 	}
@@ -52,7 +53,7 @@ func newWatcher(r *Registry, timeout time.Duration, opts ...registry.WatchOpt) (
 	}, nil
 }
 
-func (w *Watcher) Next() (*registry.Result, error) {
+func (w *Watcher) Next() (*registry_type.Result, error) {
 	for resp := range w.w {
 		if resp.Err() != nil {
 			return nil, resp.Err()
@@ -86,7 +87,7 @@ func (w *Watcher) Next() (*registry.Result, error) {
 			if service == nil {
 				continue
 			}
-			return &registry.Result{
+			return &registry_type.Result{
 				Action:  action,
 				Service: service,
 			}, nil

@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/service/service_type"
 )
 
-func (t *implService) handlerHttpMiddle(middlewares []service_type.Middleware) func(fbCtx *fiber.Ctx) error {
+func (t *serviceImpl) handlerHttpMiddle(middlewares []service_type.Middleware) func(fbCtx *fiber.Ctx) error {
 	var handler = func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		var reqCtx = req.(*httpRequest)
 
@@ -45,7 +45,7 @@ func (t *implService) handlerHttpMiddle(middlewares []service_type.Middleware) f
 	}
 }
 
-func (t *implService) handlerUnaryMiddle(middlewares []service_type.Middleware) grpc.UnaryServerInterceptor {
+func (t *serviceImpl) handlerUnaryMiddle(middlewares []service_type.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		if len(req.Header()) > 0 {
 			_ = grpc.SetHeader(ctx, req.Header())
@@ -126,7 +126,7 @@ func (t *implService) handlerUnaryMiddle(middlewares []service_type.Middleware) 
 	}
 }
 
-func (t *implService) handlerStreamMiddle(middlewares []service_type.Middleware) grpc.StreamServerInterceptor {
+func (t *serviceImpl) handlerStreamMiddle(middlewares []service_type.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
 		ctx = metadata.NewIncomingContext(ctx, req.Header())
 		var reqCtx = req.(*rpcRequest)

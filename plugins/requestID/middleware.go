@@ -17,7 +17,7 @@ import (
 const Name = "x-request-id"
 
 func init() {
-	plugin.Middleware(Name, func(next service_type.MiddleNext) service_type.MiddleNext {
+	plugin.RegisterMiddleware(Name, func(next service_type.HandlerFunc) service_type.HandlerFunc {
 		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) (gErr error) {
 			defer func() {
 				switch err := recover().(type) {

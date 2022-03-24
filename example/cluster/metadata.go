@@ -2,10 +2,10 @@ package cluster
 
 import (
 	"encoding/json"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 
 	"github.com/hashicorp/memberlist"
 	event2 "github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/plugins/registry"
 	pb "github.com/pubgo/lava/plugins/registry/gossip/proto"
 )
 
@@ -34,8 +34,8 @@ func (d *delegate) LocalState(join bool) []byte {
 	}
 
 	// 本节点的状态信息
-	syncCh := make(chan *registry.Service, 1)
-	services := map[string][]*registry.Service{}
+	syncCh := make(chan *registry_type.Service, 1)
+	services := map[string][]*registry_type.Service{}
 
 	d.updates <- &update{
 		Update: &pb.Update{
@@ -63,7 +63,7 @@ func (d *delegate) MergeRemoteState(buf []byte, join bool) {
 	}
 
 	// 别的节点同步过来的节点信息
-	var services map[string][]*registry.Service
+	var services map[string][]*registry_type.Service
 	if err := json.Unmarshal(buf, &services); err != nil {
 		return
 	}

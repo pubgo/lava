@@ -1,21 +1,42 @@
 package logging
 
 import (
-	"github.com/pubgo/lava/pkg/typex"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var loggerMap sync.Map
 
+// 默认log
+var componentLog = func() *zap.Logger {
+	defer xerror.RespExit()
+	var cfg = zap.NewDevelopmentConfig()
+	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
+	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(consts.DefaultTimeFormat)
+	var log, err = cfg.Build()
+	xerror.Panic(err)
+
+	log = log.Named(logkey.Debug)
+
+	// 全局
+	zap.ReplaceGlobals(log)
+	return log
+}()
+
+var Initialized bool
+
 // Component 命名的log
 func Component(name string, fields ...zap.Field) *namedLogger {
 	xerror.Assert(name == "", "[names] should not be null")
-	return &namedLogger{name: name, fields: fields}
+	return &namedLogger{name: logutil.Names(logkey.Component, name), fields: fields}
 }
 
 func getName(name string, fields *[]zap.Field) *zap.Logger {
@@ -23,11 +44,11 @@ func getName(name string, fields *[]zap.Field) *zap.Logger {
 		return val.(*zap.Logger)
 	}
 
-	if !initialized {
+	if !Initialized {
 		return componentLog.Named(name).With(*fields...)
 	}
 
-	var l = componentLog.Named(name).With(*fields...)
+	var l = zap.L().Named(name).With(*fields...)
 	loggerMap.LoadOrStore(name, l)
 	return l
 }

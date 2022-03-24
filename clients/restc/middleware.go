@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/pkg/retry"
 )
 
-func doFunc(c *clientImpl) service_type.MiddleNext {
+func doFunc(c *clientImpl) service_type.HandlerFunc {
 	var r = retry.New(retry.WithMaxRetries(c.cfg.RetryCount, c.cfg.backoff))
 	return func(ctx context.Context, req service_type.Request, callback func(rsp service_type.Response) error) error {
 		var req1 = req.(*Request).req.WithContext(ctx)

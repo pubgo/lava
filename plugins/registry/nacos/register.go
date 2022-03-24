@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/plugins/registry/registry_type"
 	"net"
 	"strconv"
 
@@ -17,7 +18,7 @@ import (
 )
 
 func init() {
-	registry.Register(Name, func(m config_type.CfgMap) (registry.Registry, error) {
+	registry.Register(Name, func(m config_type.CfgMap) (registry_type.Registry, error) {
 		var cfg Cfg
 		xerror.Panic(merge.MapStruct(&cfg, m))
 		var c = nacos.Get(cfg.Driver)
@@ -33,12 +34,12 @@ type nacosRegistry struct {
 	cfg    Cfg
 }
 
-func (n *nacosRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
+func (n *nacosRegistry) RegLoop(f func() *registry_type.Service, opt ...registry_type.RegOpt) error {
 	return n.Register(f(), opt...)
 }
 
-func (n *nacosRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
-	var options registry.RegOpts
+func (n *nacosRegistry) Register(s *registry_type.Service, opts ...registry_type.RegOpt) error {
+	var options registry_type.RegOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -69,8 +70,8 @@ func (n *nacosRegistry) Register(s *registry.Service, opts ...registry.RegOpt) e
 	return err
 }
 
-func (n *nacosRegistry) Deregister(s *registry.Service, opts ...registry.DeregOpt) error {
-	var options registry.DeregOpts
+func (n *nacosRegistry) Deregister(s *registry_type.Service, opts ...registry_type.DeregOpt) error {
+	var options registry_type.DeregOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -96,12 +97,12 @@ func (n *nacosRegistry) Deregister(s *registry.Service, opts ...registry.DeregOp
 	return err
 }
 
-func (n *nacosRegistry) Watch(s string, opt ...registry.WatchOpt) (registry.Watcher, error) {
+func (n *nacosRegistry) Watch(s string, opt ...registry_type.WatchOpt) (registry_type.Watcher, error) {
 	return newWatcher(n, opt...)
 }
 
-func (n *nacosRegistry) ListService(opts ...registry.ListOpt) ([]*registry.Service, error) {
-	var options registry.ListOpts
+func (n *nacosRegistry) ListService(opts ...registry_type.ListOpt) ([]*registry_type.Service, error) {
+	var options registry_type.ListOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -125,15 +126,15 @@ func (n *nacosRegistry) ListService(opts ...registry.ListOpt) ([]*registry.Servi
 	if err != nil {
 		return nil, err
 	}
-	var registryServices []*registry.Service
+	var registryServices []*registry_type.Service
 	for _, v := range services.Doms {
-		registryServices = append(registryServices, &registry.Service{Name: v})
+		registryServices = append(registryServices, &registry_type.Service{Name: v})
 	}
 	return registryServices, nil
 }
 
-func (n *nacosRegistry) GetService(name string, opts ...registry.GetOpt) ([]*registry.Service, error) {
-	var options registry.GetOpts
+func (n *nacosRegistry) GetService(name string, opts ...registry_type.GetOpt) ([]*registry_type.Service, error) {
+	var options registry_type.GetOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -152,19 +153,19 @@ func (n *nacosRegistry) GetService(name string, opts ...registry.GetOpt) ([]*reg
 	if err != nil {
 		return nil, err
 	}
-	services := make([]*registry.Service, 0)
+	services := make([]*registry_type.Service, 0)
 	for _, v := range service.Hosts {
 		if !v.Healthy || !v.Enable || v.Weight <= 0 {
 			continue
 		}
 
-		nodes := make([]*registry.Node, 0)
-		nodes = append(nodes, &registry.Node{
+		nodes := make([]*registry_type.Node, 0)
+		nodes = append(nodes, &registry_type.Node{
 			Id:       v.InstanceId,
 			Address:  net.JoinHostPort(v.Ip, fmt.Sprintf("%d", v.Port)),
 			Metadata: v.Metadata,
 		})
-		s := registry.Service{
+		s := registry_type.Service{
 			Name:     v.ServiceName,
 			Version:  v.Metadata["version"],
 			Metadata: v.Metadata,
@@ -176,7 +177,7 @@ func (n *nacosRegistry) GetService(name string, opts ...registry.GetOpt) ([]*reg
 	return services, nil
 }
 
-func getNodeIPPort(s *registry.Service) (host string, port int, err error) {
+func getNodeIPPort(s *registry_type.Service) (host string, port int, err error) {
 	if len(s.Nodes) == 0 {
 		return "", 0, errors.New("you must deregister at least one node")
 	}

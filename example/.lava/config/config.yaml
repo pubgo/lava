@@ -88,7 +88,7 @@ registry:
     ttl: "5s"
 
 tracing:
-  driver: "jaeger"
+  driver: "noop"
 
 metric:
   driver: "prometheus"
@@ -155,3 +155,4 @@ automaxprocs: "default"
 x-request-id: "default"
 logRecord: "default"
 scheduler: "default"
+logging-ext-grpc: "default"

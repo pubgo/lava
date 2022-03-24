@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 	"runtime/debug"
 	"time"
 
@@ -20,6 +18,8 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/plugins/tracing"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/version"
 )
 
@@ -28,7 +28,7 @@ const Name = "logRecord"
 var logs = logging.Component(Name)
 
 func init() {
-	plugin.Middleware(Name, func(next service_type.MiddleNext) service_type.MiddleNext {
+	plugin.RegisterMiddleware(Name, func(next service_type.HandlerFunc) service_type.HandlerFunc {
 		return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) (err error) {
 			// TODO 考虑pool优化
 			var params = make([]zap.Field, 0, 20)

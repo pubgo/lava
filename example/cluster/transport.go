@@ -3,6 +3,7 @@ package cluster
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/cmux"
 	"net"
 	"net/http"
 	"sync"
@@ -16,7 +17,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/netutil"
 )
 
 const (
@@ -35,7 +35,7 @@ var _ memberlist.NodeAwareTransport = (*netTransport)(nil)
 // packet operations, and ad-hoc TCP connections for stream operations.
 type netTransport struct {
 	logger      *zap.Logger
-	netCfg      *netutil.Cfg
+	netCfg      *cmux.Mux
 	packetCh    chan *memberlist.Packet
 	streamCh    chan net.Conn
 	wg          sync.WaitGroup
@@ -46,7 +46,7 @@ type netTransport struct {
 
 // newNetTransport returns a net transport with the given configuration. On
 // success all the network listeners will be created and listening.
-func newNetTransport(log *zap.Logger, netCfg *netutil.Cfg) *netTransport {
+func newNetTransport(log *zap.Logger, netCfg *cmux.Mux) *netTransport {
 	defer xerror.RespExit()
 
 	// If we reject the empty list outright we can assume that there's at
