@@ -32,10 +32,10 @@ func client() {
 		Connect().
 		SetupPayload(payload.New([]byte("hello123"), nil)).
 		OnConnect(func(c rsocket.Client, err error) {
-			logutil.LogOrErr(logging.L(), "Client Connect", func() error { return err })
+			logutil.LogOrErr(logging.L(), "Srv Connect", func() error { return err })
 		}).
 		OnClose(func(err error) {
-			logutil.LogOrErr(logging.L(), "Client Close", func() error { return err })
+			logutil.LogOrErr(logging.L(), "Srv Close", func() error { return err })
 		}).Acceptor(func(ctx context.Context, client rsocket.RSocket) rsocket.RSocket {
 		if cr, ok := client.(rsocket.CloseableRSocket); ok {
 			// TODO 客户端主动关闭服务
@@ -105,10 +105,10 @@ func client1() {
 		Connect().
 		SetupPayload(payload.New([]byte("hello123"), nil)).
 		OnConnect(func(c rsocket.Client, err error) {
-			logutil.LogOrErr(logging.L(), "Client Connect", func() error { return err })
+			logutil.LogOrErr(logging.L(), "Srv Connect", func() error { return err })
 		}).
 		OnClose(func(err error) {
-			logutil.LogOrErr(logging.L(), "Client Close", func() error { return err })
+			logutil.LogOrErr(logging.L(), "Srv Close", func() error { return err })
 		}).Acceptor(func(ctx context.Context, client rsocket.RSocket) rsocket.RSocket {
 		if cr, ok := client.(rsocket.CloseableRSocket); ok {
 			// TODO 客户端主动关闭服务

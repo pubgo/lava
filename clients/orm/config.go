@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/core/tracing"
 	"io"
 	"time"
 
@@ -12,6 +10,8 @@ import (
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
+	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/runtime"
 )
@@ -35,7 +35,8 @@ type Cfg struct {
 }
 
 func (t Cfg) Build() io.Closer {
-	var log = merge.Struct(&gorm.Config{}, t).(*gorm.Config)
+	var log = &gorm.Config{}
+	xerror.Panic(merge.Struct(&gorm.Config{}, t))
 
 	var level = gl.Info
 	if runtime.IsProd() || runtime.IsRelease() {

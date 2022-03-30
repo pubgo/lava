@@ -2,8 +2,6 @@ package metric
 
 import (
 	"context"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/vars"
 	"sync/atomic"
 	"unsafe"
 
@@ -11,11 +9,13 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/vars"
 )
 
 func init() {

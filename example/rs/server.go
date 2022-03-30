@@ -89,7 +89,7 @@ func server() {
 			}()
 
 			clientSocket.OnClose(func(err error) {
-				logutil.LogOrErr(logging.L(), "server: Client Close", func() error { return err })
+				logutil.LogOrErr(logging.L(), "server: Srv Close", func() error { return err })
 			})
 
 			// 主动关闭客户端

@@ -2,12 +2,12 @@ package cluster
 
 import (
 	"fmt"
-	"github.com/hashicorp/serf/serf"
 	"net"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/memberlist"
+	"github.com/hashicorp/serf/serf"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/env"
@@ -25,8 +25,9 @@ func generateNodeName() string {
 }
 
 type Config struct {
+	DataDir             string
 	SerfLANConfig       serf.Config
-	ID                  string
+	ID                  int
 	NodeName            string
 	Addr                string
 	AdvertiseAddr       string

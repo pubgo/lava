@@ -79,13 +79,13 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Init", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
+	g.P("func Init", service.GoName, "Srv(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
 	protoutil.Gen(g, `
 opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
-		return New{{name}}Client(cc)
+		return New{{name}}Srv(cc)
 	}))
 `, protoutil.Context{"name": service.GoName})
-	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Client)(nil)))...)")
+	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Srv)(nil)))...)")
 	g.P("}")
 	g.P()
 }
@@ -137,7 +137,7 @@ func Register{{name}}(srv service_type.Service, impl {{name}}Server) {
 	var desc service_type.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = {{name}}_ServiceDesc
-	desc.GrpcClientFn = New{{name}}Client
+	desc.GrpcClientFn = New{{name}}Srv
 	{% if isGw %}
     desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
 		return Register{{name}}HandlerServer(context.Background(), mux, impl)

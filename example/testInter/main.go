@@ -36,7 +36,7 @@ func main() {
 	var v = reflect.TypeOf((*IHello)(nil))
 	fmt.Println(v.Elem().Name())
 
-	//fmt.Println(reflect.TypeOf(&bbolt.Client{}).String())
+	//fmt.Println(reflect.TypeOf(&bbolt.Srv{}).String())
 	Register(&hello{})
 	inject.Register((*IHello)(nil), func(obj inject.Object, field inject.Field) (interface{}, bool) {
 		return nil, true

@@ -3,10 +3,6 @@ package registry_plugin
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging/logutil"
-	registry2 "github.com/pubgo/lava/core/registry"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +10,10 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/core/registry/registry_type"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
@@ -42,19 +42,20 @@ const (
 
 func Enable(srv service_type.Service) {
 	srv.Plugin(&plugin.Base{
-		Name: registry2.Name,
+		Name: registry.Name,
 		OnInit: func(p plugin.Process) {
-			var cfg = registry2.DefaultCfg()
+			var cfg = registry.DefaultCfg()
 
 			// 配置解析
 			p.BeforeStart(func() {
-				xerror.Panic(config.GetMap(registry2.Name).Decode(&cfg))
+				xerror.Panic(config.GetMap(registry.Name).Decode(&cfg))
 			})
 
 			// 服务注册
 			p.AfterStart(func() {
-				registry2.DefaultRegistry = xerror.PanicErr(cfg.Build()).(registry_type2.Registry)
-				registry2.DefaultRegistry.Init()
+				reg := xerror.PanicErr(cfg.Build()).(registry_type.Registry)
+				reg.Init()
+				registry.SetDefault(reg)
 
 				xerror.Panic(register(srv))
 
@@ -74,7 +75,7 @@ func Enable(srv service_type.Service) {
 						case <-tick.C:
 							logutil.LogOrErr(zap.L(), "service register",
 								func() error { return register(srv) },
-								zap.String("registry", registry2.Default().String()),
+								zap.String("registry", registry.Default().String()),
 								zap.String("interval", interval.String()),
 							)
 						case <-ctx.Done():
@@ -97,7 +98,7 @@ func Enable(srv service_type.Service) {
 func register(srv service_type.Service) (err error) {
 	defer xerror.RespErr(&err)
 
-	var reg = registry2.Default()
+	var reg = registry.Default()
 	var opt = srv.Options()
 
 	// parse address for host, port
@@ -123,7 +124,7 @@ func register(srv service_type.Service) (err error) {
 	}
 
 	// register service
-	node := &registry_type2.Node{
+	node := &registry_type.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
@@ -132,10 +133,10 @@ func register(srv service_type.Service) (err error) {
 
 	node.Metadata["registry"] = reg.String()
 
-	services := &registry_type2.Service{
+	services := &registry_type.Service{
 		Name:    opt.Name,
 		Version: version.Version,
-		Nodes:   []*registry_type2.Node{node},
+		Nodes:   []*registry_type.Node{node},
 	}
 
 	zap.L().Info("Registering Node", zap.String("id", node.Id), zap.String("name", opt.Name))
@@ -148,7 +149,7 @@ func deregister(srv service_type.Service) (err error) {
 	defer xerror.RespErr(&err)
 
 	var opt = srv.Options()
-	var reg = registry2.Default()
+	var reg = registry.Default()
 
 	var advt, host string
 	var port = opt.Port
@@ -168,17 +169,17 @@ func deregister(srv service_type.Service) (err error) {
 	}
 
 	// register service
-	node := &registry_type2.Node{
+	node := &registry_type.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
 		Metadata: make(map[string]string),
 	}
 
-	services := &registry_type2.Service{
+	services := &registry_type.Service{
 		Name:    opt.Name,
 		Version: version.Version,
-		Nodes:   []*registry_type2.Node{node},
+		Nodes:   []*registry_type.Node{node},
 	}
 
 	logutil.LogOrErr(zap.L(), "deregister node",

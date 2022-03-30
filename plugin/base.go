@@ -3,10 +3,6 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/core/healthy/healthy_type"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
-	"github.com/pubgo/lava/vars"
 	"reflect"
 
 	"github.com/huandu/go-clone"
@@ -16,11 +12,15 @@ import (
 	"github.com/spf13/cast"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/core/healthy/healthy_type"
+	"github.com/pubgo/lava/core/watcher/watcher_type"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/resource/resource_type"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/vars"
 )
 
 var _ json.Marshaler = (*Base)(nil)

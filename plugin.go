@@ -12,7 +12,7 @@ import (
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
-	_ "github.com/pubgo/lava/core/registry/mdns"
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"

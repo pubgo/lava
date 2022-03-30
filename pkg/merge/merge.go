@@ -11,22 +11,21 @@ type Option func(opts *copier.Option)
 // Copy
 // struct<->struct
 // 各种类型结构体之间的field copy
-func Copy(dst interface{}, src interface{}, opts ...Option) interface{} {
+func Copy(dst interface{}, src interface{}, opts ...Option) error {
 	var optList copier.Option
 	for i := range opts {
 		opts[i](&optList)
 	}
 
-	xerror.PanicF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
-	return dst
+	return xerror.WrapF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
 }
 
-func Struct(dst, src interface{}, opts ...Option) interface{} { return Copy(dst, src, opts...) }
+func Struct(dst, src interface{}, opts ...Option) error { return Copy(dst, src, opts...) }
 
 // MapStruct
 // map<->struct
 // map和结构体相互转化
-func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.DecoderConfig)) interface{} {
+func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.DecoderConfig)) error {
 	var cfg = &mapstructure.DecoderConfig{
 		TagName:          "json",
 		Metadata:         nil,
@@ -43,8 +42,9 @@ func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.
 	}
 
 	decoder, err := mapstructure.NewDecoder(cfg)
-	xerror.Panic(err)
+	if err != nil {
+		return err
+	}
 
-	xerror.Panic(decoder.Decode(src))
-	return dst
+	return decoder.Decode(src)
 }

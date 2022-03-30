@@ -1,9 +1,10 @@
 package registry
 
 import (
+	"time"
+
 	"github.com/pubgo/lava/core/registry/registry_type"
 	"github.com/pubgo/xerror"
-	"time"
 )
 
 const DefaultPrefix = "/registry"
@@ -21,9 +22,9 @@ func (cfg Cfg) Build() (_ registry_type.Registry, err error) {
 
 	var driver = cfg.Driver
 	xerror.Assert(driver == "", "registry driver is null")
-	xerror.Assert(!factories.Has(driver), "registry driver %s not found", driver)
+	xerror.Assert(!builders.Has(driver), "registry driver %s not found", driver)
 
-	var fc = factories.Get(driver).(Factory)
+	var fc = builders.Get(driver).(Builder)
 	return fc(cfg.DriverCfg)
 }
 

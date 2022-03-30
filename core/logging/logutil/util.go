@@ -4,14 +4,16 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/pubgo/lava/core/logging"
 )
 
-func Enabled(lvl zapcore.Level, loggers ...*zap.Logger) (*zap.Logger, bool) {
+func Enabled(lvl zapcore.Level, loggers ...*zap.Logger) bool {
 	var log = zap.L()
 	if len(loggers) > 0 {
 		log = loggers[0]
 	}
-	return log, log.Core().Enabled(lvl)
+	return log.Core().Enabled(lvl)
 }
 
 func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
@@ -61,17 +63,18 @@ func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field)
 	log.Error(msg, ErrField(err)...)
 }
 
-func ErrRecord(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-
-	var err error
-	xerror.TryWith(&err, func() { err = fn() })
-
+func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() logging.Fields) bool {
 	if err == nil {
-		return
+		return false
 	}
 
-	log.Error(msg, ErrField(err)...)
+	var fields []zap.Field
+	if len(fieldHandle) > 0 {
+		fields = fieldHandle[0]()
+	}
+
+	log.WithOptions(zap.AddCallerSkip(1)).With(fields...).Error(err.Error(), ErrField(err)...)
+	return true
 }
 
 func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {

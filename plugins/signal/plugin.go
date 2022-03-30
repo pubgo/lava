@@ -1,15 +1,16 @@
 package signal
 
 import (
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/pkg/typex"
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 )
@@ -54,4 +55,9 @@ func Block() {
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runtime.Signal = <-ch
 	logging.S().Infof("signal [%s] trigger", runtime.Signal)
+}
+
+func Ctx() context.Context {
+	var ctx, _ = signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
+	return ctx
 }

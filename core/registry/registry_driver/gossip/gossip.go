@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/registry"
-	pb "github.com/pubgo/lava/core/registry/gossip/proto"
+	pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
 	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"io/ioutil"
 	"net"

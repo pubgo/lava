@@ -3,25 +3,19 @@ package cluster
 import (
 	"errors"
 	"fmt"
+	"github.com/hashicorp/raft"
 	"github.com/pubgo/lava/core/logging"
 	"go.uber.org/zap"
 	"log"
-	"math/rand"
+	"net"
 	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hashicorp/raft"
 	"github.com/hashicorp/serf/serf"
 
 	"github.com/pubgo/lava/runtime"
-)
-
-const (
-	// StatusReap is used to update the status of a node if we
-	// are handling a EventMemberReap
-	StatusReap = serf.MemberStatus(-1)
 )
 
 var (
@@ -113,6 +107,12 @@ func DefaultConfig() *serf.Config {
 	return base
 }
 
+const (
+	// StatusReap is used to update the status of a node if we
+	// are handling a EventMemberReap
+	StatusReap = serf.MemberStatus(-1)
+)
+
 func GetTags(serf *serf.Serf) map[string]string {
 	tags := make(map[string]string)
 	for tag, value := range serf.LocalMember().Tags {
@@ -128,12 +128,66 @@ func UpdateTag(serf *serf.Serf, tag, value string) {
 	serf.SetTags(tags)
 }
 
+// nodeJoin is used to handle join events on the serf cluster
+func (a *Cluster) nodeJoin(me serf.MemberEvent) {
+	for _, m := range me.Members {
+		ok, parts := isServer(m)
+		if !ok {
+			a.logger.WithField("member", m.Name).Warn("non-server in gossip pool")
+			continue
+		}
+		a.logger.WithField("server", parts.Name).Info("adding server")
+
+		// Check if this server is known
+		found := false
+		a.peerLock.Lock()
+		existing := a.peers[parts.Region]
+		for idx, e := range existing {
+			if e.Name == parts.Name {
+				existing[idx] = parts
+				found = true
+				break
+			}
+		}
+
+		// Add ot the list if not known
+		if !found {
+			a.peers[parts.Region] = append(existing, parts)
+		}
+
+		// Check if a local peer
+		if parts.Region == a.config.Region {
+			a.localPeers[raft.ServerAddress(parts.Addr.String())] = parts
+		}
+		a.peerLock.Unlock()
+
+		// If we still expecting to bootstrap, may need to handle this
+		if a.config.BootstrapExpect != 0 {
+			a.maybeBootstrap()
+		}
+	}
+}
+
 func (c *Cluster) setupSerf(config *serf.Config, ch chan serf.Event, path string) (*serf.Serf, error) {
 	config.Init()
 	config.NodeName = c.config.NodeName
 	config.Tags["role"] = "lava"
 	config.Tags["port"] = "8080"
+	config.Tags["role"] = "consul"
+	config.Tags["dc"] = s.config.Datacenter
+	config.Tags["segment"] = opts.Segment
+	config.Tags["id"] = string(s.config.NodeID)
+	config.Tags["vsn"] = fmt.Sprintf("%d", s.config.ProtocolVersion)
+	config.Tags["vsn_min"] = fmt.Sprintf("%d", ProtocolVersionMin)
+	config.Tags["vsn_max"] = fmt.Sprintf("%d", ProtocolVersionMax)
+	config.Tags["raft_vsn"] = fmt.Sprintf("%d", s.config.RaftConfig.ProtocolVersion)
+	config.Tags["build"] = s.config.Build
 	config.Tags["id"] = fmt.Sprintf("%d", c.config.ID)
+	addr := opts.Listener.Addr().(*net.TCPAddr)
+	conf.Tags["port"] = fmt.Sprintf("%d", addr.Port)
+	if s.config.Bootstrap {
+		conf.Tags["bootstrap"] = "1"
+	}
 	config.Logger = zap.NewStdLog(logging.Component("serf").L())
 	config.MemberlistConfig.Logger = zap.NewStdLog(logging.Component("memberlist").L())
 	config.Tags["serf_lan_addr"] = fmt.Sprintf("%s:%d", c.config.SerfLANConfig.MemberlistConfig.BindAddr, c.config.SerfLANConfig.MemberlistConfig.BindPort)
@@ -143,6 +197,42 @@ func (c *Cluster) setupSerf(config *serf.Config, ch chan serf.Event, path string
 		config.SnapshotPath = filepath.Join(c.config.DataDir, path)
 	}
 	return serf.Create(config)
+}
+
+func (s *Cluster) lanEventHandler() {
+	for {
+		select {
+		case e := <-s.eventChLAN:
+			switch e.EventType() {
+			case serf.EventMemberJoin:
+				s.lanNodeJoin(e.(serf.MemberEvent))
+				s.localMemberEvent(e.(serf.MemberEvent))
+
+			case serf.EventMemberLeave, serf.EventMemberFailed, serf.EventMemberReap:
+				s.lanNodeFailed(e.(serf.MemberEvent))
+				s.localMemberEvent(e.(serf.MemberEvent))
+
+			case serf.EventUser:
+				s.localEvent(e.(serf.UserEvent))
+			case serf.EventMemberUpdate:
+				s.lanNodeUpdate(e.(serf.MemberEvent))
+				s.localMemberEvent(e.(serf.MemberEvent))
+			case serf.EventQuery: // Ignore
+			default:
+				s.logger.Warn("Unhandled LAN Serf Event", "event", e)
+			}
+
+		case <-s.shutdownCh:
+			return
+		}
+	}
+}
+
+func (b *Cluster) JoinLAN(addrs ...string) protocol.Error {
+	if _, err := b.serf.Join(addrs, true); err != nil {
+		return protocol.ErrUnknown.WithErr(err)
+	}
+	return protocol.ErrNone
 }
 
 func (c *Cluster) lanEventHandler() {
@@ -158,6 +248,8 @@ func (c *Cluster) lanEventHandler() {
 			case serf.EventMemberLeave, serf.EventMemberFailed:
 				c.lanNodeFailed(e.(serf.MemberEvent))
 				c.localMemberEvent(e.(serf.MemberEvent))
+			case serf.EventMemberUpdate:
+				//	TODO update data
 			}
 		case <-c.shutdownCh:
 			return
@@ -172,7 +264,7 @@ func (c *Cluster) lanNodeJoin(me serf.MemberEvent) {
 		if !ok {
 			continue
 		}
-		c.Log.Sugar().Infof("broker/%d: adding LAN server: %s", c.config.ID, meta.ID)
+		c.Log.Sugar().Infof("lava/%d: adding LAN server: %d", c.config.ID, meta.ID)
 	}
 }
 
@@ -184,7 +276,6 @@ func (c *Cluster) lanNodeFailed(me serf.MemberEvent) {
 		}
 
 		c.Log.Sugar().Infof("broker/%d: removing LAN server: %s", c.config.ID, m.Name)
-		c.brokerLookup.RemoveBroker(meta)
 	}
 }
 
@@ -284,7 +375,6 @@ func (c *Cluster) handleAliveMember(m serf.Member) error {
 			},
 		},
 	}
-	_, err = c.raftApply(structs.RegisterNodeRequestType, &req)
 	return err
 }
 
@@ -310,12 +400,12 @@ func (c *Cluster) handleReapMember(member serf.Member) error {
 
 // handleDeregisterMember is used to deregister a mmeber for a given reason.
 func (c *Cluster) handleDeregisterMember(reason string, member serf.Member) error {
-	meta, ok := metadata.IsBroker(member)
+	meta, ok := IsLavaNode(member)
 	if !ok {
 		return nil
 	}
 
-	if meta.ID.Int32() == c.config.ID {
+	if meta.ID == c.config.ID {
 		log.Debug.Printf("leader/%d: deregistering self should be done by follower", c.config.ID)
 		return nil
 	}
@@ -323,21 +413,6 @@ func (c *Cluster) handleDeregisterMember(reason string, member serf.Member) erro
 	if err := c.removeServer(member, meta); err != nil {
 		return err
 	}
-
-	state := c.fsm.State()
-	_, node, err := state.GetNode(meta.ID.Int32())
-	if err != nil {
-		return err
-	}
-	if node == nil {
-		return nil
-	}
-
-	log.Info.Printf("leader/%d: member is deregistering: reason: %s; node: %s", c.config.ID, reason, meta.ID)
-	req := structs.DeregisterNodeRequest{
-		Node: structs.Node{Node: meta.ID.Int32()},
-	}
-	_, err = c.raftApply(structs.DeregisterNodeRequestType, &req)
 	return err
 }
 
@@ -369,47 +444,11 @@ func (c *Cluster) joinCluster(m serf.Member, parts *metadata.Broker) error {
 		}
 	}
 
-	for _, server := range configFuture.Configuration().Servers {
-		if server.Address == raft.ServerAddress(parts.RaftAddr) || server.ID == raft.ServerID(parts.ID.String()) {
-			if server.Address == raft.ServerAddress(parts.RaftAddr) && server.ID == raft.ServerID(parts.ID.String()) {
-				// no-op if this is being called on an existing server
-				return nil
-			}
-			future := c.raft.RemoveServer(server.ID, 0, 0)
-			if server.Address == raft.ServerAddress(parts.RaftAddr) {
-				if err := future.Error(); err != nil {
-					return fmt.Errorf("error removing server with duplicate address %q: %s", server.Address, err)
-				}
-				log.Info.Printf("removed server with duplicated address: %s", server.Address)
-			} else {
-				if err := future.Error(); err != nil {
-					return fmt.Errorf("removing server with duplicate ID %q: %s", server.ID, err)
-				}
-				log.Info.Printf("removed server with duplicate ID: %s", server.ID)
-			}
-		}
-	}
-
-	if parts.NonVoter {
-		addFuture := c.raft.AddNonvoter(raft.ServerID(parts.ID.String()), raft.ServerAddress(parts.RaftAddr), 0, 0)
-		if err := addFuture.Error(); err != nil {
-			log.Error.Printf("leader/%d: add raft peer error: %s", c.config.ID, err)
-			return err
-		}
-	} else {
-		log.Debug.Printf("leader/%d: join cluster: add voter: %s", c.config.ID, parts.ID)
-		addFuture := c.raft.AddVoter(raft.ServerID(parts.ID.String()), raft.ServerAddress(parts.RaftAddr), 0, 0)
-		if err := addFuture.Error(); err != nil {
-			log.Error.Printf("leader/%d: add raft peer error: %s", c.config.ID, err)
-			return err
-		}
-	}
-
 	return nil
 }
 
 func (c *Cluster) handleFailedMember(m serf.Member) error {
-	meta, ok := metadata.IsBroker(m)
+	meta, ok := IsLavaNode(m)
 	if !ok {
 		return nil
 	}
@@ -428,119 +467,6 @@ func (c *Cluster) handleFailedMember(m serf.Member) error {
 	}
 	if _, err := c.raftApply(structs.RegisterNodeRequestType, &req); err != nil {
 		return err
-	}
-
-	// TODO should put all the following some where else. maybe onBrokerChange or handleBrokerChange
-
-	state := c.fsm.State()
-
-	_, partitions, err := state.GetPartitions()
-	if err != nil {
-		panic(err)
-	}
-
-	// need to reassign partitions
-	_, partitions, err = state.PartitionsByLeader(meta.ID.Int32())
-	if err != nil {
-		return err
-	}
-	_, nodes, err := state.GetNodes()
-	if err != nil {
-		return err
-	}
-
-	// TODO: add an index for this. have same code in broker.go:handleMetadata(...)
-	var passing []*structs.Node
-	for _, n := range nodes {
-		if n.Check.Status == structs.HealthPassing && n.ID != meta.ID.Int32() {
-			passing = append(passing, n)
-		}
-	}
-
-	// reassign consumer group coordinators
-	_, groups, err := state.GetGroupsByCoordinator(meta.ID.Int32())
-	if err != nil {
-		return err
-	}
-	for _, group := range groups {
-		i := rand.Intn(len(passing))
-		node := passing[i]
-		group.Coordinator = node.Node
-		req := structs.RegisterGroupRequest{
-			Group: *group,
-		}
-		if _, err = c.raftApply(structs.RegisterGroupRequestType, req); err != nil {
-			return err
-		}
-	}
-
-	leaderAndISRReq := &protocol.LeaderAndISRRequest{
-		ControllerID:    c.config.ID,
-		PartitionStates: make([]*protocol.PartitionState, 0, len(partitions)),
-		// TODO: LiveLeaders, ControllerEpoch
-	}
-	for _, p := range partitions {
-		i := rand.Intn(len(passing))
-		// TODO: check that old leader won't be in this list, will have been deregistered removed from fsm
-		node := passing[i]
-
-		// TODO: need to check replication factor
-
-		var ar []int32
-		for _, r := range p.AR {
-			if r != meta.ID.Int32() {
-				ar = append(ar, r)
-			}
-		}
-		var isr []int32
-		for _, r := range p.ISR {
-			if r != meta.ID.Int32() {
-				isr = append(isr, r)
-			}
-		}
-
-		// TODO: need to update epochs
-
-		req := structs.RegisterPartitionRequest{
-			Partition: structs.Partition{
-				Topic:     p.Topic,
-				ID:        p.Partition,
-				Partition: p.Partition,
-				Leader:    node.Node,
-				AR:        ar,
-				ISR:       isr,
-			},
-		}
-		if _, err = c.raftApply(structs.RegisterPartitionRequestType, req); err != nil {
-			return err
-		}
-		// TODO: need to send on leader and isr changes now i think
-		leaderAndISRReq.PartitionStates = append(leaderAndISRReq.PartitionStates, &protocol.PartitionState{
-			Topic:     p.Topic,
-			Partition: p.Partition,
-			// TODO: ControllerEpoch, LeaderEpoch, ZKVersion - lol
-			Leader:   p.Leader,
-			ISR:      p.ISR,
-			Replicas: p.AR,
-		})
-	}
-
-	// TODO: optimize this to send requests to only nodes affected
-	for _, n := range passing {
-		broker := c.brokerLookup.BrokerByID(raft.ServerID(fmt.Sprintf("%d", n.Node)))
-		if broker == nil {
-			// TODO: this probably shouldn't happen -- likely a root issue to fix
-			log.Error.Printf("trying to assign partitions to unknown broker: %s", n)
-			continue
-		}
-		conn, err := defaultDialer.Dial("tcp", broker.BrokerAddr)
-		if err != nil {
-			return err
-		}
-		_, err = conn.LeaderAndISR(leaderAndISRReq)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -571,19 +497,6 @@ func IsLavaNode(m serf.Member) (*Node, bool) {
 		return nil, false
 	}
 
-	expect := 0
-	expectStr, ok := m.Tags["expect"]
-	var err error
-	if ok {
-		expect, err = strconv.Atoi(expectStr)
-		if err != nil {
-			return nil, false
-		}
-	}
-
-	_, bootstrap := m.Tags["bootstrap"]
-	_, nonVoter := m.Tags["non_voter"]
-
 	idStr := m.Tags["id"]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -591,14 +504,7 @@ func IsLavaNode(m serf.Member) (*Node, bool) {
 	}
 
 	return &Node{
-		ID:          NodeID(id),
-		Name:        m.Tags["name"],
-		Bootstrap:   bootstrap,
-		Expect:      expect,
-		NonVoter:    nonVoter,
-		Status:      m.Status,
-		RaftAddr:    m.Tags["raft_addr"],
-		SerfLANAddr: m.Tags["serf_lan_addr"],
-		BrokerAddr:  m.Tags["broker_addr"],
+		ID:   id,
+		Name: m.Tags["name"],
 	}, true
 }

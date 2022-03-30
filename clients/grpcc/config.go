@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/service/service_type"
 
 	// 默认加载mdns注册中心
-	_ "github.com/pubgo/lava/core/registry/mdns"
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
 	// grpc log插件加载
 	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
@@ -268,7 +268,7 @@ func DefaultCfg(opts ...func(cfg *Cfg)) Cfg {
 		},
 		Call: callParameters{
 			MaxCallRecvMsgSize: 1024 * 1024 * 4,
-			// DefaultMaxSendMsgSize maximum message that Client can send (4 MB).
+			// DefaultMaxSendMsgSize maximum message that Srv can send (4 MB).
 			MaxCallSendMsgSize: 1024 * 1024 * 4,
 		},
 	}

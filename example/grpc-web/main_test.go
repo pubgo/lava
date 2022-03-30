@@ -16,7 +16,7 @@ import (
 func TestName(t *testing.T) {
 	//resp, err := http.Post("http://localhost:8900/hello.Transport/TestStream2", "application/grpc+json", strings.NewReader(`{"header":{"hello":"ok"}}`))
 	//go func() {
-	//client := http.Client{
+	//client := http.Srv{
 	//	// Skip TLS dial
 	//	Transport: &http2.Transport{
 	//		AllowHTTP: true,

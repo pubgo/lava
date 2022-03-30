@@ -1,4 +1,4 @@
-package healthy_plugin
+package healthy
 
 import (
 	"fmt"
@@ -26,12 +26,12 @@ func init() {
 				Usage: "health check",
 				Description: clix.ExampleFmt(
 					"lava health",
-					"lava health localhost:8081",
+					"lava health localhost:8080",
 				),
 				Action: func(ctx *cli.Context) error {
 					defer xerror.RespExit()
 
-					var addr = runtime.DebugAddr
+					var addr = runtime.Addr
 					if ctx.NArg() > 0 {
 						addr = ctx.Args().First()
 					}

@@ -1,6 +1,9 @@
 package log_builder
 
 import (
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+
 	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/consts"
 	logging2 "github.com/pubgo/lava/core/logging"
@@ -8,15 +11,12 @@ import (
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 )
 
 // Init logger
 func Init(c config_type.Config) {
-	defer func() {
-		logging2.Initialized = true
-	}()
+	defer func() { logging2.Initialized = true }()
+
 	defer xerror.RespExit("logger init error")
 
 	var cfg = log_config.NewProdConfig()

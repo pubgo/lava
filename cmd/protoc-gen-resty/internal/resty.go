@@ -70,15 +70,15 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.P("}")
 	g.P()
 
-	g.P("func New", clientName, " (client *", restyCall("Client"), ") ", clientName, " {")
+	g.P("func New", clientName, " (client *", restyCall("Srv"), ") ", clientName, " {")
 	g.P(`client.SetContentLength(true)`)
 	g.P("return &", unExport(clientName), "{client: client}")
 	g.P("}")
 	g.P()
 
-	// Client structure.
+	// Srv structure.
 	g.P("type ", unExport(clientName), " struct {")
-	g.P("client *", restyCall("Client"))
+	g.P("client *", restyCall("Srv"))
 	g.P("}")
 	g.P()
 

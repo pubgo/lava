@@ -1,10 +1,14 @@
 package config_flag
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/flagx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runtime"
 )
@@ -30,22 +34,35 @@ func Flags() []cli.Flag {
 			Aliases:     typex.StrOf("t"),
 			Usage:       "enable trace",
 			Value:       runtime.Trace,
-			EnvVars:     env.KeyOf("trace", "trace-log", "tracelog"),
+			EnvVars:     env.KeyOf("trace"),
 		},
 		// 运行环境
-		&cli.StringFlag{
-			Name:        "mode",
-			Destination: &runtime.Mode,
-			Aliases:     typex.StrOf("m"),
-			Usage:       "running mode(dev|test|stag|prod|release)",
-			Value:       runtime.Mode,
-			EnvVars:     env.KeyOf("lava-mode", "lava.mode"),
+		&cli.GenericFlag{
+			Name:    "mode",
+			Aliases: typex.StrOf("m"),
+			Usage:   "running mode(dev|test|stag|prod|release)",
+			EnvVars: env.KeyOf("lava-mode", "lava.mode"),
+			Value: flagx.Generic{
+				Value: runtime.Mode.String(),
+				Destination: func(val string) error {
+					var i, err = strconv.Atoi(val)
+					if err != nil {
+						return err
+					}
+					runtime.Mode = runtime.RunMode(i)
+					if runtime.Mode == runtime.RunModeUnknown {
+						return fmt.Errorf("unknown mode, mode=%s", val)
+					}
+					return nil
+				},
+			},
 		},
 		&cli.StringFlag{
 			Name:        "level",
 			Destination: &runtime.Level,
 			Aliases:     typex.StrOf("l"),
 			Usage:       "log level(debug|info|warn|error|panic|fatal)",
+			EnvVars:     env.KeyOf("lava-level", "lava.level"),
 			Value:       runtime.Level,
 		},
 	}

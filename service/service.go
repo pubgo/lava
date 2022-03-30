@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -38,6 +39,7 @@ func New(name string, desc string, plugins ...plugin.Plugin) service_type.Servic
 
 func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl {
 	var g = &serviceImpl{
+		ctx:        context.Background(),
 		pluginList: plugins,
 		cmd:        &cli.Command{Name: name, Usage: desc},
 		srv:        grpc_builder.New(),
@@ -82,7 +84,11 @@ type serviceImpl struct {
 
 	wrapperUnary  service_type.HandlerFunc
 	wrapperStream service_type.HandlerFunc
+
+	ctx context.Context
 }
+
+func (t *serviceImpl) Ctx() context.Context { return t.ctx }
 
 func (t *serviceImpl) RegisterRouter(prefix string, handlers ...fiber2.Handler) fiber2.Router {
 	return t.app.Group(prefix, handlers...)
@@ -125,6 +131,8 @@ func (t *serviceImpl) Plugin(plugin plugin.Plugin) {
 
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
+
+	t.net.Addr = runtime.Addr
 
 	// 依赖对象注入
 	inject.Inject(t)
@@ -196,9 +204,9 @@ func (t *serviceImpl) ServiceDesc() []service_type.Desc { return t.services }
 func (t *serviceImpl) Options() service_type.Options {
 	return service_type.Options{
 		Name:      t.cfg.name,
-		Id:        uuid.New().String(),
+		Id:        t.cfg.id,
 		Version:   version.Version,
-		Port:      t.net.Port,
+		Port:      netutil.MustGetPort(t.net.Addr),
 		Address:   t.net.Addr,
 		Advertise: t.cfg.Advertise,
 	}

@@ -2,11 +2,12 @@ package syncx
 
 import (
 	"context"
-	logutil2 "github.com/pubgo/lava/core/logging/logutil"
 	"time"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/core/logging/logutil"
 )
 
 // GoChan 通过chan的方式同步执行异步任务
@@ -16,15 +17,13 @@ func GoChan(fn func() Value) chan Value {
 	var ch = make(chan Value)
 
 	go func() {
-		defer func() {
-			xerror.Resp(func(err xerror.XErr) {
-				ch <- WithErr(xerror.Wrap(err, "GoChan", stack.Func(fn)))
-			})
-			close(ch)
-		}()
+		defer close(ch)
+		defer xerror.Resp(func(err xerror.XErr) {
+			ch <- WithErr(xerror.Wrap(err, "GoChan", stack.Func(fn)))
+		})
 
 		if val := fn(); val == nil {
-			ch <- nil
+			ch <- WithVal(nil)
 		} else {
 			ch <- val
 		}
@@ -40,7 +39,7 @@ func GoSafe(fn func(), cb ...func(err error)) {
 	go func() {
 		defer xerror.Resp(func(err xerror.XErr) {
 			if len(cb) > 0 {
-				logutil2.ErrTry(logs.L(), func() { cb[0](err) })
+				logutil.ErrTry(logs.L(), func() { cb[0](err) })
 				return
 			}
 
@@ -60,7 +59,7 @@ func GoCtx(fn func(ctx context.Context), cb ...func(err error)) context.CancelFu
 	go func() {
 		defer xerror.Resp(func(err xerror.XErr) {
 			if len(cb) > 0 {
-				logutil2.ErrTry(logs.L(), func() { cb[0](err) })
+				logutil.ErrTry(logs.L(), func() { cb[0](err) })
 				return
 			}
 
@@ -84,7 +83,7 @@ func GoDelay(fn func(), durations ...time.Duration) {
 
 	xerror.Assert(dur == 0, "[dur] should not be 0")
 
-	go logutil2.ErrTry(logs.L(), fn)
+	go logutil.ErrTry(logs.L(), fn)
 
 	time.Sleep(dur)
 
@@ -102,7 +101,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 	var done = make(chan struct{})
 	go func() {
 		defer xerror.Resp(func(err xerror.XErr) {
-			logutil2.ErrTry(logs.L(), func() { errFn(err) }, logutil2.FuncStack(run))
+			logutil.ErrTry(logs.L(), func() { errFn(err) }, logutil.FuncStack(run))
 		})
 
 		run()
@@ -112,7 +111,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 	for {
 		select {
 		case <-time.After(timeout):
-			logutil2.ErrTry(logs.L(), func() { errFn(context.DeadlineExceeded) }, logutil2.FuncStack(run))
+			logutil.ErrTry(logs.L(), func() { errFn(context.DeadlineExceeded) }, logutil.FuncStack(run))
 		case <-done:
 			return
 		}
@@ -132,10 +131,8 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 	var done = make(chan struct{})
 
 	go func() {
-		defer func() {
-			xerror.RespErr(&gErr)
-			close(done)
-		}()
+		defer close(done)
+		defer xerror.RespErr(&gErr)
 
 		fn()
 	}()
@@ -149,7 +146,7 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 }
 
 func logErr(fn interface{}, err xerror.XErr) {
-	logs.WithErr(err).With(logutil2.FuncStack(fn)).Error(err.Error())
+	logs.WithErr(err).With(logutil.FuncStack(fn)).Error(err.Error())
 }
 
 func checkFn(fn interface{}, msg string) {

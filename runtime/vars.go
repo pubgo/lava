@@ -18,22 +18,21 @@ import (
 
 // 默认的全局配置
 var (
-	Domain    = version.Domain
-	Block     = true
-	Trace     = false
-	Addr      = ":8080"
-	DebugAddr = ":8081"
-	Project   = "lava"
-	Level     = "debug"
-	Mode      = RunModeDev.String()
+	Domain  = version.Domain
+	Block   = true
+	Trace   = false
+	Addr    = ":8080"
+	Project = "lava"
+	Level   = "debug"
+	Mode    = RunModeDev
 
 	// DeviceID 主机设备ID
-	DeviceID = xerror.PanicErr(machineid.ID())
+	DeviceID = xerror.ExitErr(machineid.ID())
 
 	Signal os.Signal = syscall.Signal(0)
 
 	// Pwd 当前目录
-	Pwd = xerror.PanicStr(os.Getwd())
+	Pwd = xerror.ExitErr(os.Getwd())
 
 	// Hostname 主机名
 	Hostname = utils.FirstNotEmpty(

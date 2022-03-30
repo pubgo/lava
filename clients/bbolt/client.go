@@ -20,11 +20,8 @@ func (t *Client) Db() *bolt.DB {
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
-	logutil.ErrRecord(t.Log(), "create bucket error", func() error {
-		var _, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
-		return err
-	})
-
+	var _, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
+	logutil.ErrRecord(t.Log(), err)
 	return tx.Bucket([]byte(name))
 }
 

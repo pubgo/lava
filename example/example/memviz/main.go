@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"github.com/pubgo/lava/pkg/utils"
@@ -18,9 +17,6 @@ func main() {
 	defer xerror.Resp(func(err xerror.XErr) {
 		err.Debug()
 	})
-
-	var ss *tree
-	fmt.Println(ss.id)
 
 	root := &tree{
 		id: 0,

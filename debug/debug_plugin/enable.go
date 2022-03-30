@@ -1,9 +1,12 @@
 package debug_plugin
 
 import (
+	"fmt"
 	"github.com/pkg/browser"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/syncx"
@@ -21,11 +24,14 @@ func Enable(srv service_type.Service) {
 		CfgNotCheck: true,
 		OnInit: func(p plugin.Process) {
 			p.AfterStart(func() {
-				if openWeb {
-					syncx.GoDelay(func() {
-						xerror.Panic(browser.OpenURL("http://localhost:8080/debug"))
-					})
+				if !openWeb {
+					return
 				}
+
+				syncx.GoSafe(func() {
+					logutil.ErrRecord(zap.L(),
+						browser.OpenURL(fmt.Sprintf("http://%s:%d/debug", netutil.GetLocalIP(), srv.Options().Port)))
+				})
 			})
 		},
 		OnFlags: func() typex.Flags {

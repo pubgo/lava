@@ -1,14 +1,14 @@
 package resource
 
 import (
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
 	"strings"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/typex"
 )

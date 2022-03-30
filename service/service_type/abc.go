@@ -1,6 +1,7 @@
 package service_type
 
 import (
+	"context"
 	"net"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,6 +32,7 @@ type Service interface {
 	Plugin(plg plugin.Plugin)
 	ServiceDesc() []Desc
 	Options() Options
+	Ctx() context.Context
 	Middlewares() []Middleware
 	RegisterApp(prefix string, r *fiber.App)
 	RegisterRouter(prefix string, handlers ...fiber.Handler) fiber.Router

@@ -15,8 +15,7 @@ import (
 
 func DefaultCfg() *Mux {
 	return &Mux{
-		Addr:        "0.0.0.0",
-		Port:        8080,
+		Addr:        ":8080",
 		ReadTimeout: time.Second * 2,
 		HandleError: func(err error) bool {
 			if errors.Is(err, net.ErrClosed) {
@@ -37,7 +36,6 @@ type matchItem struct {
 
 type Mux struct {
 	Addr        string
-	Port        int
 	ReadTimeout time.Duration
 	HandleError cmux.ErrorHandler
 
@@ -93,9 +91,8 @@ func (t *Mux) Close() error {
 }
 
 func (t *Mux) Serve() error {
-	tcpAddr := &net.TCPAddr{IP: net.ParseIP(t.Addr), Port: t.Port}
-	ln, err := net.ListenTCP("tcp", tcpAddr)
-	xerror.PanicF(err, "net Listen failed, addr=%s port=%d", t.Addr, t.Port)
+	ln, err := net.Listen("tcp", t.Addr)
+	xerror.PanicF(err, "net Listen failed, addr=%s", t.Addr)
 
 	t.ln = ln
 	var c = cmux.New(ln)

@@ -260,11 +260,11 @@ func (s *clientStream) RecvMsg(m interface{}) error {
 			}
 
 			// 处理 metadata
-			if req.Metadata.Header != nil {
-				for k, v := range req.Metadata.Header {
-					s.headers.Set(k, v)
-				}
-			}
+			//if req.Metadata.Header != nil {
+			//	for k, v := range req.Metadata.Header {
+			//		s.headers.Set(k, v)
+			//	}
+			//}
 		}
 
 		var err = s.cdc.Unmarshal(resp.Data(), m)

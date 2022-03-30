@@ -2,12 +2,13 @@ package cluster
 
 import (
 	"time"
-	
+
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/serf/serf"
 )
 
 type Node struct {
+	ID int
 	// 节点名字
 	Name string
 	// 节点权重

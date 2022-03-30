@@ -3,13 +3,10 @@ package sockets
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"reflect"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pubgo/xerror"
 	"github.com/rsocket/rsocket-go"
 	"github.com/rsocket/rsocket-go/payload"
 	"github.com/rsocket/rsocket-go/rx/flux"
@@ -17,6 +14,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/pubgo/lava/cmd/lava-broker/rs_manager"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logutil"
 )
 
 var _ rsocket.RSocket = (*handlerMap)(nil)
@@ -33,8 +34,13 @@ type handlerMap struct {
 	// contentType 默认内容类型, 由应用设置
 	contentType string
 	ctx         context.Context
-	interceptor grpc.UnaryServerInterceptor
 	handlers    map[string]*Server
+
+	UnaryInterceptor  grpc.UnaryServerInterceptor
+	StreamInterceptor grpc.StreamServerInterceptor
+
+	metaCodec encoding.Codec
+	dataCodec encoding.Codec
 }
 
 // RegisterService 注册服务描述和handler实现
@@ -71,29 +77,25 @@ func (t *handlerMap) RegisterService(desc *grpc.ServiceDesc, srv interface{}) {
 	}
 }
 
+// FireAndForget 对应grpc的服务定义 rpc Func(Message) returns (google.protobuf.Empty)
 func (t *handlerMap) FireAndForget(msg payload.Payload) {
-	var method string
-	var cdc = encoding.GetCodec(t.contentType)
-
+	var service string
 	var md, ok = msg.Metadata()
 	if ok && md != nil {
 		var reqMd Request
-		xerror.Panic(proto.Unmarshal(md, &reqMd))
-		method = reqMd.Method
-		cdc = encoding.GetCodec(reqMd.ContentType)
+		if err := t.metaCodec.Unmarshal(md, &reqMd); err != nil {
+			panic(err)
+		}
+		service = reqMd.Service
 		return
 	}
 
-	var h = t.handlers[method]
-	var _, err = h.handler(h.srv, nil, func(i interface{}) error { return cdc.Unmarshal(msg.Data(), i) }, nil)
-	xerror.Panic(err)
-
-	// 对应grpc的服务定义 rpc Func(Message) returns (google.protobuf.Empty)
+	var srv = rs_manager.GetService(service)
+	srv.Srv.FireAndForget(payload.New(msg.Data(), md))
 }
 
 func (t *handlerMap) MetadataPush(msg payload.Payload) {
-	// TODO implement me
-	panic("implement me")
+
 }
 
 func (t *handlerMap) RequestResponse(msg payload.Payload) mono.Mono {
@@ -206,7 +208,7 @@ func (t *handlerMap) RequestStream(msg payload.Payload) flux.Flux {
 		defer cancel()
 
 		// TODO header放进去
-		var stream = &serverStream{ctx: ctx, in: in, out: out, cdc: cdc}
+		var stream = &serverStream{ctx: ctx, in: in, out: out, metaCodec: t.metaCodec, dataCodec: t.dataCodec}
 		go func() {
 			// handler 服务端handler
 			if err := handler.stream(handler.srv, stream); err != nil {
@@ -214,6 +216,8 @@ func (t *handlerMap) RequestStream(msg payload.Payload) flux.Flux {
 				s.Error(err)
 			}
 		}()
+
+		stream.Context()
 
 		for {
 			select {
@@ -296,14 +300,15 @@ func (t *handlerMap) RequestChannel(msg flux.Flux) flux.Flux {
 }
 
 type serverStream struct {
-	cdc         encoding.Codec
+	metaCodec   encoding.Codec
+	dataCodec   encoding.Codec
 	in          chan *ErrPayload
 	out         chan *ErrPayload
 	ctx         context.Context
 	onDone      context.CancelFunc
 	headers     map[string]string
 	sendHeaders map[string]string
-	trailers    map[string]string
+	trailers    metadata.MD
 }
 
 func (s *serverStream) SetHeader(md metadata.MD) error {
@@ -347,7 +352,7 @@ func (s *serverStream) Context() context.Context { return s.ctx }
 
 // SendMsg 服务端发送数据到客户端
 func (s *serverStream) SendMsg(m interface{}) error {
-	var data, err = s.cdc.Marshal(m)
+	var data, err = s.dataCodec.Marshal(m)
 	if err != nil {
 		return err
 	}
@@ -358,7 +363,7 @@ func (s *serverStream) SendMsg(m interface{}) error {
 		respMd.Headers = s.sendHeaders
 	}
 
-	md, err := proto.Marshal(&respMd)
+	md, err := s.metaCodec.Marshal(&respMd)
 	if err != nil {
 		return err
 	}
@@ -378,7 +383,7 @@ func (s *serverStream) RecvMsg(m interface{}) error {
 		// 元数据调整header等
 	}
 
-	var err = s.cdc.Unmarshal(pp.Data(), m)
+	var err = s.dataCodec.Unmarshal(pp.Data(), m)
 	// 把错误信息反馈给客户端
 	pp.Err <- err
 	return err

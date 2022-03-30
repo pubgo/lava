@@ -197,7 +197,7 @@ func InternalServerError(id, format string, a ...interface{}) error {
 }
 
 // Cancelled The operation was cancelled, typically by the caller.
-// HTTP Mapping: 499 Client Closed Request
+// HTTP Mapping: 499 Srv Closed Request
 func Cancelled(id, format string, a ...interface{}) error {
 	return &Error{
 		Code:    1,

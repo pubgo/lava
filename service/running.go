@@ -2,16 +2,20 @@ package service
 
 import (
 	"fmt"
+	"os"
+	"sort"
+
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/config/config_builder"
+	"github.com/pubgo/lava/config/config_flag"
 	"github.com/pubgo/lava/core/healthy"
 	"github.com/pubgo/lava/core/logging/log_builder"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/watcher"
-	"os"
-	"sort"
-
-	"github.com/pubgo/lava/config/config_flag"
 	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/signal"
@@ -19,37 +23,26 @@ import (
 	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
-	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
-func Run(desc string, entries ...service_type.Service) {
+func Run(services ...service_type.Service) {
 	defer xerror.RespExit()
 
-	xerror.Assert(len(entries) == 0, "[entries] should not be zero")
+	xerror.Assert(len(services) == 0, "[services] is zero")
 
-	for _, ent := range entries {
-		xerror.Assert(ent == nil, "[ent] should not be nil")
+	for _, ent := range services {
+		xerror.Assert(ent == nil, "[ent] is nil")
 	}
 
 	var app = &cli.App{
 		Name:    runtime.Domain,
+		Usage:   fmt.Sprintf("%s services", runtime.Domain),
 		Version: version.Version,
+		Flags:   config_flag.Flags(),
 	}
-
-	app.Usage = desc
-	app.Description = desc
-
-	// 注册默认flags
-	app.Flags = append(app.Flags, config_flag.Flags()...)
 
 	// 注册全局plugin
 	for _, plg := range plugin.All() {
-		if plg == nil {
-			continue
-		}
-
 		app.Flags = append(app.Flags, plg.Flags()...)
 
 		var cmd = plg.Commands()
@@ -71,8 +64,8 @@ func Run(desc string, entries ...service_type.Service) {
 		watcher.Watch(plg.ID(), plg.Watch)
 	}
 
-	for i := range entries {
-		ent := entries[i].(*serviceImpl)
+	for i := range services {
+		ent := services[i].(*serviceImpl)
 		cmd := ent.command()
 
 		// 检查项目Command是否注册

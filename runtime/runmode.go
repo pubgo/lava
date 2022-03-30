@@ -38,21 +38,21 @@ var RunModeValue = map[string]int32{
 }
 
 func IsDev() bool {
-	return Mode == RunModeDev.String()
+	return Mode == RunModeDev
 }
 
 func IsTest() bool {
-	return Mode == RunModeTest.String()
+	return Mode == RunModeTest
 }
 
 func IsStag() bool {
-	return Mode == RunModeStag.String()
+	return Mode == RunModeStag
 }
 
 func IsProd() bool {
-	return Mode == RunModeProd.String()
+	return Mode == RunModeProd
 }
 
 func IsRelease() bool {
-	return Mode == RunModeRelease.String()
+	return Mode == RunModeRelease
 }

@@ -121,7 +121,6 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []service_type.Middleware) 
 			},
 			func(rsp service_type.Response) error { resp = rsp.Payload(); return nil },
 		)
-
 		return
 	}
 }
