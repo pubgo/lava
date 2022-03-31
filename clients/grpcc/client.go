@@ -3,12 +3,10 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"net"
 	"strings"
 	"sync"
 
-	"github.com/kr/pretty"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -16,6 +14,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/resolver"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/inject"
 )
 
@@ -64,7 +63,8 @@ func NewClient(service string, cfg Cfg) *Client {
 	var name = service
 
 	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
-	if strings.Contains(service, ",") || net.ParseIP(extractHostFromHostPort(service)) != nil {
+	var host = extractHostFromHostPort(service)
+	if strings.Contains(service, ",") || net.ParseIP(host) != nil || host == "localhost" {
 		cfg.buildScheme = resolver.DirectScheme
 	}
 
@@ -113,11 +113,9 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err
-		pretty.Println(t)
-		pretty.Println(err)
+		logutil.Pretty(t)
+		logutil.Pretty(err)
 	})
-
-	logutil.Pretty(t.cfg)
 
 	if t.conn != nil {
 		return t.conn, nil

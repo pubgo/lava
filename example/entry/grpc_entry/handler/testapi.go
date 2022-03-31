@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +17,7 @@ import (
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	logging2 "github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/pkg/typex"
@@ -26,8 +26,8 @@ import (
 )
 
 func init() {
-	//hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
-	hello.InitTestApiClient("localhost:8080", grpcc.WithDirect())
+	hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
+	//hello.InitTestApiClient("localhost:8080", grpcc.WithDirect())
 }
 
 type User struct {

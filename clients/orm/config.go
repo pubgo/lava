@@ -44,7 +44,7 @@ func (t Cfg) Build() io.Closer {
 	}
 
 	log.Logger = gl.New(
-		logPrintf(zap.S().Named(logkey.Component).Named(Name).Infof),
+		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,
