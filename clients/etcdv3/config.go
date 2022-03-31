@@ -35,9 +35,7 @@ func (t Cfg) Build() io.Closer {
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
 	// 创建etcd client对象
-	return xerror.PanicErr(t.retry.DoVal(
-		func(i int) (interface{}, error) { return clientv3.New(cfg) }),
-	).(*clientv3.Client)
+	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return clientv3.New(cfg) })).(*clientv3.Client)
 }
 
 func DefaultCfg() *Cfg {

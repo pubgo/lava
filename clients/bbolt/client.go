@@ -3,20 +3,22 @@ package bbolt
 import (
 	"context"
 
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/resource/resource_type"
+	"github.com/pubgo/lava/resource"
 )
 
 type Client struct {
-	resource_type.Resource
+	resource.IResource
 }
 
 func (t *Client) Db() *bolt.DB {
-	return t.Resource.GetRes().(*bolt.DB)
+	return t.IResource.GetRes().(*bolt.DB)
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
@@ -51,12 +53,12 @@ func (t *Client) Delete(ctx context.Context, key string, names ...string) error 
 func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := utils.GetDefault(names...)
 
-	//var span = tracing.CreateChild(ctx, name)
-	//defer span.Finish()
-	//ext.DBType.Set(span, Name)
+	var span = tracing.CreateChild(ctx, name)
+	defer span.Finish()
+	ext.DBType.Set(span, Name)
 
 	var c = t.Db()
-	defer t.Resource.Done()
+	defer t.IResource.Done()
 
 	return c.View(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))
@@ -66,12 +68,12 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := utils.GetDefault(names...)
 
-	//var span = tracing.CreateChild(ctx, name)
-	//defer span.Finish()
-	//ext.DBType.Set(span, Name)
+	var span = tracing.CreateChild(ctx, name)
+	defer span.Finish()
+	ext.DBType.Set(span, Name)
 
 	var c = t.Db()
-	defer t.Resource.Done()
+	defer t.IResource.Done()
 
 	return c.Update(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))

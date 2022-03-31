@@ -42,7 +42,9 @@ type Cfg struct {
 }
 
 func (c Cfg) BuildClient() *redis.Client {
-	client := redis.NewClient(merge.Struct(&redis.Options{}, c).(*redis.Options))
+	var opts = &redis.Options{}
+	xerror.Panic(merge.Struct(opts, c))
+	client := redis.NewClient(opts)
 	xerror.PanicF(client.Ping(ctxutil.Timeout()).Err(), "redis(%v)连接失败", c)
 
 	// TODO 完善tracing

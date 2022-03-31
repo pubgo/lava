@@ -60,7 +60,7 @@ func Inject(val interface{}) {
 	v = reflectx.Indirect(v)
 
 	if !v.CanSet() {
-		panic(fmt.Sprintf("[val=%#v] should be ptr or interface", val))
+		panic(fmt.Sprintf("[val] should be ptr or interface, val=%#v", val))
 	}
 
 	var obj = Object{Value: v}

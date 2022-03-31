@@ -76,16 +76,18 @@ func (f Factory) Di(kind string) func(obj inject.Object, field inject.Field) (in
 }
 
 func (f Factory) Wrapper(res resource_type.Resource) resource_type.Resource {
-	xerror.Assert(f.ResType == nil, "please set [ResType], kind=%s, name=%s", res.Kind(), res.Name())
+	xerror.Assert(f.ResType == nil, "please set [ResType], kind=%s name=%s", res.Kind(), res.Name())
 
 	var obj = reflect.New(reflectx.Indirect(reflect.ValueOf(f.ResType)).Type())
+
 	var v = reflectx.Indirect(obj)
 	// find Resource field
-	var v1 = v.FieldByName("Resource")
-	if !v1.IsValid() {
-		panic(fmt.Sprintf("resource: %#v, has not field(Resource)", f.ResType))
-	}
-	v1.Set(reflect.ValueOf(res))
+	var field = reflectx.FindFieldBy(v, func(field reflect.StructField) bool {
+		return field.Type.String() == resourceType.String()
+	})
+	xerror.Assert(!field.IsValid(), "resource has not field(Resource), resType=%#v, ", f.ResType)
+	field.Set(reflect.ValueOf(res))
+
 	return obj.Interface().(resource_type.Resource)
 }
 

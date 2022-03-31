@@ -2,9 +2,9 @@ package restc
 
 import (
 	"context"
-	"github.com/pubgo/lava/service/service_type"
 
 	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 func doFunc(c *clientImpl) service_type.HandlerFunc {

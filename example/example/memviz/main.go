@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"github.com/pubgo/lava/pkg/reflectx"
 	"io/ioutil"
+	"reflect"
 
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/xerror"
@@ -13,10 +16,27 @@ type tree struct {
 	right *tree
 }
 
+type Abc interface {
+}
+
+type Abc1 = Abc
+
+type AbcImpl struct {
+	Abc1
+}
+
 func main() {
 	defer xerror.Resp(func(err xerror.XErr) {
 		err.Debug()
 	})
+
+	var ss = reflect.TypeOf((*Abc1)(nil)).Elem()
+
+	var v1 = reflect.ValueOf(&AbcImpl{}).Elem()
+	var field = reflectx.FindFieldBy(v1, func(field reflect.StructField) bool {
+		return ss.String() == field.Type.String()
+	})
+	fmt.Println(field.Type().String())
 
 	root := &tree{
 		id: 0,

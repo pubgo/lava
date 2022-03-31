@@ -2,7 +2,6 @@ package restc
 
 import (
 	"crypto/tls"
-	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/pubgo/lava/pkg/retry"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 type Cfg struct {

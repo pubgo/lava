@@ -34,7 +34,9 @@ type Cfg struct {
 func (t *Cfg) BuildOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
-	return merge.Struct(options, t).(*bolt.Options)
+	xerror.Panic(merge.Struct(options, t))
+	return options
+
 }
 
 func (t *Cfg) Build() io.Closer { return t.Create() }

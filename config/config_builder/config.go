@@ -2,7 +2,6 @@ package config_builder
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/config/config_type"
 	"io"
 	"os"
 	"path/filepath"
@@ -18,6 +17,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
 )

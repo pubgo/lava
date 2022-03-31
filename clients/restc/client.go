@@ -3,8 +3,6 @@ package restc
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,6 +12,8 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/httpx"
+	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 const (

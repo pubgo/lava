@@ -1,10 +1,11 @@
 package restc
 
 import (
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 	"net/http"
 	"net/http/httptrace"
+
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/service_type"
 )
 
 var _ service_type.Response = (*Response)(nil)
