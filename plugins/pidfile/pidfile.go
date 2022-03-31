@@ -14,7 +14,7 @@ import (
 
 const Name = "pidfile"
 
-var pidPath = filepath.Join(config.Home, "pidfile")
+var pidPath = filepath.Join(config.CfgDir, "pidfile")
 
 const pidPerm os.FileMode = 0666
 

@@ -3,9 +3,6 @@ package watcher_builder
 import (
 	"bytes"
 	"context"
-	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/core/watcher/watcher_driver/noop"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
 	"strings"
 
 	"github.com/pubgo/x/stack"
@@ -17,25 +14,25 @@ import (
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/watcher"
-	"github.com/pubgo/lava/core/watcher/watcher_config"
+	"github.com/pubgo/lava/core/watcher/watcher_driver/noop"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/ctxutil"
 	"github.com/pubgo/lava/runtime"
 )
 
-var defaultWatcher watcher_type.Watcher = &noop.NullWatcher{}
-var logs = logging.Component(watcher_type.Name)
-var cfg = watcher_config.DefaultCfg()
+var defaultWatcher watcher.Watcher = &noop.NullWatcher{}
+var logs = logging.Component(watcher.Name)
+var cfg = watcher.DefaultCfg()
 
 // Init 初始化watcher
-func Init(conf config_type.Config) {
+func Init(conf config.Config) {
 	defer xerror.RespExit()
 
-	if c := conf.GetMap(watcher_type.Name); c != nil {
+	if c := conf.GetMap(watcher.Name); c != nil {
 		xerror.Panic(c.Decode(&cfg))
 	}
 
-	defaultWatcher = xerror.PanicErr(build(cfg.DriverCfg)).(watcher_type.Watcher)
+	defaultWatcher = xerror.PanicErr(build(cfg.DriverCfg)).(watcher.Watcher)
 	// 依赖注入
 	inject.Inject(defaultWatcher)
 	defaultWatcher.Init()
@@ -50,16 +47,16 @@ func Init(conf config_type.Config) {
 		var project = cfg.Projects[i]
 
 		// get远程配置, 启动时, 获取项目下所有配置
-		xerror.Panic(defaultWatcher.GetCallback(ctxutil.Timeout(), project, func(resp *watcher_type.Response) { onInit(project, resp) }))
+		xerror.Panic(defaultWatcher.GetCallback(ctxutil.Timeout(), project, func(resp *watcher.Response) { onInit(project, resp) }))
 
 		// watch远程配置
-		defaultWatcher.WatchCallback(context.Background(), project, func(resp *watcher_type.Response) { onWatch(project, resp) })
+		defaultWatcher.WatchCallback(context.Background(), project, func(resp *watcher.Response) { onWatch(project, resp) })
 	}
 	return
 }
 
 // onInit 初始化, 获取远程配置
-func onInit(name string, resp *watcher_type.Response) {
+func onInit(name string, resp *watcher.Response) {
 	// 过滤空值
 	if cfg.SkipNull && len(bytes.TrimSpace(resp.Value)) == 0 {
 		return
@@ -87,7 +84,7 @@ func onInit(name string, resp *watcher_type.Response) {
 
 }
 
-func onWatch(name string, resp *watcher_type.Response) {
+func onWatch(name string, resp *watcher.Response) {
 	var project = zap.String("watch-project", name)
 
 	defer xerror.Resp(func(err xerror.XErr) {
@@ -149,7 +146,7 @@ func onWatch(name string, resp *watcher_type.Response) {
 	}
 }
 
-func build(data config_type.CfgMap) (_ watcher_type.Watcher, err error) {
+func build(data config.CfgMap) (_ watcher.Watcher, err error) {
 	defer xerror.RespErr(&err)
 
 	driver := cfg.Driver

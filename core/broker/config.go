@@ -6,7 +6,6 @@ import (
 )
 
 var Name = "broker"
-var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Driver string `json:"driver"`

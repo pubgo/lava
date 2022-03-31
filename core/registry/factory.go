@@ -1,13 +1,12 @@
 package registry
 
 import (
-	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/core/registry/registry_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/xerror"
 )
 
-type Builder func(cfgMap config_type.CfgMap) (registry_type.Registry, error)
+type Builder func(cfgMap config.CfgMap) (Registry, error)
 
 var builders typex.Map
 

@@ -4,13 +4,13 @@ package mdns
 import (
 	"context"
 	"fmt"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"time"
 
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 )
@@ -21,13 +21,13 @@ const (
 	zeroconfInstance = "lava"
 )
 
-func New(cfg Cfg) (registry_type2.Registry, error) {
+func New(cfg Cfg) (registry.Registry, error) {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
 	return &mdnsRegistry{resolver: resolver, cfg: cfg}, nil
 }
 
-var _ registry_type2.Registry = (*mdnsRegistry)(nil)
+var _ registry.Registry = (*mdnsRegistry)(nil)
 
 type mdnsRegistry struct {
 	cfg      Cfg
@@ -41,11 +41,11 @@ func (m *mdnsRegistry) Close() {
 func (m *mdnsRegistry) Init() {
 }
 
-func (m *mdnsRegistry) RegLoop(f func() *registry_type2.Service, opt ...registry_type2.RegOpt) error {
+func (m *mdnsRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
 	return m.Register(f(), opt...)
 }
 
-func (m *mdnsRegistry) Register(service *registry_type2.Service, optList ...registry_type2.RegOpt) (err error) {
+func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
@@ -61,7 +61,7 @@ func (m *mdnsRegistry) Register(service *registry_type2.Service, optList ...regi
 	server, err := zeroconf.Register(node.Id, service.Name, "local.", node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
-	var opts registry_type2.RegOpts
+	var opts registry.RegOpts
 	for i := range optList {
 		optList[i](&opts)
 	}
@@ -70,7 +70,7 @@ func (m *mdnsRegistry) Register(service *registry_type2.Service, optList ...regi
 	return nil
 }
 
-func (m *mdnsRegistry) Deregister(service *registry_type2.Service, opt ...registry_type2.DeregOpt) (err error) {
+func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (err error) {
 	defer xerror.RespErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
@@ -87,14 +87,14 @@ func (m *mdnsRegistry) Deregister(service *registry_type2.Service, opt ...regist
 	return nil
 }
 
-func (m *mdnsRegistry) GetService(name string, opts ...registry_type2.GetOpt) (services []*registry_type2.Service, _ error) {
+func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
 	return services, xerror.Try(func() {
 		entries := make(chan *zeroconf.ServiceEntry)
 		syncx.GoSafe(func() {
 			for s := range entries {
-				services = append(services, &registry_type2.Service{
+				services = append(services, &registry.Service{
 					Name: s.Service,
-					Nodes: registry_type2.Nodes{{
+					Nodes: registry.Nodes{{
 						Id:      s.Instance,
 						Port:    s.Port,
 						Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
@@ -103,7 +103,7 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry_type2.GetOpt) (s
 			}
 		})
 
-		var gOpts registry_type2.GetOpts
+		var gOpts registry.GetOpts
 		for i := range opts {
 			opts[i](&gOpts)
 		}
@@ -116,11 +116,11 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry_type2.GetOpt) (s
 	})
 }
 
-func (m *mdnsRegistry) ListService(opts ...registry_type2.ListOpt) (services []*registry_type2.Service, _ error) {
+func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) (services []*registry.Service, _ error) {
 	return services, nil
 }
 
-func (m *mdnsRegistry) Watch(service string, opt ...registry_type2.WatchOpt) (w registry_type2.Watcher, err error) {
+func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (w registry.Watcher, err error) {
 	return w, try.Try(func() { w = newWatcher(m, service, opt...) })
 }
 

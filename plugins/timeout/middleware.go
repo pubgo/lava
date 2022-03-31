@@ -2,6 +2,7 @@ package timeout
 
 import (
 	"context"
+	"github.com/pubgo/lava/service"
 	"net/http"
 	"time"
 
@@ -9,8 +10,6 @@ import (
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 )
 
 const Name = "timeout"
@@ -18,9 +17,9 @@ const Name = "timeout"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
+		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
 			var defaultTimeout = consts.DefaultTimeout
-			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
+			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
 				// 过滤 websocket 请求
 				// 过滤 stream
 				if httpx.IsWebsocket(http.Header(req.Header())) || req.Stream() {

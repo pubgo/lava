@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	logging2 "github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/log_config"
@@ -14,7 +14,7 @@ import (
 )
 
 // Init logger
-func Init(c config_type.Config) {
+func Init(c config.Config) {
 	defer func() { logging2.Initialized = true }()
 
 	defer xerror.RespExit("logger init error")
@@ -32,7 +32,7 @@ func Init(c config_type.Config) {
 
 	// 全局log设置
 	var log = cfg.Build(runtime.Project).With(
-		zap.String(logkey.Env, runtime.Mode),
+		zap.String(logkey.Env, runtime.Mode.String()),
 		zap.String(logkey.Project, runtime.Name()),
 	)
 

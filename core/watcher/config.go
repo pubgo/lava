@@ -1,4 +1,4 @@
-package watcher_config
+package watcher
 
 type Cfg struct {
 	Driver    string                 `json:"driver"`

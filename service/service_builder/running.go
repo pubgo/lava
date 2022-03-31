@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"fmt"
@@ -20,12 +20,12 @@ import (
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/lava/version"
 )
 
-func Run(services ...service_type.Service) {
+func Run(services ...service.Service) {
 	defer xerror.RespExit()
 
 	xerror.Assert(len(services) == 0, "[services] is zero")

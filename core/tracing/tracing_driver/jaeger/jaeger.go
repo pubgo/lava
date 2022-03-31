@@ -2,8 +2,8 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/core/tracing/jaeger/reporter"
+	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
+	"github.com/pubgo/lava/core/tracing/tracing_plugin"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
@@ -46,7 +46,7 @@ func New(cfg Cfg) (err error) {
 
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
-		config.Logger(newLog(tracing.Name)),
+		config.Logger(newLog(tracing_plugin.Name)),
 		config.Metrics(metricsFactory),
 		config.Observer(rpcmetrics.NewObserver(metricsFactory, rpcmetrics.DefaultNameNormalizer)),
 	)

@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/pkg/reflectx"
 )
 
-var injectHandlers = make(map[string]func(obj Object, field Field) (interface{}, bool))
+var injectHandlers = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
 
 const (
 	injectKey  = "inject"
@@ -36,14 +36,12 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 		panic("[fn] is nil")
 	}
 
-	var typStr = reflect.TypeOf(typ).String()
-
 	t := reflect.TypeOf(typ)
 	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
-		typStr = t.Elem().String()
+		t = t.Elem()
 	}
 
-	injectHandlers[typStr] = fn
+	injectHandlers[t] = fn
 }
 
 func Inject(val interface{}) {
@@ -70,7 +68,7 @@ func Inject(val interface{}) {
 		}
 
 		var fieldT = v.Type().Field(i)
-		var fn = injectHandlers[fieldT.Type.String()]
+		var fn = injectHandlers[fieldT.Type]
 		if fn == nil {
 			continue
 		}

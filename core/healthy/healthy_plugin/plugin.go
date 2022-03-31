@@ -1,4 +1,4 @@
-package healthy
+package healthy_plugin
 
 import (
 	"fmt"

@@ -1,6 +1,7 @@
 package cmux
 
 import (
+	"container/heap"
 	"errors"
 	"net"
 	"time"
@@ -45,7 +46,7 @@ type Mux struct {
 
 func (t *Mux) Register(priority int64, matches ...Matcher) chan net.Listener {
 	var item = &matchItem{matches: matches, lis: make(chan net.Listener)}
-	t.priorityQueue.PushItem(&typex.PriorityQueueItem{Value: item, Priority: priority})
+	heap.Push(&t.priorityQueue, &typex.PriorityQueueItem{Value: item, Priority: priority})
 	return item.lis
 }
 

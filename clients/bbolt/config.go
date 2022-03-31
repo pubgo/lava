@@ -43,7 +43,7 @@ func (t *Cfg) Build() io.Closer { return t.Create() }
 
 func (t *Cfg) Create() *bolt.DB {
 	var opts = t.BuildOpts()
-	var path = filepath.Join(config.Home, t.Path)
+	var path = filepath.Join(config.CfgDir, t.Path)
 	xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(path)))
 
 	db, err := bolt.Open(path, t.FileMode, opts)

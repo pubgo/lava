@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"github.com/pubgo/lava/pkg/fiber_builder"

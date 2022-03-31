@@ -1,4 +1,4 @@
-package healthy_type
+package healthy
 
 import (
 	"github.com/gofiber/fiber/v2"

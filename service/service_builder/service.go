@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"context"
@@ -29,11 +29,11 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
 
-func New(name string, desc string, plugins ...plugin.Plugin) service_type.Service {
+func New(name string, desc string, plugins ...plugin.Plugin) service.Service {
 	return newService(name, desc, plugins...)
 }
 
@@ -65,8 +65,8 @@ type serviceImpl struct {
 	beforeStops  []func()
 	afterStops   []func()
 	pluginList   []plugin.Plugin
-	middlewares  []service_type.Middleware
-	services     []service_type.Desc
+	middlewares  []service.Middleware
+	services     []service.Desc
 
 	cmd *cli.Command
 
@@ -82,8 +82,8 @@ type serviceImpl struct {
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
 
-	wrapperUnary  service_type.HandlerFunc
-	wrapperStream service_type.HandlerFunc
+	wrapperUnary  service.HandlerFunc
+	wrapperStream service.HandlerFunc
 
 	ctx context.Context
 }
@@ -98,7 +98,7 @@ func (t *serviceImpl) RegisterApp(prefix string, r *fiber2.App) {
 	t.app.Mount(prefix, r)
 }
 
-func (t *serviceImpl) Middleware(mid service_type.Middleware) {
+func (t *serviceImpl) Middleware(mid service.Middleware) {
 	if mid == nil {
 		return
 	}
@@ -106,11 +106,11 @@ func (t *serviceImpl) Middleware(mid service_type.Middleware) {
 	t.middlewares = append(t.middlewares, mid)
 }
 
-func (t *serviceImpl) Middlewares() []service_type.Middleware { return t.middlewares }
+func (t *serviceImpl) Middlewares() []service.Middleware { return t.middlewares }
 
 func (t *serviceImpl) plugins() []plugin.Plugin { return t.pluginList }
 
-func (t *serviceImpl) middleware(mid service_type.Middleware) {
+func (t *serviceImpl) middleware(mid service.Middleware) {
 	if mid == nil {
 		return
 	}
@@ -171,13 +171,14 @@ func (t *serviceImpl) init() error {
 			t.L.Info("Service Handler Injection", zap.String("handler", fmt.Sprintf("%#v", srv.Handler)))
 		}))
 
-		if h, ok := srv.Handler.(service_type.Handler); ok {
+		if h, ok := srv.Handler.(service.Handler); ok {
+			t.AfterStops(h.Close)
 			logutil.LogOrPanic(t.L, "Service Handler Init", func() error {
 				return xerror.Try(func() {
 					// register router
 					h.Router(t.gw.Get())
 					// service handler init
-					t.AfterStops(h.Init())
+					h.Init()
 				})
 			})
 		}
@@ -199,10 +200,10 @@ func (t *serviceImpl) RegisterMatcher(priority int64, matches ...cmux.Matcher) c
 	return t.net.Register(priority, matches...)
 }
 
-func (t *serviceImpl) ServiceDesc() []service_type.Desc { return t.services }
+func (t *serviceImpl) ServiceDesc() []service.Desc { return t.services }
 
-func (t *serviceImpl) Options() service_type.Options {
-	return service_type.Options{
+func (t *serviceImpl) Options() service.Options {
+	return service.Options{
 		Name:      t.cfg.name,
 		Id:        t.cfg.id,
 		Version:   version.Version,
@@ -214,14 +215,14 @@ func (t *serviceImpl) Options() service_type.Options {
 
 func (t *serviceImpl) GrpcClientInnerConn() grpc.ClientConnInterface { return t.inproc }
 
-func (t *serviceImpl) RegisterService(desc service_type.Desc) {
+func (t *serviceImpl) RegisterService(desc service.Desc) {
 	xerror.Assert(desc.Handler == nil, "[handler] is nil")
 
 	t.srv.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.services = append(t.services, desc)
 
-	if h, ok := desc.Handler.(service_type.Handler); ok {
+	if h, ok := desc.Handler.(service.Handler); ok {
 		t.Flags(h.Flags()...)
 	}
 }
@@ -244,9 +245,6 @@ func (t *serviceImpl) start() (gErr error) {
 
 	var grpcLn = t.net.HTTP2()
 	var gwLn = t.net.HTTP1Fast()
-	go func() {
-		fmt.Println(<-t.net.Any())
-	}()
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {

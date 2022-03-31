@@ -1,11 +1,11 @@
 package logutil
 
 import (
+	"github.com/kr/pretty"
+	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/pubgo/lava/core/logging"
 )
 
 func Enabled(lvl zapcore.Level, loggers ...*zap.Logger) bool {
@@ -63,7 +63,7 @@ func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field)
 	log.Error(msg, ErrField(err)...)
 }
 
-func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() logging.Fields) bool {
+func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
 	if err == nil {
 		return false
 	}
@@ -103,4 +103,12 @@ func ErrTry(log *zap.Logger, fn func(), fields ...zap.Field) {
 	}
 
 	log.Error("panic catch", ErrField(err)...)
+}
+
+func Pretty(a ...interface{}) {
+	zap.L().WithOptions(zap.AddCallerSkip(1)).Info("\n" + pretty.Sprint(a...))
+}
+
+func ColorPretty(a ...interface{}) {
+	zap.L().WithOptions(zap.AddCallerSkip(1)).Info(string(q.Sq(a...)))
 }

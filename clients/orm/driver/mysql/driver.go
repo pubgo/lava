@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ type Config struct {
 }
 
 func init() {
-	orm.Register("mysql", func(cfg config_type.CfgMap) gorm.Dialector {
+	orm.Register("mysql", func(cfg config.CfgMap) gorm.Dialector {
 		var conf = DefaultCfg()
 		xerror.Panic(cfg.Decode(&conf))
 		return mysql.New(*merge.Struct(&mysql.Config{}, conf).(*mysql.Config))

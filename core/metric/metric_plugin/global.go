@@ -1,4 +1,4 @@
-package metric
+package metric_plugin
 
 import (
 	"sync/atomic"

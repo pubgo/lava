@@ -8,8 +8,6 @@ const Name = "logger"
 
 type Logger = zap.Logger
 
-type Fields = []zap.Field
-
 // L global zap log
 func L() *zap.Logger {
 	return zap.L()

@@ -1,14 +1,14 @@
-package gateway
+package gateway_plugin
 
 import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lava/service"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/gw_builder"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/service"
 )
 
 const Name = "gateway"

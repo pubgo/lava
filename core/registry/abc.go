@@ -1,5 +1,5 @@
 // Package registry is an interface for service discovery
-package registry_type
+package registry
 
 // Registry The registry provides an interface for service discovery
 // and an abstraction over varying implementations

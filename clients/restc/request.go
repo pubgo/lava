@@ -1,13 +1,11 @@
 package restc
 
 import (
-	"net/http"
-
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
+	"net/http"
 )
 
-var _ service_type.Request = (*Request)(nil)
+var _ service.Request = (*Request)(nil)
 
 type Request struct {
 	req     *http.Request

@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/registry"
 	pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -86,7 +85,7 @@ type gossipRegistry struct {
 	queue       *memberlist.TransmitLimitedQueue
 	updates     chan *update
 	events      chan *event
-	opts        registry_type2.Opts
+	opts        registry.Opts
 	member      *memberlist.Memberlist
 	interval    time.Duration
 	tcpInterval time.Duration
@@ -94,8 +93,8 @@ type gossipRegistry struct {
 	connectRetry   bool
 	connectTimeout time.Duration
 
-	services map[string][]*registry_type2.Service
-	watchers map[string]chan *registry_type2.Result
+	services map[string][]*registry.Service
+	watchers map[string]chan *registry.Result
 
 	mtu     int
 	addrs   []string
@@ -105,8 +104,8 @@ type gossipRegistry struct {
 
 type update struct {
 	Update  *pb.Update
-	Service *registry_type2.Service
-	sync    chan *registry_type2.Service
+	Service *registry.Service
+	sync    chan *registry.Service
 }
 
 type updates struct {
@@ -114,7 +113,7 @@ type updates struct {
 	services map[uint64]*update
 }
 
-func configure(g *gossipRegistry, opts ...registry_type2.Opt) error {
+func configure(g *gossipRegistry, opts ...registry.Opt) error {
 	// loop through address list and get valid entries
 	addrs := func(curAddrs []string) []string {
 		var newAddrs []string
@@ -308,7 +307,7 @@ func (d *delegate) NotifyMsg(b []byte) {
 			return
 		}
 
-		var service *registry_type2.Service
+		var service *registry.Service
 
 		switch up.Metadata["Content-Type"] {
 		case "application/json":
@@ -337,8 +336,8 @@ func (d *delegate) LocalState(join bool) []byte {
 		return []byte{}
 	}
 
-	syncCh := make(chan *registry_type2.Service, 1)
-	services := map[string][]*registry_type2.Service{}
+	syncCh := make(chan *registry.Service, 1)
+	services := map[string][]*registry.Service{}
 
 	d.updates <- &update{
 		Update: &pb.Update{
@@ -363,7 +362,7 @@ func (d *delegate) MergeRemoteState(buf []byte, join bool) {
 		return
 	}
 
-	var services map[string][]*registry_type2.Service
+	var services map[string][]*registry.Service
 	if err := json.Unmarshal(buf, &services); err != nil {
 		return
 	}
@@ -425,20 +424,20 @@ func (g *gossipRegistry) connect(addrs []string) error {
 	}
 }
 
-func (g *gossipRegistry) publish(action event2.EventType, services []*registry_type2.Service) {
+func (g *gossipRegistry) publish(action event2.EventType, services []*registry.Service) {
 	g.RLock()
 	for _, sub := range g.watchers {
-		go func(sub chan *registry_type2.Result) {
+		go func(sub chan *registry.Result) {
 			for _, service := range services {
-				sub <- &registry_type2.Result{Action: action, Service: service}
+				sub <- &registry.Result{Action: action, Service: service}
 			}
 		}(sub)
 	}
 	g.RUnlock()
 }
 
-func (g *gossipRegistry) subscribe() (chan *registry_type2.Result, chan bool) {
-	next := make(chan *registry_type2.Result, 10)
+func (g *gossipRegistry) subscribe() (chan *registry.Result, chan bool) {
+	next := make(chan *registry.Result, 10)
 	exit := make(chan bool)
 
 	id := uuid.New().String()
@@ -606,15 +605,15 @@ func (g *gossipRegistry) run() {
 		case actionTypeCreate:
 			g.Lock()
 			if service, ok := g.services[u.Service.Name]; !ok {
-				g.services[u.Service.Name] = []*registry_type2.Service{u.Service}
+				g.services[u.Service.Name] = []*registry.Service{u.Service}
 
 			} else {
-				g.services[u.Service.Name] = addServices(service, []*registry_type2.Service{u.Service})
+				g.services[u.Service.Name] = addServices(service, []*registry.Service{u.Service})
 			}
 			g.Unlock()
 
 			// publish update to watchers
-			go g.publish(actionTypeString(actionTypeCreate), []*registry_type2.Service{u.Service})
+			go g.publish(actionTypeString(actionTypeCreate), []*registry.Service{u.Service})
 
 			// we need to expire the node at some point in the future
 			if u.Update.Expires > 0 {
@@ -628,7 +627,7 @@ func (g *gossipRegistry) run() {
 		case actionTypeDelete:
 			g.Lock()
 			if service, ok := g.services[u.Service.Name]; ok {
-				if services := delServices(service, []*registry_type2.Service{u.Service}); len(services) == 0 {
+				if services := delServices(service, []*registry.Service{u.Service}); len(services) == 0 {
 					delete(g.services, u.Service.Name)
 				} else {
 					g.services[u.Service.Name] = services
@@ -637,7 +636,7 @@ func (g *gossipRegistry) run() {
 			g.Unlock()
 
 			// publish update to watchers
-			go g.publish(actionTypeString(actionTypeDelete), []*registry_type2.Service{u.Service})
+			go g.publish(actionTypeString(actionTypeDelete), []*registry.Service{u.Service})
 
 			// delete from expiry checks
 			if hash, err := hashstructure.Hash(u.Service, nil); err == nil {
@@ -671,11 +670,11 @@ func (g *gossipRegistry) run() {
 	}
 }
 
-func (g *gossipRegistry) RegLoop(f func() *registry_type2.Service, opt ...registry_type2.RegOpt) error {
+func (g *gossipRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
 	return g.Register(f(), opt...)
 }
 
-func (g *gossipRegistry) Register(s *registry_type2.Service, opts ...registry_type2.RegOpt) error {
+func (g *gossipRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -683,13 +682,13 @@ func (g *gossipRegistry) Register(s *registry_type2.Service, opts ...registry_ty
 
 	g.Lock()
 	if service, ok := g.services[s.Name]; !ok {
-		g.services[s.Name] = []*registry_type2.Service{s}
+		g.services[s.Name] = []*registry.Service{s}
 	} else {
-		g.services[s.Name] = addServices(service, []*registry_type2.Service{s})
+		g.services[s.Name] = addServices(service, []*registry.Service{s})
 	}
 	g.Unlock()
 
-	var options registry_type2.RegOpts
+	var options registry.RegOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -725,7 +724,7 @@ func (g *gossipRegistry) Register(s *registry_type2.Service, opts ...registry_ty
 	return nil
 }
 
-func (g *gossipRegistry) Deregister(s *registry_type2.Service, opt ...registry_type2.DeregOpt) error {
+func (g *gossipRegistry) Deregister(s *registry.Service, opt ...registry.DeregOpt) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -733,7 +732,7 @@ func (g *gossipRegistry) Deregister(s *registry_type2.Service, opt ...registry_t
 
 	g.Lock()
 	if service, ok := g.services[s.Name]; ok {
-		if services := delServices(service, []*registry_type2.Service{s}); len(services) == 0 {
+		if services := delServices(service, []*registry.Service{s}); len(services) == 0 {
 			delete(g.services, s.Name)
 		} else {
 			g.services[s.Name] = services
@@ -767,7 +766,7 @@ func (g *gossipRegistry) Deregister(s *registry_type2.Service, opt ...registry_t
 	return nil
 }
 
-func (g *gossipRegistry) GetService(name string, opt ...registry_type2.GetOpt) ([]*registry_type2.Service, error) {
+func (g *gossipRegistry) GetService(name string, opt ...registry.GetOpt) ([]*registry.Service, error) {
 	g.RLock()
 	service, ok := g.services[name]
 	g.RUnlock()
@@ -777,8 +776,8 @@ func (g *gossipRegistry) GetService(name string, opt ...registry_type2.GetOpt) (
 	return service, nil
 }
 
-func (g *gossipRegistry) ListService(opt ...registry_type2.ListOpt) ([]*registry_type2.Service, error) {
-	var services []*registry_type2.Service
+func (g *gossipRegistry) ListService(opt ...registry.ListOpt) ([]*registry.Service, error) {
+	var services []*registry.Service
 	g.RLock()
 	for _, service := range g.services {
 		services = append(services, service...)
@@ -787,7 +786,7 @@ func (g *gossipRegistry) ListService(opt ...registry_type2.ListOpt) ([]*registry
 	return services, nil
 }
 
-func (g *gossipRegistry) Watch(s string, opts ...registry_type2.WatchOpt) (registry_type2.Watcher, error) {
+func (g *gossipRegistry) Watch(s string, opts ...registry.WatchOpt) (registry.Watcher, error) {
 	n, e := g.subscribe()
 	return newGossipWatcher(n, e, opts...)
 }
@@ -796,13 +795,13 @@ func (g *gossipRegistry) String() string {
 	return "gossip"
 }
 
-func NewRegistry(opts ...registry_type2.Opt) registry_type2.Registry {
+func NewRegistry(opts ...registry.Opt) registry.Registry {
 	g := &gossipRegistry{
 		done:     make(chan bool),
 		events:   make(chan *event, 100),
 		updates:  make(chan *update, 100),
-		services: make(map[string][]*registry_type2.Service),
-		watchers: make(map[string]chan *registry_type2.Result),
+		services: make(map[string][]*registry.Service),
+		watchers: make(map[string]chan *registry.Result),
 		members:  make(map[string]int32),
 	}
 	// run the updater

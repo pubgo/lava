@@ -2,14 +2,13 @@ package redisc
 
 import (
 	"context"
+	"github.com/pubgo/lava/resource"
 
 	"github.com/go-redis/redis/v8"
-
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
 type Client struct {
-	resource_type.Resource
+	resource.Resource
 }
 
 func (t *Client) cli() *redis.Client {

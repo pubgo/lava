@@ -1,6 +1,7 @@
 package config_builder
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,14 +18,14 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/config/config_type"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/version"
 )
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
 
-var _ config_type.Config = (*configImpl)(nil)
+var _ config.Config = (*configImpl)(nil)
 
 type configImpl struct {
 	rw sync.RWMutex
@@ -52,14 +53,14 @@ func (t *configImpl) AllKeys() []string {
 	return t.v.AllKeys()
 }
 
-func (t *configImpl) GetMap(keys ...string) config_type.CfgMap {
+func (t *configImpl) GetMap(keys ...string) config.CfgMap {
 	t.rw.RLock()
 	defer t.rw.RUnlock()
 
 	key := strings.Trim(strings.Join(keys, "."), ".")
 	var val = t.v.Get(key)
 	if val == nil {
-		return config_type.CfgMap{}
+		return config.CfgMap{}
 	}
 
 	for _, data := range cast.ToSlice(val) {
@@ -95,7 +96,7 @@ func (t *configImpl) Decode(name string, val interface{}) (err error) {
 
 	xerror.Assert(name == "" || val == nil, "[name,val] should not be nil")
 	if t.Get(name) == nil {
-		return config_type.ErrKeyNotFound
+		return errors.New("config key not found")
 	}
 
 	vfn := reflect.ValueOf(val)
@@ -147,9 +148,9 @@ func (t *configImpl) initCfg() {
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 然后获取配置了
 	xerror.PanicF(t.initWithDir(v), "config file load error")
-	config.Home = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
 	config.CfgPath = v.ConfigFileUsed()
-	os.Setenv("cfg_dir", config.Home)
+	config.CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
+	os.Setenv(config.HomeEnv, config.CfgDir)
 
 	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
 
@@ -206,7 +207,9 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 		return nil
 	}
 
-	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, ".lava", config.CfgName) })
+	var pathList = strMap(getPathList(), func(str string) string {
+		return filepath.Join(str, "."+version.Domain, config.CfgName)
+	})
 	xerror.Assert(len(pathList) == 0, "paths is ")
 
 	for i := range pathList {
@@ -221,7 +224,11 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 // 监控配置中的app自定义配置
 func (t *configImpl) initApp(v *viper.Viper) error {
 	// .lava/config/config.[env].yaml
-	var path = filepath.Join(filepath.Dir(config.CfgPath), fmt.Sprintf("%s.%s.%s", config.CfgName, runtime.Mode, config.CfgType))
+	var path = filepath.Join(
+		filepath.Dir(config.CfgPath),
+		fmt.Sprintf("%s.%s.%s", config.CfgName, runtime.Mode, config.CfgType),
+	)
+
 	if !pathutil.IsExist(path) {
 		return nil
 	}

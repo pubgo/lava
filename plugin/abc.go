@@ -2,10 +2,10 @@ package plugin
 
 import (
 	"encoding/json"
+	"github.com/pubgo/lava/core/healthy"
+	"github.com/pubgo/lava/core/watcher"
 
-	"github.com/pubgo/lava/config/config_type"
-	"github.com/pubgo/lava/core/healthy/healthy_type"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/abc/service_inter"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
@@ -25,13 +25,13 @@ type Plugin interface {
 	// Commands 插件启动子命令
 	Commands() *typex.Command
 	// Init 插件初始化
-	Init(cfg config_type.Config) error
+	Init(cfg config.Config) error
 	// Watch 配置变更通知
-	Watch(name string, r *watcher_type.Response) error
+	Watch(name string, r *watcher.Response) error
 	// Vars 插件可观测指标
 	Vars(vars.Publisher) error
 	// Health 插件健康检查
-	Health() healthy_type.Handler
+	Health() healthy.Handler
 	// Middleware 插件中间件拦截器
 	Middleware() Middleware
 	// BeforeStarts 在服务启动之前执行操作

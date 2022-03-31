@@ -5,21 +5,23 @@ import (
 
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/version"
 )
 
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	Home    = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), ".lava")
+	CfgDir  = filepath.Join(xerror.PanicStr(filepath.Abs(filepath.Dir(""))), "."+version.Domain)
 	CfgPath = ""
-	conf    config_type.Config
+	conf    Config
 )
 
-func SetCfg(c config_type.Config) { conf = c }
+const HomeEnv = "cfg_dir"
+
+func SetCfg(c Config) { conf = c }
 
 // GetCfg 获取内存配置
-func GetCfg() config_type.Config {
+func GetCfg() Config {
 	if conf == nil {
 		panic("please init config")
 	}
@@ -31,4 +33,4 @@ func GetCfg() config_type.Config {
 func Decode(name string, fn interface{}) error { return GetCfg().Decode(name, fn) }
 
 // GetMap 通过key获取配置map
-func GetMap(keys ...string) config_type.CfgMap { return GetCfg().GetMap(keys...) }
+func GetMap(keys ...string) CfgMap { return GetCfg().GetMap(keys...) }

@@ -1,4 +1,4 @@
-package tracing
+package tracing_plugin
 
 import (
 	"encoding/base64"

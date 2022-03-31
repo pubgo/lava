@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/core/registry/registry_type"
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/pkg/syncx"
 )
@@ -25,7 +24,7 @@ type discovBuilder struct {
 func (d *discovBuilder) Scheme() string { return DiscovScheme }
 
 // 删除服务
-func (d *discovBuilder) delService(services ...*registry_type.Service) {
+func (d *discovBuilder) delService(services ...*registry.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 删除服务信息
@@ -37,7 +36,7 @@ func (d *discovBuilder) delService(services ...*registry_type.Service) {
 }
 
 // 更新服务
-func (d *discovBuilder) updateService(services ...*registry_type.Service) {
+func (d *discovBuilder) updateService(services ...*registry.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 更新服务信息
@@ -91,6 +90,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(srv)
 	xerror.Panic(err, "registry GetService error")
+	pretty.Logln(services, "\n\n")
 
 	// 启动后，更新服务地址
 	d.updateService(services...)

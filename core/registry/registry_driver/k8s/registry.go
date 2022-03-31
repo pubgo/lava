@@ -3,9 +3,8 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/registry"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -71,7 +70,7 @@ const (
 )
 
 func init() {
-	registry.Register(name, func(m config_type.CfgMap) (_ registry_type2.Registry, err error) {
+	registry.Register(name, func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer xerror.RespErr(&err)
 
 		var cfg Cfg
@@ -90,7 +89,7 @@ func NewRegistry(clientSet *kubernetes.Clientset) *Registry {
 	}
 }
 
-var _ registry_type2.Registry = (*Registry)(nil)
+var _ registry.Registry = (*Registry)(nil)
 
 // Registry The registry simply implements service discovery based on Kubernetes
 // It has not been verified in the production environment and is currently for reference only
@@ -99,16 +98,16 @@ type Registry struct {
 	stopCh chan struct{}
 }
 
-func (s *Registry) RegLoop(f func() *registry_type2.Service, opt ...registry_type2.RegOpt) error {
+func (s *Registry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
 	return s.Register(f(), opt...)
 }
 
-func (s *Registry) Deregister(service *registry_type2.Service, opt ...registry_type2.DeregOpt) error {
+func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
 	return nil
 	//return s.Register(&registry.Service{Metadata: map[string]string{},})
 }
 
-func (s *Registry) GetService(name string, opt ...registry_type2.GetOpt) (_ []*registry_type2.Service, err error) {
+func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registry.Service, err error) {
 	defer xerror.RespErr(&err)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
@@ -120,7 +119,7 @@ func (s *Registry) GetService(name string, opt ...registry_type2.GetOpt) (_ []*r
 		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)})
 	xerror.Panic(err)
 
-	var resp []*registry_type2.Service
+	var resp []*registry.Service
 	for _, endpoint := range endpoints.Items {
 		for _, subset := range endpoint.Subsets {
 			realPort := ""
@@ -130,9 +129,9 @@ func (s *Registry) GetService(name string, opt ...registry_type2.GetOpt) (_ []*r
 			}
 
 			for _, addr := range subset.Addresses {
-				resp = append(resp, &registry_type2.Service{
+				resp = append(resp, &registry.Service{
 					Name: name,
-					Nodes: []*registry_type2.Node{
+					Nodes: []*registry.Node{
 						{
 							Id:      string(addr.TargetRef.UID),
 							Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
@@ -146,7 +145,7 @@ func (s *Registry) GetService(name string, opt ...registry_type2.GetOpt) (_ []*r
 	return resp, nil
 }
 
-func (s *Registry) ListService(opt ...registry_type2.ListOpt) ([]*registry_type2.Service, error) {
+func (s *Registry) ListService(opt ...registry.ListOpt) ([]*registry.Service, error) {
 	panic("implement me")
 }
 
@@ -155,7 +154,7 @@ func (s *Registry) String() string { return name }
 // Register is used to register services
 // Note that on Kubernetes, it can only be used to update the id/name/version/metadata/protocols of the current service,
 // but it cannot be used to update node.
-func (s *Registry) Register(service *registry_type2.Service, opt ...registry_type2.RegOpt) error {
+func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) error {
 
 	//patchBytes, err := jsoniter.Marshal(map[string]interface{}{
 	//	"metadata": metav1.ObjectMeta{
@@ -181,6 +180,6 @@ func (s *Registry) Register(service *registry_type2.Service, opt ...registry_typ
 }
 
 // Watch creates a watcher according to the service name.
-func (s *Registry) Watch(name string, opt ...registry_type2.WatchOpt) (registry_type2.Watcher, error) {
+func (s *Registry) Watch(name string, opt ...registry.WatchOpt) (registry.Watcher, error) {
 	return newWatcher(s, name), nil
 }

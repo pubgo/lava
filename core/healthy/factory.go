@@ -3,7 +3,6 @@ package healthy
 import (
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/core/healthy/healthy_type"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/pkg/utils"
 )
@@ -12,24 +11,24 @@ const Name = "health"
 
 var healthList typex.SMap
 
-func Get(names ...string) healthy_type.Handler {
+func Get(names ...string) Handler {
 	val, ok := healthList.Load(utils.GetDefault(names...))
 	if !ok {
 		return nil
 	}
 
-	return val.(healthy_type.Handler)
+	return val.(Handler)
 }
 
-func List() (val []healthy_type.Handler) {
+func List() (val []Handler) {
 	healthList.Range(func(_, value interface{}) bool {
-		val = append(val, value.(healthy_type.Handler))
+		val = append(val, value.(Handler))
 		return true
 	})
 	return
 }
 
-func Register(name string, r healthy_type.Handler) {
+func Register(name string, r Handler) {
 	if r == nil {
 		return
 	}

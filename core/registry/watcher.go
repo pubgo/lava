@@ -1,4 +1,4 @@
-package registry_type
+package registry
 
 import (
 	"time"

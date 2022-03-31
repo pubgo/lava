@@ -1,12 +1,12 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/lava/resource/resource_type"
+	"github.com/pubgo/lava/resource"
 	client3 "go.etcd.io/etcd/client/v3"
 )
 
 type Client struct {
-	resource_type.Resource
+	resource.Resource
 }
 
 func (c *Client) Get() *client3.Client {

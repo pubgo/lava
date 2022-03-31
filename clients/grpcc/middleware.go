@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/service"
 	"time"
 
 	"google.golang.org/grpc"
@@ -9,12 +10,10 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 )
 
-func unaryInterceptor(middlewares []service_type.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
+func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
 		var reqCtx = req.(*request)
 		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
 		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc); err != nil {
@@ -74,13 +73,13 @@ func unaryInterceptor(middlewares []service_type.Middleware) grpc.UnaryClientInt
 				cc:      cc,
 				invoker: invoker,
 			},
-			func(_ service_type.Response) error { return nil },
+			func(_ service.Response) error { return nil },
 		)
 	}
 }
 
-func streamInterceptor(middlewares []service_type.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
+func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
 		var reqCtx = req.(*request)
 		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
 		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method)
@@ -141,7 +140,7 @@ func streamInterceptor(middlewares []service_type.Middleware) grpc.StreamClientI
 				method:   method,
 				streamer: streamer,
 			},
-			func(rsp service_type.Response) error { resp = rsp.(*response).stream; return nil },
+			func(rsp service.Response) error { resp = rsp.(*response).stream; return nil },
 		)
 	}
 }

@@ -2,6 +2,7 @@ package debug_plugin
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/service"
 
 	"github.com/pkg/browser"
@@ -9,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/logging/logutil"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"

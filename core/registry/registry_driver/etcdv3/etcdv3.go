@@ -5,9 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	registry2 "github.com/pubgo/lava/core/registry"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 	"path"
 	"strings"
 	"sync"
@@ -23,7 +22,7 @@ import (
 )
 
 func init() {
-	registry2.Register(Name, func(m config_type.CfgMap) (registry_type2.Registry, error) {
+	registry2.Register(Name, func(m config.CfgMap) (registry2.Registry, error) {
 		var cfg Cfg
 		merge.MapStruct(&cfg, m)
 
@@ -47,17 +46,17 @@ func (e *Registry) Init() {
 	inject.Inject(e)
 }
 
-func (e *Registry) RegLoop(f func() *registry_type2.Service, opt ...registry_type2.RegOpt) error {
+func (e *Registry) RegLoop(f func() *registry2.Service, opt ...registry2.RegOpt) error {
 	return e.Register(f(), opt...)
 }
 
-func encode(s *registry_type2.Service) string {
+func encode(s *registry2.Service) string {
 	b, _ := json.Marshal(s)
 	return string(b)
 }
 
-func decode(ds []byte) *registry_type2.Service {
-	var s *registry_type2.Service
+func decode(ds []byte) *registry2.Service {
+	var s *registry2.Service
 	xerror.Panic(json.Unmarshal(ds, &s))
 	return s
 }
@@ -72,7 +71,7 @@ func servicePath(prefix, s string) string {
 	return path.Join(prefix, strings.Replace(s, "/", "-", -1))
 }
 
-func (e *Registry) Deregister(s *registry_type2.Service, opts ...registry_type2.DeregOpt) error {
+func (e *Registry) Deregister(s *registry2.Service, opts ...registry2.DeregOpt) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("Require at least one node")
 	}
@@ -96,7 +95,7 @@ func (e *Registry) Deregister(s *registry_type2.Service, opts ...registry_type2.
 	return nil
 }
 
-func (e *Registry) Register(s *registry_type2.Service, opts ...registry_type2.RegOpt) error {
+func (e *Registry) Register(s *registry2.Service, opts ...registry2.RegOpt) error {
 	if len(s.Nodes) == 0 {
 		return errors.New("Require at least one node")
 	}
@@ -131,14 +130,14 @@ func (e *Registry) Register(s *registry_type2.Service, opts ...registry_type2.Re
 		return nil
 	}
 
-	service := &registry_type2.Service{
+	service := &registry2.Service{
 		Name:      s.Name,
 		Version:   s.Version,
 		Metadata:  s.Metadata,
 		Endpoints: s.Endpoints,
 	}
 
-	var options registry_type2.RegOpts
+	var options registry2.RegOpts
 	for _, o := range opts {
 		o(&options)
 	}
@@ -155,7 +154,7 @@ func (e *Registry) Register(s *registry_type2.Service, opts ...registry_type2.Re
 	}
 
 	for _, node := range s.Nodes {
-		service.Nodes = []*registry_type2.Node{node}
+		service.Nodes = []*registry2.Node{node}
 		if lgr != nil {
 			_, err = e.Client.Get().Put(ctx, nodePath(e.Cfg.Prefix, service.Name, node.Id), encode(service), clientv3.WithLease(lgr.ID))
 		} else {
@@ -178,7 +177,7 @@ func (e *Registry) Register(s *registry_type2.Service, opts ...registry_type2.Re
 	return nil
 }
 
-func (e *Registry) GetService(name string, opts ...registry_type2.GetOpt) ([]*registry_type2.Service, error) {
+func (e *Registry) GetService(name string, opts ...registry2.GetOpt) ([]*registry2.Service, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -191,13 +190,13 @@ func (e *Registry) GetService(name string, opts ...registry_type2.GetOpt) ([]*re
 		return nil, registry2.ErrNotFound
 	}
 
-	serviceMap := map[string]*registry_type2.Service{}
+	serviceMap := map[string]*registry2.Service{}
 
 	for _, n := range rsp.Kvs {
 		if sn := decode(n.Value); sn != nil {
 			s, ok := serviceMap[sn.Version]
 			if !ok {
-				s = &registry_type2.Service{
+				s = &registry2.Service{
 					Name:      sn.Name,
 					Version:   sn.Version,
 					Metadata:  sn.Metadata,
@@ -212,15 +211,15 @@ func (e *Registry) GetService(name string, opts ...registry_type2.GetOpt) ([]*re
 		}
 	}
 
-	var services []*registry_type2.Service
+	var services []*registry2.Service
 	for _, service := range serviceMap {
 		services = append(services, service)
 	}
 	return services, nil
 }
 
-func (e *Registry) ListService(opts ...registry_type2.ListOpt) ([]*registry_type2.Service, error) {
-	var services []*registry_type2.Service
+func (e *Registry) ListService(opts ...registry2.ListOpt) ([]*registry2.Service, error) {
+	var services []*registry2.Service
 	nameSet := make(map[string]struct{})
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -232,7 +231,7 @@ func (e *Registry) ListService(opts ...registry_type2.ListOpt) ([]*registry_type
 	}
 
 	if len(rsp.Kvs) == 0 {
-		return []*registry_type2.Service{}, nil
+		return []*registry2.Service{}, nil
 	}
 
 	for _, n := range rsp.Kvs {
@@ -241,7 +240,7 @@ func (e *Registry) ListService(opts ...registry_type2.ListOpt) ([]*registry_type
 		}
 	}
 	for k := range nameSet {
-		service := &registry_type2.Service{}
+		service := &registry2.Service{}
 		service.Name = k
 		services = append(services, service)
 	}
@@ -249,7 +248,7 @@ func (e *Registry) ListService(opts ...registry_type2.ListOpt) ([]*registry_type
 	return services, nil
 }
 
-func (e *Registry) Watch(service string, opts ...registry_type2.WatchOpt) (registry_type2.Watcher, error) {
+func (e *Registry) Watch(service string, opts ...registry2.WatchOpt) (registry2.Watcher, error) {
 	return newWatcher(e, timeout, opts...)
 }
 

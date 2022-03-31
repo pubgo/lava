@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"html/template"
@@ -23,7 +23,7 @@ func (t *serviceImpl) initDebug() {
 		</html>
 		`))
 
-	var handler = func(ctx *fiber.Ctx) error {
+	t.app.Get("/debug", func(ctx *fiber.Ctx) error {
 		var keys []string
 		stack := t.gw.Get().Stack()
 		for m := range stack {
@@ -34,7 +34,5 @@ func (t *serviceImpl) initDebug() {
 		}
 
 		return htmlx.Html(ctx, homeTmpl, keys)
-	}
-
-	t.app.Get("/debug", handler)
+	})
 }

@@ -1,19 +1,15 @@
 package registry
 
-import (
-	"github.com/pubgo/lava/core/registry/registry_type"
-)
+var defaultRegistry Registry
 
-var defaultRegistry registry_type.Registry
-
-func SetDefault(r registry_type.Registry) {
+func SetDefault(r Registry) {
 	if r == nil {
 		panic("[r] is nil")
 	}
 	defaultRegistry = r
 }
 
-func Default() registry_type.Registry {
+func Default() Registry {
 	if defaultRegistry == nil {
 		panic("please init defaultRegistry")
 	}

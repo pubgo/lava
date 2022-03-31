@@ -1,10 +1,11 @@
 package config_builder
 
 import (
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/watcher/watcher_builder"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
+
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/watcher/watcher_builder"
 )
 
 var cfg = &configImpl{v: viper.New()}

@@ -2,12 +2,10 @@ package grpcc
 
 import (
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
-
 	"google.golang.org/grpc"
 )
 
-var _ service_type.Request = (*request)(nil)
+var _ service.Request = (*request)(nil)
 
 type request struct {
 	ct         string

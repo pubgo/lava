@@ -3,6 +3,7 @@ package vars_plugin
 import (
 	"expvar"
 	"fmt"
+	"github.com/pubgo/lava/core/debug"
 	"net/http"
 
 	"github.com/gofiber/adaptor/v2"
@@ -11,8 +12,6 @@ import (
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/debug"
 )
 
 func init() {

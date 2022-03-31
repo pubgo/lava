@@ -2,9 +2,8 @@ package etcdv3
 
 import (
 	"context"
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	watcher2 "github.com/pubgo/lava/core/watcher"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
@@ -13,16 +12,16 @@ import (
 )
 
 func init() {
-	watcher2.RegisterFactory(Name, func(cfg config_type.CfgMap) (watcher_type.Watcher, error) {
+	watcher2.RegisterFactory(Name, func(cfg config.CfgMap) (watcher2.Watcher, error) {
 		var c Cfg
 		xerror.Panic(cfg.Decode(&c))
 		return newWatcher(c), nil
 	})
 }
 
-var _ watcher_type.Watcher = (*watcherImpl)(nil)
+var _ watcher2.Watcher = (*watcherImpl)(nil)
 
-func newWatcher(cfg Cfg) watcher_type.Watcher {
+func newWatcher(cfg Cfg) watcher2.Watcher {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &watcherImpl{
 		Cfg:    cfg,
@@ -47,7 +46,7 @@ func (w *watcherImpl) Init() {
 }
 
 func (w *watcherImpl) Close() { close(w.exitCh) }
-func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher_type.Opt) (responses []*watcher_type.Response, gErr error) {
+func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher2.Opt) (responses []*watcher2.Response, gErr error) {
 	defer xerror.RespErr(&gErr)
 
 	key = handleKey(key)
@@ -57,7 +56,7 @@ func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher_type.
 
 	for i := range resp.Kvs {
 		e := resp.Kvs[i]
-		responses = append(responses, &watcher_type.Response{
+		responses = append(responses, &watcher2.Response{
 			Event:   event.EventType_UPDATE,
 			Key:     string(e.Key),
 			Value:   e.Value,
@@ -67,7 +66,7 @@ func (w *watcherImpl) Get(ctx context.Context, key string, opts ...watcher_type.
 	return
 }
 
-func (w *watcherImpl) GetCallback(ctx context.Context, key string, fn func(resp *watcher_type.Response), opts ...watcher_type.Opt) (err error) {
+func (w *watcherImpl) GetCallback(ctx context.Context, key string, fn func(resp *watcher2.Response), opts ...watcher2.Opt) (err error) {
 	defer xerror.RespErr(&err)
 
 	responses, err := w.Get(ctx, key, opts...)
@@ -82,14 +81,14 @@ func (w *watcherImpl) GetCallback(ctx context.Context, key string, fn func(resp 
 	return nil
 }
 
-func (w *watcherImpl) WatchCallback(ctx context.Context, key string, fn func(resp *watcher_type.Response), opts ...watcher_type.Opt) {
+func (w *watcherImpl) WatchCallback(ctx context.Context, key string, fn func(resp *watcher2.Response), opts ...watcher2.Opt) {
 	key = handleKey(key)
 
 	go func() {
 		for w := range w.Etcd.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
-				fn(&watcher_type.Response{
+				fn(&watcher2.Response{
 					Event:   convert(e.Type),
 					Key:     string(e.Kv.Key),
 					Value:   e.Kv.Value,
@@ -100,15 +99,15 @@ func (w *watcherImpl) WatchCallback(ctx context.Context, key string, fn func(res
 	}()
 }
 
-func (w *watcherImpl) Watch(ctx context.Context, key string, opts ...watcher_type.Opt) <-chan *watcher_type.Response {
+func (w *watcherImpl) Watch(ctx context.Context, key string, opts ...watcher2.Opt) <-chan *watcher2.Response {
 	key = handleKey(key)
 
-	var resp = make(chan *watcher_type.Response)
+	var resp = make(chan *watcher2.Response)
 	go func() {
 		for w := range w.Etcd.Get().Watch(ctx, key) {
 			for i := range w.Events {
 				var e = w.Events[i]
-				resp <- &watcher_type.Response{
+				resp <- &watcher2.Response{
 					Event:   convert(e.Type),
 					Key:     string(e.Kv.Key),
 					Value:   e.Kv.Value,

@@ -1,4 +1,4 @@
-package resource_type
+package resource
 
 import (
 	"fmt"

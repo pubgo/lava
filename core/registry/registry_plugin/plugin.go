@@ -13,89 +13,68 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/core/registry/registry_type"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
 
-const (
-	// DefaultMaxMsgSize define maximum message size that server can send or receive.
-	// Default value is 4MB.
-	DefaultMaxMsgSize = 1024 * 1024 * 4
+func Enable(srv service.Service) {
+	var cfg = registry.DefaultCfg()
+	srv.BeforeStarts(func() {
+		// 配置解析
+		xerror.Panic(config.GetMap(registry.Name).Decode(&cfg))
+	})
 
-	DefaultSleepAfterDeRegister = time.Second * 2
+	// 服务注册
+	srv.AfterStarts(func() {
+		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
+		inject.Inject(reg)
+		reg.Init()
 
-	// DefaultRegisterTTL The register expiry time
-	DefaultRegisterTTL = time.Minute
+		registry.SetDefault(reg)
 
-	// DefaultRegisterInterval The interval on which to register
-	DefaultRegisterInterval = time.Second * 30
+		xerror.Panic(register(srv))
 
-	defaultContentType = "application/grpc"
+		var cancel = syncx.GoCtx(func(ctx context.Context) {
+			var interval = registry.DefaultRegisterInterval
 
-	DefaultSleepAfterDeregister = time.Second * 2
-)
+			// only process if it exists
+			if cfg.RegisterInterval > time.Duration(0) {
+				interval = cfg.RegisterInterval
+			}
 
-func Enable(srv service_type.Service) {
-	srv.Plugin(&plugin.Base{
-		Name: registry.Name,
-		OnInit: func(p plugin.Process) {
-			var cfg = registry.DefaultCfg()
+			var tick = time.NewTicker(interval)
+			defer tick.Stop()
 
-			// 配置解析
-			p.BeforeStart(func() {
-				xerror.Panic(config.GetMap(registry.Name).Decode(&cfg))
-			})
+			for {
+				select {
+				case <-tick.C:
+					logutil.LogOrErr(zap.L(), "service register",
+						func() error { return register(srv) },
+						zap.String("service", srv.Options().Name),
+						zap.String("InstanceId", srv.Options().Id),
+						zap.String("registry", registry.Default().String()),
+						zap.String("interval", interval.String()),
+					)
+				case <-ctx.Done():
+					zap.L().Info("service register cancelled")
+					return
+				}
+			}
+		})
 
-			// 服务注册
-			p.AfterStart(func() {
-				reg := xerror.PanicErr(cfg.Build()).(registry_type.Registry)
-				reg.Init()
-				registry.SetDefault(reg)
-
-				xerror.Panic(register(srv))
-
-				var cancel = syncx.GoCtx(func(ctx context.Context) {
-					var interval = DefaultRegisterInterval
-
-					// only process if it exists
-					if cfg.RegisterInterval > time.Duration(0) {
-						interval = cfg.RegisterInterval
-					}
-
-					var tick = time.NewTicker(interval)
-					defer tick.Stop()
-
-					for {
-						select {
-						case <-tick.C:
-							logutil.LogOrErr(zap.L(), "service register",
-								func() error { return register(srv) },
-								zap.String("registry", registry.Default().String()),
-								zap.String("interval", interval.String()),
-							)
-						case <-ctx.Done():
-							zap.L().Info("service register cancelled")
-							return
-						}
-					}
-				})
-
-				// 服务撤销
-				p.BeforeStop(func() {
-					cancel()
-					xerror.Panic(deregister(srv))
-				})
-			})
-		},
+		// 服务撤销
+		srv.BeforeStops(func() {
+			cancel()
+			xerror.Panic(deregister(srv))
+		})
 	})
 }
 
-func register(srv service_type.Service) (err error) {
+func register(srv service.Service) (err error) {
 	defer xerror.RespErr(&err)
 
 	var reg = registry.Default()
@@ -124,28 +103,29 @@ func register(srv service_type.Service) (err error) {
 	}
 
 	// register service
-	node := &registry_type.Node{
+	node := &registry.Node{
 		Port:     port,
+		Version:  version.Version,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
-		Metadata: make(map[string]string),
+		Metadata: map[string]string{"registry": reg.String()},
 	}
 
-	node.Metadata["registry"] = reg.String()
-
-	services := &registry_type.Service{
-		Name:    opt.Name,
-		Version: version.Version,
-		Nodes:   []*registry_type.Node{node},
+	s := &registry.Service{
+		Name:  opt.Name,
+		Nodes: []*registry.Node{node},
 	}
 
-	zap.L().Info("Registering Node", zap.String("id", node.Id), zap.String("name", opt.Name))
-
-	logutil.LogOrPanic(zap.L(), "[grpc] register", func() error { return reg.Register(services) })
+	logutil.LogOrPanic(
+		zap.L(),
+		"register service node",
+		func() error { return reg.Register(s) },
+		zap.String("id", node.Id),
+		zap.String("name", opt.Name))
 	return nil
 }
 
-func deregister(srv service_type.Service) (err error) {
+func deregister(srv service.Service) (err error) {
 	defer xerror.RespErr(&err)
 
 	var opt = srv.Options()
@@ -169,22 +149,22 @@ func deregister(srv service_type.Service) (err error) {
 	}
 
 	// register service
-	node := &registry_type.Node{
+	node := &registry.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
 		Metadata: make(map[string]string),
 	}
 
-	services := &registry_type.Service{
-		Name:    opt.Name,
-		Version: version.Version,
-		Nodes:   []*registry_type.Node{node},
+	s := &registry.Service{
+		Name:  opt.Name,
+		Nodes: []*registry.Node{node},
 	}
 
-	logutil.LogOrErr(zap.L(), "deregister node",
-		func() error { return reg.Deregister(services) },
+	logutil.LogOrErr(zap.L(), "deregister service node",
+		func() error { return reg.Deregister(s) },
 		zap.String("id", node.Id),
+		zap.String("name", opt.Name),
 	)
 
 	return nil

@@ -3,6 +3,7 @@ package log_config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/pubgo/xerror"
@@ -130,7 +131,7 @@ func (t Config) Build(name string, opts ...zap.Option) (_ *zap.Logger) {
 		for i := range allLevels {
 			lvl := allLevels[i]
 			var w = &lumberjack.Logger{
-				Filename:   filepath.Join(t.Rotate.Filename, lvl.String(), fmt.Sprintf("%s.log", name)),
+				Filename:   os.ExpandEnv(filepath.Join(t.Rotate.Filename, lvl.String(), fmt.Sprintf("%s.log", name))),
 				MaxSize:    t.Rotate.MaxSize,
 				MaxBackups: t.Rotate.MaxBackups,
 				MaxAge:     t.Rotate.MaxAge,
@@ -156,7 +157,7 @@ func NewDevConfig(opts ...option) Config {
 		Encoding:          "console",
 		DisableStacktrace: true,
 		Rotate: &rotateCfg{
-			Filename:   "./logs",
+			Filename:   "${cfg_dir}/logs",
 			MaxSize:    10,
 			MaxBackups: 3,
 			MaxAge:     28,

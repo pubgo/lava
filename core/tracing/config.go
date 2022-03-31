@@ -4,7 +4,7 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-var cfg = DefaultCfg()
+const Name = "tracing"
 
 type Cfg struct {
 	Driver    string                 `json:"driver"`

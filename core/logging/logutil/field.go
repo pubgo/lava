@@ -1,12 +1,14 @@
 package logutil
 
 import (
-	"github.com/pubgo/lava/core/logging/logkey"
 	"strings"
 
+	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
 )
+
+type Fields = []zap.Field
 
 func Names(names ...string) string {
 	return strings.Join(names, ".")

@@ -1,35 +1,35 @@
-package tracing
+package tracing_plugin
 
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/core/watcher"
+
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
-	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/vars"
-	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
+	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/vars"
 )
 
-var logs = logging.Component(Name)
-
-const Name = "tracing"
+var logs = logging.Component(tracing.Name)
 
 func init() {
+	var cfg = tracing.DefaultCfg()
 	plugin.Register(&plugin.Base{
-		Name: Name,
+		Name: tracing.Name,
 		OnInit: func(p plugin.Process) {
-			_ = config.Decode(Name, &cfg)
+			_ = config.Decode(tracing.Name, &cfg)
 			xerror.Panic(cfg.Build())
 		},
-		OnWatch: func(_ string, r *watcher_type.Response) error {
-			_ = config.Decode(Name, &cfg)
+		OnWatch: func(_ string, r *watcher.Response) error {
+			_ = config.Decode(tracing.Name, &cfg)
 			return cfg.Build()
 		},
 		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
@@ -72,24 +72,16 @@ func init() {
 				// request-id绑定
 				span.SetTag(requestID.Name, requestID.GetWith(ctx))
 
-				GetFrom(ctx).SetTag("sss", "")
+				tracing.GetFrom(ctx).SetTag("sss", "")
 
 				defer span.Finish()
 				err = next(opentracing.ContextWithSpan(ctx, span), req, resp)
-				SetIfErr(span, err)
+				tracing.SetIfErr(span, err)
 				return err
 			}
 		},
 		OnVars: func(v vars.Publisher) {
-			v.Do(Name+"_cfg", func() interface{} { return cfg })
-			v.Do(Name+"_factory", func() interface{} {
-				var data = make(map[string]string)
-				factories.Range(func(key, value interface{}) bool {
-					data[key.(string)] = stack.Func(value)
-					return true
-				})
-				return data
-			})
+			v.Do(tracing.Name+"_cfg", func() interface{} { return cfg })
 		},
 	})
 }

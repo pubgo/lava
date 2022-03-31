@@ -10,20 +10,19 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/reflectx"
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
-var _ resource_type.BuilderFactory = (*Factory)(nil)
+var _ BuilderFactory = (*Factory)(nil)
 
 type Factory struct {
-	DefaultCfg resource_type.Builder                                           `json:"-" yaml:"-" inject:"required"`
-	ResType    resource_type.Resource                                          `json:"-" yaml:"-"`
+	DefaultCfg Builder                                                         `json:"-" yaml:"-" inject:"required"`
+	ResType    Resource                                                        `json:"-" yaml:"-"`
 	OnDi       func(obj inject.Object, field inject.Field) (interface{}, bool) `json:"-" yaml:"-"`
 }
 
 func (f Factory) IsValid() bool { return f.DefaultCfg != nil }
 
-func (f Factory) Update(name, kind string, builder resource_type.Builder) {
+func (f Factory) Update(name, kind string, builder Builder) {
 	if name == "" {
 		name = consts.KeyDefault
 	}
@@ -75,7 +74,7 @@ func (f Factory) Di(kind string) func(obj inject.Object, field inject.Field) (in
 	return f.OnDi
 }
 
-func (f Factory) Wrapper(res resource_type.Resource) resource_type.Resource {
+func (f Factory) Wrapper(res Resource) Resource {
 	xerror.Assert(f.ResType == nil, "please set [ResType], kind=%s name=%s", res.Kind(), res.Name())
 
 	var obj = reflect.New(reflectx.Indirect(reflect.ValueOf(f.ResType)).Type())
@@ -88,7 +87,7 @@ func (f Factory) Wrapper(res resource_type.Resource) resource_type.Resource {
 	xerror.Assert(!field.IsValid(), "resource has not field(Resource), resType=%#v, ", f.ResType)
 	field.Set(reflect.ValueOf(res))
 
-	return obj.Interface().(resource_type.Resource)
+	return obj.Interface().(Resource)
 }
 
-func (f Factory) Builder() resource_type.Builder { return f.DefaultCfg }
+func (f Factory) Builder() Builder { return f.DefaultCfg }

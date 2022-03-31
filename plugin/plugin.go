@@ -2,10 +2,10 @@ package plugin
 
 import (
 	"container/heap"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
 var plugins = make(map[string]Plugin)
@@ -21,7 +21,7 @@ func RegisterMiddleware(name string, middleware Middleware, priority ...uint) {
 }
 
 // RegisterResource 构建资源
-func RegisterResource(name string, builder resource_type.BuilderFactory, priority ...uint) {
+func RegisterResource(name string, builder resource.BuilderFactory, priority ...uint) {
 	Register(&Base{Name: name, BuilderFactory: builder}, priority...)
 }
 

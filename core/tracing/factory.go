@@ -2,7 +2,7 @@ package tracing
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
@@ -14,7 +14,7 @@ var factories typex.SMap
 // GetSpanID 从SpanContext中获取spanID
 var GetSpanID = func(ctx opentracing.SpanContext) (string, string) { return "", "" }
 
-type Factory func(cfg config_type.CfgMap) error
+type Factory func(cfg config.CfgMap) error
 
 func GetFactory(names ...string) Factory {
 	val, ok := factories.Load(utils.GetDefault(names...))

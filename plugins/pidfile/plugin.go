@@ -14,7 +14,7 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnInit: func(p plugin.Process) {
-			pidPath = filepath.Join(config.Home, "pidfile")
+			pidPath = filepath.Join(config.CfgDir, "pidfile")
 
 			_ = pathutil.IsNotExistMkDir(pidPath)
 

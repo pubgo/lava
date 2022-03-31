@@ -32,3 +32,11 @@ func WithClientType(typ interface{}) func(cfg *Cfg) {
 func WithNewClientFunc(fn func(cc grpc.ClientConnInterface) interface{}) func(cfg *Cfg) {
 	return func(cfg *Cfg) { cfg.newClient = fn }
 }
+
+func WithBeforeDial(fn func()) func(cfg *Cfg) {
+	return func(cfg *Cfg) { cfg.beforeDial = fn }
+}
+
+func WithAfterDial(fn func()) func(cfg *Cfg) {
+	return func(cfg *Cfg) { cfg.afterDial = fn }
+}

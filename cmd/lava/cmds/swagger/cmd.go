@@ -3,7 +3,7 @@ package swagger
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/pkg/syncx"
 	"html/template"
 	"io/fs"

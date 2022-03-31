@@ -3,6 +3,7 @@ package restc
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/service"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
 )
 
 const (
@@ -28,7 +28,7 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	client *http.Client
 	cfg    Cfg
-	do     service_type.HandlerFunc
+	do     service.HandlerFunc
 }
 
 func (c *clientImpl) RoundTripper(f func(transport http.RoundTripper) http.RoundTripper) error {
@@ -50,7 +50,7 @@ func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *Req
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *Request) (resp *Response, err error) {
-	return resp, c.do(ctx, req, func(res service_type.Response) error { resp = res.(*Response); return nil })
+	return resp, c.do(ctx, req, func(res service.Response) error { resp = res.(*Response); return nil })
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error) {

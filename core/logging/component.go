@@ -16,7 +16,7 @@ import (
 var loggerMap sync.Map
 
 // 默认log
-var componentLog = func() *zap.Logger {
+var debugLog = func() *zap.Logger {
 	defer xerror.RespExit()
 	var cfg = zap.NewDevelopmentConfig()
 	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
@@ -45,7 +45,7 @@ func getName(name string, fields *[]zap.Field) *zap.Logger {
 	}
 
 	if !Initialized {
-		return componentLog.Named(name).With(*fields...)
+		return debugLog.Named(name).With(*fields...)
 	}
 
 	var l = zap.L().Named(name).With(*fields...)

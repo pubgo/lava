@@ -11,8 +11,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/lb/p2c"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/service/service_type"
-
+	"github.com/pubgo/lava/service"
 	// 默认加载mdns注册中心
 	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
@@ -117,7 +116,7 @@ type Cfg struct {
 	ConnectParams      connectParams                  `json:"connect_params"`
 	ClientParameters   clientParameters               `json:"client_parameters"`
 	Call               callParameters                 `json:"call"`
-	Middlewares        []service_type.Middleware      `json:"-"`
+	Middlewares        []service.Middleware           `json:"-"`
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
@@ -128,6 +127,8 @@ type Cfg struct {
 	newClient   func(cc grpc.ClientConnInterface) interface{}
 	registry    string
 	buildScheme string
+	beforeDial  func()
+	afterDial   func()
 }
 
 func (t Cfg) Check() error { return nil }
@@ -219,7 +220,7 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
 
-	var middlewares []service_type.Middleware
+	var middlewares []service.Middleware
 
 	// 加载全局middleware
 	for _, plg := range plugin.All() {

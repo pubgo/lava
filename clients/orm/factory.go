@@ -1,14 +1,14 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/pkg/typex"
 )
 
-type Factory func(cfg config_type.CfgMap) gorm.Dialector
+type Factory func(cfg config.CfgMap) gorm.Dialector
 
 var factories typex.SMap
 

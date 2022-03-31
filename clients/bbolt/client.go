@@ -14,11 +14,11 @@ import (
 )
 
 type Client struct {
-	resource.IResource
+	resource.Resource
 }
 
 func (t *Client) Db() *bolt.DB {
-	return t.IResource.GetRes().(*bolt.DB)
+	return t.Resource.GetRes().(*bolt.DB)
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
@@ -58,7 +58,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 	ext.DBType.Set(span, Name)
 
 	var c = t.Db()
-	defer t.IResource.Done()
+	defer t.Resource.Done()
 
 	return c.View(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))
@@ -73,7 +73,7 @@ func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names 
 	ext.DBType.Set(span, Name)
 
 	var c = t.Db()
-	defer t.IResource.Done()
+	defer t.Resource.Done()
 
 	return c.Update(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))

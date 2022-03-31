@@ -1,4 +1,4 @@
-package watcher_type
+package watcher
 
 import (
 	"context"

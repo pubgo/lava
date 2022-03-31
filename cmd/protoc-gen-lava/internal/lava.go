@@ -9,7 +9,7 @@ import (
 
 var (
 	contextCall  = protoutil.Import("context")
-	serviceCall  = protoutil.Import("github.com/pubgo/lava/service/service_type")
+	serviceCall  = protoutil.Import("github.com/pubgo/lava/service")
 	reflectCall  = protoutil.Import("reflect")
 	stringsCall  = protoutil.Import("strings")
 	sqlCall      = protoutil.Import("database/sql")
@@ -79,13 +79,11 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Init", service.GoName, "Srv(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
+	g.P("func Init", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
 	protoutil.Gen(g, `
-opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
-		return New{{name}}Srv(cc)
-	}))
+opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {return New{{name}}Client(cc)}))
 `, protoutil.Context{"name": service.GoName})
-	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Srv)(nil)))...)")
+	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Client)(nil)))...)")
 	g.P("}")
 	g.P()
 }
@@ -133,11 +131,11 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 			g.QualifiedGoIdent(serviceCall(""))
 		}
 		g.P(protoutil.Template(`
-func Register{{name}}(srv service_type.Service, impl {{name}}Server) {
-	var desc service_type.Desc
+func Register{{name}}(srv service.Service, impl {{name}}Server) {
+	var desc service.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = {{name}}_ServiceDesc
-	desc.GrpcClientFn = New{{name}}Srv
+	desc.GrpcClientFn = New{{name}}Client
 	{% if isGw %}
     desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
 		return Register{{name}}HandlerServer(context.Background(), mux, impl)

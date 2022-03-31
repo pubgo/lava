@@ -1,11 +1,10 @@
 package ossc
 
 import (
+	"github.com/pubgo/lava/resource"
 	"io"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
 var _ io.Closer = (*wrapper)(nil)
@@ -17,7 +16,7 @@ type wrapper struct {
 func (w wrapper) Close() error { return nil }
 
 type Client struct {
-	resource_type.Resource
+	resource.Resource
 }
 
 func (t *Client) Load() *oss.Client {

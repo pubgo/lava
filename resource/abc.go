@@ -1,12 +1,15 @@
-package resource_type
+package resource
 
 import (
 	"io"
+	"reflect"
 
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/inject"
 )
+
+var resourceType = reflect.TypeOf((*Resource)(nil)).Elem()
 
 type Builder interface {
 	Build() io.Closer

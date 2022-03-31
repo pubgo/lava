@@ -4,34 +4,33 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	logging2 "github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/core/logging/logutil"
-	"github.com/pubgo/lava/core/tracing"
 	"runtime/debug"
 	"time"
 
 	"github.com/DataDog/gostackparse"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_type"
 	"github.com/pubgo/lava/version"
 )
 
 const Name = "logRecord"
 
-var logs = logging2.Component(Name)
+var logs = logging.Component(Name)
 
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
-			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) (err error) {
+		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
+			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) (err error) {
 				// TODO 考虑pool优化
 				var params = make([]zap.Field, 0, 20)
 
@@ -95,13 +94,13 @@ func init() {
 
 				err = next(
 					// 集成logger到context
-					logging2.CreateCtx(ctx, zap.L().Named(logkey.Service).With(
-						zap.String("tracerID", tracerID),
-						zap.String("spanID", spanID),
+					logging.CreateCtx(ctx, zap.L().Named(logkey.Service).With(
+						zap.String("tracerId", tracerID),
+						zap.String("spanId", spanID),
 						zap.String("requestId", reqId),
 					)),
 					req,
-					func(rsp service_type.Response) error {
+					func(rsp service.Response) error {
 						respBody = rsp.Payload()
 						if !req.Client() {
 							rsp.Header().Set("Access-Control-Allow-Origin", origin)

@@ -1,7 +1,7 @@
 package gossip
 
 import (
-	registry "github.com/pubgo/lava/core/registry/registry_type"
+	"github.com/pubgo/lava/core/registry"
 )
 
 func cp(current []*registry.Service) []*registry.Service {

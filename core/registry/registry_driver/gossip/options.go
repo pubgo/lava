@@ -2,7 +2,7 @@ package gossip
 
 import (
 	"context"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
+	"github.com/pubgo/lava/core/registry"
 	"time"
 
 	"github.com/hashicorp/memberlist"
@@ -16,8 +16,8 @@ type connectTimeoutKey struct{}
 type connectRetryKey struct{}
 
 // helper for setting registry opts
-func setRegistryOption(k, v interface{}) registry_type2.Opt {
-	return func(o *registry_type2.Opts) {
+func setRegistryOption(k, v interface{}) registry.Opt {
+	return func(o *registry.Opts) {
 		if o.Context == nil {
 			o.Context = context.Background()
 		}
@@ -27,32 +27,32 @@ func setRegistryOption(k, v interface{}) registry_type2.Opt {
 
 // Secret specifies an encryption key. The value should be either
 // 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
-func Secret(k []byte) registry_type2.Opt {
+func Secret(k []byte) registry.Opt {
 	return setRegistryOption(secretKey{}, k)
 }
 
 // Address to bind to - host:port
-func Address(a string) registry_type2.Opt {
+func Address(a string) registry.Opt {
 	return setRegistryOption(addressKey{}, a)
 }
 
 // Config sets *memberlist.Config for configuring gossip
-func Config(c *memberlist.Config) registry_type2.Opt {
+func Config(c *memberlist.Config) registry.Opt {
 	return setRegistryOption(configKey{}, c)
 }
 
 // The address to advertise for other gossip members to connect to - host:port
-func Advertise(a string) registry_type2.Opt {
+func Advertise(a string) registry.Opt {
 	return setRegistryOption(advertiseKey{}, a)
 }
 
 // ConnectTimeout sets the registry connect timeout. Use -1 to specify infinite timeout
-func ConnectTimeout(td time.Duration) registry_type2.Opt {
+func ConnectTimeout(td time.Duration) registry.Opt {
 	return setRegistryOption(connectTimeoutKey{}, td)
 }
 
 // ConnectRetry enables reconnect to registry then connection closed,
 // use with ConnectTimeout to specify how long retry
-func ConnectRetry(v bool) registry_type2.Opt {
+func ConnectRetry(v bool) registry.Opt {
 	return setRegistryOption(connectRetryKey{}, v)
 }

@@ -11,10 +11,9 @@ import (
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/resource/resource_type"
 )
 
-func newRes(name string, kind string, val io.Closer) resource_type.Resource {
+func newRes(name string, kind string, val io.Closer) Resource {
 	var res = &baseRes{
 		name: name,
 		kind: kind,

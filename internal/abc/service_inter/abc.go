@@ -2,9 +2,8 @@ package service_inter
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/pkg/typex"
+	"google.golang.org/grpc"
 )
 
 type Desc struct {
@@ -15,7 +14,8 @@ type Desc struct {
 }
 
 type Handler interface {
-	Init() func()
+	Close()
+	Init()
 	Flags() typex.Flags
 	Router(r fiber.Router)
 }

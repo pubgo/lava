@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"context"
@@ -6,19 +6,20 @@ import (
 	"strings"
 
 	"github.com/pubgo/x/byteutil"
-
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+
+	"github.com/pubgo/lava/service"
 )
 
 // getPeerName 获取对端应用名称
 func getPeerName(md metadata.MD) string {
-	return HeaderGet(md, "app")
+	return service.HeaderGet(md, "app")
 }
 
 // getPeerIP 获取对端ip
 func getPeerIP(md metadata.MD, ctx context.Context) string {
-	clientIP := HeaderGet(md, "client-ip")
+	clientIP := service.HeaderGet(md, "client-ip")
 	if clientIP != "" {
 		return clientIP
 	}
@@ -48,7 +49,7 @@ func ignoreMuxError(err error) bool {
 		strings.Contains(err.Error(), "mux: server closed")
 }
 
-func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) Header {
+func convertHeader(request interface{ VisitAll(func(key, value []byte)) }) service.Header {
 	var h = metadata.MD{}
 	request.VisitAll(func(key, value []byte) {
 		h.Set(byteutil.ToStr(key), byteutil.ToStr(value))

@@ -2,7 +2,7 @@ package basicauth
 
 import (
 	"errors"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 )
 
 var cfg Cfg
@@ -10,7 +10,7 @@ var cfg Cfg
 type Cfg struct {
 	Realm        string
 	Authenticate func(user, pwd string) error
-	Authorize    func(user string, req service_type.Request) error
+	Authorize    func(user string, req service.Request) error
 }
 
 //"basicAuth"

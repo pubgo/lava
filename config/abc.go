@@ -1,4 +1,4 @@
-package config_type
+package config
 
 import (
 	"io"

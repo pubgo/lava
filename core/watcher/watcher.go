@@ -1,4 +1,4 @@
-package watcher_type
+package watcher
 
 import (
 	"github.com/goccy/go-json"

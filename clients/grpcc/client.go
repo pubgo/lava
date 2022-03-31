@@ -3,7 +3,7 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"net"
 	"strings"
 	"sync"
@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/clients/grpcc/resolver"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/inject"
 )
 
@@ -23,23 +25,26 @@ func InitClient(srv string, opts ...func(cfg *Cfg)) {
 	var cfg = DefaultCfg(opts...)
 	xerror.Panic(cfg.Check())
 
-	var reg = cfg.GetReg()
-	var name = fmt.Sprintf("%s.%s.%s", srv, reg, cfg.Group)
+	if cfg.Group == "" {
+		cfg.Group = consts.KeyDefault
+	}
+
+	var name = fmt.Sprintf("%s.%s", srv, cfg.Group)
 	zap.L().Info("grpc client init", zap.String(logkey.Name, name))
 	if val, ok := clients.LoadOrStore(name, NewClient(srv, cfg)); ok && val != nil {
 		return
 	}
 
-	if cfg.clientType != nil {
-		// 依赖注入
-		inject.Register(cfg.clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
-			var conn, ok = clients.Load(fmt.Sprintf("%s.%s.%s", srv, reg, field.Name()))
-			if ok {
-				return cfg.newClient(conn.(grpc.ClientConnInterface)), true
-			}
-			return nil, false
-		})
-	}
+	xerror.Assert(cfg.clientType == nil, "grpc clientType is nil")
+
+	// 依赖注入
+	inject.Register(cfg.clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
+		var conn, ok = clients.Load(fmt.Sprintf("%s.%s", srv, field.Name()))
+		if ok {
+			return cfg.newClient(conn.(grpc.ClientConnInterface)), true
+		}
+		return nil, false
+	})
 }
 
 func New(service string, opts ...func(cfg *Cfg)) *Client {
@@ -108,10 +113,11 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err
-
 		pretty.Println(t)
 		pretty.Println(err)
 	})
+
+	logutil.Pretty(t.cfg)
 
 	if t.conn != nil {
 		return t.conn, nil
@@ -125,12 +131,21 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 		return t.conn, nil
 	}
 
+	if t.cfg.beforeDial != nil {
+		t.cfg.beforeDial()
+	}
+
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), t.cfg.DialTimeout)
 	defer cancel()
 
 	conn, err := grpc.DialContext(ctx, t.addr, append(t.cfg.ToOpts(), t.cfg.DialOptions...)...)
 	xerror.PanicF(err, "DialContext error, target:%s\n", t.addr)
+
+	if t.cfg.afterDial != nil {
+		t.cfg.afterDial()
+	}
+
 	t.conn = conn
 	return t.conn, nil
 }

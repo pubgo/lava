@@ -2,17 +2,16 @@ package gossip
 
 import (
 	"github.com/pubgo/lava/core/registry"
-	registry_type2 "github.com/pubgo/lava/core/registry/registry_type"
 )
 
 type gossipWatcher struct {
-	wo   registry_type2.WatchOpts
-	next chan *registry_type2.Result
+	wo   registry.WatchOpts
+	next chan *registry.Result
 	stop chan bool
 }
 
-func newGossipWatcher(ch chan *registry_type2.Result, stop chan bool, opts ...registry_type2.WatchOpt) (registry_type2.Watcher, error) {
-	var wo registry_type2.WatchOpts
+func newGossipWatcher(ch chan *registry.Result, stop chan bool, opts ...registry.WatchOpt) (registry.Watcher, error) {
+	var wo registry.WatchOpts
 	for _, o := range opts {
 		o(&wo)
 	}
@@ -24,7 +23,7 @@ func newGossipWatcher(ch chan *registry_type2.Result, stop chan bool, opts ...re
 	}, nil
 }
 
-func (m *gossipWatcher) Next() (*registry_type2.Result, error) {
+func (m *gossipWatcher) Next() (*registry.Result, error) {
 	for {
 		select {
 		case r, ok := <-m.next:
@@ -37,7 +36,7 @@ func (m *gossipWatcher) Next() (*registry_type2.Result, error) {
 				continue
 			}
 
-			nr := &registry_type2.Result{}
+			nr := &registry.Result{}
 			*nr = *r
 			return nr, nil
 		case <-m.stop:

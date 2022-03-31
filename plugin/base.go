@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/resource"
 	"reflect"
 
 	"github.com/huandu/go-clone"
@@ -12,13 +13,12 @@ import (
 	"github.com/spf13/cast"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/core/healthy/healthy_type"
-	"github.com/pubgo/lava/core/watcher/watcher_type"
+	"github.com/pubgo/lava/core/healthy"
+	"github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/resource/resource_type"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/vars"
 )
@@ -32,13 +32,13 @@ type Base struct {
 	Url            string
 	Docs           interface{}
 	CfgNotCheck    bool
-	BuilderFactory resource_type.BuilderFactory
-	OnHealth       healthy_type.Handler
+	BuilderFactory resource.BuilderFactory
+	OnHealth       healthy.Handler
 	OnMiddleware   Middleware
 	OnInit         func(p Process)
 	OnCommands     func() *typex.Command
 	OnFlags        func() typex.Flags
-	OnWatch        watcher_type.WatchHandler
+	OnWatch        watcher.WatchHandler
 	OnVars         func(v vars.Publisher)
 
 	beforeStarts []func()
@@ -46,7 +46,7 @@ type Base struct {
 	beforeStops  []func()
 	afterStops   []func()
 
-	cfg    config_type.Config
+	cfg    config.Config
 	cfgMap *typex.RwMap
 }
 
@@ -107,7 +107,7 @@ func (p *Base) Vars(f vars.Publisher) error {
 	return xerror.Try(func() { p.OnVars(f) })
 }
 
-func (p *Base) Health() healthy_type.Handler {
+func (p *Base) Health() healthy.Handler {
 	if p.OnHealth == nil {
 		return nil
 	}
@@ -118,7 +118,7 @@ func (p *Base) Health() healthy_type.Handler {
 func (p *Base) Middleware() Middleware { return p.OnMiddleware }
 func (p *Base) String() string         { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
 func (p *Base) ID() string             { return p.Name }
-func (p *Base) Init(cfg config_type.Config) (gErr error) {
+func (p *Base) Init(cfg config.Config) (gErr error) {
 	p.cfg = cfg
 
 	defer xerror.Resp(func(err xerror.XErr) {
@@ -142,7 +142,7 @@ func (p *Base) Init(cfg config_type.Config) (gErr error) {
 			var dm, err = cast.ToStringMapE(data)
 			xerror.Panic(err)
 
-			resId := resource_type.GetResId(dm)
+			resId := resource.GetResId(dm)
 
 			if _, ok := p.cfgMap.Load(resId); ok {
 				return fmt.Errorf("res=>%s key=>%s,res key already exists", p.Name, resId)
@@ -162,7 +162,7 @@ func (p *Base) Init(cfg config_type.Config) (gErr error) {
 		}
 
 		p.cfgMap.Range(func(key string, val interface{}) bool {
-			p.BuilderFactory.Update(key, p.Name, val.(resource_type.Builder))
+			p.BuilderFactory.Update(key, p.Name, val.(resource.Builder))
 			return true
 		})
 	}
@@ -174,7 +174,7 @@ func (p *Base) Init(cfg config_type.Config) (gErr error) {
 	return nil
 }
 
-func (p *Base) Watch(name string, r *watcher_type.Response) error {
+func (p *Base) Watch(name string, r *watcher.Response) error {
 	var val, ok = p.cfgMap.Load(name)
 	var newCfg = clone.Clone(p.BuilderFactory.Builder())
 	if ok {
@@ -183,7 +183,7 @@ func (p *Base) Watch(name string, r *watcher_type.Response) error {
 	xerror.Panic(r.Decode(newCfg))
 
 	if !reflect.DeepEqual(val, newCfg) {
-		p.BuilderFactory.Update(p.Name, name, val.(resource_type.Builder))
+		p.BuilderFactory.Update(p.Name, name, val.(resource.Builder))
 		p.cfgMap.Set(name, val)
 
 		if p.OnWatch != nil {

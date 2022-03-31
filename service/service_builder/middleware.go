@@ -1,4 +1,4 @@
-package service
+package service_builder
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 )
 
-func (t *serviceImpl) handlerHttpMiddle(middlewares []service_type.Middleware) func(fbCtx *fiber.Ctx) error {
-	var handler = func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
+func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
+	var handler = func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
 		var reqCtx = req.(*httpRequest)
 
 		for k, v := range reqCtx.Header() {
@@ -41,12 +41,12 @@ func (t *serviceImpl) handlerHttpMiddle(middlewares []service_type.Middleware) f
 			header: convertHeader(&fbCtx.Request().Header),
 		}
 
-		return handler(fbCtx.Context(), request, func(_ service_type.Response) error { return nil })
+		return handler(fbCtx.Context(), request, func(_ service.Response) error { return nil })
 	}
 }
 
-func (t *serviceImpl) handlerUnaryMiddle(middlewares []service_type.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
+func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
+	unaryWrapper := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
 		if len(req.Header()) > 0 {
 			_ = grpc.SetHeader(ctx, req.Header())
 		}
@@ -119,14 +119,14 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []service_type.Middleware) 
 				payload:     req,
 				header:      md,
 			},
-			func(rsp service_type.Response) error { resp = rsp.Payload(); return nil },
+			func(rsp service.Response) error { resp = rsp.Payload(); return nil },
 		)
 		return
 	}
 }
 
-func (t *serviceImpl) handlerStreamMiddle(middlewares []service_type.Middleware) grpc.StreamServerInterceptor {
-	streamWrapper := func(ctx context.Context, req service_type.Request, rsp func(response service_type.Response) error) error {
+func (t *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
+	streamWrapper := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
 		ctx = metadata.NewIncomingContext(ctx, req.Header())
 		var reqCtx = req.(*rpcRequest)
 		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream})
@@ -186,7 +186,7 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []service_type.Middleware)
 				service:       serviceFromMethod(info.FullMethod),
 				contentType:   ct,
 			},
-			func(_ service_type.Response) error { return nil },
+			func(_ service.Response) error { return nil },
 		)
 	}
 }

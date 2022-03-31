@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
@@ -10,8 +11,6 @@ import (
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/debug"
 )
 
 const Name = "prometheus"
