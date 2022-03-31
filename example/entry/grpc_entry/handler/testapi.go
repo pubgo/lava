@@ -5,13 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/config"
-	logging2 "github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/logging/logutil"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/x/q"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -19,14 +16,18 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/config"
+	logging2 "github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/scheduler"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 )
 
 func init() {
-	hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
+	//hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
+	hello.InitTestApiClient("localhost:8080", grpcc.WithDirect())
 }
 
 type User struct {
@@ -44,25 +45,29 @@ type User struct {
 
 var ll = logging2.Component("handler")
 
-func NewTestAPIHandler() *testapiHandler {
-	return &testapiHandler{}
+func NewTestAPIHandler() *testApiHandler {
+	return &testApiHandler{}
 }
 
-var _ service_type.Handler = (*testapiHandler)(nil)
+var _ service.Handler = (*testApiHandler)(nil)
 
-type testapiHandler struct {
-	Db         *orm.Client          `dix:""`
-	Cron       *scheduler.Scheduler `dix:""`
+type testApiHandler struct {
+	Db         *orm.Client
+	Cron       *scheduler.Scheduler
 	TestApiSrv hello.TestApiClient
-	L          *logging2.Logger `name:"testapiHandler"`
+	L          *logging2.Logger `name:"testApiHandler"`
 }
 
-func (h *testapiHandler) Flags() typex.Flags { return nil }
+func (h *testApiHandler) Flags() typex.Flags { return nil }
 
-func (h *testapiHandler) Router(r fiber.Router) {
+func (h *testApiHandler) Router(r fiber.Router) {
 }
 
-func (h *testapiHandler) Init() func() {
+func (h *testApiHandler) Close() {
+	h.L.Info("close")
+}
+
+func (h *testApiHandler) Init() {
 	defer xerror.RespExit()
 
 	var db = h.Db.Load()
@@ -72,7 +77,7 @@ func (h *testapiHandler) Init() func() {
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
 	xerror.Panic(db.Create(&user).Error)
 
-	q.Q(user)
+	logutil.ColorPretty(user)
 
 	//buf := &bytes.Buffer{}
 	//memviz.Map(buf, &user)
@@ -84,24 +89,20 @@ func (h *testapiHandler) Init() func() {
 		xerror.Panic(err1)
 		fmt.Printf("%#v \n", out)
 	})
-
-	return func() {
-		h.L.Info("close")
-	}
 }
 
-func (h *testapiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
+func (h *testApiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
 	panic("implement me")
 }
 
-func (h *testapiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {
+func (h *testApiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {
 	fmt.Printf("%#v\n", value.GetStructValue().AsMap())
 	return &hello.TestApiOutput1{
 		Data: value,
 	}, nil
 }
 
-func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
+func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
 	var log = logging2.GetLog(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
@@ -139,7 +140,7 @@ func (h *testapiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	return
 }
 
-func (h *testapiHandler) VersionTest(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
+func (h *testApiHandler) VersionTest(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
 	out = &hello.TestApiOutput{
 		Msg: in.Input + "_test",
 	}

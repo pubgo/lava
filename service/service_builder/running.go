@@ -77,7 +77,7 @@ func Run(services ...service_type.Service) {
 			envs.SetName(version.Domain, runtime.Project)
 
 			// 运行环境检查
-			if _, ok := runtime.RunModeValue[runtime.Mode]; !ok {
+			if _, ok := runtime.RunModeValue[runtime.Mode.String()]; !ok {
 				panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
 			}
 

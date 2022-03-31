@@ -2,7 +2,8 @@ package watcher_type
 
 import (
 	"context"
-	"github.com/pubgo/lava/config/config_type"
+
+	"github.com/pubgo/lava/config"
 )
 
 const Name = "watcher"
@@ -10,7 +11,7 @@ const Name = "watcher"
 type (
 	Opt          func(*options)
 	options      struct{}
-	Factory      = func(cfg config_type.CfgMap) (Watcher, error)
+	Factory      = func(cfg config.CfgMap) (Watcher, error)
 	WatchHandler = func(name string, r *Response) error
 )
 

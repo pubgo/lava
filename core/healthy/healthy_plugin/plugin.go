@@ -18,8 +18,9 @@ import (
 
 func init() {
 	plugin.Register(&plugin.Base{
-		Name:  "health",
-		Short: "health check",
+		Name:        "health",
+		Short:       "health check",
+		CfgNotCheck: true,
 		OnCommands: func() *typex.Command {
 			return &cli.Command{
 				Name:  "health",

@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
-	service_type "github.com/pubgo/lava/service/service_type"
+	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
 
@@ -21,14 +21,12 @@ const _ = grpc.SupportPackageIsVersion7
 
 func InitCodeClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
 
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {
-		return NewCodeClient(cc)
-	}))
+	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewCodeClient(cc) }))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*CodeClient)(nil)))...)
 }
 
-func RegisterCode(srv service_type.Service, impl CodeServer) {
-	var desc service_type.Desc
+func RegisterCode(srv service.Service, impl CodeServer) {
+	var desc service.Desc
 	desc.Handler = impl
 	desc.ServiceDesc = Code_ServiceDesc
 	desc.GrpcClientFn = NewCodeClient

@@ -18,7 +18,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: run
 run:
-	go run ${LDFLAGS} -v cmd/*.go gid
+	go run ${LDFLAGS} -v cmd/*.go test-grpc
 
 .PHONY: build
 build:

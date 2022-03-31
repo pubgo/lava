@@ -1,7 +1,7 @@
 package prometheus
 
 import (
-	"github.com/pubgo/lava/config/config_type"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
@@ -20,7 +20,7 @@ const urlPath = "/metrics"
 var logs = logging.Component(logutil.Names(metric2.Name, Name))
 
 func init() {
-	metric2.RegisterFactory(Name, func(cfg config_type.CfgMap, opts *tally.ScopeOptions) (err error) {
+	metric2.RegisterFactory(Name, func(cfg config.CfgMap, opts *tally.ScopeOptions) (err error) {
 		defer xerror.RespErr(&err)
 
 		opts.Separator = prometheus.DefaultSeparator

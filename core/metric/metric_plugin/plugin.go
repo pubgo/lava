@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/vars"
 )
 
@@ -43,8 +43,8 @@ func init() {
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		},
-		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
-			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
+		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
+			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
 				return next(CreateCtx(ctx, GetGlobal()), req, resp)
 			}
 		},

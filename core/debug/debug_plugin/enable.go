@@ -2,6 +2,7 @@ package debug_plugin
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/service"
 
 	"github.com/pkg/browser"
 	"github.com/urfave/cli/v2"
@@ -13,10 +14,9 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/service/service_type"
 )
 
-func Enable(srv service_type.Service) {
+func Enable(srv service.Service) {
 	srv.RegisterApp("/debug", debug.App())
 	var openWeb bool
 

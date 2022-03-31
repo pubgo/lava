@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/watcher/watcher_type"
-	"github.com/pubgo/lava/service/service_type"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
@@ -32,8 +32,8 @@ func init() {
 			_ = config.Decode(Name, &cfg)
 			return cfg.Build()
 		},
-		OnMiddleware: func(next service_type.HandlerFunc) service_type.HandlerFunc {
-			return func(ctx context.Context, req service_type.Request, resp func(rsp service_type.Response) error) error {
+		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
+			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
 				var tracer = opentracing.GlobalTracer()
 				if tracer == nil {
 					logs.L().Warn("global tracer is nil, please init tracing")
