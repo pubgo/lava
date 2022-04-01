@@ -7,11 +7,11 @@ import (
 
 func init() {
 	vars.Register(Name, func() interface{} {
-		var data typex.Map
+		var data = make(map[string]interface{})
 		for _, v := range All() {
-			data.Set(v.ID(), v)
+			data[v.ID()] = v
 		}
-		return data.Map()
+		return data
 	})
 
 	vars.Register(Name+"_priority", func() interface{} {

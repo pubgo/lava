@@ -9,17 +9,17 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/cmux"
-	"github.com/pubgo/lava/internal/abc/service_inter"
+	service_inter2 "github.com/pubgo/lava/internal/service_inter"
 	"github.com/pubgo/lava/plugin"
 )
 
-type Desc = service_inter.Desc
-type Handler = service_inter.Handler
-type Options = service_inter.Options
-type Middleware = service_inter.Middleware
-type HandlerFunc = service_inter.HandlerFunc
-type Request = service_inter.Request
-type Response = service_inter.Response
+type Desc = service_inter2.Desc
+type Handler = service_inter2.Handler
+type Options = service_inter2.Options
+type Middleware = service_inter2.Middleware
+type HandlerFunc = service_inter2.HandlerFunc
+type Request = service_inter2.Request
+type Response = service_inter2.Response
 type Service interface {
 	AfterStops(...func())
 	BeforeStops(...func())

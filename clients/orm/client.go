@@ -1,11 +1,12 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/resource"
 	"io"
 
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
+
+	"github.com/pubgo/lava/resource"
 )
 
 const Name = "gorm"

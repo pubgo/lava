@@ -3,7 +3,6 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/resource"
 	"reflect"
 
 	"github.com/huandu/go-clone"
@@ -19,6 +18,7 @@ import (
 	"github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/resource"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/vars"
 )
@@ -69,12 +69,16 @@ func (p *Base) getFuncStack(val interface{}) string {
 }
 
 func (p *Base) MarshalJSON() ([]byte, error) {
-	defer xerror.RespRaise()
 	var data = make(map[string]interface{})
 	data["name"] = p.Name
 	data["docs"] = p.Docs
-	data["default_cfg"] = p.BuilderFactory.Builder()
-	data["cfg"] = p.cfgMap.Map()
+	if p.BuilderFactory != nil {
+		data["default_cfg"] = p.BuilderFactory.Builder()
+	}
+
+	if p.cfgMap != nil {
+		data["cfg"] = p.cfgMap.Map()
+	}
 	data["descriptor"] = p.Short
 	data["url"] = p.Url
 	data["health"] = p.getFuncStack(p.OnHealth)

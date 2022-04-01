@@ -83,13 +83,10 @@ func genError(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
 
 	var content = `
-func Is{{.camelValue}}(err error) bool {
+var Err{{.name}}{{.camelValue}} = &errors.Error{Reason: "{{.package}}/{{.name}}."+Test_NotFound.String(), Code: {{.code}}}
+func Is{{.name}}{{.camelValue}}(err error) bool {
 	e := errors.FromError(err)
-	return e.Reason == {{.name}}_{{.value}}.String() && e.Code == {{.code}} 
-}
-
-func Error{{.camelValue}}(format string, args ...interface{}) *errors.Error {
-	 return errors.New({{.name}}_{{.value}}.String(), {{.code}}, format, args...)
+	return e.Reason == Err{{.name}}{{.camelValue}}.Reason && e.Code == Err{{.name}}{{.camelValue}}.Code
 }
 `
 	tmpl, err := template.New("errors").Parse(content)
@@ -114,6 +111,7 @@ func Error{{.camelValue}}(format string, args ...interface{}) *errors.Error {
 			"value":      string(v.Desc.Name()),
 			"camelValue": case2Camel(string(v.Desc.Name())),
 			"code":       code,
+			"package":    file.Desc.Package(),
 		}))
 	}
 

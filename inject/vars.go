@@ -1,17 +1,16 @@
 package inject
 
 import (
-	"reflect"
-
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 	"github.com/pubgo/x/stack"
 )
 
 func init() {
 	vars.Register("inject", func() interface{} {
-		var data = make(map[reflect.Type]string)
+		var data typex.A
 		for k, v := range injectHandlers {
-			data[k] = stack.Func(v)
+			data.Append(typex.Kv{Key: k.String(), Value: stack.Func(v)})
 		}
 		return data
 	})

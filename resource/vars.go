@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-
 	"github.com/pubgo/lava/vars"
 )
 
@@ -14,7 +13,7 @@ func init() {
 			if data[kind] == nil {
 				data[kind] = make(map[string]string)
 			}
-			data[kind][name] = fmt.Sprintf("%t", val)
+			data[kind][name] = fmt.Sprintf("%#v", val)
 			return true
 		})
 		return data
