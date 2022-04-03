@@ -3,8 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/metric"
 	"math/rand"
 
 	"github.com/google/uuid"
@@ -12,6 +10,8 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
 
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/protopb/proto/gid"
 	"github.com/pubgo/lava/plugins/scheduler"
@@ -20,6 +20,7 @@ import (
 var _ gid.IdServer = (*Id)(nil)
 
 type Id struct {
+	gid.UnimplementedIdServer
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler `dix:""`

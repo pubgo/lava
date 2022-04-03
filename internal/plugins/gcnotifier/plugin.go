@@ -20,8 +20,9 @@ func init() {
 	}
 
 	plugin.Register(&plugin.Base{
-		Name: Name,
-		Docs: "Know when GC runs from inside your golang code",
+		Name:        Name,
+		CfgNotCheck: true,
+		Docs:        "Know when GC runs from inside your golang code",
 		OnInit: func(p plugin.Process) {
 			p.AfterStop(syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()

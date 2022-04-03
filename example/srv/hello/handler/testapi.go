@@ -52,6 +52,7 @@ func NewTestAPIHandler() *testApiHandler {
 var _ service.Handler = (*testApiHandler)(nil)
 
 type testApiHandler struct {
+	hello.UnimplementedTestApiServer
 	Db         *orm.Client
 	Cron       *scheduler.Scheduler
 	TestApiSrv hello.TestApiClient
