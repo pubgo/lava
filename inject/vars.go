@@ -8,9 +8,9 @@ import (
 
 func init() {
 	vars.Register("inject", func() interface{} {
-		var data typex.A
+		var data typex.D
 		for k, v := range injectHandlers {
-			data.Append(typex.Kv{Key: k.String(), Value: stack.Func(v)})
+			data.Append(typex.Kv{K: k.String(), V: stack.Func(v)})
 		}
 		return data
 	})

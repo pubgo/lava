@@ -2,8 +2,8 @@ package noop
 
 import (
 	"context"
-	"github.com/pubgo/lava/config"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/watcher"
 )
 

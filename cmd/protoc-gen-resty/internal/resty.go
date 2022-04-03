@@ -2,11 +2,15 @@ package internal
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
+	pongo "github.com/flosch/pongo2/v4"
+	"github.com/iancoleman/strcase"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/fasttemplate"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
@@ -104,6 +108,7 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	mth = strings.ToUpper(mth)
 
 	g.P("func (c *", unExport(service.GoName), "Resty) ", clientSignature(g, method), "{")
+
 	g.P(`var req = c.client.R()
 	if ctx != nil {
 		req.SetContext(ctx)
@@ -112,47 +117,41 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P("opts[i](req)")
 	g.P("}")
 
-	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`var body map[string]interface{}`)
+	var fieldMap = make(map[string]*protogen.Field)
+	for _, field := range method.Input.Fields {
+		fieldMap[string(field.Desc.Name())] = field
 	}
 
-	g.P("if in != nil {")
-	g.P(`var rv = reflect.ValueOf(in).Elem()`)
-	g.P(`var rt = reflect.TypeOf(in).Elem()`)
-	g.P(`for i := 0; i < rt.NumField(); i++ {`)
+	t, err := fasttemplate.NewTemplate(path, "{", "}")
+	xerror.Panic(err)
+	_ = t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 
-	// url param
-	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, PathTag, `"); ok && val != ""{
-			req.SetPathParam(val, rv.Field(i).String())
-			continue
-		}`)
+		if fieldMap[tag] == nil {
+			panic(fmt.Sprintf("%v", tag))
+		}
 
-	// url query
-	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, QueryTag, `"); ok && val != ""{
-			req.SetQueryParam(val, rv.Field(i).String())
-			continue
-		}`)
+		// url param
+		protoutil.Gen(g, `req.SetPathParam("{{key}}", in.{{value}})`, pongo.Context{
+			"key":   tag,
+			"value": sMap(strings.Split(tag, "."), func(s string) string { return strcase.ToCamel(s) }),
+		})
+		g.P()
+
+		delete(fieldMap, tag)
+		return 0, nil
+	})
 
 	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`if body == nil {
-				body = make(map[string]interface{})
-			}`)
-		g.P(`if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
-				body[val] = rv.Field(i).String()
-			}`)
+	case http.MethodGet, http.MethodHead:
+		for k, v := range fieldMap {
+			protoutil.Gen(g, `req.SetQueryParam("{{key}}", in.{{value}})`, pongo.Context{
+				"key":   k,
+				"value": v.GoName,
+			})
+			g.P()
+		}
 	default:
-		g.P(`if val,ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
-			req.SetQueryParam(val, rv.Field(i).String())
-		}`)
-	}
-
-	g.P(`}}`)
-
-	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P("req.SetBody(body)")
+		g.P("req.SetBody(in)")
 	}
 
 	g.P(`var resp, err = req.Execute("`, mth, `","`, path, `")`)
@@ -205,4 +204,11 @@ func protocVersion(gen *protogen.Plugin) string {
 		suffix = "-" + s
 	}
 	return fmt.Sprintf("v%d.%d.%d%s", v.GetMajor(), v.GetMinor(), v.GetPatch(), suffix)
+}
+
+func sMap(data []string, fn func(s string) string) []string {
+	for i := range data {
+		data[i] = fn(data[i])
+	}
+	return data
 }

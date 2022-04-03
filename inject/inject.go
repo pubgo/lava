@@ -11,13 +11,13 @@ import (
 	"github.com/pubgo/lava/pkg/reflectx"
 )
 
-var injectHandlers = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
-
 const (
 	injectKey  = "inject"
 	nameKey    = "name"
 	injectExpr = "inject-expr"
 )
+
+var injectHandlers = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
 
 func WithVal(val interface{}) func(obj Object, field Field) (interface{}, bool) {
 	if val == nil {

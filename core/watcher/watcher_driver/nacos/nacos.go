@@ -2,16 +2,17 @@ package nacos
 
 import (
 	"context"
+
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/model"
 	"github.com/nacos-group/nacos-sdk-go/vo"
-	"github.com/pubgo/lava/config"
-	watcher3 "github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/nacos"
+	"github.com/pubgo/lava/config"
+	watcher3 "github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/event"
 )
 
@@ -38,12 +39,16 @@ type nacosWatcher struct {
 	cfg    Cfg
 }
 
-func (cm *nacosWatcher) Name() string { return Name }
-func (cm *nacosWatcher) Close(ctx context.Context, opts ...watcher3.Opt) {
+func (cm *nacosWatcher) Init() {
+}
+
+func (cm *nacosWatcher) Close() {
 	for i := range cm.cfgMap {
 		_ = cm.client.CancelListenConfig(cm.cfgMap[i])
 	}
 }
+
+func (cm *nacosWatcher) Name() string { return Name }
 
 func (cm *nacosWatcher) Get(ctx context.Context, group string, opts ...watcher3.Opt) ([]*watcher3.Response, error) {
 	var cfgMap = xerror.PanicErr(cm.client.SearchConfig(vo.SearchConfigParam{

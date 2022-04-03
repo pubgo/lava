@@ -2,7 +2,6 @@ package timeout
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
 	"net/http"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/service"
 )
 
 const Name = "timeout"

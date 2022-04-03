@@ -2,13 +2,13 @@ package pidfile
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"syscall"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/runtime"
 )
 

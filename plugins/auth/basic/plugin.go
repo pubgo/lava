@@ -1,12 +1,12 @@
-package basicauth
+package basic
 
 import (
 	"context"
 	"encoding/base64"
-	"github.com/pubgo/lava/service"
 	"strings"
 
 	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/service"
 )
 
 const HeaderAuth = "Authorization"

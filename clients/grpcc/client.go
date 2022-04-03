@@ -12,15 +12,21 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/clients/grpcc/resolver"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/runtime"
 )
 
 var clients sync.Map
+var logs = logging.Component(Name)
 
 func InitClient(srv string, opts ...func(cfg *Cfg)) {
+	defer xerror.RespExit()
+
 	var cfg = DefaultCfg(opts...)
 	xerror.Panic(cfg.Check())
 
@@ -28,9 +34,9 @@ func InitClient(srv string, opts ...func(cfg *Cfg)) {
 		cfg.Group = consts.KeyDefault
 	}
 
-	var name = fmt.Sprintf("%s.%s", srv, cfg.Group)
-	zap.L().Info("grpc client init", zap.String(logkey.Name, name))
-	if val, ok := clients.LoadOrStore(name, NewClient(srv, cfg)); ok && val != nil {
+	var srvId = fmt.Sprintf("%s.%s", srv, cfg.Group)
+	logs.L().Info("grpc client init", zap.String(logkey.Service, srvId))
+	if val, ok := clients.LoadOrStore(srvId, NewClient(srv, cfg)); ok && val != nil {
 		return
 	}
 
@@ -42,20 +48,14 @@ func InitClient(srv string, opts ...func(cfg *Cfg)) {
 		if ok {
 			return cfg.newClient(conn.(grpc.ClientConnInterface)), true
 		}
+
+		logs.L().Error("grpc service not found", zap.String(logkey.Service, srvId))
 		return nil, false
 	})
 }
 
 func New(service string, opts ...func(cfg *Cfg)) *Client {
 	return NewClient(service, DefaultCfg(opts...))
-}
-
-func extractHostFromHostPort(ep string) string {
-	host, _, err := net.SplitHostPort(ep)
-	if err != nil {
-		return ep
-	}
-	return host
 }
 
 // NewClient build grpc client
@@ -113,8 +113,11 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err
-		logutil.Pretty(t)
-		logutil.Pretty(err)
+
+		if runtime.IsDev() || runtime.IsTest() {
+			logutil.Pretty(t)
+			logutil.Pretty(err)
+		}
 	})
 
 	if t.conn != nil {
@@ -127,6 +130,10 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	// 双检, 避免多次创建
 	if t.conn != nil {
 		return t.conn, nil
+	}
+
+	if val := config.GetMap(Name, t.name); val != nil {
+		xerror.Panic(val.Decode(&t.cfg))
 	}
 
 	if t.cfg.beforeDial != nil {

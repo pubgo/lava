@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/pubgo/lava/config"
-	registry2 "github.com/pubgo/lava/core/registry"
 	"path"
 	"strings"
 	"sync"
@@ -17,6 +15,8 @@ import (
 	"go.etcd.io/etcd/client/v3"
 
 	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/config"
+	registry2 "github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/merge"
 )
@@ -40,6 +40,9 @@ type Registry struct {
 	Client   *etcdv3.Client `inject-expr:"Cfg.Name"`
 	register map[string]uint64
 	leases   map[string]clientv3.LeaseID
+}
+
+func (e *Registry) Close() {
 }
 
 func (e *Registry) Init() {
@@ -132,7 +135,6 @@ func (e *Registry) Register(s *registry2.Service, opts ...registry2.RegOpt) erro
 
 	service := &registry2.Service{
 		Name:      s.Name,
-		Version:   s.Version,
 		Metadata:  s.Metadata,
 		Endpoints: s.Endpoints,
 	}
@@ -190,31 +192,22 @@ func (e *Registry) GetService(name string, opts ...registry2.GetOpt) ([]*registr
 		return nil, registry2.ErrNotFound
 	}
 
-	serviceMap := map[string]*registry2.Service{}
-
+	var services []*registry2.Service
 	for _, n := range rsp.Kvs {
 		if sn := decode(n.Value); sn != nil {
-			s, ok := serviceMap[sn.Version]
-			if !ok {
-				s = &registry2.Service{
-					Name:      sn.Name,
-					Version:   sn.Version,
-					Metadata:  sn.Metadata,
-					Endpoints: sn.Endpoints,
-				}
-				serviceMap[s.Version] = s
+			s := &registry2.Service{
+				Name:      sn.Name,
+				Metadata:  sn.Metadata,
+				Endpoints: sn.Endpoints,
 			}
 
 			for _, node := range sn.Nodes {
 				s.Nodes = append(s.Nodes, node)
 			}
+			services = append(services, s)
 		}
 	}
 
-	var services []*registry2.Service
-	for _, service := range serviceMap {
-		services = append(services, service)
-	}
 	return services, nil
 }
 

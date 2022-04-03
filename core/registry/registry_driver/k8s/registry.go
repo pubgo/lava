@@ -3,14 +3,15 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/registry"
+
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/k8s"
 )
 
@@ -98,8 +99,10 @@ type Registry struct {
 	stopCh chan struct{}
 }
 
-func (s *Registry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
-	return s.Register(f(), opt...)
+func (s *Registry) Init() {
+}
+
+func (s *Registry) Close() {
 }
 
 func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
@@ -146,7 +149,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registr
 }
 
 func (s *Registry) ListService(opt ...registry.ListOpt) ([]*registry.Service, error) {
-	panic("implement me")
+	return nil, nil
 }
 
 func (s *Registry) String() string { return name }

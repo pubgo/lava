@@ -32,7 +32,7 @@ var (
 	Signal os.Signal = syscall.Signal(0)
 
 	// Pwd 当前目录
-	Pwd = xerror.ExitErr(os.Getwd())
+	Pwd = xerror.ExitErr(os.Getwd()).(string)
 
 	// Hostname 主机名
 	Hostname = utils.FirstNotEmpty(

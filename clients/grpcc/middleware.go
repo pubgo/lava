@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
 	"time"
 
 	"google.golang.org/grpc"
@@ -10,6 +9,7 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/service"
 )
 
 func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientInterceptor {

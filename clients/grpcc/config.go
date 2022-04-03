@@ -12,10 +12,11 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/service"
-	// 默认加载mdns注册中心
+
+	// 加载mdns注册中心
 	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
-	// grpc log插件加载
+	// 加载grpcLog
 	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
 )
 
@@ -120,8 +121,9 @@ type Cfg struct {
 	DialOptions        []grpc.DialOption              `json:"-"`
 	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
 	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
-	Service            string                         `json:"-"`
+	Name               string                         `json:"-"`
 	Group              string                         `json:"-"`
+	Addr               string                         `json:"-"`
 
 	clientType  interface{}
 	newClient   func(cc grpc.ClientConnInterface) interface{}

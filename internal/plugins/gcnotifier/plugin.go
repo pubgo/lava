@@ -2,10 +2,10 @@ package gcnotifier
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/logging"
 
 	"github.com/CAFxX/gcnotifier"
 
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
@@ -18,20 +18,20 @@ func init() {
 	if runtime.IsProd() || runtime.IsRelease() {
 		return
 	}
-	return
 
 	plugin.Register(&plugin.Base{
 		Name: Name,
+		Docs: "Know when GC runs from inside your golang code",
 		OnInit: func(p plugin.Process) {
 			p.AfterStop(syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()
 				defer gc.Close()
 
-				var gcCh = gc.AfterGC()
+				// TODO handler
+
 				for {
 					select {
-					case <-gcCh:
-						// TODO hook
+					case <-gc.AfterGC():
 						logs.L().Info("gc notify")
 					case <-ctx.Done():
 						return

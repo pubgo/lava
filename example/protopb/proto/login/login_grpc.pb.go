@@ -51,16 +51,17 @@ func (c *loginClient) Authenticate(ctx context.Context, in *AuthenticateRequest,
 }
 
 // LoginServer is the server API for Login service.
-// All implementations should embed UnimplementedLoginServer
+// All implementations must embed UnimplementedLoginServer
 // for forward compatibility
 type LoginServer interface {
 	// 登录注册获取凭证,cookie,token
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	// 使用凭证获取用户信息
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
+	mustEmbedUnimplementedLoginServer()
 }
 
-// UnimplementedLoginServer should be embedded to have forward compatible implementations.
+// UnimplementedLoginServer must be embedded to have forward compatible implementations.
 type UnimplementedLoginServer struct {
 }
 
@@ -70,6 +71,7 @@ func (UnimplementedLoginServer) Login(context.Context, *LoginRequest) (*LoginRes
 func (UnimplementedLoginServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
 }
+func (UnimplementedLoginServer) mustEmbedUnimplementedLoginServer() {}
 
 // UnsafeLoginServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to LoginServer will

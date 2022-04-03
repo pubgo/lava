@@ -139,16 +139,17 @@ func (c *transportClient) TestStream3(ctx context.Context, in *Message, opts ...
 }
 
 // TransportServer is the server API for Transport service.
-// All implementations should embed UnimplementedTransportServer
+// All implementations must embed UnimplementedTransportServer
 // for forward compatibility
 type TransportServer interface {
 	TestStream(Transport_TestStreamServer) error
 	TestStream1(Transport_TestStream1Server) error
 	TestStream2(*Message, Transport_TestStream2Server) error
 	TestStream3(context.Context, *Message) (*Message, error)
+	mustEmbedUnimplementedTransportServer()
 }
 
-// UnimplementedTransportServer should be embedded to have forward compatible implementations.
+// UnimplementedTransportServer must be embedded to have forward compatible implementations.
 type UnimplementedTransportServer struct {
 }
 
@@ -164,6 +165,7 @@ func (UnimplementedTransportServer) TestStream2(*Message, Transport_TestStream2S
 func (UnimplementedTransportServer) TestStream3(context.Context, *Message) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestStream3 not implemented")
 }
+func (UnimplementedTransportServer) mustEmbedUnimplementedTransportServer() {}
 
 // UnsafeTransportServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TransportServer will

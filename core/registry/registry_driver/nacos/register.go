@@ -3,8 +3,6 @@ package nacos
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/registry"
 	"net"
 	"strconv"
 
@@ -14,6 +12,8 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/nacos"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/registry"
 )
 
 func init() {
@@ -33,8 +33,10 @@ type nacosRegistry struct {
 	cfg    Cfg
 }
 
-func (n *nacosRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
-	return n.Register(f(), opt...)
+func (n *nacosRegistry) Init() {
+}
+
+func (n *nacosRegistry) Close() {
 }
 
 func (n *nacosRegistry) Register(s *registry.Service, opts ...registry.RegOpt) error {
@@ -55,7 +57,6 @@ func (n *nacosRegistry) Register(s *registry.Service, opts ...registry.RegOpt) e
 		if err != nil {
 			return err
 		}
-		s.Nodes[0].Metadata["version"] = s.Version
 		param.Ip = host
 		param.Port = uint64(port)
 		param.Metadata = s.Nodes[0].Metadata
@@ -166,7 +167,6 @@ func (n *nacosRegistry) GetService(name string, opts ...registry.GetOpt) ([]*reg
 		})
 		s := registry.Service{
 			Name:     v.ServiceName,
-			Version:  v.Metadata["version"],
 			Metadata: v.Metadata,
 			Nodes:    nodes,
 		}

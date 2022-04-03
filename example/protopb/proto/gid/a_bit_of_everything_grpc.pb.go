@@ -77,7 +77,7 @@ func (c *loginServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts
 }
 
 // LoginServiceServer is the server API for LoginService service.
-// All implementations should embed UnimplementedLoginServiceServer
+// All implementations must embed UnimplementedLoginServiceServer
 // for forward compatibility
 type LoginServiceServer interface {
 	// Login
@@ -110,9 +110,10 @@ type LoginServiceServer interface {
 	// | ----------- | --------- | ---------------------------------------------------------- | ---------------------------- | {{range .ResponseType.Fields}}
 	// | {{.Number}} | {{.Name}} | {{if eq .Label.String "LABEL_REPEATED"}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}
 	Logout(context.Context, *LogoutRequest) (*LogoutReply, error)
+	mustEmbedUnimplementedLoginServiceServer()
 }
 
-// UnimplementedLoginServiceServer should be embedded to have forward compatible implementations.
+// UnimplementedLoginServiceServer must be embedded to have forward compatible implementations.
 type UnimplementedLoginServiceServer struct {
 }
 
@@ -122,6 +123,7 @@ func (UnimplementedLoginServiceServer) Login(context.Context, *LoginRequest) (*L
 func (UnimplementedLoginServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
+func (UnimplementedLoginServiceServer) mustEmbedUnimplementedLoginServiceServer() {}
 
 // UnsafeLoginServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to LoginServiceServer will

@@ -17,7 +17,7 @@ func init() {
 	vars.Register(Name+"_priority", func() interface{} {
 		var data typex.A
 		for _, key := range pluginKeys {
-			data.Append(typex.Kv{Key: key.Value.(string), Value: key.Priority})
+			data.Append(typex.Kv{K: key.Value.(string), V: key.Priority})
 		}
 		return data
 	})

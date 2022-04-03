@@ -3,13 +3,14 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/event"
+
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 
+	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/pkg/k8s"
 )
 

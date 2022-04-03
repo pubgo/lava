@@ -1,7 +1,7 @@
 //go:build tools
 // +build tools
 
-package lava
+package tools
 
 import (
 	_ "github.com/fullstorydev/grpcurl/cmd/grpcurl"

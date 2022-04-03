@@ -7,18 +7,22 @@ type D []Kv
 func (d D) Map() M {
 	m := make(M, len(d))
 	for _, e := range d {
-		m[e.Key] = e.Value
+		m[e.K] = e.V
 	}
 	return m
 }
 
-// Kv represents a BSON element for a D. It is usually used inside a D.
-type Kv struct {
-	Key   string      `json:"key"`
-	Value interface{} `json:"value"`
+func (d *D) Append(kv ...Kv) {
+	*d = append(*d, kv...)
 }
 
-func (kv Kv) Map() M { return M{kv.Key: kv.Value} }
+// Kv represents a BSON element for a D. It is usually used inside a D.
+type Kv struct {
+	K string      `json:"k"`
+	V interface{} `json:"v"`
+}
+
+func (kv Kv) Map() M { return M{kv.K: kv.V} }
 
 // An A is an ordered representation of a BSON array.
 //

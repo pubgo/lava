@@ -84,7 +84,7 @@ func (c *codeClient) GetSendStatus(ctx context.Context, in *GetSendStatusRequest
 }
 
 // CodeServer is the server API for Code service.
-// All implementations should embed UnimplementedCodeServer
+// All implementations must embed UnimplementedCodeServer
 // for forward compatibility
 type CodeServer interface {
 	// 发送
@@ -97,9 +97,10 @@ type CodeServer interface {
 	VerifyImageCode(context.Context, *VerifyImageCodeRequest) (*VerifyImageCodeResponse, error)
 	// 获取发送状态
 	GetSendStatus(context.Context, *GetSendStatusRequest) (*GetSendStatusResponse, error)
+	mustEmbedUnimplementedCodeServer()
 }
 
-// UnimplementedCodeServer should be embedded to have forward compatible implementations.
+// UnimplementedCodeServer must be embedded to have forward compatible implementations.
 type UnimplementedCodeServer struct {
 }
 
@@ -118,6 +119,7 @@ func (UnimplementedCodeServer) VerifyImageCode(context.Context, *VerifyImageCode
 func (UnimplementedCodeServer) GetSendStatus(context.Context, *GetSendStatusRequest) (*GetSendStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSendStatus not implemented")
 }
+func (UnimplementedCodeServer) mustEmbedUnimplementedCodeServer() {}
 
 // UnsafeCodeServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to CodeServer will

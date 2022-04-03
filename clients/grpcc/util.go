@@ -1,6 +1,7 @@
 package grpcc
 
 import (
+	"net"
 	"strings"
 
 	"github.com/pubgo/xerror"
@@ -33,4 +34,12 @@ func serviceFromMethod(m string) string {
 func HealthCheck(srv string, conn *grpc.ClientConn) error {
 	_, err := grpc_health_v1.NewHealthClient(conn).Check(ctxutil.Timeout(), &grpc_health_v1.HealthCheckRequest{Service: srv})
 	return xerror.Wrap(err)
+}
+
+func extractHostFromHostPort(ep string) string {
+	host, _, err := net.SplitHostPort(ep)
+	if err != nil {
+		return ep
+	}
+	return host
 }

@@ -2,12 +2,12 @@ package etcdv3
 
 import (
 	"context"
-	"github.com/pubgo/lava/config"
-	watcher2 "github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/xerror"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 
 	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/config"
+	watcher2 "github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/event"
 )
 

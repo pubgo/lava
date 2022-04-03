@@ -1,4 +1,4 @@
-package grpc_entry
+package hello
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -7,15 +7,15 @@ import (
 	"github.com/pubgo/lava/core/debug/debug_plugin"
 	"github.com/pubgo/lava/core/healthy"
 	"github.com/pubgo/lava/core/registry/registry_plugin"
-	"github.com/pubgo/lava/example/entry/grpc_entry/handler"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
+	"github.com/pubgo/lava/example/srv/hello/handler"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/service/gateway_plugin"
 )
 
 var name = "test-grpc"
 
-func GetEntry() service.Service {
+func NewSrv() service.Service {
 	srv := lava.NewService(name, "entry grpc test")
 
 	registry_plugin.Enable(srv)

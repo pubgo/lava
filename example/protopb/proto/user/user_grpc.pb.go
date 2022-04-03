@@ -54,16 +54,17 @@ func (c *userClient) Types(ctx context.Context, in *TypesRequest, opts ...grpc.C
 }
 
 // UserServer is the server API for User service.
-// All implementations should embed UnimplementedUserServer
+// All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
 	// Generate 生成ID
 	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
+	mustEmbedUnimplementedUserServer()
 }
 
-// UnimplementedUserServer should be embedded to have forward compatible implementations.
+// UnimplementedUserServer must be embedded to have forward compatible implementations.
 type UnimplementedUserServer struct {
 }
 
@@ -73,6 +74,7 @@ func (UnimplementedUserServer) Generate(context.Context, *GenerateRequest) (*Gen
 func (UnimplementedUserServer) Types(context.Context, *TypesRequest) (*TypesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Types not implemented")
 }
+func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
 // UnsafeUserServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserServer will
@@ -437,7 +439,7 @@ func (c *aBitOfEverythingServiceClient) CheckStatus(ctx context.Context, in *emp
 }
 
 // ABitOfEverythingServiceServer is the server API for ABitOfEverythingService service.
-// All implementations should embed UnimplementedABitOfEverythingServiceServer
+// All implementations must embed UnimplementedABitOfEverythingServiceServer
 // for forward compatibility
 type ABitOfEverythingServiceServer interface {
 	// Create a new ABitOfEverything
@@ -550,9 +552,10 @@ type ABitOfEverythingServiceServer interface {
 	CheckPostQueryParams(context.Context, *ABitOfEverything) (*ABitOfEverything, error)
 	OverwriteResponseContentType(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	CheckStatus(context.Context, *emptypb.Empty) (*CheckStatusResponse, error)
+	mustEmbedUnimplementedABitOfEverythingServiceServer()
 }
 
-// UnimplementedABitOfEverythingServiceServer should be embedded to have forward compatible implementations.
+// UnimplementedABitOfEverythingServiceServer must be embedded to have forward compatible implementations.
 type UnimplementedABitOfEverythingServiceServer struct {
 }
 
@@ -612,6 +615,8 @@ func (UnimplementedABitOfEverythingServiceServer) OverwriteResponseContentType(c
 }
 func (UnimplementedABitOfEverythingServiceServer) CheckStatus(context.Context, *emptypb.Empty) (*CheckStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckStatus not implemented")
+}
+func (UnimplementedABitOfEverythingServiceServer) mustEmbedUnimplementedABitOfEverythingServiceServer() {
 }
 
 // UnsafeABitOfEverythingServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1080,19 +1085,21 @@ func (c *camelCaseServiceNameClient) Empty(ctx context.Context, in *emptypb.Empt
 }
 
 // CamelCaseServiceNameServer is the server API for CamelCaseServiceName service.
-// All implementations should embed UnimplementedCamelCaseServiceNameServer
+// All implementations must embed UnimplementedCamelCaseServiceNameServer
 // for forward compatibility
 type CamelCaseServiceNameServer interface {
 	Empty(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	mustEmbedUnimplementedCamelCaseServiceNameServer()
 }
 
-// UnimplementedCamelCaseServiceNameServer should be embedded to have forward compatible implementations.
+// UnimplementedCamelCaseServiceNameServer must be embedded to have forward compatible implementations.
 type UnimplementedCamelCaseServiceNameServer struct {
 }
 
 func (UnimplementedCamelCaseServiceNameServer) Empty(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Empty not implemented")
 }
+func (UnimplementedCamelCaseServiceNameServer) mustEmbedUnimplementedCamelCaseServiceNameServer() {}
 
 // UnsafeCamelCaseServiceNameServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to CamelCaseServiceNameServer will
@@ -1164,18 +1171,21 @@ func (c *anotherServiceWithNoBindingsClient) NoBindings(ctx context.Context, in 
 }
 
 // AnotherServiceWithNoBindingsServer is the server API for AnotherServiceWithNoBindings service.
-// All implementations should embed UnimplementedAnotherServiceWithNoBindingsServer
+// All implementations must embed UnimplementedAnotherServiceWithNoBindingsServer
 // for forward compatibility
 type AnotherServiceWithNoBindingsServer interface {
 	NoBindings(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	mustEmbedUnimplementedAnotherServiceWithNoBindingsServer()
 }
 
-// UnimplementedAnotherServiceWithNoBindingsServer should be embedded to have forward compatible implementations.
+// UnimplementedAnotherServiceWithNoBindingsServer must be embedded to have forward compatible implementations.
 type UnimplementedAnotherServiceWithNoBindingsServer struct {
 }
 
 func (UnimplementedAnotherServiceWithNoBindingsServer) NoBindings(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NoBindings not implemented")
+}
+func (UnimplementedAnotherServiceWithNoBindingsServer) mustEmbedUnimplementedAnotherServiceWithNoBindingsServer() {
 }
 
 // UnsafeAnotherServiceWithNoBindingsServer may be embedded to opt out of forward compatibility for this service.

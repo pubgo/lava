@@ -7,9 +7,9 @@ import (
 
 type Cfg struct {
 	ExpireAfter string
-	SecretFunc SecretFunc //required
-	Expire     time.Duration
-	Realm      string //required
+	SecretFunc  SecretFunc //required
+	Expire      time.Duration
+	Realm       string //required
 
 	//optional. Authorize check whether this request could access some resource or API based on json claims.
 	//Typically, this method should communicate with a RBAC, ABAC system

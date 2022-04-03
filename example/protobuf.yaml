@@ -28,7 +28,6 @@ plugins:
   - name: go-grpc
     out: protopb
     opt:
-      - require_unimplemented_servers=false
       - paths=source_relative
   - name: grpc-gateway
     out: protopb
@@ -52,8 +51,5 @@ plugins:
       - path=protopb
       - paths=source_relative
   - name: errors
-    out: protopb
-    opt: paths=source_relative
-  - name: resty
     out: protopb
     opt: paths=source_relative

@@ -2,12 +2,12 @@ package etcdv3
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/registry"
 	"time"
 
 	clientV3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/pubgo/lava/clients/etcdv3"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
 )
 

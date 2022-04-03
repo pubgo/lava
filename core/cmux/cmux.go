@@ -98,7 +98,9 @@ func (t *Mux) Serve() error {
 	t.ln = ln
 	var c = cmux.New(ln)
 	c.SetReadTimeout(t.ReadTimeout)
-	c.HandleError(t.HandleError)
+	if t.HandleError != nil {
+		c.HandleError(t.HandleError)
+	}
 
 	for {
 		var item = t.priorityQueue.PopItem()

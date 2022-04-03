@@ -23,8 +23,8 @@ func UseNumber() {
 	useNumber = true
 }
 
-var jsonpbMarshaler = &protojson.MarshalOptions{EmitUnpopulated: true}
-var jsonpbUnmarshaler = &protojson.UnmarshalOptions{AllowPartial: true}
+var jsonMarshaller = &protojson.MarshalOptions{EmitUnpopulated: true}
+var jsonUnmarshal = &protojson.UnmarshalOptions{AllowPartial: true}
 
 type jsonCodec struct{}
 
@@ -36,7 +36,7 @@ func (j *jsonCodec) Encode(v interface{}) ([]byte, error) {
 	}
 
 	if pb, ok := v.(proto.Message); ok {
-		return jsonpbMarshaler.Marshal(pb)
+		return jsonMarshaller.Marshal(pb)
 	}
 
 	return json.Marshal(v)
@@ -52,7 +52,7 @@ func (j *jsonCodec) Decode(data []byte, v interface{}) error {
 	}
 
 	if pb, ok := v.(proto.Message); ok {
-		return jsonpbUnmarshaler.Unmarshal(data, pb)
+		return jsonUnmarshal.Unmarshal(data, pb)
 	}
 
 	dec := json.NewDecoder(bytes.NewReader(data))

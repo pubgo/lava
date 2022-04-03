@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/example/entry/gid"
-	"github.com/pubgo/lava/example/entry/grpc_entry"
+	"github.com/pubgo/lava/example/srv/gid"
+	"github.com/pubgo/lava/example/srv/hello"
 
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	_ "github.com/pubgo/lava/core/metric/metric_driver/prometheus"
@@ -12,7 +12,7 @@ import (
 
 func main() {
 	lava.Run(
-		gid.GetEntry(),
-		grpc_entry.GetEntry(),
+		gid.NewSrv(),
+		hello.NewSrv(),
 	)
 }

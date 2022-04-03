@@ -1,4 +1,4 @@
-package basicauth
+package basic
 
 import (
 	"errors"

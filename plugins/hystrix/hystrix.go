@@ -2,10 +2,10 @@ package hystrix
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
+	"github.com/pubgo/lava/service"
 )
 
 const (

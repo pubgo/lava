@@ -73,7 +73,7 @@ func (c *testApiClient) VersionTestCustom(ctx context.Context, in *TestReq, opts
 }
 
 // TestApiServer is the server API for TestApi service.
-// All implementations should embed UnimplementedTestApiServer
+// All implementations must embed UnimplementedTestApiServer
 // for forward compatibility
 type TestApiServer interface {
 	// Version rpc
@@ -83,9 +83,10 @@ type TestApiServer interface {
 	VersionTest(context.Context, *TestReq) (*TestApiOutput, error)
 	// VersionTest rpc custom
 	VersionTestCustom(context.Context, *TestReq) (*TestApiOutput, error)
+	mustEmbedUnimplementedTestApiServer()
 }
 
-// UnimplementedTestApiServer should be embedded to have forward compatible implementations.
+// UnimplementedTestApiServer must be embedded to have forward compatible implementations.
 type UnimplementedTestApiServer struct {
 }
 
@@ -101,6 +102,7 @@ func (UnimplementedTestApiServer) VersionTest(context.Context, *TestReq) (*TestA
 func (UnimplementedTestApiServer) VersionTestCustom(context.Context, *TestReq) (*TestApiOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VersionTestCustom not implemented")
 }
+func (UnimplementedTestApiServer) mustEmbedUnimplementedTestApiServer() {}
 
 // UnsafeTestApiServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TestApiServer will
@@ -248,14 +250,15 @@ func (c *testApiV2Client) VersionTest1(ctx context.Context, in *TestReq, opts ..
 }
 
 // TestApiV2Server is the server API for TestApiV2 service.
-// All implementations should embed UnimplementedTestApiV2Server
+// All implementations must embed UnimplementedTestApiV2Server
 // for forward compatibility
 type TestApiV2Server interface {
 	Version1(context.Context, *TestReq) (*TestApiOutput, error)
 	VersionTest1(context.Context, *TestReq) (*TestApiOutput, error)
+	mustEmbedUnimplementedTestApiV2Server()
 }
 
-// UnimplementedTestApiV2Server should be embedded to have forward compatible implementations.
+// UnimplementedTestApiV2Server must be embedded to have forward compatible implementations.
 type UnimplementedTestApiV2Server struct {
 }
 
@@ -265,6 +268,7 @@ func (UnimplementedTestApiV2Server) Version1(context.Context, *TestReq) (*TestAp
 func (UnimplementedTestApiV2Server) VersionTest1(context.Context, *TestReq) (*TestApiOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VersionTest1 not implemented")
 }
+func (UnimplementedTestApiV2Server) mustEmbedUnimplementedTestApiV2Server() {}
 
 // UnsafeTestApiV2Server may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TestApiV2Server will

@@ -26,3 +26,6 @@ package tools
 
 // A Golang lockfree thread-safe HashMap optimized for fastest read access.
 // https://github.com/cornelk/hashmap
+
+// CPU feature identification for Go
+// https://github.com/klauspost/cpuid
