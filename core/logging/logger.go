@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const Name = "logger"
+const Name = "logging"
 
 type Logger = zap.Logger
 

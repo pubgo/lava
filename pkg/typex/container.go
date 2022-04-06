@@ -16,6 +16,10 @@ func (d *D) Append(kv ...Kv) {
 	*d = append(*d, kv...)
 }
 
+func KvOf(k string, v interface{}) Kv {
+	return Kv{K: k, V: v}
+}
+
 // Kv represents a BSON element for a D. It is usually used inside a D.
 type Kv struct {
 	K string      `json:"k"`

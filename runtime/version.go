@@ -8,6 +8,8 @@ import (
 
 func GetVersion() map[string]interface{} {
 	return map[string]interface{}{
+		"namespace":     Namespace,
+		"app_id":        AppID,
 		"device_id":     DeviceID,
 		"project":       Project,
 		"data":          version.Data,

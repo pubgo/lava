@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/google/uuid"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -28,6 +29,9 @@ var (
 
 	// DeviceID 主机设备ID
 	DeviceID = xerror.ExitErr(machineid.ID())
+
+	// AppID service id
+	AppID = uuid.New().String()
 
 	Signal os.Signal = syscall.Signal(0)
 

@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"errors"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -93,6 +94,9 @@ func (t *Mux) Close() error {
 
 func (t *Mux) Serve() error {
 	ln, err := net.Listen("tcp", t.Addr)
+	if err != nil && strings.Contains(err.Error(), "address already in use") {
+		xerror.ExitF(err, "net Listen failed, addr=%s", t.Addr)
+	}
 	xerror.PanicF(err, "net Listen failed, addr=%s", t.Addr)
 
 	t.ln = ln
@@ -112,5 +116,22 @@ func (t *Mux) Serve() error {
 		m.lis <- c.Match(m.matches...)
 	}
 
-	return c.Serve()
+	if err := c.Serve(); err != nil {
+		if ignoreMuxError(err) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func ignoreMuxError(err error) bool {
+	if err == nil {
+		return true
+	}
+
+	return strings.Contains(err.Error(), "use of closed network connection") ||
+		strings.Contains(err.Error(), "mux: server closed")
 }

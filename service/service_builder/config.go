@@ -5,9 +5,8 @@ import (
 	"github.com/pubgo/lava/pkg/grpc_builder"
 )
 
-const Name = "service"
-
 const (
+	Name               = "service"
 	defaultContentType = "application/grpc"
 )
 

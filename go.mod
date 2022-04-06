@@ -40,7 +40,6 @@ require (
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/dix v0.1.31
 	github.com/pubgo/x v0.3.36
 	github.com/pubgo/xerror v0.4.16
 	github.com/reugn/go-quartz v0.3.7
@@ -117,6 +116,7 @@ require (
 require (
 	github.com/antonmedv/expr v1.9.0
 	github.com/fasthttp/websocket v1.5.0
+	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25

@@ -49,8 +49,8 @@ func init() {
 
 				now := time.Now()
 				params = append(params, zap.String("requestId", reqId))
-				params = append(params, zap.String("tracerID", tracerID))
-				params = append(params, zap.String("spanID", spanID))
+				params = append(params, zap.String("tracerId", tracerID))
+				params = append(params, zap.String("spanId", spanID))
 				params = append(params, zap.Int64("startTime", now.UnixMicro()))
 				params = append(params, zap.String("service", req.Service()))
 				params = append(params, zap.String("operation", req.Operation()))
@@ -59,15 +59,14 @@ func init() {
 				params = append(params, zap.String("version", version.Version))
 
 				var respBody interface{}
+				var respHeader interface{}
 
 				// 错误和panic处理
 				defer func() {
-					var stack []byte
 					if c := recover(); c != nil {
-						// 获取堆栈信息
-						stack = debug.Stack()
-						// 对堆栈信息进行结构化处理
-						goroutines, _ := gostackparse.Parse(bytes.NewReader(stack))
+
+						// 获取堆栈信息, 对堆栈信息进行结构化处理
+						goroutines, _ := gostackparse.Parse(bytes.NewReader(debug.Stack()))
 						if len(goroutines) != 0 {
 							params = append(params, zap.Any("stack", goroutines))
 						}
@@ -80,11 +79,11 @@ func init() {
 						}
 					}
 
-					if err != nil {
-						params = append(params, zap.Any("req_body", req.Payload()))
-						params = append(params, zap.Any("resp_body", respBody))
-						params = append(params, zap.Any("header", req.Header()))
-					}
+					// TODO type assert
+					params = append(params, zap.String("req_body", fmt.Sprintf("%s", req.Payload())))
+					params = append(params, zap.Any("resp_body", fmt.Sprintf("%s", respBody)))
+					params = append(params, zap.Any("req_header", req.Header()))
+					params = append(params, zap.Any("resp_header", respHeader))
 
 					// 持续时间, 微秒
 					params = append(params, zap.Int64("duration", time.Since(now).Microseconds()))
@@ -101,13 +100,15 @@ func init() {
 					)),
 					req,
 					func(rsp service.Response) error {
-						respBody = rsp.Payload()
 						if !req.Client() {
 							rsp.Header().Set("Access-Control-Allow-Origin", origin)
 							rsp.Header().Set("Access-Control-Allow-Credentials", "true")
 							rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
 							rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
 						}
+
+						respBody = rsp.Payload()
+						respHeader = rsp.Header()
 						return resp(rsp)
 					})
 				return

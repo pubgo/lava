@@ -3,9 +3,10 @@ package vars
 import (
 	"expvar"
 
-	"github.com/pubgo/x/byteutil"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func Float(name string) *expvar.Float {
@@ -44,16 +45,17 @@ type value func() interface{}
 
 func (f value) Value() interface{} { return f() }
 func (f value) String() (r string) {
-	defer xerror.Resp(func(err xerror.XErr) { r = err.Stack() })
-
 	dt := f()
 
-	if _, ok := dt.(string); ok {
+	switch dt.(type) {
+	case nil:
+		return "{}"
+	case string:
 		return dt.(string)
 	}
 
 	v := xerror.PanicBytes(jsonx.Marshal(dt))
-	return byteutil.ToStr(v)
+	return utils.BtoS(v)
 }
 
 func Register(name string, data func() interface{}) {

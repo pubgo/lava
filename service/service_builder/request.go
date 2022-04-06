@@ -22,7 +22,7 @@ type rpcRequest struct {
 	payload       interface{}
 }
 
-func (r *rpcRequest) Kind() string           { return Name }
+func (r *rpcRequest) Kind() string           { return "grpc" }
 func (r *rpcRequest) Client() bool           { return false }
 func (r *rpcRequest) Header() service.Header { return r.header }
 func (r *rpcRequest) Payload() interface{}   { return r.payload }
@@ -39,10 +39,7 @@ type httpRequest struct {
 	header service.Header
 }
 
-func (r *httpRequest) Kind() string {
-	//TODO implement me
-	panic("implement me")
-}
+func (r *httpRequest) Kind() string { return "http" }
 
 func (r *httpRequest) Operation() string {
 	return r.ctx.Route().Path

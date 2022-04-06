@@ -96,7 +96,10 @@ func New() *ViewManager {
 	}
 
 	Route("/statsview", func(r fiber.Router) {
-		r.Get("/", func(ctx *fiber.Ctx) error { return page.Render(ctx) })
+		r.Get("/", func(ctx *fiber.Ctx) error {
+			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
+			return page.Render(ctx)
+		})
 
 		for _, v := range mgr.Views {
 			page.AddCharts(v.View())

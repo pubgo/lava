@@ -9,19 +9,16 @@ import (
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	fiber2 "github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logutil"
-	encoding3 "github.com/pubgo/lava/encoding"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
@@ -50,7 +47,7 @@ func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl
 		cfg: Cfg{
 			name:     name,
 			hostname: runtime.Hostname,
-			id:       uuid.New().String(),
+			id:       runtime.AppID,
 			Grpc:     grpc_builder.GetDefaultCfg(),
 			Gw:       fiber_builder.Cfg{},
 		},
@@ -132,20 +129,13 @@ func (t *serviceImpl) Plugin(plugin plugin.Plugin) {
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
-	t.net.Addr = runtime.Addr
-
 	// 依赖对象注入
 	inject.Inject(t)
 
-	// 编码注册
-	encoding3.Each(func(_ string, cdc encoding3.Codec) {
-		encoding.RegisterCodec(cdc)
-	})
+	t.net.Addr = runtime.Addr
 
 	// 配置解析
 	_ = config.Decode(Name, &t.cfg)
-
-	t.initDebug()
 
 	// 网关初始化
 	xerror.Panic(t.gw.Build(t.cfg.Gw))

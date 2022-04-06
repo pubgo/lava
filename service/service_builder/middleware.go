@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/service/grpc_util"
 )
 
 func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
@@ -82,11 +83,11 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.
 		delete(md, "x-content-type")
 
 		// get peer from context
-		if p := getPeerIP(md, ctx); p != "" {
+		if p := grpc_util.GetClientIP(md); p != "" {
 			md.Set("remote-ip", p)
 		}
 
-		if p := getPeerName(md); p != "" {
+		if p := grpc_util.GetClientName(md); p != "" {
 			md.Set("remote-name", p)
 		}
 

@@ -6,8 +6,8 @@ import (
 	"github.com/pubgo/lava/service/service_builder"
 )
 
-func Run(entries ...service.Service) {
-	service_builder.Run(entries...)
+func Run(services ...service.Service) {
+	service_builder.Run(services...)
 }
 
 func NewService(name string, desc string, plugins ...plugin.Plugin) service.Service {

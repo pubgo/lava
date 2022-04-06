@@ -8,11 +8,11 @@ import (
 )
 
 var CommitID = ""
-var BuildTime = "2021-03-20 16:52:09"
+var BuildTime = ""
 var Data = ""
 var Domain = consts.Domain
-var Version = "v0.0.1"
-var Tag = "v0.0.1"
+var Version = "v0.0.1.dev"
+var Tag = ""
 
 func init() {
 	xerror.ExitErr(ver.NewVersion(Version))

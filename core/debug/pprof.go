@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"errors"
 	"net/http/pprof"
 
 	"github.com/felixge/fgprof"
@@ -12,14 +13,30 @@ func init() {
 	Get("/gprof", adaptor.HTTPHandler(fgprof.Handler()))
 	Route("/pprof", func(r fiber.Router) {
 		r.Get("/", adaptor.HTTPHandlerFunc(pprof.Index))
-		r.Get("/cmdline", adaptor.HTTPHandlerFunc(pprof.Cmdline))
-		r.Get("/profile", adaptor.HTTPHandlerFunc(pprof.Profile))
-		r.Get("/symbol", adaptor.HTTPHandlerFunc(pprof.Symbol))
-		r.Get("/trace", adaptor.HTTPHandlerFunc(pprof.Trace))
-		r.Get("/allocs", adaptor.HTTPHandler(pprof.Handler("allocs")))
-		r.Get("/goroutine", adaptor.HTTPHandler(pprof.Handler("goroutine")))
-		r.Get("/heap", adaptor.HTTPHandler(pprof.Handler("heap")))
-		r.Get("/mutex", adaptor.HTTPHandler(pprof.Handler("mutex")))
-		r.Get("/threadcreate", adaptor.HTTPHandler(pprof.Handler("threadcreate")))
+		r.Get("/:name", func(ctx *fiber.Ctx) error {
+			var name = ctx.Params("name")
+			switch name {
+			case "cmdline":
+				return adaptor.HTTPHandlerFunc(pprof.Cmdline)(ctx)
+			case "profile":
+				return adaptor.HTTPHandlerFunc(pprof.Profile)(ctx)
+			case "symbol":
+				return adaptor.HTTPHandlerFunc(pprof.Symbol)(ctx)
+			case "trace":
+				return adaptor.HTTPHandlerFunc(pprof.Trace)(ctx)
+			case "allocs":
+				return adaptor.HTTPHandler(pprof.Handler("allocs"))(ctx)
+			case "goroutine":
+				return adaptor.HTTPHandler(pprof.Handler("goroutine"))(ctx)
+			case "heap":
+				return adaptor.HTTPHandler(pprof.Handler("heap"))(ctx)
+			case "mutex":
+				return adaptor.HTTPHandler(pprof.Handler("mutex"))(ctx)
+			case "threadcreate":
+				return adaptor.HTTPHandler(pprof.Handler("threadcreate"))(ctx)
+			}
+
+			return errors.New("name not found")
+		})
 	})
 }

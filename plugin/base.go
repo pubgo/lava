@@ -79,15 +79,17 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	if p.cfgMap != nil {
 		data["cfg"] = p.cfgMap.Map()
 	}
+
 	data["descriptor"] = p.Short
 	data["url"] = p.Url
+	data["cfgNotCheck"] = p.CfgNotCheck
 	data["health"] = p.getFuncStack(p.OnHealth)
 	data["middleware"] = p.getFuncStack(p.OnMiddleware)
 	data["init"] = p.getFuncStack(p.OnInit)
 	data["commands"] = p.getFuncStack(p.OnCommands)
 	data["flags"] = p.getFuncStack(p.OnFlags)
 	data["watch"] = p.getFuncStack(p.OnWatch)
-	data["exp-var"] = p.getFuncStack(p.OnVars)
+	data["vars"] = p.getFuncStack(p.OnVars)
 
 	var handler = func(fns []func()) (data []string) {
 		for i := range fns {

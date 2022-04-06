@@ -13,7 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	logging2 "github.com/pubgo/lava/core/logging"
@@ -26,7 +25,7 @@ import (
 )
 
 func init() {
-	hello.InitTestApiClient("test-grpc", grpcc.WithDiscov())
+	hello.InitTestApiClient("test-grpc")
 	//hello.InitTestApiClient("localhost:8080", grpcc.WithDirect())
 }
 

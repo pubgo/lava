@@ -13,6 +13,7 @@ const (
 	Project   = "project"
 	Fields    = "fields"
 	Env       = "env"
+	Hostname  = "hostname"
 	Kind      = "kind"
 	Name      = "name"
 	Service   = "service"

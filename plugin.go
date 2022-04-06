@@ -25,6 +25,9 @@ import (
 
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
+
+	// metric
+	_ "github.com/pubgo/lava/core/metric/metric_plugin"
 )
 
 // 加载middleware, 注意加载顺序

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	pongo "github.com/flosch/pongo2/v4"
+	pongo "github.com/flosch/pongo2/v5"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"

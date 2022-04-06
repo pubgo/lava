@@ -33,8 +33,13 @@ func Init(c config.Config) {
 	// 全局log设置
 	var log = cfg.Build(runtime.Project).With(
 		zap.String(logkey.Env, runtime.Mode.String()),
+		zap.String(logkey.Hostname, runtime.Hostname),
 		zap.String(logkey.Project, runtime.Name()),
 	)
+
+	if runtime.AppID != "" {
+		log.With(zap.String(logkey.CommitID, runtime.AppID))
+	}
 
 	if runtime.Namespace != "" {
 		log = log.With(zap.String(logkey.Namespace, runtime.Namespace))
