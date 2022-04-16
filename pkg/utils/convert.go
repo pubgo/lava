@@ -227,8 +227,8 @@ const (
 	SliceSize = int(unsafe.Sizeof([]byte{}))
 )
 
-// B2Strs converts byte slice to String slice
-func B2Strs(b []byte) (ss []String) {
+// B2S converts byte slice to String slice
+func B2S(b []byte) (ss []String) {
 	B := (*Slice)(unsafe.Pointer(&b))
 	S := (*Slice)(unsafe.Pointer(&ss))
 	S.Data = B.Data

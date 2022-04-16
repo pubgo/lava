@@ -3,7 +3,7 @@ package jwt
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/abc"
 	"strings"
 
 	"github.com/pubgo/lava/plugin"
@@ -14,8 +14,8 @@ const Name = "jwt"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
+		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
+			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
 				v := req.Header().Get("Authorization")
 				if v[0] == "" {
 					return ErrNoHeader

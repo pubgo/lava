@@ -2,6 +2,7 @@ package metric_plugin
 
 import (
 	"context"
+	"github.com/pubgo/lava/abc"
 	"sync/atomic"
 	"unsafe"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/vars"
 )
 
@@ -43,8 +43,8 @@ func init() {
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		},
-		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
+		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
+			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
 				return next(metric.CreateCtx(ctx, GetGlobal()), req, resp)
 			}
 		},

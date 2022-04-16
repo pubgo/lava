@@ -1,13 +1,13 @@
 package runtime
 
 import (
-	"github.com/google/uuid"
 	"io/ioutil"
 	"os"
 	"strings"
 	"syscall"
 
 	"github.com/denisbrodbeck/machineid"
+	"github.com/google/uuid"
 	dir "github.com/mitchellh/go-homedir"
 	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"

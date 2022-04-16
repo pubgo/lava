@@ -3,10 +3,10 @@ package basic
 import (
 	"context"
 	"encoding/base64"
+	"github.com/pubgo/lava/abc"
 	"strings"
 
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/service"
 )
 
 const HeaderAuth = "Authorization"
@@ -15,8 +15,8 @@ const Name = "basic-auth"
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
+		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
+			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
 				subject := req.Header().Get(HeaderAuth)
 				if len(subject) == 0 || subject[0] == "" {
 					return ErrNoHeader

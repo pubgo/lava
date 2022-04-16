@@ -2,7 +2,6 @@ package restc
 
 import (
 	"context"
-	"net/http"
 	"net/url"
 )
 
@@ -10,7 +9,7 @@ const Name = "restc"
 
 // Client http clientImpl interface
 type Client interface {
-	RoundTripper(func(transport http.RoundTripper) http.RoundTripper) error
+	Plugin(plg string)
 	Do(ctx context.Context, req *Request) (*Response, error)
 	Head(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error)
 	Get(ctx context.Context, url string, opts ...func(req *Request)) (*Response, error)

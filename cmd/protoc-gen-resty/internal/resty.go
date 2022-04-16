@@ -6,18 +6,20 @@ import (
 	"net/http"
 	"strings"
 
-	pongo "github.com/flosch/pongo2/v4"
+	pongo "github.com/flosch/pongo2/v5"
 	"github.com/iancoleman/strcase"
-	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasttemplate"
 	"google.golang.org/protobuf/compiler/protogen"
+	gp "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+
+	"github.com/pubgo/lava/pkg/protoutil"
+	"github.com/pubgo/lava/proto/lava"
 )
 
 var (
 	contextCall = protoutil.Import("context")
-	reflectCall = protoutil.Import("reflect")
 	restyCall   = protoutil.Import("github.com/go-resty/resty/v2")
 	jsonCall    = protoutil.Import("github.com/goccy/go-json")
 	stringsCall = protoutil.Import("strings")
@@ -46,22 +48,36 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P()
 
 	g.QualifiedGoIdent(restyCall(""))
-	g.QualifiedGoIdent(reflectCall(""))
 	g.QualifiedGoIdent(jsonCall(""))
 
-	generateFileContent(gen, file, g)
+	if !generateFileContent(gen, file, g) {
+		g.Skip()
+		return nil
+	}
+
 	return g
 }
 
 // generateFileContent generates the service definitions, excluding the package statement.
-func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile) {
+func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile) (ret bool) {
 	for _, srv := range file.Services {
-		genClient(gen, file, g, srv)
+		if genClient(gen, file, g, srv) {
+			ret = true
+		}
 	}
+	return
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, srv *protogen.Service) (ret bool) {
 	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
+
+	if !gp.HasExtension(srv.Desc.Options(), lava.E_Resty) {
+		return false
+	}
+
+	if resty, ok := gp.GetExtension(srv.Desc.Options(), lava.E_Resty).(*lava.Resty); !ok || !resty.Enable {
+		return false
+	}
 
 	clientName := srv.GoName + "Resty"
 	g.P("type ", clientName, " interface {")
@@ -89,7 +105,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	for _, method := range srv.Methods {
 		genClientMethod(gen, file, g, method, 0)
 	}
-	return
+	return true
 }
 
 func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, method *protogen.Method, index int) {
@@ -125,7 +141,6 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	t, err := fasttemplate.NewTemplate(path, "{", "}")
 	xerror.Panic(err)
 	_ = t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-
 		if fieldMap[tag] == nil {
 			panic(fmt.Sprintf("%v", tag))
 		}
@@ -133,8 +148,10 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 		// url param
 		protoutil.Gen(g, `req.SetPathParam("{{key}}", in.{{value}})`, pongo.Context{
 			"key":   tag,
-			"value": sMap(strings.Split(tag, "."), func(s string) string { return strcase.ToCamel(s) }),
+			"value": handleTagName(tag),
 		})
+		g.P()
+		protoutil.Gen(g, `in.{{value}}=""`, pongo.Context{"value": handleTagName(tag)})
 		g.P()
 
 		delete(fieldMap, tag)
@@ -159,10 +176,14 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P(`return nil, err`)
 	g.P(`}`)
 	g.P("out := new(", method.Output.GoIdent, ")")
+	g.P(`if err := `, jsonCall("Unmarshal"), `(resp.Body(), out); err != nil {
+		return nil, err
+	}`)
+
 	for i := range method.Output.Fields {
 		if method.Output.Fields[i].GoName == "Response" {
 			g.P(`
-			var headers = make(map[string]string)
+			var headers = make(map[string]string, len(resp.Header()))
 			for k, v := range resp.Header() {
 				headers[k] = `, stringsCall("Join"), `(v, ",")
 			}
@@ -172,10 +193,6 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 			}`)
 		}
 	}
-
-	g.P(`if err := `, jsonCall("Unmarshal"), `(resp.Body(), out); err != nil {
-		return nil, err
-	}`)
 
 	g.P(`return out, nil`)
 	g.P("}")
@@ -206,9 +223,10 @@ func protocVersion(gen *protogen.Plugin) string {
 	return fmt.Sprintf("v%d.%d.%d%s", v.GetMajor(), v.GetMinor(), v.GetPatch(), suffix)
 }
 
-func sMap(data []string, fn func(s string) string) []string {
-	for i := range data {
-		data[i] = fn(data[i])
+func handleTagName(name string) string {
+	var names = strings.Split(name, ".")
+	for i := range names {
+		names[i] = strcase.ToCamel(names[i])
 	}
-	return data
+	return strings.Join(names, ".")
 }

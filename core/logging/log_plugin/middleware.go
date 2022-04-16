@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/abc"
 	"runtime/debug"
 	"time"
 
@@ -18,7 +19,6 @@ import (
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
-	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
 
@@ -29,17 +29,17 @@ var logs = logging.Component(Name)
 func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
-		OnMiddleware: func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) (err error) {
+		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
+			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) (err error) {
 				// TODO 考虑pool优化
 				var params = make([]zap.Field, 0, 20)
 
-				referer := service.HeaderGet(req.Header(), httpx.HeaderReferer)
+				referer := abc.HeaderGet(req.Header(), httpx.HeaderReferer)
 				if referer != "" {
 					params = append(params, zap.String("referer", referer))
 				}
 
-				origin := service.HeaderGet(req.Header(), httpx.HeaderOrigin)
+				origin := abc.HeaderGet(req.Header(), httpx.HeaderOrigin)
 				if origin != "" {
 					params = append(params, zap.String("origin", origin))
 				}
@@ -93,13 +93,14 @@ func init() {
 
 				err = next(
 					// 集成logger到context
-					logging.CreateCtx(ctx, zap.L().Named(logkey.Service).With(
+					logging.CreateCtx(ctx, zap.L().Named(logkey.Request).With(
 						zap.String("tracerId", tracerID),
 						zap.String("spanId", spanID),
 						zap.String("requestId", reqId),
 					)),
+
 					req,
-					func(rsp service.Response) error {
+					func(rsp abc.Response) error {
 						if !req.Client() {
 							rsp.Header().Set("Access-Control-Allow-Origin", origin)
 							rsp.Header().Set("Access-Control-Allow-Credentials", "true")

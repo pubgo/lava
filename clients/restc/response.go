@@ -1,21 +1,16 @@
 package restc
 
 import (
-	"github.com/pubgo/lava/service"
-	"net/http"
-	"net/http/httptrace"
+	"github.com/pubgo/lava/abc"
+	"github.com/valyala/fasthttp"
 )
 
-var _ service.Response = (*Response)(nil)
+var _ abc.Response = (*Response)(nil)
 
 type Response struct {
-	resp *http.Response
+	resp *fasthttp.Response
 }
 
-func (r *Response) Header() service.Header   { return service.Header(r.resp.Header) }
-func (r *Response) Response() *http.Response { return r.resp }
-func (r *Response) Payload() interface{}     { return nil }
-func (r *Response) Stream() bool             { return false }
-func (r *Response) TraceInfo() *httptrace.ClientTrace {
-	return httptrace.ContextClientTrace(r.resp.Request.Context())
-}
+func (r *Response) Header() *abc.ResponseHeader { return &r.resp.Header }
+func (r *Response) Payload() interface{}        { return nil }
+func (r *Response) Stream() bool                { return false }

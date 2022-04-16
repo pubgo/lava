@@ -44,7 +44,7 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 	injectHandlers[t] = fn
 }
 
-func Inject(val interface{}) {
+func Inject(val interface{}) interface{} {
 	var v reflect.Value
 	switch val.(type) {
 	case nil:
@@ -85,6 +85,7 @@ func Inject(val interface{}) {
 
 		v.Field(i).Set(reflect.ValueOf(ret))
 	}
+	return val
 }
 
 type Object struct {

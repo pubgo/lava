@@ -2,92 +2,42 @@ package grpcc
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"strings"
 	"sync"
 
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/clients/grpcc/resolver"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/core/logging/logutil"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/runtime"
+
+	// 加载mdns注册中心
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
+
+	// 加载grpcLog
+	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
 )
-
-var clients sync.Map
-var logs = logging.Component(Name)
-
-func InitClient(srv string, opts ...func(cfg *Cfg)) {
-	defer xerror.RespExit()
-
-	var cfg = DefaultCfg(opts...)
-	xerror.Panic(cfg.Check())
-
-	if cfg.Group == "" {
-		cfg.Group = consts.KeyDefault
-	}
-
-	var srvId = fmt.Sprintf("%s.%s", srv, cfg.Group)
-	logs.L().Info("grpc client init", zap.String(logkey.Service, srvId))
-	if val, ok := clients.LoadOrStore(srvId, NewClient(srv, cfg)); ok && val != nil {
-		return
-	}
-
-	xerror.Assert(cfg.clientType == nil, "grpc clientType is nil")
-
-	// 依赖注入
-	inject.Register(cfg.clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
-		var conn, ok = clients.Load(fmt.Sprintf("%s.%s", srv, field.Name()))
-		if ok {
-			return cfg.newClient(conn.(grpc.ClientConnInterface)), true
-		}
-
-		logs.L().Error("grpc service not found", zap.String(logkey.Service, srvId))
-		return nil, false
-	})
-}
-
-func New(service string, opts ...func(cfg *Cfg)) *Client {
-	return NewClient(service, DefaultCfg(opts...))
-}
-
-// NewClient build grpc client
-func NewClient(service string, cfg Cfg) *Client {
-	var name = service
-
-	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
-	var host = extractHostFromHostPort(service)
-	if strings.Contains(service, ",") || net.ParseIP(host) != nil || host == "localhost" {
-		cfg.buildScheme = resolver.DirectScheme
-	}
-
-	switch cfg.buildScheme {
-	case resolver.DiscovScheme:
-		service = resolver.BuildDiscovTarget(service, cfg.registry)
-	case resolver.DirectScheme:
-		service = resolver.BuildDirectTarget(service)
-	default:
-		service, name = resolver.Interpret(service)
-	}
-
-	return &Client{addr: service, cfg: cfg, name: name}
-}
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
+func NewClient(srv string) *Client {
+	return &Client{srv: srv}
+}
+
 type Client struct {
-	cfg  Cfg
-	addr string
-	name string
+	dial func(addr string, cfg *grpcc_config.Cfg, plugins ...string) (*grpc.ClientConn, error)
+	cfg  *grpcc_config.Cfg
 	mu   sync.Mutex
 	conn *grpc.ClientConn
+
+	srv        string
+	plugins    []string
+	beforeDial func()
+	afterDial  func()
+}
+
+func (t *Client) Plugin(plugins ...string) {
+	t.plugins = append(t.plugins, plugins...)
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
@@ -132,23 +82,19 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 		return t.conn, nil
 	}
 
-	if val := config.GetMap(Name, t.name); val != nil {
-		xerror.Panic(val.Decode(&t.cfg))
+	var addr = t.buildTarget(t.name)
+
+	if t.beforeDial != nil {
+		t.beforeDial()
 	}
 
-	if t.cfg.beforeDial != nil {
-		t.cfg.beforeDial()
+	conn, err := t.dial(addr, t.cfg, t.plugins...)
+	if err != nil {
+		return nil, err
 	}
 
-	// 创建grpc client
-	ctx, cancel := context.WithTimeout(context.Background(), t.cfg.DialTimeout)
-	defer cancel()
-
-	conn, err := grpc.DialContext(ctx, t.addr, append(t.cfg.ToOpts(), t.cfg.DialOptions...)...)
-	xerror.PanicF(err, "DialContext error, target:%s\n", t.addr)
-
-	if t.cfg.afterDial != nil {
-		t.cfg.afterDial()
+	if t.afterDial != nil {
+		t.afterDial()
 	}
 
 	t.conn = conn

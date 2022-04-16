@@ -1,25 +1,32 @@
-package grpcc
+package grpcc_builder
 
 import (
 	"context"
+	"strings"
 	"time"
 
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
+	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/service"
 )
 
-func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
+func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+		var md = make(metadata.MD)
+		req.Header().VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		ctx = metadata.NewOutgoingContext(ctx, md)
 		var reqCtx = req.(*request)
-		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
-		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc); err != nil {
+		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, rsp.(*response).resp, reqCtx.cc, reqCtx.opts...); err != nil {
 			return err
 		}
-		return rsp(&response{req: reqCtx, resp: reqCtx.reply})
+		return nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -34,11 +41,11 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return service.HeaderGet(md, "content-type")
+			return abc.HeaderGet(md, "content-type")
 		}, func() string {
-			return service.HeaderGet(md, "x-content-type")
+			return abc.HeaderGet(md, "x-content-type")
 		}, func() string {
-			return defaultContentType
+			return grpcc_config.DefaultContentType
 		})
 
 		delete(md, "x-content-type")
@@ -61,33 +68,43 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 			}
 		}
 
+		var header = &fasthttp.RequestHeader{}
+		for k, v := range md {
+			for i := range v {
+				header.Add(k, v[i])
+			}
+		}
+
 		return unaryWrapper(ctx,
 			&request{
 				ct:      ct,
-				header:  md,
+				header:  header,
 				service: serviceFromMethod(method),
 				opts:    opts,
 				method:  method,
 				req:     req,
-				reply:   reply,
 				cc:      cc,
 				invoker: invoker,
 			},
-			func(_ service.Response) error { return nil },
+			&response{resp: reply},
 		)
 	}
 }
 
-func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
+func streamInterceptor(middlewares []abc.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
 		var reqCtx = req.(*request)
-		ctx = metadata.NewOutgoingContext(ctx, reqCtx.Header())
-		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method)
+		var md = make(metadata.MD)
+		req.Header().VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		ctx = metadata.NewOutgoingContext(ctx, md)
+		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method, reqCtx.opts...)
 		if err != nil {
 			return err
 		}
-
-		return rsp(&response{req: reqCtx, stream: stream})
+		rsp.(*response).stream = stream
+		return nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -102,11 +119,11 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return service.HeaderGet(md, "content-type")
+			return abc.HeaderGet(md, "content-type")
 		}, func() string {
-			return service.HeaderGet(md, "x-content-type")
+			return abc.HeaderGet(md, "x-content-type")
 		}, func() string {
-			return defaultContentType
+			return grpcc_config.DefaultContentType
 		})
 
 		delete(md, "x-content-type")
@@ -129,18 +146,45 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 			}
 		}
 
+		var header = &fasthttp.RequestHeader{}
+		for k, v := range md {
+			for i := range v {
+				header.Add(k, v[i])
+			}
+		}
+
 		return nil, wrapperStream(ctx,
 			&request{
 				ct:       ct,
 				service:  serviceFromMethod(method),
-				header:   md,
+				header:   header,
 				opts:     opts,
 				desc:     desc,
 				cc:       cc,
 				method:   method,
 				streamer: streamer,
 			},
-			func(rsp service.Response) error { resp = rsp.(*response).stream; return nil },
+			&response{},
 		)
 	}
+}
+
+// serviceFromMethod returns the service
+// /service.Foo/Bar => service
+func serviceFromMethod(m string) string {
+	if len(m) == 0 {
+		return m
+	}
+
+	if m[0] != '/' {
+		return m
+	}
+
+	parts := strings.Split(m, "/")
+	if len(parts) < 3 {
+		return m
+	}
+
+	parts = strings.Split(parts[1], ".")
+	return strings.Join(parts[:len(parts)-1], ".")
 }

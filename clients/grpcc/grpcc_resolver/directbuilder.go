@@ -1,4 +1,4 @@
-package resolver
+package grpcc_resolver
 
 import (
 	"strings"

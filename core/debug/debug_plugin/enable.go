@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 )
 
@@ -32,10 +31,6 @@ func Enable(srv service.Service) {
 		Name:        "debug",
 		CfgNotCheck: true,
 		OnInit: func(p plugin.Process) {
-			debug.Get("/"+runtime.Name(), func(ctx *fiber.Ctx) error {
-				return ctx.JSON(runtime.GetVersion())
-			})
-
 			srv.RegisterApp("/debug", debug.App())
 
 			p.AfterStart(func() {

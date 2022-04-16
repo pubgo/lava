@@ -1,6 +1,8 @@
 package gateway_plugin
 
 import (
+	"strings"
+
 	"github.com/gofiber/adaptor/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/xerror"
@@ -13,7 +15,7 @@ import (
 
 const Name = "gateway"
 
-func Enable(srv service.Service) {
+func Enable(srv service.Service, prefix ...string) {
 	srv.Plugin(&plugin.Base{
 		Name:        Name,
 		CfgNotCheck: true,
@@ -30,7 +32,13 @@ func Enable(srv service.Service) {
 					xerror.Panic(h(builder.Get()))
 				}
 			}
-			srv.RegisterRouter("/api").Get("/*", adaptor.HTTPHandler(builder.Get()))
+
+			var path = "/api"
+			if len(prefix) > 0 {
+				path = "/" + strings.Trim(prefix[0], "/")
+			}
+
+			srv.RegisterRouter(path).All("/*", adaptor.HTTPHandler(builder.Get()))
 		},
 	})
 }

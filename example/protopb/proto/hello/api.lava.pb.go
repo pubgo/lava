@@ -10,6 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc "github.com/pubgo/lava/clients/grpcc"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
@@ -19,7 +20,7 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitTestApiClient(srv string, opts ...func(cfg *grpcc.Cfg)) {
+func InitTestApiClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
 
 	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewTestApiClient(cc) }))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiClient)(nil)))...)
@@ -38,7 +39,7 @@ func RegisterTestApi(srv service.Service, impl TestApiServer) {
 	srv.RegisterService(desc)
 }
 
-func InitTestApiV2Client(srv string, opts ...func(cfg *grpcc.Cfg)) {
+func InitTestApiV2Client(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
 
 	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewTestApiV2Client(cc) }))
 	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*TestApiV2Client)(nil)))...)

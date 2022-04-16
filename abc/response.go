@@ -1,10 +1,14 @@
-package service_inter
+package abc
 
-import "google.golang.org/grpc/metadata"
+import (
+	"github.com/valyala/fasthttp"
+)
+
+type ResponseHeader = fasthttp.ResponseHeader
 
 // Response is the response writer for un encoded messages
 type Response interface {
-	Header() metadata.MD
+	Header() *ResponseHeader
 	Payload() interface{}
 	Stream() bool
 }

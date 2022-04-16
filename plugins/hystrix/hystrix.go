@@ -2,10 +2,10 @@ package hystrix
 
 import (
 	"context"
+	"github.com/pubgo/lava/abc"
 	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
-	"github.com/pubgo/lava/service"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	maxInt                        = int(maxUint >> 1)
 )
 
-func Middleware(opts ...Option) service.Middleware {
+func Middleware(opts ...Option) abc.Middleware {
 	hOpts := Options{
 		HystrixCommandName:     defaultCommandName,
 		HystrixTimeout:         defaultHystrixTimeout,
@@ -44,8 +44,8 @@ func Middleware(opts ...Option) service.Middleware {
 		},
 	)
 
-	return func(next service.HandlerFunc) service.HandlerFunc {
-		return func(ctx context.Context, req service.Request, resp func(rsp service.Response) error) error {
+	return func(next abc.HandlerFunc) abc.HandlerFunc {
+		return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
 			return hystrix.Do(hOpts.HystrixCommandName, func() error {
 				return next(ctx, req, resp)
 			}, nil)

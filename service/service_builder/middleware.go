@@ -7,29 +7,21 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service/grpc_util"
 )
 
-func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
-	var handler = func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
+func (t *serviceImpl) handlerHttpMiddle(middlewares []abc.Middleware) func(fbCtx *fiber.Ctx) error {
+	var handler = func(ctx context.Context, req abc.Request, rsp abc.Response) error {
 		var reqCtx = req.(*httpRequest)
-
-		for k, v := range reqCtx.Header() {
-			for i := range v {
-				reqCtx.ctx.Request().Header.Add(k, v[i])
-			}
-		}
-		if err := reqCtx.ctx.Next(); err != nil {
-			return err
-		}
-
 		reqCtx.ctx.SetUserContext(ctx)
-		return rsp(&httpResponse{header: reqCtx.header, ctx: reqCtx.ctx})
+		return reqCtx.ctx.Next()
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -37,34 +29,43 @@ func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(f
 	}
 
 	return func(fbCtx *fiber.Ctx) error {
-		request := &httpRequest{
-			ctx:    fbCtx,
-			header: convertHeader(&fbCtx.Request().Header),
-		}
-
-		return handler(fbCtx.Context(), request, func(_ service.Response) error { return nil })
+		return handler(fbCtx.Context(), &httpRequest{ctx: fbCtx}, &httpResponse{ctx: fbCtx})
 	}
 }
 
-func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
-		if len(req.Header()) > 0 {
-			_ = grpc.SetHeader(ctx, req.Header())
-		}
+func (t *serviceImpl) handlerUnaryMiddle(middlewares []abc.Middleware) grpc.UnaryServerInterceptor {
+	unaryWrapper := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+		var md = make(metadata.MD)
+		req.Header().VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		ctx = metadata.NewIncomingContext(ctx, md)
 
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return err
 		}
 
-		return rsp(&rpcResponse{dt: dt, header: req.Header()})
+		rsp.(*rpcResponse).dt = dt
+		var h = rsp.(*rpcResponse).Header()
+		if h.Len() > 0 {
+			var md = make(metadata.MD)
+			h.VisitAll(func(key, value []byte) {
+				md.Append(utils.BtoS(key), utils.BtoS(value))
+			})
+			if err = grpc.SetTrailer(ctx, md); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
 		unaryWrapper = middlewares[i](unaryWrapper)
 	}
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var md, ok = metadata.FromIncomingContext(ctx)
 		if !ok {
 			md = make(metadata.MD)
@@ -110,31 +111,52 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.
 			url = _url[0]
 		}
 
-		err = unaryWrapper(ctx,
-			&rpcRequest{
-				service:     serviceFromMethod(info.FullMethod),
-				method:      info.FullMethod,
-				url:         url,
-				handler:     handler,
-				contentType: ct,
-				payload:     req,
-				header:      md,
-			},
-			func(rsp service.Response) error { resp = rsp.Payload(); return nil },
-		)
-		return
+		var header = &fasthttp.RequestHeader{}
+		for k, v := range md {
+			for i := range v {
+				header.Add(k, v[i])
+			}
+		}
+
+		var rpcReq = &rpcRequest{
+			service:     serviceFromMethod(info.FullMethod),
+			method:      info.FullMethod,
+			url:         url,
+			handler:     handler,
+			contentType: ct,
+			payload:     req,
+			header:      header,
+		}
+
+		var rpcResp = &rpcResponse{}
+		return rpcResp.dt, unaryWrapper(ctx, rpcReq, rpcResp)
 	}
 }
 
-func (t *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
-	streamWrapper := func(ctx context.Context, req service.Request, rsp func(response service.Response) error) error {
-		ctx = metadata.NewIncomingContext(ctx, req.Header())
+func (t *serviceImpl) handlerStreamMiddle(middlewares []abc.Middleware) grpc.StreamServerInterceptor {
+	streamWrapper := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+		var md = make(metadata.MD)
+		req.Header().VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		ctx = metadata.NewIncomingContext(ctx, md)
 		var reqCtx = req.(*rpcRequest)
-		err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream})
-		if err != nil {
+		if err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream}); err != nil {
 			return err
 		}
-		return rsp(&rpcResponse{stream: reqCtx.stream, header: req.Header()})
+
+		var h = rsp.(*rpcResponse).Header()
+		if h.Len() > 0 {
+			var md = make(metadata.MD)
+			h.VisitAll(func(key, value []byte) {
+				md.Append(utils.BtoS(key), utils.BtoS(value))
+			})
+			if err := grpc.SetTrailer(ctx, md); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -177,18 +199,24 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc
 			}
 		}
 
-		return streamWrapper(ctx,
-			&rpcRequest{
-				stream:        stream,
-				srv:           srv,
-				handlerStream: handler,
-				header:        md,
-				method:        info.FullMethod,
-				service:       serviceFromMethod(info.FullMethod),
-				contentType:   ct,
-			},
-			func(_ service.Response) error { return nil },
-		)
+		var header = &fasthttp.RequestHeader{}
+		for k, v := range md {
+			for i := range v {
+				header.Add(k, v[i])
+			}
+		}
+
+		var rpcReq = &rpcRequest{
+			stream:        stream,
+			srv:           srv,
+			handlerStream: handler,
+			header:        header,
+			method:        info.FullMethod,
+			service:       serviceFromMethod(info.FullMethod),
+			contentType:   ct,
+		}
+		var rpcResp = &rpcResponse{stream: stream}
+		return streamWrapper(ctx, rpcReq, rpcResp)
 	}
 }
 

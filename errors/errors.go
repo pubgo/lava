@@ -16,6 +16,20 @@ import (
 // MaxCode [0,1000]为系统错误, 业务错误code都大于1000
 const MaxCode = 1000
 
+// IsBisErr Business error
+func IsBisErr(err error) bool {
+	var err1 = FromError(err)
+	if err1 == nil {
+		return false
+	}
+
+	if err1.Code < MaxCode {
+		return false
+	}
+
+	return true
+}
+
 // GRPCStatus 实现grpc status的GRPCStatus接口
 func (x *Error) GRPCStatus() *status.Status {
 	s, err := status.New(codes.Code(x.Code), x.Message).

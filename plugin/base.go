@@ -41,6 +41,7 @@ type Base struct {
 	OnWatch        watcher.WatchHandler
 	OnVars         func(v vars.Publisher)
 
+	initialized  bool
 	beforeStarts []func()
 	afterStarts  []func()
 	beforeStops  []func()
@@ -69,6 +70,13 @@ func (p *Base) getFuncStack(val interface{}) string {
 }
 
 func (p *Base) MarshalJSON() ([]byte, error) {
+	var handler = func(fns []func()) (data []string) {
+		for i := range fns {
+			data = append(data, stack.Func(fns[i]))
+		}
+		return
+	}
+
 	var data = make(map[string]interface{})
 	data["name"] = p.Name
 	data["docs"] = p.Docs
@@ -90,14 +98,6 @@ func (p *Base) MarshalJSON() ([]byte, error) {
 	data["flags"] = p.getFuncStack(p.OnFlags)
 	data["watch"] = p.getFuncStack(p.OnWatch)
 	data["vars"] = p.getFuncStack(p.OnVars)
-
-	var handler = func(fns []func()) (data []string) {
-		for i := range fns {
-			data = append(data, stack.Func(fns[i]))
-		}
-		return
-	}
-
 	data["beforeStarts"] = handler(p.beforeStarts)
 	data["beforeStops"] = handler(p.beforeStops)
 	data["afterStarts"] = handler(p.afterStarts)
@@ -125,7 +125,17 @@ func (p *Base) Middleware() Middleware { return p.OnMiddleware }
 func (p *Base) String() string         { return fmt.Sprintf("%s: %s", p.Name, p.Short) }
 func (p *Base) ID() string             { return p.Name }
 func (p *Base) Init(cfg config.Config) (gErr error) {
-	p.cfg = cfg
+	if p.initialized {
+		return
+	}
+
+	defer func() {
+		if gErr != nil {
+			return
+		}
+		p.cfg = cfg
+		p.initialized = true
+	}()
 
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err.WrapF("plugin: %s", p.Name)
@@ -177,6 +187,7 @@ func (p *Base) Init(cfg config.Config) (gErr error) {
 		p.OnInit(p)
 		return
 	}
+
 	return nil
 }
 

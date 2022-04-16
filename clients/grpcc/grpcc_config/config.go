@@ -1,4 +1,4 @@
-package grpcc
+package grpcc_config
 
 import (
 	"time"
@@ -8,16 +8,8 @@ import (
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/pubgo/lava/clients/grpcc/lb/p2c"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/service"
-
-	// 加载mdns注册中心
-	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
-
-	// 加载grpcLog
-	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 )
 
 const (
@@ -25,8 +17,10 @@ const (
 
 	// DefaultTimeout 默认的连接超时时间
 	DefaultTimeout     = 2 * time.Second
-	defaultContentType = "application/grpc"
+	DefaultContentType = "application/grpc"
 )
+
+var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 type callParameters struct {
 	Header                map[string]string `json:"header"`
@@ -80,8 +74,7 @@ func (t connectParams) toConnectParams() grpc.ConnectParams {
 	}
 }
 
-// Cfg ...
-type Cfg struct {
+type ClientCfg struct {
 	MaxMsgSize           int           `json:"max_msg_size"`
 	Codec                string        `json:"codec"`
 	Compressor           string        `json:"compressor"`
@@ -111,33 +104,25 @@ type Cfg struct {
 	ConnWindowSize     int32  `json:"conn_window_size"`
 
 	// MaxRecvMsgSize maximum message that Client can receive (4 MB).
-	MaxRecvMsgSize     int                            `json:"max_recv_msg_size"`
-	NoProxy            bool                           `json:"no_proxy"`
-	Proxy              bool                           `json:"proxy"`
-	ConnectParams      connectParams                  `json:"connect_params"`
-	ClientParameters   clientParameters               `json:"client_parameters"`
-	Call               callParameters                 `json:"call"`
-	Middlewares        []service.Middleware           `json:"-"`
-	DialOptions        []grpc.DialOption              `json:"-"`
-	UnaryInterceptors  []grpc.UnaryClientInterceptor  `json:"-"`
-	StreamInterceptors []grpc.StreamClientInterceptor `json:"-"`
-	Name               string                         `json:"-"`
-	Group              string                         `json:"-"`
-	Addr               string                         `json:"-"`
+	MaxRecvMsgSize   int              `json:"max_recv_msg_size"`
+	NoProxy          bool             `json:"no_proxy"`
+	Proxy            bool             `json:"proxy"`
+	ConnectParams    connectParams    `json:"connect_params"`
+	ClientParameters clientParameters `json:"client_parameters"`
+	Call             callParameters   `json:"call"`
+}
 
-	clientType  interface{}
-	newClient   func(cc grpc.ClientConnInterface) interface{}
-	registry    string
-	buildScheme string
-	beforeDial  func()
-	afterDial   func()
+// Cfg ...
+type Cfg struct {
+	Client   *ClientCfg `json:"client"`
+	Addr     string     `json:"addr"`
+	Scheme   string     `json:"scheme"`
+	Registry string     `json:"registry"`
 }
 
 func (t Cfg) Check() error { return nil }
 
-func (t Cfg) GetReg() string { return t.registry }
-
-func (t Cfg) ToOpts() []grpc.DialOption {
+func (t ClientCfg) ToOpts() []grpc.DialOption {
 	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
 
 	if t.Insecure {
@@ -221,64 +206,39 @@ func (t Cfg) ToOpts() []grpc.DialOption {
 	opts = append(opts, grpc.FailOnNonTempDialError(true))
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
-
-	var middlewares []service.Middleware
-
-	// 加载全局middleware
-	for _, plg := range plugin.All() {
-		if plg == nil || plg.Middleware() == nil {
-			continue
-		}
-		middlewares = append(middlewares, plg.Middleware())
-	}
-
-	// 最后加载业务自定义
-	middlewares = append(middlewares, t.Middlewares...)
-
-	var unaryInterceptors = append([]grpc.UnaryClientInterceptor{unaryInterceptor(middlewares)}, t.UnaryInterceptors...)
-	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptors...))
-
-	var streamInterceptors = append([]grpc.StreamClientInterceptor{streamInterceptor(middlewares)}, t.StreamInterceptors...)
-	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptors...))
 	return opts
 }
 
-var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
-
-func DefaultCfg(opts ...func(cfg *Cfg)) Cfg {
+func DefaultCfg() Cfg {
 	var cfg = Cfg{
-		Group:             consts.KeyDefault,
-		registry:          "mdns",
-		Insecure:          true,
-		Block:             true,
-		BalancerName:      p2c.Name,
-		DialTimeout:       time.Minute,
-		Timeout:           DefaultTimeout,
-		MaxHeaderListSize: 1024 * 4,
-		MaxRecvMsgSize:    1024 * 1024 * 4,
-		ClientParameters: clientParameters{
-			PermitWithoutStream: true,             // send pings even without active streams
-			Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
-			Timeout:             2 * time.Second,  // wait 2 second for ping ack before considering the connection dead
-		},
-		ConnectParams: connectParams{
-			Backoff: backoffConfig{
-				Multiplier: 1.6,
-				Jitter:     0.2,
-				BaseDelay:  1.0 * time.Second,
-				MaxDelay:   120 * time.Second,
+		Scheme: grpcc_resolver.DiscovScheme,
+		Client: &ClientCfg{
+			Insecure:          true,
+			Block:             true,
+			BalancerName:      p2c.Name,
+			DialTimeout:       time.Minute,
+			Timeout:           DefaultTimeout,
+			MaxHeaderListSize: 1024 * 4,
+			MaxRecvMsgSize:    1024 * 1024 * 4,
+			ClientParameters: clientParameters{
+				PermitWithoutStream: true,             // send pings even without active streams
+				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
+				Timeout:             2 * time.Second,  // wait 2 second for ping ack before considering the connection dead
+			},
+			ConnectParams: connectParams{
+				Backoff: backoffConfig{
+					Multiplier: 1.6,
+					Jitter:     0.2,
+					BaseDelay:  1.0 * time.Second,
+					MaxDelay:   120 * time.Second,
+				},
+			},
+			Call: callParameters{
+				MaxCallRecvMsgSize: 1024 * 1024 * 4,
+				// DefaultMaxSendMsgSize maximum message that Srv can send (4 MB).
+				MaxCallSendMsgSize: 1024 * 1024 * 4,
 			},
 		},
-		Call: callParameters{
-			MaxCallRecvMsgSize: 1024 * 1024 * 4,
-			// DefaultMaxSendMsgSize maximum message that Srv can send (4 MB).
-			MaxCallSendMsgSize: 1024 * 1024 * 4,
-		},
-	}
-	for i := range opts {
-		if opts[i] != nil {
-			opts[i](&cfg)
-		}
 	}
 	return cfg
 }

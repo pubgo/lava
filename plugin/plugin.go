@@ -2,10 +2,11 @@ package plugin
 
 import (
 	"container/heap"
-	"github.com/pubgo/lava/resource"
+
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/resource"
 )
 
 var plugins = make(map[string]Plugin)
@@ -37,6 +38,11 @@ func All() []Plugin {
 		pluginList[i] = plugins[key.Value.(string)]
 	}
 	return pluginList
+}
+
+// Get 获取插件
+func Get(name string) Plugin {
+	return plugins[name]
 }
 
 // Register 插件注册

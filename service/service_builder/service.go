@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/logging"
@@ -56,13 +57,15 @@ func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl
 	return g
 }
 
+var _ service.Service = (*serviceImpl)(nil)
+
 type serviceImpl struct {
 	beforeStarts []func()
 	afterStarts  []func()
 	beforeStops  []func()
 	afterStops   []func()
 	pluginList   []plugin.Plugin
-	middlewares  []service.Middleware
+	middlewares  []abc.Middleware
 	services     []service.Desc
 
 	cmd *cli.Command
@@ -79,8 +82,8 @@ type serviceImpl struct {
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
 
-	wrapperUnary  service.HandlerFunc
-	wrapperStream service.HandlerFunc
+	wrapperUnary  abc.HandlerFunc
+	wrapperStream abc.HandlerFunc
 
 	ctx context.Context
 }
@@ -95,7 +98,7 @@ func (t *serviceImpl) RegisterApp(prefix string, r *fiber2.App) {
 	t.app.Mount(prefix, r)
 }
 
-func (t *serviceImpl) Middleware(mid service.Middleware) {
+func (t *serviceImpl) Middleware(mid abc.Middleware) {
 	if mid == nil {
 		return
 	}
@@ -103,11 +106,11 @@ func (t *serviceImpl) Middleware(mid service.Middleware) {
 	t.middlewares = append(t.middlewares, mid)
 }
 
-func (t *serviceImpl) Middlewares() []service.Middleware { return t.middlewares }
+func (t *serviceImpl) Middlewares() []abc.Middleware { return t.middlewares }
 
 func (t *serviceImpl) plugins() []plugin.Plugin { return t.pluginList }
 
-func (t *serviceImpl) middleware(mid service.Middleware) {
+func (t *serviceImpl) middleware(mid abc.Middleware) {
 	if mid == nil {
 		return
 	}
@@ -119,11 +122,12 @@ func (t *serviceImpl) BeforeStarts(f ...func()) { t.beforeStarts = append(t.befo
 func (t *serviceImpl) BeforeStops(f ...func())  { t.beforeStops = append(t.beforeStops, f...) }
 func (t *serviceImpl) AfterStarts(f ...func())  { t.afterStarts = append(t.afterStarts, f...) }
 func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterStops, f...) }
-func (t *serviceImpl) Plugin(plugin plugin.Plugin) {
-	if plugin == nil {
+func (t *serviceImpl) Plugin(plg string) {
+	if plg == "" {
 		return
 	}
-	t.pluginList = append(t.pluginList, plugin)
+
+	t.pluginList = append(t.pluginList, plugin.Get(plg))
 }
 
 func (t *serviceImpl) init() error {

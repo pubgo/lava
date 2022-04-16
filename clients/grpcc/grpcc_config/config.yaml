@@ -1,0 +1,12 @@
+grpcc:
+  default:
+    registry: "mdns"
+    addr: "localhost:8080"
+
+  hello-srv:
+    registry: "mdns"
+    addr: "localhost:8080"
+
+  hello-srv-group:
+    registry: "mdns"
+    addr: "localhost:8080"

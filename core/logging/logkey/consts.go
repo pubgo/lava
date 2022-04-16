@@ -17,6 +17,7 @@ const (
 	Kind      = "kind"
 	Name      = "name"
 	Service   = "service"
+	Request   = "request"
 	Operation = "operation"
 	Resource  = "resource"
 	UserInfo  = "userinfo"

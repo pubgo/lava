@@ -7,7 +7,6 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
 	github.com/emicklei/proto v1.9.1
 	github.com/felixge/fgprof v0.9.1
-	github.com/flosch/pongo2/v4 v4.0.2
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-openapi/loads v0.19.5
@@ -120,6 +119,7 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
+	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
 	github.com/huandu/go-clone v1.3.0
 	github.com/valyala/fasthttp v1.34.0
@@ -170,7 +170,6 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gofiber/utils v0.1.2 // indirect
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect

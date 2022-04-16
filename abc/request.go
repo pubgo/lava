@@ -1,8 +1,8 @@
-package service_inter
+package abc
 
-import (
-	"google.golang.org/grpc/metadata"
-)
+import "github.com/valyala/fasthttp"
+
+type RequestHeader = fasthttp.RequestHeader
 
 // Request is a synchronous request interface
 type Request interface {
@@ -28,7 +28,7 @@ type Request interface {
 	ContentType() string
 
 	// Header of the request
-	Header() metadata.MD
+	Header() *RequestHeader
 
 	// Payload is the decoded value
 	Payload() interface{}

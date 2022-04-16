@@ -5,8 +5,8 @@ package yuque.v2;
 option go_package = "./;yuque_pb";
 
 import "google/api/annotations.proto";
-import "lava/lava.proto";
 import "lava/resty.proto";
+import "lava/tags.proto";
 import "google/api/client.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/protobuf/empty.proto";
@@ -73,6 +73,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Yuque {
   option (google.api.default_host) = "www.yuque.com";
+  option (lava.resty).enable = true;
 
   // 获取认证的用户的个人信息
   rpc UserInfo (google.protobuf.Empty) returns (UserInfoResp) {
@@ -137,6 +138,7 @@ service UserService {
       tags : "Users"
     };
   }
+
   // user resets password
   rpc ResetPassword(UserInfoReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
@@ -221,6 +223,7 @@ message UserInfoResp {
 message UserInfoReq {
   // login or id
   string login = 1 [
-    (lava.tags) = {key:"param",value:"login"}
+    (lava.tags) = {key:"param",value:"login"},
+    (lava.tags) = {key:"param1",value:"login1"}
   ];
 }

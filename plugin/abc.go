@@ -2,18 +2,17 @@ package plugin
 
 import (
 	"encoding/json"
-
+	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/healthy"
 	"github.com/pubgo/lava/core/watcher"
-	"github.com/pubgo/lava/internal/service_inter"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
 
 const Name = "plugin"
 
-type Middleware = service_inter.Middleware
+type Middleware = abc.Middleware
 type Plugin interface {
 	json.Marshaler
 	// String 插件描述

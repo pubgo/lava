@@ -6,8 +6,9 @@ option go_package = "./;sqlx_pb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "lava/lava.proto";
+import "lava/sql.proto";
 import "lava/resty.proto";
+import "lava/tags.proto";
 
 // 验证码
 service Code {

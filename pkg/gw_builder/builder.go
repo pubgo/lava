@@ -14,7 +14,14 @@ type Builder struct {
 	opts []gw.ServeMuxOption
 }
 
-func (t *Builder) Get() *gw.ServeMux { return t.mux }
+func (t *Builder) Get() *gw.ServeMux {
+	if t.mux == nil {
+		panic("please init gw builder")
+	}
+
+	return t.mux
+}
+
 func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	t.opts = opts
 
@@ -62,6 +69,4 @@ func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
 	return nil
 }
 
-func New() Builder {
-	return Builder{}
-}
+func New() Builder { return Builder{} }
