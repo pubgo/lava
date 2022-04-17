@@ -4,19 +4,19 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/abc"
 	"runtime/debug"
 	"time"
 
 	"github.com/DataDog/gostackparse"
+	"github.com/gofiber/utils"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
 	"github.com/pubgo/lava/version"
@@ -30,18 +30,13 @@ func init() {
 	plugin.Register(&plugin.Base{
 		Name: Name,
 		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
-			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) (err error) {
+			return func(ctx context.Context, req abc.Request, resp abc.Response) error {
 				// TODO 考虑pool优化
 				var params = make([]zap.Field, 0, 20)
 
-				referer := abc.HeaderGet(req.Header(), httpx.HeaderReferer)
+				referer := utils.UnsafeString(req.Header().Referer())
 				if referer != "" {
 					params = append(params, zap.String("referer", referer))
-				}
-
-				origin := abc.HeaderGet(req.Header(), httpx.HeaderOrigin)
-				if origin != "" {
-					params = append(params, zap.String("origin", origin))
 				}
 
 				var reqId = requestID.GetWith(ctx)
@@ -60,6 +55,7 @@ func init() {
 
 				var respBody interface{}
 				var respHeader interface{}
+				var err error
 
 				// 错误和panic处理
 				defer func() {
@@ -91,28 +87,20 @@ func init() {
 					logutil.LogOrErr(logs.L(), req.Endpoint(), func() error { return err }, params...)
 				}()
 
-				err = next(
-					// 集成logger到context
-					logging.CreateCtx(ctx, zap.L().Named(logkey.Request).With(
-						zap.String("tracerId", tracerID),
-						zap.String("spanId", spanID),
-						zap.String("requestId", reqId),
-					)),
+				if !req.Client() {
+					resp.Header().Set("Access-Control-Allow-Credentials", "true")
+					resp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+					resp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+				}
 
-					req,
-					func(rsp abc.Response) error {
-						if !req.Client() {
-							rsp.Header().Set("Access-Control-Allow-Origin", origin)
-							rsp.Header().Set("Access-Control-Allow-Credentials", "true")
-							rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-							rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
-						}
+				// 集成logger到context
+				ctx = logging.CreateCtx(ctx, zap.L().Named(logkey.Request).With(
+					zap.String("tracerId", tracerID),
+					zap.String("spanId", spanID),
+					zap.String("requestId", reqId)))
 
-						respBody = rsp.Payload()
-						respHeader = rsp.Header()
-						return resp(rsp)
-					})
-				return
+				err = next(ctx, req, resp)
+				return err
 			}
 		},
 	})

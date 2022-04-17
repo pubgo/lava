@@ -239,10 +239,7 @@ func (t *configImpl) initApp(v *viper.Viper) error {
 	// 处理环境变量
 	dt = env.Expand(dt)
 
-	c := make(map[string]interface{})
-	xerror.Panic(unmarshalReader(v, strings.NewReader(dt), c))
-
 	// 合并自定义配置
-	xerror.Panic(v.MergeConfigMap(c))
+	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
 	return nil
 }

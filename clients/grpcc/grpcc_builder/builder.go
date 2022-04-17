@@ -27,13 +27,14 @@ var clients sync.Map
 func InitClient(srv string, clientType interface{}, newClient func(cc grpc.ClientConnInterface) interface{}) {
 	defer xerror.RespExit()
 
-	logs.L().Info("grpc client init", zap.String(logkey.Service, srv))
-	if val, ok := clients.LoadOrStore(srv, grpcc.NewClient(srv)); ok && val != nil {
-		return
-	}
-
 	xerror.Assert(clientType == nil, "grpc clientType is nil")
 	xerror.Assert(newClient == nil, "grpc newClient is nil")
+
+	logs.L().Info("grpc client init", zap.String(logkey.Service, srv))
+	var cli = grpcc.NewClient(srv, grpcc.WithDial(CreateConn))
+	if val, ok := clients.LoadOrStore(srv, cli); ok && val != nil {
+		return
+	}
 
 	// 依赖注入
 	inject.Register(clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
@@ -47,46 +48,60 @@ func InitClient(srv string, clientType interface{}, newClient func(cc grpc.Clien
 	})
 }
 
-func CreateConn(addr string, cfg *grpcc_config.Cfg, plugins ...string) (*grpc.ClientConn, error) {
+func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.DialTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
 
 	var middlewares []abc.Middleware
 
 	// 加载全局middleware
-	for _, plg := range plugins {
+	for _, plg := range cfg.Plugins {
+		xerror.Assert(plugin.Get(plg) == nil, "plugin(%s) is nil", plg)
+		if plugin.Get(plg).Middleware() == nil {
+			continue
+		}
+
 		middlewares = append(middlewares, plugin.Get(plg).Middleware())
 	}
 
-	conn, err := grpc.DialContext(ctx, addr, append(cfg.ToOpts(),
+	addr := BuildTarget(srv, cfg)
+
+	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", addr)
 }
 
-func BuildTarget(service string, registry ...string) string {
-	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
-	var host = extractHostFromHostPort(service)
-	var scheme = grpcc_resolver.DiscovScheme
-	var reg = "mdns"
-	if len(registry) > 0 {
-		reg = registry[0]
+func BuildTarget(service string, cfg grpcc_config.Cfg) string {
+	var addr = service
+	if cfg.Addr != "" {
+		addr = cfg.Addr
 	}
+
+	if cfg.Registry == "" {
+		cfg.Registry = "mdns"
+	}
+
+	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
+	var host = extractHostFromHostPort(addr)
+	var scheme = grpcc_resolver.DiscovScheme
 
 	if strings.Contains(service, ",") || net.ParseIP(host) != nil || host == "localhost" {
 		scheme = grpcc_resolver.DirectScheme
 	}
 
-	if strings.Contains(service, "k8s://") || net.ParseIP(host) != nil || host == "localhost" {
-		scheme = grpcc_resolver.DirectScheme
+	if strings.HasPrefix(service, "k8s://") {
+		scheme = grpcc_resolver.K8sScheme
 	}
 
 	switch scheme {
 	case grpcc_resolver.DiscovScheme:
-		return grpcc_resolver.BuildDiscovTarget(service, reg)
+		return grpcc_resolver.BuildDiscovTarget(service, cfg.Registry)
 	case grpcc_resolver.DirectScheme:
 		return grpcc_resolver.BuildDirectTarget(service)
+	case grpcc_resolver.K8sScheme:
+		return fmt.Sprintf("dns:///%s", service)
 	default:
 		panic("schema is unknown")
 	}

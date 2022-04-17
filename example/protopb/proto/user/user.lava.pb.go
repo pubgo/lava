@@ -9,8 +9,7 @@ package gid
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	grpcc "github.com/pubgo/lava/clients/grpcc"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
@@ -20,10 +19,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitUserClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
-
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewUserClient(cc) }))
-	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*UserClient)(nil)))...)
+func InitUserClient(srv string) {
+	grpcc_builder.InitClient(srv, (*UserClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewUserClient(cc) })
 }
 
 func RegisterUser(srv service.Service, impl UserServer) {
@@ -39,10 +36,8 @@ func RegisterUser(srv service.Service, impl UserServer) {
 	srv.RegisterService(desc)
 }
 
-func InitABitOfEverythingServiceClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
-
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewABitOfEverythingServiceClient(cc) }))
-	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*ABitOfEverythingServiceClient)(nil)))...)
+func InitABitOfEverythingServiceClient(srv string) {
+	grpcc_builder.InitClient(srv, (*ABitOfEverythingServiceClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewABitOfEverythingServiceClient(cc) })
 }
 
 func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingServiceServer) {
@@ -58,10 +53,8 @@ func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingS
 	srv.RegisterService(desc)
 }
 
-func InitCamelCaseServiceNameClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
-
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewCamelCaseServiceNameClient(cc) }))
-	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*CamelCaseServiceNameClient)(nil)))...)
+func InitCamelCaseServiceNameClient(srv string) {
+	grpcc_builder.InitClient(srv, (*CamelCaseServiceNameClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewCamelCaseServiceNameClient(cc) })
 }
 
 func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceNameServer) {
@@ -77,10 +70,8 @@ func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceName
 	srv.RegisterService(desc)
 }
 
-func InitAnotherServiceWithNoBindingsClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
-
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewAnotherServiceWithNoBindingsClient(cc) }))
-	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*AnotherServiceWithNoBindingsClient)(nil)))...)
+func InitAnotherServiceWithNoBindingsClient(srv string) {
+	grpcc_builder.InitClient(srv, (*AnotherServiceWithNoBindingsClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewAnotherServiceWithNoBindingsClient(cc) })
 }
 
 func RegisterAnotherServiceWithNoBindings(srv service.Service, impl AnotherServiceWithNoBindingsServer) {

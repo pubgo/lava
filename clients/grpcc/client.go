@@ -8,7 +8,11 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 
 	// 加载mdns注册中心
@@ -20,24 +24,23 @@ import (
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
-func NewClient(srv string) *Client {
-	return &Client{srv: srv}
+func NewClient(srv string, opts ...Option) *Client {
+	var cli = &Client{srv: srv, cfg: grpcc_config.DefaultCfg()}
+	for i := range opts {
+		opts[i](cli)
+	}
+
+	xerror.Assert(cli.dial == nil, "[dial] is nil")
+	return cli
 }
 
 type Client struct {
-	dial func(addr string, cfg *grpcc_config.Cfg, plugins ...string) (*grpc.ClientConn, error)
-	cfg  *grpcc_config.Cfg
-	mu   sync.Mutex
-	conn *grpc.ClientConn
-
-	srv        string
-	plugins    []string
-	beforeDial func()
-	afterDial  func()
-}
-
-func (t *Client) Plugin(plugins ...string) {
-	t.plugins = append(t.plugins, plugins...)
+	dial    func(addr string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error)
+	cfg     grpcc_config.Cfg
+	mu      sync.Mutex
+	conn    grpc.ClientConnInterface
+	srv     string
+	plugins []plugin.Plugin
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
@@ -64,7 +67,7 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err
 
-		if runtime.IsDev() || runtime.IsTest() {
+		if !runtime.IsProd() {
 			logutil.Pretty(t)
 			logutil.Pretty(err)
 		}
@@ -82,19 +85,19 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 		return t.conn, nil
 	}
 
-	var addr = t.buildTarget(t.name)
-
-	if t.beforeDial != nil {
-		t.beforeDial()
+	var cfg = t.cfg
+	var cfgMap = make(map[string]*grpcc_config.Cfg)
+	config.Decode(grpcc_config.Name, &cfgMap)
+	if cfgMap[consts.KeyDefault] != nil {
+		xerror.Panic(merge.Copy(&cfg, cfgMap[consts.KeyDefault]))
+	}
+	if cfgMap[t.srv] != nil {
+		xerror.Panic(merge.Copy(&cfg, cfgMap[t.srv]))
 	}
 
-	conn, err := t.dial(addr, t.cfg, t.plugins...)
+	conn, err := t.dial(t.srv, cfg)
 	if err != nil {
 		return nil, err
-	}
-
-	if t.afterDial != nil {
-		t.afterDial()
 	}
 
 	t.conn = conn

@@ -17,43 +17,30 @@ import (
 	"github.com/pubgo/lava/pkg/htmlx"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/service"
 )
 
 func Enable(srv service.Service) {
+	srv.RegisterApp("/debug", debug.App())
 	initDebug()
 
 	var openWeb bool
+	srv.Flags(&cli.BoolFlag{
+		Name:        "debug.web",
+		Value:       openWeb,
+		Destination: &openWeb,
+		Usage:       "open web browser",
+	})
 
-	srv.Plugin(&plugin.Base{
-		Name:        "debug",
-		CfgNotCheck: true,
-		OnInit: func(p plugin.Process) {
-			srv.RegisterApp("/debug", debug.App())
+	srv.AfterStarts(func() {
+		if !openWeb {
+			return
+		}
 
-			p.AfterStart(func() {
-				if !openWeb {
-					return
-				}
-
-				syncx.GoSafe(func() {
-					logutil.ErrRecord(zap.L(),
-						browser.OpenURL(fmt.Sprintf("http://%s:%d/debug", netutil.GetLocalIP(), srv.Options().Port)))
-				})
-			})
-		},
-		OnFlags: func() typex.Flags {
-			return typex.Flags{
-				&cli.BoolFlag{
-					Name:        "debug.web",
-					Value:       openWeb,
-					Destination: &openWeb,
-					Usage:       "open web browser",
-				},
-			}
-		},
+		syncx.GoSafe(func() {
+			logutil.ErrRecord(zap.L(),
+				browser.OpenURL(fmt.Sprintf("http://%s:%d/debug", netutil.GetLocalIP(), srv.Options().Port)))
+		})
 	})
 }
 

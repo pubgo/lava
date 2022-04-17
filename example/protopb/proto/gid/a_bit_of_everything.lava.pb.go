@@ -9,8 +9,7 @@ package gid
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	grpcc "github.com/pubgo/lava/clients/grpcc"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	service "github.com/pubgo/lava/service"
 	grpc "google.golang.org/grpc"
 )
@@ -20,10 +19,8 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitLoginServiceClient(srv string, opts ...func(cfg *grpcc_config.Cfg)) {
-
-	opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} { return NewLoginServiceClient(cc) }))
-	grpcc.InitClient(srv, append(opts, grpcc.WithClientType((*LoginServiceClient)(nil)))...)
+func InitLoginServiceClient(srv string) {
+	grpcc_builder.InitClient(srv, (*LoginServiceClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewLoginServiceClient(cc) })
 }
 
 func RegisterLoginService(srv service.Service, impl LoginServiceServer) {

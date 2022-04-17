@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-
 	"github.com/pubgo/lava/pkg/protoutil"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -18,7 +17,7 @@ var (
 	grpcCall     = protoutil.Import("google.golang.org/grpc")
 	codesCall    = protoutil.Import("google.golang.org/grpc/codes")
 	statusCall   = protoutil.Import("google.golang.org/grpc/status")
-	grpccCall    = protoutil.Import("github.com/pubgo/lava/clients/grpcc")
+	grpccCall    = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
 	xerrorCall   = protoutil.Import("github.com/pubgo/xerror")
 	xgenCall     = protoutil.Import("github.com/pubgo/lava/xgen")
 	fiberCall    = protoutil.Import("github.com/pubgo/lava/builder/fiber")
@@ -79,11 +78,8 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Init", service.GoName, "Client(srv string, opts ...func(cfg *", grpccCall("Cfg"), ")) {")
-	protoutil.Gen(g, `
-opts = append(opts, grpcc.WithNewClientFunc(func(cc grpc.ClientConnInterface) interface{} {return New{{name}}Client(cc)}))
-`, protoutil.Context{"name": service.GoName})
-	g.P(grpccCall("InitClient"), "(srv, append(opts, ", grpccCall("WithClientType"), "((*", service.GoName, "Client)(nil)))...)")
+	g.P("func Init", service.GoName, "Client(srv string) {")
+	g.P(grpccCall("InitClient"), "(srv, (*", service.GoName, "Client)(nil), ", "func(cc grpc.ClientConnInterface) interface{} { return New", service.GoName, "Client(cc) })")
 	g.P("}")
 	g.P()
 }

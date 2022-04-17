@@ -17,7 +17,7 @@ func GetGlobal() tally.Scope {
 
 func init() {
 	// 注入依赖scope
-	inject.Register((*tally.Scope)(nil), func(obj inject.Object, field inject.Field) (interface{}, bool) {
+	inject.Register((*tally.Scope)(nil), func(obj inject.objectImpl, field inject.fieldImpl) (interface{}, bool) {
 		return GetGlobal(), true
 	})
 }

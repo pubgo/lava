@@ -9,6 +9,11 @@ import (
 func init() {
 	vars.Register("config_data", func() interface{} { return config.GetCfg().All() })
 	vars.Register("config", func() interface{} {
-		return typex.M{"cfgType": config.CfgType, "cfgName": config.CfgName, "home": config.CfgDir, "cfgPath": config.CfgPath}
+		return typex.M{
+			"cfgType": config.CfgType,
+			"cfgName": config.CfgName,
+			"home":    config.CfgDir,
+			"cfgPath": config.CfgPath,
+		}
 	})
 }

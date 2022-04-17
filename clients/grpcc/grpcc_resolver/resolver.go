@@ -3,12 +3,13 @@ package grpcc_resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging"
 	"math/rand"
 	"strings"
 
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/core/logging"
 )
 
 var logs = logging.Component("balancer.resolver")

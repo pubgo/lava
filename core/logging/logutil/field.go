@@ -3,9 +3,10 @@ package logutil
 import (
 	"strings"
 
-	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
+
+	"github.com/pubgo/lava/core/logging/logkey"
 )
 
 type Fields = []zap.Field

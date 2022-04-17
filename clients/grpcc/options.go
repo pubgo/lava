@@ -7,6 +7,8 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 )
 
+type Option func(cli *Client)
+
 func WithDirect() func(cfg *grpcc_config.Cfg) {
 	return func(cfg *grpcc_config.Cfg) { cfg.Scheme = grpcc_resolver.DirectScheme }
 }
@@ -23,26 +25,6 @@ func WithDiscov() func(cfg *grpcc_config.Cfg) {
 	return func(cfg *grpcc_config.Cfg) { cfg.Scheme = grpcc_resolver.DiscovScheme }
 }
 
-func WithRegistry(name string) func(cfg *grpcc_config.Cfg) {
-	return func(cfg *grpcc_config.Cfg) { cfg.registry = name }
-}
-
-func WithClientType(typ interface{}) func(cfg *grpcc_config.Cfg) {
-	return func(cfg *grpcc_config.Cfg) { cfg.clientType = typ }
-}
-
-func WithNewClientFunc(fn func(cc grpc.ClientConnInterface) interface{}) func(cfg *grpcc_config.Cfg) {
-	return func(cfg *grpcc_config.Cfg) { cfg.newClient = fn }
-}
-
-func WithBeforeDial(fn func()) func(cfg *grpcc_config.Cfg) {
-	return func(cfg *grpcc_config.Cfg) { cfg.beforeDial = fn }
-}
-
-func WithAfterDial(fn func()) func(cfg *grpcc_config.Cfg) {
-	return func(cfg *grpcc_config.Cfg) { cfg.afterDial = fn }
-}
-
-func WithDial(fn func(addr string, cfg *grpcc_config.Cfg, plugins ...string) (*grpc.ClientConn, error)) func(cli *Client) {
+func WithDial(fn func(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error)) func(cli *Client) {
 	return func(cli *Client) { cli.dial = fn }
 }

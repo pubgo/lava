@@ -15,17 +15,38 @@ import (
 	"github.com/pubgo/lava/pkg/utils"
 )
 
+func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
+	for k, v := range md {
+		for i := range v {
+			header.Add(k, v[i])
+		}
+	}
+}
+
+func head2md(header interface {
+	VisitAll(f func(key, value []byte))
+}, md metadata.MD) {
+	header.VisitAll(func(key, value []byte) {
+		md.Append(utils.BtoS(key), utils.BtoS(value))
+	})
+}
+
 func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor {
 	var unaryWrapper = func(ctx context.Context, req abc.Request, rsp abc.Response) error {
 		var md = make(metadata.MD)
-		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
-		})
+		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		var reqCtx = req.(*request)
+		var header = make(metadata.MD)
+		var trailer = make(metadata.MD)
+		reqCtx.opts = append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
+
 		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, rsp.(*response).resp, reqCtx.cc, reqCtx.opts...); err != nil {
 			return err
 		}
+
+		md2Head(header, rsp.(*response).header)
+		md2Head(trailer, rsp.(*response).header)
 		return nil
 	}
 
@@ -69,11 +90,7 @@ func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor 
 		}
 
 		var header = &fasthttp.RequestHeader{}
-		for k, v := range md {
-			for i := range v {
-				header.Add(k, v[i])
-			}
-		}
+		md2Head(md, header)
 
 		return unaryWrapper(ctx,
 			&request{
@@ -95,9 +112,8 @@ func streamInterceptor(middlewares []abc.Middleware) grpc.StreamClientIntercepto
 	wrapperStream := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
 		var reqCtx = req.(*request)
 		var md = make(metadata.MD)
-		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
-		})
+		head2md(req.Header(), md)
+
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method, reqCtx.opts...)
 		if err != nil {
@@ -147,11 +163,7 @@ func streamInterceptor(middlewares []abc.Middleware) grpc.StreamClientIntercepto
 		}
 
 		var header = &fasthttp.RequestHeader{}
-		for k, v := range md {
-			for i := range v {
-				header.Add(k, v[i])
-			}
-		}
+		md2Head(md, header)
 
 		return nil, wrapperStream(ctx,
 			&request{

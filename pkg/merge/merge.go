@@ -12,7 +12,7 @@ type Option func(opts *copier.Option)
 // struct<->struct
 // 各种类型结构体之间的field copy
 func Copy(dst interface{}, src interface{}, opts ...Option) error {
-	var optList copier.Option
+	var optList = copier.Option{DeepCopy: true, IgnoreEmpty: true}
 	for i := range opts {
 		opts[i](&optList)
 	}

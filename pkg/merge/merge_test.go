@@ -1,6 +1,7 @@
 package merge
 
 import (
+	"github.com/pubgo/xerror"
 	"testing"
 
 	"github.com/pubgo/x/q"
@@ -26,6 +27,10 @@ func TestStruct(t *testing.T) {
 
 	var rr = &src{Name: "2", Hello: "2"}
 	q.Q(Struct(&dd, &rr))
+
+	var d1 = map[string]interface{}{"a": src{Name: "2", Hello: "2"}}
+	var d2 = map[string]dst{"a": {Name: "1", Hello: "1"}, "b": {Name: "1", Hello: "1"}}
+	xerror.Panic(Copy(&d1, &d2))
 }
 
 func TestMapStruct(t *testing.T) {

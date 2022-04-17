@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	exp "github.com/antonmedv/expr"
+	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/reflectx"
@@ -28,13 +29,8 @@ func WithVal(val interface{}) func(obj Object, field Field) (interface{}, bool) 
 }
 
 func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bool)) {
-	if typ == nil {
-		panic("[typ] is nil")
-	}
-
-	if fn == nil {
-		panic("[fn] is nil")
-	}
+	xerror.Assert(typ == nil, "[typ] is nil")
+	xerror.Assert(fn == nil, "[fn] is nil")
 
 	t := reflect.TypeOf(typ)
 	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
@@ -61,7 +57,7 @@ func Inject(val interface{}) interface{} {
 		panic(fmt.Sprintf("[val] should be ptr or interface, val=%#v", val))
 	}
 
-	var obj = Object{Value: v}
+	var obj = objectImpl{value: v}
 	for i := 0; i < v.NumField(); i++ {
 		if !v.Field(i).CanSet() {
 			continue
@@ -73,8 +69,8 @@ func Inject(val interface{}) interface{} {
 			continue
 		}
 
-		var field = Field{Field: fieldT, val: val}
-		var ret, ok = fn(obj, field)
+		var field = fieldImpl{field: fieldT, val: val}
+		var ret, ok = fn(&obj, &field)
 		if !ok {
 			continue
 		}
@@ -88,32 +84,32 @@ func Inject(val interface{}) interface{} {
 	return val
 }
 
-type Object struct {
-	Value reflect.Value
+type objectImpl struct {
+	value reflect.Value
 }
 
-func (o Object) Name() string {
-	return o.Value.Type().Name()
+func (o *objectImpl) Name() string {
+	return o.value.Type().Name()
 }
 
-func (o Object) Type() string {
-	return o.Value.Type().String()
+func (o *objectImpl) Type() string {
+	return o.value.Type().String()
 }
 
-type Field struct {
-	Field reflect.StructField
+type fieldImpl struct {
+	field reflect.StructField
 	val   interface{}
 }
 
-func (f Field) Tag(name string) string {
-	return strings.TrimSpace(f.Field.Tag.Get(name))
+func (f fieldImpl) Tag(name string) string {
+	return strings.TrimSpace(f.field.Tag.Get(name))
 }
 
-func (f Field) Type() string {
-	return f.Field.Type.String()
+func (f fieldImpl) Type() string {
+	return f.field.Type.String()
 }
 
-func (f Field) Name() string {
+func (f fieldImpl) Name() string {
 	var name = f.Tag(nameKey)
 	if name != "" {
 		return name
