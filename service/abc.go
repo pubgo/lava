@@ -52,5 +52,5 @@ type Service interface {
 	Ctx() context.Context
 	Middlewares() []abc.Middleware
 	RegisterApp(prefix string, r *fiber.App)
-	RegisterRouter(prefix string, handlers ...fiber.Handler) fiber.Router
+	RegisterRouter(prefix string, fn func(r fiber.Router))
 }

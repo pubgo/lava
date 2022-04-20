@@ -9,7 +9,7 @@ import (
 func init() {
 	vars.Register("inject", func() interface{} {
 		var data typex.D
-		for k, v := range injectHandlers {
+		for k, v := range typeProviders {
 			data.Append(typex.Kv{K: k.String(), V: stack.Func(v)})
 		}
 		return data

@@ -139,7 +139,7 @@ func (t *serviceImpl) init() error {
 	t.net.Addr = runtime.Addr
 
 	// 配置解析
-	_ = config.Decode(Name, &t.cfg)
+	config.Decode(Name, &t.cfg)
 
 	// 网关初始化
 	xerror.Panic(t.gw.Build(t.cfg.Gw))

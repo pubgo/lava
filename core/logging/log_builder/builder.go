@@ -1,14 +1,15 @@
 package log_builder
 
 import (
+	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	logging2 "github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/log_config"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 )
 
 // Init logger

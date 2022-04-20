@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/watcher/watcher_builder"
 )
 
 var cfg = &configImpl{v: viper.New()}
@@ -16,6 +15,4 @@ func Init() {
 
 	cfg.initCfg()
 	config.SetCfg(cfg)
-
-	watcher_builder.Init(cfg)
 }

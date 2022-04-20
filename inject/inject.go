@@ -2,10 +2,12 @@ package inject
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
 	exp "github.com/antonmedv/expr"
+	"github.com/hetiansu5/urlquery"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/consts"
@@ -13,12 +15,11 @@ import (
 )
 
 const (
-	injectKey  = "inject"
-	nameKey    = "name"
-	injectExpr = "inject-expr"
+	injectKey = "inject"
+	nameKey   = "name"
 )
 
-var injectHandlers = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
+var typeProviders = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
 
 func WithVal(val interface{}) func(obj Object, field Field) (interface{}, bool) {
 	if val == nil {
@@ -37,7 +38,7 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 		t = t.Elem()
 	}
 
-	injectHandlers[t] = fn
+	typeProviders[t] = fn
 }
 
 func Inject(val interface{}) interface{} {
@@ -64,24 +65,41 @@ func Inject(val interface{}) interface{} {
 		}
 
 		var fieldT = v.Type().Field(i)
-		var fn = injectHandlers[fieldT.Type]
+		var field = fieldImpl{field: fieldT, val: val}
+		if tagVal := field.Tag(injectKey); tagVal != "" {
+			tagVal = os.Expand(tagVal, func(s string) string {
+				if !strings.HasPrefix(s, ".") {
+					return os.Getenv(s)
+				}
+
+				out, err := exp.Eval(strings.Trim(s, "."), val)
+				xerror.Panic(err)
+				return fmt.Sprintf("%v", out)
+			})
+			xerror.Panic(urlquery.Unmarshal([]byte(tagVal), &field.tagVal))
+		}
+
+		var fn = typeProviders[fieldT.Type]
 		if fn == nil {
+			xerror.Assert(field.tagVal.Required, "type(%s) has not provider", fieldT.Type.String())
 			continue
 		}
 
-		var field = fieldImpl{field: fieldT, val: val}
 		var ret, ok = fn(&obj, &field)
 		if !ok {
 			continue
 		}
 
-		if ret == nil {
-			panic("[ret] is nil")
-		}
-
+		xerror.Assert(ret == nil, "type(%s) provider value is nil", fieldT.Type.String())
 		v.Field(i).Set(reflect.ValueOf(ret))
 	}
 	return val
+}
+
+type injectTag struct {
+	Name     string `query:"name"`
+	Required bool   `query:"required"`
+	Expr     bool   `query:"expr"`
 }
 
 type objectImpl struct {
@@ -97,8 +115,9 @@ func (o *objectImpl) Type() string {
 }
 
 type fieldImpl struct {
-	field reflect.StructField
-	val   interface{}
+	tagVal injectTag
+	field  reflect.StructField
+	val    interface{}
 }
 
 func (f fieldImpl) Tag(name string) string {
@@ -110,21 +129,13 @@ func (f fieldImpl) Type() string {
 }
 
 func (f fieldImpl) Name() string {
+	if f.tagVal.Name != "" {
+		return f.tagVal.Name
+	}
+
 	var name = f.Tag(nameKey)
 	if name != "" {
 		return name
-	}
-
-	var expr = f.Tag(injectExpr)
-	if expr != "" {
-		out, err := exp.Eval(expr, f.val)
-		if err != nil {
-			panic(err)
-		}
-
-		if out != "" {
-			return fmt.Sprintf("%v", out)
-		}
 	}
 
 	return consts.KeyDefault

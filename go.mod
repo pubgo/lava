@@ -121,6 +121,7 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
+	github.com/hetiansu5/urlquery v1.2.7
 	github.com/huandu/go-clone v1.3.0
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1
