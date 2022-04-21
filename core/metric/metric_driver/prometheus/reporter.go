@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/logging/logutil"
 	metric2 "github.com/pubgo/lava/core/metric"
+
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
