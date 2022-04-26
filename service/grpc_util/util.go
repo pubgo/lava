@@ -2,7 +2,7 @@ package grpc_util
 
 import (
 	"context"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/middleware"
 
 	"google.golang.org/grpc/metadata"
 )
@@ -18,10 +18,10 @@ func WithClientIp(ctx context.Context, ip string) context.Context {
 
 // GetClientName 获取对端应用名称
 func GetClientName(md metadata.MD) string {
-	return abc.HeaderGet(md, "client-app")
+	return middleware.HeaderGet(md, "client-app")
 }
 
 // GetClientIP 获取对端ip
 func GetClientIP(md metadata.MD) string {
-	return abc.HeaderGet(md, "client-ip")
+	return middleware.HeaderGet(md, "client-ip")
 }

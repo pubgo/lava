@@ -2,7 +2,7 @@ package timeout
 
 import (
 	"context"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/middleware"
 	"net/http"
 	"time"
 
@@ -15,9 +15,9 @@ import (
 const Name = "middleware.timeout"
 
 func init() {
-	plugin.RegisterMiddleware(Name, func(next abc.HandlerFunc) abc.HandlerFunc {
+	plugin.RegisterMiddleware(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
 		var defaultTimeout = consts.DefaultTimeout
-		return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
+		return func(ctx context.Context, req middleware.Request, resp func(rsp middleware.Response) error) error {
 			// 过滤 websocket 请求
 			// 过滤 stream
 			if httpx.IsWebsocket(http.Header(req.Header())) || req.Stream() {
@@ -26,7 +26,7 @@ func init() {
 
 			// 从header中获取超时设置
 			//	key: x-request-timeout
-			if t := abc.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
+			if t := middleware.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
 				var dur, err = time.ParseDuration(t)
 				if dur != 0 && err == nil {
 					defaultTimeout = dur

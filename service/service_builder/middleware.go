@@ -2,6 +2,7 @@ package service_builder
 
 import (
 	"context"
+	"github.com/pubgo/lava/middleware"
 	"strings"
 	"time"
 
@@ -12,13 +13,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service/grpc_util"
 )
 
-func (t *serviceImpl) handlerHttpMiddle(middlewares []abc.Middleware) func(fbCtx *fiber.Ctx) error {
-	var handler = func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+func (t *serviceImpl) handlerHttpMiddle(middlewares []middleware.Middleware) func(fbCtx *fiber.Ctx) error {
+	var handler = func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
 		var reqCtx = req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
 		return reqCtx.ctx.Next()
@@ -33,8 +33,8 @@ func (t *serviceImpl) handlerHttpMiddle(middlewares []abc.Middleware) func(fbCtx
 	}
 }
 
-func (t *serviceImpl) handlerUnaryMiddle(middlewares []abc.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware.Middleware) grpc.UnaryServerInterceptor {
+	unaryWrapper := func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
@@ -133,8 +133,8 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []abc.Middleware) grpc.Unar
 	}
 }
 
-func (t *serviceImpl) handlerStreamMiddle(middlewares []abc.Middleware) grpc.StreamServerInterceptor {
-	streamWrapper := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware.Middleware) grpc.StreamServerInterceptor {
+	streamWrapper := func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))

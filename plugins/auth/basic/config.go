@@ -2,7 +2,7 @@ package basic
 
 import (
 	"errors"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/middleware"
 )
 
 var cfg Cfg
@@ -10,7 +10,7 @@ var cfg Cfg
 type Cfg struct {
 	Realm        string
 	Authenticate func(user, pwd string) error
-	Authorize    func(user string, req abc.Request) error
+	Authorize    func(user string, req middleware.Request) error
 }
 
 //"basicAuth"

@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/logging/logutil"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -10,16 +11,14 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 
 	// 加载mdns注册中心
 	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
-
 	// 加载grpcLog
-	_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
+	//_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)

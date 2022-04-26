@@ -33,7 +33,7 @@ import (
 // 加载middleware, 注意加载顺序
 import (
 	// 加载log记录拦截器
-	_ "github.com/pubgo/lava/core/logging/log_plugin"
+	//_ "github.com/pubgo/lava/core/logging/log_plugin"
 
 	// tracing插件, 依赖加载
 

@@ -3,6 +3,8 @@ package watcher_builder
 import (
 	"bytes"
 	"context"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"strings"
 
 	"github.com/pubgo/x/stack"
@@ -11,8 +13,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/core/watcher/watcher_driver/noop"
 	"github.com/pubgo/lava/inject"

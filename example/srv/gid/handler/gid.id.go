@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logging"
 	"math/rand"
 
 	"github.com/google/uuid"
@@ -10,7 +11,6 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
 
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/protopb/proto/gid"

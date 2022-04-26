@@ -1,14 +1,14 @@
 package scheduler
 
 import (
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/utils"
 )

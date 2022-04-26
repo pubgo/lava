@@ -2,10 +2,10 @@ package gcnotifier
 
 import (
 	"context"
+	"github.com/pubgo/lava/logging"
 
 	"github.com/CAFxX/gcnotifier"
 
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"

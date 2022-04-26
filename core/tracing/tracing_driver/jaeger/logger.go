@@ -1,7 +1,7 @@
 package jaeger
 
 import (
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/logging"
 	jLog "github.com/uber/jaeger-client-go/log"
 	"go.uber.org/zap"
 )

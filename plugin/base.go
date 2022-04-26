@@ -32,6 +32,8 @@ type Base struct {
 	Url            string
 	Docs           interface{}
 	CfgNotCheck    bool
+	Provide        interface{}
+	Invoke         interface{}
 	BuilderFactory resource.BuilderFactory
 	OnHealth       healthy.Handler
 	OnMiddleware   Middleware
@@ -49,6 +51,16 @@ type Base struct {
 
 	cfg    config.Config
 	cfgMap *typex.RwMap
+}
+
+func (p *Base) Provider() interface{} {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *Base) Invoker() interface{} {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (p *Base) BeforeStart(fn func())  { p.beforeStarts = append(p.beforeStarts, fn) }

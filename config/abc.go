@@ -3,19 +3,18 @@ package config
 import (
 	"io"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/spf13/viper"
 )
 
-type (
-	DecoderConfig = mapstructure.DecoderConfig
-	Config        interface {
-		Decode(name string, fnOrPtr interface{}) error
-		Get(key string) interface{}
-		Set(string, interface{})
-		GetString(key string) string
-		GetMap(keys ...string) CfgMap
-		AllKeys() []string
-		MergeConfig(in io.Reader) error
-		All() map[string]interface{}
-	}
-)
+type CfgMap = map[string]interface{}
+type Config interface {
+	UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error
+	Decode(name string, cfgMap interface{}) error
+	Get(key string) interface{}
+	Set(string, interface{})
+	GetString(key string) string
+	GetMap(keys ...string) CfgMap
+	AllKeys() []string
+	MergeConfig(in io.Reader) error
+	All() map[string]interface{}
+}

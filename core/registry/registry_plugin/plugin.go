@@ -3,6 +3,7 @@ package registry_plugin
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logging/logutil"
 	"strconv"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/netutil"

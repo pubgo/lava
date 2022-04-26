@@ -1,7 +1,7 @@
 package syncx
 
 import (
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/logging"
 )
 
 const Name = "syncx"

@@ -2,12 +2,12 @@ package bbolt
 
 import (
 	"context"
+	"github.com/pubgo/lava/logging/logutil"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/resource"

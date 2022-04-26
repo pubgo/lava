@@ -2,6 +2,7 @@ package debug_plugin
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/logging/logutil"
 	"sort"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/htmlx"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"

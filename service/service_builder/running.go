@@ -2,19 +2,18 @@ package service_builder
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"os"
 	"sort"
 
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
+	_ "go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/config/config_builder"
-	"github.com/pubgo/lava/config/config_flag"
 	"github.com/pubgo/lava/core/healthy"
-	"github.com/pubgo/lava/core/logging/log_builder"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/core/watcher"
 	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/plugin"
@@ -38,7 +37,7 @@ func Run(services ...service.Service) {
 		Name:    runtime.Domain,
 		Usage:   fmt.Sprintf("%s services", runtime.Domain),
 		Version: version.Version,
-		Flags:   config_flag.Flags(),
+		Flags:   config.Flags(),
 	}
 
 	// 注册全局plugin
@@ -85,7 +84,7 @@ func Run(services ...service.Service) {
 			config_builder.Init()
 
 			// 日志初始化
-			log_builder.Init(config.GetCfg())
+			logging.New(config.GetCfg())
 
 			// 插件初始化
 			for _, plg := range append(plugin.All(), ent.plugins()...) {

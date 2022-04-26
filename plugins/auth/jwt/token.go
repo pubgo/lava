@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"errors"
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/logging"
 	"time"
 
 	"github.com/golang-jwt/jwt"

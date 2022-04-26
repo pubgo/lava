@@ -2,6 +2,7 @@ package grpcc_builder
 
 import (
 	"context"
+	"github.com/pubgo/lava/middleware"
 	"strings"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/pkg/utils"
 )
@@ -31,8 +31,8 @@ func head2md(header interface {
 	})
 }
 
-func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -62,9 +62,9 @@ func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor 
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return abc.HeaderGet(md, "content-type")
+			return middleware.HeaderGet(md, "content-type")
 		}, func() string {
-			return abc.HeaderGet(md, "x-content-type")
+			return middleware.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return grpcc_config.DefaultContentType
 		})
@@ -108,8 +108,8 @@ func unaryInterceptor(middlewares []abc.Middleware) grpc.UnaryClientInterceptor 
 	}
 }
 
-func streamInterceptor(middlewares []abc.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req abc.Request, rsp abc.Response) error {
+func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
 		var reqCtx = req.(*request)
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
@@ -135,9 +135,9 @@ func streamInterceptor(middlewares []abc.Middleware) grpc.StreamClientIntercepto
 
 		// get content type
 		ct := utils.FirstNotEmpty(func() string {
-			return abc.HeaderGet(md, "content-type")
+			return middleware.HeaderGet(md, "content-type")
 		}, func() string {
-			return abc.HeaderGet(md, "x-content-type")
+			return middleware.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return grpcc_config.DefaultContentType
 		})

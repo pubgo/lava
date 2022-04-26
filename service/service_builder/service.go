@@ -15,12 +15,13 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -39,7 +40,7 @@ func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl
 	var g = &serviceImpl{
 		ctx:        context.Background(),
 		pluginList: plugins,
-		cmd:        &cli.Command{Name: name, Usage: desc},
+		cmd:        &cli.Command{Name: name, Usage: desc, Flags: flags.GetFlags()},
 		srv:        grpc_builder.New(),
 		gw:         fiber_builder.New(),
 		inproc:     &inprocgrpc.Channel{},
@@ -65,7 +66,7 @@ type serviceImpl struct {
 	beforeStops  []func()
 	afterStops   []func()
 	pluginList   []plugin.Plugin
-	middlewares  []abc.Middleware
+	middlewares  []middleware.Middleware
 	services     []service.Desc
 
 	cmd *cli.Command
@@ -82,8 +83,8 @@ type serviceImpl struct {
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
 
-	wrapperUnary  abc.HandlerFunc
-	wrapperStream abc.HandlerFunc
+	wrapperUnary  middleware.HandlerFunc
+	wrapperStream middleware.HandlerFunc
 
 	ctx context.Context
 }
@@ -98,7 +99,7 @@ func (t *serviceImpl) RegisterApp(prefix string, r *fiber2.App) {
 	t.app.Mount(prefix, r)
 }
 
-func (t *serviceImpl) Middleware(mid abc.Middleware) {
+func (t *serviceImpl) Middleware(mid middleware.Middleware) {
 	if mid == nil {
 		return
 	}
@@ -106,11 +107,11 @@ func (t *serviceImpl) Middleware(mid abc.Middleware) {
 	t.middlewares = append(t.middlewares, mid)
 }
 
-func (t *serviceImpl) Middlewares() []abc.Middleware { return t.middlewares }
+func (t *serviceImpl) Middlewares() []middleware.Middleware { return t.middlewares }
 
 func (t *serviceImpl) plugins() []plugin.Plugin { return t.pluginList }
 
-func (t *serviceImpl) middleware(mid abc.Middleware) {
+func (t *serviceImpl) middleware(mid middleware.Middleware) {
 	if mid == nil {
 		return
 	}

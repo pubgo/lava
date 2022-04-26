@@ -2,7 +2,7 @@ package requestID
 
 import (
 	"context"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/middleware"
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,8 +15,8 @@ import (
 const Name = "x-request-id"
 
 func init() {
-	plugin.RegisterMiddleware(Name, func(next abc.HandlerFunc) abc.HandlerFunc {
-		return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) (gErr error) {
+	plugin.RegisterMiddleware(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
+		return func(ctx context.Context, req middleware.Request, resp func(rsp middleware.Response) error) (gErr error) {
 			defer func() {
 				switch err := recover().(type) {
 				case nil:
@@ -29,7 +29,7 @@ func init() {
 
 			rid := utils.FirstNotEmpty(
 				func() string { return getReqID(ctx) },
-				func() string { return abc.HeaderGet(req.Header(), Name) },
+				func() string { return middleware.HeaderGet(req.Header(), Name) },
 				func() string { return ksuid.New().String() },
 			)
 

@@ -3,6 +3,7 @@ package cmux
 import (
 	"container/heap"
 	"errors"
+	"github.com/pubgo/lava/logging/logutil"
 	"net"
 	"strings"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"github.com/soheilhy/cmux"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

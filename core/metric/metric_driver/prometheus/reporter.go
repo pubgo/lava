@@ -3,10 +3,10 @@ package prometheus
 import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/core/logging/logutil"
 	metric2 "github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/logging/logutil"
 
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"

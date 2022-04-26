@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/logging/logutil"
 	"path/filepath"
 
 	"github.com/pubgo/x/pathutil"

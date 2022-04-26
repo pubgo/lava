@@ -3,6 +3,9 @@ package grpcc_builder
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/middleware"
 	"net"
 	"strings"
 	"sync"
@@ -11,12 +14,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/plugin"
 )
@@ -53,7 +53,7 @@ func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, err
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
 
-	var middlewares []abc.Middleware
+	var middlewares []middleware.Middleware
 
 	// 加载全局middleware
 	for _, plg := range cfg.Plugins {

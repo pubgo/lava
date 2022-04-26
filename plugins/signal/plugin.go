@@ -2,13 +2,13 @@ package signal
 
 import (
 	"context"
+	"github.com/pubgo/lava/logging"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"

@@ -2,9 +2,10 @@ package redisc
 
 import (
 	"context"
-	"github.com/pubgo/lava/resource"
 
 	"github.com/go-redis/redis/v8"
+
+	"github.com/pubgo/lava/resource"
 )
 
 type Client struct {

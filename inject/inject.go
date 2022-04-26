@@ -2,6 +2,7 @@ package inject
 
 import (
 	"fmt"
+	"go.uber.org/fx"
 	"os"
 	"reflect"
 	"strings"
@@ -41,7 +42,38 @@ func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bo
 	typeProviders[t] = fn
 }
 
-func Inject(val interface{}) interface{} {
+var _outAnnotationField = reflect.StructField{
+	Name:      "Out",
+	Type:      reflect.TypeOf(fx.Out{}),
+	Anonymous: true,
+}
+
+func OutStructField(fields ...reflect.StructField) []reflect.StructField {
+	return append(fields, _outAnnotationField)
+}
+
+func injectMap(typ interface{}, data interface{}) interface{} {
+	var t = reflect.TypeOf(data)
+	var v = reflect.ValueOf(data)
+	cache := reflect.StructOf([]reflect.StructField{
+		{
+			Name:      "T",
+			Type:      t,
+			Anonymous: true,
+		},
+		{
+			Name: "Checksum",
+			Type: reflect.TypeOf(uint64(0)),
+		},
+		{
+			Name: "Origin",
+			Type: pt,
+		},
+	})
+	reflect.StructOf()
+}
+
+func Inject(val interface{}, opts ...Option) interface{} {
 	var v reflect.Value
 	switch val.(type) {
 	case nil:

@@ -3,15 +3,15 @@ package tracing_plugin
 import (
 	"context"
 	"errors"
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/core/watcher"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/middleware"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/plugins/requestID"
@@ -32,8 +32,8 @@ func init() {
 			_ = config.Decode(tracing.Name, &cfg)
 			return cfg.Build()
 		},
-		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
-			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
+		OnMiddleware: func(next middleware.HandlerFunc) middleware.HandlerFunc {
+			return func(ctx context.Context, req middleware.Request, resp func(rsp middleware.Response) error) error {
 				var tracer = opentracing.GlobalTracer()
 				if tracer == nil {
 					logs.L().Warn("global tracer is nil, please init tracing")

@@ -2,6 +2,7 @@ package restc
 
 import (
 	"context"
+	"github.com/pubgo/lava/middleware"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/plugin"
@@ -29,7 +29,7 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	client  *fasthttp.Client
 	cfg     Cfg
-	do      abc.HandlerFunc
+	do      middleware.HandlerFunc
 	plugins []plugin.Plugin
 }
 

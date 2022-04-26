@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"github.com/pubgo/lava/logging/logkey"
+	logutil2 "github.com/pubgo/lava/logging/logutil"
 	"io"
 	"sync"
 	"time"
@@ -8,8 +10,6 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/pkg/syncx"
 )
 
@@ -76,12 +76,12 @@ func (t *baseRes) updateObj(obj io.Closer) {
 			t.rw.Lock()
 			var oldPbj = t.v
 			t.v = obj
-			logutil.OkOrErr(t.log, "resource close", oldPbj.Close)
+			logutil2.OkOrErr(t.log, "resource close", oldPbj.Close)
 			t.rw.Unlock()
 			t.log.Info("resource update ok")
 		},
 		func(err error) {
-			t.log.Error("resource update failed", logutil.ErrField(err, zap.Uint32("curConn", t.counter.Load()))...)
+			t.log.Error("resource update failed", logutil2.ErrField(err, zap.Uint32("curConn", t.counter.Load()))...)
 		},
 	)
 }

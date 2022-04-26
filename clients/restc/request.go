@@ -2,11 +2,11 @@ package restc
 
 import (
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/middleware"
 	"github.com/valyala/fasthttp"
 )
 
-var _ abc.Request = (*Request)(nil)
+var _ middleware.Request = (*Request)(nil)
 
 type Request struct {
 	req     *fasthttp.Request
@@ -20,7 +20,7 @@ func (r *Request) Kind() string               { return Name }
 func (r *Request) Client() bool               { return true }
 func (r *Request) Service() string            { return r.service }
 func (r *Request) Endpoint() string           { return utils.UnsafeString(r.req.RequestURI()) }
-func (r *Request) ContentType() string        { return r.ct }
-func (r *Request) Header() *abc.RequestHeader { return &r.req.Header }
-func (r *Request) Payload() interface{}       { return r.data }
+func (r *Request) ContentType() string               { return r.ct }
+func (r *Request) Header() *middleware.RequestHeader { return &r.req.Header }
+func (r *Request) Payload() interface{}              { return r.data }
 func (r *Request) Stream() bool               { return false }

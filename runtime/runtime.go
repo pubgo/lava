@@ -25,7 +25,7 @@ var (
 	Addr    = ":8080"
 	Project = "lava"
 	Level   = "debug"
-	Mode    = RunModeDev
+	Mode    = RunModeLocal
 
 	// DeviceID 主机设备ID
 	DeviceID = xerror.ExitErr(machineid.ID())

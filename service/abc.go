@@ -2,13 +2,14 @@ package service
 
 import (
 	"context"
+	"github.com/pubgo/lava/middleware"
+	"go.uber.org/fx"
 	"net"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/pkg/typex"
 )
@@ -37,7 +38,14 @@ type Options struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
+func init() {
+	fx.New().Run()
+}
+
 type Service interface {
+	Start() error
+	Stop() error
+	Command() *cli.Command
 	AfterStops(...func())
 	BeforeStops(...func())
 	AfterStarts(...func())
@@ -50,7 +58,7 @@ type Service interface {
 	ServiceDesc() []Desc
 	Options() Options
 	Ctx() context.Context
-	Middlewares() []abc.Middleware
+	Middlewares() []middleware.Middleware
 	RegisterApp(prefix string, r *fiber.App)
 	RegisterRouter(prefix string, fn func(r fiber.Router))
 }

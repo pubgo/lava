@@ -2,7 +2,8 @@ package metric_plugin
 
 import (
 	"context"
-	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/middleware"
 	"sync/atomic"
 	"unsafe"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
@@ -43,8 +43,8 @@ func init() {
 			// 全局对象注册
 			atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		},
-		OnMiddleware: func(next abc.HandlerFunc) abc.HandlerFunc {
-			return func(ctx context.Context, req abc.Request, resp func(rsp abc.Response) error) error {
+		OnMiddleware: func(next middleware.HandlerFunc) middleware.HandlerFunc {
+			return func(ctx context.Context, req middleware.Request, resp func(rsp middleware.Response) error) error {
 				return next(metric.CreateCtx(ctx, GetGlobal()), req, resp)
 			}
 		},

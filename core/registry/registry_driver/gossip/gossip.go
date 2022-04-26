@@ -4,9 +4,9 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/registry"
 	pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
+	"github.com/pubgo/lava/logging"
 	"io/ioutil"
 	"net"
 	"strconv"

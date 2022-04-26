@@ -3,8 +3,8 @@ package util
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"runtime"
 	"sync"
 

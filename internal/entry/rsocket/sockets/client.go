@@ -2,6 +2,8 @@ package sockets
 
 import (
 	"context"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"sync"
 
 	"github.com/golang/protobuf/proto"
@@ -15,8 +17,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logutil"
 	"github.com/pubgo/lava/errors"
 )
 

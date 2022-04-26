@@ -2,11 +2,11 @@ package automaxprocs
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/logging"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/automaxprocs/maxprocs"
 
-	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/plugin"
 )
 
