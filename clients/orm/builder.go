@@ -1,4 +1,4 @@
-package orm_builder
+package orm
 
 import (
 	"time"
@@ -10,7 +10,6 @@ import (
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
-	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
@@ -23,9 +22,9 @@ func Module() fx.Option {
 	return fx.Provide(New)
 }
 
-func New(c config.Config, log *logging.Logger) map[string]*orm.Client {
-	var cfg = &orm.Cfg{}
-	xerror.Panic(c.Decode(orm.Name, cfg))
+func New(c config.Config, log *logging.Logger) map[string]*Client {
+	var cfg = &Cfg{}
+	xerror.Panic(c.Decode(Name, cfg))
 
 	var ormCfg = &gorm.Config{}
 	xerror.Panic(merge.Struct(ormCfg, cfg))
@@ -36,7 +35,7 @@ func New(c config.Config, log *logging.Logger) map[string]*orm.Client {
 	}
 
 	ormCfg.Logger = gl.New(
-		logPrintf(zap.L().Named(logkey.Component).Named(orm.Name).Sugar().Infof),
+		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,
@@ -45,7 +44,7 @@ func New(c config.Config, log *logging.Logger) map[string]*orm.Client {
 		},
 	)
 
-	var factory = orm.Get(cfg.Driver)
+	var factory = Get(cfg.Driver)
 	xerror.Assert(factory == nil, "factory[%s] not found", cfg.Driver)
 	dialect := factory(cfg.DriverCfg)
 

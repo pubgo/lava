@@ -6,8 +6,7 @@ import (
 )
 
 func New() Config {
-	var cfg = newCfg()
-	return cfg
+	return newCfg()
 }
 
 // GetCfg 获取内存配置
@@ -19,5 +18,6 @@ func GetCfg() Config {
 }
 
 func init() {
+	conf = newCfg()
 	module.Register("config", fx.Provide(New))
 }

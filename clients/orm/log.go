@@ -1,4 +1,4 @@
-package orm_builder
+package orm
 
 type logPrintf func(s string, i ...interface{})
 
