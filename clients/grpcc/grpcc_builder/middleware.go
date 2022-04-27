@@ -2,7 +2,6 @@ package grpcc_builder
 
 import (
 	"context"
-	"github.com/pubgo/lava/middleware"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/utils"
 )
 

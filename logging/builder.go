@@ -14,10 +14,11 @@ import (
 )
 
 func init() {
-	module.Register(Name, fx.Provide(New))
+	New(config.GetCfg())
+	module.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
 }
 
-func NewWithCfg(cfg *log_config.Config) *zap.Logger {
+func NewWithCfg(cfg *log_config.Config) {
 	cfg.Level = runtime.Level
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
@@ -38,12 +39,10 @@ func NewWithCfg(cfg *log_config.Config) *zap.Logger {
 
 	// 替换zap全局log
 	zap.ReplaceGlobals(baseLog)
-	initialized = true
-	return baseLog
 }
 
 // New logger
-func New(c config.Config) *zap.Logger {
+func New(c config.Config) {
 	defer xerror.RespExit()
 
 	var cfg = log_config.NewProdConfig()
@@ -53,6 +52,5 @@ func New(c config.Config) *zap.Logger {
 	}
 
 	xerror.Panic(c.Decode(Name, &cfg))
-
-	return NewWithCfg(&cfg)
+	NewWithCfg(&cfg)
 }

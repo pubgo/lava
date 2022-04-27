@@ -5,32 +5,13 @@ import (
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
-var initialized bool
 var loggerMap sync.Map
-
-// 默认log
-var debugLog = func() *zap.Logger {
-	defer xerror.RespExit()
-	var cfg = zap.NewDevelopmentConfig()
-	cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
-	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(consts.DefaultTimeFormat)
-	var log, err = cfg.Build()
-	xerror.Panic(err)
-
-	log = log.Named(logkey.Debug)
-
-	// 全局
-	zap.ReplaceGlobals(log)
-	return log
-}()
 
 // Component 命名的log
 func Component(name string, fields ...zap.Field) *namedLogger {
@@ -41,10 +22,6 @@ func Component(name string, fields ...zap.Field) *namedLogger {
 func getName(name string, fields *[]zap.Field) *zap.Logger {
 	if val, ok := loggerMap.Load(name); ok {
 		return val.(*zap.Logger)
-	}
-
-	if !initialized {
-		return debugLog.Named(name).With(*fields...)
 	}
 
 	var l = zap.L().Named(name).With(*fields...)

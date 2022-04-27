@@ -21,11 +21,11 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 // Cfg ...
 type Cfg struct {
-	Client   *ClientCfg `json:"client"`
-	Addr     string     `json:"addr"`
-	Scheme   string     `json:"scheme"`
-	Registry string     `json:"registry"`
-	Plugins  []string   `json:"plugins"`
+	Client      *ClientCfg `json:"client"`
+	Addr        string     `json:"addr"`
+	Scheme      string     `json:"scheme"`
+	Registry    string     `json:"registry"`
+	Middlewares []string   `json:"plugins"`
 }
 
 func (t Cfg) Check() error { return nil }

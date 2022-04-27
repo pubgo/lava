@@ -1,24 +1,19 @@
 package scheduler
 
 import (
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/utils"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
 var logs = logging.Component(Name)
-
-func init() {
-	inject.Register(quart, inject.WithVal(quart))
-}
 
 type Scheduler struct {
 	scheduler quartz.Scheduler

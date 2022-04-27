@@ -1,7 +1,6 @@
 package redisc
 
 import (
-	"io"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -41,7 +40,7 @@ type Cfg struct {
 	IdleCheckFrequency time.Duration `json:"idle_check_frequency" yaml:"idle_check_frequency"`
 }
 
-func (c Cfg) BuildClient() *redis.Client {
+func (c Cfg) Build() *redis.Client {
 	var opts = &redis.Options{}
 	xerror.Panic(merge.Struct(opts, c))
 	client := redis.NewClient(opts)
@@ -52,8 +51,6 @@ func (c Cfg) BuildClient() *redis.Client {
 
 	return client
 }
-
-func (c Cfg) Build() io.Closer { return c.BuildClient() }
 
 func DefaultCfg() *Cfg {
 	return &Cfg{}

@@ -1,7 +1,6 @@
 package etcdv3
 
 import (
-	"io"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -29,7 +28,7 @@ type Cfg struct {
 	retry                retry.Retry
 }
 
-func (t Cfg) Build() io.Closer {
+func (t Cfg) Build() *clientv3.Client {
 	var cfg clientv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())

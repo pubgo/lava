@@ -10,7 +10,9 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
+	module "github.com/pubgo/lava/module"
 	service "github.com/pubgo/lava/service"
+	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
 
@@ -19,8 +21,18 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitYuqueClient(srv string) {
-	grpcc_builder.InitClient(srv, (*YuqueClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewYuqueClient(cc) })
+func InitYuqueClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() YuqueClient { return NewYuqueClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterYuque(srv service.Service, impl YuqueServer) {
@@ -36,8 +48,18 @@ func RegisterYuque(srv service.Service, impl YuqueServer) {
 	srv.RegisterService(desc)
 }
 
-func InitUserServiceClient(srv string) {
-	grpcc_builder.InitClient(srv, (*UserServiceClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewUserServiceClient(cc) })
+func InitUserServiceClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() UserServiceClient { return NewUserServiceClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterUserService(srv service.Service, impl UserServiceServer) {

@@ -1,10 +1,10 @@
 package grpcc_builder
 
 import (
-	"github.com/pubgo/lava/middleware"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/middleware"
 )
 
 var _ middleware.Request = (*request)(nil)
@@ -22,12 +22,12 @@ type request struct {
 	header   *middleware.RequestHeader
 }
 
-func (r *request) Operation() string          { return r.method }
-func (r *request) Kind() string               { return grpcc_config.Name }
-func (r *request) Client() bool               { return true }
-func (r *request) Service() string            { return r.service }
-func (r *request) Endpoint() string           { return r.method }
+func (r *request) Operation() string                 { return r.method }
+func (r *request) Kind() string                      { return grpcc_config.Name }
+func (r *request) Client() bool                      { return true }
+func (r *request) Service() string                   { return r.service }
+func (r *request) Endpoint() string                  { return r.method }
 func (r *request) ContentType() string               { return r.ct }
 func (r *request) Header() *middleware.RequestHeader { return r.header }
 func (r *request) Payload() interface{}              { return r.req }
-func (r *request) Stream() bool               { return r.desc != nil }
+func (r *request) Stream() bool                      { return r.desc != nil }

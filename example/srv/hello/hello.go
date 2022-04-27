@@ -2,11 +2,11 @@ package hello
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/core/registry"
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/debug/debug_plugin"
 	"github.com/pubgo/lava/core/healthy"
-	"github.com/pubgo/lava/core/registry/registry_plugin"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/example/srv/hello/handler"
 	"github.com/pubgo/lava/service"
@@ -18,7 +18,7 @@ var name = "test-grpc"
 func NewSrv() service.Service {
 	srv := lava.NewService(name, "entry grpc test")
 
-	registry_plugin.Enable(srv)
+	registry.Enable(srv)
 	debug_plugin.Enable(srv)
 	gateway_plugin.Enable(srv)
 

@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/clients/orm/orm_builder"
 	"io"
 	"time"
 
@@ -45,7 +44,7 @@ func (t Cfg) Build() io.Closer {
 	}
 
 	log.Logger = gl.New(
-		orm_builder.logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
+		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,

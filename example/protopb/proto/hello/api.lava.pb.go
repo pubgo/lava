@@ -10,7 +10,9 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
+	module "github.com/pubgo/lava/module"
 	service "github.com/pubgo/lava/service"
+	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
 
@@ -19,8 +21,18 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitTestApiClient(srv string) {
-	grpcc_builder.InitClient(srv, (*TestApiClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewTestApiClient(cc) })
+func InitTestApiClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() TestApiClient { return NewTestApiClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterTestApi(srv service.Service, impl TestApiServer) {
@@ -36,8 +48,18 @@ func RegisterTestApi(srv service.Service, impl TestApiServer) {
 	srv.RegisterService(desc)
 }
 
-func InitTestApiV2Client(srv string) {
-	grpcc_builder.InitClient(srv, (*TestApiV2Client)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewTestApiV2Client(cc) })
+func InitTestApiV2Client(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() TestApiV2Client { return NewTestApiV2Client(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterTestApiV2(srv service.Service, impl TestApiV2Server) {

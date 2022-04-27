@@ -2,29 +2,34 @@ package internal
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/protoutil"
+
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/pubgo/lava/pkg/protoutil"
 )
 
 var (
-	contextCall  = protoutil.Import("context")
-	serviceCall  = protoutil.Import("github.com/pubgo/lava/service")
-	reflectCall  = protoutil.Import("reflect")
-	stringsCall  = protoutil.Import("strings")
-	sqlCall      = protoutil.Import("database/sql")
-	sqlxCall     = protoutil.Import("gorm.io/gorm")
-	dixCall      = protoutil.Import("github.com/pubgo/dix")
-	grpcCall     = protoutil.Import("google.golang.org/grpc")
-	codesCall    = protoutil.Import("google.golang.org/grpc/codes")
-	statusCall   = protoutil.Import("google.golang.org/grpc/status")
-	grpccCall    = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
-	xerrorCall   = protoutil.Import("github.com/pubgo/xerror")
-	xgenCall     = protoutil.Import("github.com/pubgo/lava/xgen")
-	fiberCall    = protoutil.Import("github.com/pubgo/lava/builder/fiber")
-	ginCall      = protoutil.Import("github.com/gin-gonic/gin")
-	bindingCall  = protoutil.Import("github.com/pubgo/lava/pkg/binding")
-	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
-	runtimeCall  = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
+	contextCall      = protoutil.Import("context")
+	serviceCall      = protoutil.Import("github.com/pubgo/lava/service")
+	reflectCall      = protoutil.Import("reflect")
+	stringsCall      = protoutil.Import("strings")
+	sqlCall          = protoutil.Import("database/sql")
+	sqlxCall         = protoutil.Import("gorm.io/gorm")
+	dixCall          = protoutil.Import("github.com/pubgo/dix")
+	grpcCall         = protoutil.Import("google.golang.org/grpc")
+	codesCall        = protoutil.Import("google.golang.org/grpc/codes")
+	statusCall       = protoutil.Import("google.golang.org/grpc/status")
+	grpccCall        = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
+	xerrorCall       = protoutil.Import("github.com/pubgo/xerror")
+	xgenCall         = protoutil.Import("github.com/pubgo/lava/xgen")
+	fiberCall        = protoutil.Import("github.com/pubgo/lava/builder/fiber")
+	ginCall          = protoutil.Import("github.com/gin-gonic/gin")
+	bindingCall      = protoutil.Import("github.com/pubgo/lava/pkg/binding")
+	byteutilCall     = protoutil.Import("github.com/pubgo/x/byteutil")
+	runtimeCall      = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
+	moduleCall       = protoutil.Import("github.com/pubgo/lava/module")
+	fxCall           = protoutil.Import("go.uber.org/fx")
+	grpccBuilderCall = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
 )
 
 // GenerateFile generates a .lava.pb.go file containing service definitions.
@@ -78,8 +83,22 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.P("func Init", service.GoName, "Client(srv string) {")
-	g.P(grpccCall("InitClient"), "(srv, (*", service.GoName, "Client)(nil), ", "func(cc grpc.ClientConnInterface) interface{} { return New", service.GoName, "Client(cc) })")
+	g.QualifiedGoIdent(moduleCall(""))
+	g.QualifiedGoIdent(fxCall(""))
+	g.QualifiedGoIdent(grpccBuilderCall(""))
+	g.P("func Init", service.GoName, "Client(addr string, alias ...string) {")
+	g.P(`
+		var name = ""
+		if len(alias) > 0 {
+			name = alias[0]
+		}
+		conn := grpcc_builder.NewClient(addr)
+	`)
+
+	g.P(`	module.Register(fx.Provide(fx.Annotated{`)
+	g.P(`Target: func() `, service.GoName, `Client { return New`, service.GoName, `Client(conn) },`)
+	g.P(`	Name:   name,`)
+	g.P("}))")
 	g.P("}")
 	g.P()
 }

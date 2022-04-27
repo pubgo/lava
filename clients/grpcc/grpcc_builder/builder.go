@@ -3,12 +3,8 @@ package grpcc_builder
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/middleware"
 	"net"
 	"strings"
-	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
@@ -17,35 +13,16 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/middleware"
 )
 
 var logs = logging.Component(grpcc_config.Name)
-var clients sync.Map
 
-func InitClient(srv string, clientType interface{}, newClient func(cc grpc.ClientConnInterface) interface{}) {
-	defer xerror.RespExit()
-
-	xerror.Assert(clientType == nil, "grpc clientType is nil")
-	xerror.Assert(newClient == nil, "grpc newClient is nil")
-
+func NewClient(srv string) grpc.ClientConnInterface {
 	logs.L().Info("grpc client init", zap.String(logkey.Service, srv))
-	var cli = grpcc.NewClient(srv, grpcc.WithDial(CreateConn))
-	if val, ok := clients.LoadOrStore(srv, cli); ok && val != nil {
-		return
-	}
-
-	// 依赖注入
-	inject.Register(clientType, func(obj inject.Object, field inject.Field) (interface{}, bool) {
-		var conn, ok = clients.Load(fmt.Sprintf("%s.%s", srv, field.Name()))
-		if ok {
-			return newClient(conn.(grpc.ClientConnInterface)), true
-		}
-
-		logs.L().Error("grpc service not found", zap.String(logkey.Service, srv))
-		return nil, false
-	})
+	return grpcc.NewClient(srv, grpcc.WithDial(CreateConn))
 }
 
 func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
@@ -56,17 +33,12 @@ func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, err
 	var middlewares []middleware.Middleware
 
 	// 加载全局middleware
-	for _, plg := range cfg.Plugins {
-		xerror.Assert(plugin.Get(plg) == nil, "plugin(%s) is nil", plg)
-		if plugin.Get(plg).Middleware() == nil {
-			continue
-		}
-
-		middlewares = append(middlewares, plugin.Get(plg).Middleware())
+	for _, m := range cfg.Middlewares {
+		xerror.Assert(middleware.Get(m) == nil, "plugin(%s) is nil", m)
+		middlewares = append(middlewares, middleware.Get(m))
 	}
 
 	addr := BuildTarget(srv, cfg)
-
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)

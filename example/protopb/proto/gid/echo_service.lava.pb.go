@@ -10,7 +10,9 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
+	module "github.com/pubgo/lava/module"
 	service "github.com/pubgo/lava/service"
+	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
 
@@ -19,8 +21,18 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitEchoServiceClient(srv string) {
-	grpcc_builder.InitClient(srv, (*EchoServiceClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewEchoServiceClient(cc) })
+func InitEchoServiceClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() EchoServiceClient { return NewEchoServiceClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterEchoService(srv service.Service, impl EchoServiceServer) {

@@ -42,6 +42,7 @@ func init() {
 	fx.New().Run()
 }
 
+// process
 type Service interface {
 	Start() error
 	Stop() error

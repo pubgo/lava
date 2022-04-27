@@ -11,21 +11,35 @@ import (
 	opentracing "gorm.io/plugin/opentracing"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/runtime"
 )
 
-func Module() fx.Option {
-	return fx.Provide(New)
+func init() {
+	var cfgMap = make(map[string]*Cfg)
+	xerror.Panic(config.Decode(Name, cfgMap))
+
+	for name := range cfgMap {
+		if name == consts.KeyDefault {
+			name = ""
+		}
+
+		cfg := cfgMap[name]
+		module.Register(fx.Provide(fx.Annotated{
+			Name: name,
+			Target: func(log *logging.Logger) *Client {
+				return NewWithCfg(cfg, log)
+			},
+		}))
+	}
 }
 
-func New(c config.Config, log *logging.Logger) map[string]*Client {
-	var cfg = &Cfg{}
-	xerror.Panic(c.Decode(Name, cfg))
-
+func NewWithCfg(cfg *Cfg, log *logging.Logger) *Client {
 	var ormCfg = &gorm.Config{}
 	xerror.Panic(merge.Struct(ormCfg, cfg))
 

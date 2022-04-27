@@ -2,28 +2,25 @@ package bbolt
 
 import (
 	"context"
-	"github.com/pubgo/lava/logging/logutil"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/resource"
 )
 
 type Client struct {
-	resource.Resource
-}
-
-func (t *Client) Db() *bolt.DB {
-	return t.Resource.GetRes().(*bolt.DB)
+	*bolt.DB
+	log *logging.Logger
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 	var _, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
-	logutil.ErrRecord(t.Log(), err)
+	logutil.ErrRecord(t.log, err)
 	return tx.Bucket([]byte(name))
 }
 
@@ -57,10 +54,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 	defer span.Finish()
 	ext.DBType.Set(span, Name)
 
-	var c = t.Db()
-	defer t.Resource.Done()
-
-	return c.View(func(tx *bolt.Tx) (err error) {
+	return t.DB.View(func(tx *bolt.Tx) error {
 		return fn(t.bucket(name, tx))
 	})
 }
@@ -72,10 +66,7 @@ func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names 
 	defer span.Finish()
 	ext.DBType.Set(span, Name)
 
-	var c = t.Db()
-	defer t.Resource.Done()
-
-	return c.Update(func(tx *bolt.Tx) (err error) {
+	return t.DB.Update(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))
 	})
 }

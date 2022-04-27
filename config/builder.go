@@ -17,7 +17,11 @@ func GetCfg() Config {
 	return conf
 }
 
+func Decode(name string, cfgMap interface{}) error {
+	return GetCfg().Decode(name, cfgMap)
+}
+
 func init() {
 	conf = newCfg()
-	module.Register("config", fx.Provide(New))
+	module.Register(fx.Provide(New))
 }

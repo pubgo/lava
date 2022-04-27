@@ -2,12 +2,13 @@ package hook
 
 import (
 	"context"
-	tracing2 "github.com/pubgo/lava/core/tracing"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+
+	"github.com/pubgo/lava/core/tracing"
 )
 
 const MaxPipelineNameCmdCount = 3
@@ -23,18 +24,18 @@ type hook struct {
 }
 
 func (h *hook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	var span = tracing2.CreateChild(ctx, "redis.client")
+	var span = tracing.CreateChild(ctx, "redis.client")
 	return span.WithCtx(ctx), nil
 }
 
 func (h *hook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	var span = tracing2.GetFrom(ctx)
+	var span = tracing.GetFrom(ctx)
 
 	defer func() {
 		method, key := h.wrapperName(cmd)
 		h.setTag(span, method, key)
 		if cmd.Err() != nil {
-			tracing2.SetIfErr(span, cmd.Err())
+			tracing.SetIfErr(span, cmd.Err())
 		}
 		span.Finish()
 	}()
@@ -43,12 +44,12 @@ func (h *hook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 }
 
 func (h *hook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
-	var span = tracing2.CreateChild(ctx, "redis.client.pipeline")
+	var span = tracing.CreateChild(ctx, "redis.client.pipeline")
 	return span.WithCtx(ctx), nil
 }
 
 func (h *hook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
-	span := tracing2.GetFrom(ctx)
+	span := tracing.GetFrom(ctx)
 
 	defer func() {
 		method, key := h.wrapperPipelineName(cmds)
@@ -56,7 +57,7 @@ func (h *hook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) err
 		// 参考redis驱动本身处理cmds error,只取第一个
 		for _, cmd := range cmds {
 			if err := cmd.Err(); err != nil {
-				tracing2.SetIfErr(span, cmd.Err())
+				tracing.SetIfErr(span, cmd.Err())
 				break
 			}
 		}

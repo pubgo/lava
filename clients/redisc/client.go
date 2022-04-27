@@ -4,20 +4,14 @@ import (
 	"context"
 
 	"github.com/go-redis/redis/v8"
-
-	"github.com/pubgo/lava/resource"
 )
 
 type Client struct {
-	resource.Resource
-}
-
-func (t *Client) cli() *redis.Client {
-	return t.GetRes().(*redis.Client)
+	*redis.Client
 }
 
 func (t *Client) Get(ctx context.Context, options ...func(*redis.Options)) *redis.Client {
-	cc := t.cli().WithContext(ctx)
+	cc := t.WithContext(ctx)
 	opts := cc.Options()
 
 	// 默认的读写超时时间为 1s

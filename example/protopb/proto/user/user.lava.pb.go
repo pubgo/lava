@@ -10,7 +10,9 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
+	module "github.com/pubgo/lava/module"
 	service "github.com/pubgo/lava/service"
+	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
 
@@ -19,8 +21,18 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitUserClient(srv string) {
-	grpcc_builder.InitClient(srv, (*UserClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewUserClient(cc) })
+func InitUserClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() UserClient { return NewUserClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterUser(srv service.Service, impl UserServer) {
@@ -36,8 +48,18 @@ func RegisterUser(srv service.Service, impl UserServer) {
 	srv.RegisterService(desc)
 }
 
-func InitABitOfEverythingServiceClient(srv string) {
-	grpcc_builder.InitClient(srv, (*ABitOfEverythingServiceClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewABitOfEverythingServiceClient(cc) })
+func InitABitOfEverythingServiceClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() ABitOfEverythingServiceClient { return NewABitOfEverythingServiceClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingServiceServer) {
@@ -53,8 +75,18 @@ func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingS
 	srv.RegisterService(desc)
 }
 
-func InitCamelCaseServiceNameClient(srv string) {
-	grpcc_builder.InitClient(srv, (*CamelCaseServiceNameClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewCamelCaseServiceNameClient(cc) })
+func InitCamelCaseServiceNameClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() CamelCaseServiceNameClient { return NewCamelCaseServiceNameClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceNameServer) {
@@ -70,8 +102,18 @@ func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceName
 	srv.RegisterService(desc)
 }
 
-func InitAnotherServiceWithNoBindingsClient(srv string) {
-	grpcc_builder.InitClient(srv, (*AnotherServiceWithNoBindingsClient)(nil), func(cc grpc.ClientConnInterface) interface{} { return NewAnotherServiceWithNoBindingsClient(cc) })
+func InitAnotherServiceWithNoBindingsClient(addr string, alias ...string) {
+
+	var name = ""
+	if len(alias) > 0 {
+		name = alias[0]
+	}
+	conn := grpcc_builder.NewClient(addr)
+
+	module.Register(fx.Provide(fx.Annotated{
+		Target: func() AnotherServiceWithNoBindingsClient { return NewAnotherServiceWithNoBindingsClient(conn) },
+		Name:   name,
+	}))
 }
 
 func RegisterAnotherServiceWithNoBindings(srv service.Service, impl AnotherServiceWithNoBindingsServer) {

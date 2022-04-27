@@ -1,7 +1,6 @@
 package bbolt
 
 import (
-	"io"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -38,8 +37,6 @@ func (t *Cfg) BuildOpts() *bolt.Options {
 	return options
 
 }
-
-func (t *Cfg) Build() io.Closer { return t.Create() }
 
 func (t *Cfg) Create() *bolt.DB {
 	var opts = t.BuildOpts()

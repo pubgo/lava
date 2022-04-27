@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/logging/logutil"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -11,14 +10,15 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
 
 	// 加载mdns注册中心
 	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
+
 	// 加载grpcLog
-	//_ "github.com/pubgo/lava/core/logging/log_ext/grpclog"
+	_ "github.com/pubgo/lava/logging/log_ext/grpclog"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
@@ -34,12 +34,11 @@ func NewClient(srv string, opts ...Option) *Client {
 }
 
 type Client struct {
-	dial    func(addr string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error)
-	cfg     grpcc_config.Cfg
-	mu      sync.Mutex
-	conn    grpc.ClientConnInterface
-	srv     string
-	plugins []plugin.Plugin
+	dial func(addr string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error)
+	cfg  grpcc_config.Cfg
+	mu   sync.Mutex
+	conn grpc.ClientConnInterface
+	srv  string
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
@@ -86,7 +85,7 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 
 	var cfg = t.cfg
 	var cfgMap = make(map[string]*grpcc_config.Cfg)
-	config.Decode(grpcc_config.Name, &cfgMap)
+	xerror.Panic(config.Decode(grpcc_config.Name, &cfgMap))
 	if cfgMap[consts.KeyDefault] != nil {
 		xerror.Panic(merge.Copy(&cfg, cfgMap[consts.KeyDefault]))
 	}

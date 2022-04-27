@@ -6,12 +6,9 @@ import (
 
 const Name = "nacos"
 
-var cfgMap = make(map[string]*Cfg)
-
 type Cfg struct {
 	ClientConfig  *ClientConfig  `json:"client"`
 	ServerConfigs []ServerConfig `json:"servers"`
-	c             *Client
 }
 
 type ServerConfig struct {
