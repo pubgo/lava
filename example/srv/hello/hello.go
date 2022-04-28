@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/lava/service"
 
 	_ "github.com/pubgo/lava/module/debug_module"
-	_ "github.com/pubgo/lava/module/gateway_module"
 	_ "github.com/pubgo/lava/module/registry_module"
 )
 

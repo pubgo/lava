@@ -3,13 +3,14 @@ package config
 import (
 	"github.com/pubgo/lava/module"
 	"github.com/spf13/viper"
+	"go.uber.org/fx"
 )
 
 var conf Config
 
 func init() {
 	conf = newCfg()
-	module.Provide(GetCfg)
+	module.Register(fx.Provide(GetCfg))
 }
 
 // GetCfg 获取内存配置

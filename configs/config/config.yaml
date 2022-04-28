@@ -47,6 +47,20 @@ rest_entry:
   views:
     dir: ""
     ext: ".html"
+orm:
+  - _id: default
+    driver: "sqlite3"
+    driver_config:
+      dsn: "${cfg_home}/db.sqlite"
+
+  - _id: test
+    driver: "sqlite3"
+    driver_config:
+      dsn: "${cfg_home}/db.sqlite"
+grpcc:
+  registry: "mdns"
+  addr: "localhost:8080"
+
 ws:
   enabled: true
   configs:
@@ -101,7 +115,7 @@ metric:
   driver: "prometheus"
   path: "/etcd"
 
-logger:
+logging:
   level: debug
   development: true
   disableCaller: false

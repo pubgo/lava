@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const Name = "gorm"
+const Name = "orm"
 
 type Client struct {
 	*gorm.DB

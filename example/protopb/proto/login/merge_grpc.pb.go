@@ -84,7 +84,7 @@ func (c *mergeClient) WeChatUnMerge(ctx context.Context, in *WeChatUnMergeReques
 }
 
 // MergeServer is the server API for Merge service.
-// All implementations must embed UnimplementedMergeServer
+// All implementations should embed UnimplementedMergeServer
 // for forward compatibility
 type MergeServer interface {
 	// 手机号合并,换绑,手机号更换
@@ -97,10 +97,9 @@ type MergeServer interface {
 	WeChatCheck(context.Context, *WeChatRequest) (*Reply, error)
 	// 解除微信绑定, 必须拥有手机号
 	WeChatUnMerge(context.Context, *WeChatUnMergeRequest) (*Reply, error)
-	mustEmbedUnimplementedMergeServer()
 }
 
-// UnimplementedMergeServer must be embedded to have forward compatible implementations.
+// UnimplementedMergeServer should be embedded to have forward compatible implementations.
 type UnimplementedMergeServer struct {
 }
 
@@ -119,7 +118,6 @@ func (UnimplementedMergeServer) WeChatCheck(context.Context, *WeChatRequest) (*R
 func (UnimplementedMergeServer) WeChatUnMerge(context.Context, *WeChatUnMergeRequest) (*Reply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WeChatUnMerge not implemented")
 }
-func (UnimplementedMergeServer) mustEmbedUnimplementedMergeServer() {}
 
 // UnsafeMergeServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to MergeServer will

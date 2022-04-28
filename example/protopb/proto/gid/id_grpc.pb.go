@@ -51,17 +51,16 @@ func (c *idClient) Types(ctx context.Context, in *TypesRequest, opts ...grpc.Cal
 }
 
 // IdServer is the server API for Id service.
-// All implementations must embed UnimplementedIdServer
+// All implementations should embed UnimplementedIdServer
 // for forward compatibility
 type IdServer interface {
 	// Generate 生成ID
 	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
-	mustEmbedUnimplementedIdServer()
 }
 
-// UnimplementedIdServer must be embedded to have forward compatible implementations.
+// UnimplementedIdServer should be embedded to have forward compatible implementations.
 type UnimplementedIdServer struct {
 }
 
@@ -71,7 +70,6 @@ func (UnimplementedIdServer) Generate(context.Context, *GenerateRequest) (*Gener
 func (UnimplementedIdServer) Types(context.Context, *TypesRequest) (*TypesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Types not implemented")
 }
-func (UnimplementedIdServer) mustEmbedUnimplementedIdServer() {}
 
 // UnsafeIdServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to IdServer will

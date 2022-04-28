@@ -3,6 +3,8 @@ package module
 import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
+
+	"github.com/pubgo/lava/consts"
 )
 
 var factories []fx.Option
@@ -13,10 +15,9 @@ func Register(m fx.Option) {
 	factories = append(factories, m)
 }
 
-func Provide(constructors ...interface{}) {
-	Register(fx.Provide(constructors...))
-}
-
-func Invoke(funcs ...interface{}) {
-	Register(fx.Invoke(funcs...))
+func Name(name string) string {
+	if name == consts.KeyDefault {
+		name = ""
+	}
+	return name
 }

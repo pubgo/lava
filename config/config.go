@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/pkg/reflectx"
 	"io"
 	"os"
 	"path/filepath"
@@ -149,12 +150,8 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
 	defer xerror.RespErr(&err)
 	xerror.Assert(name == "" || cfgMap == nil, "[name,cfgMap] should not be nil")
-	if t.Get(name) == nil {
-		return KeyNotFound
-	}
-
-	xerror.Assert(cfgMap == nil, "[cfgMap] is nil")
-	xerror.Assert(reflect.TypeOf(cfgMap).Elem().Kind() != reflect.Map, "[cfgMap] should be map")
+	xerror.Assert(reflectx.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "[cfgMap](%#v) should be map", cfgMap)
+	xerror.Assert(t.Get(name) == nil, "config(%s) key not found", name)
 
 	var cfg *typex.RwMap
 	for _, data := range cast.ToSlice(t.Get(name)) {
@@ -173,7 +170,7 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
 
 	if cfg == nil {
 		cfg = &typex.RwMap{}
-		cfg.Set(consts.KeyDefault, cfgMap)
+		cfg.Set(consts.KeyDefault, t.Get(name))
 	}
 
 	return xerror.WrapF(merge.MapStruct(cfgMap, cfg.Map()), "config key [%s] decode error", name)

@@ -2,15 +2,16 @@ package service_builder
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"os"
 	"sort"
+
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
-	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
-	_ "go.uber.org/fx"
 )
 
 func Run(services ...service.Service) {
@@ -23,9 +24,10 @@ func Run(services ...service.Service) {
 	}
 
 	var app = &cli.App{
-		Name:    runtime.Domain,
-		Usage:   fmt.Sprintf("%s services", runtime.Domain),
-		Version: version.Version,
+		Name:     runtime.Domain,
+		Usage:    fmt.Sprintf("%s services", runtime.Domain),
+		Version:  version.Version,
+		Commands: []*cli.Command{vercmd.Cmd()},
 	}
 
 	for i := range services {

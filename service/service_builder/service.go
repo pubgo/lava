@@ -29,6 +29,7 @@ import (
 	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
+	"github.com/pubgo/lava/pkg/gw_builder"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
@@ -171,12 +172,11 @@ func (t *serviceImpl) init() error {
 	}
 
 	t.app = fx.New(append(module.List(), t.opts...)...)
-	t.app.Run()
 
 	t.net.Addr = runtime.Addr
 
 	// 配置解析
-	xerror.Panic(config.Decode(Name, &t.cfg))
+	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
 
 	// 网关初始化
 	xerror.Panic(t.gw.Build(t.cfg.Gw))
@@ -205,9 +205,15 @@ func (t *serviceImpl) init() error {
 		}
 
 		if h, ok := desc.Handler.(service.Handler); ok {
-			h(t.httpSrv)
+			h.Router(t.httpSrv)
 		}
 	}
+
+	var cfg = gw_builder.DefaultCfg()
+	xerror.Panic(config.UnmarshalKey(Name, &cfg))
+
+	var builder = gw_builder.New()
+	xerror.Panic(builder.Build(cfg))
 	return nil
 }
 

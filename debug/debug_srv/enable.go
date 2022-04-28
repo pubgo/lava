@@ -21,7 +21,7 @@ import (
 )
 
 func Enable(srv service.Service) {
-	srv.RegisterApp("/debug", debug.App())
+	srv.RegApp("/debug", debug.App())
 	initDebug()
 
 	var openWeb bool

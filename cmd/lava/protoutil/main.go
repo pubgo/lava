@@ -13,11 +13,9 @@ import (
 
 func main() {
 	var app = &cli.App{
-		Name:    runtime.Project,
-		Version: version.Version,
-		Commands: cli.Commands{
-			protoc.Cmd(),
-		},
+		Name:     runtime.Project,
+		Version:  version.Version,
+		Commands: cli.Commands{protoc.Cmd()},
 	}
 	xerror.Exit(app.Run(os.Args))
 }

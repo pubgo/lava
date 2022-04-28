@@ -21,7 +21,6 @@ import (
 var logs = logging.Component(grpcc_config.Name)
 
 func NewClient(srv string) grpc.ClientConnInterface {
-	logs.L().Info("grpc client init", zap.String(logkey.Service, srv))
 	return grpcc.NewClient(srv, grpcc.WithDial(CreateConn))
 }
 
@@ -42,6 +41,8 @@ func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, err
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
+
+	logs.L().Info("grpc client init", zap.String(logkey.Service, srv))
 	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", addr)
 }
 
@@ -59,7 +60,7 @@ func BuildTarget(service string, cfg grpcc_config.Cfg) string {
 	var host = extractHostFromHostPort(addr)
 	var scheme = grpcc_resolver.DiscovScheme
 
-	if strings.Contains(service, ",") || net.ParseIP(host) != nil || host == "localhost" {
+	if strings.Contains(addr, ",") || net.ParseIP(host) != nil || host == "localhost" {
 		scheme = grpcc_resolver.DirectScheme
 	}
 
@@ -69,11 +70,11 @@ func BuildTarget(service string, cfg grpcc_config.Cfg) string {
 
 	switch scheme {
 	case grpcc_resolver.DiscovScheme:
-		return grpcc_resolver.BuildDiscovTarget(service, cfg.Registry)
+		return grpcc_resolver.BuildDiscovTarget(addr, cfg.Registry)
 	case grpcc_resolver.DirectScheme:
-		return grpcc_resolver.BuildDirectTarget(service)
+		return grpcc_resolver.BuildDirectTarget(addr)
 	case grpcc_resolver.K8sScheme:
-		return fmt.Sprintf("dns:///%s", service)
+		return fmt.Sprintf("dns:///%s", addr)
 	default:
 		panic("schema is unknown")
 	}

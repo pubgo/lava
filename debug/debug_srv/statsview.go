@@ -1,4 +1,4 @@
-package debug
+package debug_srv
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"github.com/go-echarts/statsview/viewer"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/pubgo/lava/debug"
 )
 
 // ViewManager ...
@@ -95,7 +97,7 @@ func New() *ViewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	Route("/statsview", func(r fiber.Router) {
+	debug.Route("/statsview", func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {
 			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 			return page.Render(ctx)

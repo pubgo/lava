@@ -1,19 +1,9 @@
 package orm
 
 import (
-	"io"
-	"time"
-
+	"github.com/kr/pretty"
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
-	gl "gorm.io/gorm/logger"
-	opentracing "gorm.io/plugin/opentracing"
-
-	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/runtime"
+	"time"
 )
 
 type Cfg struct {
@@ -34,55 +24,14 @@ type Cfg struct {
 	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
 }
 
-func (t Cfg) Build() io.Closer {
-	var log = &gorm.Config{}
-	xerror.Panic(merge.Struct(&gorm.Config{}, t))
+func (t Cfg) Valid() (err error) {
+	defer xerror.Resp(func(err1 xerror.XErr) {
+		err = err1
+		pretty.Logln(t)
+	})
 
-	var level = gl.Info
-	if runtime.IsProd() || runtime.IsRelease() {
-		level = gl.Error
-	}
-
-	log.Logger = gl.New(
-		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
-		gl.Config{
-			SlowThreshold:             200 * time.Millisecond,
-			LogLevel:                  level,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		},
-	)
-
-	var factory, ok = factories.Get(t.Driver).(Factory)
-	xerror.Assert(factory == nil || !ok, "factory[%s] not found", t.Driver)
-	dialect := factory(t.DriverCfg)
-
-	db, err := gorm.Open(dialect, log)
-	xerror.Panic(err)
-
-	// 添加链路追踪
-	xerror.Panic(db.Use(opentracing.New(
-		opentracing.WithErrorTagHook(tracing.SetIfErr),
-	)))
-
-	// 服务连接校验
-	sqlDB, err := db.DB()
-	xerror.Panic(err)
-	xerror.Panic(sqlDB.Ping())
-
-	if t.MaxConnTime != 0 {
-		sqlDB.SetConnMaxLifetime(t.MaxConnTime)
-	}
-
-	if t.MaxConnIdle != 0 {
-		sqlDB.SetMaxIdleConns(t.MaxConnIdle)
-	}
-
-	if t.MaxConnOpen != 0 {
-		sqlDB.SetMaxOpenConns(t.MaxConnOpen)
-	}
-
-	return &wrapper{db}
+	xerror.Assert(t.Driver == "", "driver is null")
+	return
 }
 
 func DefaultCfg() *Cfg {

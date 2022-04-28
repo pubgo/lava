@@ -3,28 +3,30 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/logging"
 	"math/rand"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/teris-io/shortid"
+	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/protopb/proto/gid"
+	"github.com/pubgo/lava/logging"
 )
 
 var _ gid.IdServer = (*Id)(nil)
 
 type Id struct {
+	fx.In
 	gid.UnimplementedIdServer
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
-	Cron      *scheduler.Scheduler `dix:""`
-	Metric    metric.Stats         `dix:""`
+	Cron      *scheduler.Scheduler
+	Metric    metric.Stats
 }
 
 func (id *Id) Init() {

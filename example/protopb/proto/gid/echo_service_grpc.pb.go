@@ -89,7 +89,7 @@ func (c *echoServiceClient) EchoUnauthorized(ctx context.Context, in *SimpleMess
 }
 
 // EchoServiceServer is the server API for EchoService service.
-// All implementations must embed UnimplementedEchoServiceServer
+// All implementations should embed UnimplementedEchoServiceServer
 // for forward compatibility
 type EchoServiceServer interface {
 	// Echo method receives a simple message and returns it.
@@ -107,10 +107,9 @@ type EchoServiceServer interface {
 	// always return a google.rpc.Code of `UNAUTHENTICATED` and a HTTP Status code
 	// of 401.
 	EchoUnauthorized(context.Context, *SimpleMessage) (*SimpleMessage, error)
-	mustEmbedUnimplementedEchoServiceServer()
 }
 
-// UnimplementedEchoServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedEchoServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedEchoServiceServer struct {
 }
 
@@ -129,7 +128,6 @@ func (UnimplementedEchoServiceServer) EchoPatch(context.Context, *DynamicMessage
 func (UnimplementedEchoServiceServer) EchoUnauthorized(context.Context, *SimpleMessage) (*SimpleMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EchoUnauthorized not implemented")
 }
-func (UnimplementedEchoServiceServer) mustEmbedUnimplementedEchoServiceServer() {}
 
 // UnsafeEchoServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to EchoServiceServer will

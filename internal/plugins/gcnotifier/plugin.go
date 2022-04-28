@@ -2,13 +2,15 @@ package gcnotifier
 
 import (
 	"context"
-	"github.com/pubgo/lava/logging"
+	"go.uber.org/fx"
 
 	"github.com/CAFxX/gcnotifier"
 
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugin"
 	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/service"
 )
 
 var Name = "gc"
@@ -19,12 +21,9 @@ func init() {
 		return
 	}
 
-	plugin.Register(&plugin.Base{
-		Name:        Name,
-		CfgNotCheck: true,
-		Docs:        "Know when GC runs from inside your golang code",
-		OnInit: func(p plugin.Process) {
-			p.AfterStop(syncx.GoCtx(func(ctx context.Context) {
+	module.Register(fx.Invoke(func(srv service.Service) {
+		srv.AfterStops(func() {
+			syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()
 				defer gc.Close()
 
@@ -38,7 +37,7 @@ func init() {
 						return
 					}
 				}
-			}))
-		},
-	})
+			})
+		})
+	}))
 }

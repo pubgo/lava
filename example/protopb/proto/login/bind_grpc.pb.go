@@ -95,7 +95,7 @@ func (c *bindTelephoneClient) BindPhoneParseByOneClick(ctx context.Context, in *
 }
 
 // BindTelephoneServer is the server API for BindTelephone service.
-// All implementations must embed UnimplementedBindTelephoneServer
+// All implementations should embed UnimplementedBindTelephoneServer
 // for forward compatibility
 type BindTelephoneServer interface {
 	// 检查是否可以绑定
@@ -110,10 +110,9 @@ type BindTelephoneServer interface {
 	BindPhoneParse(context.Context, *BindPhoneParseRequest) (*BindPhoneParseResponse, error)
 	// 绑定手机号解析，通过阿里一键
 	BindPhoneParseByOneClick(context.Context, *BindPhoneParseByOneClickRequest) (*BindPhoneParseByOneClickResponse, error)
-	mustEmbedUnimplementedBindTelephoneServer()
 }
 
-// UnimplementedBindTelephoneServer must be embedded to have forward compatible implementations.
+// UnimplementedBindTelephoneServer should be embedded to have forward compatible implementations.
 type UnimplementedBindTelephoneServer struct {
 }
 
@@ -135,7 +134,6 @@ func (UnimplementedBindTelephoneServer) BindPhoneParse(context.Context, *BindPho
 func (UnimplementedBindTelephoneServer) BindPhoneParseByOneClick(context.Context, *BindPhoneParseByOneClickRequest) (*BindPhoneParseByOneClickResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BindPhoneParseByOneClick not implemented")
 }
-func (UnimplementedBindTelephoneServer) mustEmbedUnimplementedBindTelephoneServer() {}
 
 // UnsafeBindTelephoneServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to BindTelephoneServer will

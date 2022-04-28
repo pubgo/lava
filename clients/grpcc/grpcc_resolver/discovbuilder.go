@@ -9,9 +9,9 @@ import (
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/registry"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)

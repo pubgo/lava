@@ -63,7 +63,7 @@ func (c *yuqueClient) CreateGroup(ctx context.Context, in *CreateGroupReq, opts 
 }
 
 // YuqueServer is the server API for Yuque service.
-// All implementations must embed UnimplementedYuqueServer
+// All implementations should embed UnimplementedYuqueServer
 // for forward compatibility
 type YuqueServer interface {
 	// 获取认证的用户的个人信息
@@ -72,10 +72,9 @@ type YuqueServer interface {
 	UserInfoByLogin(context.Context, *UserInfoReq) (*UserInfoResp, error)
 	// 创建 Group
 	CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error)
-	mustEmbedUnimplementedYuqueServer()
 }
 
-// UnimplementedYuqueServer must be embedded to have forward compatible implementations.
+// UnimplementedYuqueServer should be embedded to have forward compatible implementations.
 type UnimplementedYuqueServer struct {
 }
 
@@ -88,7 +87,6 @@ func (UnimplementedYuqueServer) UserInfoByLogin(context.Context, *UserInfoReq) (
 func (UnimplementedYuqueServer) CreateGroup(context.Context, *CreateGroupReq) (*CreateGroupResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGroup not implemented")
 }
-func (UnimplementedYuqueServer) mustEmbedUnimplementedYuqueServer() {}
 
 // UnsafeYuqueServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to YuqueServer will
@@ -216,17 +214,16 @@ func (c *userServiceClient) ResetPassword(ctx context.Context, in *UserInfoReq, 
 }
 
 // UserServiceServer is the server API for UserService service.
-// All implementations must embed UnimplementedUserServiceServer
+// All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	// user signin
 	Signin(context.Context, *UserInfoReq) (*UserInfoResp, error)
 	// user resets password
 	ResetPassword(context.Context, *UserInfoReq) (*emptypb.Empty, error)
-	mustEmbedUnimplementedUserServiceServer()
 }
 
-// UnimplementedUserServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedUserServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedUserServiceServer struct {
 }
 
@@ -236,7 +233,6 @@ func (UnimplementedUserServiceServer) Signin(context.Context, *UserInfoReq) (*Us
 func (UnimplementedUserServiceServer) ResetPassword(context.Context, *UserInfoReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
 }
-func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserServiceServer will

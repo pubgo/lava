@@ -2,17 +2,18 @@ package service
 
 import (
 	"context"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lava/middleware"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/middleware"
 )
 
 type Desc struct {
 	grpc.ServiceDesc
-	Handler       interface{}
-	GrpcGatewayFn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error
+	Handler interface{}
 }
 
 type Handler interface {

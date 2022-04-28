@@ -51,6 +51,6 @@ func New(c config.Config) {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	xerror.Panic(c.Decode(Name, &cfg))
+	xerror.Panic(c.UnmarshalKey(Name, &cfg))
 	NewWithCfg(&cfg)
 }

@@ -5,23 +5,21 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/scheduler"
+	"go.uber.org/zap"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
+	"go.uber.org/fx"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/service"
 )
 
 func init() {
@@ -47,19 +45,12 @@ func NewTestAPIHandler() *testApiHandler {
 	return &testApiHandler{}
 }
 
-var _ service.Handler = (*testApiHandler)(nil)
-
 type testApiHandler struct {
-	hello.UnimplementedTestApiServer
+	fx.In
 	Db         *orm.Client
 	Cron       *scheduler.Scheduler
 	TestApiSrv hello.TestApiClient
-	L          *logging.Logger `name:"testApiHandler"`
-}
-
-func (h *testApiHandler) Flags() typex.Flags { return nil }
-
-func (h *testApiHandler) Router(r fiber.Router) {
+	L          *logging.Logger
 }
 
 func (h *testApiHandler) Close() {

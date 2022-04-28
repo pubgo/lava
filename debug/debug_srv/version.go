@@ -1,4 +1,4 @@
-package debug
+package debug_srv
 
 import (
 	"net/http"
@@ -9,13 +9,14 @@ import (
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
-	Get("/env", adaptor.HTTPHandlerFunc(envHandle))
-	Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
-	Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
+	debug.Get("/env", adaptor.HTTPHandlerFunc(envHandle))
+	debug.Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
+	debug.Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {
