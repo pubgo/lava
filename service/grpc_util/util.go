@@ -2,8 +2,8 @@ package grpc_util
 
 import (
 	"context"
-	"github.com/pubgo/lava/middleware"
 
+	"github.com/pubgo/lava/middleware"
 	"google.golang.org/grpc/metadata"
 )
 

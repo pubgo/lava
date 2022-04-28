@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/requestid"
 	"time"
 
 	"github.com/DataDog/gostackparse"
@@ -19,7 +20,6 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/module"
-	"github.com/pubgo/lava/plugins/requestid"
 	"github.com/pubgo/lava/version"
 )
 

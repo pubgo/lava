@@ -2,13 +2,13 @@ package signal
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/flags"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/runtime"
 )

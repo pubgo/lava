@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/module"
-	"go.uber.org/fx"
 	"net"
 	"net/http"
 	"plugin"
@@ -16,20 +14,23 @@ import (
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
+	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/plugins/signal"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -41,6 +42,7 @@ func New(name string, desc string, plugins ...plugin.Plugin) service.Service {
 
 func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl {
 	var g = &serviceImpl{
+		log:        zap.L().Named(name),
 		ctx:        context.Background(),
 		pluginList: plugins,
 		cmd: &cli.Command{
@@ -64,16 +66,6 @@ func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl
 
 	g.cmd.Action = func(ctx *cli.Context) error {
 		defer xerror.RespExit()
-
-		// 项目名初始化
-		runtime.Project = name
-		envs.SetName(version.Domain, runtime.Project)
-
-		// 运行环境检查
-		if _, ok := runtime.RunModeValue[runtime.Mode.String()]; !ok {
-			panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
-		}
-
 		xerror.Panic(g.init())
 		xerror.Panic(g.start())
 		signal.Block()
@@ -81,6 +73,7 @@ func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl
 		return nil
 	}
 
+	g.Provide(func() service.Service { return g })
 	return g
 }
 
@@ -95,6 +88,7 @@ type serviceImpl struct {
 	middlewares  []middleware.Middleware
 	services     []service.Desc
 
+	log *zap.Logger
 	app *fx.App
 	cmd *cli.Command
 
@@ -167,6 +161,15 @@ func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterS
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
+	// 项目名初始化
+	runtime.Project = t.cmd.Name
+	envs.SetName(version.Domain, runtime.Project)
+
+	// 运行环境检查
+	if _, ok := runtime.RunModeValue[runtime.Mode.String()]; !ok {
+		panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
+	}
+
 	t.app = fx.New(append(module.List(), t.opts...)...)
 	t.app.Run()
 
@@ -192,18 +195,17 @@ func (t *serviceImpl) init() error {
 	t.inproc.WithServerStreamInterceptor(t.handlerStreamMiddle(t.middlewares))
 
 	// 初始化 handlers
-	for _, desc := range t.services() {
-		// service handler依赖对象注入
-		if h, ok := desc.Handler.(service.Handler); ok {
+	for _, desc := range t.services {
+		if h, ok := desc.Handler.(abc.Close); ok {
 			t.AfterStops(h.Close)
-			logutil.LogOrPanic(t.L, "Service Handler Init", func() error {
-				return xerror.Try(func() {
-					// register router
-					h.Router(t.gw.Get())
-					// service handler init
-					h.Init()
-				})
-			})
+		}
+
+		if h, ok := desc.Handler.(abc.Init); ok {
+			h.Init()
+		}
+
+		if h, ok := desc.Handler.(service.Handler); ok {
+			h(t.httpSrv)
 		}
 	}
 	return nil
@@ -231,15 +233,10 @@ func (t *serviceImpl) Options() service.Options {
 func (t *serviceImpl) start() (gErr error) {
 	defer xerror.RespErr(&gErr)
 
-	logutil.OkOrPanic(t.L, "service before-start", func() error {
-		var beforeList []func()
-		for _, p := range plugin.All() {
-			beforeList = append(beforeList, p.BeforeStarts()...)
-		}
-		beforeList = append(beforeList, t.beforeStarts...)
-		for i := range beforeList {
-			t.L.Sugar().Infof("running %s", stack.Func(beforeList[i]))
-			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
+	logutil.OkOrPanic(t.log, "service before-start", func() error {
+		for i := range t.beforeStarts {
+			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStarts[i]))
+			xerror.PanicF(xerror.Try(t.beforeStarts[i]), stack.Func(t.beforeStarts[i]))
 		}
 		return nil
 	})
@@ -249,8 +246,8 @@ func (t *serviceImpl) start() (gErr error) {
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {
-		t.L.Info("[grpc-gw] Server Starting")
-		logutil.LogOrErr(t.L, "[grpc-gw] Server Stop", func() error {
+		t.log.Info("[grpc-gw] Server Starting")
+		logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
 			if err := t.gw.Get().Listener(<-gwLn); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
@@ -261,13 +258,13 @@ func (t *serviceImpl) start() (gErr error) {
 		})
 	})
 
-	logutil.OkOrPanic(t.L, "service start", func() error {
-		t.L.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+	logutil.OkOrPanic(t.log, "service start", func() error {
+		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
 
 		// 启动grpc服务
 		syncx.GoDelay(func() {
-			t.L.Info("[grpc] Server Starting")
-			logutil.LogOrErr(t.L, "[grpc] Server Stop", func() error {
+			t.log.Info("[grpc] Server Starting")
+			logutil.LogOrErr(t.log, "[grpc] Server Stop", func() error {
 				if err := t.srv.Get().Serve(<-grpcLn); err != nil &&
 					err != cmux.ErrListenerClosed &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -280,8 +277,8 @@ func (t *serviceImpl) start() (gErr error) {
 
 		// 启动net网络
 		syncx.GoDelay(func() {
-			t.L.Info("[cmux] Server Starting")
-			logutil.LogOrErr(t.L, "[cmux] Server Stop", func() error {
+			t.log.Info("[cmux] Server Starting")
+			logutil.LogOrErr(t.log, "[cmux] Server Stop", func() error {
 				if err := t.net.Serve(); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
@@ -293,15 +290,10 @@ func (t *serviceImpl) start() (gErr error) {
 		return nil
 	})
 
-	logutil.OkOrPanic(t.L, "service after-start", func() error {
-		var afterList []func()
-		for _, p := range plugin.All() {
-			afterList = append(afterList, p.AfterStarts()...)
-		}
-		afterList = append(afterList, t.afterStarts...)
-		for i := range afterList {
-			t.L.Sugar().Infof("running %s", stack.Func(afterList[i]))
-			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
+	logutil.OkOrPanic(t.log, "service after-start", func() error {
+		for i := range t.afterStarts {
+			t.log.Sugar().Infof("running %s", stack.Func(t.afterStarts[i]))
+			xerror.PanicF(xerror.Try(t.afterStarts[i]), stack.Func(t.afterStarts[i]))
 		}
 		return nil
 	})
@@ -311,35 +303,25 @@ func (t *serviceImpl) start() (gErr error) {
 func (t *serviceImpl) stop() (err error) {
 	defer xerror.RespErr(&err)
 
-	logutil.OkOrErr(t.L, "service before-stop", func() error {
-		var beforeList []func()
-		for _, p := range plugin.All() {
-			beforeList = append(beforeList, p.BeforeStops()...)
-		}
-		beforeList = append(beforeList, t.beforeStops...)
-		for i := range beforeList {
-			t.L.Sugar().Infof("running %s", stack.Func(beforeList[i]))
-			xerror.PanicF(xerror.Try(beforeList[i]), stack.Func(beforeList[i]))
+	logutil.OkOrErr(t.log, "service before-stop", func() error {
+		for i := range t.beforeStops {
+			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStops[i]))
+			xerror.PanicF(xerror.Try(t.beforeStops[i]), stack.Func(t.beforeStops[i]))
 		}
 		return nil
 	})
 
-	logutil.LogOrErr(t.L, "[grpc] GracefulStop", func() error {
+	logutil.LogOrErr(t.log, "[grpc] GracefulStop", func() error {
 		t.srv.Get().GracefulStop()
 		xerror.Panic(t.gw.Get().Shutdown())
 		xerror.Panic(t.net.Close())
 		return nil
 	})
 
-	logutil.OkOrErr(t.L, "service after-stop", func() error {
-		var afterList []func()
-		for _, p := range plugin.All() {
-			afterList = append(afterList, p.AfterStops()...)
-		}
-		afterList = append(afterList, t.afterStops...)
-		for i := range afterList {
-			t.L.Sugar().Infof("running %s", stack.Func(afterList[i]))
-			xerror.PanicF(xerror.Try(afterList[i]), stack.Func(afterList[i]))
+	logutil.OkOrErr(t.log, "service after-stop", func() error {
+		for i := range t.afterStops {
+			t.log.Sugar().Infof("running %s", stack.Func(t.afterStops[i]))
+			xerror.PanicF(xerror.Try(t.afterStops[i]), stack.Func(t.afterStops[i]))
 		}
 		return nil
 	})

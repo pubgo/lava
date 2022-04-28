@@ -3,6 +3,7 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	requestid2 "github.com/pubgo/lava/core/requestid"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/module"
-	"github.com/pubgo/lava/plugins/requestid"
 )
 
 func init() {
@@ -52,7 +52,7 @@ func init() {
 				}
 
 				// request-id绑定
-				span.SetTag(requestid.Name, requestid.GetReqId(ctx))
+				span.SetTag(requestid2.Name, requestid2.GetReqId(ctx))
 
 				tracing.GetFrom(ctx).SetTag("sss", "")
 

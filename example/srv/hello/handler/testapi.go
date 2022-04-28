@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/scheduler"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,7 +21,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugins/scheduler"
 	"github.com/pubgo/lava/service"
 )
 
