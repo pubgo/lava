@@ -36,14 +36,13 @@ func InitMergeClient(addr string, alias ...string) {
 }
 
 func RegisterMerge(srv service.Service, impl MergeServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = Merge_ServiceDesc
-	desc.GrpcClientFn = NewMergeClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: Merge_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterMergeHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterMergeHandlerClient(ctx, mux, NewMergeClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

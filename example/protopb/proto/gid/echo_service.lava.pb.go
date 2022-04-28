@@ -36,14 +36,13 @@ func InitEchoServiceClient(addr string, alias ...string) {
 }
 
 func RegisterEchoService(srv service.Service, impl EchoServiceServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = EchoService_ServiceDesc
-	desc.GrpcClientFn = NewEchoServiceClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: EchoService_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterEchoServiceHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterEchoServiceHandlerClient(ctx, mux, NewEchoServiceClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

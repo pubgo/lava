@@ -36,16 +36,15 @@ func InitTestApiClient(addr string, alias ...string) {
 }
 
 func RegisterTestApi(srv service.Service, impl TestApiServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = TestApi_ServiceDesc
-	desc.GrpcClientFn = NewTestApiClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: TestApi_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterTestApiHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterTestApiHandlerClient(ctx, mux, NewTestApiClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }
 
 func InitTestApiV2Client(addr string, alias ...string) {
@@ -63,14 +62,13 @@ func InitTestApiV2Client(addr string, alias ...string) {
 }
 
 func RegisterTestApiV2(srv service.Service, impl TestApiV2Server) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = TestApiV2_ServiceDesc
-	desc.GrpcClientFn = NewTestApiV2Client
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: TestApiV2_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterTestApiV2HandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterTestApiV2HandlerClient(ctx, mux, NewTestApiV2Client(cc))
+	})
 
-	srv.RegisterService(desc)
 }

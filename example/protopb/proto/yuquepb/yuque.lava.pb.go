@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-lava v0.1.0
 // - protoc         v3.19.4
-// source: proto/yuque_pb/yuque.proto
+// source: proto/yuquepb/yuque.proto
 
-package yuque_pb
+package yuquepb
 
 import (
 	context "context"
@@ -36,16 +36,15 @@ func InitYuqueClient(addr string, alias ...string) {
 }
 
 func RegisterYuque(srv service.Service, impl YuqueServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = Yuque_ServiceDesc
-	desc.GrpcClientFn = NewYuqueClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: Yuque_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterYuqueHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterYuqueHandlerClient(ctx, mux, NewYuqueClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }
 
 func InitUserServiceClient(addr string, alias ...string) {
@@ -63,14 +62,13 @@ func InitUserServiceClient(addr string, alias ...string) {
 }
 
 func RegisterUserService(srv service.Service, impl UserServiceServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = UserService_ServiceDesc
-	desc.GrpcClientFn = NewUserServiceClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: UserService_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterUserServiceHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/module"
-	"github.com/pubgo/lava/plugins/requestID"
+	"github.com/pubgo/lava/plugins/requestid"
 	"github.com/pubgo/lava/version"
 )
 
@@ -38,7 +38,7 @@ func init() {
 					params = append(params, zap.String("referer", referer))
 				}
 
-				var reqId = requestID.GetWith(ctx)
+				var reqId = requestid.GetReqId(ctx)
 				var tracerID, spanID = tracing.GetFrom(ctx).SpanID()
 
 				now := time.Now()

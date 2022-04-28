@@ -22,7 +22,7 @@ func (t *Builder) Get() *gw.ServeMux {
 	return t.mux
 }
 
-func (t *Builder) Build(cfg *Cfg, opts ...gw.ServeMuxOption) error {
+func (t *Builder) Build(cfg Cfg, opts ...gw.ServeMuxOption) error {
 	t.opts = opts
 
 	if cfg.Timeout != 0 {

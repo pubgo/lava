@@ -2,11 +2,14 @@ package config
 
 import (
 	"github.com/pubgo/lava/module"
-	"go.uber.org/fx"
+	"github.com/spf13/viper"
 )
 
-func New() Config {
-	return newCfg()
+var conf Config
+
+func init() {
+	conf = newCfg()
+	module.Provide(GetCfg)
 }
 
 // GetCfg 获取内存配置
@@ -21,7 +24,18 @@ func Decode(name string, cfgMap interface{}) error {
 	return GetCfg().Decode(name, cfgMap)
 }
 
-func init() {
-	conf = newCfg()
-	module.Register(fx.Provide(New))
+func GetMap(keys ...string) CfgMap {
+	return GetCfg().GetMap(keys...)
+}
+
+func UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
+	return GetCfg().UnmarshalKey(key, rawVal, opts...)
+}
+
+func GetString(key string) string {
+	return GetCfg().GetString(key)
+}
+
+func Get(key string) interface{} {
+	return GetCfg().Get(key)
 }

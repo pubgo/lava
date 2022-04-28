@@ -18,8 +18,8 @@ type Cfg struct {
 	Timeout time.Duration `json:"timeout"`
 }
 
-func DefaultCfg() *Cfg {
-	return &Cfg{
+func DefaultCfg() Cfg {
+	return Cfg{
 		Timeout: time.Second * 2,
 	}
 }

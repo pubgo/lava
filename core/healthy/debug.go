@@ -1,7 +1,7 @@
 package healthy
 
 import (
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/debug"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"

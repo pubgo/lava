@@ -36,14 +36,13 @@ func InitTransportClient(addr string, alias ...string) {
 }
 
 func RegisterTransport(srv service.Service, impl TransportServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = Transport_ServiceDesc
-	desc.GrpcClientFn = NewTransportClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: Transport_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterTransportHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterTransportHandlerClient(ctx, mux, NewTransportClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

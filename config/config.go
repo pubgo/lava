@@ -29,7 +29,6 @@ var (
 	CfgName = "config"
 	CfgDir  = ""
 	CfgPath = filepath.Join("configs", "config", "config.yaml")
-	conf    Config
 )
 
 // Init 处理所有的配置,环境变量和flag

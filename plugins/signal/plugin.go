@@ -2,47 +2,25 @@ package signal
 
 import (
 	"context"
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/core/flags"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/runtime"
 )
 
 const Name = "signal"
 
-var CatchSigpipe = false
-
 func init() {
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		OnInit: func(p plugin.Process) {
-			if CatchSigpipe {
-				sigChan := make(chan os.Signal, 1)
-				signal.Notify(sigChan, syscall.SIGPIPE)
-				syncx.GoSafe(func() {
-					<-sigChan
-					logging.L().Warn("Caught SIGPIPE (ignoring all future SIGPIPE)")
-					signal.Ignore(syscall.SIGPIPE)
-				})
-			}
-		},
-		OnFlags: func() typex.Flags {
-			return typex.Flags{
-				&cli.BoolFlag{
-					Name:        "catch-sigpipe",
-					Destination: &CatchSigpipe,
-					Usage:       "catch and ignore SIGPIPE on stdout and stderr if specified",
-					Value:       CatchSigpipe,
-				},
-			}
-		},
+	flags.Register(&cli.BoolFlag{
+		Name:        "block",
+		Destination: &runtime.Block,
+		Usage:       "Whether block program",
+		Value:       runtime.Block,
 	})
 }
 

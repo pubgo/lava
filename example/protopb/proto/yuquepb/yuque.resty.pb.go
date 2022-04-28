@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-resty v0.1.0
 // - protoc           v3.19.4
-// source: proto/yuque_pb/yuque.proto
+// source: proto/yuquepb/yuque.proto
 
-package yuque_pb
+package yuquepb
 
 import (
 	context "context"

@@ -1,4 +1,4 @@
-package registry
+package registry_module
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/registry"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -26,22 +27,22 @@ func init() {
 }
 
 func Enable(srv service.Service) {
-	var cfg = DefaultCfg()
+	var cfg = registry.DefaultCfg()
 
 	// 配置解析
-	xerror.Panic(config.GetCfg().UnmarshalKey(Name, &cfg))
+	xerror.Panic(config.GetCfg().UnmarshalKey(registry.Name, &cfg))
 
 	// 服务注册
 	srv.AfterStarts(func() {
-		reg := xerror.PanicErr(cfg.Build()).(Registry)
+		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
 		reg.Init()
 
-		SetDefault(reg)
+		registry.SetDefault(reg)
 
 		xerror.Panic(register(srv))
 
 		var cancel = syncx.GoCtx(func(ctx context.Context) {
-			var interval = DefaultRegisterInterval
+			var interval = registry.DefaultRegisterInterval
 
 			// only process if it exists
 			if cfg.RegisterInterval > time.Duration(0) {
@@ -58,7 +59,7 @@ func Enable(srv service.Service) {
 						func() error { return register(srv) },
 						zap.String("service", srv.Options().Name),
 						zap.String("InstanceId", srv.Options().Id),
-						zap.String("registry", Default().String()),
+						zap.String("registry", registry.Default().String()),
 						zap.String("interval", interval.String()),
 					)
 				case <-ctx.Done():
@@ -79,7 +80,7 @@ func Enable(srv service.Service) {
 func register(srv service.Service) (err error) {
 	defer xerror.RespErr(&err)
 
-	var reg = Default()
+	var reg = registry.Default()
 	var opt = srv.Options()
 
 	// parse address for host, port
@@ -105,7 +106,7 @@ func register(srv service.Service) (err error) {
 	}
 
 	// register service
-	node := &Node{
+	node := &registry.Node{
 		Port:     port,
 		Version:  version.Version,
 		Address:  fmt.Sprintf("%s:%d", host, port),
@@ -113,9 +114,9 @@ func register(srv service.Service) (err error) {
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
-	s := &Service{
+	s := &registry.Service{
 		Name:  opt.Name,
-		Nodes: []*Node{node},
+		Nodes: []*registry.Node{node},
 	}
 
 	logutil.LogOrPanic(
@@ -131,7 +132,7 @@ func deregister(srv service.Service) (err error) {
 	defer xerror.RespErr(&err)
 
 	var opt = srv.Options()
-	var reg = Default()
+	var reg = registry.Default()
 
 	var advt, host string
 	var port = opt.Port
@@ -151,16 +152,16 @@ func deregister(srv service.Service) (err error) {
 	}
 
 	// register service
-	node := &Node{
+	node := &registry.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
 		Metadata: make(map[string]string),
 	}
 
-	s := &Service{
+	s := &registry.Service{
 		Name:  opt.Name,
-		Nodes: []*Node{node},
+		Nodes: []*registry.Node{node},
 	}
 
 	logutil.LogOrErr(zap.L(), "deregister service node",

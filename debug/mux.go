@@ -9,7 +9,6 @@ import (
 
 var app = fiber.New()
 
-func Mux() *fiber.App { return app }
 func App() *fiber.App { return app }
 
 func WrapFunc(h http.HandlerFunc) fiber.Handler                { return adaptor.HTTPHandlerFunc(h) }

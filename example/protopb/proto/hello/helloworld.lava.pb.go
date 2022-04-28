@@ -36,14 +36,13 @@ func InitGreeterClient(addr string, alias ...string) {
 }
 
 func RegisterGreeter(srv service.Service, impl GreeterServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = Greeter_ServiceDesc
-	desc.GrpcClientFn = NewGreeterClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: Greeter_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterGreeterHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterGreeterHandlerClient(ctx, mux, NewGreeterClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

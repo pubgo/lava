@@ -7,8 +7,16 @@ import (
 
 var factories []fx.Option
 
-func List() []fx.Option { return factories }
+func List() []fx.Option { return factories[:] }
 func Register(m fx.Option) {
 	xerror.Assert(m == nil, "[m] should not be null")
 	factories = append(factories, m)
+}
+
+func Provide(constructors ...interface{}) {
+	Register(fx.Provide(constructors...))
+}
+
+func Invoke(funcs ...interface{}) {
+	Register(fx.Invoke(funcs...))
 }

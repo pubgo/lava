@@ -2,29 +2,20 @@ package service
 
 import (
 	"context"
-	"github.com/pubgo/lava/middleware"
-	"go.uber.org/fx"
-	"net"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/lava/middleware"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
-
-	"github.com/pubgo/lava/core/cmux"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 type Desc struct {
 	grpc.ServiceDesc
 	Handler       interface{}
-	GrpcClientFn  interface{}
-	GrpcGatewayFn interface{}
+	GrpcGatewayFn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error
 }
 
 type Handler interface {
-	Close()
-	Init()
-	Flags() typex.Flags
 	Router(r fiber.Router)
 }
 
@@ -38,28 +29,21 @@ type Options struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
-func init() {
-	fx.New().Run()
-}
-
-// process
 type Service interface {
 	Start() error
 	Stop() error
 	Command() *cli.Command
+	Options() Options
 	AfterStops(...func())
 	BeforeStops(...func())
 	AfterStarts(...func())
 	BeforeStarts(...func())
+	Provide(constructors ...interface{})
+	Invoke(funcs ...interface{})
 	Flags(flags ...cli.Flag)
-	RegisterService(desc Desc)
-	RegisterMatcher(priority int64, matches ...cmux.Matcher) chan net.Listener
-	GrpcClientInnerConn() grpc.ClientConnInterface
-	Plugin(name string)
-	ServiceDesc() []Desc
-	Options() Options
-	Ctx() context.Context
-	Middlewares() []middleware.Middleware
-	RegisterApp(prefix string, r *fiber.App)
-	RegisterRouter(prefix string, fn func(r fiber.Router))
+	Middleware(middleware.Middleware)
+	RegService(desc Desc)
+	RegApp(prefix string, r *fiber.App)
+	RegRouter(prefix string, fn func(r fiber.Router))
+	RegGateway(fn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error)
 }

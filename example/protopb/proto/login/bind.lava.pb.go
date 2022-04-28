@@ -36,14 +36,13 @@ func InitBindTelephoneClient(addr string, alias ...string) {
 }
 
 func RegisterBindTelephone(srv service.Service, impl BindTelephoneServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = BindTelephone_ServiceDesc
-	desc.GrpcClientFn = NewBindTelephoneClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: BindTelephone_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterBindTelephoneHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterBindTelephoneHandlerClient(ctx, mux, NewBindTelephoneClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

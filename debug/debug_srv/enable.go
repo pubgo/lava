@@ -1,8 +1,7 @@
-package debug_plugin
+package debug_srv
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/logging/logutil"
 	"sort"
 	"strings"
 
@@ -13,7 +12,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/htmlx"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"

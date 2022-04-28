@@ -147,16 +147,15 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		}
 		g.P(protoutil.Template(`
 func Register{{name}}(srv service.Service, impl {{name}}Server) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = {{name}}_ServiceDesc
-	desc.GrpcClientFn = New{{name}}Client
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: {{name}}_ServiceDesc,
+	})
 	{% if isGw %}
-    desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return Register{{name}}HandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return Register{{name}}HandlerClient(ctx, mux, New{{name}}Client(cc))
+	})
     {% endif %}
-	srv.RegisterService(desc)
 }
 `, protoutil.Context{"name": service.GoName, "isGw": isGw}))
 		g.P()

@@ -20,11 +20,11 @@ func init() {
 		}
 
 		cfg := cfgMap[name]
-		module.Register(fx.Provide(fx.Annotated{
+		module.Provide(fx.Annotated{
 			Name: name,
 			Target: func(log *logging.Logger) *Client {
 				return &Client{DB: cfg.Create(), log: log.Named(Name)}
 			},
-		}))
+		})
 	}
 }

@@ -36,14 +36,13 @@ func InitCodeClient(addr string, alias ...string) {
 }
 
 func RegisterCode(srv service.Service, impl CodeServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = Code_ServiceDesc
-	desc.GrpcClientFn = NewCodeClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: Code_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterCodeHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterCodeHandlerClient(ctx, mux, NewCodeClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

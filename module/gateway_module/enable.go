@@ -1,38 +1,40 @@
-package gateway_plugin
+package gateway_module
 
 import (
-	"strings"
+	"context"
 
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/xerror"
+	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/gw_builder"
 	"github.com/pubgo/lava/service"
 )
 
 const Name = "gateway"
 
-func Enable(srv service.Service, prefix ...string) {
-	var path = "/api"
-	if len(prefix) > 0 {
-		path = "/" + strings.Trim(prefix[0], "/")
-	}
+var path = "/api/gw"
 
+func init() {
+	module.Register(fx.Invoke(Enable))
+}
+
+func Enable(srv service.Service) {
 	srv.RegisterRouter(path, func(r fiber.Router) {
 		var cfg = gw_builder.DefaultCfg()
-		if d := config.GetMap(Name); d != nil {
-			xerror.Panic(d.Decode(cfg))
-		}
+		xerror.Panic(config.UnmarshalKey(Name, &cfg))
 
 		var builder = gw_builder.New()
 		xerror.Panic(builder.Build(cfg))
 		for _, desc := range srv.ServiceDesc() {
-			if h, ok := desc.GrpcGatewayFn.(func(mux *runtime.ServeMux) error); ok {
-				xerror.Panic(h(builder.Get()))
+			if desc.GrpcGatewayFn == nil {
+				continue
 			}
+
+			xerror.Panic(desc.GrpcGatewayFn(context.Background(), builder.Get(), srv.InnerConn()))
 		}
 
 		r.All("/*", adaptor.HTTPHandler(builder.Get()))

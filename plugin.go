@@ -38,5 +38,5 @@ import (
 	// tracing插件, 依赖加载
 
 	// 加载timeout拦截器
-	_ "github.com/pubgo/lava/plugins/timeout"
+	_ "github.com/pubgo/lava/plugins/timeout_middleware"
 )

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package yuque.v2;
 
-option go_package = "./;yuque_pb";
+option go_package = "./;yuquepb";
 
 import "google/api/annotations.proto";
 import "lava/resty.proto";

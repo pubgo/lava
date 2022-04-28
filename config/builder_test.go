@@ -13,11 +13,11 @@ import (
 func TestName(t *testing.T) {
 	var assert = assertions.New(t)
 
-	var c = New()
+	var c = newCfg()
 	assert.So(c, should.NotBeNil)
 
 	_ = os.Setenv(runtime.Project+"_123", "app.name=hello")
-	c = New()
+	c = newCfg()
 	assert.So(c.GetString("app.name"), should.Equal, "hello")
 	assert.So(c.GetString("app.home"), should.Equal, c.GetString("app.project"))
 }

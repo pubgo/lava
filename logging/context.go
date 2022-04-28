@@ -2,7 +2,6 @@ package logging
 
 import (
 	"context"
-
 	"go.uber.org/zap"
 )
 

@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/module"
-	"github.com/pubgo/lava/plugins/requestID"
+	"github.com/pubgo/lava/plugins/requestid"
 )
 
 func init() {
@@ -52,7 +52,7 @@ func init() {
 				}
 
 				// request-id绑定
-				span.SetTag(requestID.Name, requestID.GetWith(ctx))
+				span.SetTag(requestid.Name, requestid.GetReqId(ctx))
 
 				tracing.GetFrom(ctx).SetTag("sss", "")
 

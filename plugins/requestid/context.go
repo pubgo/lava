@@ -1,4 +1,4 @@
-package requestID
+package requestid
 
 import (
 	"context"
@@ -14,7 +14,7 @@ func WithReqID(ctx context.Context, val string) context.Context {
 	return context.WithValue(ctx, reqIdKey{}, val)
 }
 
-func GetWith(ctx context.Context) string {
+func GetReqId(ctx context.Context) string {
 	var reqId, ok = ctx.Value(reqIdKey{}).(string)
 	if ok {
 		return reqId

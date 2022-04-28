@@ -36,14 +36,13 @@ func InitUserServiceClient(addr string, alias ...string) {
 }
 
 func RegisterUserService(srv service.Service, impl UserServiceServer) {
-	var desc service.Desc
-	desc.Handler = impl
-	desc.ServiceDesc = UserService_ServiceDesc
-	desc.GrpcClientFn = NewUserServiceClient
+	srv.RegService(service.Desc{
+		Handler:     impl,
+		ServiceDesc: UserService_ServiceDesc,
+	})
 
-	desc.GrpcGatewayFn = func(mux *runtime.ServeMux) error {
-		return RegisterUserServiceHandlerServer(context.Background(), mux, impl)
-	}
+	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
+		return RegisterUserServiceHandlerClient(ctx, mux, NewUserServiceClient(cc))
+	})
 
-	srv.RegisterService(desc)
 }

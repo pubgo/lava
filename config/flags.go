@@ -49,7 +49,3 @@ func init() {
 		Value:       runtime.Level,
 	})
 }
-
-func Flags() []cli.Flag {
-	return []cli.Flag{}
-}

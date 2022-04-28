@@ -1,8 +1,7 @@
-package timeout
+package timeout_module
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/pubgo/lava/consts"
@@ -20,13 +19,13 @@ func init() {
 			// 过滤 websocket 请求
 			// 过滤 stream
 
-			if httpx.IsWebsocket(http.Header(req.Header())) || req.Stream() {
+			if httpx.IsWebsocket(req.Header()) || req.Stream() {
 				return next(ctx, req, resp)
 			}
 
 			// 从header中获取超时设置
 			//	key: x-request-timeout
-			if t := middleware.HeaderGet(req.Header(), "X-REQUEST-TIMEOUT"); t != "" {
+			if t := string(req.Header().Peek("X-REQUEST-TIMEOUT")); t != "" {
 				var dur, err = time.ParseDuration(t)
 				if dur != 0 && err == nil {
 					defaultTimeout = dur

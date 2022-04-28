@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,6 +17,8 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/example/protopb/proto/hello"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugins/scheduler"
 	"github.com/pubgo/lava/service"
@@ -69,8 +69,7 @@ func (h *testApiHandler) Close() {
 func (h *testApiHandler) Init() {
 	defer xerror.RespExit()
 
-	var db = h.Db.Load()
-	defer h.Db.Done()
+	var db = h.Db
 
 	xerror.Panic(db.AutoMigrate(&User{}))
 	var user = User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
@@ -113,8 +112,7 @@ func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	if h.Db != nil {
 		var user User
 
-		var db = h.Db.Load()
-		defer h.Db.Done()
+		var db = h.Db
 
 		xerror.Panic(db.WithContext(ctx).First(&user).Error)
 		log.Sugar().Infow("data", "data", user)
