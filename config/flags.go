@@ -20,6 +20,7 @@ func init() {
 	flags.Register(&cli.StringFlag{
 		Name:        "srv",
 		Destination: &runtime.Project,
+		EnvVars:     env.KeyOf(),
 		Usage:       "service name",
 	})
 

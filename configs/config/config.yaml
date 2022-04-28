@@ -60,7 +60,6 @@ orm:
 grpcc:
   registry: "mdns"
   addr: "localhost:8080"
-
 ws:
   enabled: true
   configs:

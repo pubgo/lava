@@ -6,7 +6,7 @@ import (
 )
 
 func Run(services ...service.Service) {
-	service_builder.Run(services...)
+	service.Run(services...)
 }
 
 func NewService(name string, desc string) service.Service {
