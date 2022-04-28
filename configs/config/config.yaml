@@ -51,12 +51,11 @@ orm:
   - _id: default
     driver: "sqlite3"
     driver_config:
-      dsn: "${cfg_home}/db.sqlite"
-
+      dsn: "file::memory:?cache=shared"
   - _id: test
     driver: "sqlite3"
     driver_config:
-      dsn: "${cfg_home}/db.sqlite"
+      dsn: "file::memory:?cache=shared"
 grpcc:
   registry: "mdns"
   addr: "localhost:8080"
@@ -96,11 +95,6 @@ nsq:
     lookup: [ "nsqlookup-001.service.local:4161","nsqlookup-002.service.local:4161","nsqlookup-003.service.local:4161" ]
 http:
   test: ""
-
-db:
-  default:
-    driver: "sqlite3x"
-    source: "./db/sqlite.db"
 
 registry:
   driver: "mdns"
