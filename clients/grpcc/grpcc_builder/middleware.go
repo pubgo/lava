@@ -61,7 +61,7 @@ func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInter
 		}
 
 		// get content type
-		ct := utils.FirstNotEmpty(func() string {
+		ct := utils.FirstFnNotEmpty(func() string {
 			return middleware.HeaderGet(md, "content-type")
 		}, func() string {
 			return middleware.HeaderGet(md, "x-content-type")
@@ -103,7 +103,7 @@ func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInter
 				cc:      cc,
 				invoker: invoker,
 			},
-			&response{resp: reply},
+			&response{resp: reply, header: new(middleware.ResponseHeader)},
 		)
 	}
 }
@@ -134,7 +134,7 @@ func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInt
 		}
 
 		// get content type
-		ct := utils.FirstNotEmpty(func() string {
+		ct := utils.FirstFnNotEmpty(func() string {
 			return middleware.HeaderGet(md, "content-type")
 		}, func() string {
 			return middleware.HeaderGet(md, "x-content-type")
@@ -176,7 +176,7 @@ func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInt
 				method:   method,
 				streamer: streamer,
 			},
-			&response{},
+			&response{header: new(middleware.ResponseHeader)},
 		)
 	}
 }

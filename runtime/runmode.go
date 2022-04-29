@@ -20,21 +20,21 @@ func (x RunMode) String() string {
 }
 
 const (
-	RunModeDev     RunMode = 0
-	RunModeTest    RunMode = 1
-	RunModeStag    RunMode = 2
-	RunModeProd    RunMode = 3
-	RunModeRelease RunMode = 4
-	RunModeLocal   RunMode = 5
+	RunModeLocal   RunMode = 0
+	RunModeDev     RunMode = 1
+	RunModeTest    RunMode = 2
+	RunModeStag    RunMode = 3
+	RunModeProd    RunMode = 4
+	RunModeRelease RunMode = 5
 )
 
 var RunModeValue = map[string]int32{
-	"dev":     0,
-	"test":    1,
-	"stag":    2,
-	"prod":    3,
-	"release": 4,
-	"local":   5,
+	"local":   0,
+	"dev":     1,
+	"test":    2,
+	"stag":    3,
+	"prod":    4,
+	"release": 5,
 }
 
 func IsK8s() bool {

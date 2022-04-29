@@ -13,7 +13,11 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func Run(services ...Service) {
+type Command interface {
+	Command() *cli.Command
+}
+
+func Run(services ...Command) {
 	defer xerror.RespExit()
 
 	xerror.Assert(len(services) == 0, "[services] is zero")

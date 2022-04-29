@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	_ "github.com/pubgo/lava/core/metric/metric_driver/prometheus"
+	_ "github.com/pubgo/lava/module/registry_module"
 )
 
 func main() {

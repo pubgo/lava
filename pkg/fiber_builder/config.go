@@ -2,8 +2,6 @@ package fiber_builder
 
 import (
 	"time"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type Cfg struct {
@@ -35,9 +33,4 @@ type Cfg struct {
 	DisableStartupMessage     bool          `json:"disable_startup_message"`
 	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
 	Websocket                 *WsCfg        `json:"websocket" yaml:"websocket"`
-}
-
-func DefaultCfg() *fiber.Config {
-	var cfg = fiber.New().Config()
-	return &cfg
 }

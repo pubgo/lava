@@ -33,8 +33,8 @@ type Options struct {
 type Service interface {
 	Start() error
 	Stop() error
-	Command() *cli.Command
 	Options() Options
+	Command() *cli.Command
 	AfterStops(...func())
 	BeforeStops(...func())
 	AfterStarts(...func())

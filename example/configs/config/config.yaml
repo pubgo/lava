@@ -58,8 +58,9 @@ orm:
     driver_config:
       dsn: "file::memory:?cache=shared"
 grpcc:
-  registry: "mdns"
-  addr: "localhost:8080"
+  - _id: test-grpc
+    registry: "mdns"
+    addr: "localhost:8080"
 ws:
   enabled: true
   configs:

@@ -27,7 +27,7 @@ func Builder(srv service.Service) {
 	xerror.Assert(fc == nil, "metric driver [%s] not found", driver)
 
 	var opts = tally.ScopeOptions{
-		Tags:      metric.Tags{logkey.Project: runtime.Name()},
+		Tags:      metric.Tags{logkey.Project: runtime.Project},
 		Separator: cfg.Separator,
 	}
 	xerror.Exit(fc(config.GetMap(metric.Name), &opts))

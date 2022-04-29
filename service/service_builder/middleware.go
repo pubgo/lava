@@ -2,7 +2,6 @@ package service_builder
 
 import (
 	"context"
-	"github.com/pubgo/lava/middleware"
 	"strings"
 	"time"
 
@@ -13,8 +12,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
+	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/service/grpc_util"
+	"github.com/pubgo/lava/service/grpcutil"
 )
 
 func (t *serviceImpl) handlerHttpMiddle(middlewares []middleware.Middleware) func(fbCtx *fiber.Ctx) error {
@@ -39,8 +39,8 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware.Middleware) gr
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
 		})
-		ctx = metadata.NewIncomingContext(ctx, md)
 
+		ctx = metadata.NewIncomingContext(ctx, md)
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return err
@@ -48,17 +48,11 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware.Middleware) gr
 
 		rsp.(*rpcResponse).dt = dt
 		var h = rsp.(*rpcResponse).Header()
-		if h.Len() > 0 {
-			var md = make(metadata.MD)
-			h.VisitAll(func(key, value []byte) {
-				md.Append(utils.BtoS(key), utils.BtoS(value))
-			})
-			if err = grpc.SetTrailer(ctx, md); err != nil {
-				return err
-			}
-		}
-
-		return nil
+		md = make(metadata.MD)
+		h.VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		return grpc.SetTrailer(ctx, md)
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -84,11 +78,11 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware.Middleware) gr
 		delete(md, "x-content-type")
 
 		// get peer from context
-		if p := grpc_util.GetClientIP(md); p != "" {
+		if p := grpcutil.GetClientIP(md); p != "" {
 			md.Set("remote-ip", p)
 		}
 
-		if p := grpc_util.GetClientName(md); p != "" {
+		if p := grpcutil.GetClientName(md); p != "" {
 			md.Set("remote-name", p)
 		}
 
@@ -128,7 +122,7 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware.Middleware) gr
 			header:      header,
 		}
 
-		var rpcResp = &rpcResponse{}
+		var rpcResp = &rpcResponse{header: new(fasthttp.ResponseHeader)}
 		return rpcResp.dt, unaryWrapper(ctx, rpcReq, rpcResp)
 	}
 }
@@ -139,6 +133,7 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware.Middleware) g
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
 		})
+
 		ctx = metadata.NewIncomingContext(ctx, md)
 		var reqCtx = req.(*rpcRequest)
 		if err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream}); err != nil {
@@ -146,17 +141,11 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware.Middleware) g
 		}
 
 		var h = rsp.(*rpcResponse).Header()
-		if h.Len() > 0 {
-			var md = make(metadata.MD)
-			h.VisitAll(func(key, value []byte) {
-				md.Append(utils.BtoS(key), utils.BtoS(value))
-			})
-			if err := grpc.SetTrailer(ctx, md); err != nil {
-				return err
-			}
-		}
-
-		return nil
+		md = make(metadata.MD)
+		h.VisitAll(func(key, value []byte) {
+			md.Append(utils.BtoS(key), utils.BtoS(value))
+		})
+		return grpc.SetTrailer(ctx, md)
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -215,8 +204,7 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware.Middleware) g
 			service:       serviceFromMethod(info.FullMethod),
 			contentType:   ct,
 		}
-		var rpcResp = &rpcResponse{stream: stream}
-		return streamWrapper(ctx, rpcReq, rpcResp)
+		return streamWrapper(ctx, rpcReq, &rpcResponse{stream: stream, header: new(middleware.ResponseHeader)})
 	}
 }
 

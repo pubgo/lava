@@ -95,22 +95,22 @@ func (t Config) Build(name string, opts ...zap.Option) (_ *zap.Logger) {
 	// 保留全局log level, 用于后期动态修改
 	globalLevel = &zapCfg.Level
 
-	key := utils.NotEmpty(t.EncoderConfig.EncodeLevel, defaultKey)
+	key := utils.FirstNotEmpty(t.EncoderConfig.EncodeLevel, defaultKey)
 	zapCfg.EncoderConfig.EncodeLevel = levelEncoder[key]
 
-	key = utils.NotEmpty(t.EncoderConfig.EncodeTime, defaultKey)
+	key = utils.FirstNotEmpty(t.EncoderConfig.EncodeTime, defaultKey)
 	zapCfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(key)
 	if encoder, ok := timeEncoder[key]; ok {
 		zapCfg.EncoderConfig.EncodeTime = encoder
 	}
 
-	key = utils.NotEmpty(t.EncoderConfig.EncodeDuration, defaultKey)
+	key = utils.FirstNotEmpty(t.EncoderConfig.EncodeDuration, defaultKey)
 	zapCfg.EncoderConfig.EncodeDuration = durationEncoder[key]
 
-	key = utils.NotEmpty(t.EncoderConfig.EncodeCaller, defaultKey)
+	key = utils.FirstNotEmpty(t.EncoderConfig.EncodeCaller, defaultKey)
 	zapCfg.EncoderConfig.EncodeCaller = callerEncoder[key]
 
-	key = utils.NotEmpty(t.EncoderConfig.EncodeName, defaultKey)
+	key = utils.FirstNotEmpty(t.EncoderConfig.EncodeName, defaultKey)
 	zapCfg.EncoderConfig.EncodeName = nameEncoder[key]
 
 	// 采样hook设置

@@ -2,6 +2,7 @@ package healthy_plugin
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/runtime"
 	"io"
 	"net/http"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/runtime"
 )
 
 func init() {

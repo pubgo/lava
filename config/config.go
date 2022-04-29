@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/reflectx"
 	"io"
 	"os"
 	"path/filepath"
@@ -21,6 +20,7 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/reflectx"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runtime"
 )
@@ -57,17 +57,10 @@ func newCfg() *configImpl {
 	CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
 	xerror.Panic(os.Setenv(consts.EnvCfgHome, CfgDir))
 
-	dt := xerror.PanicStr(iox.ReadText(v.ConfigFileUsed()))
-
-	// 处理配置中的环境变量
-	dt = env.Expand(dt)
-
-	// 重新加载配置
-	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
+	t.reload(t.v.ConfigFileUsed())
 
 	// 加载自定义配置
 	xerror.Panic(t.initApp(v))
-	loadEnv(runtime.Project, v)
 	return t
 }
 
@@ -229,6 +222,17 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 	return xerror.Wrap(v.ReadInConfig())
 }
 
+func (t *configImpl) reload(path string) {
+	dt := xerror.PanicStr(iox.ReadText(path))
+
+	// 处理配置中的环境变量
+	dt = env.Expand(dt)
+
+	// 重新加载配置
+	xerror.Panic(t.v.MergeConfig(strings.NewReader(dt)))
+	loadEnv(runtime.Project, t.v)
+}
+
 // 监控配置中的app自定义配置
 func (t *configImpl) initApp(v *viper.Viper) error {
 	// .lava/config/[env].yaml
@@ -241,21 +245,12 @@ func (t *configImpl) initApp(v *viper.Viper) error {
 		return nil
 	}
 
-	// 读取配置
-	dt := xerror.PanicStr(iox.ReadText(path))
-
-	// 处理环境变量
-	dt = env.Expand(dt)
-
-	// 合并自定义配置
-	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
+	t.reload(path)
 
 	tmp, err := fasttemplate.NewTemplate(xerror.PanicStr(iox.ReadText(path)), "{{", "}}")
 	xerror.Panic(err, "unexpected error when parsing template")
-
-	dt = tmp.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+	xerror.Panic(v.MergeConfig(strings.NewReader(tmp.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		return w.Write([]byte(v.GetString(tag)))
-	})
-	xerror.Panic(v.MergeConfig(strings.NewReader(dt)))
+	}))))
 	return nil
 }

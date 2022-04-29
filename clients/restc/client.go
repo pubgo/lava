@@ -3,6 +3,7 @@ package restc
 import (
 	"context"
 	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/runtime"
 	"net/http"
 	"net/url"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/runtime"
 )
 
 const (

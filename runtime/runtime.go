@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/xerror"
 	"k8s.io/client-go/util/homedir"
 
-	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
@@ -23,7 +22,7 @@ var (
 	Block   = true
 	Trace   = false
 	Addr    = ":8080"
-	Project = "lava"
+	Project = version.Project
 	Level   = "debug"
 	Mode    = RunModeLocal
 
@@ -39,7 +38,7 @@ var (
 	Pwd = xerror.ExitErr(os.Getwd()).(string)
 
 	// Hostname 主机名
-	Hostname = utils.FirstNotEmpty(
+	Hostname = utils.FirstFnNotEmpty(
 		func() string { return os.Getenv("HOSTNAME") },
 		func() string {
 			var h, err = os.Hostname()
@@ -49,7 +48,7 @@ var (
 	)
 
 	// Namespace 命名空间
-	Namespace = utils.FirstNotEmpty(
+	Namespace = utils.FirstFnNotEmpty(
 		func() string { return os.Getenv("NAMESPACE") },
 		func() string { return os.Getenv("POD_NAMESPACE") },
 		func() string {
@@ -63,7 +62,7 @@ var (
 	)
 
 	// Homedir the home directory for the current user
-	Homedir = utils.FirstNotEmpty(
+	Homedir = utils.FirstFnNotEmpty(
 		homedir.HomeDir,
 		func() string {
 			var h, err = dir.Dir()
@@ -73,5 +72,3 @@ var (
 		func() string { return "." },
 	)
 )
-
-func Name() string { return envs.Name() }

@@ -73,6 +73,7 @@ func (h *testApiHandler) Init() {
 	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
 	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
+		defer xerror.RespExit()
 		zap.L().Debug("客户端访问")
 		var out, err1 = h.TestApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
 		xerror.Panic(err1)

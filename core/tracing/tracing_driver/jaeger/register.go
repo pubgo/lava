@@ -5,9 +5,9 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 

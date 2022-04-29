@@ -27,7 +27,7 @@ func init() {
 				}
 			}()
 
-			rid := utils.FirstNotEmpty(
+			rid := utils.FirstFnNotEmpty(
 				func() string { return getReqID(ctx) },
 				func() string { return string(req.Header().Peek(Name)) },
 				func() string { return ksuid.New().String() },

@@ -43,7 +43,7 @@ type Config struct {
 func (t *Config) Build() *memberlist.Config {
 	xerror.Assert(t.Addr == "", "Config.Addr should not be null")
 
-	t.SecretKey = utils.FirstNotEmpty(
+	t.SecretKey = utils.FirstFnNotEmpty(
 		func() string { return t.SecretKey },
 		func() string { return env.Get("secret-key") },
 		func() string { return defaultSecretKey },

@@ -4,7 +4,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/runtime"
 )
@@ -18,17 +17,11 @@ func init() {
 	})
 
 	flags.Register(&cli.StringFlag{
-		Name:        "srv",
-		Destination: &runtime.Project,
-		EnvVars:     env.KeyOf(),
-		Usage:       "service name",
-	})
-
-	flags.Register(&cli.StringFlag{
 		Name:        "addr",
 		Destination: &runtime.Addr,
 		Aliases:     typex.StrOf("a"),
 		Usage:       "server(http|grpc|ws|...) address",
+		EnvVars:     []string{"app.addr"},
 		Value:       runtime.Addr,
 	})
 
@@ -38,7 +31,7 @@ func init() {
 		Aliases:     typex.StrOf("t"),
 		Usage:       "enable trace",
 		Value:       runtime.Trace,
-		EnvVars:     env.KeyOf("trace"),
+		EnvVars:     []string{"app.trace"},
 	})
 
 	flags.Register(&cli.StringFlag{
@@ -46,7 +39,7 @@ func init() {
 		Destination: &runtime.Level,
 		Aliases:     typex.StrOf("l"),
 		Usage:       "log level(debug|info|warn|error|panic|fatal)",
-		EnvVars:     env.KeyOf("lava-level", "lava.level"),
+		EnvVars:     []string{"app.level"},
 		Value:       runtime.Level,
 	})
 }

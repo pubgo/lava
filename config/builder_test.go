@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/kr/pretty"
 	"os"
 	"testing"
 
@@ -21,5 +20,4 @@ func TestName(t *testing.T) {
 	c = newCfg()
 	assert.So(c.GetString("app.name"), should.Equal, "hello")
 	assert.So(c.GetString("app.home"), should.Equal, c.GetString("app.project"))
-	pretty.Println(conf.All())
 }

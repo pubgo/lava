@@ -2,14 +2,17 @@ package logging
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"go.uber.org/zap"
 )
 
-type loggerKey struct{}
+var loggerKey = fmt.Sprintf("logging-%s", time.Now())
 
 // CreateCtx create context with logger
 func CreateCtx(ctx context.Context, logger *zap.Logger) context.Context {
-	return context.WithValue(ctx, loggerKey{}, logger)
+	return context.WithValue(ctx, loggerKey, logger)
 }
 
 // GetLog get log from context
@@ -20,7 +23,7 @@ func GetLog(ctx context.Context) *zap.Logger {
 		return L()
 	}
 
-	if log, ok := ctx.Value(loggerKey{}).(*zap.Logger); ok && log != nil {
+	if log, ok := ctx.Value(loggerKey).(*zap.Logger); ok && log != nil {
 		return log
 	}
 

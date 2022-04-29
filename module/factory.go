@@ -21,3 +21,7 @@ func Name(name string) string {
 	}
 	return name
 }
+
+func Init(opts ...fx.Option) {
+	_ = fx.New(opts...)
+}

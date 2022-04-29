@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/pkg/utils"
 	"net"
 	"net/http"
-	"plugin"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
+	"github.com/gofiber/adaptor/v2"
 	fiber2 "github.com/gofiber/fiber/v2"
 	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/x/stack"
@@ -23,7 +24,6 @@ import (
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/module"
@@ -37,42 +37,40 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func New(name string, desc string, plugins ...plugin.Plugin) service.Service {
-	return newService(name, desc, plugins...)
+func New(name string, desc ...string) service.Service {
+	return newService(name, desc...)
 }
 
-func newService(name string, desc string, plugins ...plugin.Plugin) *serviceImpl {
+func newService(name string, desc ...string) *serviceImpl {
 	var g = &serviceImpl{
-		log:        zap.L().Named(name),
-		ctx:        context.Background(),
-		pluginList: plugins,
 		cmd: &cli.Command{
 			Name:  name,
-			Usage: desc,
+			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
 		},
-		srv:     grpc_builder.New(),
-		gw:      fiber_builder.New(),
+		cfg: Cfg{
+			Grpc: grpc_builder.GetDefaultCfg(),
+			Api:  fiber_builder.Cfg{},
+			Gw:   gw_builder.DefaultCfg(),
+		},
+		log:     zap.L().Named(runtime.Project),
+		grpcSrv: grpc_builder.New(),
+		api:     fiber_builder.New(),
 		inproc:  &inprocgrpc.Channel{},
 		httpSrv: fiber2.New(),
 		net:     cmux.DefaultCfg(),
-		cfg: Cfg{
-			name:     name,
-			hostname: runtime.Hostname,
-			id:       runtime.AppID,
-			Grpc:     grpc_builder.GetDefaultCfg(),
-			Gw:       fiber_builder.Cfg{},
-		},
 	}
 
 	g.cmd.Action = func(ctx *cli.Context) error {
 		defer xerror.RespExit()
-		xerror.Panic(g.init())
 		xerror.Panic(g.start())
 		signal.Block()
 		xerror.Panic(g.stop())
 		return nil
 	}
+
+	// 配置解析
+	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
 
 	g.Provide(func() service.Service { return g })
 	return g
@@ -85,19 +83,17 @@ type serviceImpl struct {
 	afterStarts  []func()
 	beforeStops  []func()
 	afterStops   []func()
-	pluginList   []plugin.Plugin
 	middlewares  []middleware.Middleware
 	services     []service.Desc
 
 	log *zap.Logger
-	app *fx.App
 	cmd *cli.Command
 
 	net *cmux.Mux
 
 	cfg     Cfg
-	srv     grpc_builder.Builder
-	gw      fiber_builder.Builder
+	grpcSrv grpc_builder.Builder
+	api     fiber_builder.Builder
 	httpSrv *fiber2.App
 	opts    []fx.Option
 
@@ -126,7 +122,7 @@ func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 func (t *serviceImpl) RegService(desc service.Desc) {
 	xerror.Assert(desc.Handler == nil, "[handler] is nil")
 
-	t.srv.RegisterService(&desc.ServiceDesc, desc.Handler)
+	t.grpcSrv.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.services = append(t.services, desc)
 
@@ -162,37 +158,25 @@ func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterS
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
-	// 项目名初始化
-	runtime.Project = t.cmd.Name
-	envs.SetName(version.Domain, runtime.Project)
-
-	// 运行环境检查
-	if _, ok := runtime.RunModeValue[runtime.Mode.String()]; !ok {
-		panic(fmt.Sprintf("mode(%s) not match in (%v)", runtime.Mode, runtime.RunModeValue))
-	}
-
-	t.app = fx.New(append(module.List(), t.opts...)...)
+	module.Init(append(module.List(), t.opts...)...)
 
 	t.net.Addr = runtime.Addr
 
-	// 配置解析
-	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
-
-	// 网关初始化
-	xerror.Panic(t.gw.Build(t.cfg.Gw))
-	t.gw.Get().Use(t.handlerHttpMiddle(t.middlewares))
-	t.gw.Get().Mount("/", t.httpSrv)
+	middlewares := t.middlewares[:]
+	for _, m := range t.cfg.Middlewares {
+		middlewares = append(middlewares, middleware.Get(m))
+	}
 
 	// 注册系统middleware
-	t.srv.UnaryInterceptor(t.handlerUnaryMiddle(t.middlewares))
-	t.srv.StreamInterceptor(t.handlerStreamMiddle(t.middlewares))
+	t.grpcSrv.UnaryInterceptor(t.handlerUnaryMiddle(middlewares))
+	t.grpcSrv.StreamInterceptor(t.handlerStreamMiddle(middlewares))
 
 	// grpc serve初始化
-	xerror.Panic(t.srv.Build(t.cfg.Grpc))
+	xerror.Panic(t.grpcSrv.Build(t.cfg.Grpc))
 
 	// 加载inproc的middleware
-	t.inproc.WithServerUnaryInterceptor(t.handlerUnaryMiddle(t.middlewares))
-	t.inproc.WithServerStreamInterceptor(t.handlerStreamMiddle(t.middlewares))
+	t.inproc.WithServerUnaryInterceptor(t.handlerUnaryMiddle(middlewares))
+	t.inproc.WithServerStreamInterceptor(t.handlerStreamMiddle(middlewares))
 
 	// 初始化 handlers
 	for _, desc := range t.services {
@@ -209,11 +193,21 @@ func (t *serviceImpl) init() error {
 		}
 	}
 
-	var cfg = gw_builder.DefaultCfg()
-	xerror.Panic(config.UnmarshalKey(Name, &cfg))
-
+	// gw builder
 	var builder = gw_builder.New()
-	xerror.Panic(builder.Build(cfg))
+	xerror.Panic(builder.Build(t.cfg.Gw))
+	var mux = builder.Get()
+
+	for _, h := range t.gwHandlers {
+		xerror.Panic(h(context.Background(), mux, t.inproc))
+	}
+	t.httpSrv.All(fmt.Sprintf("/api/%s/*", runtime.Project), adaptor.HTTPHandler(mux))
+
+	// 网关初始化
+	xerror.Panic(t.api.Build(t.cfg.Api))
+	t.api.Get().Use(t.handlerHttpMiddle(middlewares))
+	t.api.Get().Mount("/", t.httpSrv)
+
 	return nil
 }
 
@@ -227,8 +221,8 @@ func (t *serviceImpl) Flags(flags ...cli.Flag) {
 
 func (t *serviceImpl) Options() service.Options {
 	return service.Options{
-		Name:      t.cfg.name,
-		Id:        t.cfg.id,
+		Name:      runtime.Project,
+		Id:        runtime.AppID,
 		Version:   version.Version,
 		Port:      netutil.MustGetPort(t.net.Addr),
 		Address:   t.net.Addr,
@@ -238,6 +232,8 @@ func (t *serviceImpl) Options() service.Options {
 
 func (t *serviceImpl) start() (gErr error) {
 	defer xerror.RespErr(&gErr)
+
+	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
 		for i := range t.beforeStarts {
@@ -252,9 +248,9 @@ func (t *serviceImpl) start() (gErr error) {
 
 	// 启动grpc网关
 	syncx.GoDelay(func() {
-		t.log.Info("[grpc-gw] Server Starting")
-		logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
-			if err := t.gw.Get().Listener(<-gwLn); err != nil &&
+		t.log.Info("[grpc-api] Server Starting")
+		logutil.LogOrErr(t.log, "[grpc-api] Server Stop", func() error {
+			if err := t.api.Get().Listener(<-gwLn); err != nil &&
 				!errors.Is(err, cmux.ErrListenerClosed) &&
 				!errors.Is(err, http.ErrServerClosed) &&
 				!errors.Is(err, net.ErrClosed) {
@@ -271,7 +267,7 @@ func (t *serviceImpl) start() (gErr error) {
 		syncx.GoDelay(func() {
 			t.log.Info("[grpc] Server Starting")
 			logutil.LogOrErr(t.log, "[grpc] Server Stop", func() error {
-				if err := t.srv.Get().Serve(<-grpcLn); err != nil &&
+				if err := t.grpcSrv.Get().Serve(<-grpcLn); err != nil &&
 					err != cmux.ErrListenerClosed &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
@@ -318,8 +314,8 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.LogOrErr(t.log, "[grpc] GracefulStop", func() error {
-		t.srv.Get().GracefulStop()
-		xerror.Panic(t.gw.Get().Shutdown())
+		t.grpcSrv.Get().GracefulStop()
+		xerror.Panic(t.api.Get().Shutdown())
 		xerror.Panic(t.net.Close())
 		return nil
 	})

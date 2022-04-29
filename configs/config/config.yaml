@@ -1,9 +1,3 @@
-app:
-  project: "lava"
-  name: "lava"
-  version: "v0.0.1"
-  home: ""
-  debug: true
 timeout:
   - test
 watcher:

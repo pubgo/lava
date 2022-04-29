@@ -26,11 +26,8 @@ func NewWithCfg(cfg *log_config.Config) {
 	var log = cfg.Build(runtime.Project).With(
 		zap.String(logkey.Env, runtime.Mode.String()),
 		zap.String(logkey.Hostname, runtime.Hostname),
+		zap.String(logkey.Project, runtime.Project),
 	)
-
-	if runtime.Name() != "" {
-		log = log.With(zap.String(logkey.Project, runtime.Name()))
-	}
 
 	if runtime.Namespace != "" {
 		log = log.With(zap.String(logkey.Namespace, runtime.Namespace))

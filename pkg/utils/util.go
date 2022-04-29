@@ -85,7 +85,7 @@ func FileExists(path string) bool {
 	}
 }
 
-func FirstNotEmpty(fx ...func() string) string {
+func FirstFnNotEmpty(fx ...func() string) string {
 	for i := range fx {
 		if s := fx[i](); s != "" {
 			return s
@@ -94,7 +94,7 @@ func FirstNotEmpty(fx ...func() string) string {
 	return ""
 }
 
-func NotEmpty(strs ...string) string {
+func FirstNotEmpty(strs ...string) string {
 	for i := range strs {
 		if s := strs[i]; s != "" {
 			return s

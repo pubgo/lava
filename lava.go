@@ -5,10 +5,10 @@ import (
 	"github.com/pubgo/lava/service/service_builder"
 )
 
-func Run(services ...service.Service) {
+func Run(services ...service.Command) {
 	service.Run(services...)
 }
 
-func NewService(name string, desc string) service.Service {
-	return service_builder.New(name, desc)
+func NewService(name string, desc ...string) service.Service {
+	return service_builder.New(name, desc...)
 }
