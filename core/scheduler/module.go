@@ -1,18 +1,18 @@
 package scheduler
 
 import (
+	"github.com/pubgo/lava/core/running"
 	"go.uber.org/fx"
 
-	"github.com/pubgo/lava/module"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/inject"
 )
 
 const Name = "scheduler"
 
 func init() {
-	module.Register(fx.Provide(func(srv service.Service) *Scheduler {
+	inject.Register(fx.Provide(func(m running.Module) *Scheduler {
 		quart.scheduler.Start()
-		srv.BeforeStops(quart.scheduler.Stop)
+		m.BeforeStops(quart.scheduler.Stop)
 		return quart
 	}))
 }

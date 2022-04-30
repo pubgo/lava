@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/inject"
 	"time"
 
 	"github.com/DataDog/gostackparse"
@@ -19,14 +20,13 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
-	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/version"
 )
 
 const Name = "logRecord"
 
 func init() {
-	module.Register(fx.Invoke(func(log *logging.Logger) {
+	inject.Register(fx.Invoke(func(log *logging.Logger) {
 		log = log.Named(logutil.Names(logkey.Component, Name))
 		middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
 			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {

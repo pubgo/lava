@@ -2,6 +2,7 @@ package grpclog
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/inject"
 	"go.uber.org/fx"
 
 	"go.uber.org/zap"
@@ -9,11 +10,10 @@ import (
 	"google.golang.org/grpc/grpclog"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/module"
 )
 
 func init() {
-	module.Register(fx.Invoke(func(log *logging.Logger) {
+	inject.Register(fx.Invoke(func(log *logging.Logger) {
 		grpclog.SetLoggerV2(&loggerWrapper{
 			log:      logging.Component("grpc").L().WithOptions(zap.AddCallerSkip(4)),
 			depthLog: logging.Component("grpc-component").L().WithOptions(zap.AddCallerSkip(2)),

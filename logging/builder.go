@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -9,13 +10,12 @@ import (
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
 	New(config.GetCfg())
-	module.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
+	inject.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
 }
 
 func NewWithCfg(cfg *log_config.Config) {

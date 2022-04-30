@@ -1,4 +1,4 @@
-package module
+package inject
 
 import (
 	"github.com/pubgo/xerror"

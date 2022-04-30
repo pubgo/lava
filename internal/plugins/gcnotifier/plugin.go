@@ -2,12 +2,12 @@ package gcnotifier
 
 import (
 	"context"
+	"github.com/pubgo/lava/inject"
 	"go.uber.org/fx"
 
 	"github.com/CAFxX/gcnotifier"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
@@ -21,7 +21,7 @@ func init() {
 		return
 	}
 
-	module.Register(fx.Invoke(func(srv service.Service) {
+	inject.Register(fx.Invoke(func(srv service.Service) {
 		srv.AfterStops(func() {
 			syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()

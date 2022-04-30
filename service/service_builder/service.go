@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/pkg/utils"
 	"net"
 	"net/http"
 
@@ -24,14 +23,16 @@ import (
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/internal/running"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
-	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 	"github.com/pubgo/lava/pkg/gw_builder"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -73,6 +74,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
 
 	g.Provide(func() service.Service { return g })
+	g.Invoke(func(m running.GetRunning) { g.modules = m })
 	return g
 }
 
@@ -85,6 +87,8 @@ type serviceImpl struct {
 	afterStops   []func()
 	middlewares  []middleware.Middleware
 	services     []service.Desc
+
+	modules running.GetRunning
 
 	log *zap.Logger
 	cmd *cli.Command
@@ -158,7 +162,7 @@ func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterS
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
-	module.Init(append(module.List(), t.opts...)...)
+	inject.Init(append(inject.List(), t.opts...)...)
 
 	t.net.Addr = runtime.Addr
 
@@ -236,7 +240,7 @@ func (t *serviceImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
-		for i := range t.beforeStarts {
+		for i := range append(t.modules.GetBeforeStarts(), t.beforeStarts...) {
 			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStarts[i]))
 			xerror.PanicF(xerror.Try(t.beforeStarts[i]), stack.Func(t.beforeStarts[i]))
 		}
@@ -293,7 +297,7 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.log, "service after-start", func() error {
-		for i := range t.afterStarts {
+		for i := range append(t.modules.GetAfterStarts(), t.afterStarts...) {
 			t.log.Sugar().Infof("running %s", stack.Func(t.afterStarts[i]))
 			xerror.PanicF(xerror.Try(t.afterStarts[i]), stack.Func(t.afterStarts[i]))
 		}
@@ -306,7 +310,7 @@ func (t *serviceImpl) stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
-		for i := range t.beforeStops {
+		for i := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
 			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStops[i]))
 			xerror.PanicF(xerror.Try(t.beforeStops[i]), stack.Func(t.beforeStops[i]))
 		}
@@ -321,7 +325,7 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
-		for i := range t.afterStops {
+		for i := range append(t.modules.GetAfterStops(), t.afterStops...) {
 			t.log.Sugar().Infof("running %s", stack.Func(t.afterStops[i]))
 			xerror.PanicF(xerror.Try(t.afterStops[i]), stack.Func(t.afterStops[i]))
 		}

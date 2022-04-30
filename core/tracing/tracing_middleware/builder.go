@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	requestid2 "github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/inject"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -14,11 +15,10 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
-	"github.com/pubgo/lava/module"
 )
 
 func init() {
-	module.Register(fx.Invoke(func(tracer opentracing.Tracer, log *zap.Logger) {
+	inject.Register(fx.Invoke(func(tracer opentracing.Tracer, log *zap.Logger) {
 		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
 		middleware.Register(tracing.Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
 			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {

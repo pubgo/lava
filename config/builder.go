@@ -1,17 +1,16 @@
 package config
 
 import (
+	"github.com/pubgo/lava/inject"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
-
-	"github.com/pubgo/lava/module"
 )
 
 var conf Config
 
 func init() {
 	conf = newCfg()
-	module.Register(fx.Provide(GetCfg))
+	inject.Register(fx.Provide(GetCfg))
 }
 
 // GetCfg 获取内存配置

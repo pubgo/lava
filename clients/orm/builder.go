@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"github.com/pubgo/lava/inject"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -14,7 +15,6 @@ import (
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/module"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/vars"
@@ -27,8 +27,8 @@ func init() {
 	for name := range cfgMap {
 		cfg := cfgMap[name]
 		xerror.Panic(cfg.Valid())
-		module.Register(fx.Provide(fx.Annotated{
-			Name: module.Name(name),
+		inject.Register(fx.Provide(fx.Annotated{
+			Name: inject.Name(name),
 			Target: func(log *logging.Logger) *Client {
 				return NewWithCfg(cfg, log)
 			},

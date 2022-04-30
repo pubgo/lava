@@ -2,6 +2,7 @@ package metric_builder
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/running"
 	"sync/atomic"
 	"unsafe"
 
@@ -13,10 +14,9 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service"
 )
 
-func Builder(srv service.Service) {
+func Builder(m running.Module) {
 	var cfg = metric.DefaultCfg()
 	_ = config.Decode(metric.Name, &cfg)
 
@@ -33,7 +33,7 @@ func Builder(srv service.Service) {
 	xerror.Exit(fc(config.GetMap(metric.Name), &opts))
 
 	scope, closer := tally.NewRootScope(opts, cfg.Interval)
-	srv.BeforeStops(func() { xerror.Panic(closer.Close()) })
+	m.BeforeStops(func() { xerror.Panic(closer.Close()) })
 
 	// 全局对象注册
 	atomic.StorePointer(&g, unsafe.Pointer(&scope))
