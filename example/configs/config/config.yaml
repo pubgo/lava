@@ -4,6 +4,8 @@ app:
   version: "v0.0.1"
   home: ""
   debug: true
+service:
+  print-route: false
 timeout:
   - test
 watcher:

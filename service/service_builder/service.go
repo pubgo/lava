@@ -207,6 +207,18 @@ func (t *serviceImpl) init() error {
 	}
 	t.httpSrv.All(fmt.Sprintf("/api/%s/*", runtime.Project), adaptor.HTTPHandler(mux))
 
+	if t.cfg.PrintRoute {
+		for _, stacks := range t.httpSrv.Stack() {
+			for _, s := range stacks {
+				t.log.Info("service route",
+					zap.String("name", s.Name),
+					zap.String("path", s.Path),
+					zap.String("method", s.Method),
+				)
+			}
+		}
+	}
+
 	// 网关初始化
 	xerror.Panic(t.api.Build(t.cfg.Api))
 	t.api.Get().Use(t.handlerHttpMiddle(middlewares))
@@ -248,24 +260,24 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	var grpcLn = t.net.HTTP2()
-	var gwLn = t.net.HTTP1Fast()
-
-	// 启动grpc网关
-	syncx.GoDelay(func() {
-		t.log.Info("[grpc-api] Server Starting")
-		logutil.LogOrErr(t.log, "[grpc-api] Server Stop", func() error {
-			if err := t.api.Get().Listener(<-gwLn); err != nil &&
-				!errors.Is(err, cmux.ErrListenerClosed) &&
-				!errors.Is(err, http.ErrServerClosed) &&
-				!errors.Is(err, net.ErrClosed) {
-				return err
-			}
-			return nil
-		})
-	})
+	var gwLn = t.net.HTTP1()
 
 	logutil.OkOrPanic(t.log, "service start", func() error {
 		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+
+		// 启动grpc网关
+		syncx.GoDelay(func() {
+			t.log.Info("[grpc-gw] Server Starting")
+			logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
+				if err := t.api.Get().Listener(<-gwLn); err != nil &&
+					!errors.Is(err, cmux.ErrListenerClosed) &&
+					!errors.Is(err, http.ErrServerClosed) &&
+					!errors.Is(err, net.ErrClosed) {
+					return err
+				}
+				return nil
+			})
+		})
 
 		// 启动grpc服务
 		syncx.GoDelay(func() {

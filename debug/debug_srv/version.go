@@ -1,7 +1,6 @@
 package debug_srv
 
 import (
-	"github.com/pubgo/lava/runtime"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/runtime"
 )
 
 func init() {

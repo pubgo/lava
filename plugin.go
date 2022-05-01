@@ -23,6 +23,7 @@ import (
 	// metric
 	_ "github.com/pubgo/lava/core/metric/metric_builder"
 
+	_ "github.com/pubgo/lava/imports/import_debug"
 	_ "github.com/pubgo/lava/imports/import_gops"
 	_ "github.com/pubgo/lava/imports/import_grpc_log"
 )
