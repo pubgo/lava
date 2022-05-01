@@ -1,4 +1,4 @@
-package debug_module
+package import_debug
 
 import (
 	"github.com/pubgo/lava/inject"

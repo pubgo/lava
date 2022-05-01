@@ -11,10 +11,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/registry"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"

@@ -10,9 +10,9 @@ import (
 	"github.com/pubgo/x/try"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/registry"
 )
 
 const (

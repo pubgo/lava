@@ -240,9 +240,9 @@ func (t *serviceImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
-		for i := range append(t.modules.GetBeforeStarts(), t.beforeStarts...) {
-			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStarts[i]))
-			xerror.PanicF(xerror.Try(t.beforeStarts[i]), stack.Func(t.beforeStarts[i]))
+		for _, run := range append(t.modules.GetBeforeStarts(), t.beforeStarts...) {
+			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
+			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
@@ -297,9 +297,9 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.log, "service after-start", func() error {
-		for i := range append(t.modules.GetAfterStarts(), t.afterStarts...) {
-			t.log.Sugar().Infof("running %s", stack.Func(t.afterStarts[i]))
-			xerror.PanicF(xerror.Try(t.afterStarts[i]), stack.Func(t.afterStarts[i]))
+		for _, run := range append(t.modules.GetAfterStarts(), t.afterStarts...) {
+			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
+			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
@@ -310,24 +310,27 @@ func (t *serviceImpl) stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
-		for i := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
-			t.log.Sugar().Infof("running %s", stack.Func(t.beforeStops[i]))
-			xerror.PanicF(xerror.Try(t.beforeStops[i]), stack.Func(t.beforeStops[i]))
+		for _, run := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
+			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
+			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
+		return nil
+	})
+
+	logutil.LogOrErr(t.log, "[grpc-gw] Shutdown", func() error {
+		xerror.Panic(t.api.Get().Shutdown())
 		return nil
 	})
 
 	logutil.LogOrErr(t.log, "[grpc] GracefulStop", func() error {
 		t.grpcSrv.Get().GracefulStop()
-		xerror.Panic(t.api.Get().Shutdown())
-		xerror.Panic(t.net.Close())
-		return nil
+		return t.net.Close()
 	})
 
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
-		for i := range append(t.modules.GetAfterStops(), t.afterStops...) {
-			t.log.Sugar().Infof("running %s", stack.Func(t.afterStops[i]))
-			xerror.PanicF(xerror.Try(t.afterStops[i]), stack.Func(t.afterStops[i]))
+		for _, run := range append(t.modules.GetAfterStops(), t.afterStops...) {
+			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
+			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})

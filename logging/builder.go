@@ -1,13 +1,13 @@
 package logging
 
 import (
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/runtime"

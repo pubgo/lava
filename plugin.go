@@ -2,17 +2,11 @@ package lava
 
 // 加载插件
 import (
-	// 加载version插件
-	_ "github.com/pubgo/lava/version"
-
-	// 加载metric插件
-	_ "github.com/pubgo/lava/core/metric"
-
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
-	_ "github.com/pubgo/lava/registry/registry_driver/mdns"
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
@@ -28,15 +22,16 @@ import (
 
 	// metric
 	_ "github.com/pubgo/lava/core/metric/metric_builder"
+
+	_ "github.com/pubgo/lava/imports/import_gops"
+	_ "github.com/pubgo/lava/imports/import_grpc_log"
 )
 
 // 加载middleware, 注意加载顺序
 import (
-	// 加载log记录拦截器
-	//_ "github.com/pubgo/lava/core/logging/log_plugin"
-
-	// tracing插件, 依赖加载
+	// 加载log-record拦截器
+	_ "github.com/pubgo/lava/imports/import_log_record_middleware"
 
 	// 加载timeout拦截器
-	_ "github.com/pubgo/lava/module/timeout_module"
+	_ "github.com/pubgo/lava/imports/import_timeout_middleware"
 )

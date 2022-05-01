@@ -1,4 +1,4 @@
-package metric_module
+package import_metric
 
 import (
 	"github.com/pubgo/lava/core/metric/metric_builder"

@@ -1,4 +1,4 @@
-package timeout_module
+package import_timeout_middleware
 
 import (
 	"context"

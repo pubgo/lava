@@ -115,7 +115,7 @@ func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		xerror.Panic(db.Model(&User{}).Where("Age = ?", 18).First(&user).Error)
 		log.Sugar().Infow("data", "data", user)
 
-		log.Sugar().Infow("dix config ok", "cfg", config.CfgPath)
+		log.Sugar().Infow("config ok", "cfg", config.CfgPath)
 	}
 
 	out = &hello.TestApiOutput{

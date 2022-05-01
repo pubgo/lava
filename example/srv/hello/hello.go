@@ -6,8 +6,8 @@ import (
 	"github.com/pubgo/lava/example/srv/hello/handler"
 	"github.com/pubgo/lava/service"
 
-	_ "github.com/pubgo/lava/module/debug_module"
-	_ "github.com/pubgo/lava/module/registry_module"
+	_ "github.com/pubgo/lava/imports/import_debug"
+	_ "github.com/pubgo/lava/imports/import_registry"
 )
 
 var name = "test-grpc"

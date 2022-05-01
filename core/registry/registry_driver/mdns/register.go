@@ -2,7 +2,7 @@ package mdns
 
 import (
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/registry"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/xerror"
 )
 

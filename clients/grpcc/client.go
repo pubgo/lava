@@ -15,7 +15,7 @@ import (
 	"github.com/pubgo/lava/runtime"
 
 	// 加载mdns注册中心
-	_ "github.com/pubgo/lava/registry/registry_driver/mdns"
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
 	// 加载grpcLog
 	_ "github.com/pubgo/lava/logging/log_ext/grpclog"

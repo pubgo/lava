@@ -89,7 +89,11 @@ func (t *Mux) Close() error {
 		return nil
 	}
 
-	return t.ln.Close()
+	var err = t.ln.Close()
+	if ignoreMuxError(err) {
+		return nil
+	}
+	return err
 }
 
 func (t *Mux) Serve() error {
