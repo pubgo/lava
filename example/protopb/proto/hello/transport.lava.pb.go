@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
-	module "github.com/pubgo/lava/inject"
+	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
@@ -29,7 +29,7 @@ func InitTransportClient(addr string, alias ...string) {
 	}
 	conn := grpcc_builder.NewClient(addr)
 
-	module.Register(fx.Provide(fx.Annotated{
+	inject.Register(fx.Provide(fx.Annotated{
 		Target: func() TransportClient { return NewTransportClient(conn) },
 		Name:   name,
 	}))

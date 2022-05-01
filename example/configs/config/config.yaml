@@ -62,7 +62,7 @@ orm:
 grpcc:
   - _id: test-grpc
     registry: "mdns"
-    addr: "localhost:8080"
+#    addr: "localhost:8080"
 ws:
   enabled: true
   configs:

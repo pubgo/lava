@@ -10,7 +10,7 @@ import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
-	module "github.com/pubgo/lava/inject"
+	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
@@ -29,7 +29,7 @@ func InitUserClient(addr string, alias ...string) {
 	}
 	conn := grpcc_builder.NewClient(addr)
 
-	module.Register(fx.Provide(fx.Annotated{
+	inject.Register(fx.Provide(fx.Annotated{
 		Target: func() UserClient { return NewUserClient(conn) },
 		Name:   name,
 	}))
@@ -55,7 +55,7 @@ func InitABitOfEverythingServiceClient(addr string, alias ...string) {
 	}
 	conn := grpcc_builder.NewClient(addr)
 
-	module.Register(fx.Provide(fx.Annotated{
+	inject.Register(fx.Provide(fx.Annotated{
 		Target: func() ABitOfEverythingServiceClient { return NewABitOfEverythingServiceClient(conn) },
 		Name:   name,
 	}))
@@ -81,7 +81,7 @@ func InitCamelCaseServiceNameClient(addr string, alias ...string) {
 	}
 	conn := grpcc_builder.NewClient(addr)
 
-	module.Register(fx.Provide(fx.Annotated{
+	inject.Register(fx.Provide(fx.Annotated{
 		Target: func() CamelCaseServiceNameClient { return NewCamelCaseServiceNameClient(conn) },
 		Name:   name,
 	}))
@@ -107,7 +107,7 @@ func InitAnotherServiceWithNoBindingsClient(addr string, alias ...string) {
 	}
 	conn := grpcc_builder.NewClient(addr)
 
-	module.Register(fx.Provide(fx.Annotated{
+	inject.Register(fx.Provide(fx.Annotated{
 		Target: func() AnotherServiceWithNoBindingsClient { return NewAnotherServiceWithNoBindingsClient(conn) },
 		Name:   name,
 	}))

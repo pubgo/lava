@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -71,13 +72,13 @@ func (h *testApiHandler) Init() {
 	//memviz.Map(buf, &user)
 	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
-	//h.Cron.Every("test grpc client", time.Second*5, func(name string) {
-	//	defer xerror.RespExit()
-	//	zap.L().Debug("客户端访问")
-	//	var out, err1 = h.TestApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
-	//	xerror.Panic(err1)
-	//	fmt.Printf("%#v \n", out)
-	//})
+	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
+		defer xerror.RespExit()
+		zap.L().Debug("客户端访问")
+		var out, err1 = h.TestApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
+		xerror.Panic(err1)
+		fmt.Printf("%#v \n", out)
+	})
 }
 
 func (h *testApiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
