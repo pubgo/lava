@@ -14,9 +14,7 @@ import (
 	"github.com/pubgo/lava/pkg/merge"
 )
 
-const Name = "bbolt"
-
-var cfgMap = make(map[string]*Cfg)
+const Name = "bolt"
 
 type Cfg struct {
 	FileMode        fs.FileMode       `json:"file_mode"`
@@ -35,12 +33,14 @@ type Cfg struct {
 func (t *Cfg) BuildOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
-	return merge.Struct(options, t).(*bolt.Options)
+	xerror.Panic(merge.Struct(options, t))
+	return options
+
 }
 
-func (t *Cfg) Build() *bolt.DB {
+func (t *Cfg) Create() *bolt.DB {
 	var opts = t.BuildOpts()
-	var path = filepath.Join(config.Home, t.Path)
+	var path = filepath.Join(config.CfgDir, t.Path)
 	xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(path)))
 
 	db, err := bolt.Open(path, t.FileMode, opts)
@@ -51,7 +51,7 @@ func (t *Cfg) Build() *bolt.DB {
 func DefaultCfg() *Cfg {
 	return &Cfg{
 		Path:     "./db/bolt",
-		FileMode: 0666,
+		FileMode: 0600,
 		Timeout:  consts.DefaultTimeout,
 	}
 }

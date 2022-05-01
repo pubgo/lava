@@ -4,18 +4,17 @@ import (
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/config"
 )
 
-type Factory func(cfg types.CfgMap) gorm.Dialector
+type Factory func(cfg config.CfgMap) gorm.Dialector
 
-var factories typex.SMap
+var factories = make(map[string]Factory)
 
-func List() (dt map[string]Factory) { xerror.Panic(factories.MapTo(&dt)); return }
+func Get(name string) Factory  { return factories[name] }
+func List() map[string]Factory { return factories }
 func Register(name string, broker Factory) {
-	defer xerror.RespExit()
 	xerror.Assert(name == "" || broker == nil, "[broker,name] should not be null")
-	xerror.Assert(factories.Has(name), "[broker] %s already exists", name)
-	factories.Set(name, broker)
+	xerror.Assert(factories[name] != nil, "[broker] %s already exists", name)
+	factories[name] = broker
 }

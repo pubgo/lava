@@ -1,6 +1,9 @@
 package grpcutil
 
 import (
+	"net/http"
+	"strings"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/admin"
 	"google.golang.org/grpc/channelz/service"
@@ -26,4 +29,10 @@ func EnableDebug(s *grpc.Server) {
 
 func EnableAdmin(s grpc.ServiceRegistrar) (cleanup func(), _ error) {
 	return admin.Register(s)
+}
+
+// IsGRPCRequest returns true if the message is considered to be
+// a GRPC message
+func IsGRPCRequest(r *http.Request) bool {
+	return r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc")
 }

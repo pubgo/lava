@@ -3,64 +3,43 @@
 
 ## Table of Contents
 
-- [proto/gid/a_bit_of_everything.proto](#proto/gid/a_bit_of_everything.proto)
-    - [LoginReply](#gid.LoginReply)
-    - [LoginRequest](#gid.LoginRequest)
-    - [LogoutReply](#gid.LogoutReply)
-    - [LogoutRequest](#gid.LogoutRequest)
+- [proto/gid/a_bit_of_everything.proto](#proto_gid_a_bit_of_everything-proto)
+    - [LoginReply](#gid-LoginReply)
+    - [LoginRequest](#gid-LoginRequest)
+    - [LogoutReply](#gid-LogoutReply)
+    - [LogoutRequest](#gid-LogoutRequest)
   
-    - [LoginService](#gid.LoginService)
+    - [LoginService](#gid-LoginService)
   
-- [proto/gid/echo_service.proto](#proto/gid/echo_service.proto)
-    - [DynamicMessage](#gid.DynamicMessage)
-    - [DynamicMessageUpdate](#gid.DynamicMessageUpdate)
-    - [Embedded](#gid.Embedded)
-    - [SimpleMessage](#gid.SimpleMessage)
+- [proto/gid/echo_service.proto](#proto_gid_echo_service-proto)
+    - [DynamicMessage](#gid-DynamicMessage)
+    - [DynamicMessageUpdate](#gid-DynamicMessageUpdate)
+    - [Embedded](#gid-Embedded)
+    - [SimpleMessage](#gid-SimpleMessage)
   
-    - [EchoService](#gid.EchoService)
+    - [EchoService](#gid-EchoService)
   
-- [proto/gid/id.proto](#proto/gid/id.proto)
-    - [ABitOfEverything](#gid.ABitOfEverything)
-    - [ABitOfEverything.MapValueEntry](#gid.ABitOfEverything.MapValueEntry)
-    - [ABitOfEverything.MappedNestedValueEntry](#gid.ABitOfEverything.MappedNestedValueEntry)
-    - [ABitOfEverything.MappedStringValueEntry](#gid.ABitOfEverything.MappedStringValueEntry)
-    - [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested)
-    - [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated)
-    - [Body](#gid.Body)
-    - [Book](#gid.Book)
-    - [CheckStatusResponse](#gid.CheckStatusResponse)
-    - [CreateBookRequest](#gid.CreateBookRequest)
-    - [ErrorObject](#gid.ErrorObject)
-    - [ErrorResponse](#gid.ErrorResponse)
-    - [GenerateRequest](#gid.GenerateRequest)
-    - [GenerateResponse](#gid.GenerateResponse)
-    - [MessageWithBody](#gid.MessageWithBody)
-    - [Tag](#gid.Tag)
-    - [TypesRequest](#gid.TypesRequest)
-    - [TypesResponse](#gid.TypesResponse)
-    - [UpdateBookRequest](#gid.UpdateBookRequest)
-    - [UpdateV2Request](#gid.UpdateV2Request)
+- [proto/gid/id.proto](#proto_gid_id-proto)
+    - [GenerateRequest](#gid-GenerateRequest)
+    - [GenerateResponse](#gid-GenerateResponse)
+    - [Tag](#gid-Tag)
+    - [TypesRequest](#gid-TypesRequest)
+    - [TypesResponse](#gid-TypesResponse)
   
-    - [ABitOfEverything.Nested.DeepEnum](#gid.ABitOfEverything.Nested.DeepEnum)
-    - [NumericEnum](#gid.NumericEnum)
-  
-    - [ABitOfEverythingService](#gid.ABitOfEverythingService)
-    - [AnotherServiceWithNoBindings](#gid.AnotherServiceWithNoBindings)
-    - [Id](#gid.Id)
-    - [camelCaseServiceName](#gid.camelCaseServiceName)
+    - [Id](#gid-Id)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="proto/gid/a_bit_of_everything.proto"></a>
+<a name="proto_gid_a_bit_of_everything-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/gid/a_bit_of_everything.proto
 
 
 
-<a name="gid.LoginReply"></a>
+<a name="gid-LoginReply"></a>
 
 ### LoginReply
 
@@ -76,7 +55,7 @@
 
 
 
-<a name="gid.LoginRequest"></a>
+<a name="gid-LoginRequest"></a>
 
 ### LoginRequest
 
@@ -92,7 +71,7 @@
 
 
 
-<a name="gid.LogoutReply"></a>
+<a name="gid-LogoutReply"></a>
 
 ### LogoutReply
 
@@ -107,7 +86,7 @@
 
 
 
-<a name="gid.LogoutRequest"></a>
+<a name="gid-LogoutRequest"></a>
 
 ### LogoutRequest
 
@@ -136,21 +115,21 @@ It displays that using [] infront of the type |
  
 
 
-<a name="gid.LoginService"></a>
+<a name="gid-LoginService"></a>
 
 ### LoginService
 
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Login | [LoginRequest](#gid.LoginRequest) | [LoginReply](#gid.LoginReply) | Login
+| Login | [LoginRequest](#gid-LoginRequest) | [LoginReply](#gid-LoginReply) | Login
 
 {{.MethodDescriptorProto.Name}} is a call with the method(s) {{$first := true}}{{range .Bindings}}{{if $first}}{{$first = false}}{{else}}, {{end}}{{.HTTPMethod}}{{end}} within the &#34;{{.Service.Name}}&#34; service. It takes in &#34;{{.RequestType.Name}}&#34; and returns a &#34;{{.ResponseType.Name}}&#34;.
 
 ## {{.RequestType.Name}} | Field ID | Name | Type | Description | | ----------- | --------- | --------------------------------------------------------- | ---------------------------- | {{range .RequestType.Fields}} | {{.Number}} | {{.Name}} | {{if eq .Label.String &#34;LABEL_REPEATED&#34;}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}}
 
 ## {{.ResponseType.Name}} | Field ID | Name | Type | Description | | ----------- | --------- | ---------------------------------------------------------- | ---------------------------- | {{range .ResponseType.Fields}} | {{.Number}} | {{.Name}} | {{if eq .Label.String &#34;LABEL_REPEATED&#34;}}[]{{end}}{{.Type}} | {{fieldcomments .Message .}} | {{end}} |
-| Logout | [LogoutRequest](#gid.LogoutRequest) | [LogoutReply](#gid.LogoutReply) | Logout
+| Logout | [LogoutRequest](#gid-LogoutRequest) | [LogoutReply](#gid-LogoutReply) | Logout
 
 {{.MethodDescriptorProto.Name}} is a call with the method(s) {{$first := true}}{{range .Bindings}}{{if $first}}{{$first = false}}{{else}}, {{end}}{{.HTTPMethod}}{{end}} within the &#34;{{.Service.Name}}&#34; service. It takes in &#34;{{.RequestType.Name}}&#34; and returns a &#34;{{.ResponseType.Name}}&#34;.
 
@@ -162,14 +141,14 @@ It displays that using [] infront of the type |
 
 
 
-<a name="proto/gid/echo_service.proto"></a>
+<a name="proto_gid_echo_service-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/gid/echo_service.proto
 
 
 
-<a name="gid.DynamicMessage"></a>
+<a name="gid-DynamicMessage"></a>
 
 ### DynamicMessage
 DynamicMessage represents a message which can have its structure
@@ -178,15 +157,15 @@ built dynamically using Struct and Values.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| struct_field | [google.protobuf.Struct](#google.protobuf.Struct) |  |  |
-| value_field | [google.protobuf.Value](#google.protobuf.Value) |  |  |
+| struct_field | [google.protobuf.Struct](#google-protobuf-Struct) |  |  |
+| value_field | [google.protobuf.Value](#google-protobuf-Value) |  |  |
 
 
 
 
 
 
-<a name="gid.DynamicMessageUpdate"></a>
+<a name="gid-DynamicMessageUpdate"></a>
 
 ### DynamicMessageUpdate
 
@@ -194,14 +173,14 @@ built dynamically using Struct and Values.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| body | [DynamicMessage](#gid.DynamicMessage) |  | google.protobuf.FieldMask update_mask = 2; |
+| body | [DynamicMessage](#gid-DynamicMessage) |  | google.protobuf.FieldMask update_mask = 2; |
 
 
 
 
 
 
-<a name="gid.Embedded"></a>
+<a name="gid-Embedded"></a>
 
 ### Embedded
 Embedded represents a message embedded in SimpleMessage.
@@ -217,7 +196,7 @@ Embedded represents a message embedded in SimpleMessage.
 
 
 
-<a name="gid.SimpleMessage"></a>
+<a name="gid-SimpleMessage"></a>
 
 ### SimpleMessage
 SimpleMessage represents a simple message sent to the Echo service.
@@ -229,9 +208,9 @@ SimpleMessage represents a simple message sent to the Echo service.
 | num | [int64](#int64) |  |  |
 | line_num | [int64](#int64) |  |  |
 | lang | [string](#string) |  |  |
-| status | [Embedded](#gid.Embedded) |  |  |
+| status | [Embedded](#gid-Embedded) |  |  |
 | en | [int64](#int64) |  |  |
-| no | [Embedded](#gid.Embedded) |  |  |
+| no | [Embedded](#gid-Embedded) |  |  |
 
 
 
@@ -244,291 +223,33 @@ SimpleMessage represents a simple message sent to the Echo service.
  
 
 
-<a name="gid.EchoService"></a>
+<a name="gid-EchoService"></a>
 
 ### EchoService
 Echo service responds to incoming echo requests.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Echo | [SimpleMessage](#gid.SimpleMessage) | [SimpleMessage](#gid.SimpleMessage) | Echo method receives a simple message and returns it.
+| Echo | [SimpleMessage](#gid-SimpleMessage) | [SimpleMessage](#gid-SimpleMessage) | Echo method receives a simple message and returns it.
 
 The message posted as the id parameter will also be returned. |
-| EchoBody | [SimpleMessage](#gid.SimpleMessage) | [SimpleMessage](#gid.SimpleMessage) | EchoBody method receives a simple message and returns it. |
-| EchoDelete | [SimpleMessage](#gid.SimpleMessage) | [SimpleMessage](#gid.SimpleMessage) | EchoDelete method receives a simple message and returns it. |
-| EchoPatch | [DynamicMessageUpdate](#gid.DynamicMessageUpdate) | [DynamicMessageUpdate](#gid.DynamicMessageUpdate) | EchoPatch method receives a NonStandardUpdateRequest and returns it. |
-| EchoUnauthorized | [SimpleMessage](#gid.SimpleMessage) | [SimpleMessage](#gid.SimpleMessage) | EchoUnauthorized method receives a simple message and returns it. It must always return a google.rpc.Code of `UNAUTHENTICATED` and a HTTP Status code of 401. |
+| EchoBody | [SimpleMessage](#gid-SimpleMessage) | [SimpleMessage](#gid-SimpleMessage) | EchoBody method receives a simple message and returns it. |
+| EchoDelete | [SimpleMessage](#gid-SimpleMessage) | [SimpleMessage](#gid-SimpleMessage) | EchoDelete method receives a simple message and returns it. |
+| EchoPatch | [DynamicMessageUpdate](#gid-DynamicMessageUpdate) | [DynamicMessageUpdate](#gid-DynamicMessageUpdate) | EchoPatch method receives a NonStandardUpdateRequest and returns it. |
+| EchoUnauthorized | [SimpleMessage](#gid-SimpleMessage) | [SimpleMessage](#gid-SimpleMessage) | EchoUnauthorized method receives a simple message and returns it. It must always return a google.rpc.Code of `UNAUTHENTICATED` and a HTTP Status code of 401. |
 
  
 
 
 
-<a name="proto/gid/id.proto"></a>
+<a name="proto_gid_id-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/gid/id.proto
 
 
 
-<a name="gid.ABitOfEverything"></a>
-
-### ABitOfEverything
-Intentionally complicated message type to cover many features of Protobuf.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| single_nested | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  |  |
-| uuid | [string](#string) |  |  |
-| nested | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) | repeated |  |
-| float_value | [float](#float) |  |  |
-| double_value | [double](#double) |  |  |
-| int64_value | [int64](#int64) |  |  |
-| uint64_value | [uint64](#uint64) |  |  |
-| int32_value | [int32](#int32) |  |  |
-| fixed64_value | [fixed64](#fixed64) |  |  |
-| fixed32_value | [fixed32](#fixed32) |  |  |
-| bool_value | [bool](#bool) |  |  |
-| string_value | [string](#string) |  |  |
-| bytes_value | [bytes](#bytes) |  |  |
-| uint32_value | [uint32](#uint32) |  |  |
-| enum_value | [NumericEnum](#gid.NumericEnum) |  |  |
-| sfixed32_value | [sfixed32](#sfixed32) |  |  |
-| sfixed64_value | [sfixed64](#sfixed64) |  |  |
-| sint32_value | [sint32](#sint32) |  |  |
-| sint64_value | [sint64](#sint64) |  |  |
-| repeated_string_value | [string](#string) | repeated |  |
-| oneof_empty | [google.protobuf.Empty](#google.protobuf.Empty) |  |  |
-| oneof_string | [string](#string) |  |  |
-| map_value | [ABitOfEverything.MapValueEntry](#gid.ABitOfEverything.MapValueEntry) | repeated |  |
-| mapped_string_value | [ABitOfEverything.MappedStringValueEntry](#gid.ABitOfEverything.MappedStringValueEntry) | repeated |  |
-| mapped_nested_value | [ABitOfEverything.MappedNestedValueEntry](#gid.ABitOfEverything.MappedNestedValueEntry) | repeated |  |
-| nonConventionalNameValue | [string](#string) |  |  |
-| timestamp_value | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-| repeated_enum_value | [NumericEnum](#gid.NumericEnum) | repeated | repeated enum value. it is comma-separated in query |
-| repeated_enum_annotation | [NumericEnum](#gid.NumericEnum) | repeated | repeated numeric enum comment (This comment is overridden by the field annotation) |
-| enum_value_annotation | [NumericEnum](#gid.NumericEnum) |  | numeric enum comment (This comment is overridden by the field annotation) |
-| repeated_string_annotation | [string](#string) | repeated | repeated string comment (This comment is overridden by the field annotation) |
-| repeated_nested_annotation | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) | repeated | repeated nested object comment (This comment is overridden by the field annotation) |
-| nested_annotation | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  | nested object comments (This comment is overridden by the field annotation) |
-| int64_override_type | [int64](#int64) |  |  |
-| required_string_via_field_behavior_annotation | [string](#string) |  | mark a field as required in Open API definition |
-| output_only_string_via_field_behavior_annotation | [string](#string) |  | mark a field as readonly in Open API definition |
-
-
-
-
-
-
-<a name="gid.ABitOfEverything.MapValueEntry"></a>
-
-### ABitOfEverything.MapValueEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [NumericEnum](#gid.NumericEnum) |  |  |
-
-
-
-
-
-
-<a name="gid.ABitOfEverything.MappedNestedValueEntry"></a>
-
-### ABitOfEverything.MappedNestedValueEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  |  |
-
-
-
-
-
-
-<a name="gid.ABitOfEverything.MappedStringValueEntry"></a>
-
-### ABitOfEverything.MappedStringValueEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="gid.ABitOfEverything.Nested"></a>
-
-### ABitOfEverything.Nested
-Nested is nested type.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | name is nested field. |
-| amount | [uint32](#uint32) |  |  |
-| ok | [ABitOfEverything.Nested.DeepEnum](#gid.ABitOfEverything.Nested.DeepEnum) |  | DeepEnum comment. |
-
-
-
-
-
-
-<a name="gid.ABitOfEverythingRepeated"></a>
-
-### ABitOfEverythingRepeated
-ABitOfEverythingRepeated is used to validate repeated path parameter functionality
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| path_repeated_float_value | [float](#float) | repeated | repeated values. they are comma-separated in path |
-| path_repeated_double_value | [double](#double) | repeated |  |
-| path_repeated_int64_value | [int64](#int64) | repeated |  |
-| path_repeated_uint64_value | [uint64](#uint64) | repeated |  |
-| path_repeated_int32_value | [int32](#int32) | repeated |  |
-| path_repeated_fixed64_value | [fixed64](#fixed64) | repeated |  |
-| path_repeated_fixed32_value | [fixed32](#fixed32) | repeated |  |
-| path_repeated_bool_value | [bool](#bool) | repeated |  |
-| path_repeated_string_value | [string](#string) | repeated |  |
-| path_repeated_bytes_value | [bytes](#bytes) | repeated |  |
-| path_repeated_uint32_value | [uint32](#uint32) | repeated |  |
-| path_repeated_enum_value | [NumericEnum](#gid.NumericEnum) | repeated |  |
-| path_repeated_sfixed32_value | [sfixed32](#sfixed32) | repeated |  |
-| path_repeated_sfixed64_value | [sfixed64](#sfixed64) | repeated |  |
-| path_repeated_sint32_value | [sint32](#sint32) | repeated |  |
-| path_repeated_sint64_value | [sint64](#sint64) | repeated |  |
-
-
-
-
-
-
-<a name="gid.Body"></a>
-
-### Body
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="gid.Book"></a>
-
-### Book
-An example resource type from AIP-123 used to test the behavior described in
-the CreateBookRequest message.
-
-See: https://google.aip.dev/123
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | The resource name of the book.
-
-Format: `publishers/{publisher}/books/{book}`
-
-Example: `publishers/1257894000000000000/books/my-book` |
-| id | [string](#string) |  | Output only. The book&#39;s ID. |
-| create_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Output only. Creation time of the book. |
-
-
-
-
-
-
-<a name="gid.CheckStatusResponse"></a>
-
-### CheckStatusResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| status | [google.rpc.Status](#google.rpc.Status) |  |  |
-
-
-
-
-
-
-<a name="gid.CreateBookRequest"></a>
-
-### CreateBookRequest
-A standard Create message from AIP-133 with a user-specified ID.
-The user-specified ID (the `book_id` field in this example) must become a
-query parameter in the OpenAPI spec.
-
-See: https://google.aip.dev/133#user-specified-ids
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| parent | [string](#string) |  | The publisher in which to create the book.
-
-Format: `publishers/{publisher}`
-
-Example: `publishers/1257894000000000000` |
-| book | [Book](#gid.Book) |  | The book to create. |
-| book_id | [string](#string) |  | The ID to use for the book.
-
-This must start with an alphanumeric character. |
-
-
-
-
-
-
-<a name="gid.ErrorObject"></a>
-
-### ErrorObject
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| code | [int32](#int32) |  |  |
-| message | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="gid.ErrorResponse"></a>
-
-### ErrorResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| correlationId | [string](#string) |  |  |
-| error | [ErrorObject](#gid.ErrorObject) |  |  |
-
-
-
-
-
-
-<a name="gid.GenerateRequest"></a>
+<a name="gid-GenerateRequest"></a>
 
 ### GenerateRequest
 Generate a unique ID. Defaults to uuid.
@@ -543,7 +264,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.GenerateResponse"></a>
+<a name="gid-GenerateResponse"></a>
 
 ### GenerateResponse
 
@@ -559,23 +280,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.MessageWithBody"></a>
-
-### MessageWithBody
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| id | [string](#string) |  |  |
-| data | [Body](#gid.Body) |  |  |
-
-
-
-
-
-
-<a name="gid.Tag"></a>
+<a name="gid-Tag"></a>
 
 ### Tag
 
@@ -591,7 +296,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.TypesRequest"></a>
+<a name="gid-TypesRequest"></a>
 
 ### TypesRequest
 List the types of IDs available. No query params needed.
@@ -601,7 +306,7 @@ List the types of IDs available. No query params needed.
 
 
 
-<a name="gid.TypesResponse"></a>
+<a name="gid-TypesResponse"></a>
 
 ### TypesResponse
 TypesResponse 返回值类型
@@ -615,138 +320,22 @@ TypesResponse 返回值类型
 
 
 
-
-<a name="gid.UpdateBookRequest"></a>
-
-### UpdateBookRequest
-A standard Update message from AIP-134
-
-See: https://google.aip.dev/134#request-message
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| book | [Book](#gid.Book) |  | The book to update.
-
-The book&#39;s `name` field is used to identify the book to be updated. Format: publishers/{publisher}/books/{book} |
-| update_mask | [google.protobuf.FieldMask](#google.protobuf.FieldMask) |  | The list of fields to be updated. |
-| allow_missing | [bool](#bool) |  | If set to true, and the book is not found, a new book will be created. In this situation, `update_mask` is ignored. |
-
-
-
-
-
-
-<a name="gid.UpdateV2Request"></a>
-
-### UpdateV2Request
-UpdateV2Request request for update includes the message and the update mask
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| abe | [ABitOfEverything](#gid.ABitOfEverything) |  |  |
-| update_mask | [google.protobuf.FieldMask](#google.protobuf.FieldMask) |  | The paths to update. |
-
-
-
-
-
  
-
-
-<a name="gid.ABitOfEverything.Nested.DeepEnum"></a>
-
-### ABitOfEverything.Nested.DeepEnum
-DeepEnum is one or zero.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| FALSE | 0 | FALSE is false. |
-| TRUE | 1 | TRUE is true. |
-
-
-
-<a name="gid.NumericEnum"></a>
-
-### NumericEnum
-NumericEnum is one or zero.
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| ZERO | 0 | ZERO means 0 |
-| ONE | 1 | ONE means 1 |
-
 
  
 
  
 
 
-<a name="gid.ABitOfEverythingService"></a>
-
-### ABitOfEverythingService
-ABitOfEverything service is used to validate that APIs with complicated
-proto messages and URL templates are still processed correctly.
-
-| Method Name | Request Type | Response Type | Description |
-| ----------- | ------------ | ------------- | ------------|
-| Create | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) | Create a new ABitOfEverything
-
-This API creates a new ABitOfEverything |
-| CreateBody | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CreateBook | [CreateBookRequest](#gid.CreateBookRequest) | [Book](#gid.Book) | Create a book. |
-| UpdateBook | [UpdateBookRequest](#gid.UpdateBookRequest) | [Book](#gid.Book) |  |
-| Update | [ABitOfEverything](#gid.ABitOfEverything) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| UpdateV2 | [UpdateV2Request](#gid.UpdateV2Request) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| GetQuery | [ABitOfEverything](#gid.ABitOfEverything) | [.google.protobuf.Empty](#google.protobuf.Empty) | rpc Delete(grpc.gateway.examples.internal.proto.sub2.IdMessage) returns (google.protobuf.Empty) { option (google.api.http) = { delete: &#34;/v1/example/a_bit_of_everything/{uuid}&#34; }; option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { security: { security_requirement: { key: &#34;ApiKeyAuth&#34;; value: {} } security_requirement: { key: &#34;OAuth2&#34;; value: { scope: &#34;read&#34;; scope: &#34;write&#34;; } } } extensions: { key: &#34;x-irreversible&#34;; value { bool_value: true; } } }; } |
-| GetRepeatedQuery | [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated) | [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated) |  |
-| DeepPathEcho | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) | Echo allows posting a StringMessage value.
-
-It also exposes multiple bindings.
-
-This makes it useful when validating that the OpenAPI v2 API description exposes documentation correctly on all paths defined as additional_bindings in the proto. rpc Echo(grpc.gateway.examples.internal.proto.sub.StringMessage) returns (grpc.gateway.examples.internal.proto.sub.StringMessage) { option (google.api.http) = { get: &#34;/v1/example/a_bit_of_everything/echo/{value}&#34; additional_bindings { post: &#34;/v2/example/echo&#34; body: &#34;value&#34; } additional_bindings { get: &#34;/v2/example/echo&#34; } }; option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { description: &#34;Description Echo&#34;; summary: &#34;Summary: Echo rpc&#34;; tags: &#34;echo rpc&#34;; external_docs: { url: &#34;https://github.com/grpc-ecosystem/grpc-gateway&#34;; description: &#34;Find out more Echo&#34;; } responses: { key: &#34;200&#34; value: { examples: { key: &#34;application/json&#34; value: &#39;{&#34;value&#34;: &#34;the input value&#34;}&#39; } } } responses: { key: &#34;503&#34;; value: { description: &#34;Returned when the resource is temporarily unavailable.&#34;; extensions: { key: &#34;x-number&#34;; value { number_value: 100; } } } } responses: { // Overwrites global definition. key: &#34;404&#34;; value: { description: &#34;Returned when the resource does not exist.&#34;; schema: { json_schema: { type: INTEGER; } } } } }; } |
-| NoBindings | [.google.protobuf.Duration](#google.protobuf.Duration) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| Timeout | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| ErrorWithDetails | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| GetMessageWithBody | [MessageWithBody](#gid.MessageWithBody) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| PostWithEmptyBody | [Body](#gid.Body) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| CheckGetQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CheckNestedEnumGetQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CheckPostQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| OverwriteResponseContentType | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.StringValue](#google.protobuf.StringValue) |  |
-| CheckStatus | [.google.protobuf.Empty](#google.protobuf.Empty) | [CheckStatusResponse](#gid.CheckStatusResponse) |  |
-
-
-<a name="gid.AnotherServiceWithNoBindings"></a>
-
-### AnotherServiceWithNoBindings
-
-
-| Method Name | Request Type | Response Type | Description |
-| ----------- | ------------ | ------------- | ------------|
-| NoBindings | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-
-
-<a name="gid.Id"></a>
+<a name="gid-Id"></a>
 
 ### Id
 Id 生成随机ID服务
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Generate | [GenerateRequest](#gid.GenerateRequest) | [GenerateResponse](#gid.GenerateResponse) | Generate 生成ID |
-| Types | [TypesRequest](#gid.TypesRequest) | [TypesResponse](#gid.TypesResponse) | Types id类型 |
-
-
-<a name="gid.camelCaseServiceName"></a>
-
-### camelCaseServiceName
-camelCase and lowercase service names are valid but not recommended (use TitleCase instead)
-
-| Method Name | Request Type | Response Type | Description |
-| ----------- | ------------ | ------------- | ------------|
-| Empty | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
+| Generate | [GenerateRequest](#gid-GenerateRequest) | [GenerateResponse](#gid-GenerateResponse) | Generate 生成ID |
+| Types | [TypesRequest](#gid-TypesRequest) | [TypesResponse](#gid-TypesResponse) | Types id类型 |
 
  
 

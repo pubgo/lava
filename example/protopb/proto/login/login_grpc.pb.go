@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // LoginClient is the client API for Login service.
@@ -78,7 +79,7 @@ type UnsafeLoginServer interface {
 }
 
 func RegisterLoginServer(s grpc.ServiceRegistrar, srv LoginServer) {
-	s.RegisterService(&_Login_serviceDesc, srv)
+	s.RegisterService(&Login_ServiceDesc, srv)
 }
 
 func _Login_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -117,7 +118,10 @@ func _Login_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Login_serviceDesc = grpc.ServiceDesc{
+// Login_ServiceDesc is the grpc.ServiceDesc for Login service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Login_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "login.Login",
 	HandlerType: (*LoginServer)(nil),
 	Methods: []grpc.MethodDesc{

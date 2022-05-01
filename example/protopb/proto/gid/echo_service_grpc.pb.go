@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // EchoServiceClient is the client API for EchoService service.
@@ -136,7 +137,7 @@ type UnsafeEchoServiceServer interface {
 }
 
 func RegisterEchoServiceServer(s grpc.ServiceRegistrar, srv EchoServiceServer) {
-	s.RegisterService(&_EchoService_serviceDesc, srv)
+	s.RegisterService(&EchoService_ServiceDesc, srv)
 }
 
 func _EchoService_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -229,7 +230,10 @@ func _EchoService_EchoUnauthorized_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-var _EchoService_serviceDesc = grpc.ServiceDesc{
+// EchoService_ServiceDesc is the grpc.ServiceDesc for EchoService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var EchoService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gid.EchoService",
 	HandlerType: (*EchoServiceServer)(nil),
 	Methods: []grpc.MethodDesc{

@@ -1,0 +1,13 @@
+registry:
+  - _id: default
+    driver: "etcd"
+    driver_config:
+      name: "default"
+      path: "/etcd"
+      prefix: ""
+      projects: "hello"
+
+  - _id: abc
+    driver: "mdns"
+    driver_config:
+      ttl: "5s"

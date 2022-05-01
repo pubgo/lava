@@ -6,20 +6,10 @@ import (
 	"strings"
 )
 
-// Prefix 系统环境变量前缀
-var Prefix = os.Getenv(strings.ToUpper("env_prefix"))
-
 var trim = strings.TrimSpace
 
-func handleKey(key string) string {
-	if !strings.HasPrefix(key, Prefix) {
-		key = Prefix + "_" + key
-	}
-	return strings.ToUpper(key)
-}
-
 func Set(key, value string) error {
-	return os.Setenv(handleKey(key), value)
+	return os.Setenv(key, value)
 }
 
 func Get(names ...string) string {
@@ -81,26 +71,31 @@ func GetFloatVal(val *float64, names ...string) {
 }
 
 func Lookup(key string) (string, bool) {
-	return os.LookupEnv(handleKey(key))
+	return os.LookupEnv(key)
 }
 
-func Unsetenv(key string) error {
-	return os.Unsetenv(handleKey(key))
+func UnSetenv(key string) error {
+	return os.Unsetenv(key)
 }
 
 // Expand returns value of convert with environment variable.
 // Return environment variable if value start with "${" and end with "}".
 // Return default value if environment variable is empty or not exist.
 //
-// It accept value formats "${env}" , "${env|}}" , "${env||defaultValue}" , "defaultvalue".
+// It accepts value formats "${env}" ,"${env||defaultValue}" , "defaultValue".
 // Examples:
-//	v1 := config.Expand("${GOPATH}")			// return the GOPATH environment variable.
-//	v2 := config.Expand("${GOPATH||/usr/local/go}")	// return the default value "/usr/local/go/".
-//	v3 := config.Expand("Astaxie")				// return the value "Astaxie".
-func Expand(value string) string {
+//	_ = config.Expand("${GOPATH}")
+//	_ = config.Expand("${GOPATH||/usr/local/go}")
+//	_ = config.Expand("hello")
+func Expand(value string, keyHandles ...func(string) string) string {
+	var key = func(args string) string { return args }
+	if len(keyHandles) > 0 {
+		key = keyHandles[0]
+	}
+
 	return os.Expand(value, func(s string) string {
 		vs := strings.Split(s, "||")
-		v := Get(trim(vs[0]))
+		v := Get(key(trim(vs[0])))
 		if len(vs) == 2 && v == "" {
 			v = trim(vs[1])
 		}
@@ -125,4 +120,18 @@ func List() map[string]string {
 		data[key] = trim(val)
 	}
 	return data
+}
+
+func Key(key string) string {
+	if !strings.HasPrefix(key, Cfg.Prefix) {
+		key = Cfg.Prefix + Cfg.Separator + key
+	}
+	return strings.ToUpper(key)
+}
+
+func KeyOf(str ...string) []string {
+	for i := range str {
+		str[i] = strings.ToUpper(Key(str[i]))
+	}
+	return str
 }

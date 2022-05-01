@@ -1,0 +1,4 @@
+broker:
+  - _id: default
+    driver: "nsq"
+    driver_config: "nsq"

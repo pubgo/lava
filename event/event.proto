@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package event;
+
+option go_package = "github.com/pubgo/lava/event;event";
+
+enum EventType {
+  UNKNOWN = 0;
+  CREATE = 1;
+  UPDATE = 2;
+  DELETE = 3;
+}

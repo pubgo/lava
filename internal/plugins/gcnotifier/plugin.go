@@ -1,34 +1,43 @@
 package gcnotifier
 
 import (
+	"context"
+	"go.uber.org/fx"
+
 	"github.com/CAFxX/gcnotifier"
 
-	"github.com/pubgo/lava/logz"
-	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/plugins/syncx"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/service"
 )
 
 var Name = "gc"
-var logs = logz.Component(Name)
+var logs = logging.Component(Name)
 
 func init() {
-	if runenv.IsProd() || runenv.IsRelease() {
+	if runtime.IsProd() || runtime.IsRelease() {
 		return
 	}
 
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		OnInit: func(p plugin.Process) {
-			syncx.GoSafe(func() {
+	inject.Register(fx.Invoke(func(srv service.Service) {
+		srv.AfterStops(func() {
+			syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()
 				defer gc.Close()
 
-				// TODO hook
-				for range gc.AfterGC() {
-					logs.Infow("gc notify")
+				// TODO handler
+
+				for {
+					select {
+					case <-gc.AfterGC():
+						logs.L().Info("gc notify")
+					case <-ctx.Done():
+						return
+					}
 				}
 			})
-		},
-	})
+		})
+	}))
 }

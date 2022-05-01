@@ -1,16 +1,18 @@
 package restc
 
 import (
+	"context"
 	"crypto/tls"
+	"github.com/pubgo/lava/middleware"
 	"net/http"
 	"time"
 
-	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/retry"
 	"github.com/pubgo/lava/plugin"
-	"github.com/pubgo/lava/types"
 )
 
 type Cfg struct {
@@ -22,7 +24,7 @@ type Cfg struct {
 	Socks5      string
 	Insecure    bool
 	Header      map[string]string
-	Middlewares []types.Middleware
+	Middlewares []middleware.Middleware
 	BasePath    string
 
 	backoff   retry.Backoff
@@ -41,12 +43,12 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	}
 
 	c := &http.Client{Transport: DefaultPooledTransport()}
-	xerror.Panic(merge.CopyStruct(c, t))
+	xerror.Panic(merge.Struct(c, t))
 
 	//var certs []tls.Certificate
 	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
-	var middlewares []types.Middleware
+	var middlewares []middleware.Middleware
 
 	// 加载插件
 	// 加载全局
@@ -60,8 +62,10 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	// 加载业务自定义
 	middlewares = append(middlewares, t.Middlewares...)
 
-	var client = &clientImpl{client: c}
-	client.do = doFunc(client)
+	var client = &clientImpl{client: &fasthttp.Client{}}
+	client.do = func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+		return client.client.Do(req.(*Request).req, resp.(*Response).resp)
+	}
 	for i := len(middlewares); i > 0; i-- {
 		client.do = middlewares[i-1](client.do)
 	}

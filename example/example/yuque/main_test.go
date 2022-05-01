@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/xerror"
 )
 
@@ -19,7 +19,7 @@ func TestMain(t *testing.M) {
 	env.Load("../../../.env")
 
 	cli = resty.New().
-		SetDebug(runenv.IsDev()).
+		SetDebug(runtime.IsDev()).
 		SetContentLength(true).
 		SetBaseURL("https://www.yuque.com/api/v2").
 		SetRetryCount(3).

@@ -1,6 +1,7 @@
 package merge
 
 import (
+	"github.com/pubgo/xerror"
 	"testing"
 
 	"github.com/pubgo/x/q"
@@ -8,6 +9,7 @@ import (
 
 type dst struct {
 	name  string
+	Name  string
 	Hello string `json:"hello"`
 }
 
@@ -25,14 +27,18 @@ func TestStruct(t *testing.T) {
 
 	var rr = &src{Name: "2", Hello: "2"}
 	q.Q(Struct(&dd, &rr))
+
+	var d1 = map[string]interface{}{"a": src{Name: "2", Hello: "2"}}
+	var d2 = map[string]dst{"a": {Name: "1", Hello: "1"}, "b": {Name: "1", Hello: "1"}}
+	xerror.Panic(Copy(&d1, &d2))
 }
 
 func TestMapStruct(t *testing.T) {
 	q.Q(MapStruct(&dst{name: "1", Hello: "1"}, map[string]interface{}{"name": "2", "hello": "2"}))
 	q.Q(MapStruct(&dst{name: "1", Hello: "1"}, &map[string]interface{}{"name": "2", "hello": "2"}))
 
-	var dd = &dst{name: "1", Hello: "1"}
-	q.Q(MapStruct(&dd, &map[string]interface{}{"name": "2", "hello": "2"}))
+	var dd map[string]dst
+	q.Q(MapStruct(&dd, map[string]map[string]interface{}{"name": {"name": "2", "hello": "2"}, "hello": {"name": "2", "hello": "2"}}))
 
 	//var rr = &map[string]interface{}{"name": "2", "hello": "2"}
 	//q.Q(MapStruct(&dd, &rr)) // error

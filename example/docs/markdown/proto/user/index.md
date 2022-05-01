@@ -3,48 +3,48 @@
 
 ## Table of Contents
 
-- [proto/user/user.proto](#proto/user/user.proto)
-    - [ABitOfEverything](#gid.ABitOfEverything)
-    - [ABitOfEverything.MapValueEntry](#gid.ABitOfEverything.MapValueEntry)
-    - [ABitOfEverything.MappedNestedValueEntry](#gid.ABitOfEverything.MappedNestedValueEntry)
-    - [ABitOfEverything.MappedStringValueEntry](#gid.ABitOfEverything.MappedStringValueEntry)
-    - [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested)
-    - [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated)
-    - [Body](#gid.Body)
-    - [Book](#gid.Book)
-    - [CheckStatusResponse](#gid.CheckStatusResponse)
-    - [CreateBookRequest](#gid.CreateBookRequest)
-    - [ErrorObject](#gid.ErrorObject)
-    - [ErrorResponse](#gid.ErrorResponse)
-    - [GenerateRequest](#gid.GenerateRequest)
-    - [GenerateResponse](#gid.GenerateResponse)
-    - [MessageWithBody](#gid.MessageWithBody)
-    - [Tag](#gid.Tag)
-    - [TypesRequest](#gid.TypesRequest)
-    - [TypesResponse](#gid.TypesResponse)
-    - [UpdateBookRequest](#gid.UpdateBookRequest)
-    - [UpdateV2Request](#gid.UpdateV2Request)
+- [proto/user/user.proto](#proto_user_user-proto)
+    - [ABitOfEverything](#gid-ABitOfEverything)
+    - [ABitOfEverything.MapValueEntry](#gid-ABitOfEverything-MapValueEntry)
+    - [ABitOfEverything.MappedNestedValueEntry](#gid-ABitOfEverything-MappedNestedValueEntry)
+    - [ABitOfEverything.MappedStringValueEntry](#gid-ABitOfEverything-MappedStringValueEntry)
+    - [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested)
+    - [ABitOfEverythingRepeated](#gid-ABitOfEverythingRepeated)
+    - [Body](#gid-Body)
+    - [Book](#gid-Book)
+    - [CheckStatusResponse](#gid-CheckStatusResponse)
+    - [CreateBookRequest](#gid-CreateBookRequest)
+    - [ErrorObject](#gid-ErrorObject)
+    - [ErrorResponse](#gid-ErrorResponse)
+    - [GenerateRequest](#gid-GenerateRequest)
+    - [GenerateResponse](#gid-GenerateResponse)
+    - [MessageWithBody](#gid-MessageWithBody)
+    - [Tag](#gid-Tag)
+    - [TypesRequest](#gid-TypesRequest)
+    - [TypesResponse](#gid-TypesResponse)
+    - [UpdateBookRequest](#gid-UpdateBookRequest)
+    - [UpdateV2Request](#gid-UpdateV2Request)
   
-    - [ABitOfEverything.Nested.DeepEnum](#gid.ABitOfEverything.Nested.DeepEnum)
-    - [NumericEnum](#gid.NumericEnum)
+    - [ABitOfEverything.Nested.DeepEnum](#gid-ABitOfEverything-Nested-DeepEnum)
+    - [NumericEnum](#gid-NumericEnum)
   
-    - [ABitOfEverythingService](#gid.ABitOfEverythingService)
-    - [AnotherServiceWithNoBindings](#gid.AnotherServiceWithNoBindings)
-    - [User](#gid.User)
-    - [camelCaseServiceName](#gid.camelCaseServiceName)
+    - [ABitOfEverythingService](#gid-ABitOfEverythingService)
+    - [AnotherServiceWithNoBindings](#gid-AnotherServiceWithNoBindings)
+    - [User](#gid-User)
+    - [camelCaseServiceName](#gid-camelCaseServiceName)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="proto/user/user.proto"></a>
+<a name="proto_user_user-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/user/user.proto
 
 
 
-<a name="gid.ABitOfEverything"></a>
+<a name="gid-ABitOfEverything"></a>
 
 ### ABitOfEverything
 Intentionally complicated message type to cover many features of Protobuf.
@@ -52,9 +52,9 @@ Intentionally complicated message type to cover many features of Protobuf.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| single_nested | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  |  |
+| single_nested | [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested) |  |  |
 | uuid | [string](#string) |  |  |
-| nested | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) | repeated |  |
+| nested | [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested) | repeated |  |
 | float_value | [float](#float) |  |  |
 | double_value | [double](#double) |  |  |
 | int64_value | [int64](#int64) |  |  |
@@ -66,25 +66,25 @@ Intentionally complicated message type to cover many features of Protobuf.
 | string_value | [string](#string) |  |  |
 | bytes_value | [bytes](#bytes) |  |  |
 | uint32_value | [uint32](#uint32) |  |  |
-| enum_value | [NumericEnum](#gid.NumericEnum) |  |  |
+| enum_value | [NumericEnum](#gid-NumericEnum) |  |  |
 | sfixed32_value | [sfixed32](#sfixed32) |  |  |
 | sfixed64_value | [sfixed64](#sfixed64) |  |  |
 | sint32_value | [sint32](#sint32) |  |  |
 | sint64_value | [sint64](#sint64) |  |  |
 | repeated_string_value | [string](#string) | repeated |  |
-| oneof_empty | [google.protobuf.Empty](#google.protobuf.Empty) |  |  |
+| oneof_empty | [google.protobuf.Empty](#google-protobuf-Empty) |  |  |
 | oneof_string | [string](#string) |  |  |
-| map_value | [ABitOfEverything.MapValueEntry](#gid.ABitOfEverything.MapValueEntry) | repeated |  |
-| mapped_string_value | [ABitOfEverything.MappedStringValueEntry](#gid.ABitOfEverything.MappedStringValueEntry) | repeated |  |
-| mapped_nested_value | [ABitOfEverything.MappedNestedValueEntry](#gid.ABitOfEverything.MappedNestedValueEntry) | repeated |  |
+| map_value | [ABitOfEverything.MapValueEntry](#gid-ABitOfEverything-MapValueEntry) | repeated |  |
+| mapped_string_value | [ABitOfEverything.MappedStringValueEntry](#gid-ABitOfEverything-MappedStringValueEntry) | repeated |  |
+| mapped_nested_value | [ABitOfEverything.MappedNestedValueEntry](#gid-ABitOfEverything-MappedNestedValueEntry) | repeated |  |
 | nonConventionalNameValue | [string](#string) |  |  |
-| timestamp_value | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-| repeated_enum_value | [NumericEnum](#gid.NumericEnum) | repeated | repeated enum value. it is comma-separated in query |
-| repeated_enum_annotation | [NumericEnum](#gid.NumericEnum) | repeated | repeated numeric enum comment (This comment is overridden by the field annotation) |
-| enum_value_annotation | [NumericEnum](#gid.NumericEnum) |  | numeric enum comment (This comment is overridden by the field annotation) |
+| timestamp_value | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| repeated_enum_value | [NumericEnum](#gid-NumericEnum) | repeated | repeated enum value. it is comma-separated in query |
+| repeated_enum_annotation | [NumericEnum](#gid-NumericEnum) | repeated | repeated numeric enum comment (This comment is overridden by the field annotation) |
+| enum_value_annotation | [NumericEnum](#gid-NumericEnum) |  | numeric enum comment (This comment is overridden by the field annotation) |
 | repeated_string_annotation | [string](#string) | repeated | repeated string comment (This comment is overridden by the field annotation) |
-| repeated_nested_annotation | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) | repeated | repeated nested object comment (This comment is overridden by the field annotation) |
-| nested_annotation | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  | nested object comments (This comment is overridden by the field annotation) |
+| repeated_nested_annotation | [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested) | repeated | repeated nested object comment (This comment is overridden by the field annotation) |
+| nested_annotation | [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested) |  | nested object comments (This comment is overridden by the field annotation) |
 | int64_override_type | [int64](#int64) |  |  |
 | required_string_via_field_behavior_annotation | [string](#string) |  | mark a field as required in Open API definition |
 | output_only_string_via_field_behavior_annotation | [string](#string) |  | mark a field as readonly in Open API definition |
@@ -94,7 +94,7 @@ Intentionally complicated message type to cover many features of Protobuf.
 
 
 
-<a name="gid.ABitOfEverything.MapValueEntry"></a>
+<a name="gid-ABitOfEverything-MapValueEntry"></a>
 
 ### ABitOfEverything.MapValueEntry
 
@@ -103,14 +103,14 @@ Intentionally complicated message type to cover many features of Protobuf.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| value | [NumericEnum](#gid.NumericEnum) |  |  |
+| value | [NumericEnum](#gid-NumericEnum) |  |  |
 
 
 
 
 
 
-<a name="gid.ABitOfEverything.MappedNestedValueEntry"></a>
+<a name="gid-ABitOfEverything-MappedNestedValueEntry"></a>
 
 ### ABitOfEverything.MappedNestedValueEntry
 
@@ -119,14 +119,14 @@ Intentionally complicated message type to cover many features of Protobuf.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| value | [ABitOfEverything.Nested](#gid.ABitOfEverything.Nested) |  |  |
+| value | [ABitOfEverything.Nested](#gid-ABitOfEverything-Nested) |  |  |
 
 
 
 
 
 
-<a name="gid.ABitOfEverything.MappedStringValueEntry"></a>
+<a name="gid-ABitOfEverything-MappedStringValueEntry"></a>
 
 ### ABitOfEverything.MappedStringValueEntry
 
@@ -142,7 +142,7 @@ Intentionally complicated message type to cover many features of Protobuf.
 
 
 
-<a name="gid.ABitOfEverything.Nested"></a>
+<a name="gid-ABitOfEverything-Nested"></a>
 
 ### ABitOfEverything.Nested
 Nested is nested type.
@@ -152,14 +152,14 @@ Nested is nested type.
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | name is nested field. |
 | amount | [uint32](#uint32) |  |  |
-| ok | [ABitOfEverything.Nested.DeepEnum](#gid.ABitOfEverything.Nested.DeepEnum) |  | DeepEnum comment. |
+| ok | [ABitOfEverything.Nested.DeepEnum](#gid-ABitOfEverything-Nested-DeepEnum) |  | DeepEnum comment. |
 
 
 
 
 
 
-<a name="gid.ABitOfEverythingRepeated"></a>
+<a name="gid-ABitOfEverythingRepeated"></a>
 
 ### ABitOfEverythingRepeated
 ABitOfEverythingRepeated is used to validate repeated path parameter functionality
@@ -178,7 +178,7 @@ ABitOfEverythingRepeated is used to validate repeated path parameter functionali
 | path_repeated_string_value | [string](#string) | repeated |  |
 | path_repeated_bytes_value | [bytes](#bytes) | repeated |  |
 | path_repeated_uint32_value | [uint32](#uint32) | repeated |  |
-| path_repeated_enum_value | [NumericEnum](#gid.NumericEnum) | repeated |  |
+| path_repeated_enum_value | [NumericEnum](#gid-NumericEnum) | repeated |  |
 | path_repeated_sfixed32_value | [sfixed32](#sfixed32) | repeated |  |
 | path_repeated_sfixed64_value | [sfixed64](#sfixed64) | repeated |  |
 | path_repeated_sint32_value | [sint32](#sint32) | repeated |  |
@@ -189,7 +189,7 @@ ABitOfEverythingRepeated is used to validate repeated path parameter functionali
 
 
 
-<a name="gid.Body"></a>
+<a name="gid-Body"></a>
 
 ### Body
 
@@ -204,7 +204,7 @@ ABitOfEverythingRepeated is used to validate repeated path parameter functionali
 
 
 
-<a name="gid.Book"></a>
+<a name="gid-Book"></a>
 
 ### Book
 An example resource type from AIP-123 used to test the behavior described in
@@ -221,14 +221,14 @@ Format: `publishers/{publisher}/books/{book}`
 
 Example: `publishers/1257894000000000000/books/my-book` |
 | id | [string](#string) |  | Output only. The book&#39;s ID. |
-| create_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | Output only. Creation time of the book. |
+| create_time | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  | Output only. Creation time of the book. |
 
 
 
 
 
 
-<a name="gid.CheckStatusResponse"></a>
+<a name="gid-CheckStatusResponse"></a>
 
 ### CheckStatusResponse
 
@@ -236,14 +236,14 @@ Example: `publishers/1257894000000000000/books/my-book` |
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| status | [google.rpc.Status](#google.rpc.Status) |  |  |
+| status | [google.rpc.Status](#google-rpc-Status) |  |  |
 
 
 
 
 
 
-<a name="gid.CreateBookRequest"></a>
+<a name="gid-CreateBookRequest"></a>
 
 ### CreateBookRequest
 A standard Create message from AIP-133 with a user-specified ID.
@@ -260,7 +260,7 @@ See: https://google.aip.dev/133#user-specified-ids
 Format: `publishers/{publisher}`
 
 Example: `publishers/1257894000000000000` |
-| book | [Book](#gid.Book) |  | The book to create. |
+| book | [Book](#gid-Book) |  | The book to create. |
 | book_id | [string](#string) |  | The ID to use for the book.
 
 This must start with an alphanumeric character. |
@@ -270,7 +270,7 @@ This must start with an alphanumeric character. |
 
 
 
-<a name="gid.ErrorObject"></a>
+<a name="gid-ErrorObject"></a>
 
 ### ErrorObject
 
@@ -286,7 +286,7 @@ This must start with an alphanumeric character. |
 
 
 
-<a name="gid.ErrorResponse"></a>
+<a name="gid-ErrorResponse"></a>
 
 ### ErrorResponse
 
@@ -295,14 +295,14 @@ This must start with an alphanumeric character. |
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | correlationId | [string](#string) |  |  |
-| error | [ErrorObject](#gid.ErrorObject) |  |  |
+| error | [ErrorObject](#gid-ErrorObject) |  |  |
 
 
 
 
 
 
-<a name="gid.GenerateRequest"></a>
+<a name="gid-GenerateRequest"></a>
 
 ### GenerateRequest
 Generate a unique ID. Defaults to uuid.
@@ -317,7 +317,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.GenerateResponse"></a>
+<a name="gid-GenerateResponse"></a>
 
 ### GenerateResponse
 
@@ -333,7 +333,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.MessageWithBody"></a>
+<a name="gid-MessageWithBody"></a>
 
 ### MessageWithBody
 
@@ -342,14 +342,14 @@ Generate a unique ID. Defaults to uuid.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | id | [string](#string) |  |  |
-| data | [Body](#gid.Body) |  |  |
+| data | [Body](#gid-Body) |  |  |
 
 
 
 
 
 
-<a name="gid.Tag"></a>
+<a name="gid-Tag"></a>
 
 ### Tag
 
@@ -365,7 +365,7 @@ Generate a unique ID. Defaults to uuid.
 
 
 
-<a name="gid.TypesRequest"></a>
+<a name="gid-TypesRequest"></a>
 
 ### TypesRequest
 List the types of IDs available. No query params needed.
@@ -375,7 +375,7 @@ List the types of IDs available. No query params needed.
 
 
 
-<a name="gid.TypesResponse"></a>
+<a name="gid-TypesResponse"></a>
 
 ### TypesResponse
 TypesResponse 返回值类型
@@ -390,7 +390,7 @@ TypesResponse 返回值类型
 
 
 
-<a name="gid.UpdateBookRequest"></a>
+<a name="gid-UpdateBookRequest"></a>
 
 ### UpdateBookRequest
 A standard Update message from AIP-134
@@ -400,10 +400,10 @@ See: https://google.aip.dev/134#request-message
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| book | [Book](#gid.Book) |  | The book to update.
+| book | [Book](#gid-Book) |  | The book to update.
 
 The book&#39;s `name` field is used to identify the book to be updated. Format: publishers/{publisher}/books/{book} |
-| update_mask | [google.protobuf.FieldMask](#google.protobuf.FieldMask) |  | The list of fields to be updated. |
+| update_mask | [google.protobuf.FieldMask](#google-protobuf-FieldMask) |  | The list of fields to be updated. |
 | allow_missing | [bool](#bool) |  | If set to true, and the book is not found, a new book will be created. In this situation, `update_mask` is ignored. |
 
 
@@ -411,7 +411,7 @@ The book&#39;s `name` field is used to identify the book to be updated. Format: 
 
 
 
-<a name="gid.UpdateV2Request"></a>
+<a name="gid-UpdateV2Request"></a>
 
 ### UpdateV2Request
 UpdateV2Request request for update includes the message and the update mask
@@ -419,8 +419,8 @@ UpdateV2Request request for update includes the message and the update mask
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| abe | [ABitOfEverything](#gid.ABitOfEverything) |  |  |
-| update_mask | [google.protobuf.FieldMask](#google.protobuf.FieldMask) |  | The paths to update. |
+| abe | [ABitOfEverything](#gid-ABitOfEverything) |  |  |
+| update_mask | [google.protobuf.FieldMask](#google-protobuf-FieldMask) |  | The paths to update. |
 
 
 
@@ -429,7 +429,7 @@ UpdateV2Request request for update includes the message and the update mask
  
 
 
-<a name="gid.ABitOfEverything.Nested.DeepEnum"></a>
+<a name="gid-ABitOfEverything-Nested-DeepEnum"></a>
 
 ### ABitOfEverything.Nested.DeepEnum
 DeepEnum is one or zero.
@@ -441,7 +441,7 @@ DeepEnum is one or zero.
 
 
 
-<a name="gid.NumericEnum"></a>
+<a name="gid-NumericEnum"></a>
 
 ### NumericEnum
 NumericEnum is one or zero.
@@ -457,7 +457,7 @@ NumericEnum is one or zero.
  
 
 
-<a name="gid.ABitOfEverythingService"></a>
+<a name="gid-ABitOfEverythingService"></a>
 
 ### ABitOfEverythingService
 ABitOfEverything service is used to validate that APIs with complicated
@@ -465,62 +465,62 @@ proto messages and URL templates are still processed correctly.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Create | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) | Create a new ABitOfEverything
+| Create | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) | Create a new ABitOfEverything
 
 This API creates a new ABitOfEverything |
-| CreateBody | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CreateBook | [CreateBookRequest](#gid.CreateBookRequest) | [Book](#gid.Book) | Create a book. |
-| UpdateBook | [UpdateBookRequest](#gid.UpdateBookRequest) | [Book](#gid.Book) |  |
-| Update | [ABitOfEverything](#gid.ABitOfEverything) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| UpdateV2 | [UpdateV2Request](#gid.UpdateV2Request) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| GetQuery | [ABitOfEverything](#gid.ABitOfEverything) | [.google.protobuf.Empty](#google.protobuf.Empty) | rpc Delete(grpc.gateway.examples.internal.proto.sub2.IdMessage) returns (google.protobuf.Empty) { option (google.api.http) = { delete: &#34;/v1/example/a_bit_of_everything/{uuid}&#34; }; option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { security: { security_requirement: { key: &#34;ApiKeyAuth&#34;; value: {} } security_requirement: { key: &#34;OAuth2&#34;; value: { scope: &#34;read&#34;; scope: &#34;write&#34;; } } } extensions: { key: &#34;x-irreversible&#34;; value { bool_value: true; } } }; } |
-| GetRepeatedQuery | [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated) | [ABitOfEverythingRepeated](#gid.ABitOfEverythingRepeated) |  |
-| DeepPathEcho | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) | Echo allows posting a StringMessage value.
+| CreateBody | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) |  |
+| CreateBook | [CreateBookRequest](#gid-CreateBookRequest) | [Book](#gid-Book) | Create a book. |
+| UpdateBook | [UpdateBookRequest](#gid-UpdateBookRequest) | [Book](#gid-Book) |  |
+| Update | [ABitOfEverything](#gid-ABitOfEverything) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| UpdateV2 | [UpdateV2Request](#gid-UpdateV2Request) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| GetQuery | [ABitOfEverything](#gid-ABitOfEverything) | [.google.protobuf.Empty](#google-protobuf-Empty) | rpc Delete(grpc.gateway.examples.internal.proto.sub2.IdMessage) returns (google.protobuf.Empty) { option (google.api.http) = { delete: &#34;/v1/example/a_bit_of_everything/{uuid}&#34; }; option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { security: { security_requirement: { key: &#34;ApiKeyAuth&#34;; value: {} } security_requirement: { key: &#34;OAuth2&#34;; value: { scope: &#34;read&#34;; scope: &#34;write&#34;; } } } extensions: { key: &#34;x-irreversible&#34;; value { bool_value: true; } } }; } |
+| GetRepeatedQuery | [ABitOfEverythingRepeated](#gid-ABitOfEverythingRepeated) | [ABitOfEverythingRepeated](#gid-ABitOfEverythingRepeated) |  |
+| DeepPathEcho | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) | Echo allows posting a StringMessage value.
 
 It also exposes multiple bindings.
 
 This makes it useful when validating that the OpenAPI v2 API description exposes documentation correctly on all paths defined as additional_bindings in the proto. rpc Echo(grpc.gateway.examples.internal.proto.sub.StringMessage) returns (grpc.gateway.examples.internal.proto.sub.StringMessage) { option (google.api.http) = { get: &#34;/v1/example/a_bit_of_everything/echo/{value}&#34; additional_bindings { post: &#34;/v2/example/echo&#34; body: &#34;value&#34; } additional_bindings { get: &#34;/v2/example/echo&#34; } }; option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { description: &#34;Description Echo&#34;; summary: &#34;Summary: Echo rpc&#34;; tags: &#34;echo rpc&#34;; external_docs: { url: &#34;https://github.com/grpc-ecosystem/grpc-gateway&#34;; description: &#34;Find out more Echo&#34;; } responses: { key: &#34;200&#34; value: { examples: { key: &#34;application/json&#34; value: &#39;{&#34;value&#34;: &#34;the input value&#34;}&#39; } } } responses: { key: &#34;503&#34;; value: { description: &#34;Returned when the resource is temporarily unavailable.&#34;; extensions: { key: &#34;x-number&#34;; value { number_value: 100; } } } } responses: { // Overwrites global definition. key: &#34;404&#34;; value: { description: &#34;Returned when the resource does not exist.&#34;; schema: { json_schema: { type: INTEGER; } } } } }; } |
-| NoBindings | [.google.protobuf.Duration](#google.protobuf.Duration) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| Timeout | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| ErrorWithDetails | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| GetMessageWithBody | [MessageWithBody](#gid.MessageWithBody) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| PostWithEmptyBody | [Body](#gid.Body) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
-| CheckGetQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CheckNestedEnumGetQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| CheckPostQueryParams | [ABitOfEverything](#gid.ABitOfEverything) | [ABitOfEverything](#gid.ABitOfEverything) |  |
-| OverwriteResponseContentType | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.StringValue](#google.protobuf.StringValue) |  |
-| CheckStatus | [.google.protobuf.Empty](#google.protobuf.Empty) | [CheckStatusResponse](#gid.CheckStatusResponse) |  |
+| NoBindings | [.google.protobuf.Duration](#google-protobuf-Duration) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| Timeout | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| ErrorWithDetails | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| GetMessageWithBody | [MessageWithBody](#gid-MessageWithBody) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| PostWithEmptyBody | [Body](#gid-Body) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
+| CheckGetQueryParams | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) |  |
+| CheckNestedEnumGetQueryParams | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) |  |
+| CheckPostQueryParams | [ABitOfEverything](#gid-ABitOfEverything) | [ABitOfEverything](#gid-ABitOfEverything) |  |
+| OverwriteResponseContentType | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.StringValue](#google-protobuf-StringValue) |  |
+| CheckStatus | [.google.protobuf.Empty](#google-protobuf-Empty) | [CheckStatusResponse](#gid-CheckStatusResponse) |  |
 
 
-<a name="gid.AnotherServiceWithNoBindings"></a>
+<a name="gid-AnotherServiceWithNoBindings"></a>
 
 ### AnotherServiceWithNoBindings
 
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| NoBindings | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
+| NoBindings | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
 
 
-<a name="gid.User"></a>
+<a name="gid-User"></a>
 
 ### User
 User 用户服务
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Generate | [GenerateRequest](#gid.GenerateRequest) | [GenerateResponse](#gid.GenerateResponse) | Generate 生成ID |
-| Types | [TypesRequest](#gid.TypesRequest) | [TypesResponse](#gid.TypesResponse) | Types id类型 |
+| Generate | [GenerateRequest](#gid-GenerateRequest) | [GenerateResponse](#gid-GenerateResponse) | Generate 生成ID |
+| Types | [TypesRequest](#gid-TypesRequest) | [TypesResponse](#gid-TypesResponse) | Types id类型 |
 
 
-<a name="gid.camelCaseServiceName"></a>
+<a name="gid-camelCaseServiceName"></a>
 
 ### camelCaseServiceName
 camelCase and lowercase service names are valid but not recommended (use TitleCase instead)
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Empty | [.google.protobuf.Empty](#google.protobuf.Empty) | [.google.protobuf.Empty](#google.protobuf.Empty) |  |
+| Empty | [.google.protobuf.Empty](#google-protobuf-Empty) | [.google.protobuf.Empty](#google-protobuf-Empty) |  |
 
  
 

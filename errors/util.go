@@ -14,9 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// MaxCode [0,1000]为系统错误, 业务错误code都大于1000
-const MaxCode = 1000
-
 // Err2GrpcCode
 // converts a standard Go error into its canonical code. Note that
 // this is only used to translate the error returned by the server applications.
@@ -191,4 +188,38 @@ func GrpcToHTTPStatusCode(statusCode codes.Code) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+func lavaError(err *Error) codes.Code {
+	switch err {
+	case nil:
+		return codes.OK
+	}
+
+	switch err.Code {
+	case http.StatusOK:
+		return codes.OK
+	case http.StatusBadRequest:
+		return codes.InvalidArgument
+	case http.StatusRequestTimeout:
+		return codes.DeadlineExceeded
+	case http.StatusNotFound:
+		return codes.NotFound
+	case http.StatusConflict:
+		return codes.AlreadyExists
+	case http.StatusForbidden:
+		return codes.PermissionDenied
+	case http.StatusUnauthorized:
+		return codes.Unauthenticated
+	case http.StatusPreconditionFailed:
+		return codes.FailedPrecondition
+	case http.StatusNotImplemented:
+		return codes.Unimplemented
+	case http.StatusInternalServerError:
+		return codes.Internal
+	case http.StatusServiceUnavailable:
+		return codes.Unavailable
+	}
+
+	return codes.Unknown
 }

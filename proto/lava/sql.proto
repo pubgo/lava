@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package lava;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/proto/lava;lava";
+
+message sql {
+  optional string query = 1;
+  optional string exec = 2;
+}
+
+extend google.protobuf.MethodOptions {
+  sql sqlx = 100000;
+}

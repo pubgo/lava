@@ -6,6 +6,16 @@ import (
 	"encoding/hex"
 )
 
+const (
+	base64Str      = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/"
+	base62Str      = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	defaultLetters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
+
+// list of default letters that can be used to make a random string when calling String
+// function with no letters provided
+var defLetters = []rune(defaultLetters)
+
 // Bytes generates n random bytes
 func Bytes(n int) []byte {
 	b := make([]byte, n)
@@ -14,22 +24,14 @@ func Bytes(n int) []byte {
 }
 
 // Base64 generates a random base64 string with length of n
-func Base64(n int) string {
-	return String(n, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/")
-}
+func Base64(n int) string { return String(n, base64Str) }
 
 // Base62 generates a random base62 string with length of n
-func Base62(s int) string {
-	return String(s, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-}
+func Base62(s int) string { return String(s, base62Str) }
 
 // Hex generates a random hex string with length of n
 // e.g: 67aab2d956bd7cc621af22cfb169cba8
 func Hex(n int) string { return hex.EncodeToString(Bytes(n)) }
-
-// list of default letters that can be used to make a random string when calling String
-// function with no letters provided
-var defLetters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // String generates a random string using only letters provided in the letters parameter
 // if user commit letters parameters, this function will use defLetters instead

@@ -4,10 +4,10 @@ app:
   version: "v0.0.1"
   home: ""
   debug: true
-  watcher: false
 watcher:
   driver: "noop"
-  name: "default"
+  driver_config:
+    name: "default"
 recovery:
   enabled: true
 mux:
@@ -83,17 +83,13 @@ nsq:
 http:
   test: ""
 
-db:
-  default:
-    driver: "sqlite3x"
-    source: "./db/sqlite.db"
-
 registry:
   driver: "mdns"
-  ttl: "5s"
+  driver_config:
+    ttl: "5s"
 
 tracing:
-  driver: "jaeger"
+  driver: "noop"
 
 metric:
   driver: "prometheus"
@@ -148,3 +144,16 @@ grpc_entry:
   connection_timeout: 2s
   max_header_list_size: 2
   header_table_size: 1
+
+gorm:
+  driver: "sqlite3"
+  driver_config:
+    dsn: "${cfg_dir}/db/sqlite.db"
+
+timeout: "default"
+signal: "default"
+automaxprocs: "default"
+x-request-id: "default"
+logRecord: "default"
+scheduler: "default"
+logging-ext-grpc: "default"

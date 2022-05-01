@@ -2,18 +2,24 @@ package internal
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
-	"github.com/pubgo/lava/pkg/protoutil"
+	pongo "github.com/flosch/pongo2/v5"
+	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
+	"github.com/valyala/fasttemplate"
 	"google.golang.org/protobuf/compiler/protogen"
+	gp "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
+
+	"github.com/pubgo/lava/pkg/protoutil"
+	"github.com/pubgo/lava/proto/lava"
 )
 
 var (
 	contextCall = protoutil.Import("context")
-	reflectCall = protoutil.Import("reflect")
 	restyCall   = protoutil.Import("github.com/go-resty/resty/v2")
 	jsonCall    = protoutil.Import("github.com/goccy/go-json")
 	stringsCall = protoutil.Import("strings")
@@ -42,22 +48,36 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P()
 
 	g.QualifiedGoIdent(restyCall(""))
-	g.QualifiedGoIdent(reflectCall(""))
 	g.QualifiedGoIdent(jsonCall(""))
 
-	generateFileContent(gen, file, g)
+	if !generateFileContent(gen, file, g) {
+		g.Skip()
+		return nil
+	}
+
 	return g
 }
 
 // generateFileContent generates the service definitions, excluding the package statement.
-func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile) {
+func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile) (ret bool) {
 	for _, srv := range file.Services {
-		genClient(gen, file, g, srv)
+		if genClient(gen, file, g, srv) {
+			ret = true
+		}
 	}
+	return
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, srv *protogen.Service) (ret bool) {
 	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
+
+	if !gp.HasExtension(srv.Desc.Options(), lava.E_Resty) {
+		return false
+	}
+
+	if resty, ok := gp.GetExtension(srv.Desc.Options(), lava.E_Resty).(*lava.Resty); !ok || !resty.Enable {
+		return false
+	}
 
 	clientName := srv.GoName + "Resty"
 	g.P("type ", clientName, " interface {")
@@ -76,7 +96,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.P("}")
 	g.P()
 
-	// Client structure.
+	// Request structure.
 	g.P("type ", unExport(clientName), " struct {")
 	g.P("client *", restyCall("Client"))
 	g.P("}")
@@ -85,7 +105,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	for _, method := range srv.Methods {
 		genClientMethod(gen, file, g, method, 0)
 	}
-	return
+	return true
 }
 
 func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, method *protogen.Method, index int) {
@@ -104,6 +124,7 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	mth = strings.ToUpper(mth)
 
 	g.P("func (c *", unExport(service.GoName), "Resty) ", clientSignature(g, method), "{")
+
 	g.P(`var req = c.client.R()
 	if ctx != nil {
 		req.SetContext(ctx)
@@ -112,47 +133,42 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P("opts[i](req)")
 	g.P("}")
 
-	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`var body map[string]interface{}`)
+	var fieldMap = make(map[string]*protogen.Field)
+	for _, field := range method.Input.Fields {
+		fieldMap[string(field.Desc.Name())] = field
 	}
 
-	g.P("if in != nil {")
-	g.P(`var rv = reflect.ValueOf(in).Elem()`)
-	g.P(`var rt = reflect.TypeOf(in).Elem()`)
-	g.P(`for i := 0; i < rt.NumField(); i++ {`)
+	t, err := fasttemplate.NewTemplate(path, "{", "}")
+	xerror.Panic(err)
+	_ = t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		if fieldMap[tag] == nil {
+			panic(fmt.Sprintf("%v", tag))
+		}
 
-	// url param
-	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, PathTag, `"); ok && val != ""{
-			req.SetPathParam(val, rv.Field(i).String())
-			continue
-		}`)
+		// url param
+		protoutil.Gen(g, `req.SetPathParam("{{key}}", in.{{value}})`, pongo.Context{
+			"key":   tag,
+			"value": handleTagName(tag),
+		})
+		g.P()
+		protoutil.Gen(g, `in.{{value}}=""`, pongo.Context{"value": handleTagName(tag)})
+		g.P()
 
-	// url query
-	g.P(`if val,ok := rt.Field(i).Tag.Lookup("`, QueryTag, `"); ok && val != ""{
-			req.SetQueryParam(val, rv.Field(i).String())
-			continue
-		}`)
+		delete(fieldMap, tag)
+		return 0, nil
+	})
 
 	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P(`if body == nil {
-				body = make(map[string]interface{})
-			}`)
-		g.P(`if val, ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
-				body[val] = rv.Field(i).String()
-			}`)
+	case http.MethodGet, http.MethodHead:
+		for k, v := range fieldMap {
+			protoutil.Gen(g, `req.SetQueryParam("{{key}}", in.{{value}})`, pongo.Context{
+				"key":   k,
+				"value": v.GoName,
+			})
+			g.P()
+		}
 	default:
-		g.P(`if val,ok := rt.Field(i).Tag.Lookup("json"); ok && val != "" {
-			req.SetQueryParam(val, rv.Field(i).String())
-		}`)
-	}
-
-	g.P(`}}`)
-
-	switch mth {
-	case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		g.P("req.SetBody(body)")
+		g.P("req.SetBody(in)")
 	}
 
 	g.P(`var resp, err = req.Execute("`, mth, `","`, path, `")`)
@@ -160,10 +176,14 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 	g.P(`return nil, err`)
 	g.P(`}`)
 	g.P("out := new(", method.Output.GoIdent, ")")
+	g.P(`if err := `, jsonCall("Unmarshal"), `(resp.Body(), out); err != nil {
+		return nil, err
+	}`)
+
 	for i := range method.Output.Fields {
 		if method.Output.Fields[i].GoName == "Response" {
 			g.P(`
-			var headers = make(map[string]string)
+			var headers = make(map[string]string, len(resp.Header()))
 			for k, v := range resp.Header() {
 				headers[k] = `, stringsCall("Join"), `(v, ",")
 			}
@@ -173,10 +193,6 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 			}`)
 		}
 	}
-
-	g.P(`if err := `, jsonCall("Unmarshal"), `(resp.Body(), out); err != nil {
-		return nil, err
-	}`)
 
 	g.P(`return out, nil`)
 	g.P("}")
@@ -205,4 +221,12 @@ func protocVersion(gen *protogen.Plugin) string {
 		suffix = "-" + s
 	}
 	return fmt.Sprintf("v%d.%d.%d%s", v.GetMajor(), v.GetMinor(), v.GetPatch(), suffix)
+}
+
+func handleTagName(name string) string {
+	var names = strings.Split(name, ".")
+	for i := range names {
+		names[i] = strcase.ToCamel(names[i])
+	}
+	return strings.Join(names, ".")
 }

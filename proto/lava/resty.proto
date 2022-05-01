@@ -11,8 +11,16 @@ message Response {
   map<string, string> headers = 2;
 }
 
+message Resty {
+  bool enable = 1;
+}
+
 // Tags are applied at the field level
 extend google.protobuf.FieldOptions {
   string query = 100001;
   string param = 100002;
+}
+
+extend google.protobuf.ServiceOptions {
+  Resty resty = 100000;
 }

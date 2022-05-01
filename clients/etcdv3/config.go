@@ -5,15 +5,11 @@ import (
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	"go.etcd.io/etcd/client/v3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/pkg/retry"
 )
-
-const Name = "etcdv3"
-
-var cfgList = make(map[string]Cfg)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
@@ -32,18 +28,16 @@ type Cfg struct {
 	retry                retry.Retry
 }
 
-func (t Cfg) Build() (c *clientv3.Client) {
+func (t Cfg) Build() *clientv3.Client {
 	var cfg clientv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
 	// 创建etcd client对象
-	return xerror.PanicErr(t.retry.DoVal(
-		func(i int) (interface{}, error) { return clientv3.New(cfg) }),
-	).(*clientv3.Client)
+	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return clientv3.New(cfg) })).(*clientv3.Client)
 }
 
-func GetDefaultCfg() *Cfg {
+func DefaultCfg() *Cfg {
 	return &Cfg{
 		retry:       retry.Default(),
 		DialTimeout: time.Second * 2,

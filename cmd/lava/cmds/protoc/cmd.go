@@ -22,22 +22,25 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/lavax"
 	"github.com/pubgo/lava/pkg/modutil"
 	"github.com/pubgo/lava/pkg/protoutil"
 	"github.com/pubgo/lava/pkg/shutil"
-	"github.com/pubgo/lava/runenv"
-	"github.com/pubgo/lava/types"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/runtime"
 )
 
-var protoRoot []string
-var protoCfg = "protobuf.yaml"
+var (
+	cfg      Cfg
+	protoCfg = "protobuf.yaml"
+	modPath  = filepath.Join(os.Getenv("GOPATH"), "pkg", "mod")
+)
 
 func Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "protoc",
 		Usage: "protobuf generation, configuration and management",
-		Flags: types.Flags{
+		Flags: typex.Flags{
 			&cli.StringFlag{
 				Name:        "protobuf",
 				Usage:       "protobuf config path",
@@ -48,12 +51,25 @@ func Cmd() *cli.Command {
 		Before: func(ctx *cli.Context) error {
 			defer xerror.RespExit()
 
-			xerror.Panic(pathutil.IsNotExistMkDir(protoPath))
-
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
 
-			protoRoot = append(protoRoot, cfg.Root...)
+			if cfg.ProtoPath == "" {
+				protoPath := filepath.Join(runtime.Pwd, ".lava", "proto")
+				if pathutil.IsExist(protoPath) {
+					cfg.ProtoPath = protoPath
+				}
+			}
+
+			if cfg.ProtoPath == "" {
+				goModPath := filepath.Dir(modutil.GoModPath())
+				if goModPath == "" {
+					panic("没找到项目go.mod文件")
+				}
+
+				cfg.ProtoPath = filepath.Join(goModPath, ".lava", "proto")
+				xerror.Panic(pathutil.IsNotExistMkDir(cfg.ProtoPath))
+			}
 
 			// protobuf文件检查
 			for _, dep := range cfg.Depends {
@@ -71,7 +87,7 @@ func Cmd() *cli.Command {
 					xerror.Panic(shutil.Shell(shell).Run())
 
 					// swagger加载和注册
-					var code = lavax.CodeFormat(
+					var code = utils.CodeFormat(
 						"package docs",
 						`import "github.com/pubgo/lava/plugins/swagger"`,
 						fmt.Sprintf("// build time: %s", time.Now().Format(consts.DefaultTimeFormat)),
@@ -93,7 +109,7 @@ func Cmd() *cli.Command {
 					// 解析go.mod并获取所有pkg版本
 					var versions = modutil.LoadVersions()
 					for i, dep := range cfg.Depends {
-						var url = dep.Url
+						var url = os.ExpandEnv(dep.Url)
 
 						// url是本地目录, 不做检查
 						if pathutil.IsDir(url) {
@@ -124,7 +140,7 @@ func Cmd() *cli.Command {
 							}
 						}
 
-						if version == "" {
+						if version == "" || pathutil.IsNotExist(fmt.Sprintf("%s@%s", url, version)) {
 							xerror.Panic(shutil.Shell("go", "get", "-d", url+"/...").Run())
 
 							// 再次解析go.mod然后获取版本信息
@@ -148,13 +164,13 @@ func Cmd() *cli.Command {
 
 					var protoList sync.Map
 
-					for i := range protoRoot {
-						if pathutil.IsNotExist(protoRoot[i]) {
-							log.Printf("file %s not flund", protoRoot[i])
+					for i := range cfg.Root {
+						if pathutil.IsNotExist(cfg.Root[i]) {
+							log.Printf("file %s not flund", cfg.Root[i])
 							continue
 						}
 
-						xerror.Panic(filepath.Walk(protoRoot[i], func(path string, info fs.FileInfo, err error) error {
+						xerror.Panic(filepath.Walk(cfg.Root[i], func(path string, info fs.FileInfo, err error) error {
 							if err != nil {
 								return err
 							}
@@ -176,7 +192,7 @@ func Cmd() *cli.Command {
 						var in = key.(string)
 
 						var data = ""
-						var base = fmt.Sprintf("protoc -I %s -I %s", protoPath, runenv.Pwd)
+						var base = fmt.Sprintf("protoc -I %s -I %s", cfg.ProtoPath, runtime.Pwd)
 						var lavaOut = ""
 						var lavaOpt = ""
 						for i := range cfg.Plugins {
@@ -199,6 +215,8 @@ func Cmd() *cli.Command {
 
 								return "."
 							}()
+
+							_ = pathutil.IsNotExistMkDir(out)
 
 							var opts = func(dt interface{}) []string {
 								switch _dt := dt.(type) {
@@ -248,14 +266,14 @@ func Cmd() *cli.Command {
 					defer xerror.RespExit()
 
 					// 删除老的protobuf文件
-					_ = os.RemoveAll(protoPath)
+					_ = os.RemoveAll(cfg.ProtoPath)
 
 					for _, dep := range cfg.Depends {
 						if dep.Name == "" || dep.Url == "" {
 							continue
 						}
 
-						var url = dep.Url
+						var url = os.ExpandEnv(dep.Url)
 						var version = dep.Version
 
 						// 加载版本
@@ -266,14 +284,14 @@ func Cmd() *cli.Command {
 						// 加载路径
 						url = filepath.Join(url, dep.Path)
 
-						if !lavax.DirExists(url) {
+						if !utils.DirExists(url) {
 							url = filepath.Join(modPath, url)
 						}
 
 						zap.S().Debug(url)
 
 						url = xerror.PanicStr(filepath.Abs(url))
-						var newUrl = filepath.Join(protoPath, dep.Name)
+						var newUrl = filepath.Join(cfg.ProtoPath, dep.Name)
 						xerror.Panic(filepath.Walk(url, func(path string, info fs.FileInfo, err error) (gErr error) {
 							if err != nil {
 								return err
@@ -306,13 +324,13 @@ func Cmd() *cli.Command {
 					defer xerror.RespExit()
 
 					var protoList sync.Map
-					for i := range protoRoot {
-						if pathutil.IsNotExist(protoRoot[i]) {
-							log.Printf("proto root (%s) not flund\n", protoRoot[i])
+					for i := range cfg.Root {
+						if pathutil.IsNotExist(cfg.Root[i]) {
+							log.Printf("proto root (%s) not flund\n", cfg.Root[i])
 							continue
 						}
 
-						xerror.Panic(filepath.Walk(protoRoot[i], func(path string, info fs.FileInfo, err error) error {
+						xerror.Panic(filepath.Walk(cfg.Root[i], func(path string, info fs.FileInfo, err error) error {
 							if err != nil {
 								return err
 							}

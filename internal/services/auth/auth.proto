@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+
+service Auth {
+  rpc GetPublicKey (Empty) returns (PublicKey);
+  rpc LoginUser (Login) returns (SignedToken);
+  rpc VerifyToken (SignedToken) returns (Token);
+  rpc RenewToken (SignedToken) returns (SignedToken);
+}
+
+message Empty {}
+
+message PublicKey {
+  bytes pem = 1;
+}
+
+message Login {
+  string username = 1;
+  string password = 2;
+}
+
+message Token {
+  string uuid = 1;
+  google.protobuf.Timestamp issuedAt = 2;
+  google.protobuf.Timestamp expiresAt = 3;
+  string username = 4;
+  string name = 5;
+  string mail = 6;
+  repeated string roles = 7;
+  uint32 renewed = 8;
+}
+
+/*
+message User {
+  string username = 1;
+  string name = 2;
+  string mail = 3;
+  repeated groups = 4;
+  repeated roles = 5;
+}
+*/
+
+message SignedToken {
+  string token = 1;
+}

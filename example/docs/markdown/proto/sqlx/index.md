@@ -3,35 +3,35 @@
 
 ## Table of Contents
 
-- [proto/sqlx/code.proto](#proto/sqlx/code.proto)
-    - [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest)
-    - [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse)
-    - [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest)
-    - [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse)
-    - [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest)
-    - [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse)
-    - [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry)
-    - [SendStatus](#hello.v1.sqlx.SendStatus)
-    - [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest)
-    - [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse)
-    - [VerifyRequest](#hello.v1.sqlx.VerifyRequest)
-    - [VerifyResponse](#hello.v1.sqlx.VerifyResponse)
-    - [VerifyResponse.DataEntry](#hello.v1.sqlx.VerifyResponse.DataEntry)
+- [proto/sqlx/code.proto](#proto_sqlx_code-proto)
+    - [GetSendStatusRequest](#hello-v1-sqlx-GetSendStatusRequest)
+    - [GetSendStatusResponse](#hello-v1-sqlx-GetSendStatusResponse)
+    - [IsCheckImageCodeRequest](#hello-v1-sqlx-IsCheckImageCodeRequest)
+    - [IsCheckImageCodeResponse](#hello-v1-sqlx-IsCheckImageCodeResponse)
+    - [SendCodeRequest](#hello-v1-sqlx-SendCodeRequest)
+    - [SendCodeResponse](#hello-v1-sqlx-SendCodeResponse)
+    - [SendCodeResponse.DataEntry](#hello-v1-sqlx-SendCodeResponse-DataEntry)
+    - [SendStatus](#hello-v1-sqlx-SendStatus)
+    - [VerifyImageCodeRequest](#hello-v1-sqlx-VerifyImageCodeRequest)
+    - [VerifyImageCodeResponse](#hello-v1-sqlx-VerifyImageCodeResponse)
+    - [VerifyRequest](#hello-v1-sqlx-VerifyRequest)
+    - [VerifyResponse](#hello-v1-sqlx-VerifyResponse)
+    - [VerifyResponse.DataEntry](#hello-v1-sqlx-VerifyResponse-DataEntry)
   
-    - [Code](#hello.v1.sqlx.Code)
+    - [Code](#hello-v1-sqlx-Code)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="proto/sqlx/code.proto"></a>
+<a name="proto_sqlx_code-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 ## proto/sqlx/code.proto
 
 
 
-<a name="hello.v1.sqlx.GetSendStatusRequest"></a>
+<a name="hello-v1-sqlx-GetSendStatusRequest"></a>
 
 ### GetSendStatusRequest
 
@@ -51,7 +51,7 @@
 
 
 
-<a name="hello.v1.sqlx.GetSendStatusResponse"></a>
+<a name="hello-v1-sqlx-GetSendStatusResponse"></a>
 
 ### GetSendStatusResponse
 
@@ -62,14 +62,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [SendStatus](#hello.v1.sqlx.SendStatus) |  | 数据 |
+| data | [SendStatus](#hello-v1-sqlx-SendStatus) |  | 数据 |
 
 
 
 
 
 
-<a name="hello.v1.sqlx.IsCheckImageCodeRequest"></a>
+<a name="hello-v1-sqlx-IsCheckImageCodeRequest"></a>
 
 ### IsCheckImageCodeRequest
 
@@ -86,7 +86,7 @@
 
 
 
-<a name="hello.v1.sqlx.IsCheckImageCodeResponse"></a>
+<a name="hello-v1-sqlx-IsCheckImageCodeResponse"></a>
 
 ### IsCheckImageCodeResponse
 
@@ -104,7 +104,7 @@
 
 
 
-<a name="hello.v1.sqlx.SendCodeRequest"></a>
+<a name="hello-v1-sqlx-SendCodeRequest"></a>
 
 ### SendCodeRequest
 
@@ -123,7 +123,7 @@
 
 
 
-<a name="hello.v1.sqlx.SendCodeResponse"></a>
+<a name="hello-v1-sqlx-SendCodeResponse"></a>
 
 ### SendCodeResponse
 
@@ -134,15 +134,15 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 @gotags: valid:&#34;ip&#34; custom_tag:&#34;custom_value&#34; |
-| data | [SendCodeResponse.DataEntry](#hello.v1.sqlx.SendCodeResponse.DataEntry) | repeated | 数据 |
-| response | [lava.Response](#lava.Response) |  |  |
+| data | [SendCodeResponse.DataEntry](#hello-v1-sqlx-SendCodeResponse-DataEntry) | repeated | 数据 |
+| response | [lava.Response](#lava-Response) |  |  |
 
 
 
 
 
 
-<a name="hello.v1.sqlx.SendCodeResponse.DataEntry"></a>
+<a name="hello-v1-sqlx-SendCodeResponse-DataEntry"></a>
 
 ### SendCodeResponse.DataEntry
 
@@ -158,7 +158,7 @@
 
 
 
-<a name="hello.v1.sqlx.SendStatus"></a>
+<a name="hello-v1-sqlx-SendStatus"></a>
 
 ### SendStatus
 
@@ -176,7 +176,7 @@
 
 
 
-<a name="hello.v1.sqlx.VerifyImageCodeRequest"></a>
+<a name="hello-v1-sqlx-VerifyImageCodeRequest"></a>
 
 ### VerifyImageCodeRequest
 
@@ -196,7 +196,7 @@
 
 
 
-<a name="hello.v1.sqlx.VerifyImageCodeResponse"></a>
+<a name="hello-v1-sqlx-VerifyImageCodeResponse"></a>
 
 ### VerifyImageCodeResponse
 
@@ -213,7 +213,7 @@
 
 
 
-<a name="hello.v1.sqlx.VerifyRequest"></a>
+<a name="hello-v1-sqlx-VerifyRequest"></a>
 
 ### VerifyRequest
 
@@ -231,7 +231,7 @@
 
 
 
-<a name="hello.v1.sqlx.VerifyResponse"></a>
+<a name="hello-v1-sqlx-VerifyResponse"></a>
 
 ### VerifyResponse
 
@@ -242,14 +242,14 @@
 | code | [int64](#int64) |  | code |
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 |
-| data | [VerifyResponse.DataEntry](#hello.v1.sqlx.VerifyResponse.DataEntry) | repeated | 数据 |
+| data | [VerifyResponse.DataEntry](#hello-v1-sqlx-VerifyResponse-DataEntry) | repeated | 数据 |
 
 
 
 
 
 
-<a name="hello.v1.sqlx.VerifyResponse.DataEntry"></a>
+<a name="hello-v1-sqlx-VerifyResponse-DataEntry"></a>
 
 ### VerifyResponse.DataEntry
 
@@ -271,18 +271,18 @@
  
 
 
-<a name="hello.v1.sqlx.Code"></a>
+<a name="hello-v1-sqlx-Code"></a>
 
 ### Code
 验证码
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| SendCode | [SendCodeRequest](#hello.v1.sqlx.SendCodeRequest) | [SendCodeResponse](#hello.v1.sqlx.SendCodeResponse) | 发送 |
-| Verify | [VerifyRequest](#hello.v1.sqlx.VerifyRequest) | [VerifyResponse](#hello.v1.sqlx.VerifyResponse) | 校验 |
-| IsCheckImageCode | [IsCheckImageCodeRequest](#hello.v1.sqlx.IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#hello.v1.sqlx.IsCheckImageCodeResponse) | 是否校验图片验证码 |
-| VerifyImageCode | [VerifyImageCodeRequest](#hello.v1.sqlx.VerifyImageCodeRequest) | [VerifyImageCodeResponse](#hello.v1.sqlx.VerifyImageCodeResponse) | 校验图片验证码 |
-| GetSendStatus | [GetSendStatusRequest](#hello.v1.sqlx.GetSendStatusRequest) | [GetSendStatusResponse](#hello.v1.sqlx.GetSendStatusResponse) | 获取发送状态 |
+| SendCode | [SendCodeRequest](#hello-v1-sqlx-SendCodeRequest) | [SendCodeResponse](#hello-v1-sqlx-SendCodeResponse) | 发送 |
+| Verify | [VerifyRequest](#hello-v1-sqlx-VerifyRequest) | [VerifyResponse](#hello-v1-sqlx-VerifyResponse) | 校验 |
+| IsCheckImageCode | [IsCheckImageCodeRequest](#hello-v1-sqlx-IsCheckImageCodeRequest) | [IsCheckImageCodeResponse](#hello-v1-sqlx-IsCheckImageCodeResponse) | 是否校验图片验证码 |
+| VerifyImageCode | [VerifyImageCodeRequest](#hello-v1-sqlx-VerifyImageCodeRequest) | [VerifyImageCodeResponse](#hello-v1-sqlx-VerifyImageCodeResponse) | 校验图片验证码 |
+| GetSendStatus | [GetSendStatusRequest](#hello-v1-sqlx-GetSendStatusRequest) | [GetSendStatusResponse](#hello-v1-sqlx-GetSendStatusResponse) | 获取发送状态 |
 
  
 

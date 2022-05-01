@@ -14,6 +14,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // UserClient is the client API for User service.
@@ -81,7 +82,7 @@ type UnsafeUserServer interface {
 }
 
 func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
-	s.RegisterService(&_User_serviceDesc, srv)
+	s.RegisterService(&User_ServiceDesc, srv)
 }
 
 func _User_Generate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -120,7 +121,10 @@ func _User_Types_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
-var _User_serviceDesc = grpc.ServiceDesc{
+// User_ServiceDesc is the grpc.ServiceDesc for User service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var User_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gid.User",
 	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -618,7 +622,7 @@ type UnsafeABitOfEverythingServiceServer interface {
 }
 
 func RegisterABitOfEverythingServiceServer(s grpc.ServiceRegistrar, srv ABitOfEverythingServiceServer) {
-	s.RegisterService(&_ABitOfEverythingService_serviceDesc, srv)
+	s.RegisterService(&ABitOfEverythingService_ServiceDesc, srv)
 }
 
 func _ABitOfEverythingService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -963,7 +967,10 @@ func _ABitOfEverythingService_CheckStatus_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-var _ABitOfEverythingService_serviceDesc = grpc.ServiceDesc{
+// ABitOfEverythingService_ServiceDesc is the grpc.ServiceDesc for ABitOfEverythingService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ABitOfEverythingService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gid.ABitOfEverythingService",
 	HandlerType: (*ABitOfEverythingServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -1095,7 +1102,7 @@ type UnsafeCamelCaseServiceNameServer interface {
 }
 
 func RegisterCamelCaseServiceNameServer(s grpc.ServiceRegistrar, srv CamelCaseServiceNameServer) {
-	s.RegisterService(&_CamelCaseServiceName_serviceDesc, srv)
+	s.RegisterService(&CamelCaseServiceName_ServiceDesc, srv)
 }
 
 func _CamelCaseServiceName_Empty_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1116,7 +1123,10 @@ func _CamelCaseServiceName_Empty_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-var _CamelCaseServiceName_serviceDesc = grpc.ServiceDesc{
+// CamelCaseServiceName_ServiceDesc is the grpc.ServiceDesc for CamelCaseServiceName service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CamelCaseServiceName_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gid.camelCaseServiceName",
 	HandlerType: (*CamelCaseServiceNameServer)(nil),
 	Methods: []grpc.MethodDesc{
@@ -1176,7 +1186,7 @@ type UnsafeAnotherServiceWithNoBindingsServer interface {
 }
 
 func RegisterAnotherServiceWithNoBindingsServer(s grpc.ServiceRegistrar, srv AnotherServiceWithNoBindingsServer) {
-	s.RegisterService(&_AnotherServiceWithNoBindings_serviceDesc, srv)
+	s.RegisterService(&AnotherServiceWithNoBindings_ServiceDesc, srv)
 }
 
 func _AnotherServiceWithNoBindings_NoBindings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1197,7 +1207,10 @@ func _AnotherServiceWithNoBindings_NoBindings_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-var _AnotherServiceWithNoBindings_serviceDesc = grpc.ServiceDesc{
+// AnotherServiceWithNoBindings_ServiceDesc is the grpc.ServiceDesc for AnotherServiceWithNoBindings service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AnotherServiceWithNoBindings_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gid.AnotherServiceWithNoBindings",
 	HandlerType: (*AnotherServiceWithNoBindingsServer)(nil),
 	Methods: []grpc.MethodDesc{

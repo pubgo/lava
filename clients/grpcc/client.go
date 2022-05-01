@@ -6,59 +6,34 @@ import (
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/ctxutil"
-	"github.com/pubgo/lava/resource"
+	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/runtime"
 )
 
-func NewDirect(addr string, opts ...func(cfg *Cfg)) (*grpc.ClientConn, error) {
-	return getCfg(consts.KeyDefault, opts...).BuildDirect(addr)
-}
-
-var clients sync.Map
-var mu sync.Mutex
-
-func GetClient(service string, opts ...func(cfg *Cfg)) *Client {
-	var fn = func(cfg *Cfg) {}
-	if len(opts) > 0 {
-		fn = opts[0]
-	}
-
-	var cli, ok = clients.Load(service)
-	if ok {
-		return cli.(*Client)
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	// 双检
-	cli, ok = clients.Load(service)
-	if ok {
-		return cli.(*Client)
-	}
-
-	cli = &Client{service: service, optFn: fn}
-	clients.Store(service, cli)
-	return cli.(*Client)
-}
-
-var _ resource.Resource = (*Client)(nil)
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
-type Client struct {
-	cfg     *Cfg
-	service string
-	mu      sync.Mutex
-	optFn   func(cfg *Cfg)
-	conn    *grpc.ClientConn
+func NewClient(srv string, opts ...Option) *Client {
+	var cli = &Client{srv: srv, cfg: grpcc_config.DefaultCfg()}
+	for i := range opts {
+		opts[i](cli)
+	}
+
+	xerror.Assert(cli.dial == nil, "[dial] is nil")
+	return cli
 }
 
-func (t *Client) UpdateResObj(val interface{}) { t.conn = val.(*Client).conn }
-func (t *Client) Kind() string                 { return Name }
-func (t *Client) Close() error                 { return t.conn.Close() }
+type Client struct {
+	dial func(addr string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error)
+	cfg  grpcc_config.Cfg
+	mu   sync.Mutex
+	conn grpc.ClientConnInterface
+	srv  string
+}
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	var conn, err = t.Get()
@@ -79,14 +54,16 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 	return c, xerror.Wrap(err1, method)
 }
 
-func (t *Client) CheckHealth(opts ...grpc.CallOption) (*grpc_health_v1.HealthCheckResponse, error) {
-	ctx := ctxutil.Timeout()
-	return grpc_health_v1.NewHealthClient(t).Check(ctx, &grpc_health_v1.HealthCheckRequest{Service: t.service}, opts...)
-}
-
 // Get new grpc Client
-func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
-	defer xerror.RespErr(&err)
+func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		gErr = err
+
+		if !runtime.IsProd() {
+			logutil.Pretty(t)
+			err.Debug()
+		}
+	})
 
 	if t.conn != nil {
 		return t.conn, nil
@@ -100,17 +77,21 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, err error) {
 		return t.conn, nil
 	}
 
-	// 获取服务的自定义配置
-	t.cfg = getCfg(t.service)
-
-	// 使用方自定义配置参数
-	if t.optFn != nil {
-		t.optFn(t.cfg)
+	var cfg = t.cfg
+	var cfgMap = make(map[string]*grpcc_config.Cfg)
+	xerror.Panic(config.Decode(grpcc_config.Name, &cfgMap))
+	if cfgMap[consts.KeyDefault] != nil {
+		xerror.Panic(merge.Copy(&cfg, cfgMap[consts.KeyDefault]))
+	}
+	if cfgMap[t.srv] != nil {
+		xerror.Panic(merge.Copy(&cfg, cfgMap[t.srv]))
 	}
 
-	// 创建grpc client
-	conn, err := t.cfg.Build(t.service)
-	xerror.PanicF(err, "dial %s error", t.service)
+	conn, err := t.dial(t.srv, cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	t.conn = conn
 	return t.conn, nil
 }

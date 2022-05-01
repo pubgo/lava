@@ -1,7 +1,7 @@
 package modutil
 
 import (
-	"github.com/pubgo/lava/runenv"
+	"github.com/pubgo/lava/runtime"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,12 +9,12 @@ import (
 	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
 
-	"github.com/pubgo/lava/pkg/lavax"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func getFileByRecursion(file string, path string) string {
 	filePath := filepath.Join(path, file)
-	if lavax.FileExists(filePath) {
+	if utils.FileExists(filePath) {
 		return filePath
 	}
 
@@ -26,7 +26,7 @@ func getFileByRecursion(file string, path string) string {
 }
 
 func GoModPath() string {
-	return getFileByRecursion("go.mod", runenv.Pwd)
+	return getFileByRecursion("go.mod", runtime.Pwd)
 }
 
 func LoadVersions() map[string]string {

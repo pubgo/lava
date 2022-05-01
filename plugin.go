@@ -2,20 +2,11 @@ package lava
 
 // 加载插件
 import (
-	// 加载version插件
-	_ "github.com/pubgo/lava/version"
-
-	// 加载debug插件
-	_ "github.com/pubgo/lava/internal/plugins/debug"
-
-	// 加载metric插件
-	_ "github.com/pubgo/lava/plugins/metric"
-
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
-	_ "github.com/pubgo/lava/plugins/registry/mdns"
+	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
@@ -29,18 +20,19 @@ import (
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
-	// machineID 获取机器ID
-	_ "github.com/pubgo/lava/internal/plugins/machineid"
+	// metric
+	_ "github.com/pubgo/lava/core/metric/metric_builder"
+
+	_ "github.com/pubgo/lava/imports/import_debug"
+	_ "github.com/pubgo/lava/imports/import_gops"
+	_ "github.com/pubgo/lava/imports/import_grpc_log"
 )
 
-// 加载拦截器, 注意加载顺序
+// 加载middleware, 注意加载顺序
 import (
-	// 加载log记录拦截器
-	_ "github.com/pubgo/lava/middlewares/logRecord"
-
-	// 加载trace记录拦截器
-	//_ "github.com/pubgo/lava/middlewares/traceRecord"
+	// 加载log-record拦截器
+	_ "github.com/pubgo/lava/imports/import_log_record_middleware"
 
 	// 加载timeout拦截器
-	_ "github.com/pubgo/lava/middlewares/timeout"
+	_ "github.com/pubgo/lava/imports/import_timeout_middleware"
 )
