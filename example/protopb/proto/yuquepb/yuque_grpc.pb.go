@@ -183,6 +183,7 @@ var Yuque_ServiceDesc = grpc.ServiceDesc{
 type UserServiceClient interface {
 	// user signin
 	Signin(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error)
+	Signin1(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error)
 	// user resets password
 	ResetPassword(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -204,6 +205,15 @@ func (c *userServiceClient) Signin(ctx context.Context, in *UserInfoReq, opts ..
 	return out, nil
 }
 
+func (c *userServiceClient) Signin1(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*UserInfoResp, error) {
+	out := new(UserInfoResp)
+	err := c.cc.Invoke(ctx, "/yuque.v2.UserService/Signin1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) ResetPassword(ctx context.Context, in *UserInfoReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/yuque.v2.UserService/ResetPassword", in, out, opts...)
@@ -219,6 +229,7 @@ func (c *userServiceClient) ResetPassword(ctx context.Context, in *UserInfoReq, 
 type UserServiceServer interface {
 	// user signin
 	Signin(context.Context, *UserInfoReq) (*UserInfoResp, error)
+	Signin1(context.Context, *UserInfoReq) (*UserInfoResp, error)
 	// user resets password
 	ResetPassword(context.Context, *UserInfoReq) (*emptypb.Empty, error)
 }
@@ -229,6 +240,9 @@ type UnimplementedUserServiceServer struct {
 
 func (UnimplementedUserServiceServer) Signin(context.Context, *UserInfoReq) (*UserInfoResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Signin not implemented")
+}
+func (UnimplementedUserServiceServer) Signin1(context.Context, *UserInfoReq) (*UserInfoResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Signin1 not implemented")
 }
 func (UnimplementedUserServiceServer) ResetPassword(context.Context, *UserInfoReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
@@ -263,6 +277,24 @@ func _UserService_Signin_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_Signin1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserInfoReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Signin1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/yuque.v2.UserService/Signin1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Signin1(ctx, req.(*UserInfoReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserInfoReq)
 	if err := dec(in); err != nil {
@@ -291,6 +323,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Signin",
 			Handler:    _UserService_Signin_Handler,
+		},
+		{
+			MethodName: "Signin1",
+			Handler:    _UserService_Signin1_Handler,
 		},
 		{
 			MethodName: "ResetPassword",

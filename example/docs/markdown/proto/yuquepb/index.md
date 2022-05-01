@@ -222,6 +222,7 @@ basic user information
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | Signin | [UserInfoReq](#yuque-v2-UserInfoReq) | [UserInfoResp](#yuque-v2-UserInfoResp) | user signin |
+| Signin1 | [UserInfoReq](#yuque-v2-UserInfoReq) | [UserInfoResp](#yuque-v2-UserInfoResp) |  |
 | ResetPassword | [UserInfoReq](#yuque-v2-UserInfoReq) | [.google.protobuf.Empty](#google-protobuf-Empty) | user resets password |
 
 

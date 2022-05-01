@@ -54,6 +54,3 @@ plugins:
   - name: errors
     out: protopb
     opt: paths=source_relative
-  - name: resty
-    out: protopb
-    opt: paths=source_relative

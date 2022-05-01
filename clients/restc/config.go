@@ -3,32 +3,31 @@ package restc
 import (
 	"context"
 	"crypto/tls"
-	"github.com/pubgo/lava/middleware"
 	"net/http"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/logging/log_middleware"
+	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/retry"
-	"github.com/pubgo/lava/plugin"
 )
 
 type Cfg struct {
-	Trace       bool
-	Token       string
-	Timeout     time.Duration
-	RetryCount  uint32
-	Proxy       bool
-	Socks5      string
-	Insecure    bool
-	Header      map[string]string
-	Middlewares []middleware.Middleware
-	BasePath    string
-
-	backoff   retry.Backoff
-	tlsConfig *tls.Config
+	Trace       bool              `yaml:"trace"`
+	Token       string            `yaml:"token"`
+	Timeout     time.Duration     `yaml:"timeout"`
+	RetryCount  uint32            `yaml:"retry-count"`
+	Proxy       bool              `yaml:"proxy"`
+	Socks5      string            `yaml:"socks5"`
+	Insecure    bool              `yaml:"insecure"`
+	Header      map[string]string `yaml:"header"`
+	Middlewares []string          `yaml:"middlewares"`
+	BasePath    string            `yaml:"base-path"`
+	backoff     retry.Backoff
+	tlsConfig   *tls.Config
 }
 
 func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
@@ -52,15 +51,9 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 
 	// 加载插件
 	// 加载全局
-	for _, plg := range plugin.All() {
-		if plg.Middleware() == nil {
-			continue
-		}
-		middlewares = append(middlewares, plg.Middleware())
+	for _, plg := range t.Middlewares {
+		middlewares = append(middlewares, middleware.Get(plg))
 	}
-
-	// 加载业务自定义
-	middlewares = append(middlewares, t.Middlewares...)
 
 	var client = &clientImpl{client: &fasthttp.Client{}}
 	client.do = func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
@@ -74,8 +67,9 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 
 func DefaultCfg() *Cfg {
 	return &Cfg{
-		Timeout:    defaultHTTPTimeout,
-		RetryCount: defaultRetryCount,
-		backoff:    retry.NewNoop(),
+		Timeout:     defaultHTTPTimeout,
+		RetryCount:  defaultRetryCount,
+		backoff:     retry.NewNoop(),
+		Middlewares: []string{log_middleware.Name},
 	}
 }

@@ -1,6 +1,11 @@
 package flagutil
 
-import "github.com/urfave/cli/v2"
+import (
+	"os"
+	"strings"
+
+	"github.com/urfave/cli/v2"
+)
 
 var _ cli.Generic = (*Generic)(nil)
 
@@ -15,4 +20,9 @@ func (f Generic) Set(value string) error {
 
 func (f Generic) String() string {
 	return f.Value
+}
+
+func IsHelp() bool {
+	var arg = strings.TrimSpace(os.Args[len(os.Args)-1])
+	return arg == "--help" || arg == "-h"
 }

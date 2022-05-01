@@ -126,16 +126,24 @@ message GuardianConfig {
 }
 
 service UserService {
+  option (lava.resty).enable = true;
+
   // user signin
   rpc Signin(UserInfoReq) returns (UserInfoResp) {
     option (google.api.http) = {
-      post : "/api/v1/users/signin"
+      post : "/api/v1/users/signin/{login}"
       body : "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary : "User signin"
       description : "Sign in a user by using an auth provider"
       tags : "Users"
+    };
+  }
+
+  rpc Signin1(UserInfoReq) returns (UserInfoResp) {
+    option (google.api.http) = {
+      get : "/api/v1/users/signin/{login}"
     };
   }
 

@@ -151,8 +151,6 @@ func genClientMethod(gen *protogen.Plugin, file *protogen.File, g *protogen.Gene
 			"value": handleTagName(tag),
 		})
 		g.P()
-		protoutil.Gen(g, `in.{{value}}=""`, pongo.Context{"value": handleTagName(tag)})
-		g.P()
 
 		delete(fieldMap, tag)
 		return 0, nil

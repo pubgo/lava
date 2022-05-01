@@ -15,9 +15,6 @@ func main() {
 	defer xerror.RespExit()
 
 	var flags flag.FlagSet
-	flags.StringVar(&internal.PathTag, "path-tag", internal.PathTag, "router path params tag")
-	flags.StringVar(&internal.QueryTag, "query-tag", internal.QueryTag, "router path query tag")
-
 	if protoutil.IsHelp() {
 		flags.PrintDefaults()
 		return
