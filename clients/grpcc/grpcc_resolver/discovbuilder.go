@@ -2,7 +2,6 @@ package grpcc_resolver
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/kr/pretty"
@@ -42,11 +41,6 @@ func (d *discovBuilder) updateService(services ...*registry.Service) {
 			// 更新服务信息
 			for j := 0; j < Replica; j++ {
 				addr := n.Address
-				// 如果port不存在, 那么addr中包含port
-				//if !strings.Contains(n.Address, ":") {
-				addr = fmt.Sprintf("%s:%d", "localhost", n.Port)
-				//}
-
 				res := newAddr(addr, services[i].Name)
 				val, ok := d.services.LoadOrStore(getServiceUniqueId(n.Id, j), &res)
 				if ok {
@@ -104,40 +98,41 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	w, err := r.Watch(srv)
 	xerror.PanicF(err, "target.Endpoint: %s", srv)
 
-	cancel := syncx.GoCtx(func(ctx context.Context) {
-		defer func() { xerror.Panic(w.Stop()) }()
+	return &baseResolver{
+		cancel: syncx.GoCtx(func(ctx context.Context) {
+			defer func() { xerror.Panic(w.Stop()) }()
 
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				res, err := w.Next()
-				if err == registry.ErrWatcherStopped {
+			for {
+				select {
+				case <-ctx.Done():
 					return
-				}
+				default:
+					res, err := w.Next()
+					if err == registry.ErrWatcherStopped {
+						return
+					}
 
-				if err != nil {
-					logs.WithErr(err).Error("error")
-					continue
-				}
+					if err != nil {
+						logs.WithErr(err).Error("error")
+						continue
+					}
 
-				// 注册中心删除服务
-				if res.Action == event.EventType_DELETE {
-					d.delService(res.Service)
-				} else {
-					d.updateService(res.Service)
-				}
+					// 注册中心删除服务
+					if res.Action == event.EventType_DELETE {
+						d.delService(res.Service)
+					} else {
+						d.updateService(res.Service)
+					}
 
-				xerror.TryCatch(func() (interface{}, error) {
-					var addrList = d.getAddrList(srv)
-					return nil, cc.UpdateState(newState(addrList))
-				}, func(err error) {
-					logs.WithErr(err).Error("update resolver address error")
-				})
+					xerror.TryCatch(func() (interface{}, error) {
+						var addrList = d.getAddrList(srv)
+						return nil, cc.UpdateState(newState(addrList))
+					}, func(err error) {
+						logs.WithErr(err).Error("update resolver address error")
+					})
+				}
 			}
-		}
-	})
-
-	return &baseResolver{cancel: cancel, builder: DiscovScheme}, nil
+		}),
+		builder: DiscovScheme,
+	}, nil
 }

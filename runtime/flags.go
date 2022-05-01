@@ -26,7 +26,7 @@ func init() {
 				xerror.Panic(err)
 
 				Mode = RunMode(i)
-				xerror.Assert(Mode == RunModeLocal, "unknown mode, mode=%s", val)
+				xerror.Assert(Mode.String() == "", "unknown mode, mode=%s", val)
 				return nil
 			},
 		},

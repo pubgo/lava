@@ -27,7 +27,7 @@ var (
 	bindingCall      = protoutil.Import("github.com/pubgo/lava/pkg/binding")
 	byteutilCall     = protoutil.Import("github.com/pubgo/x/byteutil")
 	runtimeCall      = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
-	moduleCall       = protoutil.Import("github.com/pubgo/lava/module")
+	injectCall       = protoutil.Import("github.com/pubgo/lava/inject")
 	fxCall           = protoutil.Import("go.uber.org/fx")
 	grpccBuilderCall = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
 )
@@ -83,7 +83,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	g.QualifiedGoIdent(moduleCall(""))
+	g.QualifiedGoIdent(injectCall(""))
 	g.QualifiedGoIdent(fxCall(""))
 	g.QualifiedGoIdent(grpccBuilderCall(""))
 	g.P("func Init", service.GoName, "Client(addr string, alias ...string) {")
@@ -95,7 +95,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 		conn := grpcc_builder.NewClient(addr)
 	`)
 
-	g.P(`	module.Register(fx.Provide(fx.Annotated{`)
+	g.P(`	inject.Register(fx.Provide(fx.Annotated{`)
 	g.P(`Target: func() `, service.GoName, `Client { return New`, service.GoName, `Client(conn) },`)
 	g.P(`	Name:   name,`)
 	g.P("}))")

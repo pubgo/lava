@@ -14,8 +14,10 @@ func (x RunMode) String() string {
 		return "prod"
 	case 4:
 		return "release"
+	case 5:
+		return "release"
 	default:
-		return "local"
+		return ""
 	}
 }
 
@@ -27,15 +29,6 @@ const (
 	RunModeProd    RunMode = 4
 	RunModeRelease RunMode = 5
 )
-
-var RunModeValue = map[string]int32{
-	"local":   0,
-	"dev":     1,
-	"test":    2,
-	"stag":    3,
-	"prod":    4,
-	"release": 5,
-}
 
 func IsK8s() bool {
 	return Namespace != ""
