@@ -11,7 +11,7 @@ require (
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.21
-	github.com/go-openapi/spec v0.20.2
+	github.com/go-openapi/spec v0.20.4
 	github.com/go-redis/redis/v8 v8.8.3
 	github.com/gofiber/fiber/v2 v2.29.0
 	github.com/gogo/protobuf v1.3.2
@@ -45,7 +45,7 @@ require (
 	github.com/segmentio/ksuid v1.0.3
 	github.com/soheilhy/cmux v0.1.4
 	github.com/spf13/viper v1.10.0
-	github.com/swaggo/http-swagger v1.1.1
+	github.com/swaggo/http-swagger v1.2.6
 	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
@@ -86,7 +86,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/jhump/protoreflect v1.10.3
 	github.com/jjeffcaii/reactor-go v0.5.1
-	github.com/joho/godotenv v1.3.0
 	github.com/kr/pretty v0.3.0
 	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/magefile/mage v1.11.0
@@ -113,7 +112,6 @@ require (
 )
 
 require (
-	github.com/antonmedv/expr v1.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/fullstorydev/grpcurl v1.8.6
@@ -121,8 +119,6 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
-	github.com/hetiansu5/urlquery v1.2.7
-	github.com/huandu/go-clone v1.3.0
 	github.com/smartystreets/assertions v1.0.0
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1
@@ -166,9 +162,9 @@ require (
 	github.com/go-openapi/analysis v0.19.10 // indirect
 	github.com/go-openapi/errors v0.19.6 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
-	github.com/go-openapi/jsonreference v0.19.5 // indirect
+	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/strfmt v0.19.5 // indirect
-	github.com/go-openapi/swag v0.19.13 // indirect
+	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-openapi/validate v0.19.10 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
@@ -232,8 +228,8 @@ require (
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14 // indirect
-	github.com/swaggo/swag v1.7.0 // indirect
+	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2 // indirect
+	github.com/swaggo/swag v1.7.9 // indirect
 	github.com/toolkits/concurrent v0.0.0-20150624120057-a4371d70e3e3 // indirect
 	github.com/twmb/murmur3 v1.1.6 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
