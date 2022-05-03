@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gid;
 
-option go_package = "./;gid";
+option go_package = "./gidpb;gidpb";
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";

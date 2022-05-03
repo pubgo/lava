@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 
-	"github.com/pubgo/lava/example/protopb/proto/hello"
+	"github.com/pubgo/lava/example/protopb/hellopb"
 	"github.com/pubgo/lava/inject"
 )
 
@@ -23,7 +23,7 @@ func TestMain(t *testing.M) {
 }
 
 func TestInit(t *testing.T) {
-	fmt.Println(_srv.Version(context.Background(), &hello.TestReq{
+	fmt.Println(_srv.Version(context.Background(), &hellopb.TestReq{
 		Input: "hello",
 	}))
 }

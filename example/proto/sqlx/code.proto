@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hello.v1.sqlx;
 
-option go_package = "./;sqlx_pb";
+option go_package = "/sqlxpb;sqlxpb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";

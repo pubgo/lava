@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package login;
 
-option go_package = "./;login";
+option go_package = "./loginpb;loginpb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";

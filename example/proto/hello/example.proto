@@ -16,7 +16,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "gogoproto/gogo.proto";
 import "go-proto-validators/validator.proto";
 
-option go_package = "./;hello";
+option go_package = "./hellopb;hellopb";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {

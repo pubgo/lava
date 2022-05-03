@@ -4,7 +4,7 @@ package hello;
 
 import "google/protobuf/struct.proto";
 
-option go_package = "./;hello";
+option go_package = "./hellopb;hellopb";
 
 message TestReq {
   string input = 1;

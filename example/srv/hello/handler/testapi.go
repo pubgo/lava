@@ -17,13 +17,13 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/example/protopb/proto/hello"
+	"github.com/pubgo/lava/example/protopb/hellopb"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )
 
 func init() {
-	hello.InitTestApiClient("test-grpc")
+	hellopb.InitTestApiClient("test-grpc")
 }
 
 type User struct {
@@ -49,7 +49,7 @@ type testApiHandler struct {
 	fx.In
 	Db         *orm.Client
 	Cron       *scheduler.Scheduler
-	TestApiSrv hello.TestApiClient
+	TestApiSrv hellopb.TestApiClient
 	L          *logging.Logger
 }
 
@@ -75,24 +75,24 @@ func (h *testApiHandler) Init() {
 	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
 		defer xerror.RespExit()
 		zap.L().Debug("客户端访问")
-		var out, err1 = h.TestApiSrv.Version(context.Background(), &hello.TestReq{Input: "input", Name: "hello"})
+		var out, err1 = h.TestApiSrv.Version(context.Background(), &hellopb.TestReq{Input: "input", Name: "hello"})
 		xerror.Panic(err1)
 		fmt.Printf("%#v \n", out)
 	})
 }
 
-func (h *testApiHandler) VersionTestCustom(ctx context.Context, req *hello.TestReq) (*hello.TestApiOutput, error) {
+func (h *testApiHandler) VersionTestCustom(ctx context.Context, req *hellopb.TestReq) (*hellopb.TestApiOutput, error) {
 	panic("implement me")
 }
 
-func (h *testApiHandler) Version1(ctx context.Context, value *structpb.Value) (*hello.TestApiOutput1, error) {
+func (h *testApiHandler) Version1(ctx context.Context, value *structpb.Value) (*hellopb.TestApiOutput1, error) {
 	fmt.Printf("%#v\n", value.GetStructValue().AsMap())
-	return &hello.TestApiOutput1{
+	return &hellopb.TestApiOutput1{
 		Data: value,
 	}, nil
 }
 
-func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
+func (h *testApiHandler) Version(ctx context.Context, in *hellopb.TestReq) (out *hellopb.TestApiOutput, err error) {
 	var log = logging.GetLog(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
@@ -118,7 +118,7 @@ func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 		log.Sugar().Infow("config ok", "cfg", config.CfgPath)
 	}
 
-	out = &hello.TestApiOutput{
+	out = &hellopb.TestApiOutput{
 		Msg: in.Input,
 	}
 
@@ -129,8 +129,8 @@ func (h *testApiHandler) Version(ctx context.Context, in *hello.TestReq) (out *h
 	return
 }
 
-func (h *testApiHandler) VersionTest(ctx context.Context, in *hello.TestReq) (out *hello.TestApiOutput, err error) {
-	out = &hello.TestApiOutput{
+func (h *testApiHandler) VersionTest(ctx context.Context, in *hellopb.TestReq) (out *hellopb.TestApiOutput, err error) {
+	out = &hellopb.TestApiOutput{
 		Msg: in.Input + "_test",
 	}
 	return

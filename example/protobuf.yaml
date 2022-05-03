@@ -24,17 +24,17 @@ deps:
 plugins:
   - name: go
     out: protopb
-    opt: paths=source_relative
+    opt: paths=import
   - name: go-grpc
     out: protopb
     opt:
-      - paths=source_relative
+      - paths=import
       - require_unimplemented_servers=false
   - name: grpc-gateway
     out: protopb
     opt:
       - allow_repeated_fields_in_body=true
-      - paths=source_relative
+      - paths=import
   - name: openapiv2
     out: ./docs/swagger
     opt:
@@ -50,7 +50,7 @@ plugins:
     opt:
       - lava=true
       - path=protopb
-      - paths=source_relative
+      - paths=import
   - name: errors
     out: protopb
-    opt: paths=source_relative
+    opt: paths=import

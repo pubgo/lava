@@ -3,7 +3,7 @@ syntax = "proto3";
 // 绑定手机号
 package login;
 
-option go_package = "./;login";
+option go_package = "./loginpb;loginpb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";

@@ -3,7 +3,7 @@ syntax = "proto3";
 // 账户合并相关
 package login;
 
-option go_package = "./;login";
+option go_package = "./loginpb;loginpb";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
