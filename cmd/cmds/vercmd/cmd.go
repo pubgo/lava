@@ -3,7 +3,6 @@ package vercmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/runtime"
 	"os"
 	"runtime/debug"
 
@@ -13,6 +12,7 @@ import (
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 

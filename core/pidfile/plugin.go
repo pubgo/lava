@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/plugin"
 )
 
 func init() {

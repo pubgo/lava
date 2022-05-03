@@ -86,7 +86,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/jhump/protoreflect v1.10.3
 	github.com/jjeffcaii/reactor-go v0.5.1
-	github.com/joho/godotenv v1.3.0
 	github.com/kr/pretty v0.3.0
 	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/magefile/mage v1.11.0
@@ -113,7 +112,6 @@ require (
 )
 
 require (
-	github.com/antonmedv/expr v1.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/fullstorydev/grpcurl v1.8.6
@@ -121,8 +119,6 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
-	github.com/hetiansu5/urlquery v1.2.7
-	github.com/huandu/go-clone v1.3.0
 	github.com/smartystreets/assertions v1.0.0
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1

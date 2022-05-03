@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"github.com/pubgo/lava/middleware"
 	"strings"
-
-	"github.com/pubgo/lava/plugin"
 )
 
 const HeaderAuth = "Authorization"

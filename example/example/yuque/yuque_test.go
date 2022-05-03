@@ -3,7 +3,6 @@ package yuque
 import (
 	"testing"
 
-	"github.com/pubgo/lava/example/protopb/proto/yuque_pb"
 	"github.com/pubgo/xerror"
 )
 
