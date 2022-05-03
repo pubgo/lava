@@ -14,15 +14,15 @@ import (
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/example/protopb/proto/gid"
+	"github.com/pubgo/lava/example/protopb/gidpb"
 	"github.com/pubgo/lava/logging"
 )
 
-var _ gid.IdServer = (*Id)(nil)
+var _ gidpb.IdServer = (*Id)(nil)
 
 type Id struct {
 	fx.In
-	gid.UnimplementedIdServer
+	gidpb.UnimplementedIdServer
 	Snowflake *snowflake.Snowflake
 	Bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler
@@ -57,8 +57,8 @@ func NewId() *Id {
 	}
 }
 
-func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.GenerateResponse, error) {
-	var rsp = new(gid.GenerateResponse)
+func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
+	var rsp = new(gidpb.GenerateResponse)
 	var log = logging.GetLog(ctx)
 
 	if len(req.Type) == 0 {
@@ -100,8 +100,8 @@ func (id *Id) Generate(ctx context.Context, req *gid.GenerateRequest) (*gid.Gene
 	return rsp, nil
 }
 
-func (id *Id) Types(ctx context.Context, req *gid.TypesRequest) (*gid.TypesResponse, error) {
-	var rsp = new(gid.TypesResponse)
+func (id *Id) Types(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
+	var rsp = new(gidpb.TypesResponse)
 	rsp.Types = []string{
 		"uuid",
 		"shortid",

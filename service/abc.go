@@ -31,8 +31,6 @@ type Options struct {
 }
 
 type Service interface {
-	Start() error
-	Stop() error
 	Options() Options
 	Command() *cli.Command
 	AfterStops(...func())
@@ -47,4 +45,17 @@ type Service interface {
 	RegApp(prefix string, r *fiber.App)
 	RegRouter(prefix string, fn func(r fiber.Router))
 	RegGateway(fn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error)
+}
+
+type Web interface {
+	Command() *cli.Command
+	AfterStops(...func())
+	BeforeStops(...func())
+	AfterStarts(...func())
+	BeforeStarts(...func())
+	Provide(constructors ...interface{})
+	Invoke(funcs ...interface{})
+	Flags(flags ...cli.Flag)
+	Middleware(middleware.Middleware)
+	RegHandler(handler interface{})
 }

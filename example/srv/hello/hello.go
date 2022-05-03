@@ -13,7 +13,7 @@ import (
 var name = "test-grpc"
 
 func NewSrv() service.Service {
-	srv := lava.NewService(name, "entry grpc test")
+	srv := lava.NewSrv(name, "entry grpc test")
 
 	hellopb.RegisterTestApi(srv, handler.NewTestAPIHandler())
 	return srv
