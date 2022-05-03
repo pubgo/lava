@@ -16,7 +16,7 @@ import (
 	"github.com/pubgo/lava/runtime"
 )
 
-func Builder(m running.Module) {
+func Builder(m running.Running) {
 	var cfg = metric.DefaultCfg()
 	_ = config.Decode(metric.Name, &cfg)
 

@@ -2,7 +2,6 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
@@ -10,6 +9,8 @@ import (
 	"github.com/uber/jaeger-lib/metrics"
 	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
 	"github.com/pubgo/lava/runtime"
 )
 
@@ -45,7 +46,7 @@ func New(cfg Cfg) (err error) {
 
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
-		config.Logger(newLog(tracing_plugin.Name)),
+		config.Logger(newLog(tracing.Name)),
 		config.Metrics(metricsFactory),
 		config.Observer(rpcmetrics.NewObserver(metricsFactory, rpcmetrics.DefaultNameNormalizer)),
 	)

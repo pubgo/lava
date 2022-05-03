@@ -3,44 +3,42 @@ package basic
 import (
 	"context"
 	"encoding/base64"
-	"github.com/pubgo/lava/middleware"
 	"strings"
+
+	"github.com/pubgo/lava/middleware"
 )
 
 const HeaderAuth = "Authorization"
 const Name = "basic-auth"
 
 func init() {
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		OnMiddleware: func(next middleware.HandlerFunc) middleware.HandlerFunc {
-			return func(ctx context.Context, req middleware.Request, resp func(rsp middleware.Response) error) error {
-				subject := req.Header().Get(HeaderAuth)
-				if len(subject) == 0 || subject[0] == "" {
-					return ErrNoHeader
-				}
-
-				u, p, err := decode(subject[0])
-				if err != nil {
-					panic("can not decode base 64:" + err.Error())
-					return ErrNoHeader
-				}
-
-				err = cfg.Authenticate(u, p)
-				if err != nil {
-					return ErrNoHeader
-				}
-
-				if cfg.Authorize != nil {
-					err = cfg.Authorize(u, req)
-					if err != nil {
-						return ErrNoHeader
-					}
-				}
-
-				return next(ctx, req, resp)
+	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
+		return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+			subject := string(req.Header().Peek(HeaderAuth))
+			if len(subject) == 0 || subject == "" {
+				return ErrNoHeader
 			}
-		},
+
+			u, p, err := decode(subject)
+			if err != nil {
+				panic("can not decode base 64:" + err.Error())
+				return ErrNoHeader
+			}
+
+			err = cfg.Authenticate(u, p)
+			if err != nil {
+				return ErrNoHeader
+			}
+
+			if cfg.Authorize != nil {
+				err = cfg.Authorize(u, req)
+				if err != nil {
+					return ErrNoHeader
+				}
+			}
+
+			return next(ctx, req, resp)
+		}
 	})
 }
 

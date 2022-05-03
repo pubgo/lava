@@ -33,7 +33,7 @@ func GetPid() (int, error) {
 }
 
 func GetPidF() (string, error) {
-	filename := fmt.Sprintf("%s.pid", runtime.Name())
+	filename := fmt.Sprintf("%s.pid", runtime.Project)
 	return filepath.Join(pidPath, filename), nil
 }
 

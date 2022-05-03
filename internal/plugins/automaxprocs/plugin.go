@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	inject.Register(fx.Invoke(func(m running.Module) {
+	inject.Register(fx.Invoke(func(m running.Running) {
 		m.BeforeStops(func() {
 			const name = "automaxprocs"
 			var log = func(s string, i ...interface{}) { logging.Component(name).Depth(2).Info(fmt.Sprintf(s, i...)) }

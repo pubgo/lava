@@ -3,15 +3,15 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
-	requestid2 "github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/inject"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
+	requestid2 "github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"

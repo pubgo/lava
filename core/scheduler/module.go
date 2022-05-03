@@ -10,7 +10,7 @@ import (
 const Name = "scheduler"
 
 func init() {
-	inject.Register(fx.Provide(func(m running.Module) *Scheduler {
+	inject.Register(fx.Provide(func(m running.Running) *Scheduler {
 		quart.scheduler.Start()
 		m.BeforeStops(quart.scheduler.Stop)
 		return quart

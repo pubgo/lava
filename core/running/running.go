@@ -4,4 +4,4 @@ import (
 	"github.com/pubgo/lava/internal/running"
 )
 
-type Module = running.Running
+type Running = running.Running

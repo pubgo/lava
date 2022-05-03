@@ -2,12 +2,13 @@ package tracing
 
 import (
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/xerror"
+	"go.uber.org/fx"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
 )
 
 func init() {
