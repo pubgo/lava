@@ -2,8 +2,6 @@ package sockets
 
 import (
 	"context"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"sync"
 
 	"github.com/golang/protobuf/proto"
@@ -18,6 +16,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
