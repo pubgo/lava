@@ -13,6 +13,9 @@ type Handler struct {
 
 func (t *Handler) App() *fiber.App {
 	var app = fiber.New()
-	app.Get("")
 	return app
+}
+
+func (t *Handler) Get(ctx *fiber.Ctx) error {
+	return nil
 }
