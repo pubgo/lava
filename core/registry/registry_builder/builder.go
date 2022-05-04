@@ -20,20 +20,20 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func Enable(srv service.Service) {
+func Enable(app service.App) {
 	var cfg = registry.DefaultCfg()
 
 	// 配置解析
 	xerror.Panic(config.GetCfg().UnmarshalKey(registry.Name, &cfg))
 
 	// 服务注册
-	srv.AfterStarts(func() {
+	app.AfterStarts(func() {
 		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
 		reg.Init()
 
 		registry.SetDefault(reg)
 
-		xerror.Panic(register(srv))
+		xerror.Panic(register(app))
 
 		var cancel = syncx.GoCtx(func(ctx context.Context) {
 			var interval = registry.DefaultRegisterInterval
@@ -50,9 +50,9 @@ func Enable(srv service.Service) {
 				select {
 				case <-tick.C:
 					logutil.LogOrErr(zap.L(), "service register",
-						func() error { return register(srv) },
-						zap.String("service", srv.Options().Name),
-						zap.String("InstanceId", srv.Options().Id),
+						func() error { return register(app) },
+						zap.String("service", app.Options().Name),
+						zap.String("InstanceId", app.Options().Id),
 						zap.String("registry", registry.Default().String()),
 						zap.String("interval", interval.String()),
 					)
@@ -64,18 +64,18 @@ func Enable(srv service.Service) {
 		})
 
 		// 服务撤销
-		srv.BeforeStops(func() {
+		app.BeforeStops(func() {
 			cancel()
-			xerror.Panic(deregister(srv))
+			xerror.Panic(deregister(app))
 		})
 	})
 }
 
-func register(srv service.Service) (err error) {
+func register(app service.App) (err error) {
 	defer xerror.RespErr(&err)
 
 	var reg = registry.Default()
-	var opt = srv.Options()
+	var opt = app.Options()
 
 	// parse address for host, port
 	var advt, host string
@@ -122,10 +122,10 @@ func register(srv service.Service) (err error) {
 	return nil
 }
 
-func deregister(srv service.Service) (err error) {
+func deregister(app service.App) (err error) {
 	defer xerror.RespErr(&err)
 
-	var opt = srv.Options()
+	var opt = app.Options()
 	var reg = registry.Default()
 
 	var advt, host string

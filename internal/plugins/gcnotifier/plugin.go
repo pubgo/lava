@@ -6,11 +6,11 @@ import (
 
 	"github.com/CAFxX/gcnotifier"
 
+	"github.com/pubgo/lava/core/running"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
-	"github.com/pubgo/lava/service"
 )
 
 var Name = "gc"
@@ -21,8 +21,8 @@ func init() {
 		return
 	}
 
-	inject.Register(fx.Invoke(func(srv service.Service) {
-		srv.AfterStops(func() {
+	inject.Register(fx.Invoke(func(r running.Running) {
+		r.AfterStops(func() {
 			syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()
 				defer gc.Close()

@@ -6,6 +6,8 @@ app:
   debug: true
 service:
   print-route: false
+web:
+  print-route: true
 timeout:
   - test
 watcher:

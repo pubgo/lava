@@ -11,11 +11,10 @@ type Handler struct {
 	L *zap.Logger
 }
 
-func (t *Handler) App() *fiber.App {
-	var app = fiber.New()
-	return app
+func (t *Handler) Router(r fiber.Router) {
+	r.Get("/hello", t.Get)
 }
 
 func (t *Handler) Get(ctx *fiber.Ctx) error {
-	return nil
+	return ctx.JSON(fiber.Map{"hello": "ok"})
 }

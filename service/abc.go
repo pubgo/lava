@@ -30,7 +30,7 @@ type Options struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
-type Service interface {
+type App interface {
 	Options() Options
 	Command() *cli.Command
 	AfterStops(...func())
@@ -41,21 +41,16 @@ type Service interface {
 	Invoke(funcs ...interface{})
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
-	RegService(desc Desc)
 	RegApp(prefix string, r *fiber.App)
-	RegRouter(prefix string, fn func(r fiber.Router))
+}
+
+type Service interface {
+	App
+	RegService(desc Desc)
 	RegGateway(fn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error)
 }
 
 type Web interface {
-	Command() *cli.Command
-	AfterStops(...func())
-	BeforeStops(...func())
-	AfterStarts(...func())
-	BeforeStarts(...func())
-	Provide(constructors ...interface{})
-	Invoke(funcs ...interface{})
-	Flags(flags ...cli.Flag)
-	Middleware(middleware.Middleware)
+	App
 	RegHandler(handler interface{})
 }

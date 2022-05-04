@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	Name               = "service"
+	Name               = "web"
 	defaultContentType = "application/grpc"
 )
 

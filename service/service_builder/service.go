@@ -73,7 +73,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
 
-	g.Provide(func() service.Service { return g })
+	g.Provide(func() service.App { return g })
 	g.Invoke(func(m running.GetRunning) { g.modules = m })
 	return g
 }
@@ -135,10 +135,6 @@ func (t *serviceImpl) RegService(desc service.Desc) {
 	}
 
 	t.opts = append(t.opts, fx.Populate(desc.Handler))
-}
-
-func (t *serviceImpl) RegRouter(prefix string, fn func(r fiber2.Router)) {
-	t.httpSrv.Route(prefix, fn)
 }
 
 func (t *serviceImpl) RegGateway(fn func(ctx context.Context, mux *gw.ServeMux, cc grpc.ClientConnInterface) error) {

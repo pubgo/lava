@@ -27,6 +27,7 @@ import (
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/version"
 )
 
 func New(name string, desc ...string) service.Web {
@@ -59,7 +60,7 @@ func newService(name string, desc ...string) *webImpl {
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
 
-	g.Provide(func() service.Web { return g })
+	g.Provide(func() service.App { return g })
 	g.Invoke(func(m running.GetRunning) { g.modules = m })
 	return g
 }
@@ -73,7 +74,7 @@ type webImpl struct {
 	afterStops   []func()
 	middlewares  []middleware.Middleware
 
-	services []interface{}
+	handlers []interface{}
 
 	modules running.GetRunning
 
@@ -94,12 +95,14 @@ func (t *webImpl) Invoke(funcs ...interface{}) {
 	t.opts = append(t.opts, fx.Invoke(funcs...))
 }
 
-func (t *webImpl) Start() error          { return t.start() }
-func (t *webImpl) Stop() error           { return t.stop() }
 func (t *webImpl) Command() *cli.Command { return t.cmd }
 
 func (t *webImpl) RegHandler(handler interface{}) {
-	t.services = append(t.services, handler)
+	t.handlers = append(t.handlers, handler)
+}
+
+func (t *webImpl) RegApp(prefix string, r *fiber2.App) {
+	t.httpSrv.Mount(prefix, r)
 }
 
 func (t *webImpl) Middleware(mid middleware.Middleware) {
@@ -122,16 +125,16 @@ func (t *webImpl) init() error {
 		middlewares = append(middlewares, middleware.Get(m))
 	}
 
-	for _, desc := range t.services {
-		if h, ok := desc.(abc.Close); ok {
-			t.AfterStops(h.Close)
+	for _, handler := range t.handlers {
+		if h, ok := handler.(abc.Close); ok {
+			t.BeforeStops(h.Close)
 		}
 
-		if h, ok := desc.(abc.Init); ok {
+		if h, ok := handler.(abc.Init); ok {
 			h.Init()
 		}
 
-		if h, ok := desc.(service.Handler); ok {
+		if h, ok := handler.(service.Handler); ok {
 			h.Router(t.httpSrv)
 		}
 	}
@@ -139,7 +142,7 @@ func (t *webImpl) init() error {
 	if t.cfg.PrintRoute {
 		for _, stacks := range t.httpSrv.Stack() {
 			for _, s := range stacks {
-				t.log.Info("service route",
+				t.log.Info("service routes",
 					zap.String("name", s.Name),
 					zap.String("path", s.Path),
 					zap.String("method", s.Method),
@@ -154,6 +157,17 @@ func (t *webImpl) init() error {
 	t.api.Get().Mount("/", t.httpSrv)
 
 	return nil
+}
+
+func (t *webImpl) Options() service.Options {
+	return service.Options{
+		Name:      runtime.Project,
+		Id:        runtime.AppID,
+		Version:   version.Version,
+		Port:      netutil.MustGetPort(runtime.Addr),
+		Address:   runtime.Addr,
+		Advertise: t.cfg.Advertise,
+	}
 }
 
 func (t *webImpl) Flags(flags ...cli.Flag) {
@@ -182,9 +196,9 @@ func (t *webImpl) start() (gErr error) {
 
 		// 启动net网络
 		syncx.GoDelay(func() {
-			t.log.Info("[cmux] Server Starting")
-			logutil.LogOrErr(t.log, "[cmux] Server Stop", func() error {
-				if err := t.httpSrv.Listen(runtime.Addr); err != nil &&
+			t.log.Info("[http] Server Starting")
+			logutil.LogOrErr(t.log, "[http] Server Stop", func() error {
+				if err := t.api.Get().Listen(runtime.Addr); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
 					return err
@@ -211,20 +225,20 @@ func (t *webImpl) stop() (err error) {
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
 		for _, run := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
 			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			logutil.ErrTry(t.log, run)
 		}
 		return nil
 	})
 
 	logutil.LogOrErr(t.log, "[http] Shutdown", func() error {
-		xerror.Panic(t.httpSrv.Shutdown())
+		logutil.ErrRecord(t.log, t.api.Get().Shutdown())
 		return nil
 	})
 
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
 		for _, run := range append(t.modules.GetAfterStops(), t.afterStops...) {
 			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			logutil.ErrTry(t.log, run)
 		}
 		return nil
 	})
