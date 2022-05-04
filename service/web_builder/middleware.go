@@ -1,4 +1,4 @@
-package service_builder
+package web_builder
 
 import (
 	"context"
