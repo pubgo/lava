@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/inject"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/pkg/merge"

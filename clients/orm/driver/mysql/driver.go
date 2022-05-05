@@ -1,12 +1,12 @@
 package mysql
 
 import (
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/merge"
 )
 
@@ -26,7 +26,9 @@ func init() {
 	orm.Register("mysql", func(cfg config.CfgMap) gorm.Dialector {
 		var conf = DefaultCfg()
 		xerror.Panic(cfg.Decode(&conf))
-		return mysql.New(*merge.Struct(&mysql.Config{}, conf).(*mysql.Config))
+		var cc = mysql.Config{}
+		xerror.Panic(merge.Struct(&cc, conf))
+		return mysql.New(cc)
 	})
 }
 

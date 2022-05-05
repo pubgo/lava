@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/consts"
 )
 
-const _resIdKey = "_id"
+const _resIdKey = "name"
 
 func getResId(m map[string]interface{}) string {
 	if m == nil {

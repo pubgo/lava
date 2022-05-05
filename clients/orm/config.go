@@ -1,9 +1,11 @@
 package orm
 
 import (
-	"github.com/kr/pretty"
-	"github.com/pubgo/xerror"
 	"time"
+
+	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/logging/logutil"
 )
 
 type Cfg struct {
@@ -27,7 +29,7 @@ type Cfg struct {
 func (t Cfg) Valid() (err error) {
 	defer xerror.Resp(func(err1 xerror.XErr) {
 		err = err1
-		pretty.Logln(t)
+		logutil.ColorPretty(t)
 	})
 
 	xerror.Assert(t.Driver == "", "driver is null")
