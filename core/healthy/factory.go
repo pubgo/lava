@@ -29,11 +29,7 @@ func List() (val []Handler) {
 }
 
 func Register(name string, r Handler) {
-	if r == nil {
-		return
-	}
-
-	xerror.Assert(name == "", "[name] is null")
+	xerror.Assert(name == "" || r == nil, "[name,r] is null")
 	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)
 }

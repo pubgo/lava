@@ -1,13 +1,13 @@
 package healthy
 
 import (
-	"github.com/pubgo/lava/debug"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/utils"
 )
 
