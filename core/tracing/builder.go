@@ -25,8 +25,7 @@ func init() {
 		inject.Register(fx.Provide(fx.Annotated{
 			Name: inject.Name(name),
 			Target: func(log *logging.Logger) opentracing.Tracer {
-				defer xerror.RespExit()
-				xerror.Panic(cfg.Build())
+				xerror.Exit(cfg.Build())
 				return opentracing.GlobalTracer()
 			},
 		}))
