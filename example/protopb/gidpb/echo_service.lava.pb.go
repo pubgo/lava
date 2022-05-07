@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,71 @@ func InitEchoServiceClient(addr string, alias ...string) {
 		Target: func() EchoServiceClient { return NewEchoServiceClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SimpleMessage{},
+		Output:       &SimpleMessage{},
+		Service:      "gid.EchoService",
+		Name:         "Echo",
+		Method:       "POST",
+		Path:         "/gid/echo-service/echo",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SimpleMessage{},
+		Output:       &SimpleMessage{},
+		Service:      "gid.EchoService",
+		Name:         "EchoBody",
+		Method:       "POST",
+		Path:         "/gid/echo-service/echo-body",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SimpleMessage{},
+		Output:       &SimpleMessage{},
+		Service:      "gid.EchoService",
+		Name:         "EchoDelete",
+		Method:       "POST",
+		Path:         "/gid/echo-service/echo-delete",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &DynamicMessageUpdate{},
+		Output:       &DynamicMessageUpdate{},
+		Service:      "gid.EchoService",
+		Name:         "EchoPatch",
+		Method:       "POST",
+		Path:         "/gid/echo-service/echo-patch",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SimpleMessage{},
+		Output:       &SimpleMessage{},
+		Service:      "gid.EchoService",
+		Name:         "EchoUnauthorized",
+		Method:       "POST",
+		Path:         "/gid/echo-service/echo-unauthorized",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterEchoServiceServer, mthList)
 }
 
 func RegisterEchoService(srv service.Service, impl EchoServiceServer) {

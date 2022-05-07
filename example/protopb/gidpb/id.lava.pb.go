@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,35 @@ func InitIdClient(addr string, alias ...string) {
 		Target: func() IdClient { return NewIdClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &GenerateRequest{},
+		Output:       &GenerateResponse{},
+		Service:      "gid.Id",
+		Name:         "Generate",
+		Method:       "POST",
+		Path:         "/gid/id/generate",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TypesRequest{},
+		Output:       &TypesResponse{},
+		Service:      "gid.Id",
+		Name:         "Types",
+		Method:       "POST",
+		Path:         "/gid/id/types",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterIdServer, mthList)
 }
 
 func RegisterId(srv service.Service, impl IdServer) {

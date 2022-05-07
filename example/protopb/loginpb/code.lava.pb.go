@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,71 @@ func InitCodeClient(addr string, alias ...string) {
 		Target: func() CodeClient { return NewCodeClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &SendCodeRequest{},
+		Output:       &SendCodeResponse{},
+		Service:      "login.Code",
+		Name:         "SendCode",
+		Method:       "POST",
+		Path:         "/login/code/send-code",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &VerifyRequest{},
+		Output:       &VerifyResponse{},
+		Service:      "login.Code",
+		Name:         "Verify",
+		Method:       "POST",
+		Path:         "/login/code/verify",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &IsCheckImageCodeRequest{},
+		Output:       &IsCheckImageCodeResponse{},
+		Service:      "login.Code",
+		Name:         "IsCheckImageCode",
+		Method:       "POST",
+		Path:         "/login/code/is-check-image-code",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &VerifyImageCodeRequest{},
+		Output:       &VerifyImageCodeResponse{},
+		Service:      "login.Code",
+		Name:         "VerifyImageCode",
+		Method:       "POST",
+		Path:         "/login/code/verify-image-code",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &GetSendStatusRequest{},
+		Output:       &GetSendStatusResponse{},
+		Service:      "login.Code",
+		Name:         "GetSendStatus",
+		Method:       "POST",
+		Path:         "/login/code/get-send-status",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterCodeServer, mthList)
 }
 
 func RegisterCode(srv service.Service, impl CodeServer) {

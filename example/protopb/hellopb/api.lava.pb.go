@@ -12,8 +12,10 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -33,6 +35,59 @@ func InitTestApiClient(addr string, alias ...string) {
 		Target: func() TestApiClient { return NewTestApiClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
+		Service:      "hello.TestApi",
+		Name:         "Version",
+		Method:       "POST",
+		Path:         "/hello/test-api/version",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &structpb.Value{},
+		Output:       &TestApiOutput1{},
+		Service:      "hello.TestApi",
+		Name:         "Version1",
+		Method:       "POST",
+		Path:         "/hello/test-api/version1",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
+		Service:      "hello.TestApi",
+		Name:         "VersionTest",
+		Method:       "POST",
+		Path:         "/hello/test-api/version-test",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
+		Service:      "hello.TestApi",
+		Name:         "VersionTestCustom",
+		Method:       "POST",
+		Path:         "/hello/test-api/version-test-custom",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterTestApiServer, mthList)
 }
 
 func RegisterTestApi(srv service.Service, impl TestApiServer) {
@@ -59,6 +114,35 @@ func InitTestApiV2Client(addr string, alias ...string) {
 		Target: func() TestApiV2Client { return NewTestApiV2Client(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
+		Service:      "hello.TestApiV2",
+		Name:         "Version1",
+		Method:       "POST",
+		Path:         "/hello/test-api-v2/version1",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TestReq{},
+		Output:       &TestApiOutput{},
+		Service:      "hello.TestApiV2",
+		Name:         "VersionTest1",
+		Method:       "POST",
+		Path:         "/hello/test-api-v2/version-test1",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterTestApiV2Server, mthList)
 }
 
 func RegisterTestApiV2(srv service.Service, impl TestApiV2Server) {

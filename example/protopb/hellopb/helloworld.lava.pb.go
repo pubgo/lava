@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,23 @@ func InitGreeterClient(addr string, alias ...string) {
 		Target: func() GreeterClient { return NewGreeterClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &HelloRequest{},
+		Output:       &HelloReply{},
+		Service:      "hello.Greeter",
+		Name:         "SayHello",
+		Method:       "POST",
+		Path:         "/hello/greeter/say-hello",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterGreeterServer, mthList)
 }
 
 func RegisterGreeter(srv service.Service, impl GreeterServer) {

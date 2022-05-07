@@ -12,8 +12,10 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -33,6 +35,71 @@ func InitUserServiceClient(addr string, alias ...string) {
 		Target: func() UserServiceClient { return NewUserServiceClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &User{},
+		Output:       &emptypb.Empty{},
+		Service:      "hello.UserService",
+		Name:         "AddUser",
+		Method:       "POST",
+		Path:         "/hello/user-service/add-user",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &User{},
+		Output:       &emptypb.Empty{},
+		Service:      "hello.UserService",
+		Name:         "GetUser",
+		Method:       "POST",
+		Path:         "/hello/user-service/get-user",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ListUsersRequest{},
+		Output:       &User{},
+		Service:      "hello.UserService",
+		Name:         "ListUsers",
+		Method:       "POST",
+		Path:         "/hello/user-service/list-users",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: true,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UserRole{},
+		Output:       &User{},
+		Service:      "hello.UserService",
+		Name:         "ListUsersByRole",
+		Method:       "POST",
+		Path:         "/hello/user-service/list-users-by-role",
+		DefaultUrl:   true,
+		ClientStream: true,
+		ServerStream: true,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UpdateUserRequest{},
+		Output:       &User{},
+		Service:      "hello.UserService",
+		Name:         "UpdateUser",
+		Method:       "POST",
+		Path:         "/hello/user-service/update-user",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterUserServiceServer, mthList)
 }
 
 func RegisterUserService(srv service.Service, impl UserServiceServer) {

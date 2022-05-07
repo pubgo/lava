@@ -12,8 +12,10 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -33,6 +35,47 @@ func InitYuqueClient(addr string, alias ...string) {
 		Target: func() YuqueClient { return NewYuqueClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &UserInfoResp{},
+		Service:      "yuque.v2.Yuque",
+		Name:         "UserInfo",
+		Method:       "POST",
+		Path:         "/yuque/v2/yuque/user-info",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UserInfoReq{},
+		Output:       &UserInfoResp{},
+		Service:      "yuque.v2.Yuque",
+		Name:         "UserInfoByLogin",
+		Method:       "POST",
+		Path:         "/yuque/v2/yuque/user-info-by-login",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &CreateGroupReq{},
+		Output:       &CreateGroupResp{},
+		Service:      "yuque.v2.Yuque",
+		Name:         "CreateGroup",
+		Method:       "POST",
+		Path:         "/yuque/v2/yuque/create-group",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterYuqueServer, mthList)
 }
 
 func RegisterYuque(srv service.Service, impl YuqueServer) {
@@ -59,6 +102,47 @@ func InitUserServiceClient(addr string, alias ...string) {
 		Target: func() UserServiceClient { return NewUserServiceClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UserInfoReq{},
+		Output:       &UserInfoResp{},
+		Service:      "yuque.v2.UserService",
+		Name:         "Signin",
+		Method:       "POST",
+		Path:         "/yuque/v2/user-service/signin",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UserInfoReq{},
+		Output:       &UserInfoResp{},
+		Service:      "yuque.v2.UserService",
+		Name:         "Signin1",
+		Method:       "POST",
+		Path:         "/yuque/v2/user-service/signin1",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UserInfoReq{},
+		Output:       &emptypb.Empty{},
+		Service:      "yuque.v2.UserService",
+		Name:         "ResetPassword",
+		Method:       "POST",
+		Path:         "/yuque/v2/user-service/reset-password",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterUserServiceServer, mthList)
 }
 
 func RegisterUserService(srv service.Service, impl UserServiceServer) {

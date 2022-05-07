@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,83 @@ func InitBindTelephoneClient(addr string, alias ...string) {
 		Target: func() BindTelephoneClient { return NewBindTelephoneClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &CheckRequest{},
+		Output:       &CheckResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "Check",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/check",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindVerifyRequest{},
+		Output:       &BindVerifyResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "BindVerify",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/bind-verify",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindChangeRequest{},
+		Output:       &BindChangeResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "BindChange",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/bind-change",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &AutomaticBindRequest{},
+		Output:       &AutomaticBindResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "AutomaticBind",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/automatic-bind",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindPhoneParseRequest{},
+		Output:       &BindPhoneParseResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "BindPhoneParse",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/bind-phone-parse",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &BindPhoneParseByOneClickRequest{},
+		Output:       &BindPhoneParseByOneClickResponse{},
+		Service:      "login.BindTelephone",
+		Name:         "BindPhoneParseByOneClick",
+		Method:       "POST",
+		Path:         "/login/bind-telephone/bind-phone-parse-by-one-click",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterBindTelephoneServer, mthList)
 }
 
 func RegisterBindTelephone(srv service.Service, impl BindTelephoneServer) {

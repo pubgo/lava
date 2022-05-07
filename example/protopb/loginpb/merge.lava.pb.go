@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,71 @@ func InitMergeClient(addr string, alias ...string) {
 		Target: func() MergeClient { return NewMergeClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TelephoneRequest{},
+		Output:       &Reply{},
+		Service:      "login.Merge",
+		Name:         "Telephone",
+		Method:       "POST",
+		Path:         "/login/merge/telephone",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TelephoneRequest{},
+		Output:       &Reply{},
+		Service:      "login.Merge",
+		Name:         "TelephoneCheck",
+		Method:       "POST",
+		Path:         "/login/merge/telephone-check",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &WeChatRequest{},
+		Output:       &Reply{},
+		Service:      "login.Merge",
+		Name:         "WeChat",
+		Method:       "POST",
+		Path:         "/login/merge/we-chat",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &WeChatRequest{},
+		Output:       &Reply{},
+		Service:      "login.Merge",
+		Name:         "WeChatCheck",
+		Method:       "POST",
+		Path:         "/login/merge/we-chat-check",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &WeChatUnMergeRequest{},
+		Output:       &Reply{},
+		Service:      "login.Merge",
+		Name:         "WeChatUnMerge",
+		Method:       "POST",
+		Path:         "/login/merge/we-chat-un-merge",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterMergeServer, mthList)
 }
 
 func RegisterMerge(srv service.Service, impl MergeServer) {

@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,35 @@ func InitLoginClient(addr string, alias ...string) {
 		Target: func() LoginClient { return NewLoginClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &LoginRequest{},
+		Output:       &LoginResponse{},
+		Service:      "login.Login",
+		Name:         "Login",
+		Method:       "POST",
+		Path:         "/login/login/login",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &AuthenticateRequest{},
+		Output:       &AuthenticateResponse{},
+		Service:      "login.Login",
+		Name:         "Authenticate",
+		Method:       "POST",
+		Path:         "/login/login/authenticate",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterLoginServer, mthList)
 }
 
 func RegisterLogin(srv service.Service, impl LoginServer) {

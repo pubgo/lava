@@ -12,8 +12,12 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -33,6 +37,35 @@ func InitUserClient(addr string, alias ...string) {
 		Target: func() UserClient { return NewUserClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &GenerateRequest{},
+		Output:       &GenerateResponse{},
+		Service:      "gid.User",
+		Name:         "Generate",
+		Method:       "POST",
+		Path:         "/gid/user/generate",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &TypesRequest{},
+		Output:       &TypesResponse{},
+		Service:      "gid.User",
+		Name:         "Types",
+		Method:       "POST",
+		Path:         "/gid/user/types",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterUserServer, mthList)
 }
 
 func RegisterUser(srv service.Service, impl UserServer) {
@@ -61,6 +94,239 @@ func InitABitOfEverythingServiceClient(addr string, alias ...string) {
 	}))
 }
 
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "Create",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/create",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CreateBody",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/create-body",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &CreateBookRequest{},
+		Output:       &Book{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CreateBook",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/create-book",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UpdateBookRequest{},
+		Output:       &Book{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "UpdateBook",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/update-book",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "Update",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/update",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &UpdateV2Request{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "UpdateV2",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/update-v2",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "GetQuery",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/get-query",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverythingRepeated{},
+		Output:       &ABitOfEverythingRepeated{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "GetRepeatedQuery",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/get-repeated-query",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "DeepPathEcho",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/deep-path-echo",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &durationpb.Duration{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "NoBindings",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/no-bindings",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "Timeout",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/timeout",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "ErrorWithDetails",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/error-with-details",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &MessageWithBody{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "GetMessageWithBody",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/get-message-with-body",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &Body{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "PostWithEmptyBody",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/post-with-empty-body",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CheckGetQueryParams",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/check-get-query-params",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CheckNestedEnumGetQueryParams",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/check-nested-enum-get-query-params",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &ABitOfEverything{},
+		Output:       &ABitOfEverything{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CheckPostQueryParams",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/check-post-query-params",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &wrapperspb.StringValue{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "OverwriteResponseContentType",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/overwrite-response-content-type",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &CheckStatusResponse{},
+		Service:      "gid.ABitOfEverythingService",
+		Name:         "CheckStatus",
+		Method:       "POST",
+		Path:         "/gid/a-bit-of-everything-service/check-status",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterABitOfEverythingServiceServer, mthList)
+}
+
 func RegisterABitOfEverythingService(srv service.Service, impl ABitOfEverythingServiceServer) {
 	srv.RegService(service.Desc{
 		Handler:     impl,
@@ -87,6 +353,23 @@ func InitCamelCaseServiceNameClient(addr string, alias ...string) {
 	}))
 }
 
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.camelCaseServiceName",
+		Name:         "Empty",
+		Method:       "POST",
+		Path:         "/gid/camel-case-service-name/empty",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterCamelCaseServiceNameServer, mthList)
+}
+
 func RegisterCamelCaseServiceName(srv service.Service, impl CamelCaseServiceNameServer) {
 	srv.RegService(service.Desc{
 		Handler:     impl,
@@ -111,6 +394,23 @@ func InitAnotherServiceWithNoBindingsClient(addr string, alias ...string) {
 		Target: func() AnotherServiceWithNoBindingsClient { return NewAnotherServiceWithNoBindingsClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &emptypb.Empty{},
+		Output:       &emptypb.Empty{},
+		Service:      "gid.AnotherServiceWithNoBindings",
+		Name:         "NoBindings",
+		Method:       "POST",
+		Path:         "/gid/another-service-with-no-bindings/no-bindings",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterAnotherServiceWithNoBindingsServer, mthList)
 }
 
 func RegisterAnotherServiceWithNoBindings(srv service.Service, impl AnotherServiceWithNoBindingsServer) {

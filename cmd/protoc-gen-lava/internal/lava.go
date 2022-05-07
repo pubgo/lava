@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
 
@@ -104,39 +105,39 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 }
 
 func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
-	//g.P("func init(){")
-	//g.P("var mthList []", xgenCall("GrpcRestHandler"))
+	g.P("func init(){")
+	g.P("var mthList []", xgenCall("GrpcRestHandler"))
 
 	var isGw bool
 	for _, m := range service.Methods {
-		//g.P("mthList = append(mthList, ", xgenCall("GrpcRestHandler"), "{")
-		//g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
-		//g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
-		//g.P(fmt.Sprintf(`Service:"%s",`, service.Desc.FullName()))
-		//g.P(fmt.Sprintf(`Name:"%s",`, m.Desc.Name()))
+		g.P("mthList = append(mthList, ", xgenCall("GrpcRestHandler"), "{")
+		g.P("Input:        &", g.QualifiedGoIdent(m.Input.GoIdent), "{},")
+		g.P("Output:        &", g.QualifiedGoIdent(m.Output.GoIdent), "{},")
+		g.P(fmt.Sprintf(`Service:"%s",`, service.Desc.FullName()))
+		g.P(fmt.Sprintf(`Name:"%s",`, m.Desc.Name()))
 
-		//var defaultUrl bool
+		var defaultUrl bool
 		hr, err := protoutil.ExtractAPIOptions(m.Desc)
 		if err == nil && hr != nil {
-			//defaultUrl = true
+			defaultUrl = true
 			isGw = true
 
-			//var replacer = strings.NewReplacer(".", "/", "-", "/")
-			//hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
+			var replacer = strings.NewReplacer(".", "/", "-", "/")
+			hr = protoutil.DefaultAPIOptions(replacer.Replace(string(file.Desc.Package())), service.GoName, m.GoName)
 		}
-		//method, path := protoutil.ExtractHttpMethod(hr)
-		//g.P(fmt.Sprintf(`Method:"%s",`, method))
-		//g.P(fmt.Sprintf(`Path:"%s",`, path))
-		//g.P(fmt.Sprintf(`DefaultUrl:%v,`, defaultUrl))
-		//g.P("ClientStream:", m.Desc.IsStreamingClient(), ",")
-		//g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
-		//g.P("})")
-		//g.P()
+		method, path := protoutil.ExtractHttpMethod(hr)
+		g.P(fmt.Sprintf(`Method:"%s",`, method))
+		g.P(fmt.Sprintf(`Path:"%s",`, path))
+		g.P(fmt.Sprintf(`DefaultUrl:%v,`, defaultUrl))
+		g.P("ClientStream:", m.Desc.IsStreamingClient(), ",")
+		g.P("ServerStream:", m.Desc.IsStreamingServer(), ",")
+		g.P("})")
+		g.P()
 	}
 	// grpc
-	//g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
-	//g.P("}")
-	//g.P()
+	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
+	g.P("}")
+	g.P()
 
 	if enableLava {
 		if isGw {

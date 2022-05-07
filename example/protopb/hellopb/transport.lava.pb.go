@@ -12,6 +12,7 @@ import (
 	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
+	xgen "github.com/pubgo/lava/xgen"
 	fx "go.uber.org/fx"
 	grpc "google.golang.org/grpc"
 )
@@ -33,6 +34,59 @@ func InitTransportClient(addr string, alias ...string) {
 		Target: func() TransportClient { return NewTransportClient(conn) },
 		Name:   name,
 	}))
+}
+
+func init() {
+	var mthList []xgen.GrpcRestHandler
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &Message{},
+		Output:       &Message{},
+		Service:      "hello.Transport",
+		Name:         "TestStream",
+		Method:       "",
+		Path:         "",
+		DefaultUrl:   false,
+		ClientStream: true,
+		ServerStream: true,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &Message{},
+		Output:       &Message{},
+		Service:      "hello.Transport",
+		Name:         "TestStream1",
+		Method:       "",
+		Path:         "",
+		DefaultUrl:   false,
+		ClientStream: true,
+		ServerStream: false,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &Message{},
+		Output:       &Message{},
+		Service:      "hello.Transport",
+		Name:         "TestStream2",
+		Method:       "",
+		Path:         "",
+		DefaultUrl:   false,
+		ClientStream: false,
+		ServerStream: true,
+	})
+
+	mthList = append(mthList, xgen.GrpcRestHandler{
+		Input:        &Message{},
+		Output:       &Message{},
+		Service:      "hello.Transport",
+		Name:         "TestStream3",
+		Method:       "POST",
+		Path:         "/hello/transport/test-stream3",
+		DefaultUrl:   true,
+		ClientStream: false,
+		ServerStream: false,
+	})
+
+	xgen.Add(RegisterTransportServer, mthList)
 }
 
 func RegisterTransport(srv service.Service, impl TransportServer) {
