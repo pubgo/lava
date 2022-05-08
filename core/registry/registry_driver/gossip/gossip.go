@@ -4,9 +4,6 @@ package gossip
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/core/registry"
-	pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
-	"github.com/pubgo/lava/logging"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -20,7 +17,10 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/core/registry"
+	pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
 	event2 "github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/runtime"
 )
 
@@ -100,6 +100,11 @@ type gossipRegistry struct {
 	addrs   []string
 	members map[string]int32
 	done    chan bool
+}
+
+func (g *gossipRegistry) Close() {
+	//TODO implement me
+	panic("implement me")
 }
 
 type update struct {

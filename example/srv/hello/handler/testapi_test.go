@@ -17,6 +17,7 @@ var _srv = &testApiHandler{}
 
 func TestMain(t *testing.M) {
 	inject.Register(fx.Populate(_srv))
+	inject.Load()
 
 	_srv.Init()
 	t.Run()

@@ -92,7 +92,7 @@ require (
 	github.com/mailgun/holster/v4 v4.0.6
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pseudomuto/protoc-gen-doc v1.3.2
 	github.com/rsocket/rsocket-go v0.8.6
@@ -112,6 +112,7 @@ require (
 )
 
 require (
+	github.com/antonmedv/expr v1.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/fullstorydev/grpcurl v1.8.6

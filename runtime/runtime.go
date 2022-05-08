@@ -3,7 +3,6 @@ package runtime
 import (
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
@@ -61,15 +59,3 @@ var (
 		},
 	)
 )
-
-func init() {
-	Project = env.MustGet("lava_project", "app_name", "project_name", "service_name")
-	mode := env.Get("lava_mode", "app_mode")
-	if mode != "" {
-		var i, err = strconv.Atoi(mode)
-		xerror.Panic(err)
-
-		Mode = RunMode(i)
-		xerror.Assert(Mode.String() == "", "unknown mode, mode=%s", mode)
-	}
-}
