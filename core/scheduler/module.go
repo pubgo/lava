@@ -1,9 +1,9 @@
 package scheduler
 
 import (
-	"github.com/pubgo/lava/core/running"
 	"go.uber.org/fx"
 
+	"github.com/pubgo/lava/core/running"
 	"github.com/pubgo/lava/inject"
 )
 

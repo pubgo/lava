@@ -17,7 +17,6 @@ import (
 	"github.com/pubgo/lava/clients/etcdv3"
 	"github.com/pubgo/lava/config"
 	registry2 "github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/merge"
 )
 
@@ -46,7 +45,6 @@ func (e *Registry) Close() {
 }
 
 func (e *Registry) Init() {
-	inject.Inject(e)
 }
 
 func (e *Registry) RegLoop(f func() *registry2.Service, opt ...registry2.RegOpt) error {

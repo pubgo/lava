@@ -14,8 +14,10 @@ import (
 )
 
 func init() {
-	New(config.GetCfg())
-	inject.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
+	inject.Init(func() {
+		New(config.GetCfg())
+		inject.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
+	})
 }
 
 func NewWithCfg(cfg *log_config.Config) {

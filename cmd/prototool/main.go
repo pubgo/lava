@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/pubgo/lava/runtime"
 	"os"
 
 	"github.com/pubgo/xerror"
@@ -13,7 +12,7 @@ import (
 
 func main() {
 	var app = &cli.App{
-		Name:     runtime.Project,
+		Name:     "prototool",
 		Version:  version.Version,
 		Commands: cli.Commands{protoc.Cmd()},
 	}

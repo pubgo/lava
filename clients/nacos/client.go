@@ -4,18 +4,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/pkg/utils"
 )
-
-func Get(names ...string) *Client {
-	var name = utils.GetDefault(names...)
-	var cfg, ok = cfgMap[name]
-	if ok {
-		return cfg.c
-	}
-	return nil
-}
 
 type Client struct {
 	srv naming_client.INamingClient

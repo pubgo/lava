@@ -3,6 +3,7 @@ package web_builder
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/config"
 	"net"
 	"net/http"
 
@@ -14,7 +15,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/abc"
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/inject"
@@ -56,9 +56,6 @@ func newService(name string, desc ...string) *webImpl {
 		xerror.Panic(g.stop())
 		return nil
 	}
-
-	// 配置解析
-	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
 
 	g.Provide(func() service.App { return g })
 	g.Invoke(func(m running.GetRunning) { g.modules = m })
@@ -118,7 +115,14 @@ func (t *webImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterStops
 func (t *webImpl) init() error {
 	defer xerror.RespExit()
 
-	inject.Init(append(inject.List(), t.opts...)...)
+	for i := range t.opts {
+		inject.Register(t.opts[i])
+	}
+
+	inject.Load()
+
+	// 配置解析
+	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
 
 	middlewares := t.middlewares[:]
 	for _, m := range t.cfg.Middlewares {

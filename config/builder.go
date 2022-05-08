@@ -10,8 +10,10 @@ import (
 var conf Config
 
 func init() {
-	conf = newCfg()
-	inject.Register(fx.Provide(GetCfg))
+	inject.Init(func() {
+		conf = newCfg()
+		inject.Register(fx.Provide(GetCfg))
+	})
 }
 
 // GetCfg 获取内存配置

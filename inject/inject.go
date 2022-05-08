@@ -8,8 +8,8 @@ import (
 )
 
 var factories []fx.Option
+var initList []func()
 
-func List() []fx.Option { return factories[:] }
 func Register(m fx.Option) {
 	xerror.Assert(m == nil, "[m] should not be null")
 	factories = append(factories, m)
@@ -22,9 +22,18 @@ func Name(name string) string {
 	return name
 }
 
-func Init(opts ...fx.Option) {
+func Init(fn func()) {
+	initList = append(initList, fn)
+}
+
+func Load() {
+	for i := range initList {
+		initList[i]()
+	}
+
 	//opts = append(opts, fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
 	//	return &fxevent.ZapLogger{Logger: logger.Named("fx")}
 	//}))
-	xerror.Exit(fx.New(opts...).Err())
+
+	xerror.Exit(fx.New(factories...).Err())
 }

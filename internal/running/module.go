@@ -40,7 +40,9 @@ func (t *runningImpl) AfterStarts(f ...func())   { t.afterStarts = append(t.afte
 func (t *runningImpl) AfterStops(f ...func())    { t.afterStops = append(t.afterStops, f...) }
 
 func init() {
-	impl := new(runningImpl)
-	inject.Register(fx.Provide(func() Running { return impl }))
-	inject.Register(fx.Provide(func() GetRunning { return impl }))
+	inject.Init(func() {
+		impl := new(runningImpl)
+		inject.Register(fx.Provide(func() Running { return impl }))
+		inject.Register(fx.Provide(func() GetRunning { return impl }))
+	})
 }

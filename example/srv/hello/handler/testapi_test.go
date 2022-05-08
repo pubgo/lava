@@ -16,7 +16,7 @@ import (
 var _srv = &testApiHandler{}
 
 func TestMain(t *testing.M) {
-	inject.Init(append(inject.List(), fx.Populate(_srv))...)
+	inject.Register(fx.Populate(_srv))
 
 	_srv.Init()
 	t.Run()

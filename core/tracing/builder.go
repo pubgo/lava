@@ -12,22 +12,24 @@ import (
 )
 
 func init() {
-	defer xerror.RespExit()
-	var cfgMap = make(map[string]*Cfg)
-	xerror.Panic(config.Decode(Name, cfgMap))
+	inject.Init(func() {
+		defer xerror.RespExit()
+		var cfgMap = make(map[string]*Cfg)
+		xerror.Panic(config.Decode(Name, cfgMap))
 
-	for name := range cfgMap {
-		var cfg = DefaultCfg()
-		if cfgMap[name] != nil {
-			xerror.Panic(merge.Struct(&cfg, cfgMap[name]))
+		for name := range cfgMap {
+			var cfg = DefaultCfg()
+			if cfgMap[name] != nil {
+				xerror.Panic(merge.Struct(&cfg, cfgMap[name]))
+			}
+
+			inject.Register(fx.Provide(fx.Annotated{
+				Name: inject.Name(name),
+				Target: func(log *logging.Logger) opentracing.Tracer {
+					xerror.Exit(cfg.Build())
+					return opentracing.GlobalTracer()
+				},
+			}))
 		}
-
-		inject.Register(fx.Provide(fx.Annotated{
-			Name: inject.Name(name),
-			Target: func(log *logging.Logger) opentracing.Tracer {
-				xerror.Exit(cfg.Build())
-				return opentracing.GlobalTracer()
-			},
-		}))
-	}
+	})
 }

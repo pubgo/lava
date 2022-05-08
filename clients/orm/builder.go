@@ -21,19 +21,21 @@ import (
 )
 
 func init() {
-	defer xerror.RespExit()
-	var cfgMap = make(map[string]*Cfg)
-	xerror.Panic(config.Decode(Name, &cfgMap))
-	for name := range cfgMap {
-		cfg := cfgMap[name]
-		xerror.Panic(cfg.Valid())
-		inject.Register(fx.Provide(fx.Annotated{
-			Name: inject.Name(name),
-			Target: func(log *logging.Logger) *Client {
-				return NewWithCfg(cfg, log)
-			},
-		}))
-	}
+	inject.Init(func() {
+		defer xerror.RespExit()
+		var cfgMap = make(map[string]*Cfg)
+		xerror.Panic(config.Decode(Name, &cfgMap))
+		for name := range cfgMap {
+			cfg := cfgMap[name]
+			xerror.Panic(cfg.Valid())
+			inject.Register(fx.Provide(fx.Annotated{
+				Name: inject.Name(name),
+				Target: func(log *logging.Logger) *Client {
+					return NewWithCfg(cfg, log)
+				},
+			}))
+		}
+	})
 }
 
 func NewWithCfg(cfg *Cfg, log *logging.Logger) *Client {

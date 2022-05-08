@@ -70,9 +70,6 @@ func newService(name string, desc ...string) *serviceImpl {
 		return nil
 	}
 
-	// 配置解析
-	xerror.Panic(config.UnmarshalKey(Name, &g.cfg))
-
 	g.Provide(func() service.App { return g })
 	g.Invoke(func(m running.GetRunning) { g.modules = m })
 	return g
@@ -158,7 +155,14 @@ func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterS
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
-	inject.Init(append(inject.List(), t.opts...)...)
+	for i := range t.opts {
+		inject.Register(t.opts[i])
+	}
+
+	inject.Load()
+
+	// 配置解析
+	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
 
 	t.net.Addr = runtime.Addr
 
