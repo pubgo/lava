@@ -6,20 +6,21 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/consts"
 )
 
-const _resIdKey = "name"
+const resKey = "name"
 
 func getResId(m map[string]interface{}) string {
 	if m == nil {
 		return consts.KeyDefault
 	}
 
-	var val, ok = m[_resIdKey]
+	var val, ok = m[resKey]
 	if !ok || val == nil {
 		return consts.KeyDefault
 	}
@@ -50,8 +51,8 @@ func strMap(strList []string, fn func(str string) string) []string {
 }
 
 func loadEnv(envPrefix string, v *viper.Viper) {
-	var r = strings.NewReplacer("-", "_", ".", "_", "__", "_", "/", "_")
-	envPrefix = strings.ReplaceAll(r.Replace(envPrefix)+"_", "__", "_")
+	var r = strings.NewReplacer("-", "_", ".", "_", "/", "_")
+	envPrefix = strings.ReplaceAll(r.Replace(strcase.ToSnake(envPrefix))+"_", "__", "_")
 
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, envPrefix) {

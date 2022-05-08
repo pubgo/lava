@@ -1,6 +1,7 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +16,15 @@ func Set(key, value string) error {
 func Get(names ...string) string {
 	var val string
 	GetWith(&val, names...)
+	return val
+}
+
+func MustGet(names ...string) string {
+	var val string
+	GetWith(&val, names...)
+	if val == "" {
+		panic(fmt.Sprintf("env value is null in %v, all:%v", names, os.Environ()))
+	}
 	return val
 }
 
@@ -71,7 +81,7 @@ func GetFloatVal(val *float64, names ...string) {
 }
 
 func Lookup(key string) (string, bool) {
-	return os.LookupEnv(key)
+	return os.LookupEnv(strings.ToUpper(key))
 }
 
 func UnSetenv(key string) error {

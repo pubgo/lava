@@ -21,7 +21,7 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-const Name = "log-record"
+const Name = "accesslog"
 
 var log = logging.Component(Name)
 

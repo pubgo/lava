@@ -1,4 +1,4 @@
-package middleware
+package grpcutil
 
 import (
 	"google.golang.org/grpc/metadata"

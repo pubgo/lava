@@ -3,15 +3,15 @@ package runtime
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
-	dir "github.com/mitchellh/go-homedir"
 	"github.com/pubgo/xerror"
-	"k8s.io/client-go/util/homedir"
 
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
@@ -22,7 +22,7 @@ var (
 	Block   = true
 	Trace   = false
 	Addr    = ":8080"
-	Project = version.Project
+	Project = ""
 	Level   = "debug"
 	Mode    = RunModeLocal
 
@@ -60,15 +60,16 @@ var (
 			return ""
 		},
 	)
-
-	// Homedir the home directory for the current user
-	Homedir = utils.FirstFnNotEmpty(
-		homedir.HomeDir,
-		func() string {
-			var h, err = dir.Dir()
-			xerror.Exit(err)
-			return h
-		},
-		func() string { return "." },
-	)
 )
+
+func init() {
+	Project = env.MustGet("lava_project", "app_name", "project_name", "service_name")
+	mode := env.Get("lava_mode", "app_mode")
+	if mode != "" {
+		var i, err = strconv.Atoi(mode)
+		xerror.Panic(err)
+
+		Mode = RunMode(i)
+		xerror.Assert(Mode.String() == "", "unknown mode, mode=%s", mode)
+	}
+}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/utils"
 )
 
@@ -62,9 +63,9 @@ func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInter
 
 		// get content type
 		ct := utils.FirstFnNotEmpty(func() string {
-			return middleware.HeaderGet(md, "content-type")
+			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
-			return middleware.HeaderGet(md, "x-content-type")
+			return grpcutil.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return grpcc_config.DefaultContentType
 		})
@@ -135,9 +136,9 @@ func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInt
 
 		// get content type
 		ct := utils.FirstFnNotEmpty(func() string {
-			return middleware.HeaderGet(md, "content-type")
+			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
-			return middleware.HeaderGet(md, "x-content-type")
+			return grpcutil.HeaderGet(md, "x-content-type")
 		}, func() string {
 			return grpcc_config.DefaultContentType
 		})

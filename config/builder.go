@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/pubgo/lava/inject"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
+
+	"github.com/pubgo/lava/inject"
 )
 
 var conf Config

@@ -17,6 +17,9 @@ func TestName(t *testing.T) {
 	assert.So(c, should.NotBeNil)
 
 	_ = os.Setenv(runtime.Project+"_123", "app.name=hello")
+	for _, ff := range os.Environ() {
+		println(ff)
+	}
 	c = newCfg()
 	assert.So(c.GetString("app.name"), should.Equal, "hello")
 	assert.So(c.GetString("app.home"), should.Equal, c.GetString("app.project"))
