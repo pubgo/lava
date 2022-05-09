@@ -3,16 +3,17 @@ package inject
 import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 
 	"github.com/pubgo/lava/consts"
 )
 
-var factories []fx.Option
+var options []fx.Option
 var initList []func()
 
 func Register(m fx.Option) {
 	xerror.Assert(m == nil, "[m] should not be null")
-	factories = append(factories, m)
+	options = append(options, m)
 }
 
 func Name(name string) string {
@@ -35,5 +36,11 @@ func Load() {
 	//	return &fxevent.ZapLogger{Logger: logger.Named("fx")}
 	//}))
 
-	xerror.Exit(fx.New(factories...).Err())
+	options = append(options, fx.WithLogger(
+		func() fxevent.Logger {
+			return fxevent.NopLogger
+		},
+	))
+
+	xerror.Exit(fx.New(options...).Err())
 }

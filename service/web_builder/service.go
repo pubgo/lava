@@ -1,9 +1,9 @@
 package web_builder
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/config"
 	"net"
 	"net/http"
 
@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/abc"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/inject"
@@ -57,7 +58,20 @@ func newService(name string, desc ...string) *webImpl {
 		return nil
 	}
 
-	g.Provide(func() service.App { return g })
+	g.Provide(func(lc fx.Lifecycle) service.App {
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				xerror.Panic(g.start())
+				return nil
+			},
+			OnStop: func(ctx context.Context) error {
+				xerror.Panic(g.stop())
+				return nil
+			},
+		})
+		return g
+	})
+
 	g.Invoke(func(m running.GetRunning) { g.modules = m })
 	return g
 }

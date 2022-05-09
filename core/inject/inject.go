@@ -2,57 +2,46 @@ package inject
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
 	exp "github.com/antonmedv/expr"
+	"github.com/hetiansu5/urlquery"
+	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/reflectx"
 )
 
 const (
-	injectKey  = "inject"
-	nameKey    = "name"
-	injectExpr = "inject-expr"
+	injectKey = "inject"
+	nameKey   = "name"
 )
 
-var injectHandlers = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
-var objects = make(map[reflect.Type]map[string]interface{})
+var typeProviders = make(map[reflect.Type]func(obj Object, field Field) (interface{}, bool))
 
-func WithVal(val interface{}, names ...string) func(obj Object, field Field) (interface{}, bool) {
+func WithVal(val interface{}) func(obj Object, field Field) (interface{}, bool) {
 	if val == nil {
 		panic("[val] is nil")
 	}
 
-	var name = ""
-	if len(names) == 0 {
-		name = names[0]
-	}
-
-	t := getType(val)
-	if objects[t] == nil {
-		objects[t] = make(map[string]interface{})
-	}
-	objects[t][name] = val
-
-	return func(obj Object, field Field) (interface{}, bool) {
-		return objects[t][obj.Name()], true
-	}
+	return func(obj Object, field Field) (interface{}, bool) { return val, true }
 }
-
-func RegisterVal(val interface{}) { Register(val, WithVal(val)) }
 
 func Register(typ interface{}, fn func(obj Object, field Field) (interface{}, bool)) {
-	if fn == nil {
-		panic("[fn] is nil")
+	xerror.Assert(typ == nil, "[typ] is nil")
+	xerror.Assert(fn == nil, "[fn] is nil")
+
+	t := reflect.TypeOf(typ)
+	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
+		t = t.Elem()
 	}
 
-	t := getType(typ)
-	injectHandlers[t] = fn
+	typeProviders[t] = fn
 }
 
-func Inject(val interface{}) {
+func Inject(val interface{}) interface{} {
 	var v reflect.Value
 	switch val.(type) {
 	case nil:
@@ -69,86 +58,85 @@ func Inject(val interface{}) {
 		panic(fmt.Sprintf("[val] should be ptr or interface, val=%#v", val))
 	}
 
-	var obj = Object{Value: v}
+	var obj = objectImpl{value: v}
 	for i := 0; i < v.NumField(); i++ {
 		if !v.Field(i).CanSet() {
 			continue
 		}
 
 		var fieldT = v.Type().Field(i)
-		var fn = injectHandlers[fieldT.Type]
+		var field = fieldImpl{field: fieldT, val: val}
+		if tagVal := field.Tag(injectKey); tagVal != "" {
+			tagVal = os.Expand(tagVal, func(s string) string {
+				if !strings.HasPrefix(s, ".") {
+					return os.Getenv(s)
+				}
+
+				out, err := exp.Eval(strings.Trim(s, "."), val)
+				xerror.Panic(err)
+				return fmt.Sprintf("%v", out)
+			})
+			xerror.Panic(urlquery.Unmarshal([]byte(tagVal), &field.tagVal))
+		}
+
+		var fn = typeProviders[fieldT.Type]
 		if fn == nil {
+			xerror.Assert(field.tagVal.Required, "type(%s) has not provider", fieldT.Type.String())
 			continue
 		}
 
-		var field = Field{Field: fieldT, val: val}
-		var ret, ok = fn(obj, field)
+		var ret, ok = fn(&obj, &field)
 		if !ok {
 			continue
 		}
 
-		if ret == nil {
-			panic("[ret] is nil")
-		}
-
+		xerror.Assert(ret == nil, "type(%s) provider value is nil", fieldT.Type.String())
 		v.Field(i).Set(reflect.ValueOf(ret))
 	}
+	return val
 }
 
-type Object struct {
-	Value reflect.Value
+type injectTag struct {
+	Name     string `query:"name"`
+	Required bool   `query:"required"`
+	Expr     bool   `query:"expr"`
 }
 
-func (o Object) Name() string {
-	return o.Value.Type().Name()
+type objectImpl struct {
+	value reflect.Value
 }
 
-func (o Object) Type() string {
-	return o.Value.Type().String()
+func (o *objectImpl) Name() string {
+	return o.value.Type().Name()
 }
 
-type Field struct {
-	Field reflect.StructField
-	val   interface{}
+func (o *objectImpl) Type() string {
+	return o.value.Type().String()
 }
 
-func (f Field) Tag(name string) string {
-	return strings.TrimSpace(f.Field.Tag.Get(name))
+type fieldImpl struct {
+	tagVal injectTag
+	field  reflect.StructField
+	val    interface{}
 }
 
-func (f Field) Type() string {
-	return f.Field.Type.String()
+func (f fieldImpl) Tag(name string) string {
+	return strings.TrimSpace(f.field.Tag.Get(name))
 }
 
-func (f Field) Name() string {
+func (f fieldImpl) Type() string {
+	return f.field.Type.String()
+}
+
+func (f fieldImpl) Name() string {
+	if f.tagVal.Name != "" {
+		return f.tagVal.Name
+	}
+
 	var name = f.Tag(nameKey)
 	if name != "" {
 		return name
 	}
 
-	var expr = f.Tag(injectExpr)
-	if expr != "" {
-		out, err := exp.Eval(expr, f.val)
-		if err != nil {
-			panic(err)
-		}
-
-		if out != "" {
-			return fmt.Sprintf("%v", out)
-		}
-	}
-
 	return consts.KeyDefault
-}
-
-func getType(val interface{}) reflect.Type {
-	if val == nil {
-		panic("[val] is nil")
-	}
-
-	t := reflect.TypeOf(val)
-	if t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Interface {
-		t = t.Elem()
-	}
-	return t
 }

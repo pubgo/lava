@@ -23,7 +23,7 @@ import (
 func init() {
 	registry2.Register(Name, func(m config.CfgMap) (registry2.Registry, error) {
 		var cfg Cfg
-		merge.MapStruct(&cfg, m)
+		xerror.Panic(merge.MapStruct(&cfg, m))
 
 		return &Registry{
 			Cfg:      cfg,
