@@ -3,6 +3,7 @@ package registry_builder
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/inject"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ func Enable(app service.App) {
 	// 服务注册
 	app.AfterStarts(func() {
 		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
+		inject.Inject(reg)
 		reg.Init()
 
 		registry.SetDefault(reg)

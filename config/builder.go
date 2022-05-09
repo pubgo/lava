@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/inject"
 )
@@ -12,7 +11,7 @@ var conf Config
 func init() {
 	inject.Init(func() {
 		conf = newCfg()
-		inject.Register(fx.Provide(GetCfg))
+		inject.Provider(conf)
 	})
 }
 

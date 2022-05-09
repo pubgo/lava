@@ -1,6 +1,7 @@
 package inject
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -8,8 +9,17 @@ import (
 	"github.com/pubgo/lava/consts"
 )
 
+var c = dix.New()
 var options []fx.Option
 var initList []func()
+
+func Provider(data ...interface{}) {
+	xerror.Exit(c.Provider(data...))
+}
+
+func Inject(data interface{}) {
+	xerror.Exit(c.Inject(data))
+}
 
 func Register(m fx.Option) {
 	xerror.Assert(m == nil, "[m] should not be null")

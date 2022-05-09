@@ -36,7 +36,7 @@ func init() {
 type Registry struct {
 	Cfg Cfg
 	sync.Mutex
-	Client   *etcdv3.Client `inject-expr:"$.Cfg.Name"`
+	Client   *etcdv3.Client `dix:"${.Cfg.Name}"`
 	register map[string]uint64
 	leases   map[string]clientv3.LeaseID
 }

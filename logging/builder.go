@@ -2,7 +2,6 @@ package logging
 
 import (
 	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
@@ -16,7 +15,7 @@ import (
 func init() {
 	inject.Init(func() {
 		New(config.GetCfg())
-		inject.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
+		inject.Provider(zap.L())
 	})
 }
 
