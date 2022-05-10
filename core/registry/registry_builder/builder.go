@@ -3,7 +3,6 @@ package registry_builder
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/inject"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"

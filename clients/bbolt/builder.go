@@ -1,11 +1,11 @@
 package bbolt
 
 import (
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 )
 

@@ -2,6 +2,7 @@ package etcdv3
 
 import (
 	"github.com/pubgo/xerror"
+	"go.uber.org/dig"
 	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/config"
@@ -23,4 +24,7 @@ func init() {
 			},
 		}))
 	}
+
+	c := dig.New()
+	c.Invoke()
 }
