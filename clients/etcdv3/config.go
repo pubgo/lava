@@ -1,11 +1,12 @@
 package etcdv3
 
 import (
+	"sync"
 	"time"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
-	clientv3 "go.etcd.io/etcd/client/v3"
+	etcdv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/pkg/retry"
@@ -26,15 +27,22 @@ type Cfg struct {
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
 	retry                retry.Retry
+	once                 sync.Once
+	client               *etcdv3.Client
 }
 
-func (t Cfg) Build() *clientv3.Client {
-	var cfg clientv3.Config
+func (t *Cfg) Get() *etcdv3.Client {
+	t.once.Do(func() { t.client = t.Build() })
+	return t.client
+}
+
+func (t *Cfg) Build() *etcdv3.Client {
+	var cfg etcdv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
 
 	// 创建etcd client对象
-	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return clientv3.New(cfg) })).(*clientv3.Client)
+	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return etcdv3.New(cfg) })).(*etcdv3.Client)
 }
 
 func DefaultCfg() *Cfg {

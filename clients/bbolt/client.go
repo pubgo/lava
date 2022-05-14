@@ -13,6 +13,10 @@ import (
 	"github.com/pubgo/lava/pkg/utils"
 )
 
+func New(db *bolt.DB, log *logging.Logger) *Client {
+	return &Client{DB: db, log: log}
+}
+
 type Client struct {
 	*bolt.DB
 	log *logging.Logger

@@ -1,12 +1,10 @@
 package bbolt
 
 import (
-	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
-
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/xerror"
 )
 
 func init() {
@@ -15,11 +13,8 @@ func init() {
 
 	for name := range cfgMap {
 		cfg := cfgMap[name]
-		inject.Register(fx.Provide(fx.Annotated{
-			Name: inject.Name(name),
-			Target: func(log *logging.Logger) *Client {
-				return &Client{DB: cfg.Create(), log: log.Named(Name)}
-			},
-		}))
+		inject.RegGroup(Name, name, func(log *logging.Logger) *Client {
+			return New(cfg.Get(), log.Named(Name))
+		})
 	}
 }

@@ -2,12 +2,11 @@ package gcnotifier
 
 import (
 	"context"
-	"go.uber.org/fx"
 
 	"github.com/CAFxX/gcnotifier"
+	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/core/running"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
@@ -17,11 +16,15 @@ var Name = "gc"
 var logs = logging.Component(Name)
 
 func init() {
-	if runtime.IsProd() || runtime.IsRelease() {
-		return
-	}
+	fx.Invoke()
+}
 
-	inject.Register(fx.Invoke(func(r running.Running) {
+func Module() fx.Option {
+	return fx.Invoke(func(r running.Running) {
+		if runtime.IsProd() || runtime.IsRelease() {
+			return
+		}
+
 		r.AfterStops(func() {
 			syncx.GoCtx(func(ctx context.Context) {
 				var gc = gcnotifier.New()
@@ -39,5 +42,5 @@ func init() {
 				}
 			})
 		})
-	}))
+	})
 }

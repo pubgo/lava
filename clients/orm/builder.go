@@ -21,21 +21,19 @@ import (
 )
 
 func init() {
-	inject.Init(func() {
-		defer xerror.RespExit()
-		var cfgMap = make(map[string]*Cfg)
-		xerror.Panic(config.Decode(Name, &cfgMap))
-		for name := range cfgMap {
-			cfg := cfgMap[name]
-			xerror.Panic(cfg.Valid())
-			inject.Register(fx.Provide(fx.Annotated{
-				Name: inject.Name(name),
-				Target: func(log *logging.Logger) *Client {
-					return NewWithCfg(cfg, log)
-				},
-			}))
-		}
-	})
+	defer xerror.RespExit()
+	var cfgMap = make(map[string]*Cfg)
+	xerror.Panic(config.Decode(Name, &cfgMap))
+	for name := range cfgMap {
+		cfg := cfgMap[name]
+		xerror.Panic(cfg.Valid())
+		inject.Register(fx.Provide(fx.Annotated{
+			Name: inject.Name(name),
+			Target: func(log *logging.Logger) *Client {
+				return NewWithCfg(cfg, log)
+			},
+		}))
+	}
 }
 
 func NewWithCfg(cfg *Cfg, log *logging.Logger) *Client {
@@ -89,6 +87,10 @@ func NewWithCfg(cfg *Cfg, log *logging.Logger) *Client {
 	}
 
 	var cli = &Client{DB: db}
+	return cli
+}
+
+func init() {
 	vars.Register(Name+"_stats", func() interface{} {
 		var data = make(map[string]interface{})
 		_db, err := cli.DB.DB()
@@ -99,5 +101,4 @@ func NewWithCfg(cfg *Cfg, log *logging.Logger) *Client {
 		}
 		return data
 	})
-	return cli
 }

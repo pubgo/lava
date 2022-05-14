@@ -21,6 +21,18 @@ func Inject(data interface{}) {
 	xerror.Exit(c.Inject(data))
 }
 
+func RegGroup(group string, name string, target interface{}) {
+	Register(fx.Provide(fx.Annotated{
+		Group:  name,
+		Target: target,
+	}))
+
+	Register(fx.Provide(fx.Annotated{
+		Name:   Name(group),
+		Target: target,
+	}))
+}
+
 func Register(m fx.Option) {
 	xerror.Assert(m == nil, "[m] should not be null")
 	options = append(options, m)

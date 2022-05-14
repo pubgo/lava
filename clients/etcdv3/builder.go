@@ -2,7 +2,6 @@ package etcdv3
 
 import (
 	"github.com/pubgo/xerror"
-	"go.uber.org/dig"
 	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/config"
@@ -20,11 +19,14 @@ func init() {
 		inject.Register(fx.Provide(fx.Annotated{
 			Name: inject.Name(name),
 			Target: func() *Client {
-				return &Client{Client: cfg.Build()}
+				return &Client{Client: cfg.Get()}
+			},
+		}))
+		inject.Register(fx.Provide(fx.Annotated{
+			Group: Name,
+			Target: func() *Client {
+				return &Client{Client: cfg.Get()}
 			},
 		}))
 	}
-
-	c := dig.New()
-	c.Invoke()
 }

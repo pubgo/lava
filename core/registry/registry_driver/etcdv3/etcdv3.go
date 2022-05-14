@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/logging"
+	"go.uber.org/fx"
 	"path"
 	"strings"
 	"sync"
@@ -15,13 +18,28 @@ import (
 	"go.etcd.io/etcd/client/v3"
 
 	"github.com/pubgo/lava/clients/etcdv3"
-	"github.com/pubgo/lava/config"
 	registry2 "github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/merge"
 )
 
+func Init() {
+	inject.Register(fx.Provide(fx.Annotated{
+		Name: inject.Name(Name),
+		Target: func(log *logging.Logger, m registry2.Cfg) registry2.Registry {
+			var cfg Cfg
+			xerror.Panic(merge.MapStruct(&cfg, m))
+
+			return &Registry{
+				Cfg:      cfg,
+				register: make(map[string]uint64),
+				leases:   make(map[string]clientv3.LeaseID),
+			}
+		},
+	}))
+}
+
 func init() {
-	registry2.Register(Name, func(m config.CfgMap) (registry2.Registry, error) {
+	registry2.Register(Name, func(m registry2.Cfg) (registry2.Registry, error) {
 		var cfg Cfg
 		xerror.Panic(merge.MapStruct(&cfg, m))
 
