@@ -121,6 +121,7 @@ require (
 	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1
+	go.uber.org/dig v1.14.0
 	go.uber.org/fx v1.17.1
 )
 
@@ -235,7 +236,6 @@ require (
 	go.opentelemetry.io/otel/internal/metric v0.27.0 // indirect
 	go.opentelemetry.io/otel/metric v0.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.4.0 // indirect
-	go.uber.org/dig v1.14.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
