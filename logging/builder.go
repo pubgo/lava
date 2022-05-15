@@ -13,8 +13,8 @@ import (
 )
 
 func init() {
+	New(config.GetCfg())
 	inject.Provide(func() *Logger {
-		New(config.GetCfg())
 		return L()
 	})
 }

@@ -49,18 +49,6 @@ type testApiHandler struct {
 	L          *logging.Logger
 }
 
-func (h *testApiHandler) Provider() interface{} {
-	return func() {
-
-	}
-}
-
-func (h *testApiHandler) Invoke() interface{} {
-	return func() {
-
-	}
-}
-
 func (h *testApiHandler) Close() {
 	h.L.Info("close")
 }
