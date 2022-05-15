@@ -2,7 +2,6 @@ package metric_builder
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/running"
 	"sync/atomic"
 	"unsafe"
 
@@ -10,13 +9,14 @@ import (
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/runtime"
 )
 
-func Builder(m running.Running) {
+func Builder(m lifecycle.Lifecycle) {
 	var cfg = metric.DefaultCfg()
 	_ = config.Decode(metric.Name, &cfg)
 

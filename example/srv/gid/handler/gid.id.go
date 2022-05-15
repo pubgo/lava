@@ -22,9 +22,8 @@ var _ gidpb.IdServer = (*Id)(nil)
 
 type Id struct {
 	fx.In
-	gidpb.UnimplementedIdServer
-	Snowflake *snowflake.Snowflake
-	Bigflake  *bigflake.Bigflake
+	snowflake *snowflake.Snowflake
+	bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler
 	Metric    metric.Stats
 }
@@ -52,8 +51,8 @@ func NewId() *Id {
 	}
 
 	return &Id{
-		Snowflake: sf,
-		Bigflake:  bg,
+		snowflake: sf,
+		bigflake:  bg,
 	}
 }
 
@@ -70,7 +69,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		rsp.Type = "uuid"
 		rsp.Id = uuid.New().String()
 	case "snowflake":
-		id, err := id.Snowflake.Mint()
+		id, err := id.snowflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate snowflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint snowflake id")
@@ -78,7 +77,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
 	case "bigflake":
-		id, err := id.Bigflake.Mint()
+		id, err := id.bigflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate bigflake id: %v", err)
 			return nil, errors.InternalServerError("id.generate", "failed to mint bigflake id")

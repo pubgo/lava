@@ -25,6 +25,7 @@ type Cfg struct {
 	Addr        string     `yaml:"addr"`
 	Scheme      string     `yaml:"scheme"`
 	Registry    string     `yaml:"registry"`
+	Alias       string     `yaml:"alias"`
 	Middlewares []string   `yaml:"middlewares"`
 }
 

@@ -8,12 +8,12 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/running"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/inject"
 )
 
 func init() {
-	inject.Register(fx.Provide(func(r running.Running) {
+	inject.Register(fx.Provide(func(r lifecycle.Lifecycle) {
 		pidPath = filepath.Join(config.CfgDir, "pidfile")
 
 		_ = pathutil.IsNotExistMkDir(pidPath)

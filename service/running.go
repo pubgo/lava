@@ -5,7 +5,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
@@ -40,8 +39,6 @@ func Run(services ...Command) {
 		srv := services[i]
 		cmd := srv.Command()
 		cmd.Before = func(context *cli.Context) error {
-			runtime.Project = strings.TrimSpace(strings.Split(cmd.Name, " ")[0])
-
 			mode := env.Get("lava_mode", "app_mode")
 			if mode != "" {
 				var i, err = strconv.Atoi(mode)

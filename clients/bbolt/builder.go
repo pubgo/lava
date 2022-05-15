@@ -13,7 +13,7 @@ func init() {
 
 	for name := range cfgMap {
 		cfg := cfgMap[name]
-		inject.RegGroup(Name, name, func(log *logging.Logger) *Client {
+		inject.NameGroup(Name, name, func(log *logging.Logger) *Client {
 			return New(cfg.Get(), log.Named(Name))
 		})
 	}

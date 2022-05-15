@@ -28,7 +28,7 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	CfgDir  = ""
+	CfgDir  = strings.TrimSpace(env.Get("cfg_dir", "app_cfg_dir"))
 	CfgPath = filepath.Join("configs", "config", "config.yaml")
 )
 

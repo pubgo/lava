@@ -6,7 +6,7 @@ import (
 	"github.com/CAFxX/gcnotifier"
 	"go.uber.org/fx"
 
-	"github.com/pubgo/lava/core/running"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/runtime"
@@ -20,7 +20,7 @@ func init() {
 }
 
 func Module() fx.Option {
-	return fx.Invoke(func(r running.Running) {
+	return fx.Invoke(func(r lifecycle.Lifecycle) {
 		if runtime.IsProd() || runtime.IsRelease() {
 			return
 		}

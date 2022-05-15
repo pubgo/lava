@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
@@ -20,7 +21,7 @@ var (
 	Block   = true
 	Trace   = false
 	Addr    = ":8080"
-	Project = ""
+	Project = strings.TrimSpace(env.MustGet("app_name", "service_name", "project_name"))
 	Level   = "debug"
 	Mode    = RunModeLocal
 

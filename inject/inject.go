@@ -1,36 +1,49 @@
 package inject
 
 import (
-	"github.com/pubgo/dix"
+	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
-
-	"github.com/pubgo/lava/consts"
 )
 
-var c = dix.New()
 var options []fx.Option
-var initList []func()
 
-func Provider(data ...interface{}) {
-	xerror.Exit(c.Provider(data...))
+func Annotated(aa fx.Annotated) {
+	Register(fx.Provide(aa))
 }
 
-func Inject(data interface{}) {
-	xerror.Exit(c.Inject(data))
-}
-
-func RegGroup(group string, name string, target interface{}) {
+func RegisterName(name string, target interface{}) {
 	Register(fx.Provide(fx.Annotated{
-		Group:  name,
+		Name:   Name(name),
+		Target: target,
+	}))
+}
+
+func RegisterGroup(name string, target interface{}) {
+	Register(fx.Provide(fx.Annotated{
+		Group:  Name(name),
+		Target: target,
+	}))
+}
+
+func NameGroup(group string, name string, target interface{}) {
+	Register(fx.Provide(fx.Annotated{
+		Name:   Name(name),
 		Target: target,
 	}))
 
 	Register(fx.Provide(fx.Annotated{
-		Name:   Name(group),
+		Group:  group,
 		Target: target,
 	}))
+}
+
+func Provide(c ...interface{}) {
+	Register(fx.Provide(c...))
+}
+
+func Invoke(funcs ...interface{}) {
+	Register(fx.Invoke(funcs...))
 }
 
 func Register(m fx.Option) {
@@ -45,24 +58,15 @@ func Name(name string) string {
 	return name
 }
 
-func Init(fn func()) {
-	initList = append(initList, fn)
-}
-
 func Load() {
-	for i := range initList {
-		initList[i]()
-	}
-
 	//opts = append(opts, fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
 	//	return &fxevent.ZapLogger{Logger: logger.Named("fx")}
 	//}))
 
-	options = append(options, fx.WithLogger(
-		func() fxevent.Logger {
-			return fxevent.NopLogger
-		},
-	))
-
+	//options = append(options, fx.WithLogger(
+	//	func() fxevent.Logger {
+	//		return fxevent.NopLogger
+	//	},
+	//))
 	xerror.Exit(fx.New(options...).Err())
 }

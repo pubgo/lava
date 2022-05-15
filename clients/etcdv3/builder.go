@@ -1,11 +1,9 @@
 package etcdv3
 
 import (
-	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
-
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/xerror"
 )
 
 const Name = "etcdv3"
@@ -16,17 +14,8 @@ func init() {
 
 	for name := range cfgMap {
 		cfg := cfgMap[name]
-		inject.Register(fx.Provide(fx.Annotated{
-			Name: inject.Name(name),
-			Target: func() *Client {
-				return &Client{Client: cfg.Get()}
-			},
-		}))
-		inject.Register(fx.Provide(fx.Annotated{
-			Group: Name,
-			Target: func() *Client {
-				return &Client{Client: cfg.Get()}
-			},
-		}))
+		inject.NameGroup(Name, name, func() *Client {
+			return &Client{Client: cfg.Get()}
+		})
 	}
 }

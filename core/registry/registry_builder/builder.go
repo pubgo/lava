@@ -21,7 +21,15 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func Enable(app service.App) {
+func init() {
+	inject.Provide(func() *registry.Cfg {
+		var cfg = registry.DefaultCfg()
+		xerror.Panic(config.UnmarshalKey(registry.Name, &cfg))
+		return &cfg
+	})
+}
+
+func Enable(app service.App, cfg1 *registry.Cfg, regs ...registry.Registry) {
 	var cfg = registry.DefaultCfg()
 
 	// 配置解析
@@ -30,7 +38,6 @@ func Enable(app service.App) {
 	// 服务注册
 	app.AfterStarts(func() {
 		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
-		inject.Inject(reg)
 		reg.Init()
 
 		registry.SetDefault(reg)

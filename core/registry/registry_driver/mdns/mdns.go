@@ -21,10 +21,10 @@ const (
 	zeroconfInstance = "lava"
 )
 
-func New(cfg Cfg) (registry.Registry, error) {
+func New(cfg Cfg) registry.Registry {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
-	return &mdnsRegistry{resolver: resolver, cfg: cfg}, nil
+	return &mdnsRegistry{resolver: resolver, cfg: cfg}
 }
 
 var _ registry.Registry = (*mdnsRegistry)(nil)

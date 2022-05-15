@@ -13,9 +13,9 @@ import (
 )
 
 func init() {
-	inject.Init(func() {
+	inject.Provide(func() *Logger {
 		New(config.GetCfg())
-		inject.Provider(zap.L())
+		return L()
 	})
 }
 

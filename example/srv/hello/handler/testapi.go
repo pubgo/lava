@@ -22,10 +22,6 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 )
 
-func init() {
-	hellopb.InitTestApiClient("test-grpc")
-}
-
 type User struct {
 	gorm.Model
 	ID           uint
@@ -51,6 +47,18 @@ type testApiHandler struct {
 	Cron       *scheduler.Scheduler
 	TestApiSrv hellopb.TestApiClient
 	L          *logging.Logger
+}
+
+func (h *testApiHandler) Provider() interface{} {
+	return func() {
+
+	}
+}
+
+func (h *testApiHandler) Invoke() interface{} {
+	return func() {
+
+	}
 }
 
 func (h *testApiHandler) Close() {

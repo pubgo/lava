@@ -22,9 +22,9 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/internal/running"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
@@ -71,7 +71,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	}
 
 	g.Provide(func() service.App { return g })
-	g.Invoke(func(m running.GetRunning) { g.modules = m })
+	g.Invoke(func(m lifecycle.GetLifecycle) { g.modules = m })
 	return g
 }
 
@@ -85,7 +85,7 @@ type serviceImpl struct {
 	middlewares  []middleware.Middleware
 	services     []service.Desc
 
-	modules running.GetRunning
+	modules lifecycle.GetLifecycle
 
 	log *zap.Logger
 	cmd *cli.Command

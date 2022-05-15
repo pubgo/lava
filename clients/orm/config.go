@@ -1,11 +1,20 @@
 package orm
 
 import (
+	"sync"
 	"time"
 
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+	gl "gorm.io/gorm/logger"
+	opentracing "gorm.io/plugin/opentracing"
 
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/runtime"
 )
 
 type Cfg struct {
@@ -24,9 +33,11 @@ type Cfg struct {
 	MaxConnTime                              time.Duration          `json:"max_conn_time" yaml:"max_conn_time"`
 	MaxConnIdle                              int                    `json:"max_conn_idle" yaml:"max_conn_idle"`
 	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
+	once                                     sync.Once
+	db                                       *gorm.DB
 }
 
-func (t Cfg) Valid() (err error) {
+func (t *Cfg) Valid() (err error) {
 	defer xerror.Resp(func(err1 xerror.XErr) {
 		err = err1
 		logutil.ColorPretty(t)
@@ -34,6 +45,64 @@ func (t Cfg) Valid() (err error) {
 
 	xerror.Assert(t.Driver == "", "driver is null")
 	return
+}
+
+func (t *Cfg) Get() *gorm.DB {
+	t.once.Do(func() { t.db = t.Create() })
+	return t.db
+}
+
+func (t *Cfg) Create() *gorm.DB {
+	defer xerror.RespExit()
+
+	var ormCfg = &gorm.Config{}
+	xerror.Panic(merge.Struct(ormCfg, t))
+
+	var level = gl.Info
+	if runtime.IsProd() || runtime.IsRelease() {
+		level = gl.Error
+	}
+
+	ormCfg.Logger = gl.New(
+		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
+		gl.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  level,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
+		},
+	)
+
+	var factory = Get(t.Driver)
+	xerror.Assert(factory == nil, "factory[%s] not found", t.Driver)
+	dialect := factory(t.DriverCfg)
+
+	db, err := gorm.Open(dialect, ormCfg)
+	xerror.Panic(err)
+
+	// 添加链路追踪
+	xerror.Panic(db.Use(opentracing.New(
+		opentracing.WithErrorTagHook(tracing.SetIfErr),
+	)))
+
+	// 服务连接校验
+	sqlDB, err := db.DB()
+	xerror.Panic(err)
+	xerror.Panic(sqlDB.Ping())
+
+	if t.MaxConnTime != 0 {
+		sqlDB.SetConnMaxLifetime(t.MaxConnTime)
+	}
+
+	if t.MaxConnIdle != 0 {
+		sqlDB.SetMaxIdleConns(t.MaxConnIdle)
+	}
+
+	if t.MaxConnOpen != 0 {
+		sqlDB.SetMaxOpenConns(t.MaxConnOpen)
+	}
+
+	return db
 }
 
 func DefaultCfg() *Cfg {

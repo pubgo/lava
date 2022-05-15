@@ -10,27 +10,27 @@ import (
 )
 
 var (
-	contextCall      = protoutil.Import("context")
-	serviceCall      = protoutil.Import("github.com/pubgo/lava/service")
-	reflectCall      = protoutil.Import("reflect")
-	stringsCall      = protoutil.Import("strings")
-	sqlCall          = protoutil.Import("database/sql")
-	sqlxCall         = protoutil.Import("gorm.io/gorm")
-	dixCall          = protoutil.Import("github.com/pubgo/dix")
-	grpcCall         = protoutil.Import("google.golang.org/grpc")
-	codesCall        = protoutil.Import("google.golang.org/grpc/codes")
-	statusCall       = protoutil.Import("google.golang.org/grpc/status")
-	grpccCall        = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
-	xerrorCall       = protoutil.Import("github.com/pubgo/xerror")
-	xgenCall         = protoutil.Import("github.com/pubgo/lava/xgen")
-	fiberCall        = protoutil.Import("github.com/pubgo/lava/builder/fiber")
-	ginCall          = protoutil.Import("github.com/gin-gonic/gin")
-	bindingCall      = protoutil.Import("github.com/pubgo/lava/pkg/binding")
-	byteutilCall     = protoutil.Import("github.com/pubgo/x/byteutil")
-	runtimeCall      = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
-	injectCall       = protoutil.Import("github.com/pubgo/lava/inject")
-	fxCall           = protoutil.Import("go.uber.org/fx")
-	grpccBuilderCall = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_builder")
+	contextCall  = protoutil.Import("context")
+	serviceCall  = protoutil.Import("github.com/pubgo/lava/service")
+	reflectCall  = protoutil.Import("reflect")
+	stringsCall  = protoutil.Import("strings")
+	sqlCall      = protoutil.Import("database/sql")
+	sqlxCall     = protoutil.Import("gorm.io/gorm")
+	dixCall      = protoutil.Import("github.com/pubgo/dix")
+	grpcCall     = protoutil.Import("google.golang.org/grpc")
+	codesCall    = protoutil.Import("google.golang.org/grpc/codes")
+	statusCall   = protoutil.Import("google.golang.org/grpc/status")
+	xerrorCall   = protoutil.Import("github.com/pubgo/xerror")
+	xgenCall     = protoutil.Import("github.com/pubgo/lava/xgen")
+	fiberCall    = protoutil.Import("github.com/pubgo/lava/builder/fiber")
+	ginCall      = protoutil.Import("github.com/gin-gonic/gin")
+	bindingCall  = protoutil.Import("github.com/pubgo/lava/pkg/binding")
+	byteutilCall = protoutil.Import("github.com/pubgo/x/byteutil")
+	runtimeCall  = protoutil.Import("github.com/grpc-ecosystem/grpc-gateway/v2/runtime")
+	injectCall   = protoutil.Import("github.com/pubgo/lava/inject")
+	grpccCall    = protoutil.Import("github.com/pubgo/lava/clients/grpcc")
+	grpccCfgCall = protoutil.Import("github.com/pubgo/lava/clients/grpcc/grpcc_config")
+	configCall   = protoutil.Import("github.com/pubgo/lava/config")
 )
 
 // GenerateFile generates a .lava.pb.go file containing service definitions.
@@ -85,22 +85,23 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, service *protogen.Service) {
 	g.QualifiedGoIdent(injectCall(""))
-	g.QualifiedGoIdent(fxCall(""))
-	g.QualifiedGoIdent(grpccBuilderCall(""))
-	g.P("func Init", service.GoName, "Client(addr string, alias ...string) {")
-	g.P(`
-		var name = ""
-		if len(alias) > 0 {
-			name = alias[0]
-		}
-		conn := grpcc_builder.NewClient(addr)
-	`)
-
-	g.P(`	inject.Register(fx.Provide(fx.Annotated{`)
-	g.P(`Target: func() `, service.GoName, `Client { return New`, service.GoName, `Client(conn) },`)
-	g.P(`	Name:   name,`)
-	g.P("}))")
-	g.P("}")
+	g.QualifiedGoIdent(grpccCall(""))
+	g.QualifiedGoIdent(grpccCfgCall(""))
+	g.QualifiedGoIdent(configCall(""))
+	g.QualifiedGoIdent(xerrorCall(""))
+	g.P(protoutil.Template(`
+		func init() {
+	xerror.RespExit()
+	var cfgMap = make(map[string]*grpcc_config.Cfg)
+	xerror.Panic(config.Decode(grpcc_config.Name, cfgMap))
+	for name := range cfgMap {
+		var cfg = cfgMap[name]
+		var addr = name
+		inject.RegisterName(cfg.Alias, func() {{name}}Client {
+			return New{{name}}Client(grpcc.NewClient(addr))
+		})
+	}
+}`, protoutil.Context{"name": service.GoName}))
 	g.P()
 }
 

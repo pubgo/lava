@@ -10,7 +10,7 @@ import (
 var trim = strings.TrimSpace
 
 func Set(key, value string) error {
-	return os.Setenv(key, value)
+	return os.Setenv(Key(key), value)
 }
 
 func Get(names ...string) string {
@@ -81,11 +81,11 @@ func GetFloatVal(val *float64, names ...string) {
 }
 
 func Lookup(key string) (string, bool) {
-	return os.LookupEnv(strings.ToUpper(key))
+	return os.LookupEnv(Key(key))
 }
 
 func UnSetenv(key string) error {
-	return os.Unsetenv(key)
+	return os.Unsetenv(Key(key))
 }
 
 // Expand returns value of convert with environment variable.
@@ -133,9 +133,6 @@ func List() map[string]string {
 }
 
 func Key(key string) string {
-	if !strings.HasPrefix(key, Cfg.Prefix) {
-		key = Cfg.Prefix + Cfg.Separator + key
-	}
 	return strings.ToUpper(key)
 }
 

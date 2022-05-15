@@ -1,4 +1,4 @@
-package grpcc_builder
+package grpcc
 
 import (
 	"github.com/pubgo/lava/middleware"

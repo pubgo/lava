@@ -9,11 +9,13 @@ package sqlxpb
 import (
 	context "context"
 	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	grpcc_builder "github.com/pubgo/lava/clients/grpcc/grpcc_builder"
+	grpcc "github.com/pubgo/lava/clients/grpcc"
+	grpcc_config "github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	config "github.com/pubgo/lava/config"
 	inject "github.com/pubgo/lava/inject"
 	service "github.com/pubgo/lava/service"
 	xgen "github.com/pubgo/lava/xgen"
-	fx "go.uber.org/fx"
+	xerror "github.com/pubgo/xerror"
 	grpc "google.golang.org/grpc"
 )
 
@@ -22,18 +24,17 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-func InitCodeClient(addr string, alias ...string) {
-
-	var name = ""
-	if len(alias) > 0 {
-		name = alias[0]
+func init() {
+	xerror.RespExit()
+	var cfgMap = make(map[string]*grpcc_config.Cfg)
+	xerror.Panic(config.Decode(grpcc_config.Name, cfgMap))
+	for name := range cfgMap {
+		var cfg = cfgMap[name]
+		var addr = name
+		inject.RegisterName(cfg.Alias, func() CodeClient {
+			return NewCodeClient(grpcc.NewClient(addr))
+		})
 	}
-	conn := grpcc_builder.NewClient(addr)
-
-	inject.Register(fx.Provide(fx.Annotated{
-		Target: func() CodeClient { return NewCodeClient(conn) },
-		Name:   name,
-	}))
 }
 
 func init() {

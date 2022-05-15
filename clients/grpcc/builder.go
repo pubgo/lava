@@ -1,4 +1,4 @@
-package grpcc_builder
+package grpcc
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/logging"
@@ -19,10 +18,6 @@ import (
 )
 
 var logs = logging.Component(grpcc_config.Name)
-
-func NewClient(srv string) grpc.ClientConnInterface {
-	return grpcc.NewClient(srv, grpcc.WithDial(CreateConn))
-}
 
 func CreateConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
 	// 创建grpc client

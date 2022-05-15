@@ -18,7 +18,7 @@ import (
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
 func NewClient(srv string, opts ...Option) *Client {
-	var cli = &Client{srv: srv, cfg: grpcc_config.DefaultCfg()}
+	var cli = &Client{srv: srv, cfg: grpcc_config.DefaultCfg(), dial: CreateConn}
 	for i := range opts {
 		opts[i](cli)
 	}
