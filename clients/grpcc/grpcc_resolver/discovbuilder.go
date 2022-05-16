@@ -84,7 +84,6 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services, err := r.GetService(srv)
 	xerror.Panic(err, "registry GetService error")
-	pretty.Logln(services, "\n\n")
 
 	// 启动后，更新服务地址
 	d.updateService(services...)

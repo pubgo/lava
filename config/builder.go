@@ -5,10 +5,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var conf Config
+var conf = newCfg()
 
 func init() {
-	conf = newCfg()
 	inject.Provide(func() Config { return conf })
 }
 
@@ -32,10 +31,6 @@ func UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOpt
 	return GetCfg().UnmarshalKey(key, rawVal, opts...)
 }
 
-func GetString(key string) string {
+func Get(key string) string {
 	return GetCfg().GetString(key)
-}
-
-func Get(key string) interface{} {
-	return GetCfg().Get(key)
 }

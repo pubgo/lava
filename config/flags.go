@@ -21,7 +21,6 @@ func init() {
 		Destination: &runtime.Addr,
 		Aliases:     typex.StrOf("a"),
 		Usage:       "server(http|grpc|ws|...) address",
-		EnvVars:     []string{"app.addr"},
 		Value:       runtime.Addr,
 	})
 
@@ -31,7 +30,6 @@ func init() {
 		Aliases:     typex.StrOf("t"),
 		Usage:       "enable trace",
 		Value:       runtime.Trace,
-		EnvVars:     []string{"app.trace"},
 	})
 
 	flags.Register(&cli.StringFlag{
@@ -39,7 +37,6 @@ func init() {
 		Destination: &runtime.Level,
 		Aliases:     typex.StrOf("l"),
 		Usage:       "log level(debug|info|warn|error|panic|fatal)",
-		EnvVars:     []string{"app.level"},
 		Value:       runtime.Level,
 	})
 }

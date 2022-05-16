@@ -3,8 +3,8 @@ module github.com/pubgo/lava
 go 1.17
 
 require (
-	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
-	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5 // indirect
+	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/felixge/fgprof v0.9.1
 	github.com/go-echarts/go-echarts/v2 v2.2.4
@@ -12,7 +12,7 @@ require (
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.21
 	github.com/go-openapi/spec v0.20.2
-	github.com/go-redis/redis/v8 v8.8.3
+	github.com/go-redis/redis/v8 v8.8.3 // indirect
 	github.com/gofiber/fiber/v2 v2.29.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
@@ -22,7 +22,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/hashicorp/go-version v1.3.0
-	github.com/hashicorp/hcl v1.0.0
+	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/memberlist v0.3.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jaegertracing/jaeger v1.22.0
@@ -32,15 +32,15 @@ require (
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/nacos-group/nacos-sdk-go v1.0.9
+	github.com/nacos-group/nacos-sdk-go v1.0.9 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pelletier/go-toml v1.9.4
+	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/pkg/errors v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pubgo/x v0.3.36
-	github.com/pubgo/xerror v0.4.17
+	github.com/pubgo/xerror v0.4.18
 	github.com/reugn/go-quartz v0.3.7
 	github.com/segmentio/ksuid v1.0.3
 	github.com/soheilhy/cmux v0.1.4
@@ -52,7 +52,7 @@ require (
 	github.com/valyala/fastrand v1.1.0
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.etcd.io/bbolt v1.3.5
-	go.etcd.io/etcd/api/v3 v3.5.1
+	go.etcd.io/etcd/api/v3 v3.5.1 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/automaxprocs v1.4.0
@@ -60,7 +60,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/mod v0.5.1
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9
 	golang.org/x/tools v0.1.9
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
@@ -81,7 +81,7 @@ require (
 	github.com/fullstorydev/grpchan v1.1.0
 	github.com/go-logr/zapr v1.2.2
 	github.com/goccy/go-json v0.7.10
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/jhump/protoreflect v1.10.3
 	github.com/jjeffcaii/reactor-go v0.5.1
@@ -116,12 +116,10 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
-	github.com/pubgo/dix v0.1.32
 	github.com/smartystreets/assertions v1.0.0
 	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1
-	go.uber.org/dig v1.14.0
 	go.uber.org/fx v1.17.1
 )
 
@@ -215,6 +213,7 @@ require (
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/pseudomuto/protokit v0.2.0 // indirect
+	github.com/pubgo/dix v0.1.32 // indirect
 	github.com/pubgo/xlog v0.2.11 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
@@ -236,6 +235,7 @@ require (
 	go.opentelemetry.io/otel/internal/metric v0.27.0 // indirect
 	go.opentelemetry.io/otel/metric v0.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.4.0 // indirect
+	go.uber.org/dig v1.14.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

@@ -1699,6 +1699,8 @@ github.com/pubgo/xerror v0.4.10/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIA
 github.com/pubgo/xerror v0.4.16/go.mod h1:dBoxo5qbKQIoSw3w4cJfX7fTHjgF9G4loeXdIAw2Oc4=
 github.com/pubgo/xerror v0.4.17 h1:OsNs2lbv6P0e25LPDxjEq90DlVRdiyWofg8M1UCP4ZQ=
 github.com/pubgo/xerror v0.4.17/go.mod h1:oII+ykbOChXWPDP55anP3C+ORCc/hn70lBRu5zcqEeE=
+github.com/pubgo/xerror v0.4.18 h1:4/dAeqAadei0//kHyRCBmRO4peHNkq2e2yLW2RwREqw=
+github.com/pubgo/xerror v0.4.18/go.mod h1:oII+ykbOChXWPDP55anP3C+ORCc/hn70lBRu5zcqEeE=
 github.com/pubgo/xlog v0.2.8/go.mod h1:ceFOxHSwkcTjtMkbMq0e6j8ihr32p2z2mkbfYD5pHLc=
 github.com/pubgo/xlog v0.2.11 h1:M1kYuIEBFsV5QBYR+P2J2FJ9JwNquSdZFdTk+WnlC6U=
 github.com/pubgo/xlog v0.2.11/go.mod h1:xD8ZO+UaDXD5oSeRahC39SsIdzldI6SodfhW/HsAVVc=

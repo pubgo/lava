@@ -97,7 +97,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() {{name}}Client {
+		inject.RegName(cfg.Alias, func() {{name}}Client {
 			return New{{name}}Client(grpcc.NewClient(addr))
 		})
 	}

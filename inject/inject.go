@@ -12,14 +12,14 @@ func Annotated(aa fx.Annotated) {
 	Register(fx.Provide(aa))
 }
 
-func RegisterName(name string, target interface{}) {
+func RegName(name string, target interface{}) {
 	Register(fx.Provide(fx.Annotated{
 		Name:   Name(name),
 		Target: target,
 	}))
 }
 
-func RegisterGroup(name string, target interface{}) {
+func RegGroup(name string, target interface{}) {
 	Register(fx.Provide(fx.Annotated{
 		Group:  Name(name),
 		Target: target,

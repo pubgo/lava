@@ -1,4 +1,4 @@
-package registry_builder
+package registry
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/pubgo/xerror"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -22,30 +22,48 @@ import (
 )
 
 func init() {
-	inject.Provide(func() *registry.Cfg {
-		var cfg = registry.DefaultCfg()
-		xerror.Panic(config.UnmarshalKey(registry.Name, &cfg))
+	inject.Provide(func() *Cfg {
+		var cfg = DefaultCfg()
+		// 配置解析
+		xerror.Panic(config.UnmarshalKey(Name, &cfg))
+		cfg.Check()
 		return &cfg
 	})
 }
 
-func Enable(app service.App, cfg1 *registry.Cfg, regs ...registry.Registry) {
-	var cfg = registry.DefaultCfg()
+func Enable(in struct {
+	fx.In
+	App  service.App
+	Cfg  *Cfg
+	Regs []Registry `group:"registry"`
+}) {
+	var app = in.App
+	var cfg = in.Cfg
+	var regs = make(map[string]Registry)
+	for i := range in.Regs {
+		if in.Regs[i] == nil {
+			continue
+		}
 
-	// 配置解析
-	xerror.Panic(config.GetCfg().UnmarshalKey(registry.Name, &cfg))
+		regs[in.Regs[i].String()] = in.Regs[i]
+	}
+
+	reg := regs[cfg.Driver]
+	var errs = xerror.AssertErr(reg == nil, "registry driver is null")
+	errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
+	errs = xerror.WrapF(errs, "regs=>%v", regs)
+	xerror.Panic(errs)
 
 	// 服务注册
-	app.AfterStarts(func() {
-		reg := xerror.PanicErr(cfg.Build()).(registry.Registry)
+	in.App.AfterStarts(func() {
 		reg.Init()
 
-		registry.SetDefault(reg)
+		SetDefault(reg)
 
-		xerror.Panic(register(app))
+		xerror.Panic(register(in.App))
 
 		var cancel = syncx.GoCtx(func(ctx context.Context) {
-			var interval = registry.DefaultRegisterInterval
+			var interval = DefaultRegisterInterval
 
 			// only process if it exists
 			if cfg.RegisterInterval > time.Duration(0) {
@@ -62,7 +80,7 @@ func Enable(app service.App, cfg1 *registry.Cfg, regs ...registry.Registry) {
 						func() error { return register(app) },
 						zap.String("service", app.Options().Name),
 						zap.String("InstanceId", app.Options().Id),
-						zap.String("registry", registry.Default().String()),
+						zap.String("registry", Default().String()),
 						zap.String("interval", interval.String()),
 					)
 				case <-ctx.Done():
@@ -83,7 +101,7 @@ func Enable(app service.App, cfg1 *registry.Cfg, regs ...registry.Registry) {
 func register(app service.App) (err error) {
 	defer xerror.RespErr(&err)
 
-	var reg = registry.Default()
+	var reg = Default()
 	var opt = app.Options()
 
 	// parse address for host, port
@@ -109,7 +127,7 @@ func register(app service.App) (err error) {
 	}
 
 	// register service
-	node := &registry.Node{
+	node := &Node{
 		Port:     port,
 		Version:  version.Version,
 		Address:  fmt.Sprintf("%s:%d", host, port),
@@ -117,9 +135,9 @@ func register(app service.App) (err error) {
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
-	s := &registry.Service{
+	s := &Service{
 		Name:  opt.Name,
-		Nodes: []*registry.Node{node},
+		Nodes: []*Node{node},
 	}
 
 	logutil.LogOrPanic(
@@ -135,7 +153,7 @@ func deregister(app service.App) (err error) {
 	defer xerror.RespErr(&err)
 
 	var opt = app.Options()
-	var reg = registry.Default()
+	var reg = Default()
 
 	var advt, host string
 	var port = opt.Port
@@ -155,16 +173,16 @@ func deregister(app service.App) (err error) {
 	}
 
 	// register service
-	node := &registry.Node{
+	node := &Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
 		Metadata: make(map[string]string),
 	}
 
-	s := &registry.Service{
+	s := &Service{
 		Name:  opt.Name,
-		Nodes: []*registry.Node{node},
+		Nodes: []*Node{node},
 	}
 
 	logutil.LogOrErr(zap.L(), "deregister service node",

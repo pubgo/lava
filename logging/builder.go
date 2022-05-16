@@ -14,9 +14,7 @@ import (
 
 func init() {
 	New(config.GetCfg())
-	inject.Provide(func() *Logger {
-		return L()
-	})
+	inject.Provide(func() *Logger { return L() })
 }
 
 func NewWithCfg(cfg *log_config.Config) {

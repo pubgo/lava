@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/pkg/env"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,29 +52,23 @@ func strMap(strList []string, fn func(str string) string) []string {
 }
 
 func loadEnv(envPrefix string, v *viper.Viper) {
+	if envPrefix == "" {
+		return
+	}
+
 	var r = strings.NewReplacer("-", "_", ".", "_", "/", "_")
-	envPrefix = strings.ReplaceAll(r.Replace(strcase.ToSnake(envPrefix))+"_", "__", "_")
+	envPrefix = strings.ToUpper(strings.ReplaceAll(r.Replace(strcase.ToSnake(envPrefix))+"_", "__", "_"))
 
-	for _, env := range os.Environ() {
-		if !strings.HasPrefix(env, envPrefix) {
+	for name, val := range env.List() {
+		if !strings.HasPrefix(name, envPrefix) || val == "" {
 			continue
 		}
 
-		env = strings.TrimPrefix(env, envPrefix)
-		var envs = strings.SplitN(env, "=", 2)
-		if len(envs) != 2 {
+		vals := strings.SplitN(val, "=", 2)
+		if len(vals) != 2 {
 			continue
 		}
 
-		if strings.TrimSpace(envs[1]) == "" {
-			continue
-		}
-
-		envs = strings.SplitN(envs[1], "=", 2)
-		if len(envs) != 2 {
-			continue
-		}
-
-		v.Set(strings.TrimSpace(envs[0]), strings.TrimSpace(envs[1]))
+		v.Set(strings.TrimSpace(vals[0]), strings.TrimSpace(vals[1]))
 	}
 }

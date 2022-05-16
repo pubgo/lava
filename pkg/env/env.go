@@ -16,16 +16,16 @@ func Set(key, value string) error {
 func Get(names ...string) string {
 	var val string
 	GetWith(&val, names...)
-	return val
+	return trim(val)
 }
 
 func MustGet(names ...string) string {
 	var val string
 	GetWith(&val, names...)
 	if val == "" {
-		panic(fmt.Sprintf("env value is null in %v, all:%v", names, os.Environ()))
+		panic(fmt.Sprintf("connot get env in %v, \nall=>%v\n", names, os.Environ()))
 	}
-	return val
+	return trim(val)
 }
 
 func GetWith(val *string, names ...string) {
@@ -33,7 +33,7 @@ func GetWith(val *string, names ...string) {
 		env, ok := Lookup(name)
 		env = trim(env)
 		if ok && env != "" {
-			*val = env
+			*val = trim(env)
 		}
 	}
 }
@@ -133,7 +133,7 @@ func List() map[string]string {
 }
 
 func Key(key string) string {
-	return strings.ToUpper(key)
+	return strings.ToUpper(trim(key))
 }
 
 func KeyOf(str ...string) []string {

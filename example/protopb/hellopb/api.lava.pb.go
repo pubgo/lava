@@ -32,7 +32,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() TestApiClient {
+		inject.RegName(cfg.Alias, func() TestApiClient {
 			return NewTestApiClient(grpcc.NewClient(addr))
 		})
 	}
@@ -110,7 +110,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() TestApiV2Client {
+		inject.RegName(cfg.Alias, func() TestApiV2Client {
 			return NewTestApiV2Client(grpcc.NewClient(addr))
 		})
 	}

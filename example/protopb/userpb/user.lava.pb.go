@@ -34,7 +34,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() UserClient {
+		inject.RegName(cfg.Alias, func() UserClient {
 			return NewUserClient(grpcc.NewClient(addr))
 		})
 	}
@@ -88,7 +88,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() ABitOfEverythingServiceClient {
+		inject.RegName(cfg.Alias, func() ABitOfEverythingServiceClient {
 			return NewABitOfEverythingServiceClient(grpcc.NewClient(addr))
 		})
 	}
@@ -346,7 +346,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() CamelCaseServiceNameClient {
+		inject.RegName(cfg.Alias, func() CamelCaseServiceNameClient {
 			return NewCamelCaseServiceNameClient(grpcc.NewClient(addr))
 		})
 	}
@@ -388,7 +388,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() AnotherServiceWithNoBindingsClient {
+		inject.RegName(cfg.Alias, func() AnotherServiceWithNoBindingsClient {
 			return NewAnotherServiceWithNoBindingsClient(grpcc.NewClient(addr))
 		})
 	}

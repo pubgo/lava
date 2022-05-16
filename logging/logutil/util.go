@@ -109,6 +109,6 @@ func Pretty(a ...interface{}) {
 	zap.L().WithOptions(zap.AddCallerSkip(1)).Info("\n" + pretty.Sprint(a...))
 }
 
-func ColorPretty(a ...interface{}) {
-	zap.L().WithOptions(zap.AddCallerSkip(1)).Info(string(q.Sq(a...)))
+func ColorPretty(args ...interface{}) {
+	zap.L().WithOptions(zap.AddCallerSkip(1)).Info(string(q.Sq(args...)))
 }

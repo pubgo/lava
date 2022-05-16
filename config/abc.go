@@ -15,6 +15,8 @@ func (t CfgMap) Decode(val interface{}) error {
 }
 
 type Config interface {
+	LoadPath(path string)
+	LoadEnv(names ...string)
 	UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error
 	Decode(name string, cfgMap interface{}) error
 	Get(key string) interface{}

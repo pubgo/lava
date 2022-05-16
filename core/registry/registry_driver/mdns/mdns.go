@@ -27,6 +27,12 @@ func New(cfg Cfg) registry.Registry {
 	return &mdnsRegistry{resolver: resolver, cfg: cfg}
 }
 
+type serverNode struct {
+	srv  *zeroconf.Server
+	name string
+	id   string
+}
+
 var _ registry.Registry = (*mdnsRegistry)(nil)
 
 type mdnsRegistry struct {
@@ -39,10 +45,6 @@ func (m *mdnsRegistry) Close() {
 }
 
 func (m *mdnsRegistry) Init() {
-}
-
-func (m *mdnsRegistry) RegLoop(f func() *registry.Service, opt ...registry.RegOpt) error {
-	return m.Register(f(), opt...)
 }
 
 func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
@@ -58,7 +60,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		return nil
 	}
 
-	server, err := zeroconf.Register(node.Id, service.Name, "local.", node.GetPort(), []string{node.Id}, nil)
+	server, err := zeroconf.Register(node.Id, service.Name, zeroconfDomain, node.GetPort(), []string{node.Id}, nil)
 	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
 
 	var opts registry.RegOpts
@@ -66,7 +68,11 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		optList[i](&opts)
 	}
 
-	m.services.Set(node.Id, server)
+	m.services.Set(node.Id, &serverNode{
+		srv:  server,
+		id:   node.Id,
+		name: service.Name,
+	})
 	return nil
 }
 
@@ -83,7 +89,6 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 	}
 
 	val.(*zeroconf.Server).Shutdown()
-
 	return nil
 }
 
@@ -108,15 +113,21 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (service
 			opts[i](&gOpts)
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 
-		xerror.PanicF(m.resolver.Browse(ctx, name, "local.", entries), "Failed to Lookup Service %s", name)
+		xerror.PanicF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
 		<-ctx.Done()
 	})
 }
 
 func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) (services []*registry.Service, _ error) {
+	m.services.Range(func(key, value interface{}) bool {
+		srvList, err := m.GetService(key.(string))
+		xerror.Panic(err)
+		services = append(services, srvList...)
+		return true
+	})
 	return services, nil
 }
 

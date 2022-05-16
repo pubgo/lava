@@ -55,7 +55,7 @@ func (t *Client) createConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnIn
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
 
 	logging.L().Info("grpc client init", zap.String(logkey.Service, srv))
-	return conn, xerror.WrapF(err, "DialContext error, target:%s\n", addr)
+	return conn, xerror.WrapF(err, "grpc dial failed, target=>%s\n", addr)
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {

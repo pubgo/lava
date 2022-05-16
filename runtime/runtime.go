@@ -21,7 +21,7 @@ var (
 	Block   = true
 	Trace   = false
 	Addr    = ":8080"
-	Project = strings.TrimSpace(env.MustGet("app_name", "service_name", "project_name"))
+	Project = env.Get("app_name", "service_name", "project_name")
 	Level   = "debug"
 	Mode    = RunModeLocal
 

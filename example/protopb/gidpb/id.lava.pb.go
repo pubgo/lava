@@ -31,7 +31,7 @@ func init() {
 	for name := range cfgMap {
 		var cfg = cfgMap[name]
 		var addr = name
-		inject.RegisterName(cfg.Alias, func() IdClient {
+		inject.RegName(cfg.Alias, func() IdClient {
 			return NewIdClient(grpcc.NewClient(addr))
 		})
 	}

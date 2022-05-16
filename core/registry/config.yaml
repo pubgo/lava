@@ -1,5 +1,5 @@
 registry:
-  - _id: default
+  - name: default
     driver: "etcd"
     driver_config:
       name: "default"
@@ -7,7 +7,7 @@ registry:
       prefix: ""
       projects: "hello"
 
-  - _id: abc
+  - name: abc
     driver: "mdns"
     driver_config:
       ttl: "5s"

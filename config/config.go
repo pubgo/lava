@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -28,7 +27,7 @@ import (
 var (
 	CfgType = "yaml"
 	CfgName = "config"
-	CfgDir  = strings.TrimSpace(env.Get("cfg_dir", "app_cfg_dir"))
+	CfgDir  = env.Get("cfg_dir", "app_cfg_dir")
 	CfgPath = filepath.Join("configs", "config", "config.yaml")
 )
 
@@ -51,16 +50,16 @@ func newCfg() *configImpl {
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 然后获取配置了
-	xerror.PanicF(t.initWithDir(v), "config file load error")
+	xerror.PanicF(t.initCfg(v), "config file load error")
+	t.LoadEnv()
 
 	CfgPath = v.ConfigFileUsed()
 	CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
-	xerror.Panic(os.Setenv(consts.EnvCfgHome, CfgDir))
-
-	t.reload(t.v.ConfigFileUsed())
+	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
 
 	// 加载自定义配置
-	xerror.Panic(t.initApp(v))
+	t.LoadPath(filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, runtime.Mode, CfgType)))
+	t.LoadPath(runtime.Project)
 	return t
 }
 
@@ -69,6 +68,11 @@ var _ Config = (*configImpl)(nil)
 type configImpl struct {
 	rw sync.RWMutex
 	v  *viper.Viper
+}
+
+func (t *configImpl) LoadEnv(names ...string) {
+	names = append(names, "cfg_env_prefix", "env_prefix")
+	loadEnv(env.Get(names...), t.v)
 }
 
 func (t *configImpl) All() map[string]interface{} {
@@ -185,23 +189,23 @@ func (t *configImpl) addConfigPath(v *viper.Viper, in string) bool {
 	return false
 }
 
-func (t *configImpl) initWithCfg(v *viper.Viper) bool {
+func (t *configImpl) initWithDir(v *viper.Viper) bool {
 	if CfgDir == "" {
 		return false
 	}
 
-	xerror.Assert(pathutil.IsNotExist(CfgDir), "config file not found, path:%s", CfgPath)
+	xerror.Assert(pathutil.IsNotExist(CfgDir), "config dir not found, path:%s", CfgPath)
 	v.AddConfigPath(filepath.Join(CfgDir, CfgName))
 	xerror.PanicF(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
 
 	return true
 }
 
-func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
+func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	defer xerror.RespErr(&err)
 
 	// 指定配置文件
-	if t.initWithCfg(v) {
+	if t.initWithDir(v) {
 		return
 	}
 
@@ -222,35 +226,24 @@ func (t *configImpl) initWithDir(v *viper.Viper) (err error) {
 	return xerror.Wrap(v.ReadInConfig())
 }
 
-func (t *configImpl) reload(path string) {
-	dt := xerror.PanicStr(iox.ReadText(path))
-
-	// 处理配置中的环境变量
-	dt = env.Expand(dt)
-
-	// 重新加载配置
-	xerror.Panic(t.v.MergeConfig(strings.NewReader(dt)))
-	loadEnv(runtime.Project, t.v)
-}
-
-// 监控配置中的app自定义配置
-func (t *configImpl) initApp(v *viper.Viper) error {
-	// .lava/config/[env].yaml
-	var path = filepath.Join(
-		filepath.Dir(CfgPath),
-		fmt.Sprintf("%s.%s.%s", CfgName, runtime.Mode, CfgType),
-	)
-
+// LoadPath 加载path
+func (t *configImpl) LoadPath(path string) {
 	if !pathutil.IsExist(path) {
-		return nil
+		return
 	}
-
-	t.reload(path)
 
 	tmp, err := fasttemplate.NewTemplate(xerror.PanicStr(iox.ReadText(path)), "{{", "}}")
 	xerror.Panic(err, "unexpected error when parsing template")
-	xerror.Panic(v.MergeConfig(strings.NewReader(tmp.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-		return w.Write([]byte(v.GetString(tag)))
+
+	// 重新加载配置
+	xerror.Panic(t.v.MergeConfig(strings.NewReader(tmp.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
+		tag = strings.TrimSpace(tag)
+		// 处理配置中的环境变量
+		if strings.HasPrefix(tag, "$") {
+			return w.Write([]byte(env.Get(tag)))
+		}
+
+		return w.Write([]byte(t.v.GetString(tag)))
 	}))))
-	return nil
+	t.LoadEnv()
 }
