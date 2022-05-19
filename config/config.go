@@ -58,9 +58,13 @@ func newCfg() *configImpl {
 	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
 
 	// 加载自定义配置
-	t.LoadPath(filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, runtime.Mode, CfgType)))
-	t.LoadPath(runtime.Project)
+	t.LoadPath(customCfgPath(runtime.Mode.String()))
+	t.LoadPath(customCfgPath(runtime.Project))
 	return t
+}
+
+func customCfgPath(name string) string {
+	return filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, name, CfgType))
 }
 
 var _ Config = (*configImpl)(nil)

@@ -1,10 +1,12 @@
 package env
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pubgo/lava/pkg/errutil"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var trim = strings.TrimSpace
@@ -23,7 +25,12 @@ func MustGet(names ...string) string {
 	var val string
 	GetWith(&val, names...)
 	if val == "" {
-		panic(fmt.Sprintf("connot get env in %v, \nall=>%v\n", names, os.Environ()))
+		panic(&errutil.Err{
+			Msg: "env not found",
+			Detail: typex.M{
+				"names": names,
+				"all":   os.Environ(),
+			}})
 	}
 	return trim(val)
 }
@@ -94,18 +101,13 @@ func UnSetenv(key string) error {
 //
 // It accepts value formats "${env}" ,"${env||defaultValue}" , "defaultValue".
 // Examples:
-//	_ = config.Expand("${GOPATH}")
-//	_ = config.Expand("${GOPATH||/usr/local/go}")
-//	_ = config.Expand("hello")
-func Expand(value string, keyHandles ...func(string) string) string {
-	var key = func(args string) string { return args }
-	if len(keyHandles) > 0 {
-		key = keyHandles[0]
-	}
-
+//	_ = Expand("${GOPATH}")
+//	_ = Expand("${GOPATH||/usr/local/go}")
+//	_ = Expand("hello")
+func Expand(value string) string {
 	return os.Expand(value, func(s string) string {
-		vs := strings.Split(s, "||")
-		v := Get(key(trim(vs[0])))
+		vs := strings.SplitN(s, "||", 2)
+		v := Get(trim(vs[0]))
 		if len(vs) == 2 && v == "" {
 			v = trim(vs[1])
 		}
@@ -134,11 +136,4 @@ func List() map[string]string {
 
 func Key(key string) string {
 	return strings.ToUpper(trim(key))
-}
-
-func KeyOf(str ...string) []string {
-	for i := range str {
-		str[i] = strings.ToUpper(Key(str[i]))
-	}
-	return str
 }

@@ -34,9 +34,11 @@ type Cfg struct {
 	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
 }
 
-func (cfg Cfg) Check() {
+func (cfg *Cfg) Check() *Cfg {
 	var driver = cfg.Driver
-	xerror.Assert(driver == "", "registry driver is null")
+	err := xerror.AssertErr(driver == "", "registry driver is null")
+	xerror.Panic(xerror.WrapF(err, "cfg=>%#v", cfg))
+	return cfg
 }
 
 func DefaultCfg() Cfg {

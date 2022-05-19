@@ -1,4 +1,4 @@
-package debug_srv
+package debug
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/htmlx"
 )
 
@@ -31,9 +30,9 @@ func initDebug() {
 	</html>	
 `)))
 
-	debug.Get("/", func(ctx *fiber.Ctx) error {
+	Get("/", func(ctx *fiber.Ctx) error {
 		var pathMap = make(map[string]interface{})
-		stack := debug.App().Stack()
+		stack := App().Stack()
 		for m := range stack {
 			for r := range stack[m] {
 				route := stack[m][r]

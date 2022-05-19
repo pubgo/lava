@@ -16,16 +16,22 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-var ErrTestNotfound = &errors.Error{Reason: "test/Test." + Test_NotFound.String(), Code: 100000}
+var ErrTestNotFound = &errors.Error{Reason: "test/Test/" + Test_name[int32(Test_NotFound)], Code: 100000}
 
-func IsTestNotfound(err error) bool {
+func IsTestNotFound(err error) bool {
 	e := errors.FromError(err)
-	return e.Reason == ErrTestNotfound.Reason && e.Code == ErrTestNotfound.Code
+	if e == nil {
+		return false
+	}
+	return e.Reason == ErrTestNotFound.Reason && e.Code == ErrTestNotFound.Code
 }
 
-var ErrTestUnknown = &errors.Error{Reason: "test/Test." + Test_NotFound.String(), Code: 100001}
+var ErrTestUnknown = &errors.Error{Reason: "test/Test/" + Test_name[int32(Test_Unknown)], Code: 100001}
 
 func IsTestUnknown(err error) bool {
 	e := errors.FromError(err)
+	if e == nil {
+		return false
+	}
 	return e.Reason == ErrTestUnknown.Reason && e.Code == ErrTestUnknown.Code
 }

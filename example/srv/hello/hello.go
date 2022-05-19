@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/lava/example/srv/hello/handler"
 	"github.com/pubgo/lava/service"
 
-	_ "github.com/pubgo/lava/imports/import_debug"
 	_ "github.com/pubgo/lava/imports/import_registry"
 )
 

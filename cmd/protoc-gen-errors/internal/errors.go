@@ -83,10 +83,13 @@ func genError(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
 
 	var content = `
-var Err{{.name}}{{.camelValue}} = &errors.Error{Reason: "{{.package}}/{{.name}}."+Test_NotFound.String(), Code: {{.code}}}
-func Is{{.name}}{{.camelValue}}(err error) bool {
+var Err{{.name}}{{.value}} = &errors.Error{Reason: "{{.package}}/{{.name}}/"+{{.name}}_name[int32({{.name}}_{{.value}})], Code: {{.code}}}
+func Is{{.name}}{{.value}}(err error) bool {
 	e := errors.FromError(err)
-	return e.Reason == Err{{.name}}{{.camelValue}}.Reason && e.Code == Err{{.name}}{{.camelValue}}.Code
+	if e == nil {
+		return false
+	}
+	return e.Reason == Err{{.name}}{{.value}}.Reason && e.Code == Err{{.name}}{{.value}}.Code
 }
 `
 	tmpl, err := template.New("errors").Parse(content)
@@ -107,11 +110,10 @@ func Is{{.name}}{{.camelValue}}(err error) bool {
 		xerror.Assert(code < 1000, "code must be greater than 1000, now(%d)", code)
 
 		xerror.Panic(tmpl.Execute(g, map[string]interface{}{
-			"name":       string(enum.Desc.Name()),
-			"value":      string(v.Desc.Name()),
-			"camelValue": case2Camel(string(v.Desc.Name())),
-			"code":       code,
-			"package":    file.Desc.Package(),
+			"name":    string(enum.Desc.Name()),
+			"value":   string(v.Desc.Name()),
+			"code":    code,
+			"package": file.Desc.Package(),
 		}))
 	}
 

@@ -26,76 +26,68 @@ func init() {
 		var cfg = DefaultCfg()
 		// 配置解析
 		xerror.Panic(config.UnmarshalKey(Name, &cfg))
-		cfg.Check()
-		return &cfg
+		return cfg.Check()
 	})
-}
 
-func Enable(in struct {
-	fx.In
-	App  service.App
-	Cfg  *Cfg
-	Regs []Registry `group:"registry"`
-}) {
-	var app = in.App
-	var cfg = in.Cfg
-	var regs = make(map[string]Registry)
-	for i := range in.Regs {
-		if in.Regs[i] == nil {
-			continue
+	inject.Invoke(fx.Annotate(func(app service.App, cfg *Cfg, regList []Registry) {
+		var regs = make(map[string]Registry)
+		for i := range regList {
+			if regList[i] == nil {
+				continue
+			}
+
+			regs[regList[i].String()] = regList[i]
 		}
 
-		regs[in.Regs[i].String()] = in.Regs[i]
-	}
+		reg := regs[cfg.Driver]
+		var errs = xerror.AssertErr(reg == nil, "registry driver is null")
+		errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
+		errs = xerror.WrapF(errs, "regs=>%v", regs)
+		xerror.Panic(errs)
 
-	reg := regs[cfg.Driver]
-	var errs = xerror.AssertErr(reg == nil, "registry driver is null")
-	errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
-	errs = xerror.WrapF(errs, "regs=>%v", regs)
-	xerror.Panic(errs)
+		// 服务注册
+		app.AfterStarts(func() {
+			reg.Init()
 
-	// 服务注册
-	in.App.AfterStarts(func() {
-		reg.Init()
+			SetDefault(reg)
 
-		SetDefault(reg)
+			xerror.Panic(register(app))
 
-		xerror.Panic(register(in.App))
+			var cancel = syncx.GoCtx(func(ctx context.Context) {
+				var interval = DefaultRegisterInterval
 
-		var cancel = syncx.GoCtx(func(ctx context.Context) {
-			var interval = DefaultRegisterInterval
-
-			// only process if it exists
-			if cfg.RegisterInterval > time.Duration(0) {
-				interval = cfg.RegisterInterval
-			}
-
-			var tick = time.NewTicker(interval)
-			defer tick.Stop()
-
-			for {
-				select {
-				case <-tick.C:
-					logutil.LogOrErr(zap.L(), "service register",
-						func() error { return register(app) },
-						zap.String("service", app.Options().Name),
-						zap.String("InstanceId", app.Options().Id),
-						zap.String("registry", Default().String()),
-						zap.String("interval", interval.String()),
-					)
-				case <-ctx.Done():
-					zap.L().Info("service register cancelled")
-					return
+				// only process if it exists
+				if cfg.RegisterInterval > time.Duration(0) {
+					interval = cfg.RegisterInterval
 				}
-			}
-		})
 
-		// 服务撤销
-		app.BeforeStops(func() {
-			cancel()
-			xerror.Panic(deregister(app))
+				var tick = time.NewTicker(interval)
+				defer tick.Stop()
+
+				for {
+					select {
+					case <-tick.C:
+						logutil.LogOrErr(zap.L(), "service register",
+							func() error { return register(app) },
+							zap.String("service", app.Options().Name),
+							zap.String("InstanceId", app.Options().Id),
+							zap.String("registry", Default().String()),
+							zap.String("interval", interval.String()),
+						)
+					case <-ctx.Done():
+						zap.L().Info("service register cancelled")
+						return
+					}
+				}
+			})
+
+			// 服务撤销
+			app.BeforeStops(func() {
+				cancel()
+				xerror.Panic(deregister(app))
+			})
 		})
-	})
+	}, fx.ParamTags(``, ``, fmt.Sprintf(`group:"%s"`, Name))))
 }
 
 func register(app service.App) (err error) {

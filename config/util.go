@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/env"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/pkg/env"
 )
 
 const resKey = "name"

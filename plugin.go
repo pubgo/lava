@@ -6,7 +6,7 @@ import (
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
 	// 加载registry插件
-	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
+	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
@@ -14,16 +14,13 @@ import (
 	// 加载protobuf编码
 	_ "github.com/pubgo/lava/encoding/protobuf"
 
-	// 用于系统诊断
-	_ "github.com/pubgo/lava/internal/plugins/gops"
-
 	// gc plugin
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
 	// metric
 	_ "github.com/pubgo/lava/core/metric/metric_builder"
 
-	_ "github.com/pubgo/lava/imports/import_debug"
+	// 用于系统诊断
 	_ "github.com/pubgo/lava/imports/import_gops"
 	_ "github.com/pubgo/lava/imports/import_grpc_log"
 )

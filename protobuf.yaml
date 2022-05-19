@@ -3,7 +3,6 @@ root:
 - event
 - proto
 - errors
-- cmd/lava-broker/rsocket/sockets
 deps:
 - name: google
   url: github.com/googleapis/googleapis

@@ -112,7 +112,7 @@ func (x *Error) WithMetadata(m map[string]string) *Error {
 }
 
 func (x *Error) Error() string {
-	return fmt.Sprintf("error: code = %d reason = %s message = %s metadata = %v", x.Code, x.Reason, x.Message, x.Metadata)
+	return fmt.Sprintf("error: code=%d reason=%s message=%s metadata=%v", x.Code, x.Reason, x.Message, x.Metadata)
 }
 
 // Decode error 反序列化

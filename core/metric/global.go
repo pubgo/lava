@@ -1,4 +1,4 @@
-package metric_builder
+package metric
 
 import (
 	"sync/atomic"
