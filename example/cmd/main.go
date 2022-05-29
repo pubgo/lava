@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/pubgo/lava"
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
-	_ "github.com/pubgo/lava/core/metric/metric_driver/prometheus"
-	_ "github.com/pubgo/lava/core/registry/registry_driver/mdns"
 	"github.com/pubgo/lava/example/srv/gid"
 	"github.com/pubgo/lava/example/srv/hello"
 	"github.com/pubgo/lava/example/srv/web"

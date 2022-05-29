@@ -2,13 +2,11 @@ package metric
 
 import (
 	"context"
-	"fmt"
 	"sync/atomic"
 	"unsafe"
 
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
-	"go.uber.org/fx"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -28,9 +26,21 @@ func init() {
 		return &cfg
 	})
 
-	inject.Invoke(fx.Annotate(func(m lifecycle.Lifecycle, cfg *Cfg, opts []*tally.ScopeOptions) {
+	inject.Invoke(
+		func(in struct {
+			M    lifecycle.Lifecycle
+			Cfg  *Cfg
+			Opts []*tally.ScopeOptions `group:"metric"`
+		}) {
 
-	}), fx.ParamTags(``, ``, fmt.Sprintf(`group:"%s"`, Name)))
+		},
+	)
+
+	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
+		return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+			return next(CreateCtx(ctx, GetGlobal()), req, resp)
+		}
+	})
 }
 
 func Builder(m lifecycle.Lifecycle) {
@@ -54,12 +64,4 @@ func Builder(m lifecycle.Lifecycle) {
 
 	// 全局对象注册
 	atomic.StorePointer(&g, unsafe.Pointer(&scope))
-}
-
-func init() {
-	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-		return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
-			return next(CreateCtx(ctx, GetGlobal()), req, resp)
-		}
-	})
 }

@@ -18,7 +18,7 @@ import (
 	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
 
 	// metric
-	_ "github.com/pubgo/lava/core/metric/metric_builder"
+	//_ "github.com/pubgo/lava/core/metric/metric_builder"
 
 	// 用于系统诊断
 	_ "github.com/pubgo/lava/imports/import_gops"

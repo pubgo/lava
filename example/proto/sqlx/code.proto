@@ -63,6 +63,11 @@ message SendCodeRequest {
     (lava.tags) = {key:"hello1",value:"world1"}
   ];
 
+  oneof one_of {
+    option (lava.oneof_tags) = {key:"json",value:"world"};
+    string a = 5 [(lava.tags) = {key:"json",value:"world"}];
+  }
+
   // 电话
   string telephone = 2 [(gogoproto.jsontag) = "telephone"];
   // 发送类型,call ,sms

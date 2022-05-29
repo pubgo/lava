@@ -1,7 +1,6 @@
 package web_builder
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -58,20 +57,7 @@ func newService(name string, desc ...string) *webImpl {
 		return nil
 	}
 
-	g.Provide(func(lc fx.Lifecycle) service.App {
-		lc.Append(fx.Hook{
-			OnStart: func(ctx context.Context) error {
-				xerror.Panic(g.start())
-				return nil
-			},
-			OnStop: func(ctx context.Context) error {
-				xerror.Panic(g.stop())
-				return nil
-			},
-		})
-		return g
-	})
-
+	g.Provide(func() service.App { return g })
 	g.Invoke(func(m lifecycle.GetLifecycle) { g.modules = m })
 	return g
 }

@@ -5,8 +5,6 @@ import (
 	"github.com/pubgo/lava/example/protopb/hellopb"
 	"github.com/pubgo/lava/example/srv/hello/handler"
 	"github.com/pubgo/lava/service"
-
-	_ "github.com/pubgo/lava/imports/import_registry"
 )
 
 var name = "test-grpc"
@@ -14,6 +12,8 @@ var name = "test-grpc"
 func NewSrv() service.Service {
 	srv := lava.NewSrv(name, "entry grpc test")
 
-	hellopb.RegisterTestApi(srv, handler.NewTestAPIHandler())
+	srv.Provide(handler.NewTestAPIHandler)
+	srv.Invoke(hellopb.RegisterTestApiServer)
+
 	return srv
 }

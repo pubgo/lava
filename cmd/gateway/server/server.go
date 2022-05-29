@@ -4,16 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/fullstorydev/grpchan/inprocgrpc"
-	fiber2 "github.com/gofiber/fiber/v2"
-	"github.com/pubgo/gateway/config"
-	"github.com/pubgo/lava/core/running"
-	"github.com/pubgo/lava/middleware"
-	"github.com/pubgo/lava/pkg/fiber_builder"
-	"github.com/pubgo/lava/pkg/grpc_builder"
-	"github.com/pubgo/lava/service"
-	"github.com/urfave/cli/v2"
-	"go.uber.org/fx"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -26,25 +16,28 @@ import (
 	"time"
 
 	"github.com/autom8ter/machine"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
+	fiber2 "github.com/gofiber/fiber/v2"
 	"github.com/graphikDB/trigger"
 	"github.com/mwitkow/grpc-proxy/proxy"
 	"github.com/pkg/errors"
+	"github.com/pubgo/gateway/config"
+	"github.com/pubgo/lava/core/running"
+	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/pkg/fiber_builder"
+	"github.com/pubgo/lava/pkg/grpc_builder"
+	"github.com/pubgo/lava/service"
 	"github.com/soheilhy/cmux"
+	"github.com/urfave/cli/v2"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm/logger"
-
-	"github.com/pubgo/gateway/codec"
 )
-
-func init() {
-	encoding.RegisterCodec(codec.NewProxyCodec())
-}
 
 // gatewaySrv is a secure(lets encrypt) gRPC & http reverse proxy
 type gatewaySrv struct {
@@ -57,10 +50,9 @@ type gatewaySrv struct {
 
 	modules running.Running
 
-	log *zap.Logger
 	cmd *cli.Command
 
-	net *cmux.Mux
+	net *cmux.CMux
 
 	cfg     config.Cfg
 	grpcSrv grpc_builder.Builder
@@ -99,12 +91,15 @@ func New(ctx context.Context, opts ...Opt) (*gatewaySrv, error) {
 			return nil, err
 		}
 	}
+
 	if len(p.triggers) == 0 {
 		return nil, errors.New("zero triggers")
 	}
+
 	if p.hostPolicy == nil {
 		return nil, errors.New("empty host policy")
 	}
+
 	if p.insecurePort == "" {
 		p.insecurePort = ":80"
 	}
@@ -323,7 +318,7 @@ func (p *gatewaySrv) gRPCDirector() proxy.StreamDirector {
 		if ok {
 			if val, exists := md[":authority"]; exists && val[0] != "" {
 				now := time.Now()
-				target, err := p.getgRPCRoute(val[0], fullMethodName, md)
+				target, err := p.getGRPCRoute(val[0], fullMethodName, md)
 				if err != nil {
 					return nil, nil, status.Error(codes.InvalidArgument, err.Error())
 				}
@@ -435,7 +430,7 @@ func (p *gatewaySrv) getHttpRoute(req *http.Request) (string, error) {
 }
 
 // (this.http, this.grpc, this.host, this.headers, this.path)
-func (p *gatewaySrv) getgRPCRoute(host, fullMethod string, md metadata.MD) (string, error) {
+func (p *gatewaySrv) getGRPCRoute(host, fullMethod string, md metadata.MD) (string, error) {
 	meta := map[string]interface{}{}
 	for k, v := range md {
 		meta[k] = v[0]

@@ -2,11 +2,12 @@ package syncx
 
 import (
 	"context"
-	logutil2 "github.com/pubgo/lava/logging/logutil"
 	"time"
 
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
+
+	logutil2 "github.com/pubgo/lava/logging/logutil"
 )
 
 // GoChan 通过chan的方式同步执行异步任务

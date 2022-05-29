@@ -1,8 +1,9 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/config"
 	"time"
+
+	"github.com/pubgo/lava/config"
 )
 
 var Name = "metric"

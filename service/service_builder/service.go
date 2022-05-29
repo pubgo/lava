@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/httpgrpc"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	fiber2 "github.com/gofiber/fiber/v2"
@@ -49,6 +51,7 @@ func newService(name string, desc ...string) *serviceImpl {
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
 		},
+
 		cfg: Cfg{
 			Grpc: grpc_builder.GetDefaultCfg(),
 			Api:  fiber_builder.Cfg{},
@@ -101,11 +104,18 @@ type serviceImpl struct {
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
 
+	reg grpchan.HandlerMap
+
 	wrapperUnary  middleware.HandlerFunc
 	wrapperStream middleware.HandlerFunc
 
 	ctx        context.Context
 	gwHandlers []func(ctx context.Context, mux *gw.ServeMux, cc grpc.ClientConnInterface) error
+}
+
+func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (t *serviceImpl) Provide(constructors ...interface{}) {
@@ -127,11 +137,9 @@ func (t *serviceImpl) RegService(desc service.Desc) {
 	t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
 	t.services = append(t.services, desc)
 
-	if h, ok := desc.Handler.(abc.Flags); ok {
-		t.Flags(h.Flags()...)
-	}
-
 	t.opts = append(t.opts, fx.Populate(desc.Handler))
+
+	//	s.reg.RegisterService(sd, ss)
 }
 
 func (t *serviceImpl) RegGateway(fn func(ctx context.Context, mux *gw.ServeMux, cc grpc.ClientConnInterface) error) {
@@ -223,6 +231,16 @@ func (t *serviceImpl) init() error {
 	xerror.Panic(t.api.Build(t.cfg.Api))
 	t.api.Get().Use(t.handlerHttpMiddle(middlewares))
 	t.api.Get().Mount("/", t.httpSrv)
+
+	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		t.httpSrv.Post(pattern, func(ctx *fiber2.Ctx) error {
+			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
+			ctx.Response().Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			return adaptor.HTTPHandlerFunc(handler)(ctx)
+		})
+	}, "/", t.reg, nil, nil)
 
 	return nil
 }

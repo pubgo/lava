@@ -1,10 +1,7 @@
 package service
 
 import (
-	"context"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
@@ -26,7 +23,7 @@ type Options struct {
 	Version   string            `json:"version,omitempty"`
 	Port      int               `json:"port,omitempty"`
 	Address   string            `json:"address,omitempty"`
-	Advertise string            `json:"advertise"`
+	Advertise string            `json:"advertise,omitempty"`
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
@@ -46,8 +43,7 @@ type App interface {
 
 type Service interface {
 	App
-	RegService(desc Desc)
-	RegGateway(fn func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error)
+	RegisterService(desc *grpc.ServiceDesc, impl interface{})
 }
 
 type Web interface {

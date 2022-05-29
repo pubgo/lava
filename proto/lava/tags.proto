@@ -15,3 +15,7 @@ message Tag {
 extend google.protobuf.FieldOptions {
   repeated Tag tags = 100000;
 }
+
+extend google.protobuf.OneofOptions {
+  repeated Tag oneof_tags = 100000;
+}

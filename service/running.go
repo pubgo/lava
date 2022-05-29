@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
@@ -33,7 +34,7 @@ func Run(services ...Command) {
 		Name:     runtime.Domain,
 		Usage:    fmt.Sprintf("%s services", runtime.Domain),
 		Version:  version.Version,
-		Commands: []*cli.Command{vercmd.Cmd()},
+		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
 	}
 
 	for i := range services {

@@ -1,9 +1,10 @@
 package inject
 
 import (
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/xerror"
 	"go.uber.org/fx"
+
+	"github.com/pubgo/lava/consts"
 )
 
 var options []fx.Option
