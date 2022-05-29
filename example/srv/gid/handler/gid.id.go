@@ -18,8 +18,6 @@ import (
 	"github.com/pubgo/lava/logging"
 )
 
-var _ gidpb.IdServer = (*Id)(nil)
-
 type Id struct {
 	fx.In
 	snowflake *snowflake.Snowflake
@@ -38,7 +36,7 @@ func (id *Id) Init() {
 	//})
 }
 
-func NewId() *Id {
+func NewId() gidpb.IdServer {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))

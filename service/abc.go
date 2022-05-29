@@ -48,5 +48,5 @@ type Service interface {
 
 type Web interface {
 	App
-	RegHandler(handler interface{})
+	RegHandler(handler Handler)
 }

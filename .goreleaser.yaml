@@ -10,6 +10,10 @@ builds:
       - windows
     goarch:
       - amd64
+    ldflags:
+      - -X 'github.com/pubgo/lava/version.BuildTime={{ .Date }}'
+      - -X 'github.com/pubgo/lava/version.CommitID={{ .Commit }}'
+      - -X 'github.com/pubgo/lava/version.Version={{ .Version }}'
   - main: ./cmd/protoc-gen-lava/main.go
     id: protoc-gen-lava
     binary: protoc-gen-lava

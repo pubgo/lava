@@ -37,8 +37,8 @@ type User struct {
 
 var ll = logging.Component("handler")
 
-func NewTestAPIHandler(in testApiHandler) hellopb.TestApiServer {
-	return &in
+func NewTestAPIHandler() hellopb.TestApiServer {
+	return &testApiHandler{}
 }
 
 type testApiHandler struct {

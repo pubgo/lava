@@ -6,6 +6,10 @@ import (
 	"go.uber.org/zap"
 )
 
+func New(l *zap.Logger) *Handler {
+	return nil
+}
+
 type Handler struct {
 	fx.In
 	L *zap.Logger

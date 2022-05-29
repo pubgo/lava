@@ -15,6 +15,8 @@ var Version = "v0.0.1-dev"
 var Tag = ""
 
 func init() {
+	if Version == "" {
+		Version = "v0.0.1-dev"
+	}
 	xerror.PanicErr(ver.NewVersion(Version))
-
 }
