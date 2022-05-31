@@ -1,20 +1,22 @@
 package bbolt
 
 import (
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/inject"
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/logging"
 )
 
 func init() {
-	var cfgMap = make(map[string]*Cfg)
-	xerror.Panic(config.Decode(Name, cfgMap))
+	dix.Register(func(c config.Config, log *logging.Logger) map[string]*Client {
+		var cfgMap = make(map[string]*Cfg)
+		xerror.Panic(c.Decode(Name, cfgMap))
 
-	for name := range cfgMap {
-		cfg := cfgMap[name]
-		inject.NameGroup(Name, name, func(log *logging.Logger) *Client {
-			return New(cfg.Get(), log.Named(Name))
-		})
-	}
+		var clients = make(map[string]*Client)
+		for name, cfg := range cfgMap {
+			clients[name] = New(cfg.Get(), log.Named(Name))
+		}
+		return clients
+	})
 }

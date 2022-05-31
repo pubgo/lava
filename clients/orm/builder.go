@@ -1,27 +1,27 @@
 package orm
 
 import (
+	"github.com/pubgo/dix"
+	"github.com/pubgo/xerror"
+
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
-	"github.com/pubgo/xerror"
 )
 
 func init() {
-	var cfgMap = make(map[string]*Cfg)
-	xerror.Panic(config.Decode(Name, &cfgMap))
-	for name := range cfgMap {
-		cfg := cfgMap[name]
-		xerror.Panic(cfg.Valid())
-		inject.NameGroup(Name, name, func() *Client {
-			return &Client{DB: cfg.Get()}
-		})
-	}
-}
+	dix.Register(func() map[string]*Client {
+		var clients = make(map[string]*Client)
+		var cfgMap = make(map[string]*Cfg)
+		xerror.Panic(config.Decode(Name, &cfgMap))
+		for name, cfg := range cfgMap {
+			xerror.Panic(cfg.Valid())
+			clients[name] = &Client{DB: cfg.Get()}
+		}
+		return clients
+	})
 
-func init() {
-	inject.Invoke(func(clients ...*Client) {
+	dix.Register(func(clients map[string]*Client) {
 		vars.Register(Name+"_stats", func() interface{} {
 			var data typex.A
 			for i := range clients {

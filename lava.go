@@ -4,6 +4,8 @@ import (
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/service/service_builder"
 	"github.com/pubgo/lava/service/web_builder"
+
+	_ "github.com/pubgo/dix"
 )
 
 func Run(services ...service.Command) {

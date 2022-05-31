@@ -1185,6 +1185,8 @@ github.com/pseudomuto/protoc-gen-doc v1.3.2 h1:61vWZuxYa8D7Rn4h+2dgoTNqnluBmJya2
 github.com/pseudomuto/protoc-gen-doc v1.3.2/go.mod h1:y5+P6n3iGrbKG+9O04V5ld71in3v/bX88wUwgt+U8EA=
 github.com/pseudomuto/protokit v0.2.0 h1:hlnBDcy3YEDXH7kc9gV+NLaN0cDzhDvD1s7Y6FZ8RpM=
 github.com/pseudomuto/protokit v0.2.0/go.mod h1:2PdH30hxVHsup8KpBTOXTBeMVhJZVio3Q8ViKSAXT0Q=
+github.com/pubgo/dix v0.2.0 h1:HLL9z61PcJHz5p1vCrE1aN0T1eOnkMbTwnQoZcPqbns=
+github.com/pubgo/dix v0.2.0/go.mod h1:Fx0nuvk7+gN93Dy8pqWEm1BlezQpO1nPHJRb1+h5xvQ=
 github.com/pubgo/x v0.3.36 h1:6MRqb1Rrmvpwb9UkTfxRRP5eVmIK/wxqxPNsMtALFng=
 github.com/pubgo/x v0.3.36/go.mod h1:i3n1XrT39kzcgA8gt886bfCSg6u6uwohbwAtC8h8ePI=
 github.com/pubgo/xerror v0.4.1/go.mod h1:pUIhJ7l6dFmsaCE4GEULEIVpjdqMq/MCnHixg56mxJQ=

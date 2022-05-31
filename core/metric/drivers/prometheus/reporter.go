@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
@@ -8,7 +9,6 @@ import (
 
 	metric "github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
@@ -20,7 +20,7 @@ const urlPath = "/metrics"
 var logs = logging.Component(logutil.Names(metric.Name, Name))
 
 func init() {
-	inject.RegGroup(metric.Name, func(conf *metric.Cfg) *tally.ScopeOptions {
+	dix.Register(func(conf *metric.Cfg) map[string]*tally.ScopeOptions {
 		if conf.Driver != Name || conf.DriverCfg == nil {
 			return nil
 		}
@@ -42,6 +42,6 @@ func init() {
 		debug.Get(urlPath, debug.Wrap(reporter.HTTPHandler()))
 
 		opts.CachedReporter = reporter
-		return &opts
+		return map[string]*tally.ScopeOptions{conf.Driver: &opts}
 	})
 }

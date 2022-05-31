@@ -1,23 +1,22 @@
 package logging
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
-	New(config.GetCfg())
-	inject.Provide(func() *Logger { return L() })
+	dix.Register(func(c config.Config) *Logger { return New(c) })
 }
 
-func NewWithCfg(cfg *log_config.Config) {
+func NewWithCfg(cfg *log_config.Config) *Logger {
 	cfg.Level = runtime.Level
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
@@ -38,10 +37,11 @@ func NewWithCfg(cfg *log_config.Config) {
 
 	// 替换zap全局log
 	zap.ReplaceGlobals(baseLog)
+	return baseLog
 }
 
 // New logger
-func New(c config.Config) {
+func New(c config.Config) *Logger {
 	defer xerror.RespExit()
 
 	var cfg = log_config.NewProdConfig()
@@ -51,5 +51,5 @@ func New(c config.Config) {
 	}
 
 	xerror.Panic(c.UnmarshalKey(Name, &cfg))
-	NewWithCfg(&cfg)
+	return NewWithCfg(&cfg)
 }

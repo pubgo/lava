@@ -1,14 +1,14 @@
 package config
 
 import (
-	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/dix"
 	"github.com/spf13/viper"
 )
 
 var conf = newCfg()
 
 func init() {
-	inject.Provide(func() Config { return conf })
+	dix.Register(func() Config { return conf })
 }
 
 // GetCfg 获取内存配置

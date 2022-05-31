@@ -1,7 +1,7 @@
 package lifecycle
 
 import (
-	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/dix"
 )
 
 type Lifecycle interface {
@@ -39,6 +39,6 @@ func (t *lifecycleImpl) AfterStops(f ...func())    { t.afterStops = append(t.aft
 
 func init() {
 	impl := new(lifecycleImpl)
-	inject.Provide(func() Lifecycle { return impl })
-	inject.Provide(func() GetLifecycle { return impl })
+	dix.Register(func() Lifecycle { return impl })
+	dix.Register(func() GetLifecycle { return impl })
 }

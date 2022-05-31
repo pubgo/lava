@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/lava/example/srv/gid"
 	"github.com/pubgo/lava/example/srv/hello"
 	"github.com/pubgo/lava/example/srv/web"
-	_ "github.com/pubgo/lava/imports/import_registry"
 )
 
 func main() {

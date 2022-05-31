@@ -5,19 +5,19 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
-	inject.Provide(func() *Cfg {
+	dix.Register(func() *Cfg {
 		var cfg = DefaultCfg()
 		_ = config.Decode(Name, &cfg)
 		xerror.Panic(config.UnmarshalKey(Name, &cfg))
@@ -26,42 +26,29 @@ func init() {
 		return &cfg
 	})
 
-	inject.Invoke(
-		func(in struct {
-			M    lifecycle.Lifecycle
-			Cfg  *Cfg
-			Opts []*tally.ScopeOptions `group:"metric"`
-		}) {
+	dix.Register(func(m lifecycle.Lifecycle, cfg *Cfg, sopts map[string]*tally.ScopeOptions) Metric {
+		driver := cfg.Driver
+		xerror.Assert(driver == "", "metric driver is null")
 
-		},
-	)
-
-	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-		return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
-			return next(CreateCtx(ctx, GetGlobal()), req, resp)
+		var opts = tally.ScopeOptions{
+			Tags:      Tags{logkey.Project: runtime.Project},
+			Separator: cfg.Separator,
 		}
+
+		_ = sopts
+		scope, closer := tally.NewRootScope(opts, cfg.Interval)
+		m.BeforeStops(func() { xerror.Panic(closer.Close()) })
+
+		// 全局对象注册
+		atomic.StorePointer(&g, unsafe.Pointer(&scope))
+		return scope
 	})
-}
 
-func Builder(m lifecycle.Lifecycle) {
-	var cfg = DefaultCfg()
-	_ = config.Decode(Name, &cfg)
-
-	driver := cfg.Driver
-	xerror.Assert(driver == "", "metric driver is null")
-
-	fc := GetFactory(driver)
-	xerror.Assert(fc == nil, "metric driver [%s] not found", driver)
-
-	var opts = tally.ScopeOptions{
-		Tags:      Tags{logkey.Project: runtime.Project},
-		Separator: cfg.Separator,
-	}
-	xerror.Exit(fc(config.GetMap(Name), &opts))
-
-	scope, closer := tally.NewRootScope(opts, cfg.Interval)
-	m.BeforeStops(func() { xerror.Panic(closer.Close()) })
-
-	// 全局对象注册
-	atomic.StorePointer(&g, unsafe.Pointer(&scope))
+	dix.Register(func(m Metric) {
+		middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
+			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+				return next(CreateCtx(ctx, m), req, resp)
+			}
+		})
+	})
 }
