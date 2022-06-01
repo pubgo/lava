@@ -21,6 +21,7 @@ type Scheduler struct {
 	cron      string
 	dur       time.Duration
 	once      bool
+	log       *logging.Logger
 }
 
 func (s Scheduler) do(fn func(name string)) {

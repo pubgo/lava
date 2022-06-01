@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	fiber2 "github.com/gofiber/fiber/v2"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/abc"
@@ -18,7 +18,6 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
@@ -57,8 +56,8 @@ func newService(name string, desc ...string) *webImpl {
 		return nil
 	}
 
-	g.Provide(func() service.App { return g })
-	g.Invoke(func(m lifecycle.GetLifecycle) { g.modules = m })
+	g.Register(func() service.App { return g })
+	g.Register(func(m lifecycle.GetLifecycle) { g.modules = m })
 	return g
 }
 
@@ -81,20 +80,16 @@ type webImpl struct {
 	cfg     Cfg
 	api     fiber_builder.Builder
 	httpSrv *fiber2.App
-	opts    []fx.Option
+	opts    []interface{}
 }
 
-func (t *webImpl) Provide(constructors ...interface{}) {
-	t.opts = append(t.opts, fx.Provide(constructors...))
-}
-
-func (t *webImpl) Invoke(funcs ...interface{}) {
-	t.opts = append(t.opts, fx.Invoke(funcs...))
+func (t *webImpl) Register(regs ...interface{}) {
+	t.opts = append(t.opts, regs...)
 }
 
 func (t *webImpl) Command() *cli.Command { return t.cmd }
 
-func (t *webImpl) RegHandler(handler interface{}) {
+func (t *webImpl) RegHandler(handler service.WebHandler) {
 	t.handlers = append(t.handlers, handler)
 }
 
@@ -116,10 +111,10 @@ func (t *webImpl) init() error {
 	defer xerror.RespExit()
 
 	for i := range t.opts {
-		inject.Register(t.opts[i])
+		dix.Register(t.opts[i])
 	}
 
-	inject.Load()
+	dix.Invoke()
 
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
@@ -138,7 +133,7 @@ func (t *webImpl) init() error {
 			h.Init()
 		}
 
-		if h, ok := handler.(service.Handler); ok {
+		if h, ok := handler.(service.WebHandler); ok {
 			h.Router(t.httpSrv)
 		}
 	}

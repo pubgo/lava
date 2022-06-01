@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/dix"
 
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
@@ -71,7 +72,7 @@ const (
 )
 
 func init() {
-	registry.Register(name, func(m config.CfgMap) (_ registry.Registry, err error) {
+	dix.Register(func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer xerror.RespErr(&err)
 
 		var cfg Cfg

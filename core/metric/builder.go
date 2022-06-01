@@ -35,6 +35,8 @@ func init() {
 			Separator: cfg.Separator,
 		}
 
+		opts.Reporter = tally.NullStatsReporter
+
 		_ = sopts
 		scope, closer := tally.NewRootScope(opts, cfg.Interval)
 		m.BeforeStops(func() { xerror.Panic(closer.Close()) })

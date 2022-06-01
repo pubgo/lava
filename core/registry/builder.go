@@ -3,16 +3,15 @@ package registry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/dix"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
@@ -22,23 +21,14 @@ import (
 )
 
 func init() {
-	inject.Provide(func() *Cfg {
+	dix.Register(func() *Cfg {
 		var cfg = DefaultCfg()
 		// 配置解析
 		xerror.Panic(config.UnmarshalKey(Name, &cfg))
 		return cfg.Check()
 	})
 
-	inject.Invoke(fx.Annotate(func(app service.App, cfg *Cfg, regList []Registry) {
-		var regs = make(map[string]Registry)
-		for i := range regList {
-			if regList[i] == nil {
-				continue
-			}
-
-			regs[regList[i].String()] = regList[i]
-		}
-
+	dix.Register(func(app service.App, cfg *Cfg, regs map[string]Registry) {
 		reg := regs[cfg.Driver]
 		var errs = xerror.AssertErr(reg == nil, "registry driver is null")
 		errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
@@ -87,7 +77,7 @@ func init() {
 				xerror.Panic(deregister(app))
 			})
 		})
-	}, fx.ParamTags(``, ``, fmt.Sprintf(`group:"%s"`, Name))))
+	})
 }
 
 func register(app service.App) (err error) {

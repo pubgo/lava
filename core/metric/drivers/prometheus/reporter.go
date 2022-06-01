@@ -7,7 +7,7 @@ import (
 	"github.com/uber-go/tally/prometheus"
 	"go.uber.org/zap"
 
-	metric "github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"

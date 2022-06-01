@@ -6,19 +6,18 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"go.uber.org/fx"
+	"github.com/pubgo/dix"
 	"go.uber.org/zap"
 
 	requestid2 "github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 )
 
 func init() {
-	inject.Register(fx.Invoke(func(tracer opentracing.Tracer, log *zap.Logger) {
+	dix.Register(func(tracer opentracing.Tracer, log *zap.Logger) {
 		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
 		middleware.Register(tracing.Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
 			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
@@ -62,5 +61,5 @@ func init() {
 				return err
 			}
 		})
-	}))
+	})
 }

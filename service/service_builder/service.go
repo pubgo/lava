@@ -12,7 +12,7 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	fiber2 "github.com/gofiber/fiber/v2"
-	gw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
@@ -26,7 +26,6 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/inject"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
@@ -73,8 +72,8 @@ func newService(name string, desc ...string) *serviceImpl {
 		return nil
 	}
 
-	g.Provide(func() service.App { return g })
-	g.Invoke(func(m lifecycle.GetLifecycle) { g.modules = m })
+	g.Register(func() service.App { return g })
+	g.Register(func(m lifecycle.GetLifecycle) { g.modules = m })
 	return g
 }
 
@@ -99,7 +98,7 @@ type serviceImpl struct {
 	grpcSrv grpc_builder.Builder
 	api     fiber_builder.Builder
 	httpSrv *fiber2.App
-	opts    []fx.Option
+	opts    []interface{}
 
 	// inproc Channel is used to serve grpc gateway
 	inproc *inprocgrpc.Channel
@@ -109,8 +108,7 @@ type serviceImpl struct {
 	wrapperUnary  middleware.HandlerFunc
 	wrapperStream middleware.HandlerFunc
 
-	ctx        context.Context
-	gwHandlers []func(ctx context.Context, mux *gw.ServeMux, cc grpc.ClientConnInterface) error
+	ctx context.Context
 }
 
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
@@ -118,12 +116,8 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	panic("implement me")
 }
 
-func (t *serviceImpl) Provide(constructors ...interface{}) {
-	t.opts = append(t.opts, fx.Provide(constructors...))
-}
-
-func (t *serviceImpl) Invoke(funcs ...interface{}) {
-	t.opts = append(t.opts, fx.Invoke(funcs...))
+func (t *serviceImpl) Register(regs ...interface{}) {
+	t.opts = append(t.opts, regs...)
 }
 
 func (t *serviceImpl) Start() error          { return t.start() }
@@ -140,10 +134,6 @@ func (t *serviceImpl) RegService(desc service.Desc) {
 	t.opts = append(t.opts, fx.Populate(desc.Handler))
 
 	//	s.reg.RegisterService(sd, ss)
-}
-
-func (t *serviceImpl) RegGateway(fn func(ctx context.Context, mux *gw.ServeMux, cc grpc.ClientConnInterface) error) {
-	t.gwHandlers = append(t.gwHandlers, fn)
 }
 
 func (t *serviceImpl) RegApp(prefix string, r *fiber2.App) {
@@ -164,10 +154,10 @@ func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
 
 	for i := range t.opts {
-		inject.Register(t.opts[i])
+		dix.Register(t.opts[i])
 	}
 
-	inject.Load()
+	dix.Invoke()
 
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
@@ -200,7 +190,7 @@ func (t *serviceImpl) init() error {
 			h.Init()
 		}
 
-		if h, ok := desc.Handler.(service.Handler); ok {
+		if h, ok := desc.Handler.(service.WebHandler); ok {
 			h.Router(t.httpSrv)
 		}
 	}
@@ -210,9 +200,6 @@ func (t *serviceImpl) init() error {
 	xerror.Panic(builder.Build(t.cfg.Gw))
 	var mux = builder.Get()
 
-	for _, h := range t.gwHandlers {
-		xerror.Panic(h(context.Background(), mux, t.inproc))
-	}
 	t.httpSrv.All(fmt.Sprintf("/api/%s/*", runtime.Project), adaptor.HTTPHandler(mux))
 
 	if t.cfg.PrintRoute {

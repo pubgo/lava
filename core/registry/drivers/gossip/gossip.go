@@ -18,7 +18,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/core/registry"
-	//pb "github.com/pubgo/lava/core/registry/registry_driver/gossip/proto"
+	pb "github.com/pubgo/lava/core/registry/drivers/gossip/proto"
 	event2 "github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/runtime"

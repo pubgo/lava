@@ -1,12 +1,12 @@
 package service
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/inject"
 )
 
 func init() {
-	inject.Invoke(func(app App) {
+	dix.Register(func(app App) {
 		app.RegApp("/debug", debug.App())
 	})
 }

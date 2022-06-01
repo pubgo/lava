@@ -13,7 +13,7 @@ type Desc struct {
 	Handler interface{}
 }
 
-type Handler interface {
+type WebHandler interface {
 	Router(r fiber.Router)
 }
 
@@ -34,8 +34,7 @@ type App interface {
 	BeforeStops(...func())
 	AfterStarts(...func())
 	BeforeStarts(...func())
-	Provide(constructors ...interface{})
-	Invoke(funcs ...interface{})
+	Register(regs ...interface{})
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
 	RegApp(prefix string, r *fiber.App)
@@ -48,5 +47,5 @@ type Service interface {
 
 type Web interface {
 	App
-	RegHandler(handler Handler)
+	RegHandler(handler WebHandler)
 }
