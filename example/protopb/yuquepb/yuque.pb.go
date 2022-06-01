@@ -20,21 +20,21 @@ import (
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
-	_	= protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
 // doorman service config
 type DoormanConfig struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
 	// gRPC port
-	GrpcPort	uint32	`protobuf:"varint,1,opt,name=grpc_port,json=grpcPort,proto3" json:"grpc_port,omitempty"`
+	GrpcPort uint32 `protobuf:"varint,1,opt,name=grpc_port,json=grpcPort,proto3" json:"grpc_port,omitempty"`
 	// websocket port
-	WssPort	uint32	`protobuf:"varint,2,opt,name=wss_port,json=wssPort,proto3" json:"wss_port,omitempty"`
+	WssPort uint32 `protobuf:"varint,2,opt,name=wss_port,json=wssPort,proto3" json:"wss_port,omitempty"`
 }
 
 func (x *DoormanConfig) Reset() {
@@ -50,7 +50,7 @@ func (x *DoormanConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DoormanConfig) ProtoMessage()	{}
+func (*DoormanConfig) ProtoMessage() {}
 
 func (x *DoormanConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[0]
@@ -85,13 +85,13 @@ func (x *DoormanConfig) GetWssPort() uint32 {
 
 // facebook auth configuration
 type FacebookConfig struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	BaseUrl		string	`protobuf:"bytes,1,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	AuthUrl		string	`protobuf:"bytes,2,opt,name=auth_url,json=authUrl,proto3" json:"auth_url,omitempty"`
-	AvatarUrl	string	`protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	BaseUrl   string `protobuf:"bytes,1,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	AuthUrl   string `protobuf:"bytes,2,opt,name=auth_url,json=authUrl,proto3" json:"auth_url,omitempty"`
+	AvatarUrl string `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
 }
 
 func (x *FacebookConfig) Reset() {
@@ -107,7 +107,7 @@ func (x *FacebookConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FacebookConfig) ProtoMessage()	{}
+func (*FacebookConfig) ProtoMessage() {}
 
 func (x *FacebookConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[1]
@@ -149,18 +149,18 @@ func (x *FacebookConfig) GetAvatarUrl() string {
 
 // guardian service config
 type GuardianConfig struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
 	// auth token secret
-	TokenSecret	string	`protobuf:"bytes,1,opt,name=token_secret,json=tokenSecret,proto3" json:"token_secret,omitempty"`
+	TokenSecret string `protobuf:"bytes,1,opt,name=token_secret,json=tokenSecret,proto3" json:"token_secret,omitempty"`
 	// auth db conn str
-	ConnStr	string	`protobuf:"bytes,2,opt,name=conn_str,json=connStr,proto3" json:"conn_str,omitempty"`
+	ConnStr string `protobuf:"bytes,2,opt,name=conn_str,json=connStr,proto3" json:"conn_str,omitempty"`
 	// auth token expiration
-	ExpiringDays	uint32	`protobuf:"varint,3,opt,name=expiring_days,json=expiringDays,proto3" json:"expiring_days,omitempty"`
+	ExpiringDays uint32 `protobuf:"varint,3,opt,name=expiring_days,json=expiringDays,proto3" json:"expiring_days,omitempty"`
 	// facebook configuration
-	Facebook	*FacebookConfig	`protobuf:"bytes,4,opt,name=facebook,proto3" json:"facebook,omitempty"`
+	Facebook *FacebookConfig `protobuf:"bytes,4,opt,name=facebook,proto3" json:"facebook,omitempty"`
 }
 
 func (x *GuardianConfig) Reset() {
@@ -176,7 +176,7 @@ func (x *GuardianConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GuardianConfig) ProtoMessage()	{}
+func (*GuardianConfig) ProtoMessage() {}
 
 func (x *GuardianConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[2]
@@ -225,24 +225,24 @@ func (x *GuardianConfig) GetFacebook() *FacebookConfig {
 
 // basic user information
 type User struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
 	// user id
-	Id	string	`protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// user's email
-	Email	string	`protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// user's first name
-	FirstName	string	`protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	FirstName string `protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
 	// user's last name
-	LastName	string	`protobuf:"bytes,4,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	LastName string `protobuf:"bytes,4,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	// user's gender - Unspecified if none
-	Gender	string	`protobuf:"bytes,5,opt,name=gender,proto3" json:"gender,omitempty"`
+	Gender string `protobuf:"bytes,5,opt,name=gender,proto3" json:"gender,omitempty"`
 	// user's birthday in UTC timestamp, 0 if none
-	Birthday	int64	`protobuf:"varint,6,opt,name=birthday,proto3" json:"birthday,omitempty"`
+	Birthday int64 `protobuf:"varint,6,opt,name=birthday,proto3" json:"birthday,omitempty"`
 	// user's avatar
-	Avatar	string	`protobuf:"bytes,7,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Avatar string `protobuf:"bytes,7,opt,name=avatar,proto3" json:"avatar,omitempty"`
 }
 
 func (x *User) Reset() {
@@ -258,7 +258,7 @@ func (x *User) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*User) ProtoMessage()	{}
+func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[3]
@@ -327,12 +327,12 @@ func (x *User) GetAvatar() string {
 }
 
 type CreateGroupResp struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Data		[]*CreateGroupResp_Data	`protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
-	Response	*lava.Response		`protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
+	Data     []*CreateGroupResp_Data `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	Response *lava.Response          `protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
 }
 
 func (x *CreateGroupResp) Reset() {
@@ -348,7 +348,7 @@ func (x *CreateGroupResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateGroupResp) ProtoMessage()	{}
+func (*CreateGroupResp) ProtoMessage() {}
 
 func (x *CreateGroupResp) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[4]
@@ -382,16 +382,16 @@ func (x *CreateGroupResp) GetResponse() *lava.Response {
 }
 
 type CreateGroupReq struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
 	// login
-	Login	string	`protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
 	// 组织名称
-	Name	string	`protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 介绍
-	Description	string	`protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 }
 
 func (x *CreateGroupReq) Reset() {
@@ -407,7 +407,7 @@ func (x *CreateGroupReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateGroupReq) ProtoMessage()	{}
+func (*CreateGroupReq) ProtoMessage() {}
 
 func (x *CreateGroupReq) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[5]
@@ -448,12 +448,12 @@ func (x *CreateGroupReq) GetDescription() string {
 }
 
 type UserInfoResp struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Data		*UserInfoResp_Data	`protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Response	*lava.Response		`protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
+	Data     *UserInfoResp_Data `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Response *lava.Response     `protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
 }
 
 func (x *UserInfoResp) Reset() {
@@ -469,7 +469,7 @@ func (x *UserInfoResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserInfoResp) ProtoMessage()	{}
+func (*UserInfoResp) ProtoMessage() {}
 
 func (x *UserInfoResp) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[6]
@@ -503,12 +503,12 @@ func (x *UserInfoResp) GetResponse() *lava.Response {
 }
 
 type UserInfoReq struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
 	// login or id
-	Login	string	`protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty" param:"login" param1:"login1"`
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
 }
 
 func (x *UserInfoReq) Reset() {
@@ -524,7 +524,7 @@ func (x *UserInfoReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserInfoReq) ProtoMessage()	{}
+func (*UserInfoReq) ProtoMessage() {}
 
 func (x *UserInfoReq) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[7]
@@ -551,17 +551,17 @@ func (x *UserInfoReq) GetLogin() string {
 }
 
 type CreateGroupResp_Data struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Id		uint32	`protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Login		string	`protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
-	Name		string	`protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	AvatarUrl	string	`protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Description	string	`protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	CreatedAt	string	`protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt	string	`protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id          uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Login       string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	Name        string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	AvatarUrl   string `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	CreatedAt   string `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   string `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
 func (x *CreateGroupResp_Data) Reset() {
@@ -577,7 +577,7 @@ func (x *CreateGroupResp_Data) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateGroupResp_Data) ProtoMessage()	{}
+func (*CreateGroupResp_Data) ProtoMessage() {}
 
 func (x *CreateGroupResp_Data) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[8]
@@ -646,18 +646,18 @@ func (x *CreateGroupResp_Data) GetUpdatedAt() string {
 }
 
 type UserInfoResp_Data struct {
-	state		protoimpl.MessageState
-	sizeCache	protoimpl.SizeCache
-	unknownFields	protoimpl.UnknownFields
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-	Id		uint32	`protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type		string	`protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	Login		string	`protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
-	Name		string	`protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Description	string	`protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	AvatarUrl	string	`protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	CreatedAt	string	`protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt	string	`protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id          uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type        string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Login       string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	Name        string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	AvatarUrl   string `protobuf:"bytes,6,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	CreatedAt   string `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   string `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
 func (x *UserInfoResp_Data) Reset() {
@@ -673,7 +673,7 @@ func (x *UserInfoResp_Data) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UserInfoResp_Data) ProtoMessage()	{}
+func (*UserInfoResp_Data) ProtoMessage() {}
 
 func (x *UserInfoResp_Data) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_yuque_yuque_proto_msgTypes[9]
@@ -936,8 +936,8 @@ var file_proto_yuque_yuque_proto_rawDesc = []byte{
 }
 
 var (
-	file_proto_yuque_yuque_proto_rawDescOnce	sync.Once
-	file_proto_yuque_yuque_proto_rawDescData	= file_proto_yuque_yuque_proto_rawDesc
+	file_proto_yuque_yuque_proto_rawDescOnce sync.Once
+	file_proto_yuque_yuque_proto_rawDescData = file_proto_yuque_yuque_proto_rawDesc
 )
 
 func file_proto_yuque_yuque_proto_rawDescGZIP() []byte {
@@ -949,45 +949,45 @@ func file_proto_yuque_yuque_proto_rawDescGZIP() []byte {
 
 var file_proto_yuque_yuque_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_yuque_yuque_proto_goTypes = []interface{}{
-	(*DoormanConfig)(nil),		// 0: yuque.v2.DoormanConfig
-	(*FacebookConfig)(nil),		// 1: yuque.v2.FacebookConfig
-	(*GuardianConfig)(nil),		// 2: yuque.v2.GuardianConfig
-	(*User)(nil),			// 3: yuque.v2.User
-	(*CreateGroupResp)(nil),	// 4: yuque.v2.CreateGroupResp
-	(*CreateGroupReq)(nil),		// 5: yuque.v2.CreateGroupReq
-	(*UserInfoResp)(nil),		// 6: yuque.v2.UserInfoResp
-	(*UserInfoReq)(nil),		// 7: yuque.v2.UserInfoReq
-	(*CreateGroupResp_Data)(nil),	// 8: yuque.v2.CreateGroupResp.Data
-	(*UserInfoResp_Data)(nil),	// 9: yuque.v2.UserInfoResp.Data
-	(*lava.Response)(nil),		// 10: lava.Response
-	(*emptypb.Empty)(nil),		// 11: google.protobuf.Empty
+	(*DoormanConfig)(nil),        // 0: yuque.v2.DoormanConfig
+	(*FacebookConfig)(nil),       // 1: yuque.v2.FacebookConfig
+	(*GuardianConfig)(nil),       // 2: yuque.v2.GuardianConfig
+	(*User)(nil),                 // 3: yuque.v2.User
+	(*CreateGroupResp)(nil),      // 4: yuque.v2.CreateGroupResp
+	(*CreateGroupReq)(nil),       // 5: yuque.v2.CreateGroupReq
+	(*UserInfoResp)(nil),         // 6: yuque.v2.UserInfoResp
+	(*UserInfoReq)(nil),          // 7: yuque.v2.UserInfoReq
+	(*CreateGroupResp_Data)(nil), // 8: yuque.v2.CreateGroupResp.Data
+	(*UserInfoResp_Data)(nil),    // 9: yuque.v2.UserInfoResp.Data
+	(*lava.Response)(nil),        // 10: lava.Response
+	(*emptypb.Empty)(nil),        // 11: google.protobuf.Empty
 }
 var file_proto_yuque_yuque_proto_depIdxs = []int32{
-	1,	// 0: yuque.v2.GuardianConfig.facebook:type_name -> yuque.v2.FacebookConfig
-	8,	// 1: yuque.v2.CreateGroupResp.data:type_name -> yuque.v2.CreateGroupResp.Data
-	10,	// 2: yuque.v2.CreateGroupResp.response:type_name -> lava.Response
-	9,	// 3: yuque.v2.UserInfoResp.data:type_name -> yuque.v2.UserInfoResp.Data
-	10,	// 4: yuque.v2.UserInfoResp.response:type_name -> lava.Response
-	11,	// 5: yuque.v2.Yuque.UserInfo:input_type -> google.protobuf.Empty
-	7,	// 6: yuque.v2.Yuque.UserInfoByLogin:input_type -> yuque.v2.UserInfoReq
-	5,	// 7: yuque.v2.Yuque.CreateGroup:input_type -> yuque.v2.CreateGroupReq
-	7,	// 8: yuque.v2.UserService.Signin:input_type -> yuque.v2.UserInfoReq
-	7,	// 9: yuque.v2.UserService.Signin1:input_type -> yuque.v2.UserInfoReq
-	7,	// 10: yuque.v2.UserService.ResetPassword:input_type -> yuque.v2.UserInfoReq
-	6,	// 11: yuque.v2.Yuque.UserInfo:output_type -> yuque.v2.UserInfoResp
-	6,	// 12: yuque.v2.Yuque.UserInfoByLogin:output_type -> yuque.v2.UserInfoResp
-	4,	// 13: yuque.v2.Yuque.CreateGroup:output_type -> yuque.v2.CreateGroupResp
-	6,	// 14: yuque.v2.UserService.Signin:output_type -> yuque.v2.UserInfoResp
-	6,	// 15: yuque.v2.UserService.Signin1:output_type -> yuque.v2.UserInfoResp
-	11,	// 16: yuque.v2.UserService.ResetPassword:output_type -> google.protobuf.Empty
-	11,	// [11:17] is the sub-list for method output_type
-	5,	// [5:11] is the sub-list for method input_type
-	5,	// [5:5] is the sub-list for extension type_name
-	5,	// [5:5] is the sub-list for extension extendee
-	0,	// [0:5] is the sub-list for field type_name
+	1,  // 0: yuque.v2.GuardianConfig.facebook:type_name -> yuque.v2.FacebookConfig
+	8,  // 1: yuque.v2.CreateGroupResp.data:type_name -> yuque.v2.CreateGroupResp.Data
+	10, // 2: yuque.v2.CreateGroupResp.response:type_name -> lava.Response
+	9,  // 3: yuque.v2.UserInfoResp.data:type_name -> yuque.v2.UserInfoResp.Data
+	10, // 4: yuque.v2.UserInfoResp.response:type_name -> lava.Response
+	11, // 5: yuque.v2.Yuque.UserInfo:input_type -> google.protobuf.Empty
+	7,  // 6: yuque.v2.Yuque.UserInfoByLogin:input_type -> yuque.v2.UserInfoReq
+	5,  // 7: yuque.v2.Yuque.CreateGroup:input_type -> yuque.v2.CreateGroupReq
+	7,  // 8: yuque.v2.UserService.Signin:input_type -> yuque.v2.UserInfoReq
+	7,  // 9: yuque.v2.UserService.Signin1:input_type -> yuque.v2.UserInfoReq
+	7,  // 10: yuque.v2.UserService.ResetPassword:input_type -> yuque.v2.UserInfoReq
+	6,  // 11: yuque.v2.Yuque.UserInfo:output_type -> yuque.v2.UserInfoResp
+	6,  // 12: yuque.v2.Yuque.UserInfoByLogin:output_type -> yuque.v2.UserInfoResp
+	4,  // 13: yuque.v2.Yuque.CreateGroup:output_type -> yuque.v2.CreateGroupResp
+	6,  // 14: yuque.v2.UserService.Signin:output_type -> yuque.v2.UserInfoResp
+	6,  // 15: yuque.v2.UserService.Signin1:output_type -> yuque.v2.UserInfoResp
+	11, // 16: yuque.v2.UserService.ResetPassword:output_type -> google.protobuf.Empty
+	11, // [11:17] is the sub-list for method output_type
+	5,  // [5:11] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
-func init()	{ file_proto_yuque_yuque_proto_init() }
+func init() { file_proto_yuque_yuque_proto_init() }
 func file_proto_yuque_yuque_proto_init() {
 	if File_proto_yuque_yuque_proto != nil {
 		return
@@ -1117,16 +1117,16 @@ func file_proto_yuque_yuque_proto_init() {
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
-			GoPackagePath:	reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor:	file_proto_yuque_yuque_proto_rawDesc,
-			NumEnums:	0,
-			NumMessages:	10,
-			NumExtensions:	0,
-			NumServices:	2,
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_proto_yuque_yuque_proto_rawDesc,
+			NumEnums:      0,
+			NumMessages:   10,
+			NumExtensions: 0,
+			NumServices:   2,
 		},
-		GoTypes:		file_proto_yuque_yuque_proto_goTypes,
-		DependencyIndexes:	file_proto_yuque_yuque_proto_depIdxs,
-		MessageInfos:		file_proto_yuque_yuque_proto_msgTypes,
+		GoTypes:           file_proto_yuque_yuque_proto_goTypes,
+		DependencyIndexes: file_proto_yuque_yuque_proto_depIdxs,
+		MessageInfos:      file_proto_yuque_yuque_proto_msgTypes,
 	}.Build()
 	File_proto_yuque_yuque_proto = out.File
 	file_proto_yuque_yuque_proto_rawDesc = nil

@@ -113,10 +113,12 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | nationCode | [string](#string) |  | 区号 |
+| a | [string](#string) |  |  |
 | telephone | [string](#string) |  | 电话 |
 | sendType | [string](#string) |  | 发送类型,call ,sms |
-| ip | [string](#string) |  | ip |
-| template | [string](#string) |  | 模板 |
+| ip | [string](#string) |  | ip
+
+模板 string template = 5 [(gogoproto.jsontag) = &#34;template&#34;]; |
 
 
 

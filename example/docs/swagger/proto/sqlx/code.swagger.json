@@ -328,6 +328,9 @@
           "type": "string",
           "title": "区号"
         },
+        "a": {
+          "type": "string"
+        },
         "telephone": {
           "type": "string",
           "title": "电话"
@@ -339,10 +342,6 @@
         "ip": {
           "type": "string",
           "title": "ip"
-        },
-        "template": {
-          "type": "string",
-          "title": "模板"
         }
       }
     },

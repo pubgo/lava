@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pubgo/dix"
 	"go.uber.org/fx"
 
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 
 	"github.com/pubgo/lava/example/protopb/hellopb"
-	"github.com/pubgo/lava/inject"
 )
 
 var _srv = &testApiHandler{}
 
 func TestMain(t *testing.M) {
-	inject.Register(fx.Populate(_srv))
-	inject.Load()
+	dix.Register(fx.Populate(_srv))
+	dix.Invoke()
 
 	_srv.Init()
 	t.Run()

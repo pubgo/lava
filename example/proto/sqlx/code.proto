@@ -75,7 +75,7 @@ message SendCodeRequest {
   // ip
   string ip = 4 [(gogoproto.jsontag) = "ip"];
   // 模板
-  string template = 5 [(gogoproto.jsontag) = "template"];
+//  string template = 5 [(gogoproto.jsontag) = "template"];
 }
 
 message SendCodeResponse {

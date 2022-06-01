@@ -11,6 +11,6 @@ var name = "test-web"
 func NewSrv() service.Web {
 	srv := lava.NewWeb(name, "entry grpc test")
 	srv.RegHandler(handlers.New())
-	srv.Provide(handlers.New)
+	srv.Register(handlers.New)
 	return srv
 }
