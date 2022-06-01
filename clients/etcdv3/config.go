@@ -1,7 +1,6 @@
 package etcdv3
 
 import (
-	"sync"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -27,13 +26,6 @@ type Cfg struct {
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
 	retry                retry.Retry
-	once                 sync.Once
-	client               *etcdv3.Client
-}
-
-func (t *Cfg) Get() *etcdv3.Client {
-	t.once.Do(func() { t.client = t.Build() })
-	return t.client
 }
 
 func (t *Cfg) Build() *etcdv3.Client {

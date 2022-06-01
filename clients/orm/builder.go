@@ -10,13 +10,13 @@ import (
 )
 
 func init() {
-	dix.Register(func() map[string]*Client {
+	dix.Register(func(c config.Config) map[string]*Client {
 		var clients = make(map[string]*Client)
 		var cfgMap = make(map[string]*Cfg)
-		xerror.Panic(config.Decode(Name, &cfgMap))
+		xerror.Panic(c.Decode(Name, &cfgMap))
 		for name, cfg := range cfgMap {
 			xerror.Panic(cfg.Valid())
-			clients[name] = &Client{DB: cfg.Get()}
+			clients[name] = &Client{DB: cfg.Create()}
 		}
 		return clients
 	})

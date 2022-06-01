@@ -6,16 +6,16 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-type (
-	reqIdKey struct{}
+var (
+	reqIdKey = ksuid.New().String()
 )
 
 func WithReqID(ctx context.Context, val string) context.Context {
-	return context.WithValue(ctx, reqIdKey{}, val)
+	return context.WithValue(ctx, reqIdKey, val)
 }
 
 func GetReqId(ctx context.Context) string {
-	var reqId, ok = ctx.Value(reqIdKey{}).(string)
+	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
 	}
@@ -23,7 +23,7 @@ func GetReqId(ctx context.Context) string {
 }
 
 func getReqID(ctx context.Context) string {
-	var reqId, ok = ctx.Value(reqIdKey{}).(string)
+	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
 	}

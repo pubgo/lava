@@ -56,19 +56,16 @@ func newService(name string, desc ...string) *webImpl {
 		return nil
 	}
 
-	g.Register(func() service.App { return g })
-	g.Register(func(m lifecycle.GetLifecycle) { g.modules = m })
+	g.Dix(func() service.App { return g })
+	g.Dix(func(m lifecycle.GetLifecycle) { g.modules = m })
 	return g
 }
 
 var _ service.Web = (*webImpl)(nil)
 
 type webImpl struct {
-	beforeStarts []func()
-	afterStarts  []func()
-	beforeStops  []func()
-	afterStops   []func()
-	middlewares  []middleware.Middleware
+	lifecycle.Lifecycle
+	middlewares []middleware.Middleware
 
 	handlers []interface{}
 
@@ -83,7 +80,7 @@ type webImpl struct {
 	opts    []interface{}
 }
 
-func (t *webImpl) Register(regs ...interface{}) {
+func (t *webImpl) Dix(regs ...interface{}) {
 	t.opts = append(t.opts, regs...)
 }
 
@@ -101,11 +98,6 @@ func (t *webImpl) Middleware(mid middleware.Middleware) {
 	xerror.Assert(mid == nil, "[mid] is nil")
 	t.middlewares = append(t.middlewares, mid)
 }
-
-func (t *webImpl) BeforeStarts(f ...func()) { t.beforeStarts = append(t.beforeStarts, f...) }
-func (t *webImpl) BeforeStops(f ...func())  { t.beforeStops = append(t.beforeStops, f...) }
-func (t *webImpl) AfterStarts(f ...func())  { t.afterStarts = append(t.afterStarts, f...) }
-func (t *webImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterStops, f...) }
 
 func (t *webImpl) init() error {
 	defer xerror.RespExit()

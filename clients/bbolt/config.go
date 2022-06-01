@@ -3,7 +3,6 @@ package bbolt
 import (
 	"io/fs"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/pubgo/x/pathutil"
@@ -29,8 +28,6 @@ type Cfg struct {
 	PageSize        int               `json:"page_size"`
 	NoSync          bool              `json:"no_sync"`
 	Path            string            `json:"path"`
-	db              *bolt.DB
-	once            sync.Once
 }
 
 func (t *Cfg) BuildOpts() *bolt.Options {
@@ -39,10 +36,6 @@ func (t *Cfg) BuildOpts() *bolt.Options {
 	xerror.Panic(merge.Struct(options, t))
 	return options
 
-}
-func (t *Cfg) Get() *bolt.DB {
-	t.once.Do(func() { t.db = t.Create() })
-	return t.db
 }
 
 func (t *Cfg) Create() *bolt.DB {

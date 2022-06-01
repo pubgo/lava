@@ -108,7 +108,7 @@ func (s *Registry) Close() {
 
 func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
 	return nil
-	//return s.Register(&registry.Service{Metadata: map[string]string{},})
+	//return s.Dix(&registry.Service{Metadata: map[string]string{},})
 }
 
 func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registry.Service, err error) {

@@ -136,7 +136,7 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 		g.P()
 	}
 	// grpc
-	g.P(xgenCall("Add"), "(Register", service.GoName, "Server, mthList)")
+	g.P(xgenCall("Add"), "(Dix", service.GoName, "Server, mthList)")
 	g.P("}")
 	g.P()
 
@@ -148,14 +148,14 @@ func genRpcInfo(gen *protogen.Plugin, file *protogen.File, g *protogen.Generated
 			g.QualifiedGoIdent(serviceCall(""))
 		}
 		g.P(protoutil.Template(`
-func Register{{name}}(srv service.Service, impl {{name}}Server) {
+func Dix{{name}}(srv service.Service, impl {{name}}Server) {
 	srv.RegService(service.Desc{
 		Handler:     impl,
 		ServiceDesc: {{name}}_ServiceDesc,
 	})
 	{% if isGw %}
 	srv.RegGateway(func(ctx context.Context, mux *runtime.ServeMux, cc grpc.ClientConnInterface) error {
-		return Register{{name}}HandlerClient(ctx, mux, New{{name}}Client(cc))
+		return Dix{{name}}HandlerClient(ctx, mux, New{{name}}Client(cc))
 	})
     {% endif %}
 }

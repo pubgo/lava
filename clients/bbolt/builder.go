@@ -15,7 +15,7 @@ func init() {
 
 		var clients = make(map[string]*Client)
 		for name, cfg := range cfgMap {
-			clients[name] = New(cfg.Get(), log.Named(Name))
+			clients[name] = New(cfg.Create(), log.Named(Name))
 		}
 		return clients
 	})

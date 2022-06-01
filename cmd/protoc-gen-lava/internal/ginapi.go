@@ -13,7 +13,7 @@ func genGinRouter(gen *protogen.Plugin, file *protogen.File, g *protogen.Generat
 		return
 	}
 
-	g.P(`func Register`, service.GoName, `GinServer(r `, ginCall("IRouter"), `, server `, service.GoName, `Server) {`)
+	g.P(`func Dix`, service.GoName, `GinServer(r `, ginCall("IRouter"), `, server `, service.GoName, `Server) {`)
 	g.P(xerrorCall("Assert"), `(r == nil || server == nil, "router or server is nil")`)
 	for _, m := range service.Methods {
 		// 过滤掉stream

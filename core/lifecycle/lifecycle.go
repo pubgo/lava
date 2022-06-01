@@ -9,9 +9,6 @@ type Lifecycle interface {
 	BeforeStops(...func())
 	AfterStarts(...func())
 	BeforeStarts(...func())
-}
-
-type GetLifecycle interface {
 	GetAfterStops() []func()
 	GetBeforeStops() []func()
 	GetAfterStarts() []func()
@@ -19,7 +16,6 @@ type GetLifecycle interface {
 }
 
 var _ Lifecycle = (*lifecycleImpl)(nil)
-var _ GetLifecycle = (*lifecycleImpl)(nil)
 
 type lifecycleImpl struct {
 	beforeStarts []func()
@@ -37,8 +33,11 @@ func (t *lifecycleImpl) BeforeStops(f ...func())   { t.beforeStops = append(t.be
 func (t *lifecycleImpl) AfterStarts(f ...func())   { t.afterStarts = append(t.afterStarts, f...) }
 func (t *lifecycleImpl) AfterStops(f ...func())    { t.afterStops = append(t.afterStops, f...) }
 
+func New() Lifecycle {
+	return new(lifecycleImpl)
+}
+
 func init() {
 	impl := new(lifecycleImpl)
 	dix.Register(func() Lifecycle { return impl })
-	dix.Register(func() GetLifecycle { return impl })
 }

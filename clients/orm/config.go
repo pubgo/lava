@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"sync"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -33,8 +32,6 @@ type Cfg struct {
 	MaxConnTime                              time.Duration          `json:"max_conn_time" yaml:"max_conn_time"`
 	MaxConnIdle                              int                    `json:"max_conn_idle" yaml:"max_conn_idle"`
 	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
-	once                                     sync.Once
-	db                                       *gorm.DB
 }
 
 func (t *Cfg) Valid() (err error) {
@@ -45,11 +42,6 @@ func (t *Cfg) Valid() (err error) {
 
 	xerror.Assert(t.Driver == "", "driver is null")
 	return
-}
-
-func (t *Cfg) Get() *gorm.DB {
-	t.once.Do(func() { t.db = t.Create() })
-	return t.db
 }
 
 func (t *Cfg) Create() *gorm.DB {

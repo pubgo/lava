@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
@@ -28,13 +29,9 @@ type Options struct {
 }
 
 type App interface {
+	lifecycle.Lifecycle
 	Options() Options
 	Command() *cli.Command
-	AfterStops(...func())
-	BeforeStops(...func())
-	AfterStarts(...func())
-	BeforeStarts(...func())
-	Register(regs ...interface{})
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
 	RegApp(prefix string, r *fiber.App)
@@ -42,10 +39,12 @@ type App interface {
 
 type Service interface {
 	App
+	Dix(regs ...interface{})
 	RegisterService(desc *grpc.ServiceDesc, impl interface{})
 }
 
 type Web interface {
 	App
+	Dix(regs ...interface{})
 	RegHandler(handler WebHandler)
 }

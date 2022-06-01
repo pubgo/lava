@@ -9,14 +9,14 @@ import (
 const Name = "etcdv3"
 
 func init() {
-	dix.Register(func() map[string]*Client {
+	dix.Register(func(c config.Config) map[string]*Client {
 		var clients = make(map[string]*Client)
 		var cfgMap = make(map[string]*Cfg)
-		xerror.Panic(config.Decode(Name, cfgMap))
+		xerror.Panic(c.Decode(Name, cfgMap))
 
 		for name := range cfgMap {
 			cfg := cfgMap[name]
-			clients[name] = &Client{Client: cfg.Get()}
+			clients[name] = &Client{Client: cfg.Build()}
 		}
 		return clients
 	})

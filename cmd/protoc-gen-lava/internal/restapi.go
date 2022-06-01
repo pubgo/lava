@@ -42,7 +42,7 @@ func genRestApiTest(gen *protogen.Plugin, file *protogen.File, g *protogen.Gener
 //		return
 //	}
 //
-//	g.P(`func Register`, service.GoName, `RestServer(app `, fiberCall("Router"), `, server `, service.GoName, `Server) {`)
+//	g.P(`func Dix`, service.GoName, `RestServer(app `, fiberCall("Router"), `, server `, service.GoName, `Server) {`)
 //	g.P(xerrorCall("Assert"), `(app == nil || server == nil, "app or server is nil")`)
 //	for _, m := range service.Methods {
 //		if m.Desc.IsStreamingClient() || m.Desc.IsStreamingServer() {

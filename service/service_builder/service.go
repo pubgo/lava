@@ -72,22 +72,19 @@ func newService(name string, desc ...string) *serviceImpl {
 		return nil
 	}
 
-	g.Register(func() service.App { return g })
-	g.Register(func(m lifecycle.GetLifecycle) { g.modules = m })
+	g.Dix(func() service.App { return g })
+	g.Dix(func(m lifecycle.Lifecycle) { g.lifecycle = m })
 	return g
 }
 
 var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	beforeStarts []func()
-	afterStarts  []func()
-	beforeStops  []func()
-	afterStops   []func()
-	middlewares  []middleware.Middleware
-	services     []service.Desc
+	lifecycle.Lifecycle
+	middlewares []middleware.Middleware
+	services    []service.Desc
 
-	modules lifecycle.GetLifecycle
+	lifecycle lifecycle.Lifecycle
 
 	log *zap.Logger
 	cmd *cli.Command
@@ -116,7 +113,7 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	panic("implement me")
 }
 
-func (t *serviceImpl) Register(regs ...interface{}) {
+func (t *serviceImpl) Dix(regs ...interface{}) {
 	t.opts = append(t.opts, regs...)
 }
 
@@ -144,11 +141,6 @@ func (t *serviceImpl) Middleware(mid middleware.Middleware) {
 	xerror.Assert(mid == nil, "[mid] is nil")
 	t.middlewares = append(t.middlewares, mid)
 }
-
-func (t *serviceImpl) BeforeStarts(f ...func()) { t.beforeStarts = append(t.beforeStarts, f...) }
-func (t *serviceImpl) BeforeStops(f ...func())  { t.beforeStops = append(t.beforeStops, f...) }
-func (t *serviceImpl) AfterStarts(f ...func())  { t.afterStarts = append(t.afterStarts, f...) }
-func (t *serviceImpl) AfterStops(f ...func())   { t.afterStops = append(t.afterStops, f...) }
 
 func (t *serviceImpl) init() error {
 	defer xerror.RespExit()
@@ -257,7 +249,7 @@ func (t *serviceImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
-		for _, run := range append(t.modules.GetBeforeStarts(), t.beforeStarts...) {
+		for _, run := range append(t.lifecycle.GetBeforeStarts(), t.beforeStarts...) {
 			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -314,7 +306,7 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.log, "service after-start", func() error {
-		for _, run := range append(t.modules.GetAfterStarts(), t.afterStarts...) {
+		for _, run := range append(t.lifecycle.GetAfterStarts(), t.afterStarts...) {
 			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -327,7 +319,7 @@ func (t *serviceImpl) stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
-		for _, run := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
+		for _, run := range append(t.lifecycle.GetBeforeStops(), t.beforeStops...) {
 			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -345,7 +337,7 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
-		for _, run := range append(t.modules.GetAfterStops(), t.afterStops...) {
+		for _, run := range append(t.lifecycle.GetAfterStops(), t.afterStops...) {
 			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}

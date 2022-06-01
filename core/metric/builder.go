@@ -2,8 +2,6 @@ package metric
 
 import (
 	"context"
-	"sync/atomic"
-	"unsafe"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
@@ -27,22 +25,17 @@ func init() {
 	})
 
 	dix.Register(func(m lifecycle.Lifecycle, cfg *Cfg, sopts map[string]*tally.ScopeOptions) Metric {
-		driver := cfg.Driver
-		xerror.Assert(driver == "", "metric driver is null")
-
-		var opts = tally.ScopeOptions{
-			Tags:      Tags{logkey.Project: runtime.Project},
-			Separator: cfg.Separator,
+		var opts = sopts[cfg.Driver]
+		if opts == nil {
+			opts = &tally.ScopeOptions{Reporter: tally.NullStatsReporter}
+		}
+		opts.Tags = Tags{logkey.Project: runtime.Project}
+		if cfg.Separator != "" {
+			opts.Separator = cfg.Separator
 		}
 
-		opts.Reporter = tally.NullStatsReporter
-
-		_ = sopts
-		scope, closer := tally.NewRootScope(opts, cfg.Interval)
+		scope, closer := tally.NewRootScope(*opts, cfg.Interval)
 		m.BeforeStops(func() { xerror.Panic(closer.Close()) })
-
-		// 全局对象注册
-		atomic.StorePointer(&g, unsafe.Pointer(&scope))
 		return scope
 	})
 
