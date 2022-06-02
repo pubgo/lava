@@ -13,30 +13,27 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/runtime"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
-func NewClient(srv string) *Client {
-	return &Client{srv: srv, cfg: grpcc_config.DefaultCfg()}
+func NewClient(srv string, cfg *grpcc_config.Cfg) *Client {
+	return &Client{srv: srv, cfg: cfg}
 }
 
 type Client struct {
-	cfg  grpcc_config.Cfg
+	cfg  *grpcc_config.Cfg
 	mu   sync.Mutex
 	conn grpc.ClientConnInterface
 	srv  string
 }
 
-func (t *Client) createConn(srv string, cfg grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
+func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
@@ -82,10 +79,8 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		gErr = err
 
-		if !runtime.IsProd() {
-			logutil.Pretty(t)
-			err.Debug()
-		}
+		logutil.Pretty(t)
+		err.Debug()
 	})
 
 	if t.conn != nil {
@@ -101,13 +96,10 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	}
 
 	var cfg = t.cfg
-	var cfgMap = make(map[string]*grpcc_config.Cfg)
-	xerror.Panic(config.Decode(grpcc_config.Name, &cfgMap))
-	if cfgMap[consts.KeyDefault] != nil {
-		xerror.Panic(merge.Copy(&cfg, cfgMap[consts.KeyDefault]))
-	}
-	if cfgMap[t.srv] != nil {
-		xerror.Panic(merge.Copy(&cfg, cfgMap[t.srv]))
+	if t.cfg == nil {
+		t.cfg = grpcc_config.DefaultCfg()
+	} else {
+		xerror.Panic(merge.Copy(&cfg, grpcc_config.DefaultCfg()))
 	}
 
 	conn, err := t.createConn(t.srv, cfg)
@@ -119,7 +111,7 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	return t.conn, nil
 }
 
-func (t *Client) buildTarget(service string, cfg grpcc_config.Cfg) string {
+func (t *Client) buildTarget(service string, cfg *grpcc_config.Cfg) string {
 	var addr = service
 	if cfg.Addr != "" {
 		addr = cfg.Addr

@@ -9,11 +9,6 @@ import (
 	"github.com/pubgo/lava/middleware"
 )
 
-type Desc struct {
-	grpc.ServiceDesc
-	Handler interface{}
-}
-
 type WebHandler interface {
 	Router(r fiber.Router)
 }

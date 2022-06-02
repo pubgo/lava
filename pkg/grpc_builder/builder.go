@@ -3,7 +3,6 @@ package grpc_builder
 import (
 	"time"
 
-	"github.com/fullstorydev/grpchan"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -12,7 +11,6 @@ import (
 )
 
 type Builder struct {
-	grpchan.HandlerMap
 	srv                *grpc.Server
 	unaryInterceptors  []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
@@ -54,8 +52,6 @@ func (t *Builder) Build(cfg Cfg) (err error) {
 	opts = append(opts, grpc.ChainStreamInterceptor(t.streamInterceptors...))
 	t.srv = grpc.NewServer(opts...)
 
-	t.HandlerMap.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) { t.srv.RegisterService(desc, svr) })
-
 	EnableReflection(t.srv)
 	EnableHealth("", t.srv)
 	if runtime.IsDev() || runtime.IsTest() {
@@ -65,4 +61,4 @@ func (t *Builder) Build(cfg Cfg) (err error) {
 	return nil
 }
 
-func New() Builder { return Builder{HandlerMap: grpchan.HandlerMap{}} }
+func New() Builder { return Builder{} }

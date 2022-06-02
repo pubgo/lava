@@ -9,14 +9,12 @@ import (
 
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/httpgrpc"
-	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	fiber2 "github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -26,11 +24,11 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
-	"github.com/pubgo/lava/pkg/gw_builder"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/utils"
@@ -51,18 +49,15 @@ func newService(name string, desc ...string) *serviceImpl {
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
 		},
-
 		cfg: Cfg{
 			Grpc: grpc_builder.GetDefaultCfg(),
 			Api:  fiber_builder.Cfg{},
-			Gw:   gw_builder.DefaultCfg(),
 		},
-		log:     zap.L().Named(runtime.Project),
-		grpcSrv: grpc_builder.New(),
-		api:     fiber_builder.New(),
-		inproc:  &inprocgrpc.Channel{},
-		httpSrv: fiber2.New(),
-		net:     cmux.DefaultCfg(),
+		grpcSrv:  grpc_builder.New(),
+		api:      fiber_builder.New(),
+		handlers: grpchan.HandlerMap{},
+		httpSrv:  fiber2.New(),
+		net:      cmux.DefaultCfg(),
 	}
 
 	g.cmd.Action = func(ctx *cli.Context) error {
@@ -76,6 +71,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	g.Dix(func() grpc.ServiceRegistrar { return g })
 	g.Dix(func() service.App { return g })
 	g.Dix(func(m lifecycle.Lifecycle) { g.lifecycle = m })
+	g.Dix(func(log *logging.Logger) { g.log = log.Named(runtime.Project) })
 	return g
 }
 
@@ -84,7 +80,6 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	lifecycle.Lifecycle
 	middlewares []middleware.Middleware
-	services    []service.Desc
 
 	lifecycle lifecycle.Lifecycle
 
@@ -99,10 +94,7 @@ type serviceImpl struct {
 	httpSrv *fiber2.App
 	opts    []interface{}
 
-	// inproc Channel is used to serve grpc gateway
-	inproc *inprocgrpc.Channel
-
-	reg grpchan.HandlerMap
+	handlers grpchan.HandlerMap
 
 	wrapperUnary  middleware.HandlerFunc
 	wrapperStream middleware.HandlerFunc
@@ -111,13 +103,9 @@ type serviceImpl struct {
 }
 
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-	//xerror.Assert(desc.Handler == nil, "[handler] is nil")
-	//
-	//t.grpcSrv.RegisterService(&desc.ServiceDesc, desc.Handler)
-	//t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
-	//t.services = append(t.services, desc)
-	//
-	//t.opts = append(t.opts, fx.Populate(desc.Handler))
+	xerror.Assert(impl == nil, "[handler] is nil")
+	xerror.Assert(desc == nil, "[desc] is nil")
+	t.handlers.RegisterService(desc, impl)
 }
 
 func (t *serviceImpl) Dix(regs ...interface{}) {
@@ -127,18 +115,6 @@ func (t *serviceImpl) Dix(regs ...interface{}) {
 func (t *serviceImpl) Start() error          { return t.start() }
 func (t *serviceImpl) Stop() error           { return t.stop() }
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
-
-func (t *serviceImpl) RegService(desc service.Desc) {
-	xerror.Assert(desc.Handler == nil, "[handler] is nil")
-
-	t.grpcSrv.RegisterService(&desc.ServiceDesc, desc.Handler)
-	t.inproc.RegisterService(&desc.ServiceDesc, desc.Handler)
-	t.services = append(t.services, desc)
-
-	t.opts = append(t.opts, fx.Populate(desc.Handler))
-
-	//	s.reg.RegisterService(sd, ss)
-}
 
 func (t *serviceImpl) RegApp(prefix string, r *fiber2.App) {
 	t.httpSrv.Mount(prefix, r)
@@ -158,7 +134,9 @@ func (t *serviceImpl) init() error {
 
 	dix.Invoke()
 
-	fmt.Println(dix.Graph())
+	for k, g := range dix.Graph() {
+		fmt.Println(k, g)
+	}
 
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
@@ -170,38 +148,42 @@ func (t *serviceImpl) init() error {
 		middlewares = append(middlewares, middleware.Get(m))
 	}
 
+	unaryInt := t.handlerUnaryMiddle(middlewares)
+	streamInt := t.handlerStreamMiddle(middlewares)
+
+	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		t.httpSrv.Post(pattern, func(ctx *fiber2.Ctx) error {
+			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
+			ctx.Response().Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			return adaptor.HTTPHandlerFunc(handler)(ctx)
+		})
+	}, "/"+runtime.Project, t.handlers, unaryInt, streamInt)
+
 	// 注册系统middleware
-	t.grpcSrv.UnaryInterceptor(t.handlerUnaryMiddle(middlewares))
-	t.grpcSrv.StreamInterceptor(t.handlerStreamMiddle(middlewares))
+	t.grpcSrv.UnaryInterceptor(unaryInt)
+	t.grpcSrv.StreamInterceptor(streamInt)
 
 	// grpc serve初始化
 	xerror.Panic(t.grpcSrv.Build(t.cfg.Grpc))
 
-	// 加载inproc的middleware
-	t.inproc.WithServerUnaryInterceptor(t.handlerUnaryMiddle(middlewares))
-	t.inproc.WithServerStreamInterceptor(t.handlerStreamMiddle(middlewares))
-
 	// 初始化 handlers
-	for _, desc := range t.services {
-		if h, ok := desc.Handler.(abc.Close); ok {
+	t.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
+		t.grpcSrv.Get().RegisterService(desc, svr)
+
+		if h, ok := svr.(abc.Close); ok {
 			t.AfterStops(h.Close)
 		}
 
-		if h, ok := desc.Handler.(abc.Init); ok {
+		if h, ok := svr.(abc.Init); ok {
 			h.Init()
 		}
 
-		if h, ok := desc.Handler.(service.WebHandler); ok {
+		if h, ok := svr.(service.WebHandler); ok {
 			h.Router(t.httpSrv)
 		}
-	}
-
-	// gw builder
-	var builder = gw_builder.New()
-	xerror.Panic(builder.Build(t.cfg.Gw))
-	var mux = builder.Get()
-
-	t.httpSrv.All(fmt.Sprintf("/api/%s/*", runtime.Project), adaptor.HTTPHandler(mux))
+	})
 
 	if t.cfg.PrintRoute {
 		for _, stacks := range t.httpSrv.Stack() {
@@ -219,17 +201,6 @@ func (t *serviceImpl) init() error {
 	xerror.Panic(t.api.Build(t.cfg.Api))
 	t.api.Get().Use(t.handlerHttpMiddle(middlewares))
 	t.api.Get().Mount("/", t.httpSrv)
-
-	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		t.httpSrv.Post(pattern, func(ctx *fiber2.Ctx) error {
-			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
-			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
-			ctx.Response().Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
-			return adaptor.HTTPHandlerFunc(handler)(ctx)
-		})
-	}, "/", t.reg, nil, nil)
-
 	return nil
 }
 
