@@ -9,10 +9,10 @@ import (
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
+	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/metric"
@@ -37,7 +37,7 @@ type User struct {
 
 var ll = logging.Component("handler")
 
-func NewTestAPIHandler(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]grpc.ClientConnInterface, L *logging.Logger) hellopb.TestApiServer {
+func NewTestAPIHandler(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) hellopb.TestApiServer {
 	return &testApiHandler{
 		Db:         Db,
 		Cron:       Cron,
