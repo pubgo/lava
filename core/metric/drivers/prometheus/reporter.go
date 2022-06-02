@@ -21,7 +21,7 @@ var logs = logging.Component(logutil.Names(metric.Name, Name))
 
 func init() {
 	dix.Register(func(conf *metric.Cfg) map[string]*tally.ScopeOptions {
-		if conf.Driver != Name || conf.DriverCfg == nil {
+		if conf.Driver != Name {
 			return nil
 		}
 
@@ -30,7 +30,10 @@ func init() {
 		opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 
 		var proCfg = &prometheus.Configuration{}
-		xerror.Panic(conf.DriverCfg.Decode(proCfg))
+		if conf.DriverCfg != nil {
+			xerror.Panic(conf.DriverCfg.Decode(proCfg))
+		}
+
 		reporter, err1 := proCfg.NewReporter(
 			prometheus.ConfigurationOptions{
 				OnError: func(e error) {

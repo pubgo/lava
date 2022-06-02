@@ -9,6 +9,7 @@ import (
 
 func NewSrv() service.Service {
 	var srv = lava.NewSrv("gid", "gid generate")
-	gidpb.RegisterIdServer(srv, handler.NewId())
+	srv.Dix(gidpb.RegisterIdServer)
+	srv.Dix(handler.NewId)
 	return srv
 }

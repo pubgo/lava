@@ -35,6 +35,7 @@ func New(name string, desc ...string) service.Web {
 
 func newService(name string, desc ...string) *webImpl {
 	var g = &webImpl{
+		Lifecycle: lifecycle.New(),
 		cmd: &cli.Command{
 			Name:  name,
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
@@ -57,7 +58,7 @@ func newService(name string, desc ...string) *webImpl {
 	}
 
 	g.Dix(func() service.App { return g })
-	g.Dix(func(m lifecycle.GetLifecycle) { g.modules = m })
+	g.Dix(func(m lifecycle.Lifecycle) { g.modules = m })
 	return g
 }
 
@@ -69,7 +70,7 @@ type webImpl struct {
 
 	handlers []interface{}
 
-	modules lifecycle.GetLifecycle
+	modules lifecycle.Lifecycle
 
 	log *zap.Logger
 	cmd *cli.Command
@@ -175,7 +176,7 @@ func (t *webImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
-		for _, run := range append(t.modules.GetBeforeStarts(), t.beforeStarts...) {
+		for _, run := range append(t.modules.GetBeforeStarts(), t.GetBeforeStarts()...) {
 			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -201,7 +202,7 @@ func (t *webImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.log, "service after-start", func() error {
-		for _, run := range append(t.modules.GetAfterStarts(), t.afterStarts...) {
+		for _, run := range append(t.modules.GetAfterStarts(), t.GetAfterStarts()...) {
 			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -214,7 +215,7 @@ func (t *webImpl) stop() (err error) {
 	defer xerror.RespErr(&err)
 
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
-		for _, run := range append(t.modules.GetBeforeStops(), t.beforeStops...) {
+		for _, run := range append(t.modules.GetBeforeStops(), t.GetBeforeStops()...) {
 			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			logutil.ErrTry(t.log, run)
 		}
@@ -227,7 +228,7 @@ func (t *webImpl) stop() (err error) {
 	})
 
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
-		for _, run := range append(t.modules.GetAfterStops(), t.afterStops...) {
+		for _, run := range append(t.modules.GetAfterStops(), t.GetAfterStops()...) {
 			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			logutil.ErrTry(t.log, run)
 		}

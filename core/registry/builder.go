@@ -3,7 +3,6 @@ package registry
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/dix"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -21,10 +21,10 @@ import (
 )
 
 func init() {
-	dix.Register(func() *Cfg {
+	dix.Register(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
 		// 配置解析
-		xerror.Panic(config.UnmarshalKey(Name, &cfg))
+		xerror.Panic(c.UnmarshalKey(Name, &cfg))
 		return cfg.Check()
 	})
 

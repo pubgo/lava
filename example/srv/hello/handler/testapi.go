@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"
 
@@ -37,12 +37,16 @@ type User struct {
 
 var ll = logging.Component("handler")
 
-func NewTestAPIHandler() hellopb.TestApiServer {
-	return &testApiHandler{}
+func NewTestAPIHandler(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]grpc.ClientConnInterface, L *logging.Logger) hellopb.TestApiServer {
+	return &testApiHandler{
+		Db:         Db,
+		Cron:       Cron,
+		TestApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
+		L:          L,
+	}
 }
 
 type testApiHandler struct {
-	fx.In
 	Db         *orm.Client
 	Cron       *scheduler.Scheduler
 	TestApiSrv hellopb.TestApiClient

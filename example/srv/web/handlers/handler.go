@@ -2,16 +2,15 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/fx"
+	"github.com/pubgo/lava/service"
 	"go.uber.org/zap"
 )
 
-func New(l *zap.Logger) *Handler {
-	return nil
+func New(l *zap.Logger) service.WebHandler {
+	return &Handler{L: l}
 }
 
 type Handler struct {
-	fx.In
 	L *zap.Logger
 }
 

@@ -36,7 +36,7 @@ func (id *Id) Init() {
 	//})
 }
 
-func NewId() gidpb.IdServer {
+func NewId(cron *scheduler.Scheduler, metric metric.Stats) gidpb.IdServer {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -49,6 +49,8 @@ func NewId() gidpb.IdServer {
 	}
 
 	return &Id{
+		Cron:      cron,
+		Metric:    metric,
 		snowflake: sf,
 		bigflake:  bg,
 	}

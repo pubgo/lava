@@ -110,7 +110,7 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
-	github.com/pubgo/dix v0.2.0
+	github.com/pubgo/dix v0.2.2
 	github.com/smartystreets/assertions v1.0.0
 	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
 	github.com/valyala/fasthttp v1.34.0

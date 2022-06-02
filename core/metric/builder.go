@@ -15,10 +15,10 @@ import (
 )
 
 func init() {
-	dix.Register(func() *Cfg {
+	dix.Register(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
 		_ = config.Decode(Name, &cfg)
-		xerror.Panic(config.UnmarshalKey(Name, &cfg))
+		xerror.Panic(c.UnmarshalKey(Name, &cfg))
 		driver := cfg.Driver
 		xerror.Assert(driver == "", "metric driver is null")
 		return &cfg

@@ -2,6 +2,8 @@ package lava
 
 // 加载插件
 import (
+	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
+
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
