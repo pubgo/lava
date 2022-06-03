@@ -45,7 +45,7 @@ func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
 }
 
 func (t *Builder) Build(cfg Cfg) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	opts := t.BuildOpts(cfg)
 	opts = append(opts, grpc.ChainUnaryInterceptor(t.unaryInterceptors...))

@@ -26,7 +26,7 @@ func GetSpanID(ctx opentracing.SpanContext) (string, string) {
 var _ = jaeger.NewNullReporter()
 
 func New(cfg Cfg) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	cfg.Disabled = false
 	if cfg.ServiceName == "" {

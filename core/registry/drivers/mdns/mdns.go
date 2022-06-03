@@ -48,7 +48,7 @@ func (m *mdnsRegistry) Init() {
 }
 
 func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
@@ -77,7 +77,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 }
 
 func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	xerror.Assert(service == nil, "[service] should not be nil")
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")

@@ -10,7 +10,7 @@ type Retry func() Backoff
 
 func (d Retry) Do(f func(i int) error) (err error) {
 	var wrap = func(i int) (err error) {
-		defer xerror.RespErr(&err)
+		defer xerror.RecoverErr(&err)
 		return f(i)
 	}
 
@@ -31,7 +31,7 @@ func (d Retry) Do(f func(i int) error) (err error) {
 
 func (d Retry) DoVal(f func(i int) (interface{}, error)) (val interface{}, err error) {
 	var wrap = func(i int) (val interface{}, err error) {
-		defer xerror.RespErr(&err)
+		defer xerror.RecoverErr(&err)
 		return f(i)
 	}
 

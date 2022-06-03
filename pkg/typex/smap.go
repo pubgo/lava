@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 )
 
@@ -15,19 +14,19 @@ type SMap struct {
 }
 
 func (t *SMap) Each(fn interface{}) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	xerror.Assert(fn == nil, "[fn] should not be nil")
 
-	vfn := fx.WrapRaw(fn)
+	vfn := reflect.ValueOf(fn)
 	onlyKey := reflect.TypeOf(fn).NumIn() == 1
 	t.data.Range(func(key, value interface{}) bool {
 		if onlyKey {
-			_ = vfn(key)
+			_ = vfn.Call(ValueOf(reflect.ValueOf(key)))
 			return true
 		}
 
-		_ = vfn(key, value)
+		_ = vfn.Call(ValueOf(reflect.ValueOf(key), reflect.ValueOf(value)))
 		return true
 	})
 
@@ -42,7 +41,7 @@ func (t *SMap) Map(fn func(val interface{}) interface{}) {
 }
 
 func (t *SMap) MapTo(data interface{}) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	vd := reflect.ValueOf(data)
 	if vd.Kind() == reflect.Ptr {
@@ -75,7 +74,9 @@ func (t *SMap) Get(key interface{}) interface{} {
 	return NotFound
 }
 
-func (t *SMap) LoadAndDelete(key interface{}) (value interface{}, ok bool) { return t.data.LoadAndDelete(key) }
+func (t *SMap) LoadAndDelete(key interface{}) (value interface{}, ok bool) {
+	return t.data.LoadAndDelete(key)
+}
 func (t *SMap) Load(key interface{}) (value interface{}, ok bool) { return t.data.Load(key) }
 func (t *SMap) Range(f func(key, value interface{}) bool)         { t.data.Range(f) }
 func (t *SMap) Delete(key interface{})                            { t.data.Delete(key) }

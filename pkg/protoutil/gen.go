@@ -231,7 +231,7 @@ func ExtractAPIOptions(mth protoreflect.MethodDescriptor) (*options.HttpRule, er
 	ext := gp.GetExtension(mth.Options(), options.E_Http)
 	opts, ok := ext.(*options.HttpRule)
 	if !ok {
-		return nil, xerror.Fmt("extension is %T; want an HttpRule", ext)
+		return nil, fmt.Errorf("extension is %T; want an HttpRule", ext)
 	}
 
 	return opts, nil

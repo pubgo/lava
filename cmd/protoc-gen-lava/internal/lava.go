@@ -91,7 +91,7 @@ func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedF
 	g.QualifiedGoIdent(xerrorCall(""))
 	g.P(protoutil.Template(`
 		func init() {
-	xerror.RespExit()
+	xerror.RecoverAndExit()
 	var cfgMap = make(map[string]*grpcc_config.Cfg)
 	xerror.Panic(config.Decode(grpcc_config.Name, cfgMap))
 	for name := range cfgMap {

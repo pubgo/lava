@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/x/fx"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 )
 
@@ -35,49 +35,55 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	}
 
 	results := make(chan *registry.Result)
-	return &Watcher{results: results, cancel: fx.Tick(func(_ctx fx.Ctx) {
-		defer xerror.Resp(func(err xerror.XErr) {
-			logs.WithErr(err).Error("watcher error")
-		})
+	return &Watcher{results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
+		var fn = func() {
+			defer xerror.Recovery(func(err xerror.XErr) {
+				logs.WithErr(err).Error("watcher error")
+			})
 
-		logs.L().With(
-			zap.String("service", service),
-			zap.String("interval", ttl.String()),
-		).Info("[mdns] registry watcher")
+			logs.L().With(
+				zap.String("service", service),
+				zap.String("interval", ttl.String()),
+			).Info("[mdns] registry watcher")
 
-		var nodes typex.SMap
-		services, err := m.GetService(service)
-		xerror.PanicF(err, "Watch Service %s Error", service)
-		for i := range services {
-			for _, n := range services[i].Nodes {
-				nodes.Set(n.Id, n)
+			var nodes typex.SMap
+			services, err := m.GetService(service)
+			xerror.PanicF(err, "Watch Service %s Error", service)
+			for i := range services {
+				for _, n := range services[i].Nodes {
+					nodes.Set(n.Id, n)
+				}
 			}
+
+			xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
+				if allNodes.Has(id) {
+					return
+				}
+
+				allNodes.Set(id, n)
+				results <- &registry.Result{
+					Action:  event.EventType_UPDATE,
+					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				}
+			}))
+
+			xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
+				if nodes.Has(id) {
+					return
+				}
+
+				allNodes.Delete(id)
+				results <- &registry.Result{
+					Action:  event.EventType_DELETE,
+					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+				}
+			}))
 		}
 
-		xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
-			if allNodes.Has(id) {
-				return
-			}
-
-			allNodes.Set(id, n)
-			results <- &registry.Result{
-				Action:  event.EventType_UPDATE,
-				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
-			}
-		}))
-
-		xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
-			if nodes.Has(id) {
-				return
-			}
-
-			allNodes.Delete(id)
-			results <- &registry.Result{
-				Action:  event.EventType_DELETE,
-				Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
-			}
-		}))
-	}, ttl)}
+		for range time.Tick(ttl) {
+			fn()
+		}
+	})}
 }
 
 type Watcher struct {

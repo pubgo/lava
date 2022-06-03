@@ -31,7 +31,7 @@ type Cfg struct {
 }
 
 func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	for i := range opts {
 		opts[i](t)

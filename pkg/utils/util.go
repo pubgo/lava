@@ -119,7 +119,7 @@ func GetDefault(names ...string) string {
 
 func Cost(fn func()) (dur time.Duration, err error) {
 	defer func(t time.Time) { dur = time.Since(t) }(time.Now())
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 	fn()
 	return
 }

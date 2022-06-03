@@ -80,7 +80,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genError(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, enum *protogen.Enum) (ret bool) {
-	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
+	defer xerror.RecoverAndRaise(func(err xerror.XErr) error { ret = false; return err })
 
 	var content = `
 var Err{{.name}}{{.value}} = &errors.Error{Reason: "{{.package}}/{{.name}}/"+{{.name}}_name[int32({{.name}}_{{.value}})], Code: {{.code}}}

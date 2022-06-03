@@ -102,6 +102,9 @@ type gossipRegistry struct {
 	done    chan bool
 }
 
+func (g *gossipRegistry) Init() {
+}
+
 func (g *gossipRegistry) Close() {
 	//TODO implement me
 	panic("implement me")

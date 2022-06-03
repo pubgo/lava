@@ -16,9 +16,9 @@ import (
 func init() {
 	orm.Register("sqlite3", func(cfg config.CfgMap) gorm.Dialector {
 		var dsn, ok = cfg["dsn"].(string)
-		xerror.AssertFn(!ok || dsn == "", func() string {
+		xerror.AssertFn(!ok || dsn == "", func() error {
 			logutil.Pretty(cfg)
-			return "dns not found"
+			return xerror.New("dns not found")
 		})
 		_ = pathutil.IsNotExistMkDir(filepath.Dir(dsn))
 		return sqlite.Open(dsn)

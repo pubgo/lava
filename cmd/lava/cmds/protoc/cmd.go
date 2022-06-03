@@ -3,6 +3,7 @@ package protoc
 import (
 	"bufio"
 	"fmt"
+	"github.com/pubgo/x/pathutil"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -49,7 +49,7 @@ func Cmd() *cli.Command {
 			},
 		},
 		Before: func(ctx *cli.Context) error {
-			defer xerror.RespExit()
+			defer xerror.RecoverAndExit()
 
 			content := xerror.PanicBytes(ioutil.ReadFile(protoCfg))
 			xerror.Panic(yaml.Unmarshal(content, &cfg))
@@ -104,7 +104,7 @@ func Cmd() *cli.Command {
 				Name:  "tidy",
 				Usage: "检查缺失protobuf依赖并把版本信息写入protobuf.yaml",
 				Action: func(ctx *cli.Context) error {
-					defer xerror.RespExit()
+					defer xerror.RecoverAndExit()
 
 					// 解析go.mod并获取所有pkg版本
 					var versions = modutil.LoadVersions()
@@ -160,7 +160,7 @@ func Cmd() *cli.Command {
 				Name:  "gen",
 				Usage: "编译protobuf文件",
 				Action: func(ctx *cli.Context) error {
-					defer xerror.RespExit()
+					defer xerror.RecoverAndExit()
 
 					var protoList sync.Map
 
@@ -263,7 +263,7 @@ func Cmd() *cli.Command {
 				Name:  "vendor",
 				Usage: "把项目protobuf依赖同步到.lava/proto中",
 				Action: func(ctx *cli.Context) error {
-					defer xerror.RespExit()
+					defer xerror.RecoverAndExit()
 
 					// 删除老的protobuf文件
 					_ = os.RemoveAll(cfg.ProtoPath)
@@ -297,7 +297,7 @@ func Cmd() *cli.Command {
 								return err
 							}
 
-							defer xerror.RespErr(&gErr)
+							defer xerror.RecoverErr(&gErr)
 
 							if info.IsDir() {
 								return nil
@@ -321,7 +321,7 @@ func Cmd() *cli.Command {
 				Name:  "check",
 				Usage: "protobuf文件检查",
 				Action: func(ctx *cli.Context) error {
-					defer xerror.RespExit()
+					defer xerror.RecoverAndExit()
 
 					var protoList sync.Map
 					for i := range cfg.Root {
@@ -410,7 +410,7 @@ rpc %s (%s) returns (%s) {
 						xerror.Panic(ioutil.WriteFile(protoFile, []byte(data), 0755))
 					}
 					protoList.Range(func(key, _ interface{}) bool {
-						defer xerror.RespExit(key)
+						defer xerror.RecoverAndExit()
 						handler(key.(string))
 						return true
 					})

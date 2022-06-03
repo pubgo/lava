@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	var flags flag.FlagSet
 	if protoutil.IsHelp() {

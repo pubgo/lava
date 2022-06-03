@@ -69,7 +69,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 }
 
 func genClient(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile, srv *protogen.Service) (ret bool) {
-	defer xerror.RespRaise(func(err xerror.XErr) error { ret = false; return err })
+	defer xerror.RecoverAndRaise(func(err xerror.XErr) error { ret = false; return err })
 
 	if !gp.HasExtension(srv.Desc.Options(), lava.E_Resty) {
 		return false

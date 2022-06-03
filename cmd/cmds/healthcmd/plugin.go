@@ -23,7 +23,7 @@ func Cmd() *cli.Command {
 			"lava health localhost:8080",
 		),
 		Action: func(ctx *cli.Context) error {
-			defer xerror.RespExit()
+			defer xerror.RecoverAndExit()
 
 			var addr = runtime.Addr
 			if ctx.NArg() > 0 {

@@ -73,7 +73,7 @@ const (
 
 func init() {
 	dix.Register(func(m config.CfgMap) (_ registry.Registry, err error) {
-		defer xerror.RespErr(&err)
+		defer xerror.RecoverErr(&err)
 
 		var cfg Cfg
 		xerror.Panic(merge.MapStruct(&cfg, m))
@@ -112,7 +112,7 @@ func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOp
 }
 
 func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registry.Service, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
 	defer cancel()

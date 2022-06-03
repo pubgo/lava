@@ -35,7 +35,7 @@ type Cfg struct {
 }
 
 func (t *Cfg) Valid() (err error) {
-	defer xerror.Resp(func(err1 xerror.XErr) {
+	defer xerror.Recovery(func(err1 xerror.XErr) {
 		err = err1
 		logutil.ColorPretty(t)
 	})
@@ -45,7 +45,7 @@ func (t *Cfg) Valid() (err error) {
 }
 
 func (t *Cfg) Create() *gorm.DB {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	var ormCfg = &gorm.Config{}
 	xerror.Panic(merge.Struct(ormCfg, t))

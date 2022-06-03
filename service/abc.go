@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/middleware"
 )
 
@@ -23,10 +23,18 @@ type Options struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
+type Command interface {
+	Command() *cli.Command
+}
+
+type AppInfo interface {
+	Options() Options
+}
+
 type App interface {
 	lifecycle.Lifecycle
-	Options() Options
-	Command() *cli.Command
+	Command
+	AppInfo
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
 	RegApp(prefix string, r *fiber.App)
@@ -36,10 +44,4 @@ type Service interface {
 	App
 	Dix(regs ...interface{})
 	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-}
-
-type Web interface {
-	App
-	Dix(regs ...interface{})
-	RegHandler(handler WebHandler)
 }

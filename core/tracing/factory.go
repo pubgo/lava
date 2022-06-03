@@ -26,7 +26,7 @@ func GetFactory(names ...string) Factory {
 }
 
 func RegisterFactory(name string, r Factory) {
-	defer xerror.RespExit(name)
+	defer xerror.RecoverAndExit()
 	xerror.Assert(name == "" || r == nil, "[name,tracer] is null")
 	xerror.Assert(factories.Has(name), "tracer %s already exists", name)
 	factories.Set(name, r)

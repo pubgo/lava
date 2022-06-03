@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
@@ -23,20 +24,23 @@ import (
 func init() {
 	dix.Register(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
+
 		// 配置解析
 		xerror.Panic(c.UnmarshalKey(Name, &cfg))
 		return cfg.Check()
 	})
 
-	dix.Register(func(app service.App, cfg *Cfg, regs map[string]Registry) {
+	dix.Register(func(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[string]Registry) {
 		reg := regs[cfg.Driver]
-		var errs = xerror.AssertErr(reg == nil, "registry driver is null")
-		errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
-		errs = xerror.WrapF(errs, "regs=>%v", regs)
-		xerror.Panic(errs)
+		xerror.AssertFn(reg == nil, func() error {
+			var errs = fmt.Errorf("registry driver is null")
+			errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
+			errs = xerror.WrapF(errs, "regs=>%v", regs)
+			return errs
+		})
 
 		// 服务注册
-		app.AfterStarts(func() {
+		lifecycle.AfterStarts(func() {
 			reg.Init()
 
 			SetDefault(reg)
@@ -72,7 +76,7 @@ func init() {
 			})
 
 			// 服务撤销
-			app.BeforeStops(func() {
+			lifecycle.BeforeStops(func() {
 				cancel()
 				xerror.Panic(deregister(app))
 			})
@@ -80,8 +84,8 @@ func init() {
 	})
 }
 
-func register(app service.App) (err error) {
-	defer xerror.RespErr(&err)
+func register(app service.AppInfo) (err error) {
+	defer xerror.RecoverErr(&err)
 
 	var reg = Default()
 	var opt = app.Options()
@@ -131,8 +135,8 @@ func register(app service.App) (err error) {
 	return nil
 }
 
-func deregister(app service.App) (err error) {
-	defer xerror.RespErr(&err)
+func deregister(app service.AppInfo) (err error) {
+	defer xerror.RecoverErr(&err)
 
 	var opt = app.Options()
 	var reg = Default()

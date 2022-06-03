@@ -12,17 +12,14 @@ import (
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
+	"github.com/pubgo/lava/internal/assert"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 
-type Command interface {
-	Command() *cli.Command
-}
-
 func Run(services ...Command) {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	xerror.Assert(len(services) == 0, "[services] is zero")
 
@@ -44,6 +41,7 @@ func Run(services ...Command) {
 			if runtime.Project == "" {
 				runtime.Project = strings.Split(context.Command.Name, " ")[0]
 			}
+			assert.Msg(runtime.Project == "", "project is null")
 
 			mode := env.Get("lava_mode", "app_mode")
 			if mode != "" {
@@ -57,7 +55,7 @@ func Run(services ...Command) {
 		}
 
 		// 检查项目Command是否注册
-		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+		assert.Msg(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
 		app.Commands = append(app.Commands, cmd)
 	}
 

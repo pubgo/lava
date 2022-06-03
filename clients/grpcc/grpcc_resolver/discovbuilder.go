@@ -67,7 +67,7 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 
 // Build discov://service_name
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, gErr error) {
-	defer xerror.Resp(func(err xerror.XErr) {
+	defer xerror.Recovery(func(err xerror.XErr) {
 		gErr = err
 		pretty.Println(target.URL.String())
 	})
@@ -123,9 +123,9 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 						d.updateService(res.Service)
 					}
 
-					xerror.TryCatch(func() (interface{}, error) {
+					xerror.TryCatch(func() {
 						var addrList = d.getAddrList(srv)
-						return nil, cc.UpdateState(newState(addrList))
+						xerror.Panic(cc.UpdateState(newState(addrList)))
 					}, func(err error) {
 						logs.WithErr(err).Error("update resolver address error")
 					})

@@ -76,11 +76,11 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 
 // Get new grpc Client
 func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
-	defer xerror.Resp(func(err xerror.XErr) {
+	defer xerror.Recovery(func(err xerror.XErr) {
 		gErr = err
 
 		logutil.Pretty(t)
-		err.Debug()
+		err.DebugPrint()
 	})
 
 	if t.conn != nil {

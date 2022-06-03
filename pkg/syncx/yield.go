@@ -45,7 +45,7 @@ func Yield(fn func() (interface{}, error)) *Promise {
 	go func() {
 		defer func() {
 			p.close()
-			xerror.RespErr(&p.err)
+			xerror.RecoverErr(&p.err)
 		}()
 
 		val, err := fn()
@@ -79,7 +79,7 @@ func YieldGroup(fn func(in chan<- *Promise) error) *Promise {
 
 	go func() {
 		defer close(in)
-		defer xerror.RespErr(&p.err)
+		defer xerror.RecoverErr(&p.err)
 		if err := fn(in); err != nil {
 			p.err = err
 		}

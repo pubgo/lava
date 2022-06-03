@@ -21,7 +21,7 @@ type sockOpts struct {
 type SockOpt func(opts *sockOpts) error
 
 func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	if !strings.Contains(address, "//") {
 		address = "tcp4://" + address
@@ -46,7 +46,7 @@ func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
 }
 
 func ListenPacket(address string, opts ...SockOpt) (_ net.PacketConn, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	uri, err := url.Parse(address)
 	xerror.Panic(err)

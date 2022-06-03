@@ -26,7 +26,7 @@ func Cmd() *cli.Command {
 			"lava version json",
 			"lava version t"),
 		Action: func(ctx *cli.Context) error {
-			defer xerror.RespExit()
+			defer xerror.RecoverAndExit()
 
 			info, ok := debug.ReadBuildInfo()
 			if !ok {

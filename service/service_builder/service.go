@@ -24,6 +24,7 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
@@ -61,7 +62,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	}
 
 	g.cmd.Action = func(ctx *cli.Context) error {
-		defer xerror.RespExit()
+		defer xerror.RecoverAndExit()
 		xerror.Panic(g.start())
 		signal.Block()
 		xerror.Panic(g.stop())
@@ -125,18 +126,21 @@ func (t *serviceImpl) Middleware(mid middleware.Middleware) {
 	t.middlewares = append(t.middlewares, mid)
 }
 
-func (t *serviceImpl) init() error {
-	defer xerror.RespExit()
+func (t *serviceImpl) init() (gErr error) {
+	defer xerror.Recovery(func(err xerror.XErr) {
+		for k, g := range dix.Graph() {
+			fmt.Println(k, g)
+		}
+		gErr = err
+	})
+
+	t.RegApp("/debug", debug.App())
 
 	for i := range t.opts {
 		dix.Register(t.opts[i])
 	}
 
 	dix.Invoke()
-
-	for k, g := range dix.Graph() {
-		fmt.Println(k, g)
-	}
 
 	// 配置解析
 	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
@@ -224,7 +228,7 @@ func (t *serviceImpl) Options() service.Options {
 }
 
 func (t *serviceImpl) start() (gErr error) {
-	defer xerror.RespErr(&gErr)
+	defer xerror.RecoverErr(&gErr)
 
 	xerror.Panic(t.init())
 
@@ -296,7 +300,7 @@ func (t *serviceImpl) start() (gErr error) {
 }
 
 func (t *serviceImpl) stop() (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
 		for _, run := range append(t.lifecycle.GetBeforeStops(), t.GetBeforeStops()...) {

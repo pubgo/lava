@@ -9,7 +9,7 @@ import (
 var data typex.Map
 
 func Register(name string, cdc Codec) {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 	xerror.Assert(cdc == nil || name == "" || cdc.Name() == "", "codec[%s] is null", name)
 	xerror.Assert(data.Has(name), "[cdc] %s already exists", name)
 	data.Set(name, cdc)
@@ -27,7 +27,7 @@ func Get(name string) Codec {
 func Keys() []string { return data.Keys() }
 
 func Each(fn func(name string, cdc Codec)) {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	data.Each(func(name string, val interface{}) {
 		fn(name, val.(Codec))

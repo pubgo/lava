@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/x/pathutil"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -37,7 +37,7 @@ var (
 // flag可以指定配置文件位置
 // 始化配置文件
 func newCfg() *configImpl {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	var t = &configImpl{v: viper.New()}
 	// 配置处理
@@ -149,7 +149,7 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 
 // Decode decode config to map[string]*struct
 func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 	xerror.Assert(name == "" || cfgMap == nil, "[name,cfgMap] should not be nil")
 	xerror.Assert(reflectx.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "[cfgMap](%#v) should be map", cfgMap)
 	xerror.Assert(t.Get(name) == nil, "config(%s) key not found", name)
@@ -206,7 +206,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 }
 
 func (t *configImpl) initCfg(v *viper.Viper) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	// 指定配置文件
 	if t.initWithDir(v) {

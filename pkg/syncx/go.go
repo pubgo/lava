@@ -18,7 +18,7 @@ func GoChan(fn func() Value) chan Value {
 
 	go func() {
 		defer close(ch)
-		defer xerror.Resp(func(err xerror.XErr) {
+		defer xerror.Recovery(func(err xerror.XErr) {
 			ch <- WithErr(xerror.Wrap(err, "GoChan", stack.Func(fn)))
 		})
 
@@ -37,7 +37,7 @@ func GoSafe(fn func(), cb ...func(err error)) {
 	checkFn(fn, "[GoSafe] [fn] is nil")
 
 	go func() {
-		defer xerror.Resp(func(err xerror.XErr) {
+		defer xerror.Recovery(func(err xerror.XErr) {
 			if len(cb) > 0 {
 				logutil2.ErrTry(logs.L(), func() { cb[0](err) })
 				return
@@ -57,7 +57,7 @@ func GoCtx(fn func(ctx context.Context), cb ...func(err error)) context.CancelFu
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		defer xerror.Resp(func(err xerror.XErr) {
+		defer xerror.Recovery(func(err xerror.XErr) {
 			if len(cb) > 0 {
 				logutil2.ErrTry(logs.L(), func() { cb[0](err) })
 				return
@@ -100,7 +100,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 
 	var done = make(chan struct{})
 	go func() {
-		defer xerror.Resp(func(err xerror.XErr) {
+		defer xerror.Recovery(func(err xerror.XErr) {
 			logutil2.ErrTry(logs.L(), func() { errFn(err) }, logutil2.FuncStack(run))
 		})
 
@@ -120,7 +120,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 
 // Timeout 超时处理
 func Timeout(dur time.Duration, fn func()) (gErr error) {
-	defer xerror.RespErr(&gErr)
+	defer xerror.RecoverErr(&gErr)
 
 	if dur <= 0 {
 		panic("[Timeout] [dur] should not be less than zero")
@@ -132,7 +132,7 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 
 	go func() {
 		defer close(done)
-		defer xerror.RespErr(&gErr)
+		defer xerror.RecoverErr(&gErr)
 
 		fn()
 	}()
@@ -143,6 +143,10 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 	case <-done:
 		return
 	}
+}
+
+func CancelCtx() (ctx context.Context, cancel context.CancelFunc) {
+	return context.WithCancel(context.Background())
 }
 
 func logErr(fn interface{}, err xerror.XErr) {

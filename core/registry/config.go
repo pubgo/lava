@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -36,8 +37,11 @@ type Cfg struct {
 
 func (cfg *Cfg) Check() *Cfg {
 	var driver = cfg.Driver
-	err := xerror.AssertErr(driver == "", "registry driver is null")
-	xerror.Panic(xerror.WrapF(err, "cfg=>%#v", cfg))
+	xerror.AssertFn(driver == "", func() error {
+		err := fmt.Errorf("registry driver is null")
+		return xerror.WrapF(err, "cfg=>%#v", cfg)
+	})
+
 	return cfg
 }
 

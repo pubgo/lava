@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/pubgo/x/pathutil"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -13,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
-	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/compiler/protogen"
 	gp "google.golang.org/protobuf/proto"
@@ -22,7 +22,7 @@ import (
 )
 
 func GenerateTag(gen *protogen.Plugin, file *protogen.File) {
-	defer xerror.RespExit(file.GeneratedFilenamePrefix)
+	defer xerror.RecoverAndExit()
 
 	if len(file.Messages) == 0 {
 		return

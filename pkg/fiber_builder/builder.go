@@ -25,7 +25,7 @@ func (t *Builder) Get() *fiber.App {
 }
 
 func (t *Builder) Build(cfg Cfg) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	var fc = fiber.New().Config()
 	xerror.Panic(merge.CopyStruct(&fc, &cfg))

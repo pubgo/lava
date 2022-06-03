@@ -42,7 +42,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 
 // New logger
 func New(c config.Config) *Logger {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	var cfg = log_config.NewProdConfig()
 	if runtime.IsDev() || runtime.IsTest() || runtime.IsStag() {

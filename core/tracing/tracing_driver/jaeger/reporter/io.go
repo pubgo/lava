@@ -85,7 +85,7 @@ func (t *ioReporter) Report(span *jaeger.Span) {
 
 func (t *ioReporter) Close() {}
 func (t *ioReporter) saveSpan(span interface{}) (gErr error) {
-	defer xerror.RespErr(&gErr)
+	defer xerror.RecoverErr(&gErr)
 	defer t.count.Dec()
 
 	if span == nil || t.process == nil {

@@ -21,7 +21,7 @@ func Cmd() *cli.Command {
 			},
 		},
 		Before: func(ctx *cli.Context) error {
-			defer xerror.RespExit()
+			defer xerror.RecoverAndExit()
 
 			return nil
 		},

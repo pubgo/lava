@@ -58,7 +58,7 @@ func (h *testApiHandler) Close() {
 }
 
 func (h *testApiHandler) Init() {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	var db = h.Db
 
@@ -73,7 +73,7 @@ func (h *testApiHandler) Init() {
 	//xerror.Panic(ioutil.WriteFile("example-tree-data", buf.Bytes(), 0644))
 
 	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
-		defer xerror.RespExit()
+		defer xerror.RecoverAndExit()
 		zap.L().Debug("客户端访问")
 		var out, err1 = h.TestApiSrv.Version(context.Background(), &hellopb.TestReq{Input: "input", Name: "hello"})
 		xerror.Panic(err1)
