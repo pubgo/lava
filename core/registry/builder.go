@@ -147,7 +147,7 @@ func deregister(app service.AppInfo) (err error) {
 	if len(opt.Advertise) > 0 {
 		advt = opt.Advertise
 	} else {
-		advt = opt.Address
+		advt = opt.Addr
 	}
 
 	parts := strings.Split(advt, ":")

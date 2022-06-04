@@ -1,7 +1,6 @@
 package service_builder
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -23,6 +22,7 @@ import (
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/mux"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging"
@@ -44,7 +44,6 @@ func New(name string, desc ...string) service.Service {
 
 func newService(name string, desc ...string) *serviceImpl {
 	var g = &serviceImpl{
-		Lifecycle: lifecycle.New(),
 		cmd: &cli.Command{
 			Name:  name,
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
@@ -52,17 +51,16 @@ func newService(name string, desc ...string) *serviceImpl {
 		},
 		cfg: Cfg{
 			Grpc: grpc_builder.GetDefaultCfg(),
-			Api:  fiber_builder.Cfg{},
+			Api:  &fiber_builder.Cfg{},
 		},
-		grpcSrv:  grpc_builder.New(),
-		api:      fiber_builder.New(),
-		handlers: grpchan.HandlerMap{},
-		httpSrv:  fiber2.New(),
-		net:      cmux.DefaultCfg(),
+		Lifecycle: lifecycle.New(),
+		grpcSrv:   grpc_builder.New(),
+		httpSrv:   fiber_builder.New(),
+		handlers:  grpchan.HandlerMap{},
 	}
 
 	g.cmd.Action = func(ctx *cli.Context) error {
-		defer xerror.RecoverAndExit()
+		defer xerror.RecoverAndRaise()
 		xerror.Panic(g.start())
 		signal.Block()
 		xerror.Panic(g.stop())
@@ -70,9 +68,17 @@ func newService(name string, desc ...string) *serviceImpl {
 	}
 
 	g.Dix(func() grpc.ServiceRegistrar { return g })
-	g.Dix(func() service.App { return g })
-	g.Dix(func(m lifecycle.Lifecycle) { g.lifecycle = m })
-	g.Dix(func(log *logging.Logger) { g.log = log.Named(runtime.Project) })
+	g.Dix(func() service.AppInfo { return g })
+	g.Dix(func(c *cmux.Mux, m lifecycle.Lifecycle, log *logging.Logger, cfg config.Config, mux *mux.Mux) {
+		g.net = c
+		g.mux = mux
+		g.lifecycle = m
+		g.log = log.Named(runtime.Project)
+
+		// 配置解析
+		xerror.Panic(cfg.UnmarshalKey(Name, &g.cfg))
+	})
+
 	return g
 }
 
@@ -91,16 +97,12 @@ type serviceImpl struct {
 
 	cfg     Cfg
 	grpcSrv grpc_builder.Builder
-	api     fiber_builder.Builder
-	httpSrv *fiber2.App
-	opts    []interface{}
+	httpSrv fiber_builder.Builder
+	mux     *mux.Mux
+
+	deps []interface{}
 
 	handlers grpchan.HandlerMap
-
-	wrapperUnary  middleware.HandlerFunc
-	wrapperStream middleware.HandlerFunc
-
-	ctx context.Context
 }
 
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
@@ -110,40 +112,35 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 }
 
 func (t *serviceImpl) Dix(regs ...interface{}) {
-	t.opts = append(t.opts, regs...)
+	t.deps = append(t.deps, regs...)
 }
 
-func (t *serviceImpl) Start() error          { return t.start() }
-func (t *serviceImpl) Stop() error           { return t.stop() }
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
 func (t *serviceImpl) RegApp(prefix string, r *fiber2.App) {
-	t.httpSrv.Mount(prefix, r)
+	xerror.Assert(r == nil, "param [r] is nil")
+	t.mux.Mount(prefix, r)
 }
 
 func (t *serviceImpl) Middleware(mid middleware.Middleware) {
-	xerror.Assert(mid == nil, "[mid] is nil")
+	xerror.Assert(mid == nil, "param [mid] is nil")
 	t.middlewares = append(t.middlewares, mid)
 }
 
 func (t *serviceImpl) init() (gErr error) {
-	defer xerror.Recovery(func(err xerror.XErr) {
-		for k, g := range dix.Graph() {
-			fmt.Println(k, g)
+	defer xerror.RecoverErr(&gErr)
+
+	for i := range t.deps {
+		if t.deps[i] == nil {
+			continue
 		}
-		gErr = err
-	})
 
-	t.RegApp("/debug", debug.App())
-
-	for i := range t.opts {
-		dix.Register(t.opts[i])
+		dix.Register(t.deps[i])
 	}
 
 	dix.Invoke()
 
-	// 配置解析
-	xerror.Panic(config.UnmarshalKey(Name, &t.cfg))
+	t.RegApp("/debug", debug.App())
 
 	t.net.Addr = runtime.Addr
 
@@ -156,7 +153,7 @@ func (t *serviceImpl) init() (gErr error) {
 	streamInt := t.handlerStreamMiddle(middlewares)
 
 	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		t.httpSrv.Post(pattern, func(ctx *fiber2.Ctx) error {
+		t.mux.Post(pattern, func(ctx *fiber2.Ctx) error {
 			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
@@ -185,12 +182,12 @@ func (t *serviceImpl) init() (gErr error) {
 		}
 
 		if h, ok := svr.(service.WebHandler); ok {
-			h.Router(t.httpSrv)
+			h.Router(t.mux)
 		}
 	})
 
 	if t.cfg.PrintRoute {
-		for _, stacks := range t.httpSrv.Stack() {
+		for _, stacks := range t.mux.Stack() {
 			for _, s := range stacks {
 				t.log.Info("service route",
 					zap.String("name", s.Name),
@@ -202,9 +199,9 @@ func (t *serviceImpl) init() (gErr error) {
 	}
 
 	// 网关初始化
-	xerror.Panic(t.api.Build(t.cfg.Api))
-	t.api.Get().Use(t.handlerHttpMiddle(middlewares))
-	t.api.Get().Mount("/", t.httpSrv)
+	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
+	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
+	t.httpSrv.Get().Mount("/", t.mux.App)
 	return nil
 }
 
@@ -222,8 +219,8 @@ func (t *serviceImpl) Options() service.Options {
 		Id:        runtime.AppID,
 		Version:   version.Version,
 		Port:      netutil.MustGetPort(t.net.Addr),
-		Address:   t.net.Addr,
-		Advertise: t.cfg.Advertise,
+		Addr:      t.net.Addr,
+		Advertise: "",
 	}
 }
 
@@ -250,7 +247,7 @@ func (t *serviceImpl) start() (gErr error) {
 		syncx.GoDelay(func() {
 			t.log.Info("[grpc-gw] Server Starting")
 			logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
-				if err := t.api.Get().Listener(<-gwLn); err != nil &&
+				if err := t.httpSrv.Get().Listener(<-gwLn); err != nil &&
 					!errors.Is(err, cmux.ErrListenerClosed) &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
@@ -311,7 +308,7 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.LogOrErr(t.log, "[grpc-gw] Shutdown", func() error {
-		xerror.Panic(t.api.Get().Shutdown())
+		xerror.Panic(t.httpSrv.Get().Shutdown())
 		return nil
 	})
 

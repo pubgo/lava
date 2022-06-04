@@ -36,7 +36,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pubgo/x v0.3.37
-	github.com/pubgo/xerror v0.4.28
+	github.com/pubgo/xerror v0.4.30
 	github.com/reugn/go-quartz v0.3.7
 	github.com/segmentio/ksuid v1.0.3
 	github.com/soheilhy/cmux v0.1.4
@@ -110,7 +110,7 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/gofiber/websocket/v2 v2.0.18
-	github.com/pubgo/dix v0.2.7
+	github.com/pubgo/dix v0.2.8
 	github.com/smartystreets/assertions v1.0.0
 	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
 	github.com/valyala/fasthttp v1.34.0

@@ -11,9 +11,8 @@ const (
 )
 
 type Cfg struct {
-	Grpc        grpc_builder.Cfg  `yaml:"grpc"`
-	Api         fiber_builder.Cfg `yaml:"api"`
-	Advertise   string            `yaml:"advertise"`
-	Middlewares []string          `yaml:"middlewares"`
-	PrintRoute  bool              `yaml:"print-route"`
+	Grpc        *grpc_builder.Cfg  `yaml:"grpc"`
+	Api         *fiber_builder.Cfg `yaml:"httpSrv"`
+	Middlewares []string           `yaml:"middlewares"`
+	PrintRoute  bool               `yaml:"print-route"`
 }

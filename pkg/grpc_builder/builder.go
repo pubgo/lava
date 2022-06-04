@@ -32,7 +32,7 @@ func (t *Builder) Get() *grpc.Server {
 	return t.srv
 }
 
-func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
+func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
 	return []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(cfg.MaxRecvMsgSize),
 		grpc.MaxSendMsgSize(cfg.MaxSendMsgSize),
@@ -44,7 +44,7 @@ func (t *Builder) BuildOpts(cfg Cfg) []grpc.ServerOption {
 	}
 }
 
-func (t *Builder) Build(cfg Cfg) (err error) {
+func (t *Builder) Build(cfg *Cfg) (err error) {
 	defer xerror.RecoverErr(&err)
 
 	opts := t.BuildOpts(cfg)

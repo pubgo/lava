@@ -5,6 +5,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 
+	_ "github.com/pubgo/lava/core/app"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/middleware"
 )
@@ -18,7 +19,7 @@ type Options struct {
 	Name      string            `json:"name,omitempty"`
 	Version   string            `json:"version,omitempty"`
 	Port      int               `json:"port,omitempty"`
-	Address   string            `json:"address,omitempty"`
+	Addr      string            `json:"addr,omitempty"`
 	Advertise string            `json:"advertise,omitempty"`
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
@@ -38,10 +39,10 @@ type App interface {
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
 	RegApp(prefix string, r *fiber.App)
+	Dix(regs ...interface{})
 }
 
 type Service interface {
 	App
-	Dix(regs ...interface{})
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
+	grpc.ServiceRegistrar
 }

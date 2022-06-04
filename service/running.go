@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/pubgo/xerror"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
-	"github.com/pubgo/lava/internal/assert"
-	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
@@ -38,24 +35,16 @@ func Run(services ...Command) {
 		srv := services[i]
 		cmd := srv.Command()
 		cmd.Before = func(context *cli.Context) error {
+			defer xerror.RecoverAndExit()
 			if runtime.Project == "" {
 				runtime.Project = strings.Split(context.Command.Name, " ")[0]
 			}
-			assert.Msg(runtime.Project == "", "project is null")
-
-			mode := env.Get("lava_mode", "app_mode")
-			if mode != "" {
-				var i, err = strconv.Atoi(mode)
-				xerror.Panic(err)
-
-				runtime.Mode = runtime.RunMode(i)
-				xerror.Assert(runtime.Mode.String() == "", "unknown mode, mode=%s", mode)
-			}
+			xerror.Assert(runtime.Project == "", "project is null")
 			return nil
 		}
 
 		// 检查项目Command是否注册
-		assert.Msg(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
 		app.Commands = append(app.Commands, cmd)
 	}
 

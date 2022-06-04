@@ -3,6 +3,7 @@ package runtime
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -60,3 +61,14 @@ var (
 		},
 	)
 )
+
+func init() {
+	mode := env.Get("lava_mode", "app_mode")
+	if mode != "" {
+		var i, err = strconv.Atoi(mode)
+		xerror.Panic(err)
+
+		Mode = RunMode(i)
+		xerror.Assert(Mode.String() == "", "unknown mode, mode=%s", mode)
+	}
+}
