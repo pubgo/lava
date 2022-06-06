@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/byteutil"
 	"go.uber.org/zap"
 
@@ -12,9 +13,11 @@ import (
 
 // 替换std默认log
 func init() {
-	var stdLog = log.Default()
-	// 接管系统默认log
-	*stdLog = *zap.NewStdLog(logging.Component("std").L())
+	dix.Register(func(logger *logging.Logger) {
+		var stdLog = log.Default()
+		// 接管系统默认log
+		*stdLog = *zap.NewStdLog(logging.Component("std").L())
+	})
 }
 
 var _ io.Writer = (*std)(nil)

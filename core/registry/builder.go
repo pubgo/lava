@@ -41,8 +41,6 @@ func init() {
 
 		// 服务注册
 		lifecycle.AfterStarts(func() {
-			reg.Init()
-
 			SetDefault(reg)
 
 			xerror.Panic(register(app))
@@ -50,7 +48,6 @@ func init() {
 			var cancel = syncx.GoCtx(func(ctx context.Context) {
 				var interval = DefaultRegisterInterval
 
-				// only process if it exists
 				if cfg.RegisterInterval > time.Duration(0) {
 					interval = cfg.RegisterInterval
 				}
@@ -64,7 +61,7 @@ func init() {
 						logutil.LogOrErr(zap.L(), "service register",
 							func() error { return register(app) },
 							zap.String("service", app.Options().Name),
-							zap.String("InstanceId", app.Options().Id),
+							zap.String("instanceId", app.Options().Id),
 							zap.String("registry", Default().String()),
 							zap.String("interval", interval.String()),
 						)
@@ -85,7 +82,9 @@ func init() {
 }
 
 func register(app service.AppInfo) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("register service=>%#v", app.Options())
+	})
 
 	var reg = Default()
 	var opt = app.Options()
@@ -136,7 +135,9 @@ func register(app service.AppInfo) (err error) {
 }
 
 func deregister(app service.AppInfo) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("deregister service=>%#v", app.Options())
+	})
 
 	var opt = app.Options()
 	var reg = Default()

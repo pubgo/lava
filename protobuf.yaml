@@ -1,4 +1,6 @@
 version: v1
+proto-path: /Users/barry/git/lava/.proto
+checksum: da385e0b0d9ed89d8ba2befd15f3975171d76472
 root:
 - event
 - proto
@@ -21,10 +23,15 @@ deps:
   version: v1.3.2
 - name: google/protobuf
   url: /usr/local/include/google/protobuf
+- name: retag
+  url: github.com/pubgo/protobuild
+  path: /retag
+  version: v0.0.7
 plugins:
 - name: go
   opt: paths=source_relative
 - name: errors
   opt: paths=source_relative
-- name: lava
-  opt: paths=source_relative
+- name: retag
+  opt:
+  - paths=source_relative

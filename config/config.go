@@ -149,7 +149,10 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 
 // Decode decode config to map[string]*struct
 func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("name=%s, cfgMap=%#v", name, cfgMap)
+	})
+
 	xerror.Assert(name == "" || cfgMap == nil, "[name,cfgMap] should not be nil")
 	xerror.Assert(reflectx.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "[cfgMap](%#v) should be map", cfgMap)
 	xerror.Assert(t.Get(name) == nil, "config(%s) key not found", name)

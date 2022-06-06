@@ -13,7 +13,7 @@ import (
 func init() {
 	dix.Register(func(c config.Config, log *logging.Logger) opentracing.Tracer {
 		var cfgMap = make(map[string]*Cfg)
-		xerror.Panic(c.Decode(Name, cfgMap))
+		xerror.Panic(c.Decode(Name, &cfgMap))
 
 		for name := range cfgMap {
 			var cfg = DefaultCfg()
@@ -21,7 +21,7 @@ func init() {
 				xerror.Panic(merge.Struct(&cfg, cfgMap[name]))
 			}
 
-			xerror.Exit(cfg.Build())
+			xerror.Panic(cfg.Build())
 		}
 		return opentracing.GlobalTracer()
 	})

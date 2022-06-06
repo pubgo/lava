@@ -508,7 +508,7 @@ type UserInfoReq struct {
 	unknownFields protoimpl.UnknownFields
 
 	// login or id
-	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty" param:"login" param1:"login1"`
 }
 
 func (x *UserInfoReq) Reset() {

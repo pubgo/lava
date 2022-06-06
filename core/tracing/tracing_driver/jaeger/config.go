@@ -2,11 +2,12 @@ package jaeger
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/runtime"
 
 	"github.com/pubgo/xerror"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
+
+	"github.com/pubgo/lava/runtime"
 )
 
 type Cfg struct {

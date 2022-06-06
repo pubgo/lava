@@ -32,11 +32,6 @@ plugins:
   opt:
   - paths=import
   - require_unimplemented_servers=false
-- name: grpc-gateway
-  out: protopb
-  opt:
-  - allow_repeated_fields_in_body=true
-  - paths=import
 - name: openapiv2
   out: ./docs/swagger
   opt:
@@ -50,3 +45,7 @@ plugins:
 - name: errors
   out: protopb
   opt: paths=import
+- name: retag
+  opt:
+  - paths=import
+  - outdir=protopb

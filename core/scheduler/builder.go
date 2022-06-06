@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"github.com/pubgo/dix"
+
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging"
 )

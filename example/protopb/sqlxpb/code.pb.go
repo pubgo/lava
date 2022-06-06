@@ -29,10 +29,10 @@ type SendCodeRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// 区号
-	NationCode string `protobuf:"bytes,1,opt,name=nationCode,proto3" json:"nationCode,omitempty"`
+	NationCode string `protobuf:"bytes,1,opt,name=nationCode,proto3" json:"nationCode,omitempty" hello:"world" hello1:"world1"`
 	// Types that are assignable to OneOf:
 	//	*SendCodeRequest_A
-	OneOf isSendCodeRequest_OneOf `protobuf_oneof:"one_of"`
+	OneOf isSendCodeRequest_OneOf `protobuf_oneof:"one_of" json:"world"`
 	// 电话
 	Telephone string `protobuf:"bytes,2,opt,name=telephone,proto3" json:"telephone,omitempty"`
 	// 发送类型,call ,sms
@@ -120,7 +120,7 @@ type isSendCodeRequest_OneOf interface {
 }
 
 type SendCodeRequest_A struct {
-	A string `protobuf:"bytes,5,opt,name=a,proto3,oneof"`
+	A string `protobuf:"bytes,5,opt,name=a,proto3,oneof" json:"world"`
 }
 
 func (*SendCodeRequest_A) isSendCodeRequest_OneOf() {}

@@ -3,13 +3,13 @@ package restc
 import (
 	"context"
 	"crypto/tls"
+	"github.com/pubgo/lava/logging"
 	"net/http"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/logging/log_middleware"
 	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/retry"
@@ -70,6 +70,6 @@ func DefaultCfg() *Cfg {
 		Timeout:     defaultHTTPTimeout,
 		RetryCount:  defaultRetryCount,
 		backoff:     retry.NewNoop(),
-		Middlewares: []string{log_middleware.Name},
+		Middlewares: []string{logging.Name},
 	}
 }

@@ -15,10 +15,6 @@ import (
 var Name = "gc"
 var logs = logging.Component(Name)
 
-func init() {
-	fx.Invoke()
-}
-
 func Module() fx.Option {
 	return fx.Invoke(func(r lifecycle.Lifecycle) {
 		if runtime.IsProd() || runtime.IsRelease() {
