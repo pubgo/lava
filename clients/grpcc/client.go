@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 	"fmt"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"net"
 	"strings"
 	"sync"
@@ -16,7 +17,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/merge"
 )
 
@@ -38,12 +38,12 @@ func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnI
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
 
-	var middlewares []middleware.Middleware
+	var middlewares []middleware2.Middleware
 
 	// 加载全局middleware
 	for _, m := range cfg.Middlewares {
-		xerror.Assert(middleware.Get(m) == nil, "plugin(%s) is nil", m)
-		middlewares = append(middlewares, middleware.Get(m))
+		xerror.Assert(middleware2.Get(m) == nil, "plugin(%s) is nil", m)
+		middlewares = append(middlewares, middleware2.Get(m))
 	}
 
 	addr := t.buildTarget(srv, cfg)

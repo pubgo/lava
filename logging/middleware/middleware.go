@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"time"
 
 	"github.com/DataDog/gostackparse"
@@ -18,15 +19,14 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/version"
 )
 
 func init() {
 	const Name = "accesslog"
 	dix.Register(func(log *logging.Logger) {
-		middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+		middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
+			return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
 				// TODO 考虑pool优化
 				var params = make([]zap.Field, 0, 20)
 

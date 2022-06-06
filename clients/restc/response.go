@@ -1,7 +1,7 @@
 package restc
 
 import (
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/core/middleware"
 	"github.com/valyala/fasthttp"
 )
 
@@ -13,4 +13,4 @@ type Response struct {
 
 func (r *Response) Header() *middleware.ResponseHeader { return &r.resp.Header }
 func (r *Response) Payload() interface{}               { return nil }
-func (r *Response) Stream() bool                { return false }
+func (r *Response) Stream() bool                       { return false }

@@ -3,6 +3,7 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -13,14 +14,13 @@ import (
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/middleware"
 )
 
 func init() {
 	dix.Register(func(tracer opentracing.Tracer, log *zap.Logger) {
 		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
-		middleware.Register(tracing.Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+		middleware2.Register(tracing.Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
+			return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
 				var (
 					err               error
 					span              opentracing.Span

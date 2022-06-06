@@ -3,6 +3,7 @@ package service_builder
 import (
 	"errors"
 	"fmt"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"net"
 	"net/http"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -108,7 +108,7 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lifecycle.Lifecycle
-	middlewares []middleware.Middleware
+	middlewares []middleware2.Middleware
 
 	lifecycle lifecycle.Lifecycle
 
@@ -139,7 +139,7 @@ func (t *serviceImpl) Dix(regs ...interface{}) {
 
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
-func (t *serviceImpl) Middleware(mid middleware.Middleware) {
+func (t *serviceImpl) Middleware(mid middleware2.Middleware) {
 	xerror.Assert(mid == nil, "param [mid] is nil")
 	t.middlewares = append(t.middlewares, mid)
 }
@@ -149,7 +149,7 @@ func (t *serviceImpl) init() (gErr error) {
 
 	middlewares := t.middlewares[:]
 	for _, m := range t.cfg.Middlewares {
-		middlewares = append(middlewares, middleware.Get(m))
+		middlewares = append(middlewares, middleware2.Get(m))
 	}
 
 	unaryInt := t.handlerUnaryMiddle(middlewares)

@@ -2,12 +2,12 @@ package requestid
 
 import (
 	"context"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 )
@@ -15,8 +15,8 @@ import (
 const Name = "x-request-id"
 
 func init() {
-	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-		return func(ctx context.Context, req middleware.Request, resp middleware.Response) (gErr error) {
+	middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
+		return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) (gErr error) {
 			defer func() {
 				switch err := recover().(type) {
 				case nil:

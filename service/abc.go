@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/pubgo/lava/core/app"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/core/middleware"
 	"github.com/urfave/cli/v2"
 )
 

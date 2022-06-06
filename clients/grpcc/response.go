@@ -1,7 +1,7 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/core/middleware"
 	"google.golang.org/grpc"
 )
 

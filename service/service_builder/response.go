@@ -2,7 +2,7 @@ package service_builder
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/core/middleware"
 	"google.golang.org/grpc"
 )
 

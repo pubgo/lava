@@ -2,6 +2,7 @@ package restc
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/middleware"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/runtime"

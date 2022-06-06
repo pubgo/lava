@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/runtime"
 )
 
@@ -38,8 +38,8 @@ func init() {
 	})
 
 	dix.Register(func(m Metric) {
-		middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+		middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
+			return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
 				return next(CreateCtx(ctx, m), req, resp)
 			}
 		})

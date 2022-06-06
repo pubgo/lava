@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"strings"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/utils"
 )
@@ -32,8 +32,8 @@ func head2md(header interface {
 	})
 }
 
-func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
+func unaryInterceptor(middlewares []middleware2.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req middleware2.Request, rsp middleware2.Response) error {
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -104,13 +104,13 @@ func unaryInterceptor(middlewares []middleware.Middleware) grpc.UnaryClientInter
 				cc:      cc,
 				invoker: invoker,
 			},
-			&response{resp: reply, header: new(middleware.ResponseHeader)},
+			&response{resp: reply, header: new(middleware2.ResponseHeader)},
 		)
 	}
 }
 
-func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req middleware.Request, rsp middleware.Response) error {
+func streamInterceptor(middlewares []middleware2.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req middleware2.Request, rsp middleware2.Response) error {
 		var reqCtx = req.(*request)
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
@@ -177,7 +177,7 @@ func streamInterceptor(middlewares []middleware.Middleware) grpc.StreamClientInt
 				method:   method,
 				streamer: streamer,
 			},
-			&response{header: new(middleware.ResponseHeader)},
+			&response{header: new(middleware2.ResponseHeader)},
 		)
 	}
 }

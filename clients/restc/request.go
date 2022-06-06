@@ -2,7 +2,7 @@ package restc
 
 import (
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/core/middleware"
 	"github.com/valyala/fasthttp"
 )
 

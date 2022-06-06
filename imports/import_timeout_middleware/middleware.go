@@ -2,20 +2,20 @@ package import_timeout_middleware
 
 import (
 	"context"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"time"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/middleware"
 	"github.com/pubgo/lava/pkg/httpx"
 )
 
 const Name = "timeout"
 
 func init() {
-	middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
+	middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
 		var defaultTimeout = consts.DefaultTimeout
-		return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+		return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
 			// 过滤 websocket 请求
 			// 过滤 stream
 
