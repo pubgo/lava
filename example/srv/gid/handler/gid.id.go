@@ -8,18 +8,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
-	"github.com/teris-io/shortid"
-	"go.uber.org/fx"
-
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/protopb/gidpb"
 	"github.com/pubgo/lava/logging"
+	"github.com/teris-io/shortid"
 )
 
 type Id struct {
-	fx.In
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 	Cron      *scheduler.Scheduler

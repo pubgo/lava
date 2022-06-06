@@ -3,7 +3,6 @@ package service_builder
 import (
 	"errors"
 	"fmt"
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	"net"
 	"net/http"
 	"strings"
@@ -23,6 +22,7 @@ import (
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/mux"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging"
