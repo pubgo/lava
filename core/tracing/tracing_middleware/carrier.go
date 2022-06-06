@@ -2,11 +2,12 @@ package tracing_middleware
 
 import (
 	"encoding/base64"
-	"github.com/pubgo/lava/middleware"
-	"github.com/pubgo/xerror"
 	"strings"
 
+	"github.com/pubgo/xerror"
+
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/lava/middleware"
 )
 
 const (

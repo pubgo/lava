@@ -101,7 +101,6 @@ tracing:
 
 metric:
   driver: "prometheus"
-  path: "/etcd"
 
 logging:
   level: debug

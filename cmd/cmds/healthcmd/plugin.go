@@ -11,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/runtime"
 )
 
 func Cmd() *cli.Command {
@@ -25,7 +24,7 @@ func Cmd() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			defer xerror.RecoverAndExit()
 
-			var addr = runtime.Addr
+			var addr = ":8080"
 			if ctx.NArg() > 0 {
 				addr = ctx.Args().First()
 			}

@@ -45,6 +45,6 @@ func init() {
 		debug.Get(urlPath, debug.Wrap(reporter.HTTPHandler()))
 
 		opts.CachedReporter = reporter
-		return map[string]*tally.ScopeOptions{conf.Driver: &opts}
+		return map[string]*tally.ScopeOptions{Name: &opts}
 	})
 }

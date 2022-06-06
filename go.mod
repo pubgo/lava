@@ -34,7 +34,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/piotrkowalczuk/promgrpc/v4 v4.0.4
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
-	github.com/pkg/errors v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pubgo/x v0.3.37
 	github.com/pubgo/xerror v0.4.30
 	github.com/reugn/go-quartz v0.3.7
@@ -95,23 +95,21 @@ require (
 	go.opentelemetry.io/otel/bridge/opentracing v1.3.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gorm.io/datatypes v1.0.3
-	gorm.io/driver/mysql v1.1.3
-	gorm.io/driver/sqlite v1.2.3
-	gorm.io/gorm v1.22.2
+	gorm.io/driver/mysql v1.3.3
+	gorm.io/driver/sqlite v1.3.2
+	gorm.io/gorm v1.23.5
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816
 	k8s.io/klog/v2 v2.40.0
 )
 
 require (
-	github.com/autom8ter/machine v1.4.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/fullstorydev/grpcurl v1.8.6
+	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/graphikDB/trigger v0.0.19
-	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76
 	github.com/pubgo/dix v0.2.8
 	github.com/smartystreets/assertions v1.0.0
 	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
@@ -133,6 +131,7 @@ require (
 	github.com/antlr/antlr4 v0.0.0-20200503195918-621b933c7a7f // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
+	github.com/autom8ter/machine v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -169,6 +168,7 @@ require (
 	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graphikDB/generic v0.1.0 // indirect
+	github.com/graphikDB/trigger v0.0.19 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack v0.5.3 // indirect
@@ -178,7 +178,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.2 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
@@ -194,13 +194,14 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
-	github.com/mattn/go-sqlite3 v1.14.9 // indirect
+	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/dns v1.1.43 // indirect
 	github.com/mitchellh/copystructure v1.1.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76 // indirect
 	github.com/panjf2000/ants/v2 v2.4.5 // indirect
 	github.com/paulmach/orb v0.1.7 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

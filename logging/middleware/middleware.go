@@ -1,4 +1,4 @@
-package logging
+package middleware
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
@@ -23,7 +24,7 @@ import (
 
 func init() {
 	const Name = "accesslog"
-	dix.Register(func(log *Logger) {
+	dix.Register(func(log *logging.Logger) {
 		middleware.Register(Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
 			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
 				// TODO 考虑pool优化
@@ -89,7 +90,7 @@ func init() {
 				}
 
 				// 集成logger到context
-				ctx = CreateCtx(ctx, zap.L().Named(logkey.Request).With(
+				ctx = logging.CreateCtx(ctx, zap.L().Named(logkey.Request).With(
 					zap.String("tracerId", tracerID),
 					zap.String("spanId", spanID),
 					zap.String("requestId", reqId)))

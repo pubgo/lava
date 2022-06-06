@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
@@ -34,15 +33,6 @@ func Run(services ...Command) {
 	for i := range services {
 		srv := services[i]
 		cmd := srv.Command()
-		cmd.Before = func(context *cli.Context) error {
-			defer xerror.RecoverAndExit()
-			if runtime.Project == "" {
-				runtime.Project = strings.Split(context.Command.Name, " ")[0]
-			}
-			xerror.Assert(runtime.Project == "", "project is null")
-			return nil
-		}
-
 		// 检查项目Command是否注册
 		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
 		app.Commands = append(app.Commands, cmd)

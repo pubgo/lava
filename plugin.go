@@ -29,9 +29,7 @@ import (
 
 // 加载middleware, 注意加载顺序
 import (
-	// 加载log-record拦截器
-	_ "github.com/pubgo/lava/imports/import_log_record_middleware"
+	_ "github.com/pubgo/lava/logging/middleware"
 
-	// 加载timeout拦截器
-	_ "github.com/pubgo/lava/imports/import_timeout_middleware"
+	_ "github.com/pubgo/lava/core/requestid"
 )

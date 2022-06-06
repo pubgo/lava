@@ -2,12 +2,10 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/urfave/cli/v2"
-	"google.golang.org/grpc"
-
 	_ "github.com/pubgo/lava/core/app"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/middleware"
+	"github.com/urfave/cli/v2"
 )
 
 type Init interface {
@@ -50,11 +48,9 @@ type App interface {
 	AppInfo
 	Flags(flags ...cli.Flag)
 	Middleware(middleware.Middleware)
-	RegApp(prefix string, r *fiber.App)
 	Dix(regs ...interface{})
 }
 
 type Service interface {
 	App
-	grpc.ServiceRegistrar
 }

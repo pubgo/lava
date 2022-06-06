@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-func NewSrv() service.Service {
+func NewSrv() service.Command {
 	var srv = lava.NewSrv("gid", "gid generate")
 	srv.Dix(gidpb.RegisterIdServer)
 	srv.Dix(handler.NewId)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/httpgrpc"
@@ -23,7 +24,6 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/mux"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/middleware"
@@ -58,8 +58,31 @@ func newService(name string, desc ...string) *serviceImpl {
 		handlers:  grpchan.HandlerMap{},
 	}
 
+	g.cmd.Before = func(context *cli.Context) error {
+		defer xerror.RecoverAndRaise(func(err xerror.XErr) xerror.XErr {
+			fmt.Println(dix.Graph())
+			return err
+		})
+
+		if runtime.Project == "" {
+			runtime.Project = strings.Split(context.Command.Name, " ")[0]
+		}
+		xerror.Assert(runtime.Project == "", "project is null")
+
+		for i := range g.deps {
+			if g.deps[i] == nil {
+				continue
+			}
+
+			dix.Register(g.deps[i])
+		}
+
+		dix.Invoke()
+		return nil
+	}
+
 	g.cmd.Action = func(ctx *cli.Context) error {
-		defer xerror.RecoverAndRaise()
+		defer xerror.RecoverAndExit()
 		xerror.Panic(g.start())
 		signal.Block()
 		xerror.Panic(g.stop())
@@ -116,11 +139,6 @@ func (t *serviceImpl) Dix(regs ...interface{}) {
 
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
-func (t *serviceImpl) RegApp(prefix string, r *fiber2.App) {
-	xerror.Assert(r == nil, "param [r] is nil")
-	t.mux.Mount(prefix, r)
-}
-
 func (t *serviceImpl) Middleware(mid middleware.Middleware) {
 	xerror.Assert(mid == nil, "param [mid] is nil")
 	t.middlewares = append(t.middlewares, mid)
@@ -128,20 +146,6 @@ func (t *serviceImpl) Middleware(mid middleware.Middleware) {
 
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
-
-	for i := range t.deps {
-		if t.deps[i] == nil {
-			continue
-		}
-
-		dix.Register(t.deps[i])
-	}
-
-	dix.Invoke()
-
-	t.RegApp("/debug", debug.App())
-
-	t.net.Addr = runtime.Addr
 
 	middlewares := t.middlewares[:]
 	for _, m := range t.cfg.Middlewares {
@@ -240,7 +244,7 @@ func (t *serviceImpl) start() (gErr error) {
 	var gwLn = t.net.HTTP1()
 
 	logutil.OkOrPanic(t.log, "service start", func() error {
-		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(runtime.Addr))
+		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(t.net.Addr))
 
 		// 启动grpc网关
 		syncx.GoDelay(func() {

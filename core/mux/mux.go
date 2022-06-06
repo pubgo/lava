@@ -5,6 +5,8 @@ import (
 	"github.com/pubgo/dix"
 )
 
+func Invoke(fn func(mux *Mux)) { dix.Register(fn) }
+
 func init() {
 	dix.Register(func() *Mux {
 		return &Mux{App: fiber.New()}
