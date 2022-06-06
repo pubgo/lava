@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"errors"
 	"path/filepath"
 
 	"github.com/pubgo/x/pathutil"
@@ -18,7 +19,7 @@ func init() {
 		var dsn, ok = cfg["dsn"].(string)
 		xerror.AssertFn(!ok || dsn == "", func() error {
 			logutil.Pretty(cfg)
-			return xerror.New("dns not found")
+			return errors.New("dsn not found")
 		})
 		_ = pathutil.IsNotExistMkDir(filepath.Dir(dsn))
 		return sqlite.Open(dsn)

@@ -10,8 +10,8 @@ option java_package = "com.lava.errors";
 option go_package = "github.com/pubgo/lava/errors;errors";
 
 message Error {
-  string reason = 1;
-  int32 code = 2;
+  int32 code = 1;
+  string reason = 2;
   string message = 3;
   map<string, string>  metadata = 4;
 }

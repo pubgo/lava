@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/xerror"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/pubgo/lava/pkg/retry"
 )
@@ -31,7 +32,7 @@ type Cfg struct {
 func (t *Cfg) Build() *etcdv3.Client {
 	var cfg etcdv3.Config
 	xerror.Panic(merge.CopyStruct(&cfg, &t))
-	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock())
+	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	// 创建etcd client对象
 	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return etcdv3.New(cfg) })).(*etcdv3.Client)

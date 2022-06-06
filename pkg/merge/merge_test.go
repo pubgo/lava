@@ -1,10 +1,10 @@
 package merge
 
 import (
-	"github.com/pubgo/xerror"
 	"testing"
 
 	"github.com/pubgo/x/q"
+	"github.com/pubgo/xerror"
 )
 
 type dst struct {

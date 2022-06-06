@@ -10,6 +10,18 @@ import (
 	"github.com/pubgo/lava/middleware"
 )
 
+type Init interface {
+	Init()
+}
+
+type Close interface {
+	Close()
+}
+
+type Flags interface {
+	Flags() []cli.Flag
+}
+
 type WebHandler interface {
 	Router(r fiber.Router)
 }

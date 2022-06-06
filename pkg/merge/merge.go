@@ -43,8 +43,8 @@ func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.
 
 	decoder, err := mapstructure.NewDecoder(cfg)
 	if err != nil {
-		return err
+		return xerror.Wrap(err)
 	}
 
-	return decoder.Decode(src)
+	return xerror.Wrap(decoder.Decode(src))
 }

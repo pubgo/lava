@@ -35,9 +35,9 @@ type Cfg struct {
 }
 
 func (t *Cfg) Valid() (err error) {
-	defer xerror.Recovery(func(err1 xerror.XErr) {
-		err = err1
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
 		logutil.ColorPretty(t)
+		return err
 	})
 
 	xerror.Assert(t.Driver == "", "driver is null")
@@ -45,11 +45,10 @@ func (t *Cfg) Valid() (err error) {
 }
 
 func (t *Cfg) Create() *gorm.DB {
-	defer xerror.RecoverAndExit()
+	defer xerror.RecoverAndRaise()
 
 	var ormCfg = &gorm.Config{}
 	xerror.Panic(merge.Struct(ormCfg, t))
-
 	var level = gl.Info
 	if runtime.IsProd() || runtime.IsRelease() {
 		level = gl.Error
@@ -66,7 +65,7 @@ func (t *Cfg) Create() *gorm.DB {
 	)
 
 	var factory = Get(t.Driver)
-	xerror.Assert(factory == nil, "factory[%s] not found", t.Driver)
+	xerror.Assert(factory == nil, "driver factory[%s] not found", t.Driver)
 	dialect := factory(t.DriverCfg)
 
 	db, err := gorm.Open(dialect, ormCfg)

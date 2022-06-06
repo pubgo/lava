@@ -5,6 +5,7 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
@@ -15,6 +16,7 @@ func init() {
 		var cfgMap = make(map[string]*Cfg)
 		xerror.Panic(c.Decode(Name, &cfgMap))
 		for name, cfg := range cfgMap {
+			xerror.Panic(merge.Struct(&cfg, DefaultCfg()))
 			xerror.Panic(cfg.Valid())
 			clients[name] = &Client{DB: cfg.Create()}
 		}

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/x/pathutil"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/x/iox"
+	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -177,9 +177,9 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
 	return xerror.WrapF(merge.MapStruct(cfgMap, cfg.Map()), "config key [%s] decode error", name)
 }
 
-func (t *configImpl) addConfigPath(v *viper.Viper, in string) bool {
-	v.AddConfigPath(in)
-	err := v.ReadInConfig()
+func (t *configImpl) addConfigPath(in string) bool {
+	t.v.AddConfigPath(in)
+	err := t.v.ReadInConfig()
 	if err == nil {
 		return true
 	}
@@ -208,7 +208,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	defer xerror.RecoverErr(&err)
 
-	// 指定配置文件
+	// 指定配置文件目录
 	if t.initWithDir(v) {
 		return
 	}
@@ -222,7 +222,7 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	xerror.Assert(len(pathList) == 0, "pathList is zero")
 
 	for i := range pathList {
-		if t.addConfigPath(v, pathList[i]) {
+		if t.addConfigPath(pathList[i]) {
 			return
 		}
 	}
@@ -230,7 +230,7 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	return xerror.Wrap(v.ReadInConfig())
 }
 
-// LoadPath 加载path
+// LoadPath 加载指定path的配置
 func (t *configImpl) LoadPath(path string) {
 	if !pathutil.IsExist(path) {
 		return

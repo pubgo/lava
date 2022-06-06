@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/merge"
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
@@ -17,10 +18,9 @@ import (
 func init() {
 	dix.Register(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
-		_ = config.Decode(Name, &cfg)
 		xerror.Panic(c.UnmarshalKey(Name, &cfg))
-		driver := cfg.Driver
-		xerror.Assert(driver == "", "metric driver is null")
+		xerror.Panic(merge.Struct(&cfg, DefaultCfg()))
+		xerror.Assert(cfg.Driver == "", "metric driver is null")
 		return &cfg
 	})
 

@@ -11,7 +11,7 @@ import (
 func init() {
 	dix.Register(func(c config.Config, log *logging.Logger) map[string]*Client {
 		var cfgMap = make(map[string]*Cfg)
-		xerror.Panic(c.Decode(Name, cfgMap))
+		xerror.Panic(c.Decode(Name, &cfgMap))
 
 		var clients = make(map[string]*Client)
 		for name, cfg := range cfgMap {

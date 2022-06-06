@@ -1,3 +1,4 @@
+gateway:
 timeout:
   - test
 watcher:
@@ -42,11 +43,11 @@ rest_entry:
     dir: ""
     ext: ".html"
 orm:
-  - _id: default
+  - name: default
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"
-  - _id: test
+  - name: test
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"

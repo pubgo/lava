@@ -11,6 +11,8 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/typex"
 )
@@ -21,10 +23,10 @@ const (
 	zeroconfInstance = "lava"
 )
 
-func New(cfg Cfg) registry.Registry {
+func New(cfg Cfg, log *logging.Logger) registry.Registry {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
-	return &mdnsRegistry{resolver: resolver, cfg: cfg}
+	return &mdnsRegistry{resolver: resolver, cfg: cfg, log: log.Named(logutil.Names(registry.Name, Name))}
 }
 
 type serverNode struct {
@@ -39,6 +41,7 @@ type mdnsRegistry struct {
 	cfg      Cfg
 	services typex.SMap
 	resolver *zeroconf.Resolver
+	log      *logging.Logger
 }
 
 func (m *mdnsRegistry) Close() {
@@ -48,7 +51,9 @@ func (m *mdnsRegistry) Init() {
 }
 
 func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("service=>%#v", service)
+	})
 
 	xerror.Assert(service == nil, "[service] should not be nil")
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
@@ -77,7 +82,9 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 }
 
 func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("service=>%#v", service)
+	})
 
 	xerror.Assert(service == nil, "[service] should not be nil")
 	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")

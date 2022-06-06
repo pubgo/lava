@@ -17,7 +17,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/abc"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
@@ -173,11 +172,11 @@ func (t *serviceImpl) init() (gErr error) {
 	t.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
 		t.grpcSrv.Get().RegisterService(desc, svr)
 
-		if h, ok := svr.(abc.Close); ok {
+		if h, ok := svr.(service.Close); ok {
 			t.AfterStops(h.Close)
 		}
 
-		if h, ok := svr.(abc.Init); ok {
+		if h, ok := svr.(service.Init); ok {
 			h.Init()
 		}
 
