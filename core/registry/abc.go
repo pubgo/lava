@@ -15,6 +15,8 @@ type Registry interface {
 	GetService(string, ...GetOpt) ([]*Service, error)
 }
 
+type Loader struct{}
+
 type Opt func(*Opts)
 type RegOpt func(*RegOpts)
 type WatchOpt func(*WatchOpts)

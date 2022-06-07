@@ -24,6 +24,7 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/mux"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
@@ -91,7 +92,7 @@ func newService(name string, desc ...string) *serviceImpl {
 
 	g.Dix(func() grpc.ServiceRegistrar { return g })
 	g.Dix(func() service.AppInfo { return g })
-	g.Dix(func(c *cmux.Mux, m lifecycle.Lifecycle, log *logging.Logger, cfg config.Config, mux *mux.Mux) {
+	g.Dix(func(c *cmux.Mux, m lifecycle.Lifecycle, log *logging.Logger, cfg config.Config, mux *mux.Mux, _ *registry.Loader) {
 		g.net = c
 		g.mux = mux
 		g.lifecycle = m

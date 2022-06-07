@@ -7,9 +7,6 @@ import (
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
 
-	// 加载registry插件
-	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
-
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
 

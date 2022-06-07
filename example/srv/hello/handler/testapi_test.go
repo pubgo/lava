@@ -6,17 +6,30 @@ import (
 	"testing"
 
 	"github.com/pubgo/dix"
-	"go.uber.org/fx"
+	"github.com/pubgo/xerror"
 
+	_ "github.com/pubgo/lava"
+	"github.com/pubgo/lava/clients/grpcc"
+	"github.com/pubgo/lava/clients/orm"
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
-
+	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/example/protopb/hellopb"
+	"github.com/pubgo/lava/logging"
 )
 
-var _srv = &testApiHandler{}
+var _srv *testApiHandler
 
 func TestMain(t *testing.M) {
-	dix.Register(fx.Populate(_srv))
+	defer xerror.RecoverAndExit()
+	dix.Register(func(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) {
+		_srv = &testApiHandler{
+			Db:         Db,
+			Cron:       Cron,
+			TestApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
+			L:          L,
+		}
+	})
+
 	dix.Invoke()
 
 	_srv.Init()

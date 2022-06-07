@@ -18,10 +18,10 @@ const (
 
 	DefaultSleepAfterDeRegister = time.Second * 2
 
-	// DefaultRegisterTTL The register expiry time
+	// DefaultRegisterTTL The Register expiry time
 	DefaultRegisterTTL = time.Minute
 
-	// DefaultRegisterInterval The interval on which to register
+	// DefaultRegisterInterval The interval on which to Register
 	DefaultRegisterInterval = time.Second * 30
 
 	defaultContentType = "application/grpc"

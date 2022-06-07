@@ -3,7 +3,6 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	"net"
 	"strings"
 	"sync"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
