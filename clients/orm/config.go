@@ -2,16 +2,15 @@ package orm
 
 import (
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/logging"
 	"time"
 
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 )
@@ -55,7 +54,7 @@ func (t *Cfg) Create() *gorm.DB {
 	}
 
 	ormCfg.Logger = gl.New(
-		logPrintf(zap.L().Named(logkey.Component).Named(Name).Sugar().Infof),
+		logPrintf(logging.Component(Name).Depth(4).Sugar().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,
