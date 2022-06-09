@@ -1,7 +1,7 @@
 package debug
 
 import (
-	app2 "github.com/pubgo/lava/version"
+	app2 "github.com/pubgo/lava/core/runmode"
 	"net/http"
 	"os"
 	rd "runtime/debug"

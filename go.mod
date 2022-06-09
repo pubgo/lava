@@ -73,19 +73,15 @@ require (
 	github.com/go-logr/zapr v1.2.2
 	github.com/goccy/go-json v0.7.10
 	github.com/golang-jwt/jwt/v4 v4.2.0
-	github.com/jhump/protoreflect v1.10.3
-	github.com/jjeffcaii/reactor-go v0.5.1
+	github.com/jhump/protoreflect v1.10.3 // indirect
 	github.com/kr/pretty v0.3.0
 	github.com/magefile/mage v1.11.0
 	github.com/mailgun/holster/v4 v4.0.6
 	github.com/manifoldco/promptui v0.8.0
-	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/prometheus/client_golang v1.11.0
 	github.com/pseudomuto/protoc-gen-doc v1.3.2
-	github.com/rsocket/rsocket-go v0.8.6
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/pflag v1.0.5
-	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	github.com/urfave/cli/v2 v2.8.0
 	github.com/valyala/bytebufferpool v1.0.0
 	go.opentelemetry.io/otel/bridge/opentracing v1.3.0
@@ -106,12 +102,9 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
 	github.com/pubgo/dix v0.2.8
-	github.com/pubgo/protobuild v0.0.7
 	github.com/smartystreets/assertions v1.0.0
-	github.com/trusch/grpc-proxy v0.0.0-20190529073533-02b64529f274
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1
-	go.uber.org/fx v1.17.1
 )
 
 require (
@@ -126,6 +119,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/antzucaro/matchr v0.0.0-20210222213004-b04723ef80f0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
@@ -157,7 +151,6 @@ require (
 	github.com/google/gofuzz v1.1.1-0.20200604201612-c04b05f3adfa // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -173,7 +166,6 @@ require (
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
@@ -184,7 +176,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/panjf2000/ants/v2 v2.4.5 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
@@ -206,7 +197,7 @@ require (
 	go.mongodb.org/mongo-driver v1.3.4 // indirect
 	go.opentelemetry.io/otel v1.4.0 // indirect
 	go.opentelemetry.io/otel/trace v1.4.0 // indirect
-	go.uber.org/dig v1.14.0 // indirect
+	go.uber.org/goleak v1.1.11 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

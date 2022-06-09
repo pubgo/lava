@@ -3,6 +3,7 @@ package vercmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/core/runmode"
 	"os"
 	"runtime/debug"
 
@@ -40,7 +41,7 @@ func Cmd() *cli.Command {
 
 			switch typ {
 			case "":
-				dt, err := json.MarshalIndent(version.GetVersion(), "", "\t")
+				dt, err := json.MarshalIndent(runmode.GetVersion(), "", "\t")
 				xerror.Panic(err)
 				fmt.Println(string(dt))
 			case "json":

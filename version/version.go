@@ -2,7 +2,6 @@ package version
 
 import (
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 )
 
@@ -18,8 +17,4 @@ func init() {
 		Version = "v0.0.1-dev"
 	}
 	xerror.PanicErr(ver.NewVersion(Version))
-
-	if Domain != "" {
-		runmode.Domain = Domain
-	}
 }

@@ -5,7 +5,7 @@ import (
 	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
 
 	// set GOMAXPROCS
-	_ "github.com/pubgo/lava/internal/plugins/automaxprocs"
+	_ "github.com/pubgo/lava/internal/modules/automaxprocs"
 
 	// 编码加载
 	_ "github.com/pubgo/lava/encoding/json"
@@ -14,14 +14,14 @@ import (
 	_ "github.com/pubgo/lava/encoding/protobuf"
 
 	// gc plugin
-	_ "github.com/pubgo/lava/internal/plugins/gcnotifier"
+	_ "github.com/pubgo/lava/internal/modules/gcnotifier"
 
 	// metric
 	//_ "github.com/pubgo/lava/core/metric/metric_builder"
 
 	// 用于系统诊断
-	_ "github.com/pubgo/lava/modules/gops"
-	_ "github.com/pubgo/lava/modules/grpc_log"
+	_ "github.com/pubgo/lava/internal/modules/gops"
+	_ "github.com/pubgo/lava/logging/log_ext/grpclog"
 )
 
 // 加载middleware, 注意加载顺序
