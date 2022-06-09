@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"github.com/pubgo/lava/consts"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -10,7 +11,6 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/merge"
 )
 

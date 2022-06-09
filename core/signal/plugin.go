@@ -2,6 +2,7 @@ package signal
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/runmode"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/runtime"
 )
 
 const Name = "signal"
@@ -18,21 +18,21 @@ const Name = "signal"
 func init() {
 	flags.Register(&cli.BoolFlag{
 		Name:        "block",
-		Destination: &runtime.Block,
+		Destination: &runmode.Block,
 		Usage:       "Whether block program",
-		Value:       runtime.Block,
+		Value:       runmode.Block,
 	})
 }
 
 func Block() {
-	if !runtime.Block {
+	if !runmode.Block {
 		return
 	}
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	runtime.Signal = <-ch
-	logging.S().Infof("signal [%s] trigger", runtime.Signal)
+	runmode.Signal = <-ch
+	logging.S().Infof("signal [%s] trigger", runmode.Signal)
 }
 
 func Ctx() context.Context {

@@ -9,17 +9,9 @@ option go_package = "./gidpb;gidpb";
 // Echo Service API consists of a single service which returns
 // a message.
 
-import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 //import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
-
-option (gogoproto.sizer_all) = true;
-option (gogoproto.marshaler_all) = true;
-option (gogoproto.unmarshaler_all) = true;
-option (gogoproto.goproto_getters_all) = false;
-// Enable registration with golang/protobuf for the grpc-gateway.
-option (gogoproto.goproto_registration) = true;
 
 // Embedded represents a message embedded in SimpleMessage.
 message Embedded {

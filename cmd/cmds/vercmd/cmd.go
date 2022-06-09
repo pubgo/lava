@@ -12,7 +12,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/clix"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 
@@ -41,7 +40,7 @@ func Cmd() *cli.Command {
 
 			switch typ {
 			case "":
-				dt, err := json.MarshalIndent(runtime.GetVersion(), "", "\t")
+				dt, err := json.MarshalIndent(version.GetVersion(), "", "\t")
 				xerror.Panic(err)
 				fmt.Println(string(dt))
 			case "json":

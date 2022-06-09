@@ -3,6 +3,7 @@ package restc
 import (
 	"context"
 	"github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/core/runmode"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/runtime"
 )
 
 const (
@@ -37,7 +37,7 @@ func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fas
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (*fasthttp.Response, error) {
-	var request = &Request{service: runtime.Project, req: req}
+	var request = &Request{service: runmode.Project, req: req}
 	request.req = req
 	request.ct = filterFlags(utils.BtoS(req.Header.ContentType()))
 	request.data = req.Body()

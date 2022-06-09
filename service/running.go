@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/core/runmode"
 	"os"
 	"sort"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/version"
 )
 
@@ -23,9 +23,9 @@ func Run(services ...Command) {
 		xerror.Assert(srv == nil, "[srv] is nil")
 	}
 
-	var app = &cli.App{
-		Name:     runtime.Domain,
-		Usage:    fmt.Sprintf("%s services", runtime.Domain),
+	var cliApp = &cli.App{
+		Name:     runmode.Domain,
+		Usage:    fmt.Sprintf("%s services", runmode.Domain),
 		Version:  version.Version,
 		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
 	}
@@ -34,11 +34,11 @@ func Run(services ...Command) {
 		srv := services[i]
 		cmd := srv.Command()
 		// 检查项目Command是否注册
-		xerror.Assert(app.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
-		app.Commands = append(app.Commands, cmd)
+		xerror.Assert(cliApp.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+		cliApp.Commands = append(cliApp.Commands, cmd)
 	}
 
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-	xerror.Panic(app.Run(os.Args))
+	sort.Sort(cli.FlagsByName(cliApp.Flags))
+	sort.Sort(cli.CommandsByName(cliApp.Commands))
+	xerror.Panic(cliApp.Run(os.Args))
 }

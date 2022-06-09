@@ -1,6 +1,7 @@
 package debug
 
 import (
+	app2 "github.com/pubgo/lava/version"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -8,8 +9,6 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
@@ -29,7 +28,7 @@ func envHandle(writer http.ResponseWriter, request *http.Request) {
 func versionHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt, err := jsonx.Marshal(runtime.GetVersion())
+	dt, err := jsonx.Marshal(app2.GetVersion())
 	xerror.Panic(err)
 	xerror.PanicErr(writer.Write(dt))
 }

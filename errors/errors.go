@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/goccy/go-json"
 	"github.com/pubgo/xerror"
-	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -23,7 +23,7 @@ func IsBisErr(err error) bool {
 		return false
 	}
 
-	if err1.Code < MaxCode {
+	if err1.Reason == "" {
 		return false
 	}
 
@@ -32,13 +32,9 @@ func IsBisErr(err error) bool {
 
 // GRPCStatus 实现grpc status的GRPCStatus接口
 func (x *Error) GRPCStatus() *status.Status {
-	s, err := status.New(codes.Code(x.Code), x.Message).
-		WithDetails(&errdetails.ErrorInfo{
-			Reason:   x.Reason,
-			Metadata: x.Metadata,
-		})
-	xerror.Panic(err)
-	return s
+	var dt, err = json.Marshal(x)
+	xerror.Panic(err, "errors json marshal failed")
+	return status.New(codes.Code(x.Code), string(dt))
 }
 
 // HTTPStatus returns the Status represented by se.
@@ -85,6 +81,10 @@ func (x *Error) HTTPStatus() int {
 
 // Is matches each error in the chain with the target value.
 func (x *Error) Is(err error) bool {
+	if err == nil {
+		return false
+	}
+
 	if err1, ok := err.(*Error); ok {
 		return x.Code == err1.Code && x.Reason == err1.Reason
 	}
@@ -92,10 +92,15 @@ func (x *Error) Is(err error) bool {
 	if se := new(Error); errors.As(err, &se) {
 		return se.Reason == x.Reason && se.Code == x.Code
 	}
+
 	return false
 }
 
 func (x *Error) As(target interface{}) bool {
+	if target == nil {
+		return false
+	}
+
 	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
 	if err, ok := t1.(*Error); ok {
 		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
@@ -115,17 +120,6 @@ func (x *Error) Error() string {
 	return fmt.Sprintf("error: code=%d reason=%s message=%s metadata=%v", x.Code, x.Reason, x.Message, x.Metadata)
 }
 
-// Decode error 反序列化
-func Decode(data []byte) (*Error, error) {
-	var err Error
-	return &err, proto.Unmarshal(data, &err)
-}
-
-// Encode error 序列化
-func Encode(err *Error) ([]byte, error) {
-	return proto.Marshal(err)
-}
-
 // Code returns the status code.
 func Code(err error) int32 {
 	if err == nil {
@@ -135,193 +129,208 @@ func Code(err error) int32 {
 	if se := new(Error); errors.As(err, &se) {
 		return se.Code
 	}
+
 	return 2 // unknown
 }
 
 // New generates a custom error.
-func New(reason string, code int32, msg string, args ...interface{}) *Error {
-	return &Error{
-		Reason:  reason,
-		Code:    code,
-		Message: fmt.Sprintf(msg, args...),
-	}
+func New(reason string, msg string, args ...interface{}) *Error {
+	return &Error{Reason: reason, Message: fmt.Sprintf(msg, args...), Metadata: make(map[string]string)}
 }
 
 // BadRequest generates a 400 error.
-func BadRequest(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.InvalidArgument),
-		Message: fmt.Sprintf(format, a...),
+func BadRequest(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.InvalidArgument)
+	return err
 }
 
 // Unauthorized generates a 401 error.
-func Unauthorized(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.Unauthenticated),
-		Message: fmt.Sprintf(format, a...),
+func Unauthorized(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Unauthenticated)
+	return err
 }
 
 // Forbidden generates a 403 error.
-func Forbidden(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.PermissionDenied),
-		Message: fmt.Sprintf(format, a...),
+func Forbidden(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.PermissionDenied)
+	return err
 }
 
 // NotFound generates a 404 error.
-func NotFound(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.NotFound),
-		Message: fmt.Sprintf(format, a...),
+func NotFound(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.NotFound)
+	return err
 }
 
 // Timeout generates a 408 error.
-func Timeout(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.DeadlineExceeded),
-		Message: fmt.Sprintf(format, a...),
+func Timeout(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.DeadlineExceeded)
+	return err
 }
 
 // Conflict generates a 409 error.
-func Conflict(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.AlreadyExists),
-		Message: fmt.Sprintf(format, a...),
+func Conflict(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.AlreadyExists)
+	return err
 }
 
 // InternalServerError generates a 500 error.
-func InternalServerError(id, format string, a ...interface{}) error {
-	return &Error{
-		Reason:  id,
-		Code:    int32(codes.Internal),
-		Message: fmt.Sprintf(format, a...),
+func InternalServerError(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Internal)
+	return err
 }
 
 // Cancelled The operation was cancelled, typically by the caller.
 // HTTP Mapping: 499 Srv Closed Request
-func Cancelled(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    1,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func Cancelled(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Canceled)
+	return err
 }
 
 // Unknown error.
 // HTTP Mapping: 500 Internal Grpc Error
-func Unknown(reason, format string, a ...interface{}) error {
-	return &Error{
-		Code:    2,
-		Reason:  reason,
-		Message: fmt.Sprintf(format, a...),
+func Unknown(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Unknown)
+	return err
 }
 
 // InvalidArgument The client specified an invalid argument.
 // HTTP Mapping: 400 Bad Request
-func InvalidArgument(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    3,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func InvalidArgument(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.InvalidArgument)
+	return err
 }
 
 // DeadlineExceeded The deadline expired before the operation could complete.
 // HTTP Mapping: 504 Gateway Timeout
-func DeadlineExceeded(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    4,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func DeadlineExceeded(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.DeadlineExceeded)
+	return err
 }
 
 // AlreadyExists The entity that a client attempted to create (e.g., file or directory) already exists.
 // HTTP Mapping: 409 Conflict
-func AlreadyExists(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    6,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func AlreadyExists(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.AlreadyExists)
+	return err
 }
 
 // PermissionDenied The caller does not have permission to execute the specified operation.
 // HTTP Mapping: 403 Forbidden
-func PermissionDenied(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    7,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func PermissionDenied(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.PermissionDenied)
+	return err
 }
 
 // ResourceExhausted Some resource has been exhausted, perhaps a per-user quota, or
 // perhaps the entire file system is out of space.
 // HTTP Mapping: 429 Too Many Requests
-func ResourceExhausted(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    8,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func ResourceExhausted(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.ResourceExhausted)
+	return err
 }
 
 // FailedPrecondition The operation was rejected because the system is not in a state
 // required for the operation's execution.
 // HTTP Mapping: 400 Bad Request
-func FailedPrecondition(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    9,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func FailedPrecondition(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.FailedPrecondition)
+	return err
 }
 
 // Aborted The operation was aborted, typically due to a concurrency issue such as
 // a sequencer check failure or transaction abort.
 // HTTP Mapping: 409 Conflict
-func Aborted(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    10,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func Aborted(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Aborted)
+	return err
 }
 
 // OutOfRange The operation was attempted past the valid range.  E.g., seeking or
 // reading past end-of-file.
 // HTTP Mapping: 400 Bad Request
-func OutOfRange(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    11,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func OutOfRange(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.OutOfRange)
+	return err
 }
 
 // Unimplemented The operation is not implemented or is not supported/enabled in this service.
 // HTTP Mapping: 501 Not Implemented
-func Unimplemented(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    12,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func Unimplemented(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Unimplemented)
+	return err
 }
 
 // Internal This means that some invariants expected by the
@@ -329,30 +338,33 @@ func Unimplemented(id, format string, a ...interface{}) error {
 // for serious errors.
 //
 // HTTP Mapping: 500 Internal Grpc Error
-func Internal(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    13,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func Internal(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Internal)
+	return err
 }
 
 // Unavailable The service is currently unavailable.
 // HTTP Mapping: 503 Service Unavailable
-func Unavailable(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    14,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func Unavailable(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.Unavailable)
+	return err
 }
 
 // DataLoss Unrecoverable data loss or corruption.
 // HTTP Mapping: 500 Internal Grpc Error
-func DataLoss(id, format string, a ...interface{}) error {
-	return &Error{
-		Code:    15,
-		Reason:  id,
-		Message: fmt.Sprintf(format, a...),
+func DataLoss(err *Error) error {
+	if err == nil {
+		return nil
 	}
+
+	err.Code = int32(codes.DataLoss)
+	return err
 }

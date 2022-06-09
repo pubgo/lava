@@ -11,8 +11,7 @@
 *.dot
 *.svg
 *.db
-.lava/db
-.lava/proto
+.lava
 .env
 
 # Test binary, built with `go test -c`

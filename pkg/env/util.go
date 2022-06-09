@@ -14,7 +14,7 @@ func init() {
 	replacer := strings.NewReplacer("-", "_", ".", "_", "/", "_")
 	for _, env := range os.Environ() {
 		if envs := strings.SplitN(env, "=", 2); len(envs) == 2 && trim(envs[0]) != "" {
-			_ = os.Unsetenv(envs[0])
+			_ = os.Unsetenv(trim(envs[0]))
 			key := replacer.Replace(strcase.ToSnake(trim(envs[0])))
 			_ = os.Setenv(strings.ToUpper(key), envs[1])
 		}

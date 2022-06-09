@@ -1,17 +1,18 @@
 package config
 
 import (
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
 
 func init() {
 	vars.Register("config_data", func() interface{} {
-		if conf == nil {
-			return nil
-		}
-
-		return conf.All()
+		var conf = new(struct {
+			C Config `inject:""`
+		})
+		dix.Inject(&conf)
+		return conf.C.All()
 	})
 
 	vars.Register("config", func() interface{} {

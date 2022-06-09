@@ -2,33 +2,14 @@ package cmux
 
 import (
 	"container/heap"
-	"errors"
 	"net"
 	"strings"
 	"time"
 
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
-	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/typex"
 )
-
-func DefaultCfg() *Mux {
-	return &Mux{
-		Addr:        ":8080",
-		ReadTimeout: time.Second * 2,
-		HandleError: func(err error) bool {
-			if errors.Is(err, net.ErrClosed) {
-				return true
-			}
-
-			zap.L().Named("cmux").Error("cmux matcher failed", logutil.ErrField(err)...)
-			return true
-		},
-	}
-}
 
 type Matcher = cmux.Matcher
 type matchItem struct {

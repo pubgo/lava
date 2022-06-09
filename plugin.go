@@ -20,8 +20,8 @@ import (
 	//_ "github.com/pubgo/lava/core/metric/metric_builder"
 
 	// 用于系统诊断
-	_ "github.com/pubgo/lava/imports/import_gops"
-	_ "github.com/pubgo/lava/imports/import_grpc_log"
+	_ "github.com/pubgo/lava/modules/gops"
+	_ "github.com/pubgo/lava/modules/grpc_log"
 )
 
 // 加载middleware, 注意加载顺序

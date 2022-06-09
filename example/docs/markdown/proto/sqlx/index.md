@@ -118,7 +118,7 @@
 | sendType | [string](#string) |  | 发送类型,call ,sms |
 | ip | [string](#string) |  | ip
 
-模板 string template = 5 [(gogoproto.jsontag) = &#34;template&#34;]; |
+模板 string template = 5; |
 
 
 
@@ -137,7 +137,6 @@
 | msg | [string](#string) |  | msg |
 | nowTime | [int64](#int64) |  | 时间戳 @gotags: valid:&#34;ip&#34; custom_tag:&#34;custom_value&#34; |
 | data | [SendCodeResponse.DataEntry](#hello-v1-sqlx-SendCodeResponse-DataEntry) | repeated | 数据 |
-| response | [lava.Response](#lava-Response) |  |  |
 
 
 

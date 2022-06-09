@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/consts"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -16,12 +17,10 @@ import (
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/env"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/reflectx"
 	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/runtime"
 )
 
 var (
@@ -58,8 +57,8 @@ func newCfg() *configImpl {
 	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
 
 	// 加载自定义配置
-	t.LoadPath(customCfgPath(runtime.Mode.String()))
-	t.LoadPath(customCfgPath(runtime.Project))
+	//t.LoadPath(customCfgPath(app.Mode.String()))
+	//t.LoadPath(customCfgPath(app.Project))
 	return t
 }
 
@@ -76,7 +75,7 @@ type configImpl struct {
 
 func (t *configImpl) LoadEnv(names ...string) {
 	names = append(names, "cfg_env_prefix", "env_prefix")
-	loadEnv(env.Get(names...), t.v)
+	loadEnvFromPrefix(env.Get(names...), t.v)
 }
 
 func (t *configImpl) All() map[string]interface{} {
@@ -160,7 +159,7 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
 	var cfg *typex.RwMap
 	for _, data := range cast.ToSlice(t.Get(name)) {
 		var dm = xerror.PanicErr(cast.ToStringMapE(data)).(map[string]interface{})
-		resId := getResId(dm)
+		resId := getPkgId(dm)
 
 		if cfg == nil {
 			cfg = &typex.RwMap{}

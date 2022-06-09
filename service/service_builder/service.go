@@ -25,6 +25,7 @@ import (
 	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/mux"
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
@@ -33,7 +34,6 @@ import (
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
@@ -65,10 +65,10 @@ func newService(name string, desc ...string) *serviceImpl {
 			return err
 		})
 
-		if runtime.Project == "" {
-			runtime.Project = strings.Split(context.Command.Name, " ")[0]
+		if runmode.Project == "" {
+			runmode.Project = strings.Split(context.Command.Name, " ")[0]
 		}
-		xerror.Assert(runtime.Project == "", "project is null")
+		xerror.Assert(runmode.Project == "", "project is null")
 
 		for i := range g.deps {
 			if g.deps[i] == nil {
@@ -102,7 +102,7 @@ func newService(name string, desc ...string) *serviceImpl {
 		g.net = c
 		g.mux = mux
 		g.lifecycle = m
-		g.log = log.Named(runtime.Project)
+		g.log = log.Named(runmode.Project)
 
 		// 配置解析
 		xerror.Panic(cfg.UnmarshalKey(Name, &g.cfg))
@@ -170,7 +170,7 @@ func (t *serviceImpl) init() (gErr error) {
 			ctx.Response().Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
 			return adaptor.HTTPHandlerFunc(handler)(ctx)
 		})
-	}, "/"+runtime.Project, t.handlers, unaryInt, streamInt)
+	}, "/"+runmode.Project, t.handlers, unaryInt, streamInt)
 
 	// 注册系统middleware
 	t.grpcSrv.UnaryInterceptor(unaryInt)
@@ -225,8 +225,8 @@ func (t *serviceImpl) Flags(flags ...cli.Flag) {
 
 func (t *serviceImpl) Options() service.Options {
 	return service.Options{
-		Name:      runtime.Project,
-		Id:        runtime.AppID,
+		Name:      runmode.Project,
+		Id:        runmode.InstanceID,
 		Version:   version.Version,
 		Port:      netutil.MustGetPort(t.net.Addr),
 		Addr:      t.net.Addr,

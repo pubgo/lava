@@ -2,6 +2,7 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
-	"github.com/pubgo/lava/runtime"
 )
 
 // GetSpanID 从SpanContext中获取tracerID和spanID
@@ -30,7 +30,7 @@ func New(cfg Cfg) (err error) {
 
 	cfg.Disabled = false
 	if cfg.ServiceName == "" {
-		cfg.ServiceName = runtime.Project
+		cfg.ServiceName = runmode.Project
 	}
 
 	if cfg.Sampler != nil {
@@ -41,8 +41,8 @@ func New(cfg Cfg) (err error) {
 	}
 
 	metricsFactory := jprom.New().
-		Namespace(metrics.NSOptions{Name: runtime.Domain, Tags: nil}).
-		Namespace(metrics.NSOptions{Name: runtime.Project, Tags: nil})
+		Namespace(metrics.NSOptions{Name: runmode.Domain, Tags: nil}).
+		Namespace(metrics.NSOptions{Name: runmode.Project, Tags: nil})
 
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),

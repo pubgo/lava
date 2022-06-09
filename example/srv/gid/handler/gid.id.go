@@ -69,7 +69,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := id.snowflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate snowflake id: %v", err)
-			return nil, errors.InternalServerError("id.generate", "failed to mint snowflake id")
+			return nil, errors.InternalServerError(errors.New("id.generate", "failed to mint snowflake id"))
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -77,7 +77,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := id.bigflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate bigflake id: %v", err)
-			return nil, errors.InternalServerError("id.generate", "failed to mint bigflake id")
+			return nil, errors.InternalServerError(errors.New("id.generate", "failed to mint bigflake id"))
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -85,12 +85,12 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := shortid.Generate()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate shortid id: %v", err)
-			return nil, errors.InternalServerError("id.generate", "failed to generate short id")
+			return nil, errors.InternalServerError(errors.New("id.generate", "failed to generate short id"))
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.InvalidArgument("id.generate", "unsupported id type")
+		return nil, errors.InvalidArgument(errors.New("id.generate", "unsupported id type"))
 	}
 
 	return rsp, nil

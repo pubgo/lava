@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"github.com/goccy/go-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -93,33 +93,40 @@ func IsMemoryErr(err error) bool {
 // FromError try to convert an error to *Error.
 // It supports wrapped errors.
 func FromError(err error) *Error {
-	if err == nil {
+	switch err.(type) {
+	case nil:
 		return nil
+	case *Error:
+		return err.(*Error)
+	}
+
+	// grpc error
+	gs, ok := err.(interface{ GRPCStatus() *status.Status })
+	if ok {
+		if gs.GRPCStatus().Code() == codes.OK {
+			return nil
+		}
+
+		var e = new(Error)
+		if json.Unmarshal([]byte(gs.GRPCStatus().Message()), e) == nil {
+			return e
+		}
+
+		return &Error{
+			Code:    int32(gs.GRPCStatus().Code()),
+			Reason:  "",
+			Message: gs.GRPCStatus().Message(),
+		}
 	}
 
 	if se := new(Error); errors.As(err, &se) {
 		return se
 	}
 
-	// grpc error
-	gs, ok := status.FromError(err)
-	if ok {
-		ret := New("lava.grpc.error", int32(gs.Code()), gs.Message())
-		for _, detail := range gs.Details() {
-			switch d := detail.(type) {
-			case *errdetails.ErrorInfo:
-				ret.Reason = d.Reason
-				return ret.WithMetadata(d.Metadata)
-			}
-		}
-		return ret
-	}
-
 	return &Error{
-		Code:     int32(Err2GrpcCode(err)),
-		Reason:   "lava.unknown.error",
+		Code:     int32(codes.Unknown),
 		Message:  err.Error(),
-		Metadata: map[string]string{"detail": fmt.Sprintf("%v", err)},
+		Metadata: map[string]string{"detail": fmt.Sprintf("%#v", err)},
 	}
 }
 

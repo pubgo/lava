@@ -3,8 +3,8 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/dix"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/x/merge"
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

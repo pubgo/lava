@@ -4,11 +4,8 @@ package hello.v1.sqlx;
 
 option go_package = "./sqlxpb";
 
-import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "lava/sql.proto";
-import "lava/resty.proto";
-import "lava/tags.proto";
+import "retag/retag.proto";
 
 // 验证码
 service Code {
@@ -17,9 +14,6 @@ service Code {
     option (google.api.http) = {
       post: "/user/code/send-code"
       body: "*"
-    };
-    option (lava.sqlx) = {
-      query: "insert into",
     };
   }
 
@@ -59,137 +53,136 @@ service Code {
 message SendCodeRequest {
   // 区号
   string nationCode = 1 [
-    (lava.tags) = {key:"hello",value:"world"},
-    (lava.tags) = {key:"hello1",value:"world1"}
+    (retag.tags) = {name:"hello",value:"world"},
+    (retag.tags) = {name:"hello1",value:"world1"}
   ];
 
   oneof one_of {
-    option (lava.oneof_tags) = {key:"json",value:"world"};
-    string a = 5 [(lava.tags) = {key:"json",value:"world"}];
+    option (retag.oneof_tags) = {name:"json",value:"world"};
+    string a = 5 [(retag.tags) = {name:"json",value:"world"}];
   }
 
   // 电话
-  string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+  string telephone = 2;
   // 发送类型,call ,sms
-  string sendType = 3 [(gogoproto.jsontag) = "sendType"];
+  string sendType = 3;
   // ip
-  string ip = 4 [(gogoproto.jsontag) = "ip"];
+  string ip = 4;
   // 模板
-//  string template = 5 [(gogoproto.jsontag) = "template"];
+//  string template = 5;
 }
 
 message SendCodeResponse {
   // code
-  int64 code = 1 [(gogoproto.jsontag) = "code"];
+  int64 code = 1;
   // msg
-  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  string msg = 2;
   // 时间戳
   // @gotags: valid:"ip" custom_tag:"custom_value"
-  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  int64 nowTime = 3;
   // 数据
-  map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
-  lava.Response response = 6;
+  map<string, string> data = 4;
 }
 
 message VerifyRequest {
   // 区号
-  string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+  string nationCode = 1;
   // 手机号
-  string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+  string telephone = 2;
   // 验证码
-  string code = 3 [(gogoproto.jsontag) = "code"];
+  string code = 3;
   // 模板
-  string template = 4 [(gogoproto.jsontag) = "template"];
+  string template = 4;
 }
 
 message VerifyResponse {
   // code
-  int64 code = 1 [(gogoproto.jsontag) = "code"];
+  int64 code = 1;
   // msg
-  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  string msg = 2;
   // 时间戳
-  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  int64 nowTime = 3;
   // 数据
-  map<string, string> data = 4 [(gogoproto.jsontag) = "data"];
+  map<string, string> data = 4;
 }
 
 message IsCheckImageCodeRequest {
   // 区号
-  string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+  string nationCode = 1;
   // 手机号
-  string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+  string telephone = 2;
   // 场景
-  string scene = 3 [(gogoproto.jsontag) = "scene"];
+  string scene = 3;
 }
 
 message IsCheckImageCodeResponse {
   // code
-  int64 code = 1 [(gogoproto.jsontag) = "code"];
+  int64 code = 1;
   // msg
-  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  string msg = 2;
   // 时间戳
-  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  int64 nowTime = 3;
   // 数据
-  bool data = 4 [(gogoproto.jsontag) = "data"];
+  bool data = 4;
 }
 
 message VerifyImageCodeRequest {
   // 区号
-  string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+  string nationCode = 1;
   // 手机号
-  string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+  string telephone = 2;
   // 图形验证码ticket
-  string ticket = 3 [(gogoproto.jsontag) = "ticket"];
+  string ticket = 3;
   // 图形验证码randStr
-  string randStr = 4 [(gogoproto.jsontag) = "randStr"];
+  string randStr = 4;
   // 图形验证码ip
-  string ip = 5 [(gogoproto.jsontag) = "ip"];
+  string ip = 5;
   // 场景
-  string scene = 6 [(gogoproto.jsontag) = "scene"];
+  string scene = 6;
 }
 
 message VerifyImageCodeResponse {
   // code
-  int64 code = 1 [(gogoproto.jsontag) = "code"];
+  int64 code = 1;
   // msg
-  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  string msg = 2;
   // 时间戳
-  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  int64 nowTime = 3;
 }
 
 message GetSendStatusRequest {
   // 区号
-  string nationCode = 1 [(gogoproto.jsontag) = "nationCode"];
+  string nationCode = 1;
   // 手机号
-  string telephone = 2 [(gogoproto.jsontag) = "telephone"];
+  string telephone = 2;
   // 发送类型
-  string sendType = 3 [(gogoproto.jsontag) = "sendType"];
+  string sendType = 3;
   // 模板
-  string template = 4 [(gogoproto.jsontag) = "template"];
+  string template = 4;
   // 是否越狱标示
-  int64 signR = 5 [(gogoproto.jsontag) = "signR"];
+  int64 signR = 5;
   // ip
-  string ip = 6 [(gogoproto.jsontag) = "ip"];
+  string ip = 6;
 }
 
 message GetSendStatusResponse {
   // code
-  int64 code = 1 [(gogoproto.jsontag) = "code"];
+  int64 code = 1;
   // msg
-  string msg = 2 [(gogoproto.jsontag) = "msg"];
+  string msg = 2;
   // 时间戳
-  int64 nowTime = 3 [(gogoproto.jsontag) = "nowTime"];
+  int64 nowTime = 3;
   // 数据
-  SendStatus data = 4 [(gogoproto.jsontag) = "data"];
+  SendStatus data = 4;
 }
 
 message SendStatus {
   // 需要图形验证码
-  bool needImageCode = 1 [(gogoproto.jsontag) = "needImageCode"];
+  bool needImageCode = 1;
   // 强制语音
-  bool forceCall = 2 [(gogoproto.jsontag) = "forceCall"];
+  bool forceCall = 2;
   // 被禁止
-  bool isForbidden = 3 [(gogoproto.jsontag) = "isForbidden"];
+  bool isForbidden = 3;
   // 数量超限制
-  bool numberLimit = 4 [(gogoproto.jsontag) = "numberLimit"];
+  bool numberLimit = 4;
 }

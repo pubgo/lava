@@ -2,16 +2,15 @@ package metric
 
 import (
 	"context"
-	middleware2 "github.com/pubgo/lava/core/middleware"
-
 	"github.com/pubgo/dix"
+	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/runtime"
 )
 
 func init() {
@@ -27,7 +26,7 @@ func init() {
 		if opts == nil {
 			opts = &tally.ScopeOptions{Reporter: tally.NullStatsReporter}
 		}
-		opts.Tags = Tags{logkey.Project: runtime.Project}
+		opts.Tags = Tags{logkey.Project: runmode.Project}
 		if cfg.Separator != "" {
 			opts.Separator = cfg.Separator
 		}

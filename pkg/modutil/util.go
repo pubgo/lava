@@ -1,7 +1,7 @@
 package modutil
 
 import (
-	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/core/runmode"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,7 +26,7 @@ func getFileByRecursion(file string, path string) string {
 }
 
 func GoModPath() string {
-	return getFileByRecursion("go.mod", runtime.Pwd)
+	return getFileByRecursion("go.mod", runmode.Pwd)
 }
 
 func LoadVersions() map[string]string {

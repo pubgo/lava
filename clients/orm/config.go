@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"github.com/pubgo/lava/core/runmode"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -13,7 +14,6 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/runtime"
 )
 
 type Cfg struct {
@@ -50,7 +50,7 @@ func (t *Cfg) Create() *gorm.DB {
 	var ormCfg = &gorm.Config{}
 	xerror.Panic(merge.Struct(ormCfg, t))
 	var level = gl.Info
-	if runtime.IsProd() || runtime.IsRelease() {
+	if runmode.IsProd() || runmode.IsRelease() {
 		level = gl.Error
 	}
 

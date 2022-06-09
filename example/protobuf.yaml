@@ -1,5 +1,5 @@
 proto-path: ../.lava/proto
-checksum: d9b9eb272dc1b0cc4ff88e26c53256423b410eae
+checksum: f6e6b1b83b55ba43a975fa0df78357bbebe141a6
 root:
 - proto
 - rsocket
@@ -15,14 +15,12 @@ deps:
 - name: go-proto-validators
   url: github.com/mwitkow/go-proto-validators
   version: v0.3.2
-- name: gogoproto
-  url: github.com/gogo/protobuf
-  path: /gogoproto
-  version: v1.3.2
-- name: lava
-  url: /Users/barry/git/lava/proto/lava
 - name: google/protobuf
   url: /usr/local/include/google/protobuf
+- name: retag
+  url: github.com/pubgo/protobuild
+  path: /retag
+  version: v0.0.7
 plugins:
 - name: go
   out: protopb

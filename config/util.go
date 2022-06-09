@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/consts"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,18 +11,17 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/pkg/env"
 )
 
-const resKey = "name"
+const pkgKey = "name"
 
-func getResId(m map[string]interface{}) string {
+func getPkgId(m map[string]interface{}) string {
 	if m == nil {
 		return consts.KeyDefault
 	}
 
-	var val, ok = m[resKey]
+	var val, ok = m[pkgKey]
 	if !ok || val == nil {
 		return consts.KeyDefault
 	}
@@ -51,7 +51,7 @@ func strMap(strList []string, fn func(str string) string) []string {
 	return strList
 }
 
-func loadEnv(envPrefix string, v *viper.Viper) {
+func loadEnvFromPrefix(envPrefix string, v *viper.Viper) {
 	if envPrefix == "" {
 		return
 	}
@@ -64,11 +64,11 @@ func loadEnv(envPrefix string, v *viper.Viper) {
 			continue
 		}
 
-		vals := strings.SplitN(val, "=", 2)
-		if len(vals) != 2 {
+		envs := strings.SplitN(val, "=", 2)
+		if len(envs) != 2 || envs[0] == "" {
 			continue
 		}
 
-		v.Set(strings.TrimSpace(vals[0]), strings.TrimSpace(vals[1]))
+		v.Set(strings.TrimSpace(envs[0]), strings.TrimSpace(envs[1]))
 	}
 }

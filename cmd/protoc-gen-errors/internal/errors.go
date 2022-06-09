@@ -86,14 +86,7 @@ func genError(gen *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFi
 	})
 
 	var content = `
-var Err{{.name}}{{.value}} = &errors.Error{Reason: "{{.comment}}", Code: {{.code}}}
-func Is{{.name}}{{.value}}(err error) bool {
-	e := errors.FromError(err)
-	if e == nil {
-		return false
-	}
-	return e.Code == Err{{.name}}{{.value}}.Code
-}
+var Err{{.name}}{{.value}} = &errors.Error{Message: "{{.comment}}", Reason: "{{.code}}"}
 `
 	tmpl, err := template.New("errors").Parse(content)
 	xerror.Panic(err)

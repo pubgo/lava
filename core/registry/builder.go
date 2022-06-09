@@ -13,10 +13,10 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/runtime"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
@@ -116,7 +116,7 @@ func Register(reg Registry, app service.AppInfo) (err error) {
 		Port:     port,
 		Version:  version.Version,
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
+		Id:       opt.Name + "-" + runmode.Hostname + "-" + opt.Id,
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
@@ -162,7 +162,7 @@ func Deregister(reg Registry, app service.AppInfo) (err error) {
 	node := &Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       opt.Name + "-" + runtime.Hostname + "-" + opt.Id,
+		Id:       opt.Name + "-" + runmode.Hostname + "-" + opt.Id,
 		Metadata: make(map[string]string),
 	}
 

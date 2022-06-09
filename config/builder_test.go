@@ -17,7 +17,6 @@ func TestName(t *testing.T) {
 
 	var c = newCfg()
 	assert.So(c, should.NotBeNil)
-
 	assert.So(c.GetString("app.name"), should.Equal, "hello")
 	assert.So(c.GetString("app.home"), should.Equal, c.GetString("app.project"))
 }

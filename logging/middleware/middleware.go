@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	"time"
 
 	"github.com/DataDog/gostackparse"
@@ -13,6 +12,7 @@ import (
 	"go.uber.org/zap"
 	"runtime/debug"
 
+	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
@@ -67,7 +67,7 @@ func init() {
 						case error:
 							err = c.(error)
 						default:
-							err = errors.Internal("panic", "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
+							err = errors.Internal(errors.New("panic", "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err))
 						}
 					}
 

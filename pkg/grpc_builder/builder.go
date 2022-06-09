@@ -1,13 +1,12 @@
 package grpc_builder
 
 import (
+	"github.com/pubgo/lava/core/runmode"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-
-	"github.com/pubgo/lava/runtime"
 )
 
 type Builder struct {
@@ -54,7 +53,7 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 
 	EnableReflection(t.srv)
 	EnableHealth("", t.srv)
-	if runtime.IsDev() || runtime.IsTest() {
+	if runmode.IsDev() || runmode.IsTest() {
 		EnableDebug(t.srv)
 	}
 

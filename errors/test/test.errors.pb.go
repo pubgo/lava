@@ -16,22 +16,6 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-var ErrTestNotFound = &errors.Error{Reason: "NotFound 找不到", Code: 100000}
+var ErrTestNotFound = &errors.Error{Message: "NotFound 找不到", Reason: "100000"}
 
-func IsTestNotFound(err error) bool {
-	e := errors.FromError(err)
-	if e == nil {
-		return false
-	}
-	return e.Code == ErrTestNotFound.Code
-}
-
-var ErrTestUnknown = &errors.Error{Reason: "Unknown 未知", Code: 100001}
-
-func IsTestUnknown(err error) bool {
-	e := errors.FromError(err)
-	if e == nil {
-		return false
-	}
-	return e.Code == ErrTestUnknown.Code
-}
+var ErrTestUnknown = &errors.Error{Message: "Unknown 未知", Reason: "100001"}

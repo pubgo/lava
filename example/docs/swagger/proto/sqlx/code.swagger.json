@@ -183,21 +183,6 @@
     }
   },
   "definitions": {
-    "lavaResponse": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "headers": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -368,9 +353,6 @@
             "type": "string"
           },
           "title": "数据"
-        },
-        "response": {
-          "$ref": "#/definitions/lavaResponse"
         }
       }
     },

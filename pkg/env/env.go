@@ -1,12 +1,11 @@
 package env
 
 import (
+	"fmt"
+	"github.com/pubgo/xerror"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/pubgo/lava/pkg/errutil"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var trim = strings.TrimSpace
@@ -24,14 +23,12 @@ func Get(names ...string) string {
 func MustGet(names ...string) string {
 	var val string
 	GetWith(&val, names...)
-	if val == "" {
-		panic(&errutil.Err{
-			Msg: "env not found",
-			Detail: typex.M{
-				"names": names,
-				"all":   os.Environ(),
-			}})
-	}
+	xerror.AssertFn(val == "", func() error {
+		return &xerror.Err{
+			Msg:    "env not found",
+			Detail: fmt.Sprintf("names=%v", names),
+		}
+	})
 	return trim(val)
 }
 

@@ -1,9 +1,8 @@
 version: v1
-proto-path: /Users/barry/git/lava/.proto
-checksum: da385e0b0d9ed89d8ba2befd15f3975171d76472
+proto-path: .lava/proto
+checksum: d3d25ca54f9a3d09b40aa480ecc9fc3de2e2a91b
 root:
 - event
-- proto
 - errors
 deps:
 - name: google
@@ -17,10 +16,6 @@ deps:
 - name: go-proto-validators
   url: github.com/mwitkow/go-proto-validators
   version: v0.3.2
-- name: gogoproto
-  url: github.com/gogo/protobuf
-  path: /gogoproto
-  version: v1.3.2
 - name: google/protobuf
   url: /usr/local/include/google/protobuf
 - name: retag

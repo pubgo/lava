@@ -2,6 +2,7 @@ package gcnotifier
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/runmode"
 
 	"github.com/CAFxX/gcnotifier"
 	"go.uber.org/fx"
@@ -9,7 +10,6 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/runtime"
 )
 
 var Name = "gc"
@@ -17,7 +17,7 @@ var logs = logging.Component(Name)
 
 func Module() fx.Option {
 	return fx.Invoke(func(r lifecycle.Lifecycle) {
-		if runtime.IsProd() || runtime.IsRelease() {
+		if runmode.IsProd() || runmode.IsRelease() {
 			return
 		}
 

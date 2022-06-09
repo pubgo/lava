@@ -2,6 +2,7 @@ package sockets
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/golang/protobuf/proto"
@@ -103,7 +104,7 @@ func (t *Client) Invoke(ctx context.Context, method string, args interface{}, re
 
 			// code不是0, 服务端数据处理有问题
 			if respMd.Code != 0 {
-				return errors.New("server response", respMd.Code, respMd.Msg)
+				return fmt.Errorf("server response")
 			}
 
 			// TODO 处理 metadata
@@ -220,7 +221,7 @@ func (s *clientStream) SendMsg(m interface{}) error {
 	}
 
 	if m == nil {
-		return errors.InvalidArgument("clientStream.SendMsg", "message to send is nil")
+		return errors.InvalidArgument(errors.New("clientStream.SendMsg", "message to send is nil"))
 	}
 
 	var data, err = s.cdc.Marshal(m)
@@ -256,7 +257,7 @@ func (s *clientStream) RecvMsg(m interface{}) error {
 
 			// code不是0, 服务端数据处理有问题
 			if req.Code != 0 {
-				return errors.New("server response", req.Code, req.Msg)
+				return errors.Internal(errors.New("server.response.code", "code=%d msg=%s", req.Code, req.Msg))
 			}
 
 			// 处理 metadata
