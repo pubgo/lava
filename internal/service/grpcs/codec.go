@@ -1,4 +1,4 @@
-package service_builder
+package grpcs
 
 import (
 	encoding3 "github.com/pubgo/lava/encoding"

@@ -1,4 +1,4 @@
-package service_builder
+package grpcs
 
 import (
 	"github.com/gofiber/fiber/v2"

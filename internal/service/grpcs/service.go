@@ -1,8 +1,9 @@
-package service_builder
+package grpcs
 
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/router"
 	"net"
 	"net/http"
 	"strings"
@@ -23,7 +24,6 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	middleware2 "github.com/pubgo/lava/core/middleware"
-	"github.com/pubgo/lava/core/mux"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
@@ -97,7 +97,7 @@ func newService(name string, desc ...string) *serviceImpl {
 		m lifecycle.Lifecycle,
 		log *logging.Logger,
 		cfg config.Config,
-		mux *mux.Mux,
+		mux *router.App,
 		_ *registry.Loader) {
 		g.net = c
 		g.mux = mux
@@ -127,7 +127,7 @@ type serviceImpl struct {
 	cfg     Cfg
 	grpcSrv grpc_builder.Builder
 	httpSrv fiber_builder.Builder
-	mux     *mux.Mux
+	mux     *router.App
 
 	deps []interface{}
 

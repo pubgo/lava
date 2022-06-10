@@ -36,7 +36,7 @@ require (
 	github.com/pubgo/xerror v0.4.30
 	github.com/reugn/go-quartz v0.3.7
 	github.com/segmentio/ksuid v1.0.3
-	github.com/soheilhy/cmux v0.1.4
+	github.com/soheilhy/cmux v0.1.5
 	github.com/spf13/viper v1.10.0
 	github.com/swaggo/http-swagger v1.1.1
 	github.com/uber-go/tally v3.4.2+incompatible
@@ -205,7 +205,6 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc/examples v0.0.0-20220401201435-0066bf69deb3 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gorm.io/driver/postgres v1.3.7 // indirect
