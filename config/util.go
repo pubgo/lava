@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/pkg/env"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,8 +11,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
-
-	"github.com/pubgo/lava/pkg/env"
 )
 
 const pkgKey = "name"

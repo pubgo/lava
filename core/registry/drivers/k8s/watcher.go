@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/k8s"
 
 	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/pkg/k8s"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)

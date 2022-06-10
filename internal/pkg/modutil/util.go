@@ -2,14 +2,13 @@ package modutil
 
 import (
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
-
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 func getFileByRecursion(file string, path string) string {

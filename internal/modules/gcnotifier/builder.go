@@ -2,6 +2,7 @@ package gcnotifier
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 
 	"github.com/pubgo/dix"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/syncx"
 )
 
 var Name = "gc"

@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/httpx"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,9 +13,6 @@ import (
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
-
-	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 const (

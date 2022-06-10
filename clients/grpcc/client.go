@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"net"
 	"strings"
 	"sync"
@@ -17,7 +18,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)

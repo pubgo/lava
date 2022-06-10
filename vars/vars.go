@@ -2,11 +2,10 @@ package vars
 
 import (
 	"expvar"
+	"github.com/pubgo/lava/internal/pkg/utils"
 
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 func Float(name string) *expvar.Float {

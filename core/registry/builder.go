@@ -3,6 +3,8 @@ package registry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/netutil"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"strconv"
 	"strings"
 	"time"
@@ -15,8 +17,6 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/pkg/syncx"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )

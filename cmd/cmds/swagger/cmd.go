@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/clix"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"html/template"
 	"io/fs"
 	"io/ioutil"
@@ -19,8 +20,6 @@ import (
 	"github.com/pubgo/xerror"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/urfave/cli/v2"
-
-	"github.com/pubgo/lava/pkg/clix"
 )
 
 var Cmd = &cli.Command{

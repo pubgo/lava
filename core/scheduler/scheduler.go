@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}

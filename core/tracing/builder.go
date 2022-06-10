@@ -3,11 +3,11 @@ package tracing
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 func init() {

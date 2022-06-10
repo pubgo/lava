@@ -2,15 +2,14 @@ package healthcmd
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/clix"
+	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
-
-	"github.com/pubgo/lava/pkg/clix"
-	"github.com/pubgo/lava/pkg/netutil"
 )
 
 func Cmd() *cli.Command {
@@ -29,7 +28,7 @@ func Cmd() *cli.Command {
 				addr = ctx.Args().First()
 			}
 
-			var resp, err = http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr)))
+			var resp, err = http.Get(fmt.Sprintf("http://%s:%d/health", netutil2.GetLocalIP(), netutil2.MustGetPort(addr)))
 			xerror.Panic(err)
 			xerror.Assert(resp.StatusCode != http.StatusOK, "health check")
 			_, _ = io.Copy(os.Stdout, resp.Body)

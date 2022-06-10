@@ -4,6 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/core/router"
+	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
+	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
+	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"net"
 	"net/http"
 	"strings"
@@ -29,11 +34,6 @@ import (
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/fiber_builder"
-	"github.com/pubgo/lava/pkg/grpc_builder"
-	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
@@ -50,12 +50,12 @@ func newService(name string, desc ...string) *serviceImpl {
 			Flags: flags.GetFlags(),
 		},
 		cfg: Cfg{
-			Grpc: grpc_builder.GetDefaultCfg(),
-			Api:  &fiber_builder.Cfg{},
+			Grpc: grpc_builder2.GetDefaultCfg(),
+			Api:  &fiber_builder2.Cfg{},
 		},
 		Lifecycle: lifecycle.New(),
-		grpcSrv:   grpc_builder.New(),
-		httpSrv:   fiber_builder.New(),
+		grpcSrv:   grpc_builder2.New(),
+		httpSrv:   fiber_builder2.New(),
 		handlers:  grpchan.HandlerMap{},
 	}
 
@@ -125,8 +125,8 @@ type serviceImpl struct {
 	net *cmux.Mux
 
 	cfg     Cfg
-	grpcSrv grpc_builder.Builder
-	httpSrv fiber_builder.Builder
+	grpcSrv grpc_builder2.Builder
+	httpSrv fiber_builder2.Builder
 	mux     *router.App
 
 	deps []interface{}
@@ -228,7 +228,7 @@ func (t *serviceImpl) Options() service.Options {
 		Name:      runmode.Project,
 		Id:        runmode.InstanceID,
 		Version:   version.Version,
-		Port:      netutil.MustGetPort(t.net.Addr),
+		Port:      netutil2.MustGetPort(t.net.Addr),
 		Addr:      t.net.Addr,
 		Advertise: "",
 	}
@@ -251,7 +251,7 @@ func (t *serviceImpl) start() (gErr error) {
 	var gwLn = t.net.HTTP1()
 
 	logutil.OkOrPanic(t.log, "service start", func() error {
-		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil.GetLocalIP(), netutil.MustGetPort(t.net.Addr))
+		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil2.GetLocalIP(), netutil2.MustGetPort(t.net.Addr))
 
 		// 启动grpc网关
 		syncx.GoDelay(func() {

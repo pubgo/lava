@@ -3,7 +3,7 @@ package fiber_builder
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/xerror"
 )
 

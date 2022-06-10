@@ -2,6 +2,7 @@ package grpcc_resolver
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"sync"
 
 	"github.com/kr/pretty"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/pkg/syncx"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)

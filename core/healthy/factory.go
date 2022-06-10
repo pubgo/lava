@@ -1,10 +1,9 @@
 package healthy
 
 import (
+	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 const Name = "health"

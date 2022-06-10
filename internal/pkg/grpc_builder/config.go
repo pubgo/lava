@@ -40,10 +40,10 @@ type Cfg struct {
 	Dc                    string          `json:"dc"`
 	HeaderTableSize       int64           `json:"header_table_size"`
 	InitialConnWindowSize int64           `json:"initial_conn_window_size"`
-	InitialWindowSize     int64           `json:"initial_window_size"`
-	KeepaliveParams       KeepaliveParams `json:"keepalive_params"`
-	KeepalivePolicy       KeepalivePolicy `json:"keepalive_policy"`
-	MaxConcurrentStreams  int64           `json:"max_concurrent_streams"`
+	InitialWindowSize    int64           `json:"initial_window_size"`
+	KeepaliveParams      KeepaliveParams `json:"keepalive_params"`
+	KeepalivePolicy      KeepalivePolicy `json:"keepalive_policy"`
+	MaxConcurrentStreams int64           `json:"max_concurrent_streams"`
 	MaxHeaderListSize     int64           `json:"max_header_list_size"`
 	MaxRecvMsgSize        int             `json:"max_recv_msg_size"`
 	MaxSendMsgSize        int             `json:"max_send_msg_size"`

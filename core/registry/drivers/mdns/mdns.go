@@ -4,6 +4,8 @@ package mdns
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"time"
 
 	"github.com/grandcat/zeroconf"
@@ -13,8 +15,6 @@ import (
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 const (

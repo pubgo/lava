@@ -1,6 +1,8 @@
 package runmode
 
 import (
+	"github.com/pubgo/lava/internal/pkg/env"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -9,9 +11,6 @@ import (
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 // 默认的全局配置

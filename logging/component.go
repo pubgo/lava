@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"sync"
 
 	"github.com/pubgo/xerror"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var loggerMap sync.Map

@@ -2,7 +2,7 @@ package metric
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
 	"github.com/uber-go/tally"
 )

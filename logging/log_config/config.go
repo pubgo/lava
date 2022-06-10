@@ -3,6 +3,7 @@ package log_config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"os"
 	"path/filepath"
 
@@ -10,8 +11,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
-
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 var (

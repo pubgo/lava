@@ -3,6 +3,10 @@ package config
 import (
 	"fmt"
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/pkg/env"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/internal/pkg/reflectx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -16,11 +20,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
-
-	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/pkg/reflectx"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var (
@@ -54,7 +53,7 @@ func newCfg() *configImpl {
 
 	CfgPath = v.ConfigFileUsed()
 	CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
-	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
+	xerror.Panic(env.Set(consts.EnvCfgDir, CfgDir))
 
 	// 加载自定义配置
 	//t.LoadPath(customCfgPath(app.Mode.String()))

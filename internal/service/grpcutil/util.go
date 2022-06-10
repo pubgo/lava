@@ -2,8 +2,8 @@ package grpcutil
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/pkg/grpcutil"
 
-	"github.com/pubgo/lava/pkg/grpcutil"
 	"google.golang.org/grpc/metadata"
 )
 

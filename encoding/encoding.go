@@ -1,9 +1,8 @@
 package encoding
 
 import (
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var data typex.Map

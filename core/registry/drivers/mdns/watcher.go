@@ -2,6 +2,8 @@ package mdns
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -10,8 +12,6 @@ import (
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/syncx"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var logs = logging.Component(Name)

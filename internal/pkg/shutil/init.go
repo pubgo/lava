@@ -1,6 +1,8 @@
 package shutil
 
-import "github.com/pubgo/lava/pkg/env"
+import (
+	"github.com/pubgo/lava/internal/pkg/env"
+)
 
 var debug = false
 

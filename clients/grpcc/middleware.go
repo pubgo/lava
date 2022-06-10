@@ -3,6 +3,8 @@ package grpcc
 import (
 	"context"
 	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/grpcutil"
+	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"strings"
 	"time"
 
@@ -12,8 +14,6 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
@@ -28,7 +28,7 @@ func head2md(header interface {
 	VisitAll(f func(key, value []byte))
 }, md metadata.MD) {
 	header.VisitAll(func(key, value []byte) {
-		md.Append(utils.BtoS(key), utils.BtoS(value))
+		md.Append(utils2.BtoS(key), utils2.BtoS(value))
 	})
 }
 
@@ -62,7 +62,7 @@ func unaryInterceptor(middlewares []middleware2.Middleware) grpc.UnaryClientInte
 		}
 
 		// get content type
-		ct := utils.FirstFnNotEmpty(func() string {
+		ct := utils2.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")
@@ -135,7 +135,7 @@ func streamInterceptor(middlewares []middleware2.Middleware) grpc.StreamClientIn
 		}
 
 		// get content type
-		ct := utils.FirstFnNotEmpty(func() string {
+		ct := utils2.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")

@@ -1,11 +1,10 @@
 package syncx
 
 import (
+	"github.com/pubgo/lava/internal/pkg/fastrand"
 	"sync"
 	"sync/atomic"
 	_ "unsafe"
-
-	"github.com/pubgo/lava/pkg/fastrand"
 )
 
 const DefaultConcurrent = 16

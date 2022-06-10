@@ -2,11 +2,11 @@ package cmux
 
 import (
 	"container/heap"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"net"
 	"strings"
 	"time"
 
-	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/xerror"
 	"github.com/soheilhy/cmux"
 )

@@ -2,11 +2,11 @@ package mdns
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 func init() {

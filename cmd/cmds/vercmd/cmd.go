@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/clix"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"os"
 	"runtime/debug"
 
@@ -11,8 +13,6 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/pkg/clix"
-	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/version"
 )
 

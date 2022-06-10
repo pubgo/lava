@@ -1,12 +1,11 @@
 package config
 
 import (
+	"github.com/pubgo/lava/internal/pkg/env"
 	"testing"
 
 	"github.com/smartystreets/assertions"
 	"github.com/smartystreets/assertions/should"
-
-	"github.com/pubgo/lava/pkg/env"
 )
 
 func TestName(t *testing.T) {

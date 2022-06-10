@@ -3,6 +3,7 @@ package grpcs
 import (
 	"context"
 	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/internal/service/grpcutil"
 	"strings"
 	"time"
@@ -13,8 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 func (t *serviceImpl) handlerHttpMiddle(middlewares []middleware2.Middleware) func(fbCtx *fiber.Ctx) error {

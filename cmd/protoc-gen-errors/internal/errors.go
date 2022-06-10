@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/protoutil"
 	"strings"
 	"text/template"
 
@@ -10,7 +11,6 @@ import (
 	gp "google.golang.org/protobuf/proto"
 
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/pkg/protoutil"
 )
 
 var (

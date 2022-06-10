@@ -4,15 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	retry2 "github.com/pubgo/lava/internal/pkg/retry"
 	"github.com/pubgo/lava/logging"
 	"net/http"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
-
-	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/pkg/retry"
 )
 
 type Cfg struct {
@@ -26,7 +25,7 @@ type Cfg struct {
 	Header      map[string]string `yaml:"header"`
 	Middlewares []string          `yaml:"middlewares"`
 	BasePath    string            `yaml:"base-path"`
-	backoff     retry.Backoff
+	backoff     retry2.Backoff
 	tlsConfig   *tls.Config
 }
 
@@ -38,7 +37,7 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	}
 
 	if t.Timeout != 0 {
-		t.backoff = retry.NewConstant(t.Timeout)
+		t.backoff = retry2.NewConstant(t.Timeout)
 	}
 
 	c := &http.Client{Transport: DefaultPooledTransport()}
@@ -69,7 +68,7 @@ func DefaultCfg() *Cfg {
 	return &Cfg{
 		Timeout:     defaultHTTPTimeout,
 		RetryCount:  defaultRetryCount,
-		backoff:     retry.NewNoop(),
+		backoff:     retry2.NewNoop(),
 		Middlewares: []string{logging.Name},
 	}
 }

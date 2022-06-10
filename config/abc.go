@@ -1,11 +1,10 @@
 package config
 
 import (
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"io"
 
 	"github.com/spf13/viper"
-
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 type CfgMap map[string]interface{}

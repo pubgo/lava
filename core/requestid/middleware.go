@@ -3,13 +3,12 @@ package requestid
 import (
 	"context"
 	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/httpx"
+	"github.com/pubgo/lava/internal/pkg/utils"
 
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
 const Name = "x-request-id"

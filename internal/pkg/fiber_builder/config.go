@@ -31,6 +31,6 @@ type Cfg struct {
 	DisableDefaultContentType bool          `json:"disable_default_content_type"`
 	DisableHeaderNormalizing  bool          `json:"disable_header_normalizing"`
 	DisableStartupMessage     bool          `json:"disable_startup_message"`
-	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
-	Websocket                 *WsCfg        `json:"websocket" yaml:"websocket"`
+	ReduceMemoryUsage         bool   `json:"reduce_memory_usage"`
+	Websocket                 *WsCfg `json:"websocket" yaml:"websocket"`
 }

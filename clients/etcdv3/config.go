@@ -1,6 +1,7 @@
 package etcdv3
 
 import (
+	"github.com/pubgo/lava/internal/pkg/retry"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -8,8 +9,6 @@ import (
 	etcdv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/pubgo/lava/pkg/retry"
 )
 
 type Cfg struct {
@@ -25,8 +24,8 @@ type Cfg struct {
 	Password             string            `json:"password"`
 	RejectOldCluster     bool              `json:"reject_old_cluster"`
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
-	DialOptions          []grpc.DialOption `json:"-"`
-	retry                retry.Retry
+	DialOptions []grpc.DialOption `json:"-"`
+	retry       retry.Retry
 }
 
 func (t *Cfg) Build() *etcdv3.Client {
