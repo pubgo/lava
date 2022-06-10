@@ -6,6 +6,8 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/config"
+
+	_ "github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
 )
 
 func init() {

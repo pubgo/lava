@@ -2,6 +2,8 @@ module github.com/pubgo/lava/tools
 
 go 1.17
 
+replace github.com/pubgo/lava v0.1.25 => ../
+
 require (
 	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/golang-jwt/jwt/v4 v4.4.1

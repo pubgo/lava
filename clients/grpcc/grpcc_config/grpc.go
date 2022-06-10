@@ -5,6 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/keepalive"
 )
@@ -73,7 +74,6 @@ type ClientCfg struct {
 	MaxDelay             time.Duration `json:"max_delay"`
 	UserAgent            string        `json:"user_agent"`
 	Authority            string        `json:"authority"`
-	ChannelzParentID     int64         `json:"channelz_parent_id"`
 	DisableServiceConfig bool          `json:"disable_service_config"`
 	DefaultServiceConfig string        `json:"default_service_config"`
 	DisableRetry         bool          `json:"disable_retry"`
@@ -81,7 +81,6 @@ type ClientCfg struct {
 	// MaxHeaderListSize 每次调用允许发送的header的最大条数
 	MaxHeaderListSize  uint32 `json:"max_header_list_size"`
 	DisableHealthCheck bool   `json:"disable_health_check"`
-	BalancerName       string `json:"balancer_name"`
 	Insecure           bool   `json:"insecure"`
 	Block              bool   `json:"block"`
 	IdleNum            uint32 `json:"idle_num"`
@@ -103,15 +102,11 @@ func (t ClientCfg) ToOpts() []grpc.DialOption {
 	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
 
 	if t.Insecure {
-		opts = append(opts, grpc.WithInsecure())
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	if t.Block {
 		opts = append(opts, grpc.WithBlock())
-	}
-
-	if t.BalancerName != "" {
-		opts = append(opts, grpc.WithBalancerName(t.BalancerName))
 	}
 
 	if !t.Proxy {
@@ -160,10 +155,6 @@ func (t ClientCfg) ToOpts() []grpc.DialOption {
 
 	if t.MaxHeaderListSize != 0 {
 		opts = append(opts, grpc.WithMaxHeaderListSize(t.MaxHeaderListSize))
-	}
-
-	if t.ChannelzParentID != 0 {
-		opts = append(opts, grpc.WithChannelzParentID(t.ChannelzParentID))
 	}
 
 	var cos []grpc.CallOption

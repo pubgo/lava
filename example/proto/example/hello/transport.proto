@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package hello;
+
+option go_package = "./hellopb;hellopb";
+
+import "google/api/http.proto";
+import "google/api/annotations.proto";
+
+service Transport {
+	rpc TestStream(stream Message) returns (stream Message) {}
+	rpc TestStream1(stream Message) returns (Message) {}
+	rpc TestStream2(Message) returns (stream Message) {}
+	rpc TestStream3( Message) returns (Message) {
+		option (google.api.http) = {
+			get: "/v1/Transport/TestStream3"
+		};
+	}
+}
+
+message Message {
+	map<string, string> header = 1;
+	bytes body = 2;
+}

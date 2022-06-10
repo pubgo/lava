@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 )
 
@@ -35,13 +34,13 @@ func DefaultCfg() *Cfg {
 	var cfg = &Cfg{
 		Scheme: grpcc_resolver.DiscovScheme,
 		Client: &ClientCfg{
-			Insecure:          true,
-			Block:             true,
-			BalancerName:      p2c.Name,
-			DialTimeout:       time.Minute,
-			Timeout:           DefaultTimeout,
-			MaxHeaderListSize: 1024 * 4,
-			MaxRecvMsgSize:    1024 * 1024 * 4,
+			Insecure:             true,
+			Block:                true,
+			DefaultServiceConfig: `{"loadBalancingConfig": [{"p2c":{}}]}`,
+			DialTimeout:          time.Minute,
+			Timeout:              DefaultTimeout,
+			MaxHeaderListSize:    1024 * 4,
+			MaxRecvMsgSize:       1024 * 1024 * 4,
 			ClientParameters: clientParameters{
 				PermitWithoutStream: true,             // send pings even without active streams
 				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity

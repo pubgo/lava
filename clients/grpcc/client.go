@@ -3,7 +3,6 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/merge"
 	"net"
 	"strings"
 	"sync"
@@ -15,6 +14,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
@@ -52,7 +52,8 @@ func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnI
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
 
 	logging.L().Info("grpc client init", zap.String(logkey.Service, srv))
-	return conn, xerror.WrapF(err, "grpc dial failed, target=>%s\n", addr)
+	logutil.Pretty(err)
+	return conn, xerror.WrapF(err, "grpc dial failed, target=>%s", addr)
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {

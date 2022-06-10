@@ -31,7 +31,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pubgo/x v0.3.37
-	github.com/pubgo/xerror v0.4.30
+	github.com/pubgo/xerror v0.4.32
 	github.com/reugn/go-quartz v0.3.7
 	github.com/segmentio/ksuid v1.0.3
 	github.com/soheilhy/cmux v0.1.5
@@ -52,9 +52,9 @@ require (
 	golang.org/x/mod v0.5.1
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9
-	golang.org/x/tools v0.1.9
+	golang.org/x/tools v0.1.9 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
-	google.golang.org/grpc v1.44.0
+	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/apimachinery v0.21.1
@@ -71,9 +71,7 @@ require (
 	github.com/goccy/go-json v0.7.10
 	github.com/jhump/protoreflect v1.10.3 // indirect
 	github.com/kr/pretty v0.3.0
-	github.com/magefile/mage v1.11.0
 	github.com/mailgun/holster/v4 v4.0.6
-	github.com/manifoldco/promptui v0.8.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -81,7 +79,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0
 	go.opentelemetry.io/otel/bridge/opentracing v1.3.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gorm.io/datatypes v1.0.3
 	gorm.io/driver/mysql v1.3.3
 	gorm.io/driver/sqlite v1.3.2
 	gorm.io/gorm v1.23.5
@@ -113,7 +110,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
@@ -138,18 +134,14 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/juju/ansiterm v0.0.0-20180109212912-720a0952cc2a // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lunixbochs/vtclean v1.0.0 // indirect
 	github.com/m3db/prometheus_client_golang v0.8.1 // indirect
 	github.com/m3db/prometheus_client_model v0.1.0 // indirect
 	github.com/m3db/prometheus_common v0.1.0 // indirect
 	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
@@ -186,8 +178,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
-	gorm.io/driver/postgres v1.3.7 // indirect
-	gorm.io/driver/sqlserver v1.3.2 // indirect
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
