@@ -1,8 +1,9 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/core/middleware"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/core/middleware"
 )
 
 var _ middleware.Response = (*response)(nil)

@@ -2,9 +2,6 @@ package grpcc
 
 import (
 	"context"
-	middleware2 "github.com/pubgo/lava/core/middleware"
-	"github.com/pubgo/lava/internal/pkg/grpcutil"
-	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"strings"
 	"time"
 
@@ -14,6 +11,9 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	middleware2 "github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/internal/pkg/grpcutil"
+	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {

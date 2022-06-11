@@ -98,10 +98,13 @@ func newService(name string, desc ...string) *serviceImpl {
 		m lifecycle.Lifecycle,
 		log *logging.Logger,
 		cfg config.Config,
+		middlewares map[string]middleware2.Middleware,
 		mux *router.App) {
+
 		g.net = c
 		g.mux = mux
 		g.lifecycle = m
+		g.middlewares = middlewares
 		g.log = log.Named(runmode.Project)
 
 		// 配置解析
@@ -115,7 +118,8 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lifecycle.Lifecycle
-	middlewares []middleware2.Middleware
+
+	middlewares map[string]middleware2.Middleware
 
 	lifecycle lifecycle.Lifecycle
 
@@ -129,7 +133,8 @@ type serviceImpl struct {
 	httpSrv fiber_builder2.Builder
 	mux     *router.App
 
-	deps []interface{}
+	deps []interface {
+	}
 
 	handlers grpchan.HandlerMap
 }
@@ -146,20 +151,13 @@ func (t *serviceImpl) Dix(regs ...interface{}) {
 
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
-func (t *serviceImpl) Middleware(mid middleware2.Middleware) {
-	xerror.Assert(mid == nil, "param [mid] is nil")
-	t.middlewares = append(t.middlewares, mid)
-}
-
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
 
-	middlewares := t.middlewares[:]
-	for _, m := range t.cfg.Middlewares {
-		middlewares = append(middlewares, middleware2.Get(m))
+	var middlewares []middleware2.Middleware
+	for _, m := range t.middlewares {
+		middlewares = append(middlewares, m)
 	}
-
-	fmt.Println(middlewares)
 
 	unaryInt := t.handlerUnaryMiddle(middlewares)
 	streamInt := t.handlerStreamMiddle(middlewares)
@@ -215,14 +213,6 @@ func (t *serviceImpl) init() (gErr error) {
 	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
 	t.httpSrv.Get().Mount("/", t.mux.App)
 	return nil
-}
-
-func (t *serviceImpl) Flags(flags ...cli.Flag) {
-	if len(flags) == 0 {
-		return
-	}
-
-	t.cmd.Flags = append(t.cmd.Flags, flags...)
 }
 
 func (t *serviceImpl) Options() service.Options {

@@ -1,10 +1,10 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/core/middleware"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/core/middleware"
 )
 
 var _ middleware.Request = (*request)(nil)

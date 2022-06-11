@@ -39,12 +39,11 @@ func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnI
 	defer cancel()
 
 	var middlewares []middleware2.Middleware
+	for _, m := range t.cfg.Middlewares {
+		middlewares = append(middlewares, m)
+	}
 
 	// 加载全局middleware
-	for _, m := range cfg.Middlewares {
-		xerror.Assert(middleware2.Get(m) == nil, "plugin(%s) is nil", m)
-		middlewares = append(middlewares, middleware2.Get(m))
-	}
 
 	addr := t.buildTarget(srv, cfg)
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),

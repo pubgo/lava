@@ -5,7 +5,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/middleware"
 )
 
 type Init interface {
@@ -46,8 +45,6 @@ type App interface {
 	lifecycle.Lifecycle
 	Command
 	AppInfo
-	Flags(flags ...cli.Flag)
-	Middleware(middleware.Middleware)
 	Dix(regs ...interface{})
 }
 
