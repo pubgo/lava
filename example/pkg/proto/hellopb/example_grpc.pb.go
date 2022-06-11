@@ -300,5 +300,5 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "example/hello/example.proto",
+	Metadata: "hello/example.proto",
 }

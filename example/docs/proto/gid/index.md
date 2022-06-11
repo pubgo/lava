@@ -3,7 +3,7 @@
 
 ## Table of Contents
 
-- [example/gid/a_bit_of_everything.proto](#example_gid_a_bit_of_everything-proto)
+- [gid/a_bit_of_everything.proto](#gid_a_bit_of_everything-proto)
     - [LoginReply](#gid-LoginReply)
     - [LoginRequest](#gid-LoginRequest)
     - [LogoutReply](#gid-LogoutReply)
@@ -11,7 +11,7 @@
   
     - [LoginService](#gid-LoginService)
   
-- [example/gid/echo_service.proto](#example_gid_echo_service-proto)
+- [gid/echo_service.proto](#gid_echo_service-proto)
     - [DynamicMessage](#gid-DynamicMessage)
     - [DynamicMessageUpdate](#gid-DynamicMessageUpdate)
     - [Embedded](#gid-Embedded)
@@ -19,7 +19,7 @@
   
     - [EchoService](#gid-EchoService)
   
-- [example/gid/id.proto](#example_gid_id-proto)
+- [gid/id.proto](#gid_id-proto)
     - [GenerateRequest](#gid-GenerateRequest)
     - [GenerateResponse](#gid-GenerateResponse)
     - [Tag](#gid-Tag)
@@ -32,10 +32,10 @@
 
 
 
-<a name="example_gid_a_bit_of_everything-proto"></a>
+<a name="gid_a_bit_of_everything-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/gid/a_bit_of_everything.proto
+## gid/a_bit_of_everything.proto
 
 
 
@@ -141,10 +141,10 @@ It displays that using [] infront of the type |
 
 
 
-<a name="example_gid_echo_service-proto"></a>
+<a name="gid_echo_service-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/gid/echo_service.proto
+## gid/echo_service.proto
 
 
 
@@ -242,10 +242,10 @@ The message posted as the id parameter will also be returned. |
 
 
 
-<a name="example_gid_id-proto"></a>
+<a name="gid_id-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/gid/id.proto
+## gid/id.proto
 
 
 

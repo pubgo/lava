@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.0
 // 	protoc        v3.19.4
-// source: example/hello/api.proto
+// source: hello/api.proto
 
 package hellopb
 
@@ -35,7 +35,7 @@ type TestApiOutput1 struct {
 func (x *TestApiOutput1) Reset() {
 	*x = TestApiOutput1{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_example_hello_api_proto_msgTypes[0]
+		mi := &file_hello_api_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -48,7 +48,7 @@ func (x *TestApiOutput1) String() string {
 func (*TestApiOutput1) ProtoMessage() {}
 
 func (x *TestApiOutput1) ProtoReflect() protoreflect.Message {
-	mi := &file_example_hello_api_proto_msgTypes[0]
+	mi := &file_hello_api_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +61,7 @@ func (x *TestApiOutput1) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestApiOutput1.ProtoReflect.Descriptor instead.
 func (*TestApiOutput1) Descriptor() ([]byte, []int) {
-	return file_example_hello_api_proto_rawDescGZIP(), []int{0}
+	return file_hello_api_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *TestApiOutput1) GetData() *structpb.Value {
@@ -78,12 +78,11 @@ func (x *TestApiOutput1) GetAbc() string {
 	return ""
 }
 
-var File_example_hello_api_proto protoreflect.FileDescriptor
+var File_hello_api_proto protoreflect.FileDescriptor
 
-var file_example_hello_api_proto_rawDesc = []byte{
-	0x0a, 0x17, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2f,
-	0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f,
-	0x1a, 0x18, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2f, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2f,
+var file_hello_api_proto_rawDesc = []byte{
+	0x0a, 0x0f, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x12, 0x05, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x1a, 0x10, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x2f,
 	0x61, 0x70, 0x69, 0x31, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67,
 	0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
@@ -140,25 +139,25 @@ var file_example_hello_api_proto_rawDesc = []byte{
 }
 
 var (
-	file_example_hello_api_proto_rawDescOnce sync.Once
-	file_example_hello_api_proto_rawDescData = file_example_hello_api_proto_rawDesc
+	file_hello_api_proto_rawDescOnce sync.Once
+	file_hello_api_proto_rawDescData = file_hello_api_proto_rawDesc
 )
 
-func file_example_hello_api_proto_rawDescGZIP() []byte {
-	file_example_hello_api_proto_rawDescOnce.Do(func() {
-		file_example_hello_api_proto_rawDescData = protoimpl.X.CompressGZIP(file_example_hello_api_proto_rawDescData)
+func file_hello_api_proto_rawDescGZIP() []byte {
+	file_hello_api_proto_rawDescOnce.Do(func() {
+		file_hello_api_proto_rawDescData = protoimpl.X.CompressGZIP(file_hello_api_proto_rawDescData)
 	})
-	return file_example_hello_api_proto_rawDescData
+	return file_hello_api_proto_rawDescData
 }
 
-var file_example_hello_api_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_example_hello_api_proto_goTypes = []interface{}{
+var file_hello_api_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_hello_api_proto_goTypes = []interface{}{
 	(*TestApiOutput1)(nil), // 0: hello.TestApiOutput1
 	(*structpb.Value)(nil), // 1: google.protobuf.Value
 	(*TestReq)(nil),        // 2: hello.TestReq
 	(*TestApiOutput)(nil),  // 3: hello.TestApiOutput
 }
-var file_example_hello_api_proto_depIdxs = []int32{
+var file_hello_api_proto_depIdxs = []int32{
 	1, // 0: hello.TestApiOutput1.data:type_name -> google.protobuf.Value
 	2, // 1: hello.TestApi.Version:input_type -> hello.TestReq
 	1, // 2: hello.TestApi.Version1:input_type -> google.protobuf.Value
@@ -179,14 +178,14 @@ var file_example_hello_api_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_example_hello_api_proto_init() }
-func file_example_hello_api_proto_init() {
-	if File_example_hello_api_proto != nil {
+func init() { file_hello_api_proto_init() }
+func file_hello_api_proto_init() {
+	if File_hello_api_proto != nil {
 		return
 	}
-	file_example_hello_api1_proto_init()
+	file_hello_api1_proto_init()
 	if !protoimpl.UnsafeEnabled {
-		file_example_hello_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_hello_api_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TestApiOutput1); i {
 			case 0:
 				return &v.state
@@ -203,18 +202,18 @@ func file_example_hello_api_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_example_hello_api_proto_rawDesc,
+			RawDescriptor: file_hello_api_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
-		GoTypes:           file_example_hello_api_proto_goTypes,
-		DependencyIndexes: file_example_hello_api_proto_depIdxs,
-		MessageInfos:      file_example_hello_api_proto_msgTypes,
+		GoTypes:           file_hello_api_proto_goTypes,
+		DependencyIndexes: file_hello_api_proto_depIdxs,
+		MessageInfos:      file_hello_api_proto_msgTypes,
 	}.Build()
-	File_example_hello_api_proto = out.File
-	file_example_hello_api_proto_rawDesc = nil
-	file_example_hello_api_proto_goTypes = nil
-	file_example_hello_api_proto_depIdxs = nil
+	File_hello_api_proto = out.File
+	file_hello_api_proto_rawDesc = nil
+	file_hello_api_proto_goTypes = nil
+	file_hello_api_proto_depIdxs = nil
 }

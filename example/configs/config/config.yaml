@@ -1,3 +1,15 @@
+menu:
+  path: "./configs/menu"
+  print-route: true
+  default-menus:
+    - path: "http:/services/uaa/api/v2/users/perms"
+      method: "get"
+    - path: "http:/services/uaa/api/v2/users/me"
+      method: "get"
+casbin:
+  model: "./configs/casbin/rbac_model.conf"
+  enable-log: true
+  enable-auto-save: true
 app:
   addr: ":8080"
   debug: true
@@ -60,7 +72,7 @@ service:
 orm:
   driver: "sqlite3"
   driver_config:
-    dsn: "file::memory:?cache=shared"
+    dsn: "db.sqlite3"
 grpcc:
   - name: test-grpc
     registry: "mdns"

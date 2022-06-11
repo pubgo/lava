@@ -3,13 +3,13 @@
 
 ## Table of Contents
 
-- [example/hello/api.proto](#example_hello_api-proto)
+- [hello/api.proto](#hello_api-proto)
     - [TestApiOutput1](#hello-TestApiOutput1)
   
     - [TestApi](#hello-TestApi)
     - [TestApiV2](#hello-TestApiV2)
   
-- [example/hello/api1.proto](#example_hello_api1-proto)
+- [hello/api1.proto](#hello_api1-proto)
     - [TestApiData](#hello-TestApiData)
     - [TestApiOutput](#hello-TestApiOutput)
     - [TestReq](#hello-TestReq)
@@ -17,7 +17,7 @@
   
     - [PhoneType](#hello-PhoneType)
   
-- [example/hello/example.proto](#example_hello_example-proto)
+- [hello/example.proto](#hello_example-proto)
     - [ListUsersRequest](#hello-ListUsersRequest)
     - [UpdateUserRequest](#hello-UpdateUserRequest)
     - [User](#hello-User)
@@ -28,13 +28,13 @@
   
     - [UserService](#hello-UserService)
   
-- [example/hello/helloworld.proto](#example_hello_helloworld-proto)
+- [hello/helloworld.proto](#hello_helloworld-proto)
     - [HelloReply](#hello-HelloReply)
     - [HelloRequest](#hello-HelloRequest)
   
     - [Greeter](#hello-Greeter)
   
-- [example/hello/proto3.proto](#example_hello_proto3-proto)
+- [hello/proto3.proto](#hello_proto3-proto)
     - [Proto3Message](#hello-Proto3Message)
     - [Proto3Message.MapValue10Entry](#hello-Proto3Message-MapValue10Entry)
     - [Proto3Message.MapValue12Entry](#hello-Proto3Message-MapValue12Entry)
@@ -53,7 +53,7 @@
   
     - [EnumValue](#hello-EnumValue)
   
-- [example/hello/transport.proto](#example_hello_transport-proto)
+- [hello/transport.proto](#hello_transport-proto)
     - [Message](#hello-Message)
     - [Message.HeaderEntry](#hello-Message-HeaderEntry)
   
@@ -63,10 +63,10 @@
 
 
 
-<a name="example_hello_api-proto"></a>
+<a name="hello_api-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/api.proto
+## hello/api.proto
 
 
 
@@ -119,10 +119,10 @@ TestApi service
 
 
 
-<a name="example_hello_api1-proto"></a>
+<a name="hello_api1-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/api1.proto
+## hello/api1.proto
 
 
 
@@ -216,10 +216,10 @@ TestApi service
 
 
 
-<a name="example_hello_example-proto"></a>
+<a name="hello_example-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/example.proto
+## hello/example.proto
 
 
 
@@ -341,10 +341,10 @@ TestApi service
 
 
 
-<a name="example_hello_helloworld-proto"></a>
+<a name="hello_helloworld-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/helloworld.proto
+## hello/helloworld.proto
 
 
 
@@ -406,10 +406,10 @@ TestApi service
 
 
 
-<a name="example_hello_proto3-proto"></a>
+<a name="hello_proto3-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/proto3.proto
+## hello/proto3.proto
 
 
 
@@ -716,10 +716,10 @@ TestApi service
 
 
 
-<a name="example_hello_transport-proto"></a>
+<a name="hello_transport-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## example/hello/transport.proto
+## hello/transport.proto
 
 
 

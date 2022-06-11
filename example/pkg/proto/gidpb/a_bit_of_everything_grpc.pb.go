@@ -187,5 +187,5 @@ var LoginService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "example/gid/a_bit_of_everything.proto",
+	Metadata: "gid/a_bit_of_everything.proto",
 }

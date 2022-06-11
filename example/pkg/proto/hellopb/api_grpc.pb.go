@@ -210,7 +210,7 @@ var TestApi_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "example/hello/api.proto",
+	Metadata: "hello/api.proto",
 }
 
 // TestApiV2Client is the client API for TestApiV2 service.
@@ -330,5 +330,5 @@ var TestApiV2_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "example/hello/api.proto",
+	Metadata: "hello/api.proto",
 }

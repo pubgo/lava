@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/cmd/cmds/migrate"
 	"os"
 	"sort"
 
@@ -27,7 +28,7 @@ func Run(services ...Command) {
 		Name:     runmode.Domain,
 		Usage:    fmt.Sprintf("%s services", runmode.Domain),
 		Version:  version.Version,
-		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
+		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd(), migrate.Cmd()},
 	}
 
 	for i := range services {

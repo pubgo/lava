@@ -297,5 +297,5 @@ var Transport_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "example/hello/transport.proto",
+	Metadata: "hello/transport.proto",
 }

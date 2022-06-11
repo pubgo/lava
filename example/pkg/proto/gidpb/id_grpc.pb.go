@@ -135,5 +135,5 @@ var Id_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "example/gid/id.proto",
+	Metadata: "gid/id.proto",
 }
