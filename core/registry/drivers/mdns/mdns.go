@@ -91,11 +91,11 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 
 	node := service.Nodes[0]
 	var val, ok = m.services.LoadAndDelete(node.Id)
-	if !ok {
+	if !ok || val == nil {
 		return nil
 	}
 
-	val.(*zeroconf.Server).Shutdown()
+	val.(*serverNode).srv.Shutdown()
 	return nil
 }
 

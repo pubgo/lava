@@ -25,3 +25,4 @@ sqlite.db
 internal/example/services/logs
 logs
 bin
+/example/bin
