@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/core/runmode"
 	"os"
 	"sort"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/version"
 )
 

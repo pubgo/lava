@@ -1,8 +1,6 @@
 package runmode
 
 import (
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -11,13 +9,15 @@ import (
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
 	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/internal/pkg/env"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 // 默认的全局配置
 var (
 	Domain  = "lava"
 	Block   = true
-	Trace   = false
 	Project = env.Get("app_name", "service_name", "project_name")
 	Level   = "debug"
 

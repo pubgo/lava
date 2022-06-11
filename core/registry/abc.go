@@ -5,8 +5,6 @@ package registry
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, mdns, ...}
 type Registry interface {
-	Init()
-	Close()
 	String() string
 	Register(*Service, ...RegOpt) error
 	Deregister(*Service, ...DeregOpt) error
@@ -14,8 +12,6 @@ type Registry interface {
 	ListService(...ListOpt) ([]*Service, error)
 	GetService(string, ...GetOpt) ([]*Service, error)
 }
-
-type Loader struct{}
 
 type Opt func(*Opts)
 type RegOpt func(*RegOpts)

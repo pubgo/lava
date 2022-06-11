@@ -3,8 +3,6 @@ package registry
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/netutil"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +14,8 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/netutil"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -30,61 +30,61 @@ func init() {
 		return cfg.Check()
 	})
 
-	dix.Register(func(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[string]Registry) *Loader {
-		reg := regs[cfg.Driver]
-		xerror.AssertFn(reg == nil, func() error {
-			var errs = fmt.Errorf("registry driver is null")
-			errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
-			errs = xerror.WrapF(errs, "regs=>%v", regs)
-			return errs
+}
+
+func Dix(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[string]Registry) {
+	reg := regs[cfg.Driver]
+	xerror.AssertFn(reg == nil, func() error {
+		var errs = fmt.Errorf("registry driver is null")
+		errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
+		errs = xerror.WrapF(errs, "regs=>%v", regs)
+		return errs
+	})
+
+	// 服务注册
+	lifecycle.AfterStarts(func() {
+		SetDefault(reg)
+
+		xerror.Panic(register(reg, app))
+
+		var cancel = syncx.GoCtx(func(ctx context.Context) {
+			var interval = DefaultRegisterInterval
+
+			if cfg.RegisterInterval > time.Duration(0) {
+				interval = cfg.RegisterInterval
+			}
+
+			var tick = time.NewTicker(interval)
+			defer tick.Stop()
+
+			for {
+				select {
+				case <-tick.C:
+					logutil.LogOrErr(zap.L(), "service register",
+						func() error { return register(reg, app) },
+						zap.String("service", app.Options().Name),
+						zap.String("instanceId", app.Options().Id),
+						zap.String("registry", Default().String()),
+						zap.String("interval", interval.String()),
+					)
+				case <-ctx.Done():
+					zap.L().Info("service register cancelled")
+					return
+				}
+			}
 		})
 
-		// 服务注册
-		lifecycle.AfterStarts(func() {
-			SetDefault(reg)
-
-			xerror.Panic(Register(reg, app))
-
-			var cancel = syncx.GoCtx(func(ctx context.Context) {
-				var interval = DefaultRegisterInterval
-
-				if cfg.RegisterInterval > time.Duration(0) {
-					interval = cfg.RegisterInterval
-				}
-
-				var tick = time.NewTicker(interval)
-				defer tick.Stop()
-
-				for {
-					select {
-					case <-tick.C:
-						logutil.LogOrErr(zap.L(), "service Register",
-							func() error { return Register(reg, app) },
-							zap.String("service", app.Options().Name),
-							zap.String("instanceId", app.Options().Id),
-							zap.String("registry", Default().String()),
-							zap.String("interval", interval.String()),
-						)
-					case <-ctx.Done():
-						zap.L().Info("service Register cancelled")
-						return
-					}
-				}
-			})
-
-			// 服务撤销
-			lifecycle.BeforeStops(func() {
-				cancel()
-				xerror.Panic(Deregister(reg, app))
-			})
+		// 服务撤销
+		lifecycle.BeforeStops(func() {
+			cancel()
+			xerror.Panic(deregister(reg, app))
 		})
-		return new(Loader)
 	})
 }
 
-func Register(reg Registry, app service.AppInfo) (err error) {
+func register(reg Registry, app service.AppInfo) (err error) {
 	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
-		return err.WrapF("Register service=>%#v", app.Options())
+		return err.WrapF("register service=>%#v", app.Options())
 	})
 
 	var opt = app.Options()
@@ -111,7 +111,7 @@ func Register(reg Registry, app service.AppInfo) (err error) {
 		host = netutil.GetLocalIP()
 	}
 
-	// Register service
+	// register service
 	node := &Node{
 		Port:     port,
 		Version:  version.Version,
@@ -127,16 +127,16 @@ func Register(reg Registry, app service.AppInfo) (err error) {
 
 	logutil.LogOrPanic(
 		zap.L(),
-		"Register service node",
+		"register service node",
 		func() error { return reg.Register(s) },
 		zap.String("id", node.Id),
 		zap.String("name", opt.Name))
 	return nil
 }
 
-func Deregister(reg Registry, app service.AppInfo) (err error) {
+func deregister(reg Registry, app service.AppInfo) (err error) {
 	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
-		return err.WrapF("Deregister service=>%#v", app.Options())
+		return err.WrapF("deregister service=>%#v", app.Options())
 	})
 
 	var opt = app.Options()
@@ -158,7 +158,7 @@ func Deregister(reg Registry, app service.AppInfo) (err error) {
 		host = parts[0]
 	}
 
-	// Register service
+	// register service
 	node := &Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
@@ -171,7 +171,7 @@ func Deregister(reg Registry, app service.AppInfo) (err error) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.LogOrErr(zap.L(), "Deregister service node",
+	logutil.LogOrErr(zap.L(), "deregister service node",
 		func() error { return reg.Deregister(s) },
 		zap.String("id", node.Id),
 		zap.String("name", opt.Name),

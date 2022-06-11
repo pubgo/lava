@@ -1,7 +1,6 @@
 package debug
 
 import (
-	app2 "github.com/pubgo/lava/core/runmode"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -9,6 +8,8 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
+
+	app2 "github.com/pubgo/lava/core/runmode"
 )
 
 func init() {

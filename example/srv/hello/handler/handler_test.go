@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/example/pkg/proto/hellopb"
 	"github.com/pubgo/lava/logging"
 
-	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
+	_ "github.com/pubgo/lava/plugins"
 )
 
 var _srv *testApiHandler
@@ -29,7 +29,6 @@ func TestMain(t *testing.M) {
 			L:          L,
 		}
 	})
-
 	dix.Invoke()
 
 	_srv.Init()

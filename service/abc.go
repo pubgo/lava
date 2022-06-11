@@ -2,9 +2,10 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/urfave/cli/v2"
+
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/middleware"
-	"github.com/urfave/cli/v2"
 )
 
 type Init interface {

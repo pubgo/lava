@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/lava/config"
 
 	_ "github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
+	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 )
 
 func init() {

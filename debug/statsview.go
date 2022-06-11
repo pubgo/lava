@@ -11,16 +11,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// ViewManager ...
-type ViewManager struct {
+// viewManager ...
+type viewManager struct {
 	Smgr   *viewer.StatsMgr
 	Ctx    context.Context
 	Cancel context.CancelFunc
 	Views  []viewer.Viewer
 }
 
-// Register registers views to the ViewManager
-func (vm *ViewManager) Register(views ...viewer.Viewer) {
+// Register registers views to the viewManager
+func (vm *viewManager) Register(views ...viewer.Viewer) {
 	vm.Views = append(vm.Views, views...)
 }
 
@@ -55,7 +55,7 @@ function {{ .ViewID }}_sync() {
         }
     });
 }`))
-	_ = New()
+	_ = initManager()
 
 	templates.PageTpl = `
 {{- define "page" }}
@@ -72,14 +72,14 @@ function {{ .ViewID }}_sync() {
 `
 }
 
-// New creates a new ViewManager instance
-func New() *ViewManager {
+// initManager creates a new viewManager instance
+func initManager() *viewManager {
 	page := components.NewPage()
 	page.PageTitle = "statsview"
 	page.AssetsHost = "/debug/statsview/statics/"
 	page.Assets.JSAssets.Add("jquery.min.js")
 
-	mgr := &ViewManager{}
+	mgr := &viewManager{}
 	mgr.Ctx, mgr.Cancel = context.WithCancel(context.Background())
 	mgr.Register(
 		viewer.NewGoroutinesViewer(),

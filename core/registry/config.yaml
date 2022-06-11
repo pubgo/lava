@@ -1,13 +1,4 @@
 registry:
-  - name: default
-    driver: "etcd"
-    driver_config:
-      name: "default"
-      path: "/etcd"
-      prefix: ""
-      projects: "hello"
-
-  - name: abc
-    driver: "mdns"
-    driver_config:
-      ttl: "5s"
+  driver: "mdns"
+  driver_config:
+    ttl: "5s"

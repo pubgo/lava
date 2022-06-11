@@ -1,13 +1,13 @@
 package scheduler
 
 import (
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )

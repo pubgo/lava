@@ -92,13 +92,13 @@ func newService(name string, desc ...string) *serviceImpl {
 
 	g.Dix(func() grpc.ServiceRegistrar { return g })
 	g.Dix(func() service.AppInfo { return g })
+	g.Dix(registry.Dix)
 	g.Dix(func(
 		c *cmux2.Mux,
 		m lifecycle.Lifecycle,
 		log *logging.Logger,
 		cfg config.Config,
-		mux *router.App,
-		_ *registry.Loader) {
+		mux *router.App) {
 		g.net = c
 		g.mux = mux
 		g.lifecycle = m

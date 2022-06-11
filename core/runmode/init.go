@@ -1,9 +1,11 @@
 package runmode
 
 import (
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/xerror"
 	"strconv"
+
+	"github.com/pubgo/xerror"
+
+	"github.com/pubgo/lava/internal/pkg/env"
 )
 
 var Mode = Local

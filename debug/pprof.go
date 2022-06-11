@@ -34,7 +34,6 @@ func init() {
 			case "threadcreate":
 				return Wrap(pprof.Handler("threadcreate"))(ctx)
 			}
-
 			return errors.New("name not found")
 		})
 	})

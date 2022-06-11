@@ -18,10 +18,10 @@ const (
 
 	DefaultSleepAfterDeRegister = time.Second * 2
 
-	// DefaultRegisterTTL The Register expiry time
+	// DefaultRegisterTTL The register expiry time
 	DefaultRegisterTTL = time.Minute
 
-	// DefaultRegisterInterval The interval on which to Register
+	// DefaultRegisterInterval The interval on which to register
 	DefaultRegisterInterval = time.Second * 30
 
 	defaultContentType = "application/grpc"
@@ -36,12 +36,10 @@ type Cfg struct {
 }
 
 func (cfg *Cfg) Check() *Cfg {
-	var driver = cfg.Driver
-	xerror.AssertFn(driver == "", func() error {
+	xerror.AssertFn(cfg.Driver == "", func() error {
 		err := fmt.Errorf("registry driver is null")
 		return xerror.WrapF(err, "cfg=>%#v", cfg)
 	})
-
 	return cfg
 }
 

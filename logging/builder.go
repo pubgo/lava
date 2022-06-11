@@ -2,12 +2,12 @@ package logging
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
 )
