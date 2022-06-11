@@ -159,6 +159,8 @@ func (t *serviceImpl) init() (gErr error) {
 		middlewares = append(middlewares, middleware2.Get(m))
 	}
 
+	fmt.Println(middlewares)
+
 	unaryInt := t.handlerUnaryMiddle(middlewares)
 	streamInt := t.handlerStreamMiddle(middlewares)
 

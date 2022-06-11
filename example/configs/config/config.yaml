@@ -2,6 +2,8 @@ app:
   addr: ":8080"
   debug: true
 service:
+  middlewares:
+    - accesslog
   print-route: false
   grpc-cfg:
     write_buffer_size: 1024

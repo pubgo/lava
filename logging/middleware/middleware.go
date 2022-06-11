@@ -25,6 +25,7 @@ import (
 func init() {
 	const Name = "accesslog"
 	dix.Register(func(log *logging.Logger) {
+		log = log.Named(Name)
 		middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
 			return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
 				// TODO 考虑pool优化
