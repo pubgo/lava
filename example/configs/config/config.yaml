@@ -56,10 +56,9 @@ service:
       dir: ""
       ext: ".html"
 orm:
-  - name: default
-    driver: "sqlite3"
-    driver_config:
-      dsn: "file::memory:?cache=shared"
+  driver: "sqlite3"
+  driver_config:
+    dsn: "file::memory:?cache=shared"
 grpcc:
   - name: test-grpc
     registry: "mdns"
