@@ -1,13 +1,16 @@
 package grpc_builder
 
 import (
-	"github.com/pubgo/lava/core/runmode"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/pubgo/lava/core/runmode"
 )
+
+func New() Builder { return Builder{} }
 
 type Builder struct {
 	srv                *grpc.Server
@@ -59,5 +62,3 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 
 	return nil
 }
-
-func New() Builder { return Builder{} }

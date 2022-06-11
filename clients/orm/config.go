@@ -1,9 +1,6 @@
 package orm
 
 import (
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/logging"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -11,7 +8,10 @@ import (
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
 
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )
 

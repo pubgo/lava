@@ -2,11 +2,11 @@ package orm
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
 

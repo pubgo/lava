@@ -2,10 +2,10 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/version"

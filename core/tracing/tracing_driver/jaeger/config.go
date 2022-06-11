@@ -2,6 +2,7 @@ package jaeger
 
 import (
 	"fmt"
+
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
@@ -10,8 +11,8 @@ import (
 
 type Cfg struct {
 	*jaegerCfg.Configuration
-	Logger    *lumberjack.Logger
-	BatchSize int32 `yaml:"batch_size"`
+	Logger    *lumberjack.Logger `yaml:"logger"`
+	BatchSize int32              `yaml:"batch_size"`
 }
 
 const Name = "jaeger"

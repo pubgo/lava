@@ -1,5 +1,5 @@
-proto-path: ../.lava/proto
-checksum: 395027cb4599163b0bbcc031f23c57668f4f2b4e
+vendor: ../.lava/proto
+checksum: c2f4e960fcf8de782bcf2ccf2dd8614aa776f6b3
 root:
   - proto
 includes:
@@ -37,7 +37,7 @@ plugins:
   - name: retag
     opt:
       - paths=import
-      - outdir=pkg/proto
+      - output=pkg/proto
   - name: doc
     out: ./docs
     opt:

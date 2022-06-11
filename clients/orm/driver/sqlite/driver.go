@@ -16,8 +16,8 @@ import (
 
 func init() {
 	orm.Register("sqlite3", func(cfg config.CfgMap) gorm.Dialector {
-		var dsn, ok = cfg["dsn"].(string)
-		xerror.AssertFn(!ok || dsn == "", func() error {
+		var dsn = cfg.GetString("dsn")
+		xerror.AssertFn(dsn == "", func() error {
 			logutil.Pretty(cfg)
 			return errors.New("dsn not found")
 		})

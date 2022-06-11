@@ -18,21 +18,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	go build ${LDFLAGS} -v -o main cmd/*.go
-
-.PHONY: run
-run:
-	go run ${LDFLAGS} -v cmd/*.go v
-
-.PHONY: test./ma
-test:
-	@go test -short -race -v ./... -cover
+	go build ${LDFLAGS} -v -o main *.go
 
 vet:
 	@go vet ./...
-
-generate:
-	@go generate ./...
-
-lint:
-	@golangci-lint run --skip-dirs-use-default --timeout 3m0s

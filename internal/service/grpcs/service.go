@@ -3,12 +3,6 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/router"
-	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
-	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
-	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
-	"github.com/pubgo/lava/internal/pkg/syncx"
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"net"
 	"net/http"
 	"strings"
@@ -25,13 +19,19 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/cmux"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/core/router"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
+	cmux2 "github.com/pubgo/lava/internal/cmux"
+	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
+	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
+	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
@@ -93,7 +93,7 @@ func newService(name string, desc ...string) *serviceImpl {
 	g.Dix(func() grpc.ServiceRegistrar { return g })
 	g.Dix(func() service.AppInfo { return g })
 	g.Dix(func(
-		c *cmux.Mux,
+		c *cmux2.Mux,
 		m lifecycle.Lifecycle,
 		log *logging.Logger,
 		cfg config.Config,
@@ -122,7 +122,7 @@ type serviceImpl struct {
 	log *zap.Logger
 	cmd *cli.Command
 
-	net *cmux.Mux
+	net *cmux2.Mux
 
 	cfg     Cfg
 	grpcSrv grpc_builder2.Builder
@@ -258,7 +258,7 @@ func (t *serviceImpl) start() (gErr error) {
 			t.log.Info("[grpc-gw] Server Starting")
 			logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
 				if err := t.httpSrv.Get().Listener(<-gwLn); err != nil &&
-					!errors.Is(err, cmux.ErrListenerClosed) &&
+					!errors.Is(err, cmux2.ErrListenerClosed) &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
 					return err
@@ -272,7 +272,7 @@ func (t *serviceImpl) start() (gErr error) {
 			t.log.Info("[grpc] Server Starting")
 			logutil.LogOrErr(t.log, "[grpc] Server Stop", func() error {
 				if err := t.grpcSrv.Get().Serve(<-grpcLn); err != nil &&
-					err != cmux.ErrListenerClosed &&
+					err != cmux2.ErrListenerClosed &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
 					return err
