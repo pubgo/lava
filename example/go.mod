@@ -18,6 +18,7 @@ require (
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
+	github.com/urfave/cli/v2 v2.8.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac
 	google.golang.org/grpc v1.47.0
@@ -121,7 +122,6 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/twmb/murmur3 v1.1.6 // indirect
 	github.com/uber-go/tally v3.4.2+incompatible // indirect
-	github.com/urfave/cli/v2 v2.8.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect

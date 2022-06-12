@@ -44,6 +44,8 @@ func Cmd() *cli.Command {
 		Before: func(context *cli.Context) error {
 			defer xerror.RecoverAndExit()
 			gormigrate.DefaultOptions.TableName = "orm_migrations"
+
+			dix.Invoke()
 			return nil
 		},
 		Subcommands: []*cli.Command{

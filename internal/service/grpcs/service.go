@@ -59,8 +59,8 @@ func newService(name string, desc ...string) *serviceImpl {
 		handlers:  grpchan.HandlerMap{},
 	}
 
-	g.cmd.Before = func(context *cli.Context) (err error) {
-		defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+	g.cmd.Before = func(context *cli.Context) (gErr error) {
+		defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
 			fmt.Println(dix.Graph())
 			return err
 		})
@@ -79,7 +79,7 @@ func newService(name string, desc ...string) *serviceImpl {
 		}
 
 		dix.Invoke()
-		return nil
+		return
 	}
 
 	g.cmd.Action = func(ctx *cli.Context) error {
@@ -90,7 +90,6 @@ func newService(name string, desc ...string) *serviceImpl {
 		return nil
 	}
 
-	g.Dix(func() grpc.ServiceRegistrar { return g })
 	g.Dix(func() service.AppInfo { return g })
 	g.Dix(registry.Dix)
 	g.Dix(func(
@@ -139,9 +138,13 @@ type serviceImpl struct {
 	handlers grpchan.HandlerMap
 }
 
+func (t *serviceImpl) AddCmd(cmd *cli.Command) {
+	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
+}
+
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-	xerror.Assert(impl == nil, "[handler] is nil")
 	xerror.Assert(desc == nil, "[desc] is nil")
+	xerror.Assert(impl == nil, "[impl] is nil")
 	t.handlers.RegisterService(desc, impl)
 }
 

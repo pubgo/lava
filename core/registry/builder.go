@@ -29,7 +29,6 @@ func init() {
 		xerror.Panic(c.UnmarshalKey(Name, &cfg))
 		return cfg.Check()
 	})
-
 }
 
 func Dix(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[string]Registry) {
@@ -125,7 +124,7 @@ func register(reg Registry, app service.AppInfo) {
 	)
 }
 
-func deregister(reg Registry, app service.AppInfo) (err error) {
+func deregister(reg Registry, app service.AppInfo) {
 	var opt = app.Options()
 
 	var advt, host string
@@ -165,6 +164,4 @@ func deregister(reg Registry, app service.AppInfo) (err error) {
 		zap.String("id", node.Id),
 		zap.String("name", opt.Name),
 	)
-
-	return nil
 }

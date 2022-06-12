@@ -14,14 +14,14 @@ func Migrations() migrates.Migrations {
 
 func m0001() *gormigrate.Migration {
 	type Action struct {
-		Code string `gorm:"size:32;primaryKey"`
+		Code string `gorm:"size:64;primaryKey"`
 		Type string `gorm:"size:8;not null"`
 		Name string `gorm:"size:64"`
 	}
 	type MenuItem struct {
 		ID         uint
-		Code       string `gorm:"size:32;index"`
-		ParentCode string `gorm:"size:32;index"`
+		Code       string `gorm:"size:64;index"`
+		ParentCode string `gorm:"size:64;index"`
 		Platform   string `gorm:"size:8"`
 	}
 	type Endpoint struct {
@@ -29,8 +29,8 @@ func m0001() *gormigrate.Migration {
 		TargetType string `gorm:"size:8"`
 		Method     string `gorm:"size:8"`
 		Path       string `gorm:"size:256"`
-		ApiCode    string `gorm:"size:32;index"`
-		Action     Action `gorm:"foreignkey:code;references:api_code"`
+		ApiCode    string `gorm:"size:64;index"`
+		Action     Action `gorm:"foreignkey:ApiCode;references:Code"`
 	}
 	type Role struct {
 		ID          uint   `gorm:"primarykey"`

@@ -2,6 +2,7 @@ package perm
 
 import (
 	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/example/cmds"
 	"github.com/pubgo/lava/service"
 
 	"github.com/pubgo/lava/example/migrates"
@@ -17,6 +18,8 @@ var name = "perm"
 
 func NewSrv() service.Service {
 	srv := lava.NewSrv(name, "rbac grpc service")
+	srv.AddCmd(cmds.Menu())
+
 	srv.Dix(migrates.Migrations)
 	srv.Dix(menurpc.New, grouprpc.New, orgrpc.New, permrpc.New, rolerpc.New)
 	srv.Dix(permpb.RegisterMenuServiceServer)

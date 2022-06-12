@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/urfave/cli/v2"
+	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/lifecycle"
 )
@@ -41,13 +42,11 @@ type AppInfo interface {
 	Options() Options
 }
 
-type App interface {
+type Service interface {
 	lifecycle.Lifecycle
 	Command
 	AppInfo
 	Dix(regs ...interface{})
-}
-
-type Service interface {
-	App
+	AddCmd(cmd *cli.Command)
+	RegisterService(desc *grpc.ServiceDesc, impl interface{})
 }

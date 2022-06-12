@@ -41,6 +41,6 @@ type Endpoint struct {
 	TargetType string `gorm:"size:8"`
 	Method     string `gorm:"size:8"`
 	Path       string `gorm:"size:256"`
-	ApiCode    string `gorm:"size:32;index"`
-	Action     Action `gorm:"foreignkey:code;references:api_code"`
+	ApiCode    string `gorm:"size:64;index"`
+	Action     Action `gorm:"foreignkey:ApiCode;references:Code"`
 }
