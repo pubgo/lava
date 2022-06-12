@@ -8,8 +8,8 @@ import (
 
 func init() {
 	vars.Register("list-service", func() interface{} {
-		var srv, err = Default().GetService(runmode.Project)
+		var srvList, err = Default().GetService(runmode.Project)
 		xerror.Panic(err)
-		return srv
+		return srvList
 	})
 }
