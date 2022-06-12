@@ -1,4 +1,4 @@
-package perm
+package permrpc
 
 import (
 	"context"

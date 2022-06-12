@@ -29,7 +29,7 @@ func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) 
 		return
 	}
 
-	log.Error(msg+" error", ErrField(err)...)
+	log.Error(msg+" failed", ErrField(err)...)
 	panic(err)
 }
 

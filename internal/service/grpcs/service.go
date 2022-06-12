@@ -59,14 +59,14 @@ func newService(name string, desc ...string) *serviceImpl {
 		handlers:  grpchan.HandlerMap{},
 	}
 
-	g.cmd.Before = func(context *cli.Context) error {
-		defer xerror.RecoverAndRaise(func(err xerror.XErr) xerror.XErr {
+	g.cmd.Before = func(context *cli.Context) (err error) {
+		defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
 			fmt.Println(dix.Graph())
 			return err
 		})
 
 		if runmode.Project == "" {
-			runmode.Project = strings.Split(context.Command.Name, " ")[0]
+			runmode.Project = strings.Split(name, " ")[0]
 		}
 		xerror.Assert(runmode.Project == "", "project is null")
 
@@ -98,7 +98,7 @@ func newService(name string, desc ...string) *serviceImpl {
 		m lifecycle.Lifecycle,
 		log *logging.Logger,
 		cfg config.Config,
-		middlewares map[string]middleware2.Middleware,
+		middlewares []middleware2.Middleware,
 		mux *router.App) {
 
 		g.net = c
@@ -119,7 +119,7 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	lifecycle.Lifecycle
 
-	middlewares map[string]middleware2.Middleware
+	middlewares []middleware2.Middleware
 
 	lifecycle lifecycle.Lifecycle
 

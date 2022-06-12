@@ -2,14 +2,13 @@ package service
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/cmd/cmds/migrate"
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
 	"os"
 	"sort"
 
-	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
-
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
+	"github.com/pubgo/lava/cmd/cmds/migrate"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/version"
@@ -28,14 +27,17 @@ func Run(services ...Command) {
 		Name:     runmode.Domain,
 		Usage:    fmt.Sprintf("%s services", runmode.Domain),
 		Version:  version.Version,
-		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd(), migrate.Cmd()},
+		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
 	}
 
 	for i := range services {
 		srv := services[i]
 		cmd := srv.Command()
+
 		// 检查项目Command是否注册
 		xerror.Assert(cliApp.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+
+		cmd.Subcommands = append(cmd.Subcommands, migrate.Cmd())
 		cliApp.Commands = append(cliApp.Commands, cmd)
 	}
 

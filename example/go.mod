@@ -13,7 +13,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/pubgo/dix v0.2.9
+	github.com/pubgo/dix v0.2.10
 	github.com/pubgo/lava v0.1.25
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32

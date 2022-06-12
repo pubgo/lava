@@ -16,7 +16,7 @@ app:
 service:
   middlewares:
     - accesslog
-  print-route: false
+  print-route: true
   grpc-cfg:
     write_buffer_size: 1024
     read_buffer_size: 1024

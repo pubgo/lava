@@ -1,12 +1,14 @@
-package menu
+package menurpc
 
 import (
 	"context"
+
 	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/logging"
+
 	"github.com/pubgo/lava/example/pkg/menuservice"
 	"github.com/pubgo/lava/example/pkg/models"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
-	"github.com/pubgo/lava/logging"
 )
 
 type server struct {

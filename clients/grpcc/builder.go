@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(c config.Config, middlewares map[string]middleware.Middleware) map[string]*Client {
+	dix.Register(func(c config.Config, middlewares []middleware.Middleware) map[string]*Client {
 		var clients = make(map[string]*Client)
 		var cfgMap = make(map[string]*grpcc_config.Cfg)
 		xerror.Panic(c.Decode(grpcc_config.Name, cfgMap))

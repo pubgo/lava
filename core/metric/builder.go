@@ -37,11 +37,13 @@ func init() {
 		return scope
 	})
 
-	dix.Register(func(m Metric) {
-		middleware2.Register(Name, func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
-			return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
-				return next(CreateCtx(ctx, m), req, resp)
-			}
-		})
+	dix.Register(func(m Metric) middleware2.Middlewares {
+		return middleware2.Middlewares{
+			func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
+				return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
+					return next(CreateCtx(ctx, m), req, resp)
+				}
+			},
+		}
 	})
 }

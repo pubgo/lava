@@ -93,7 +93,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/pubgo/dix v0.2.9
+	github.com/pubgo/dix v0.2.10
 	github.com/smartystreets/assertions v1.0.0
 	github.com/valyala/fasthttp v1.34.0
 	github.com/valyala/fasttemplate v1.2.1

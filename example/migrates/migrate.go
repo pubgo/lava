@@ -6,10 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func init() {
-	migrates.Register(
+func Migrations() migrates.Migrations {
+	return migrates.Migrations{
 		m0001,
-	)
+	}
 }
 
 func m0001() *gormigrate.Migration {

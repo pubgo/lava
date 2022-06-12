@@ -1,4 +1,4 @@
-package role
+package rolerpc
 
 import (
 	"context"

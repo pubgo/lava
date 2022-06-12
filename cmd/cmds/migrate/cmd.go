@@ -15,8 +15,17 @@ import (
 )
 
 type params struct {
-	Log *logging.Logger `inject:""`
-	Db  *orm.Client     `inject:""`
+	Log        *logging.Logger     `inject:""`
+	Db         *orm.Client         `inject:""`
+	Migrations migrates.Migrations `inject:""`
+}
+
+func migrate(m migrates.Migrations) []*gormigrate.Migration {
+	var migrations []*gormigrate.Migration
+	for i := range m {
+		migrations = append(migrations, m[i]())
+	}
+	return migrations
 }
 
 func Cmd() *cli.Command {
@@ -46,7 +55,7 @@ func Cmd() *cli.Command {
 					defer xerror.RecoverAndExit()
 
 					p := dix.Inject(new(params)).(*params)
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrates.Migrations())
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
 						xerror.Panic(m.Migrate())
 					} else {
@@ -64,7 +73,7 @@ func Cmd() *cli.Command {
 					defer xerror.RecoverAndExit()
 
 					p := dix.Inject(new(params)).(*params)
-					for _, m := range migrates.Migrations() {
+					for _, m := range migrate(p.Migrations) {
 						p.Log.Info(fmt.Sprintf("migration-id=%s", m.ID))
 					}
 					time.Sleep(time.Millisecond * 10)
@@ -79,7 +88,7 @@ func Cmd() *cli.Command {
 					defer xerror.RecoverAndExit()
 
 					p := dix.Inject(new(params)).(*params)
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrates.Migrations())
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
 						xerror.Panic(m.RollbackLast())
 					} else {

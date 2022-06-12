@@ -45,7 +45,7 @@ func Dix(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[
 	lifecycle.AfterStarts(func() {
 		SetDefault(reg)
 
-		xerror.Panic(register(reg, app))
+		register(reg, app)
 
 		var cancel = syncx.GoCtx(func(ctx context.Context) {
 			var interval = DefaultRegisterInterval
@@ -60,13 +60,7 @@ func Dix(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[
 			for {
 				select {
 				case <-tick.C:
-					logutil.LogOrErr(zap.L(), "service register",
-						func() error { return register(reg, app) },
-						zap.String("service", app.Options().Name),
-						zap.String("instanceId", app.Options().Id),
-						zap.String("registry", Default().String()),
-						zap.String("interval", interval.String()),
-					)
+					register(reg, app)
 				case <-ctx.Done():
 					zap.L().Info("service register cancelled")
 					return
@@ -77,16 +71,12 @@ func Dix(lifecycle lifecycle.Lifecycle, app service.AppInfo, cfg *Cfg, regs map[
 		// 服务撤销
 		lifecycle.BeforeStops(func() {
 			cancel()
-			xerror.Panic(deregister(reg, app))
+			deregister(reg, app)
 		})
 	})
 }
 
-func register(reg Registry, app service.AppInfo) (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
-		return err.WrapF("register service=>%#v", app.Options())
-	})
-
+func register(reg Registry, app service.AppInfo) {
 	var opt = app.Options()
 
 	// parse address for host, port
@@ -125,20 +115,17 @@ func register(reg Registry, app service.AppInfo) (err error) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.LogOrPanic(
+	logutil.OkOrErr(
 		zap.L(),
 		"register service node",
 		func() error { return reg.Register(s) },
-		zap.String("id", node.Id),
-		zap.String("name", opt.Name))
-	return nil
+		zap.String("instance_id", node.Id),
+		zap.String("service", opt.Name),
+		zap.String("registry", Default().String()),
+	)
 }
 
 func deregister(reg Registry, app service.AppInfo) (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
-		return err.WrapF("deregister service=>%#v", app.Options())
-	})
-
 	var opt = app.Options()
 
 	var advt, host string
@@ -171,7 +158,9 @@ func deregister(reg Registry, app service.AppInfo) (err error) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.LogOrErr(zap.L(), "deregister service node",
+	logutil.OkOrErr(
+		zap.L(),
+		"deregister service node",
 		func() error { return reg.Deregister(s) },
 		zap.String("id", node.Id),
 		zap.String("name", opt.Name),
