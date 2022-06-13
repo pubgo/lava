@@ -15,20 +15,19 @@ import (
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
-func New(l *logging.Logger, casbin *casbin.Client, db *orm.Client, m *menuservice.Menu) permpb.PermServiceServer {
-	return &server{
-		m:      m,
-		db:     db,
-		casbin: casbin,
-		logger: l.Named("perm.srv.rbac"),
-	}
+func New() permpb.PermServiceServer {
+	return &server{}
 }
 
 type server struct {
-	logger *logging.Logger
-	casbin *casbin.Client
-	m      *menuservice.Menu
-	db     *orm.Client
+	Logger *logging.Logger
+	Casbin *casbin.Client
+	M      *menuservice.Menu
+	Db     *orm.Client
+}
+
+func (s *server) Init() {
+	s.Logger = s.Logger.Named("perm.srv.rbac")
 }
 
 func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListResourcesRequest) (*permpb.PermServiceListResourcesResponse, error) {
@@ -37,7 +36,7 @@ func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListR
 		return nil, err
 	}
 
-	domain, err := s.casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,7 @@ func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListR
 	var act = req.Act
 
 	for i := range domain {
-		resources, err := s.casbin.ListResources(sub, domain[i], req.ResType, "*")
+		resources, err := s.Casbin.ListResources(sub, domain[i], req.ResType, "*")
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +80,7 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 		return nil, err
 	}
 
-	domain, err := s.casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +91,7 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 
 	mthList := make(map[string]bool)
 	for i := range domain {
-		for name := range s.casbin.GetUserMethodPerms(sub, domain[i]) {
+		for name := range s.Casbin.GetUserMethodPerms(sub, domain[i]) {
 			mthList[name] = true
 		}
 	}
@@ -103,7 +102,7 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 	}
 
 	var menuItems []*models.MenuItem
-	var db = s.db.WithContext(ctx)
+	var db = s.Db.WithContext(ctx)
 	if req.Platform != "" {
 		db = db.Where("platform=?", req.Platform)
 	}
@@ -114,11 +113,11 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 
 	resp := new(permpb.PermServiceListMenusResponse)
 	var menus []*models.Action
-	if err := s.db.Model(&models.Action{}).Where("code in ?", names).Find(&menus).Error; err != nil {
+	if err := s.Db.Model(&models.Action{}).Where("code in ?", names).Find(&menus).Error; err != nil {
 		return nil, err
 	}
 
-	resp.Items = menuservice.HandleMenuTree(menus, menuItems, s.logger)
+	resp.Items = menuservice.HandleMenuTree(menus, menuItems, s.Logger)
 	return resp, nil
 }
 
@@ -128,7 +127,7 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 		return nil, err
 	}
 
-	domain, err := s.casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -139,14 +138,14 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 
 	var act = req.Act
 	var prefix = casbin.HandleNodeId(req.ResType)
-	perms, err := s.casbin.GetPermissions(req.UserId, req.RoleId, req.OrgId, func(perm string) bool {
+	perms, err := s.Casbin.GetPermissions(req.UserId, req.RoleId, req.OrgId, func(perm string) bool {
 		return strings.HasPrefix(perm, prefix)
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	s.logger.Debug("ListCatalogs", logutil.ListField("params", perms))
+	s.Logger.Debug("ListCatalogs", logutil.ListField("params", perms))
 
 	var resp = new(permpb.PermServiceListGroupsResponse)
 	var nodes = make(map[string]*permpb.PermGroup)
@@ -158,7 +157,7 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 
 		for j := range domain {
 			var itemId = perms[i].Name
-			var node = s.casbin.GetNode(allNodes, domain[j], req.ResType, itemId, perms[i].Act)
+			var node = s.Casbin.GetNode(allNodes, domain[j], req.ResType, itemId, perms[i].Act)
 			if nodes[itemId] == nil {
 				nodes[itemId] = node.Perm()
 			} else {
@@ -182,7 +181,7 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 	var role = casbin.HandleRoleId(req.RoleId)
 	var domain = casbin.HandleOrgId(req.OrgId)
 
-	menus, err := s.m.ListEndpointsWithCode("api_code in ?", req.Menus)
+	menus, err := s.M.ListEndpointsWithCode("api_code in ?", req.Menus)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +212,7 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 	}
 
 	var perms = make(map[string]bool)
-	perm, err := s.casbin.GetImplicitPermissionsForUser(role, domain)
+	perm, err := s.Casbin.GetImplicitPermissionsForUser(role, domain)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +224,7 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 	// add perm
 	for p1 := range reqPerms {
 		if !perms[p1] {
-			if _, err := s.casbin.AddPermissionForUser(role, strings.Split(p1, separator)[1:]...); err != nil {
+			if _, err := s.Casbin.AddPermissionForUser(role, strings.Split(p1, separator)[1:]...); err != nil {
 				return nil, err
 			}
 		}
@@ -234,7 +233,7 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 	// del perm
 	for p1 := range perms {
 		if !reqPerms[p1] {
-			if _, err := s.casbin.DeletePermissionForUser(role, strings.Split(p1, separator)[1:]...); err != nil {
+			if _, err := s.Casbin.DeletePermissionForUser(role, strings.Split(p1, separator)[1:]...); err != nil {
 				return nil, err
 			}
 		}
@@ -254,7 +253,7 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 		return nil, err
 	}
 
-	domain, err := s.casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +265,7 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 	var act = req.Act
 	var name string
 	if casbin.IsMth(req.ResType) {
-		mthName, err := s.m.GetMethodName(act, obj)
+		mthName, err := s.M.GetMethodName(act, obj)
 		if err != nil {
 			return nil, err
 		}
@@ -277,11 +276,11 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 		var ok bool
 		var err error
 		if name != "" {
-			s.logger.Debug("method enforce", logutil.ListField("params", sub, domain[i], casbin.HandleMethod(name)))
-			ok, err = s.casbin.EnforceMth(sub, domain[i], casbin.HandleMethod(name))
+			s.Logger.Debug("method enforce", logutil.ListField("params", sub, domain[i], casbin.HandleMethod(name)))
+			ok, err = s.Casbin.EnforceMth(sub, domain[i], casbin.HandleMethod(name))
 		} else {
-			s.logger.Debug("resource enforce", logutil.ListField("params", sub, domain[i], obj, act))
-			ok, err = s.casbin.Enforce(sub, domain[i], obj, act)
+			s.Logger.Debug("resource enforce", logutil.ListField("params", sub, domain[i], obj, act))
+			ok, err = s.Casbin.Enforce(sub, domain[i], obj, act)
 		}
 
 		if err != nil {

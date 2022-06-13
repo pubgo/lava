@@ -12,23 +12,23 @@ import (
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
-func New(l *logging.Logger, casbin *casbin.Client, db *orm.Client) permpb.RoleServiceServer {
-	return &server{
-		db:     db,
-		casbin: casbin,
-		logger: l.Named("perm.srv.role"),
-	}
+func New() permpb.RoleServiceServer {
+	return &server{}
 }
 
 type server struct {
-	logger *logging.Logger
-	casbin *casbin.Client
-	db     *orm.Client
+	Logger *logging.Logger
+	Casbin *casbin.Client
+	Db     *orm.Client
+}
+
+func (s *server) Init() {
+	s.Logger = s.Logger.Named("perm.srv.role")
 }
 
 func (s *server) CreateRole(ctx context.Context, req *permpb.CreateRoleRequest) (*permpb.CreateRoleResponse, error) {
 	var role = models.RoleFromProto(req.Role)
-	err := s.db.Upsert(ctx, role, "name=? and org_id=?", role.Name, casbin.HandleOrgId(role.OrgId))
+	err := s.Db.Upsert(ctx, role, "name=? and org_id=?", role.Name, casbin.HandleOrgId(role.OrgId))
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +38,12 @@ func (s *server) CreateRole(ctx context.Context, req *permpb.CreateRoleRequest) 
 func (s *server) DeleteRole(ctx context.Context, req *permpb.DeleteRoleRequest) (*permpb.DeleteRoleResponse, error) {
 	var role = models.Role{ID: uint(req.Id)}
 	if req.Id == 0 {
-		err := s.db.WithContext(ctx).Where("name=? and org_id=?", req.Name, casbin.HandleOrgId(req.OrgId)).First(&role).Error
+		err := s.Db.WithContext(ctx).Where("name=? and org_id=?", req.Name, casbin.HandleOrgId(req.OrgId)).First(&role).Error
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		err := s.db.WithContext(ctx).First(&role).Error
+		err := s.Db.WithContext(ctx).First(&role).Error
 		if err != nil {
 			return nil, err
 		}
@@ -52,11 +52,11 @@ func (s *server) DeleteRole(ctx context.Context, req *permpb.DeleteRoleRequest) 
 	var domain = casbin.HandleOrgId(role.OrgId)
 
 	// del rbac role
-	for _, u := range s.casbin.Enforcer.GetAllUsersByDomain(domain) {
-		_, _ = s.casbin.DeleteRoleForUserInDomain(u, casbin.HandleOrgRole(role.Name), domain)
+	for _, u := range s.Casbin.Enforcer.GetAllUsersByDomain(domain) {
+		_, _ = s.Casbin.DeleteRoleForUserInDomain(u, casbin.HandleOrgRole(role.Name), domain)
 	}
 
-	err := s.db.WithContext(ctx).Delete(&role).Error
+	err := s.Db.WithContext(ctx).Delete(&role).Error
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +66,14 @@ func (s *server) DeleteRole(ctx context.Context, req *permpb.DeleteRoleRequest) 
 func (s *server) UpdateRole(ctx context.Context, req *permpb.UpdateRoleRequest) (*permpb.UpdateRoleResponse, error) {
 	var role = models.RoleFromProto(req.Role)
 	if req.Role.Id == 0 {
-		err := s.db.WithContext(ctx).Where("name=? and org_id=?", req.Role.Name, casbin.HandleOrgId(req.Role.OrgId)).Updates(role).Error
+		err := s.Db.WithContext(ctx).Where("name=? and org_id=?", req.Role.Name, casbin.HandleOrgId(req.Role.OrgId)).Updates(role).Error
 		if err != nil {
 			return nil, err
 		}
 		return &permpb.UpdateRoleResponse{}, nil
 	}
 
-	err := s.db.WithContext(ctx).Updates(role).Error
+	err := s.Db.WithContext(ctx).Updates(role).Error
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (s *server) UpdateRole(ctx context.Context, req *permpb.UpdateRoleRequest) 
 
 func (s *server) GetRole(ctx context.Context, req *permpb.GetRoleRequest) (*permpb.GetRoleResponse, error) {
 	var role = &models.Role{ID: uint(req.Id)}
-	err := s.db.WithContext(ctx).Where("id=?", req.Id).First(role).Error
+	err := s.Db.WithContext(ctx).Where("id=?", req.Id).First(role).Error
 	if orm.ErrNotFound(err) {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (s *server) GetRole(ctx context.Context, req *permpb.GetRoleRequest) (*perm
 }
 
 func (s *server) ListRoles(ctx context.Context, req *permpb.ListRolesRequest) (*permpb.ListRolesResponse, error) {
-	var db = s.db.WithContext(ctx)
+	var db = s.Db.WithContext(ctx)
 	if req.OrgId != "" {
 		db = db.Where("org_id=?", req.OrgId)
 	}
@@ -114,7 +114,7 @@ func (s *server) ListRoles(ctx context.Context, req *permpb.ListRolesRequest) (*
 
 func (s *server) AddRoleForUser(ctx context.Context, req *permpb.AddRoleForUserRequest) (_ *permpb.AddRoleForUserResponse, err error) {
 	var resp = new(permpb.AddRoleForUserResponse)
-	resp.Ok, err = s.casbin.AddRoleForUser(
+	resp.Ok, err = s.Casbin.AddRoleForUser(
 		casbin.HandleUserId(req.UserId),
 		casbin.HandleRoleId(req.RoleId),
 		casbin.HandleOrgId(req.OrgId),
@@ -132,14 +132,14 @@ func (s *server) DelRoleForUser(ctx context.Context, req *permpb.DelRoleForUserR
 	domain := casbin.HandleOrgId(req.OrgId)
 
 	if req.RoleId == "*" {
-		resp.Ok, err = s.casbin.DeleteRolesForUser(user, domain)
+		resp.Ok, err = s.Casbin.DeleteRolesForUser(user, domain)
 		if err != nil {
 			return nil, err
 		}
 		return resp, nil
 	}
 
-	resp.Ok, err = s.casbin.DeleteRoleForUser(
+	resp.Ok, err = s.Casbin.DeleteRoleForUser(
 		user,
 		casbin.HandleRoleId(req.RoleId),
 		domain,
@@ -152,7 +152,7 @@ func (s *server) DelRoleForUser(ctx context.Context, req *permpb.DelRoleForUserR
 
 func (s *server) GetRolesForUser(ctx context.Context, req *permpb.GetRolesForUserRequest) (_ *permpb.GetRolesForUserResponse, err error) {
 	var resp = new(permpb.GetRolesForUserResponse)
-	resp.Roles, err = s.casbin.GetImplicitRolesForUser(
+	resp.Roles, err = s.Casbin.GetImplicitRolesForUser(
 		casbin.HandleUserId(req.UserId),
 		casbin.HandleOrgId(req.OrgId),
 	)
@@ -170,9 +170,9 @@ func (s *server) GetUsersForRole(ctx context.Context, req *permpb.GetUsersForRol
 	var resp = new(permpb.GetUsersForRoleResponse)
 
 	if req.RoleId == "" {
-		resp.Users = s.casbin.GetAllUsersByDomain(casbin.HandleOrgId(req.OrgId))
+		resp.Users = s.Casbin.GetAllUsersByDomain(casbin.HandleOrgId(req.OrgId))
 	} else {
-		resp.Users = s.casbin.GetUsersForRoleInDomain(
+		resp.Users = s.Casbin.GetUsersForRoleInDomain(
 			casbin.HandleRoleId(req.RoleId),
 			casbin.HandleOrgId(req.OrgId),
 		)

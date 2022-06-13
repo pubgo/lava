@@ -12,11 +12,12 @@ import (
 )
 
 func init() {
-	dix.Register(func(log *logging.Logger) {
+	dix.Register(func(log *logging.Logger) *logging.ExtLog {
 		grpclog.SetLoggerV2(&loggerWrapper{
 			log:      logging.Component("grpc").L().WithOptions(zap.AddCallerSkip(4)),
 			depthLog: logging.Component("grpc-component").L().WithOptions(zap.AddCallerSkip(2)),
 		})
+		return new(logging.ExtLog)
 	})
 }
 

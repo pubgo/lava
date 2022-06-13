@@ -25,7 +25,7 @@ func TestMain(t *testing.M) {
 		_srv = &testApiHandler{
 			Db:         Db,
 			Cron:       Cron,
-			TestApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
+			testApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
 			L:          L,
 		}
 	})

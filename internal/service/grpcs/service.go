@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/logging"
 	"net"
 	"net/http"
 	"strings"
@@ -23,6 +21,7 @@ import (
 
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/router"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
@@ -58,27 +57,6 @@ func newService(name string, desc ...string) *serviceImpl {
 		handlers:  grpchan.HandlerMap{},
 	}
 
-	g.Provider(func() service.AppInfo { return g })
-	g.Provider(func() grpc.ServiceRegistrar { return g })
-	g.Provider(registry.Dix)
-	g.Provider(func(
-		c *cmux2.Mux,
-		m lifecycle.Lifecycle,
-		log *logging.Logger,
-		cfg config.Config,
-		middlewares []service.Middleware,
-		mux *router.App) {
-
-		g.net = c
-		g.mux = mux
-		g.lifecycle = m
-		g.middlewares = middlewares
-		g.log = log.Named(runmode.Project)
-
-		// 配置解析
-		xerror.Panic(cfg.UnmarshalKey(Name, &g.cfg))
-	})
-
 	g.cmd.Before = func(context *cli.Context) (gErr error) {
 		defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
 			fmt.Println(dix.Graph())
@@ -89,16 +67,6 @@ func newService(name string, desc ...string) *serviceImpl {
 			runmode.Project = strings.Split(name, " ")[0]
 		}
 		xerror.Assert(runmode.Project == "", "project is null")
-
-		for i := range g.deps {
-			if g.deps[i] == nil {
-				continue
-			}
-
-			dix.Register(g.deps[i])
-		}
-
-		dix.Invoke()
 		return
 	}
 
@@ -117,47 +85,40 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lifecycle.Lifecycle
+	Middlewares []service.Middleware
+	Lc          lifecycle.Lifecycle
+	Log         *zap.Logger
+	Net         *cmux2.Mux
+	App         *router.App
+	Register    *registry.Loader
 
-	middlewares []service.Middleware
-
-	lifecycle lifecycle.Lifecycle
-
-	log *zap.Logger
-	cmd *cli.Command
-
-	net *cmux2.Mux
-
-	cfg     Cfg
-	grpcSrv grpc_builder2.Builder
-	httpSrv fiber_builder2.Builder
-	mux     *router.App
-
-	deps []interface{}
-
+	cmd      *cli.Command
+	cfg      Cfg
+	grpcSrv  grpc_builder2.Builder
+	httpSrv  fiber_builder2.Builder
+	deps     []interface{}
 	handlers grpchan.HandlerMap
 }
 
-func (t *serviceImpl) SubCmd(cmd *cli.Command) {
-	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
-}
-
-func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-	xerror.Assert(desc == nil, "[desc] is nil")
-	xerror.Assert(impl == nil, "[impl] is nil")
-	t.handlers.RegisterService(desc, impl)
-}
-
-func (t *serviceImpl) Provider(regs interface{}) {
-	t.deps = append(t.deps, regs)
-}
-
-func (t *serviceImpl) Command() *cli.Command { return t.cmd }
-
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
+	t.Log = t.Log.Named(runmode.Project)
+
+	dix.Inject(func(cfg config.Config) {
+		// 配置解析
+		xerror.Panic(cfg.UnmarshalKey(Name, &t.cfg))
+	})
+
+	for i := range t.deps {
+		if t.deps[i] == nil {
+			continue
+		}
+
+		dix.Inject(t.deps[i])
+	}
 
 	var middlewares []service.Middleware
-	for _, m := range t.middlewares {
+	for _, m := range t.Middlewares {
 		middlewares = append(middlewares, m)
 	}
 
@@ -165,7 +126,7 @@ func (t *serviceImpl) init() (gErr error) {
 	streamInt := t.handlerStreamMiddle(middlewares)
 
 	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		t.mux.Post(pattern, func(ctx *fiber2.Ctx) error {
+		t.App.Post(pattern, func(ctx *fiber2.Ctx) error {
 			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
@@ -194,14 +155,14 @@ func (t *serviceImpl) init() (gErr error) {
 		}
 
 		if h, ok := svr.(service.WebHandler); ok {
-			h.Router(t.mux)
+			h.Router(t.App)
 		}
 	})
 
 	if t.cfg.PrintRoute {
-		for _, stacks := range t.mux.Stack() {
+		for _, stacks := range t.App.Stack() {
 			for _, s := range stacks {
-				t.log.Info("service route",
+				t.Log.Info("service route",
 					zap.String("name", s.Name),
 					zap.String("path", s.Path),
 					zap.String("method", s.Method),
@@ -213,17 +174,33 @@ func (t *serviceImpl) init() (gErr error) {
 	// 网关初始化
 	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
 	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
-	t.httpSrv.Get().Mount("/", t.mux.App)
+	t.httpSrv.Get().Mount("/", t.App.App)
 	return nil
 }
+
+func (t *serviceImpl) SubCmd(cmd *cli.Command) {
+	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
+}
+
+func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
+	xerror.Assert(desc == nil, "[desc] is nil")
+	xerror.Assert(impl == nil, "[impl] is nil")
+	t.handlers.RegisterService(desc, impl)
+}
+
+func (t *serviceImpl) Provider(regs interface{}) {
+	t.deps = append(t.deps, regs)
+}
+
+func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
 func (t *serviceImpl) Options() service.Options {
 	return service.Options{
 		Name:      runmode.Project,
 		Id:        runmode.InstanceID,
 		Version:   version.Version,
-		Port:      netutil2.MustGetPort(t.net.Addr),
-		Addr:      t.net.Addr,
+		Port:      netutil2.MustGetPort(t.Net.Addr),
+		Addr:      t.Net.Addr,
 		Advertise: "",
 	}
 }
@@ -233,24 +210,24 @@ func (t *serviceImpl) start() (gErr error) {
 
 	xerror.Panic(t.init())
 
-	logutil.OkOrPanic(t.log, "service before-start", func() error {
-		for _, run := range append(t.lifecycle.GetBeforeStarts(), t.GetBeforeStarts()...) {
-			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
+	logutil.OkOrPanic(t.Log, "service before-start", func() error {
+		for _, run := range append(t.Lc.GetBeforeStarts(), t.GetBeforeStarts()...) {
+			t.Log.Sugar().Infof("before-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
 
-	var grpcLn = t.net.HTTP2()
-	var gwLn = t.net.HTTP1()
+	var grpcLn = t.Net.HTTP2()
+	var gwLn = t.Net.HTTP1()
 
-	logutil.OkOrPanic(t.log, "service start", func() error {
-		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil2.GetLocalIP(), netutil2.MustGetPort(t.net.Addr))
+	logutil.OkOrPanic(t.Log, "service start", func() error {
+		t.Log.Sugar().Infof("Server Listening on http://%s:%d", netutil2.GetLocalIP(), netutil2.MustGetPort(t.Net.Addr))
 
 		// 启动grpc网关
 		syncx.GoDelay(func() {
-			t.log.Info("[grpc-gw] Server Starting")
-			logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
+			t.Log.Info("[grpc-gw] Server Starting")
+			logutil.LogOrErr(t.Log, "[grpc-gw] Server Stop", func() error {
 				if err := t.httpSrv.Get().Listener(<-gwLn); err != nil &&
 					!errors.Is(err, cmux2.ErrListenerClosed) &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -263,8 +240,8 @@ func (t *serviceImpl) start() (gErr error) {
 
 		// 启动grpc服务
 		syncx.GoDelay(func() {
-			t.log.Info("[grpc] Server Starting")
-			logutil.LogOrErr(t.log, "[grpc] Server Stop", func() error {
+			t.Log.Info("[grpc] Server Starting")
+			logutil.LogOrErr(t.Log, "[grpc] Server Stop", func() error {
 				if err := t.grpcSrv.Get().Serve(<-grpcLn); err != nil &&
 					err != cmux2.ErrListenerClosed &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -277,9 +254,9 @@ func (t *serviceImpl) start() (gErr error) {
 
 		// 启动net网络
 		syncx.GoDelay(func() {
-			t.log.Info("[cmux] Server Starting")
-			logutil.LogOrErr(t.log, "[cmux] Server Stop", func() error {
-				if err := t.net.Serve(); err != nil &&
+			t.Log.Info("[cmux] Server Starting")
+			logutil.LogOrErr(t.Log, "[cmux] Server Stop", func() error {
+				if err := t.Net.Serve(); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
 					return err
@@ -290,9 +267,9 @@ func (t *serviceImpl) start() (gErr error) {
 		return nil
 	})
 
-	logutil.OkOrPanic(t.log, "service after-start", func() error {
-		for _, run := range append(t.lifecycle.GetAfterStarts(), t.GetAfterStarts()...) {
-			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
+	logutil.OkOrPanic(t.Log, "service after-start", func() error {
+		for _, run := range append(t.Lc.GetAfterStarts(), t.GetAfterStarts()...) {
+			t.Log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
@@ -303,27 +280,27 @@ func (t *serviceImpl) start() (gErr error) {
 func (t *serviceImpl) stop() (err error) {
 	defer xerror.RecoverErr(&err)
 
-	logutil.OkOrErr(t.log, "service before-stop", func() error {
-		for _, run := range append(t.lifecycle.GetBeforeStops(), t.GetBeforeStops()...) {
-			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
+	logutil.OkOrErr(t.Log, "service before-stop", func() error {
+		for _, run := range append(t.Lc.GetBeforeStops(), t.GetBeforeStops()...) {
+			t.Log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
 
-	logutil.LogOrErr(t.log, "[grpc-gw] Shutdown", func() error {
+	logutil.LogOrErr(t.Log, "[grpc-gw] Shutdown", func() error {
 		xerror.Panic(t.httpSrv.Get().Shutdown())
 		return nil
 	})
 
-	logutil.LogOrErr(t.log, "[grpc] GracefulStop", func() error {
+	logutil.LogOrErr(t.Log, "[grpc] GracefulStop", func() error {
 		t.grpcSrv.Get().GracefulStop()
-		return t.net.Close()
+		return t.Net.Close()
 	})
 
-	logutil.OkOrErr(t.log, "service after-stop", func() error {
-		for _, run := range append(t.lifecycle.GetAfterStops(), t.GetAfterStops()...) {
-			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
+	logutil.OkOrErr(t.Log, "service after-stop", func() error {
+		for _, run := range append(t.Lc.GetAfterStops(), t.GetAfterStops()...) {
+			t.Log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil

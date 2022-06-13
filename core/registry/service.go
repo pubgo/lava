@@ -47,3 +47,13 @@ type Value struct {
 	Type   string   `json:"type,omitempty"`
 	Values []*Value `json:"values,omitempty"`
 }
+
+func addPort(addr string) int {
+	adders := strings.Split(addr, ":")
+	if len(adders) > 1 {
+		port, _ := strconv.Atoi(adders[len(adders)-1])
+		return port
+	}
+
+	return 0
+}

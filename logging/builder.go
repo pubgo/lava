@@ -12,8 +12,11 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 )
 
+type ExtLog struct{}
+
 func init() {
-	dix.Register(func(c config.Config) *Logger { return New(c) })
+	dix.Register(func() *ExtLog { return new(ExtLog) })
+	dix.Register(func(c config.Config, _ *ExtLog) *Logger { return New(c) })
 }
 
 func NewWithCfg(cfg *log_config.Config) *Logger {

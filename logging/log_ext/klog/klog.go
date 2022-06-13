@@ -10,7 +10,8 @@ import (
 
 // 替换klog全局log
 func init() {
-	dix.Register(func(logger *logging.Logger) {
+	dix.Register(func(logger *logging.Logger) *logging.ExtLog {
 		klog.SetLogger(zapr.NewLogger(logging.Component("klog").L()))
+		return new(logging.ExtLog)
 	})
 }

@@ -37,20 +37,17 @@ type User struct {
 
 var ll = logging.Component("handler")
 
-func NewTestAPIHandler(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) hellopb.TestApiServer {
-	return &testApiHandler{
-		Db:         Db,
-		Cron:       Cron,
-		TestApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
-		L:          L,
-	}
+func NewTestAPIHandler() hellopb.TestApiServer {
+	return &testApiHandler{}
 }
 
 type testApiHandler struct {
-	Db         *orm.Client
-	Cron       *scheduler.Scheduler
-	TestApiSrv hellopb.TestApiClient
-	L          *logging.Logger
+	Db    *orm.Client
+	Cron  *scheduler.Scheduler
+	L     *logging.Logger
+	Conns map[string]*grpcc.Client
+
+	testApiSrv hellopb.TestApiClient
 }
 
 func (h *testApiHandler) Close() {
@@ -59,6 +56,7 @@ func (h *testApiHandler) Close() {
 
 func (h *testApiHandler) Init() {
 	defer xerror.RecoverAndExit()
+	h.testApiSrv = hellopb.NewTestApiClient(h.Conns["test-grpc"])
 
 	var db = h.Db
 
@@ -75,7 +73,7 @@ func (h *testApiHandler) Init() {
 	h.Cron.Every("test grpc client", time.Second*5, func(name string) {
 		defer xerror.RecoverAndExit()
 		zap.L().Debug("客户端访问")
-		var out, err1 = h.TestApiSrv.Version(context.Background(), &hellopb.TestReq{Input: "input", Name: "hello"})
+		var out, err1 = h.testApiSrv.Version(context.Background(), &hellopb.TestReq{Input: "input", Name: "hello"})
 		xerror.Panic(err1)
 		fmt.Printf("%#v \n", out)
 	})

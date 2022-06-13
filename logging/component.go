@@ -1,12 +1,12 @@
 package logging
 
 import (
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"sync"
 
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 )

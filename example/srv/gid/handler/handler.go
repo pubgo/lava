@@ -17,10 +17,11 @@ import (
 )
 
 type Id struct {
+	Cron   *scheduler.Scheduler
+	Metric metric.Stats
+
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
-	Cron      *scheduler.Scheduler
-	Metric    metric.Stats
 }
 
 func (id *Id) Init() {
@@ -33,7 +34,7 @@ func (id *Id) Init() {
 	//})
 }
 
-func NewId(cron *scheduler.Scheduler, metric metric.Stats) gidpb.IdServer {
+func NewId() gidpb.IdServer {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -46,8 +47,6 @@ func NewId(cron *scheduler.Scheduler, metric metric.Stats) gidpb.IdServer {
 	}
 
 	return &Id{
-		Cron:      cron,
-		Metric:    metric,
 		snowflake: sf,
 		bigflake:  bg,
 	}

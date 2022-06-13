@@ -12,7 +12,8 @@ var name = "test-grpc"
 
 func NewSrv() service.Service {
 	srv := lava.NewSrv(name, "test-grpc grpc service")
-	srv.Dix(hellopb.RegisterTestApiServer)
-	srv.Dix(handler.NewTestAPIHandler)
+
+	hellopb.RegisterTestApiServer(srv, handler.NewTestAPIHandler())
+
 	return srv
 }

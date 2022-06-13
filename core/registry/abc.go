@@ -19,3 +19,4 @@ type WatchOpt func(*WatchOpts)
 type DeregOpt func(*DeregOpts)
 type GetOpt func(*GetOpts)
 type ListOpt func(*ListOpts)
+type Loader struct{}
