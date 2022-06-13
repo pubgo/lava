@@ -11,18 +11,18 @@ import (
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
-func New(l *logging.Logger, casbin *casbin.Client, m *menuservice.Menu) permpb.OrgServiceServer {
-	return &server{
-		m:      m,
-		casbin: casbin,
-		logger: l.Named("perm.srv.org"),
-	}
+func New() permpb.OrgServiceServer {
+	return &server{}
 }
 
 type server struct {
-	logger *logging.Logger
-	casbin *casbin.Client
-	m      *menuservice.Menu
+	Logger *logging.Logger
+	Casbin *casbin.Client
+	M      *menuservice.Menu
+}
+
+func (s *server) Init() {
+	s.Logger = s.Logger.Named("perm.srv.org")
 }
 
 func (s *server) CreateOrg(ctx context.Context, req *permpb.CreateOrgRequest) (*permpb.CreateOrgResponse, error) {
@@ -31,8 +31,8 @@ func (s *server) CreateOrg(ctx context.Context, req *permpb.CreateOrgRequest) (*
 	}
 
 	// Add permission rule for org
-	for code := range s.m.GetAllCode() {
-		if err := s.casbin.AddOrgMethodPerm(code, req.OrgId); err != nil {
+	for code := range s.M.GetAllCode() {
+		if err := s.Casbin.AddOrgMethodPerm(code, req.OrgId); err != nil {
 			return nil, err
 		}
 	}
@@ -40,7 +40,7 @@ func (s *server) CreateOrg(ctx context.Context, req *permpb.CreateOrgRequest) (*
 	// org root user
 	if req.UserId != "" {
 		var orgId = casbin.HandleOrgId(req.OrgId)
-		var _, err = s.casbin.AddRoleForUserInDomain(casbin.HandleUserId(req.UserId), casbin.HandleRoleId(orgId), orgId)
+		var _, err = s.Casbin.AddRoleForUserInDomain(casbin.HandleUserId(req.UserId), casbin.HandleRoleId(orgId), orgId)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +54,7 @@ func (s *server) DeleteOrg(ctx context.Context, req *permpb.DeleteOrgRequest) (*
 		return nil, errors.New("orgId is null")
 	}
 
-	var _, err = s.casbin.DeleteDomains(casbin.HandleOrgId(req.OrgId))
+	var _, err = s.Casbin.DeleteDomains(casbin.HandleOrgId(req.OrgId))
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +73,12 @@ func (s *server) TransferOrg(ctx context.Context, req *permpb.TransferOrgRequest
 	var orgRole = casbin.HandleRoleId(orgId)
 
 	// add new user to org role
-	if _, err := s.casbin.AddRoleForUserInDomain(newUserId, orgRole, orgId); err != nil {
+	if _, err := s.Casbin.AddRoleForUserInDomain(newUserId, orgRole, orgId); err != nil {
 		return nil, err
 	}
 
 	// del user
-	if _, err := s.casbin.DeleteRoleForUser(userId, orgRole, orgId); err != nil {
+	if _, err := s.Casbin.DeleteRoleForUser(userId, orgRole, orgId); err != nil {
 		return nil, err
 	}
 
@@ -88,7 +88,7 @@ func (s *server) TransferOrg(ctx context.Context, req *permpb.TransferOrgRequest
 func (s *server) ListOrg(ctx context.Context, req *permpb.ListOrgRequest) (*permpb.ListOrgResponse, error) {
 	var resp = &permpb.ListOrgResponse{}
 
-	var domains, err = s.casbin.GetAllDomains()
+	var domains, err = s.Casbin.GetAllDomains()
 	if err != nil {
 		return nil, err
 	}

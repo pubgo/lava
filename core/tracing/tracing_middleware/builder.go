@@ -3,13 +3,13 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/service"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/dix"
 	"go.uber.org/zap"
 
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	requestid2 "github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
@@ -17,11 +17,11 @@ import (
 )
 
 func init() {
-	dix.Register(func(tracer opentracing.Tracer, log *zap.Logger) middleware2.Middlewares {
+	dix.Register(func(tracer opentracing.Tracer, log *zap.Logger) service.Middlewares {
 		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
-		return middleware2.Middlewares{
-			func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
-				return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
+		return service.Middlewares{
+			func(next service.HandlerFunc) service.HandlerFunc {
+				return func(ctx context.Context, req service.Request, resp service.Response) error {
 					var (
 						err               error
 						span              opentracing.Span

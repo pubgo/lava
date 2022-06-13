@@ -2,7 +2,7 @@ package tracing_middleware
 
 import (
 	"encoding/base64"
-	"github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/service"
 	"strings"
 
 	"github.com/pubgo/xerror"
@@ -19,7 +19,7 @@ var _ opentracing.TextMapReader = (*textMapCarrier)(nil)
 
 // textMapCarrier extends a metadata.MD to be an opentracing textMap
 type textMapCarrier struct {
-	*middleware.RequestHeader
+	*service.RequestHeader
 }
 
 // Set is a opentracing.TextMapReader interface that extracts values.

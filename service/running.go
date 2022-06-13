@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
 	"os"
 	"sort"
+
+	"github.com/pubgo/xerror"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/migrate"

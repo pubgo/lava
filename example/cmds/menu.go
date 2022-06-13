@@ -9,17 +9,20 @@ import (
 	"github.com/pubgo/lava/example/pkg/menuservice"
 )
 
+type param struct {
+	M   *menuservice.Menu
+	Log *logging.Logger
+}
+
 func Menu() *cli.Command {
 	return &cli.Command{
 		Name:  "menu",
 		Usage: "Load local menu config to database",
 		Action: func(c *cli.Context) error {
 			xerror.RecoverAndExit()
-			dix.Register(func(m *menuservice.Menu, log *logging.Logger) {
-				xerror.Panic(m.SaveLocalMenusToDb())
-				log.Info("menu saving success")
-			})
-			dix.Invoke()
+			var p = dix.Inject(new(param)).(*param)
+			xerror.Panic(p.M.SaveLocalMenusToDb())
+			p.Log.Info("menu saving success")
 			return nil
 		},
 	}

@@ -12,23 +12,23 @@ import (
 )
 
 type server struct {
-	logger *logging.Logger
-	db     *orm.Client
-	m      *menuservice.Menu
+	Logger *logging.Logger
+	Db     *orm.Client
+	M      *menuservice.Menu
 }
 
-func New(l *logging.Logger, db *orm.Client, m *menuservice.Menu) permpb.MenuServiceServer {
-	return &server{
-		m:      m,
-		db:     db,
-		logger: l.Named("perm.srv.menu"),
-	}
+func New() permpb.MenuServiceServer {
+	return &server{}
+}
+
+func (p *server) Init() {
+	p.Logger = p.Logger.Named("perm.srv.menu")
 }
 
 func (p *server) ListMenus(ctx context.Context, req *permpb.ListMenusRequest) (*permpb.ListMenusResponse, error) {
 	var resp = new(permpb.ListMenusResponse)
 	var menuItems []*models.MenuItem
-	var db = p.db.WithContext(ctx)
+	var db = p.Db.WithContext(ctx)
 	if req.Platform != "" {
 		db = db.Where("platform=?", req.Platform)
 	}
@@ -39,10 +39,10 @@ func (p *server) ListMenus(ctx context.Context, req *permpb.ListMenusRequest) (*
 	}
 
 	var menus []*models.Action
-	if err := p.db.Model(&models.Action{}).Find(&menus).Error; err != nil {
+	if err := p.Db.Model(&models.Action{}).Find(&menus).Error; err != nil {
 		return nil, err
 	}
 
-	resp.Items = menuservice.HandleMenuTree(menus, menuItems, p.logger)
+	resp.Items = menuservice.HandleMenuTree(menus, menuItems, p.Logger)
 	return resp, nil
 }

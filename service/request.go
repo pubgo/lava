@@ -1,4 +1,4 @@
-package middleware
+package service
 
 import "github.com/valyala/fasthttp"
 

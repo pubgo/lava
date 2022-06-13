@@ -2,11 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/internal/pkg/reflectx"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -20,6 +15,12 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"github.com/valyala/fasttemplate"
+
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/pkg/env"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/internal/pkg/reflectx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 )
 
 var (

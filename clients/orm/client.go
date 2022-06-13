@@ -7,6 +7,8 @@ import (
 
 	"github.com/pubgo/xerror"
 	"gorm.io/gorm"
+
+	"github.com/pubgo/lava/vars"
 )
 
 const Name = "orm"
@@ -21,6 +23,17 @@ func (c *Client) Ping() error {
 		return err
 	}
 	return _db.Ping()
+}
+
+func (c *Client) Vars() vars.Value {
+	return func() interface{} {
+		_db, err := c.DB.DB()
+		if err != nil {
+			return err.Error()
+		} else {
+			return _db.Stats()
+		}
+	}
 }
 
 func (c *Client) InitTable(tb interface{}) error {

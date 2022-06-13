@@ -1,7 +1,7 @@
 package grpcc_config
 
 import (
-	"github.com/pubgo/lava/core/middleware"
+	"github.com/pubgo/lava/service"
 	"time"
 
 	"google.golang.org/grpc"
@@ -21,12 +21,12 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 // Cfg ...
 type Cfg struct {
-	Client      *ClientCfg              `yaml:"client"`
-	Addr        string                  `yaml:"addr"`
-	Scheme      string                  `yaml:"scheme"`
-	Registry    string                  `yaml:"registry"`
-	Alias       string                  `yaml:"alias"`
-	Middlewares []middleware.Middleware `yaml:"-"`
+	Client      *ClientCfg           `yaml:"client"`
+	Addr        string               `yaml:"addr"`
+	Scheme      string               `yaml:"scheme"`
+	Registry    string               `yaml:"registry"`
+	Alias       string               `yaml:"alias"`
+	Middlewares []service.Middleware `yaml:"-"`
 }
 
 func (t Cfg) Check() error { return nil }

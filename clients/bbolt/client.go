@@ -2,13 +2,13 @@ package bbolt
 
 import (
 	"context"
-	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
+	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )

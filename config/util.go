@@ -2,8 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/pkg/env"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +9,9 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/pubgo/xerror"
 	"github.com/spf13/viper"
+
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/pkg/env"
 )
 
 const pkgKey = "name"
@@ -70,4 +71,10 @@ func loadEnvFromPrefix(envPrefix string, v *viper.Viper) {
 
 		v.Set(strings.TrimSpace(envs[0]), strings.TrimSpace(envs[1]))
 	}
+}
+
+func Decode[T any](c Config, name string) map[string]T {
+	var cfgMap = make(map[string]T)
+	xerror.PanicF(c.Decode(name, &cfgMap), "config decode failed, name=%s", name)
+	return cfgMap
 }

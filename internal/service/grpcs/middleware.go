@@ -2,6 +2,7 @@ package grpcs
 
 import (
 	"context"
+	"github.com/pubgo/lava/service"
 	"strings"
 	"time"
 
@@ -12,13 +13,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/internal/service/grpcutil"
 )
 
-func (t *serviceImpl) handlerHttpMiddle(middlewares []middleware2.Middleware) func(fbCtx *fiber.Ctx) error {
-	var handler = func(ctx context.Context, req middleware2.Request, rsp middleware2.Response) error {
+func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
+	var handler = func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var reqCtx = req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
 		return reqCtx.ctx.Next()
@@ -33,8 +33,8 @@ func (t *serviceImpl) handlerHttpMiddle(middlewares []middleware2.Middleware) fu
 	}
 }
 
-func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware2.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req middleware2.Request, rsp middleware2.Response) error {
+func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
+	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
@@ -127,8 +127,8 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []middleware2.Middleware) g
 	}
 }
 
-func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware2.Middleware) grpc.StreamServerInterceptor {
-	streamWrapper := func(ctx context.Context, req middleware2.Request, rsp middleware2.Response) error {
+func (t *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
+	streamWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
@@ -204,7 +204,7 @@ func (t *serviceImpl) handlerStreamMiddle(middlewares []middleware2.Middleware) 
 			service:       serviceFromMethod(info.FullMethod),
 			contentType:   ct,
 		}
-		return streamWrapper(ctx, rpcReq, &rpcResponse{stream: stream, header: new(middleware2.ResponseHeader)})
+		return streamWrapper(ctx, rpcReq, &rpcResponse{stream: stream, header: new(service.ResponseHeader)})
 	}
 }
 

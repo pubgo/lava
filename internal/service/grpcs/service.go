@@ -3,6 +3,9 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/logging"
 	"net"
 	"net/http"
 	"strings"
@@ -18,11 +21,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
-	middleware2 "github.com/pubgo/lava/core/middleware"
-	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/router"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
@@ -32,7 +32,6 @@ import (
 	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
 	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/internal/pkg/utils"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -58,6 +57,27 @@ func newService(name string, desc ...string) *serviceImpl {
 		httpSrv:   fiber_builder2.New(),
 		handlers:  grpchan.HandlerMap{},
 	}
+
+	g.Provider(func() service.AppInfo { return g })
+	g.Provider(func() grpc.ServiceRegistrar { return g })
+	g.Provider(registry.Dix)
+	g.Provider(func(
+		c *cmux2.Mux,
+		m lifecycle.Lifecycle,
+		log *logging.Logger,
+		cfg config.Config,
+		middlewares []service.Middleware,
+		mux *router.App) {
+
+		g.net = c
+		g.mux = mux
+		g.lifecycle = m
+		g.middlewares = middlewares
+		g.log = log.Named(runmode.Project)
+
+		// 配置解析
+		xerror.Panic(cfg.UnmarshalKey(Name, &g.cfg))
+	})
 
 	g.cmd.Before = func(context *cli.Context) (gErr error) {
 		defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
@@ -90,26 +110,6 @@ func newService(name string, desc ...string) *serviceImpl {
 		return nil
 	}
 
-	g.Dix(func() service.AppInfo { return g })
-	g.Dix(registry.Dix)
-	g.Dix(func(
-		c *cmux2.Mux,
-		m lifecycle.Lifecycle,
-		log *logging.Logger,
-		cfg config.Config,
-		middlewares []middleware2.Middleware,
-		mux *router.App) {
-
-		g.net = c
-		g.mux = mux
-		g.lifecycle = m
-		g.middlewares = middlewares
-		g.log = log.Named(runmode.Project)
-
-		// 配置解析
-		xerror.Panic(cfg.UnmarshalKey(Name, &g.cfg))
-	})
-
 	return g
 }
 
@@ -118,7 +118,7 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	lifecycle.Lifecycle
 
-	middlewares []middleware2.Middleware
+	middlewares []service.Middleware
 
 	lifecycle lifecycle.Lifecycle
 
@@ -132,13 +132,12 @@ type serviceImpl struct {
 	httpSrv fiber_builder2.Builder
 	mux     *router.App
 
-	deps []interface {
-	}
+	deps []interface{}
 
 	handlers grpchan.HandlerMap
 }
 
-func (t *serviceImpl) AddCmd(cmd *cli.Command) {
+func (t *serviceImpl) SubCmd(cmd *cli.Command) {
 	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
 }
 
@@ -148,8 +147,8 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	t.handlers.RegisterService(desc, impl)
 }
 
-func (t *serviceImpl) Dix(regs ...interface{}) {
-	t.deps = append(t.deps, regs...)
+func (t *serviceImpl) Provider(regs interface{}) {
+	t.deps = append(t.deps, regs)
 }
 
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
@@ -157,7 +156,7 @@ func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
 
-	var middlewares []middleware2.Middleware
+	var middlewares []service.Middleware
 	for _, m := range t.middlewares {
 		middlewares = append(middlewares, m)
 	}

@@ -2,10 +2,6 @@ package restc
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/middleware"
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/httpx"
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,6 +9,11 @@ import (
 	"github.com/pubgo/x/strutil"
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/httpx"
+	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/service"
 )
 
 const (
@@ -27,8 +28,8 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	client  *fasthttp.Client
 	cfg     Cfg
-	do      middleware.HandlerFunc
-	plugins []middleware.Middleware
+	do      service.HandlerFunc
+	plugins []service.Middleware
 }
 
 func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) (*fasthttp.Response, error) {

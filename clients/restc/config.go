@@ -3,15 +3,16 @@ package restc
 import (
 	"context"
 	"crypto/tls"
-	middleware2 "github.com/pubgo/lava/core/middleware"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	retry2 "github.com/pubgo/lava/internal/pkg/retry"
-	"github.com/pubgo/lava/logging"
 	"net/http"
 	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lava/internal/pkg/merge"
+	retry2 "github.com/pubgo/lava/internal/pkg/retry"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/service"
 )
 
 type Cfg struct {
@@ -46,16 +47,16 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	//var certs []tls.Certificate
 	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
 
-	var middlewares []middleware2.Middleware
+	var middlewares []service.Middleware
 
 	// 加载插件
 	// 加载全局
-	for _, plg := range t.Middlewares {
-		middlewares = append(middlewares, middleware2.Get(plg))
-	}
+	//for _, plg := range t.Middlewares {
+	//	middlewares = append(middlewares, middleware2.Get(plg))
+	//}
 
 	var client = &clientImpl{client: &fasthttp.Client{}}
-	client.do = func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
+	client.do = func(ctx context.Context, req service.Request, resp service.Response) error {
 		return client.client.Do(req.(*Request).req, resp.(*Response).resp)
 	}
 	for i := len(middlewares); i > 0; i-- {

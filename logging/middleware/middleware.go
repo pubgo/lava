@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/service"
 	"time"
 
 	"github.com/DataDog/gostackparse"
@@ -12,7 +13,6 @@ import (
 	"go.uber.org/zap"
 	"runtime/debug"
 
-	middleware2 "github.com/pubgo/lava/core/middleware"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
@@ -24,11 +24,11 @@ import (
 
 func init() {
 	const Name = "accesslog"
-	dix.Register(func(log *logging.Logger) middleware2.Middlewares {
+	dix.Register(func(log *logging.Logger) service.Middlewares {
 		log = log.Named(Name)
-		return middleware2.Middlewares{
-			func(next middleware2.HandlerFunc) middleware2.HandlerFunc {
-				return func(ctx context.Context, req middleware2.Request, resp middleware2.Response) error {
+		return service.Middlewares{
+			func(next service.HandlerFunc) service.HandlerFunc {
+				return func(ctx context.Context, req service.Request, resp service.Response) error {
 					// TODO 考虑pool优化
 					var params = make([]zap.Field, 0, 20)
 
