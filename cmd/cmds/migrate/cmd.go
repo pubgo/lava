@@ -15,9 +15,9 @@ import (
 )
 
 type params struct {
-	Log        *logging.Logger     `inject:""`
-	Db         *orm.Client         `inject:""`
-	Migrations migrates.Migrations `inject:""`
+	Log        *logging.Logger
+	Db         *orm.Client
+	Migrations migrates.Migrations
 }
 
 func migrate(m migrates.Migrations) []*gormigrate.Migration {
@@ -42,10 +42,7 @@ func Cmd() *cli.Command {
 			},
 		},
 		Before: func(context *cli.Context) error {
-			defer xerror.RecoverAndExit()
 			gormigrate.DefaultOptions.TableName = "orm_migrations"
-
-			dix.Invoke()
 			return nil
 		},
 		Subcommands: []*cli.Command{

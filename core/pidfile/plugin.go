@@ -12,13 +12,15 @@ import (
 )
 
 func init() {
-	dix.Register(func(r lifecycle.Lifecycle) {
-		pidPath = filepath.Join(config.CfgDir, "pidfile")
+	dix.Register(func() lifecycle.Handler {
+		return func(lc lifecycle.Lifecycle) {
+			pidPath = filepath.Join(config.CfgDir, "pidfile")
 
-		_ = pathutil.IsNotExistMkDir(pidPath)
+			_ = pathutil.IsNotExistMkDir(pidPath)
 
-		r.AfterStarts(func() {
-			xerror.Panic(SavePid())
-		})
+			lc.AfterStarts(func() {
+				xerror.Panic(SavePid())
+			})
+		}
 	})
 }

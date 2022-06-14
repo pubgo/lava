@@ -5,7 +5,5 @@ import (
 )
 
 func init() {
-	router.Register(func(app *router.App) {
-		app.Mount("/debug", App())
-	})
+	router.Register("/debug", App())
 }

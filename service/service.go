@@ -35,6 +35,8 @@ type Options struct {
 
 type Command interface {
 	Command() *cli.Command
+	Start() error
+	Stop() error
 }
 
 type AppInfo interface {

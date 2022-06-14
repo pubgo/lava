@@ -21,7 +21,7 @@ func Menu() *cli.Command {
 		Action: func(c *cli.Context) error {
 			xerror.RecoverAndExit()
 			var p = dix.Inject(new(param)).(*param)
-			xerror.Panic(p.M.SaveLocalMenusToDb())
+			p.M.SaveLocalMenusToDb()
 			p.Log.Info("menu saving success")
 			return nil
 		},

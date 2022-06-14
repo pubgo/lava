@@ -3,7 +3,6 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/config"
 	"net"
 	"net/http"
 	"strings"
@@ -24,7 +23,6 @@ import (
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/router"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/core/signal"
 	cmux2 "github.com/pubgo/lava/internal/cmux"
 	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
 	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
@@ -41,41 +39,35 @@ func New(name string, desc ...string) service.Service {
 }
 
 func newService(name string, desc ...string) *serviceImpl {
-	var g = &serviceImpl{
+	var lc = lifecycle.New()
+	var g *serviceImpl
+	g = &serviceImpl{
+		Lifecycle: lc,
 		cmd: &cli.Command{
 			Name:  name,
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
+			Before: func(context *cli.Context) (gErr error) {
+				defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
+					fmt.Println(dix.Graph())
+					return err
+				})
+
+				if runmode.Project == "" {
+					runmode.Project = strings.Split(name, " ")[0]
+				}
+				xerror.Assert(runmode.Project == "", "project is null")
+
+				for i := range g.providerList {
+					dix.Provider(g.providerList[i])
+				}
+				return
+			},
 		},
-		cfg: Cfg{
-			Grpc: grpc_builder2.GetDefaultCfg(),
-			Api:  &fiber_builder2.Cfg{},
-		},
-		Lifecycle: lifecycle.New(),
-		grpcSrv:   grpc_builder2.New(),
-		httpSrv:   fiber_builder2.New(),
-		handlers:  grpchan.HandlerMap{},
-	}
-
-	g.cmd.Before = func(context *cli.Context) (gErr error) {
-		defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
-			fmt.Println(dix.Graph())
-			return err
-		})
-
-		if runmode.Project == "" {
-			runmode.Project = strings.Split(name, " ")[0]
-		}
-		xerror.Assert(runmode.Project == "", "project is null")
-		return
-	}
-
-	g.cmd.Action = func(ctx *cli.Context) error {
-		defer xerror.RecoverAndExit()
-		xerror.Panic(g.start())
-		signal.Block()
-		xerror.Panic(g.stop())
-		return nil
+		lc:       lc,
+		grpcSrv:  grpc_builder2.New(),
+		httpSrv:  fiber_builder2.New(),
+		handlers: grpchan.HandlerMap{},
 	}
 
 	return g
@@ -85,37 +77,32 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lifecycle.Lifecycle
-	Middlewares []service.Middleware
-	Lc          lifecycle.Lifecycle
-	Log         *zap.Logger
-	Net         *cmux2.Mux
-	App         *router.App
-	Register    *registry.Loader
+	Middlewares  []service.Middleware
+	GetLifecycle lifecycle.GetLifecycle
+	Log          *zap.Logger
+	Net          *cmux2.Mux
+	AppList      []*router.App
+	Register     *registry.Loader
+	Cfg          *Cfg
 
-	cmd      *cli.Command
-	cfg      Cfg
-	grpcSrv  grpc_builder2.Builder
-	httpSrv  fiber_builder2.Builder
-	deps     []interface{}
-	handlers grpchan.HandlerMap
+	lc           lifecycle.GetLifecycle
+	cmd          *cli.Command
+	grpcSrv      grpc_builder2.Builder
+	httpSrv      fiber_builder2.Builder
+	providerList []interface{}
+	handlers     grpchan.HandlerMap
 }
+
+func (t *serviceImpl) Start() error { return t.start() }
+func (t *serviceImpl) Stop() error  { return t.stop() }
 
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
+
+	dix.Inject(t)
+	t.handlers.ForEach(func(_ *grpc.ServiceDesc, svr interface{}) { dix.Inject(svr) })
+
 	t.Log = t.Log.Named(runmode.Project)
-
-	dix.Inject(func(cfg config.Config) {
-		// 配置解析
-		xerror.Panic(cfg.UnmarshalKey(Name, &t.cfg))
-	})
-
-	for i := range t.deps {
-		if t.deps[i] == nil {
-			continue
-		}
-
-		dix.Inject(t.deps[i])
-	}
 
 	var middlewares []service.Middleware
 	for _, m := range t.Middlewares {
@@ -125,8 +112,16 @@ func (t *serviceImpl) init() (gErr error) {
 	unaryInt := t.handlerUnaryMiddle(middlewares)
 	streamInt := t.handlerStreamMiddle(middlewares)
 
+	// 网关初始化
+	xerror.Panic(t.httpSrv.Build(t.Cfg.Api))
+	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
+
+	for _, app := range t.AppList {
+		t.httpSrv.Get().Mount(app.Prefix, app.App)
+	}
+
 	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		t.App.Post(pattern, func(ctx *fiber2.Ctx) error {
+		t.httpSrv.Get().Post(pattern, func(ctx *fiber2.Ctx) error {
 			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
@@ -140,7 +135,7 @@ func (t *serviceImpl) init() (gErr error) {
 	t.grpcSrv.StreamInterceptor(streamInt)
 
 	// grpc serve初始化
-	xerror.Panic(t.grpcSrv.Build(t.cfg.Grpc))
+	xerror.Panic(t.grpcSrv.Build(t.Cfg.Grpc))
 
 	// 初始化 handlers
 	t.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
@@ -155,12 +150,12 @@ func (t *serviceImpl) init() (gErr error) {
 		}
 
 		if h, ok := svr.(service.WebHandler); ok {
-			h.Router(t.App)
+			h.Router(t.httpSrv.Get())
 		}
 	})
 
-	if t.cfg.PrintRoute {
-		for _, stacks := range t.App.Stack() {
+	if t.Cfg.PrintRoute {
+		for _, stacks := range t.httpSrv.Get().Stack() {
 			for _, s := range stacks {
 				t.Log.Info("service route",
 					zap.String("name", s.Name),
@@ -171,10 +166,6 @@ func (t *serviceImpl) init() (gErr error) {
 		}
 	}
 
-	// 网关初始化
-	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
-	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
-	t.httpSrv.Get().Mount("/", t.App.App)
 	return nil
 }
 
@@ -188,8 +179,8 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	t.handlers.RegisterService(desc, impl)
 }
 
-func (t *serviceImpl) Provider(regs interface{}) {
-	t.deps = append(t.deps, regs)
+func (t *serviceImpl) Provider(provider interface{}) {
+	t.providerList = append(t.providerList, provider)
 }
 
 func (t *serviceImpl) Command() *cli.Command { return t.cmd }
@@ -211,7 +202,7 @@ func (t *serviceImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.Log, "service before-start", func() error {
-		for _, run := range append(t.Lc.GetBeforeStarts(), t.GetBeforeStarts()...) {
+		for _, run := range append(t.lc.GetBeforeStarts(), t.GetLifecycle.GetBeforeStarts()...) {
 			t.Log.Sugar().Infof("before-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -268,7 +259,7 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.Log, "service after-start", func() error {
-		for _, run := range append(t.Lc.GetAfterStarts(), t.GetAfterStarts()...) {
+		for _, run := range append(t.lc.GetAfterStarts(), t.GetLifecycle.GetAfterStarts()...) {
 			t.Log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -281,7 +272,7 @@ func (t *serviceImpl) stop() (err error) {
 	defer xerror.RecoverErr(&err)
 
 	logutil.OkOrErr(t.Log, "service before-stop", func() error {
-		for _, run := range append(t.Lc.GetBeforeStops(), t.GetBeforeStops()...) {
+		for _, run := range append(t.lc.GetBeforeStops(), t.GetLifecycle.GetBeforeStops()...) {
 			t.Log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -299,7 +290,7 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.OkOrErr(t.Log, "service after-stop", func() error {
-		for _, run := range append(t.Lc.GetAfterStops(), t.GetAfterStops()...) {
+		for _, run := range append(t.lc.GetAfterStops(), t.GetLifecycle.GetAfterStops()...) {
 			t.Log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}

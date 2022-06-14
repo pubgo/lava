@@ -13,11 +13,12 @@ import (
 
 // 替换std默认log
 func init() {
-	dix.Register(func(logger *logging.Logger) *logging.ExtLog {
-		var stdLog = log.Default()
-		// 接管系统默认log
-		*stdLog = *zap.NewStdLog(logging.Component("std").L())
-		return new(logging.ExtLog)
+	dix.Register(func() logging.ExtLog {
+		return func(logger *logging.Logger) {
+			var stdLog = log.Default()
+			// 接管系统默认log
+			*stdLog = *zap.NewStdLog(logging.Component("std").L())
+		}
 	})
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/pubgo/lava/cmd/cmds/migrate"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/version"
 )
 
@@ -37,6 +38,14 @@ func Run(services ...Command) {
 
 		// 检查项目Command是否注册
 		xerror.Assert(cliApp.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
+
+		cmd.Action = func(ctx *cli.Context) error {
+			defer xerror.RecoverAndExit()
+			xerror.Panic(srv.Start())
+			signal.Block()
+			xerror.Panic(srv.Stop())
+			return nil
+		}
 
 		cmd.Subcommands = append(cmd.Subcommands, migrate.Cmd())
 		cliApp.Commands = append(cliApp.Commands, cmd)

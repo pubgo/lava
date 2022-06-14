@@ -5,12 +5,13 @@ import (
 	"github.com/pubgo/dix"
 )
 
-func Register(fn func(app *App)) { dix.Register(fn) }
-
-func init() {
-	dix.Register(func() *App { return &App{App: fiber.New()} })
+func Register(prefix string, app *fiber.App) {
+	dix.Provider(func() *App {
+		return &App{Prefix: prefix, App: app}
+	})
 }
 
 type App struct {
-	*fiber.App
+	Prefix string
+	App    *fiber.App
 }

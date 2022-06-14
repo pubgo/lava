@@ -3,7 +3,6 @@ package menuservice
 import (
 	"context"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/xerror"
@@ -21,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const Name = "menus"
+const Name = "menu"
 
 var trim = strings.TrimSpace
 
@@ -147,18 +146,14 @@ func (m *Menu) handleRoute(router *mux.Router, path string, code string, method 
 	}
 }
 
-func (m *Menu) SaveLocalMenusToDb() error {
+func (m *Menu) SaveLocalMenusToDb() {
 	var menuItems, err = parseMenuItems(m.c.Path)
-	if err != nil {
-		return err
-	}
+	xerror.Panic(err)
 
 	for _, item := range menuItems {
-		if item.Path == "" || item.Method == "" || item.Code == "" {
-			return errors.New("path or method or code is null")
-		}
+		xerror.Assert(item.Path == "" || item.Method == "" || item.Code == "", "path or method or code is null")
 
-		if err := m.db.Upsert(context.Background(), &models.Endpoint{
+		xerror.Panic(m.db.Upsert(context.Background(), &models.Endpoint{
 			TargetType: item.TargetType,
 			Path:       item.Path,
 			Method:     item.Method,
@@ -168,25 +163,20 @@ func (m *Menu) SaveLocalMenusToDb() error {
 				Type: item.ResType,
 				Name: item.DisplayName,
 			},
-		}, "path=? and method=?", item.Path, item.Method); err != nil {
-			return err
-		}
+		}, "path=? and method=?", item.Path, item.Method))
 
 		for parentCode := range item.Parent {
 			if parentCode == "" {
 				continue
 			}
 
-			if err := m.db.Upsert(context.Background(), &models.MenuItem{
+			xerror.Panic(m.db.Upsert(context.Background(), &models.MenuItem{
 				Code:       item.Code,
 				ParentCode: parentCode,
 				Platform:   "ka",
-			}, "code=? and parent_code=?", item.Code, parentCode); err != nil {
-				return err
-			}
+			}, "code=? and parent_code=?", item.Code, parentCode))
 		}
 	}
-	return nil
 }
 
 func (m *Menu) GetMethodName(method, url string) (string, error) {
@@ -225,16 +215,12 @@ func parseMenuItems(path string) (map[string]*menuMapping, error) {
 		}
 
 		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
+		xerror.Panic(err)
 		defer f.Close()
 
 		var r = csv.NewReader(f)
 		records, err := r.ReadAll()
-		if err != nil {
-			return err
-		}
+		xerror.Panic(err)
 
 		for i := range records {
 			// filter header
@@ -272,10 +258,7 @@ func parseMenuItems(path string) (map[string]*menuMapping, error) {
 		}
 		return nil
 	})
-
-	if err != nil {
-		return nil, err
-	}
+	xerror.Panic(err)
 
 	for _, m := range menuItems {
 		m.Parent = codeAndParent[m.Code]

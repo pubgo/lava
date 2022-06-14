@@ -1,8 +1,6 @@
 module github.com/pubgo/lava/tools
 
-go 1.17
-
-replace github.com/pubgo/lava v0.1.25 => ../
+go 1.18
 
 require (
 	github.com/fullstorydev/grpcurl v1.8.6

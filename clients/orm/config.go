@@ -3,7 +3,9 @@ package orm
 import (
 	"time"
 
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/xerror"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
 	opentracing "gorm.io/plugin/opentracing"
@@ -11,7 +13,6 @@ import (
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )
 
@@ -43,7 +44,7 @@ func (t *Cfg) Valid() (err error) {
 	return
 }
 
-func (t *Cfg) Create() *gorm.DB {
+func (t *Cfg) Create(log *logging.Logger) *gorm.DB {
 	defer xerror.RecoverAndRaise()
 
 	var ormCfg = &gorm.Config{}
@@ -54,7 +55,7 @@ func (t *Cfg) Create() *gorm.DB {
 	}
 
 	ormCfg.Logger = gl.New(
-		logPrintf(logging.Component(Name).Depth(4).Sugar().Infof),
+		logPrintf(log.Named(Name).WithOptions(zap.AddCallerSkip(4)).Sugar().Infof),
 		gl.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,

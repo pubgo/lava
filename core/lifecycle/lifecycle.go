@@ -1,14 +1,17 @@
 package lifecycle
 
-import (
-	"github.com/pubgo/dix"
-)
+import "github.com/pubgo/dix"
+
+type Handler func(lc Lifecycle)
 
 type Lifecycle interface {
 	AfterStops(...func())
 	BeforeStops(...func())
 	AfterStarts(...func())
 	BeforeStarts(...func())
+}
+
+type GetLifecycle interface {
 	GetAfterStops() []func()
 	GetBeforeStops() []func()
 	GetAfterStarts() []func()
@@ -16,6 +19,7 @@ type Lifecycle interface {
 }
 
 var _ Lifecycle = (*lifecycleImpl)(nil)
+var _ GetLifecycle = (*lifecycleImpl)(nil)
 
 type lifecycleImpl struct {
 	beforeStarts []func()
@@ -33,11 +37,18 @@ func (t *lifecycleImpl) BeforeStops(f ...func())   { t.beforeStops = append(t.be
 func (t *lifecycleImpl) AfterStarts(f ...func())   { t.afterStarts = append(t.afterStarts, f...) }
 func (t *lifecycleImpl) AfterStops(f ...func())    { t.afterStops = append(t.afterStops, f...) }
 
-func New() Lifecycle {
+func New() *lifecycleImpl {
 	return new(lifecycleImpl)
 }
 
 func init() {
-	impl := new(lifecycleImpl)
-	dix.Register(func() Lifecycle { return impl })
+	var lc = new(lifecycleImpl)
+	dix.Provider(func() Handler { return func(lc Lifecycle) {} })
+	dix.Provider(func(handlers []Handler) Lifecycle {
+		for i := range handlers {
+			handlers[i](lc)
+		}
+		return lc
+	})
+	dix.Provider(func() GetLifecycle { return lc })
 }

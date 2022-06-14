@@ -34,14 +34,16 @@ func init() {
 
 		scope, closer := tally.NewRootScope(*opts, cfg.Interval)
 		m.BeforeStops(func() { xerror.Panic(closer.Close()) })
+
+		registerVars(scope)
 		return scope
 	})
 
-	dix.Register(func(m Metric) service.Middlewares {
-		return service.MiddleWrap(func(next service.HandlerFunc) service.HandlerFunc {
+	dix.Register(func(m Metric) service.Middleware {
+		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {
 				return next(CreateCtx(ctx, m), req, resp)
 			}
-		})
+		}
 	})
 }
