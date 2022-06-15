@@ -12,7 +12,7 @@ import (
 func init() {
 	dix.Register(func() logging.ExtLog {
 		return func(logger *logging.Logger) {
-			klog.SetLogger(zapr.NewLogger(logging.Component("klog").L()))
+			klog.SetLogger(zapr.NewLogger(logging.ModuleLog(logger, "klog").L()))
 		}
 	})
 }

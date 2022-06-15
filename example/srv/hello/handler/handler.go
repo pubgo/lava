@@ -35,8 +35,6 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-var ll = logging.Component("handler")
-
 func NewTestAPIHandler() hellopb.TestApiServer {
 	return &testApiHandler{}
 }
@@ -93,7 +91,7 @@ func (h *testApiHandler) Version1(ctx context.Context, value *structpb.Value) (*
 func (h *testApiHandler) Version(ctx context.Context, in *hellopb.TestReq) (out *hellopb.TestApiOutput, err error) {
 	var log = logging.GetLog(ctx)
 	log.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
-	ll.S().Infof("Received Helloworld.Call request, name: %s", in.Input)
+	h.L.Sugar().Infof("Received Helloworld.Call request, name: %s", in.Input)
 
 	var m = metric.GetMetric(ctx)
 	m.Counter("test-counter").Inc(1)

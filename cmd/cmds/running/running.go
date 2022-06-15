@@ -1,4 +1,4 @@
-package service
+package running
 
 import (
 	"fmt"
@@ -13,10 +13,11 @@ import (
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
 
-func Run(services ...Command) {
+func Run(services ...service.Command) {
 	defer xerror.RecoverAndExit()
 
 	xerror.Assert(len(services) == 0, "[services] is zero")

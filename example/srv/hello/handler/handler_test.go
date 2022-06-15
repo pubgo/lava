@@ -29,7 +29,6 @@ func TestMain(t *testing.M) {
 			L:          L,
 		}
 	})
-	dix.Invoke()
 
 	_srv.Init()
 	t.Run()

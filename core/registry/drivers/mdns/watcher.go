@@ -2,19 +2,16 @@ package mdns
 
 import (
 	"context"
-	"github.com/pubgo/lava/internal/pkg/syncx"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"time"
 
 	"github.com/pubgo/xerror"
-	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/event"
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 )
 
-var logs = logging.Component(Name)
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
@@ -35,16 +32,16 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	}
 
 	results := make(chan *registry.Result)
-	return &Watcher{results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
+	return &Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
 		var fn = func() {
 			defer xerror.Recovery(func(err xerror.XErr) {
-				logs.WithErr(err).Error("watcher error")
+				m.log.WithErr(err).Error("watcher error")
 			})
 
-			logs.L().With(
-				zap.String("service", service),
-				zap.String("interval", ttl.String()),
-			).Info("[mdns] registry watcher")
+			m.log.With(typex.M{
+				"service":  service,
+				"interval": ttl.String(),
+			}).Info("[mdns] registry watcher")
 
 			var nodes typex.SMap
 			services, err := m.GetService(service)
@@ -87,6 +84,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 }
 
 type Watcher struct {
+	m       *mdnsRegistry
 	results chan *registry.Result
 	cancel  context.CancelFunc
 }

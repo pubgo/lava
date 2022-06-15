@@ -15,7 +15,7 @@ func init() {
 	dix.Provider(func() lifecycle.Handler {
 		return func(lc lifecycle.Lifecycle) {
 			const name = "automaxprocs"
-			var log = func(s string, i ...interface{}) { logging.Component(name).Depth(2).Info(fmt.Sprintf(s, i...)) }
+			var log = func(s string, i ...interface{}) { logging.GetGlobal(name).Depth(2).Info(fmt.Sprintf(s, i...)) }
 			undo := xerror.ExitErr(maxprocs.Set(maxprocs.Logger(log))).(func())
 			lc.BeforeStops(undo)
 		}

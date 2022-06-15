@@ -1,21 +1,21 @@
 package reporter
 
 import (
-	"github.com/pubgo/lava/logging"
+	"go.uber.org/zap"
 	"io"
 	"time"
 
 	e "github.com/jaegertracing/jaeger/plugin/storage/es/spanstore/dbmodel"
 	json "github.com/json-iterator/go"
+	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/x/syncutil"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	j "github.com/uber/jaeger-client-go/thrift-gen/jaeger"
 	"go.uber.org/atomic"
-	"go.uber.org/zap"
 )
 
-var logs = logging.Component("jaeger.reporter")
+var logs = logging.GetGlobal("jaeger.reporter")
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
@@ -60,12 +60,12 @@ func (t *ioReporter) loop() {
 }
 
 func (t *ioReporter) Report(span *jaeger.Span) {
-	if t.count.Load() > t.batchSize {
-		logs.L().With(
+	logs.If(t.count.Load() > t.batchSize, func(log *logging.ModuleLogger) {
+		log.L().With(
 			zap.Int32("batch", t.batchSize),
 			zap.Int32("count", t.count.Load()),
 		).Error("The maximum number of spans has been exceeded")
-	}
+	})
 
 	if t.process == nil {
 		t.process = jaeger.BuildJaegerProcessThrift(span)

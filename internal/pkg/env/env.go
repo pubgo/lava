@@ -2,10 +2,11 @@ package env
 
 import (
 	"fmt"
-	"github.com/pubgo/xerror"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pubgo/xerror"
 )
 
 var trim = strings.TrimSpace

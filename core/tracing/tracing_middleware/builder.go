@@ -18,7 +18,7 @@ import (
 
 func init() {
 	dix.Register(func(tracer opentracing.Tracer, log *zap.Logger) service.Middlewares {
-		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
+		log = log.Named(logutil.Names(logkey.Module, tracing.Name))
 		return service.Middlewares{
 			func(next service.HandlerFunc) service.HandlerFunc {
 				return func(ctx context.Context, req service.Request, resp service.Response) error {

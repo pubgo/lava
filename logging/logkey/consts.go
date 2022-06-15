@@ -9,7 +9,7 @@ const (
 	Version   = "version"
 	TraceID   = "traceID"
 	Namespace = "namespace"
-	Component = "component"
+	Module    = "module"
 	Project   = "project"
 	Fields    = "fields"
 	Env       = "env"

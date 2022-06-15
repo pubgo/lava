@@ -21,7 +21,6 @@ import (
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/core/router"
 	"github.com/pubgo/lava/core/runmode"
 	cmux2 "github.com/pubgo/lava/internal/cmux"
 	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
@@ -81,9 +80,8 @@ type serviceImpl struct {
 	GetLifecycle lifecycle.GetLifecycle
 	Log          *zap.Logger
 	Net          *cmux2.Mux
-	AppList      []*router.App
-	Register     *registry.Loader
-	Cfg          *Cfg
+	Routers      []service.Router
+	cfg          *Cfg
 
 	lc           lifecycle.GetLifecycle
 	cmd          *cli.Command
@@ -91,10 +89,18 @@ type serviceImpl struct {
 	httpSrv      fiber_builder2.Builder
 	providerList []interface{}
 	handlers     grpchan.HandlerMap
+
+	unaryInt  grpc.UnaryServerInterceptor
+	streamInt grpc.StreamServerInterceptor
 }
 
 func (t *serviceImpl) Start() error { return t.start() }
 func (t *serviceImpl) Stop() error  { return t.stop() }
+
+func (t *serviceImpl) DixInject(cfg *Cfg, _ *registry.Loader, app *fiber2.App) {
+	t.cfg = cfg
+
+}
 
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
@@ -113,11 +119,11 @@ func (t *serviceImpl) init() (gErr error) {
 	streamInt := t.handlerStreamMiddle(middlewares)
 
 	// 网关初始化
-	xerror.Panic(t.httpSrv.Build(t.Cfg.Api))
+	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
 	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
 
-	for _, app := range t.AppList {
-		t.httpSrv.Get().Mount(app.Prefix, app.App)
+	for i := range t.Routers {
+		t.Routers[i](t.httpSrv.Get())
 	}
 
 	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
@@ -135,7 +141,7 @@ func (t *serviceImpl) init() (gErr error) {
 	t.grpcSrv.StreamInterceptor(streamInt)
 
 	// grpc serve初始化
-	xerror.Panic(t.grpcSrv.Build(t.Cfg.Grpc))
+	xerror.Panic(t.grpcSrv.Build(t.cfg.Grpc))
 
 	// 初始化 handlers
 	t.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
@@ -154,7 +160,7 @@ func (t *serviceImpl) init() (gErr error) {
 		}
 	})
 
-	if t.Cfg.PrintRoute {
+	if t.cfg.PrintRoute {
 		for _, stacks := range t.httpSrv.Get().Stack() {
 			for _, s := range stacks {
 				t.Log.Info("service route",

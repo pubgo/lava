@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
@@ -17,10 +16,6 @@ type Close interface {
 
 type Flags interface {
 	Flags() []cli.Flag
-}
-
-type WebHandler interface {
-	Router(r fiber.Router)
 }
 
 type Options struct {
@@ -39,15 +34,11 @@ type Command interface {
 	Stop() error
 }
 
-type AppInfo interface {
-	Options() Options
-}
-
 type Service interface {
 	lifecycle.Lifecycle
 	grpc.ServiceRegistrar
 	Command
-	AppInfo
+	Options() Options
 	Provider(provider interface{})
 	SubCmd(cmd *cli.Command)
 }

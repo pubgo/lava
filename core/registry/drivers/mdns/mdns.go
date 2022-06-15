@@ -4,8 +4,6 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/syncx"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"time"
 
 	"github.com/grandcat/zeroconf"
@@ -13,6 +11,8 @@ import (
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/internal/pkg/syncx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )
@@ -26,7 +26,7 @@ const (
 func New(cfg Cfg, log *logging.Logger) registry.Registry {
 	resolver, err := zeroconf.NewResolver()
 	xerror.Panic(err, "Failed to initialize zeroconf resolver")
-	return &mdnsRegistry{resolver: resolver, cfg: cfg, log: log.Named(logutil.Names(registry.Name, Name))}
+	return &mdnsRegistry{resolver: resolver, cfg: cfg, log: logging.ModuleLog(log, logutil.Names(registry.Name, Name))}
 }
 
 type serverNode struct {
@@ -41,7 +41,7 @@ type mdnsRegistry struct {
 	cfg      Cfg
 	services typex.SMap
 	resolver *zeroconf.Resolver
-	log      *logging.Logger
+	log      *logging.ModuleLogger
 }
 
 func (m *mdnsRegistry) Close() {

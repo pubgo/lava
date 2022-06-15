@@ -13,7 +13,7 @@ import (
 )
 
 var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
-var logs = logging.Component(Name)
+var logs = logging.GetGlobal(Name)
 
 type Scheduler struct {
 	scheduler quartz.Scheduler

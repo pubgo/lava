@@ -3,16 +3,13 @@ package grpcc_resolver
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/logging"
 	"math/rand"
 	"strings"
 
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
-
-	"github.com/pubgo/lava/logging"
 )
-
-var logs = logging.Component("balancer.resolver")
 
 const (
 	DnsScheme    = "dns"
@@ -21,6 +18,8 @@ const (
 	DiscovScheme = "discov"
 	EndpointSep  = ","
 )
+
+var logs = logging.GetGlobal("balancer.resolver")
 
 var (
 	Replica = 1

@@ -17,10 +17,10 @@ import (
 const Name = "prometheus"
 const urlPath = "/metrics"
 
-var logs = logging.Component(logutil.Names(metric.Name, Name))
-
 func init() {
-	dix.Register(func(conf *metric.Cfg) map[string]*tally.ScopeOptions {
+	dix.Register(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
+		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
+
 		if conf.Driver != Name {
 			return nil
 		}

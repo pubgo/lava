@@ -17,7 +17,7 @@ func init() {
 		return func(logger *logging.Logger) {
 			var stdLog = log.Default()
 			// 接管系统默认log
-			*stdLog = *zap.NewStdLog(logging.Component("std").L())
+			*stdLog = *zap.NewStdLog(logging.ModuleLog(logger, "std").L())
 		}
 	})
 }

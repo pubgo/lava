@@ -6,6 +6,9 @@ import (
 
 const Name = "logging"
 
+var global *Logger
+
+type ExtLog func(logger *Logger)
 type Logger = zap.Logger
 
 // L global zap log

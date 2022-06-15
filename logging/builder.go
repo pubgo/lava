@@ -10,9 +10,8 @@ import (
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/version"
 )
-
-type ExtLog func(logger *Logger)
 
 func init() {
 	dix.Register(func() ExtLog { return func(log *Logger) {} })
@@ -34,6 +33,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 		zap.String(logkey.Env, runmode.Mode.String()),
 		zap.String(logkey.Hostname, runmode.Hostname),
 		zap.String(logkey.Project, runmode.Project),
+		zap.String(logkey.Version, version.Version),
 	)
 
 	if runmode.Namespace != "" {
@@ -46,6 +46,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 
 	// 替换zap全局log
 	zap.ReplaceGlobals(baseLog)
+	global = baseLog
 	return baseLog
 }
 

@@ -13,14 +13,14 @@ import (
 )
 
 var Name = "gc"
-var logs = logging.Component(Name)
 
 func init() {
-	dix.Register(func() lifecycle.Handler {
+	dix.Register(func(log *logging.Logger) lifecycle.Handler {
 		if runmode.IsProd() || runmode.IsRelease() {
 			return nil
 		}
 
+		var logs = logging.ModuleLog(log, Name)
 		return func(lc lifecycle.Lifecycle) {
 			lc.AfterStarts(func() {
 				syncx.GoCtx(func(ctx context.Context) {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -45,6 +46,10 @@ func newCfg() *configImpl {
 	// 配置文件名字和类型
 	v.SetConfigType(CfgType)
 	v.SetConfigName(CfgName)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	prefix := utils.FirstNotEmpty(env.Get("cfg_env_prefix", "env_prefix"), "lava")
+	v.SetEnvPrefix(prefix)
+	v.AutomaticEnv()
 
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
