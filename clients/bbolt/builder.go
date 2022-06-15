@@ -9,11 +9,8 @@ import (
 
 func init() {
 	dix.Register(func(c config.Config, log *logging.Logger) map[string]*Client {
-		var cfgMap = config.Decode[*Cfg](c, Name)
-		var clients = make(map[string]*Client)
-		for name, cfg := range cfgMap {
-			clients[name] = New(cfg.Create(), log.Named(Name))
-		}
-		return clients
+		return config.MakeClient(c, Name, func(key string, cfg *Cfg) *Client {
+			return New(cfg.Create(), log.Named(Name))
+		})
 	})
 }

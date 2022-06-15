@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	_ "github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
@@ -13,13 +12,9 @@ import (
 
 func init() {
 	dix.Provider(func(c config.Config, middlewares []service.Middleware) map[string]*Client {
-		var clients = make(map[string]*Client)
-		var cfgMap = make(map[string]*grpcc_config.Cfg)
-		xerror.Panic(c.Decode(grpcc_config.Name, cfgMap))
-		for name, cfg := range cfgMap {
+		return config.MakeClient(c, grpcc_config.Name, func(key string, cfg *grpcc_config.Cfg) *Client {
 			cfg.Middlewares = middlewares
-			clients[name] = NewClient(name, cfg)
-		}
-		return clients
+			return NewClient(key, cfg)
+		})
 	})
 }
