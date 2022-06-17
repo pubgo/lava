@@ -19,7 +19,7 @@ func GoChan(fn func() Value) chan Value {
 	go func() {
 		defer close(ch)
 		defer xerror.Recovery(func(err xerror.XErr) {
-			ch <- WithErr(xerror.Wrap(err, "GoChan", stack.Func(fn)))
+			ch <- WithErr(err.Wrap("GoChan", stack.Func(fn)))
 		})
 
 		if val := fn(); val == nil {
