@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	dix.Register(func() lifecycle.Handler {
+	dix.Provider(func() lifecycle.Handler {
 		return func(lc lifecycle.Lifecycle) {
 			pidPath = filepath.Join(config.CfgDir, "pidfile")
 

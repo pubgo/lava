@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/xerror"
 	"io/fs"
 	"net/http"
 	"os"
@@ -15,8 +13,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/pkg/models"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )
 

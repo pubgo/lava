@@ -20,7 +20,7 @@ func Menu() *cli.Command {
 		Usage: "Load local menu config to database",
 		Action: func(c *cli.Context) error {
 			xerror.RecoverAndExit()
-			var p = dix.Inject(new(param)).(*param)
+			var p = dix.Inject(new(param))
 			p.M.SaveLocalMenusToDb()
 			p.Log.Info("menu saving success")
 			return nil

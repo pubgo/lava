@@ -16,7 +16,7 @@ import (
 const Name = "x-request-id"
 
 func init() {
-	dix.Register(func() service.Middleware {
+	dix.Provider(func() service.Middleware {
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) (gErr error) {
 				defer func() {

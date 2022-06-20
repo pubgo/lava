@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(c *config.App, log *logging.Logger) *Mux {
+	dix.Provider(func(c *config.App, log *logging.Logger) *Mux {
 		return &Mux{
 			Addr:        c.Addr,
 			ReadTimeout: time.Second * 2,

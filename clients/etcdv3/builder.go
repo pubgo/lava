@@ -8,7 +8,7 @@ import (
 const Name = "etcdv3"
 
 func init() {
-	dix.Register(func(c config.Config) map[string]*Client {
+	dix.Provider(func(c config.Config) map[string]*Client {
 		return config.MakeClient(c, Name, func(key string, cfg *Cfg) *Client {
 			return &Client{Client: cfg.Build()}
 		})

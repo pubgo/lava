@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	dix.Register(func() logging.ExtLog {
+	dix.Provider(func() logging.ExtLog {
 		return func(logger *logging.Logger) {
 			grpclog.SetLoggerV2(&loggerWrapper{
 				log:      logging.ModuleLog(logger, "grpc").L().WithOptions(zap.AddCallerSkip(4)),

@@ -24,7 +24,7 @@ import (
 
 func init() {
 	const Name = "accesslog"
-	dix.Register(func(log *logging.Logger) service.Middleware {
+	dix.Provider(func(log *logging.Logger) service.Middleware {
 		log = log.Named(Name)
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {

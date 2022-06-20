@@ -21,7 +21,7 @@ var _srv *testApiHandler
 
 func TestMain(t *testing.M) {
 	defer xerror.RecoverAndExit()
-	dix.Register(func(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) {
+	dix.Provider(func(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) {
 		_srv = &testApiHandler{
 			Db:         Db,
 			Cron:       Cron,

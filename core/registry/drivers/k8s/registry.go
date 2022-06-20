@@ -72,7 +72,7 @@ const (
 )
 
 func init() {
-	dix.Register(func(m config.CfgMap) (_ registry.Registry, err error) {
+	dix.Provider(func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer xerror.RecoverErr(&err)
 
 		var cfg Cfg

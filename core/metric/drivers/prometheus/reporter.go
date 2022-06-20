@@ -18,7 +18,7 @@ const Name = "prometheus"
 const urlPath = "/metrics"
 
 func init() {
-	dix.Register(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
+	dix.Provider(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
 		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
 
 		if conf.Driver != Name {

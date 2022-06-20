@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(conf *registry.Cfg, log *logging.Logger) map[string]registry.Registry {
+	dix.Provider(func(conf *registry.Cfg, log *logging.Logger) map[string]registry.Registry {
 		if conf.Driver != Name {
 			return nil
 		}

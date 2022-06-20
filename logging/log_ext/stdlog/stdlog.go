@@ -13,7 +13,7 @@ import (
 
 // 替换std默认log
 func init() {
-	dix.Register(func() logging.ExtLog {
+	dix.Provider(func() logging.ExtLog {
 		return func(logger *logging.Logger) {
 			var stdLog = log.Default()
 			// 接管系统默认log

@@ -15,7 +15,7 @@ import (
 var Name = "gc"
 
 func init() {
-	dix.Register(func(log *logging.Logger) lifecycle.Handler {
+	dix.Provider(func(log *logging.Logger) lifecycle.Handler {
 		if runmode.IsProd() || runmode.IsRelease() {
 			return nil
 		}

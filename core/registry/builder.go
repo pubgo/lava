@@ -21,7 +21,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(c config.Config) *Cfg {
+	dix.Provider(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
 
 		// 配置解析
@@ -29,7 +29,7 @@ func init() {
 		return cfg.Check()
 	})
 
-	dix.Register(func(lifecycle lifecycle.Lifecycle, app *config.App, cfg *Cfg, regs map[string]Registry) *Loader {
+	dix.Provider(func(lifecycle lifecycle.Lifecycle, app *config.App, cfg *Cfg, regs map[string]Registry) *Loader {
 		reg := regs[cfg.Driver]
 		xerror.AssertFn(reg == nil, func() error {
 			var errs = fmt.Errorf("registry driver is null")

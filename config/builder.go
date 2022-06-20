@@ -6,8 +6,8 @@ import (
 )
 
 func init() {
-	dix.Register(func() Config { return newCfg() })
-	dix.Register(func(c Config) *App {
+	dix.Provider(func() Config { return newCfg() })
+	dix.Provider(func(c Config) *App {
 		var cfg App
 		xerror.Panic(c.UnmarshalKey("app", &cfg))
 		xerror.Panic(cfg.Check())

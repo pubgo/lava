@@ -9,15 +9,14 @@ import (
 
 	fiber2 "github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/core/runmode"
 	cmux2 "github.com/pubgo/lava/internal/cmux"
 	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
@@ -42,7 +41,7 @@ func newService(name string, desc ...string) *serviceImpl {
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
 			Before: func(context *cli.Context) (gErr error) {
-				defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
+				defer funk.RecoverErr(&gErr, func(err funk.XErr) funk.XErr {
 					fmt.Println(dix.Graph())
 					return err
 				})
@@ -50,7 +49,7 @@ func newService(name string, desc ...string) *serviceImpl {
 				if runmode.Project == "" {
 					runmode.Project = strings.Split(name, " ")[0]
 				}
-				xerror.Assert(runmode.Project == "", "project is null")
+				funk.Assert(runmode.Project == "", "project is null")
 
 				for i := range g.providerList {
 					dix.Provider(g.providerList[i])
@@ -63,53 +62,63 @@ func newService(name string, desc ...string) *serviceImpl {
 	return g
 }
 
-var _ service.Service = (*serviceImpl)(nil)
+var _ service.Web = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	Middlewares  []service.Middleware
-	GetLifecycle lifecycle.GetLifecycle
-	Lifecycle    lifecycle.Lifecycle
-	Log          *zap.Logger
-	Net          *cmux2.Mux
-	Routers      []service.Router
+	getLifecycle lifecycle.GetLifecycle
+	lc           lifecycle.Lifecycle
+	log          *zap.Logger
+	net          *cmux2.Mux
+	app          *service.WebApp
 	cfg          *Cfg
 
 	cmd          *cli.Command
 	httpSrv      fiber_builder2.Builder
 	providerList []interface{}
+	httpMiddle   func(_ *fiber2.Ctx) error
+}
+
+func (t *serviceImpl) dixInject(p struct {
+	Middlewares  []service.Middleware
+	GetLifecycle lifecycle.GetLifecycle
+	Lifecycle    lifecycle.Lifecycle
+	Log          *zap.Logger
+	Net          *cmux2.Mux
+	App          *service.WebApp
+	Cfg          *Cfg
+}) {
+	t.getLifecycle = p.GetLifecycle
+	t.lc = p.Lifecycle
+	t.log = p.Log.Named(runmode.Project)
+	t.net = p.Net
+	t.app = p.App
+	t.cfg = p.Cfg
+
+	var middlewares []service.Middleware
+	for _, m := range p.Middlewares {
+		middlewares = append(middlewares, m)
+	}
+
+	t.httpMiddle = t.handlerHttpMiddle(middlewares)
 }
 
 func (t *serviceImpl) Start() error { return t.start() }
 func (t *serviceImpl) Stop() error  { return t.stop() }
 
-func (t *serviceImpl) DixInject(cfg *Cfg, _ *registry.Loader, app *fiber2.App) {
-	t.cfg = cfg
-}
-
 func (t *serviceImpl) init() (gErr error) {
-	defer xerror.RecoverErr(&gErr)
+	defer funk.RecoverErr(&gErr)
 
 	dix.Inject(t)
 
-	t.Log = t.Log.Named(runmode.Project)
-
-	var middlewares []service.Middleware
-	for _, m := range t.Middlewares {
-		middlewares = append(middlewares, m)
-	}
-
 	// 网关初始化
-	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
-	t.httpSrv.Get().Use(t.handlerHttpMiddle(middlewares))
-
-	for i := range t.Routers {
-		t.Routers[i](t.httpSrv.Get())
-	}
+	funk.Must(t.httpSrv.Build(t.cfg.Api))
+	t.httpSrv.Get().Use(t.httpMiddle)
+	t.httpSrv.Get().Mount("/", t.app.App)
 
 	if t.cfg.PrintRoute {
 		for _, stacks := range t.httpSrv.Get().Stack() {
 			for _, s := range stacks {
-				t.Log.Info("service route",
+				t.log.Info("service route",
 					zap.String("name", s.Name),
 					zap.String("path", s.Path),
 					zap.String("method", s.Method),
@@ -125,9 +134,6 @@ func (t *serviceImpl) SubCmd(cmd *cli.Command) {
 	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
 }
 
-func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-}
-
 func (t *serviceImpl) Provider(provider interface{}) {
 	t.providerList = append(t.providerList, provider)
 }
@@ -139,34 +145,34 @@ func (t *serviceImpl) Options() service.Options {
 		Name:      runmode.Project,
 		Id:        runmode.InstanceID,
 		Version:   version.Version,
-		Port:      netutil2.MustGetPort(t.Net.Addr),
-		Addr:      t.Net.Addr,
+		Port:      netutil2.MustGetPort(t.net.Addr),
+		Addr:      t.net.Addr,
 		Advertise: "",
 	}
 }
 
 func (t *serviceImpl) start() (gErr error) {
-	defer xerror.RecoverErr(&gErr)
+	defer funk.RecoverErr(&gErr)
 
-	xerror.Panic(t.init())
+	funk.Must(t.init())
 
-	logutil.OkOrPanic(t.Log, "service before-start", func() error {
-		for _, run := range t.GetLifecycle.GetBeforeStarts() {
-			t.Log.Sugar().Infof("before-start running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+	logutil.OkOrPanic(t.log, "service before-start", func() error {
+		for _, run := range t.getLifecycle.GetBeforeStarts() {
+			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
+			funk.MustMsg(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
 
-	var gwLn = t.Net.HTTP1()
+	var gwLn = t.net.HTTP1()
 
-	logutil.OkOrPanic(t.Log, "service start", func() error {
-		t.Log.Sugar().Infof("Server Listening on http://%s:%d", netutil2.GetLocalIP(), netutil2.MustGetPort(t.Net.Addr))
+	logutil.OkOrPanic(t.log, "service start", func() error {
+		t.log.Sugar().Infof("Server Listening on http://%s:%d", netutil2.GetLocalIP(), netutil2.MustGetPort(t.net.Addr))
 
 		// 启动grpc网关
 		syncx.GoDelay(func() {
-			t.Log.Info("[grpc-gw] Server Starting")
-			logutil.LogOrErr(t.Log, "[grpc-gw] Server Stop", func() error {
+			t.log.Info("[grpc-gw] Server Starting")
+			logutil.LogOrErr(t.log, "[grpc-gw] Server Stop", func() error {
 				if err := t.httpSrv.Get().Listener(<-gwLn); err != nil &&
 					!errors.Is(err, cmux2.ErrListenerClosed) &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -179,9 +185,9 @@ func (t *serviceImpl) start() (gErr error) {
 
 		// 启动net网络
 		syncx.GoDelay(func() {
-			t.Log.Info("[cmux] Server Starting")
-			logutil.LogOrErr(t.Log, "[cmux] Server Stop", func() error {
-				if err := t.Net.Serve(); err != nil &&
+			t.log.Info("[cmux] Server Starting")
+			logutil.LogOrErr(t.log, "[cmux] Server Stop", func() error {
+				if err := t.net.Serve(); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
 					return err
@@ -192,9 +198,9 @@ func (t *serviceImpl) start() (gErr error) {
 		return nil
 	})
 
-	logutil.OkOrPanic(t.Log, "service after-start", func() error {
-		for _, run := range t.GetLifecycle.GetAfterStarts() {
-			t.Log.Sugar().Infof("after-start running %s", stack.Func(run))
+	logutil.OkOrPanic(t.log, "service after-start", func() error {
+		for _, run := range t.getLifecycle.GetAfterStarts() {
+			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
@@ -205,22 +211,22 @@ func (t *serviceImpl) start() (gErr error) {
 func (t *serviceImpl) stop() (err error) {
 	defer xerror.RecoverErr(&err)
 
-	logutil.OkOrErr(t.Log, "service before-stop", func() error {
-		for _, run := range t.GetLifecycle.GetBeforeStops() {
-			t.Log.Sugar().Infof("before-stop running %s", stack.Func(run))
+	logutil.OkOrErr(t.log, "service before-stop", func() error {
+		for _, run := range t.getLifecycle.GetBeforeStops() {
+			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
 
-	logutil.LogOrErr(t.Log, "[grpc-gw] Shutdown", func() error {
+	logutil.LogOrErr(t.log, "[grpc-gw] Shutdown", func() error {
 		xerror.Panic(t.httpSrv.Get().Shutdown())
 		return nil
 	})
 
-	logutil.OkOrErr(t.Log, "service after-stop", func() error {
-		for _, run := range t.GetLifecycle.GetAfterStops() {
-			t.Log.Sugar().Infof("after-stop running %s", stack.Func(run))
+	logutil.OkOrErr(t.log, "service after-stop", func() error {
+		for _, run := range t.getLifecycle.GetAfterStops() {
+			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
 		return nil

@@ -21,7 +21,7 @@ type Cfg struct {
 }
 
 func init() {
-	dix.Register(func(c config.Config) *Cfg {
+	dix.Provider(func(c config.Config) *Cfg {
 		var cfg = Cfg{
 			Grpc: grpc_builder.GetDefaultCfg(),
 			Api:  &fiber_builder.Cfg{},

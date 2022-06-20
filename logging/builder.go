@@ -2,7 +2,7 @@ package logging
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
@@ -14,8 +14,8 @@ import (
 )
 
 func init() {
-	dix.Register(func() ExtLog { return func(log *Logger) {} })
-	dix.Register(func(c config.Config, logs []ExtLog) *Logger {
+	dix.Provider(func() ExtLog { return func(log *Logger) {} })
+	dix.Provider(func(c config.Config, logs []ExtLog) *Logger {
 		var log = New(c)
 		for i := range logs {
 			logs[i](log)
@@ -52,7 +52,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 
 // New logger
 func New(c config.Config) *Logger {
-	defer xerror.RecoverAndExit()
+	defer funk.RecoverAndExit()
 
 	var cfg = log_config.NewProdConfig()
 	if runmode.IsDev() || runmode.IsTest() || runmode.IsStag() {
@@ -60,6 +60,6 @@ func New(c config.Config) *Logger {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	xerror.Panic(c.UnmarshalKey(Name, &cfg))
+	funk.Must(c.UnmarshalKey(Name, &cfg))
 	return NewWithCfg(&cfg)
 }

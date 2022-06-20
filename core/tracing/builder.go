@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(c config.Config, log *logging.Logger) opentracing.Tracer {
+	dix.Provider(func(c config.Config, log *logging.Logger) opentracing.Tracer {
 		var cfgMap = make(map[string]*Cfg)
 		xerror.Panic(c.Decode(Name, &cfgMap))
 

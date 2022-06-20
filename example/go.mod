@@ -13,7 +13,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/pubgo/dix v0.2.13
+	github.com/pubgo/dix v0.3.0
 	github.com/pubgo/lava v0.1.25
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
@@ -24,6 +24,7 @@ require (
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gorm.io/gorm v1.23.6
+	k8s.io/klog/v2 v2.60.1
 )
 
 require (
@@ -107,6 +108,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/pubgo/funk v0.5.0 // indirect
 	github.com/pubgo/x v0.3.37 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/reugn/go-quartz v0.3.7 // indirect
@@ -132,7 +134,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -145,7 +147,6 @@ require (
 	gorm.io/driver/sqlserver v1.3.2 // indirect
 	gorm.io/plugin/dbresolver v1.1.0 // indirect
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816 // indirect
-	k8s.io/klog/v2 v2.40.0 // indirect
 	modernc.org/libc v1.15.1 // indirect
 	modernc.org/mathutil v1.4.1 // indirect
 	modernc.org/memory v1.0.7 // indirect

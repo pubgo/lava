@@ -10,7 +10,7 @@ import (
 const Name = "scheduler"
 
 func init() {
-	dix.Register(func(m lifecycle.Lifecycle, log *logging.Logger) *Scheduler {
+	dix.Provider(func(m lifecycle.Lifecycle, log *logging.Logger) *Scheduler {
 		quart.log = log.Named(Name)
 		quart.scheduler.Start()
 		m.BeforeStops(quart.scheduler.Stop)

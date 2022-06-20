@@ -5,4 +5,3 @@ import (
 )
 
 type Migration func() *gormigrate.Migration
-type Migrations []Migration

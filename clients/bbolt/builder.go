@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	dix.Register(func(c config.Config, log *logging.Logger) map[string]*Client {
+	dix.Provider(func(c config.Config, log *logging.Logger) map[string]*Client {
 		return config.MakeClient(c, Name, func(key string, cfg *Cfg) *Client {
 			return New(cfg.Create(), log.Named(Name))
 		})

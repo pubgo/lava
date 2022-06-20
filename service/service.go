@@ -38,7 +38,6 @@ type Service interface {
 	Command
 	Options() Options
 	Provider(provider interface{})
-	RegisterGrpcServer(register interface{})
 	SubCmd(cmd *cli.Command)
 }
 

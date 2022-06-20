@@ -2,8 +2,8 @@ package logutil
 
 import (
 	"github.com/kr/pretty"
+	"github.com/pubgo/funk"
 	"github.com/pubgo/x/q"
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -22,7 +22,7 @@ func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) 
 	log.Info(msg)
 
 	var err error
-	xerror.TryErr(&err, func() { err = fn() })
+	funk.TryWith(&err, func() { err = fn() })
 
 	if err == nil {
 		log.Info(msg + " ok")
@@ -39,7 +39,7 @@ func OkOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field
 	log.Info(msg)
 
 	var err error
-	xerror.TryErr(&err, func() { err = fn() })
+	funk.TryWith(&err, func() { err = fn() })
 
 	if err == nil {
 		log.Info(msg + " ok")
@@ -53,7 +53,7 @@ func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field)
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
 	var err error
-	xerror.TryErr(&err, func() { err = fn() })
+	funk.TryWith(&err, func() { err = fn() })
 
 	if err == nil {
 		log.Info(msg)
@@ -81,7 +81,7 @@ func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Fiel
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
 	var err error
-	xerror.TryErr(&err, func() { err = fn() })
+	funk.TryWith(&err, func() { err = fn() })
 
 	if err == nil {
 		log.Info(msg)
@@ -96,7 +96,7 @@ func ErrTry(log *zap.Logger, fn func(), fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
 	var err error
-	xerror.TryErr(&err, fn)
+	funk.TryWith(&err, fn)
 
 	if err == nil {
 		return

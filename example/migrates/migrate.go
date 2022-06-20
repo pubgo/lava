@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Migrations() migrates.Migrations {
-	return migrates.Migrations{
+func Migrations() []migrates.Migration {
+	return []migrates.Migration{
 		m0001,
 	}
 }
