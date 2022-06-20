@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"k8s.io/klog/v2"
 	"time"
 
 	"github.com/pubgo/xerror"
@@ -55,6 +56,8 @@ func (h *testApiHandler) Close() {
 func (h *testApiHandler) Init() {
 	defer xerror.RecoverAndExit()
 	h.testApiSrv = hellopb.NewTestApiClient(h.Conns["test-grpc"])
+
+	klog.InfoS("hello", "a", 1, "b", []interface{}{1, 2, 3, 4})
 
 	var db = h.Db
 

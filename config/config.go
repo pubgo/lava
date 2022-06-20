@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"io"
 	"path/filepath"
 	"reflect"
@@ -22,6 +21,7 @@ import (
 	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/internal/pkg/reflectx"
 	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 var (

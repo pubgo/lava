@@ -47,7 +47,7 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/mod v0.5.1
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
@@ -82,7 +82,7 @@ require (
 	gorm.io/driver/sqlite v1.3.2
 	gorm.io/gorm v1.23.6
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816
-	k8s.io/klog/v2 v2.40.0
+	k8s.io/klog/v2 v2.60.1
 )
 
 require (
@@ -92,7 +92,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/pubgo/dix v0.2.13
+	github.com/pubgo/dix v0.3.0
 	github.com/smartystreets/assertions v1.0.0
 	github.com/valyala/fasthttp v1.37.0
 	github.com/valyala/fasttemplate v1.2.1
@@ -152,6 +152,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/pubgo/funk v0.5.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -177,7 +178,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect

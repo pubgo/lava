@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
@@ -35,8 +34,15 @@ type Command interface {
 }
 
 type Service interface {
-	lifecycle.Lifecycle
 	grpc.ServiceRegistrar
+	Command
+	Options() Options
+	Provider(provider interface{})
+	RegisterGrpcServer(register interface{})
+	SubCmd(cmd *cli.Command)
+}
+
+type Web interface {
 	Command
 	Options() Options
 	Provider(provider interface{})

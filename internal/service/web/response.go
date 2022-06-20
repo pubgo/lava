@@ -1,4 +1,4 @@
-package grpcs
+package rests
 
 import (
 	"github.com/gofiber/fiber/v2"

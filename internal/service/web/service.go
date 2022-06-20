@@ -1,4 +1,4 @@
-package grpcs
+package rests
 
 import (
 	"errors"
@@ -29,15 +29,14 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func New(name string, desc ...string) service.Service {
+func New(name string, desc ...string) service.Web {
 	return newService(name, desc...)
 }
 
 func newService(name string, desc ...string) *serviceImpl {
-	var lc = lifecycle.New()
 	var g *serviceImpl
 	g = &serviceImpl{
-		Lifecycle: lc,
+		httpSrv: fiber_builder2.New(),
 		cmd: &cli.Command{
 			Name:  name,
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
@@ -59,8 +58,6 @@ func newService(name string, desc ...string) *serviceImpl {
 				return
 			},
 		},
-		lc:      lc,
-		httpSrv: fiber_builder2.New(),
 	}
 
 	return g
@@ -69,15 +66,14 @@ func newService(name string, desc ...string) *serviceImpl {
 var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	lifecycle.Lifecycle
 	Middlewares  []service.Middleware
 	GetLifecycle lifecycle.GetLifecycle
+	Lifecycle    lifecycle.Lifecycle
 	Log          *zap.Logger
 	Net          *cmux2.Mux
 	Routers      []service.Router
 	cfg          *Cfg
 
-	lc           lifecycle.GetLifecycle
 	cmd          *cli.Command
 	httpSrv      fiber_builder2.Builder
 	providerList []interface{}
@@ -88,7 +84,6 @@ func (t *serviceImpl) Stop() error  { return t.stop() }
 
 func (t *serviceImpl) DixInject(cfg *Cfg, _ *registry.Loader, app *fiber2.App) {
 	t.cfg = cfg
-
 }
 
 func (t *serviceImpl) init() (gErr error) {
@@ -156,7 +151,7 @@ func (t *serviceImpl) start() (gErr error) {
 	xerror.Panic(t.init())
 
 	logutil.OkOrPanic(t.Log, "service before-start", func() error {
-		for _, run := range append(t.lc.GetBeforeStarts(), t.GetLifecycle.GetBeforeStarts()...) {
+		for _, run := range t.GetLifecycle.GetBeforeStarts() {
 			t.Log.Sugar().Infof("before-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -198,7 +193,7 @@ func (t *serviceImpl) start() (gErr error) {
 	})
 
 	logutil.OkOrPanic(t.Log, "service after-start", func() error {
-		for _, run := range append(t.lc.GetAfterStarts(), t.GetLifecycle.GetAfterStarts()...) {
+		for _, run := range t.GetLifecycle.GetAfterStarts() {
 			t.Log.Sugar().Infof("after-start running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -211,7 +206,7 @@ func (t *serviceImpl) stop() (err error) {
 	defer xerror.RecoverErr(&err)
 
 	logutil.OkOrErr(t.Log, "service before-stop", func() error {
-		for _, run := range append(t.lc.GetBeforeStops(), t.GetLifecycle.GetBeforeStops()...) {
+		for _, run := range t.GetLifecycle.GetBeforeStops() {
 			t.Log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}
@@ -224,7 +219,7 @@ func (t *serviceImpl) stop() (err error) {
 	})
 
 	logutil.OkOrErr(t.Log, "service after-stop", func() error {
-		for _, run := range append(t.lc.GetAfterStops(), t.GetLifecycle.GetAfterStops()...) {
+		for _, run := range t.GetLifecycle.GetAfterStops() {
 			t.Log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			xerror.PanicF(xerror.Try(run), stack.Func(run))
 		}

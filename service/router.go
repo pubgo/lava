@@ -5,14 +5,18 @@ import (
 	"github.com/pubgo/dix"
 )
 
+type WebApp struct {
+	*fiber.App
+}
+
 func init() {
 	dix.Provider(func() Router { return func(app *fiber.App) {} })
-	dix.Provider(func(routers []Router) *fiber.App {
+	dix.Provider(func(routers []Router) *WebApp {
 		var app = fiber.New()
 		for i := range routers {
 			routers[i](app)
 		}
-		return app
+		return &WebApp{App: app}
 	})
 }
 

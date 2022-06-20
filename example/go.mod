@@ -48,6 +48,8 @@ require (
 	github.com/glebarez/sqlite v1.4.3 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
 	github.com/go-echarts/statsview v0.3.4 // indirect
+	github.com/go-logr/logr v1.2.2 // indirect
+	github.com/go-logr/zapr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.7.10 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.20 // indirect
@@ -143,6 +145,7 @@ require (
 	gorm.io/driver/sqlserver v1.3.2 // indirect
 	gorm.io/plugin/dbresolver v1.1.0 // indirect
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816 // indirect
+	k8s.io/klog/v2 v2.40.0 // indirect
 	modernc.org/libc v1.15.1 // indirect
 	modernc.org/mathutil v1.4.1 // indirect
 	modernc.org/memory v1.0.7 // indirect

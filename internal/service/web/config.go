@@ -1,4 +1,4 @@
-package grpcs
+package rests
 
 import (
 	"github.com/pubgo/dix"
