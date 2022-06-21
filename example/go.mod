@@ -18,6 +18,7 @@ require (
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
+	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/urfave/cli/v2 v2.8.0
 	go.uber.org/zap v1.21.0
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac
