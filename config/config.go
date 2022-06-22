@@ -3,12 +3,14 @@ package config
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/pubgo/funk"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
 	"github.com/pubgo/xerror"
@@ -25,10 +27,11 @@ import (
 )
 
 var (
-	CfgType = "yaml"
-	CfgName = "config"
-	CfgDir  = env.Get("cfg_dir", "app_cfg_dir")
-	CfgPath = filepath.Join("configs", "config", "config.yaml")
+	CfgType   = "yaml"
+	CfgName   = "config"
+	CfgDir    = env.Get("app_cfg_home", "project_cfg_home", consts.EnvCfgHome)
+	CfgPath   = filepath.Join("configs", "config", "config.yaml")
+	EnvPrefix = utils.FirstNotEmpty(env.Get("cfg_env_prefix", "app_env_prefix", "project_env_prefix", consts.EnvCfgPrefix), "lava")
 )
 
 // Init 处理所有的配置,环境变量和flag
@@ -37,8 +40,6 @@ var (
 // flag可以指定配置文件位置
 // 始化配置文件
 func newCfg() *configImpl {
-	defer xerror.RecoverAndExit()
-
 	var t = &configImpl{v: viper.New()}
 	// 配置处理
 	v := t.v
@@ -47,28 +48,21 @@ func newCfg() *configImpl {
 	v.SetConfigType(CfgType)
 	v.SetConfigName(CfgName)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
-	prefix := utils.FirstNotEmpty(env.Get("cfg_env_prefix", "env_prefix"), "lava")
-	v.SetEnvPrefix(prefix)
+	v.SetEnvPrefix(strings.ToUpper(EnvPrefix))
 	v.AutomaticEnv()
 
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 然后获取配置了
 	xerror.PanicF(t.initCfg(v), "config file load error")
-	t.LoadEnv()
-
 	CfgPath = v.ConfigFileUsed()
 	CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
-	xerror.Panic(env.Set(consts.EnvCfgDir, CfgDir))
+	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
+	t.LoadPath(CfgPath)
 
 	// 加载自定义配置
-	//t.LoadPath(customCfgPath(app.Mode.String()))
-	//t.LoadPath(customCfgPath(app.Project))
+	t.loadCustomCfg()
 	return t
-}
-
-func customCfgPath(name string) string {
-	return filepath.Join(filepath.Dir(CfgPath), fmt.Sprintf("%s.%s.%s", CfgName, name, CfgType))
 }
 
 var _ Config = (*configImpl)(nil)
@@ -78,9 +72,28 @@ type configImpl struct {
 	v  *viper.Viper
 }
 
-func (t *configImpl) LoadEnv(names ...string) {
-	names = append(names, "cfg_env_prefix", "env_prefix")
-	loadEnvFromPrefix(env.Get(names...), t.v)
+func (t *configImpl) loadCustomCfg() {
+	var path = filepath.Dir(t.v.ConfigFileUsed())
+	funk.MustMsg(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if !strings.HasSuffix(info.Name(), "."+CfgType) {
+			return nil
+		}
+
+		if info.Name() == CfgName+"."+CfgType {
+			return nil
+		}
+
+		t.LoadPath(path)
+		return nil
+	}), "walk path failed, path=%s", path)
 }
 
 func (t *configImpl) All() map[string]interface{} {
@@ -205,9 +218,9 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 		return false
 	}
 
-	xerror.Assert(pathutil.IsNotExist(CfgDir), "config dir not found, path:%s", CfgPath)
+	funk.Assert(pathutil.IsNotExist(CfgDir), "config dir not found, path:%s", CfgPath)
 	v.AddConfigPath(filepath.Join(CfgDir, CfgName))
-	xerror.PanicF(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
+	funk.MustMsg(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
 
 	return true
 }
@@ -215,7 +228,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	defer xerror.RecoverErr(&err)
 
-	// 指定配置文件目录
+	// 指定配置目录
 	if t.initWithDir(v) {
 		return
 	}
@@ -226,7 +239,7 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	}
 
 	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs", CfgName) })
-	xerror.Assert(len(pathList) == 0, "pathList is zero")
+	xerror.Assert(len(pathList) == 0, "config path not found")
 
 	for i := range pathList {
 		if t.addConfigPath(pathList[i]) {
@@ -243,6 +256,8 @@ func (t *configImpl) LoadPath(path string) {
 		return
 	}
 
+	fmt.Printf("load config %s\n", path)
+
 	tmp, err := fasttemplate.NewTemplate(xerror.PanicStr(iox.ReadText(path)), "{{", "}}")
 	xerror.Panic(err, "unexpected error when parsing template")
 
@@ -256,5 +271,4 @@ func (t *configImpl) LoadPath(path string) {
 
 		return w.Write([]byte(t.v.GetString(tag)))
 	}))))
-	t.LoadEnv()
 }

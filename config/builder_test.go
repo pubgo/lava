@@ -1,21 +1,19 @@
 package config
 
 import (
-	"github.com/pubgo/lava/internal/pkg/env"
 	"testing"
 
-	"github.com/smartystreets/assertions"
-	"github.com/smartystreets/assertions/should"
+	"github.com/pubgo/lava/internal/pkg/env"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestName(t *testing.T) {
-	var assert = assertions.New(t)
+	var is = assert.New(t)
 
-	env.Set("env_prefix", "hello")
-	env.Set("hello_123", "app.name=hello")
+	env.Set("lava_hello", "hello")
 
 	var c = newCfg()
-	assert.So(c, should.NotBeNil)
-	assert.So(c.GetString("app.name"), should.Equal, "hello")
-	assert.So(c.GetString("app.home"), should.Equal, c.GetString("app.project"))
+	is.NotNil(c)
+	is.Equal(c.GetString("hello"), "hello")
 }

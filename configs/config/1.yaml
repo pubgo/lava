@@ -1,26 +1,26 @@
 orm:
-  - name: default
+  - name: default1
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"
-  - name: test
+  - name: test1
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"
 redis:
-  codis:
+  codis1:
     addr: "127.0.0.1:6379"
     password: "foobared"
     db: 0
-  redisSale:
+  redisSale1:
     addr: "127.0.0.1:6379"
     password: "foobared"
     db: 0
-  redisApiBusinessTwo:
+  redisApiBusinessTwo1:
     addr: "127.0.0.1:6379"
     password: "foobared"
     db: 0
   redlock_0:
     addr: "127.0.0.1:6379"
     password: "foobared"
-    db: 0
+    db: 123

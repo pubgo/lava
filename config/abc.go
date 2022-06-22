@@ -22,10 +22,10 @@ func (t CfgMap) GetString(name string) string {
 	return ""
 }
 
+type DecoderOption = viper.DecoderConfigOption
 type Config interface {
 	LoadPath(path string)
-	LoadEnv(names ...string)
-	UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error
+	UnmarshalKey(key string, rawVal interface{}, opts ...DecoderOption) error
 	Decode(name string, cfgMap interface{}) error
 	Get(key string) interface{}
 	Set(string, interface{})
