@@ -5,16 +5,7 @@ import (
 	"github.com/pubgo/funk"
 	"github.com/pubgo/x/q"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
-
-func Enabled(lvl zapcore.Level, loggers ...*zap.Logger) bool {
-	var log = zap.L()
-	if len(loggers) > 0 {
-		log = loggers[0]
-	}
-	return log.Core().Enabled(lvl)
-}
 
 func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
@@ -111,4 +102,16 @@ func Pretty(a ...interface{}) {
 
 func ColorPretty(args ...interface{}) {
 	zap.L().WithOptions(zap.AddCallerSkip(1)).Info(string(q.Sq(args...)))
+}
+
+func IfDebug(log *zap.Logger, fn func(log *zap.Logger)) {
+	if log.Core().Enabled(zap.DebugLevel) {
+		fn(log)
+	}
+}
+
+func IfError(log *zap.Logger, fn func(log *zap.Logger)) {
+	if log.Core().Enabled(zap.ErrorLevel) {
+		fn(log)
+	}
 }
