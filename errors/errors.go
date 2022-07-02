@@ -116,6 +116,18 @@ func (x *Error) WithMetadata(m map[string]string) *Error {
 	return err
 }
 
+func (x *Error) AppendMetadata(m map[string]string) *Error {
+	if m == nil || len(m) == 0 {
+		return x
+	}
+
+	err := proto.Clone(x).(*Error)
+	for k := range m {
+		err.Metadata[k] = m[k]
+	}
+	return err
+}
+
 func (x *Error) Error() string {
 	return fmt.Sprintf("error: code=%d reason=%s message=%s metadata=%v", x.Code, x.Reason, x.Message, x.Metadata)
 }
@@ -131,6 +143,14 @@ func Code(err error) int32 {
 	}
 
 	return 2 // unknown
+}
+
+func Wrap(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	return &Error{Reason: err.Error(), Message: fmt.Sprintf("%#v", err), Metadata: make(map[string]string)}
 }
 
 // New generates a custom error.
