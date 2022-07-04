@@ -1,4 +1,4 @@
-package migrate
+package migratecmd
 
 import (
 	"fmt"
@@ -17,10 +17,10 @@ import (
 type params struct {
 	Log        *logging.Logger
 	Db         *orm.Client
-	Migrations []migrates.Migration
+	Migrations []migrates.Migrate
 }
 
-func migrate(m []migrates.Migration) []*gormigrate.Migration {
+func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 	var migrations []*gormigrate.Migration
 	for i := range m {
 		migrations = append(migrations, m[i]())

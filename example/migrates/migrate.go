@@ -1,18 +1,17 @@
 package migrates
 
 import (
-	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pubgo/lava/core/migrates"
 	"gorm.io/gorm"
 )
 
-func Migrations() []migrates.Migration {
-	return []migrates.Migration{
+func Migrations() []migrates.Migrate {
+	return []migrates.Migrate{
 		m0001,
 	}
 }
 
-func m0001() *gormigrate.Migration {
+func m0001() *migrates.Migration {
 	type Action struct {
 		Code string `gorm:"size:64;primaryKey"`
 		Type string `gorm:"size:8;not null"`
@@ -40,7 +39,7 @@ func m0001() *gormigrate.Migration {
 		DisplayName string `gorm:"size:32"`
 	}
 
-	return &gormigrate.Migration{
+	return &migrates.Migration{
 		ID: "0001_action",
 		Migrate: func(tx *gorm.DB) error {
 			return tx.AutoMigrate(&Action{}, &MenuItem{}, &Endpoint{}, &Role{})

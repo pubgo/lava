@@ -50,7 +50,7 @@ func newService(name string, desc ...string) *serviceImpl {
 				})
 
 				if runmode.Project == "" {
-					runmode.Project = strings.Split(name, " ")[0]
+					runmode.Project = strings.TrimSpace(strings.Split(name, " ")[0])
 				}
 				xerror.Assert(runmode.Project == "", "project is null")
 
@@ -64,7 +64,6 @@ func newService(name string, desc ...string) *serviceImpl {
 		httpSrv:  fiber_builder2.New(),
 		handlers: grpchan.HandlerMap{},
 	}
-
 	return g
 }
 
@@ -121,7 +120,7 @@ func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
 
 	dix.Inject(t.dixInject)
-	t.handlers.ForEach(func(_ *grpc.ServiceDesc, svr interface{}) { dix.Inject(svr) })
+	t.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) { dix.Inject(svc) })
 
 	// 网关初始化
 	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
@@ -129,6 +128,14 @@ func (t *serviceImpl) init() (gErr error) {
 	t.httpSrv.Get().Mount("/", t.app.App)
 
 	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		t.httpSrv.Get().Options(pattern, func(ctx *fiber2.Ctx) error {
+			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
+			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+			ctx.Response().Header.Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, X-Extra-Header, Content-Type, Accept, Authorization")
+			ctx.Response().Header.Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			return ctx.SendStatus(http.StatusOK)
+		})
+
 		t.httpSrv.Get().Post(pattern, func(ctx *fiber2.Ctx) error {
 			ctx.Response().Header.Set("Access-Control-Allow-Origin", "*")
 			ctx.Response().Header.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")

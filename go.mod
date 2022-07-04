@@ -92,9 +92,8 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/pubgo/dix v0.3.0
-	github.com/pubgo/funk v0.5.0
-	github.com/smartystreets/assertions v1.0.0
+	github.com/pubgo/dix v0.3.1
+	github.com/pubgo/funk v0.5.2
 	github.com/stretchr/testify v1.7.2
 	github.com/valyala/fasthttp v1.37.0
 	github.com/valyala/fasttemplate v1.2.1

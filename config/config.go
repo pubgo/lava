@@ -74,7 +74,7 @@ type configImpl struct {
 
 func (t *configImpl) loadCustomCfg() {
 	var path = filepath.Dir(t.v.ConfigFileUsed())
-	funk.MustMsg(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+	funk.MustF(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -220,7 +220,7 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 
 	funk.Assert(pathutil.IsNotExist(CfgDir), "config dir not found, path:%s", CfgPath)
 	v.AddConfigPath(filepath.Join(CfgDir, CfgName))
-	funk.MustMsg(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
+	funk.MustF(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
 
 	return true
 }

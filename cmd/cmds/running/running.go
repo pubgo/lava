@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
-	"github.com/pubgo/lava/cmd/cmds/migrate"
+	"github.com/pubgo/lava/cmd/cmds/migratecmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
@@ -48,7 +48,7 @@ func Run(services ...service.Command) {
 			return nil
 		}
 
-		cmd.Subcommands = append(cmd.Subcommands, migrate.Cmd())
+		cmd.Subcommands = append(cmd.Subcommands, migratecmd.Cmd())
 		cliApp.Commands = append(cliApp.Commands, cmd)
 	}
 

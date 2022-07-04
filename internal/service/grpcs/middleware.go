@@ -2,7 +2,6 @@ package grpcs
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 
 	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/internal/service/grpcutil"
+	"github.com/pubgo/lava/service"
 )
 
 func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {

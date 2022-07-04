@@ -3,6 +3,7 @@ package rests
 import (
 	"errors"
 	"fmt"
+
 	"net"
 	"net/http"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	fiber2 "github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
@@ -41,7 +43,7 @@ func newService(name string, desc ...string) *serviceImpl {
 			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
 			Flags: flags.GetFlags(),
 			Before: func(context *cli.Context) (gErr error) {
-				defer funk.RecoverErr(&gErr, func(err funk.XErr) funk.XErr {
+				defer funk.RecoverErr(&gErr, func(err xerr.XErr) xerr.XErr {
 					fmt.Println(dix.Graph())
 					return err
 				})
@@ -159,7 +161,7 @@ func (t *serviceImpl) start() (gErr error) {
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
 		for _, run := range t.getLifecycle.GetBeforeStarts() {
 			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
-			funk.MustMsg(xerror.Try(run), stack.Func(run))
+			funk.MustF(xerror.Try(run), stack.Func(run))
 		}
 		return nil
 	})
