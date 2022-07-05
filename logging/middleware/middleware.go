@@ -28,6 +28,8 @@ func init() {
 		log = log.Named(Name)
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {
+				now := time.Now()
+
 				// TODO 考虑pool优化
 				var params = make([]zap.Field, 0, 20)
 
@@ -39,7 +41,6 @@ func init() {
 				var reqId = requestid.GetReqId(ctx)
 				var tracerID, spanID = tracing.GetFrom(ctx).SpanID()
 
-				now := time.Now()
 				params = append(params, zap.String("requestId", reqId))
 				params = append(params, zap.String("tracerId", tracerID))
 				params = append(params, zap.String("spanId", spanID))
@@ -50,8 +51,6 @@ func init() {
 				params = append(params, zap.Bool("client", req.Client()))
 				params = append(params, zap.String("version", version.Version))
 
-				var respBody interface{}
-				var respHeader interface{}
 				var err error
 
 				// 错误和panic处理
@@ -73,13 +72,13 @@ func init() {
 					}
 
 					// TODO type assert
-					params = append(params, zap.String("req_body", fmt.Sprintf("%s", req.Payload())))
-					params = append(params, zap.Any("resp_body", fmt.Sprintf("%s", respBody)))
+					params = append(params, zap.String("req_body", fmt.Sprintf("%v", req.Payload())))
+					params = append(params, zap.Any("rsp_body", fmt.Sprintf("%v", resp.Payload())))
 					params = append(params, zap.Any("req_header", req.Header()))
-					params = append(params, zap.Any("resp_header", respHeader))
+					params = append(params, zap.Any("rsp_header", resp.Header()))
 
 					// 持续时间, 微秒
-					params = append(params, zap.Int64("duration", time.Since(now).Microseconds()))
+					params = append(params, zap.String("duration", time.Since(now).String()))
 					// 记录错误日志
 					logutil.LogOrErr(log, req.Endpoint(), func() error { return err }, params...)
 				}()
