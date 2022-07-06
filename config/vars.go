@@ -1,10 +1,12 @@
 package config
 
 import (
+	"sort"
+
 	"github.com/pubgo/dix"
+	
 	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
-	"sort"
 )
 
 func init() {

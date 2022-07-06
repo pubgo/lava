@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -8,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk"
@@ -16,7 +18,6 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
-	"github.com/valyala/fasttemplate"
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/internal/pkg/env"
@@ -47,7 +48,7 @@ func newCfg() *configImpl {
 	// 配置文件名字和类型
 	v.SetConfigType(CfgType)
 	v.SetConfigName(CfgName)
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
 	v.SetEnvPrefix(strings.ToUpper(EnvPrefix))
 	v.AutomaticEnv()
 
@@ -258,17 +259,22 @@ func (t *configImpl) LoadPath(path string) {
 
 	fmt.Printf("load config %s\n", path)
 
-	tmp, err := fasttemplate.NewTemplate(xerror.PanicStr(iox.ReadText(path)), "{{", "}}")
-	xerror.Panic(err, "unexpected error when parsing template")
+	tmpl := funk.Must1(template.New("").Funcs(template.FuncMap{
+		"upper": strings.ToUpper,
+		"env":   env.Get,
+		"trim":  strings.TrimSpace,
+		"v":     t.v.GetString,
+		"default": func(a string, b string) string {
+			if strings.TrimSpace(b) == "" {
+				return a
+			}
+			return b
+		},
+	}).Parse(funk.Must1(iox.ReadText(path))))
 
-	// 重新加载配置
-	xerror.Panic(t.v.MergeConfig(strings.NewReader(tmp.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-		tag = strings.TrimSpace(tag)
-		// 处理配置中的环境变量
-		if strings.HasPrefix(tag, "$") {
-			return w.Write([]byte(env.Get(tag)))
-		}
+	var buf bytes.Buffer
+	funk.Must(tmpl.Execute(&buf, map[string]string{}))
 
-		return w.Write([]byte(t.v.GetString(tag)))
-	}))))
+	// 合并配置
+	funk.Must(t.v.MergeConfig(&buf))
 }

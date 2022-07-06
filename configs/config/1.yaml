@@ -7,6 +7,9 @@ orm:
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"
+      data: '{{env "lava_hello" "lava_abc" | default "world"}}'
+      home: '{{env "home"}}'
+      other: '{{v "redis.codis.addr"}}'
 redis:
   codis1:
     addr: "127.0.0.1:6379"

@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/xerror"
 	"os"
 	"path/filepath"
+
+	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/xerror"
 )
 
 const pkgKey = "name"
