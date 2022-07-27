@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/pubgo/lava/cmd/protoc-gen-errors/internal"
 	"github.com/pubgo/xerror"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
-
-	"github.com/pubgo/lava/cmd/protoc-gen-errors/internal"
 )
 
 func main() {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/fs"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -12,26 +11,26 @@ import (
 	"text/template"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/funk"
-	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
-	"github.com/spf13/cast"
-	"github.com/spf13/viper"
-
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/internal/pkg/env"
 	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/internal/pkg/reflectx"
 	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/x/iox"
+	"github.com/pubgo/x/pathutil"
+	"github.com/pubgo/xerror"
+	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 var (
 	CfgType   = "yaml"
 	CfgName   = "config"
-	CfgDir    = env.Get("app_cfg_home", "project_cfg_home", consts.EnvCfgHome)
-	CfgPath   = filepath.Join("configs", "config", "config.yaml")
+	CfgDir    string
+	CfgPath   string
 	EnvPrefix = utils.FirstNotEmpty(env.Get("cfg_env_prefix", "app_env_prefix", "project_env_prefix", consts.EnvCfgPrefix), "lava")
 )
 
@@ -48,6 +47,7 @@ func newCfg() *configImpl {
 	// 配置文件名字和类型
 	v.SetConfigType(CfgType)
 	v.SetConfigName(CfgName)
+	v.AddConfigPath(".")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
 	v.SetEnvPrefix(strings.ToUpper(EnvPrefix))
 	v.AutomaticEnv()
@@ -57,8 +57,8 @@ func newCfg() *configImpl {
 	// 然后获取配置了
 	xerror.PanicF(t.initCfg(v), "config file load error")
 	CfgPath = v.ConfigFileUsed()
-	CfgDir = filepath.Dir(filepath.Dir(v.ConfigFileUsed()))
-	xerror.Panic(env.Set(consts.EnvCfgHome, CfgDir))
+	CfgDir = filepath.Dir(v.ConfigFileUsed())
+	xerror.Panic(env.Set(consts.EnvHome, CfgDir))
 	t.LoadPath(CfgPath)
 
 	// 加载自定义配置
@@ -74,27 +74,11 @@ type configImpl struct {
 }
 
 func (t *configImpl) loadCustomCfg() {
-	var path = filepath.Dir(t.v.ConfigFileUsed())
-	funk.MustF(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		if !strings.HasSuffix(info.Name(), "."+CfgType) {
-			return nil
-		}
-
-		if info.Name() == CfgName+"."+CfgType {
-			return nil
-		}
-
-		t.LoadPath(path)
-		return nil
-	}), "walk path failed, path=%s", path)
+	var cfg App
+	assert.Must(t.UnmarshalKey("app", &cfg))
+	for _, path := range cfg.Resources {
+		t.LoadPath(filepath.Join(CfgDir, path))
+	}
 }
 
 func (t *configImpl) All() map[string]interface{} {
@@ -214,14 +198,14 @@ func (t *configImpl) addConfigPath(in string) bool {
 	return false
 }
 
-func (t *configImpl) initWithDir(v *viper.Viper) bool {
+func (t *configImpl) initWithConfig(v *viper.Viper) bool {
 	if CfgDir == "" {
 		return false
 	}
 
-	funk.Assert(pathutil.IsNotExist(CfgDir), "config dir not found, path:%s", CfgPath)
-	v.AddConfigPath(filepath.Join(CfgDir, CfgName))
-	funk.MustF(v.ReadInConfig(), "config load error, dir:%s", CfgDir)
+	assert.Assert(pathutil.IsNotExist(CfgDir), "config not found, path:%s", CfgDir)
+	v.AddConfigPath(CfgDir)
+	assert.MustF(v.ReadInConfig(), "config load error, config:%s", CfgDir)
 
 	return true
 }
@@ -229,8 +213,8 @@ func (t *configImpl) initWithDir(v *viper.Viper) bool {
 func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 	defer xerror.RecoverErr(&err)
 
-	// 指定配置目录
-	if t.initWithDir(v) {
+	// 指定配置文件
+	if t.initWithConfig(v) {
 		return
 	}
 
@@ -239,7 +223,7 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 		return nil
 	}
 
-	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs", CfgName) })
+	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs") })
 	xerror.Assert(len(pathList) == 0, "config path not found")
 
 	for i := range pathList {
@@ -257,12 +241,12 @@ func (t *configImpl) LoadPath(path string) {
 		return
 	}
 
-	fmt.Printf("load config %s\n", path)
+	logx.V(1).Info("load config path", "path", path)
 
-	tmpl := funk.Must1(template.New("").Funcs(template.FuncMap{
+	tmpl := assert.Must1(template.New("").Funcs(template.FuncMap{
 		"upper": strings.ToUpper,
-		"env":   env.Get,
 		"trim":  strings.TrimSpace,
+		"env":   env.Get,
 		"v":     t.v.GetString,
 		"default": func(a string, b string) string {
 			if strings.TrimSpace(b) == "" {
@@ -270,11 +254,11 @@ func (t *configImpl) LoadPath(path string) {
 			}
 			return b
 		},
-	}).Parse(funk.Must1(iox.ReadText(path))))
+	}).Parse(assert.Must1(iox.ReadText(path))))
 
 	var buf bytes.Buffer
-	funk.Must(tmpl.Execute(&buf, map[string]string{}))
+	assert.Must(tmpl.Execute(&buf, map[string]string{}))
 
 	// 合并配置
-	funk.Must(t.v.MergeConfig(&buf))
+	assert.Must(t.v.MergeConfig(&buf))
 }

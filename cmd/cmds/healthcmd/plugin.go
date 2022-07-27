@@ -2,7 +2,6 @@ package healthcmd
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/clix"
 	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
 	"io"
 	"net/http"
@@ -16,7 +15,7 @@ func Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "health",
 		Usage: "health check",
-		Description: clix.ExampleFmt(
+		Description: flagx.ExampleFmt(
 			"lava health",
 			"lava health localhost:8080",
 		),

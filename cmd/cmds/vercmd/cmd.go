@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/clix"
 	"github.com/pubgo/lava/internal/pkg/typex"
 	"os"
 	"runtime/debug"
@@ -21,7 +20,7 @@ func Cmd() *cli.Command {
 		Name:    "version",
 		Aliases: typex.StrOf("v"),
 		Usage:   "Print the dependency package information",
-		Description: clix.ExampleFmt(
+		Description: flagx.ExampleFmt(
 			"lava version",
 			"lava version json",
 			"lava version t"),

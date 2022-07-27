@@ -1,4 +1,4 @@
-package clix
+package cmdx
 
 import (
 	"strings"

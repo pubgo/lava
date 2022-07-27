@@ -3,9 +3,10 @@ package config
 import "github.com/pubgo/xerror"
 
 type App struct {
-	Debug     bool   `yaml:"debug"`
-	Addr      string `yaml:"addr"`
-	Advertise string `yaml:"advertise"`
+	Debug     bool     `yaml:"debug"`
+	Addr      string   `yaml:"addr"`
+	Advertise string   `yaml:"advertise"`
+	Resources []string `yaml:"resources"`
 }
 
 func (c *App) Check() (err error) {

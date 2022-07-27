@@ -1,4 +1,4 @@
 package consts
 
-const EnvCfgHome = "cfg_home"
+const EnvHome = "home"
 const EnvCfgPrefix = "env_prefix"

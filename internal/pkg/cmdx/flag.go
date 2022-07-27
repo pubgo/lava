@@ -1,4 +1,4 @@
-package flagutil
+package cmdx
 
 import (
 	"os"

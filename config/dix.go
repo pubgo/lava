@@ -2,16 +2,17 @@ package config
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 )
 
 func init() {
-	defer funk.RecoverAndExit()
+	defer recovery.Exit()
 	dix.Provider(func() Config { return newCfg() })
 	dix.Provider(func(c Config) *App {
 		var cfg App
-		funk.Must(c.UnmarshalKey("app", &cfg))
-		funk.Must(cfg.Check())
+		assert.Must(c.UnmarshalKey("app", &cfg))
+		assert.Must(cfg.Check())
 		return &cfg
 	})
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/internal/pkg/clix"
 	"github.com/pubgo/lava/internal/pkg/syncx"
 	"html/template"
 	"io/fs"
@@ -25,7 +24,7 @@ import (
 var Cmd = &cli.Command{
 	Name:        "swagger",
 	Usage:       "start swagger web",
-	Description: clix.ExampleFmt(`lava rest.http`),
+	Description: flagx.ExampleFmt(`lava rest.http`),
 	Action: func(ctx *cli.Context) error {
 		var homeTmpl = template.Must(template.New("index").Parse(`
 		<html>

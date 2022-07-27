@@ -35,3 +35,7 @@ type Config interface {
 	MergeConfig(in io.Reader) error
 	All() map[string]interface{}
 }
+
+type Spec struct {
+	Desc string
+}

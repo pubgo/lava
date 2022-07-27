@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk"
 	"go.uber.org/zap"
 
@@ -12,17 +11,6 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/version"
 )
-
-func init() {
-	dix.Provider(func() ExtLog { return func(log *Logger) {} })
-	dix.Provider(func(c config.Config, logs []ExtLog) *Logger {
-		var log = New(c)
-		for i := range logs {
-			logs[i](log)
-		}
-		return log
-	})
-}
 
 func NewWithCfg(cfg *log_config.Config) *Logger {
 	cfg.Level = runmode.Level
