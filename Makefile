@@ -9,13 +9,13 @@ CommitID=$(shell git rev-parse --short=8 HEAD)
 GOPATH=$(shell go env GOPATH )
 
 LDFLAGS=-ldflags " \
--X '${VersionBase}/version.BuildTime=${BuildTime}' \
--X '${VersionBase}/version.CommitID=${CommitID}' \
--X '${VersionBase}/version.Version=${Version}' \
--X '${VersionBase}/version.Tag=${Tag}' \
--X '${VersionBase}/version.Domain=${Domain}' \
--X '${VersionBase}/version.Project=${Project}' \
--X '${VersionBase}/version.Data=hello' \
+-X '${VersionBase}/version.buildTime=${BuildTime}' \
+-X '${VersionBase}/version.commitID=${CommitID}' \
+-X '${VersionBase}/version.version=${Version:=v0.0.1-dev}' \
+-X '${VersionBase}/version.tag=${Tag}' \
+-X '${VersionBase}/version.domain=${Domain}' \
+-X '${VersionBase}/version.project=${Project}' \
+-X '${VersionBase}/version.data=hello' \
 "
 
 .PHONY: build

@@ -36,7 +36,6 @@ var (
 	Hostname = utils.FirstFnNotEmpty(
 		func() string { return os.Getenv("HOSTNAME") },
 		func() string {
-			flagx.ExampleFmt()
 			var h, err = os.Hostname()
 			xerror.Exit(err)
 			return h

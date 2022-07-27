@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/pubgo/xerror"
@@ -12,8 +13,15 @@ import (
 
 func main() {
 	var app = &cli.App{
-		Name:     runmode.Project,
-		Version:  version.Version,
+		Name:    runmode.Project,
+		Version: version.Version(),
+		Action: func(context *cli.Context) error {
+			fmt.Println(version.Domain())
+			fmt.Println(version.Version())
+			fmt.Println(version.CommitID())
+			fmt.Println(version.Project())
+			return nil
+		},
 		Commands: cli.Commands{},
 	}
 	xerror.Exit(app.Run(os.Args))

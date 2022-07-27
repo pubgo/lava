@@ -14,7 +14,7 @@ func GetVersion() map[string]interface{} {
 		"project":       Project,
 		"data":          version.Data,
 		"build_time":    version.BuildTime,
-		"version":       version.Version,
+		"version":       version.Version(),
 		"tag":           version.Tag,
 		"commit_id":     version.CommitID,
 		"domain":        version.Domain,
