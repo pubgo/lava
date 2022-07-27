@@ -41,7 +41,6 @@ func New(cfg Cfg) (err error) {
 	}
 
 	metricsFactory := jprom.New().
-		Namespace(metrics.NSOptions{Name: runmode.Domain, Tags: nil}).
 		Namespace(metrics.NSOptions{Name: runmode.Project, Tags: nil})
 
 	trace, _, err := cfg.NewTracer(

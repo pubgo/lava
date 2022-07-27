@@ -11,7 +11,6 @@ import (
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/migratecmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -27,9 +26,9 @@ func Run(services ...service.Command) {
 	}
 
 	var cliApp = &cli.App{
-		Name:     runmode.Domain,
-		Usage:    fmt.Sprintf("%s services", runmode.Domain),
-		Version:  version.Version,
+		Name:     version.Project(),
+		Usage:    fmt.Sprintf("%s service", version.Project()),
+		Version:  version.Version(),
 		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
 	}
 
