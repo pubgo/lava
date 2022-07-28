@@ -2,7 +2,7 @@ package grpcs
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/pkg/fiber_builder"
@@ -26,7 +26,7 @@ func init() {
 			Grpc: grpc_builder.GetDefaultCfg(),
 			Api:  &fiber_builder.Cfg{},
 		}
-		xerror.Panic(c.UnmarshalKey(Name, &cfg))
+		assert.Must(c.UnmarshalKey(Name, &cfg))
 		return &cfg
 	})
 }

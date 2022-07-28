@@ -2,6 +2,7 @@ package requestid
 
 import (
 	"context"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/pubgo/dix"
 	"github.com/segmentio/ksuid"
@@ -16,9 +17,11 @@ import (
 const Name = "x-request-id"
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func() service.Middleware {
 		return func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, resp service.Response) (gErr error) {
+			return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
 				defer func() {
 					switch err := recover().(type) {
 					case nil:
@@ -36,7 +39,7 @@ func init() {
 				)
 
 				req.Header().Set(httpx.HeaderXRequestID, rid)
-				return next(WithReqID(ctx, rid), req, resp)
+				return next(CreateCtx(ctx, rid), req, rsp)
 			}
 		}
 	})

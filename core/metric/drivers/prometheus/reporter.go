@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 	"github.com/uber-go/tally/prometheus"
@@ -18,6 +19,8 @@ const Name = "prometheus"
 const urlPath = "/metrics"
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
 		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
 

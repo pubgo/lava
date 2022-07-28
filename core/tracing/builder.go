@@ -3,6 +3,7 @@ package tracing
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
@@ -11,6 +12,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(c config.Config, log *logging.Logger) opentracing.Tracer {
 		var cfgMap = make(map[string]*Cfg)
 		xerror.Panic(c.Decode(Name, &cfgMap))

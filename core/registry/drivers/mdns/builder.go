@@ -2,6 +2,7 @@ package mdns
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/core/registry"
@@ -10,6 +11,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(conf *registry.Cfg, log *logging.Logger) map[string]registry.Registry {
 		if conf.Driver != Name {
 			return nil

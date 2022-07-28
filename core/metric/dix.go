@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 	"github.com/uber-go/tally"
 
@@ -15,10 +17,12 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
-		xerror.Panic(c.UnmarshalKey(Name, &cfg))
-		xerror.Assert(cfg.Driver == "", "metric driver is null")
+		assert.Must(c.UnmarshalKey(Name, &cfg))
+		assert.If(cfg.Driver == "", "metric driver is null")
 		return &cfg
 	})
 

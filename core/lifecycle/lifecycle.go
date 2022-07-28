@@ -1,6 +1,9 @@
 package lifecycle
 
-import "github.com/pubgo/dix"
+import (
+	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
+)
 
 type Handler func(lc Lifecycle)
 
@@ -42,6 +45,8 @@ func New() *lifecycleImpl {
 }
 
 func init() {
+	defer recovery.Exit()
+
 	var lc = new(lifecycleImpl)
 	dix.Provider(func() Handler { return func(lc Lifecycle) {} })
 	dix.Provider(func(handlers []Handler) Lifecycle {

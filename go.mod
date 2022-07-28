@@ -92,8 +92,9 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/pubgo/dix v0.3.1
+	github.com/pubgo/dix v0.3.2
 	github.com/pubgo/funk v0.5.3
+	github.com/rs/xid v1.2.1
 	github.com/stretchr/testify v1.7.2
 	github.com/valyala/fasthttp v1.37.0
 	gorm.io/driver/postgres v1.3.7

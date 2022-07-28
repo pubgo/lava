@@ -3,6 +3,7 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -17,6 +18,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(tracer opentracing.Tracer, log *zap.Logger) service.Middleware {
 		log = log.Named(logutil.Names(logkey.Module, tracing.Name))
 		return func(next service.HandlerFunc) service.HandlerFunc {

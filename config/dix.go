@@ -8,6 +8,7 @@ import (
 
 func init() {
 	defer recovery.Exit()
+
 	dix.Provider(func() Config { return newCfg() })
 	dix.Provider(func(c Config) *App {
 		var cfg App

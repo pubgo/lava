@@ -3,7 +3,8 @@ package runmode
 import (
 	"strconv"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/pubgo/lava/internal/pkg/env"
 )
@@ -11,12 +12,13 @@ import (
 var Mode = Local
 
 func init() {
+	defer recovery.Exit()
+
 	mode := env.Get("lava_mode", "app_mode")
 	if mode != "" {
-		var i, err = strconv.Atoi(mode)
-		xerror.Panic(err)
+		var i = assert.Must1(strconv.Atoi(mode))
 
 		Mode = RunMode(i)
-		xerror.Assert(Mode.String() == "", "unknown mode, mode=%s", mode)
+		assert.Assert(Mode.String() == "", "unknown mode, mode=%s", mode)
 	}
 }

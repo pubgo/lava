@@ -22,7 +22,8 @@ func Run(srv service.Runtime, cmds ...*cli.Command) {
 	defer recovery.Exit()
 
 	var serveCmd = &cli.Command{
-		Name: "serve",
+		Name:  "serve",
+		Usage: fmt.Sprintf("%s service", version.Project()),
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 			srv.Start()

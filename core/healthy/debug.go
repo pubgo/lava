@@ -1,6 +1,7 @@
 package healthy
 
 import (
+	"github.com/pubgo/funk/recovery"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +13,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	debug.Get("/health", func(ctx *fiber.Ctx) error {
 		var dt = make(map[string]*health)
 		xerror.Panic(healthList.Each(func(name string, r interface{}) {

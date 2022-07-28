@@ -2,6 +2,7 @@ package debug
 
 import (
 	"errors"
+	"github.com/pubgo/funk/recovery"
 	"net/http/pprof"
 
 	"github.com/felixge/fgprof"
@@ -9,6 +10,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	Get("/gprof", Wrap(fgprof.Handler()))
 	Route("/pprof", func(r fiber.Router) {
 		r.Get("/", WrapFunc(pprof.Index))

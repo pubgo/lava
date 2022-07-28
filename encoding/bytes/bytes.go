@@ -2,10 +2,15 @@ package bytes
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/encoding"
 )
 
-func init() { encoding.Register("bytes", &Codec{}) }
+func init() {
+	defer recovery.Exit()
+	
+	encoding.Register("bytes", &Codec{})
+}
 
 type Codec struct {
 	data []byte

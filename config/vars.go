@@ -1,15 +1,18 @@
 package config
 
 import (
+	"github.com/pubgo/funk/recovery"
 	"sort"
 
 	"github.com/pubgo/dix"
-	
+
 	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
 
 func init() {
+	defer recovery.Exit()
+
 	vars.Register("config_data", func() interface{} {
 		var conf = dix.Inject(new(struct{ C Config }))
 		return conf.C.All()

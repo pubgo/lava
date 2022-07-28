@@ -3,6 +3,7 @@ package protojson
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/pubgo/lava/encoding"
 
@@ -13,6 +14,7 @@ import (
 const Name = "jsonpb"
 
 func init() {
+	defer recovery.Exit()
 	encoding.Register(Name, &jsonCodec{})
 }
 

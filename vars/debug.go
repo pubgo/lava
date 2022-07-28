@@ -3,6 +3,7 @@ package vars
 import (
 	"expvar"
 	"fmt"
+	"github.com/pubgo/funk/recovery"
 	"net/http"
 
 	"github.com/gofiber/adaptor/v2"
@@ -15,6 +16,7 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
 	var index = func(keys []string) g.Node {
 		var nodes []g.Node
 		nodes = append(nodes, h.H1(g.Text("/expvar")))

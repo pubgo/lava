@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/recovery"
 	"sort"
 	"strings"
 
@@ -13,6 +14,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	initDebug()
 }
 

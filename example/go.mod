@@ -7,13 +7,13 @@ replace github.com/pubgo/lava v0.1.25 => ../
 require (
 	github.com/casbin/casbin/v2 v2.47.2
 	github.com/casbin/gorm-adapter/v3 v3.7.2
-	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/pubgo/dix v0.3.1
+	github.com/pubgo/dix v0.3.2
+	github.com/pubgo/funk v0.5.3
 	github.com/pubgo/lava v0.1.25
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
@@ -50,6 +50,9 @@ require (
 	github.com/glebarez/sqlite v1.4.3 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
 	github.com/go-echarts/statsview v0.3.4 // indirect
+	github.com/go-gormigrate/gormigrate/v2 v2.0.2 // indirect
+	github.com/go-kit/log v0.2.1 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -69,6 +72,7 @@ require (
 	github.com/hashicorp/go-version v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
+	github.com/iand/logfmtr v0.2.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -109,12 +113,12 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
-	github.com/pubgo/funk v0.5.2 // indirect
 	github.com/pubgo/x v0.3.37 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/reugn/go-quartz v0.3.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
+	github.com/rs/xid v1.2.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/segmentio/ksuid v1.0.3 // indirect
@@ -130,7 +134,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.37.0 // indirect
 	github.com/valyala/fastrand v1.1.0 // indirect
-	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.0 // indirect

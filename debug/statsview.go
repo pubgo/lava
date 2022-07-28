@@ -2,6 +2,7 @@ package debug
 
 import (
 	"context"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/templates"
@@ -25,6 +26,8 @@ func (vm *viewManager) Register(views ...viewer.Viewer) {
 }
 
 func init() {
+	defer recovery.Exit()
+
 	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithTemplate(`
 $(function () { setInterval({{ .ViewID }}_sync, {{ .Interval }}); });
 function {{ .ViewID }}_sync() {

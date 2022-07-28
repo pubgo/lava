@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/internal/pkg/k8s"
 
 	"github.com/pubgo/dix"
@@ -72,6 +73,8 @@ const (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer xerror.RecoverErr(&err)
 

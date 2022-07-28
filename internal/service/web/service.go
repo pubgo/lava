@@ -30,8 +30,8 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func New(name string, desc ...string) service.Web {
-	return newService(name, desc...)
+func New() service.Web {
+	return newService()
 }
 
 func newService(name string, desc ...string) *serviceImpl {

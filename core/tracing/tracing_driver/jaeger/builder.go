@@ -2,6 +2,7 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"
@@ -12,6 +13,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	tracing.RegisterFactory(Name, func(cfgMap config.CfgMap) error {
 		tracing.GetSpanID = GetSpanID
 

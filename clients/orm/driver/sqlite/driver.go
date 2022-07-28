@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"errors"
+	"github.com/pubgo/funk/recovery"
 	"path/filepath"
 
 	"github.com/pubgo/x/pathutil"
@@ -15,6 +16,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+	
 	orm.Register("sqlite3", func(cfg config.CfgMap) gorm.Dialector {
 		var dsn = cfg.GetString("dsn")
 		xerror.AssertFn(dsn == "", func() error {

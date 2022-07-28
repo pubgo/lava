@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
@@ -21,6 +22,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	dix.Provider(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
 
@@ -96,7 +99,7 @@ func register(reg Registry, app *config.App) {
 	// register service
 	node := &Node{
 		Port:     port,
-		Version:  version.Version,
+		Version:  version.Version(),
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
 		Metadata: map[string]string{"registry": reg.String()},

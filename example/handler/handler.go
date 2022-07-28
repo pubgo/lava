@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
@@ -18,20 +19,20 @@ import (
 
 type Id struct {
 	Cron   *scheduler.Scheduler
-	Metric metric.Stats
+	Metric metric.Metric
 
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 }
 
 func (id *Id) Init() {
-	//id.Cron.Every("test gid", time.Second*2, func(name string) {
-	//	//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-	//	//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-	//	//"time": time.Now().Format("15:04:05")
-	//	id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
-	//	fmt.Println("test cron every")
-	//})
+	id.Cron.Every("test gid", time.Second*2, func(name string) {
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+		//"time": time.Now().Format("15:04:05")
+		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
+		fmt.Println("test cron every")
+	})
 }
 
 func NewId() gidpb.IdServer {

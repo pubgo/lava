@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -23,6 +24,8 @@ type Config struct {
 }
 
 func init() {
+	defer recovery.Exit()
+
 	orm.Register("mysql", func(cfg config.CfgMap) gorm.Dialector {
 		var conf = DefaultCfg()
 		xerror.Panic(cfg.Decode(&conf))

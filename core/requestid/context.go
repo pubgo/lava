@@ -3,15 +3,13 @@ package requestid
 import (
 	"context"
 
-	"github.com/segmentio/ksuid"
+	"github.com/rs/xid"
 )
 
-var (
-	reqIdKey = ksuid.New().String()
-)
+var reqIdKey = xid.New().String()
 
-func WithReqID(ctx context.Context, val string) context.Context {
-	return context.WithValue(ctx, reqIdKey, val)
+func CreateCtx(ctx context.Context, reqId string) context.Context {
+	return context.WithValue(ctx, reqIdKey, reqId)
 }
 
 func GetReqId(ctx context.Context) string {
@@ -19,7 +17,8 @@ func GetReqId(ctx context.Context) string {
 	if ok {
 		return reqId
 	}
-	return ksuid.New().String()
+
+	return xid.New().String()
 }
 
 func getReqID(ctx context.Context) string {
@@ -27,5 +26,6 @@ func getReqID(ctx context.Context) string {
 	if ok {
 		return reqId
 	}
+
 	return ""
 }

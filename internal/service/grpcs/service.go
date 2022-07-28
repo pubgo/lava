@@ -10,13 +10,16 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	fiber2 "github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/x/stack"
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/core/signal"
 	cmux2 "github.com/pubgo/lava/internal/cmux"
 	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
 	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
@@ -27,11 +30,9 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func New(name string, desc ...string) service.Service {
-	return newService(name, desc...)
-}
+func New() service.Service { return newService() }
 
-func newService(name string, desc ...string) *serviceImpl {
+func newService() *serviceImpl {
 	return &serviceImpl{
 		grpcSrv:  grpc_builder2.New(),
 		httpSrv:  fiber_builder2.New(),
@@ -50,7 +51,6 @@ type serviceImpl struct {
 	log          *zap.Logger
 	grpcSrv      grpc_builder2.Builder
 	httpSrv      fiber_builder2.Builder
-	providerList []interface{}
 	handlers     grpchan.HandlerMap
 
 	unaryInt   grpc.UnaryServerInterceptor
@@ -58,11 +58,17 @@ type serviceImpl struct {
 	httpMiddle func(_ *fiber2.Ctx) error
 }
 
-func (t *serviceImpl) Start() error { return t.start() }
-func (t *serviceImpl) Stop() error  { return t.stop() }
+func (t *serviceImpl) Run() {
+	t.start()
+	signal.Wait()
+	t.stop()
+}
+
+func (t *serviceImpl) Start() { t.start() }
+func (t *serviceImpl) Stop()  { t.stop() }
 
 func (t *serviceImpl) init() (gErr error) {
-	defer xerror.RecoverErr(&gErr)
+	defer recovery.Err(&gErr)
 
 	type injectParam struct {
 		Middlewares  []service.Middleware
@@ -97,7 +103,7 @@ func (t *serviceImpl) init() (gErr error) {
 	})
 
 	// 网关初始化
-	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
+	assert.Must(t.httpSrv.Build(t.cfg.Api))
 	t.httpSrv.Get().Use(t.httpMiddle)
 	t.httpSrv.Get().Mount("/", t.app.App)
 
@@ -124,7 +130,7 @@ func (t *serviceImpl) init() (gErr error) {
 	t.grpcSrv.StreamInterceptor(t.streamInt)
 
 	// grpc serve初始化
-	xerror.Panic(t.grpcSrv.Build(t.cfg.Grpc))
+	assert.Must(t.grpcSrv.Build(t.cfg.Grpc))
 
 	// 初始化 handlers
 	t.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
@@ -159,8 +165,8 @@ func (t *serviceImpl) init() (gErr error) {
 }
 
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
-	xerror.Assert(desc == nil, "[desc] is nil")
-	xerror.Assert(impl == nil, "[impl] is nil")
+	assert.Assert(desc == nil, "[desc] is nil")
+	assert.Assert(impl == nil, "[impl] is nil")
 	t.handlers.RegisterService(desc, impl)
 }
 
@@ -179,15 +185,13 @@ func (t *serviceImpl) Options() service.Options {
 	}
 }
 
-func (t *serviceImpl) start() (gErr error) {
-	defer xerror.RecoverErr(&gErr)
-
-	xerror.Panic(t.init())
+func (t *serviceImpl) start() {
+	assert.Must(t.init())
 
 	logutil.OkOrPanic(t.log, "service before-start", func() error {
 		for _, run := range t.getLifecycle.GetBeforeStarts() {
 			t.log.Sugar().Infof("before-start running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			assert.Must(funk.Try(run), stack.Func(run))
 		}
 		return nil
 	})
@@ -244,26 +248,23 @@ func (t *serviceImpl) start() (gErr error) {
 	logutil.OkOrPanic(t.log, "service after-start", func() error {
 		for _, run := range t.getLifecycle.GetAfterStarts() {
 			t.log.Sugar().Infof("after-start running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			assert.Must(funk.Try(run), stack.Func(run))
 		}
 		return nil
 	})
-	return nil
 }
 
-func (t *serviceImpl) stop() (err error) {
-	defer xerror.RecoverErr(&err)
-
+func (t *serviceImpl) stop() {
 	logutil.OkOrErr(t.log, "service before-stop", func() error {
 		for _, run := range t.getLifecycle.GetBeforeStops() {
 			t.log.Sugar().Infof("before-stop running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			assert.Must(funk.Try(run), stack.Func(run))
 		}
 		return nil
 	})
 
 	logutil.LogOrErr(t.log, "[grpc-gw] Shutdown", func() error {
-		xerror.Panic(t.httpSrv.Get().Shutdown())
+		assert.Must(t.httpSrv.Get().Shutdown())
 		return nil
 	})
 
@@ -275,10 +276,8 @@ func (t *serviceImpl) stop() (err error) {
 	logutil.OkOrErr(t.log, "service after-stop", func() error {
 		for _, run := range t.getLifecycle.GetAfterStops() {
 			t.log.Sugar().Infof("after-stop running %s", stack.Func(run))
-			xerror.PanicF(xerror.Try(run), stack.Func(run))
+			assert.Must(funk.Try(run), stack.Func(run))
 		}
 		return nil
 	})
-
-	return
 }

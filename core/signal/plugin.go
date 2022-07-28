@@ -2,6 +2,7 @@ package signal
 
 import (
 	"context"
+	"github.com/pubgo/funk/recovery"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +17,7 @@ import (
 const Name = "signal"
 
 func init() {
+	defer recovery.Exit()
 	flags.Register(&cli.BoolFlag{
 		Name:        "block",
 		Destination: &runmode.Block,

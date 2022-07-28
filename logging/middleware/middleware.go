@@ -49,7 +49,7 @@ func init() {
 				params = append(params, zap.String("operation", req.Operation()))
 				params = append(params, zap.String("endpoint", req.Endpoint()))
 				params = append(params, zap.Bool("client", req.Client()))
-				params = append(params, zap.String("version", version.Version))
+				params = append(params, zap.String("version", version.Version()))
 
 				var err error
 

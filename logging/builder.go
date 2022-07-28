@@ -1,7 +1,8 @@
 package logging
 
 import (
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
@@ -21,7 +22,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 		zap.String(logkey.Env, runmode.Mode.String()),
 		zap.String(logkey.Hostname, runmode.Hostname),
 		zap.String(logkey.Project, runmode.Project),
-		zap.String(logkey.Version, version.Version),
+		zap.String(logkey.Version, version.Version()),
 	)
 
 	if runmode.Namespace != "" {
@@ -40,7 +41,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 
 // New logger
 func New(c config.Config) *Logger {
-	defer funk.RecoverAndExit()
+	defer recovery.Exit()
 
 	var cfg = log_config.NewProdConfig()
 	if runmode.IsDev() || runmode.IsTest() || runmode.IsStag() {
@@ -48,6 +49,6 @@ func New(c config.Config) *Logger {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	funk.Must(c.UnmarshalKey(Name, &cfg))
+	assert.Must(c.UnmarshalKey(Name, &cfg))
 	return NewWithCfg(&cfg)
 }

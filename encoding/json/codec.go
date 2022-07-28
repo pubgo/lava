@@ -2,6 +2,7 @@ package json
 
 import (
 	json "github.com/json-iterator/go"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/encoding"
 )
 
@@ -14,7 +15,11 @@ var (
 	}.Froze()
 )
 
-func init() { encoding.Register(Name, &jsonCodec{}) }
+func init() {
+	defer recovery.Exit()
+	
+	encoding.Register(Name, &jsonCodec{})
+}
 
 // jsonCodec uses json marshaler and unmarshaler.
 type jsonCodec struct{}

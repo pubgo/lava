@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 )
 
 type WebApp struct {
@@ -10,6 +11,7 @@ type WebApp struct {
 }
 
 func init() {
+	defer recovery.Exit()
 	dix.Provider(func() Router { return func(app *fiber.App) {} })
 	dix.Provider(func(routers []Router) *WebApp {
 		var app = fiber.New()

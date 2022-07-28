@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"errors"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/pubgo/xerror"
 	"gorm.io/driver/postgres"
@@ -13,6 +14,8 @@ import (
 )
 
 func init() {
+	defer recovery.Exit()
+
 	orm.Register("postgres", func(cfg config.CfgMap) gorm.Dialector {
 		var dsn = cfg.GetString("dsn")
 		xerror.AssertFn(dsn == "", func() error {
