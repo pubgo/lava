@@ -2,10 +2,8 @@ package grpcs
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/httpgrpc"
@@ -14,11 +12,9 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
-	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	cmux2 "github.com/pubgo/lava/internal/cmux"
@@ -26,7 +22,6 @@ import (
 	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
 	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
 	"github.com/pubgo/lava/internal/pkg/syncx"
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
@@ -37,34 +32,11 @@ func New(name string, desc ...string) service.Service {
 }
 
 func newService(name string, desc ...string) *serviceImpl {
-	var g *serviceImpl
-	g = &serviceImpl{
-		cmd: &cli.Command{
-			Name:  name,
-			Usage: utils.FirstNotEmpty(append(desc, fmt.Sprintf("%s service", name))...),
-			Flags: flags.GetFlags(),
-			Before: func(context *cli.Context) (gErr error) {
-				defer xerror.RecoverErr(&gErr, func(err xerror.XErr) xerror.XErr {
-					fmt.Println(dix.Graph())
-					return err
-				})
-
-				if runmode.Project == "" {
-					runmode.Project = strings.TrimSpace(strings.Split(name, " ")[0])
-				}
-				xerror.Assert(runmode.Project == "", "project is null")
-
-				for i := range g.providerList {
-					dix.Provider(g.providerList[i])
-				}
-				return
-			},
-		},
+	return &serviceImpl{
 		grpcSrv:  grpc_builder2.New(),
 		httpSrv:  fiber_builder2.New(),
 		handlers: grpchan.HandlerMap{},
 	}
-	return g
 }
 
 var _ service.Service = (*serviceImpl)(nil)
@@ -76,7 +48,6 @@ type serviceImpl struct {
 	app          *service.WebApp
 	cfg          *Cfg
 	log          *zap.Logger
-	cmd          *cli.Command
 	grpcSrv      grpc_builder2.Builder
 	httpSrv      fiber_builder2.Builder
 	providerList []interface{}
@@ -90,37 +61,40 @@ type serviceImpl struct {
 func (t *serviceImpl) Start() error { return t.start() }
 func (t *serviceImpl) Stop() error  { return t.stop() }
 
-func (t *serviceImpl) dixInject(p struct {
-	Middlewares  []service.Middleware
-	GetLifecycle lifecycle.GetLifecycle
-	Lifecycle    lifecycle.Lifecycle
-	Log          *zap.Logger
-	Net          *cmux2.Mux
-	App          *service.WebApp
-	Cfg          *Cfg
-}) {
-	t.getLifecycle = p.GetLifecycle
-	t.lc = p.Lifecycle
-	t.log = p.Log.Named(runmode.Project)
-	t.net = p.Net
-	t.app = p.App
-	t.cfg = p.Cfg
-
-	var middlewares []service.Middleware
-	for _, m := range p.Middlewares {
-		middlewares = append(middlewares, m)
-	}
-
-	t.unaryInt = t.handlerUnaryMiddle(middlewares)
-	t.streamInt = t.handlerStreamMiddle(middlewares)
-	t.httpMiddle = t.handlerHttpMiddle(middlewares)
-}
-
 func (t *serviceImpl) init() (gErr error) {
 	defer xerror.RecoverErr(&gErr)
 
-	dix.Inject(t.dixInject)
-	t.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) { dix.Inject(svc) })
+	type injectParam struct {
+		Middlewares  []service.Middleware
+		GetLifecycle lifecycle.GetLifecycle
+		Lifecycle    lifecycle.Lifecycle
+		Log          *zap.Logger
+		Net          *cmux2.Mux
+		App          *service.WebApp
+		Cfg          *Cfg
+	}
+
+	dix.Inject(func(p injectParam) {
+		t.getLifecycle = p.GetLifecycle
+		t.lc = p.Lifecycle
+		t.log = p.Log.Named(runmode.Project)
+		t.net = p.Net
+		t.app = p.App
+		t.cfg = p.Cfg
+
+		var middlewares []service.Middleware
+		for _, m := range p.Middlewares {
+			middlewares = append(middlewares, m)
+		}
+
+		t.unaryInt = t.handlerUnaryMiddle(middlewares)
+		t.streamInt = t.handlerStreamMiddle(middlewares)
+		t.httpMiddle = t.handlerHttpMiddle(middlewares)
+	})
+
+	t.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) {
+		dix.Inject(svc)
+	})
 
 	// 网关初始化
 	xerror.Panic(t.httpSrv.Build(t.cfg.Api))
@@ -184,10 +158,6 @@ func (t *serviceImpl) init() (gErr error) {
 	return nil
 }
 
-func (t *serviceImpl) SubCmd(cmd *cli.Command) {
-	t.cmd.Subcommands = append(t.cmd.Subcommands, cmd)
-}
-
 func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) {
 	xerror.Assert(desc == nil, "[desc] is nil")
 	xerror.Assert(impl == nil, "[impl] is nil")
@@ -195,16 +165,14 @@ func (t *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 }
 
 func (t *serviceImpl) Provider(provider interface{}) {
-	t.providerList = append(t.providerList, provider)
+	dix.Provider(provider)
 }
-
-func (t *serviceImpl) Command() *cli.Command { return t.cmd }
 
 func (t *serviceImpl) Options() service.Options {
 	return service.Options{
 		Name:      runmode.Project,
 		Id:        runmode.InstanceID,
-		Version:   version.Version,
+		Version:   version.Version(),
 		Port:      netutil2.MustGetPort(t.net.Addr),
 		Addr:      t.net.Addr,
 		Advertise: "",

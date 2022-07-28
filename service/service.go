@@ -27,24 +27,21 @@ type Options struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
-type Command interface {
-	Command() *cli.Command
+type Runtime interface {
 	Start()
 	Stop()
 	Run()
 }
 
 type Service interface {
+	Runtime
 	grpc.ServiceRegistrar
-	Command
 	Options() Options
 	Provider(provider interface{})
-	SubCmd(cmd *cli.Command)
 }
 
 type Web interface {
-	Command
+	Runtime
 	Options() Options
 	Provider(provider interface{})
-	SubCmd(cmd *cli.Command)
 }

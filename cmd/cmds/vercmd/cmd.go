@@ -3,8 +3,6 @@ package vercmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"os"
 	"runtime/debug"
 
@@ -12,6 +10,9 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
+	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/internal/pkg/cmdx"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/version"
 )
 
@@ -20,7 +21,7 @@ func Cmd() *cli.Command {
 		Name:    "version",
 		Aliases: typex.StrOf("v"),
 		Usage:   "Print the dependency package information",
-		Description: flagx.ExampleFmt(
+		Description: cmdx.ExampleFmt(
 			"lava version",
 			"lava version json",
 			"lava version t"),
@@ -50,7 +51,7 @@ func Cmd() *cli.Command {
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)
 				table.SetHeader([]string{"path", "Version", "Replace"})
-				table.Append([]string{info.Main.Path, version.Version, replace(info.Main.Replace)})
+				table.Append([]string{info.Main.Path, version.Version(), replace(info.Main.Replace)})
 
 				for _, dep := range info.Deps {
 					table.Append([]string{dep.Path, dep.Version, replace(dep.Replace)})

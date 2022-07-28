@@ -5,53 +5,42 @@ import (
 	"os"
 	"sort"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmd/cmds/healthcmd"
 	"github.com/pubgo/lava/cmd/cmds/migratecmd"
 	"github.com/pubgo/lava/cmd/cmds/vercmd"
+	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
 )
 
-func Run(services ...service.Command) {
-	defer xerror.RecoverAndExit()
+func Run(srv service.Runtime, cmds ...*cli.Command) {
+	defer recovery.Exit()
 
-	xerror.Assert(len(services) == 0, "[services] is zero")
-
-	for _, srv := range services {
-		xerror.Assert(srv == nil, "[srv] is nil")
+	var serveCmd = &cli.Command{
+		Name: "serve",
+		Action: func(ctx *cli.Context) error {
+			defer recovery.Exit()
+			srv.Start()
+			signal.Wait()
+			srv.Stop()
+			return nil
+		},
 	}
 
-	var cliApp = &cli.App{
+	var app = &cli.App{
 		Name:     version.Project(),
 		Usage:    fmt.Sprintf("%s service", version.Project()),
 		Version:  version.Version(),
-		Commands: []*cli.Command{vercmd.Cmd(), healthcmd.Cmd()},
+		Flags:    flags.GetFlags(),
+		Commands: append(cmds, serveCmd, vercmd.Cmd(), healthcmd.Cmd(), migratecmd.Cmd()),
 	}
 
-	for i := range services {
-		srv := services[i]
-		cmd := srv.Command()
-
-		// 检查项目Command是否注册
-		xerror.Assert(cliApp.Command(cmd.Name) != nil, "command(%s) already exists", cmd.Name)
-
-		cmd.Action = func(ctx *cli.Context) error {
-			defer xerror.RecoverAndExit()
-			xerror.Panic(srv.Start())
-			signal.Block()
-			xerror.Panic(srv.Stop())
-			return nil
-		}
-
-		cmd.Subcommands = append(cmd.Subcommands, migratecmd.Cmd())
-		cliApp.Commands = append(cliApp.Commands, cmd)
-	}
-
-	sort.Sort(cli.FlagsByName(cliApp.Flags))
-	sort.Sort(cli.CommandsByName(cliApp.Commands))
-	xerror.Panic(cliApp.Run(os.Args))
+	sort.Sort(cli.FlagsByName(app.Flags))
+	sort.Sort(cli.CommandsByName(app.Commands))
+	assert.Must(app.Run(os.Args))
 }

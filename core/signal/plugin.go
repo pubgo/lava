@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/funk/logx"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging"
 )
 
 const Name = "signal"
@@ -24,15 +24,11 @@ func init() {
 	})
 }
 
-func Block() {
-	if !runmode.Block {
-		return
-	}
-
+func Wait() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
 	runmode.Signal = <-ch
-	logging.S().Infof("signal [%s] trigger", runmode.Signal)
+	logx.Info("signal trigger", "signal", runmode.Signal)
 }
 
 func Ctx() context.Context {
