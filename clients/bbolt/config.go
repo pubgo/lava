@@ -35,7 +35,6 @@ func (t *Cfg) BuildOpts() *bolt.Options {
 	options.Timeout = consts.DefaultTimeout
 	xerror.Panic(merge.Struct(options, t))
 	return options
-
 }
 
 func (t *Cfg) Create() *bolt.DB {
