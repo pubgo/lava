@@ -13,7 +13,7 @@ func main() {
 	defer recovery.Exit()
 
 	var srv = lava.NewSrv()
-
-	gidpb.RegisterIdServer(srv, handler.NewId())
+	srv.RegisterGateway(gidpb.RegisterEchoServiceHandler)
+	srv.RegisterServer(gidpb.RegisterIdServer, handler.NewId())
 	lava.Run(srv)
 }

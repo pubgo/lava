@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/fullstorydev/grpchan"
@@ -62,6 +63,10 @@ type serviceImpl struct {
 	streamInt  grpc.StreamServerInterceptor
 	httpMiddle func(_ *fiber2.Ctx) error
 	registers  []service.GatewayRegister
+}
+
+func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
+	reflect.ValueOf(register).Call([]reflect.Value{reflect.ValueOf(s), reflect.ValueOf(impl)})
 }
 
 func (s *serviceImpl) RegisterGateway(register ...service.GatewayRegister) {
