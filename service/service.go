@@ -1,6 +1,7 @@
 package service
 
 import (
+	_ "github.com/go-chi/chi/v5"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
@@ -36,12 +37,6 @@ type Runtime interface {
 type Service interface {
 	Runtime
 	grpc.ServiceRegistrar
-	Options() Options
 	Provider(provider interface{})
-}
-
-type Web interface {
-	Runtime
-	Options() Options
-	Provider(provider interface{})
+	RegisterGateway(register ...GatewayRegister)
 }

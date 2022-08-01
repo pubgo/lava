@@ -3,7 +3,6 @@ package vars
 import (
 	"expvar"
 	"fmt"
-	"github.com/pubgo/funk/recovery"
 	"net/http"
 
 	"github.com/gofiber/adaptor/v2"
@@ -11,6 +10,7 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/xerror"
 )

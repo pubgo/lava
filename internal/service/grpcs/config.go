@@ -14,9 +14,13 @@ const (
 	defaultContentType = "application/grpc"
 )
 
+type GrpcWebCfg struct {
+}
+
 type Cfg struct {
-	Grpc       *grpc_builder.Cfg  `yaml:"grpc-cfg"`
-	Api        *fiber_builder.Cfg `yaml:"rest-cfg"`
+	Grpc       *grpc_builder.Cfg  `yaml:"grpc-server"`
+	Api        *fiber_builder.Cfg `yaml:"http-server"`
+	GrpcWeb    *GrpcWebCfg        `yaml:"grpc-web"`
 	PrintRoute bool               `yaml:"print-route"`
 }
 

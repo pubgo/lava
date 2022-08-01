@@ -39,7 +39,7 @@ service UserService {
 
   rpc GetUser(User) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      get: "/api/v1/users"
+      get: "/api/v1/user"
     };
   }
 

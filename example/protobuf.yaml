@@ -31,18 +31,10 @@ plugins:
     opt:
       - paths=import
       - require_unimplemented_servers=false
-#  - name: twirp
-#    out: pkg/proto
-#    opt:
-#      - paths=import
   - name: errors
     out: pkg/proto
     opt: paths=import
-#  - name: retag
-#    opt:
-#      - paths=import
-#      - output=pkg/proto
-#  - name: doc
-#    out: ./docs
-#    opt:
-#      - markdown,index.md
+  - name: grpc-gateway
+    out: pkg/proto
+    opt:
+      - paths=import

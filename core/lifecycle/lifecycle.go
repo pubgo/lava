@@ -49,11 +49,11 @@ func init() {
 
 	var lc = new(lifecycleImpl)
 	dix.Provider(func() Handler { return func(lc Lifecycle) {} })
+	dix.Provider(func() GetLifecycle { return lc })
 	dix.Provider(func(handlers []Handler) Lifecycle {
 		for i := range handlers {
 			handlers[i](lc)
 		}
 		return lc
 	})
-	dix.Provider(func() GetLifecycle { return lc })
 }

@@ -3,12 +3,10 @@ package main
 import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/example/handler"
-	"github.com/pubgo/lava/example/pkg/proto/gidpb"
-
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
-	_ "github.com/pubgo/lava/logging/log_ext/klog"
+	"github.com/pubgo/lava/example/handler"
+	"github.com/pubgo/lava/example/pkg/proto/gidpb"
 )
 
 func main() {

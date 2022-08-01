@@ -33,8 +33,8 @@ func GetLocalIP() string {
 	return localIP
 }
 
-// CheckPort 检查端口是否被占用
-func CheckPort(protocol string, addr string) bool {
+// IsPortUsed 检查端口是否被占用
+func IsPortUsed(protocol string, addr string) bool {
 	conn, err := net.DialTimeout(protocol, addr, 3*time.Second)
 	if err != nil {
 		return false

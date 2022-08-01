@@ -3,8 +3,9 @@ package fiber_builder
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/xerror"
 )
 
 func New() Builder { return Builder{} }
@@ -22,15 +23,15 @@ func (t *Builder) Get() *fiber.App {
 }
 
 func (t *Builder) Build(cfg *Cfg) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	var fc = fiber.New().Config()
-	xerror.Panic(merge.Struct(&fc, &cfg))
+	assert.Must(merge.Struct(&fc, &cfg))
 	t.srv = fiber.New(fc)
 
 	if cfg.Templates.Dir != "" && cfg.Templates.Ext != "" {
 		fc.Views = html.New(cfg.Templates.Dir, cfg.Templates.Ext)
 	}
 
-	return nil
+	return
 }

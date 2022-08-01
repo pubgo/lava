@@ -3,11 +3,9 @@ package grpc_builder
 import (
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-
-	"github.com/pubgo/lava/core/runmode"
 )
 
 func New() Builder { return Builder{} }
@@ -30,7 +28,6 @@ func (t *Builder) Get() *grpc.Server {
 	if t.srv == nil {
 		panic("srv is nil, please init grpc server")
 	}
-
 	return t.srv
 }
 
@@ -47,7 +44,7 @@ func (t *Builder) BuildOpts(cfg *Cfg) []grpc.ServerOption {
 }
 
 func (t *Builder) Build(cfg *Cfg) (err error) {
-	defer xerror.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	opts := t.BuildOpts(cfg)
 	opts = append(opts, grpc.ChainUnaryInterceptor(t.unaryInterceptors...))
@@ -56,9 +53,7 @@ func (t *Builder) Build(cfg *Cfg) (err error) {
 
 	EnableReflection(t.srv)
 	EnableHealth("", t.srv)
-	if runmode.IsDev() || runmode.IsTest() {
-		EnableDebug(t.srv)
-	}
+	EnableDebug(t.srv)
 
 	return nil
 }

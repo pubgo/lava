@@ -14,8 +14,11 @@ import (
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/example/pkg/proto/gidpb"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"
 )
+
+var _ service.Init = (*Id)(nil)
 
 type Id struct {
 	Cron   *scheduler.Scheduler
@@ -23,16 +26,6 @@ type Id struct {
 
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
-}
-
-func (id *Id) Init() {
-	id.Cron.Every("test gid", time.Second*2, func(name string) {
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-		//"time": time.Now().Format("15:04:05")
-		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
-		fmt.Println("test cron every")
-	})
 }
 
 func NewId() gidpb.IdServer {
@@ -51,6 +44,15 @@ func NewId() gidpb.IdServer {
 		snowflake: sf,
 		bigflake:  bg,
 	}
+}
+
+func (id *Id) Init() {
+	id.Cron.Every("test gid", time.Second*2, func(name string) {
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
+		fmt.Println("test cron every")
+	})
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {

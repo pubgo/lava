@@ -17,7 +17,7 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
+func (s *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
 	var handler = func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var reqCtx = req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
@@ -33,7 +33,7 @@ func (t *serviceImpl) handlerHttpMiddle(middlewares []service.Middleware) func(f
 	}
 }
 
-func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
+func (s *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
@@ -127,7 +127,7 @@ func (t *serviceImpl) handlerUnaryMiddle(middlewares []service.Middleware) grpc.
 	}
 }
 
-func (t *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
+func (s *serviceImpl) handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {

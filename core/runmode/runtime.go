@@ -6,53 +6,52 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/denisbrodbeck/machineid"
-	"github.com/google/uuid"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 
-	"github.com/pubgo/lava/internal/pkg/env"
 	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/version"
 )
 
 // 默认的全局配置
 var (
-	Domain  = "lava"
-	Block   = true
-	Project = env.Get("app_name", "service_name", "project_name")
-	Level   = "debug"
+	HttpPort = 8000
+	GrpcPort = 50051
+	Block    = true
+	Project  = version.Project()
+	Level    = "debug"
 
 	// DeviceID 主机设备ID
-	DeviceID = xerror.ExitErr(machineid.ID())
+	DeviceID = version.DeviceID()
 
 	// InstanceID service id
-	InstanceID = uuid.New().String()
+	InstanceID = version.InstanceID()
 
 	Signal os.Signal = syscall.Signal(0)
 
+	Version = version.Version()
+
+	CommitID = version.CommitID()
+
 	// Pwd 当前目录
-	Pwd = xerror.ExitErr(os.Getwd()).(string)
+	Pwd = assert.Exit1(os.Getwd())
 
 	// Hostname 主机名
 	Hostname = utils.FirstFnNotEmpty(
 		func() string { return os.Getenv("HOSTNAME") },
-		func() string {
-			var h, err = os.Hostname()
-			xerror.Exit(err)
-			return h
-		},
+		func() string { return assert.Exit1(os.Hostname()) },
 	)
 
-	// Namespace 命名空间
+	// Namespace K8s命名空间
 	Namespace = utils.FirstFnNotEmpty(
 		func() string { return os.Getenv("NAMESPACE") },
 		func() string { return os.Getenv("POD_NAMESPACE") },
 		func() string {
-			if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
-				if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
-					return ns
-				}
-			}
-			return ""
+			var ns = assert.Exit1(ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"))
+			return strings.TrimSpace(string(ns))
 		},
 	)
 )
+
+func init() {
+	//assert.If(netutil.IsPortUsed("tpc", fmt.Sprintf("localhost:%d", HttpPort)), "")
+}
