@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/recovery"
 	"net"
 	"net/http"
 	"reflect"
@@ -66,6 +67,7 @@ type serviceImpl struct {
 }
 
 func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
+	defer recovery.Exit()
 	reflect.ValueOf(register).Call([]reflect.Value{reflect.ValueOf(s), reflect.ValueOf(impl)})
 }
 
