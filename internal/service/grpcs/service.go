@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/funk/recovery"
 	"net"
 	"net/http"
 	"reflect"
@@ -20,6 +19,7 @@ import (
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -68,6 +68,9 @@ type serviceImpl struct {
 
 func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
 	defer recovery.Exit()
+
+	assert.If(impl == nil, "[impl] is nil")
+	assert.If(register == nil, "[register] is nil")
 	reflect.ValueOf(register).Call([]reflect.Value{reflect.ValueOf(s), reflect.ValueOf(impl)})
 }
 
@@ -163,8 +166,13 @@ func (s *serviceImpl) init() {
 			return
 		}
 
+		if wrappedGrpc.IsGrpcWebSocketRequest(r) {
+			wrappedGrpc.HandleGrpcWebsocketRequest(w, r)
+			return
+		}
+
 		if wrappedGrpc.IsGrpcWebRequest(r) {
-			wrappedGrpc.ServeHTTP(w, r)
+			wrappedGrpc.HandleGrpcWebRequest(w, r)
 			return
 		}
 
