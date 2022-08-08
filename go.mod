@@ -88,7 +88,6 @@ require (
 require (
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
-	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-kit/log v0.2.1
 	github.com/gofiber/adaptor/v2 v2.1.20
@@ -97,8 +96,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pubgo/dix v0.3.2
-	github.com/pubgo/funk v0.5.3
-	github.com/rs/cors v1.7.0
+	github.com/pubgo/funk v0.5.7
 	github.com/rs/xid v1.2.1
 	github.com/stretchr/testify v1.7.2
 	github.com/valyala/fasthttp v1.37.0
@@ -174,6 +172,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.2 // indirect
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/spf13/afero v1.8.2 // indirect

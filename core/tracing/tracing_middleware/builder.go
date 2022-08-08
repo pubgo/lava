@@ -54,7 +54,7 @@ func init() {
 				}
 
 				// request-id绑定
-				span.SetTag(requestid2.Name, requestid2.GetReqId(ctx))
+				span.SetTag(requestid2.Name, requestid2.GetFromCtx(ctx))
 
 				tracing.GetFrom(ctx).SetTag("sss", "")
 

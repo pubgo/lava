@@ -38,7 +38,7 @@ func init() {
 					params = append(params, zap.String("referer", referer))
 				}
 
-				var reqId = requestid.GetReqId(ctx)
+				var reqId = requestid.GetFromCtx(ctx)
 				var tracerID, spanID = tracing.GetFrom(ctx).SpanID()
 
 				params = append(params, zap.String("requestId", reqId))
@@ -72,8 +72,16 @@ func init() {
 					}
 
 					// TODO type assert
-					params = append(params, zap.String("req_body", fmt.Sprintf("%v", req.Payload())))
-					params = append(params, zap.Any("rsp_body", fmt.Sprintf("%v", resp.Payload())))
+					reqBody := fmt.Sprintf("%v", req.Payload())
+					rspBody := fmt.Sprintf("%v", resp.Payload())
+					if len(reqBody) < 1000 {
+						params = append(params, zap.String("req_body", reqBody))
+					}
+
+					if len(rspBody) < 1000 {
+						params = append(params, zap.Any("rsp_body", rspBody))
+					}
+
 					params = append(params, zap.Any("req_header", req.Header()))
 					params = append(params, zap.Any("rsp_header", resp.Header()))
 

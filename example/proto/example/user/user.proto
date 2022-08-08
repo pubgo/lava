@@ -85,6 +85,9 @@ message GenerateResponse {
 }
 
 
+
+
+
 // User 用户服务
 service User {
   option (google.api.default_host) = "localhost:8080";
@@ -180,33 +183,33 @@ message ABitOfEverything {
   }
   Nested single_nested = 25;
 
-  string uuid = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", min_length: 1}];
+  string          uuid = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}", min_length: 1}];
   repeated Nested nested = 2;
-  float float_value = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Float value field", default: "0.2", required: ['float_value']}];
-  double double_value = 4;
-  int64 int64_value = 5;
-  uint64 uint64_value = 6;
-  int32 int32_value = 7;
-  fixed64 fixed64_value = 8;
-  fixed32 fixed32_value = 9;
-  bool bool_value = 10;
-  string string_value = 11;
-  bytes bytes_value = 29;
-  uint32 uint32_value = 13;
-  NumericEnum enum_value = 14;
-  sfixed32 sfixed32_value = 15;
-  sfixed64 sfixed64_value = 16;
-  sint32 sint32_value = 17;
-  sint64 sint64_value = 18;
+  float           float_value = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "Float value field", default: "0.2", required: ['float_value']}];
+  double          double_value = 4;
+  int64           int64_value = 5;
+  uint64          uint64_value = 6;
+  int32           int32_value = 7;
+  fixed64         fixed64_value = 8;
+  fixed32         fixed32_value = 9;
+  bool            bool_value = 10;
+  string          string_value = 11;
+  bytes           bytes_value = 29;
+  uint32          uint32_value = 13;
+  NumericEnum     enum_value = 14;
+  sfixed32        sfixed32_value = 15;
+  sfixed64        sfixed64_value = 16;
+  sint32          sint32_value = 17;
+  sint64          sint64_value = 18;
   repeated string repeated_string_value = 19;
   oneof oneof_value {
     google.protobuf.Empty oneof_empty = 20;
-    string oneof_string = 21;
+    string                oneof_string = 21;
   }
 
   map<string, NumericEnum> map_value = 22;
-  map<string, string> mapped_string_value = 23;
-  map<string, Nested> mapped_nested_value = 24;
+  map<string, string>      mapped_string_value = 23;
+  map<string, Nested>      mapped_nested_value = 24;
 
   string nonConventionalNameValue = 26;
 
@@ -246,22 +249,22 @@ message ABitOfEverythingRepeated {
   };
 
   // repeated values. they are comma-separated in path
-  repeated float path_repeated_float_value = 1;
-  repeated double path_repeated_double_value = 2;
-  repeated int64 path_repeated_int64_value = 3;
-  repeated uint64 path_repeated_uint64_value = 4;
-  repeated int32 path_repeated_int32_value = 5;
-  repeated fixed64 path_repeated_fixed64_value = 6;
-  repeated fixed32 path_repeated_fixed32_value = 7;
-  repeated bool path_repeated_bool_value = 8;
-  repeated string path_repeated_string_value = 9;
-  repeated bytes path_repeated_bytes_value = 10;
-  repeated uint32 path_repeated_uint32_value = 11;
+  repeated float       path_repeated_float_value = 1;
+  repeated double      path_repeated_double_value = 2;
+  repeated int64       path_repeated_int64_value = 3;
+  repeated uint64      path_repeated_uint64_value = 4;
+  repeated int32       path_repeated_int32_value = 5;
+  repeated fixed64     path_repeated_fixed64_value = 6;
+  repeated fixed32     path_repeated_fixed32_value = 7;
+  repeated bool        path_repeated_bool_value = 8;
+  repeated string      path_repeated_string_value = 9;
+  repeated bytes       path_repeated_bytes_value = 10;
+  repeated uint32      path_repeated_uint32_value = 11;
   repeated NumericEnum path_repeated_enum_value = 12;
-  repeated sfixed32 path_repeated_sfixed32_value = 13;
-  repeated sfixed64 path_repeated_sfixed64_value = 14;
-  repeated sint32 path_repeated_sint32_value = 15;
-  repeated sint64 path_repeated_sint64_value = 16;
+  repeated sfixed32    path_repeated_sfixed32_value = 13;
+  repeated sfixed64    path_repeated_sfixed64_value = 14;
+  repeated sint32      path_repeated_sint32_value = 15;
+  repeated sint64      path_repeated_sint64_value = 16;
 }
 
 message CheckStatusResponse {
@@ -274,7 +277,7 @@ message Body {
 
 message MessageWithBody {
   string id = 1;
-  Body data = 2;
+  Body   data = 2;
 }
 
 
@@ -370,7 +373,7 @@ service ABitOfEverythingService {
   // This API creates a new ABitOfEverything
   rpc Create(ABitOfEverything) returns (ABitOfEverything) {
     option (google.api.http) = {
-      post: "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value=strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}"
+      post: "/v1/example/a_bit_of_everything/{float_value}/{double_value}/{int64_value}/separator/{uint64_value}/{int32_value}/{fixed64_value}/{fixed32_value}/{bool_value}/{string_value = strprefix/*}/{uint32_value}/{sfixed32_value}/{sfixed64_value}/{sint32_value}/{sint64_value}/{nonConventionalNameValue}/{enum_value}"
     };
   }
   rpc CreateBody(ABitOfEverything) returns (ABitOfEverything) {
@@ -382,13 +385,13 @@ service ABitOfEverythingService {
   // Create a book.
   rpc CreateBook(CreateBookRequest) returns (Book) {
     option (google.api.http) = {
-      post: "/v1/{parent=publishers/*}/books"
+      post: "/v1/{parent = publishers/*}/books"
       body: "book"
     };
   }
   rpc UpdateBook(UpdateBookRequest) returns (Book) {
     option (google.api.http) = {
-      patch: "/v1/{book.name=publishers/*/books/*}"
+      patch: "/v1/{book.name = publishers/*/books/*}"
       body: "book"
     };
   }
@@ -438,10 +441,10 @@ service ABitOfEverythingService {
   }
 
   //  rpc Delete(grpc.gateway.examples.internal.proto.sub2.IdMessage) returns (google.protobuf.Empty) {
-  //    option (google.api.http) = {
+  // option (google.api.http) = {
   //      delete: "/v1/example/a_bit_of_everything/{uuid}"
   //    };
-  //    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
   //      security: {
   //        security_requirement: {
   //          key: "ApiKeyAuth";
@@ -490,7 +493,7 @@ service ABitOfEverythingService {
   // description exposes documentation correctly on all paths
   // defined as additional_bindings in the proto.
   //  rpc Echo(grpc.gateway.examples.internal.proto.sub.StringMessage) returns (grpc.gateway.examples.internal.proto.sub.StringMessage) {
-  //    option (google.api.http) = {
+  // option (google.api.http) = {
   //      get: "/v1/example/a_bit_of_everything/echo/{value}"
   //      additional_bindings {
   //        post: "/v2/example/echo"
@@ -500,7 +503,7 @@ service ABitOfEverythingService {
   //        get: "/v2/example/echo"
   //      }
   //    };
-  //    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
   //      description: "Description Echo";
   //      summary: "Summary: Echo rpc";
   //      tags: "echo rpc";

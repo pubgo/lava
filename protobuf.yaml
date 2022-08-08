@@ -1,5 +1,5 @@
 version: v1
-vendor: .lava/proto
+vendor: .proto
 checksum: aeb8b133097e6a13b7ea0d767995bc2d30b80ca9
 root:
 - event

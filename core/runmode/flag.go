@@ -9,14 +9,14 @@ import (
 
 func init() {
 	flags.Register(&cli.IntFlag{
-		Name:        "http-port",
+		Name:        "http",
 		Usage:       "service http port",
 		Value:       HttpPort,
 		Destination: &HttpPort,
 		EnvVars:     typex.StrOf(env.Key("http_port")),
 	})
 	flags.Register(&cli.IntFlag{
-		Name:        "grpc-port",
+		Name:        "grpc",
 		Usage:       "service grpc port",
 		Value:       GrpcPort,
 		Destination: &GrpcPort,

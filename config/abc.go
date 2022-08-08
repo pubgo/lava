@@ -24,7 +24,7 @@ func (t CfgMap) GetString(name string) string {
 
 type DecoderOption = viper.DecoderConfigOption
 type Config interface {
-	LoadPath(path string)
+	LoadPath(path string) error
 	UnmarshalKey(key string, rawVal interface{}, opts ...DecoderOption) error
 	Decode(name string, cfgMap interface{}) error
 	Get(key string) interface{}
@@ -36,6 +36,7 @@ type Config interface {
 	All() map[string]interface{}
 }
 
-type Spec struct {
-	Desc string
+type Builder[T any] interface {
+	Build() error
+	Get() T
 }

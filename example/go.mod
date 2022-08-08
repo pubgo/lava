@@ -2,7 +2,7 @@ module github.com/pubgo/lava/example
 
 go 1.18
 
-replace github.com/pubgo/lava v0.1.25 => ../
+replace github.com/pubgo/lava v0.2.10 => ../
 
 require (
 	github.com/casbin/casbin/v2 v2.47.2
@@ -15,8 +15,8 @@ require (
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
 	github.com/pubgo/dix v0.3.2
-	github.com/pubgo/funk v0.5.3
-	github.com/pubgo/lava v0.1.25
+	github.com/pubgo/funk v0.5.7
+	github.com/pubgo/lava v0.2.10
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
@@ -51,7 +51,6 @@ require (
 	github.com/fullstorydev/grpchan v1.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.16.0 // indirect
 	github.com/glebarez/sqlite v1.4.3 // indirect
-	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
 	github.com/go-echarts/statsview v0.3.4 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2 // indirect

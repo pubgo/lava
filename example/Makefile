@@ -14,8 +14,8 @@ LDFLAGS=-ldflags " \
 "
 
 .PHONY: build
-build:
-	go build ${LDFLAGS} -v -o bin/main *.go
+build-gid:
+	go build ${LDFLAGS} -v -o bin/gid *.go
 
 vet:
 	@go vet ./...

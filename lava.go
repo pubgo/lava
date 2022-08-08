@@ -7,10 +7,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func Run(srv service.Runtime, cmds ...*cli.Command) {
-	running.Run(srv, cmds...)
+func Run(srv service.Runtime, cmd ...*cli.Command) {
+	running.Run(srv, cmd...)
 }
 
-func NewSrv() service.Service {
+func New() service.Service {
 	return grpcs.New()
 }

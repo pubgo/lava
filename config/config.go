@@ -13,25 +13,29 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
+	"github.com/pubgo/x/iox"
+	"github.com/pubgo/x/pathutil"
+	"github.com/spf13/cast"
+	"github.com/spf13/viper"
+
 	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/internal/pkg/env"
 	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/internal/pkg/reflectx"
 	"github.com/pubgo/lava/internal/pkg/typex"
-	"github.com/pubgo/lava/internal/pkg/utils"
-	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
-	"github.com/spf13/cast"
-	"github.com/spf13/viper"
+)
+
+const (
+	FileType = "yaml"
+	FileName = "config"
 )
 
 var (
-	CfgType   = "yaml"
-	CfgName   = "config"
-	CfgDir    string
-	CfgPath   string
-	EnvPrefix = utils.FirstNotEmpty(env.Get("cfg_env_prefix", "app_env_prefix", "project_env_prefix", consts.EnvCfgPrefix), "lava")
+	CfgDir  string
+	CfgPath string
 )
 
 // Init 处理所有的配置,环境变量和flag
@@ -40,29 +44,31 @@ var (
 // flag可以指定配置文件位置
 // 始化配置文件
 func newCfg() *configImpl {
+	defer recovery.Exit()
+
 	var t = &configImpl{v: viper.New()}
 	// 配置处理
 	v := t.v
 
 	// 配置文件名字和类型
-	v.SetConfigType(CfgType)
-	v.SetConfigName(CfgName)
+	v.SetConfigType(FileType)
+	v.SetConfigName(FileName)
 	v.AddConfigPath(".")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
-	v.SetEnvPrefix(strings.ToUpper(EnvPrefix))
+	v.SetEnvPrefix(strings.ToUpper(envs.EnvPrefix))
 	v.AutomaticEnv()
 
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 然后获取配置了
-	xerror.PanicF(t.initCfg(v), "config file load error")
+	t.initCfg(v)
 	CfgPath = v.ConfigFileUsed()
 	CfgDir = filepath.Dir(v.ConfigFileUsed())
-	xerror.Panic(env.Set(consts.EnvHome, CfgDir))
-	t.LoadPath(CfgPath)
+	assert.Must(env.Set(consts.EnvHome, CfgDir))
+	assert.Must(t.LoadPath(CfgPath))
 
 	// 加载自定义配置
-	t.loadCustomCfg()
+	assert.Must(t.loadCustomCfg())
 	return t
 }
 
@@ -73,12 +79,16 @@ type configImpl struct {
 	v  *viper.Viper
 }
 
-func (t *configImpl) loadCustomCfg() {
+func (t *configImpl) loadCustomCfg() (err error) {
+	defer recovery.Err(&err)
+
 	var cfg App
 	assert.Must(t.UnmarshalKey("app", &cfg))
+
 	for _, path := range cfg.Resources {
-		t.LoadPath(filepath.Join(CfgDir, path))
+		assert.Must(t.LoadPath(filepath.Join(CfgDir, path)))
 	}
+	return nil
 }
 
 func (t *configImpl) All() map[string]interface{} {
@@ -141,27 +151,26 @@ func (t *configImpl) Set(key string, value interface{}) {
 }
 
 func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
-	opts = append(opts, func(c *mapstructure.DecoderConfig) {
+	return t.v.UnmarshalKey(key, rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
-			c.TagName = CfgType
+			c.TagName = FileType
 		}
-	})
-	return t.v.UnmarshalKey(key, rawVal, opts...)
+	})...)
 }
 
 // Decode decode config to map[string]*struct
-func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+func (t *configImpl) Decode(name string, cfgMap interface{}) (gErr error) {
+	defer recovery.Err(&gErr, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("name=%s, cfgMap=%#v", name, cfgMap)
 	})
 
-	xerror.Assert(name == "" || cfgMap == nil, "[name,cfgMap] should not be nil")
-	xerror.Assert(reflectx.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "[cfgMap](%#v) should be map", cfgMap)
-	xerror.Assert(t.Get(name) == nil, "config(%s) key not found", name)
+	assert.If(name == "" || cfgMap == nil, "[name,cfgMap] should not be nil")
+	assert.If(reflectx.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "[cfgMap](%#v) should be map", cfgMap)
+	assert.If(t.Get(name) == nil, "config(%s) key not found", name)
 
 	var cfg *typex.RwMap
 	for _, data := range cast.ToSlice(t.Get(name)) {
-		var dm = xerror.PanicErr(cast.ToStringMapE(data)).(map[string]interface{})
+		var dm = assert.Must1(cast.ToStringMapE(data))
 		resId := getPkgId(dm)
 
 		if cfg == nil {
@@ -179,7 +188,8 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (err error) {
 		cfg.Set(consts.KeyDefault, t.Get(name))
 	}
 
-	return xerror.WrapF(merge.MapStruct(cfgMap, cfg.Map()), "config key [%s] decode error", name)
+	assert.MustF(merge.MapStruct(cfgMap, cfg.Map()), "config key [%s] decode error", name)
+	return
 }
 
 func (t *configImpl) addConfigPath(in string) bool {
@@ -194,7 +204,7 @@ func (t *configImpl) addConfigPath(in string) bool {
 		return false
 	}
 
-	xerror.PanicF(err, "read config failed, path:%s", in)
+	assert.MustF(err, "read config failed, path:%s", in)
 	return false
 }
 
@@ -210,8 +220,7 @@ func (t *configImpl) initWithConfig(v *viper.Viper) bool {
 	return true
 }
 
-func (t *configImpl) initCfg(v *viper.Viper) (err error) {
-	defer xerror.RecoverErr(&err)
+func (t *configImpl) initCfg(v *viper.Viper) {
 
 	// 指定配置文件
 	if t.initWithConfig(v) {
@@ -220,11 +229,11 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 
 	// 检查配置是否存在
 	if v.ReadInConfig() == nil {
-		return nil
+		return
 	}
 
 	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs") })
-	xerror.Assert(len(pathList) == 0, "config path not found")
+	assert.If(len(pathList) == 0, "config path not found")
 
 	for i := range pathList {
 		if t.addConfigPath(pathList[i]) {
@@ -232,13 +241,15 @@ func (t *configImpl) initCfg(v *viper.Viper) (err error) {
 		}
 	}
 
-	return xerror.Wrap(v.ReadInConfig())
+	assert.Must(v.ReadInConfig())
 }
 
 // LoadPath 加载指定path的配置
-func (t *configImpl) LoadPath(path string) {
+func (t *configImpl) LoadPath(path string) (err error) {
+	defer recovery.Err(&err)
+
 	if !pathutil.IsExist(path) {
-		return
+		return nil
 	}
 
 	logx.V(1).Info("load config path", "path", path)
@@ -261,4 +272,5 @@ func (t *configImpl) LoadPath(path string) {
 
 	// 合并配置
 	assert.Must(t.v.MergeConfig(&buf))
+	return
 }

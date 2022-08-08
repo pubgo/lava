@@ -19,7 +19,6 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 
 	// 全局log设置
 	var log = cfg.Build(runmode.Project).With(
-		zap.String(logkey.Env, runmode.Mode.String()),
 		zap.String(logkey.Hostname, runmode.Hostname),
 		zap.String(logkey.Project, runmode.Project),
 		zap.String(logkey.Version, version.Version()),
@@ -44,8 +43,8 @@ func New(c config.Config) *Logger {
 	defer recovery.Exit()
 
 	var cfg = log_config.NewProdConfig()
-	if runmode.IsDev() || runmode.IsTest() || runmode.IsStag() {
-		cfg = log_config.NewDevConfig()
+
+	if runmode.IsDebug {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 

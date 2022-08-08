@@ -8,6 +8,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/internal/pkg/typex"
 	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
@@ -34,11 +35,16 @@ func (t *Client) Set(ctx context.Context, key string, val []byte, names ...strin
 	}, names...)
 }
 
-func (t *Client) Get(ctx context.Context, key string, names ...string) (val []byte, err error) {
-	return val, t.View(ctx, func(bucket *bolt.Bucket) error {
-		val = bucket.Get(utils2.StoB(key))
-		return nil
-	}, names...)
+func (t *Client) Get(ctx context.Context, key string, names ...string) typex.Value[[]byte] {
+	var (
+		val []byte
+		err = t.View(ctx, func(bucket *bolt.Bucket) error {
+			val = bucket.Get(utils2.StoB(key))
+			return nil
+		}, names...)
+	)
+
+	return typex.OK(val, err)
 }
 
 func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {

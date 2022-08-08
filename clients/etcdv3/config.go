@@ -3,14 +3,18 @@ package etcdv3
 import (
 	"time"
 
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/internal/pkg/retry"
 )
+
+var _ config.Builder[*etcdv3.Client] = (*Cfg)(nil)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
@@ -27,15 +31,19 @@ type Cfg struct {
 	PermitWithoutStream  bool              `json:"permit_without_stream"`
 	DialOptions          []grpc.DialOption `json:"-"`
 	retry                retry.Retry
+	c                    *etcdv3.Client
 }
 
-func (t *Cfg) Build() *etcdv3.Client {
+func (t *Cfg) Get() *etcdv3.Client { return t.c }
+func (t *Cfg) Build() (err error) {
+	defer recovery.Err(&err)
 	var cfg etcdv3.Config
-	xerror.Panic(merge.CopyStruct(&cfg, &t))
+	assert.Must(merge.CopyStruct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	// 创建etcd client对象
-	return xerror.PanicErr(t.retry.DoVal(func(i int) (interface{}, error) { return etcdv3.New(cfg) })).(*etcdv3.Client)
+	t.c = assert.Must1(t.retry.DoVal(func(i int) (interface{}, error) { return etcdv3.New(cfg) })).(*etcdv3.Client)
+	return
 }
 
 func DefaultCfg() *Cfg {

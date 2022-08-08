@@ -10,10 +10,13 @@ option java_package = "com.lava.errors";
 option go_package = "github.com/pubgo/lava/errors;errors";
 
 message Error {
-  int32 code = 1;
-  string reason = 2;
-  string message = 3;
-  map<string, string>  metadata = 4;
+  int32 status = 1;
+  string type = 2;
+  string title = 3;
+  string reason = 4;
+  string detail = 5;
+  string instance = 6;
+  map<string, string>  tags = 7;
 }
 
 extend google.protobuf.EnumValueOptions {

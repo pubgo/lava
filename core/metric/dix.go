@@ -46,7 +46,7 @@ func init() {
 	dix.Provider(func(m Metric) service.Middleware {
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {
-				return next(CreateCtx(ctx, m), req, resp)
+				return next(CreateCtxWithMetric(ctx, m), req, resp)
 			}
 		}
 	})

@@ -1,10 +1,10 @@
 package healthy
 
 import (
-	"github.com/pubgo/funk/recovery"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/x/jsonx"
 	"github.com/pubgo/xerror"
 

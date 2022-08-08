@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/x/pathutil"
 
 	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/version"
@@ -19,6 +20,8 @@ var (
 	Block    = true
 	Project  = version.Project()
 	Level    = "debug"
+
+	IsDebug bool
 
 	// DeviceID 主机设备ID
 	DeviceID = version.DeviceID()
@@ -46,12 +49,12 @@ var (
 		func() string { return os.Getenv("NAMESPACE") },
 		func() string { return os.Getenv("POD_NAMESPACE") },
 		func() string {
-			var ns = assert.Exit1(ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"))
-			return strings.TrimSpace(string(ns))
+			var file = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+			if pathutil.IsNotExist(file) {
+				return ""
+			}
+
+			return strings.TrimSpace(string(assert.Exit1(ioutil.ReadFile(file))))
 		},
 	)
 )
-
-func init() {
-	//assert.If(netutil.IsPortUsed("tpc", fmt.Sprintf("localhost:%d", HttpPort)), "")
-}

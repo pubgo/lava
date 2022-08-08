@@ -16,7 +16,7 @@ var Name = "gc"
 
 func init() {
 	dix.Provider(func(log *logging.Logger) lifecycle.Handler {
-		if runmode.IsProd() || runmode.IsRelease() {
+		if !runmode.IsDebug {
 			return nil
 		}
 

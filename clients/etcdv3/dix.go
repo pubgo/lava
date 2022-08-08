@@ -1,18 +1,20 @@
-package bbolt
+package etcdv3
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/logging"
 )
+
+const Name = "etcdv3"
 
 func init() {
 	defer recovery.Exit()
-	dix.Provider(func(c config.Config, log *logging.Logger) map[string]*Client {
+	dix.Provider(func(c config.Config) map[string]*Client {
 		return config.MakeClient(c, Name, func(key string, cfg *Cfg) *Client {
-			return New(cfg.Create(), log.Named(Name))
+			assert.Must(cfg.Build())
+			return &Client{Client: cfg.Get()}
 		})
 	})
 }

@@ -113,6 +113,11 @@ func (s *serviceImpl) init() {
 	s.streamInt = s.handlerStreamMiddle(middlewares)
 	s.httpMiddle = s.handlerHttpMiddle(middlewares)
 
+	s.grpcSrv.UnaryInterceptor(s.unaryInt)
+	s.grpcSrv.StreamInterceptor(s.streamInt)
+	// grpc serve初始化
+	assert.Must(s.grpcSrv.Build(s.cfg.Grpc))
+
 	// 初始化 handlers
 	s.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
 		s.grpcSrv.Get().RegisterService(desc, svr)
@@ -130,23 +135,12 @@ func (s *serviceImpl) init() {
 		}
 	})
 
-	// 网关初始化
-	assert.Must(s.httpSrv.Build(s.cfg.Api))
-	s.httpSrv.Get().Use(s.httpMiddle)
-	s.httpSrv.Get().Mount("/", s.app.App)
-
-	s.grpcSrv.UnaryInterceptor(s.unaryInt)
-	s.grpcSrv.StreamInterceptor(s.streamInt)
-
 	s.app.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
 		//AllowHeaders: "Origin, Content-Type, Accept",
 	}))
-
-	// grpc serve初始化
-	assert.Must(s.grpcSrv.Build(s.cfg.Grpc))
 
 	var conn = assert.Must1(grpc.Dial(fmt.Sprintf("localhost:%d", runmode.GrpcPort), grpc.WithTransportCredentials(insecure.NewCredentials())))
 	s.lc.BeforeStops(func() { logx.Error(conn.Close(), "Failed to close conn") })
@@ -178,6 +172,11 @@ func (s *serviceImpl) init() {
 
 		grpcMux.ServeHTTP(w, r)
 	}), &http2.Server{}))))
+
+	// 网关初始化
+	assert.Must(s.httpSrv.Build(s.cfg.Api))
+	s.httpSrv.Get().Use(s.httpMiddle)
+	s.httpSrv.Get().Mount("/", s.app.App)
 
 	if s.cfg.PrintRoute {
 		for _, stacks := range s.httpSrv.Get().Stack() {

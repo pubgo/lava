@@ -17,7 +17,7 @@ import (
 var name = "perm"
 
 func NewSrv() service.Service {
-	srv := lava.NewSrv(name, "rbac grpc service")
+	srv := lava.New(name, "rbac grpc service")
 	srv.SubCmd(cmds.Menu())
 	srv.Provider(migrates.Migrations)
 

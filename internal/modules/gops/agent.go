@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	if runmode.IsProd() || runmode.IsRelease() {
+	if !runmode.IsDebug {
 		return
 	}
 

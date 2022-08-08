@@ -2,9 +2,9 @@ package requestid
 
 import (
 	"context"
-	"github.com/pubgo/funk/recovery"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
