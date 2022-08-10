@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	middleware2 "github.com/pubgo/lava/service"
-	"net"
-	"strings"
-	"sync"
-
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"net"
+	"strings"
+	"sync"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
@@ -42,8 +41,6 @@ func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnI
 	for _, m := range t.cfg.Middlewares {
 		middlewares = append(middlewares, m)
 	}
-
-	// 加载全局middleware
 
 	addr := t.buildTarget(srv, cfg)
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),

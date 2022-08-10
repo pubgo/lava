@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package lava.event;
+
+option go_package = "./event/eventpbv1";
+
+enum EventType {
+  UNKNOWN = 0;
+  CREATE = 1;
+  UPDATE = 2;
+  DELETE = 3;
+}

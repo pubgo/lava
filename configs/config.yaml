@@ -76,6 +76,10 @@ orm:
     driver: "sqlite3"
     driver_config:
       dsn: "db.sqlite3"
+  - name: default1
+    driver: "sqlite"
+    driver_config:
+      dsn: "db.sqlite"
 grpcc:
   - name: test-grpc
     registry: "mdns"

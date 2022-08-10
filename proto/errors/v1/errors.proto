@@ -2,12 +2,12 @@ syntax = "proto3";
 
 import "google/protobuf/descriptor.proto";
 
-package errors;
+package lava.errors;
 
 option cc_enable_arenas = true;
 option java_multiple_files = true;
 option java_package = "com.lava.errors";
-option go_package = "github.com/pubgo/lava/errors;errors";
+option go_package = "./errors/errpbv1";
 
 message Error {
   int32 status = 1;

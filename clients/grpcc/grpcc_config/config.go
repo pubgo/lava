@@ -1,12 +1,11 @@
 package grpcc_config
 
 import (
-	"github.com/pubgo/lava/service"
 	"time"
 
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -35,13 +34,29 @@ func DefaultCfg() *Cfg {
 	var cfg = &Cfg{
 		Scheme: grpcc_resolver.DiscovScheme,
 		Client: &ClientCfg{
-			Insecure:             true,
-			Block:                true,
-			DefaultServiceConfig: `{"loadBalancingConfig": [{"p2c":{}}]}`,
-			DialTimeout:          time.Minute,
-			Timeout:              DefaultTimeout,
-			MaxHeaderListSize:    1024 * 4,
-			MaxRecvMsgSize:       1024 * 1024 * 4,
+			Insecure: true,
+			Block:    true,
+			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
+			// refer: https://github.com/grpc/grpc-proto/blob/d653c6d98105b2af937511aa6e46610c7e677e6e/grpc/service_config/service_config.proto#L632
+			DefaultServiceConfig: `{
+	"loadBalancingConfig": [{"round_robin": {}}],
+	"methodConfig": [{
+		"name": [{"service": ""}],
+		"waitForReady": true,
+		"retryPolicy": {
+			"MaxAttempts": 5,
+			"InitialBackoff": "0.1s",
+			"MaxBackoff": "5s",
+			"BackoffMultiplier": 2,
+			"RetryableStatusCodes": ["UNAVAILABLE"]
+		}
+	}]
+}`,
+			DialTimeout:       time.Minute,
+			Timeout:           DefaultTimeout,
+			MaxHeaderListSize: 1024 * 4,
+			MaxRecvMsgSize:    1024 * 1024 * 4,
+			// refer: https://github.com/grpc/grpc-go/blob/master/examples/features/keepalive/client/main.go
 			ClientParameters: clientParameters{
 				PermitWithoutStream: true,             // send pings even without active streams
 				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
