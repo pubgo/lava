@@ -3,9 +3,8 @@ package config
 import (
 	"io"
 
-	"github.com/spf13/viper"
-
 	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/spf13/viper"
 )
 
 type CfgMap map[string]interface{}
@@ -26,6 +25,7 @@ type DecoderOption = viper.DecoderConfigOption
 type Config interface {
 	LoadPath(path string) error
 	UnmarshalKey(key string, rawVal interface{}, opts ...DecoderOption) error
+	Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error
 	Decode(name string, cfgMap interface{}) error
 	Get(key string) interface{}
 	Set(string, interface{})
@@ -34,9 +34,4 @@ type Config interface {
 	AllKeys() []string
 	MergeConfig(in io.Reader) error
 	All() map[string]interface{}
-}
-
-type Builder[T any] interface {
-	Build() error
-	Get() T
 }

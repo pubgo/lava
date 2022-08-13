@@ -1,15 +1,15 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
-	"text/template"
 
+	"github.com/a8m/envsubst"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
@@ -21,11 +21,11 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/envs"
 	"github.com/pubgo/lava/internal/pkg/env"
 	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/internal/pkg/reflectx"
 	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/version"
 )
 
 const (
@@ -55,7 +55,7 @@ func newCfg() *configImpl {
 	v.SetConfigName(FileName)
 	v.AddConfigPath(".")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
-	v.SetEnvPrefix(strings.ToUpper(envs.EnvPrefix))
+	v.SetEnvPrefix(strings.ToUpper(version.Project()))
 	v.AutomaticEnv()
 
 	// 初始化框架, 加载环境变量, 加载本地配置
@@ -72,50 +72,33 @@ func newCfg() *configImpl {
 	return t
 }
 
-var _ Config = (*configImpl)(nil)
-
 type configImpl struct {
-	rw sync.RWMutex
-	v  *viper.Viper
+	v *viper.Viper
 }
 
 func (t *configImpl) loadCustomCfg() (err error) {
 	defer recovery.Err(&err)
 
-	var cfg App
-	assert.Must(t.UnmarshalKey("app", &cfg))
-
-	for _, path := range cfg.Resources {
+	var includes = t.v.GetStringSlice("include")
+	for _, path := range includes {
 		assert.Must(t.LoadPath(filepath.Join(CfgDir, path)))
 	}
 	return nil
 }
 
 func (t *configImpl) All() map[string]interface{} {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
 	return t.v.AllSettings()
 }
 
 func (t *configImpl) MergeConfig(in io.Reader) error {
-	t.rw.Lock()
-	defer t.rw.Unlock()
-
 	return t.v.MergeConfig(in)
 }
 
 func (t *configImpl) AllKeys() []string {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
 	return t.v.AllKeys()
 }
 
 func (t *configImpl) GetMap(keys ...string) CfgMap {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
 	key := strings.Trim(strings.Join(keys, "."), ".")
 	var val = t.v.Get(key)
 	if val == nil {
@@ -130,30 +113,29 @@ func (t *configImpl) GetMap(keys ...string) CfgMap {
 }
 
 func (t *configImpl) Get(key string) interface{} {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
 	return t.v.Get(key)
 }
 
 func (t *configImpl) GetString(key string) string {
-	t.rw.RLock()
-	defer t.rw.RUnlock()
-
 	return t.v.GetString(key)
 }
 
 func (t *configImpl) Set(key string, value interface{}) {
-	t.rw.Lock()
-	defer t.rw.Unlock()
-
 	t.v.Set(key, value)
 }
 
 func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
 	return t.v.UnmarshalKey(key, rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
-			c.TagName = FileType
+			c.TagName = "json"
+		}
+	})...)
+}
+
+func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error {
+	return t.v.Unmarshal(rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
+		if c.TagName == "" {
+			c.TagName = "json"
 		}
 	})...)
 }
@@ -222,7 +204,7 @@ func (t *configImpl) initWithConfig(v *viper.Viper) bool {
 
 func (t *configImpl) initCfg(v *viper.Viper) {
 
-	// 指定配置文件
+	// 指定配置目录
 	if t.initWithConfig(v) {
 		return
 	}
@@ -252,25 +234,30 @@ func (t *configImpl) LoadPath(path string) (err error) {
 		return nil
 	}
 
+	fi := assert.Must1(os.Stat(path))
+	if fi.IsDir() {
+		assert.Must(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			if !strings.HasSuffix(info.Name(), "."+FileType) {
+				return nil
+			}
+
+			return t.LoadPath(path)
+		}))
+		return
+	}
+
 	logx.V(1).Info("load config path", "path", path)
 
-	tmpl := assert.Must1(template.New("").Funcs(template.FuncMap{
-		"upper": strings.ToUpper,
-		"trim":  strings.TrimSpace,
-		"env":   env.Get,
-		"v":     t.v.GetString,
-		"default": func(a string, b string) string {
-			if strings.TrimSpace(b) == "" {
-				return a
-			}
-			return b
-		},
-	}).Parse(assert.Must1(iox.ReadText(path))))
-
-	var buf bytes.Buffer
-	assert.Must(tmpl.Execute(&buf, map[string]string{}))
-
-	// 合并配置
-	assert.Must(t.v.MergeConfig(&buf))
+	var subCfgData = assert.Must1(iox.ReadText(path))
+	subCfgData = assert.Must1(envsubst.String(subCfgData))
+	assert.Must(t.v.MergeConfig(strings.NewReader(subCfgData)))
 	return
 }

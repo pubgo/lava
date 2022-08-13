@@ -7,8 +7,8 @@ import (
 
 	"github.com/pubgo/lava/logging"
 
-	"github.com/pubgo/lava/example/pkg/models"
-	"github.com/pubgo/lava/example/pkg/proto/permpb"
+	"github.com/pubgo/lava/example/internal/models"
+	"github.com/pubgo/lava/example/internal/proto/permpb"
 )
 
 var allMethods = []string{

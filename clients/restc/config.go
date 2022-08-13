@@ -16,16 +16,16 @@ import (
 )
 
 type Cfg struct {
-	Trace       bool              `yaml:"trace"`
-	Token       string            `yaml:"token"`
-	Timeout     time.Duration     `yaml:"timeout"`
-	RetryCount  uint32            `yaml:"retry-count"`
-	Proxy       bool              `yaml:"proxy"`
-	Socks5      string            `yaml:"socks5"`
-	Insecure    bool              `yaml:"insecure"`
-	Header      map[string]string `yaml:"header"`
-	Middlewares []string          `yaml:"middlewares"`
-	BasePath    string            `yaml:"base-path"`
+	Trace       bool              `json:"trace"`
+	Token       string            `json:"token"`
+	Timeout     time.Duration     `json:"timeout"`
+	RetryCount  uint32            `json:"retry-count"`
+	Proxy       bool              `json:"proxy"`
+	Socks5      string            `json:"socks5"`
+	Insecure    bool              `json:"insecure"`
+	Header      map[string]string `json:"header"`
+	Middlewares []string          `json:"middlewares"`
+	BasePath    string            `json:"base-path"`
 	backoff     retry2.Backoff
 	tlsConfig   *tls.Config
 }

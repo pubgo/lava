@@ -1,7 +1,6 @@
 package debug
 
 import (
-	"github.com/pubgo/funk/recovery"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -14,8 +13,6 @@ import (
 )
 
 func init() {
-	defer recovery.Exit()
-
 	Get("/env", adaptor.HTTPHandlerFunc(envHandle))
 	Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
 	Get("/dep", adaptor.HTTPHandlerFunc(depHandle))

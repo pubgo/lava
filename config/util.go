@@ -45,18 +45,3 @@ func strMap(strList []string, fn func(str string) string) []string {
 	}
 	return strList
 }
-
-func Decode[Cfg any](c Config, name string) map[string]Cfg {
-	var cfgMap = make(map[string]Cfg)
-	xerror.PanicF(c.Decode(name, &cfgMap), "config decode failed, name=%s", name)
-	return cfgMap
-}
-
-func MakeClient[Cfg any, Client any](c Config, name string, callback func(key string, cfg Cfg) Client) map[string]Client {
-	var cfgMap = Decode[Cfg](c, name)
-	var clientMap = make(map[string]Client)
-	for key := range cfgMap {
-		clientMap[key] = callback(key, cfgMap[key])
-	}
-	return clientMap
-}

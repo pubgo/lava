@@ -5,16 +5,13 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/x/merge"
 	etcdv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/internal/pkg/retry"
 )
-
-var _ config.Builder[*etcdv3.Client] = (*Cfg)(nil)
 
 type Cfg struct {
 	Endpoints            []string          `json:"endpoints"`
@@ -38,7 +35,8 @@ func (t *Cfg) Get() *etcdv3.Client { return t.c }
 func (t *Cfg) Build() (err error) {
 	defer recovery.Err(&err)
 	var cfg etcdv3.Config
-	assert.Must(merge.CopyStruct(&cfg, &t))
+
+	assert.Must(merge.Struct(&cfg, &t))
 	cfg.DialOptions = append(cfg.DialOptions, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	// 创建etcd client对象

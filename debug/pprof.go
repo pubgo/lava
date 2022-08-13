@@ -2,11 +2,11 @@ package debug
 
 import (
 	"errors"
-	"github.com/pubgo/funk/recovery"
 	"net/http/pprof"
 
 	"github.com/felixge/fgprof"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/recovery"
 )
 
 func init() {

@@ -2,7 +2,6 @@ package debug
 
 import (
 	"context"
-	"github.com/pubgo/funk/recovery"
 
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/templates"
@@ -10,6 +9,7 @@ import (
 	"github.com/go-echarts/statsview/viewer"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/recovery"
 )
 
 // viewManager ...

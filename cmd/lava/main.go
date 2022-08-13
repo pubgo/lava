@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/runmode"
@@ -24,5 +24,5 @@ func main() {
 		},
 		Commands: cli.Commands{},
 	}
-	xerror.Exit(app.Run(os.Args))
+	assert.Exit(app.Run(os.Args))
 }

@@ -17,8 +17,6 @@ import (
 
 const Name = "bolt"
 
-var _ config.Builder[*bolt.DB] = (*Cfg)(nil)
-
 type Cfg struct {
 	FileMode        fs.FileMode       `json:"file_mode"`
 	Timeout         time.Duration     `json:"timeout"`

@@ -3,9 +3,10 @@ package vars
 import (
 	"expvar"
 
+	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
@@ -54,8 +55,11 @@ func (f Value) String() (r string) {
 		return dt.(string)
 	}
 
-	v := xerror.PanicBytes(jsonx.Marshal(dt))
-	return utils.BtoS(v)
+	ret := typex.OK(jsonx.Marshal(dt))
+	if ret.IsErr() {
+		return xerr.WrapXErr(ret.Err()).Stack()
+	}
+	return utils.BtoS(ret.Get())
 }
 
 func Register(name string, data func() interface{}) {

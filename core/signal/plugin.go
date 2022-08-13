@@ -2,12 +2,12 @@ package signal
 
 import (
 	"context"
-	"github.com/pubgo/funk/recovery"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/flags"

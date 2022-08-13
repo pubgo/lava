@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/example/pkg/proto/gidpb"
+	"github.com/pubgo/lava/example/internal/proto/gidpb"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"

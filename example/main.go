@@ -7,7 +7,7 @@ import (
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 
 	"github.com/pubgo/lava/example/handler"
-	"github.com/pubgo/lava/example/pkg/proto/gidpb"
+	"github.com/pubgo/lava/example/internal/proto/gidpb"
 )
 
 func main() {

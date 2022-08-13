@@ -2,12 +2,12 @@ package debug
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/recovery"
 	"sort"
 	"strings"
 
 	pongo "github.com/flosch/pongo2/v5"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/internal/pkg/htmlx"

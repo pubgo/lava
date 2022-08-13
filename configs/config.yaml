@@ -10,11 +10,11 @@ casbin:
   model: "./configs/casbin/rbac_model.conf"
   enable-log: true
   enable-auto-save: true
+include:
+  - "1.yaml"
 app:
   addr: ":8080"
   debug: true
-  resources:
-    - "1.yaml"
 service:
   middlewares:
     - accesslog

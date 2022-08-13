@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/recovery"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/internal/pkg/typex"
@@ -44,11 +43,15 @@ func (c *Client) InitTable(tb interface{}) error {
 	return nil
 }
 
-func (c *Client) Upsert(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	var db = c.DB.WithContext(ctx)
+func (c *Client) Upsert(ctx context.Context, dest interface{}, query string, args ...interface{}) (err error) {
+	defer recovery.Err(&err)
 
+	var db = c.DB.WithContext(ctx)
 	var count int64
-	xerror.Panic(db.Model(dest).Where(query, args...).Count(&count).Error)
+	if err = db.Model(dest).Where(query, args...).Count(&count).Error; err != nil {
+		return err
+	}
+
 	if count == 0 {
 		return db.Save(dest).Error
 	} else {

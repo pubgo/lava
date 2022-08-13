@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/descriptor.proto";
 
-package lava.errors;
+package lava.errors.v1;
 
 option cc_enable_arenas = true;
 option java_multiple_files = true;

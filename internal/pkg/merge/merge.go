@@ -3,7 +3,9 @@ package merge
 import (
 	"github.com/jinzhu/copier"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
 )
 
 type Option func(opts *copier.Option)
@@ -17,7 +19,7 @@ func Copy(dst interface{}, src interface{}, opts ...Option) error {
 		opts[i](&optList)
 	}
 
-	return xerror.WrapF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
+	return xerr.Wrap(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
 }
 
 func Struct(dst, src interface{}, opts ...Option) error { return Copy(dst, src, opts...) }
@@ -25,7 +27,9 @@ func Struct(dst, src interface{}, opts ...Option) error { return Copy(dst, src, 
 // MapStruct
 // map<->struct
 // map和结构体相互转化
-func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.DecoderConfig)) error {
+func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.DecoderConfig)) (err error) {
+	defer recovery.Err(&err)
+
 	var cfg = &mapstructure.DecoderConfig{
 		TagName:          "json",
 		Metadata:         nil,
@@ -41,10 +45,6 @@ func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.
 		opts[i](cfg)
 	}
 
-	decoder, err := mapstructure.NewDecoder(cfg)
-	if err != nil {
-		return xerror.Wrap(err)
-	}
-
-	return xerror.Wrap(decoder.Decode(src))
+	decoder := assert.Must1(mapstructure.NewDecoder(cfg))
+	return xerr.Wrap(decoder.Decode(src))
 }
