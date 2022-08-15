@@ -2,13 +2,13 @@ package bbolt
 
 import (
 	"context"
+	"github.com/pubgo/lava/internal/pkg/result"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
@@ -35,7 +35,7 @@ func (t *Client) Set(ctx context.Context, key string, val []byte, names ...strin
 	}, names...)
 }
 
-func (t *Client) Get(ctx context.Context, key string, names ...string) typex.Value[[]byte] {
+func (t *Client) Get(ctx context.Context, key string, names ...string) result.Result[[]byte] {
 	var (
 		val []byte
 		err = t.View(ctx, func(bucket *bolt.Bucket) error {
@@ -44,7 +44,7 @@ func (t *Client) Get(ctx context.Context, key string, names ...string) typex.Val
 		}, names...)
 	)
 
-	return typex.OK(val, err)
+	return result.OK(val, err)
 }
 
 func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {

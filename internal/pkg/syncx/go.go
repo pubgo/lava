@@ -2,6 +2,9 @@ package syncx
 
 import (
 	"context"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
+	"github.com/pubgo/lava/internal/pkg/result"
 	"time"
 
 	"github.com/pubgo/x/stack"
@@ -11,21 +14,22 @@ import (
 )
 
 // GoChan 通过chan的方式同步执行异步任务
-func GoChan(fn func() Value) chan Value {
+func GoChan[T any](fn func() result.Result[T]) result.Future[T] {
 	checkFn(fn, "[GoChan] [fn] is nil")
 
-	var ch = make(chan Value)
+	var ch result.Future[T]
 
 	go func() {
-		defer close(ch)
-		defer xerror.Recovery(func(err xerror.XErr) {
-			ch <- WithErr(err.Wrap("GoChan", stack.Func(fn)))
+		defer ch.Done()
+		defer recovery.Recovery(func(err xerr.XErr) {
+			ch.E = err.Wrap("GoChan", stack.Func(fn))
 		})
 
-		if val := fn(); val == nil {
-			ch <- WithVal(nil)
+		val := fn()
+		if val.IsErr() {
+			ch.E = val.E
 		} else {
-			ch <- val
+			ch.V = val.V
 		}
 	}()
 

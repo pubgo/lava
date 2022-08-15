@@ -2,7 +2,6 @@ package grpcc_resolver
 
 import (
 	"context"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"sync"
 
 	"github.com/kr/pretty"
@@ -10,7 +9,8 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/gen/event/eventpbv1"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -117,7 +117,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					}
 
 					// 注册中心删除服务
-					if res.Action == event.EventType_DELETE {
+					if res.Action == eventpbv1.EventType_DELETE {
 						d.delService(res.Service)
 					} else {
 						d.updateService(res.Service)

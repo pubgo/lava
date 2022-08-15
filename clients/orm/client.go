@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/internal/pkg/result"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
 )
 
@@ -67,12 +67,12 @@ func (c *Client) Close() error {
 	return db.Close()
 }
 
-func (c *Client) Stats() typex.Value[sql.DBStats] {
+func (c *Client) Stats() result.Result[sql.DBStats] {
 	var db, err = c.DB.DB()
 	if err != nil {
-		return typex.Err[sql.DBStats](err)
+		return result.Err[sql.DBStats](err)
 	}
-	return typex.OK(db.Stats(), err)
+	return result.OK(db.Stats(), err)
 }
 
 func ErrNotFound(err error) bool {

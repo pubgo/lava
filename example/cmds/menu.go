@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/example/pkg/menuservice"
+	"github.com/pubgo/lava/example/internal/menuservice"
 )
 
 type param struct {

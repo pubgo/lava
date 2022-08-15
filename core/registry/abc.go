@@ -1,6 +1,8 @@
 // Package registry is an interface for service discovery
 package registry
 
+import "github.com/pubgo/funk/typex"
+
 // Registry The registry provides an interface for service discovery
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, mdns, ...}
@@ -8,9 +10,9 @@ type Registry interface {
 	String() string
 	Register(*Service, ...RegOpt) error
 	Deregister(*Service, ...DeregOpt) error
-	Watch(string, ...WatchOpt) (Watcher, error)
-	ListService(...ListOpt) ([]*Service, error)
-	GetService(string, ...GetOpt) ([]*Service, error)
+	Watch(string, ...WatchOpt) typex.Result[Watcher]
+	ListService(...ListOpt) typex.Result[[]*Service]
+	GetService(string, ...GetOpt) typex.Result[[]*Service]
 }
 
 type Opt func(*Opts)

@@ -3,7 +3,7 @@ package registry
 import (
 	"time"
 
-	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/gen/event/eventpbv1"
 )
 
 // Watcher is an interface that returns updates
@@ -17,7 +17,7 @@ type Watcher interface {
 // Result is returned by a call to Next on
 // the watcher. Actions can be create, update, delete
 type Result struct {
-	Action  event.EventType
+	Action  eventpbv1.EventType
 	Service *Service
 }
 
@@ -26,7 +26,7 @@ type Event struct {
 	// Id is registry id
 	Id string
 	// Type defines type of event
-	Type event.EventType
+	Type eventpbv1.EventType
 	// Timestamp is event timestamp
 	Timestamp time.Time
 	// Service is registry service

@@ -4,10 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/event"
+	"github.com/pubgo/lava/gen/event/eventpbv1"
 	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/internal/pkg/typex"
 )
@@ -15,11 +17,10 @@ import (
 var _ registry.Watcher = (*Watcher)(nil)
 
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
-	xerror.Assert(service == "", "[service] should not be null")
+	assert.If(service == "", "[service] should not be null")
 
 	var allNodes typex.SMap
-	services, err := m.GetService(service)
-	xerror.Panic(err)
+	services := assert.Must1(m.GetService(service))
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			allNodes.Set(n.Id, n)
@@ -34,7 +35,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	results := make(chan *registry.Result)
 	return &Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
 		var fn = func() {
-			defer xerror.Recovery(func(err xerror.XErr) {
+			defer recovery.Recovery(func(err xerr.XErr) {
 				m.log.WithErr(err).Error("watcher error")
 			})
 
@@ -44,34 +45,33 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 			}).Info("[mdns] registry watcher")
 
 			var nodes typex.SMap
-			services, err := m.GetService(service)
-			xerror.PanicF(err, "Watch Service %s Error", service)
-			for i := range services {
-				for _, n := range services[i].Nodes {
+			serviceList := assert.Must1(m.GetService(service))
+			for i := range serviceList {
+				for _, n := range serviceList[i].Nodes {
 					nodes.Set(n.Id, n)
 				}
 			}
 
-			xerror.Panic(nodes.Each(func(id string, n *registry.Node) {
+			assert.Must(nodes.Each(func(id string, n *registry.Node) {
 				if allNodes.Has(id) {
 					return
 				}
 
 				allNodes.Set(id, n)
 				results <- &registry.Result{
-					Action:  event.EventType_UPDATE,
+					Action:  eventpbv1.EventType_UPDATE,
 					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 				}
 			}))
 
-			xerror.Panic(allNodes.Each(func(id string, n *registry.Node) {
+			assert.Must(allNodes.Each(func(id string, n *registry.Node) {
 				if nodes.Has(id) {
 					return
 				}
 
 				allNodes.Delete(id)
 				results <- &registry.Result{
-					Action:  event.EventType_DELETE,
+					Action:  eventpbv1.EventType_DELETE,
 					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
 				}
 			}))

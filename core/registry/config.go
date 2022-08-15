@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pubgo/funk/assert"
+	_ "github.com/pubgo/funk/errorx"
 	"github.com/pubgo/xerror"
 )
 
@@ -36,8 +38,9 @@ type Cfg struct {
 }
 
 func (cfg *Cfg) Check() *Cfg {
-	xerror.AssertFn(cfg.Driver == "", func() error {
+	assert.Fn(cfg.Driver == "", func() error {
 		err := fmt.Errorf("registry driver is null")
+
 		return xerror.WrapF(err, "cfg=>%#v", cfg)
 	})
 	return cfg

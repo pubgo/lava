@@ -4,17 +4,19 @@ package mdns
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/pkg/result"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"time"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/x/try"
-	"github.com/pubgo/xerror"
-
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/typex"
+	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/internal/pkg/syncx"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	_ "github.com/reactivex/rxgo/v2"
 )
 
 const (
@@ -25,7 +27,7 @@ const (
 
 func New(cfg Cfg, log *logging.Logger) registry.Registry {
 	resolver, err := zeroconf.NewResolver()
-	xerror.Panic(err, "Failed to initialize zeroconf resolver")
+	assert.MustF(err, "Failed to initialize zeroconf resolver")
 	return &mdnsRegistry{resolver: resolver, cfg: cfg, log: logging.ModuleLog(log, logutil.Names(registry.Name, Name))}
 }
 
@@ -51,12 +53,12 @@ func (m *mdnsRegistry) Init() {
 }
 
 func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("service=>%#v", service)
 	})
 
-	xerror.Assert(service == nil, "[service] should not be nil")
-	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
+	assert.If(service == nil, "[service] should not be nil")
+	assert.If(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
 
@@ -66,7 +68,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 	}
 
 	server, err := zeroconf.Register(node.Id, service.Name, zeroconfDomain, node.GetPort(), []string{node.Id}, nil)
-	xerror.PanicF(err, "[mdns] service %s register error", service.Name)
+	assert.MustF(err, "[mdns] service %s register error", service.Name)
 
 	var opts registry.RegOpts
 	for i := range optList {
@@ -82,12 +84,12 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 }
 
 func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("service=>%#v", service)
 	})
 
-	xerror.Assert(service == nil, "[service] should not be nil")
-	xerror.Assert(len(service.Nodes) == 0, "[service] nodes should not be zero")
+	assert.If(service == nil, "[service] should not be nil")
+	assert.If(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
 	var val, ok = m.services.LoadAndDelete(node.Id)
@@ -99,47 +101,46 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 	return nil
 }
 
-func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) (services []*registry.Service, _ error) {
-	return services, xerror.Try(func() {
-		entries := make(chan *zeroconf.ServiceEntry)
-		syncx.GoSafe(func() {
-			for s := range entries {
-				services = append(services, &registry.Service{
-					Name: s.Service,
-					Nodes: registry.Nodes{{
-						Id:      s.Instance,
-						Port:    s.Port,
-						Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
-					}},
-				})
-			}
-		})
-
-		var gOpts registry.GetOpts
-		for i := range opts {
-			opts[i](&gOpts)
+func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) typex.Result[[]*registry.Service] {
+	entries := make(chan *zeroconf.ServiceEntry)
+	syncx.From(func(in chan<- result.Result[*registry.Service]) {
+		for s := range entries {
+			in <- result.OK(&registry.Service{
+				Name: s.Service,
+				Nodes: registry.Nodes{{
+					Id:      s.Instance,
+					Port:    s.Port,
+					Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
+				}},
+			})
 		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-		defer cancel()
-
-		xerror.PanicF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
-		<-ctx.Done()
 	})
+
+	var gOpts registry.GetOpts
+	for i := range opts {
+		opts[i](&gOpts)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+
+	assert.MustF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
+	<-ctx.Done()
+	return
 }
 
-func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) (services []*registry.Service, _ error) {
+func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) typex.Result[[]*registry.Service] {
+	defer recovery.Err(&err)
 	m.services.Range(func(key, value interface{}) bool {
-		srvList, err := m.GetService(key.(string))
-		xerror.Panic(err)
-		services = append(services, srvList...)
+		services = append(services, assert.Must1(m.GetService(key.(string)))...)
 		return true
 	})
 	return services, nil
 }
 
-func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) (w registry.Watcher, err error) {
-	return w, try.Try(func() { w = newWatcher(m, service, opt...) })
+func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
+	defer recovery.Err(&err)
+	return newWatcher(m, service, opt...), nil
 }
 
 func (m *mdnsRegistry) String() string { return Name }
