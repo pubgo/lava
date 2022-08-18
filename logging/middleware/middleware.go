@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
 	"github.com/pubgo/dix"
 	"go.uber.org/zap"
-	"runtime/debug"
 
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
@@ -56,7 +56,6 @@ func init() {
 				// 错误和panic处理
 				defer func() {
 					if c := recover(); c != nil {
-
 						// 获取堆栈信息, 对堆栈信息进行结构化处理
 						goroutines, _ := gostackparse.Parse(bytes.NewReader(debug.Stack()))
 						if len(goroutines) != 0 {
@@ -67,7 +66,7 @@ func init() {
 						case error:
 							err = c.(error)
 						default:
-							err = errors.Internal(errors.New("panic", "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err))
+							err = errors.New("lava.service.panic").Tag("service", req.Service()).Msg(fmt.Sprintf("%#v", c)).StatusInternal()
 						}
 					}
 

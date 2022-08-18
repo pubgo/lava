@@ -46,14 +46,17 @@ func NewId() gidpb.IdServer {
 	}
 }
 
-func (id *Id) Init() {
+func (id *Id) Init() error {
 	id.Cron.Every("test gid", time.Second*2, func(name string) {
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
 		fmt.Println("test cron every")
 	})
+	return nil
 }
+
+var err1 = errors.New("id.generate")
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
 	var rsp = new(gidpb.GenerateResponse)
@@ -71,7 +74,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := id.snowflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate snowflake id: %v", err)
-			return nil, errors.InternalServerError(errors.New("id.generate", "failed to mint snowflake id"))
+			return nil, err1.Msg("id.generate", "failed to mint snowflake id").StatusBadRequest()
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -79,7 +82,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := id.bigflake.Mint()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate bigflake id: %v", err)
-			return nil, errors.InternalServerError(errors.New("id.generate", "failed to mint bigflake id"))
+			return nil, err1.Msg("id.generate", "failed to mint bigflake id").StatusBadRequest()
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -87,12 +90,12 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		id, err := shortid.Generate()
 		if err != nil {
 			log.Sugar().Errorf("Failed to generate shortid id: %v", err)
-			return nil, errors.InternalServerError(errors.New("id.generate", "failed to generate short id"))
+			return nil, err1.Msg("id.generate", "failed to generate short id").StatusBadRequest()
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.InvalidArgument(errors.New("id.generate", "unsupported id type"))
+		return nil, err1.Msg("id.generate", "unsupported id type").StatusBadRequest()
 	}
 
 	return rsp, nil

@@ -3,42 +3,68 @@ package lifecycle
 import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
+
+type executor struct {
+	Handler func() error
+	Msg     string
+}
 
 type Handler func(lc Lifecycle)
 
 type Lifecycle interface {
-	AfterStops(...func())
-	BeforeStops(...func())
-	AfterStarts(...func())
-	BeforeStarts(...func())
+	AfterStop(f func() error, msg ...string)
+	BeforeStop(f func() error, msg ...string)
+	AfterStart(f func() error, msg ...string)
+	BeforeStart(f func() error, msg ...string)
 }
 
 type GetLifecycle interface {
-	GetAfterStops() []func()
-	GetBeforeStops() []func()
-	GetAfterStarts() []func()
-	GetBeforeStarts() []func()
+	GetAfterStops() []executor
+	GetBeforeStops() []executor
+	GetAfterStarts() []executor
+	GetBeforeStarts() []executor
 }
 
 var _ Lifecycle = (*lifecycleImpl)(nil)
 var _ GetLifecycle = (*lifecycleImpl)(nil)
 
 type lifecycleImpl struct {
-	beforeStarts []func()
-	afterStarts  []func()
-	beforeStops  []func()
-	afterStops   []func()
+	beforeStarts []executor
+	afterStarts  []executor
+	beforeStops  []executor
+	afterStops   []executor
 }
 
-func (t *lifecycleImpl) GetAfterStops() []func()   { return t.afterStops }
-func (t *lifecycleImpl) GetBeforeStops() []func()  { return t.beforeStops }
-func (t *lifecycleImpl) GetAfterStarts() []func()  { return t.afterStarts }
-func (t *lifecycleImpl) GetBeforeStarts() []func() { return t.beforeStarts }
-func (t *lifecycleImpl) BeforeStarts(f ...func())  { t.beforeStarts = append(t.beforeStarts, f...) }
-func (t *lifecycleImpl) BeforeStops(f ...func())   { t.beforeStops = append(t.beforeStops, f...) }
-func (t *lifecycleImpl) AfterStarts(f ...func())   { t.afterStarts = append(t.afterStarts, f...) }
-func (t *lifecycleImpl) AfterStops(f ...func())    { t.afterStops = append(t.afterStops, f...) }
+func (t *lifecycleImpl) GetAfterStops() []executor   { return t.afterStops }
+func (t *lifecycleImpl) GetBeforeStops() []executor  { return t.beforeStops }
+func (t *lifecycleImpl) GetAfterStarts() []executor  { return t.afterStarts }
+func (t *lifecycleImpl) GetBeforeStarts() []executor { return t.beforeStarts }
+func (t *lifecycleImpl) BeforeStart(f func() error, msg ...string) {
+	t.beforeStarts = append(t.beforeStarts, executor{
+		Handler: f,
+		Msg:     utils.FirstNotEmpty(msg...),
+	})
+}
+func (t *lifecycleImpl) BeforeStop(f func() error, msg ...string) {
+	t.beforeStops = append(t.beforeStops, executor{
+		Handler: f,
+		Msg:     utils.FirstNotEmpty(msg...),
+	})
+}
+func (t *lifecycleImpl) AfterStart(f func() error, msg ...string) {
+	t.afterStarts = append(t.afterStarts, executor{
+		Handler: f,
+		Msg:     utils.FirstNotEmpty(msg...),
+	})
+}
+func (t *lifecycleImpl) AfterStop(f func() error, msg ...string) {
+	t.afterStops = append(t.afterStops, executor{
+		Handler: f,
+		Msg:     utils.FirstNotEmpty(msg...),
+	})
+}
 
 func New() *lifecycleImpl {
 	return new(lifecycleImpl)

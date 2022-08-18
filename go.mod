@@ -33,10 +33,8 @@ require (
 	github.com/pubgo/xerror v0.4.32
 	github.com/reugn/go-quartz v0.3.7
 	github.com/segmentio/ksuid v1.0.3
-	github.com/soheilhy/cmux v0.1.5
 	github.com/spf13/viper v1.10.0
 	github.com/swaggo/http-swagger v1.1.1
-	github.com/uber-go/tally v3.4.2+incompatible
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/valyala/fastrand v1.1.0
@@ -96,9 +94,9 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/pubgo/dix v0.3.2
-	github.com/pubgo/funk v0.5.8
-	github.com/reactivex/rxgo/v2 v2.5.0
+	github.com/pubgo/funk v0.5.10
 	github.com/rs/xid v1.2.1
+	github.com/uber-go/tally/v4 v4.1.2
 	github.com/valyala/fasthttp v1.37.0
 	go.opentelemetry.io/otel v1.9.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.9.0
@@ -124,7 +122,6 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -158,10 +155,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/m3db/prometheus_client_golang v0.8.1 // indirect
-	github.com/m3db/prometheus_client_model v0.1.0 // indirect
-	github.com/m3db/prometheus_common v0.1.0 // indirect
-	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
@@ -170,7 +163,6 @@ require (
 	github.com/miekg/dns v1.1.43 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
@@ -181,12 +173,9 @@ require (
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
-	github.com/stretchr/testify v1.7.2 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14 // indirect
 	github.com/swaggo/swag v1.7.0 // indirect
-	github.com/teivah/onecontext v0.0.0-20200513185103-40f981bfd775 // indirect
 	github.com/twmb/murmur3 v1.1.6 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -202,7 +191,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
 	nhooyr.io/websocket v1.8.6 // indirect

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package lava.test.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/gen/proto/test/testpbv1";
+
+enum TestCode {
+  OK = 0;
+
+  // NotFound 找不到
+  NotFound = 100000;
+
+  // Unknown 未知
+  Unknown = 100001;
+}

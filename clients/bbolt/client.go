@@ -2,13 +2,13 @@ package bbolt
 
 import (
 	"context"
-	"github.com/pubgo/lava/internal/pkg/result"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/internal/pkg/result"
 	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
@@ -43,8 +43,7 @@ func (t *Client) Get(ctx context.Context, key string, names ...string) result.Re
 			return nil
 		}, names...)
 	)
-
-	return result.OK(val, err)
+	return result.New(val, err)
 }
 
 func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {

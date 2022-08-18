@@ -2,7 +2,6 @@ package protobuf
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/recovery"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pubgo/lava/encoding"
@@ -12,7 +11,6 @@ import (
 var Name = "proto"
 
 func init() {
-	defer recovery.Exit()
 	encoding.Register(Name, protobufCodec{})
 }
 

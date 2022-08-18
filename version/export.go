@@ -1,19 +1,5 @@
 package version
 
-import (
-	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/recovery"
-)
-
-func init() {
-	defer recovery.Exit()
-
-	assert.If(version == "", "version is null")
-	assert.If(project == "", "project is null")
-	assert.Exit1(ver.NewVersion(version))
-}
-
 func CommitID() string {
 	return commitID
 }

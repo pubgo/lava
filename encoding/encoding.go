@@ -4,13 +4,12 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/internal/pkg/typex"
-	"github.com/pubgo/xerror"
 )
 
 var data typex.Map
 
 func Register(name string, cdc Codec) {
-	defer xerror.RecoverAndExit()
+	defer recovery.Exit()
 	assert.If(cdc == nil || name == "" || cdc.Name() == "", "codec[%s] is null", name)
 	assert.If(data.Has(name), "[cdc] %s already exists", name)
 	data.Set(name, cdc)

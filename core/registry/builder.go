@@ -7,12 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/dix"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/internal/pkg/netutil"
@@ -21,7 +18,7 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func New(c *Cfg, lifecycle lifecycle.Lifecycle, app *config.App, regs map[string]Registry) {
+func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	var cfg = DefaultCfg()
 
 	// 配置解析
@@ -36,10 +33,10 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, app *config.App, regs map[string
 	})
 
 	// 服务注册
-	lifecycle.AfterStarts(func() {
+	lifecycle.AfterStart(func() error {
 		SetDefault(reg)
 
-		register(reg, app)
+		register(reg)
 
 		var cancel = syncx.GoCtx(func(ctx context.Context) {
 			var interval = DefaultRegisterInterval
@@ -54,7 +51,7 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, app *config.App, regs map[string
 			for {
 				select {
 				case <-tick.C:
-					register(reg, app)
+					register(reg)
 				case <-ctx.Done():
 					zap.L().Info("service register cancelled")
 					return
@@ -63,27 +60,19 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, app *config.App, regs map[string
 		})
 
 		// 服务撤销
-		lifecycle.BeforeStops(func() {
+		lifecycle.BeforeStop(func() error {
 			cancel()
-			deregister(reg, app)
+			deregister(reg)
+			return nil
 		})
+		return nil
 	})
 }
 
-func init() {
-	defer recovery.Exit()
-
-	dix.Provider(func(lifecycle lifecycle.Lifecycle, app *config.App, cfg *Cfg, regs map[string]Registry) *Loader {
-
-		return new(Loader)
-	})
-}
-
-func register(reg Registry, app *config.App) {
+func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	var port = addPort(app.Addr)
-	advt = app.Advertise
+	var port = runmode.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -121,10 +110,9 @@ func register(reg Registry, app *config.App) {
 	)
 }
 
-func deregister(reg Registry, app *config.App) {
+func deregister(reg Registry) {
 	var advt, host string
-	var port = addPort(app.Addr)
-	advt = app.Advertise
+	var port = runmode.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {

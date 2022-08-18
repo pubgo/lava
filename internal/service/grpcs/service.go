@@ -16,10 +16,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
+	xtry "github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -53,7 +53,7 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	getLifecycle lifecycle.GetLifecycle
 	lc           lifecycle.Lifecycle
-	app          *service.WebApp
+	app          *service.Web
 	cfg          *Cfg
 	log          *zap.Logger
 	grpcSrv      grpc_builder2.Builder
@@ -94,7 +94,7 @@ func (s *serviceImpl) init() {
 		GetLifecycle lifecycle.GetLifecycle
 		Lifecycle    lifecycle.Lifecycle
 		Log          *zap.Logger
-		App          *service.WebApp
+		App          *service.Web
 		Cfg          *Cfg
 	}))
 
@@ -123,7 +123,7 @@ func (s *serviceImpl) init() {
 		s.grpcSrv.Get().RegisterService(desc, svr)
 
 		if h, ok := svr.(service.Close); ok {
-			s.lc.AfterStops(h.Close)
+			s.lc.AfterStop(h.Close)
 		}
 
 		if h, ok := svr.(service.WebHandler); ok {
@@ -131,7 +131,7 @@ func (s *serviceImpl) init() {
 		}
 
 		if h, ok := svr.(service.Init); ok {
-			h.Init()
+			assert.Must(h.Init())
 		}
 	})
 
@@ -143,7 +143,7 @@ func (s *serviceImpl) init() {
 	}))
 
 	var conn = assert.Must1(grpc.Dial(fmt.Sprintf("localhost:%d", runmode.GrpcPort), grpc.WithTransportCredentials(insecure.NewCredentials())))
-	s.lc.BeforeStops(func() { logx.Error(conn.Close(), "Failed to close conn") })
+	s.lc.BeforeStop(conn.Close)
 	grpcMux := runtime.NewServeMux()
 	for i := range s.registers {
 		assert.Must(s.registers[i](context.Background(), grpcMux, conn))
@@ -208,7 +208,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrPanic(s.log, "service before-start", func() error {
 		for _, run := range s.getLifecycle.GetBeforeStarts() {
 			s.log.Sugar().Infof("before-start running %s", stack.Func(run))
-			assert.Must(funk.Try(run), stack.Func(run))
+			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
 		return nil
 	})
@@ -248,7 +248,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrPanic(s.log, "service after-start", func() error {
 		for _, run := range s.getLifecycle.GetAfterStarts() {
 			s.log.Sugar().Infof("after-start running %s", stack.Func(run))
-			assert.Must(funk.Try(run), stack.Func(run))
+			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
 		return nil
 	})
@@ -258,7 +258,7 @@ func (s *serviceImpl) stop() {
 	logutil.OkOrErr(s.log, "service before-stop", func() error {
 		for _, run := range s.getLifecycle.GetBeforeStops() {
 			s.log.Sugar().Infof("before-stop running %s", stack.Func(run))
-			assert.Must(funk.Try(run), stack.Func(run))
+			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
 		return nil
 	})
@@ -276,7 +276,7 @@ func (s *serviceImpl) stop() {
 	logutil.OkOrErr(s.log, "service after-stop", func() error {
 		for _, run := range s.getLifecycle.GetAfterStops() {
 			s.log.Sugar().Infof("after-stop running %s", stack.Func(run))
-			assert.Must(funk.Try(run), stack.Func(run))
+			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
 		return nil
 	})

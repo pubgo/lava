@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/event/eventpbv1"
+	"github.com/pubgo/lava/gen/proto/event/v1"
 	"github.com/pubgo/lava/internal/pkg/k8s"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/xid"
-	"github.com/uber-go/tally"
+	"github.com/uber-go/tally/v4"
 )
 
 var metricKey = xid.New().String()

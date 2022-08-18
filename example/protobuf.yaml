@@ -1,4 +1,4 @@
-vendor: ../.lava/proto
+vendor: ../.proto
 checksum: c2f4e960fcf8de782bcf2ccf2dd8614aa776f6b3
 root:
   - proto

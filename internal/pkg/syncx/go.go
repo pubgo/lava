@@ -2,34 +2,32 @@ package syncx
 
 import (
 	"context"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/xerr"
-	"github.com/pubgo/lava/internal/pkg/result"
 	"time"
 
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/stack"
 	"github.com/pubgo/xerror"
 
+	"github.com/pubgo/lava/internal/pkg/result"
 	logutil2 "github.com/pubgo/lava/logging/logutil"
 )
 
 // GoChan 通过chan的方式同步执行异步任务
-func GoChan[T any](fn func() result.Result[T]) result.Future[T] {
+func GoChan[T any](fn func() result.Result[T]) *Future[T] {
 	checkFn(fn, "[GoChan] [fn] is nil")
 
-	var ch result.Future[T]
+	var ch = NewFuture[T]()
 
 	go func() {
-		defer ch.Done()
 		defer recovery.Recovery(func(err xerr.XErr) {
-			ch.E = err.Wrap("GoChan", stack.Func(fn))
+			ch.Err(err.Wrap("GoChan", stack.Func(fn)))
 		})
 
-		val := fn()
-		if val.IsErr() {
-			ch.E = val.E
+		if val := fn(); val.IsErr() {
+			ch.Err(val.Err())
 		} else {
-			ch.V = val.V
+			ch.OK(val.Get())
 		}
 	}()
 
@@ -105,7 +103,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 	var done = make(chan struct{})
 	go func() {
 		defer xerror.Recovery(func(err xerror.XErr) {
-			logutil2.ErrTry(logs.L(), func() { errFn(err) }, logutil2.FuncStack(run))
+			logutil2.ErrTry(logs.L(), func() { errFn(err) }, logutil2.FnStack(run))
 		})
 
 		run()
@@ -115,7 +113,7 @@ func Monitor(timeout time.Duration, run func(), errFn func(err error)) {
 	for {
 		select {
 		case <-time.After(timeout):
-			logutil2.ErrTry(logs.L(), func() { errFn(context.DeadlineExceeded) }, logutil2.FuncStack(run))
+			logutil2.ErrTry(logs.L(), func() { errFn(context.DeadlineExceeded) }, logutil2.FnStack(run))
 		case <-done:
 			return
 		}
@@ -154,7 +152,7 @@ func CancelCtx() (ctx context.Context, cancel context.CancelFunc) {
 }
 
 func logErr(fn interface{}, err xerror.XErr) {
-	logs.WithErr(err).With(logutil2.FuncStack(fn)).Error(err.Error())
+	logs.WithErr(err).With(logutil2.FnStack(fn)).Error(err.Error())
 }
 
 func checkFn(fn interface{}, msg string) {

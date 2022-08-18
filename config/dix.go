@@ -6,9 +6,7 @@ import (
 )
 
 func init() {
-	dix.Provide(func() Config {
-		return newCfg()
-	})
+	dix.Provide(func() Config { return newCfg() })
 }
 
 func Decode[Cfg any](c Config, name string) map[string]Cfg {

@@ -1,6 +1,7 @@
 package logutil
 
 import (
+	"github.com/pubgo/funk/xerr"
 	"strings"
 
 	"github.com/pubgo/x/stack"
@@ -20,23 +21,19 @@ func ErrField(err error, fields ...zap.Field) []zap.Field {
 		return nil
 	}
 
-	return append(fields, zap.String(logkey.Err, err.Error()), zap.Any(logkey.ErrStack, err))
+	return append(fields, zap.String(logkey.ErrMsg, err.Error()), zap.String(logkey.ErrDetail, xerr.WrapXErr(err).Stack()))
 }
 
-func FuncStack(fn interface{}) zap.Field {
+func FnStack(fn interface{}) zap.Field {
 	return zap.String(logkey.Stack, stack.Func(fn))
 }
 
 type Map map[string]interface{}
 
 func (t Map) Fields() []zap.Field {
-	var fields []zap.Field
+	var fields = make([]zap.Field, 0, len(t))
 	for k, v := range t {
 		fields = append(fields, zap.Any(k, v))
 	}
 	return fields
-}
-
-func ListField(name string, args ...interface{}) zap.Field {
-	return zap.Any(name, args)
 }

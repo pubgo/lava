@@ -9,8 +9,6 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-
-	"github.com/pubgo/lava/errors"
 )
 
 const (
@@ -20,12 +18,6 @@ const (
 // SetIfErr add error info
 func SetIfErr(span opentracing.Span, err error) {
 	if span == nil || err == nil {
-		return
-	}
-
-	err1 := errors.FromError(err)
-	// 非系统错误,或者是业务错误
-	if err1.Code > errors.MaxCode {
 		return
 	}
 

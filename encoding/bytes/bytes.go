@@ -2,13 +2,11 @@ package bytes
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/recovery"
+
 	"github.com/pubgo/lava/encoding"
 )
 
 func init() {
-	defer recovery.Exit()
-	
 	encoding.Register("bytes", &Codec{})
 }
 

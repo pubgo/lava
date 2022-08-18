@@ -4,8 +4,6 @@ package mdns
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/pkg/result"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"time"
 
 	"github.com/grandcat/zeroconf"
@@ -13,10 +11,12 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/xerr"
+
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/internal/pkg/result"
+	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	_ "github.com/reactivex/rxgo/v2"
 )
 
 const (
@@ -101,9 +101,9 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 	return nil
 }
 
-func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) typex.Result[[]*registry.Service] {
+func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.List[*registry.Service] {
 	entries := make(chan *zeroconf.ServiceEntry)
-	syncx.From(func(in chan<- result.Result[*registry.Service]) {
+	services := syncx.From(func(in chan<- result.Result[*registry.Service]) {
 		for s := range entries {
 			in <- result.OK(&registry.Service{
 				Name: s.Service,
@@ -126,21 +126,20 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) typex.Re
 
 	assert.MustF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
 	<-ctx.Done()
-	return
+	return result.ToList(services)
 }
 
-func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) typex.Result[[]*registry.Service] {
-	defer recovery.Err(&err)
+func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) result.List[*registry.Service] {
+	var services result.List[*registry.Service]
 	m.services.Range(func(key, value interface{}) bool {
-		services = append(services, assert.Must1(m.GetService(key.(string)))...)
+		services = append(services, m.GetService(key.(string))...)
 		return true
 	})
-	return services, nil
+	return services
 }
 
 func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
-	defer recovery.Err(&err)
-	return newWatcher(m, service, opt...), nil
+	return newWatcher(m, service, opt...)
 }
 
 func (m *mdnsRegistry) String() string { return Name }

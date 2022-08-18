@@ -9,20 +9,26 @@ import (
 	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/event/eventpbv1"
+	"github.com/pubgo/lava/gen/proto/event/v1"
+	"github.com/pubgo/lava/internal/pkg/result"
 	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/internal/pkg/typex"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)
 
-func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watcher {
+func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
 	assert.If(service == "", "[service] should not be null")
 
+	var ret result.Result[registry.Watcher]
+
 	var allNodes typex.SMap
-	services := assert.Must1(m.GetService(service))
-	for i := range services {
-		for _, n := range services[i].Nodes {
+	for _, s := range m.GetService(service) {
+		if s.IsErr() {
+			return ret.WithErr(s.Err())
+		}
+
+		for _, n := range s.Get().Nodes {
 			allNodes.Set(n.Id, n)
 		}
 	}
@@ -33,7 +39,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 	}
 
 	results := make(chan *registry.Result)
-	return &Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
+	return ret.WithVal(&Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
 		var fn = func() {
 			defer recovery.Recovery(func(err xerr.XErr) {
 				m.log.WithErr(err).Error("watcher error")
@@ -45,12 +51,11 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 			}).Info("[mdns] registry watcher")
 
 			var nodes typex.SMap
-			serviceList := assert.Must1(m.GetService(service))
-			for i := range serviceList {
-				for _, n := range serviceList[i].Nodes {
-					nodes.Set(n.Id, n)
+			m.GetService(service).Range(func(r result.Result[*registry.Service]) {
+				for _, n := range r.Get().Nodes {
+					allNodes.Set(n.Id, n)
 				}
-			}
+			})
 
 			assert.Must(nodes.Each(func(id string, n *registry.Node) {
 				if allNodes.Has(id) {
@@ -80,7 +85,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) *Watc
 		for range time.Tick(ttl) {
 			fn()
 		}
-	})}
+	})})
 }
 
 type Watcher struct {
@@ -90,12 +95,11 @@ type Watcher struct {
 }
 
 func (m *Watcher) Next() (*registry.Result, error) {
-	result, ok := <-m.results
+	r, ok := <-m.results
 	if !ok {
 		return nil, registry.ErrWatcherStopped
 	}
-
-	return result, nil
+	return r, nil
 }
 
 func (m *Watcher) Stop() error {

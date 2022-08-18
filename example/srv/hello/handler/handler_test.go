@@ -13,8 +13,6 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/example/pkg/proto/hellopb"
 	"github.com/pubgo/lava/logging"
-
-	_ "github.com/pubgo/lava/plugins"
 )
 
 var _srv *testApiHandler

@@ -9,7 +9,6 @@ import (
 	"github.com/go-echarts/statsview/viewer"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/recovery"
 )
 
 // viewManager ...
@@ -26,8 +25,6 @@ func (vm *viewManager) Register(views ...viewer.Viewer) {
 }
 
 func init() {
-	defer recovery.Exit()
-
 	viewer.SetConfiguration(viewer.WithTheme(viewer.ThemeWesteros), viewer.WithTemplate(`
 $(function () { setInterval({{ .ViewID }}_sync, {{ .Interval }}); });
 function {{ .ViewID }}_sync() {

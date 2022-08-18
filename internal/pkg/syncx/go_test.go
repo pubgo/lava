@@ -5,54 +5,49 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/pubgo/lava/internal/pkg/result"
 )
 
-func httpGetList() *Promise {
-	return YieldGroup(func(in chan<- *Promise) error {
+func httpGetList() result.Chan[*http.Response] {
+	return FromFuture(func(in chan<- *Future[*http.Response]) {
 		for i := 2; i > 0; i-- {
-			in <- Yield(func() (interface{}, error) { return http.Get("https://www.baidu.com") })
+			in <- Async(func() result.Result[*http.Response] {
+				return result.New(http.Get("https://www.baidu.com"))
+			})
 		}
-		return nil
 	})
 }
 
-func httpGet() *Promise {
-	return Yield(func() (interface{}, error) {
-		//time.After(time.Millisecond * 10)
-		//panic("panic")
-		return http.Get("https://www.baidu.com")
+func httpGet() *Future[*http.Response] {
+	return Async(func() result.Result[*http.Response] {
+		return result.New(http.Get("https://www.baidu.com"))
 	})
 }
 
-func handleResp() (interface{}, error) {
+func handleResp() result.Result[*http.Response] {
 	return httpGet().Await()
 }
 
 func TestPromise_Unwrap(t *testing.T) {
 	GoDelay(func() {
 		var p = httpGet()
-		resp := <-p.Unwrap()
-		fmt.Println("httpGet", p.Err(), resp)
+		resp := p.Await()
+		fmt.Println("httpGet", resp.Err(), resp.Get())
 	})
 
 	GoDelay(func() {
 		var out = httpGetList()
-		for resp := range out.Unwrap() {
-			fmt.Println("httpGetList", resp)
+		for resp := range out {
+			fmt.Println("httpGetList", resp.Err(), resp.Get())
 		}
-		fmt.Println("httpGetList", out.Err())
 	})
 
 	GoDelay(func() {
 		var out = httpGetList()
-		out.Range(func(val interface{}) {
-
-		})
-
-		for resp := range out.Unwrap() {
-			fmt.Println("httpGetList", resp)
+		for resp := range out {
+			fmt.Println("httpGetList", resp.Err(), resp.Get())
 		}
-		fmt.Println("httpGetList", out.Err())
 	})
 	<-time.After(time.Second)
 }
@@ -63,23 +58,19 @@ func TestGoChan(t *testing.T) {
 		fmt.Println(time.Since(now))
 	}()
 
-	var val1 = Async(func() Value {
+	var val1 = Async(func() result.Result[string] {
 		time.Sleep(time.Millisecond)
 		fmt.Println("2")
 		//return WithErr(errors.New("error"))
-		return WithVal("hello")
+		return result.OK("hello")
 	})
 
-	var val2 = GoChan(func() Value {
+	var val2 = GoChan(func() result.Result[string] {
 		time.Sleep(time.Millisecond)
 		fmt.Println("3")
 		//return WithErr(errors.New("error"))
-		return WithVal("hello")
+		return result.OK("hello")
 	})
 
-	Wait(val1, val2)
-
-	//_, _ = <-val1, <-val2
-
-	fmt.Println("1", val2, val1)
+	fmt.Println(Wait(val1, val2).ToResult().Get())
 }

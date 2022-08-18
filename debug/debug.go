@@ -7,19 +7,18 @@ import (
 
 	pongo "github.com/flosch/pongo2/v5"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/internal/pkg/htmlx"
 )
 
 func init() {
-	defer recovery.Exit()
-
 	initDebug()
 }
 
 func initDebug() {
+	defer recovery.Exit()
 	temp := pongo.Must(pongo.FromString(strings.TrimSpace(`
 	<html>
 		<head>
@@ -58,8 +57,7 @@ func initDebug() {
 		}
 		sort.Strings(pathList)
 
-		var data, err = temp.ExecuteBytes(htmlx.Context{"data": pathList})
-		xerror.Panic(err)
+		var data = assert.Must1(temp.ExecuteBytes(htmlx.Context{"data": pathList}))
 		return htmlx.Html(ctx, data)
 	})
 }

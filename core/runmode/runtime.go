@@ -19,7 +19,6 @@ var (
 	GrpcPort = 50051
 	Block    = true
 	Project  = version.Project()
-	Level    = "debug"
 
 	IsDebug bool
 

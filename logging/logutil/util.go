@@ -2,7 +2,9 @@ package logutil
 
 import (
 	"github.com/kr/pretty"
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
+	"github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/q"
 	"go.uber.org/zap"
 )
@@ -12,16 +14,11 @@ func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) 
 
 	log.Info(msg)
 
-	var err error
-	funk.TryWith(&err, func() { err = fn() })
+	xtry.TryCatch(fn, func(err xerr.XErr) {
+		log.Error(msg+" failed", ErrField(err)...)
+	})
 
-	if err == nil {
-		log.Info(msg + " ok")
-		return
-	}
-
-	log.Error(msg+" failed", ErrField(err)...)
-	panic(err)
+	log.Info(msg + " ok")
 }
 
 func OkOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
@@ -29,29 +26,22 @@ func OkOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field
 
 	log.Info(msg)
 
-	var err error
-	funk.TryWith(&err, func() { err = fn() })
+	xtry.TryCatch(fn, func(err xerr.XErr) {
+		log.Error(msg+" error", ErrField(err)...)
+		panic(err)
+	})
 
-	if err == nil {
-		log.Info(msg + " ok")
-		return
-	}
-
-	log.Error(msg+" error", ErrField(err)...)
+	log.Info(msg + " ok")
 }
 
 func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
-	var err error
-	funk.TryWith(&err, func() { err = fn() })
+	xtry.TryCatch(fn, func(err xerr.XErr) {
+		log.Error(msg, ErrField(err)...)
+	})
 
-	if err == nil {
-		log.Info(msg)
-		return
-	}
-
-	log.Error(msg, ErrField(err)...)
+	log.Info(msg)
 }
 
 func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
@@ -71,29 +61,21 @@ func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
 func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
-	var err error
-	funk.TryWith(&err, func() { err = fn() })
+	xtry.TryCatch(fn, func(err xerr.XErr) {
+		log.Error(msg, ErrField(err)...)
+		panic(err)
+	})
 
-	if err == nil {
-		log.Info(msg)
-		return
-	}
-
-	log.Error(msg, ErrField(err)...)
-	panic(err)
+	log.Info(msg)
 }
 
 func ErrTry(log *zap.Logger, fn func(), fields ...zap.Field) {
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
+	defer recovery.Recovery(func(err xerr.XErr) {
+		log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
+		log.Error("panic catch", ErrField(err)...)
+	})
 
-	var err error
-	funk.TryWith(&err, fn)
-
-	if err == nil {
-		return
-	}
-
-	log.Error("panic catch", ErrField(err)...)
+	fn()
 }
 
 func Pretty(a ...interface{}) {

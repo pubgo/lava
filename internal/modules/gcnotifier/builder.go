@@ -22,7 +22,7 @@ func init() {
 
 		var logs = logging.ModuleLog(log, Name)
 		return func(lc lifecycle.Lifecycle) {
-			lc.AfterStarts(func() {
+			lc.AfterStart(func() error {
 				syncx.GoCtx(func(ctx context.Context) {
 					var gc = gcnotifier.New()
 					defer gc.Close()
@@ -38,6 +38,7 @@ func init() {
 						}
 					}
 				})
+				return nil
 			})
 		}
 	})

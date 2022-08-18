@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/example/pkg/models"
+	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/xerror"
 	"go.uber.org/zap"

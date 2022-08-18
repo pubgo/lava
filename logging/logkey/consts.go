@@ -1,8 +1,8 @@
 package logkey
 
 const (
-	Err       = "err"
-	ErrStack  = "err_stack"
+	ErrMsg    = "err_msg"
+	ErrDetail = "err_detail"
 	Stack     = "stack"
 	Key       = "key"
 	Debug     = "debug"

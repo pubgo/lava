@@ -2,7 +2,6 @@ package json
 
 import (
 	json "github.com/json-iterator/go"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/encoding"
 )
 
@@ -16,8 +15,6 @@ var (
 )
 
 func init() {
-	defer recovery.Exit()
-	
 	encoding.Register(Name, &jsonCodec{})
 }
 

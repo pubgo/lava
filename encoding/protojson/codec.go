@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/pubgo/funk/recovery"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
@@ -14,7 +13,6 @@ import (
 const Name = "jsonpb"
 
 func init() {
-	defer recovery.Exit()
 	encoding.Register(Name, &jsonCodec{})
 }
 

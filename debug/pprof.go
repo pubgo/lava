@@ -6,12 +6,9 @@ import (
 
 	"github.com/felixge/fgprof"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/recovery"
 )
 
 func init() {
-	defer recovery.Exit()
-
 	Get("/gprof", Wrap(fgprof.Handler()))
 	Route("/pprof", func(r fiber.Router) {
 		r.Get("/", WrapFunc(pprof.Index))

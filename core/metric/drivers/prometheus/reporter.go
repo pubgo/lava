@@ -2,10 +2,9 @@ package prometheus
 
 import (
 	"github.com/pubgo/dix"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/xerror"
-	"github.com/uber-go/tally"
-	"github.com/uber-go/tally/prometheus"
+	"github.com/pubgo/funk/assert"
+	tally "github.com/uber-go/tally/v4"
+	"github.com/uber-go/tally/v4/prometheus"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/metric"
@@ -19,8 +18,6 @@ const Name = "prometheus"
 const urlPath = "/metrics"
 
 func init() {
-	defer recovery.Exit()
-
 	dix.Provider(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
 		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
 
@@ -34,17 +31,16 @@ func init() {
 
 		var proCfg = &prometheus.Configuration{}
 		if conf.DriverCfg != nil {
-			xerror.Panic(conf.DriverCfg.Decode(proCfg))
+			assert.Must(conf.DriverCfg.Decode(proCfg))
 		}
 
-		reporter, err1 := proCfg.NewReporter(
+		reporter := assert.Must1(proCfg.NewReporter(
 			prometheus.ConfigurationOptions{
 				OnError: func(e error) {
 					logs.WithErr(e, zap.Any(logkey.Config, conf)).Error("metric.prometheus init error")
 				},
 			},
-		)
-		xerror.Panic(err1)
+		))
 		debug.Get(urlPath, debug.Wrap(reporter.HTTPHandler()))
 
 		opts.CachedReporter = reporter

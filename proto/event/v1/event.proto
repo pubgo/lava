@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package lava.event.v1;
 
-option go_package = "./event/eventpbv1";
+option go_package = "github.com/pubgo/lava/gen/proto/event/eventpbv1";
 
 enum EventType {
   UNKNOWN = 0;

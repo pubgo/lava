@@ -1,7 +1,6 @@
 package msgpack
 
 import (
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/encoding"
 	msgpack "github.com/vmihailenco/msgpack/v5"
 )
@@ -9,8 +8,6 @@ import (
 var Name = "msgpack"
 
 func init() {
-	defer recovery.Exit()
-
 	encoding.Register(Name, msgpackCodec{})
 }
 

@@ -1,9 +1,10 @@
 package logging
 
 import (
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/xerror"
 	"sync"
 
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/internal/pkg/typex"
@@ -12,7 +13,7 @@ import (
 )
 
 func GetGlobal(name string, fields ...zap.Field) *ModuleLogger {
-	xerror.Assert(name == "", "[name] should not be null")
+	assert.If(name == "", "[name] should not be null")
 	return &ModuleLogger{name: name, fields: fields}
 }
 
@@ -61,7 +62,7 @@ func (t *ModuleLogger) WithFunc(fn interface{}) *zap.Logger {
 		return t.L()
 	}
 
-	return t.L().With(logutil.FuncStack(fn))
+	return t.L().With(logutil.FnStack(fn))
 }
 
 func (t *ModuleLogger) L() *zap.Logger {

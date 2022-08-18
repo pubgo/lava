@@ -7,8 +7,8 @@ import (
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
 
-	"github.com/pubgo/lava/example/pkg/casbin"
-	"github.com/pubgo/lava/example/pkg/models"
+	"github.com/pubgo/lava/example/internal/casbin"
+	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 

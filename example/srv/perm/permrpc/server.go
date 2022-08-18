@@ -9,9 +9,9 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 
-	"github.com/pubgo/lava/example/pkg/casbin"
-	"github.com/pubgo/lava/example/pkg/menuservice"
-	"github.com/pubgo/lava/example/pkg/models"
+	"github.com/pubgo/lava/example/internal/casbin"
+	"github.com/pubgo/lava/example/internal/menuservice"
+	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 

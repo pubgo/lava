@@ -5,9 +5,7 @@ import (
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/xerror"
-	"github.com/uber-go/tally"
+	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -17,8 +15,6 @@ import (
 )
 
 func init() {
-	defer recovery.Exit()
-
 	dix.Provider(func(c config.Config) *Cfg {
 		var cfg = DefaultCfg()
 		assert.Must(c.UnmarshalKey(Name, &cfg))
@@ -37,7 +33,7 @@ func init() {
 		}
 
 		scope, closer := tally.NewRootScope(*opts, cfg.Interval)
-		m.BeforeStops(func() { xerror.Panic(closer.Close()) })
+		m.BeforeStop(closer.Close, "metric close")
 
 		registerVars(scope)
 		return scope

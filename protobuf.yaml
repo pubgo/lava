@@ -23,12 +23,13 @@ deps:
     version: v0.0.7
 plugins:
   - name: go
-    opt: paths=import
-    out: gen
-  - name: errors
-    opt: paths=import
-    out: gen
-  - name: retag
     opt:
-      - paths=import
-      - output=gen
+      - paths=source_relative
+    out: gen
+#  - name: errors
+#    opt: paths=import
+#    out: gen
+#  - name: retag
+#    opt:
+#      - paths=import
+#      - output=gen

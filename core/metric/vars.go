@@ -3,7 +3,7 @@ package metric
 import (
 	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/vars"
-	"github.com/uber-go/tally"
+	"github.com/uber-go/tally/v4"
 )
 
 func registerVars(m Metric) {

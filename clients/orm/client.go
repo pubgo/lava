@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/internal/pkg/result"
 	"gorm.io/gorm"
 
+	"github.com/pubgo/lava/internal/pkg/result"
 	"github.com/pubgo/lava/vars"
 )
 
@@ -72,7 +73,7 @@ func (c *Client) Stats() result.Result[sql.DBStats] {
 	if err != nil {
 		return result.Err[sql.DBStats](err)
 	}
-	return result.OK(db.Stats(), err)
+	return result.OK(db.Stats())
 }
 
 func ErrNotFound(err error) bool {

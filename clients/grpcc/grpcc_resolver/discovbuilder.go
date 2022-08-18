@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/event/eventpbv1"
+	"github.com/pubgo/lava/gen/proto/event/v1"
 	"github.com/pubgo/lava/internal/pkg/syncx"
 )
 
@@ -82,11 +82,11 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services, err := r.GetService(srv)
-	xerror.Panic(err, "registry GetService error")
+	services := r.GetService(srv).ToResult()
+	xerror.Panic(services.Err(), "registry GetService error")
 
 	// 启动后，更新服务地址
-	d.updateService(services...)
+	d.updateService(services.Get()...)
 
 	var address = d.getAddrList(srv)
 	xerror.Assert(len(address) == 0, "service none available")
@@ -94,19 +94,19 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.S().Infof("discovBuilder Addrs %#v", address)
 	xerror.PanicF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w, err := r.Watch(srv)
-	xerror.PanicF(err, "target.Endpoint: %s", srv)
+	w := r.Watch(srv)
+	xerror.PanicF(w.Err(), "target.Endpoint: %s", srv)
 
 	return &baseResolver{
 		cancel: syncx.GoCtx(func(ctx context.Context) {
-			defer func() { xerror.Panic(w.Stop()) }()
+			defer func() { xerror.Panic(w.Get().Stop()) }()
 
 			for {
 				select {
 				case <-ctx.Done():
 					return
 				default:
-					res, err := w.Next()
+					res, err := w.Get().Next()
 					if err == registry.ErrWatcherStopped {
 						return
 					}

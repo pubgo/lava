@@ -10,18 +10,16 @@ import (
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/version"
 )
 
 func NewWithCfg(cfg *log_config.Config) *Logger {
-	cfg.Level = runmode.Level
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
 	// 全局log设置
 	var log = cfg.Build(runmode.Project).With(
 		zap.String(logkey.Hostname, runmode.Hostname),
 		zap.String(logkey.Project, runmode.Project),
-		zap.String(logkey.Version, version.Version()),
+		zap.String(logkey.Version, runmode.Version),
 	)
 
 	if runmode.Namespace != "" {
