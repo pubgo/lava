@@ -37,3 +37,7 @@ func (t Map) Fields() []zap.Field {
 	}
 	return fields
 }
+
+func ListField(name string, args ...interface{}) zap.Field {
+	return zap.Any(name, args)
+}

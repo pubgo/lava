@@ -6,8 +6,8 @@ import (
 	rd "runtime/debug"
 
 	"github.com/gofiber/adaptor/v2"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/xerror"
 
 	app2 "github.com/pubgo/lava/core/runmode"
 )
@@ -21,17 +21,15 @@ func init() {
 func envHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt, err := jsonx.Marshal(os.Environ())
-	xerror.Panic(err)
-	xerror.PanicErr(writer.Write(dt))
+	dt := assert.Must1(jsonx.Marshal(os.Environ()))
+	assert.Must1(writer.Write(dt))
 }
 
 func versionHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt, err := jsonx.Marshal(app2.GetVersion())
-	xerror.Panic(err)
-	xerror.PanicErr(writer.Write(dt))
+	dt := assert.Must1(jsonx.Marshal(app2.GetVersion()))
+	assert.Must1(writer.Write(dt))
 }
 
 func depHandle(writer http.ResponseWriter, request *http.Request) {
@@ -40,11 +38,10 @@ func depHandle(writer http.ResponseWriter, request *http.Request) {
 	info, ok := rd.ReadBuildInfo()
 	if !ok {
 		writer.WriteHeader(http.StatusNoContent)
-		xerror.PanicErr(writer.Write([]byte("")))
+		assert.Must1(writer.Write([]byte("")))
 		return
 	}
 
-	dt, err := jsonx.Marshal(info)
-	xerror.Panic(err)
-	xerror.PanicErr(writer.Write(dt))
+	dt := assert.Must1(jsonx.Marshal(info))
+	assert.Must1(writer.Write(dt))
 }

@@ -8,14 +8,17 @@ import (
 
 func GetVersion() map[string]interface{} {
 	return map[string]interface{}{
+		"grpc_port":     GrpcPort,
+		"http_post":     HttpPort,
+		"debug":         IsDebug,
+		"pwd":           Pwd,
 		"namespace":     Namespace,
-		"app_id":        InstanceID,
+		"instance_id":   InstanceID,
 		"device_id":     DeviceID,
 		"project":       Project,
-		"data":          version.Data(),
+		"hostname":      Hostname,
 		"build_time":    version.BuildTime(),
-		"version":       version.Version(),
-		"tag":           version.Tag(),
+		"version":       Version,
 		"commit_id":     CommitID,
 		"domain":        version.Domain(),
 		"go_root":       rt.GOROOT(),

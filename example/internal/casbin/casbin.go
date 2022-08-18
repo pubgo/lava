@@ -5,7 +5,6 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/pubgo/lava/clients/orm"
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/xerror"
 )
@@ -18,10 +17,7 @@ type Client struct {
 	db     *orm.Client
 }
 
-func New(cfg config.Config, l *logging.Logger, db *orm.Client) *Client {
-	var c Config
-	xerror.Panic(cfg.UnmarshalKey(Name, &c))
-
+func New(c *Config, l *logging.Logger, db *orm.Client) *Client {
 	xerror.Panic(c.Check())
 
 	m, err := model.NewModelFromFile(c.Model)

@@ -122,7 +122,7 @@ func _RFC3339MilliTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 //	query := u.Query()
 //	var cfg = rotate.NewWriterConfig()
 //	for k := range query {
-//		v := query.Get(k)
+//		v := query.Value(k)
 //		switch k {
 //		case "dir":
 //			cfg.Dir = v
@@ -167,7 +167,7 @@ func _RFC3339MilliTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 //	query := u.Query()
 //	var cfg = rotate.NewWriterConfig()
 //	for k := range query {
-//		v := query.Get(k)
+//		v := query.Value(k)
 //		switch k {
 //		case "dir":
 //			cfg.Dir = v

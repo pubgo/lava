@@ -93,6 +93,7 @@ require (
 	github.com/gofiber/utils v0.1.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/improbable-eng/grpc-web v0.15.0
+	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/pubgo/dix v0.3.2
 	github.com/pubgo/funk v0.5.10
 	github.com/rs/xid v1.2.1

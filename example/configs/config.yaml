@@ -70,10 +70,9 @@ service:
       dir: ""
       ext: ".html"
 orm:
-  - name: default
-    driver: "sqlite3"
-    driver_config:
-      dsn: "db.sqlite3"
+  driver: "sqlite3"
+  driver_config:
+    dsn: "db.sqlite3"
 grpcc:
   - name: test-grpc
     registry: "mdns"

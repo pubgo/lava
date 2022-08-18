@@ -2,8 +2,8 @@ package casbin
 
 import (
 	"errors"
-	
-	"github.com/pubgo/lava/logging/logutil"
+
+	"go.uber.org/zap"
 )
 
 type perm struct {
@@ -40,7 +40,7 @@ func (c *Client) GetPermissions(user, role, org string, filter func(perm string)
 		users[HandleOrgId(org)] = []string{HandleRoleId(role)}
 	}
 
-	c.logger.Debug("GetUsers", logutil.ListField("params", users))
+	c.logger.Debug("GetUsers", zap.Any("params", users))
 
 	var permList = make(map[string]*perm)
 	for domainName, roles := range users {

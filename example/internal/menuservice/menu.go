@@ -13,7 +13,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pubgo/lava/clients/orm"
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/xerror"
@@ -24,10 +23,7 @@ const Name = "menu"
 
 var trim = strings.TrimSpace
 
-func New(cfg config.Config, db *orm.Client, l *logging.Logger) *Menu {
-	var c Config
-	xerror.Panic(cfg.UnmarshalKey(Name, &c))
-
+func New(c *Config, db *orm.Client, l *logging.Logger) *Menu {
 	var m = &Menu{c: c, db: db, defaultMenus: make(map[string]bool), logger: l.Named("menu"), mux: mux.NewRouter()}
 	//if err := m.LoadMenusFromDb(); err != nil {
 	//	return nil, err
@@ -38,7 +34,7 @@ func New(cfg config.Config, db *orm.Client, l *logging.Logger) *Menu {
 type Menu struct {
 	logger       *logging.Logger
 	db           *orm.Client
-	c            Config
+	c            *Config
 	defaultMenus map[string]bool
 	mux          *mux.Router
 }

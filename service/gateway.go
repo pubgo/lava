@@ -7,4 +7,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GatewayRegister func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
+type Gateway interface {
+	Gateway() func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
+}

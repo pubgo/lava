@@ -26,7 +26,5 @@ type Runtime interface {
 type Service interface {
 	Runtime
 	Provider(provider interface{})
-	RegisterGateway(register ...GatewayRegister)
 	RegisterService(desc *grpc.ServiceDesc, impl interface{})
-	RegisterServer(register interface{}, impl interface{})
 }

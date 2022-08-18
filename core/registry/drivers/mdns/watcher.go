@@ -28,7 +28,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 			return ret.WithErr(s.Err())
 		}
 
-		for _, n := range s.Get().Nodes {
+		for _, n := range s.Value().Nodes {
 			allNodes.Set(n.Id, n)
 		}
 	}
@@ -52,7 +52,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 
 			var nodes typex.SMap
 			m.GetService(service).Range(func(r result.Result[*registry.Service]) {
-				for _, n := range r.Get().Nodes {
+				for _, n := range r.Value().Nodes {
 					allNodes.Set(n.Id, n)
 				}
 			})

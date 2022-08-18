@@ -1,5 +1,7 @@
 package result
 
+import "fmt"
+
 func Unwrap[T any](r Result[T]) (T, error) {
 	return r.v, r.e
 }
@@ -39,8 +41,15 @@ func (v Result[T]) IsErr() bool {
 	return v.e != nil
 }
 
-func (v Result[T]) Get() T {
+func (v Result[T]) Value() T {
 	return v.v
+}
+
+func (v Result[T]) Unwrap() *Data[T] {
+	if v.e != nil {
+		return &Data[T]{ErrMsg: v.e.Error(), ErrDetail: fmt.Sprintf("%#v", v.e)}
+	}
+	return &Data[T]{Body: v.v}
 }
 
 type Chan[T any] chan Result[T]
@@ -63,7 +72,7 @@ func (rr List[T]) ToResult() Result[[]T] {
 		if rr[i].IsErr() {
 			return Err[[]T](rr[i].Err())
 		}
-		rl = append(rl, rr[i].Get())
+		rl = append(rl, rr[i].Value())
 	}
 	return OK(rl)
 }

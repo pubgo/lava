@@ -33,20 +33,20 @@ func TestPromise_Unwrap(t *testing.T) {
 	GoDelay(func() {
 		var p = httpGet()
 		resp := p.Await()
-		fmt.Println("httpGet", resp.Err(), resp.Get())
+		fmt.Println("httpGet", resp.Err(), resp.Value())
 	})
 
 	GoDelay(func() {
 		var out = httpGetList()
 		for resp := range out {
-			fmt.Println("httpGetList", resp.Err(), resp.Get())
+			fmt.Println("httpGetList", resp.Err(), resp.Value())
 		}
 	})
 
 	GoDelay(func() {
 		var out = httpGetList()
 		for resp := range out {
-			fmt.Println("httpGetList", resp.Err(), resp.Get())
+			fmt.Println("httpGetList", resp.Err(), resp.Value())
 		}
 	})
 	<-time.After(time.Second)
@@ -72,5 +72,5 @@ func TestGoChan(t *testing.T) {
 		return result.OK("hello")
 	})
 
-	fmt.Println(Wait(val1, val2).ToResult().Get())
+	fmt.Println(Wait(val1, val2).ToResult().Value())
 }

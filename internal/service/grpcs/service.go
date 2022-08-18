@@ -63,7 +63,6 @@ type serviceImpl struct {
 	unaryInt   grpc.UnaryServerInterceptor
 	streamInt  grpc.StreamServerInterceptor
 	httpMiddle func(_ *fiber2.Ctx) error
-	registers  []service.GatewayRegister
 }
 
 func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
@@ -72,10 +71,6 @@ func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
 	assert.If(impl == nil, "[impl] is nil")
 	assert.If(register == nil, "[register] is nil")
 	reflect.ValueOf(register).Call([]reflect.Value{reflect.ValueOf(s), reflect.ValueOf(impl)})
-}
-
-func (s *serviceImpl) RegisterGateway(register ...service.GatewayRegister) {
-	s.registers = append(s.registers, register...)
 }
 
 func (s *serviceImpl) Run() {
@@ -145,9 +140,11 @@ func (s *serviceImpl) init() {
 	var conn = assert.Must1(grpc.Dial(fmt.Sprintf("localhost:%d", runmode.GrpcPort), grpc.WithTransportCredentials(insecure.NewCredentials())))
 	s.lc.BeforeStop(conn.Close)
 	grpcMux := runtime.NewServeMux()
-	for i := range s.registers {
-		assert.Must(s.registers[i](context.Background(), grpcMux, conn))
-	}
+	s.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
+		if h, ok := svr.(service.Gateway); ok {
+			assert.Must(h.Gateway()(context.Background(), grpcMux, conn))
+		}
+	})
 
 	wrappedGrpc := grpcweb.WrapServer(s.grpcSrv.Get(),
 		grpcweb.WithAllowNonRootResource(true),

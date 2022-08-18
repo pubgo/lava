@@ -27,7 +27,7 @@ func GoChan[T any](fn func() result.Result[T]) *Future[T] {
 		if val := fn(); val.IsErr() {
 			ch.Err(val.Err())
 		} else {
-			ch.OK(val.Get())
+			ch.OK(val.Value())
 		}
 	}()
 

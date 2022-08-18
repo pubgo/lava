@@ -52,7 +52,7 @@ func WithJitterPercent(j uint64, next Backoff) Backoff {
 			return 0, true
 		}
 
-		// Get a value between -j and j, the convert to a percentage
+		// Value a value between -j and j, the convert to a percentage
 		top := rand.Int63n(int64(j)*2) - int64(j)
 		pct := 1 - float64(top)/100.0
 

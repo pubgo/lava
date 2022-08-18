@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/lava/logging/logutil"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/example/internal/proto/permpb"
+	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
 const ActAccess = "access"

@@ -59,7 +59,7 @@ func (f Value) String() (r string) {
 	if ret.IsErr() {
 		return xerr.WrapXErr(ret.Err()).Stack()
 	}
-	return utils.BtoS(ret.Get())
+	return utils.BtoS(ret.Value())
 }
 
 func Register(name string, data func() interface{}) {

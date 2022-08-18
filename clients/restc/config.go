@@ -52,7 +52,7 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	// 加载插件
 	// 加载全局
 	//for _, plg := range t.Middlewares {
-	//	middlewares = append(middlewares, middleware2.Get(plg))
+	//	middlewares = append(middlewares, middleware2.Value(plg))
 	//}
 
 	var client = &clientImpl{client: &fasthttp.Client{}}

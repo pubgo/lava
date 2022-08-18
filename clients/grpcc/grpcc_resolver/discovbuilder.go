@@ -86,7 +86,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	xerror.Panic(services.Err(), "registry GetService error")
 
 	// 启动后，更新服务地址
-	d.updateService(services.Get()...)
+	d.updateService(services.Value()...)
 
 	var address = d.getAddrList(srv)
 	xerror.Assert(len(address) == 0, "service none available")
@@ -99,14 +99,14 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	return &baseResolver{
 		cancel: syncx.GoCtx(func(ctx context.Context) {
-			defer func() { xerror.Panic(w.Get().Stop()) }()
+			defer func() { xerror.Panic(w.Value().Stop()) }()
 
 			for {
 				select {
 				case <-ctx.Done():
 					return
 				default:
-					res, err := w.Get().Next()
+					res, err := w.Value().Next()
 					if err == registry.ErrWatcherStopped {
 						return
 					}

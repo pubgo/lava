@@ -14,6 +14,6 @@ func init() {
 		if r.IsErr() {
 			return r.Err()
 		}
-		return r.Get()
+		return r.Value()
 	})
 }
