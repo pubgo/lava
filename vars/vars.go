@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/jsonx"
 
-	"github.com/pubgo/lava/internal/pkg/result"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/internal/pkg/utils"
 )
 

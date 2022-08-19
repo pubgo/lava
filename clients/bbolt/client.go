@@ -7,8 +7,8 @@ import (
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/internal/pkg/result"
 	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"

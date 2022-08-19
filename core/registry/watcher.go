@@ -3,6 +3,8 @@ package registry
 import (
 	"time"
 
+	"github.com/pubgo/funk/result"
+
 	"github.com/pubgo/lava/gen/proto/event/v1"
 )
 
@@ -10,7 +12,7 @@ import (
 // about services within the registry.
 type Watcher interface {
 	// Next is a blocking call
-	Next() (*Result, error)
+	Next() result.Result[*Result]
 	Stop() error
 }
 

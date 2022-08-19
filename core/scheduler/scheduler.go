@@ -13,7 +13,10 @@ import (
 )
 
 func New(log *logging.Logger) *Scheduler {
-	return &Scheduler{scheduler: quartz.NewStdScheduler(), log: logging.ModuleLog(log, Name)}
+	return &Scheduler{
+		scheduler: quartz.NewStdScheduler(),
+		log:       logging.ModuleLog(log, Name),
+	}
 }
 
 type Scheduler struct {
@@ -38,17 +41,17 @@ func (s *Scheduler) Start() {
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
 	s.log.Depth(1).Info("register once scheduler", zap.String("name", name), zap.String("delay", delay.String()))
-	do(&Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true}, fn)
+	do(&Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true, log: s.log}, fn)
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
 	s.log.Depth(1).Info("register every scheduler", zap.String("name", name), zap.String("dur", dur.String()))
-	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name}, fn)
+	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name, log: s.log}, fn)
 }
 
 func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
 	s.log.Depth(1).Info("register cron scheduler", zap.String("name", name), zap.String("expr", expr))
-	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name}, fn)
+	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name, log: s.log}, fn)
 }
 
 func (s *Scheduler) getTrigger() quartz.Trigger {
@@ -72,7 +75,7 @@ func do(s *Scheduler, fn func(name string)) {
 	assert.If(s.key == "", "[name] should not be null")
 	assert.If(fn == nil, "[fn] should not be nil")
 	assert.If(trigger == nil, "please init dur or cron")
-	assert.Must(s.scheduler.ScheduleJob(namedJob{name: s.key, fn: fn}, trigger))
+	assert.Must(s.scheduler.ScheduleJob(namedJob{name: s.key, fn: fn, log: s.log}, trigger))
 }
 
 type namedJob struct {

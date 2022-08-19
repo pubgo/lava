@@ -2,7 +2,7 @@
 package registry
 
 import (
-	"github.com/pubgo/lava/internal/pkg/result"
+	"github.com/pubgo/funk/result"
 )
 
 // Registry The registry provides an interface for service discovery

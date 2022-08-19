@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	"github.com/kr/pretty"
+	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/gen/proto/event/v1"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -106,21 +106,21 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				case <-ctx.Done():
 					return
 				default:
-					res, err := w.Value().Next()
-					if err == registry.ErrWatcherStopped {
+					res := w.Value().Next()
+					if res.Err() == registry.ErrWatcherStopped {
 						return
 					}
 
-					if err != nil {
-						logs.WithErr(err).Error("error")
+					if res.IsErr() {
+						logs.WithErr(res.Err()).Error("error")
 						continue
 					}
 
 					// 注册中心删除服务
-					if res.Action == eventpbv1.EventType_DELETE {
-						d.delService(res.Service)
+					if res.Value().Action == eventpbv1.EventType_DELETE {
+						d.delService(res.Value().Service)
 					} else {
-						d.updateService(res.Service)
+						d.updateService(res.Value().Service)
 					}
 
 					xerror.TryCatch(func() {

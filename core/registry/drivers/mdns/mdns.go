@@ -9,12 +9,12 @@ import (
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/xerr"
 
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/internal/pkg/result"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )
@@ -103,9 +103,9 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 
 func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.List[*registry.Service] {
 	entries := make(chan *zeroconf.ServiceEntry)
-	services := syncx.From(func(in chan<- result.Result[*registry.Service]) {
+	services := syncx.Yield(func(yield func(*registry.Service)) error {
 		for s := range entries {
-			in <- result.OK(&registry.Service{
+			yield(&registry.Service{
 				Name: s.Service,
 				Nodes: registry.Nodes{{
 					Id:      s.Instance,
@@ -114,6 +114,7 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.L
 				}},
 			})
 		}
+		return nil
 	})
 
 	var gOpts registry.GetOpts
@@ -126,7 +127,7 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.L
 
 	assert.MustF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
 	<-ctx.Done()
-	return result.ToList(services)
+	return services.ToList()
 }
 
 func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) result.List[*registry.Service] {

@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/result"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -26,27 +27,25 @@ type Watcher struct {
 }
 
 // newWatcher is used to initialize Watcher
-func newWatcher(s *Registry, service string) *Watcher {
-	watcher, err := s.client.
+func newWatcher(s *Registry, service string) result.Result[registry.Watcher] {
+	watcher := assert.Must1(s.client.
 		CoreV1().
 		Endpoints(k8s.Namespace()).
 		Watch(context.Background(),
-			metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", service)})
-	xerror.Panic(err)
-	return &Watcher{watcher: watcher, client: s.client, service: service}
+			metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", service)}))
+	return result.OK[registry.Watcher](&Watcher{watcher: watcher, client: s.client, service: service})
 }
 
 // Next will block until ServiceInstance changes
-func (t *Watcher) Next() (*registry.Result, error) {
+func (t *Watcher) Next() result.Result[*registry.Result] {
 	select {
 	case _, ok := <-t.watcher.ResultChan():
 		if ok {
-			endpoints, err := t.client.
+			endpoints := assert.Must1(t.client.
 				CoreV1().
 				Endpoints(k8s.Namespace()).
 				List(context.Background(),
-					metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", t.service)})
-			xerror.Panic(err)
+					metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", t.service)}))
 
 			var resp = &registry.Result{
 				Action: eventpbv1.EventType_UPDATE,
@@ -72,10 +71,10 @@ func (t *Watcher) Next() (*registry.Result, error) {
 				}
 			}
 
-			return resp, err
+			return result.OK(resp)
 		}
 
-		return nil, registry.ErrWatcherStopped
+		return result.Err[*registry.Result](registry.ErrWatcherStopped)
 	}
 }
 

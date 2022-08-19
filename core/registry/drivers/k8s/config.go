@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -25,17 +25,16 @@ type Cfg struct {
 
 func (t *Cfg) Build() *kubernetes.Clientset {
 	var config *rest.Config
-	if t.Filename != "" {
-		config = xerror.PanicErr(clientcmd.LoadFromFile(t.Filename)).(*rest.Config)
-	}
+	//if t.Filename != "" {
+	//	config = assert.Must1(clientcmd.LoadFromFile(t.Filename))
+	//}
 
 	if t.KubeConfig != "" {
-		config = xerror.PanicErr(clientcmd.BuildConfigFromFlags(t.Master, t.KubeConfig)).(*rest.Config)
+		config = assert.Must1(clientcmd.BuildConfigFromFlags(t.Master, t.KubeConfig))
 	} else {
-		config = xerror.PanicErr(rest.InClusterConfig()).(*rest.Config)
+		config = assert.Must1(rest.InClusterConfig())
 	}
 
-
-	client := xerror.PanicErr(kubernetes.NewForConfig(config)).(*kubernetes.Clientset)
+	client := assert.Must1(kubernetes.NewForConfig(config))
 	return client
 }

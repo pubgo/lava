@@ -25,6 +25,6 @@ type Runtime interface {
 
 type Service interface {
 	Runtime
-	Provider(provider interface{})
+	Providers(provider ...interface{})
 	RegisterService(desc *grpc.ServiceDesc, impl interface{})
 }

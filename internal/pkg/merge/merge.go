@@ -19,7 +19,7 @@ func Copy(dst interface{}, src interface{}, opts ...Option) error {
 		opts[i](&optList)
 	}
 
-	return xerr.Wrap(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
+	return xerr.WrapF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
 }
 
 func Struct(dst, src interface{}, opts ...Option) error { return Copy(dst, src, opts...) }

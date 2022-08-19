@@ -3,13 +3,13 @@ package errors
 import (
 	"context"
 	"fmt"
-	"google.golang.org/protobuf/proto"
 	"reflect"
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	errorV1 "github.com/pubgo/lava/gen/proto/errors/v1"
 )

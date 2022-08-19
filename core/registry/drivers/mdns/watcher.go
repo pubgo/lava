@@ -6,12 +6,12 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/gen/proto/event/v1"
-	"github.com/pubgo/lava/internal/pkg/result"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/internal/pkg/typex"
 )
 
@@ -94,12 +94,12 @@ type Watcher struct {
 	cancel  context.CancelFunc
 }
 
-func (m *Watcher) Next() (*registry.Result, error) {
+func (m *Watcher) Next() result.Result[*registry.Result] {
 	r, ok := <-m.results
 	if !ok {
-		return nil, registry.ErrWatcherStopped
+		return result.Err[*registry.Result](registry.ErrWatcherStopped)
 	}
-	return r, nil
+	return result.OK(r)
 }
 
 func (m *Watcher) Stop() error {

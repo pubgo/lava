@@ -19,6 +19,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/syncx"
 	xtry "github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
@@ -32,7 +33,6 @@ import (
 	"github.com/pubgo/lava/core/signal"
 	fiber_builder2 "github.com/pubgo/lava/internal/pkg/fiber_builder"
 	grpc_builder2 "github.com/pubgo/lava/internal/pkg/grpc_builder"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 )
@@ -195,8 +195,10 @@ func (s *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	s.handlers.RegisterService(desc, impl)
 }
 
-func (s *serviceImpl) Provider(provider interface{}) {
-	dix.Provider(provider)
+func (s *serviceImpl) Providers(provider ...interface{}) {
+	for i := range provider {
+		dix.Provider(provider[i])
+	}
 }
 
 func (s *serviceImpl) start() {

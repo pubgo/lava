@@ -3,18 +3,20 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/internal/pkg/k8s"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/internal/pkg/k8s"
 )
 
 // Defines the key name of specific fields
@@ -76,10 +78,10 @@ func init() {
 	defer recovery.Exit()
 
 	dix.Provider(func(m config.CfgMap) (_ registry.Registry, err error) {
-		defer xerror.RecoverErr(&err)
+		defer recovery.Err(&err)
 
 		var cfg Cfg
-		xerror.Panic(merge.MapStruct(&cfg, m))
+		assert.Must(merge.MapStruct(&cfg, m))
 
 		var client = cfg.Build()
 		return NewRegistry(client), nil
@@ -114,46 +116,43 @@ func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOp
 	//return s.Dix(&registry.Service{Metadata: map[string]string{},})
 }
 
-func (s *Registry) GetService(name string, opt ...registry.GetOpt) (_ []*registry.Service, err error) {
-	defer xerror.RecoverErr(&err)
-
+func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*registry.Service] {
 	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
 	defer cancel()
 
-	endpoints, err := s.client.
+	endpoints := assert.Must1(s.client.
 		CoreV1().
 		Endpoints(k8s.Namespace()).
-		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)})
-	xerror.Panic(err)
+		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)}))
 
-	var resp []*registry.Service
-	for _, endpoint := range endpoints.Items {
-		for _, subset := range endpoint.Subsets {
-			realPort := ""
-			for _, p := range subset.Ports {
-				realPort = fmt.Sprint(p.Port)
-				break
-			}
+	return syncx.Yield(func(yield func(*registry.Service)) error {
+		for _, endpoint := range endpoints.Items {
+			for _, subset := range endpoint.Subsets {
+				realPort := ""
+				for _, p := range subset.Ports {
+					realPort = fmt.Sprint(p.Port)
+					break
+				}
 
-			for _, addr := range subset.Addresses {
-				resp = append(resp, &registry.Service{
-					Name: name,
-					Nodes: []*registry.Node{
-						{
-							Id:      string(addr.TargetRef.UID),
-							Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
+				for _, addr := range subset.Addresses {
+					yield(&registry.Service{
+						Name: name,
+						Nodes: []*registry.Node{
+							{
+								Id:      string(addr.TargetRef.UID),
+								Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
+							},
 						},
-					},
-				})
+					})
+				}
 			}
 		}
-	}
-
-	return resp, nil
+		return nil
+	}).ToList()
 }
 
-func (s *Registry) ListService(opt ...registry.ListOpt) ([]*registry.Service, error) {
-	return nil, nil
+func (s *Registry) ListService(opt ...registry.ListOpt) result.List[*registry.Service] {
+	return nil
 }
 
 func (s *Registry) String() string { return name }
@@ -187,6 +186,6 @@ func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) e
 }
 
 // Watch creates a watcher according to the service name.
-func (s *Registry) Watch(name string, opt ...registry.WatchOpt) (registry.Watcher, error) {
-	return newWatcher(s, name), nil
+func (s *Registry) Watch(name string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
+	return newWatcher(s, name)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava"
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
@@ -13,10 +14,10 @@ import (
 )
 
 func main() {
+	defer recovery.Exit()
+
 	var srv = lava.New()
-	for _, p := range bootstrap.Providers() {
-		srv.Provider(p)
-	}
+	srv.Providers(bootstrap.Providers().ToResult().Unwrap()...)
 
 	gidpb.RegisterIdServer(srv, gidhandler.New())
 	//hellopb.RegisterTestApiServer(srv, hellohandler.NewTestAPIHandler())

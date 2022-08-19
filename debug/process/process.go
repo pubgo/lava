@@ -17,27 +17,27 @@ import (
 	"github.com/google/gops/signal"
 	"github.com/keybase/go-ps"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/syncx"
 
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/internal/pkg/result"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 )
 
 func init() {
 	debug.Get("/process", func(ctx *fiber.Ctx) error {
-		return ctx.JSON(syncx.From(func(in chan<- result.Result[map[string]any]) {
+		return ctx.JSON(syncx.Yield(func(yield func(map[string]any)) error {
 			processes := assert.Must1(ps.Processes())
 			for _, p := range processes {
-				in <- result.OK(map[string]any{
+				yield(map[string]any{
 					"pid":        p.Pid(),
 					"ppid":       p.PPid(),
 					"exec":       p.Executable(),
-					"path":       result.New(p.Path()).Unwrap(),
-					"go_version": goVersion(result.New(p.Path())).Unwrap(),
+					"path":       result.New(p.Path()),
+					"go_version": goVersion(result.New(p.Path())),
 				})
 			}
-
-		}).ToList().ToResult().Value())
+			return nil
+		}).ToResult().Unwrap())
 	})
 }
 

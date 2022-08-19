@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errorx"
+	"github.com/pubgo/funk/syncx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/internal/pkg/netutil"
-	"github.com/pubgo/lava/internal/pkg/syncx"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/version"
 )
@@ -25,10 +26,10 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	cfg.Check()
 
 	reg := regs[cfg.Driver]
-	xerror.AssertFn(reg == nil, func() error {
+	assert.Fn(reg == nil, func() error {
 		var errs = fmt.Errorf("registry driver is null")
-		errs = xerror.WrapF(errs, "driver=>%s", cfg.Driver)
-		errs = xerror.WrapF(errs, "regs=>%v", regs)
+		errs = errorx.WrapF(errs, "driver=>%s", cfg.Driver)
+		errs = errorx.WrapF(errs, "regs=>%v", regs)
 		return errs
 	})
 

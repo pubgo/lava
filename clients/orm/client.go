@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/internal/pkg/result"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/vars"
 )
 
