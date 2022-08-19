@@ -1,9 +1,22 @@
 package orm
 
 import (
-	"github.com/kr/pretty"
-	"github.com/pubgo/xerror"
+	"fmt"
 	"time"
+
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+	gl "gorm.io/gorm/logger"
+	opentracing "gorm.io/plugin/opentracing"
+
+	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logutil"
 )
 
 type Cfg struct {
@@ -22,15 +35,75 @@ type Cfg struct {
 	MaxConnTime                              time.Duration          `json:"max_conn_time" yaml:"max_conn_time"`
 	MaxConnIdle                              int                    `json:"max_conn_idle" yaml:"max_conn_idle"`
 	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
+	log                                      *logging.Logger
+	db                                       *gorm.DB
 }
 
-func (t Cfg) Valid() (err error) {
-	defer xerror.Resp(func(err1 xerror.XErr) {
-		err = err1
-		pretty.Logln(t)
+func (t *Cfg) Build() (err error) {
+	defer recovery.Err(&err)
+	var ormCfg = &gorm.Config{}
+	assert.Must(merge.Struct(ormCfg, t))
+	var level = gl.Info
+	if !runmode.IsDebug {
+		level = gl.Error
+	}
+
+	if t.log != nil {
+		ormCfg.Logger = gl.New(
+			logPrintf(t.log.Named(Name).WithOptions(zap.AddCallerSkip(4)).Sugar().Infof),
+			gl.Config{
+				SlowThreshold:             200 * time.Millisecond,
+				LogLevel:                  level,
+				IgnoreRecordNotFoundError: false,
+				Colorful:                  true,
+			},
+		)
+	}
+
+	var factory = Get(t.Driver)
+	assert.If(factory == nil, "driver factory[%s] not found", t.Driver)
+	dialect := factory(t.DriverCfg)
+
+	db := assert.Must1(gorm.Open(dialect, ormCfg))
+
+	// 添加链路追踪
+	assert.Must(db.Use(opentracing.New(
+		opentracing.WithErrorTagHook(tracing.SetIfErr),
+	)))
+
+	// 服务连接校验
+	sqlDB := assert.Must1(db.DB())
+	assert.Must(sqlDB.Ping())
+
+	if t.MaxConnTime != 0 {
+		sqlDB.SetConnMaxLifetime(t.MaxConnTime)
+	}
+
+	if t.MaxConnIdle != 0 {
+		sqlDB.SetMaxIdleConns(t.MaxConnIdle)
+	}
+
+	if t.MaxConnOpen != 0 {
+		sqlDB.SetMaxOpenConns(t.MaxConnOpen)
+	}
+	t.db = db
+	return
+}
+
+func (t *Cfg) Get() *gorm.DB {
+	assert.Fn(t.db == nil, func() error {
+		return fmt.Errorf("please init orm")
+	})
+	return t.db
+}
+
+func (t *Cfg) Valid() (err error) {
+	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
+		logutil.ColorPretty(t)
+		return err
 	})
 
-	xerror.Assert(t.Driver == "", "driver is null")
+	assert.If(t.Driver == "", "driver is null")
 	return
 }
 

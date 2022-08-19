@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -63,7 +63,7 @@ func init() {
 	for k, v := range encoderNameToConstructor {
 		if err := zap.RegisterEncoder(k, v); err != nil {
 			if !strings.Contains(err.Error(), "already registered") {
-				xerror.Panic(err)
+				assert.Must(err)
 			}
 		}
 	}
@@ -71,7 +71,7 @@ func init() {
 	for k, v := range sinkFactories {
 		if err := zap.RegisterSink(k, v); err != nil {
 			if !strings.Contains(err.Error(), "already registered") {
-				xerror.Panic(err)
+				assert.Must(err)
 			}
 		}
 	}
@@ -122,7 +122,7 @@ func _RFC3339MilliTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 //	query := u.Query()
 //	var cfg = rotate.NewWriterConfig()
 //	for k := range query {
-//		v := query.Get(k)
+//		v := query.Value(k)
 //		switch k {
 //		case "dir":
 //			cfg.Dir = v
@@ -167,7 +167,7 @@ func _RFC3339MilliTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 //	query := u.Query()
 //	var cfg = rotate.NewWriterConfig()
 //	for k := range query {
-//		v := query.Get(k)
+//		v := query.Value(k)
 //		switch k {
 //		case "dir":
 //			cfg.Dir = v

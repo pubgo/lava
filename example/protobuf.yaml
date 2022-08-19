@@ -1,59 +1,40 @@
+vendor: ../.proto
+checksum: c2f4e960fcf8de782bcf2ccf2dd8614aa776f6b3
 root:
   - proto
-  - rsocket
+includes:
+  - proto
 deps:
   - name: google
     url: github.com/googleapis/googleapis
     path: /google
-    version: v0.0.0-20220224004616-3c171936039b
+    version: v0.0.0-20220601021915-4e0282f92e4e
   - name: protoc-gen-openapiv2
     url: github.com/grpc-ecosystem/grpc-gateway/v2
     path: /protoc-gen-openapiv2
-    version: v2.5.0
+    version: v2.10.3
   - name: go-proto-validators
     url: github.com/mwitkow/go-proto-validators
     version: v0.3.2
-  - name: gogoproto
-    url: github.com/gogo/protobuf
-    path: /gogoproto
-    version: v1.3.2
-  - name: lava
-    url: /Users/barry/git/lava/proto/lava
   - name: google/protobuf
     url: /usr/local/include/google/protobuf
+  - name: retag
+    url: github.com/pubgo/protobuild
+    path: /retag
+    version: v0.0.7
 plugins:
   - name: go
-    out: protopb
-    opt: paths=source_relative
+    out: pkg/proto
+    opt: paths=import
   - name: go-grpc
-    out: protopb
+    out: pkg/proto
     opt:
-      - paths=source_relative
+      - paths=import
       - require_unimplemented_servers=false
-  - name: grpc-gateway
-    out: protopb
-    opt:
-      - allow_repeated_fields_in_body=true
-      - paths=source_relative
-  - name: openapiv2
-    out: ./docs/swagger
-    opt:
-      - logtostderr=true
-      - allow_repeated_fields_in_body=true
-      - repeated_path_param_separator=ssv
-  - name: doc
-    out: ./docs/markdown
-    opt:
-      - markdown,index.md
-  - name: lava
-    out: protopb
-    opt:
-      - lava=true
-      - path=protopb
-      - paths=source_relative
   - name: errors
-    out: protopb
-    opt: paths=source_relative
-  - name: resty
-    out: protopb
-    opt: paths=source_relative
+    out: pkg/proto
+    opt: paths=import
+  - name: grpc-gateway
+    out: pkg/proto
+    opt:
+      - paths=import

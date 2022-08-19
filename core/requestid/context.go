@@ -3,29 +3,29 @@ package requestid
 import (
 	"context"
 
-	"github.com/segmentio/ksuid"
+	"github.com/rs/xid"
 )
 
-type (
-	reqIdKey struct{}
-)
+var reqIdKey = xid.New().String()
 
-func WithReqID(ctx context.Context, val string) context.Context {
-	return context.WithValue(ctx, reqIdKey{}, val)
+func CreateCtx(ctx context.Context, reqId string) context.Context {
+	return context.WithValue(ctx, reqIdKey, reqId)
 }
 
-func GetReqId(ctx context.Context) string {
-	var reqId, ok = ctx.Value(reqIdKey{}).(string)
+func GetFromCtx(ctx context.Context) string {
+	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
 	}
-	return ksuid.New().String()
+
+	return xid.New().String()
 }
 
 func getReqID(ctx context.Context) string {
-	var reqId, ok = ctx.Value(reqIdKey{}).(string)
+	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
 	}
+
 	return ""
 }

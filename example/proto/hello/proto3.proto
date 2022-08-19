@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hello;
 
-option go_package = "./;hello";
+option go_package = "./hellopb;hellopb";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/any.proto";

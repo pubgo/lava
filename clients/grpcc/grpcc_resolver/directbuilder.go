@@ -1,6 +1,7 @@
 package grpcc_resolver
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pubgo/xerror"
@@ -18,12 +19,12 @@ func (d *directBuilder) Scheme() string { return DirectScheme }
 
 // Build [direct://127.0.0.1,etcd:2379]
 func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	// 根据规则解析出地址
 	endpoints := strings.Split(target.URL.Host, EndpointSep)
 	if len(endpoints) == 0 {
-		return nil, xerror.Fmt("%s has not endpoint", target.URL.String())
+		return nil, fmt.Errorf("%s has not endpoint", target.URL.String())
 	}
 
 	// 构造resolver address, 并处理副本集

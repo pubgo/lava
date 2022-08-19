@@ -3,17 +3,21 @@ package scheduler
 import (
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
+	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/utils"
 )
 
-var quart = &Scheduler{scheduler: quartz.NewStdScheduler()}
-var logs = logging.Component(Name)
+func New(log *logging.Logger) *Scheduler {
+	return &Scheduler{
+		scheduler: quartz.NewStdScheduler(),
+		log:       logging.ModuleLog(log, Name),
+	}
+}
 
 type Scheduler struct {
 	scheduler quartz.Scheduler
@@ -21,28 +25,33 @@ type Scheduler struct {
 	cron      string
 	dur       time.Duration
 	once      bool
+	log       *logging.ModuleLogger
 }
 
-func (s Scheduler) do(fn func(name string)) {
-	var trigger = s.getTrigger()
-	s.check(s.key, fn, trigger)
+func (s *Scheduler) Stop() {
+	s.scheduler.Stop()
+}
 
-	xerror.Panic(s.scheduler.ScheduleJob(nameJob{name: s.key, fn: fn}, trigger))
+func (s *Scheduler) Start() {
+	if s.scheduler.IsStarted() {
+		return
+	}
+	s.scheduler.Start()
 }
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
-	logs.Depth(1).Info("register once scheduler", zap.String("name", name), zap.String("delay", delay.String()))
-	Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true}.do(fn)
+	s.log.Depth(1).Info("register once scheduler", zap.String("name", name), zap.String("delay", delay.String()))
+	do(&Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true, log: s.log}, fn)
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
-	logs.Depth(1).Info("register every scheduler", zap.String("name", name), zap.String("dur", dur.String()))
-	Scheduler{scheduler: s.scheduler, dur: dur, key: name}.do(fn)
+	s.log.Depth(1).Info("register every scheduler", zap.String("name", name), zap.String("dur", dur.String()))
+	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name, log: s.log}, fn)
 }
 
 func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
-	logs.Depth(1).Info("register cron scheduler", zap.String("name", name), zap.String("expr", expr))
-	Scheduler{scheduler: s.scheduler, cron: expr, key: name}.do(fn)
+	s.log.Depth(1).Info("register cron scheduler", zap.String("name", name), zap.String("expr", expr))
+	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name, log: s.log}, fn)
 }
 
 func (s *Scheduler) getTrigger() quartz.Trigger {
@@ -51,7 +60,7 @@ func (s *Scheduler) getTrigger() quartz.Trigger {
 	}
 
 	if s.cron != "" {
-		return xerror.PanicErr(quartz.NewCronTrigger(s.cron)).(*quartz.CronTrigger)
+		return assert.Must1(quartz.NewCronTrigger(s.cron))
 	}
 
 	if s.dur != 0 {
@@ -61,22 +70,25 @@ func (s *Scheduler) getTrigger() quartz.Trigger {
 	return nil
 }
 
-func (s *Scheduler) check(name string, fn func(name string), trigger quartz.Trigger) {
-	xerror.Assert(name == "", "[name] should not be null")
-	xerror.Assert(fn == nil, "[fn] should not be nil")
-	xerror.Assert(trigger == nil, "please init dur or cron")
+func do(s *Scheduler, fn func(name string)) {
+	var trigger = s.getTrigger()
+	assert.If(s.key == "", "[name] should not be null")
+	assert.If(fn == nil, "[fn] should not be nil")
+	assert.If(trigger == nil, "please init dur or cron")
+	assert.Must(s.scheduler.ScheduleJob(namedJob{name: s.key, fn: fn, log: s.log}, trigger))
 }
 
-type nameJob struct {
+type namedJob struct {
 	name string
 	fn   func(name string)
+	log  *logging.ModuleLogger
 }
 
-func (t nameJob) Description() string { return t.name }
-func (t nameJob) Key() int            { return quartz.HashCode(t.Description()) }
-func (t nameJob) Execute() {
+func (t namedJob) Description() string { return t.name }
+func (t namedJob) Key() int            { return quartz.HashCode(t.Description()) }
+func (t namedJob) Execute() {
 	var dur, err = utils.Cost(func() { t.fn(t.name) })
-	logutil.LogOrErr(logs.L(), "scheduler trigger",
+	logutil.LogOrErr(t.log.L(), "scheduler trigger",
 		func() error { return err },
 		zap.String("job-name", t.name),
 		zap.Int64("job-cost", dur.Microseconds()))

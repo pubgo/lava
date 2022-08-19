@@ -14,7 +14,9 @@ var (
 	}.Froze()
 )
 
-func init() { encoding.Register(Name, &jsonCodec{}) }
+func init() {
+	encoding.Register(Name, &jsonCodec{})
+}
 
 // jsonCodec uses json marshaler and unmarshaler.
 type jsonCodec struct{}

@@ -1,7 +1,8 @@
 package sqlite
 
 import (
-	"github.com/pubgo/lava/logging/logutil"
+	"errors"
+	"github.com/pubgo/funk/recovery"
 	"path/filepath"
 
 	"github.com/pubgo/x/pathutil"
@@ -11,14 +12,17 @@ import (
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
+	"github.com/pubgo/lava/logging/logutil"
 )
 
 func init() {
+	defer recovery.Exit()
+	
 	orm.Register("sqlite3", func(cfg config.CfgMap) gorm.Dialector {
-		var dsn, ok = cfg["dsn"].(string)
-		xerror.AssertFn(!ok || dsn == "", func() string {
+		var dsn = cfg.GetString("dsn")
+		xerror.AssertFn(dsn == "", func() error {
 			logutil.Pretty(cfg)
-			return "dns not found"
+			return errors.New("dsn not found")
 		})
 		_ = pathutil.IsNotExistMkDir(filepath.Dir(dsn))
 		return sqlite.Open(dsn)

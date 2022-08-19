@@ -5,13 +5,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/internal/pkg/merge"
 )
 
 const Name = "bolt"
@@ -28,24 +29,24 @@ type Cfg struct {
 	PageSize        int               `json:"page_size"`
 	NoSync          bool              `json:"no_sync"`
 	Path            string            `json:"path"`
+	db              *bolt.DB
 }
 
-func (t *Cfg) BuildOpts() *bolt.Options {
+func (t *Cfg) Get() *bolt.DB { return t.db }
+func (t *Cfg) Build() (err error) {
+	defer recovery.Err(&err)
+	var opts = t.getOpts()
+	var path = filepath.Join(config.CfgDir, t.Path)
+	assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(path)))
+	t.db = assert.Must1(bolt.Open(path, t.FileMode, opts))
+	return
+}
+
+func (t *Cfg) getOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
-	xerror.Panic(merge.Struct(options, t))
+	assert.Must(merge.Struct(options, t))
 	return options
-
-}
-
-func (t *Cfg) Create() *bolt.DB {
-	var opts = t.BuildOpts()
-	var path = filepath.Join(config.CfgDir, t.Path)
-	xerror.Panic(pathutil.IsNotExistMkDir(filepath.Dir(path)))
-
-	db, err := bolt.Open(path, t.FileMode, opts)
-	xerror.Panic(err)
-	return db
 }
 
 func DefaultCfg() *Cfg {

@@ -1,9 +1,10 @@
 package protobuf
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/pubgo/lava/encoding"
-	"github.com/pubgo/xerror"
 	pb "google.golang.org/protobuf/proto"
 )
 
@@ -25,7 +26,7 @@ func (c protobufCodec) Marshal(v interface{}) ([]byte, error) {
 		return pb.Marshal(m)
 	}
 
-	return nil, xerror.Fmt("%T is not a proto.Marshaler", v)
+	return nil, fmt.Errorf("%T is not a proto.Marshaler", v)
 }
 
 func (c protobufCodec) Unmarshal(data []byte, v interface{}) error {
@@ -37,7 +38,7 @@ func (c protobufCodec) Unmarshal(data []byte, v interface{}) error {
 		return pb.Unmarshal(data, m)
 	}
 
-	return xerror.Fmt("%T is not a proto.Unmarshaler", v)
+	return fmt.Errorf("%T is not a proto.Unmarshaler", v)
 }
 
 func (c protobufCodec) Name() string {
@@ -54,7 +55,7 @@ func (c protobufCodec) Encode(i interface{}) ([]byte, error) {
 		return pb.Marshal(m)
 	}
 
-	return nil, xerror.Fmt("%T is not a proto.Marshaler", i)
+	return nil, fmt.Errorf("%T is not a proto.Marshaler", i)
 }
 
 // Decode decodes an object from slice of bytes.
@@ -67,5 +68,5 @@ func (c protobufCodec) Decode(data []byte, i interface{}) error {
 		return pb.Unmarshal(data, m)
 	}
 
-	return xerror.Fmt("%T is not a proto.Unmarshaler", i)
+	return fmt.Errorf("%T is not a proto.Unmarshaler", i)
 }

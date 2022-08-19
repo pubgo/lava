@@ -3,24 +3,20 @@ package pidfile
 import (
 	"path/filepath"
 
-	"github.com/pubgo/x/pathutil"
-	"github.com/pubgo/xerror"
-
+	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/plugin"
+	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/x/pathutil"
 )
 
 func init() {
-	plugin.Register(&plugin.Base{
-		Name: Name,
-		OnInit: func(p plugin.Process) {
+	dix.Provider(func() lifecycle.Handler {
+		return func(lc lifecycle.Lifecycle) {
 			pidPath = filepath.Join(config.CfgDir, "pidfile")
 
 			_ = pathutil.IsNotExistMkDir(pidPath)
 
-			p.AfterStart(func() {
-				xerror.Panic(SavePid())
-			})
-		},
+			lc.AfterStart(SavePid)
+		}
 	})
 }

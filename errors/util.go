@@ -3,13 +3,12 @@ package errors
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 
-	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"github.com/goccy/go-json"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -93,34 +92,40 @@ func IsMemoryErr(err error) bool {
 // FromError try to convert an error to *Error.
 // It supports wrapped errors.
 func FromError(err error) *Error {
-	if err == nil {
+	switch err.(type) {
+	case nil:
 		return nil
+	case *Error:
+		return err.(*Error)
 	}
 
-	if se := new(Error); errors.As(err, &se) {
-		return se
+	var e *Error
+	if errors.As(err, &e) {
+		return e
 	}
 
 	// grpc error
-	gs, ok := status.FromError(err)
+	gs, ok := err.(interface{ GRPCStatus() *status.Status })
 	if ok {
-		ret := New("lava.grpc.error", int32(gs.Code()), gs.Message())
-		for _, detail := range gs.Details() {
-			switch d := detail.(type) {
-			case *errdetails.ErrorInfo:
-				ret.Reason = d.Reason
-				return ret.WithMetadata(d.Metadata)
+		if gs.GRPCStatus().Code() == codes.OK {
+			return nil
+		}
+
+		details := gs.GRPCStatus().Details()
+		if len(details) > 0 && details[0] != nil {
+			if e, ok = details[0].(*Error); ok {
+				return e
 			}
 		}
-		return ret
+
+		if json.Unmarshal([]byte(gs.GRPCStatus().Message()), &e) == nil && e.err.Status != 0 && e.err.Code != "" {
+			return e
+		}
+
+		return New("grpc.status.convert").Err(err).Msg(gs.GRPCStatus().Message()).Status(gs.GRPCStatus().Code())
 	}
 
-	return &Error{
-		Code:     int32(Err2GrpcCode(err)),
-		Reason:   "lava.unknown.error",
-		Message:  err.Error(),
-		Metadata: map[string]string{"detail": fmt.Sprintf("%v", err)},
-	}
+	return New("lava.error.convert").Err(err).Status(codes.Unknown)
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息
@@ -145,11 +150,8 @@ func Convert(err error) *status.Status {
 	return status.New(codes.Unknown, err.Error())
 }
 
-// GrpcToHTTPStatusCode gRPC转HTTP Code
-// example:
-//   spbStatus := status.FromContextError(err)
-//   httpStatusCode := ecode.GrpcToHTTPStatusCode(spbStatus.Code())
-func GrpcToHTTPStatusCode(statusCode codes.Code) int {
+// GrpcCodeToHTTP gRPC转HTTP Code
+func GrpcCodeToHTTP(statusCode codes.Code) int {
 	switch statusCode {
 	case codes.OK:
 		return http.StatusOK
@@ -196,7 +198,7 @@ func lavaError(err *Error) codes.Code {
 		return codes.OK
 	}
 
-	switch err.Code {
+	switch err.err.Status {
 	case http.StatusOK:
 		return codes.OK
 	case http.StatusBadRequest:

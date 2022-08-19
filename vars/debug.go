@@ -10,11 +10,13 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/xerror"
 )
 
 func init() {
+	defer recovery.Exit()
 	var index = func(keys []string) g.Node {
 		var nodes []g.Node
 		nodes = append(nodes, h.H1(g.Text("/expvar")))

@@ -12,7 +12,9 @@ type Cfg struct {
 }
 
 func (cfg Cfg) Build() (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
+		return err.WrapF("cfg=>\n\t%#v", cfg)
+	})
 
 	driver := cfg.Driver
 	xerror.Assert(driver == "", "tracer driver is null")

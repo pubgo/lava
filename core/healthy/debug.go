@@ -1,22 +1,22 @@
 package healthy
 
 import (
-	"github.com/pubgo/lava/debug"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 func init() {
 	debug.Get("/health", func(ctx *fiber.Ctx) error {
 		var dt = make(map[string]*health)
-		xerror.Panic(healthList.Each(func(name string, r interface{}) {
+		assert.Must(healthList.Each(func(name string, r interface{}) {
 			var h = &health{}
-			var dur, err = utils.Cost(func() { xerror.Panic(r.(Handler)(ctx)) })
+			var dur, err = utils.Cost(func() { assert.Must(r.(Handler)(ctx)) })
 			h.Cost = dur.String()
 			if err != nil {
 				h.Msg = err.Error()

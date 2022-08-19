@@ -2,6 +2,7 @@ package pidfile
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/core/runmode"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/runtime"
 )
 
 const Name = "pidfile"
@@ -33,7 +33,7 @@ func GetPid() (int, error) {
 }
 
 func GetPidF() (string, error) {
-	filename := fmt.Sprintf("%s.pid", runtime.Name())
+	filename := fmt.Sprintf("%s.pid", runmode.Project)
 	return filepath.Join(pidPath, filename), nil
 }
 

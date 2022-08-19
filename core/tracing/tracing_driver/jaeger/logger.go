@@ -9,7 +9,7 @@ import (
 var _ jLog.Logger = (*traceLog)(nil)
 
 func newLog(name string) *traceLog {
-	return &traceLog{logs: logging.Component(name).Depth(2)}
+	return &traceLog{logs: logging.GetGlobal(name).Depth(2)}
 }
 
 type traceLog struct {

@@ -6,33 +6,31 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/core/runmode"
 )
 
 const Name = "signal"
 
 func init() {
+	defer recovery.Exit()
 	flags.Register(&cli.BoolFlag{
 		Name:        "block",
-		Destination: &runtime.Block,
+		Destination: &runmode.Block,
 		Usage:       "Whether block program",
-		Value:       runtime.Block,
+		Value:       runmode.Block,
 	})
 }
 
-func Block() {
-	if !runtime.Block {
-		return
-	}
-
+func Wait() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	runtime.Signal = <-ch
-	logging.S().Infof("signal [%s] trigger", runtime.Signal)
+	runmode.Signal = <-ch
+	logx.Info("signal trigger", "signal", runmode.Signal)
 }
 
 func Ctx() context.Context {

@@ -1,29 +1,17 @@
 syntax = "proto3";
 
-package test;
+package lava.test.v1;
 
-option go_package = "./;test";
+import "google/protobuf/descriptor.proto";
 
-import "lava/tags.proto";
+option go_package = "github.com/pubgo/lava/gen/proto/test/testpbv1";
 
-message GenerateResponse {
-  string id = 1;
+enum TestCode {
+  OK = 0;
 
-  oneof image {
-    string media_file = 12
-        [ (lava.tags) = {key : "json1", value : "media_file"} ];
-    bytes data = 13;
-    int64 ad_id_to_copy_image_from = 14;
-  }
+  // NotFound 找不到
+  NotFound = 100000;
 
-  oneof image1 {
-    string media_file1 = 15;
-    bytes data1 = 16;
-    int64 ad_id_to_copy_image_from1 = 17;
-  }
-
-  string type = 2 [
-    (lava.tags) = {key : "json", value : "types,omitempty"},
-    (lava.tags) = {key : "yaml1", value : "types,omitempty"}
-  ];
+  // Unknown 未知
+  Unknown = 100001;
 }

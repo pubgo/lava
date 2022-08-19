@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gid;
 
-option go_package = "./;gid";
+option go_package = "./gidpb;gidpb";
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
@@ -14,14 +14,8 @@ import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "gogoproto/gogo.proto";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/struct.proto";
-
-option (gogoproto.sizer_all) = true;
-option (gogoproto.marshaler_all) = true;
-option (gogoproto.unmarshaler_all) = true;
-option (gogoproto.goproto_getters_all) = false;
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   host: "localhost:8080",
@@ -116,7 +110,7 @@ service Id {
   // Types id类型
   rpc Types(TypesRequest) returns (TypesResponse) {
     option (google.api.http) = {
-      get: "/api/v1/id/types"
+      get: "/v1/id/types"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       description: "Registers a producer to begin publishing notifications in the local MEC environment.";

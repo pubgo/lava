@@ -1,8 +1,11 @@
 package registry
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/pubgo/funk/assert"
+	_ "github.com/pubgo/funk/errorx"
 	"github.com/pubgo/xerror"
 )
 
@@ -34,15 +37,13 @@ type Cfg struct {
 	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
 }
 
-func (cfg Cfg) Build() (_ Registry, err error) {
-	defer xerror.RespErr(&err)
+func (cfg *Cfg) Check() *Cfg {
+	assert.Fn(cfg.Driver == "", func() error {
+		err := fmt.Errorf("registry driver is null")
 
-	var driver = cfg.Driver
-	xerror.Assert(driver == "", "registry driver is null")
-	xerror.Assert(!builders.Has(driver), "registry driver %s not found", driver)
-
-	var fc = builders.Get(driver).(Builder)
-	return fc(cfg.DriverCfg)
+		return xerror.WrapF(err, "cfg=>%#v", cfg)
+	})
+	return cfg
 }
 
 func DefaultCfg() Cfg {

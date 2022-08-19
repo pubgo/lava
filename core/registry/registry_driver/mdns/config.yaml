@@ -1,4 +1,0 @@
-registry:
-  driver: "mdns"
-  ttl: "2s"
-  text: ["txtv=0", "lo=1", "la=2"]

@@ -1,14 +1,16 @@
 package lava
 
 import (
+	"github.com/pubgo/lava/cmd/cmds/running"
+	"github.com/pubgo/lava/internal/service/grpcs"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/service/service_builder"
+	"github.com/urfave/cli/v2"
 )
 
-func Run(services ...service.Command) {
-	service.Run(services...)
+func Run(srv service.Runtime, cmd ...*cli.Command) {
+	running.Run(srv, cmd...)
 }
 
-func NewService(name string, desc ...string) service.Service {
-	return service_builder.New(name, desc...)
+func New() service.Service {
+	return grpcs.New()
 }

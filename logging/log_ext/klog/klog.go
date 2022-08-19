@@ -2,6 +2,7 @@ package klog
 
 import (
 	"github.com/go-logr/zapr"
+	"github.com/pubgo/dix"
 	"k8s.io/klog/v2"
 
 	"github.com/pubgo/lava/logging"
@@ -9,5 +10,9 @@ import (
 
 // 替换klog全局log
 func init() {
-	klog.SetLogger(zapr.NewLogger(logging.Component("klog").L()))
+	dix.Provider(func() logging.ExtLog {
+		return func(logger *logging.Logger) {
+			klog.SetLogger(zapr.NewLogger(logging.ModuleLog(logger, "klog").L()))
+		}
+	})
 }

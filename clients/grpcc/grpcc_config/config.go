@@ -3,10 +3,9 @@ package grpcc_config
 import (
 	"time"
 
-	"google.golang.org/grpc"
-
-	"github.com/pubgo/lava/clients/grpcc/grpcc_lb/p2c"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -21,26 +20,43 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
 
 // Cfg ...
 type Cfg struct {
-	Client      *ClientCfg `yaml:"client"`
-	Addr        string     `yaml:"addr"`
-	Scheme      string     `yaml:"scheme"`
-	Registry    string     `yaml:"registry"`
-	Middlewares []string   `yaml:"middlewares"`
+	Client      *ClientCfg           `yaml:"client"`
+	Addr        string               `yaml:"addr"`
+	Scheme      string               `yaml:"scheme"`
+	Registry    string               `yaml:"registry"`
+	Alias       string               `yaml:"alias"`
+	Middlewares []service.Middleware `yaml:"-"`
 }
 
 func (t Cfg) Check() error { return nil }
 
-func DefaultCfg() Cfg {
-	var cfg = Cfg{
+func DefaultCfg() *Cfg {
+	var cfg = &Cfg{
 		Scheme: grpcc_resolver.DiscovScheme,
 		Client: &ClientCfg{
-			Insecure:          true,
-			Block:             true,
-			BalancerName:      p2c.Name,
+			Insecure: true,
+			Block:    true,
+			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
+			// refer: https://github.com/grpc/grpc-proto/blob/d653c6d98105b2af937511aa6e46610c7e677e6e/grpc/service_config/service_config.proto#L632
+			DefaultServiceConfig: `{
+	"loadBalancingConfig": [{"round_robin": {}}],
+	"methodConfig": [{
+		"name": [{"service": ""}],
+		"waitForReady": true,
+		"retryPolicy": {
+			"MaxAttempts": 5,
+			"InitialBackoff": "0.1s",
+			"MaxBackoff": "5s",
+			"BackoffMultiplier": 2,
+			"RetryableStatusCodes": ["UNAVAILABLE"]
+		}
+	}]
+}`,
 			DialTimeout:       time.Minute,
 			Timeout:           DefaultTimeout,
 			MaxHeaderListSize: 1024 * 4,
 			MaxRecvMsgSize:    1024 * 1024 * 4,
+			// refer: https://github.com/grpc/grpc-go/blob/master/examples/features/keepalive/client/main.go
 			ClientParameters: clientParameters{
 				PermitWithoutStream: true,             // send pings even without active streams
 				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity

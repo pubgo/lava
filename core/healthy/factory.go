@@ -1,10 +1,10 @@
 package healthy
 
 import (
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 const Name = "health"
@@ -29,11 +29,7 @@ func List() (val []Handler) {
 }
 
 func Register(name string, r Handler) {
-	if r == nil {
-		return
-	}
-
-	xerror.Assert(name == "", "[name] is null")
-	xerror.Assert(healthList.Has(name), "healthy [%s] already exists", name)
+	assert.If(name == "" || r == nil, "[name,r] is null")
+	assert.If(healthList.Has(name), "healthy [%s] already exists", name)
 	healthList.Set(name, r)
 }

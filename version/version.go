@@ -1,25 +1,28 @@
 package version
 
 import (
+	"github.com/denisbrodbeck/machineid"
+	"github.com/google/uuid"
 	ver "github.com/hashicorp/go-version"
-	"github.com/pubgo/xerror"
-
-	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 )
 
-var CommitID = ""
-var BuildTime = ""
-var Data = ""
-var Domain = consts.Domain
-var Project = ""
-var Version = "v0.0.1-dev"
-var Tag = ""
+var commitID string
+var buildTime string
+var data string
+var domain string
+var version string
+var tag string
+var project string
+var deviceID = assert.Exit1(machineid.ID())
+var instanceID = uuid.New().String()
 
 func init() {
-	xerror.PanicErr(ver.NewVersion(Version))
-
-	if Project == "" {
-		Project = env.Get("lava_project", "app_name", "project_name", "service_name")
-	}
+	defer recovery.Exit()
+	assert.If(version == "", "version is null")
+	assert.If(project == "", "project is null")
+	assert.If(commitID == "", "commit id is null")
+	assert.If(buildTime == "", "build time is null")
+	assert.Exit1(ver.NewVersion(version))
 }

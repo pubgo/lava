@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./;gid";
+option go_package = "./gidpb;gidpb";
 package gid;
 
 import "google/api/annotations.proto";

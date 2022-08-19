@@ -11,8 +11,7 @@
 *.dot
 *.svg
 *.db
-.lava/db
-.lava/proto
+.lava
 .env
 
 # Test binary, built with `go test -c`
@@ -26,3 +25,5 @@ sqlite.db
 internal/example/services/logs
 logs
 bin
+/example/bin
+.proto

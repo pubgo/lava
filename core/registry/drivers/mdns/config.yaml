@@ -1,0 +1,5 @@
+registry:
+  driver: "mdns"
+  driver_config:
+    ttl: "5s"
+    text: [ "txtv=0", "lo=1", "la=2" ]

@@ -1,15 +1,15 @@
 package logkey
 
 const (
-	Err       = "err"
-	ErrStack  = "err_stack"
+	ErrMsg    = "err_msg"
+	ErrDetail = "err_detail"
 	Stack     = "stack"
 	Key       = "key"
 	Debug     = "debug"
 	Version   = "version"
 	TraceID   = "traceID"
 	Namespace = "namespace"
-	Component = "component"
+	Module    = "module"
 	Project   = "project"
 	Fields    = "fields"
 	Env       = "env"
@@ -29,7 +29,7 @@ const (
 const (
 	HeaderVersion     = "X-Api-Version"
 	HeaderTrace       = "X-Api-Trace"
-	HeaderAddress     = "X-Api-Address"
+	HeaderAddress     = "X-Api-Addr"
 	HeaderSetup       = "X-Api-Setup"
 	HeaderContentType = "Content-Type"
 )

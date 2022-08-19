@@ -1,7 +1,7 @@
 WORKDIR=`pwd`
 Domain=lava
 Project=test-grpc
-VersionBase=github.com/pubgo/lava
+Base=github.com/pubgo/lava
 Tag=$(shell git describe --abbrev=0 --tags)
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
@@ -9,13 +9,13 @@ CommitID=$(shell git rev-parse --short=8 HEAD)
 GOPATH=$(shell go env GOPATH )
 
 LDFLAGS=-ldflags " \
--X '${VersionBase}/version.BuildTime=${BuildTime}' \
--X '${VersionBase}/version.CommitID=${CommitID}' \
--X '${VersionBase}/version.Version=${Version}' \
--X '${VersionBase}/version.Tag=${Tag}' \
--X '${VersionBase}/version.Domain=${Domain}' \
--X '${VersionBase}/version.Project=${Project}' \
--X '${VersionBase}/version.Data=hello' \
+-X '${Base}/version.buildTime=${BuildTime}' \
+-X '${Base}/version.commitID=${CommitID}' \
+-X '${Base}/version.version=${Version:=v0.0.1-dev}' \
+-X '${Base}/version.tag=${Tag}' \
+-X '${Base}/version.domain=${Domain}' \
+-X '${Base}/version.project=${Project}' \
+-X '${Base}/version.data=hello' \
 "
 
 .PHONY: build
@@ -39,9 +39,7 @@ ci:
 
 .PHONY: gen
 proto-plugin-gen:
-	cd cmd/protoc-gen-lava && go install -v .
 	cd cmd/protoc-gen-errors && go install -v .
-	cd cmd/protoc-gen-resty && go install -v .
 
 .PHONY: example
 example:

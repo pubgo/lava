@@ -3,25 +3,27 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
-	requestid2 "github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/funk/recovery"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"go.uber.org/fx"
+	"github.com/pubgo/dix"
 	"go.uber.org/zap"
 
+	requestid2 "github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/middleware"
+	"github.com/pubgo/lava/service"
 )
 
 func init() {
-	inject.Register(fx.Invoke(func(tracer opentracing.Tracer, log *zap.Logger) {
-		log = log.Named(logutil.Names(logkey.Component, tracing.Name))
-		middleware.Register(tracing.Name, func(next middleware.HandlerFunc) middleware.HandlerFunc {
-			return func(ctx context.Context, req middleware.Request, resp middleware.Response) error {
+	defer recovery.Exit()
+
+	dix.Provider(func(tracer opentracing.Tracer, log *zap.Logger) service.Middleware {
+		log = log.Named(logutil.Names(logkey.Module, tracing.Name))
+		return func(next service.HandlerFunc) service.HandlerFunc {
+			return func(ctx context.Context, req service.Request, resp service.Response) error {
 				var (
 					err               error
 					span              opentracing.Span
@@ -52,7 +54,7 @@ func init() {
 				}
 
 				// request-id绑定
-				span.SetTag(requestid2.Name, requestid2.GetReqId(ctx))
+				span.SetTag(requestid2.Name, requestid2.GetFromCtx(ctx))
 
 				tracing.GetFrom(ctx).SetTag("sss", "")
 
@@ -61,6 +63,6 @@ func init() {
 				tracing.SetIfErr(span, err)
 				return err
 			}
-		})
-	}))
+		}
+	})
 }

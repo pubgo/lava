@@ -3,6 +3,7 @@ package grpclog
 import (
 	"fmt"
 
+	"github.com/pubgo/dix"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
@@ -11,9 +12,13 @@ import (
 )
 
 func init() {
-	grpclog.SetLoggerV2(&loggerWrapper{
-		log:      logging.Component("grpc").L().WithOptions(zap.AddCallerSkip(4)),
-		depthLog: logging.Component("grpc-component").L().WithOptions(zap.AddCallerSkip(2)),
+	dix.Provider(func() logging.ExtLog {
+		return func(logger *logging.Logger) {
+			grpclog.SetLoggerV2(&loggerWrapper{
+				log:      logging.ModuleLog(logger, "grpc").L().WithOptions(zap.AddCallerSkip(4)),
+				depthLog: logging.ModuleLog(logger, "grpc-component").L().WithOptions(zap.AddCallerSkip(2)),
+			})
+		}
 	})
 }
 

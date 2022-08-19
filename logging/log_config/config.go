@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 var (
@@ -89,8 +89,8 @@ func (t Config) handleOpts(opts ...option) Config {
 
 func (t Config) Build(name string, opts ...zap.Option) (_ *zap.Logger) {
 	zapCfg := zap.Config{}
-	var dt = xerror.PanicBytes(json.Marshal(&t))
-	xerror.Panic(json.Unmarshal(dt, &zapCfg))
+	var dt = assert.Must1(json.Marshal(&t))
+	assert.Must(json.Unmarshal(dt, &zapCfg))
 
 	// 保留全局log level, 用于后期动态修改
 	globalLevel = &zapCfg.Level
@@ -124,7 +124,7 @@ func (t Config) Build(name string, opts ...zap.Option) (_ *zap.Logger) {
 		}
 	}
 
-	var log = xerror.PanicErr(zapCfg.Build(opts...)).(*zap.Logger)
+	var log = assert.Must1(zapCfg.Build(opts...))
 
 	if t.Rotate != nil {
 		var cores []zapcore.Core

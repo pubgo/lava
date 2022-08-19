@@ -1,36 +1,29 @@
 package logging
 
 import (
-	"github.com/pubgo/xerror"
-	"go.uber.org/fx"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/inject"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/log_config"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/runtime"
 )
 
-func init() {
-	New(config.GetCfg())
-	inject.Register(fx.Provide(func() *zap.Logger { return zap.L() }))
-}
-
-func NewWithCfg(cfg *log_config.Config) {
-	cfg.Level = runtime.Level
+func NewWithCfg(cfg *log_config.Config) *Logger {
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
 	// 全局log设置
-	var log = cfg.Build(runtime.Project).With(
-		zap.String(logkey.Env, runtime.Mode.String()),
-		zap.String(logkey.Hostname, runtime.Hostname),
-		zap.String(logkey.Project, runtime.Project),
+	var log = cfg.Build(runmode.Project).With(
+		zap.String(logkey.Hostname, runmode.Hostname),
+		zap.String(logkey.Project, runmode.Project),
+		zap.String(logkey.Version, runmode.Version),
 	)
 
-	if runtime.Namespace != "" {
-		log = log.With(zap.String(logkey.Namespace, runtime.Namespace))
+	if runmode.Namespace != "" {
+		log = log.With(zap.String(logkey.Namespace, runmode.Namespace))
 	}
 
 	// 基础日志对象, 包含namespace, env, project和项目
@@ -39,18 +32,20 @@ func NewWithCfg(cfg *log_config.Config) {
 
 	// 替换zap全局log
 	zap.ReplaceGlobals(baseLog)
+	global = baseLog
+	return baseLog
 }
 
 // New logger
-func New(c config.Config) {
-	defer xerror.RespExit()
+func New(c config.Config) *Logger {
+	defer recovery.Exit()
 
 	var cfg = log_config.NewProdConfig()
-	if runtime.IsDev() || runtime.IsTest() || runtime.IsStag() {
-		cfg = log_config.NewDevConfig()
+
+	if runmode.IsDebug {
 		cfg.EncoderConfig.EncodeCaller = "full"
 	}
 
-	xerror.Panic(c.UnmarshalKey(Name, &cfg))
-	NewWithCfg(&cfg)
+	assert.Must(c.UnmarshalKey(Name, &cfg))
+	return NewWithCfg(&cfg)
 }

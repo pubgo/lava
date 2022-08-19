@@ -1,31 +1,35 @@
 version: v1
+vendor: .proto
+checksum: aeb8b133097e6a13b7ea0d767995bc2d30b80ca9
 root:
-- event
-- proto
-- errors
-- cmd/lava-broker/rsocket/sockets
+  - proto
 deps:
-- name: google
-  url: github.com/googleapis/googleapis
-  path: /google
-  version: v0.0.0-20220224004616-3c171936039b
-- name: protoc-gen-openapiv2
-  url: github.com/grpc-ecosystem/grpc-gateway/v2
-  path: /protoc-gen-openapiv2
-  version: v2.5.0
-- name: go-proto-validators
-  url: github.com/mwitkow/go-proto-validators
-  version: v0.3.2
-- name: gogoproto
-  url: github.com/gogo/protobuf
-  path: /gogoproto
-  version: v1.3.2
-- name: google/protobuf
-  url: /usr/local/include/google/protobuf
+  - name: google
+    url: github.com/googleapis/googleapis
+    path: /google
+    version: v0.0.0-20220224004616-3c171936039b
+  - name: protoc-gen-openapiv2
+    url: github.com/grpc-ecosystem/grpc-gateway/v2
+    path: /protoc-gen-openapiv2
+    version: v2.5.0
+  - name: go-proto-validators
+    url: github.com/mwitkow/go-proto-validators
+    version: v0.3.2
+  - name: google/protobuf
+    url: /usr/local/include/google/protobuf
+  - name: retag
+    url: github.com/pubgo/protobuild
+    path: /retag
+    version: v0.0.7
 plugins:
-- name: go
-  opt: paths=source_relative
-- name: errors
-  opt: paths=source_relative
-- name: lava
-  opt: paths=source_relative
+  - name: go
+    opt:
+      - paths=source_relative
+    out: gen
+#  - name: errors
+#    opt: paths=import
+#    out: gen
+#  - name: retag
+#    opt:
+#      - paths=import
+#      - output=gen

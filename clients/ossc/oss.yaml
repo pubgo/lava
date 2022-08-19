@@ -1,5 +1,0 @@
-default:
-  endpoint: ""
-  accessKeyID: ""
-  accessKeySecret: ""
-  bucket: ""

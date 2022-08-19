@@ -3,10 +3,11 @@ package vars
 import (
 	"expvar"
 
+	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/jsonx"
-	"github.com/pubgo/xerror"
 
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 func Float(name string) *expvar.Float {
@@ -41,25 +42,28 @@ func Map(name string) *expvar.Map {
 	return v.(*expvar.Map)
 }
 
-type value func() interface{}
+type Value func() interface{}
 
-func (f value) Value() interface{} { return f() }
-func (f value) String() (r string) {
+func (f Value) Value() interface{} { return f() }
+func (f Value) String() (r string) {
 	dt := f()
 
 	switch dt.(type) {
 	case nil:
-		return "{}"
+		return "null"
 	case string:
 		return dt.(string)
 	}
 
-	v := xerror.PanicBytes(jsonx.Marshal(dt))
-	return utils.BtoS(v)
+	ret := result.New(jsonx.Marshal(dt))
+	if ret.IsErr() {
+		return xerr.WrapXErr(ret.Err()).Stack()
+	}
+	return utils.BtoS(ret.Value())
 }
 
 func Register(name string, data func() interface{}) {
-	expvar.Publish(name, value(data))
+	expvar.Publish(name, Value(data))
 }
 
 func Has(name string) bool {

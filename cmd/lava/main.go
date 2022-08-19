@@ -1,23 +1,28 @@
 package main
 
 import (
-	"github.com/pubgo/lava/runtime"
+	"fmt"
 	"os"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/cmd/lava/cmds/protoc"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/version"
 )
 
 func main() {
 	var app = &cli.App{
-		Name:    runtime.Project,
-		Version: version.Version,
-		Commands: cli.Commands{
-			protoc.Cmd(),
+		Name:    runmode.Project,
+		Version: version.Version(),
+		Action: func(context *cli.Context) error {
+			fmt.Println(version.Domain())
+			fmt.Println(version.Version())
+			fmt.Println(version.CommitID())
+			fmt.Println(version.Project())
+			return nil
 		},
+		Commands: cli.Commands{},
 	}
-	xerror.Exit(app.Run(os.Args))
+	assert.Exit(app.Run(os.Args))
 }

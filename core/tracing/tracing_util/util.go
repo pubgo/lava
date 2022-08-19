@@ -1,6 +1,7 @@
 package tracing_util
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -18,10 +19,10 @@ const (
 
 // spanFromPHPRequest 解析php-molten组件链路
 func spanFromPHPRequest(req *http.Request) (span jaeger.SpanContext, err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	if req == nil {
-		return span, xerror.Fmt("context is nil")
+		return span, errors.New("context is nil")
 	}
 
 	var sampleIDStr = strings.Join(req.Header.Values(phpRequestSampleID), ",")

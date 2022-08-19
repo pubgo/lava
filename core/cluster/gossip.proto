@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package cluster;
-
-message Message {
-  string method = 1;
-  map<string, string> metadata = 2;
-  bytes payload = 3;
-}

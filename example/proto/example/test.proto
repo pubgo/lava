@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package hello.v1.test;
+
+option go_package = "./sqlxpb";
+
+enum NN {
+  Hello = 0;
+  HelloHello = 1;
+  HelloHello1 = 2;
+  HelloHello2 = 3;
+  HelloHello3 = 4;
+}
+
+message Test {
+  uint32 user_id = 1;
+  uint32 user_id1 = 2;
+  uint32 expire_at = 3;
+  uint32 expire_at1 = 4;
+  NN nn = 5;
+}

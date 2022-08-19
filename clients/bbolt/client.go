@@ -7,11 +7,16 @@ import (
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/tracing"
+	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/utils"
 )
+
+func New(db *bolt.DB, log *logging.Logger) *Client {
+	return &Client{DB: db, log: log}
+}
 
 type Client struct {
 	*bolt.DB
@@ -26,15 +31,19 @@ func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
 
 func (t *Client) Set(ctx context.Context, key string, val []byte, names ...string) error {
 	return t.Update(ctx, func(bucket *bolt.Bucket) error {
-		return bucket.Put(utils.StoB(key), val)
+		return bucket.Put(utils2.StoB(key), val)
 	}, names...)
 }
 
-func (t *Client) Get(ctx context.Context, key string, names ...string) (val []byte, err error) {
-	return val, t.View(ctx, func(bucket *bolt.Bucket) error {
-		val = bucket.Get(utils.StoB(key))
-		return nil
-	}, names...)
+func (t *Client) Get(ctx context.Context, key string, names ...string) result.Result[[]byte] {
+	var (
+		val []byte
+		err = t.View(ctx, func(bucket *bolt.Bucket) error {
+			val = bucket.Get(utils2.StoB(key))
+			return nil
+		}, names...)
+	)
+	return result.New(val, err)
 }
 
 func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {
@@ -43,12 +52,12 @@ func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...
 
 func (t *Client) Delete(ctx context.Context, key string, names ...string) error {
 	return t.Update(ctx, func(bucket *bolt.Bucket) error {
-		return bucket.Delete(utils.StoB(key))
+		return bucket.Delete(utils2.StoB(key))
 	}, names...)
 }
 
 func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
-	name := utils.GetDefault(names...)
+	name := utils2.GetDefault(names...)
 
 	var span = tracing.CreateChild(ctx, name)
 	defer span.Finish()
@@ -60,7 +69,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 }
 
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
-	name := utils.GetDefault(names...)
+	name := utils2.GetDefault(names...)
 
 	var span = tracing.CreateChild(ctx, name)
 	defer span.Finish()

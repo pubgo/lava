@@ -2,8 +2,7 @@ package jaeger
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
-	"github.com/pubgo/lava/core/tracing/tracing_plugin"
+	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
@@ -11,7 +10,8 @@ import (
 	"github.com/uber/jaeger-lib/metrics"
 	jprom "github.com/uber/jaeger-lib/metrics/prometheus"
 
-	"github.com/pubgo/lava/runtime"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/core/tracing/tracing_driver/jaeger/reporter"
 )
 
 // GetSpanID 从SpanContext中获取tracerID和spanID
@@ -26,11 +26,11 @@ func GetSpanID(ctx opentracing.SpanContext) (string, string) {
 var _ = jaeger.NewNullReporter()
 
 func New(cfg Cfg) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	cfg.Disabled = false
 	if cfg.ServiceName == "" {
-		cfg.ServiceName = runtime.Project
+		cfg.ServiceName = runmode.Project
 	}
 
 	if cfg.Sampler != nil {
@@ -41,12 +41,11 @@ func New(cfg Cfg) (err error) {
 	}
 
 	metricsFactory := jprom.New().
-		Namespace(metrics.NSOptions{Name: runtime.Domain, Tags: nil}).
-		Namespace(metrics.NSOptions{Name: runtime.Project, Tags: nil})
+		Namespace(metrics.NSOptions{Name: runmode.Project, Tags: nil})
 
 	trace, _, err := cfg.NewTracer(
 		config.Reporter(reporter.NewIoReporter(cfg.Logger, cfg.BatchSize)),
-		config.Logger(newLog(tracing_plugin.Name)),
+		config.Logger(newLog(tracing.Name)),
 		config.Metrics(metricsFactory),
 		config.Observer(rpcmetrics.NewObserver(metricsFactory, rpcmetrics.DefaultNameNormalizer)),
 	)
