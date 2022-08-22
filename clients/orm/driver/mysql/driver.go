@@ -1,8 +1,9 @@
 package mysql
 
 import (
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/xerr"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -27,10 +28,14 @@ func init() {
 	defer recovery.Exit()
 
 	orm.Register("mysql", func(cfg config.CfgMap) gorm.Dialector {
+		defer recovery.Raise(func(err xerr.XErr) xerr.XErr {
+			return err.WrapF("cfg=%q", cfg)
+		})
+
 		var conf = DefaultCfg()
-		xerror.Panic(cfg.Decode(&conf))
+		assert.Must(cfg.Decode(&conf))
 		var cc = mysql.Config{}
-		xerror.Panic(merge.Struct(&cc, conf))
+		assert.Must(merge.Struct(&cc, conf))
 		return mysql.New(cc)
 	})
 }

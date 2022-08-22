@@ -1,8 +1,11 @@
 package vars
 
 import (
+	"encoding/json"
 	"expvar"
+	"fmt"
 
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/jsonx"
 
@@ -46,6 +49,8 @@ type Value func() interface{}
 
 func (f Value) Value() interface{} { return f() }
 func (f Value) String() (r string) {
+	defer recovery.Recovery(func(err xerr.XErr) { r = err.String() })
+
 	dt := f()
 
 	switch dt.(type) {
@@ -53,13 +58,18 @@ func (f Value) String() (r string) {
 		return "null"
 	case string:
 		return dt.(string)
+	case []byte:
+		return string(dt.([]byte))
+	case fmt.Stringer:
+		return dt.(fmt.Stringer).String()
+	case json.Marshaler:
+		ret := result.New(jsonx.Marshal(dt))
+		if ret.IsErr() {
+			return xerr.WrapXErr(ret.Err()).Stack()
+		}
+		return utils.BtoS(ret.Value())
 	}
-
-	ret := result.New(jsonx.Marshal(dt))
-	if ret.IsErr() {
-		return xerr.WrapXErr(ret.Err()).Stack()
-	}
-	return utils.BtoS(ret.Value())
+	return fmt.Sprintf("%v", dt)
 }
 
 func Register(name string, data func() interface{}) {

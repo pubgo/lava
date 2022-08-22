@@ -2,9 +2,9 @@ package sqlite
 
 import (
 	"errors"
-	"github.com/pubgo/funk/recovery"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -18,7 +18,7 @@ func init() {
 
 	orm.Register("postgres", func(cfg config.CfgMap) gorm.Dialector {
 		var dsn = cfg.GetString("dsn")
-		xerror.AssertFn(dsn == "", func() error {
+		assert.Fn(dsn == "", func() error {
 			logutil.Pretty(cfg)
 			return errors.New("dsn not found")
 		})

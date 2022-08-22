@@ -7,7 +7,9 @@ import (
 	"github.com/pubgo/lava/logging"
 )
 
-func New(cfg Cfg, log *logging.Logger) *Client {
+func New(cfg *Cfg, log *logging.Logger) *Client {
+	assert.If(cfg == nil, "config is nil")
+
 	var builder = DefaultCfg()
 	builder.log = log.Named(Name)
 
