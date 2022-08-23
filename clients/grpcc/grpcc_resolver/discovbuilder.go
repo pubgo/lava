@@ -5,8 +5,12 @@ import (
 	"sync"
 
 	"github.com/kr/pretty"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/xerr"
+	"github.com/pubgo/funk/xtry"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
@@ -67,7 +71,7 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 
 // Build discov://service_name
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, gErr error) {
-	defer xerror.Recovery(func(err xerror.XErr) {
+	defer recovery.Recovery(func(err xerr.XErr) {
 		gErr = err
 		pretty.Println(target.URL.String())
 	})
@@ -76,37 +80,36 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	var r = registry.Default()
-	xerror.Assert(r == nil, "registry is nil")
+	assert.If(r == nil, "registry is nil")
 
 	var srv = target.URL.Host
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
 	services := r.GetService(srv).ToResult()
-	xerror.Panic(services.Err(), "registry GetService error")
 
 	// 启动后，更新服务地址
-	d.updateService(services.Value()...)
+	d.updateService(services.Expect("registry GetService error")...)
 
 	var address = d.getAddrList(srv)
-	xerror.Assert(len(address) == 0, "service none available")
+	assert.If(len(address) == 0, "service none available")
 
 	logs.S().Infof("discovBuilder Addrs %#v", address)
-	xerror.PanicF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
+	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
 	w := r.Watch(srv)
-	xerror.PanicF(w.Err(), "target.Endpoint: %s", srv)
+	w.Err().Expect("target.Endpoint: %s", srv)
 
 	return &baseResolver{
-		cancel: syncx.GoCtx(func(ctx context.Context) {
-			defer func() { xerror.Panic(w.Value().Stop()) }()
+		cancel: syncx.GoCtx(func(ctx context.Context) (gErr result.Error) {
+			defer func() { w.Unwrap().Stop() }()
 
 			for {
 				select {
 				case <-ctx.Done():
 					return
 				default:
-					res := w.Value().Next()
+					res := w.Unwrap().Next()
 					if res.Err() == registry.ErrWatcherStopped {
 						return
 					}
@@ -117,17 +120,17 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					}
 
 					// 注册中心删除服务
-					if res.Value().Action == eventpbv1.EventType_DELETE {
-						d.delService(res.Value().Service)
+					if res.Unwrap().Action == eventpbv1.EventType_DELETE {
+						d.delService(res.Unwrap().Service)
 					} else {
-						d.updateService(res.Value().Service)
+						d.updateService(res.Unwrap().Service)
 					}
 
-					xerror.TryCatch(func() {
+					xtry.TryErr(func() result.Error {
 						var addrList = d.getAddrList(srv)
-						xerror.Panic(cc.UpdateState(newState(addrList)))
-					}, func(err error) {
-						logs.WithErr(err).Error("update resolver address error")
+						return result.WithErr(cc.UpdateState(newState(addrList)))
+					}).Do(func(err result.Error) {
+						logs.WithErr(err.Unwrap()).Error("update resolver address error")
 					})
 				}
 			}

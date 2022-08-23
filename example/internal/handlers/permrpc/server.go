@@ -3,14 +3,14 @@ package permrpc
 import (
 	"context"
 	"errors"
+	casbin2 "github.com/pubgo/lava/example/internal/services/casbinservice"
+	menuservice2 "github.com/pubgo/lava/example/internal/services/menuservice"
 	"strings"
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 
-	"github.com/pubgo/lava/example/internal/casbin"
-	"github.com/pubgo/lava/example/internal/menuservice"
 	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
@@ -21,8 +21,8 @@ func New() permpb.PermServiceServer {
 
 type server struct {
 	Logger *logging.Logger
-	Casbin *casbin.Client
-	M      *menuservice.Menu
+	Casbin *casbin2.Client
+	M      *menuservice2.Menu
 	Db     *orm.Client
 }
 
@@ -31,12 +31,12 @@ func (s *server) Init() {
 }
 
 func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListResourcesRequest) (*permpb.PermServiceListResourcesResponse, error) {
-	sub, err := casbin.HandleSub(req.UserId, req.RoleId)
+	sub, err := casbin2.HandleSub(req.UserId, req.RoleId)
 	if err != nil {
 		return nil, err
 	}
 
-	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin2.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListR
 		}
 
 		for k, acts := range resources {
-			if casbin.IsNode(k) {
+			if casbin2.IsNode(k) {
 				continue
 			}
 
@@ -63,7 +63,7 @@ func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListR
 				continue
 			}
 
-			k = casbin.GetResId(k)
+			k = casbin2.GetResId(k)
 			var res = &permpb.Resource{ResId: k}
 			for m := range acts {
 				res.Acts = append(res.Acts, m)
@@ -75,12 +75,12 @@ func (s *server) ListResources(ctx context.Context, req *permpb.PermServiceListR
 }
 
 func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenusRequest) (*permpb.PermServiceListMenusResponse, error) {
-	sub, err := casbin.HandleSub(req.UserId, req.RoleId)
+	sub, err := casbin2.HandleSub(req.UserId, req.RoleId)
 	if err != nil {
 		return nil, err
 	}
 
-	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin2.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 
 	var names []string
 	for name := range mthList {
-		names = append(names, casbin.GetLast(strings.Split(name, "/")...))
+		names = append(names, casbin2.GetLast(strings.Split(name, "/")...))
 	}
 
 	var menuItems []*models.MenuItem
@@ -117,17 +117,17 @@ func (s *server) ListMenus(ctx context.Context, req *permpb.PermServiceListMenus
 		return nil, err
 	}
 
-	resp.Items = menuservice.HandleMenuTree(menus, menuItems, s.Logger)
+	resp.Items = menuservice2.HandleMenuTree(menus, menuItems, s.Logger)
 	return resp, nil
 }
 
 func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGroupsRequest) (*permpb.PermServiceListGroupsResponse, error) {
-	sub, err := casbin.HandleSub(req.UserId, req.RoleId)
+	sub, err := casbin2.HandleSub(req.UserId, req.RoleId)
 	if err != nil {
 		return nil, err
 	}
 
-	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin2.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 	}
 
 	var act = req.Act
-	var prefix = casbin.HandleNodeId(req.ResType)
+	var prefix = casbin2.HandleNodeId(req.ResType)
 	perms, err := s.Casbin.GetPermissions(req.UserId, req.RoleId, req.OrgId, func(perm string) bool {
 		return strings.HasPrefix(perm, prefix)
 	})
@@ -149,7 +149,7 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 
 	var resp = new(permpb.PermServiceListGroupsResponse)
 	var nodes = make(map[string]*permpb.PermGroup)
-	var allNodes = casbin.NewMapGroup()
+	var allNodes = casbin2.NewMapGroup()
 	for i := range perms {
 		if !perms[i].Act[act] && !perms[i].Act["access"] && !perms[i].Act["*"] {
 			continue
@@ -178,8 +178,8 @@ func (s *server) ListGroups(ctx context.Context, req *permpb.PermServiceListGrou
 func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRolePermRequest) (*permpb.PermServiceSaveRolePermResponse, error) {
 	const separator = ":::"
 
-	var role = casbin.HandleRoleId(req.RoleId)
-	var domain = casbin.HandleOrgId(req.OrgId)
+	var role = casbin2.HandleRoleId(req.RoleId)
+	var domain = casbin2.HandleOrgId(req.OrgId)
 
 	menus, err := s.M.ListEndpointsWithCode("api_code in ?", req.Menus)
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 		code := menus[i].Action.Code
 		targetType := menus[i].TargetType
 		resMap[targetType] = append(resMap[targetType], code)
-		var data = []string{role, domain, casbin.HandleMethod(casbin.JoinPath(menus[i].Action.Type, code)), casbin.ActAccess}
+		var data = []string{role, domain, casbin2.HandleMethod(casbin2.JoinPath(menus[i].Action.Type, code)), casbin2.ActAccess}
 		reqPerms[strings.Join(data, separator)] = true
 	}
 
@@ -202,9 +202,9 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 		groupId := req.Groups[i].GroupId
 
 		for _, act := range resMap[resType] {
-			var obj = casbin.HandleResId(casbin.JoinPath(resType, groupId))
+			var obj = casbin2.HandleResId(casbin2.JoinPath(resType, groupId))
 			if groupType != "" {
-				obj = casbin.HandleNodeId(casbin.JoinPath(resType, groupType, groupId))
+				obj = casbin2.HandleNodeId(casbin2.JoinPath(resType, groupType, groupId))
 			}
 			var data = []string{role, domain, obj, act}
 			reqPerms[strings.Join(data, separator)] = true
@@ -243,17 +243,17 @@ func (s *server) SaveRolePerm(ctx context.Context, req *permpb.PermServiceSaveRo
 }
 
 func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*permpb.EnforceResponse, error) {
-	sub, err := casbin.HandleSub(req.UserId, req.RoleId)
+	sub, err := casbin2.HandleSub(req.UserId, req.RoleId)
 	if err != nil {
 		return nil, err
 	}
 
-	obj, err := casbin.HandleObj(req.ResType, req.GroupType, req.ResId)
+	obj, err := casbin2.HandleObj(req.ResType, req.GroupType, req.ResId)
 	if err != nil {
 		return nil, err
 	}
 
-	domain, err := s.Casbin.HandleOrgDomain(casbin.HandleOrgId(req.OrgId), sub)
+	domain, err := s.Casbin.HandleOrgDomain(casbin2.HandleOrgId(req.OrgId), sub)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 
 	var act = req.Act
 	var name string
-	if casbin.IsMth(req.ResType) {
+	if casbin2.IsMth(req.ResType) {
 		mthName, err := s.M.GetMethodName(act, obj)
 		if err != nil {
 			return nil, err
@@ -276,8 +276,8 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 		var ok bool
 		var err error
 		if name != "" {
-			s.Logger.Debug("method enforce", logutil.ListField("params", sub, domain[i], casbin.HandleMethod(name)))
-			ok, err = s.Casbin.EnforceMth(sub, domain[i], casbin.HandleMethod(name))
+			s.Logger.Debug("method enforce", logutil.ListField("params", sub, domain[i], casbin2.HandleMethod(name)))
+			ok, err = s.Casbin.EnforceMth(sub, domain[i], casbin2.HandleMethod(name))
 		} else {
 			s.Logger.Debug("resource enforce", logutil.ListField("params", sub, domain[i], obj, act))
 			ok, err = s.Casbin.Enforce(sub, domain[i], obj, act)
@@ -288,9 +288,9 @@ func (s *server) Enforce(ctx context.Context, req *permpb.EnforceRequest) (*perm
 		}
 
 		if ok {
-			return &permpb.EnforceResponse{Ok: ok, Code: casbin.GetLast(strings.Split(name, "/")...)}, nil
+			return &permpb.EnforceResponse{Ok: ok, Code: casbin2.GetLast(strings.Split(name, "/")...)}, nil
 		}
 	}
 
-	return &permpb.EnforceResponse{Ok: false, Code: casbin.GetLast(strings.Split(name, "/")...)}, nil
+	return &permpb.EnforceResponse{Ok: false, Code: casbin2.GetLast(strings.Split(name, "/")...)}, nil
 }

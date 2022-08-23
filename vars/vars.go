@@ -63,11 +63,11 @@ func (f Value) String() (r string) {
 	case fmt.Stringer:
 		return dt.(fmt.Stringer).String()
 	case json.Marshaler:
-		ret := result.New(jsonx.Marshal(dt))
+		ret := result.Wrap(jsonx.Marshal(dt))
 		if ret.IsErr() {
 			return xerr.WrapXErr(ret.Err()).Stack()
 		}
-		return utils.BtoS(ret.Value())
+		return utils.BtoS(ret.Unwrap())
 	}
 	return fmt.Sprintf("%v", dt)
 }

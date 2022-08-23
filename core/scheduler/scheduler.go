@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"github.com/pubgo/funk/result"
 	"time"
 
 	"github.com/pubgo/funk/assert"
@@ -89,7 +90,7 @@ func (t namedJob) Key() int            { return quartz.HashCode(t.Description())
 func (t namedJob) Execute() {
 	var dur, err = utils.Cost(func() { t.fn(t.name) })
 	logutil.LogOrErr(t.log.L(), "scheduler trigger",
-		func() error { return err },
+		func() result.Error { return result.WithErr(err) },
 		zap.String("job-name", t.name),
 		zap.Int64("job-cost", dur.Microseconds()))
 }

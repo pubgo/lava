@@ -19,6 +19,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 	xtry "github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/stack"
@@ -126,7 +127,7 @@ func (s *serviceImpl) init() {
 		}
 
 		if h, ok := svr.(service.Init); ok {
-			assert.Must(h.Init())
+			h.Init()
 		}
 	})
 
@@ -138,7 +139,7 @@ func (s *serviceImpl) init() {
 	}))
 
 	var conn = assert.Must1(grpc.Dial(fmt.Sprintf("localhost:%d", runmode.GrpcPort), grpc.WithTransportCredentials(insecure.NewCredentials())))
-	s.lc.BeforeStop(conn.Close)
+	s.lc.BeforeStop(func() { assert.Must(conn.Close()) })
 	grpcMux := runtime.NewServeMux()
 	s.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
 		if h, ok := svr.(service.Gateway); ok {
@@ -204,79 +205,80 @@ func (s *serviceImpl) Providers(provider ...interface{}) {
 func (s *serviceImpl) start() {
 	s.init()
 
-	logutil.OkOrPanic(s.log, "service before-start", func() error {
+	logutil.OkOrPanic(s.log, "service before-start", func() result.Error {
 		for _, run := range s.getLifecycle.GetBeforeStarts() {
 			s.log.Sugar().Infof("before-start running %s", stack.Func(run))
 			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
-		return nil
+		return result.Error{}
 	})
 
 	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
 
-	logutil.OkOrPanic(s.log, "service start", func() error {
+	logutil.OkOrPanic(s.log, "service start", func() result.Error {
 		// 启动grpc服务
-		syncx.GoDelay(func() {
+		syncx.GoDelay(func() result.Error {
 			s.log.Info("[grpc] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() error {
+			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() result.Error {
 				if err := s.grpcSrv.Get().Serve(grpcLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
-					return err
+					return result.WithErr(err)
 				}
-				return nil
+				return result.Error{}
 			})
+			return result.Error{}
 		})
 
 		// 启动grpc网关
-		syncx.GoDelay(func() {
+		syncx.GoDelay(func() result.Error {
 			s.log.Info("[grpc-gw] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() error {
+			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() result.Error {
 				if err := s.httpSrv.Get().Listener(httpLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
-					return err
+					return result.WithErr(err)
 				}
-				return nil
+				return result.Error{}
 			})
+			return result.Error{}
 		})
-		return nil
+		return result.Error{}
 	})
 
-	logutil.OkOrPanic(s.log, "service after-start", func() error {
+	logutil.OkOrPanic(s.log, "service after-start", func() result.Error {
 		for _, run := range s.getLifecycle.GetAfterStarts() {
 			s.log.Sugar().Infof("after-start running %s", stack.Func(run))
 			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
-		return nil
+		return result.Error{}
 	})
 }
 
 func (s *serviceImpl) stop() {
-	logutil.OkOrErr(s.log, "service before-stop", func() error {
+	logutil.OkOrErr(s.log, "service before-stop", func() result.Error {
 		for _, run := range s.getLifecycle.GetBeforeStops() {
 			s.log.Sugar().Infof("before-stop running %s", stack.Func(run))
 			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
-		return nil
+		return result.Error{}
 	})
 
-	logutil.LogOrErr(s.log, "[grpc-gw] Shutdown", func() error {
-		assert.Must(s.httpSrv.Get().Shutdown())
-		return nil
+	logutil.LogOrErr(s.log, "[grpc-gw] Shutdown", func() result.Error {
+		return result.WithErr(s.httpSrv.Get().Shutdown())
 	})
 
-	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() error {
+	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() result.Error {
 		s.grpcSrv.Get().GracefulStop()
-		return nil
+		return result.Error{}
 	})
 
-	logutil.OkOrErr(s.log, "service after-stop", func() error {
+	logutil.OkOrErr(s.log, "service after-stop", func() result.Error {
 		for _, run := range s.getLifecycle.GetAfterStops() {
 			s.log.Sugar().Infof("after-stop running %s", stack.Func(run))
 			assert.Must(xtry.Try(run.Handler), stack.Func(run))
 		}
-		return nil
+		return result.Error{}
 	})
 }

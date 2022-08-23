@@ -6,11 +6,11 @@ import (
 )
 
 type Init interface {
-	Init() error
+	Init()
 }
 
 type Close interface {
-	Close() error
+	Close()
 }
 
 type Flags interface {

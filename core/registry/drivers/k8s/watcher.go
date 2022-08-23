@@ -74,7 +74,7 @@ func (t *Watcher) Next() result.Result[*registry.Result] {
 			return result.OK(resp)
 		}
 
-		return result.Err[*registry.Result](registry.ErrWatcherStopped)
+		return result.Wrap(new(registry.Result), registry.ErrWatcherStopped)
 	}
 }
 

@@ -2,11 +2,11 @@ package grouprpc
 
 import (
 	"context"
+	"github.com/pubgo/lava/example/internal/services/casbinservice"
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
 
-	"github.com/pubgo/lava/example/internal/casbin"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
@@ -17,7 +17,7 @@ func New() permpb.GroupServiceServer {
 type server struct {
 	Logger *logging.Logger
 	Db     *orm.Client
-	Casbin *casbin.Client
+	Casbin *casbinservice.Client
 }
 
 func (s *server) Init() {

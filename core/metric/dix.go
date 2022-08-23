@@ -2,7 +2,6 @@ package metric
 
 import (
 	"context"
-
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/uber-go/tally/v4"
@@ -33,7 +32,7 @@ func init() {
 		}
 
 		scope, closer := tally.NewRootScope(*opts, cfg.Interval)
-		m.BeforeStop(closer.Close, "metric close")
+		m.BeforeStop(func() { assert.Must(closer.Close()) }, "metric close")
 
 		registerVars(scope)
 		return scope

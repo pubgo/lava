@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/tracing"
 	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
@@ -43,7 +43,7 @@ func (t *Client) Get(ctx context.Context, key string, names ...string) result.Re
 			return nil
 		}, names...)
 	)
-	return result.New(val, err)
+	return result.Wrap(val, err)
 }
 
 func (t *Client) List(ctx context.Context, fn func(k, v []byte) error, names ...string) error {

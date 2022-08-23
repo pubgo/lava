@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/result"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/requestid"
@@ -87,7 +88,7 @@ func init() {
 					// 持续时间, 微秒
 					params = append(params, zap.String("duration", time.Since(now).String()))
 					// 记录错误日志
-					logutil.LogOrErr(log, req.Endpoint(), func() error { return err }, params...)
+					logutil.LogOrErr(log, req.Endpoint(), func() result.Error { return result.WithErr(err) }, params...)
 				}()
 
 				if !req.Client() {

@@ -7,7 +7,8 @@ import (
 	"runtime/debug"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/runmode"
@@ -26,7 +27,7 @@ func Cmd() *cli.Command {
 			"lava version json",
 			"lava version t"),
 		Action: func(ctx *cli.Context) error {
-			defer xerror.RecoverAndExit()
+			defer recovery.Exit()
 
 			info, ok := debug.ReadBuildInfo()
 			if !ok {
@@ -41,12 +42,10 @@ func Cmd() *cli.Command {
 
 			switch typ {
 			case "":
-				dt, err := json.MarshalIndent(runmode.GetVersion(), "", "\t")
-				xerror.Panic(err)
+				dt := assert.Must1(json.MarshalIndent(runmode.GetVersion(), "", "\t"))
 				fmt.Println(string(dt))
 			case "json":
-				dt, err := json.MarshalIndent(info, "", "\t")
-				xerror.Panic(err)
+				dt := assert.Must1(json.MarshalIndent(info, "", "\t"))
 				fmt.Println(string(dt))
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)

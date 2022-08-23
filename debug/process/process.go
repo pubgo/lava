@@ -32,8 +32,8 @@ func init() {
 					"pid":        p.Pid(),
 					"ppid":       p.PPid(),
 					"exec":       p.Executable(),
-					"path":       result.New(p.Path()),
-					"go_version": goVersion(result.New(p.Path())),
+					"path":       result.Wrap(p.Path()),
+					"go_version": goVersion(result.Wrap(p.Path())),
 				})
 			}
 			return nil
@@ -46,11 +46,10 @@ func goVersion(path result.Result[string]) result.Result[string] {
 		return path
 	}
 
-	info, err := buildinfo.ReadFile(path.Value())
+	info, err := buildinfo.ReadFile(path.Unwrap())
 	if err != nil {
-		return result.Err[string](err)
+		return result.Wrap("", err)
 	}
-
 	return result.OK(info.GoVersion)
 }
 

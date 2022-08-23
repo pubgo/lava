@@ -1,4 +1,4 @@
-package hellohandler
+package hellorpc
 
 import (
 	"context"

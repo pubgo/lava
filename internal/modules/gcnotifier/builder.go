@@ -5,6 +5,7 @@ import (
 
 	"github.com/CAFxX/gcnotifier"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -22,8 +23,8 @@ func init() {
 
 		var logs = logging.ModuleLog(log, Name)
 		return func(lc lifecycle.Lifecycle) {
-			lc.AfterStart(func() error {
-				var cancel = syncx.GoCtx(func(ctx context.Context) {
+			lc.AfterStart(func() {
+				var cancel = syncx.GoCtx(func(ctx context.Context) result.Error {
 					var gc = gcnotifier.New()
 					defer gc.Close()
 
@@ -34,12 +35,11 @@ func init() {
 						case <-gc.AfterGC():
 							logs.L().Info("gc notify")
 						case <-ctx.Done():
-							return
+							return result.Error{}
 						}
 					}
 				})
-				lc.BeforeStop(func() error { cancel(); return nil })
-				return nil
+				lc.BeforeStop(cancel)
 			})
 		}
 	})

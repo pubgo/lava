@@ -6,7 +6,8 @@ import (
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pubgo/dix"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/clients/orm"
@@ -51,14 +52,14 @@ func Cmd() *cli.Command {
 				Usage:   "do migrate",
 				Aliases: []string{"m"},
 				Action: func(context *cli.Context) error {
-					defer xerror.RecoverAndExit()
+					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
 					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
-						xerror.Panic(m.Migrate())
+						assert.Must(m.Migrate())
 					} else {
-						xerror.Panic(m.MigrateTo(id))
+						assert.Must(m.MigrateTo(id))
 					}
 					p.Log.Info("Migration run ok")
 					return nil
@@ -69,7 +70,7 @@ func Cmd() *cli.Command {
 				Usage:   "list migrate",
 				Aliases: []string{"l"},
 				Action: func(context *cli.Context) error {
-					defer xerror.RecoverAndExit()
+					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
 					for _, m := range migrate(p.Migrations) {
@@ -84,14 +85,14 @@ func Cmd() *cli.Command {
 				Usage:   "do rollback",
 				Aliases: []string{"r"},
 				Action: func(context *cli.Context) error {
-					defer xerror.RecoverAndExit()
+					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
 					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
-						xerror.Panic(m.RollbackLast())
+						assert.Must(m.RollbackLast())
 					} else {
-						xerror.Panic(m.RollbackTo(id))
+						assert.Must(m.RollbackTo(id))
 					}
 					p.Log.Info("RollbackLast run ok")
 					return nil

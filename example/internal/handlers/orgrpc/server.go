@@ -3,11 +3,11 @@ package orgrpc
 import (
 	"context"
 	"errors"
+	casbin2 "github.com/pubgo/lava/example/internal/services/casbinservice"
+	"github.com/pubgo/lava/example/internal/services/menuservice"
 
 	"github.com/pubgo/lava/logging"
 
-	"github.com/pubgo/lava/example/internal/casbin"
-	"github.com/pubgo/lava/example/internal/menuservice"
 	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
@@ -17,7 +17,7 @@ func New() permpb.OrgServiceServer {
 
 type server struct {
 	Logger *logging.Logger
-	Casbin *casbin.Client
+	Casbin *casbin2.Client
 	M      *menuservice.Menu
 }
 
@@ -39,8 +39,8 @@ func (s *server) CreateOrg(ctx context.Context, req *permpb.CreateOrgRequest) (*
 
 	// org root user
 	if req.UserId != "" {
-		var orgId = casbin.HandleOrgId(req.OrgId)
-		var _, err = s.Casbin.AddRoleForUserInDomain(casbin.HandleUserId(req.UserId), casbin.HandleRoleId(orgId), orgId)
+		var orgId = casbin2.HandleOrgId(req.OrgId)
+		var _, err = s.Casbin.AddRoleForUserInDomain(casbin2.HandleUserId(req.UserId), casbin2.HandleRoleId(orgId), orgId)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +54,7 @@ func (s *server) DeleteOrg(ctx context.Context, req *permpb.DeleteOrgRequest) (*
 		return nil, errors.New("orgId is null")
 	}
 
-	var _, err = s.Casbin.DeleteDomains(casbin.HandleOrgId(req.OrgId))
+	var _, err = s.Casbin.DeleteDomains(casbin2.HandleOrgId(req.OrgId))
 	if err != nil {
 		return nil, err
 	}
@@ -67,10 +67,10 @@ func (s *server) TransferOrg(ctx context.Context, req *permpb.TransferOrgRequest
 		return nil, errors.New("org_id or user_id or new_user_id is null")
 	}
 
-	var newUserId = casbin.HandleUserId(req.NewUserId)
-	var userId = casbin.HandleUserId(req.UserId)
-	var orgId = casbin.HandleOrgId(req.OrgId)
-	var orgRole = casbin.HandleRoleId(orgId)
+	var newUserId = casbin2.HandleUserId(req.NewUserId)
+	var userId = casbin2.HandleUserId(req.UserId)
+	var orgId = casbin2.HandleOrgId(req.OrgId)
+	var orgRole = casbin2.HandleRoleId(orgId)
 
 	// add new user to org role
 	if _, err := s.Casbin.AddRoleForUserInDomain(newUserId, orgRole, orgId); err != nil {

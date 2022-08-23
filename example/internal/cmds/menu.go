@@ -2,11 +2,10 @@ package cmds
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/example/internal/services/menuservice"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/xerror"
 	"github.com/urfave/cli/v2"
-
-	"github.com/pubgo/lava/example/internal/menuservice"
 )
 
 type param struct {
@@ -19,7 +18,7 @@ func Menu() *cli.Command {
 		Name:  "menu",
 		Usage: "Load local menu config to database",
 		Action: func(c *cli.Context) error {
-			xerror.RecoverAndExit()
+			defer recovery.Exit()
 			var p = dix.Inject(new(param))
 			p.M.SaveLocalMenusToDb()
 			p.Log.Info("menu saving success")

@@ -7,17 +7,17 @@ import (
 )
 
 type executor struct {
-	Handler func() error
+	Handler func()
 	Msg     string
 }
 
 type Handler func(lc Lifecycle)
 
 type Lifecycle interface {
-	AfterStop(f func() error, msg ...string)
-	BeforeStop(f func() error, msg ...string)
-	AfterStart(f func() error, msg ...string)
-	BeforeStart(f func() error, msg ...string)
+	AfterStop(f func(), msg ...string)
+	BeforeStop(f func(), msg ...string)
+	AfterStart(f func(), msg ...string)
+	BeforeStart(f func(), msg ...string)
 }
 
 type GetLifecycle interface {
@@ -41,25 +41,25 @@ func (t *lifecycleImpl) GetAfterStops() []executor   { return t.afterStops }
 func (t *lifecycleImpl) GetBeforeStops() []executor  { return t.beforeStops }
 func (t *lifecycleImpl) GetAfterStarts() []executor  { return t.afterStarts }
 func (t *lifecycleImpl) GetBeforeStarts() []executor { return t.beforeStarts }
-func (t *lifecycleImpl) BeforeStart(f func() error, msg ...string) {
+func (t *lifecycleImpl) BeforeStart(f func(), msg ...string) {
 	t.beforeStarts = append(t.beforeStarts, executor{
 		Handler: f,
 		Msg:     utils.FirstNotEmpty(msg...),
 	})
 }
-func (t *lifecycleImpl) BeforeStop(f func() error, msg ...string) {
+func (t *lifecycleImpl) BeforeStop(f func(), msg ...string) {
 	t.beforeStops = append(t.beforeStops, executor{
 		Handler: f,
 		Msg:     utils.FirstNotEmpty(msg...),
 	})
 }
-func (t *lifecycleImpl) AfterStart(f func() error, msg ...string) {
+func (t *lifecycleImpl) AfterStart(f func(), msg ...string) {
 	t.afterStarts = append(t.afterStarts, executor{
 		Handler: f,
 		Msg:     utils.FirstNotEmpty(msg...),
 	})
 }
-func (t *lifecycleImpl) AfterStop(f func() error, msg ...string) {
+func (t *lifecycleImpl) AfterStop(f func(), msg ...string) {
 	t.afterStops = append(t.afterStops, executor{
 		Handler: f,
 		Msg:     utils.FirstNotEmpty(msg...),

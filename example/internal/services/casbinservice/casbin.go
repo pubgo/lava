@@ -1,4 +1,4 @@
-package casbin
+package casbinservice
 
 import (
 	libcasbin "github.com/casbin/casbin/v2"

@@ -16,7 +16,9 @@ func init() {
 
 			_ = pathutil.IsNotExistMkDir(pidPath)
 
-			lc.AfterStart(SavePid)
+			lc.AfterStart(func() {
+				SavePid().Must()
+			})
 		}
 	})
 }

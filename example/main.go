@@ -6,11 +6,11 @@ import (
 	_ "github.com/pubgo/lava/clients/orm/driver/sqlite"
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 	_ "github.com/pubgo/lava/debug/process"
+	"github.com/pubgo/lava/example/gen/proto/gidpb"
+	"github.com/pubgo/lava/example/internal/bootstrap"
+	"github.com/pubgo/lava/example/internal/handlers/gidrpc"
 
-	"github.com/pubgo/lava/example/bootstrap"
-	"github.com/pubgo/lava/example/handlers/gidhandler"
 	"github.com/pubgo/lava/example/internal/cmds"
-	"github.com/pubgo/lava/example/pkg/proto/gidpb"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	var srv = lava.New()
 	srv.Providers(bootstrap.Providers().ToResult().Unwrap()...)
 
-	gidpb.RegisterIdServer(srv, gidhandler.New())
+	gidpb.RegisterIdServer(srv, gidrpc.New())
 	//hellopb.RegisterTestApiServer(srv, hellohandler.NewTestAPIHandler())
 	//permpb.RegisterMenuServiceServer(srv, menurpc.New())
 	//permpb.RegisterGroupServiceServer(srv, grouprpc.New())

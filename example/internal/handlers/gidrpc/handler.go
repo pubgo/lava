@@ -1,8 +1,9 @@
-package gidhandler
+package gidrpc
 
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/example/gen/proto/gidpb"
 	"math/rand"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/example/pkg/proto/gidpb"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"
@@ -54,14 +54,13 @@ func New() gidpb.IdServer {
 	}
 }
 
-func (id *Id) Init() error {
+func (id *Id) Init() {
 	id.Cron.Every("test gid", time.Second*2, func(name string) {
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
 		fmt.Println("test cron every")
 	})
-	return nil
 }
 
 var err1 = errors.New("id.generate")

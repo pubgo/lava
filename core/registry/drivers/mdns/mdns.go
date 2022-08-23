@@ -52,9 +52,9 @@ func (m *mdnsRegistry) Close() {
 func (m *mdnsRegistry) Init() {
 }
 
-func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (err error) {
-	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
-		return err.WrapF("service=>%#v", service)
+func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (gErr result.Error) {
+	defer recovery.Recovery(func(err xerr.XErr) {
+		gErr = result.WithErr(err).WrapF("service=>%#v", service)
 	})
 
 	assert.If(service == nil, "[service] should not be nil")
@@ -64,7 +64,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 
 	// 已经存在
 	if m.services.Has(node.Id) {
-		return nil
+		return
 	}
 
 	server, err := zeroconf.Register(node.Id, service.Name, zeroconfDomain, node.GetPort(), []string{node.Id}, nil)
@@ -80,12 +80,12 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 		id:   node.Id,
 		name: service.Name,
 	})
-	return nil
+	return
 }
 
-func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (err error) {
-	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
-		return err.WrapF("service=>%#v", service)
+func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (gErr result.Error) {
+	defer recovery.Recovery(func(err xerr.XErr) {
+		gErr = result.WithErr(err.WrapF("service=>%#v", service))
 	})
 
 	assert.If(service == nil, "[service] should not be nil")
@@ -94,11 +94,11 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 	node := service.Nodes[0]
 	var val, ok = m.services.LoadAndDelete(node.Id)
 	if !ok || val == nil {
-		return nil
+		return
 	}
 
 	val.(*serverNode).srv.Shutdown()
-	return nil
+	return
 }
 
 func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.List[*registry.Service] {

@@ -24,17 +24,14 @@ deps:
     version: v0.0.7
 plugins:
   - name: go
-    out: pkg/proto
+    out: gen/proto
     opt: paths=import
   - name: go-grpc
-    out: pkg/proto
+    out: gen/proto
     opt:
       - paths=import
       - require_unimplemented_servers=false
-  - name: errors
-    out: pkg/proto
-    opt: paths=import
   - name: grpc-gateway
-    out: pkg/proto
+    out: gen/proto
     opt:
       - paths=import

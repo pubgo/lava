@@ -3,41 +3,42 @@ package logutil
 import (
 	"github.com/kr/pretty"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/q"
 	"go.uber.org/zap"
 )
 
-func OkOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
+func OkOrErr(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
 	log.Info(msg)
 
-	xtry.TryCatch(fn, func(err xerr.XErr) {
-		log.Error(msg+" failed", ErrField(err)...)
+	xtry.TryErr(fn).Do(func(err result.Error) {
+		log.Error(msg+" failed", ErrField(err.Unwrap())...)
 	})
 
 	log.Info(msg + " ok")
 }
 
-func OkOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
+func OkOrPanic(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
 	log.Info(msg)
 
-	xtry.TryCatch(fn, func(err xerr.XErr) {
+	xtry.TryErr(fn).Do(func(err result.Error) {
 		log.Error(msg+" error", ErrField(err)...)
-		panic(err)
+		panic(err.Unwrap())
 	})
 
 	log.Info(msg + " ok")
 }
 
-func LogOrErr(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
+func LogOrErr(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
-	xtry.TryCatch(fn, func(err xerr.XErr) {
+	xtry.TryErr(fn).Do(func(err result.Error) {
 		log.Error(msg, ErrField(err)...)
 	})
 
@@ -58,10 +59,10 @@ func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
 	return true
 }
 
-func LogOrPanic(log *zap.Logger, msg string, fn func() error, fields ...zap.Field) {
+func LogOrPanic(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
-	xtry.TryCatch(fn, func(err xerr.XErr) {
+	xtry.TryErr(fn).Do(func(err result.Error) {
 		log.Error(msg, ErrField(err)...)
 		panic(err)
 	})

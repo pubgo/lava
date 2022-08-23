@@ -111,8 +111,8 @@ func (s *Registry) Init() {
 func (s *Registry) Close() {
 }
 
-func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
-	return nil
+func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) result.Error {
+	return result.Error{}
 	//return s.Dix(&registry.Service{Metadata: map[string]string{},})
 }
 
@@ -160,7 +160,7 @@ func (s *Registry) String() string { return name }
 // Register is used to register services
 // Note that on Kubernetes, it can only be used to update the id/name/version/metadata/protocols of the current service,
 // but it cannot be used to update node.
-func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) error {
+func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) result.Error {
 
 	//patchBytes, err := jsoniter.Marshal(map[string]interface{}{
 	//	"metadata": metav1.ObjectMeta{
@@ -182,7 +182,7 @@ func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) e
 	//	Patch(context.TODO(), k8s.GetPodName(), types.StrategicMergePatchType, patchBytes, metav1.PatchOptions{}); err != nil {
 	//	return err
 	//}
-	return nil
+	return result.Error{}
 }
 
 // Watch creates a watcher according to the service name.
