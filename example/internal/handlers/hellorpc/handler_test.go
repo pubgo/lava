@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/example/pkg/proto/hellopb"
+	"github.com/pubgo/lava/example/gen/proto/hellopb"
 	"github.com/pubgo/lava/logging"
 )
 

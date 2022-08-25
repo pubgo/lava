@@ -53,6 +53,7 @@ func newCfg() *configImpl {
 	// 配置文件名字和类型
 	v.SetConfigType(FileType)
 	v.SetConfigName(FileName)
+
 	v.AddConfigPath(".")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
 	v.SetEnvPrefix(strings.ToUpper(version.Project()))

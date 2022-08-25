@@ -11,8 +11,8 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 
+	"github.com/pubgo/lava/example/gen/proto/permpb"
 	"github.com/pubgo/lava/example/internal/models"
-	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
 func New() permpb.PermServiceServer {

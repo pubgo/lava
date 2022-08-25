@@ -3,12 +3,7 @@ package gidrpc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/example/gen/proto/gidpb"
-	"math/rand"
 	"time"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"google.golang.org/grpc"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
@@ -16,54 +11,54 @@ import (
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/example/gen/proto/gidpb"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"
 )
 
+var err1 = errors.New("id.generate")
+
 var _ service.Init = (*Id)(nil)
-var _ service.Gateway = (*Id)(nil)
+var _ service.GatewayRegister = (*Id)(nil)
+var _ service.GrpcRegister[gidpb.IdServer] = (*Id)(nil)
+var _ service.MiddlewareInject = (*Id)(nil)
 
 type Id struct {
-	Cron   *scheduler.Scheduler
-	Metric metric.Metric
-
+	cron      *scheduler.Scheduler
+	m         metric.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Gateway() func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return gidpb.RegisterEchoServiceHandler
+func (id *Id) Middlewares() []service.Middleware {
+	return []service.Middleware{func(next service.HandlerFunc) service.HandlerFunc {
+		return func(ctx context.Context, req service.Request, rsp service.Response) error {
+			if req.Service() != gidpb.Id_ServiceDesc.ServiceName {
+				return next(ctx, req, rsp)
+			}
+
+			return next(ctx, req, rsp)
+		}
+	}}
 }
 
-func New() gidpb.IdServer {
-	id := rand.Intn(100)
+func (id *Id) GrpcRegister() service.RegisterServer[gidpb.IdServer] {
+	return gidpb.RegisterIdServer
+}
 
-	sf, err := snowflake.New(uint32(id))
-	if err != nil {
-		panic(err.Error())
-	}
-	bg, err := bigflake.New(uint64(id))
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return &Id{
-		snowflake: sf,
-		bigflake:  bg,
-	}
+func (id *Id) GatewayRegister() service.GatewayHandler {
+	return gidpb.RegisterIdHandler
 }
 
 func (id *Id) Init() {
-	id.Cron.Every("test gid", time.Second*2, func(name string) {
+	id.cron.Every("test gid", time.Second*2, func(name string) {
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-		id.Metric.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
+		id.m.Tagged(metric.Tags{"module": "scheduler"}).Gauge(name).Update(1)
 		fmt.Println("test cron every")
 	})
 }
-
-var err1 = errors.New("id.generate")
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
 	var rsp = new(gidpb.GenerateResponse)

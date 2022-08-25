@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
 
+	"github.com/pubgo/lava/example/gen/proto/permpb"
 	"github.com/pubgo/lava/example/internal/models"
-	"github.com/pubgo/lava/example/pkg/proto/permpb"
 )
 
 func New() permpb.RoleServiceServer {
@@ -29,7 +29,7 @@ func (s *server) Init() {
 func (s *server) CreateRole(ctx context.Context, req *permpb.CreateRoleRequest) (*permpb.CreateRoleResponse, error) {
 	var role = models.RoleFromProto(req.Role)
 	err := s.Db.Upsert(ctx, role, "name=? and org_id=?", role.Name, casbin2.HandleOrgId(role.OrgId))
-	if err != nil {
+	if !err.IsNil() {
 		return nil, err
 	}
 	return &permpb.CreateRoleResponse{Role: role.Proto()}, nil

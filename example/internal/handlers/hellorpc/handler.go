@@ -18,7 +18,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/example/pkg/proto/hellopb"
+	"github.com/pubgo/lava/example/gen/proto/hellopb"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
 )

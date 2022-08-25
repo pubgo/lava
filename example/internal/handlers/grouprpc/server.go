@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
 
-	"github.com/pubgo/lava/example/pkg/proto/permpb"
+	"github.com/pubgo/lava/example/gen/proto/permpb"
 )
 
 func New() permpb.GroupServiceServer {
