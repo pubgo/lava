@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/fullstorydev/grpchan"
@@ -18,7 +17,6 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 	xtry "github.com/pubgo/funk/xtry"
@@ -64,14 +62,6 @@ type serviceImpl struct {
 	unaryInt   grpc.UnaryServerInterceptor
 	streamInt  grpc.StreamServerInterceptor
 	httpMiddle func(_ *fiber2.Ctx) error
-}
-
-func (s *serviceImpl) RegisterServer(register interface{}, impl interface{}) {
-	defer recovery.Exit()
-
-	assert.If(impl == nil, "[impl] is nil")
-	assert.If(register == nil, "[register] is nil")
-	reflect.ValueOf(register).Call([]reflect.Value{reflect.ValueOf(s), reflect.ValueOf(impl)})
 }
 
 func (s *serviceImpl) Run() {
@@ -142,8 +132,8 @@ func (s *serviceImpl) init() {
 	s.lc.BeforeStop(func() { assert.Must(conn.Close()) })
 	grpcMux := runtime.NewServeMux()
 	s.handlers.ForEach(func(desc *grpc.ServiceDesc, svr interface{}) {
-		if h, ok := svr.(service.Gateway); ok {
-			assert.Must(h.Gateway()(context.Background(), grpcMux, conn))
+		if h, ok := svr.(service.InitGatewayRegister); ok {
+			assert.Must(h.GatewayRegister()(context.Background(), grpcMux, conn))
 		}
 	})
 

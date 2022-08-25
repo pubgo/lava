@@ -17,7 +17,7 @@ import (
 
 // 加载middleware, 注意加载顺序
 import (
-	_ "github.com/pubgo/lava/logging/middleware"
+	_ "github.com/pubgo/lava/logging/logmiddleware"
 
 	_ "github.com/pubgo/lava/core/requestid"
 )
@@ -36,5 +36,5 @@ import (
 	// 默认注册中心
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 
-	_ "github.com/pubgo/lava/logging/log_ext/grpclog"
+	_ "github.com/pubgo/lava/logging/logext/grpclog"
 )

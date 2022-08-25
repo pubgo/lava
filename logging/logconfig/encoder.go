@@ -1,4 +1,4 @@
-package log_config
+package logconfig
 
 import (
 	"net/url"

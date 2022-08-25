@@ -38,15 +38,38 @@ var (
 	CfgPath string
 )
 
-// Init 处理所有的配置,环境变量和flag
+type Project struct {
+	EnvPrefix  string
+	ConfigName string
+	ConfigType string
+	ConfigPath string
+}
+
+const (
+	defaultEnvPrefix  = "perm"
+	defaultConfigName = "config"
+	defaultConfigType = "yaml"
+	defaultConfigPath = "./configs"
+)
+
+// New 处理所有的配置,环境变量和flag
 // 配置顺序, 默认值->环境变量->配置文件->flag
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
-func newCfg() *configImpl {
+func New() *Config {
 	defer recovery.Exit()
 
-	var t = &configImpl{v: viper.New()}
+	replacer := strings.NewReplacer(".", "_", "-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix(defaultEnvPrefix)
+	viper.AutomaticEnv()
+
+	viper.SetConfigName(defaultConfigName)
+	viper.SetConfigType(defaultConfigType)
+	viper.AddConfigPath(defaultConfigPath)
+
+	var t = &Config{v: viper.New()}
 	// 配置处理
 	v := t.v
 
@@ -73,11 +96,11 @@ func newCfg() *configImpl {
 	return t
 }
 
-type configImpl struct {
+type Config struct {
 	v *viper.Viper
 }
 
-func (t *configImpl) loadCustomCfg() (err error) {
+func (t *Config) loadCustomCfg() (err error) {
 	defer recovery.Err(&err)
 
 	var includes = t.v.GetStringSlice("include")
@@ -87,19 +110,19 @@ func (t *configImpl) loadCustomCfg() (err error) {
 	return nil
 }
 
-func (t *configImpl) All() map[string]interface{} {
+func (t *Config) All() map[string]interface{} {
 	return t.v.AllSettings()
 }
 
-func (t *configImpl) MergeConfig(in io.Reader) error {
+func (t *Config) MergeConfig(in io.Reader) error {
 	return t.v.MergeConfig(in)
 }
 
-func (t *configImpl) AllKeys() []string {
+func (t *Config) AllKeys() []string {
 	return t.v.AllKeys()
 }
 
-func (t *configImpl) GetMap(keys ...string) CfgMap {
+func (t *Config) GetMap(keys ...string) CfgMap {
 	key := strings.Trim(strings.Join(keys, "."), ".")
 	var val = t.v.Get(key)
 	if val == nil {
@@ -113,19 +136,19 @@ func (t *configImpl) GetMap(keys ...string) CfgMap {
 	return t.v.GetStringMap(key)
 }
 
-func (t *configImpl) Get(key string) interface{} {
+func (t *Config) Get(key string) interface{} {
 	return t.v.Get(key)
 }
 
-func (t *configImpl) GetString(key string) string {
+func (t *Config) GetString(key string) string {
 	return t.v.GetString(key)
 }
 
-func (t *configImpl) Set(key string, value interface{}) {
+func (t *Config) Set(key string, value interface{}) {
 	t.v.Set(key, value)
 }
 
-func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
+func (t *Config) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
 	return t.v.UnmarshalKey(key, rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
 			c.TagName = "json"
@@ -133,7 +156,7 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 	})...)
 }
 
-func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error {
+func (t *Config) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error {
 	return t.v.Unmarshal(rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
 			c.TagName = "json"
@@ -142,7 +165,7 @@ func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOp
 }
 
 // Decode decode config to map[string]*struct
-func (t *configImpl) Decode(name string, cfgMap interface{}) (gErr error) {
+func (t *Config) Decode(name string, cfgMap interface{}) (gErr error) {
 	defer recovery.Err(&gErr, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("name=%s, cfgMap=%#v", name, cfgMap)
 	})
@@ -175,7 +198,7 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (gErr error) {
 	return
 }
 
-func (t *configImpl) addConfigPath(in string) bool {
+func (t *Config) addConfigPath(in string) bool {
 	t.v.AddConfigPath(in)
 	err := t.v.ReadInConfig()
 	if err == nil {
@@ -191,7 +214,7 @@ func (t *configImpl) addConfigPath(in string) bool {
 	return false
 }
 
-func (t *configImpl) initWithConfig(v *viper.Viper) bool {
+func (t *Config) initWithConfig(v *viper.Viper) bool {
 	if CfgDir == "" {
 		return false
 	}
@@ -203,7 +226,7 @@ func (t *configImpl) initWithConfig(v *viper.Viper) bool {
 	return true
 }
 
-func (t *configImpl) initCfg(v *viper.Viper) {
+func (t *Config) initCfg(v *viper.Viper) {
 
 	// 指定配置目录
 	if t.initWithConfig(v) {
@@ -228,7 +251,7 @@ func (t *configImpl) initCfg(v *viper.Viper) {
 }
 
 // LoadPath 加载指定path的配置
-func (t *configImpl) LoadPath(path string) (err error) {
+func (t *Config) LoadPath(path string) (err error) {
 	defer recovery.Err(&err)
 
 	if !pathutil.IsExist(path) {

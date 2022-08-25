@@ -16,9 +16,8 @@ import (
 )
 
 type params struct {
-	Log        *logging.Logger
-	Db         *orm.Client
-	Migrations []migrates.Migrate
+	Log *logging.Logger
+	Db  *orm.Client
 }
 
 func migrate(m []migrates.Migrate) []*gormigrate.Migration {
@@ -29,7 +28,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 	return migrations
 }
 
-func Cmd() *cli.Command {
+func Cmd(migrations []migrates.Migrate) *cli.Command {
 	var id string
 
 	return &cli.Command{
@@ -55,7 +54,7 @@ func Cmd() *cli.Command {
 					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
 					} else {
@@ -73,7 +72,7 @@ func Cmd() *cli.Command {
 					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
-					for _, m := range migrate(p.Migrations) {
+					for _, m := range migrate(migrations) {
 						p.Log.Info(fmt.Sprintf("migration-id=%s", m.ID))
 					}
 					time.Sleep(time.Millisecond * 10)
@@ -88,7 +87,7 @@ func Cmd() *cli.Command {
 					defer recovery.Exit()
 
 					p := dix.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())
 					} else {

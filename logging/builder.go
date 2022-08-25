@@ -8,11 +8,11 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging/log_config"
+	"github.com/pubgo/lava/logging/logconfig"
 	"github.com/pubgo/lava/logging/logkey"
 )
 
-func NewWithCfg(cfg *log_config.Config) *Logger {
+func NewWithCfg(cfg *logconfig.Config) *Logger {
 	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
 
 	// 全局log设置
@@ -40,7 +40,7 @@ func NewWithCfg(cfg *log_config.Config) *Logger {
 func New(c config.Config) *Logger {
 	defer recovery.Exit()
 
-	var cfg = log_config.NewProdConfig()
+	var cfg = logconfig.NewProdConfig()
 
 	if runmode.IsDebug {
 		cfg.EncoderConfig.EncodeCaller = "full"

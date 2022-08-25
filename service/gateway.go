@@ -8,11 +8,11 @@ import (
 )
 
 type GatewayHandler func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
-type GatewayRegister interface {
+type InitGatewayRegister interface {
 	GatewayRegister() GatewayHandler
 }
 
 type RegisterServer[T any] func(s grpc.ServiceRegistrar, srv T)
-type GrpcRegister[T any] interface {
+type InitGrpcRegister[T any] interface {
 	GrpcRegister() RegisterServer[T]
 }

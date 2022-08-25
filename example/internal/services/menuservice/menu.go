@@ -25,9 +25,6 @@ var trim = strings.TrimSpace
 
 func New(c *Config, db *orm.Client, l *logging.Logger) *Menu {
 	var m = &Menu{c: c, db: db, defaultMenus: make(map[string]bool), logger: l.Named("menu"), mux: mux.NewRouter()}
-	//if err := m.LoadMenusFromDb(); err != nil {
-	//	return nil, err
-	//}
 	return m
 }
 
