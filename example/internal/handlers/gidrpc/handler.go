@@ -3,6 +3,7 @@ package gidrpc
 import (
 	"context"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,15 +21,20 @@ import (
 var err1 = errors.New("id.generate")
 
 var _ service.Init = (*Id)(nil)
-var _ service.GatewayRegister = (*Id)(nil)
-var _ service.GrpcRegister[gidpb.IdServer] = (*Id)(nil)
-var _ service.MiddlewareInject = (*Id)(nil)
+var _ service.InitGatewayRegister = (*Id)(nil)
+var _ service.InitGrpcRegister[gidpb.IdServer] = (*Id)(nil)
+var _ service.InitMiddleware = (*Id)(nil)
+var _ service.InitRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
 	m         metric.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
+}
+
+func (id *Id) Router(app *fiber.App) {
+	var app = fiber.New()
 }
 
 func (id *Id) Middlewares() []service.Middleware {

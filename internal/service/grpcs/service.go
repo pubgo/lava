@@ -52,7 +52,7 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	getLifecycle lifecycle.GetLifecycle
 	lc           lifecycle.Lifecycle
-	app          *service.Web
+	apps         []*fiber2.App
 	cfg          *Cfg
 	log          *zap.Logger
 	grpcSrv      grpc_builder2.Builder
@@ -74,20 +74,24 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) init() {
+	s.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) {
+		if h, ok := svc.(service.InitRouter); ok {
+			s.apps = append(s.apps, h.Router())
+		}
+	})
+
 	s.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) { dix.Inject(svc) })
 	var p = dix.Inject(new(struct {
 		Middlewares  []service.Middleware
 		GetLifecycle lifecycle.GetLifecycle
 		Lifecycle    lifecycle.Lifecycle
 		Log          *zap.Logger
-		App          *service.Web
 		Cfg          *Cfg
 	}))
 
 	s.getLifecycle = p.GetLifecycle
 	s.lc = p.Lifecycle
 	s.log = p.Log.Named("server")
-	s.app = p.App
 	s.cfg = p.Cfg
 
 	var middlewares []service.Middleware
@@ -110,10 +114,6 @@ func (s *serviceImpl) init() {
 
 		if h, ok := svr.(service.Close); ok {
 			s.lc.AfterStop(h.Close)
-		}
-
-		if h, ok := svr.(service.WebHandler); ok {
-			h.Router(s.app)
 		}
 
 		if h, ok := svr.(service.Init); ok {
@@ -184,12 +184,6 @@ func (s *serviceImpl) RegisterService(desc *grpc.ServiceDesc, impl interface{}) 
 	assert.Assert(desc == nil, "[desc] is nil")
 	assert.Assert(impl == nil, "[impl] is nil")
 	s.handlers.RegisterService(desc, impl)
-}
-
-func (s *serviceImpl) Providers(provider ...interface{}) {
-	for i := range provider {
-		dix.Provider(provider[i])
-	}
 }
 
 func (s *serviceImpl) start() {

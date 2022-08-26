@@ -1,16 +1,17 @@
 package runmode
 
 import (
+	"fmt"
 	rt "runtime"
 
 	"github.com/pubgo/lava/version"
 )
 
-func GetVersion() map[string]interface{} {
-	return map[string]interface{}{
-		"grpc_port":     GrpcPort,
-		"http_post":     HttpPort,
-		"debug":         IsDebug,
+func GetVersion() map[string]string {
+	return map[string]string{
+		"grpc_port":     fmt.Sprintf("%v", GrpcPort),
+		"http_post":     fmt.Sprintf("%v", HttpPort),
+		"debug":         fmt.Sprintf("%v", IsDebug),
 		"pwd":           Pwd,
 		"namespace":     Namespace,
 		"instance_id":   InstanceID,
@@ -25,7 +26,7 @@ func GetVersion() map[string]interface{} {
 		"go_arch":       rt.GOARCH,
 		"go_os":         rt.GOOS,
 		"go_version":    rt.Version(),
-		"num_cpu":       rt.NumCPU(),
-		"num_goroutine": rt.NumGoroutine(),
+		"num_cpu":       fmt.Sprintf("%v", rt.NumCPU()),
+		"num_goroutine": fmt.Sprintf("%v", rt.NumGoroutine()),
 	}
 }

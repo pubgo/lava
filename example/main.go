@@ -14,9 +14,5 @@ import (
 
 func main() {
 	bootstrap.Init()
-	lava.Run(
-		cmds.Menu(),
-		grpcservercmd.Cmd(),
-		migratecmd.Cmd(migrates.Migrations()),
-	)
+	lava.Run(cmds.Menu(), grpcservercmd.Cmd(), migratecmd.Cmd(migrates.Migrations()))
 }

@@ -1,4 +1,4 @@
-package vercmd
+package versioncmd
 
 import (
 	"encoding/json"
@@ -13,19 +13,17 @@ import (
 
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/internal/pkg/cmdx"
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/version"
 )
 
 func Cmd() *cli.Command {
 	return &cli.Command{
-		Name:    "version",
-		Aliases: typex.StrOf("v"),
-		Usage:   "Print the dependency package information",
+		Name:  "dep",
+		Usage: "Print the dependency package information",
 		Description: cmdx.ExampleFmt(
-			"lava version",
-			"lava version json",
-			"lava version t"),
+			"lava dep",
+			"lava dep json",
+			"lava dep t"),
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 
@@ -35,7 +33,6 @@ func Cmd() *cli.Command {
 			}
 
 			var typ string
-
 			if ctx.NArg() > 0 {
 				typ = ctx.Args().First()
 			}
