@@ -3,9 +3,9 @@ package gidrpc
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
@@ -33,8 +33,8 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Router(app *fiber.App) {
-	var app = fiber.New()
+func (id *Id) Router() *fiber.App {
+	return fiber.New()
 }
 
 func (id *Id) Middlewares() []service.Middleware {

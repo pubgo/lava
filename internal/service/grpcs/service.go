@@ -78,6 +78,10 @@ func (s *serviceImpl) init() {
 		if h, ok := svc.(service.InitRouter); ok {
 			s.apps = append(s.apps, h.Router())
 		}
+
+		if h, ok := svc.(service.InitGrpcRegister[]); ok {
+			s.apps = append(s.apps, h.Router())
+		}
 	})
 
 	s.handlers.ForEach(func(_ *grpc.ServiceDesc, svc interface{}) { dix.Inject(svc) })

@@ -1,4 +1,4 @@
-package versioncmd
+package depcmd
 
 import (
 	"encoding/json"
