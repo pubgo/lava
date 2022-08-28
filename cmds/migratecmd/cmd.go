@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
@@ -28,7 +28,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 	return migrations
 }
 
-func Cmd(migrations []migrates.Migrate) *cli.Command {
+func New(migrations []migrates.Migrate) *cli.Command {
 	var id string
 
 	return &cli.Command{
@@ -53,7 +53,7 @@ func Cmd(migrations []migrates.Migrate) *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					p := dix.Inject(new(params))
+					p := di.Inject(new(params))
 					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
@@ -71,7 +71,7 @@ func Cmd(migrations []migrates.Migrate) *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					p := dix.Inject(new(params))
+					p := di.Inject(new(params))
 					for _, m := range migrate(migrations) {
 						p.Log.Info(fmt.Sprintf("migration-id=%s", m.ID))
 					}
@@ -86,7 +86,7 @@ func Cmd(migrations []migrates.Migrate) *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					p := dix.Inject(new(params))
+					p := di.Inject(new(params))
 					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())

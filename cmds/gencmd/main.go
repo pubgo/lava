@@ -1,18 +1,19 @@
 package gencmd
 
 import (
-	"fmt"
+	"os"
+
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 )
 
-func Cmd() *cli.Command {
+func New() *cli.Command {
 	return &cli.Command{
 		Name:  "gen-makefile",
 		Usage: "gen makefile",
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
-			fmt.Println(`
+			os.Stdout.Write([]byte(`
 Project=gid
 Base=github.com/pubgo/lava
 Tag=$(shell git describe --abbrev=0 --tags)
@@ -34,7 +35,7 @@ build-gid:
 
 vet:
 	@go vet ./...
-`)
+`))
 			return nil
 		},
 	}

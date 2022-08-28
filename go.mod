@@ -57,10 +57,8 @@ require (
 	github.com/DataDog/gostackparse v0.5.0
 	github.com/bradleyjkemp/memviz v0.2.3
 	github.com/denisbrodbeck/machineid v1.0.1
-	github.com/fullstorydev/grpchan v1.1.0
 	github.com/go-logr/zapr v1.2.2
 	github.com/goccy/go-json v0.7.10
-	github.com/jhump/protoreflect v1.10.3 // indirect
 	github.com/kr/pretty v0.3.0
 	github.com/mailgun/holster/v4 v4.0.6
 	github.com/prometheus/client_golang v1.11.0
@@ -88,8 +86,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/pubgo/dix v0.3.2
-	github.com/pubgo/funk v0.5.18
+	github.com/pubgo/dix v0.3.4
+	github.com/pubgo/funk v0.5.22
 	github.com/rs/xid v1.2.1
 	github.com/uber-go/tally/v4 v4.1.2
 	github.com/valyala/fasthttp v1.37.0

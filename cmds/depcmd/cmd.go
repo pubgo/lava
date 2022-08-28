@@ -16,7 +16,7 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func Cmd() *cli.Command {
+func New() *cli.Command {
 	return &cli.Command{
 		Name:  "dep",
 		Usage: "Print the dependency package information",

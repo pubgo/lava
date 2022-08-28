@@ -1,6 +1,7 @@
-package debug
+package versionhandler
 
 import (
+	"github.com/pubgo/lava/debug"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -13,9 +14,9 @@ import (
 )
 
 func init() {
-	Get("/env", adaptor.HTTPHandlerFunc(envHandle))
-	Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
-	Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
+	debug.Get("/env", adaptor.HTTPHandlerFunc(envHandle))
+	debug.Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
+	debug.Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

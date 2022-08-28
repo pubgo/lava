@@ -1,10 +1,11 @@
-package process
+package processhandler
 
 import (
 	"bufio"
 	"debug/buildinfo"
 	"encoding/binary"
 	"fmt"
+	"github.com/pubgo/funk/generic"
 	"io"
 	"os"
 	"runtime"
@@ -17,27 +18,23 @@ import (
 	"github.com/google/gops/signal"
 	"github.com/keybase/go-ps"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/syncx"
-
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/debug"
 )
 
 func init() {
 	debug.Get("/process", func(ctx *fiber.Ctx) error {
-		return ctx.JSON(syncx.Yield(func(yield func(map[string]any)) error {
-			processes := assert.Must1(ps.Processes())
-			for _, p := range processes {
-				yield(map[string]any{
-					"pid":        p.Pid(),
-					"ppid":       p.PPid(),
-					"exec":       p.Executable(),
-					"path":       result.Wrap(p.Path()),
-					"go_version": goVersion(result.Wrap(p.Path())),
-				})
+		processes := assert.Must1(ps.Processes())
+		return ctx.JSON(generic.Map(processes, func(i int) map[string]any {
+			var p = processes[i]
+			return map[string]any{
+				"pid":        p.Pid(),
+				"ppid":       p.PPid(),
+				"exec":       p.Executable(),
+				"path":       result.Wrap(p.Path()),
+				"go_version": goVersion(result.Wrap(p.Path())),
 			}
-			return nil
-		}).ToResult().Unwrap())
+		}))
 	})
 }
 

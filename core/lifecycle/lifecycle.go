@@ -1,23 +1,21 @@
 package lifecycle
 
 import (
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/internal/pkg/utils"
 )
 
 type executor struct {
 	Handler func()
-	Msg     string
 }
 
 type Handler func(lc Lifecycle)
 
 type Lifecycle interface {
-	AfterStop(f func(), msg ...string)
-	BeforeStop(f func(), msg ...string)
-	AfterStart(f func(), msg ...string)
-	BeforeStart(f func(), msg ...string)
+	AfterStop(f func())
+	BeforeStop(f func())
+	AfterStart(f func())
+	BeforeStart(f func())
 }
 
 type GetLifecycle interface {
@@ -41,29 +39,17 @@ func (t *lifecycleImpl) GetAfterStops() []executor   { return t.afterStops }
 func (t *lifecycleImpl) GetBeforeStops() []executor  { return t.beforeStops }
 func (t *lifecycleImpl) GetAfterStarts() []executor  { return t.afterStarts }
 func (t *lifecycleImpl) GetBeforeStarts() []executor { return t.beforeStarts }
-func (t *lifecycleImpl) BeforeStart(f func(), msg ...string) {
-	t.beforeStarts = append(t.beforeStarts, executor{
-		Handler: f,
-		Msg:     utils.FirstNotEmpty(msg...),
-	})
+func (t *lifecycleImpl) BeforeStart(f func()) {
+	t.beforeStarts = append(t.beforeStarts, executor{Handler: f})
 }
-func (t *lifecycleImpl) BeforeStop(f func(), msg ...string) {
-	t.beforeStops = append(t.beforeStops, executor{
-		Handler: f,
-		Msg:     utils.FirstNotEmpty(msg...),
-	})
+func (t *lifecycleImpl) BeforeStop(f func()) {
+	t.beforeStops = append(t.beforeStops, executor{Handler: f})
 }
-func (t *lifecycleImpl) AfterStart(f func(), msg ...string) {
-	t.afterStarts = append(t.afterStarts, executor{
-		Handler: f,
-		Msg:     utils.FirstNotEmpty(msg...),
-	})
+func (t *lifecycleImpl) AfterStart(f func()) {
+	t.afterStarts = append(t.afterStarts, executor{Handler: f})
 }
-func (t *lifecycleImpl) AfterStop(f func(), msg ...string) {
-	t.afterStops = append(t.afterStops, executor{
-		Handler: f,
-		Msg:     utils.FirstNotEmpty(msg...),
-	})
+func (t *lifecycleImpl) AfterStop(f func()) {
+	t.afterStops = append(t.afterStops, executor{Handler: f})
 }
 
 func New() *lifecycleImpl {
@@ -74,9 +60,9 @@ func init() {
 	defer recovery.Exit()
 
 	var lc = new(lifecycleImpl)
-	dix.Provider(func() Handler { return func(lc Lifecycle) {} })
-	dix.Provider(func() GetLifecycle { return lc })
-	dix.Provider(func(handlers []Handler) Lifecycle {
+	di.Provide(func() Handler { return func(lc Lifecycle) {} })
+	di.Provide(func() GetLifecycle { return lc })
+	di.Provide(func(handlers []Handler) Lifecycle {
 		for i := range handlers {
 			handlers[i](lc)
 		}

@@ -5,11 +5,11 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/example/gen/proto/gidpb"
+	"github.com/pubgo/lava/service"
 	"math/rand"
 )
 
-func New(cron *scheduler.Scheduler, metric metric.Metric) gidpb.IdServer {
+func New(cron *scheduler.Scheduler, metric metric.Metric) service.GrpcHandler {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))

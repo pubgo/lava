@@ -2,9 +2,9 @@ package gcnotifier
 
 import (
 	"context"
+	"github.com/pubgo/dix/di"
 
 	"github.com/CAFxX/gcnotifier"
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 
@@ -16,7 +16,7 @@ import (
 var Name = "gc"
 
 func init() {
-	dix.Provider(func(log *logging.Logger) lifecycle.Handler {
+	di.Provide(func(log *logging.Logger) lifecycle.Handler {
 		if !runmode.IsDebug {
 			return nil
 		}

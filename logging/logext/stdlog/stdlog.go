@@ -1,10 +1,10 @@
 package stdlog
 
 import (
+	"github.com/pubgo/dix/di"
 	"io"
 	"log"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/x/byteutil"
 	"go.uber.org/zap"
 
@@ -13,7 +13,7 @@ import (
 
 // 替换std默认log
 func init() {
-	dix.Provider(func() logging.ExtLog {
+	di.Provide(func() logging.ExtLog {
 		return func(logger *logging.Logger) {
 			var stdLog = log.Default()
 			// 接管系统默认log

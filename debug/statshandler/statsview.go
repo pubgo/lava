@@ -1,7 +1,8 @@
-package debug
+package statshandler
 
 import (
 	"context"
+	"github.com/pubgo/lava/debug"
 
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/templates"
@@ -95,7 +96,7 @@ func initManager() *viewManager {
 		v.SetStatsMgr(smgr)
 	}
 
-	Route("/statsview", func(r fiber.Router) {
+	debug.Route("/statsview", func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {
 			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 			return page.Render(ctx)

@@ -2,7 +2,7 @@ package klog
 
 import (
 	"github.com/go-kit/log"
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/logx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	dix.Provider(func() logging.ExtLog {
+	di.Provide(func() logging.ExtLog {
 		return func(logger *logging.Logger) {
 			logx.SetLog(NewZapSugarLogger(logging.ModuleLog(logger, "logx").L(), zapcore.DebugLevel))
 		}

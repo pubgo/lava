@@ -100,7 +100,7 @@ func register(reg Registry) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.OkOrErr(
+	logutil.OkOrFailed(
 		zap.L(),
 		"register service node",
 		func() result.Error { return reg.Register(s) },
@@ -135,7 +135,7 @@ func deregister(reg Registry) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.OkOrErr(
+	logutil.OkOrFailed(
 		zap.L(),
 		"deregister service node",
 		func() result.Error { return reg.Deregister(s) },

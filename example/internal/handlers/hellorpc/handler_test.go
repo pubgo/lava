@@ -3,9 +3,9 @@ package hellorpc
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/dix/di"
 	"testing"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/clients/grpcc"
@@ -19,7 +19,7 @@ var _srv *testApiHandler
 
 func TestMain(t *testing.M) {
 	defer xerror.RecoverAndExit()
-	dix.Provider(func(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) {
+	di.Provide(func(Db *orm.Client, Cron *scheduler.Scheduler, conns map[string]*grpcc.Client, L *logging.Logger) {
 		_srv = &testApiHandler{
 			Db:         Db,
 			Cron:       Cron,

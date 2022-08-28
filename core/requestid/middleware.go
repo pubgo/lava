@@ -2,8 +2,8 @@ package requestid
 
 import (
 	"context"
+	"github.com/pubgo/dix/di"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/recovery"
 	"github.com/segmentio/ksuid"
 	"google.golang.org/grpc/codes"
@@ -19,7 +19,7 @@ const Name = "x-request-id"
 func init() {
 	defer recovery.Exit()
 
-	dix.Provider(func() service.Middleware {
+	di.Provide(func() service.Middleware {
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
 				defer func() {

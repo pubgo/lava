@@ -17,7 +17,7 @@ import (
 
 const Name = "bolt"
 
-type Cfg struct {
+type Config struct {
 	FileMode        fs.FileMode       `json:"file_mode"`
 	Timeout         time.Duration     `json:"timeout"`
 	NoGrowSync      bool              `json:"no_grow_sync"`
@@ -32,8 +32,12 @@ type Cfg struct {
 	db              *bolt.DB
 }
 
-func (t *Cfg) Get() *bolt.DB { return t.db }
-func (t *Cfg) Build() (err error) {
+func (t *Config) Get() *bolt.DB {
+	assert.If(t.db == nil, "db is nil")
+	return t.db
+}
+
+func (t *Config) Build() (err error) {
 	defer recovery.Err(&err)
 	var opts = t.getOpts()
 	var path = filepath.Join(config.CfgDir, t.Path)
@@ -42,15 +46,15 @@ func (t *Cfg) Build() (err error) {
 	return
 }
 
-func (t *Cfg) getOpts() *bolt.Options {
+func (t *Config) getOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
 	assert.Must(merge.Struct(options, t))
 	return options
 }
 
-func DefaultCfg() *Cfg {
-	return &Cfg{
+func DefaultConfig() *Config {
+	return &Config{
 		Path:     "./db/bolt",
 		FileMode: 0600,
 		Timeout:  consts.DefaultTimeout,

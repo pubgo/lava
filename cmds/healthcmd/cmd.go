@@ -14,7 +14,7 @@ import (
 	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
 )
 
-func Cmd() *cli.Command {
+func New() *cli.Command {
 	return &cli.Command{
 		Name:  "health",
 		Usage: "health check",

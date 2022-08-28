@@ -1,7 +1,7 @@
 package prometheus
 
 import (
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	tally "github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
@@ -18,7 +18,7 @@ const Name = "prometheus"
 const urlPath = "/metrics"
 
 func init() {
-	dix.Provider(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
+	di.Provide(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
 		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
 
 		if conf.Driver != Name {

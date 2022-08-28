@@ -2,47 +2,37 @@ package logutil
 
 import (
 	"github.com/kr/pretty"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/funk/xtry"
 	"github.com/pubgo/x/q"
 	"go.uber.org/zap"
+	"strings"
 )
 
-func OkOrErr(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-
-	log.Info(msg)
-
-	xtry.TryErr(fn).Do(func(err result.Error) {
-		log.Error(msg+" failed", ErrField(err.Unwrap())...)
-	})
-
-	log.Info(msg + " ok")
-}
-
-func OkOrPanic(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-
-	log.Info(msg)
-
-	xtry.TryErr(fn).Do(func(err result.Error) {
-		log.Error(msg+" error", ErrField(err)...)
-		panic(err.Unwrap())
-	})
-
-	log.Info(msg + " ok")
-}
-
 func LogOrErr(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
+	msg = strings.TrimSpace(msg)
 	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 
-	xtry.TryErr(fn).Do(func(err result.Error) {
-		log.Error(msg, ErrField(err)...)
-	})
+	var err = xtry.TryErr(fn)
+	if err.IsNil() {
+		log.Info(msg)
+	} else {
+		log.Error(msg, ErrField(err.Unwrap())...)
+	}
+}
 
+func OkOrFailed(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
+	msg = strings.TrimSpace(msg)
+
+	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
 	log.Info(msg)
+
+	var err = xtry.TryErr(fn)
+	if err.IsNil() {
+		log.Info(msg + " ok")
+	} else {
+		log.Error(msg+" failed", ErrField(err.Unwrap())...)
+	}
 }
 
 func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
@@ -57,26 +47,6 @@ func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
 
 	log.WithOptions(zap.AddCallerSkip(1)).With(fields...).Error(err.Error(), ErrField(err)...)
 	return true
-}
-
-func LogOrPanic(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-
-	xtry.TryErr(fn).Do(func(err result.Error) {
-		log.Error(msg, ErrField(err)...)
-		panic(err)
-	})
-
-	log.Info(msg)
-}
-
-func ErrTry(log *zap.Logger, fn func(), fields ...zap.Field) {
-	defer recovery.Recovery(func(err xerr.XErr) {
-		log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-		log.Error("panic catch", ErrField(err)...)
-	})
-
-	fn()
 }
 
 func Pretty(a ...interface{}) {

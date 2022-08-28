@@ -7,13 +7,14 @@ replace github.com/pubgo/lava v0.2.10 => ../
 require (
 	github.com/casbin/casbin/v2 v2.47.2
 	github.com/casbin/gorm-adapter/v3 v3.7.2
+	github.com/gofiber/fiber/v2 v2.29.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/pubgo/dix v0.3.2
-	github.com/pubgo/funk v0.5.18
+	github.com/pubgo/dix v0.3.4
+	github.com/pubgo/funk v0.5.22
 	github.com/pubgo/lava v0.2.10
 	github.com/pubgo/protobuild v0.0.7
 	github.com/pubgo/xerror v0.4.32
@@ -46,11 +47,8 @@ require (
 	github.com/fasthttp/websocket v1.5.0 // indirect
 	github.com/flosch/pongo2/v5 v5.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/fullstorydev/grpchan v1.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.16.0 // indirect
 	github.com/glebarez/sqlite v1.4.3 // indirect
-	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
-	github.com/go-echarts/statsview v0.3.4 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -58,7 +56,6 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.7.10 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.20 // indirect
-	github.com/gofiber/fiber/v2 v2.29.0 // indirect
 	github.com/gofiber/template v1.6.25 // indirect
 	github.com/gofiber/utils v0.1.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -91,7 +88,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailgun/holster/v4 v4.0.6 // indirect
-	github.com/maragudk/gomponents v0.17.2 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect

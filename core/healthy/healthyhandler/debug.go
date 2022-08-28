@@ -1,6 +1,7 @@
-package healthy
+package healthyhandler
 
 import (
+	"github.com/pubgo/lava/core/healthy"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,16 +15,16 @@ import (
 func init() {
 	debug.Get("/health", func(ctx *fiber.Ctx) error {
 		var dt = make(map[string]*health)
-		assert.Must(healthList.Each(func(name string, r interface{}) {
+		for _, name := range healthy.List() {
 			var h = &health{}
-			var dur, err = utils.Cost(func() { assert.Must(r.(Handler)(ctx)) })
+			var dur, err = utils.Cost(func() { assert.Must(healthy.Get(name)(ctx)) })
 			h.Cost = dur.String()
 			if err != nil {
 				h.Msg = err.Error()
 				h.Err = err
 			}
 			dt[name] = h
-		}))
+		}
 
 		var bts, err = jsonx.Marshal(dt)
 		if err != nil {

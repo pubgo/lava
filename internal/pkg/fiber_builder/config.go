@@ -1,6 +1,12 @@
 package fiber_builder
 
 import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/lava/internal/pkg/merge"
 	"time"
 )
 
@@ -31,6 +37,18 @@ type Cfg struct {
 	DisableDefaultContentType bool          `json:"disable_default_content_type"`
 	DisableHeaderNormalizing  bool          `json:"disable_header_normalizing"`
 	DisableStartupMessage     bool          `json:"disable_startup_message"`
-	ReduceMemoryUsage         bool   `json:"reduce_memory_usage"`
-	Websocket                 *WsCfg `json:"websocket" yaml:"websocket"`
+	ReduceMemoryUsage         bool          `json:"reduce_memory_usage"`
+	Websocket                 *WsCfg        `json:"websocket" yaml:"websocket"`
+}
+
+func (t *Cfg) Build() (ret result.Result[*fiber.App]) {
+	defer recovery.Result(&ret)
+
+	var fc = fiber.New().Config()
+	assert.Must(merge.Struct(&fc, &t))
+	if t.Templates.Dir != "" && t.Templates.Ext != "" {
+		fc.Views = html.New(t.Templates.Dir, t.Templates.Ext)
+	}
+
+	return ret.WithVal(fiber.New(fc))
 }

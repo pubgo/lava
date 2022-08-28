@@ -1,6 +1,9 @@
 package grpc_builder
 
 import (
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"google.golang.org/grpc"
 	"time"
 
 	"github.com/pubgo/x/merge"
@@ -32,7 +35,7 @@ type KeepalivePolicy struct {
 	PermitWithoutStream bool          `json:"permit_without_stream"`
 }
 
-type Cfg struct {
+type Config struct {
 	Codec                 string          `json:"codec"`
 	ConnectionTimeout     time.Duration   `json:"connection_timeout"`
 	Cp                    string          `json:"cp"`
@@ -40,10 +43,10 @@ type Cfg struct {
 	Dc                    string          `json:"dc"`
 	HeaderTableSize       int64           `json:"header_table_size"`
 	InitialConnWindowSize int64           `json:"initial_conn_window_size"`
-	InitialWindowSize    int64           `json:"initial_window_size"`
-	KeepaliveParams      KeepaliveParams `json:"keepalive_params"`
-	KeepalivePolicy      KeepalivePolicy `json:"keepalive_policy"`
-	MaxConcurrentStreams int64           `json:"max_concurrent_streams"`
+	InitialWindowSize     int64           `json:"initial_window_size"`
+	KeepaliveParams       KeepaliveParams `json:"keepalive_params"`
+	KeepalivePolicy       KeepalivePolicy `json:"keepalive_policy"`
+	MaxConcurrentStreams  int64           `json:"max_concurrent_streams"`
 	MaxHeaderListSize     int64           `json:"max_header_list_size"`
 	MaxRecvMsgSize        int             `json:"max_recv_msg_size"`
 	MaxSendMsgSize        int             `json:"max_send_msg_size"`
@@ -51,8 +54,36 @@ type Cfg struct {
 	WriteBufferSize       int64           `json:"write_buffer_size"`
 }
 
-func GetDefaultCfg() *Cfg {
-	return &Cfg{
+func (t *Config) BuildOpts() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(t.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(t.MaxSendMsgSize),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionAgeGrace: 5 * time.Minute,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
+			Time:                  30 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
+			Timeout:               5 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
+		}),
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			MinTime:             30 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
+			PermitWithoutStream: true,             // Allow pings even when there are no active streams
+		}),
+	}
+}
+
+func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
+	defer recovery.Result(&r)
+
+	opts = append(t.BuildOpts(), opts...)
+	var srv = grpc.NewServer(opts...)
+
+	EnableReflection(srv)
+	EnableHealth("", srv)
+	EnableDebug(srv)
+	return r.WithVal(srv)
+}
+
+func GetDefaultCfg() *Config {
+	return &Config{
 		MaxRecvMsgSize:    DefaultMaxMsgSize,
 		MaxSendMsgSize:    DefaultMaxMsgSize,
 		WriteBufferSize:   32 * 1024,

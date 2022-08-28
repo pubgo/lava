@@ -1,4 +1,4 @@
-package pprof
+package pprofhandler
 
 import (
 	"errors"

@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/pubgo/dix/di"
 	"runtime/debug"
 	"time"
 
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/result"
 	"go.uber.org/zap"
 
@@ -25,7 +25,7 @@ import (
 
 func init() {
 	const Name = "accesslog"
-	dix.Provider(func(log *logging.Logger) service.Middleware {
+	di.Provide(func(log *logging.Logger) service.Middleware {
 		log = log.Named(Name)
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {

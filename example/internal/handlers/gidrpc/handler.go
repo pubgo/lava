@@ -3,10 +3,11 @@ package gidrpc
 import (
 	"context"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/lava/core/metric"
@@ -16,15 +17,18 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"
+	"google.golang.org/grpc"
 )
 
 var err1 = errors.New("id.generate")
 
-var _ service.Init = (*Id)(nil)
-var _ service.InitGatewayRegister = (*Id)(nil)
-var _ service.InitGrpcRegister[gidpb.IdServer] = (*Id)(nil)
-var _ service.InitMiddleware = (*Id)(nil)
-var _ service.InitRouter = (*Id)(nil)
+var (
+	_ service.Init               = (*Id)(nil)
+	_ service.IMiddleware        = (*Id)(nil)
+	_ service.GrpcHandler        = (*Id)(nil)
+	_ service.GrpcGatewayHandler = (*Id)(nil)
+	_ service.HttpRouter         = (*Id)(nil)
+)
 
 type Id struct {
 	cron      *scheduler.Scheduler
@@ -33,8 +37,17 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Router() *fiber.App {
-	return fiber.New()
+func (id *Id) HttpRouter(app *fiber.App) {
+	var r = app.Group("/")
+	_ = r
+}
+
+func (id *Id) GrpcGatewayHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return gidpb.RegisterIdHandler(ctx, mux, conn)
+}
+
+func (id *Id) GrpcHandler(reg grpc.ServiceRegistrar) {
+	gidpb.RegisterIdServer(reg, id)
 }
 
 func (id *Id) Middlewares() []service.Middleware {
@@ -47,14 +60,6 @@ func (id *Id) Middlewares() []service.Middleware {
 			return next(ctx, req, rsp)
 		}
 	}}
-}
-
-func (id *Id) GrpcRegister() service.RegisterServer[gidpb.IdServer] {
-	return gidpb.RegisterIdServer
-}
-
-func (id *Id) GatewayRegister() service.GatewayHandler {
-	return gidpb.RegisterIdHandler
 }
 
 func (id *Id) Init() {

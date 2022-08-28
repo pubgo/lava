@@ -3,11 +3,11 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/pubgo/dix"
 	"go.uber.org/zap"
 
 	requestid2 "github.com/pubgo/lava/core/requestid"
@@ -20,7 +20,7 @@ import (
 func init() {
 	defer recovery.Exit()
 
-	dix.Provider(func(tracer opentracing.Tracer, log *zap.Logger) service.Middleware {
+	di.Provide(func(tracer opentracing.Tracer, log *zap.Logger) service.Middleware {
 		log = log.Named(logutil.Names(logkey.Module, tracing.Name))
 		return func(next service.HandlerFunc) service.HandlerFunc {
 			return func(ctx context.Context, req service.Request, resp service.Response) error {

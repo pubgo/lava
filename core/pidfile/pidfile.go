@@ -22,7 +22,7 @@ const pidPerm os.FileMode = 0666
 func GetPid() result.Result[int] {
 	f := GetPidF()
 	if f.IsErr() {
-		return result.Wrap(0, f.Err())
+		return result.Err[int](f.Err())
 	}
 
 	p, err := ioutil.ReadFile(f.Unwrap())

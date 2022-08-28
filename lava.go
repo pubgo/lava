@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmds/depcmd"
+	"github.com/pubgo/lava/cmds/grpcservercmd"
 	"github.com/pubgo/lava/cmds/healthcmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
@@ -27,7 +28,7 @@ func Run(cmds ...*cli.Command) {
 		Usage:                  fmt.Sprintf("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
-		Commands:               append(cmds, versioncmd.Cmd(), healthcmd.Cmd(), depcmd.Cmd()),
+		Commands:               append(cmds, versioncmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New()),
 		ExtraInfo:              runmode.GetVersion,
 	}
 

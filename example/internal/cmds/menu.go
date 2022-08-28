@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/example/internal/services/menuservice"
 	"github.com/pubgo/lava/logging"
@@ -19,7 +19,7 @@ func Menu() *cli.Command {
 		Usage: "Load local menu config to database",
 		Action: func(c *cli.Context) error {
 			defer recovery.Exit()
-			var p = dix.Inject(new(param))
+			var p = di.Inject(new(param))
 			p.M.SaveLocalMenusToDb()
 			p.Log.Info("menu saving success")
 			return nil

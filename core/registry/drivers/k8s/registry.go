@@ -3,8 +3,8 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/dix/di"
 
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
@@ -77,7 +77,7 @@ const (
 func init() {
 	defer recovery.Exit()
 
-	dix.Provider(func(m config.CfgMap) (_ registry.Registry, err error) {
+	di.Provide(func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer recovery.Err(&err)
 
 		var cfg Cfg
@@ -125,7 +125,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*
 		Endpoints(k8s.Namespace()).
 		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)}))
 
-	return syncx.Yield(func(yield func(*registry.Service)) error {
+	return syncx.Yield(func(yield func(*registry.Service)) result.Error {
 		for _, endpoint := range endpoints.Items {
 			for _, subset := range endpoint.Subsets {
 				realPort := ""
@@ -147,7 +147,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*
 				}
 			}
 		}
-		return nil
+		return result.NilErr()
 	}).ToList()
 }
 

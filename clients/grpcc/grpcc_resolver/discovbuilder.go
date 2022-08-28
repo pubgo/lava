@@ -110,12 +110,12 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					return
 				default:
 					res := w.Unwrap().Next()
-					if res.Err() == registry.ErrWatcherStopped {
+					if res.Err().Err() == registry.ErrWatcherStopped {
 						return
 					}
 
 					if res.IsErr() {
-						logs.WithErr(res.Err()).Error("error")
+						logs.WithErr(res.Err().Err()).Error("error")
 						continue
 					}
 

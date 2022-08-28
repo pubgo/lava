@@ -103,7 +103,7 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 
 func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.List[*registry.Service] {
 	entries := make(chan *zeroconf.ServiceEntry)
-	services := syncx.Yield(func(yield func(*registry.Service)) error {
+	services := syncx.Yield(func(yield func(*registry.Service)) result.Error {
 		for s := range entries {
 			yield(&registry.Service{
 				Name: s.Service,
@@ -114,7 +114,7 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.L
 				}},
 			})
 		}
-		return nil
+		return result.NilErr()
 	})
 
 	var gOpts registry.GetOpts

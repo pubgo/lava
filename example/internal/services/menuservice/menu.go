@@ -146,7 +146,7 @@ func (m *Menu) SaveLocalMenusToDb() {
 	for _, item := range menuItems {
 		xerror.Assert(item.Path == "" || item.Method == "" || item.Code == "", "path or method or code is null")
 
-		xerror.Panic(m.db.Upsert(context.Background(), &models.Endpoint{
+		m.db.Upsert(context.Background(), &models.Endpoint{
 			TargetType: item.TargetType,
 			Path:       item.Path,
 			Method:     item.Method,
@@ -156,18 +156,18 @@ func (m *Menu) SaveLocalMenusToDb() {
 				Type: item.ResType,
 				Name: item.DisplayName,
 			},
-		}, "path=? and method=?", item.Path, item.Method))
+		}, "path=? and method=?", item.Path, item.Method).Must()
 
 		for parentCode := range item.Parent {
 			if parentCode == "" {
 				continue
 			}
 
-			xerror.Panic(m.db.Upsert(context.Background(), &models.MenuItem{
+			m.db.Upsert(context.Background(), &models.MenuItem{
 				Code:       item.Code,
 				ParentCode: parentCode,
 				Platform:   "ka",
-			}, "code=? and parent_code=?", item.Code, parentCode))
+			}, "code=? and parent_code=?", item.Code, parentCode).Must()
 		}
 	}
 }
