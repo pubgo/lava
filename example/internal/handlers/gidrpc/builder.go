@@ -22,6 +22,7 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) service.GrpcHandler {
 	}
 
 	return &Id{
+		//testApiSrv: hellopb.NewTestApiClient(conns["test-grpc"]),
 		cron:      cron,
 		m:         metric,
 		snowflake: sf,

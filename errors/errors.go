@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	errorV1 "github.com/pubgo/lava/gen/proto/errors/v1"
+	errorV1 "github.com/pubgo/lava/pkg/proto/errors/v1"
 )
 
 // New generates a custom error.

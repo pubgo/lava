@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/proto/event/v1"
+	"github.com/pubgo/lava/pkg/proto/event/v1"
 	"github.com/pubgo/lava/pkg/typex"
 )
 

@@ -92,5 +92,5 @@ func (t namedJob) Execute() {
 	logutil.LogOrErr(t.log.L(), "scheduler trigger",
 		func() result.Error { return result.WithErr(err) },
 		zap.String("job-name", t.name),
-		zap.Int64("job-cost", dur.Microseconds()))
+		zap.Int64("job-cost-ms", dur.Milliseconds()))
 }

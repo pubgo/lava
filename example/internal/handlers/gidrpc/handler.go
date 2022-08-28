@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/example/gen/proto/hellopb"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,10 +32,11 @@ var (
 )
 
 type Id struct {
-	cron      *scheduler.Scheduler
-	m         metric.Metric
-	snowflake *snowflake.Snowflake
-	bigflake  *bigflake.Bigflake
+	testApiSrv hellopb.TestApiClient
+	cron       *scheduler.Scheduler
+	m          metric.Metric
+	snowflake  *snowflake.Snowflake
+	bigflake   *bigflake.Bigflake
 }
 
 func (id *Id) HttpRouter(app *fiber.App) {

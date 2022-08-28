@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 	"time"
 
@@ -36,9 +38,10 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-func NewTestAPIHandler() hellopb.TestApiServer {
-	return &testApiHandler{}
-}
+var (
+	_ service.Init        = (*testApiHandler)(nil)
+	_ service.GrpcHandler = (*testApiHandler)(nil)
+)
 
 type testApiHandler struct {
 	Db    *orm.Client
@@ -47,6 +50,10 @@ type testApiHandler struct {
 	Conns map[string]*grpcc.Client
 
 	testApiSrv hellopb.TestApiClient
+}
+
+func (h *testApiHandler) GrpcHandler(reg grpc.ServiceRegistrar) {
+	hellopb.RegisterTestApiServer(reg, h)
 }
 
 func (h *testApiHandler) Close() {

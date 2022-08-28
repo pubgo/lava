@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/proto/event/v1"
+	"github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)

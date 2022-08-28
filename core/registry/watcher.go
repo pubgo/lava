@@ -5,7 +5,7 @@ import (
 
 	"github.com/pubgo/funk/result"
 
-	"github.com/pubgo/lava/gen/proto/event/v1"
+	"github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
 // Watcher is an interface that returns updates

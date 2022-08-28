@@ -1,7 +1,7 @@
 package errors
 
 import (
-	errorV1 "github.com/pubgo/lava/gen/proto/errors/v1"
+	errorV1 "github.com/pubgo/lava/pkg/proto/errors/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 )

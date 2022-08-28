@@ -45,6 +45,7 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        *zap.Logger
+	initList   []func()
 }
 
 func (s *serviceImpl) Run() {
@@ -79,7 +80,6 @@ func (s *serviceImpl) DixInject(
 	}))
 
 	var gatewayList []service.GrpcGatewayHandler
-	var initList []func()
 	for _, h := range handlers {
 		if m, ok := h.(service.IMiddleware); ok {
 			middlewares = append(middlewares, m.Middlewares()...)
@@ -98,7 +98,7 @@ func (s *serviceImpl) DixInject(
 		}
 
 		if m, ok := h.(service.Init); ok {
-			initList = append(initList, m.Init)
+			s.initList = append(s.initList, m.Init)
 		}
 	}
 
@@ -172,6 +172,15 @@ func (s *serviceImpl) start() {
 	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
 
+	logutil.OkOrFailed(s.log, "service handler init", func() result.Error {
+		defer recovery.Exit()
+		for _, ii := range s.initList {
+			s.log.Sugar().Infof("handler %s", stack.Func(ii))
+			ii()
+		}
+		return result.NilErr()
+	})
+
 	logutil.OkOrFailed(s.log, "service start", func() result.Error {
 		// 启动grpc服务
 		syncx.GoDelay(func() result.Error {
@@ -181,7 +190,6 @@ func (s *serviceImpl) start() {
 				if err := s.grpcServer.Serve(grpcLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
-					fmt.Printf("%#v %s\n\n\n\n", err, err.Error())
 					return result.WithErr(err)
 				}
 				return result.NilErr()
