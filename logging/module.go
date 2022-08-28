@@ -7,9 +7,9 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/internal/pkg/typex"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 func GetGlobal(name string, fields ...zap.Field) *ModuleLogger {

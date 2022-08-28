@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 var (

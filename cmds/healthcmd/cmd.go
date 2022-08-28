@@ -10,8 +10,8 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/internal/pkg/cmdx"
-	netutil2 "github.com/pubgo/lava/internal/pkg/netutil"
+	"github.com/pubgo/lava/pkg/cmdx"
+	netutil2 "github.com/pubgo/lava/pkg/netutil"
 )
 
 func New() *cli.Command {

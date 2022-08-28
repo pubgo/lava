@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/pkg/merge"
 	"time"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 
-	"github.com/pubgo/lava/internal/pkg/htmlx"
+	"github.com/pubgo/lava/pkg/htmlx"
 )
 
 func init() {

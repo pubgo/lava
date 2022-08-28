@@ -1,7 +1,7 @@
 package jump_test
 
 import (
-	"github.com/pubgo/lava/internal/pkg/jump"
+	"github.com/pubgo/lava/pkg/jump"
 	"testing"
 )
 

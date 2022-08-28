@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/cmdx"
+	"github.com/pubgo/lava/pkg/cmdx"
 	"github.com/pubgo/lava/version"
 )
 

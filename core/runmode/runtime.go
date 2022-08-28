@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/x/pathutil"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/version"
 )
 

@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/pubgo/lava/internal/pkg/httpx"
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/httpx"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 )
 

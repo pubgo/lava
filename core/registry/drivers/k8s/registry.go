@@ -16,7 +16,7 @@ import (
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/internal/pkg/k8s"
+	"github.com/pubgo/lava/pkg/k8s"
 )
 
 // Defines the key name of specific fields

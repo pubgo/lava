@@ -9,7 +9,7 @@ import (
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 type Config struct {

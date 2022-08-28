@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/internal/service/grpcs"
+	"github.com/pubgo/lava/service/grpcs"
 
 	"github.com/urfave/cli/v2"
 

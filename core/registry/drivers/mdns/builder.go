@@ -5,8 +5,8 @@ import (
 	"github.com/pubgo/funk/assert"
 	_ "github.com/pubgo/funk/typex"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 func init() {

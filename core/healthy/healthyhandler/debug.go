@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/x/jsonx"
 
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func init() {

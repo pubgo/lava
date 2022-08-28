@@ -2,7 +2,7 @@ package modutil
 
 import (
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"

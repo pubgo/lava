@@ -1024,8 +1024,8 @@ github.com/prometheus/tsdb v0.6.2-0.20190402121629-4f204dcbc150/go.mod h1:qhTCs0
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/pubgo/dix v0.3.4 h1:cKGApNzh4LhLixLwAnD/KdVFVHSoYRZUJCo3UD3GL7o=
 github.com/pubgo/dix v0.3.4/go.mod h1:0L9CPzcrVizaTGQWl4dOSsvV+VO8ZDbiPm7E9cIh7YM=
-github.com/pubgo/funk v0.5.21 h1:1T0e7I5eWcBTBXN45QfOKdmt3Xl1/2VY15i/7iSYBI8=
-github.com/pubgo/funk v0.5.21/go.mod h1:2D7X+IZ36+5DeRM2K6mT/XpCISUHEBMty8bqXFrQy94=
+github.com/pubgo/funk v0.5.22 h1:VuEHZsbsn/ULJREFignHVDW8uPptm6jYDY9Vf8PHk1g=
+github.com/pubgo/funk v0.5.22/go.mod h1:2D7X+IZ36+5DeRM2K6mT/XpCISUHEBMty8bqXFrQy94=
 github.com/pubgo/x v0.3.37 h1:hOj+yqTc2XqpP4Ap5V7FnDYh7gOQ09/sPm6TbiMgCNE=
 github.com/pubgo/x v0.3.37/go.mod h1:6EQsDssieDejOCOw+jnq3/60XQGaLjL6LNPVaUGDNt8=
 github.com/pubgo/xerror v0.4.20/go.mod h1:oII+ykbOChXWPDP55anP3C+ORCc/hn70lBRu5zcqEeE=

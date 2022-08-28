@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/jsonx"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func Float(name string) *expvar.Float {

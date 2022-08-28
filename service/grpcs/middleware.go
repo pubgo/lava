@@ -2,6 +2,7 @@ package grpcs
 
 import (
 	"context"
+	"github.com/pubgo/lava/service/grpcs/grpcutil"
 	"strings"
 	"time"
 
@@ -12,8 +13,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
-	"github.com/pubgo/lava/internal/service/grpcutil"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 )
 

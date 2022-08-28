@@ -2,8 +2,8 @@ package runmode
 
 import (
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/urfave/cli/v2"
 )
 

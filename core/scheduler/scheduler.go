@@ -8,9 +8,9 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func New(log *logging.Logger) *Scheduler {

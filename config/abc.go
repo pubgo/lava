@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/spf13/viper"
 	"io"
 )

@@ -1,10 +1,5 @@
 package lifecycle
 
-import (
-	"github.com/pubgo/dix/di"
-	"github.com/pubgo/funk/recovery"
-)
-
 type executor struct {
 	Handler func()
 }
@@ -54,18 +49,4 @@ func (t *lifecycleImpl) AfterStop(f func()) {
 
 func New() *lifecycleImpl {
 	return new(lifecycleImpl)
-}
-
-func init() {
-	defer recovery.Exit()
-
-	var lc = new(lifecycleImpl)
-	di.Provide(func() Handler { return func(lc Lifecycle) {} })
-	di.Provide(func() GetLifecycle { return lc })
-	di.Provide(func(handlers []Handler) Lifecycle {
-		for i := range handlers {
-			handlers[i](lc)
-		}
-		return lc
-	})
 }

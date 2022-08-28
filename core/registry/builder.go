@@ -15,8 +15,8 @@ import (
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/netutil"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/version"
 )
 

@@ -9,9 +9,9 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
-	utils2 "github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	utils2 "github.com/pubgo/lava/pkg/utils"
 )
 
 func New(db *bolt.DB, log *logging.Logger) *Client {

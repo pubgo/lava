@@ -12,7 +12,7 @@ import (
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/gen/proto/event/v1"
-	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)

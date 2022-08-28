@@ -9,9 +9,9 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/internal/pkg/merge"
-	retry2 "github.com/pubgo/lava/internal/pkg/retry"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/merge"
+	retry2 "github.com/pubgo/lava/pkg/retry"
 	"github.com/pubgo/lava/service"
 )
 

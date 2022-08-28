@@ -21,10 +21,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/internal/pkg/reflectx"
-	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/reflectx"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/version"
 )
 

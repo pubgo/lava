@@ -1,8 +1,8 @@
 package grpcs
 
 import (
-	"github.com/pubgo/lava/internal/pkg/fiber_builder"
-	"github.com/pubgo/lava/internal/pkg/grpc_builder"
+	"github.com/pubgo/lava/pkg/fiber_builder"
+	"github.com/pubgo/lava/pkg/grpc_builder"
 )
 
 const (
