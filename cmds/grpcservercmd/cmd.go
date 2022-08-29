@@ -15,7 +15,7 @@ import (
 func New() *cli.Command {
 	return &cli.Command{
 		Name:  "grpc",
-		Usage: fmt.Sprintf("%s service", version.Project()),
+		Usage: fmt.Sprintf("%s grpc service", version.Project()),
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 			srv := di.Inject(grpcs.New())
