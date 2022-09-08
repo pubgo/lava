@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	_ "github.com/emicklei/go-restful/v3"
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

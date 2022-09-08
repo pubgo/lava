@@ -4,6 +4,7 @@ package perm.v1;
 
 option go_package = "./permpb;permpb";
 
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "perm/v1/menu.proto";
 
 // Perm grpc service, Perm for authentication and resource list
@@ -20,6 +21,14 @@ service PermService {
 }
 
 message EnforceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      title: "SimpleMessage"
+      description: "A simple message."
+      required: ["id"]
+    }
+  };
+
   // organization
   string org_id = 1;
 

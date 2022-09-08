@@ -13,6 +13,7 @@ import (
 
 const name = "automaxprocs"
 
+// https://github.com/KimMachineGun/automemlimit
 func init() {
 	di.Provide(func() lifecycle.Handler {
 		return func(lc lifecycle.Lifecycle) {

@@ -35,3 +35,11 @@ plugins:
   out: gen/proto
   opt:
   - paths=import
+  - allow_repeated_fields_in_body=true
+- name: openapiv2
+  out: docs/openapi
+  opt:
+    - allow_repeated_fields_in_body=true
+    - generate_unbound_methods=true
+    - include_package_in_tags=true
+    - openapi_naming_strategy=simple

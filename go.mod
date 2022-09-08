@@ -76,6 +76,7 @@ require (
 
 require (
 	github.com/a8m/envsubst v1.3.0
+	github.com/emicklei/go-restful/v3 v3.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
