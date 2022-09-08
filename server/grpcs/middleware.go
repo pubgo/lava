@@ -2,7 +2,7 @@ package grpcs
 
 import (
 	"context"
-	"github.com/pubgo/lava/service/grpcs/grpcutil"
+	"github.com/pubgo/lava/server/grpcs/grpcutil"
 	"strings"
 	"time"
 

@@ -3,8 +3,6 @@ package orm
 import (
 	"context"
 	"database/sql"
-	"errors"
-
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"
@@ -75,12 +73,4 @@ func (c *Client) Stats() result.Result[sql.DBStats] {
 		return result.Wrap(sql.DBStats{}, err)
 	}
 	return result.OK(db.Stats())
-}
-
-func ErrNotFound(err error) bool {
-	if err == gorm.ErrRecordNotFound {
-		return true
-	}
-
-	return errors.Is(err, gorm.ErrRecordNotFound)
 }
