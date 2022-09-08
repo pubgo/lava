@@ -18,7 +18,7 @@ import (
 	"github.com/pubgo/lava/version"
 )
 
-func Run(cmds ...*cli.Command) {
+func Run(cmdL ...*cli.Command) {
 	defer recovery.Exit()
 
 	var app = &cli.App{
@@ -28,7 +28,7 @@ func Run(cmds ...*cli.Command) {
 		Usage:                  fmt.Sprintf("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
-		Commands:               append(cmds, versioncmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New()),
+		Commands:               append(cmdL, versioncmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New()),
 		ExtraInfo:              runmode.GetVersion,
 	}
 
