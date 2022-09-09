@@ -31,6 +31,10 @@ plugins:
   opt:
   - paths=import
   - require_unimplemented_servers=false
+- name: twirp
+  out: gen/proto
+  opt:
+    - paths=import
 - name: grpc-gateway
   out: gen/proto
   opt:
