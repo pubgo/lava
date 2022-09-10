@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	ver "github.com/hashicorp/go-version"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
 )
 
@@ -19,7 +20,9 @@ var deviceID = assert.Exit1(machineid.ID())
 var instanceID = uuid.New().String()
 
 func init() {
-	defer recovery.Exit()
+	defer recovery.Exit(func() {
+		logx.Info("please do make build")
+	})
 	assert.If(version == "", "version is null")
 	assert.If(project == "", "project is null")
 	assert.If(commitID == "", "commit id is null")

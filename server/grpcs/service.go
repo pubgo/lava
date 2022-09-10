@@ -1,10 +1,11 @@
 package grpcs
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/funk/recovery"
+	"github.com/go-chi/chi/v5"
+	"github.com/pubgo/lava/debug"
+	"github.com/twitchtv/twirp"
 	"net"
 	"net/http"
 	"strings"
@@ -12,10 +13,10 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/x/stack"
@@ -23,7 +24,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
@@ -79,30 +79,21 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
-	var gatewayList []service.GrpcGatewayHandler
+	app := chi.NewRouter()
 	for _, h := range handlers {
-		if m, ok := h.(service.IMiddleware); ok {
-			middlewares = append(middlewares, m.Middlewares()...)
-		}
+		s.initList = append(s.initList, h.Init)
 
-		if m, ok := h.(service.HttpRouter); ok {
-			m.HttpRouter(httpServer)
-		}
-
-		if m, ok := h.(service.GrpcGatewayHandler); ok {
-			gatewayList = append(gatewayList, m)
-		}
+		middlewares = append(middlewares, h.Middlewares()...)
+		var hh = h.TwirpHandler(twirp.WithServerPathPrefix(cfg.BasePrefix))
+		app.Mount(cfg.BasePrefix+h.ServiceDesc().ServiceName, hh)
 
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
-
-		if m, ok := h.(service.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
 	}
 
 	httpServer.Use(handlerHttpMiddle(middlewares))
+	httpServer.Mount("/debug", debug.App())
 
 	// grpc server初始化
 	var grpcServer = cfg.Grpc.Build(
@@ -111,37 +102,28 @@ func (s *serviceImpl) DixInject(
 	).Unwrap()
 	s.grpcServer = grpcServer
 
-	var conn = assert.Must1(grpc.Dial(fmt.Sprintf("localhost:%d", runmode.GrpcPort), grpc.WithTransportCredentials(insecure.NewCredentials())))
-	lifecycle.BeforeStop(func() { assert.Must(conn.Close()) })
-
-	grpcMux := runtime.NewServeMux()
-	for _, srv := range gatewayList {
-		assert.Must(srv.GrpcGatewayHandler(context.Background(), grpcMux, conn))
-	}
-
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithAllowNonRootResource(true),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	var prefix = fmt.Sprintf("/%s/grpc", runmode.Project)
-	httpServer.All(prefix, adaptor.HTTPHandler(http.StripPrefix(prefix, h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	httpServer.All(cfg.BasePrefix, adaptor.HTTPHandler(h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-			grpcServer.ServeHTTP(w, r)
+			grpcServer.ServeHTTP(w, stripPrefix(cfg.BasePrefix, r))
 			return
 		}
 
 		if wrappedGrpc.IsGrpcWebSocketRequest(r) {
-			wrappedGrpc.HandleGrpcWebsocketRequest(w, r)
+			wrappedGrpc.HandleGrpcWebsocketRequest(w, stripPrefix(cfg.BasePrefix, r))
 			return
 		}
 
 		if wrappedGrpc.IsGrpcWebRequest(r) {
-			wrappedGrpc.HandleGrpcWebRequest(w, r)
+			wrappedGrpc.HandleGrpcWebRequest(w, stripPrefix(cfg.BasePrefix, r))
 			return
 		}
 
-		grpcMux.ServeHTTP(w, r)
-	}), &http2.Server{}))))
+		app.ServeHTTP(w, r)
+	}), &http2.Server{})))
 
 	// 网关初始化
 
@@ -157,6 +139,16 @@ func (s *serviceImpl) DixInject(
 			}
 		}
 	}
+}
+
+func stripPrefix(prefix string, r *http.Request) *http.Request {
+	p := strings.TrimPrefix(r.URL.Path, prefix)
+	rp := strings.TrimPrefix(r.URL.RawPath, prefix)
+	if len(p) < len(r.URL.Path) && (r.URL.RawPath == "" || len(rp) < len(r.URL.RawPath)) {
+		r.URL.Path = p
+		r.URL.RawPath = rp
+	}
+	return r
 }
 
 func (s *serviceImpl) start() {

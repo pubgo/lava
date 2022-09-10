@@ -1,20 +1,22 @@
 package service
 
 import (
-	"context"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
 
 type GrpcHandler interface {
-	GrpcHandler(reg grpc.ServiceRegistrar)
-}
-
-type GrpcGatewayHandler interface {
-	GrpcGatewayHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
+	Init()
+	Middlewares() []Middleware
+	ServiceDesc() grpc.ServiceDesc
+	TwirpHandler(opts ...interface{}) http.Handler
 }
 
 type HttpRouter interface {
-	HttpRouter(app *fiber.App)
+	Init()
+	BasePrefix() string
+	Middlewares() []Middleware
+	Router(app *fiber.App)
 }

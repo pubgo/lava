@@ -76,22 +76,22 @@ require (
 
 require (
 	github.com/a8m/envsubst v1.3.0
-	github.com/emicklei/go-restful/v3 v3.9.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-kit/log v0.2.1
 	github.com/gofiber/adaptor/v2 v2.1.20
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v0.1.2
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/pubgo/dix v0.3.4
-	github.com/pubgo/funk v0.5.22
+	github.com/pubgo/funk v0.5.23
 	github.com/rs/xid v1.2.1
 	github.com/stretchr/testify v1.7.2
+	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
 	github.com/valyala/fasthttp v1.37.0
 	gorm.io/driver/postgres v1.3.9

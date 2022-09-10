@@ -39,7 +39,6 @@ var (
 )
 
 const (
-	defaultEnvPrefix  = "perm"
 	defaultConfigName = "config"
 	defaultConfigType = "yaml"
 	defaultConfigPath = "./configs"
@@ -55,7 +54,7 @@ func New() Config {
 
 	replacer := strings.NewReplacer(".", "_", "-", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	viper.SetEnvPrefix(defaultEnvPrefix)
+	viper.SetEnvPrefix(version.Project())
 	viper.AutomaticEnv()
 
 	viper.SetConfigName(defaultConfigName)

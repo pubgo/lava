@@ -18,4 +18,5 @@ type Cfg struct {
 	Api        *fiber_builder.Cfg   `yaml:"http-server"`
 	GrpcWeb    *GrpcWebCfg          `yaml:"grpc-web"`
 	PrintRoute bool                 `yaml:"print-route"`
+	BasePrefix string               `json:"base-prefix"`
 }
