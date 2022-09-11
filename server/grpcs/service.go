@@ -3,7 +3,7 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/debug"
 	"github.com/twitchtv/twirp"
 	"net"
@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
@@ -42,7 +41,7 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
-	httpServer *fiber.App
+	httpServer *http.Server
 	grpcServer *grpc.Server
 	log        *zap.Logger
 	initList   []func()
@@ -70,7 +69,7 @@ func (s *serviceImpl) DixInject(
 	s.lc = getLifecycle
 	s.log = log
 
-	var httpServer = cfg.Api.Build().Unwrap()
+	var httpServer = &http.Server{}
 	s.httpServer = httpServer
 
 	httpServer.Use(cors.New(cors.Config{
@@ -79,21 +78,21 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
-	app := chi.NewRouter()
+	app := fiber.New()
 	for _, h := range handlers {
 		s.initList = append(s.initList, h.Init)
 
 		middlewares = append(middlewares, h.Middlewares()...)
 		var hh = h.TwirpHandler(twirp.WithServerPathPrefix(cfg.BasePrefix))
-		app.Mount(cfg.BasePrefix+h.ServiceDesc().ServiceName, hh)
+		app.Post(cfg.BasePrefix+h.ServiceDesc().ServiceName+"/*", adaptor.HTTPHandler(hh))
 
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}
 
-	httpServer.Use(handlerHttpMiddle(middlewares))
-	httpServer.Mount("/debug", debug.App())
+	app.Use(handlerHttpMiddle(middlewares))
+	app.Mount("/debug", debug.App())
 
 	// grpc server初始化
 	var grpcServer = cfg.Grpc.Build(
