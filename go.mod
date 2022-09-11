@@ -6,7 +6,7 @@ require (
 	github.com/felixge/fgprof v0.9.1
 	github.com/go-echarts/go-echarts/v2 v2.2.4
 	github.com/go-echarts/statsview v0.3.4
-	github.com/gofiber/fiber/v2 v2.29.0
+	github.com/gofiber/fiber/v2 v2.37.1
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.18
@@ -93,7 +93,7 @@ require (
 	github.com/stretchr/testify v1.7.2
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
-	github.com/valyala/fasthttp v1.37.0
+	github.com/valyala/fasthttp v1.40.0
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gen v0.3.16
 )
