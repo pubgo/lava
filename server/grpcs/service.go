@@ -3,14 +3,8 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/debug"
-	"github.com/twitchtv/twirp"
-	"net"
-	"net/http"
-	"strings"
-
 	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
@@ -18,11 +12,15 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/x/stack"
+	"github.com/twitchtv/twirp"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	"net"
+	"net/http"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
@@ -41,7 +39,7 @@ var _ service.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
-	httpServer *http.Server
+	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        *zap.Logger
 	initList   []func()
@@ -69,8 +67,9 @@ func (s *serviceImpl) DixInject(
 	s.lc = getLifecycle
 	s.log = log
 
-	var httpServer = &http.Server{}
-	s.httpServer = httpServer
+	var httpServer = fiber.New(fiber.Config{
+		EnableIPValidation: true,
+	})
 
 	httpServer.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
@@ -105,27 +104,10 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithAllowNonRootResource(true),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	httpServer.All(cfg.BasePrefix, adaptor.HTTPHandler(h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-			grpcServer.ServeHTTP(w, stripPrefix(cfg.BasePrefix, r))
-			return
-		}
-
-		if wrappedGrpc.IsGrpcWebSocketRequest(r) {
-			wrappedGrpc.HandleGrpcWebsocketRequest(w, stripPrefix(cfg.BasePrefix, r))
-			return
-		}
-
-		if wrappedGrpc.IsGrpcWebRequest(r) {
-			wrappedGrpc.HandleGrpcWebRequest(w, stripPrefix(cfg.BasePrefix, r))
-			return
-		}
-
-		app.ServeHTTP(w, r)
-	}), &http2.Server{})))
+	app.Post(cfg.BasePrefix+"/grpcweb/*", adaptor.HTTPHandler(http.StripPrefix(cfg.BasePrefix+"/grpcweb/*", wrappedGrpc)))
+	app.Post(cfg.BasePrefix+"/grpc/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(cfg.BasePrefix+"/grpc/*", grpcServer), &http2.Server{})))
 
 	// 网关初始化
-
 	if cfg.PrintRoute {
 		for _, stacks := range httpServer.Stack() {
 			for _, s := range stacks {
@@ -138,16 +120,6 @@ func (s *serviceImpl) DixInject(
 			}
 		}
 	}
-}
-
-func stripPrefix(prefix string, r *http.Request) *http.Request {
-	p := strings.TrimPrefix(r.URL.Path, prefix)
-	rp := strings.TrimPrefix(r.URL.RawPath, prefix)
-	if len(p) < len(r.URL.Path) && (r.URL.RawPath == "" || len(rp) < len(r.URL.RawPath)) {
-		r.URL.Path = p
-		r.URL.RawPath = rp
-	}
-	return r
 }
 
 func (s *serviceImpl) start() {
