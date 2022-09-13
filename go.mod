@@ -79,7 +79,6 @@ require (
 	github.com/fasthttp/websocket v1.5.0
 	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/gin-gonic/gin v1.6.3
-	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-kit/log v0.2.1
 	github.com/gofiber/adaptor/v2 v2.1.20
@@ -88,7 +87,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/pubgo/dix v0.3.4
-	github.com/pubgo/funk v0.5.23
+	github.com/pubgo/funk v0.5.24
 	github.com/rs/xid v1.2.1
 	github.com/stretchr/testify v1.7.2
 	github.com/twitchtv/twirp v8.1.2+incompatible
