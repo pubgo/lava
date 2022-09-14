@@ -7,9 +7,30 @@ import (
 	"runtime"
 	"strings"
 
+	_ "github.com/emicklei/go-restful-openapi/v2"
+	_ "github.com/emicklei/go-restful/v3"
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/santhosh-tekuri/jsonschema/v3"
 	_ "github.com/swaggest/rest"
 )
+
+// ErrResponse is HTTP error response body.
+type ErrResponse struct {
+	Status struct {
+		StatusText     string `json:"status,omitempty" description:"Status text."`
+		AppCode        int    `json:"code,omitempty" description:"Application-specific error code."`
+		ErrorText      string `json:"error,omitempty" description:"Error message."`
+		err            error  // Original error.
+		httpStatusCode int    // HTTP response status code.
+	}
+	Data     interface{}
+	Paginate struct {
+		Next     int
+		Previous int
+		Count    int
+	}
+	Context map[string]interface{} `json:"context,omitempty" description:"Application context."`
+}
 
 type Handler[Request any, Response any] func(ctx context.Context, req Request) (rsp Response, err error)
 
@@ -97,4 +118,83 @@ func getFunctionName(i interface{}) string {
 	fn := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	var names = strings.Split(fn, "/")
 	return names[len(names)-1]
+}
+
+// Info exposes information about use case.
+type Info struct {
+	name           string
+	title          string
+	description    string
+	tags           []string
+	expectedErrors []error
+	isDeprecated   bool
+}
+
+var (
+	_ HasTags           = Info{}
+	_ HasTitle          = Info{}
+	_ HasName           = Info{}
+	_ HasDescription    = Info{}
+	_ HasIsDeprecated   = Info{}
+	_ HasExpectedErrors = Info{}
+)
+
+// IsDeprecated implements HasIsDeprecated.
+func (i Info) IsDeprecated() bool {
+	return i.isDeprecated
+}
+
+// SetIsDeprecated sets status of deprecation.
+func (i *Info) SetIsDeprecated(isDeprecated bool) {
+	i.isDeprecated = isDeprecated
+}
+
+// ExpectedErrors implements HasExpectedErrors.
+func (i Info) ExpectedErrors() []error {
+	return i.expectedErrors
+}
+
+// SetExpectedErrors sets errors that are expected to cause use case failure.
+func (i *Info) SetExpectedErrors(expectedErrors ...error) {
+	i.expectedErrors = expectedErrors
+}
+
+// Tags implements HasTag.
+func (i Info) Tags() []string {
+	return i.tags
+}
+
+// SetTags sets tags of use cases group.
+func (i *Info) SetTags(tags ...string) {
+	i.tags = tags
+}
+
+// Description implements HasDescription.
+func (i Info) Description() string {
+	return i.description
+}
+
+// SetDescription sets use case description.
+func (i *Info) SetDescription(description string) {
+	i.description = description
+}
+
+// Title implements HasTitle.
+func (i Info) Title() string {
+	return i.title
+}
+
+// SetTitle sets use case title.
+func (i *Info) SetTitle(title string) {
+	i.title = title
+}
+
+// Name implements HasName.
+func (i Info) Name() string {
+	return i.name
+}
+
+// SetName sets use case title.
+func (i *Info) SetName(name string) {
+	i.name = name
 }
