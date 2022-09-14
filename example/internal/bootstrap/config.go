@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	Casbin *casbinservice.Config `json:"casbin"`
-	Menu   *menuservice.Config   `json:"menu"`
-	Db     *orm.Cfg              `json:"orm"`
+	Casbin *casbinservice.Config `yaml:"casbin"`
+	Menu   *menuservice.Config   `yaml:"menu"`
+	Db     *orm.Cfg              `yaml:"orm"`
 }
