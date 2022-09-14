@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/swaggest/rest"
 )
 
 type Handler[Request any, Response any] func(ctx context.Context, req Request) (rsp Response, err error)

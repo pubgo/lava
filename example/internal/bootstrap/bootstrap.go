@@ -4,6 +4,7 @@ import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
+
 	"github.com/pubgo/lava/example/internal/handlers/gidrpc"
 	"github.com/pubgo/lava/example/internal/services/casbinservice"
 	"github.com/pubgo/lava/example/internal/services/menuservice"
