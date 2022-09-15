@@ -6,7 +6,6 @@ package https
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strings"
@@ -21,10 +20,8 @@ type RouteBuilder struct {
 	currentPath                      string
 	produces                         []string
 	consumes                         []string
-	httpMethod                       string        // required
-	function                         RouteFunction // required
-	filters                          []FilterFunction
-	conditions                       []RouteSelectionConditionFunction
+	httpMethod                       string
+	function                         Handler
 	allowedMethodsWithoutContentType []string // see Route
 
 	typeNameHandleFunc TypeNameHandleFunction // required
@@ -60,7 +57,7 @@ func (b *RouteBuilder) Do(oneArgBlocks ...func(*RouteBuilder)) *RouteBuilder {
 
 // To bind the route to a function.
 // If this route is matched with the incoming Http Request then call this function with the *Request,*Response pair. Required.
-func (b *RouteBuilder) To(function RouteFunction) *RouteBuilder {
+func (b *RouteBuilder) To(function Handler) *RouteBuilder {
 	b.function = function
 	return b
 }
@@ -307,56 +304,13 @@ func (b *RouteBuilder) typeNameHandler(handler TypeNameHandleFunction) *RouteBui
 	return b
 }
 
-// Build creates a new Route using the specification details collected by the RouteBuilder
-func (b *RouteBuilder) Build() Route {
-	pathExpr, err := newPathExpression(b.currentPath)
-	if err != nil {
-		log.Printf("Invalid path:%s because:%v", b.currentPath, err)
-		os.Exit(1)
-	}
-	if b.function == nil {
-		log.Printf("No function specified for route:" + b.currentPath)
-		os.Exit(1)
-	}
-	operationName := b.operation
-	if len(operationName) == 0 && b.function != nil {
-		// extract from definition
-		operationName = nameOfFunction(b.function)
-	}
-	route := Route{
-		Method:                           b.httpMethod,
-		Path:                             concatPath(b.rootPath, b.currentPath),
-		Produces:                         b.produces,
-		Consumes:                         b.consumes,
-		Function:                         b.function,
-		Filters:                          b.filters,
-		If:                               b.conditions,
-		relativePath:                     b.currentPath,
-		pathExpr:                         pathExpr,
-		Doc:                              b.doc,
-		Notes:                            b.notes,
-		Operation:                        operationName,
-		ParameterDocs:                    b.parameters,
-		ResponseErrors:                   b.errorMap,
-		DefaultResponse:                  b.defaultResponse,
-		ReadSample:                       b.readSample,
-		WriteSample:                      b.writeSample,
-		Metadata:                         b.metadata,
-		Deprecated:                       b.deprecated,
-		contentEncodingEnabled:           b.contentEncodingEnabled,
-		allowedMethodsWithoutContentType: b.allowedMethodsWithoutContentType,
-	}
-	route.Extensions = b.extensions
-	route.postBuild()
-	return route
-}
-
 func concatPath(path1, path2 string) string {
 	return strings.TrimRight(path1, "/") + "/" + strings.TrimLeft(path2, "/")
 }
 
 var anonymousFuncCount int32
 
+// operationName
 // nameOfFunction returns the short name of the function f for documentation.
 // It uses a runtime feature for debugging ; its value may change for later Go versions.
 func nameOfFunction(f interface{}) string {

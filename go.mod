@@ -91,6 +91,7 @@ require (
 	github.com/pubgo/dix v0.3.4
 	github.com/pubgo/funk v0.5.24
 	github.com/rs/xid v1.2.1
+	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggest/rest v0.2.30
 	github.com/swaggest/usecase v1.1.3
@@ -118,6 +119,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -168,6 +170,7 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/swaggest/form/v5 v5.0.1 // indirect
 	github.com/swaggest/jsonschema-go v0.3.35 // indirect
 	github.com/swaggest/openapi-go v0.2.18 // indirect
 	github.com/swaggest/refl v1.1.0 // indirect

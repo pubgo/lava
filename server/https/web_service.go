@@ -1,36 +1,22 @@
 package https
 
 import (
-	"errors"
+	"github.com/emicklei/go-restful/v3/log"
+	"github.com/gofiber/fiber/v2"
 	"os"
 	"reflect"
-	"sync"
-
-	"github.com/emicklei/go-restful/v3/log"
 )
-
-// Copyright 2013 Ernest Micklei. All rights reserved.
-// Use of this source code is governed by a license
-// that can be found in the LICENSE file.
 
 // WebService holds a collection of Route values that bind a Http Method + URL Path to a function.
 type WebService struct {
+	r              *fiber.App
 	rootPath       string
-	pathExpr       *pathExpression // cached compilation of rootPath as RegExp
-	routes         []Route
+	routes         []RouteBuilder
 	produces       []string
 	consumes       []string
 	pathParameters []*Parameter
-	filters        []FilterFunction
 	documentation  string
 	apiVersion     string
-
-	typeNameHandleFunc TypeNameHandleFunction
-
-	dynamicRoutes bool
-
-	// protects 'routes' if dynamic routes are enabled
-	routesLock sync.RWMutex
 }
 
 func (w *WebService) SetDynamicRoutes(enable bool) {
@@ -186,24 +172,6 @@ func (w *WebService) Route(builder *RouteBuilder) *WebService {
 	return w
 }
 
-// RemoveRoute removes the specified route, looks for something that matches 'path' and 'method'
-func (w *WebService) RemoveRoute(path, method string) error {
-	if !w.dynamicRoutes {
-		return errors.New("dynamic routes are not enabled.")
-	}
-	w.routesLock.Lock()
-	defer w.routesLock.Unlock()
-	newRoutes := []Route{}
-	for _, route := range w.routes {
-		if route.Method == method && route.Path == path {
-			continue
-		}
-		newRoutes = append(newRoutes, route)
-	}
-	w.routes = newRoutes
-	return nil
-}
-
 // Method creates a new RouteBuilder and initialize its http method
 func (w *WebService) Method(httpMethod string) *RouteBuilder {
 	return new(RouteBuilder).typeNameHandler(w.typeNameHandleFunc).servicePath(w.rootPath).Method(httpMethod)
@@ -264,10 +232,6 @@ func (w *WebService) Doc(plainText string) *WebService {
 func (w *WebService) Documentation() string {
 	return w.documentation
 }
-
-/*
-	Convenience methods
-*/
 
 // HEAD is a shortcut for .Method("HEAD").Path(subPath)
 func (w *WebService) HEAD(subPath string) *RouteBuilder {

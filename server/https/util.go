@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/santhosh-tekuri/jsonschema/v3"
 	_ "github.com/swaggest/rest"
+	_ "github.com/swaggest/rest/web"
 )
 
 // ErrResponse is HTTP error response body.
@@ -32,9 +33,9 @@ type ErrResponse struct {
 	Context map[string]interface{} `json:"context,omitempty" description:"Application context."`
 }
 
-type Handler[Request any, Response any] func(ctx context.Context, req Request) (rsp Response, err error)
+type Handler func(ctx context.Context, req any) (rsp any, err error)
 
-func Wrap[Request any, Response any](h Handler[Request, Response]) fiber.Handler {
+func Wrap[Request any, Response any](h Handler) fiber.Handler {
 	var hasReqBody bool
 	var hasReqHeader bool
 	var hasReqQuery bool
@@ -129,15 +130,6 @@ type Info struct {
 	expectedErrors []error
 	isDeprecated   bool
 }
-
-var (
-	_ HasTags           = Info{}
-	_ HasTitle          = Info{}
-	_ HasName           = Info{}
-	_ HasDescription    = Info{}
-	_ HasIsDeprecated   = Info{}
-	_ HasExpectedErrors = Info{}
-)
 
 // IsDeprecated implements HasIsDeprecated.
 func (i Info) IsDeprecated() bool {
