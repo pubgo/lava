@@ -1,15 +1,16 @@
 package scheduler
 
 import (
+	"github.com/pubgo/funk/result"
 	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/internal/pkg/utils"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
 func New(log *logging.Logger) *Scheduler {
@@ -89,7 +90,7 @@ func (t namedJob) Key() int            { return quartz.HashCode(t.Description())
 func (t namedJob) Execute() {
 	var dur, err = utils.Cost(func() { t.fn(t.name) })
 	logutil.LogOrErr(t.log.L(), "scheduler trigger",
-		func() error { return err },
+		func() result.Error { return result.WithErr(err) },
 		zap.String("job-name", t.name),
-		zap.Int64("job-cost", dur.Microseconds()))
+		zap.Int64("job-cost-ms", dur.Milliseconds()))
 }

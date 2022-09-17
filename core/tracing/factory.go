@@ -2,8 +2,8 @@ package tracing
 
 import (
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/lava/internal/pkg/typex"
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/xerror"
 
 	"github.com/pubgo/lava/config"

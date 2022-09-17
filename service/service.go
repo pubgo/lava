@@ -1,30 +1,15 @@
 package service
 
-import (
-	"github.com/urfave/cli/v2"
-	"google.golang.org/grpc"
-)
-
 type Init interface {
-	Init() error
+	Init()
 }
 
 type Close interface {
-	Close() error
-}
-
-type Flags interface {
-	Flags() []cli.Flag
-}
-
-type Runtime interface {
-	Start()
-	Stop()
-	Run()
+	Close()
 }
 
 type Service interface {
-	Runtime
-	Providers(provider ...interface{})
-	RegisterService(desc *grpc.ServiceDesc, impl interface{})
+	Start()
+	Stop()
+	Run()
 }

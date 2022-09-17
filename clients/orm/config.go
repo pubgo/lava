@@ -14,9 +14,9 @@ import (
 
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 type Cfg struct {

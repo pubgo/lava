@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/proto/event/v1"
-	"github.com/pubgo/lava/internal/pkg/k8s"
+	"github.com/pubgo/lava/pkg/k8s"
+	"github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)
@@ -74,7 +74,7 @@ func (t *Watcher) Next() result.Result[*registry.Result] {
 			return result.OK(resp)
 		}
 
-		return result.Err[*registry.Result](registry.ErrWatcherStopped)
+		return result.Wrap(new(registry.Result), registry.ErrWatcherStopped)
 	}
 }
 

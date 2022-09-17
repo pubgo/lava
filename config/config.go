@@ -21,10 +21,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/internal/pkg/env"
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/internal/pkg/reflectx"
-	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/reflectx"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/version"
 )
 
@@ -38,13 +38,28 @@ var (
 	CfgPath string
 )
 
-// Init 处理所有的配置,环境变量和flag
+const (
+	defaultConfigName = "config"
+	defaultConfigType = "yaml"
+	defaultConfigPath = "./configs"
+)
+
+// New 处理所有的配置,环境变量和flag
 // 配置顺序, 默认值->环境变量->配置文件->flag
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
-func newCfg() *configImpl {
+func New() Config {
 	defer recovery.Exit()
+
+	replacer := strings.NewReplacer(".", "_", "-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix(version.Project())
+	viper.AutomaticEnv()
+
+	viper.SetConfigName(defaultConfigName)
+	viper.SetConfigType(defaultConfigType)
+	viper.AddConfigPath(defaultConfigPath)
 
 	var t = &configImpl{v: viper.New()}
 	// 配置处理
@@ -53,6 +68,7 @@ func newCfg() *configImpl {
 	// 配置文件名字和类型
 	v.SetConfigType(FileType)
 	v.SetConfigName(FileName)
+
 	v.AddConfigPath(".")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_", "/", "_"))
 	v.SetEnvPrefix(strings.ToUpper(version.Project()))

@@ -189,7 +189,7 @@ message ABitOfEverything {
   double          double_value = 4;
   int64           int64_value = 5;
   uint64          uint64_value = 6;
-  int32           int32_value = 7;
+  int32           int32_value = 7 [json_name="identifier"];
   fixed64         fixed64_value = 8;
   fixed32         fixed32_value = 9;
   bool            bool_value = 10;
@@ -352,7 +352,7 @@ message UpdateBookRequest {
 
   // If set to true, and the book is not found, a new book will be created.
   // In this situation, `update_mask` is ignored.
-  bool allow_missing = 3;
+  bool allow_missing = 3 [(google.api.field_behavior) = REQUIRED];
 
 }
 

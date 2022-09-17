@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/pubgo/lava/internal/pkg/merge"
-	"github.com/pubgo/lava/internal/pkg/retry"
+	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/lava/pkg/retry"
 )
 
-type Cfg struct {
+type Config struct {
 	Endpoints            []string          `json:"endpoints"`
 	AutoSyncInterval     time.Duration     `json:"auto_sync_interval"`
 	DialTimeout          time.Duration     `json:"dial_timeout"`
@@ -31,8 +31,8 @@ type Cfg struct {
 	c                    *etcdv3.Client
 }
 
-func (t *Cfg) Get() *etcdv3.Client { return t.c }
-func (t *Cfg) Build() (err error) {
+func (t *Config) Get() *etcdv3.Client { return t.c }
+func (t *Config) Build() (err error) {
 	defer recovery.Err(&err)
 	var cfg etcdv3.Config
 
@@ -44,8 +44,8 @@ func (t *Cfg) Build() (err error) {
 	return
 }
 
-func DefaultCfg() *Cfg {
-	return &Cfg{
+func DefaultCfg() *Config {
+	return &Config{
 		retry:       retry.Default(),
 		DialTimeout: time.Second * 2,
 		DialOptions: []grpc.DialOption{grpc.WithBlock()},

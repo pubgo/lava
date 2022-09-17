@@ -22,7 +22,7 @@ vendor
 main
 home/pidfile
 sqlite.db
-internal/example/services/logs
+pkg/example/services/logs
 logs
 bin
 /example/bin

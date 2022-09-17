@@ -1,0 +1,453 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "perm/v1/perm.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "perm.v1.PermService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/perm.v1.PermService/Enforce": {
+      "post": {
+        "operationId": "PermService_Enforce",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/EnforceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "A simple message.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EnforceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "perm.v1.PermService"
+        ]
+      }
+    },
+    "/perm.v1.PermService/ListGroups": {
+      "post": {
+        "operationId": "PermService_ListGroups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermServiceListGroupsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermServiceListGroupsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "perm.v1.PermService"
+        ]
+      }
+    },
+    "/perm.v1.PermService/ListMenus": {
+      "post": {
+        "operationId": "PermService_ListMenus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermServiceListMenusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermServiceListMenusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "perm.v1.PermService"
+        ]
+      }
+    },
+    "/perm.v1.PermService/ListResources": {
+      "post": {
+        "operationId": "PermService_ListResources",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermServiceListResourcesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermServiceListResourcesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "perm.v1.PermService"
+        ]
+      }
+    },
+    "/perm.v1.PermService/SaveRolePerm": {
+      "post": {
+        "operationId": "PermService_SaveRolePerm",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/PermServiceSaveRolePermResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/Status"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PermServiceSaveRolePermRequest"
+            }
+          }
+        ],
+        "tags": [
+          "perm.v1.PermService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Any": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "EnforceRequest": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string",
+          "title": "organization"
+        },
+        "userId": {
+          "type": "string",
+          "title": "user_id or role_id must be selected"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "resType": {
+          "type": "string",
+          "description": "resource type, e.g. \"box\", \"camera\", \"api\", etc."
+        },
+        "groupType": {
+          "type": "string"
+        },
+        "resId": {
+          "type": "string",
+          "description": "resource id, e.g. \"123\", \"/api/cameras\", etc."
+        },
+        "act": {
+          "type": "string",
+          "description": "resource act, e.g. \"post\", \"export\", \"play\", \"download\", etc."
+        }
+      },
+      "description": "A simple message.",
+      "title": "SimpleMessage",
+      "required": [
+        "id"
+      ]
+    },
+    "EnforceResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "string"
+        }
+      }
+    },
+    "MenuItem": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MenuItem"
+          }
+        }
+      }
+    },
+    "PermGroup": {
+      "type": "object",
+      "properties": {
+        "resType": {
+          "type": "string"
+        },
+        "groupType": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermGroup"
+          }
+        },
+        "acts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PermServiceListGroupsRequest": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "resType": {
+          "type": "string"
+        },
+        "act": {
+          "type": "string"
+        }
+      }
+    },
+    "PermServiceListGroupsResponse": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermGroup"
+          }
+        }
+      }
+    },
+    "PermServiceListMenusRequest": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        }
+      }
+    },
+    "PermServiceListMenusResponse": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MenuItem"
+          }
+        }
+      }
+    },
+    "PermServiceListResourcesRequest": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "resType": {
+          "type": "string"
+        },
+        "act": {
+          "type": "string"
+        }
+      }
+    },
+    "PermServiceListResourcesResponse": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Resource"
+          }
+        }
+      }
+    },
+    "PermServiceSaveRolePermRequest": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string"
+        },
+        "menus": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermServiceSaveRolePermRequest.Group"
+          }
+        }
+      }
+    },
+    "PermServiceSaveRolePermRequest.Group": {
+      "type": "object",
+      "properties": {
+        "resType": {
+          "type": "string"
+        },
+        "groupType": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string"
+        }
+      }
+    },
+    "PermServiceSaveRolePermResponse": {
+      "type": "object"
+    },
+    "Resource": {
+      "type": "object",
+      "properties": {
+        "resId": {
+          "type": "string"
+        },
+        "acts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Status": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Any"
+          }
+        }
+      }
+    }
+  }
+}

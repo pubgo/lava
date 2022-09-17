@@ -13,10 +13,10 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)

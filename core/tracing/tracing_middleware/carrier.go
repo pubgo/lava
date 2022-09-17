@@ -2,12 +2,11 @@ package tracing_middleware
 
 import (
 	"encoding/base64"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/funk/assert"
 	"strings"
 
-	"github.com/pubgo/xerror"
-
 	"github.com/opentracing/opentracing-go"
+	"github.com/pubgo/lava/service"
 )
 
 const (
@@ -34,7 +33,7 @@ func (m *textMapCarrier) Set(key, val string) {
 // ForeachKey is a opentracing.TextMapReader interface that extracts values.
 func (m *textMapCarrier) ForeachKey(callback func(key, val string) error) error {
 	m.VisitAll(func(key, value []byte) {
-		xerror.Panic(callback(string(key), string(value)))
+		assert.Must(callback(string(key), string(value)))
 	})
 	return nil
 }

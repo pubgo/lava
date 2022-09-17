@@ -6,12 +6,12 @@ import (
 	"reflect"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	errorV1 "github.com/pubgo/lava/gen/proto/errors/v1"
+	errorV1 "github.com/pubgo/lava/pkg/proto/errors/v1"
 )
 
 // New generates a custom error.
@@ -25,8 +25,7 @@ type Error struct {
 
 // GRPCStatus 实现grpc status的GRPCStatus接口
 func (e *Error) GRPCStatus() *status.Status {
-	var dt, err = json.Marshal(e)
-	xerror.Panic(err, "errors json marshal failed")
+	var dt = assert.Must1(json.Marshal(e))
 	return status.New(codes.Code(e.err.Status), string(dt))
 }
 

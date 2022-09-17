@@ -1,7 +1,8 @@
 package orm
 
 import (
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/config"
@@ -14,8 +15,8 @@ var factories = make(map[string]Factory)
 func Get(name string) Factory  { return factories[name] }
 func List() map[string]Factory { return factories }
 func Register(name string, broker Factory) {
-	defer xerror.RecoverAndExit()
-	xerror.Assert(name == "" || broker == nil, "[broker,name] should not be null")
-	xerror.Assert(factories[name] != nil, "[broker] %s already exists", name)
+	defer recovery.Exit()
+	assert.If(name == "" || broker == nil, "[broker,name] should not be null")
+	assert.If(factories[name] != nil, "[broker] %s already exists", name)
 	factories[name] = broker
 }

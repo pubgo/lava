@@ -1,16 +1,16 @@
 package mdns
 
 import (
-	"github.com/pubgo/dix"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	_ "github.com/pubgo/funk/typex"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/internal/pkg/merge"
 	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/pkg/merge"
 )
 
 func init() {
-	dix.Provider(func(conf *registry.Cfg, log *logging.Logger) map[string]registry.Registry {
+	di.Provide(func(conf *registry.Cfg, log *logging.Logger) map[string]registry.Registry {
 		if conf.Driver != Name {
 			return nil
 		}

@@ -9,13 +9,14 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errorx"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/internal/pkg/netutil"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/netutil"
 	"github.com/pubgo/lava/version"
 )
 
@@ -34,12 +35,12 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	})
 
 	// 服务注册
-	lifecycle.AfterStart(func() error {
+	lifecycle.AfterStart(func() {
 		SetDefault(reg)
 
 		register(reg)
 
-		var cancel = syncx.GoCtx(func(ctx context.Context) {
+		var cancel = syncx.GoCtx(func(ctx context.Context) result.Error {
 			var interval = DefaultRegisterInterval
 
 			if cfg.RegisterInterval > time.Duration(0) {
@@ -55,18 +56,16 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 					register(reg)
 				case <-ctx.Done():
 					zap.L().Info("service register cancelled")
-					return
+					return result.Error{}
 				}
 			}
 		})
 
 		// 服务撤销
-		lifecycle.BeforeStop(func() error {
+		lifecycle.BeforeStop(func() {
 			cancel()
 			deregister(reg)
-			return nil
 		})
-		return nil
 	})
 }
 
@@ -101,10 +100,10 @@ func register(reg Registry) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.OkOrErr(
+	logutil.OkOrFailed(
 		zap.L(),
 		"register service node",
-		func() error { return reg.Register(s) },
+		func() result.Error { return reg.Register(s) },
 		zap.String("instance_id", node.Id),
 		zap.String("service", runmode.Project),
 		zap.String("registry", Default().String()),
@@ -136,10 +135,10 @@ func deregister(reg Registry) {
 		Nodes: []*Node{node},
 	}
 
-	logutil.OkOrErr(
+	logutil.OkOrFailed(
 		zap.L(),
 		"deregister service node",
-		func() error { return reg.Deregister(s) },
+		func() result.Error { return reg.Deregister(s) },
 		zap.String("id", node.Id),
 		zap.String("name", runmode.Project),
 	)

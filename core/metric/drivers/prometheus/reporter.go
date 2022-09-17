@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	tally "github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
@@ -17,33 +16,31 @@ import (
 const Name = "prometheus"
 const urlPath = "/metrics"
 
-func init() {
-	dix.Provider(func(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
-		var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
+func New(conf *metric.Cfg, log *logging.Logger) map[string]*tally.ScopeOptions {
+	var logs = logging.ModuleLog(log, logutil.Names(metric.Name, Name))
 
-		if conf.Driver != Name {
-			return nil
-		}
+	if conf.Driver != Name {
+		return nil
+	}
 
-		opts := tally.ScopeOptions{}
-		opts.Separator = prometheus.DefaultSeparator
-		opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
+	opts := tally.ScopeOptions{}
+	opts.Separator = prometheus.DefaultSeparator
+	opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 
-		var proCfg = &prometheus.Configuration{}
-		if conf.DriverCfg != nil {
-			assert.Must(conf.DriverCfg.Decode(proCfg))
-		}
+	var proCfg = &prometheus.Configuration{}
+	if conf.DriverCfg != nil {
+		assert.Must(conf.DriverCfg.Decode(proCfg))
+	}
 
-		reporter := assert.Must1(proCfg.NewReporter(
-			prometheus.ConfigurationOptions{
-				OnError: func(e error) {
-					logs.WithErr(e, zap.Any(logkey.Config, conf)).Error("metric.prometheus init error")
-				},
+	reporter := assert.Must1(proCfg.NewReporter(
+		prometheus.ConfigurationOptions{
+			OnError: func(e error) {
+				logs.WithErr(e, zap.Any(logkey.Config, conf)).Error("metric.prometheus init error")
 			},
-		))
-		debug.Get(urlPath, debug.Wrap(reporter.HTTPHandler()))
+		},
+	))
+	debug.Get(urlPath, debug.Wrap(reporter.HTTPHandler()))
 
-		opts.CachedReporter = reporter
-		return map[string]*tally.ScopeOptions{Name: &opts}
-	})
+	opts.CachedReporter = reporter
+	return map[string]*tally.ScopeOptions{Name: &opts}
 }

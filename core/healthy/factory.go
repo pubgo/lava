@@ -3,11 +3,11 @@ package healthy
 import (
 	"github.com/pubgo/funk/assert"
 
-	"github.com/pubgo/lava/internal/pkg/typex"
-	"github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/typex"
+	"github.com/pubgo/lava/pkg/utils"
 )
 
-const Name = "health"
+const Name = "healthy"
 
 var healthList typex.SMap
 
@@ -20,9 +20,9 @@ func Get(names ...string) Handler {
 	return val.(Handler)
 }
 
-func List() (val []Handler) {
-	healthList.Range(func(_, value interface{}) bool {
-		val = append(val, value.(Handler))
+func List() (names []string) {
+	healthList.Range(func(name interface{}, _ interface{}) bool {
+		names = append(names, name.(string))
 		return true
 	})
 	return

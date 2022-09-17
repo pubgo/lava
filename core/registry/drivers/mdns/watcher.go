@@ -11,8 +11,8 @@ import (
 	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/gen/proto/event/v1"
-	"github.com/pubgo/lava/internal/pkg/typex"
+	"github.com/pubgo/lava/pkg/proto/event/v1"
+	"github.com/pubgo/lava/pkg/typex"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)
@@ -20,15 +20,13 @@ var _ registry.Watcher = (*Watcher)(nil)
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
 	assert.If(service == "", "[service] should not be null")
 
-	var ret result.Result[registry.Watcher]
-
 	var allNodes typex.SMap
 	for _, s := range m.GetService(service) {
 		if s.IsErr() {
-			return ret.WithErr(s.Err())
+			return result.Err[registry.Watcher](s.Err())
 		}
 
-		for _, n := range s.Value().Nodes {
+		for _, n := range s.Unwrap().Nodes {
 			allNodes.Set(n.Id, n)
 		}
 	}
@@ -39,7 +37,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 	}
 
 	results := make(chan *registry.Result)
-	return ret.WithVal(&Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) {
+	return result.OK[registry.Watcher](&Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) result.Error {
 		var fn = func() {
 			defer recovery.Recovery(func(err xerr.XErr) {
 				m.log.WithErr(err).Error("watcher error")
@@ -52,7 +50,11 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 
 			var nodes typex.SMap
 			m.GetService(service).Range(func(r result.Result[*registry.Service]) {
-				for _, n := range r.Value().Nodes {
+				if r.IsNil() {
+					return
+				}
+
+				for _, n := range r.Unwrap().Nodes {
 					allNodes.Set(n.Id, n)
 				}
 			})
@@ -85,6 +87,8 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 		for range time.Tick(ttl) {
 			fn()
 		}
+
+		return result.Error{}
 	})})
 }
 
@@ -97,7 +101,7 @@ type Watcher struct {
 func (m *Watcher) Next() result.Result[*registry.Result] {
 	r, ok := <-m.results
 	if !ok {
-		return result.Err[*registry.Result](registry.ErrWatcherStopped)
+		return result.Wrap(r, registry.ErrWatcherStopped)
 	}
 	return result.OK(r)
 }

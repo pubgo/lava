@@ -1,6 +1,6 @@
 package models
 
-import "github.com/pubgo/lava/example/pkg/proto/permpb"
+import "github.com/pubgo/lava/example/gen/proto/permpb"
 
 func RoleFromProto(role *permpb.Role) *Role {
 	return &Role{

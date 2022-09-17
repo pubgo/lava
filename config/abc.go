@@ -1,10 +1,9 @@
 package config
 
 import (
-	"io"
-
-	"github.com/pubgo/lava/internal/pkg/merge"
+	"github.com/pubgo/lava/pkg/merge"
 	"github.com/spf13/viper"
+	"io"
 )
 
 type CfgMap map[string]interface{}
@@ -22,6 +21,7 @@ func (t CfgMap) GetString(name string) string {
 }
 
 type DecoderOption = viper.DecoderConfigOption
+
 type Config interface {
 	LoadPath(path string) error
 	UnmarshalKey(key string, rawVal interface{}, opts ...DecoderOption) error

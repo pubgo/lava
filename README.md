@@ -1,4 +1,4 @@
-# [lava文档](https://www.yuque.com/pubgo/lava/readme)|[example](./internal/example/services)
+# [lava文档](https://www.yuque.com/pubgo/lava/readme)|[example](pkg/example/services)
 
 > lava 是一个经过企业实践而抽象出来的微服务中台集成框架
 

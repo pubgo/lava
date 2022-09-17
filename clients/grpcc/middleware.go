@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/internal/pkg/grpcutil"
-	utils2 "github.com/pubgo/lava/internal/pkg/utils"
+	"github.com/pubgo/lava/pkg/grpcutil"
+	utils2 "github.com/pubgo/lava/pkg/utils"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
