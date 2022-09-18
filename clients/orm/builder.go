@@ -13,8 +13,9 @@ func New(cfg *Cfg, log *logging.Logger) *Client {
 
 	var builder = DefaultCfg()
 	builder.log = log.Named(Name)
-	builder = merge.Struct(builder, cfg).
-		Unwrap(func(err result.Error) result.Error { return err.WrapF("cfg=%#v", cfg) })
+	builder = merge.Struct(builder, cfg).Unwrap(func(err result.Error) result.Error {
+		return err.WrapF("cfg=%#v", cfg)
+	})
 	assert.Must(builder.Valid())
 	assert.Must(builder.Build())
 	return &Client{DB: builder.Get()}

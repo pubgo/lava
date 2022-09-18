@@ -52,7 +52,7 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		unaryWrapper = middlewares[i].Next(unaryWrapper)
+		unaryWrapper = middlewares[i](unaryWrapper)
 	}
 
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
@@ -125,7 +125,7 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapperStream = middlewares[i].Next(wrapperStream)
+		wrapperStream = middlewares[i](wrapperStream)
 	}
 
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (resp grpc.ClientStream, err error) {

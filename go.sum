@@ -1038,8 +1038,8 @@ github.com/prometheus/tsdb v0.6.2-0.20190402121629-4f204dcbc150/go.mod h1:qhTCs0
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/pubgo/dix v0.3.4 h1:cKGApNzh4LhLixLwAnD/KdVFVHSoYRZUJCo3UD3GL7o=
 github.com/pubgo/dix v0.3.4/go.mod h1:0L9CPzcrVizaTGQWl4dOSsvV+VO8ZDbiPm7E9cIh7YM=
-github.com/pubgo/funk v0.5.26-1 h1:M/UUxAm2ZZdr7ylznmHWO9aYIPsZLCfQl+MpBp2V/Rs=
-github.com/pubgo/funk v0.5.26-1/go.mod h1:2D7X+IZ36+5DeRM2K6mT/XpCISUHEBMty8bqXFrQy94=
+github.com/pubgo/funk v0.5.26-2 h1:jQMRkEAxJU5kgCwOEd7V9ZeqFHFP9VoNnRtWUQmrms4=
+github.com/pubgo/funk v0.5.26-2/go.mod h1:2D7X+IZ36+5DeRM2K6mT/XpCISUHEBMty8bqXFrQy94=
 github.com/pubgo/x v0.3.37 h1:hOj+yqTc2XqpP4Ap5V7FnDYh7gOQ09/sPm6TbiMgCNE=
 github.com/pubgo/x v0.3.37/go.mod h1:6EQsDssieDejOCOw+jnq3/60XQGaLjL6LNPVaUGDNt8=
 github.com/pubgo/xerror v0.4.20/go.mod h1:oII+ykbOChXWPDP55anP3C+ORCc/hn70lBRu5zcqEeE=
@@ -1181,6 +1181,7 @@ github.com/uber/jaeger-lib v2.4.0+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6
 github.com/uber/jaeger-lib v2.4.1+incompatible h1:td4jdvLcExb4cBISKIpHuGoVXh+dVKhn2Um6rjCsSsg=
 github.com/uber/jaeger-lib v2.4.1+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6+uUTzImX/AauajbLI56U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
+github.com/ugorji/go v1.1.7 h1:/68gy2h+1mWMrwZFeD1kQialdSzAb432dtpeJ42ovdo=
 github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVMw=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ugorji/go/codec v1.1.7 h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs=

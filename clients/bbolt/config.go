@@ -7,6 +7,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/x/pathutil"
 	bolt "go.etcd.io/bbolt"
 
@@ -49,8 +50,9 @@ func (t *Config) Build() (err error) {
 func (t *Config) getOpts() *bolt.Options {
 	var options = bolt.DefaultOptions
 	options.Timeout = consts.DefaultTimeout
-	assert.Must(merge.Struct(options, t))
-	return options
+	return merge.Struct(options, t).Unwrap(func(err result.Error) result.Error {
+		return err.WithMeta("cfg", t)
+	})
 }
 
 func DefaultConfig() *Config {

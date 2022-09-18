@@ -5,7 +5,4 @@ import (
 )
 
 type HandlerFunc func(ctx context.Context, req Request, rsp Response) error
-
-type Middleware interface {
-	Next(next HandlerFunc) HandlerFunc
-}
+type Middleware func(next HandlerFunc) HandlerFunc

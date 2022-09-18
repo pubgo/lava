@@ -86,7 +86,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/pubgo/dix v0.3.4
-	github.com/pubgo/funk v0.5.26-1
+	github.com/pubgo/funk v0.5.26-2
 	github.com/rs/xid v1.2.1
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2

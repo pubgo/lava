@@ -11,11 +11,20 @@ import (
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/pkg/merge"
 	utils2 "github.com/pubgo/lava/pkg/utils"
 )
 
-func New(db *bolt.DB, log *logging.Logger) *Client {
-	return &Client{DB: db, log: log}
+func New(cfg *Config, log *logging.Logger) *Client {
+	cfg = merge.Copy(DefaultConfig(), cfg).Unwrap(func(err result.Error) result.Error {
+		return err.WithMeta("cfg", cfg)
+	})
+
+	result.WithErr(cfg.Build()).Must(func(err result.Error) result.Error {
+		return err.WrapF("build failed, cfg=%#v", cfg)
+	})
+
+	return &Client{DB: cfg.Get(), log: log}
 }
 
 type Client struct {

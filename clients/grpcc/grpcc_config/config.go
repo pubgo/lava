@@ -4,7 +4,8 @@ import (
 	"time"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/logging/logmiddleware"
 	"google.golang.org/grpc"
 )
 
@@ -33,19 +34,19 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 
 // Cfg ...
 type Cfg struct {
-	Client      *ClientCfg           `yaml:"client"`
-	Srv         string               `yaml:"srv"`
-	Addr        string               `yaml:"addr"`
-	Scheme      string               `yaml:"scheme"`
-	Alias       string               `yaml:"alias"`
-	Middlewares []service.Middleware `yaml:"-"`
+	Client     *ClientCfg `yaml:"client"`
+	Srv        string     `yaml:"srv"`
+	Addr       string     `yaml:"addr"`
+	Scheme     string     `yaml:"scheme"`
+	Middleware []string   `yaml:"middleware"`
 }
 
 func (t Cfg) Check() error { return nil }
 
 func DefaultCfg() *Cfg {
 	var cfg = &Cfg{
-		Scheme: grpcc_resolver.DiscovScheme,
+		Scheme:     grpcc_resolver.DiscovScheme,
+		Middleware: []string{logmiddleware.Name, requestid.Name},
 		Client: &ClientCfg{
 			Insecure: true,
 			Block:    true,

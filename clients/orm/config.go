@@ -2,11 +2,11 @@ package orm
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/result"
 	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
