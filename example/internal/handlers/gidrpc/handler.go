@@ -2,6 +2,7 @@ package gidrpc
 
 import (
 	"context"
+
 	"github.com/pubgo/lava/example/gen/proto/gidpb"
 )
 

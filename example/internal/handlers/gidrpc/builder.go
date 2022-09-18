@@ -25,6 +25,7 @@ func New(srv gidsrv.Service, cron *scheduler.Scheduler) service.GrpcHandler {
 type Id struct {
 	cron *scheduler.Scheduler
 	srv  gidsrv.Service
+	m    metric.Metric
 }
 
 func (id *Id) ServiceDesc() grpc.ServiceDesc {
