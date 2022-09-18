@@ -3,13 +3,13 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	middleware2 "github.com/pubgo/lava/service"
-	"github.com/pubgo/xerror"
+	"sync"
+
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/xerr"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"net"
-	"strings"
-	"sync"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
@@ -17,22 +17,24 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
+	middleware2 "github.com/pubgo/lava/service"
 )
 
 var _ grpc.ClientConnInterface = (*Client)(nil)
 
-func NewClient(srv string, cfg *grpcc_config.Cfg) *Client {
-	return &Client{srv: srv, cfg: cfg}
+func New(cfg *grpcc_config.Cfg, log *logging.Logger) *Client {
+	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
+	return &Client{cfg: cfg, log: log}
 }
 
 type Client struct {
+	log  *logging.Logger
 	cfg  *grpcc_config.Cfg
 	mu   sync.Mutex
 	conn grpc.ClientConnInterface
-	srv  string
 }
 
-func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
+func (t *Client) createConn(cfg *grpcc_config.Cfg) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
@@ -42,38 +44,51 @@ func (t *Client) createConn(srv string, cfg *grpcc_config.Cfg) (grpc.ClientConnI
 		middlewares = append(middlewares, m)
 	}
 
-	addr := t.buildTarget(srv, cfg)
+	addr := t.buildTarget(cfg)
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
 
-	logging.L().Info("grpc client init", zap.String(logkey.Service, srv))
+	logging.L().Info("grpc client init", zap.String(logkey.Service, cfg.Srv))
 	logutil.Pretty(err)
-	return conn, xerror.WrapF(err, "grpc dial failed, target=>%s", addr)
+	return conn, xerr.WrapF(err, "grpc dial failed, target=>%s", addr)
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
 	var conn, err = t.Get()
 	if err != nil {
-		return xerror.Wrap(err, method, args)
+		return xerr.Wrap(err, method, args)
 	}
 
-	return xerror.Wrap(conn.Invoke(ctx, method, args, reply, opts...), method)
+	return xerr.Wrap(conn.Invoke(ctx, method, args, reply, opts...), method)
+}
+
+func (t *Client) Check(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) error {
+	conn, err := t.Get()
+	if err != nil {
+		return xerr.WrapF(err, "service %s heath check failed", t.cfg.Srv)
+	}
+
+	_, err = grpc_health_v1.NewHealthClient(conn).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	if err != nil {
+		return xerr.WrapF(err, "service %s heath check failed", t.cfg.Srv)
+	}
+	return nil
 }
 
 func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	var conn, err = t.Get()
 	if err != nil {
-		return nil, xerror.Wrap(err, method)
+		return nil, xerr.Wrap(err, method)
 	}
 
 	var c, err1 = conn.NewStream(ctx, desc, method, opts...)
-	return c, xerror.Wrap(err1, method)
+	return c, xerr.Wrap(err1, method)
 }
 
 // Get new grpc Client
 func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
-	defer xerror.Recovery(func(err xerror.XErr) {
+	defer recovery.Recovery(func(err xerr.XErr) {
 		gErr = err
 
 		logutil.Pretty(t)
@@ -92,14 +107,7 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 		return t.conn, nil
 	}
 
-	var cfg = t.cfg
-	if t.cfg == nil {
-		t.cfg = grpcc_config.DefaultCfg()
-	} else {
-		xerror.Panic(merge.Copy(&cfg, grpcc_config.DefaultCfg()))
-	}
-
-	conn, err := t.createConn(t.srv, cfg)
+	conn, err := t.createConn(t.cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -108,44 +116,21 @@ func (t *Client) Get() (_ grpc.ClientConnInterface, gErr error) {
 	return t.conn, nil
 }
 
-func (t *Client) buildTarget(service string, cfg *grpcc_config.Cfg) string {
-	var addr = service
-	if cfg.Addr != "" {
-		addr = cfg.Addr
-	}
-
-	if cfg.Registry == "" {
-		cfg.Registry = "mdns"
-	}
-
-	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
-	var host = extractHostFromHostPort(addr)
-	var scheme = grpcc_resolver.DiscovScheme
-
-	if strings.Contains(addr, ",") || net.ParseIP(host) != nil || host == "localhost" {
-		scheme = grpcc_resolver.DirectScheme
-	}
-
-	if strings.HasPrefix(service, "k8s://") {
-		scheme = grpcc_resolver.K8sScheme
+func (t *Client) buildTarget(cfg *grpcc_config.Cfg) string {
+	var addr = cfg.Srv
+	var scheme = grpcc_resolver.DirectScheme
+	if cfg.Scheme != "" {
+		scheme = cfg.Scheme
 	}
 
 	switch scheme {
 	case grpcc_resolver.DiscovScheme:
-		return grpcc_resolver.BuildDiscovTarget(addr, cfg.Registry)
+		return grpcc_resolver.BuildDiscovTarget(addr)
 	case grpcc_resolver.DirectScheme:
 		return grpcc_resolver.BuildDirectTarget(addr)
-	case grpcc_resolver.K8sScheme:
+	case grpcc_resolver.K8sScheme, grpcc_resolver.DnsScheme:
 		return fmt.Sprintf("dns:///%s", addr)
 	default:
-		panic("schema is unknown")
+		return addr
 	}
-}
-
-func extractHostFromHostPort(ep string) string {
-	host, _, err := net.SplitHostPort(ep)
-	if err != nil {
-		return ep
-	}
-	return host
 }

@@ -3,12 +3,13 @@ package grpcc_resolver
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/logging"
 	"math/rand"
 	"strings"
 
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/logging"
 )
 
 const (
@@ -51,8 +52,8 @@ func BuildDirectTarget(endpoints ...string) string {
 }
 
 // BuildDiscovTarget discov://test-service
-func BuildDiscovTarget(service string, registry string) string {
-	return fmt.Sprintf("%s://%s?registry=%s", DiscovScheme, service, registry)
+func BuildDiscovTarget(service string) string {
+	return fmt.Sprintf("%s://%s", DiscovScheme, service)
 }
 
 // reshuffle 打散targets

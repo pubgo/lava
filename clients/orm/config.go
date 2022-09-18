@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/result"
 	"time"
 
 	"github.com/pubgo/funk/assert"
@@ -41,8 +42,10 @@ type Cfg struct {
 
 func (t *Cfg) Build() (err error) {
 	defer recovery.Err(&err)
-	var ormCfg = &gorm.Config{}
-	assert.Must(merge.Struct(ormCfg, t))
+	ormCfg := merge.Struct(&gorm.Config{}, t).Unwrap(func(err result.Error) result.Error {
+		return err.WrapF("cfg=%#v", t)
+	})
+
 	var level = gl.Info
 	if !runmode.IsDebug {
 		level = gl.Error

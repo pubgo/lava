@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/service"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	utils2 "github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/service"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
@@ -52,7 +52,7 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		unaryWrapper = middlewares[i](unaryWrapper)
+		unaryWrapper = middlewares[i].Next(unaryWrapper)
 	}
 
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
@@ -125,7 +125,7 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapperStream = middlewares[i](wrapperStream)
+		wrapperStream = middlewares[i].Next(wrapperStream)
 	}
 
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (resp grpc.ClientStream, err error) {

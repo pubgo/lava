@@ -16,14 +16,27 @@ const (
 	DefaultContentType = "application/grpc"
 )
 
-var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{}`)}
+var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
+	"loadBalancingConfig": [{"round_robin": {}}],
+	"methodConfig": [{
+		"name": [{"service": ""}],
+		"waitForReady": true,
+		"retryPolicy": {
+			"MaxAttempts": 5,
+			"InitialBackoff": "0.1s",
+			"MaxBackoff": "5s",
+			"BackoffMultiplier": 2,
+			"RetryableStatusCodes": ["UNAVAILABLE"]
+		}
+	}]
+}`)}
 
 // Cfg ...
 type Cfg struct {
 	Client      *ClientCfg           `yaml:"client"`
+	Srv         string               `yaml:"srv"`
 	Addr        string               `yaml:"addr"`
 	Scheme      string               `yaml:"scheme"`
-	Registry    string               `yaml:"registry"`
 	Alias       string               `yaml:"alias"`
 	Middlewares []service.Middleware `yaml:"-"`
 }
@@ -38,20 +51,6 @@ func DefaultCfg() *Cfg {
 			Block:    true,
 			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
 			// refer: https://github.com/grpc/grpc-proto/blob/d653c6d98105b2af937511aa6e46610c7e677e6e/grpc/service_config/service_config.proto#L632
-			DefaultServiceConfig: `{
-	"loadBalancingConfig": [{"round_robin": {}}],
-	"methodConfig": [{
-		"name": [{"service": ""}],
-		"waitForReady": true,
-		"retryPolicy": {
-			"MaxAttempts": 5,
-			"InitialBackoff": "0.1s",
-			"MaxBackoff": "5s",
-			"BackoffMultiplier": 2,
-			"RetryableStatusCodes": ["UNAVAILABLE"]
-		}
-	}]
-}`,
 			DialTimeout:       time.Minute,
 			Timeout:           DefaultTimeout,
 			MaxHeaderListSize: 1024 * 4,

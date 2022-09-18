@@ -5,7 +5,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/xerr"
+	"github.com/pubgo/funk/result"
 )
 
 type Option func(opts *copier.Option)
@@ -13,22 +13,24 @@ type Option func(opts *copier.Option)
 // Copy
 // struct<->struct
 // 各种类型结构体之间的field copy
-func Copy(dst interface{}, src interface{}, opts ...Option) error {
+func Copy[A any, B any](dst A, src B, opts ...Option) result.Result[A] {
 	var optList = copier.Option{DeepCopy: true, IgnoreEmpty: true}
 	for i := range opts {
 		opts[i](&optList)
 	}
 
-	return xerr.WrapF(copier.CopyWithOption(dst, src, optList), "\ndst: %#v\n\nsrc: %#v", dst, src)
+	return result.Wrap(dst, copier.CopyWithOption(dst, src, optList))
 }
 
-func Struct(dst, src interface{}, opts ...Option) error { return Copy(dst, src, opts...) }
+func Struct[A any, B any](dst A, src B, opts ...Option) result.Result[A] {
+	return Copy(dst, src, opts...)
+}
 
 // MapStruct
 // map<->struct
 // map和结构体相互转化
-func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.DecoderConfig)) (err error) {
-	defer recovery.Err(&err)
+func MapStruct[A any, B any](dst A, src B, opts ...func(cfg *mapstructure.DecoderConfig)) (r result.Result[A]) {
+	defer recovery.Result(&r)
 
 	var cfg = &mapstructure.DecoderConfig{
 		TagName:          "json",
@@ -46,5 +48,5 @@ func MapStruct(dst interface{}, src interface{}, opts ...func(cfg *mapstructure.
 	}
 
 	decoder := assert.Must1(mapstructure.NewDecoder(cfg))
-	return xerr.Wrap(decoder.Decode(src))
+	return result.Wrap(dst, decoder.Decode(src))
 }

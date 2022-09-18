@@ -3,6 +3,7 @@ package mysql
 import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,9 +35,9 @@ func init() {
 
 		var conf = DefaultCfg()
 		assert.Must(cfg.Decode(&conf))
-		var cc = mysql.Config{}
-		assert.Must(merge.Struct(&cc, conf))
-		return mysql.New(cc)
+		return mysql.New(*merge.Struct(new(mysql.Config), conf).Unwrap(func(err result.Error) result.Error {
+			return err.WithMeta("cfg", cfg)
+		}))
 	})
 }
 

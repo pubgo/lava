@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -19,7 +20,7 @@ func (d *directBuilder) Scheme() string { return DirectScheme }
 
 // Build [direct://127.0.0.1,etcd:2379]
 func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, err error) {
-	defer xerror.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	// 根据规则解析出地址
 	endpoints := strings.Split(target.URL.Host, EndpointSep)
@@ -35,6 +36,9 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			addrList = append(addrList, newAddr(addr, addr))
 		}
 	}
-	xerror.PanicF(cc.UpdateState(newState(addrList)), "update resolver address: %v", addrList)
+
+	result.WithErr(cc.UpdateState(newState(addrList))).Must(func(err result.Error) result.Error {
+		return err.WrapF("update resolver address failed: %v", addrList)
+	})
 	return &baseResolver{builder: DirectScheme}, nil
 }
