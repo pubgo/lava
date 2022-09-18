@@ -65,7 +65,7 @@ func (f Value) String() (r string) {
 	case json.Marshaler:
 		ret := result.Wrap(jsonx.Marshal(dt))
 		if ret.IsErr() {
-			return xerr.WrapXErr(ret.Err().Err()).Stack()
+			return xerr.WrapXErr(ret.Err()).Stack()
 		}
 		return utils.BtoS(ret.Unwrap())
 	}

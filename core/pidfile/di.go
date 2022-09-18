@@ -4,9 +4,11 @@ import (
 	"path/filepath"
 
 	"github.com/pubgo/dix/di"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/x/pathutil"
+
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/x/pathutil"
 )
 
 func init() {
@@ -17,7 +19,7 @@ func init() {
 			_ = pathutil.IsNotExistMkDir(pidPath)
 
 			lc.AfterStart(func() {
-				SavePid().Must()
+				assert.Must(SavePid())
 			})
 		}
 	})

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/pubgo/x/q"
-	"github.com/pubgo/xerror"
 )
 
 type dst struct {
@@ -30,7 +29,7 @@ func TestStruct(t *testing.T) {
 
 	var d1 = map[string]interface{}{"a": src{Name: "2", Hello: "2"}}
 	var d2 = map[string]dst{"a": {Name: "1", Hello: "1"}, "b": {Name: "1", Hello: "1"}}
-	xerror.Panic(Copy(&d1, &d2))
+	Copy(&d1, &d2).Unwrap()
 }
 
 func TestMapStruct(t *testing.T) {

@@ -2,8 +2,8 @@ package automaxprocs
 
 import (
 	"fmt"
-	"github.com/pubgo/dix/di"
 
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"go.uber.org/automaxprocs/maxprocs"
 

@@ -56,7 +56,7 @@ func (t *Client) Invoke(ctx context.Context, method string, args interface{}, re
 func (t *Client) Check(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
-		return xerr.WrapF(conn.Err().Unwrap(), "get client failed, service=%s", t.cfg.Srv)
+		return xerr.WrapF(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
 	}
 
 	_, err := grpc_health_v1.NewHealthClient(conn.Unwrap()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
@@ -69,7 +69,7 @@ func (t *Client) Check(ctx context.Context) error {
 func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	var conn = t.Get()
 	if conn.IsErr() {
-		return nil, xerr.WrapF(conn.Err().Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
+		return nil, xerr.WrapF(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
 	}
 
 	var c, err1 = conn.Unwrap().NewStream(ctx, desc, method, opts...)

@@ -7,39 +7,38 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 )
 
-func Run(args ...string) (string, error) {
+func Run(args ...string) (r result.Result[string]) {
+	defer recovery.Result(&r)
+
 	b := bytes.NewBufferString("")
 
 	cmd := Shell(args...)
 	cmd.Stdout = b
-	if err := cmd.Run(); err != nil {
-		return "", xerror.Wrap(err, strings.Join(args, " "))
-	}
 
-	return strings.TrimSpace(b.String()), nil
+	assert.Must(cmd.Run(), strings.Join(args, " "))
+	return r.WithVal(strings.TrimSpace(b.String()))
 }
 
-func MustRun(args ...string) string {
-	return xerror.PanicStr(Run(args...))
-}
-
-func GoModGraph() (string, error) {
+func GoModGraph() result.Result[string] {
 	return Run("go", "mod", "graph")
 }
 
-func GoList() (string, error) {
+func GoList() result.Result[string] {
 	return Run("go", "list", "./...")
 }
 
 func GraphViz(in, out string) (err error) {
-	ret, err := Run("dot", "-Tsvg", in)
-	if err != nil {
-		return err
+	ret := Run("dot", "-Tsvg", in)
+	if ret.IsErr() {
+		return ret.Err()
 	}
-	return ioutil.WriteFile(out, []byte(ret), 0600)
+
+	return ioutil.WriteFile(out, []byte(ret.Unwrap()), 0600)
 }
 
 func Shell(args ...string) *exec.Cmd {

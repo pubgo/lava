@@ -5,12 +5,11 @@ import (
 	"sort"
 	"strings"
 
-	pongo "github.com/flosch/pongo2/v5"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
+	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
+	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/funk/recovery"
-
-	"github.com/pubgo/lava/pkg/htmlx"
 )
 
 func init() {
@@ -19,19 +18,6 @@ func init() {
 
 func initDebug() {
 	defer recovery.Exit()
-	temp := pongo.Must(pongo.FromString(strings.TrimSpace(`
-	<html>
-		<head>
-		<title>/app/routes</title>
-		</head>
-		<body>
- 		{% for path in data %}
-			<a href={{path}}>{{path}}</a><br/>
-		{% endfor %}
-		</body>
-	</html>	
-`)))
-
 	Get("/", func(ctx *fiber.Ctx) error {
 		var pathMap = make(map[string]interface{})
 		stack := App().Stack()
@@ -57,7 +43,11 @@ func initDebug() {
 		}
 		sort.Strings(pathList)
 
-		var data = assert.Must1(temp.ExecuteBytes(htmlx.Context{"data": pathList}))
-		return htmlx.Html(ctx, data)
+		var nodes []g.Node
+		nodes = append(nodes, h.H1(g.Text("routes")))
+		for i := range pathList {
+			nodes = append(nodes, h.A(g.Text(pathList[i]), g.Attr("href", pathList[i])), h.Br())
+		}
+		return c.HTML5(c.HTML5Props{Title: "/app/routes", Body: nodes}).Render(ctx)
 	})
 }

@@ -42,7 +42,7 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	}
 
 	c := &http.Client{Transport: DefaultPooledTransport()}
-	xerror.Panic(merge.Struct(c, t))
+	merge.Struct(c, t).Unwrap()
 
 	//var certs []tls.Certificate
 	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}

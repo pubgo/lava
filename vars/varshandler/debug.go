@@ -10,9 +10,10 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+
 	"github.com/pubgo/lava/debug"
-	"github.com/pubgo/xerror"
 )
 
 func init() {
@@ -24,12 +25,7 @@ func init() {
 		for i := range keys {
 			nodes = append(nodes, h.A(g.Text(keys[i]), g.Attr("href", keys[i])), h.Br())
 		}
-
-		return c.HTML5(c.HTML5Props{
-			Title:    "/expvar",
-			Language: "en",
-			Body:     nodes,
-		})
+		return c.HTML5(c.HTML5Props{Title: "/expvar", Body: nodes})
 	}
 
 	debug.Route("/expvar", func(r fiber.Router) {
@@ -38,7 +34,7 @@ func init() {
 			expvar.Do(func(kv expvar.KeyValue) {
 				keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))
 			})
-			xerror.Panic(index(keys).Render(w))
+			assert.Must(index(keys).Render(w))
 		}))
 
 		r.Get("/:name", func(ctx *fiber.Ctx) error {

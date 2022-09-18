@@ -1,13 +1,13 @@
 package fiber_builder
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/pkg/merge"
-	"time"
 )
 
 type Cfg struct {
@@ -41,14 +41,11 @@ type Cfg struct {
 	Websocket                 *WsCfg        `json:"websocket" yaml:"websocket"`
 }
 
-func (t *Cfg) Build() (ret result.Result[*fiber.App]) {
-	defer recovery.Result(&ret)
-
-	var fc = fiber.New().Config()
-	assert.Must(merge.Struct(&fc, &t))
+func (t *Cfg) Build() (r result.Result[*fiber.App]) {
+	defer recovery.Result(&r)
+	fc := merge.Struct(fiber.New().Config(), &t).Unwrap()
 	if t.Templates.Dir != "" && t.Templates.Ext != "" {
 		fc.Views = html.New(t.Templates.Dir, t.Templates.Ext)
 	}
-
-	return ret.WithVal(fiber.New(fc))
+	return r.WithVal(fiber.New(fc))
 }

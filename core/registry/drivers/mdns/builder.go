@@ -2,8 +2,6 @@ package mdns
 
 import (
 	"github.com/pubgo/dix/di"
-	"github.com/pubgo/funk/assert"
-	_ "github.com/pubgo/funk/typex"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/merge"
@@ -16,7 +14,7 @@ func init() {
 		}
 
 		var cfg Cfg
-		assert.Must(merge.MapStruct(&cfg, conf.DriverCfg))
+		merge.MapStruct(&cfg, conf.DriverCfg).Unwrap()
 		return map[string]registry.Registry{Name: New(cfg, log)}
 	})
 }

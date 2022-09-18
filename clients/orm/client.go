@@ -1,12 +1,9 @@
 package orm
 
 import (
-	"context"
 	"database/sql"
 
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/vars"
@@ -42,22 +39,6 @@ func (c *Client) InitTable(tb interface{}) result.Error {
 		return result.WithErr(c.AutoMigrate(tb))
 	}
 	return result.Error{}
-}
-
-func (c *Client) Upsert(ctx context.Context, dest interface{}, query string, args ...interface{}) (gErr result.Error) {
-	defer recovery.Recovery(func(err xerr.XErr) { gErr = result.WithErr(err) })
-
-	var db = c.DB.WithContext(ctx)
-	var count int64
-	if err := db.Model(dest).Where(query, args...).Count(&count).Error; err != nil {
-		return result.WithErr(err)
-	}
-
-	if count == 0 {
-		return result.WithErr(db.Save(dest).Error)
-	} else {
-		return result.WithErr(db.Where(query, args...).Updates(dest).Error)
-	}
 }
 
 func (c *Client) Close() result.Error {

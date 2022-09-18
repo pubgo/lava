@@ -13,7 +13,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/hashicorp/go-version v1.5.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jaegertracing/jaeger v1.22.0
@@ -44,7 +43,7 @@ require (
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
-	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9
+	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9 // indirect
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -77,7 +76,6 @@ require (
 require (
 	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.0
-	github.com/flosch/pongo2/v5 v5.0.0
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-kit/log v0.2.1
 	github.com/gofiber/adaptor/v2 v2.1.20
@@ -86,7 +84,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/pubgo/dix v0.3.4
-	github.com/pubgo/funk v0.5.26-2
+	github.com/pubgo/funk v0.5.26-3
 	github.com/rs/xid v1.2.1
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
@@ -162,6 +160,7 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gorm.io/datatypes v1.0.7 // indirect

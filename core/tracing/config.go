@@ -25,8 +25,8 @@ func (cfg Cfg) Build() (err error) {
 	return fc(cfg.DriverCfg)
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
+func DefaultCfg() *Cfg {
+	return &Cfg{
 		Driver: "noop",
 	}
 }

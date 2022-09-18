@@ -24,9 +24,9 @@ import (
 
 const Name = "accesslog"
 
-func Middleware(log *logging.Logger) service.Middleware {
+func Middleware(log *logging.Logger) map[string]service.Middleware {
 	log = log.Named(Name)
-	return func(next service.HandlerFunc) service.HandlerFunc {
+	var next = func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, resp service.Response) error {
 			now := time.Now()
 
@@ -106,4 +106,5 @@ func Middleware(log *logging.Logger) service.Middleware {
 			return err
 		}
 	}
+	return map[string]service.Middleware{Name: next}
 }

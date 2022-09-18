@@ -1,15 +1,16 @@
 package config
 
 import (
+	"io"
+
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/spf13/viper"
-	"io"
 )
 
 type CfgMap map[string]interface{}
 
 func (t CfgMap) Decode(val interface{}) error {
-	return merge.MapStruct(val, t)
+	return merge.MapStruct(val, t).Err()
 }
 
 func (t CfgMap) GetString(name string) string {

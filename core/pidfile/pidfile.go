@@ -38,12 +38,12 @@ func GetPidF() result.Result[string] {
 	return result.OK(filepath.Join(pidPath, filename))
 }
 
-func SavePid() result.Error {
+func SavePid() error {
 	f := GetPidF()
 	if f.IsErr() {
 		return f.Err()
 	}
 
 	pid := syscall.Getpid()
-	return result.WithErr(ioutil.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm))
+	return ioutil.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm)
 }

@@ -97,25 +97,26 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.S().Infof("discovBuilder Addrs %#v", address)
 	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w := r.Watch(srv)
-	w.Err().Expect("target.Endpoint: %s", srv)
+	w := r.Watch(srv).Unwrap(func(err result.Error) result.Error {
+		return err.WrapF("target.Endpoint: %s", srv)
+	})
 
 	return &baseResolver{
 		cancel: syncx.GoCtx(func(ctx context.Context) (gErr result.Error) {
-			defer func() { w.Unwrap().Stop() }()
+			defer func() { w.Stop() }()
 
 			for {
 				select {
 				case <-ctx.Done():
 					return
 				default:
-					res := w.Unwrap().Next()
-					if res.Err().Err() == registry.ErrWatcherStopped {
+					res := w.Next()
+					if res.Err() == registry.ErrWatcherStopped {
 						return
 					}
 
 					if res.IsErr() {
-						logs.WithErr(res.Err().Err()).Error("error")
+						logs.WithErr(res.Err()).Error("error")
 						continue
 					}
 

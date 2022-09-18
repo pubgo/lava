@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"
 	"github.com/pubgo/x/iox"
 	"github.com/pubgo/x/pathutil"
@@ -49,7 +50,7 @@ const (
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
-func New() Config {
+func New(app *App) Config {
 	defer recovery.Exit()
 
 	replacer := strings.NewReplacer(".", "_", "-", "_")
@@ -186,7 +187,9 @@ func (t *configImpl) Decode(name string, cfgMap interface{}) (gErr error) {
 		cfg.Set(consts.KeyDefault, t.Get(name))
 	}
 
-	assert.MustF(merge.MapStruct(cfgMap, cfg.Map()), "config key [%s] decode error", name)
+	merge.MapStruct(cfgMap, cfg.Map()).Unwrap(func(err result.Error) result.Error {
+		return err.WrapF("config key [%s] decode error", name)
+	})
 	return
 }
 

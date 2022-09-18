@@ -2,8 +2,8 @@ package gops
 
 import (
 	"github.com/google/gops/agent"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/xerror"
 )
 
 func init() {
@@ -11,5 +11,5 @@ func init() {
 		return
 	}
 
-	xerror.Exit(agent.Listen(agent.Options{}))
+	assert.Exit(agent.Listen(agent.Options{}))
 }

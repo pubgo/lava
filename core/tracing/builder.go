@@ -8,8 +8,7 @@ import (
 )
 
 func New(c *Cfg, log *logging.Logger) opentracing.Tracer {
-	var cfg = DefaultCfg()
-	assert.Must(merge.Struct(&cfg, c))
+	cfg := merge.Struct(DefaultCfg(), c).Unwrap()
 	assert.Must(cfg.Build())
 	return opentracing.GlobalTracer()
 }

@@ -2,9 +2,9 @@ package gcnotifier
 
 import (
 	"context"
-	"github.com/pubgo/dix/di"
 
 	"github.com/CAFxX/gcnotifier"
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
 

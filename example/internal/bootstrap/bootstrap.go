@@ -11,6 +11,12 @@ import (
 )
 
 func Init() {
+	di.Provide(func() *config.App {
+		return &config.App{
+			Project: "hello",
+		}
+	})
+
 	di.Provide(func(c config.Config) Config {
 		return config.Decode[Config](c)
 	})
