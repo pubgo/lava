@@ -3,6 +3,9 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -12,19 +15,17 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/syncx"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/x/stack"
 	"github.com/twitchtv/twirp"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"net"
-	"net/http"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 )
@@ -67,11 +68,11 @@ func (s *serviceImpl) DixInject(
 	s.lc = getLifecycle
 	s.log = log
 
-	var httpServer = fiber.New(fiber.Config{
+	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
 	})
 
-	httpServer.Use(cors.New(cors.Config{
+	s.httpServer.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
@@ -79,6 +80,10 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 	for _, h := range handlers {
+		if desc := h.ServiceDesc(); desc == nil {
+			panic("desc is nil")
+		}
+
 		s.initList = append(s.initList, h.Init)
 
 		middlewares = append(middlewares, h.Middlewares()...)
@@ -100,16 +105,21 @@ func (s *serviceImpl) DixInject(
 	).Unwrap()
 	s.grpcServer = grpcServer
 
+	for _, h := range handlers {
+		grpcServer.RegisterService(h.ServiceDesc(), h)
+	}
+
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithAllowNonRootResource(true),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	app.Post(cfg.BasePrefix+"/grpcweb/*", adaptor.HTTPHandler(http.StripPrefix(cfg.BasePrefix+"/grpcweb/*", wrappedGrpc)))
 	app.Post(cfg.BasePrefix+"/grpc/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(cfg.BasePrefix+"/grpc/*", grpcServer), &http2.Server{})))
+	s.httpServer.Mount("/", app)
 
 	// 网关初始化
 	if cfg.PrintRoute {
-		for _, stacks := range httpServer.Stack() {
+		for _, stacks := range s.httpServer.Stack() {
 			for _, s := range stacks {
 				logx.Info(
 					"service route",

@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/goccy/go-json"
+	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/x/strutil"
 	"github.com/valyala/bytebufferpool"
 )
@@ -15,13 +16,10 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 	switch body := rawBody.(type) {
 	case nil:
 		return nil, nil
-
 	case []byte:
 		return body, nil
-
 	case string:
-		return strutil.ToBytes(body), nil
-
+		return utils.StoB(body), nil
 	case *bytes.Buffer:
 		return body.Bytes(), nil
 

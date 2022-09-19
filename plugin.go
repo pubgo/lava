@@ -5,8 +5,6 @@ import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/lava/core/metric/drivers/prometheus"
 	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/core/tracing/tracing_middleware"
 	"github.com/pubgo/lava/logging/logmiddleware"
 
 	// set GOMAXPROCS
@@ -31,6 +29,13 @@ import (
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 
 	_ "github.com/pubgo/lava/logging/logext/grpclog"
+
+	_ "github.com/pubgo/lava/debug/pprofhandler"
+	_ "github.com/pubgo/lava/debug/processhandler"
+	_ "github.com/pubgo/lava/debug/statshandler"
+	_ "github.com/pubgo/lava/debug/tracehandler"
+	_ "github.com/pubgo/lava/debug/versionhandler"
+	_ "github.com/pubgo/lava/vars/varshandler"
 )
 
 func init() {
@@ -38,6 +43,4 @@ func init() {
 	di.Provide(logmiddleware.Middleware)
 	di.Provide(requestid.Middleware)
 	di.Provide(prometheus.New)
-	di.Provide(tracing_middleware.Middleware)
-	di.Provide(tracing.New)
 }

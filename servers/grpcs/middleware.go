@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/server/grpcs/grpcutil"
+	"github.com/pubgo/lava/servers/grpcs/grpcutil"
 	"github.com/pubgo/lava/service"
 )
 
@@ -209,21 +209,11 @@ func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInte
 }
 
 // serviceFromMethod returns the service
-// /service.Foo/Bar => service
+// /service.Foo/Bar => service.Foo
 func serviceFromMethod(m string) string {
 	if len(m) == 0 {
 		return m
 	}
 
-	if m[0] != '/' {
-		return m
-	}
-
-	parts := strings.Split(m, "/")
-	if len(parts) < 3 {
-		return m
-	}
-
-	parts = strings.Split(parts[1], ".")
-	return strings.Join(parts[:len(parts)-1], ".")
+	return strings.Split(strings.Trim(m, "/"), "/")[0]
 }

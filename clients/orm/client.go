@@ -15,12 +15,12 @@ type Client struct {
 	*gorm.DB
 }
 
-func (c *Client) Ping() result.Error {
+func (c *Client) Ping() error {
 	var _db, err = c.DB.DB()
 	if err != nil {
-		return result.WithErr(err)
+		return err
 	}
-	return result.WithErr(_db.Ping())
+	return _db.Ping()
 }
 
 func (c *Client) Vars() vars.Value {
@@ -34,25 +34,18 @@ func (c *Client) Vars() vars.Value {
 	}
 }
 
-func (c *Client) InitTable(tb interface{}) result.Error {
-	if !c.Migrator().HasTable(tb) {
-		return result.WithErr(c.AutoMigrate(tb))
-	}
-	return result.Error{}
-}
-
-func (c *Client) Close() result.Error {
+func (c *Client) Close() error {
 	var db, err = c.DB.DB()
 	if err != nil {
-		return result.WithErr(err)
+		return err
 	}
-	return result.WithErr(db.Close())
+	return db.Close()
 }
 
-func (c *Client) Stats() result.Result[sql.DBStats] {
+func (c *Client) Stats() (r result.Result[sql.DBStats]) {
 	var db, err = c.DB.DB()
 	if err != nil {
-		return result.Wrap(sql.DBStats{}, err)
+		return r.WithErr(err)
 	}
-	return result.OK(db.Stats())
+	return r.WithVal(db.Stats())
 }

@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/logging"
@@ -15,27 +17,23 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-type Cfg struct {
-	Trace       bool              `json:"trace"`
-	Token       string            `json:"token"`
-	Timeout     time.Duration     `json:"timeout"`
-	RetryCount  uint32            `json:"retry-count"`
-	Proxy       bool              `json:"proxy"`
-	Socks5      string            `json:"socks5"`
-	Insecure    bool              `json:"insecure"`
-	Header      map[string]string `json:"header"`
-	Middlewares []string          `json:"middlewares"`
-	BasePath    string            `json:"base-path"`
+type Config struct {
+	Trace       bool              `yaml:"trace"`
+	Token       string            `yaml:"token"`
+	Timeout     time.Duration     `yaml:"timeout"`
+	RetryCount  uint32            `yaml:"retry-count"`
+	Proxy       bool              `yaml:"proxy"`
+	Socks5      string            `yaml:"socks5"`
+	Insecure    bool              `yaml:"insecure"`
+	Header      map[string]string `yaml:"header"`
+	Middlewares []string          `yaml:"middlewares"`
+	BasePath    string            `yaml:"base-path"`
 	backoff     retry2.Backoff
 	tlsConfig   *tls.Config
 }
 
-func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
-	defer xerror.RecoverErr(&err)
-
-	for i := range opts {
-		opts[i](t)
-	}
+func (t *Config) Build(mm map[string]service.Middleware) (r result.Result[Client]) {
+	defer recovery.Result(&r)
 
 	if t.Timeout != 0 {
 		t.backoff = retry2.NewConstant(t.Timeout)
@@ -44,16 +42,13 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	c := &http.Client{Transport: DefaultPooledTransport()}
 	merge.Struct(c, t).Unwrap()
 
-	//var certs []tls.Certificate
-	//t.tlsConfig = &tls.Config{InsecureSkipVerify: t.Insecure, Certificates: certs}
-
 	var middlewares []service.Middleware
 
 	// 加载插件
-	// 加载全局
-	//for _, plg := range t.Middlewares {
-	//	middlewares = append(middlewares, middleware2.Value(plg))
-	//}
+	for _, m := range t.Middlewares {
+		assert.If(mm[m] == nil, "middleware %s not found", m)
+		middlewares = append(middlewares, mm[m])
+	}
 
 	var client = &clientImpl{client: &fasthttp.Client{}}
 	client.do = func(ctx context.Context, req service.Request, resp service.Response) error {
@@ -62,11 +57,11 @@ func (t *Cfg) Build(opts ...func(cfg *Cfg)) (_ Client, err error) {
 	for i := len(middlewares); i > 0; i-- {
 		client.do = middlewares[i-1](client.do)
 	}
-	return client, nil
+	return r.WithVal(client)
 }
 
-func DefaultCfg() *Cfg {
-	return &Cfg{
+func DefaultCfg() *Config {
+	return &Config{
 		Timeout:     defaultHTTPTimeout,
 		RetryCount:  defaultRetryCount,
 		backoff:     retry2.NewNoop(),

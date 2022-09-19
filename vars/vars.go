@@ -1,7 +1,6 @@
 package vars
 
 import (
-	"encoding/json"
 	"expvar"
 	"fmt"
 
@@ -62,14 +61,13 @@ func (f Value) String() (r string) {
 		return string(dt.([]byte))
 	case fmt.Stringer:
 		return dt.(fmt.Stringer).String()
-	case json.Marshaler:
+	default:
 		ret := result.Wrap(jsonx.Marshal(dt))
 		if ret.IsErr() {
 			return xerr.WrapXErr(ret.Err()).Stack()
 		}
 		return utils.BtoS(ret.Unwrap())
 	}
-	return fmt.Sprintf("%v", dt)
 }
 
 func Register(name string, data func() interface{}) {

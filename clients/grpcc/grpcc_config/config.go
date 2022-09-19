@@ -45,11 +45,10 @@ func (t Cfg) Check() error { return nil }
 
 func DefaultCfg() *Cfg {
 	var cfg = &Cfg{
-		Scheme:     grpcc_resolver.DiscovScheme,
+		Scheme:     grpcc_resolver.DirectScheme,
 		Middleware: []string{logmiddleware.Name, requestid.Name},
 		Client: &ClientCfg{
 			Insecure: true,
-			Block:    true,
 			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
 			// refer: https://github.com/grpc/grpc-proto/blob/d653c6d98105b2af937511aa6e46610c7e677e6e/grpc/service_config/service_config.proto#L632
 			DialTimeout:       time.Minute,

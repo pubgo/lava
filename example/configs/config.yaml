@@ -73,12 +73,9 @@ orm:
   driver: "sqlite3"
   driver_config:
     dsn: "db.sqlite3"
-grpcc:
-  - name: test-grpc
-    registry: "mdns"
-#    addr: "localhost:8080"
-registry:
-  driver: "mdns"
+client:
+  srv: "test-gid"
+  addr: "localhost:50051"
 tracing:
   driver: "jaeger"
 metric:

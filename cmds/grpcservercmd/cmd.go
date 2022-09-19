@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/server/grpcs"
+	"github.com/pubgo/lava/servers/grpcs"
 	"github.com/pubgo/lava/version"
 )
 

@@ -26,8 +26,11 @@ var _ grpc.ClientConnInterface = (*Client)(nil)
 
 func New(cfg *grpcc_config.Cfg, log *logging.Logger, middlewares map[string]service.Middleware) *Client {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
-	var c = &Client{cfg: cfg, log: log, middlewares: middlewares}
+	if middlewares == nil {
+		middlewares = make(map[string]service.Middleware, 0)
+	}
 
+	var c = &Client{cfg: cfg, log: log, middlewares: middlewares}
 	if cfg.Client.Block {
 		c.Get().Unwrap()
 	}
@@ -53,7 +56,7 @@ func (t *Client) Invoke(ctx context.Context, method string, args interface{}, re
 	return
 }
 
-func (t *Client) Check(ctx context.Context) error {
+func (t *Client) Healthy(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
 		return xerr.WrapF(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
@@ -132,6 +135,9 @@ func createConn(cfg *grpcc_config.Cfg, log *logging.Logger, mm map[string]servic
 	}
 
 	addr := buildTarget(cfg)
+
+	log.Info("grpc client init", zap.String(logkey.Service, cfg.Srv), zap.String("addr", addr))
+
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)

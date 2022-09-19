@@ -10,8 +10,8 @@ import (
 type GrpcHandler interface {
 	Init()
 	Middlewares() []Middleware
-	ServiceDesc() grpc.ServiceDesc
-	TwirpHandler(opts ...interface{}) http.Handler
+	ServiceDesc() *grpc.ServiceDesc
+	TwirpHandler(...interface{}) http.Handler
 }
 
 type HttpRouter interface {

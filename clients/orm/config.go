@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
@@ -16,7 +15,6 @@ import (
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/merge"
 )
 
@@ -42,8 +40,8 @@ type Cfg struct {
 
 func (t *Cfg) Build() (err error) {
 	defer recovery.Err(&err)
-	ormCfg := merge.Struct(&gorm.Config{}, t).Unwrap(func(err result.Error) result.Error {
-		return err.WrapF("cfg=%#v", t)
+	ormCfg := merge.Struct(new(gorm.Config), t).Unwrap(func(err result.Error) result.Error {
+		return err.WithMeta("cfg", t)
 	})
 
 	var level = gl.Info
@@ -100,22 +98,11 @@ func (t *Cfg) Get() *gorm.DB {
 	return t.db
 }
 
-func (t *Cfg) Valid() (err error) {
-	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
-		logutil.ColorPretty(t)
-		return err
-	})
-
-	assert.If(t.Driver == "", "driver is null")
-	return
-}
-
 func DefaultCfg() *Cfg {
 	return &Cfg{
-		//SkipDefaultTransaction: true,
-		PrepareStmt: true,
-		MaxConnTime: time.Hour,
-		MaxConnIdle: 10,
-		MaxConnOpen: 100,
+		SkipDefaultTransaction: true,
+		MaxConnTime:            time.Hour,
+		MaxConnIdle:            10,
+		MaxConnOpen:            100,
 	}
 }

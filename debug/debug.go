@@ -48,6 +48,7 @@ func initDebug() {
 		for i := range pathList {
 			nodes = append(nodes, h.A(g.Text(pathList[i]), g.Attr("href", pathList[i])), h.Br())
 		}
+		ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 		return c.HTML5(c.HTML5Props{Title: "/app/routes", Body: nodes}).Render(ctx)
 	})
 }

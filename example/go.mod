@@ -12,7 +12,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/mwitkow/go-proto-validators v0.3.2
-	github.com/pubgo/dix v0.3.4
+	github.com/pubgo/dix v0.3.5-1
 	github.com/pubgo/funk v0.5.26-3
 	github.com/pubgo/lava v0.2.10
 	github.com/pubgo/protobuild v0.0.7
@@ -44,9 +44,12 @@ require (
 	github.com/denisbrodbeck/machineid v1.0.1 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
+	github.com/felixge/fgprof v0.9.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/glebarez/go-sqlite v1.16.0 // indirect
 	github.com/glebarez/sqlite v1.4.3 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
+	github.com/go-echarts/statsview v0.3.4 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -62,6 +65,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gops v0.3.18 // indirect
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/grandcat/zeroconf v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

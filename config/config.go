@@ -144,7 +144,7 @@ func (t *configImpl) Set(key string, value interface{}) {
 func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.DecoderConfigOption) error {
 	return t.v.UnmarshalKey(key, rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
-			c.TagName = "json"
+			c.TagName = FileType
 		}
 	})...)
 }
@@ -152,7 +152,7 @@ func (t *configImpl) UnmarshalKey(key string, rawVal interface{}, opts ...viper.
 func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOption) error {
 	return t.v.Unmarshal(rawVal, append(opts, func(c *mapstructure.DecoderConfig) {
 		if c.TagName == "" {
-			c.TagName = "json"
+			c.TagName = FileType
 		}
 	})...)
 }
