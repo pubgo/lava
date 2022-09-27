@@ -2,6 +2,7 @@ package migratecmd
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/generic"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -30,7 +31,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 
 func New(migrations []migrates.Migrate) *cli.Command {
 	var id string
-
+	var ids []string
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "db migrate",
@@ -43,8 +44,11 @@ func New(migrations []migrates.Migrate) *cli.Command {
 		},
 		Before: func(context *cli.Context) error {
 			gormigrate.DefaultOptions.TableName = "orm_migrations"
+			p := di.Inject(new(params))
+			assert.Must(p.Db.Table(gormigrate.DefaultOptions.TableName).Select("id").Find(&ids).Error)
 			return nil
 		},
+
 		Subcommands: []*cli.Command{
 			{
 				Name:    "migrate",
@@ -60,7 +64,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					} else {
 						assert.Must(m.MigrateTo(id))
 					}
-					p.Log.Info("Migration run ok")
+					p.Log.Info("migration ok")
 					return nil
 				},
 			},
@@ -73,7 +77,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 
 					p := di.Inject(new(params))
 					for _, m := range migrate(migrations) {
-						p.Log.Info(fmt.Sprintf("migration-id=%s", m.ID))
+						p.Log.Info(fmt.Sprintf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", "")))
 					}
 					time.Sleep(time.Millisecond * 10)
 					return nil
@@ -93,7 +97,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					} else {
 						assert.Must(m.RollbackTo(id))
 					}
-					p.Log.Info("RollbackLast run ok")
+					p.Log.Info("rollback last ok")
 					return nil
 				},
 			},
