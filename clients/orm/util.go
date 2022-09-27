@@ -2,11 +2,11 @@ package orm
 
 import (
 	"errors"
-	"gorm.io/gorm/clause"
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func ErrNotFound(err error) bool {
