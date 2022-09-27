@@ -50,7 +50,7 @@ const (
 // 配置文件中可以设置环境变量
 // flag可以指定配置文件位置
 // 始化配置文件
-func New(app *App) Config {
+func New() Config {
 	defer recovery.Exit()
 
 	replacer := strings.NewReplacer(".", "_", "-", "_")
