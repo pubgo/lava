@@ -14,29 +14,27 @@ import (
 
 const Name = "x-request-id"
 
-func Middleware() map[string]service.Middleware {
-	return map[string]service.Middleware{
-		Name: func(next service.HandlerFunc) service.HandlerFunc {
-			return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
-				defer func() {
-					switch err := recover().(type) {
-					case nil:
-					case error:
-						gErr = err
-					default:
-						gErr = status.Errorf(codes.Internal, "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
-					}
-				}()
+func Middleware() service.Middleware {
+	return func(next service.HandlerFunc) service.HandlerFunc {
+		return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
+			defer func() {
+				switch err := recover().(type) {
+				case nil:
+				case error:
+					gErr = err
+				default:
+					gErr = status.Errorf(codes.Internal, "service=>%s, endpoint=>%s, msg=>%v", req.Service(), req.Endpoint(), err)
+				}
+			}()
 
-				rid := utils.FirstFnNotEmpty(
-					func() string { return getReqID(ctx) },
-					func() string { return string(req.Header().Peek(Name)) },
-					func() string { return ksuid.New().String() },
-				)
+			rid := utils.FirstFnNotEmpty(
+				func() string { return getReqID(ctx) },
+				func() string { return string(req.Header().Peek(Name)) },
+				func() string { return ksuid.New().String() },
+			)
 
-				req.Header().Set(httpx.HeaderXRequestID, rid)
-				return next(CreateCtx(ctx, rid), req, rsp)
-			}
-		},
+			req.Header().Set(httpx.HeaderXRequestID, rid)
+			return next(CreateCtx(ctx, rid), req, rsp)
+		}
 	}
 }

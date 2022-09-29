@@ -121,6 +121,8 @@ const (
 	HeaderXDNSPrefetchControl             = "X-DNS-Prefetch-Control"
 	HeaderXPingback                       = "X-Pingback"
 	HeaderXRequestID                      = "X-Request-ID"
+	HeaderXRequestProject                 = "X-Request-Project"
+	HeaderXRequestVersion                 = "X-Request-Version"
 	HeaderXRequestedWith                  = "X-Requested-With"
 	HeaderXRobotsTag                      = "X-Robots-Tag"
 	HeaderXUACompatible                   = "X-UA-Compatible"

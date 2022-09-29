@@ -1,4 +1,4 @@
-package restc
+package resty
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-const Name = "restc"
+const Name = "resty"
 
 // Client http client interface
 type Client interface {

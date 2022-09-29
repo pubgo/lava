@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/uber-go/tally/v4"

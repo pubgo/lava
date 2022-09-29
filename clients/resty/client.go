@@ -1,45 +1,41 @@
-package restc
+package resty
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/projectinfo"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/x/strutil"
 	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 )
 
-const (
-	defaultRetryCount  = 1
-	defaultHTTPTimeout = 2 * time.Second
-	defaultContentType = "application/json"
-)
-
-func New(cfg *Config, middlewares map[string]service.Middleware) Client {
+func New(cfg *Config, log *logging.Logger, mm ...service.Middleware) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
-	if middlewares == nil {
-		middlewares = make(map[string]service.Middleware, 0)
-	}
-
-	return cfg.Build(middlewares).Unwrap()
+	return cfg.Build(append([]service.Middleware{
+		logmiddleware.Middleware(log),
+		requestid.Middleware(),
+		projectinfo.Middleware(),
+	}, mm...)).Unwrap()
 }
 
 var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	client      *fasthttp.Client
-	cfg         Config
-	do          service.HandlerFunc
-	middlewares map[string]service.Middleware
+	client *fasthttp.Client
+	cfg    Config
+	do     service.HandlerFunc
 }
 
 func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {

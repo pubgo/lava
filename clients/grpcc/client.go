@@ -15,22 +15,24 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/core/projectinfo"
+	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/service"
-	middleware2 "github.com/pubgo/lava/service"
 )
 
-var _ grpc.ClientConnInterface = (*Client)(nil)
+var _ Interface = (*Client)(nil)
 
-func New(cfg *grpcc_config.Cfg, log *logging.Logger, middlewares map[string]service.Middleware) *Client {
+func New(cfg *grpcc_config.Cfg, log *logging.Logger) *Client {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
-	if middlewares == nil {
-		middlewares = make(map[string]service.Middleware, 0)
-	}
-
-	var c = &Client{cfg: cfg, log: log, middlewares: middlewares}
+	var c = &Client{cfg: cfg, log: log, middlewares: []service.Middleware{
+		logmiddleware.Middleware(log),
+		requestid.Middleware(),
+		projectinfo.Middleware(),
+	}}
 	if cfg.Client.Block {
 		c.Get().Unwrap()
 	}
@@ -43,7 +45,11 @@ type Client struct {
 	cfg         *grpcc_config.Cfg
 	mu          sync.Mutex
 	conn        grpc.ClientConnInterface
-	middlewares map[string]service.Middleware
+	middlewares []service.Middleware
+}
+
+func (t *Client) Middleware(mm ...service.Middleware) {
+	t.middlewares = append(t.middlewares, mm...)
 }
 
 func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
@@ -123,24 +129,18 @@ func buildTarget(cfg *grpcc_config.Cfg) string {
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log *logging.Logger, mm map[string]service.Middleware) (grpc.ClientConnInterface, error) {
+func createConn(cfg *grpcc_config.Cfg, log *logging.Logger, mm []service.Middleware) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
-
-	var middlewares []middleware2.Middleware
-	for _, m := range cfg.Middleware {
-		assert.If(mm[m] == nil, "middleware %s not found", m)
-		middlewares = append(middlewares, mm[m])
-	}
 
 	addr := buildTarget(cfg)
 
 	log.Info("grpc client init", zap.String(logkey.Service, cfg.Srv), zap.String("addr", addr))
 
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor(middlewares)),
-		grpc.WithChainStreamInterceptor(streamInterceptor(middlewares)))...)
+		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
+		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
 	if err != nil {
 		return nil, xerr.WrapF(err, "grpc dial failed, target=>%s", addr)
 	}

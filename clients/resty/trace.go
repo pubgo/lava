@@ -1,4 +1,4 @@
-package restc
+package resty
 
 import (
 	"context"

@@ -1,11 +1,17 @@
 package version
 
+import "github.com/coreos/go-semver/semver"
+
 func CommitID() string {
 	return commitID
 }
 
 func Version() string {
 	return version
+}
+
+func Semver() *semver.Version {
+	return semver.New(version)
 }
 
 func BuildTime() string {

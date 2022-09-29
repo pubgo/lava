@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/logging/logmiddleware"
 	"google.golang.org/grpc"
 )
 
@@ -34,19 +32,17 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 
 // Cfg ...
 type Cfg struct {
-	Client     *ClientCfg `yaml:"client"`
-	Srv        string     `yaml:"srv"`
-	Addr       string     `yaml:"addr"`
-	Scheme     string     `yaml:"scheme"`
-	Middleware []string   `yaml:"middleware"`
+	Client *ClientCfg `yaml:"client"`
+	Srv    string     `yaml:"srv"`
+	Addr   string     `yaml:"addr"`
+	Scheme string     `yaml:"scheme"`
 }
 
 func (t Cfg) Check() error { return nil }
 
 func DefaultCfg() *Cfg {
 	var cfg = &Cfg{
-		Scheme:     grpcc_resolver.DirectScheme,
-		Middleware: []string{logmiddleware.Name, requestid.Name},
+		Scheme: grpcc_resolver.DirectScheme,
 		Client: &ClientCfg{
 			Insecure: true,
 			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md

@@ -24,9 +24,9 @@ import (
 
 const Name = "accesslog"
 
-func Middleware(log *logging.Logger) map[string]service.Middleware {
+func Middleware(log *logging.Logger) service.Middleware {
 	log = log.Named(Name)
-	var next = func(next service.HandlerFunc) service.HandlerFunc {
+	return func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, resp service.Response) error {
 			now := time.Now()
 
@@ -73,19 +73,16 @@ func Middleware(log *logging.Logger) map[string]service.Middleware {
 				// TODO type assert
 				reqBody := fmt.Sprintf("%v", req.Payload())
 				rspBody := fmt.Sprintf("%v", resp.Payload())
-				if len(reqBody) < 1000 {
-					params = append(params, zap.String("req_body", reqBody))
-				}
-
-				if len(rspBody) < 1000 {
-					params = append(params, zap.Any("rsp_body", rspBody))
-				}
+				params = append(params, zap.String("req_body", reqBody))
+				params = append(params, zap.Any("rsp_body", rspBody))
 
 				params = append(params, zap.Any("req_header", req.Header()))
 				params = append(params, zap.Any("rsp_header", resp.Header()))
 
-				// 持续时间, 微秒
+				// 持续时间, 毫秒
 				params = append(params, zap.String("duration", time.Since(now).String()))
+				params = append(params, zap.Int64("dur_ms", time.Since(now).Milliseconds()))
+
 				// 记录错误日志
 				logutil.LogOrErr(log, req.Endpoint(), func() result.Error { return result.WithErr(err) }, params...)
 			}()
@@ -106,5 +103,4 @@ func Middleware(log *logging.Logger) map[string]service.Middleware {
 			return err
 		}
 	}
-	return map[string]service.Middleware{Name: next}
 }

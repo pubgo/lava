@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 
+	"github.com/pubgo/lava/service"
 	"google.golang.org/grpc"
 )
 
@@ -10,4 +11,5 @@ import (
 type Interface interface {
 	grpc.ClientConnInterface
 	Healthy(ctx context.Context) error
+	Middleware(mm ...service.Middleware)
 }

@@ -2,11 +2,6 @@ package lava
 
 // 加载插件
 import (
-	"github.com/pubgo/dix/di"
-	"github.com/pubgo/lava/core/metric/drivers/prometheus"
-	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/logging/logmiddleware"
-
 	// set GOMAXPROCS
 	_ "github.com/pubgo/lava/modules/automaxprocs"
 
@@ -37,10 +32,3 @@ import (
 	_ "github.com/pubgo/lava/debug/versionhandler"
 	_ "github.com/pubgo/lava/vars/varshandler"
 )
-
-func init() {
-	// 加载middleware, 注意加载顺序
-	di.Provide(logmiddleware.Middleware)
-	di.Provide(requestid.Middleware)
-	di.Provide(prometheus.New)
-}
