@@ -22,8 +22,8 @@ func init() {
 		return &cfg
 	})
 
-	di.Provide(func(m lifecycle.Lifecycle, cfg *Cfg, sopts map[string]*tally.ScopeOptions) Metric {
-		var opts = sopts[cfg.Driver]
+	di.Provide(func(m lifecycle.Lifecycle, cfg *Cfg, optMap map[string]*tally.ScopeOptions) Metric {
+		var opts = optMap[cfg.Driver]
 		if opts == nil {
 			opts = &tally.ScopeOptions{Reporter: tally.NullStatsReporter}
 		}

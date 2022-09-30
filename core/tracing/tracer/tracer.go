@@ -1,37 +1,18 @@
 package tracer
 
 import (
+	"context"
+
 	"github.com/gogf/gf/v2/container/gmap"
 	"github.com/gogf/gf/v2/container/gvar"
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
-import (
-	"context"
-	"os"
-	"strings"
-
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-)
-
-const (
-	tracingCommonKeyIpIntranet        = `ip.intranet`
-	tracingCommonKeyIpHostname        = `hostname`
-	commandEnvKeyForTraceEnabled      = "gf.trace.enabled"               // Main switch for tracing feature.
-	commandEnvKeyForMaxContentLogSize = "gf.gtrace.max.content.log.size" // To avoid too big tracing content.
-	commandEnvKeyForTracingInternal   = "gf.gtrace.tracing.internal"     // For detailed controlling for tracing content.
-)
-
 var (
-	intranetIps, _           = gipv4.GetIntranetIpArray()
-	intranetIpStr            = strings.Join(intranetIps, ",")
-	hostname, _              = os.Hostname()
-	tracingInternal          = true       // tracingInternal enables tracing for internal type spans.
 	tracingMaxContentLogSize = 512 * 1024 // Max log size for request and response body, especially for HTTP/RPC request.
 	// defaultTextMapPropagator is the default propagator for context propagation between peers.
 	defaultTextMapPropagator = propagation.NewCompositeTextMapPropagator(
@@ -40,36 +21,9 @@ var (
 	)
 )
 
-func init() {
-	// Default trace provider.
-	otel.SetTracerProvider(provider.New())
-	CheckSetDefaultTextMapPropagator()
-}
-
-// IsUsingDefaultProvider checks and return if currently using default trace provider.
-func IsUsingDefaultProvider() bool {
-	_, ok := otel.GetTracerProvider().(*provider.TracerProvider)
-	return ok
-}
-
-// IsTracingInternal returns whether tracing spans of internal components.
-func IsTracingInternal() bool {
-	return tracingInternal
-}
-
 // MaxContentLogSize returns the max log size for request and response body, especially for HTTP/RPC request.
 func MaxContentLogSize() int {
 	return tracingMaxContentLogSize
-}
-
-// CommonLabels returns common used attribute labels:
-// ip.intranet, hostname.
-func CommonLabels() []attribute.KeyValue {
-	return []attribute.KeyValue{
-		attribute.String(tracingCommonKeyIpHostname, hostname),
-		attribute.String(tracingCommonKeyIpIntranet, intranetIpStr),
-		semconv.HostNameKey.String(hostname),
-	}
 }
 
 // CheckSetDefaultTextMapPropagator sets the default TextMapPropagator if it is not set previously.

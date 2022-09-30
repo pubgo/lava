@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/coreos/go-semver/semver"
+	"fmt"
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
 	"github.com/pubgo/funk/assert"
@@ -19,11 +19,17 @@ var deviceID = assert.Exit1(machineid.ID())
 var instanceID = uuid.New().String()
 
 func init() {
-	defer recovery.Exit()
+	defer recovery.Exit(func() {
+		fmt.Println(
+			project,
+			version,
+			commitID,
+			buildTime,
+		)
+	})
 
 	assert.If(project == "", "project is null")
 	assert.If(version == "", "version is null")
 	assert.If(commitID == "", "commitID is null")
 	assert.If(buildTime == "", "buildTime is null")
-	assert.Must1(semver.NewVersion(version))
 }

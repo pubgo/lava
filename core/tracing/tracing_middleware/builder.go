@@ -3,11 +3,10 @@ package tracing_middleware
 import (
 	"context"
 	"errors"
+	"github.com/pubgo/lava/logging"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"go.uber.org/zap"
-
 	requestid2 "github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
@@ -15,7 +14,7 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-func Middleware(tracer opentracing.Tracer, log *zap.Logger) service.Middleware {
+func Middleware(tracer opentracing.Tracer, log *logging.Logger) service.Middleware {
 	log = log.Named(logutil.Names(logkey.Module, tracing.Name))
 	return func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, resp service.Response) error {

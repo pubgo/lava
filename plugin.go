@@ -23,6 +23,8 @@ import (
 	// 默认注册中心
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 
+	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
+
 	_ "github.com/pubgo/lava/logging/logext/grpclog"
 
 	_ "github.com/pubgo/lava/debug/pprofhandler"

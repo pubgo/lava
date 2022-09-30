@@ -3,6 +3,9 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/projectinfo"
+	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/logging/logmiddleware"
 	"net"
 	"net/http"
 
@@ -28,6 +31,7 @@ import (
 	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/version"
 )
 
 func New() service.Service { return newService() }
@@ -63,6 +67,12 @@ func (s *serviceImpl) DixInject(
 	log *zap.Logger,
 	cfg *Cfg) {
 
+	middlewares = append([]service.Middleware{
+		logmiddleware.Middleware(log),
+		requestid.Middleware(),
+		projectinfo.Middleware(),
+	}, middlewares...)
+
 	log = log.Named("grpc-server")
 
 	s.lc = getLifecycle
@@ -77,6 +87,7 @@ func (s *serviceImpl) DixInject(
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
 	}))
+	s.httpServer.Mount("/debug", debug.App())
 
 	app := fiber.New()
 	for _, h := range handlers {
@@ -96,7 +107,6 @@ func (s *serviceImpl) DixInject(
 	}
 
 	app.Use(handlerHttpMiddle(middlewares))
-	app.Mount("/debug", debug.App())
 
 	// grpc server初始化
 	var grpcServer = cfg.Grpc.Build(
@@ -113,8 +123,10 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithAllowNonRootResource(true),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	app.Post(cfg.BasePrefix+"/grpcweb/*", adaptor.HTTPHandler(http.StripPrefix(cfg.BasePrefix+"/grpcweb/*", wrappedGrpc)))
-	app.Post(cfg.BasePrefix+"/grpc/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(cfg.BasePrefix+"/grpc/*", grpcServer), &http2.Server{})))
+	var grpcWebPrefix = "/" + version.Project() + "/grpcweb"
+	var grpcPrefix = "/" + version.Project() + "/grpcweb"
+	app.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
+	app.Post(grpcPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcPrefix, grpcServer), &http2.Server{})))
 	s.httpServer.Mount("/", app)
 
 	// 网关初始化
