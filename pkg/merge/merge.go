@@ -19,7 +19,9 @@ func Copy[A any, B any](dst A, src B, opts ...Option) result.Result[A] {
 		opts[i](&optList)
 	}
 
-	return result.Wrap(dst, copier.CopyWithOption(dst, src, optList))
+	return result.Wrap(dst, copier.CopyWithOption(dst, src, optList)).OnErr(func(err result.Error) result.Error {
+		return err.WithMeta("dst", dst).WithMeta("src", src)
+	})
 }
 
 func Struct[A any, B any](dst A, src B, opts ...Option) result.Result[A] {
@@ -48,5 +50,7 @@ func MapStruct[A any, B any](dst A, src B, opts ...func(cfg *mapstructure.Decode
 	}
 
 	decoder := assert.Must1(mapstructure.NewDecoder(cfg))
-	return result.Wrap(dst, decoder.Decode(src))
+	return result.Wrap(dst, decoder.Decode(src)).OnErr(func(err result.Error) result.Error {
+		return err.WithMeta("dst", dst).WithMeta("src", src)
+	})
 }

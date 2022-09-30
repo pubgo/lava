@@ -29,6 +29,6 @@ import (
 	_ "github.com/pubgo/lava/debug/processhandler"
 	_ "github.com/pubgo/lava/debug/statshandler"
 	_ "github.com/pubgo/lava/debug/tracehandler"
+	_ "github.com/pubgo/lava/debug/varshandler"
 	_ "github.com/pubgo/lava/debug/versionhandler"
-	_ "github.com/pubgo/lava/vars/varshandler"
 )

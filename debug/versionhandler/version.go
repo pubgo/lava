@@ -1,7 +1,6 @@
 package versionhandler
 
 import (
-	"github.com/pubgo/lava/debug"
 	"net/http"
 	"os"
 	rd "runtime/debug"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/x/jsonx"
 
 	app2 "github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/lava/debug"
 )
 
 func init() {
