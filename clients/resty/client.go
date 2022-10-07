@@ -2,7 +2,6 @@ package resty
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/projectinfo"
 	"net/http"
 	"net/url"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/pubgo/x/strutil"
 	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging"
