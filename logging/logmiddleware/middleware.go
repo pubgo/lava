@@ -66,7 +66,7 @@ func Middleware(log *logging.Logger) service.Middleware {
 					case error:
 						err = c.(error)
 					default:
-						err = errors.New("lava.service.panic").Tag("service", req.Service()).Msg(fmt.Sprintf("%#v", c)).StatusInternal()
+						err = errors.New("lava.middleware.panic").Tag("service", req.Service()).Msg(fmt.Sprintf("%#v", c)).StatusInternal()
 					}
 				}
 
