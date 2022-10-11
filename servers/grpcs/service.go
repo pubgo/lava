@@ -3,9 +3,6 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/logging/logmiddleware"
 	"net"
 	"net/http"
 
@@ -26,9 +23,12 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/projectinfo"
+	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/debug"
+	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 	"github.com/pubgo/lava/version"
