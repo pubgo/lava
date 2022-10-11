@@ -75,7 +75,6 @@ require (
 
 require (
 	github.com/a8m/envsubst v1.3.0
-	github.com/coreos/go-semver v0.3.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-kit/log v0.2.1
@@ -84,13 +83,16 @@ require (
 	github.com/gofiber/utils v0.1.2
 	github.com/gogf/gf/v2 v2.1.4
 	github.com/improbable-eng/grpc-web v0.15.0
+	github.com/jackc/pgx/v4 v4.16.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
+	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.4
 	github.com/pubgo/funk v0.5.26-4
 	github.com/rs/xid v1.2.1
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
 	github.com/valyala/fasthttp v1.40.0
+	github.com/yuin/goldmark v1.4.13
 	go.opentelemetry.io/otel v1.10.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.10.0
 	go.opentelemetry.io/otel/sdk v1.10.0
@@ -108,6 +110,7 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -130,7 +133,6 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
-	github.com/jackc/pgx/v4 v4.16.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
@@ -169,6 +171,7 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.2.2 // indirect
