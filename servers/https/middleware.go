@@ -2,33 +2,47 @@ package https
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
-	_ "github.com/go-playground/validator/v10"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/service"
 )
 
-func Wrap(hh handler) func(ctx *fiber.Ctx) error {
+func Wrap[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
 	var validate = validator.New()
 	return func(ctx *fiber.Ctx) error {
-		ctx.ParamsParser()
-		ctx.QueryParser()
-		ctx.BodyParser()
-		ctx.ReqHeaderParser()
+		var req Req
 
-		var rsp, err = hh(ctx.Context(), nil)
+		if err := ctx.ParamsParser(&req); err != nil {
+			return fmt.Errorf("failed to parse params, err:%w", err)
+		}
+
+		if err := ctx.QueryParser(&req); err != nil {
+			return fmt.Errorf("failed to parse query, err:%w", err)
+		}
+
+		if err := ctx.BodyParser(&req); err != nil {
+			return fmt.Errorf("failed to parse body, err:%w", err)
+		}
+
+		if err := ctx.ReqHeaderParser(&req); err != nil {
+			return fmt.Errorf("failed to parse req header, err:%w", err)
+		}
+
+		if err := validate.Struct(&req); err != nil {
+			return fmt.Errorf("failed to validate request, err:%w", err)
+		}
+
+		var rsp, err = hh(ctx.Context(), &req)
 		if err != nil {
 			return err
 		}
 
-		err := validate.Struct(s)
 		return ctx.JSON(rsp)
 	}
 }
-
-type handler func(ctx context.Context, req interface{}) (rsp interface{}, err error)
 
 func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
 	var h = func(ctx context.Context, req service.Request, rsp service.Response) error {
