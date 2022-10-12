@@ -12,6 +12,7 @@ import (
 	"github.com/pubgo/lava/cmds/depcmd"
 	"github.com/pubgo/lava/cmds/grpcservercmd"
 	"github.com/pubgo/lava/cmds/healthcmd"
+	"github.com/pubgo/lava/cmds/httpservercmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/runmode"
@@ -28,7 +29,7 @@ func Run(cmdL ...*cli.Command) {
 		Usage:                  fmt.Sprintf("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
-		Commands:               append(cmdL, versioncmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New()),
+		Commands:               append(cmdL, versioncmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New(), httpservercmd.New()),
 		ExtraInfo:              runmode.GetVersion,
 	}
 
