@@ -5,8 +5,8 @@ go 1.18
 replace github.com/pubgo/lava v0.2.10 => ../
 
 require (
-	github.com/casbin/casbin/v2 v2.47.2
-	github.com/casbin/gorm-adapter/v3 v3.7.2
+	github.com/casbin/casbin/v2 v2.55.1
+	github.com/casbin/gorm-adapter/v3 v3.11.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.1
@@ -24,7 +24,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220728213248-dd149ef739b9
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.1
-	gorm.io/gorm v1.23.9-0.20220713102635-3262daf8d468
+	gorm.io/gorm v1.24.0
 	k8s.io/klog/v2 v2.60.1
 )
 
@@ -40,15 +40,14 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/denisbrodbeck/machineid v1.0.1 // indirect
-	github.com/denisenkom/go-mssqldb v0.12.0 // indirect
+	github.com/denisenkom/go-mssqldb v0.12.2 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/felixge/fgprof v0.9.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/glebarez/go-sqlite v1.16.0 // indirect
-	github.com/glebarez/sqlite v1.4.3 // indirect
+	github.com/glebarez/go-sqlite v1.19.1 // indirect
+	github.com/glebarez/sqlite v1.5.0 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.4 // indirect
 	github.com/go-echarts/statsview v0.3.4 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2 // indirect
@@ -62,7 +61,7 @@ require (
 	github.com/gofiber/utils v0.1.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
-	github.com/golang-sql/sqlexp v0.0.0-20170517235910-f1bb20e5a188 // indirect
+	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gops v0.3.18 // indirect
@@ -74,13 +73,13 @@ require (
 	github.com/iand/logfmtr v0.2.1 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.12.1 // indirect
+	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.3.1 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.11.0 // indirect
-	github.com/jackc/pgx/v4 v4.16.1 // indirect
+	github.com/jackc/pgtype v1.12.0 // indirect
+	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/copier v0.2.8 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -93,9 +92,9 @@ require (
 	github.com/mailgun/holster/v4 v4.0.6 // indirect
 	github.com/maragudk/gomponents v0.17.2 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
-	github.com/mattn/go-sqlite3 v1.14.14 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/dns v1.1.43 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
@@ -135,28 +134,28 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/sys v0.0.0-20221006211917-84dc82d7e875 // indirect
 	golang.org/x/text v0.3.8-0.20211105212822-18b340fc7af2 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
-	gorm.io/driver/mysql v1.3.6 // indirect
-	gorm.io/driver/postgres v1.3.9 // indirect
-	gorm.io/driver/sqlite v1.3.5 // indirect
-	gorm.io/driver/sqlserver v1.3.2 // indirect
-	gorm.io/gen v0.3.16 // indirect
+	gorm.io/driver/mysql v1.4.0 // indirect
+	gorm.io/driver/postgres v1.4.1 // indirect
+	gorm.io/driver/sqlite v1.4.1 // indirect
+	gorm.io/driver/sqlserver v1.4.0 // indirect
+	gorm.io/gen v0.3.17 // indirect
 	gorm.io/hints v1.1.0 // indirect
-	gorm.io/plugin/dbresolver v1.2.2 // indirect
+	gorm.io/plugin/dbresolver v1.3.0 // indirect
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816 // indirect
-	modernc.org/libc v1.16.7 // indirect
-	modernc.org/mathutil v1.4.1 // indirect
-	modernc.org/memory v1.1.1 // indirect
-	modernc.org/sqlite v1.18.0 // indirect
+	modernc.org/libc v1.19.0 // indirect
+	modernc.org/mathutil v1.5.0 // indirect
+	modernc.org/memory v1.4.0 // indirect
+	modernc.org/sqlite v1.19.1 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 )

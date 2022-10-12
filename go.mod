@@ -66,9 +66,10 @@ require (
 	github.com/urfave/cli/v2 v2.8.0
 	github.com/valyala/bytebufferpool v1.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gorm.io/driver/mysql v1.3.6
-	gorm.io/driver/sqlite v1.3.5
-	gorm.io/gorm v1.23.9-0.20220713102635-3262daf8d468
+	gorm.io/driver/mysql v1.4.0
+	gorm.io/driver/postgres v1.4.1
+	gorm.io/driver/sqlite v1.4.1
+	gorm.io/gorm v1.24.0
 	gorm.io/plugin/opentracing v0.0.0-20211008090106-7b0d17ed1816
 	k8s.io/klog/v2 v2.60.1
 )
@@ -98,7 +99,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.10.0
 	go.opentelemetry.io/otel/trace v1.10.0
 	gorm.io/driver/postgres v1.3.9
-	gorm.io/gen v0.3.16
+	gorm.io/gen v0.3.17
 )
 
 require (
