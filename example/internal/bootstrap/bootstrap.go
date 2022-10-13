@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lava/core/metric/drivers/prometheus"
 
 	"github.com/pubgo/lava/example/internal/handlers/gidrpc"
+	"github.com/pubgo/lava/example/internal/handlers/testapi"
 	"github.com/pubgo/lava/example/internal/services/casbinservice"
 	"github.com/pubgo/lava/example/internal/services/gidsrv"
 	"github.com/pubgo/lava/example/internal/services/menuservice"
@@ -28,4 +29,5 @@ func Init() {
 	di.Provide(menuservice.New)
 	di.Provide(casbinservice.New)
 	di.Provide(orm.New)
+	di.Provide(testapi.New)
 }

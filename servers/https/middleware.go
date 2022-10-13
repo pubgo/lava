@@ -3,6 +3,7 @@ package https
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
 
@@ -10,8 +11,9 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
+var validate = validator.New()
+
 func Wrap[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
-	var validate = validator.New()
 	return func(ctx *fiber.Ctx) error {
 		var req Req
 
@@ -23,8 +25,11 @@ func Wrap[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, er
 			return fmt.Errorf("failed to parse query, err:%w", err)
 		}
 
-		if err := ctx.BodyParser(&req); err != nil {
-			return fmt.Errorf("failed to parse body, err:%w", err)
+		switch ctx.Method() {
+		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+			if err := ctx.BodyParser(&req); err != nil {
+				return fmt.Errorf("failed to parse body, err:%w", err)
+			}
 		}
 
 		if err := ctx.ReqHeaderParser(&req); err != nil {

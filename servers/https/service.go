@@ -58,12 +58,6 @@ func (s *serviceImpl) DixInject(
 	log *zap.Logger,
 	cfg *Cfg) {
 
-	middlewares = append([]service.Middleware{
-		logmiddleware.Middleware(log),
-		requestid.Middleware(),
-		projectinfo.Middleware(),
-	}, middlewares...)
-
 	log = log.Named("http-server")
 
 	s.lc = getLifecycle
@@ -81,9 +75,18 @@ func (s *serviceImpl) DixInject(
 	s.httpServer.Mount("/debug", debug.App())
 
 	app := fiber.New()
+
+	middlewares = append([]service.Middleware{
+		logmiddleware.Middleware(log),
+		requestid.Middleware(),
+		projectinfo.Middleware()}, middlewares...)
+
 	for _, h := range handlers {
 		s.initList = append(s.initList, h.Init)
 		middlewares = append(middlewares, h.Middlewares()...)
+
+		h.Router(app)
+
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
@@ -132,7 +135,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service start", func() result.Error {
 		syncx.GoDelay(func() result.Error {
 			s.log.Info("[http-server] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() result.Error {
+			logutil.LogOrErr(s.log, "[http-server] Server Stop", func() result.Error {
 				defer recovery.Exit()
 				if err := s.httpServer.Listener(httpLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -165,7 +168,7 @@ func (s *serviceImpl) stop() {
 		return result.NilErr()
 	})
 
-	logutil.LogOrErr(s.log, "[grpc-gateway] Shutdown", func() result.Error {
+	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() result.Error {
 		return result.WithErr(s.httpServer.Shutdown())
 	})
 
