@@ -11,6 +11,10 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
+func init() {
+	fiber.SetParserDecoder()
+}
+
 var validate = validator.New()
 
 func Wrap[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
