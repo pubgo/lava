@@ -12,12 +12,13 @@ import (
 )
 
 func init() {
-	fiber.SetParserDecoder()
+	//fiber.SetParserDecoder()
 }
 
 var validate = validator.New()
 
-func Wrap[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
+func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
+	// TODO check tag
 	return func(ctx *fiber.Ctx) error {
 		var req Req
 
@@ -64,7 +65,7 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 		h = middlewares[i](h)
 	}
 
-	return func(fbCtx *fiber.Ctx) error {
-		return h(fbCtx.Context(), &httpRequest{ctx: fbCtx}, &httpResponse{ctx: fbCtx})
+	return func(ctx *fiber.Ctx) error {
+		return h(ctx.Context(), &httpRequest{ctx: ctx}, &httpResponse{ctx: ctx})
 	}
 }

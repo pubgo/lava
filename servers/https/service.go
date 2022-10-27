@@ -76,10 +76,8 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 
-	middlewares = append([]service.Middleware{
-		logmiddleware.Middleware(log),
-		requestid.Middleware(),
-		projectinfo.Middleware()}, middlewares...)
+	var defaultMiddlewares = []service.Middleware{logmiddleware.Middleware(log), requestid.Middleware(), projectinfo.Middleware()}
+	middlewares = append(defaultMiddlewares, middlewares...)
 
 	for _, h := range handlers {
 		s.initList = append(s.initList, h.Init)
