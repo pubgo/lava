@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/go-playground/validator/v10"
 
@@ -11,8 +12,21 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
+var parserTypes []fiber.ParserType
+
+func RegParserType(customType interface{}, converter func(string) reflect.Value) {
+	parserTypes = append(parserTypes, fiber.ParserType{
+		Customtype: customType,
+		Converter:  converter,
+	})
+}
+
 func init() {
-	//fiber.SetParserDecoder()
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+		ParserType:        parserTypes,
+	})
 }
 
 var validate = validator.New()

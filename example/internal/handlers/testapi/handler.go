@@ -2,6 +2,7 @@ package testapi
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/servers/https"
@@ -28,8 +29,12 @@ func (h *handler) Middlewares() []service.Middleware {
 }
 
 func (h *handler) Router(app *fiber.App) {
-	app.Get("/hello", https.Wrap(func(ctx context.Context, req *Req) (rsp *Rsp, err error) {
+	app.Get("/hello", https.Handler(func(ctx context.Context, req *Req) (rsp *Rsp, err error) {
 		return &Rsp{Data: "ok"}, nil
+	}))
+
+	app.Get("/error", https.Handler(func(ctx context.Context, req *Req) (rsp *Rsp, err error) {
+		return nil, fmt.Errorf("this is error")
 	}))
 }
 
