@@ -20,3 +20,19 @@ type HttpRouter interface {
 	Middlewares() []Middleware
 	Router(app *fiber.App)
 }
+
+type HttpApiRouter interface {
+	ApiRouter(app *fiber.App)
+}
+
+type HttpDebugRouter interface {
+	ApiRouter(app *fiber.App)
+}
+
+type HttpInternalRouter interface {
+	ApiRouter(app *fiber.App)
+}
+
+type HttpAdminRouter interface {
+	ApiRouter(app *fiber.App)
+}

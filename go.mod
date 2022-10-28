@@ -91,6 +91,7 @@ require (
 	github.com/pubgo/dix v0.3.4
 	github.com/pubgo/funk v0.5.26-4
 	github.com/rs/xid v1.2.1
+	github.com/stretchr/testify v1.8.0
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
 	github.com/valyala/fasthttp v1.40.0
@@ -148,6 +149,7 @@ require (
 	github.com/miekg/dns v1.1.43 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect

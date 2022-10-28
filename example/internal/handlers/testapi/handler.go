@@ -29,6 +29,9 @@ func (h *handler) Middlewares() []service.Middleware {
 }
 
 func (h *handler) Router(app *fiber.App) {
+	app.Get("", func(ctx *fiber.Ctx) error {
+		ctx.IP()
+	})
 	app.Get("/hello", https.Handler(func(ctx context.Context, req *Req) (rsp *Rsp, err error) {
 		return &Rsp{Data: "ok"}, nil
 	}))
