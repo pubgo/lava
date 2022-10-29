@@ -60,7 +60,7 @@ func IPWhitelist(acl map[string]bool) fiber.Handler {
 		for _, ipNet := range allowedNets {
 			if ipNet.Contains(ipAddr) {
 				acl[ip] = true
-				return nil
+				return ctx.Next()
 			}
 		}
 
