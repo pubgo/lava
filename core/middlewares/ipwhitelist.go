@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 
@@ -29,6 +30,11 @@ func IPWhitelist(acl map[string]bool) fiber.Handler {
 	}
 	return func(ctx *fiber.Ctx) error {
 		ip := ctx.IP()
+		fmt.Println("ip:", ip)
+		fmt.Println("ip:", ctx.IsProxyTrusted())
+		fmt.Println("ip:", ctx.IPs())
+		fmt.Println("ip:", ctx.Context().LocalIP())
+		fmt.Println("ip:", ctx.Context().RemoteIP())
 		if acl == nil || len(acl) == 0 {
 			return &fiber.Error{
 				Code:    http.StatusForbidden,
