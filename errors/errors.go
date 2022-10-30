@@ -25,7 +25,7 @@ type Error struct {
 
 // GRPCStatus 实现grpc status的GRPCStatus接口
 func (e *Error) GRPCStatus() *status.Status {
-	var dt = assert.Must1(json.Marshal(e))
+	var dt = assert.Must1(json.Marshal(e.err))
 	return status.New(codes.Code(e.err.Status), string(dt))
 }
 
@@ -47,7 +47,7 @@ func (e *Error) Is(err error) bool {
 	return false
 }
 
-func (e *Error) As(target interface{}) bool {
+func (e *Error) As(target any) bool {
 	switch x := target.(type) {
 	case nil:
 		return false
@@ -71,12 +71,6 @@ func (e *Error) As(target interface{}) bool {
 // Ctx get some metadata from ctx
 func (e *Error) Ctx(ctx context.Context) *Error {
 	return e
-}
-
-func (e *Error) TraceId(traceId string) *Error {
-	var ee = proto.Clone(e.err).(*errorV1.Error)
-	ee.TraceId = traceId
-	return &Error{err: ee}
 }
 
 func (e *Error) Msg(msg string, args ...interface{}) *Error {

@@ -22,6 +22,9 @@ func RegParserType(customType interface{}, converter func(string) reflect.Value)
 }
 
 func init() {
+	fiber.DefaultErrorHandler = func(c *fiber.Ctx, err error) error {
+
+	}
 	fiber.SetParserDecoder(fiber.ParserConfig{
 		IgnoreUnknownKeys: true,
 		ZeroEmpty:         true,

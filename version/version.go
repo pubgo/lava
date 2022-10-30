@@ -2,6 +2,7 @@ package version
 
 import (
 	"fmt"
+
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
 	"github.com/pubgo/funk/assert"
