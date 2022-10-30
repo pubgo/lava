@@ -11,11 +11,10 @@ option go_package = "github.com/pubgo/lava/gen/proto/errors/errorV1";
 
 message Error {
   uint32 status = 1;
-  string code = 2;
+  string reason = 2;
   string msg = 3;
-  string err_msg = 5;
-  string err_detail = 6;
-  map<string, string>  tags = 7;
+  string detail = 4;
+  map<string, string>  tags = 5;
 }
 
 // ErrorResponse message defines the error encoded in the gRPC response that
