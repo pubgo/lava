@@ -10,11 +10,16 @@ option java_package = "com.lava.errors";
 option go_package = "github.com/pubgo/lava/gen/proto/errors/errorV1";
 
 message Error {
-  uint32 status = 1;
+  uint32 code = 1;
   string reason = 2;
-  string msg = 3;
-  string detail = 4;
+  string err_msg = 3;
+  string err_detail = 4;
   map<string, string>  tags = 5;
+}
+
+enum lava_code {
+  OK = 0;
+  JSS_DD_DD = 1000;
 }
 
 // ErrorResponse message defines the error encoded in the gRPC response that
