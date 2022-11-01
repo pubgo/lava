@@ -14,19 +14,23 @@ message Error {
     json_name="code"
   ];
 
-  string reason = 2 [
+  uint32 biz_code = 2 [
+    json_name="biz_code"
+  ];
+
+  string reason = 3 [
     json_name="reason"
   ];
 
-  string err_msg = 3 [
+  string err_msg = 4 [
     json_name="err_msg"
   ];
 
-  string err_detail = 4 [
+  string err_detail = 5 [
     json_name="err_detail"
   ];
 
-  map<string, string>  tags = 5 [
+  map<string, string>  tags = 6 [
     json_name="tags"
   ];
 }

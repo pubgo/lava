@@ -2,6 +2,7 @@ package gidrpc
 
 import (
 	"context"
+
 	"github.com/pubgo/lava/errors"
 
 	"github.com/pubgo/lava/example/gen/proto/gidpb"
@@ -10,7 +11,7 @@ import (
 var ee = errors.New("hello")
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
-	ee.Status().StatusBadRequest()
+	ee.Err(nil).StatusBadRequest()
 	return id.srv.Generate(ctx, req)
 }
 
