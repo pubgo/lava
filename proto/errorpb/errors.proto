@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+
+package lava.errors;
+
+option cc_enable_arenas = true;
+option java_multiple_files = true;
+option java_package = "com.lava.errors";
+option go_package = "github.com/pubgo/lava/pkg/proto/errorpb";
+
+message Error {
+  uint32 code = 1 [
+    json_name="code"
+  ];
+
+  string reason = 2 [
+    json_name="reason"
+  ];
+
+  string err_msg = 3 [
+    json_name="err_msg"
+  ];
+
+  string err_detail = 4 [
+    json_name="err_detail"
+  ];
+
+  map<string, string>  tags = 5 [
+    json_name="tags"
+  ];
+}

@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/goccy/go-json"
+	"github.com/pubgo/funk/generic"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -118,14 +118,10 @@ func FromError(err error) *Error {
 			}
 		}
 
-		if json.Unmarshal([]byte(gs.GRPCStatus().Message()), &e) == nil && e.err.Status != 0 && e.err.Code != "" {
-			return e
-		}
-
-		return New("grpc.status.convert").Err(err).Msg(gs.GRPCStatus().Message()).Status(gs.GRPCStatus().Code())
+		return generic.Ptr(New("grpc.status.convert").Err(err).Status(gs.GRPCStatus().Code()))
 	}
 
-	return New("lava.error.convert").Err(err).Status(codes.Unknown)
+	return generic.Ptr(New("lava.error.convert").Err(err).Status(codes.Unknown))
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息
@@ -198,7 +194,7 @@ func lavaError(err *Error) codes.Code {
 		return codes.OK
 	}
 
-	switch err.err.Status {
+	switch err.code {
 	case http.StatusOK:
 		return codes.OK
 	case http.StatusBadRequest:
