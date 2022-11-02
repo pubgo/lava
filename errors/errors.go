@@ -13,19 +13,30 @@ import (
 // New generates a custom error.
 func New(reason string) *Error {
 	return &Error{
-		reason: reason,
-		tags: map[string]string{
-			"project": version.Project(),
-			"version": version.Version(),
-		},
+		reason:  reason,
+		version: version.Version(),
+		project: version.Project(),
+	}
+}
+
+func NewWithBizCode(reason string, code uint32) *Error {
+	return &Error{
+		bizCode: code,
+		reason:  reason,
+		version: version.Version(),
+		project: version.Project(),
 	}
 }
 
 type Error struct {
-	err    error
-	code   uint32
-	reason string
-	tags   map[string]string
+	version   string
+	project   string
+	bizCode   uint32
+	operation string
+	code      uint32
+	reason    string
+	err       error
+	tags      map[string]string
 }
 
 // GRPCStatus 实现 grpc status 的GRPCStatus接口
@@ -44,10 +55,14 @@ func (e Error) Proto() *errorpb.Error {
 
 	return &errorpb.Error{
 		Code:      e.code,
+		BizCode:   e.bizCode,
+		Project:   e.project,
+		Version:   e.version,
+		Operation: e.operation,
 		Reason:    e.reason,
 		Tags:      e.tags,
 		ErrMsg:    e.err.Error(),
-		ErrDetail: fmt.Sprintf("%#v", e.err),
+		ErrDetail: fmt.Sprintf("%+v", e.err),
 	}
 }
 
@@ -96,13 +111,28 @@ func (e Error) Tags(tags map[string]string) Error {
 	return e
 }
 
+func (e Error) BizCode(code uint32) Error {
+	e.bizCode = code
+	return e
+}
+
+func (e Error) Operation(operation string) Error {
+	e.operation = operation
+	return e
+}
+
+func (e Error) Reason(reason string) Error {
+	e.reason = reason
+	return e
+}
+
 func (e Error) Error() string {
 	if e.err == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("version=%q project=%s code=%d status=%s err_msg=%q tags=%v",
-		version.Version(), version.Project(), e.code, e.reason, e.err.Error(), e.tags)
+	return fmt.Sprintf("version=%q project=%q code=%d status=%s err_msg=%q err_detail=%+v",
+		e.version, e.project, e.code, e.reason, e.err.Error(), e.err)
 }
 
 func (e Error) Err(err error) Error {

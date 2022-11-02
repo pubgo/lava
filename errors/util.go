@@ -113,7 +113,7 @@ func FromError(err error) *Error {
 
 		details := gs.GRPCStatus().Details()
 		if len(details) > 0 && details[0] != nil {
-			if e, ok = details[0].(*Error); ok {
+			if e, ok = details[0].(*Error); ok && e != nil {
 				return e
 			}
 		}

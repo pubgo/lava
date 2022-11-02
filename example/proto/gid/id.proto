@@ -144,3 +144,11 @@ message TypesRequest {}
 message TypesResponse {
   repeated string types = 1;
 }
+
+
+enum Code {
+  OK = 0;
+
+  //id name not found
+  NotFound = 10000;
+}

@@ -40,6 +40,10 @@ plugins:
   opt:
   - paths=import
   - allow_repeated_fields_in_body=true
+- name: lava-errors
+  out: gen/proto
+  opt:
+    - paths=import
 - name: openapiv2
   out: docs/openapi
   opt:

@@ -11,26 +11,42 @@ option go_package = "github.com/pubgo/lava/pkg/proto/errorpb";
 
 message Error {
   uint32 code = 1 [
-    json_name="code"
+    json_name = "code"
   ];
 
   uint32 biz_code = 2 [
-    json_name="biz_code"
+    json_name = "biz_code"
   ];
 
   string reason = 3 [
-    json_name="reason"
+    json_name = "reason"
   ];
 
-  string err_msg = 4 [
-    json_name="err_msg"
+  string operation = 4 [
+    json_name = "reason"
   ];
 
-  string err_detail = 5 [
-    json_name="err_detail"
+  string project = 5 [
+    json_name = "reason"
   ];
 
-  map<string, string>  tags = 6 [
-    json_name="tags"
+  string version = 6 [
+    json_name = "reason"
   ];
+
+  string err_msg = 7 [
+    json_name = "err_msg"
+  ];
+
+  string err_detail = 8 [
+    json_name = "err_detail"
+  ];
+
+  map<string, string>  tags = 9 [
+    json_name = "tags"
+  ];
+}
+
+extend google.protobuf.EnumOptions {
+  bool enabled = 11000;
 }
