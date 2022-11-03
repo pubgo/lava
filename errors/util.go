@@ -2,13 +2,12 @@ package errors
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/lava/pkg/proto/errorpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -91,17 +90,14 @@ func IsMemoryErr(err error) bool {
 
 // FromError try to convert an error to *Error.
 // It supports wrapped errors.
-func FromError(err error) *Error {
+func FromError(err error) *errorpb.Error {
 	switch err.(type) {
 	case nil:
 		return nil
 	case *Error:
-		return err.(*Error)
-	}
-
-	var e *Error
-	if errors.As(err, &e) {
-		return e
+		return err.(*Error).Proto()
+	case Error:
+		return err.(Error).Proto()
 	}
 
 	// grpc error
@@ -113,15 +109,15 @@ func FromError(err error) *Error {
 
 		details := gs.GRPCStatus().Details()
 		if len(details) > 0 && details[0] != nil {
-			if e, ok = details[0].(*Error); ok && e != nil {
+			if e, ok := details[0].(*errorpb.Error); ok && e != nil {
 				return e
 			}
 		}
 
-		return generic.Ptr(New("grpc.status.convert").Err(err).Status(gs.GRPCStatus().Code()))
+		return New(err.Error()).BizCode("grpc.status.convert").Err(err).Status(gs.GRPCStatus().Code()).Proto()
 	}
 
-	return generic.Ptr(New("lava.error.convert").Err(err).Status(codes.Unknown))
+	return New(err.Error()).BizCode("lava.error.unknown").Err(err).Status(codes.InvalidArgument).Proto()
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息

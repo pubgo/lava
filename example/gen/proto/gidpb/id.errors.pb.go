@@ -16,5 +16,5 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-var ErrCodeOk = errors.NewWithBizCode("gid_code_ok", "ok")
-var ErrCodeNotfound = errors.NewWithBizCode("gid_code_notfound", "id name not found")
+var ErrCodeOk = errors.NewWithBizCode("gid.code.ok", "ok")
+var ErrCodeNotfound = errors.NewWithBizCode("gid.code.notfound", "id name not found")

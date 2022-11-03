@@ -49,26 +49,24 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 		g.Unskip()
 		for j := range m.Values {
 			n := m.Values[j]
-			var bizCode = jen.Id(fmt.Sprintf(`"%s_%s_%s"`,
+			var bizCode = fmt.Sprintf("%s_%s_%s",
 				strings.Join(strings.Split(strings.ToLower(string(file.Desc.Package())), "."), "_"),
 				strings.ToLower(string(m.Desc.Name())),
-				strings.ToLower(string(n.Desc.Name()))))
+				strings.ToLower(string(n.Desc.Name())))
+			bizCode = strings.Join(strings.Split(bizCode, "_"), ".")
 
 			// comment
-			rr := strings.TrimSpace(strings.ToLower(string(n.Desc.Name())))
+			var rr = strings.TrimSpace(strings.ToLower(string(n.Desc.Name())))
 			rr = strings.Join(strings.Split(rr, "_"), " ")
 			if n.Comments.Leading.String() != "" {
-				var cc = n.Comments.Leading.String()
-				cc = strings.TrimSpace(cc)
-				cc = strings.Trim(cc, "/")
-				cc = strings.TrimSpace(cc)
-				rr = cc
+				rr = n.Comments.Leading.String()
+				rr = strings.TrimSpace(strings.Trim(strings.TrimSpace(rr), "/"))
 			}
 
 			genFile.Var().Id(
 				fmt.Sprintf("Err%s%s", m.Desc.Name(), case2Camel(string(n.Desc.Name()))),
 			).Op("=").Qual("github.com/pubgo/lava/errors", "NewWithBizCode").Params(
-				bizCode,
+				jen.Lit(bizCode),
 				jen.Lit(rr),
 			)
 		}

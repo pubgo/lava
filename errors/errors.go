@@ -41,7 +41,7 @@ type Error struct {
 
 // GRPCStatus 实现 grpc status 的GRPCStatus接口
 func (e Error) GRPCStatus() *status.Status {
-	if e.err == nil || e.code == 0 {
+	if e.err == nil {
 		return nil
 	}
 
@@ -69,6 +69,10 @@ func (e Error) Proto() *errorpb.Error {
 // HTTPStatus returns the Status represented by se.
 func (e Error) HTTPStatus() int {
 	return GrpcCodeToHTTP(codes.Code(e.code))
+}
+
+func (e Error) Ok() bool {
+	return e.err == nil || e.code == 0
 }
 
 // Is matches each error in the chain with the target value.
@@ -131,8 +135,8 @@ func (e Error) Error() string {
 		return ""
 	}
 
-	return fmt.Sprintf("version=%q project=%q code=%d status=%s err_msg=%q err_detail=%+v",
-		e.version, e.project, e.code, e.reason, e.err.Error(), e.err)
+	return fmt.Sprintf("version=%q project=%q operation=%q code=%d biz_code=%q status=%s err_msg=%q err_detail=%+v",
+		e.version, e.project, e.operation, e.code, e.bizCode, e.reason, e.err.Error(), e.err)
 }
 
 func (e Error) Err(err error) Error {

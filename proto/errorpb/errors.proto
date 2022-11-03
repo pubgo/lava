@@ -23,15 +23,15 @@ message Error {
   ];
 
   string operation = 4 [
-    json_name = "reason"
+    json_name = "operation"
   ];
 
   string project = 5 [
-    json_name = "reason"
+    json_name = "project"
   ];
 
   string version = 6 [
-    json_name = "reason"
+    json_name = "version"
   ];
 
   string err_msg = 7 [

@@ -3,12 +3,13 @@ package https
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/codes"
 	"net/http"
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/service"
 )
 
@@ -23,8 +24,21 @@ func RegParserType(customType interface{}, converter func(string) reflect.Value)
 
 func init() {
 	fiber.DefaultErrorHandler = func(c *fiber.Ctx, err error) error {
+		if err == nil {
+			return nil
+		}
 
+		code := fiber.StatusBadRequest
+		var errPb = errors.FromError(err)
+		if errPb == nil || errPb.Code == 0 {
+			return nil
+		}
+
+		code = errors.GrpcCodeToHTTP(codes.Code(errPb.Code))
+		c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+		return c.Status(code).JSON(errPb)
 	}
+
 	fiber.SetParserDecoder(fiber.ParserConfig{
 		IgnoreUnknownKeys: true,
 		ZeroEmpty:         true,

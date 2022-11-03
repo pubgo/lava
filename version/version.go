@@ -2,6 +2,8 @@ package version
 
 import (
 	"fmt"
+	"github.com/kr/pretty"
+	"runtime/debug"
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
@@ -28,6 +30,21 @@ func init() {
 			buildTime,
 		)
 	})
+
+	bi, ok := debug.ReadBuildInfo()
+	assert.If(!ok, "failed to read build info")
+	pretty.Log(bi.Settings)
+
+	for i := range bi.Settings {
+		setting := bi.Settings[i]
+		if setting.Key == "vcs.revision" {
+			commitID = setting.Value
+		}
+
+		if setting.Key == "vcs.time" {
+			buildTime = setting.Value
+		}
+	}
 
 	assert.If(project == "", "project is null")
 	assert.If(version == "", "version is null")

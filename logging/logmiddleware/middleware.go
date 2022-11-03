@@ -9,8 +9,11 @@ import (
 
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/result"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
@@ -27,7 +30,7 @@ const Name = "accesslog"
 func Middleware(log *logging.Logger) service.Middleware {
 	log = log.Named(Name)
 	return func(next service.HandlerFunc) service.HandlerFunc {
-		return func(ctx context.Context, req service.Request, resp service.Response) error {
+		return func(ctx context.Context, req service.Request, resp service.Response) (gErr error) {
 			now := time.Now()
 
 			// TODO 考虑pool优化
@@ -51,8 +54,6 @@ func Middleware(log *logging.Logger) service.Middleware {
 			params = append(params, zap.Bool("client", req.Client()))
 			params = append(params, zap.String("version", version.Version()))
 
-			var err error
-
 			// 错误和panic处理
 			defer func() {
 				if c := recover(); c != nil {
@@ -64,9 +65,9 @@ func Middleware(log *logging.Logger) service.Middleware {
 
 					switch c.(type) {
 					case error:
-						err = c.(error)
+						gErr = c.(error)
 					default:
-						err = errors.New("lava.middleware.panic").Tag("service", req.Service()).Msg(fmt.Sprintf("%#v", c)).StatusInternal()
+						gErr = errors.New("lava.middleware.panic").Operation(req.Operation()).Err(fmt.Errorf("%#v", c)).StatusInternal()
 					}
 				}
 
@@ -84,7 +85,7 @@ func Middleware(log *logging.Logger) service.Middleware {
 				params = append(params, zap.Int64("dur_ms", time.Since(now).Milliseconds()))
 
 				// 记录错误日志
-				logutil.LogOrErr(log, req.Endpoint(), func() result.Error { return result.WithErr(err) }, params...)
+				logutil.LogOrErr(log, req.Endpoint(), func() result.Error { return result.WithErr(gErr) }, params...)
 			}()
 
 			if !req.Client() {
@@ -99,8 +100,10 @@ func Middleware(log *logging.Logger) service.Middleware {
 				zap.String("spanId", spanID),
 				zap.String("requestId", reqId)))
 
-			err = next(ctx, req, resp)
-			return err
+			gErr = next(ctx, req, resp)
+			var errPb = errors.FromError(gErr)
+			errPb.Operation = req.Operation()
+			return assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
 		}
 	}
 }
