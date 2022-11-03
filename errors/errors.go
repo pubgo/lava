@@ -19,7 +19,7 @@ func New(reason string) *Error {
 	}
 }
 
-func NewWithBizCode(reason string, code uint32) *Error {
+func NewWithBizCode(code string, reason string) *Error {
 	return &Error{
 		bizCode: code,
 		reason:  reason,
@@ -31,7 +31,7 @@ func NewWithBizCode(reason string, code uint32) *Error {
 type Error struct {
 	version   string
 	project   string
-	bizCode   uint32
+	bizCode   string
 	operation string
 	code      uint32
 	reason    string
@@ -111,7 +111,7 @@ func (e Error) Tags(tags map[string]string) Error {
 	return e
 }
 
-func (e Error) BizCode(code uint32) Error {
+func (e Error) BizCode(code string) Error {
 	e.bizCode = code
 	return e
 }

@@ -34,7 +34,7 @@ type Code int32
 
 const (
 	Code_OK Code = 0
-	// id not found
+	//id name not found
 	Code_NotFound Code = 10000
 )
 

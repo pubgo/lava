@@ -14,7 +14,7 @@ message Error {
     json_name = "code"
   ];
 
-  uint32 biz_code = 2 [
+  string biz_code = 2 [
     json_name = "biz_code"
   ];
 

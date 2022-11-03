@@ -49,19 +49,27 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 		g.Unskip()
 		for j := range m.Values {
 			n := m.Values[j]
-			var reason = jen.Id(fmt.Sprintf("%s_%s", m.Desc.Name(), n.Desc.Name())).Dot("String").Params()
+			var bizCode = jen.Id(fmt.Sprintf(`"%s_%s_%s"`,
+				strings.Join(strings.Split(strings.ToLower(string(file.Desc.Package())), "."), "_"),
+				strings.ToLower(string(m.Desc.Name())),
+				strings.ToLower(string(n.Desc.Name()))))
+
+			// comment
+			rr := strings.TrimSpace(strings.ToLower(string(n.Desc.Name())))
+			rr = strings.Join(strings.Split(rr, "_"), " ")
 			if n.Comments.Leading.String() != "" {
 				var cc = n.Comments.Leading.String()
 				cc = strings.TrimSpace(cc)
 				cc = strings.Trim(cc, "/")
 				cc = strings.TrimSpace(cc)
-				reason = jen.Lit(cc)
+				rr = cc
 			}
+
 			genFile.Var().Id(
 				fmt.Sprintf("Err%s%s", m.Desc.Name(), case2Camel(string(n.Desc.Name()))),
 			).Op("=").Qual("github.com/pubgo/lava/errors", "NewWithBizCode").Params(
-				reason,
-				jen.Lit(uint32(n.Desc.Number())),
+				bizCode,
+				jen.Lit(rr),
 			)
 		}
 	}
