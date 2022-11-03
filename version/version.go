@@ -1,12 +1,11 @@
 package version
 
 import (
-	"fmt"
-	"github.com/kr/pretty"
 	"runtime/debug"
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/google/uuid"
+	"github.com/kr/pretty"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 )
@@ -23,7 +22,7 @@ var instanceID = uuid.New().String()
 
 func init() {
 	defer recovery.Exit(func() {
-		fmt.Println(
+		pretty.Log(
 			project,
 			version,
 			commitID,
@@ -33,7 +32,6 @@ func init() {
 
 	bi, ok := debug.ReadBuildInfo()
 	assert.If(!ok, "failed to read build info")
-	pretty.Log(bi.Settings)
 
 	for i := range bi.Settings {
 		setting := bi.Settings[i]
