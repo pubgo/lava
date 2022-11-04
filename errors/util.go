@@ -114,10 +114,10 @@ func FromError(err error) *errorpb.Error {
 			}
 		}
 
-		return New(err.Error()).BizCode("grpc.status.convert").Err(err).Status(gs.GRPCStatus().Code()).Proto()
+		return errorpb.ErrCodeUnknown.Reason(gs.GRPCStatus().Message()).Err(err).Status(gs.GRPCStatus().Code()).Proto()
 	}
 
-	return New(err.Error()).BizCode("lava.error.unknown").Err(err).Status(codes.InvalidArgument).Proto()
+	return errorpb.ErrCodeUnknown.Err(err).Reason(err.Error()).Proto()
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息

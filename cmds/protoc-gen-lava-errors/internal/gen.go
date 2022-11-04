@@ -49,11 +49,8 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 		g.Unskip()
 		for j := range m.Values {
 			n := m.Values[j]
-			var bizCode = fmt.Sprintf("%s_%s_%s",
-				strings.Join(strings.Split(strings.ToLower(string(file.Desc.Package())), "."), "_"),
-				strings.ToLower(string(m.Desc.Name())),
-				strings.ToLower(string(n.Desc.Name())))
-			bizCode = strings.Join(strings.Split(bizCode, "_"), ".")
+			var bizCode = fmt.Sprintf("%s_%s_%s", file.Desc.Package(), m.Desc.Name(), n.Desc.Name())
+			bizCode = strings.ToLower(strings.Join(strings.Split(bizCode, "_"), "."))
 
 			// comment
 			var rr = strings.TrimSpace(strings.ToLower(string(n.Desc.Name())))
@@ -64,7 +61,7 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 			}
 
 			genFile.Var().Id(
-				fmt.Sprintf("Err%s%s", m.Desc.Name(), case2Camel(string(n.Desc.Name()))),
+				fmt.Sprintf("Err%s%s", m.Desc.Name(), string(n.Desc.Name())),
 			).Op("=").Qual("github.com/pubgo/lava/errors", "NewWithBizCode").Params(
 				jen.Lit(bizCode),
 				jen.Lit(rr),
@@ -86,14 +83,4 @@ func protocVersion(gen *protogen.Plugin) string {
 		suffix = "-" + s
 	}
 	return fmt.Sprintf("v%d.%d.%d%s", v.GetMajor(), v.GetMinor(), v.GetPatch(), suffix)
-}
-
-func case2Camel(name string) string {
-	if !strings.Contains(name, "_") {
-		return strings.Title(strings.ToLower(name))
-	}
-	name = strings.ToLower(name)
-	name = strings.Replace(name, "_", " ", -1)
-	name = strings.Title(name)
-	return strings.Replace(name, " ", "", -1)
 }

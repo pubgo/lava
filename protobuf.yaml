@@ -15,3 +15,7 @@ plugins:
   out: pkg
   opt:
   - paths=source_relative
+- name: lava-errors
+  out: pkg
+  opt:
+    - paths=source_relative
