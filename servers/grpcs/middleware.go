@@ -2,6 +2,9 @@ package grpcs
 
 import (
 	"context"
+	"fmt"
+	"github.com/pubgo/lava/pkg/proto/errorpb"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -34,7 +37,21 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 }
 
 func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
-	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
+	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
+		// 错误和panic处理
+		defer func() {
+			if c := recover(); c != nil {
+				switch c.(type) {
+				case error:
+					gErr = c.(error)
+				default:
+					gErr = errorpb.ErrCodeUnknown.Tags(map[string]string{
+						"stack": string(debug.Stack()),
+					}).Operation(req.Operation()).Err(fmt.Errorf("%#v", c)).StatusInternal()
+				}
+			}
+		}()
+
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
 			md.Append(utils.BtoS(key), utils.BtoS(value))
