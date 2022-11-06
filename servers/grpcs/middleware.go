@@ -3,13 +3,13 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/pkg/proto/errorpb"
 	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/pubgo/lava/pkg/proto/errorpb"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

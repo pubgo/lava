@@ -3,7 +3,6 @@ package https
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc/codes"
 	"net/http"
 	"reflect"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc/codes"
 )
 
 var parserTypes []fiber.ParserType
@@ -47,6 +47,10 @@ func init() {
 }
 
 var validate = validator.New()
+
+func HandlerGet[Req any, Rsp any](app fiber.Router, prefix string, hh func(ctx context.Context, req *Req) (rsp *Rsp, err error), middlewares ...service.Middleware) {
+	app.Get(prefix, handlerHttpMiddle(middlewares), Handler(hh))
+}
 
 func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
 	// TODO check tag

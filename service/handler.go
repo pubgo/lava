@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
 
@@ -12,6 +13,14 @@ type GrpcHandler interface {
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
 	TwirpHandler(...interface{}) http.Handler
+}
+
+type GrpcGateway interface {
+	GatewayHandler(mux *runtime.ServeMux)
+}
+
+func init() {
+	runtime.NewServeMux()
 }
 
 type HttpRouter interface {
