@@ -46,7 +46,3 @@ func (t *lifecycleImpl) AfterStart(f func()) {
 func (t *lifecycleImpl) AfterStop(f func()) {
 	t.afterStops = append(t.afterStops, executor{Handler: f})
 }
-
-func New() *lifecycleImpl {
-	return new(lifecycleImpl)
-}

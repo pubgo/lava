@@ -1,10 +1,10 @@
 package scheduler
 
 import (
-	"github.com/pubgo/funk/result"
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/result"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
 
@@ -46,7 +46,7 @@ func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string))
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
-	s.log.Depth(1).Info("register every scheduler", zap.String("name", name), zap.String("dur", dur.String()))
+	s.log.Depth(1).Info("register periodic scheduler", zap.String("name", name), zap.String("dur", dur.String()))
 	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name, log: s.log}, fn)
 }
 
@@ -61,7 +61,10 @@ func (s *Scheduler) getTrigger() quartz.Trigger {
 	}
 
 	if s.cron != "" {
-		return assert.Must1(quartz.NewCronTrigger(s.cron))
+		r := result.Wrap(quartz.NewCronTrigger(s.cron))
+		return r.Unwrap(func(err result.Error) result.Error {
+			return err.WithMeta("cron-expr", s.cron)
+		})
 	}
 
 	if s.dur != 0 {
