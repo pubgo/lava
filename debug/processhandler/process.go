@@ -5,7 +5,6 @@ import (
 	"debug/buildinfo"
 	"encoding/binary"
 	"fmt"
-	"github.com/pubgo/funk/generic"
 	"io"
 	"os"
 	"runtime"
@@ -18,6 +17,7 @@ import (
 	"github.com/google/gops/signal"
 	"github.com/keybase/go-ps"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/debug"
 )

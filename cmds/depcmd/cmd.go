@@ -9,7 +9,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/pkg/cmdx"

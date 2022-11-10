@@ -90,12 +90,13 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/open2b/scriggo v0.56.1
-	github.com/pubgo/dix v0.3.4
+	github.com/pubgo/dix v0.3.6
 	github.com/pubgo/funk v0.5.26-4
 	github.com/rs/xid v1.2.1
 	github.com/stretchr/testify v1.8.0
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/uber-go/tally/v4 v4.1.2
+	github.com/urfave/cli/v3 v3.0.0-alpha
 	github.com/valyala/fasthttp v1.40.0
 	github.com/yuin/goldmark v1.4.13
 	go.opentelemetry.io/otel v1.10.0
@@ -116,7 +117,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
@@ -166,6 +167,7 @@ require (
 	github.com/twmb/murmur3 v1.1.6 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect

@@ -9,7 +9,6 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
-	"github.com/pubgo/funk/recovery"
 )
 
 func init() {
@@ -17,7 +16,6 @@ func init() {
 }
 
 func initDebug() {
-	defer recovery.Exit()
 	Get("/", func(ctx *fiber.Ctx) error {
 		var pathMap = make(map[string]interface{})
 		stack := App().Stack()
