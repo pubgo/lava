@@ -26,8 +26,8 @@ message Error {
     json_name = "operation"
   ];
 
-  string project = 5 [
-    json_name = "project"
+  string service = 5 [
+    json_name = "service"
   ];
 
   string version = 6 [

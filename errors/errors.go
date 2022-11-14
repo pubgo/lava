@@ -15,7 +15,7 @@ func New(reason string) *Error {
 	return &Error{
 		reason:  reason,
 		version: version.Version(),
-		project: version.Project(),
+		service: version.Project(),
 	}
 }
 
@@ -24,13 +24,13 @@ func NewWithBizCode(code string, reason string) *Error {
 		bizCode: code,
 		reason:  reason,
 		version: version.Version(),
-		project: version.Project(),
+		service: version.Project(),
 	}
 }
 
 type Error struct {
 	version   string
-	project   string
+	service   string
 	bizCode   string
 	operation string
 	code      uint32
@@ -56,7 +56,7 @@ func (e Error) Proto() *errorpb.Error {
 	return &errorpb.Error{
 		Code:      e.code,
 		BizCode:   e.bizCode,
-		Project:   e.project,
+		Service:   e.service,
 		Version:   e.version,
 		Operation: e.operation,
 		Reason:    e.reason,
@@ -135,8 +135,8 @@ func (e Error) Error() string {
 		return ""
 	}
 
-	return fmt.Sprintf("version=%q project=%q operation=%q code=%d biz_code=%q status=%s err_msg=%q err_detail=%+v",
-		e.version, e.project, e.operation, e.code, e.bizCode, e.reason, e.err.Error(), e.err)
+	return fmt.Sprintf("version=%q service=%q operation=%q code=%d biz_code=%q status=%s err_msg=%q err_detail=%+v",
+		e.version, e.service, e.operation, e.code, e.bizCode, e.reason, e.err.Error(), e.err)
 }
 
 func (e Error) Err(err error) Error {

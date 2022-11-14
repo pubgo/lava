@@ -120,13 +120,33 @@ func (s *serviceImpl) DixInject(
 	}
 
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
+		grpcweb.WithWebsockets(true),
 		grpcweb.WithAllowNonRootResource(true),
+		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	var grpcWebPrefix = "/" + version.Project() + "/grpcweb"
 	var grpcPrefix = "/" + version.Project() + "/grpcweb"
 	app.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
-	app.Post(grpcPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcPrefix, grpcServer), &http2.Server{})))
+	app.Post(grpcPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
+			writer.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if wrappedGrpc.IsGrpcWebSocketRequest(request) {
+			wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
+			return
+		}
+
+		if wrappedGrpc.IsGrpcWebRequest(request) {
+			wrappedGrpc.HandleGrpcWebRequest(writer, request)
+			return
+		}
+
+		grpcServer.ServeHTTP(writer, request)
+	})), &http2.Server{})))
 	s.httpServer.Mount("/", app)
 
 	// 网关初始化

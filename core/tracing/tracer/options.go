@@ -2,13 +2,14 @@ package tracer
 
 import (
 	"context"
+	"strings"
+
 	"github.com/jackc/pgx/v4"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
-	"strings"
 )
 
 // Option specifies instrumentation configuration options.
