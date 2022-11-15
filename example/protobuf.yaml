@@ -40,6 +40,8 @@ plugins:
   opt:
   - paths=import
   - allow_repeated_fields_in_body=true
+  - logtostderr=true
+  - generate_unbound_methods=true
 - name: lava-errors
   out: gen/proto
   opt:
