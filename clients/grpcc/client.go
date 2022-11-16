@@ -24,11 +24,9 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-var _ Interface = (*Client)(nil)
-
-func New(cfg *grpcc_config.Cfg, log *logging.Logger) *Client {
+func New(cfg *grpcc_config.Cfg, log *logging.Logger) Interface {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
-	var c = &Client{cfg: cfg, log: log, middlewares: []service.Middleware{
+	var c = &clientImpl{cfg: cfg, log: log, middlewares: []service.Middleware{
 		logmiddleware.Middleware(log),
 		requestid.Middleware(),
 		projectinfo.Middleware(),
@@ -40,7 +38,7 @@ func New(cfg *grpcc_config.Cfg, log *logging.Logger) *Client {
 	return c
 }
 
-type Client struct {
+type clientImpl struct {
 	log         *logging.Logger
 	cfg         *grpcc_config.Cfg
 	mu          sync.Mutex
@@ -48,11 +46,11 @@ type Client struct {
 	middlewares []service.Middleware
 }
 
-func (t *Client) Middleware(mm ...service.Middleware) {
+func (t *clientImpl) Middleware(mm ...service.Middleware) {
 	t.middlewares = append(t.middlewares, mm...)
 }
 
-func (t *Client) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
+func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
 	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
 		return err.WithMeta("method", method).WithMeta("input", args)
 	})
@@ -62,7 +60,7 @@ func (t *Client) Invoke(ctx context.Context, method string, args interface{}, re
 	return
 }
 
-func (t *Client) Healthy(ctx context.Context) error {
+func (t *clientImpl) Healthy(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
 		return xerr.WrapF(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
@@ -75,7 +73,7 @@ func (t *Client) Healthy(ctx context.Context) error {
 	return nil
 }
 
-func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	var conn = t.Get()
 	if conn.IsErr() {
 		return nil, xerr.WrapF(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
@@ -85,8 +83,8 @@ func (t *Client) NewStream(ctx context.Context, desc *grpc.StreamDesc, method st
 	return c, xerr.Wrap(err1, method)
 }
 
-// Get new grpc Client
-func (t *Client) Get() (r result.Result[grpc.ClientConnInterface]) {
+// Get new grpc client
+func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 	defer recovery.Result(&r)
 
 	if t.conn != nil {

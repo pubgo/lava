@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/soheilhy/cmux"
 	_ "github.com/soheilhy/cmux"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/naming/resolver"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
@@ -14,11 +16,17 @@ import (
 	"strings"
 
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
+	// https://github.com/shaxbee/go-wsproxy
 	"go.etcd.io/etcd/client/pkg/v3/transport"
+	_ "go.etcd.io/etcd/client/v3/naming/resolver"
 	"go.etcd.io/etcd/pkg/v3/httputil"
 )
 
 func init() {
+	cli, cerr := clientv3.NewFromURL("http://localhost:2379")
+	etcdResolver, err := resolver.NewBuilder(cli)
+	conn, gerr := grpc.Dial("etcd:///foo/bar/my-service", grpc.WithResolvers(etcdResolver))
+
 	wsproxy.WebsocketProxy(
 		gwmux,
 		wsproxy.WithRequestMutator(
