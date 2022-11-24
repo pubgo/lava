@@ -96,7 +96,7 @@ type configImpl struct {
 func (t *configImpl) loadCustomCfg() (err error) {
 	defer recovery.Err(&err)
 
-	var includes = t.v.GetStringSlice("include")
+	var includes = t.v.GetStringSlice("includes")
 	for _, path := range includes {
 		assert.Must(t.LoadPath(filepath.Join(CfgDir, path)))
 	}

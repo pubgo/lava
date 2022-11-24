@@ -10,7 +10,7 @@ casbin:
   model: "./configs/casbin/rbac_model.conf"
   enable-log: true
   enable-auto-save: true
-include:
+includes:
   - "1.yaml"
 app:
   addr: ":8080"
