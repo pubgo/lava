@@ -13,6 +13,56 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+// DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.
+const DefaultMaxBodyBytes = 256 * 1024
+
+// Fields tags used by tonic.
+const (
+	QueryTag      = "query"
+	PathTag       = "path"
+	HeaderTag     = "header"
+	EnumTag       = "enum"
+	RequiredTag   = "required"
+	DefaultTag    = "default"
+	ValidationTag = "validate"
+	ExplodeTag    = "explode"
+)
+
+const (
+	DEFAULT     = "default"
+	BINDING     = "binding"
+	DESCRIPTION = "description"
+	QUERY       = "query"
+	FORM        = "form"
+	URI         = "uri"
+	HEADER      = "header"
+	COOKIE      = "cookie"
+)
+
+// ParamIn defines parameter location.
+type ParamIn string
+
+const (
+	// ParamInPath indicates path parameters, such as `/users/{id}`.
+	ParamInPath = ParamIn("path")
+
+	// ParamInQuery indicates query parameters, such as `/users?page=10`.
+	ParamInQuery = ParamIn("query")
+
+	// ParamInBody indicates body value, such as `{"id": 10}`.
+	ParamInBody = ParamIn("body")
+
+	// ParamInFormData indicates body form parameters.
+	ParamInFormData = ParamIn("formData")
+
+	// ParamInCookie indicates cookie parameters, which are passed ParamIn the `Cookie` header,
+	// such as `Cookie: debug=0; gdpr=2`.
+	ParamInCookie = ParamIn("cookie")
+
+	// ParamInHeader indicates header parameters, such as `X-Header: value`.
+	ParamInHeader = ParamIn("header")
+)
+
 var parserTypes []fiber.ParserType
 
 func RegParserType(customType interface{}, converter func(string) reflect.Value) {
@@ -23,6 +73,7 @@ func RegParserType(customType interface{}, converter func(string) reflect.Value)
 }
 
 func init() {
+	http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 	fiber.DefaultErrorHandler = func(c *fiber.Ctx, err error) error {
 		if err == nil {
 			return nil
