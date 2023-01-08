@@ -6,8 +6,6 @@ import (
 	"github.com/CAFxX/gcnotifier"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/syncx"
-
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging"

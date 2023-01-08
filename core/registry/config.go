@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	_ "github.com/pubgo/funk/errorx"
+	_ "github.com/pubgo/funk/errors"
 	"github.com/pubgo/xerror"
 )
 

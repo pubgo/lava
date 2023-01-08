@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/logx"
 	"io"
 	"io/fs"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"github.com/a8m/envsubst"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/xerr"

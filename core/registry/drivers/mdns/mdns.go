@@ -9,7 +9,6 @@ import (
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/xerr"
 

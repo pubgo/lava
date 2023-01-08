@@ -14,7 +14,6 @@ import (
 	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/x/stack"
 	"github.com/twitchtv/twirp"
 	"go.uber.org/zap"

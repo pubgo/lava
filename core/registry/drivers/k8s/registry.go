@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/syncx"
 	"github.com/pubgo/x/merge"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

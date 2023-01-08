@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 

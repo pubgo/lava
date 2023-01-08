@@ -92,7 +92,7 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.6
-	github.com/pubgo/funk v0.5.26-4
+	github.com/pubgo/funk v0.5.26
 	github.com/rs/xid v1.2.1
 	github.com/soheilhy/cmux v0.1.4
 	github.com/stretchr/testify v1.8.1
