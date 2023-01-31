@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/x/stack"
 	"net"
 	"net/http"
 

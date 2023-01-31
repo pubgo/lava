@@ -11,12 +11,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/debug"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
 	"github.com/twitchtv/twirp"
-	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -61,7 +61,7 @@ func (s *serviceImpl) DixInject(
 	middlewares []service.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
-	log *zap.Logger,
+	log log.Logger,
 	cfg *Cfg) {
 
 	middlewares = append([]service.Middleware{
@@ -70,7 +70,7 @@ func (s *serviceImpl) DixInject(
 		projectinfo.Middleware(),
 	}, middlewares...)
 
-	log = log.Named("grpc-server")
+	log = log.WithName("grpc-server")
 
 	s.lc = getLifecycle
 	s.log = log
