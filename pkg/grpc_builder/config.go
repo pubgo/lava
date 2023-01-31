@@ -6,8 +6,6 @@ import (
 	"google.golang.org/grpc"
 	"time"
 
-	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/keepalive"
 )
 

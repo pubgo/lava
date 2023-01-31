@@ -2,15 +2,14 @@ package mysql
 
 import (
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 type Config struct {
@@ -26,18 +25,16 @@ type Config struct {
 }
 
 func init() {
-	defer recovery.Exit()
-
 	orm.Register("mysql", func(cfg config.CfgMap) gorm.Dialector {
-		defer recovery.Raise(func(err xerr.XErr) xerr.XErr {
-			return err.WrapF("cfg=%q", cfg)
+		defer recovery.Raise(func(err errors.XError) {
+			err.AddTag("cfg", cfg)
 		})
 
 		var conf = DefaultCfg()
 		assert.Must(cfg.Decode(&conf))
-		return mysql.New(*merge.Struct(new(mysql.Config), conf).Unwrap(func(err result.Error) result.Error {
-			return err.WithMeta("cfg", cfg)
-		}))
+
+		var ret = merge.Struct(new(mysql.Config), conf).Unwrap()
+		return mysql.New(*ret)
 	})
 }
 

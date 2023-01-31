@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/x/strutil"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/core/projectinfo"
@@ -15,7 +14,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 )

@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -20,7 +19,6 @@ import (
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/service"
 )
 

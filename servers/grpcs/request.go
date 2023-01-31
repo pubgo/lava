@@ -3,7 +3,6 @@ package grpcs
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/x/byteutil"
 	"google.golang.org/grpc"
 )
 

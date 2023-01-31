@@ -9,7 +9,6 @@ import (
 
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/servers/https"
-	"github.com/pubgo/lava/version"
 )
 
 func New() *cli.Command {

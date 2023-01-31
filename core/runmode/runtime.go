@@ -7,10 +7,8 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/x/pathutil"
 
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/version"
 )
 
 // 默认的全局配置

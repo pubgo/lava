@@ -1,7 +1,7 @@
 package shutil
 
 import (
-	"github.com/pubgo/lava/pkg/env"
+	"github.com/pubgo/funk/env"
 )
 
 var debug = false

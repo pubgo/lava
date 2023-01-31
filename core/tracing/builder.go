@@ -5,7 +5,6 @@ import (
 	"github.com/pubgo/funk/assert"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 func New(c *Cfg, log *logging.Logger) opentracing.Tracer {

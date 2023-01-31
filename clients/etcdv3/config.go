@@ -10,8 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/pubgo/lava/pkg/merge"
-	"github.com/pubgo/lava/pkg/retry"
+	"github.com/pubgo/funk/retry"
 )
 
 type Config struct {

@@ -6,10 +6,9 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
-
-	"github.com/pubgo/lava/logging"
 )
 
 const (
@@ -20,7 +19,7 @@ const (
 	EndpointSep  = ","
 )
 
-var logs = logging.GetGlobal("balancer.resolver")
+var logs = log.GetLogger("balancer.resolver")
 
 var (
 	Replica = 1
@@ -39,7 +38,7 @@ func (r *baseResolver) Close() {
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.S().Infof("[grpc] %s ResolveNow", r.builder)
+	logs.Info().Msgf("[grpc] %s ResolveNow", r.builder)
 }
 
 // gRPC名称解析

@@ -14,7 +14,6 @@ import (
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/example/internal/models"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 )
 

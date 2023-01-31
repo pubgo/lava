@@ -6,9 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/x/jsonx"
 
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/pkg/utils"
 )
 

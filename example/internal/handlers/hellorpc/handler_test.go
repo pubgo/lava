@@ -6,8 +6,6 @@ import (
 	"github.com/pubgo/dix/di"
 	"testing"
 
-	"github.com/pubgo/xerror"
-
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/scheduler"

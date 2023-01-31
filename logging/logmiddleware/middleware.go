@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go.etcd.io/etcd/api/v3/version"
 	"runtime/debug"
 	"time"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/version"
 )
 
 const Name = "accesslog"

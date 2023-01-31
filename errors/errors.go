@@ -5,7 +5,6 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/lava/pkg/proto/errorpb"
-	"github.com/pubgo/lava/version"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

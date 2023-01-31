@@ -3,13 +3,12 @@ package jaeger
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/xerror"
+	"go.etcd.io/etcd/api/v3/version"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/version"
 )
 
 func init() {

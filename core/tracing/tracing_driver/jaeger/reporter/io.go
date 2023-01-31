@@ -1,21 +1,21 @@
 package reporter
 
 import (
-	"go.uber.org/zap"
+	"github.com/mailgun/holster/v4/syncutil"
 	"io"
 	"time"
 
 	e "github.com/jaegertracing/jaeger/plugin/storage/es/spanstore/dbmodel"
 	json "github.com/json-iterator/go"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/x/syncutil"
-	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	j "github.com/uber/jaeger-client-go/thrift-gen/jaeger"
 	"go.uber.org/atomic"
+	"go.uber.org/zap"
 )
 
-var logs = logging.GetGlobal("jaeger.reporter")
+var logs = log.GetLogger("jaeger.reporter")
 var _ jaeger.Reporter = (*ioReporter)(nil)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {

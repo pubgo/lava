@@ -3,8 +3,6 @@ package runmode
 import (
 	"fmt"
 	rt "runtime"
-
-	"github.com/pubgo/lava/version"
 )
 
 func GetVersion() map[string]string {

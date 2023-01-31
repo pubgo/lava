@@ -3,13 +3,14 @@ package https
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/x/stack"
 	"net"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -17,11 +18,9 @@ import (
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/x/stack"
 	"go.uber.org/zap"
 )
 
@@ -36,7 +35,7 @@ var _ service.Service = (*serviceImpl)(nil)
 type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
 	httpServer *fiber.App
-	log        *zap.Logger
+	log        log.Logger
 	initList   []func()
 }
 
@@ -165,8 +164,8 @@ func (s *serviceImpl) stop() {
 		return result.NilErr()
 	})
 
-	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() result.Error {
-		return result.WithErr(s.httpServer.Shutdown())
+	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
+		return s.httpServer.Shutdown()
 	})
 
 	logutil.OkOrFailed(s.log, "service after-stop", func() result.Error {

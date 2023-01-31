@@ -3,7 +3,7 @@ package config
 import (
 	"io"
 
-	"github.com/pubgo/lava/pkg/merge"
+	"github.com/pubgo/funk/merge"
 	"github.com/spf13/viper"
 )
 

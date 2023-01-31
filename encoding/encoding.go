@@ -3,7 +3,6 @@ package encoding
 import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var data typex.Map

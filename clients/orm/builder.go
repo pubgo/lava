@@ -5,14 +5,14 @@ import (
 	"os"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 func New(cfg *Cfg, log *logging.Logger) *Client {
@@ -20,9 +20,10 @@ func New(cfg *Cfg, log *logging.Logger) *Client {
 
 	var builder = DefaultCfg()
 	builder.log = log.Named(Name)
-	builder = merge.Struct(builder, cfg).Unwrap(func(err result.Error) result.Error {
-		return err.WrapF("cfg=%#v", cfg)
+	builder = merge.Struct(builder, cfg).Unwrap(func(err error) error {
+		return errors.WrapTags(err, errors.Tags{"cfg": cfg})
 	})
+
 	assert.Must(builder.Build())
 	return &Client{DB: builder.Get()}
 }

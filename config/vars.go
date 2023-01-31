@@ -1,8 +1,7 @@
 package config
 
 import (
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/vars"
+	"github.com/pubgo/funk/typex"
 )
 
 func init() {

@@ -1,7 +1,6 @@
 package p2c
 
 import (
-	"github.com/pubgo/funk/xerr"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 )

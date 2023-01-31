@@ -6,7 +6,6 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/xerror"
 )
 
 const Name = "casbin"

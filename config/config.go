@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/merge"
+	"github.com/pubgo/funk/pathutil"
+	"github.com/pubgo/funk/version"
 	"io"
 	"io/fs"
 	"os"
@@ -15,18 +17,13 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
-	"github.com/pubgo/x/iox"
-	"github.com/pubgo/x/pathutil"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 
+	"github.com/pubgo/funk/env"
+	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/pkg/merge"
 	"github.com/pubgo/lava/pkg/reflectx"
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/version"
 )
 
 const (

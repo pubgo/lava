@@ -10,7 +10,6 @@ import (
 	"k8s.io/klog/v2"
 	"time"
 
-	"github.com/pubgo/xerror"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/gorm"

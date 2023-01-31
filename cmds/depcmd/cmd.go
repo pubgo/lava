@@ -3,6 +3,7 @@ package depcmd
 import (
 	"encoding/json"
 	"fmt"
+	"go.etcd.io/etcd/api/v3/version"
 	"os"
 	"runtime/debug"
 
@@ -13,7 +14,6 @@ import (
 
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/pkg/cmdx"
-	"github.com/pubgo/lava/version"
 )
 
 func New() *cli.Command {

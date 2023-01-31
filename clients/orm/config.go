@@ -2,11 +2,12 @@ package orm
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/errors"
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
@@ -15,7 +16,6 @@ import (
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 type Cfg struct {
@@ -40,8 +40,8 @@ type Cfg struct {
 
 func (t *Cfg) Build() (err error) {
 	defer recovery.Err(&err)
-	ormCfg := merge.Struct(new(gorm.Config), t).Unwrap(func(err result.Error) result.Error {
-		return err.WithMeta("cfg", t)
+	ormCfg := merge.Struct(new(gorm.Config), t).Unwrap(func(err error) error {
+		return errors.WrapTags(err, errors.Tags{"cfg": t})
 	})
 
 	var level = gl.Info

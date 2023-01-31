@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/pubgo/xerror"
 )
 
 func NewSpan(sp opentracing.Span) *Span {

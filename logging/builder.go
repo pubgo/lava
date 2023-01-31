@@ -1,51 +1,56 @@
 package logging
 
 import (
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/recovery"
-	"go.uber.org/zap"
+	"os"
 
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/consts"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
+	"github.com/rs/zerolog"
+	zl "github.com/rs/zerolog/log"
+
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logconfig"
 	"github.com/pubgo/lava/logging/logkey"
 )
 
-func NewWithCfg(cfg *logconfig.Config) *Logger {
-	cfg.EncoderConfig.EncodeTime = consts.DefaultTimeFormat
-
-	// 全局log设置
-	var log = cfg.Build(runmode.Project).With(
-		zap.String(logkey.Hostname, runmode.Hostname),
-		zap.String(logkey.Project, runmode.Project),
-		zap.String(logkey.Version, runmode.Version),
-	)
-
-	if runmode.Namespace != "" {
-		log = log.With(zap.String(logkey.Namespace, runmode.Namespace))
-	}
-
-	// 基础日志对象, 包含namespace, env, project和项目
-	// TODO 版本??
-	baseLog := log.With(zap.Namespace(logkey.Fields))
-
-	// 替换zap全局log
-	zap.ReplaceGlobals(baseLog)
-	global = baseLog
-	return baseLog
-}
-
 // New logger
-func New(c config.Config) *Logger {
+func New(cfg *logconfig.Config, logs []ExtLog) log.Logger {
 	defer recovery.Exit()
 
-	var cfg = logconfig.NewProdConfig()
+	level, err := zerolog.ParseLevel(cfg.Level)
+	if err != nil || level == zerolog.NoLevel {
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
 
-	if runmode.IsDebug {
-		cfg.EncoderConfig.EncodeCaller = "full"
+	writer := cfg.Writer
+	if writer == nil {
+		writer = os.Stdout
 	}
 
-	assert.Must(c.UnmarshalKey(Name, &cfg))
-	return NewWithCfg(&cfg)
+	logger := zerolog.New(writer).Level(level).With().Timestamp().Logger()
+	if !cfg.AsJson {
+		logger = logger.Output(zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
+			w.Out = writer
+		}))
+	}
+	zl.Logger = logger
+
+	// 全局log设置
+	var ee = logger.With().
+		Str(logkey.Hostname, runmode.Hostname).
+		Str(logkey.Project, runmode.Project).
+		Str(logkey.Version, runmode.Version)
+	if runmode.Namespace != "" {
+		ee = ee.Str(logkey.Namespace, runmode.Namespace)
+	}
+
+	logger = ee.Logger()
+	log.SetLogger(&logger)
+
+	var gl = log.New(&logger)
+	for i := range logs {
+		logs[i](gl)
+	}
+	return gl
 }

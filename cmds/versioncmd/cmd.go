@@ -2,13 +2,12 @@ package versioncmd
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/version"
 
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/version"
 )
 
 func New() *cli.Command {

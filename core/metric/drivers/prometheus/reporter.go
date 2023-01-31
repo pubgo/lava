@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/metric"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"

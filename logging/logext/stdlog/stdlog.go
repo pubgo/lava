@@ -1,34 +1,29 @@
 package stdlog
 
 import (
-	"github.com/pubgo/dix/di"
 	"io"
 	"log"
 
-	"github.com/pubgo/x/byteutil"
-	"go.uber.org/zap"
-
+	log2 "github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/logging"
 )
 
-// 替换std默认log
-func init() {
-	di.Provide(func() logging.ExtLog {
-		return func(logger *logging.Logger) {
-			var stdLog = log.Default()
-			// 接管系统默认log
-			*stdLog = *zap.NewStdLog(logging.ModuleLog(logger, "std").L())
-		}
-	})
+// New 替换std默认log
+func New() logging.ExtLog {
+	return func(logger log2.Logger) {
+		var stdLog = log.Default()
+		// 接管系统默认log
+		*stdLog = *log.New(&std{l: logger.WithName("std")}, "", 0)
+	}
 }
 
 var _ io.Writer = (*std)(nil)
 
 type std struct {
-	l *zap.Logger
+	l log2.Logger
 }
 
-func (s std) Write(p []byte) (n int, err error) {
-	s.l.Info(byteutil.ToStr(p))
+func (s *std) Write(p []byte) (n int, err error) {
+	s.l.Info().Msg(string(p))
 	return len(p), err
 }

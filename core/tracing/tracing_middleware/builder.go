@@ -6,17 +6,17 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/funk/log"
 
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 )
 
-func Middleware(tracer opentracing.Tracer, log *logging.Logger) service.Middleware {
-	log = log.Named(logutil.Names(logkey.Module, tracing.Name))
+func Middleware(tracer opentracing.Tracer, log log.Logger) service.Middleware {
+	log = log.WithName(logutil.Names(logkey.Module, tracing.Name))
 	return func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, resp service.Response) error {
 			var (

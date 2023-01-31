@@ -10,8 +10,7 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/pkg/merge"
-	retry2 "github.com/pubgo/lava/pkg/retry"
+	retry2 "github.com/pubgo/funk/retry"
 	"github.com/pubgo/lava/service"
 )
 

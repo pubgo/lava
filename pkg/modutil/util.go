@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pubgo/xerror"
 	"golang.org/x/mod/modfile"
 )
 

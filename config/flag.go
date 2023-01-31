@@ -5,8 +5,6 @@ import (
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/pkg/env"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 func init() {

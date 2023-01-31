@@ -2,15 +2,12 @@ package grpcc_resolver
 
 import (
 	"context"
-	"github.com/pubgo/funk/syncx"
 	"sync"
 
 	"github.com/kr/pretty"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
-	"github.com/pubgo/funk/xtry"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/core/registry"

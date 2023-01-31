@@ -6,7 +6,6 @@ import (
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/grpc_builder"
-	"github.com/pubgo/lava/version"
 )
 
 const (

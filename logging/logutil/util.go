@@ -1,70 +1,42 @@
 package logutil
 
 import (
-	"github.com/kr/pretty"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xtry"
-	"github.com/pubgo/x/q"
-	"go.uber.org/zap"
 	"strings"
+
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/try"
 )
 
-func LogOrErr(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
+func LogOrErr(log log.Logger, msg string, fn func() error) {
 	msg = strings.TrimSpace(msg)
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
+	log = log.WithCallerSkip(1)
 
-	var err = xtry.TryErr(fn)
-	if err.IsNil() {
-		log.Info(msg)
+	var err = try.Try(fn)
+	if errors.IsNil(err) {
+		log.Info().Msg(msg)
 	} else {
-		log.Error(msg, ErrField(err.Unwrap())...)
+		log.Err(err).Msg(msg)
 	}
 }
 
-func OkOrFailed(log *zap.Logger, msg string, fn func() result.Error, fields ...zap.Field) {
-	msg = strings.TrimSpace(msg)
+func OkOrFailed(log log.Logger, msg string, fn func() error) {
+	log = log.WithCallerSkip(1)
+	log.Info().Msg(msg)
 
-	log = log.WithOptions(zap.AddCallerSkip(1)).With(fields...)
-	log.Info(msg)
-
-	var err = xtry.TryErr(fn)
-	if err.IsNil() {
-		log.Info(msg + " ok")
+	var err = try.Try(fn)
+	if errors.IsNil(err) {
+		log.Info().Msg(msg + " ok")
 	} else {
-		log.Error(msg+" failed", ErrField(err.Unwrap())...)
+		log.Err(err).Msg(msg + " failed")
 	}
 }
 
-func ErrRecord(log *zap.Logger, err error, fieldHandle ...func() Fields) bool {
-	if err == nil {
+func ErrRecord(log log.Logger, err error) bool {
+	if errors.IsNil(err) {
 		return false
 	}
 
-	var fields []zap.Field
-	if len(fieldHandle) > 0 {
-		fields = fieldHandle[0]()
-	}
-
-	log.WithOptions(zap.AddCallerSkip(1)).With(fields...).Error(err.Error(), ErrField(err)...)
+	log.WithCallerSkip(1).Err(err).Msg(err.Error())
 	return true
-}
-
-func Pretty(a ...interface{}) {
-	zap.L().WithOptions(zap.AddCallerSkip(1)).Info("\n" + pretty.Sprint(a...))
-}
-
-func ColorPretty(args ...interface{}) {
-	zap.L().WithOptions(zap.AddCallerSkip(1)).Info(string(q.Sq(args...)))
-}
-
-func IfDebug(log *zap.Logger, fn func(log *zap.Logger)) {
-	if log.Core().Enabled(zap.DebugLevel) {
-		fn(log)
-	}
-}
-
-func IfError(log *zap.Logger, fn func(log *zap.Logger)) {
-	if log.Core().Enabled(zap.ErrorLevel) {
-		fn(log)
-	}
 }

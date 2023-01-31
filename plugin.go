@@ -26,11 +26,4 @@ import (
 	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
 
 	_ "github.com/pubgo/lava/logging/logext/grpclog"
-
-	_ "github.com/pubgo/lava/debug/pprofhandler"
-	_ "github.com/pubgo/lava/debug/processhandler"
-	_ "github.com/pubgo/lava/debug/statshandler"
-	_ "github.com/pubgo/lava/debug/tracehandler"
-	_ "github.com/pubgo/lava/debug/varshandler"
-	_ "github.com/pubgo/lava/debug/versionhandler"
 )

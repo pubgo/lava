@@ -4,7 +4,6 @@ import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 func init() {

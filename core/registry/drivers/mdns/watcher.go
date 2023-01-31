@@ -7,11 +7,9 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/xerr"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/proto/event/v1"
-	"github.com/pubgo/lava/pkg/typex"
 )
 
 var _ registry.Watcher = (*Watcher)(nil)

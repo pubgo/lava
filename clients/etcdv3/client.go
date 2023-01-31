@@ -3,7 +3,6 @@ package etcdv3
 import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/pkg/merge"
 	client3 "go.etcd.io/etcd/client/v3"
 )
 

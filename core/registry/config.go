@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	_ "github.com/pubgo/funk/errors"
-	"github.com/pubgo/xerror"
 )
 
 const DefaultPrefix = "/registry"

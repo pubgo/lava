@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/xerror"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )

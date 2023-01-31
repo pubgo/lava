@@ -1,34 +1,33 @@
 package jaeger
 
 import (
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/funk/log"
 	jLog "github.com/uber/jaeger-client-go/log"
-	"go.uber.org/zap"
 )
 
 var _ jLog.Logger = (*traceLog)(nil)
 
 func newLog(name string) *traceLog {
-	return &traceLog{logs: logging.GetGlobal(name).Depth(2)}
+	return &traceLog{logs: log.GetLogger(name).WithCallerSkip(2)}
 }
 
 type traceLog struct {
-	logs *zap.Logger
+	logs log.Logger
 }
 
 func (l traceLog) Write(p []byte) (n int, err error) {
-	l.logs.Info(string(p))
+	l.logs.Info().Msg(string(p))
 	return 0, err
 }
 
 func (l traceLog) Debugf(msg string, args ...interface{}) {
-	l.logs.Sugar().Debugf(msg, args...)
+	l.logs.Debug().Msgf(msg, args...)
 }
 
 func (l traceLog) Error(msg string) {
-	l.logs.Error(msg)
+	l.logs.Error().Msg(msg)
 }
 
 func (l traceLog) Infof(msg string, args ...interface{}) {
-	l.logs.Sugar().Infof(msg, args...)
+	l.logs.Info().Msgf(msg, args...)
 }

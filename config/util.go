@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/xerror"
 )
 
 const pkgKey = "name"

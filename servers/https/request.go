@@ -3,7 +3,6 @@ package https
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/x/byteutil"
 )
 
 var _ service.Request = (*httpRequest)(nil)

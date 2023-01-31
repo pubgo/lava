@@ -3,7 +3,6 @@ package jaeger
 import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/xerror"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-client-go/rpcmetrics"

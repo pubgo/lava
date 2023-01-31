@@ -8,7 +8,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/x/strutil"
 	"github.com/valyala/bytebufferpool"
 )
 

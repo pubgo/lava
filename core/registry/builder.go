@@ -3,21 +3,19 @@ package registry
 import (
 	"context"
 	"fmt"
+	"go.etcd.io/etcd/api/v3/version"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errorx"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/syncx"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/version"
 )
 
 func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {

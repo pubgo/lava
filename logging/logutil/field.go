@@ -1,31 +1,20 @@
 package logutil
 
 import (
-	"github.com/pubgo/funk/xerr"
 	"strings"
 
-	"github.com/pubgo/x/stack"
+	"github.com/pubgo/funk/stack"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging/logkey"
 )
 
-type Fields = []zap.Field
-
 func Names(names ...string) string {
 	return strings.Join(names, ".")
 }
 
-func ErrField(err error, fields ...zap.Field) []zap.Field {
-	if err == nil {
-		return nil
-	}
-
-	return append(fields, zap.String(logkey.ErrMsg, err.Error()), zap.String(logkey.ErrDetail, xerr.WrapXErr(err).Stack()))
-}
-
 func FnStack(fn interface{}) zap.Field {
-	return zap.String(logkey.Stack, stack.Func(fn))
+	return zap.String(logkey.Stack, stack.CallerWithFunc(fn).String())
 }
 
 type Map map[string]interface{}
@@ -36,8 +25,4 @@ func (t Map) Fields() []zap.Field {
 		fields = append(fields, zap.Any(k, v))
 	}
 	return fields
-}
-
-func ListField(name string, args ...interface{}) zap.Field {
-	return zap.Any(name, args)
 }

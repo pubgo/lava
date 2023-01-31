@@ -4,36 +4,31 @@ import (
 	"context"
 
 	"github.com/opentracing/opentracing-go/ext"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/x/strutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/tracing"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/merge"
 	utils2 "github.com/pubgo/lava/pkg/utils"
 )
 
-func New(cfg *Config, log *logging.Logger) *Client {
-	cfg = merge.Copy(DefaultConfig(), cfg).Unwrap(func(err result.Error) result.Error {
-		return err.WithMeta("cfg", cfg)
-	})
-
-	result.WithErr(cfg.Build()).Must(func(err result.Error) result.Error {
-		return err.WrapF("build failed, cfg=%#v", cfg)
-	})
+func New(cfg *Config, log *log.Logger) *Client {
+	cfg = merge.Copy(DefaultConfig(), cfg).Unwrap()
+	assert.MustF(cfg.Build(), "build failed, cfg=%#v", cfg)
 
 	return &Client{DB: cfg.Get(), log: log}
 }
 
 type Client struct {
 	*bolt.DB
-	log *logging.Logger
+	log *log.Logger
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
-	var _, err = tx.CreateBucketIfNotExists(strutil.ToBytes(name))
+	var _, err = tx.CreateBucketIfNotExists([]byte(name))
 	logutil.ErrRecord(t.log, err)
 	return tx.Bucket([]byte(name))
 }

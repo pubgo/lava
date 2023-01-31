@@ -5,8 +5,6 @@ import (
 
 	"github.com/pubgo/funk/result"
 	"gorm.io/gorm"
-
-	"github.com/pubgo/lava/vars"
 )
 
 const Name = "orm"

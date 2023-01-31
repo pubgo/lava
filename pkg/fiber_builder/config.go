@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 type Cfg struct {

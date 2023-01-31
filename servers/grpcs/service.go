@@ -11,10 +11,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/x/stack"
+	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/version"
 	"github.com/twitchtv/twirp"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
@@ -26,11 +26,9 @@ import (
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/debug"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
-	"github.com/pubgo/lava/version"
 )
 
 func New() service.Service { return newService() }
@@ -45,7 +43,7 @@ type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
 	httpServer *fiber.App
 	grpcServer *grpc.Server
-	log        *zap.Logger
+	log        log.Logger
 	initList   []func()
 }
 
@@ -164,93 +162,93 @@ func (s *serviceImpl) DixInject(
 }
 
 func (s *serviceImpl) start() {
-	logutil.OkOrFailed(s.log, "service before-start", func() result.Error {
+	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
 			run.Handler()
 		}
-		return result.NilErr()
+		return nil
 	})
 
 	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
 
-	logutil.OkOrFailed(s.log, "service handler init", func() result.Error {
+	logutil.OkOrFailed(s.log, "service handler init", func() error {
 		defer recovery.Exit()
 		for _, ii := range s.initList {
 			s.log.Sugar().Infof("handler %s", stack.Func(ii))
 			ii()
 		}
-		return result.NilErr()
+		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service start", func() result.Error {
+	logutil.OkOrFailed(s.log, "service start", func() error {
 		// 启动grpc服务
-		syncx.GoDelay(func() result.Error {
+		syncx.GoDelay(func() error {
 			s.log.Info("[grpc] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() result.Error {
+			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() error {
 				defer recovery.Exit()
 				if err := s.grpcServer.Serve(grpcLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
-					return result.WithErr(err)
+					return err
 				}
-				return result.NilErr()
+				return nil
 			})
-			return result.NilErr()
+			return nil
 		})
 
 		// 启动grpc网关
-		syncx.GoDelay(func() result.Error {
+		syncx.GoDelay(func() error {
 			s.log.Info("[grpc-gw] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() result.Error {
+			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() error {
 				defer recovery.Exit()
 				if err := s.httpServer.Listener(httpLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
 					!errors.Is(err, net.ErrClosed) {
-					return result.WithErr(err)
+					return err
 				}
-				return result.NilErr()
+				return nil
 			})
-			return result.NilErr()
+			return nil
 		})
-		return result.NilErr()
+		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service after-start", func() result.Error {
+	logutil.OkOrFailed(s.log, "service after-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetAfterStarts() {
 			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
 			run.Handler()
 		}
-		return result.NilErr()
+		return nil
 	})
 }
 
 func (s *serviceImpl) stop() {
-	logutil.OkOrFailed(s.log, "service before-stop", func() result.Error {
+	logutil.OkOrFailed(s.log, "service before-stop", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
 			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
 			run.Handler()
 		}
-		return result.NilErr()
+		return nil
 	})
 
-	logutil.LogOrErr(s.log, "[grpc-gateway] Shutdown", func() result.Error {
-		return result.WithErr(s.httpServer.Shutdown())
+	logutil.LogOrErr(s.log, "[grpc-gateway] Shutdown", func() error {
+		return s.httpServer.Shutdown()
 	})
 
-	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() result.Error {
+	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() error {
 		s.grpcServer.GracefulStop()
-		return result.NilErr()
+		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service after-stop", func() result.Error {
+	logutil.OkOrFailed(s.log, "service after-stop", func() error {
 		for _, run := range s.lc.GetAfterStops() {
-			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
 		}
-		return result.NilErr()
+		return nil
 	})
 }

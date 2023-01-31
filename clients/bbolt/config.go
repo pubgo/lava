@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"github.com/pubgo/funk/merge"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -8,12 +9,10 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/x/pathutil"
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
-	"github.com/pubgo/lava/pkg/merge"
 )
 
 const Name = "bolt"

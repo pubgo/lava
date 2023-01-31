@@ -1,8 +1,6 @@
 package metric
 
 import (
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/vars"
 	"github.com/uber-go/tally/v4"
 )
 

@@ -3,7 +3,6 @@ package registry
 import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/vars"
 )
 
 func init() {

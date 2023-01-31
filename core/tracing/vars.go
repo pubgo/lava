@@ -2,8 +2,6 @@ package tracing
 
 import (
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/vars"
-	"github.com/pubgo/x/stack"
 )
 
 func init() {

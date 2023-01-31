@@ -3,7 +3,6 @@ package healthy
 import (
 	"github.com/pubgo/funk/assert"
 
-	"github.com/pubgo/lava/pkg/typex"
 	"github.com/pubgo/lava/pkg/utils"
 )
 

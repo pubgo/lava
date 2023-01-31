@@ -1,8 +1,6 @@
 package tracing
 
-import (
-	"github.com/pubgo/xerror"
-)
+import ()
 
 const Name = "tracing"
 

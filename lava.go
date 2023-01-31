@@ -7,6 +7,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/cmds/depcmd"
@@ -16,12 +17,10 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/version"
 )
 
 func Run(cmdL ...*cli.Command) {
 	defer recovery.Exit()
-
 	var app = &cli.App{
 		Name:                   version.Project(),
 		Suggest:                true,

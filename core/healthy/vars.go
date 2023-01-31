@@ -1,9 +1,6 @@
 package healthy
 
-import (
-	"github.com/pubgo/lava/vars"
-	"github.com/pubgo/x/stack"
-)
+import "github.com/pubgo/funk/stack"
 
 func init() {
 	vars.Register(Name, func() interface{} {

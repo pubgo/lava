@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/result"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/zap"
@@ -13,10 +14,10 @@ import (
 	"github.com/pubgo/lava/pkg/utils"
 )
 
-func New(log *logging.Logger) *Scheduler {
+func New(log log.Logger) *Scheduler {
 	return &Scheduler{
 		scheduler: quartz.NewStdScheduler(),
-		log:       logging.ModuleLog(log, Name),
+		log:       log.WithName(Name),
 	}
 }
 
@@ -26,7 +27,7 @@ type Scheduler struct {
 	cron      string
 	dur       time.Duration
 	once      bool
-	log       *logging.ModuleLogger
+	log       log.Logger
 }
 
 func (s *Scheduler) Stop() {
@@ -41,7 +42,10 @@ func (s *Scheduler) Start() {
 }
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
-	s.log.Depth(1).Info("register once scheduler", zap.String("name", name), zap.String("delay", delay.String()))
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("delay", delay.String()).
+		Msg("register once scheduler")
 	do(&Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true, log: s.log}, fn)
 }
 
