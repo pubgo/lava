@@ -4,37 +4,31 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"go.etcd.io/etcd/api/v3/version"
+	"go.uber.org/zap"
 	"runtime/debug"
 	"time"
 
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/result"
-	"go.uber.org/zap"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/errors"
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 )
 
 const Name = "accesslog"
 
-func Middleware(log *logging.Logger) service.Middleware {
-	log = log.Named(Name)
+func Middleware(logger log.Logger) service.Middleware {
+	logger = logger.WithName(Name)
 	return func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, resp service.Response) (gErr error) {
 			now := time.Now()
-
-			// TODO 考虑pool优化
-			var params = make([]zap.Field, 0, 20)
 
 			referer := utils.UnsafeString(req.Header().Referer())
 			if referer != "" {
@@ -85,7 +79,11 @@ func Middleware(log *logging.Logger) service.Middleware {
 				params = append(params, zap.Int64("dur_ms", time.Since(now).Milliseconds()))
 
 				// 记录错误日志
-				logutil.LogOrErr(log, req.Endpoint(), func() result.Error { return result.WithErr(gErr) }, params...)
+				if errors.IsNil(gErr) {
+					logger.Info().Msg(req.Endpoint())
+				} else {
+					logger.Err(gErr).Msg(req.Endpoint())
+				}
 			}()
 
 			if !req.Client() {
@@ -95,12 +93,8 @@ func Middleware(log *logging.Logger) service.Middleware {
 			}
 
 			// 集成logger到context
-			ctx = logging.CreateCtx(ctx, zap.L().Named(logkey.Request).With(
-				zap.String("tracerId", tracerID),
-				zap.String("spanId", spanID),
-				zap.String("requestId", reqId)))
-
-			gErr = next(ctx, req, resp)
+			ctxLog := logger.WithFields(log.Map{"tracerId": tracerID, "spanId": spanID, "requestId": reqId})
+			gErr = next(ctxLog.WithCtx(ctx), req, resp)
 			var errPb = errors.FromError(gErr)
 			errPb.Operation = req.Operation()
 			return assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
