@@ -2,20 +2,19 @@ package cmux
 
 import (
 	"fmt"
-	"github.com/soheilhy/cmux"
-	_ "github.com/soheilhy/cmux"
-	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.etcd.io/etcd/client/v3/naming/resolver"
-	"go.uber.org/zap"
-	"golang.org/x/net/http2"
-	"google.golang.org/grpc"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/soheilhy/cmux"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/naming/resolver"
+	"go.uber.org/zap"
+	"golang.org/x/net/http2"
+	"google.golang.org/grpc"
 	// https://github.com/shaxbee/go-wsproxy
 	"go.etcd.io/etcd/client/pkg/v3/transport"
 	_ "go.etcd.io/etcd/client/v3/naming/resolver"

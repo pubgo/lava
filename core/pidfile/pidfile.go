@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/core/runmode"
 )
 

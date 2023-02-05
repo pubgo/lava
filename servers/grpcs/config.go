@@ -3,8 +3,9 @@ package grpcs
 import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/version"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/pkg/grpc_builder"
 )
 

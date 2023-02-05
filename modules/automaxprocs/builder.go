@@ -3,10 +3,9 @@ package automaxprocs
 import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"go.uber.org/automaxprocs/maxprocs"
-
-	"github.com/pubgo/lava/core/lifecycle"
 )
 
 const name = "automaxprocs"

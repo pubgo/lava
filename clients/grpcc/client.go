@@ -6,29 +6,30 @@ import (
 	"sync"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-func New(cfg *grpcc_config.Cfg, log *logging.Logger) Interface {
+func New(cfg *grpcc_config.Cfg, log log.Logger) Interface {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
 	var c = &clientImpl{cfg: cfg, log: log, middlewares: []service.Middleware{
 		logmiddleware.Middleware(log),
 		requestid.Middleware(),
 		projectinfo.Middleware(),
 	}}
+
 	if cfg.Client.Block {
 		c.Get().Unwrap()
 	}
@@ -37,7 +38,7 @@ func New(cfg *grpcc_config.Cfg, log *logging.Logger) Interface {
 }
 
 type clientImpl struct {
-	log         *logging.Logger
+	log         log.Logger
 	cfg         *grpcc_config.Cfg
 	mu          sync.Mutex
 	conn        grpc.ClientConnInterface
@@ -49,8 +50,8 @@ func (t *clientImpl) Middleware(mm ...service.Middleware) {
 }
 
 func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
-	defer recovery.Err(&err, func(err xerr.XErr) xerr.XErr {
-		return err.WithMeta("method", method).WithMeta("input", args)
+	defer recovery.Err(&err, func(err *errors.Event) {
+		err.Str("method", method).Any("input", args)
 	})
 
 	var conn = t.Get().Unwrap()
@@ -61,12 +62,12 @@ func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}
 func (t *clientImpl) Healthy(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
-		return xerr.WrapF(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
+		return errors.Wrapf(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
 	}
 
 	_, err := grpc_health_v1.NewHealthClient(conn.Unwrap()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 	if err != nil {
-		return xerr.WrapF(err, "service %s heath check failed", t.cfg.Srv)
+		return errors.Wrapf(err, "service %s heath check failed", t.cfg.Srv)
 	}
 	return nil
 }
@@ -74,11 +75,11 @@ func (t *clientImpl) Healthy(ctx context.Context) error {
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	var conn = t.Get()
 	if conn.IsErr() {
-		return nil, xerr.WrapF(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
+		return nil, errors.Wrapf(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
 	}
 
 	var c, err1 = conn.Unwrap().NewStream(ctx, desc, method, opts...)
-	return c, xerr.Wrap(err1, method)
+	return c, errors.Wrap(err1, method)
 }
 
 // Get new grpc client
@@ -125,22 +126,25 @@ func buildTarget(cfg *grpcc_config.Cfg) string {
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log *logging.Logger, mm []service.Middleware) (grpc.ClientConnInterface, error) {
+func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []service.Middleware) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()
 
 	addr := buildTarget(cfg)
 
-	log.Info("grpc client init", zap.String(logkey.Service, cfg.Srv), zap.String("addr", addr))
+	var ee = log.Info().
+		Str(logkey.Service, cfg.Srv).
+		Str("addr", addr)
+	ee.Msg("grpc client init")
 
 	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
 	if err != nil {
-		return nil, xerr.WrapF(err, "grpc dial failed, target=>%s", addr)
+		return nil, errors.Wrapf(err, "grpc dial failed, target=>%s", addr)
 	}
 
-	log.Info("grpc client init ok", zap.String(logkey.Service, cfg.Srv), zap.String("addr", addr))
+	ee.Msg("grpc client init ok")
 	return conn, nil
 }

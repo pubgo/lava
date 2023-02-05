@@ -7,7 +7,8 @@ import (
 	"net/url"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/strutil"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -18,7 +19,7 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 	case []byte:
 		return body, nil
 	case string:
-		return utils.StoB(body), nil
+		return convert.StoB(body), nil
 	case *bytes.Buffer:
 		return body.Bytes(), nil
 

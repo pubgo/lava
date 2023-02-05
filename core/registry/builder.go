@@ -3,18 +3,20 @@ package registry
 import (
 	"context"
 	"fmt"
-	"go.etcd.io/etcd/api/v3/version"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/async"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logutil"
+	"github.com/pubgo/funk/version"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
@@ -26,10 +28,13 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 
 	reg := regs[cfg.Driver]
 	assert.Fn(reg == nil, func() error {
-		var errs = fmt.Errorf("registry driver is null")
-		errs = errorx.WrapF(errs, "driver=>%s", cfg.Driver)
-		errs = errorx.WrapF(errs, "regs=>%v", regs)
-		return errs
+		return errors.SimpleErr(func(err *errors.Err) {
+			err.Msg = "registry driver is null"
+			err.Tags = errors.Tags{
+				"driver": cfg.Driver,
+				"regs":   regs,
+			}
+		})
 	})
 
 	// 服务注册
@@ -38,7 +43,7 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 
 		register(reg)
 
-		var cancel = syncx.GoCtx(func(ctx context.Context) result.Error {
+		var cancel = async.GoCtx(func(ctx context.Context) error {
 			var interval = DefaultRegisterInterval
 
 			if cfg.RegisterInterval > time.Duration(0) {
@@ -54,7 +59,7 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 					register(reg)
 				case <-ctx.Done():
 					zap.L().Info("service register cancelled")
-					return result.Error{}
+					return nil
 				}
 			}
 		})
@@ -99,12 +104,16 @@ func register(reg Registry) {
 	}
 
 	logutil.OkOrFailed(
-		zap.L(),
+		log.GetLogger("service-registry"),
 		"register service node",
-		func() result.Error { return reg.Register(s) },
-		zap.String("instance_id", node.Id),
-		zap.String("service", runmode.Project),
-		zap.String("registry", Default().String()),
+		func() error {
+			var err = reg.Register(s)
+			return errors.WrapEventFn(err, func(evt *errors.Event) {
+				evt.Str("instance_id", node.Id)
+				evt.Str("service", runmode.Project)
+				evt.Str("registry", Default().String())
+			})
+		},
 	)
 }
 
@@ -134,10 +143,14 @@ func deregister(reg Registry) {
 	}
 
 	logutil.OkOrFailed(
-		zap.L(),
+		log.GetLogger("service-registry"),
 		"deregister service node",
-		func() result.Error { return reg.Deregister(s) },
-		zap.String("id", node.Id),
-		zap.String("name", runmode.Project),
+		func() error {
+			var err = reg.Deregister(s)
+			return errors.WrapEventFn(err, func(evt *errors.Event) {
+				evt.Str("id", node.Id)
+				evt.Str("name", runmode.Project)
+			})
+		},
 	)
 }

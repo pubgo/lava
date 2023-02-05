@@ -5,15 +5,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/service"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	utils2 "github.com/pubgo/lava/pkg/utils"
-	"github.com/pubgo/lava/service"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
@@ -24,11 +24,9 @@ func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
 	}
 }
 
-func head2md(header interface {
-	VisitAll(f func(key, value []byte))
-}, md metadata.MD) {
+func head2md(header *service.RequestHeader, md metadata.MD) {
 	header.VisitAll(func(key, value []byte) {
-		md.Append(utils2.BtoS(key), utils2.BtoS(value))
+		md.Append(convert.BtoS(key), convert.BtoS(value))
 	})
 }
 
@@ -62,7 +60,7 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 		}
 
 		// get content type
-		ct := utils2.FirstFnNotEmpty(func() string {
+		ct := strutil.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")
@@ -135,7 +133,7 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 		}
 
 		// get content type
-		ct := utils2.FirstFnNotEmpty(func() string {
+		ct := strutil.FirstFnNotEmpty(func() string {
 			return grpcutil.HeaderGet(md, "content-type")
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")

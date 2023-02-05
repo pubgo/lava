@@ -2,8 +2,8 @@ package projectinfo
 
 import (
 	"context"
-	"go.etcd.io/etcd/api/v3/version"
 
+	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/service"
 )

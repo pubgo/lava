@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -37,8 +37,6 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		}
 	}
 
-	result.WithErr(cc.UpdateState(newState(addrList))).Must(func(err result.Error) result.Error {
-		return err.WrapF("update resolver address failed: %v", addrList)
-	})
+	assert.MustF(cc.UpdateState(newState(addrList)), "failed to update resolver address, address=%v", addrList)
 	return &baseResolver{builder: DirectScheme}, nil
 }

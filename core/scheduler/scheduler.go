@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/pkg/utils"
 )
 

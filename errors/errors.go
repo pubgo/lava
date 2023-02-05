@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/pkg/proto/errorpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

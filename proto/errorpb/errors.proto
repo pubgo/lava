@@ -10,7 +10,7 @@ option java_package = "com.lava.errors";
 option go_package = "github.com/pubgo/lava/pkg/proto/errorpb";
 
 message Error {
-  uint32 code = 1 [
+  Code code = 1 [
     json_name = "code"
   ];
 

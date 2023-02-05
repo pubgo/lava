@@ -10,11 +10,11 @@ import (
 // {consul, etcd, zookeeper, mdns, ...}
 type Registry interface {
 	String() string
-	Register(*Service, ...RegOpt) result.Error
-	Deregister(*Service, ...DeregOpt) result.Error
+	Register(*Service, ...RegOpt) error
+	Deregister(*Service, ...DeregOpt) error
 	Watch(string, ...WatchOpt) result.Result[Watcher]
-	ListService(...ListOpt) result.List[*Service]
-	GetService(string, ...GetOpt) result.List[*Service]
+	ListService(...ListOpt) result.Result[[]*Service]
+	GetService(string, ...GetOpt) result.Result[[]*Service]
 }
 
 type Opt func(*Opts)

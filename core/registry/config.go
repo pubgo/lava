@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
 )
 
 const DefaultPrefix = "/registry"
@@ -38,8 +39,7 @@ type Cfg struct {
 func (cfg *Cfg) Check() *Cfg {
 	assert.Fn(cfg.Driver == "", func() error {
 		err := fmt.Errorf("registry driver is null")
-
-		return xerror.WrapF(err, "cfg=>%#v", cfg)
+		return errors.WrapKV(err, "cfg", cfg)
 	})
 	return cfg
 }

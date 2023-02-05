@@ -5,20 +5,21 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/result"
-	"github.com/valyala/fasthttp"
-
+	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httpx"
 	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
+	"github.com/valyala/fasthttp"
 )
 
-func New(cfg *Config, log *logging.Logger, mm ...service.Middleware) Client {
+func New(cfg *Config, log log.Logger, mm ...service.Middleware) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
 	return cfg.Build(append([]service.Middleware{
 		logmiddleware.Middleware(log),
@@ -41,7 +42,7 @@ func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fas
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
-	var request = &Request{service: runmode.Project, req: req}
+	var request = &Request{service: version.Project(), req: req}
 	request.req = req
 	request.ct = filterFlags(utils.BtoS(req.Header.ContentType()))
 	request.data = req.Body()

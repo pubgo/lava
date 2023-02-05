@@ -2,22 +2,22 @@ package migratecmd
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/generic"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/clients/orm"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v2"
 
-	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/migrates"
-	"github.com/pubgo/lava/logging"
 )
 
 type params struct {
-	Log *logging.Logger
+	Log log.Logger
 	Db  *orm.Client
 }
 

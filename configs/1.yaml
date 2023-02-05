@@ -1,9 +1,9 @@
 orm:
-  - name: default1
+  default1:
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"
-  - name: test1
+  test1:
     driver: "sqlite3"
     driver_config:
       dsn: "file::memory:?cache=shared"

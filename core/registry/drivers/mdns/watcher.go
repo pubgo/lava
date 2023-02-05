@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/typex"
 
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/proto/event/v1"
@@ -17,13 +19,14 @@ var _ registry.Watcher = (*Watcher)(nil)
 func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
 	assert.If(service == "", "[service] should not be null")
 
-	var allNodes typex.SMap
-	for _, s := range m.GetService(service) {
-		if s.IsErr() {
-			return result.Err[registry.Watcher](s.Err())
-		}
+	var allNodes typex.SyncMap
+	var s = m.GetService(service)
+	if s.IsErr() {
+		return result.Err[registry.Watcher](s.Err())
+	}
 
-		for _, n := range s.Unwrap().Nodes {
+	for _, ss := range m.GetService(service).Unwrap() {
+		for _, n := range ss.Nodes {
 			allNodes.Set(n.Id, n)
 		}
 	}
@@ -34,27 +37,21 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 	}
 
 	results := make(chan *registry.Result)
-	return result.OK[registry.Watcher](&Watcher{m: m, results: results, cancel: syncx.GoCtx(func(ctx context.Context) result.Error {
+	return result.OK[registry.Watcher](&Watcher{m: m, results: results, cancel: async.GoCtx(func(ctx context.Context) error {
 		var fn = func() {
-			defer recovery.Recovery(func(err xerr.XErr) {
-				m.log.WithErr(err).Error("watcher error")
+			defer recovery.Recovery(func(err error) {
+				m.log.Err(err).Msg("watcher error")
 			})
 
-			m.log.With(typex.M{
-				"service":  service,
-				"interval": ttl.String(),
-			}).Info("[mdns] registry watcher")
+			m.log.Info().Str("service", service).Str("interval", ttl.String()).Msg("[mdns] registry watcher")
 
-			var nodes typex.SMap
-			m.GetService(service).Range(func(r result.Result[*registry.Service]) {
-				if r.IsNil() {
-					return
-				}
-
-				for _, n := range r.Unwrap().Nodes {
+			var nodes typex.SyncMap
+			var ss = m.GetService(service).Unwrap()
+			for _, s := range ss {
+				for _, n := range s.Nodes {
 					allNodes.Set(n.Id, n)
 				}
-			})
+			}
 
 			assert.Must(nodes.Each(func(id string, n *registry.Node) {
 				if allNodes.Has(id) {
@@ -85,7 +82,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 			fn()
 		}
 
-		return result.Error{}
+		return nil
 	})})
 }
 

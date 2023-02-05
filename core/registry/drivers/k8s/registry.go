@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/pubgo/dix/di"
+	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/merge"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
@@ -11,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/pubgo/lava/config"
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/k8s"

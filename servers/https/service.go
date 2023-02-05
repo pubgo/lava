@@ -12,13 +12,11 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"github.com/pubgo/lava/logging/logutil"
 	"github.com/pubgo/lava/service"
 	"go.uber.org/zap"
 )

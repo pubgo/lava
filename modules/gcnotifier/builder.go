@@ -5,24 +5,24 @@ import (
 
 	"github.com/CAFxX/gcnotifier"
 	"github.com/pubgo/dix/di"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/funk/async"
+	"github.com/pubgo/funk/lifecycle"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging"
 )
 
 var Name = "gc"
 
 func init() {
-	di.Provide(func(log *logging.Logger) lifecycle.Handler {
+	di.Provide(func(log log.Logger) lifecycle.Handler {
 		if !runmode.IsDebug {
 			return nil
 		}
 
-		var logs = logging.ModuleLog(log, Name)
+		var logs = log.WithName(Name)
 		return func(lc lifecycle.Lifecycle) {
 			lc.AfterStart(func() {
-				var cancel = syncx.GoCtx(func(ctx context.Context) result.Error {
+				var cancel = async.GoCtx(func(ctx context.Context) error {
 					var gc = gcnotifier.New()
 					defer gc.Close()
 
@@ -31,9 +31,9 @@ func init() {
 					for {
 						select {
 						case <-gc.AfterGC():
-							logs.L().Info("gc notify")
+							logs.Info().Msg("gc notify")
 						case <-ctx.Done():
-							return result.Error{}
+							return nil
 						}
 					}
 				})

@@ -1,10 +1,9 @@
 package grpcc
 
 import (
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/service"
+	"google.golang.org/grpc"
 )
 
 var _ service.Request = (*request)(nil)
