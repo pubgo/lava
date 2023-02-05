@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/runmode"
 )

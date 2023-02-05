@@ -73,7 +73,7 @@ func RegParserType(customType interface{}, converter func(string) reflect.Value)
 }
 
 func init() {
-	http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
+	//http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 	fiber.DefaultErrorHandler = func(c *fiber.Ctx, err error) error {
 		if err == nil {
 			return nil

@@ -1,7 +1,6 @@
 package migratecmd
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -11,9 +10,8 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
-
 	"github.com/pubgo/lava/core/migrates"
+	"github.com/urfave/cli/v2"
 )
 
 type params struct {
@@ -64,7 +62,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					} else {
 						assert.Must(m.MigrateTo(id))
 					}
-					p.Log.Info("migration ok")
+					p.Log.Info().Msg("migration ok")
 					return nil
 				},
 			},
@@ -77,7 +75,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 
 					p := di.Inject(new(params))
 					for _, m := range migrate(migrations) {
-						p.Log.Info(fmt.Sprintf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", "")))
+						p.Log.Info().Msgf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", ""))
 					}
 					time.Sleep(time.Millisecond * 10)
 					return nil
@@ -97,7 +95,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					} else {
 						assert.Must(m.RollbackTo(id))
 					}
-					p.Log.Info("rollback last ok")
+					p.Log.Info().Msg("rollback last ok")
 					return nil
 				},
 			},

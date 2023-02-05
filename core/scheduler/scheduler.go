@@ -4,21 +4,13 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/result"
-	"github.com/reugn/go-quartz/quartz"
-	"go.uber.org/zap"
-
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/pkg/utils"
+	"github.com/reugn/go-quartz/quartz"
 )
-
-func New(log log.Logger) *Scheduler {
-	return &Scheduler{
-		scheduler: quartz.NewStdScheduler(),
-		log:       log.WithName(Name),
-	}
-}
 
 type Scheduler struct {
 	scheduler quartz.Scheduler
@@ -49,12 +41,18 @@ func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string))
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
-	s.log.Depth(1).Info("register periodic scheduler", zap.String("name", name), zap.String("dur", dur.String()))
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("dur", dur.String()).
+		Msg("register periodic scheduler")
 	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name, log: s.log}, fn)
 }
 
 func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
-	s.log.Depth(1).Info("register cron scheduler", zap.String("name", name), zap.String("expr", expr))
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("expr", expr).
+		Msg("register cron scheduler")
 	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name, log: s.log}, fn)
 }
 
@@ -65,8 +63,8 @@ func (s *Scheduler) getTrigger() quartz.Trigger {
 
 	if s.cron != "" {
 		r := result.Wrap(quartz.NewCronTrigger(s.cron))
-		return r.Unwrap(func(err result.Error) result.Error {
-			return err.WithMeta("cron-expr", s.cron)
+		return r.Unwrap(func(err error) error {
+			return errors.WrapKV(err, "cron-expr", s.cron)
 		})
 	}
 
@@ -88,15 +86,18 @@ func do(s *Scheduler, fn func(name string)) {
 type namedJob struct {
 	name string
 	fn   func(name string)
-	log  *logging.ModuleLogger
+	log  log.Logger
 }
 
 func (t namedJob) Description() string { return t.name }
 func (t namedJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t namedJob) Execute() {
 	var dur, err = utils.Cost(func() { t.fn(t.name) })
-	logutil.LogOrErr(t.log.L(), "scheduler trigger",
-		func() result.Error { return result.WithErr(err) },
-		zap.String("job-name", t.name),
-		zap.Int64("job-cost-ms", dur.Milliseconds()))
+	logutil.LogOrErr(t.log, "scheduler trigger",
+		func() error {
+			return errors.WrapEventFn(err, func(evt *errors.Event) {
+				evt.Str("job-name", t.name)
+				evt.Int64("job-cost-ms", dur.Milliseconds())
+			})
+		})
 }

@@ -2,14 +2,14 @@ package grpcs
 
 import (
 	"context"
-	"fmt"
 	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/pubgo/lava/pkg/proto/errorpb"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/recovery"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -39,18 +39,10 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
 		// 错误和panic处理
-		defer func() {
-			if c := recover(); c != nil {
-				switch c.(type) {
-				case error:
-					gErr = c.(error)
-				default:
-					gErr = errorpb.ErrCodeUnknown.Tags(map[string]string{
-						"stack": string(debug.Stack()),
-					}).Operation(req.Operation()).Err(fmt.Errorf("%#v", c)).StatusInternal()
-				}
-			}
-		}()
+		defer recovery.Err(&gErr, func(err *errors.Event) {
+			err.Str("stack", string(debug.Stack()))
+			err.Str("operation", req.Operation())
+		})
 
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {

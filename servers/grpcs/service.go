@@ -11,8 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/debug"
+	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
@@ -147,13 +150,12 @@ func (s *serviceImpl) DixInject(
 	// 网关初始化
 	if cfg.PrintRoute {
 		for _, stacks := range s.httpServer.Stack() {
-			for _, s := range stacks {
-				logx.Info(
-					"service route",
-					"name", s.Name,
-					"path", s.Path,
-					"method", s.Method,
-				)
+			for _, route := range stacks {
+				log.Info().
+					Str("name", route.Name).
+					Str("path", route.Path).
+					Str("method", route.Method).
+					Msg("service route")
 			}
 		}
 	}
@@ -163,7 +165,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
 		}
 		return nil
@@ -175,7 +177,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service handler init", func() error {
 		defer recovery.Exit()
 		for _, ii := range s.initList {
-			s.log.Sugar().Infof("handler %s", stack.Func(ii))
+			s.log.Info().Msgf("handler %s", stack.CallerWithFunc(ii))
 			ii()
 		}
 		return nil
@@ -183,8 +185,8 @@ func (s *serviceImpl) start() {
 
 	logutil.OkOrFailed(s.log, "service start", func() error {
 		// 启动grpc服务
-		syncx.GoDelay(func() error {
-			s.log.Info("[grpc] Server Starting")
+		async.GoDelay(func() error {
+			s.log.Info().Msg("[grpc] Server Starting")
 			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() error {
 				defer recovery.Exit()
 				if err := s.grpcServer.Serve(grpcLn); err != nil &&
@@ -198,8 +200,8 @@ func (s *serviceImpl) start() {
 		})
 
 		// 启动grpc网关
-		syncx.GoDelay(func() error {
-			s.log.Info("[grpc-gw] Server Starting")
+		async.GoDelay(func() error {
+			s.log.Info().Msg("[grpc-gw] Server Starting")
 			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() error {
 				defer recovery.Exit()
 				if err := s.httpServer.Listener(httpLn); err != nil &&
@@ -217,7 +219,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service after-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetAfterStarts() {
-			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
 		}
 		return nil
@@ -227,7 +229,7 @@ func (s *serviceImpl) start() {
 func (s *serviceImpl) stop() {
 	logutil.OkOrFailed(s.log, "service before-stop", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
-			s.log.Sugar().Infof("running %s", stack.Func(run.Handler))
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
 		}
 		return nil

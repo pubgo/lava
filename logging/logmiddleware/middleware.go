@@ -10,14 +10,15 @@ import (
 	"github.com/DataDog/gostackparse"
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/assert"
-	errs "github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/tracing"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/errors"
 	"github.com/pubgo/lava/service"
 )
 
@@ -36,7 +37,7 @@ func Middleware(logger log.Logger) service.Middleware {
 			}
 
 			var reqId = requestid.GetFromCtx(ctx)
-			var tracerID, spanID = tracing.GetFrom(ctx).SpanID()
+			var tracerID, spanID = tracing.Ctx(ctx).SpanID()
 			evt.Str("requestId", reqId)
 			evt.Str("tracerId", tracerID)
 			evt.Str("spanId", spanID)
@@ -53,7 +54,7 @@ func Middleware(logger log.Logger) service.Middleware {
 					// 获取堆栈信息, 对堆栈信息进行结构化处理
 					goroutines, _ := gostackparse.Parse(bytes.NewReader(debug.Stack()))
 					if len(goroutines) != 0 {
-						evt.Interface("go_stack", goroutines)
+						evt.Any("go_stack", goroutines)
 					}
 
 					switch c.(type) {
@@ -77,7 +78,7 @@ func Middleware(logger log.Logger) service.Middleware {
 				evt.Int64("dur_ms", time.Since(now).Milliseconds())
 
 				// 记录错误日志
-				if errs.IsNil(gErr) {
+				if generic.IsNil(gErr) {
 					logger.Info().Msg(req.Endpoint())
 				} else {
 					logger.Err(gErr).Msg(req.Endpoint())

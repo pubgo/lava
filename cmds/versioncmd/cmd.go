@@ -2,9 +2,9 @@ package versioncmd
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/version"
 
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/core/runmode"
@@ -13,7 +13,7 @@ import (
 func New() *cli.Command {
 	return &cli.Command{
 		Name:    "version",
-		Aliases: typex.StrOf("v"),
+		Aliases: []string{"v"},
 		Usage:   "show the project version information",
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
