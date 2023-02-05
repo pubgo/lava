@@ -21,8 +21,6 @@ require (
 	github.com/spf13/viper v1.14.0 // indirect
 	github.com/valyala/fastrand v1.1.0
 	github.com/vmihailenco/msgpack/v5 v5.3.1
-	go.etcd.io/etcd/api/v3 v3.5.5
-	go.etcd.io/etcd/client/v3 v3.5.5
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
@@ -65,18 +63,14 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8-1
-	github.com/pubgo/funk v0.5.28-10
+	github.com/pubgo/funk v0.5.28-11
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
-	github.com/soheilhy/cmux v0.1.5
 	github.com/stretchr/testify v1.8.1
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/urfave/cli/v3 v3.0.0-alpha
 	github.com/valyala/fasthttp v1.43.0
 	github.com/yuin/goldmark v1.4.13
-	go.etcd.io/etcd/client/pkg/v3 v3.5.5
-	go.etcd.io/etcd/pkg/v3 v3.5.5
 )
 
 require (
@@ -89,8 +83,6 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/coreos/go-semver v0.3.0 // indirect
-	github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/proto/errorpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -114,7 +115,10 @@ func FromError(err error) *errorpb.Error {
 			}
 		}
 
-		return errorpb.ErrCodeUnknown.Reason(gs.GRPCStatus().Message()).Err(err).Status(gs.GRPCStatus().Code()).Proto()
+		return errors.WrapCodeFn(err, func(err errors.ErrCode) {
+			err.SetReason(gs.GRPCStatus().Message())
+			err.SetCode(gs.GRPCStatus().Code())
+		})
 	}
 
 	return errorpb.ErrCodeUnknown.Err(err).Reason(err.Error()).Proto()

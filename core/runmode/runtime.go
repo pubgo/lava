@@ -7,6 +7,9 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/pathutil"
+	"github.com/pubgo/funk/version"
+	"github.com/rs/xid"
 
 	"github.com/pubgo/lava/pkg/utils"
 )
@@ -21,7 +24,7 @@ var (
 	IsDebug bool
 
 	// DeviceID 主机设备ID
-	DeviceID = version.DeviceID()
+	DeviceID = xid.New().String()
 
 	// InstanceID service id
 	InstanceID = version.InstanceID()

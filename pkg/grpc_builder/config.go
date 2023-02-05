@@ -1,11 +1,12 @@
 package grpc_builder
 
 import (
+	"time"
+
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc"
-	"time"
-
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -24,7 +25,7 @@ type KeepaliveParams struct {
 }
 
 func (t KeepaliveParams) ToCfg() (sp keepalive.ServerParameters) {
-	xerror.Panic(merge.Copy(&sp, &t))
+	merge.Copy(&sp, &t).Unwrap()
 	return
 }
 

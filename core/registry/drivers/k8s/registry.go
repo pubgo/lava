@@ -3,11 +3,12 @@ package k8s
 import (
 	"context"
 	"fmt"
+
 	"github.com/pubgo/dix/di"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/merge"
-
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,13 +75,11 @@ const (
 )
 
 func init() {
-	defer recovery.Exit()
-
 	di.Provide(func(m config.CfgMap) (_ registry.Registry, err error) {
 		defer recovery.Err(&err)
 
 		var cfg Cfg
-		assert.Must(merge.MapStruct(&cfg, m))
+		merge.MapStruct(&cfg, m).Unwrap()
 
 		var client = cfg.Build()
 		return NewRegistry(client), nil
@@ -110,12 +109,12 @@ func (s *Registry) Init() {
 func (s *Registry) Close() {
 }
 
-func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) result.Error {
-	return result.Error{}
+func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
+	return nil
 	//return s.Dix(&registry.Service{Metadata: map[string]string{},})
 }
 
-func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*registry.Service] {
+func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result[[]*registry.Service] {
 	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
 	defer cancel()
 
@@ -124,7 +123,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*
 		Endpoints(k8s.Namespace()).
 		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)}))
 
-	return syncx.Yield(func(yield func(*registry.Service)) result.Error {
+	return async.Yield(func(yield func(*registry.Service)) error {
 		for _, endpoint := range endpoints.Items {
 			for _, subset := range endpoint.Subsets {
 				realPort := ""
@@ -146,12 +145,12 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.List[*
 				}
 			}
 		}
-		return result.NilErr()
+		return nil
 	}).ToList()
 }
 
-func (s *Registry) ListService(opt ...registry.ListOpt) result.List[*registry.Service] {
-	return nil
+func (s *Registry) ListService(opt ...registry.ListOpt) result.Result[[]*registry.Service] {
+	return result.Result[[]*registry.Service]{}
 }
 
 func (s *Registry) String() string { return name }
@@ -159,8 +158,7 @@ func (s *Registry) String() string { return name }
 // Register is used to register services
 // Note that on Kubernetes, it can only be used to update the id/name/version/metadata/protocols of the current service,
 // but it cannot be used to update node.
-func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) result.Error {
-
+func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) error {
 	//patchBytes, err := jsoniter.Marshal(map[string]interface{}{
 	//	"metadata": metav1.ObjectMeta{
 	//		Labels: map[string]string{
@@ -181,7 +179,7 @@ func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) r
 	//	Patch(context.TODO(), k8s.GetPodName(), types.StrategicMergePatchType, patchBytes, metav1.PatchOptions{}); err != nil {
 	//	return err
 	//}
-	return result.Error{}
+	return nil
 }
 
 // Watch creates a watcher according to the service name.

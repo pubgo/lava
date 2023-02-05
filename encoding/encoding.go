@@ -3,9 +3,10 @@ package encoding
 import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/typex"
 )
 
-var data typex.Map
+var data typex.Map[Codec]
 
 func Register(name string, cdc Codec) {
 	defer recovery.Exit()
@@ -28,7 +29,7 @@ func Keys() []string { return data.Keys() }
 func Each(fn func(name string, cdc Codec)) {
 	defer recovery.Exit()
 
-	data.Each(func(name string, val interface{}) {
-		fn(name, val.(Codec))
+	data.Each(func(name string, val Codec) {
+		fn(name, val)
 	})
 }

@@ -3,6 +3,8 @@ package runmode
 import (
 	"fmt"
 	rt "runtime"
+
+	"github.com/pubgo/funk/version"
 )
 
 func GetVersion() map[string]string {
@@ -19,7 +21,6 @@ func GetVersion() map[string]string {
 		"build_time":    version.BuildTime(),
 		"version":       Version,
 		"commit_id":     CommitID,
-		"domain":        version.Domain(),
 		"go_root":       rt.GOROOT(),
 		"go_arch":       rt.GOARCH,
 		"go_os":         rt.GOOS,

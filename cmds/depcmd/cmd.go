@@ -3,13 +3,13 @@ package depcmd
 import (
 	"encoding/json"
 	"fmt"
-	"go.etcd.io/etcd/api/v3/version"
 	"os"
 	"runtime/debug"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/runmode"

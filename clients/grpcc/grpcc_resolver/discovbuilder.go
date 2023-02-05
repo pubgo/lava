@@ -8,9 +8,9 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/core/registry"
 	eventpbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
@@ -87,7 +87,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services := result.Wrap(r.GetService(srv)).Unwrap(func(err error) error {
+	services := r.GetService(srv).Unwrap(func(err error) error {
 		return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
 	})
 
