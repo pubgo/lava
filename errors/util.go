@@ -2,13 +2,16 @@ package errors
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/lava/pkg/proto/errorpb"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -101,6 +104,19 @@ func FromError(err error) *errorpb.Error {
 		return err.(Error).Proto()
 	}
 
+	var ce errors.ErrCode
+	if errors.As(err, &ce) {
+		return &errorpb.Error{
+			Service:   version.Project(),
+			Version:   version.Version(),
+			Code:      uint32(ce.Code()),
+			BizCode:   ce.BizCode(),
+			Reason:    ce.Reason(),
+			ErrMsg:    err.Error(),
+			ErrDetail: fmt.Sprintf("%#v", err),
+		}
+	}
+
 	// grpc error
 	gs, ok := err.(interface{ GRPCStatus() *status.Status })
 	if ok {
@@ -115,24 +131,28 @@ func FromError(err error) *errorpb.Error {
 			}
 		}
 
-		return errors.WrapCodeFn(err, func(err errors.ErrCode) {
-			err.SetReason(gs.GRPCStatus().Message())
-			err.SetCode(gs.GRPCStatus().Code())
-		})
+		return &errorpb.Error{
+			ErrMsg:    err.Error(),
+			ErrDetail: fmt.Sprintf("%v", gs.GRPCStatus().Details()),
+			Reason:    gs.GRPCStatus().Message(),
+			Code:      uint32(gs.GRPCStatus().Code())}
 	}
 
-	return errorpb.ErrCodeUnknown.Err(err).Reason(err.Error()).Proto()
+	return &errorpb.Error{
+		ErrMsg:    err.Error(),
+		ErrDetail: fmt.Sprintf("%#v", err),
+		Reason:    err.Error(),
+		Code:      uint32(errorpb.Code_Unknown),
+	}
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息
 func Convert(err error) *status.Status {
-	if err == nil {
+	if generic.IsNil(err) {
 		return status.New(codes.OK, "OK")
 	}
 
-	if se, ok := err.(interface {
-		GRPCStatus() *status.Status
-	}); ok {
+	if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 		return se.GRPCStatus()
 	}
 
