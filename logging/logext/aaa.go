@@ -1,4 +1,4 @@
-package logging
+package logext
 
 import "github.com/pubgo/funk/log"
 

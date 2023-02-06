@@ -78,6 +78,8 @@ func (s *serviceImpl) DixInject(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
+		EnablePrintRoutes:  true,
+		AppName:            version.Project(),
 	})
 
 	s.httpServer.Use(cors.New(cors.Config{
@@ -163,7 +165,7 @@ func (s *serviceImpl) DixInject(
 
 func (s *serviceImpl) start() {
 	defer recovery.Exit()
-	
+
 	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {

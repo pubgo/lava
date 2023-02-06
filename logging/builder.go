@@ -10,11 +10,12 @@ import (
 
 	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logconfig"
+	"github.com/pubgo/lava/logging/logext"
 	"github.com/pubgo/lava/logging/logkey"
 )
 
 // New logger
-func New(cfg *logconfig.Config, logs []ExtLog) log.Logger {
+func New(cfg *logconfig.Config, logs []logext.ExtLog) log.Logger {
 	defer recovery.Exit()
 
 	level, err := zerolog.ParseLevel(cfg.Level)

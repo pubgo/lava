@@ -27,7 +27,7 @@ require (
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.4.0
 	golang.org/x/sys v0.4.0
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
+	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -57,7 +57,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.13.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1

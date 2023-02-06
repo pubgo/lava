@@ -19,10 +19,6 @@ type GrpcGateway interface {
 	GatewayHandler(mux *runtime.ServeMux)
 }
 
-func init() {
-	runtime.NewServeMux()
-}
-
 type HttpRouter interface {
 	Init()
 	BasePrefix() string
