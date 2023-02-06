@@ -66,7 +66,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
-	github.com/twitchtv/twirp v8.1.2+incompatible
+	github.com/twitchtv/twirp v8.1.3+incompatible
 	github.com/urfave/cli/v3 v3.0.0-alpha
 	github.com/valyala/fasthttp v1.43.0
 	github.com/yuin/goldmark v1.4.13

@@ -91,15 +91,14 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 	for _, h := range handlers {
-		if desc := h.ServiceDesc(); desc == nil {
-			panic("desc is nil")
-		}
+		desc := h.ServiceDesc()
+		assert.If(desc == nil, "desc is nil")
 
 		s.initList = append(s.initList, h.Init)
 
 		middlewares = append(middlewares, h.Middlewares()...)
 		var hh = h.TwirpHandler(twirp.WithServerPathPrefix(cfg.BasePrefix))
-		app.Post(cfg.BasePrefix+h.ServiceDesc().ServiceName+"/*", adaptor.HTTPHandler(hh))
+		app.Post(cfg.BasePrefix+desc.ServiceName+"/*", adaptor.HTTPHandler(hh))
 
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)

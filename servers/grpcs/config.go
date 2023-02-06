@@ -21,7 +21,7 @@ type Cfg struct {
 	Grpc       *grpc_builder.Config `yaml:"grpc-server"`
 	GrpcWeb    *GrpcWebCfg          `yaml:"grpc-web"`
 	PrintRoute bool                 `yaml:"print-route"`
-	BasePrefix string               `json:"base-prefix"`
+	BasePrefix string               `yaml:"base-prefix"`
 }
 
 func init() {
