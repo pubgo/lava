@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/errors"
+	"github.com/pubgo/lava/errorx"
 	"github.com/pubgo/lava/service"
 	"google.golang.org/grpc/codes"
 )
@@ -80,12 +80,12 @@ func init() {
 		}
 
 		code := fiber.StatusBadRequest
-		var errPb = errors.FromError(err)
+		var errPb = errorx.FromError(err)
 		if errPb == nil || errPb.Code == 0 {
 			return nil
 		}
 
-		code = errors.GrpcCodeToHTTP(codes.Code(errPb.Code))
+		code = errorx.GrpcCodeToHTTP(codes.Code(errPb.Code))
 		c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 		return c.Status(code).JSON(errPb)
 	}

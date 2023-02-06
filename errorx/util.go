@@ -1,4 +1,4 @@
-package errors
+package errorx
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc/codes"
@@ -84,24 +84,11 @@ func IsGrpcAcceptable(err error) bool {
 	}
 }
 
-func IsMemoryErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	return strings.Contains(err.Error(), "invalid memory address or nil pointer dereference")
-}
-
 // FromError try to convert an error to *Error.
 // It supports wrapped errors.
 func FromError(err error) *errorpb.Error {
-	switch err.(type) {
-	case nil:
+	if err == nil {
 		return nil
-	case *Error:
-		return err.(*Error).Proto()
-	case Error:
-		return err.(Error).Proto()
 	}
 
 	var ce errors.ErrCode
@@ -109,11 +96,12 @@ func FromError(err error) *errorpb.Error {
 		return &errorpb.Error{
 			Service:   version.Project(),
 			Version:   version.Version(),
-			Code:      uint32(ce.Code()),
+			Code:      ce.Code(),
 			BizCode:   ce.BizCode(),
 			Reason:    ce.Reason(),
 			ErrMsg:    err.Error(),
 			ErrDetail: fmt.Sprintf("%#v", err),
+			Tags:      ce.Tags(),
 		}
 	}
 
@@ -135,35 +123,29 @@ func FromError(err error) *errorpb.Error {
 			ErrMsg:    err.Error(),
 			ErrDetail: fmt.Sprintf("%v", gs.GRPCStatus().Details()),
 			Reason:    gs.GRPCStatus().Message(),
-			Code:      uint32(gs.GRPCStatus().Code())}
+			Code:      errorpb.Code(gs.GRPCStatus().Code())}
 	}
 
 	return &errorpb.Error{
 		ErrMsg:    err.Error(),
 		ErrDetail: fmt.Sprintf("%#v", err),
 		Reason:    err.Error(),
-		Code:      uint32(errorpb.Code_Unknown),
+		Code:      errorpb.Code_Unknown,
 	}
 }
 
 // Convert 内部转换，为了让err=nil的时候，监控数据里有OK信息
-func Convert(err error) *status.Status {
+func Convert(err *errorpb.Error) *status.Status {
 	if generic.IsNil(err) {
 		return status.New(codes.OK, "OK")
 	}
 
-	if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
-		return se.GRPCStatus()
+	var st, err1 = status.New(codes.Code(err.Code), err.ErrMsg).WithDetails(err)
+	if err1 != nil {
+		log.Err(err1).Any("convert-err", err).Msg("failed to convert error detail")
+		status.New(codes.Internal, err1.Error())
 	}
-
-	switch err {
-	case context.DeadlineExceeded:
-		return status.New(codes.DeadlineExceeded, err.Error())
-	case context.Canceled:
-		return status.New(codes.Canceled, err.Error())
-	}
-
-	return status.New(codes.Unknown, err.Error())
+	return st
 }
 
 // GrpcCodeToHTTP gRPC转HTTP Code
@@ -208,13 +190,8 @@ func GrpcCodeToHTTP(statusCode codes.Code) int {
 	}
 }
 
-func lavaError(err *Error) codes.Code {
-	switch err {
-	case nil:
-		return codes.OK
-	}
-
-	switch err.code {
+func lavaError(code int32) codes.Code {
+	switch code {
 	case http.StatusOK:
 		return codes.OK
 	case http.StatusBadRequest:

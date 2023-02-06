@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/recovery"
 	"github.com/valyala/fasthttp"
@@ -16,7 +17,6 @@ import (
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/utils"
 	"github.com/pubgo/lava/service"
 )
 
@@ -27,10 +27,7 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 		return reqCtx.ctx.Next()
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
-	}
-
+	handler = service.Chain(middlewares...)(handler)
 	return func(fbCtx *fiber.Ctx) error {
 		return handler(fbCtx.Context(), &httpRequest{ctx: fbCtx}, &httpResponse{ctx: fbCtx})
 	}
@@ -46,7 +43,7 @@ func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterc
 
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
+			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 
 		ctx = metadata.NewIncomingContext(ctx, md)
@@ -57,17 +54,14 @@ func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterc
 
 		rsp.(*rpcResponse).dt = dt
 		var h = rsp.(*rpcResponse).Header()
-		md = make(metadata.MD)
+		md = make(metadata.MD, h.Len())
 		h.VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
+			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 		return grpc.SetTrailer(ctx, md)
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		unaryWrapper = middlewares[i](unaryWrapper)
-	}
-
+	unaryWrapper = service.Chain(middlewares...)(unaryWrapper)
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var md, ok = metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -140,7 +134,7 @@ func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInte
 	streamWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
+			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 
 		ctx = metadata.NewIncomingContext(ctx, md)
@@ -152,7 +146,7 @@ func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInte
 		var h = rsp.(*rpcResponse).Header()
 		md = make(metadata.MD)
 		h.VisitAll(func(key, value []byte) {
-			md.Append(utils.BtoS(key), utils.BtoS(value))
+			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 		return grpc.SetTrailer(ctx, md)
 	}

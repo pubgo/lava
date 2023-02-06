@@ -6,7 +6,7 @@ import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/pubgo/lava/gen/proto/test/testpbv1";
 
-enum TestCode {
+enum TestErrCode {
   OK = 0;
 
   // NotFound 找不到
@@ -14,4 +14,7 @@ enum TestCode {
 
   // Unknown 未知
   Unknown = 100001;
+
+  // db connect error
+  DbConn = 100003;
 }

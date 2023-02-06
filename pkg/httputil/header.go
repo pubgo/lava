@@ -1,4 +1,4 @@
-package httpx
+package httputil
 
 // HTTP Headers were copied from net/http.
 const (

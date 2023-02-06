@@ -16,6 +16,7 @@ import (
 	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/stack"
+
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/runmode"

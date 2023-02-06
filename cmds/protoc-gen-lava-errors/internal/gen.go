@@ -5,8 +5,11 @@ import (
 	"strings"
 
 	"github.com/dave/jennifer/jen"
+	"github.com/iancoleman/strcase"
 	"google.golang.org/protobuf/compiler/protogen"
 )
+
+const errorPkg = "github.com/pubgo/funk/errors"
 
 // GenerateFile generates a .errors.pb.go file containing service definitions.
 func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
@@ -31,41 +34,37 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.Skip()
 	for i := range file.Enums {
 		m := file.Enums[i]
-
-		//if m.Desc.Options() == nil {
-		//	continue
-		//}
-		//
-		//var enabled, ok = gp.GetExtension(m.Desc.Options(), errorpb.E_Enabled).(bool)
-		//if !ok || !enabled {
-		//	continue
-		//}
-
 		var name = strings.ToLower(string(m.Desc.Name()))
-		if !strings.HasSuffix(name, "code") {
+		if !strings.HasSuffix(name, "errcode") {
 			continue
 		}
 
 		g.Unskip()
 		for j := range m.Values {
-			n := m.Values[j]
-			var bizCode = fmt.Sprintf("%s_%s_%s", file.Desc.Package(), m.Desc.Name(), n.Desc.Name())
-			bizCode = strings.ToLower(strings.Join(strings.Split(bizCode, "_"), "."))
+			codeName := m.Values[j]
+			var bizCode = strings.ToLower(fmt.Sprintf("%s.%s.%s",
+				file.Desc.Package(),
+				strings.TrimSuffix(string(m.Desc.Name()), "ErrCode"),
+				strcase.ToSnake(string(codeName.Desc.Name())),
+			))
 
 			// comment
-			var rr = strings.TrimSpace(strings.ToLower(string(n.Desc.Name())))
+			var rr = strings.TrimSpace(strings.ToLower(string(codeName.Desc.Name())))
 			rr = strings.Join(strings.Split(rr, "_"), " ")
-			if n.Comments.Leading.String() != "" {
-				rr = n.Comments.Leading.String()
+			if codeName.Comments.Leading.String() != "" {
+				rr = codeName.Comments.Leading.String()
 				rr = strings.TrimSpace(strings.Trim(strings.TrimSpace(rr), "/"))
 			}
 
 			genFile.Var().Id(
-				fmt.Sprintf("Err%s%s", m.Desc.Name(), string(n.Desc.Name())),
-			).Op("=").Qual("github.com/pubgo/lava/errors", "NewWithBizCode").Params(
-				jen.Lit(bizCode),
-				jen.Lit(rr),
-			)
+				fmt.Sprintf("Err%s%s", strings.TrimSuffix(string(m.Desc.Name()), "ErrCode"), string(codeName.Desc.Name())),
+			).Op("=").Qual(errorPkg, "WrapBizCode").ParamsFunc(func(group *jen.Group) {
+				group.Qual(errorPkg, "WrapReason").ParamsFunc(func(group *jen.Group) {
+					group.Qual(errorPkg, "New").Params(jen.Lit(rr))
+					group.Lit(rr)
+				})
+				group.Lit(bizCode)
+			})
 		}
 	}
 

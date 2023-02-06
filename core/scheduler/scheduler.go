@@ -5,10 +5,10 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/funk/try"
 	"github.com/reugn/go-quartz/quartz"
 )
 
@@ -92,12 +92,13 @@ type namedJob struct {
 func (t namedJob) Description() string { return t.name }
 func (t namedJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t namedJob) Execute() {
-	var dur, err = utils.Cost(func() { t.fn(t.name) })
-	logutil.LogOrErr(t.log, "scheduler trigger",
-		func() error {
-			return errors.WrapEventFn(err, func(evt *errors.Event) {
-				evt.Str("job-name", t.name)
-				evt.Int64("job-cost-ms", dur.Milliseconds())
-			})
-		})
+	var evt = log.NewEvent().Str("job-name", t.name)
+	var s = time.Now()
+	err := try.Try(func() error { t.fn(t.name); return nil })
+	evt.Int64("job-cost-ms", time.Since(s).Milliseconds())
+	if generic.IsNil(err) {
+		log.Info().Func(log.WithEvent(evt)).Msg("scheduler trigger")
+	} else {
+		log.Err(err).Func(log.WithEvent(evt)).Msg("scheduler trigger")
+	}
 }

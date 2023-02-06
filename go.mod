@@ -1,6 +1,6 @@
 module github.com/pubgo/lava
 
-go 1.18
+go 1.19
 
 require (
 	github.com/gofiber/fiber/v2 v2.41.0
@@ -17,9 +17,8 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/reugn/go-quartz v0.3.7
-	github.com/segmentio/ksuid v1.0.3
 	github.com/spf13/viper v1.14.0 // indirect
-	github.com/valyala/fastrand v1.1.0
+	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
@@ -38,7 +37,6 @@ require (
 
 require (
 	github.com/CAFxX/gcnotifier v0.0.0-20190112062741-224a280d589d
-	github.com/DataDog/gostackparse v0.5.0
 	github.com/bradleyjkemp/memviz v0.2.3
 	github.com/goccy/go-json v0.10.0
 	github.com/mailgun/holster/v4 v4.11.0
@@ -60,10 +58,11 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.13.0
+	github.com/iancoleman/strcase v0.2.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8-1
-	github.com/pubgo/funk v0.5.28-11
+	github.com/pubgo/funk v0.5.28-13
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1

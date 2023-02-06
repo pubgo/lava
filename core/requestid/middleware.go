@@ -3,12 +3,12 @@ package requestid
 import (
 	"context"
 
-	"github.com/segmentio/ksuid"
+	"github.com/pubgo/funk/strutil"
+	"github.com/rs/xid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/pubgo/lava/pkg/httpx"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/service"
 )
 
@@ -27,13 +27,13 @@ func Middleware() service.Middleware {
 				}
 			}()
 
-			rid := utils.FirstFnNotEmpty(
+			rid := strutil.FirstFnNotEmpty(
 				func() string { return getReqID(ctx) },
 				func() string { return string(req.Header().Peek(Name)) },
-				func() string { return ksuid.New().String() },
+				func() string { return xid.New().String() },
 			)
 
-			req.Header().Set(httpx.HeaderXRequestID, rid)
+			req.Header().Set(httputil.HeaderXRequestID, rid)
 			return next(CreateCtx(ctx, rid), req, rsp)
 		}
 	}

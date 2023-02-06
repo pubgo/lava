@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/pkg/k8s"
+	"github.com/pubgo/lava/pkg/k8sutil"
 	"github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
@@ -30,7 +30,7 @@ type Watcher struct {
 func newWatcher(s *Registry, service string) result.Result[registry.Watcher] {
 	watcher := assert.Must1(s.client.
 		CoreV1().
-		Endpoints(k8s.Namespace()).
+		Endpoints(k8sutil.Namespace()).
 		Watch(context.Background(),
 			metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", service)}))
 	return result.OK[registry.Watcher](&Watcher{watcher: watcher, client: s.client, service: service})
@@ -43,7 +43,7 @@ func (t *Watcher) Next() result.Result[*registry.Result] {
 		if ok {
 			endpoints := assert.Must1(t.client.
 				CoreV1().
-				Endpoints(k8s.Namespace()).
+				Endpoints(k8sutil.Namespace()).
 				List(context.Background(),
 					metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", t.service)}))
 

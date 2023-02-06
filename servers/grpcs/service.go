@@ -162,6 +162,8 @@ func (s *serviceImpl) DixInject(
 }
 
 func (s *serviceImpl) start() {
+	defer recovery.Exit()
+	
 	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
@@ -227,6 +229,8 @@ func (s *serviceImpl) start() {
 }
 
 func (s *serviceImpl) stop() {
+	defer recovery.Exit()
+
 	logutil.OkOrFailed(s.log, "service before-stop", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))

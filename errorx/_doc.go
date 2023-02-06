@@ -1,4 +1,4 @@
-package errors
+package errorx
 
 // https://github.com/mschneider82/problem
 // https://github.com/rotisserie/eris

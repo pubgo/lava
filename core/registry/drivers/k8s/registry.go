@@ -16,7 +16,7 @@ import (
 
 	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/pkg/k8s"
+	"github.com/pubgo/lava/pkg/k8sutil"
 )
 
 // Defines the key name of specific fields
@@ -120,7 +120,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result
 
 	endpoints := assert.Must1(s.client.
 		CoreV1().
-		Endpoints(k8s.Namespace()).
+		Endpoints(k8sutil.Namespace()).
 		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)}))
 
 	return async.Yield(func(yield func(*registry.Service)) error {
