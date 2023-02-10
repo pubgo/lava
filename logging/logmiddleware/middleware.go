@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
@@ -17,7 +18,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/errorx"
 	"github.com/pubgo/lava/service"
 )
 
@@ -49,11 +49,11 @@ func Middleware(logger log.Logger) service.Middleware {
 
 			// 错误和panic处理
 			defer func() {
-				if c := errorx.FromError(errors.Parse(recover())); c != nil {
+				if c := errutil.ParseError(errors.Parse(recover())); c != nil {
 					c.Operation = req.Operation()
 					c.BizCode = "lava.middleware.panic"
 					c.Code = errorpb.Code_Internal
-					gErr = errorx.Convert(c).Err()
+					gErr = errutil.ConvertErr2Status(c).Err()
 				}
 
 				// TODO type assert
@@ -85,7 +85,7 @@ func Middleware(logger log.Logger) service.Middleware {
 			// 集成logger到context
 			ctxLog := logger.WithFields(log.Map{"tracerId": tracerID, "spanId": spanID, "requestId": reqId})
 			gErr = next(ctxLog.WithCtx(ctx), req, resp)
-			var errPb = errorx.FromError(gErr)
+			var errPb = errutil.ParseError(gErr)
 			errPb.Operation = req.Operation()
 			return assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
 		}

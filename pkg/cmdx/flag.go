@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var _ cli.Generic = (*Generic)(nil)

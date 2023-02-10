@@ -8,7 +8,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/pkg/cmdx"
 	netutil2 "github.com/pubgo/lava/pkg/netutil"

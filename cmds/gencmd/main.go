@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func New() *cli.Command {

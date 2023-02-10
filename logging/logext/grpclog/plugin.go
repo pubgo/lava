@@ -6,10 +6,10 @@ import (
 	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logext"
 )
 
-func New() logging.ExtLog {
+func New() logext.ExtLog {
 	return func(logger log.Logger) {
 		grpclog.SetLoggerV2(&loggerWrapper{
 			log:      logger.WithName("grpc").WithCallerSkip(4),

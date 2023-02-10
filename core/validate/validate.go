@@ -1,5 +1,5 @@
 package validate
 
-type validator interface {
+type Validator interface {
 	Validate() error
 }

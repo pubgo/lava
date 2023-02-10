@@ -5,7 +5,8 @@ import (
 
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	"github.com/pubgo/funk/version"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/servers/https"

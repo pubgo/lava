@@ -5,7 +5,7 @@ import (
 
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/runmode"
 )

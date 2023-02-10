@@ -5,11 +5,11 @@ import (
 	"log"
 
 	log2 "github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/logging"
+	"github.com/pubgo/lava/logging/logext"
 )
 
 // New 替换std默认log
-func New() logging.ExtLog {
+func New() logext.ExtLog {
 	return func(logger log2.Logger) {
 		var stdLog = log.Default()
 		// 接管系统默认log

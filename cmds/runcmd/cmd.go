@@ -1,4 +1,4 @@
-package lava
+package runcmd
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/cmds/depcmd"
 	"github.com/pubgo/lava/cmds/grpcservercmd"
@@ -17,6 +17,14 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/runmode"
+
+	// 加载插件
+	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
+	_ "github.com/pubgo/lava/encoding/protobuf"
+	_ "github.com/pubgo/lava/logging/logext/grpclog"
+	_ "github.com/pubgo/lava/modules/automaxprocs"
+	_ "github.com/pubgo/lava/modules/gcnotifier"
+	_ "github.com/pubgo/lava/modules/gops"
 )
 
 func Run(cmdL ...*cli.Command) {
