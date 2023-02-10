@@ -33,7 +33,7 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 	}
 }
 
-func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterceptor {
+func handlerUnaryMiddle(middlewares map[string][]service.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
 		// 错误和panic处理
 		defer recovery.Err(&gErr, func(err *errors.Event) {
@@ -61,7 +61,6 @@ func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterc
 		return grpc.SetTrailer(ctx, md)
 	}
 
-	unaryWrapper = service.Chain(middlewares...)(unaryWrapper)
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var md, ok = metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -115,8 +114,9 @@ func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterc
 			}
 		}
 
+		var srvName = serviceFromMethod(info.FullMethod)
 		var rpcReq = &rpcRequest{
-			service:     serviceFromMethod(info.FullMethod),
+			service:     srvName,
 			method:      info.FullMethod,
 			url:         url,
 			handler:     handler,
@@ -126,11 +126,11 @@ func handlerUnaryMiddle(middlewares []service.Middleware) grpc.UnaryServerInterc
 		}
 
 		var rpcResp = &rpcResponse{header: new(fasthttp.ResponseHeader)}
-		return rpcResp.dt, unaryWrapper(ctx, rpcReq, rpcResp)
+		return rpcResp.dt, service.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq, rpcResp)
 	}
 }
 
-func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInterceptor {
+func handlerStreamMiddle(middlewares map[string][]service.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req service.Request, rsp service.Response) error {
 		var md = make(metadata.MD)
 		req.Header().VisitAll(func(key, value []byte) {
@@ -149,10 +149,6 @@ func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInte
 			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 		return grpc.SetTrailer(ctx, md)
-	}
-
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		streamWrapper = middlewares[i](streamWrapper)
 	}
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -198,16 +194,19 @@ func handlerStreamMiddle(middlewares []service.Middleware) grpc.StreamServerInte
 			}
 		}
 
+		srvName := serviceFromMethod(info.FullMethod)
 		var rpcReq = &rpcRequest{
 			stream:        stream,
 			srv:           srv,
 			handlerStream: handler,
 			header:        header,
 			method:        info.FullMethod,
-			service:       serviceFromMethod(info.FullMethod),
+			service:       srvName,
 			contentType:   ct,
 		}
-		return streamWrapper(ctx, rpcReq, &rpcResponse{stream: stream, header: new(service.ResponseHeader)})
+		return service.Chain(middlewares[srvName]...)(streamWrapper)(
+			ctx, rpcReq, &rpcResponse{stream: stream, header: new(service.ResponseHeader)},
+		)
 	}
 }
 

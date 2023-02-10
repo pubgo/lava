@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
-	"github.com/twitchtv/twirp"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -89,28 +88,28 @@ func (s *serviceImpl) DixInject(
 	}))
 	s.httpServer.Mount("/debug", debug.App())
 
-	app := fiber.New()
+	var srvMidMap = make(map[string][]service.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
 
 		s.initList = append(s.initList, h.Init)
 
-		middlewares = append(middlewares, h.Middlewares()...)
-		var hh = h.TwirpHandler(twirp.WithServerPathPrefix(cfg.BasePrefix))
-		app.Post(cfg.BasePrefix+desc.ServiceName+"/*", adaptor.HTTPHandler(hh))
+		// TODO 处理middleware
+		if len(srvMidMap[desc.ServiceName]) == 0 {
+			srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
+		}
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}
 
-	app.Use(handlerHttpMiddle(middlewares))
-
 	// grpc server初始化
 	var grpcServer = cfg.Grpc.Build(
-		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(middlewares)),
-		grpc.ChainStreamInterceptor(handlerStreamMiddle(middlewares)),
+		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
+		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
 	).Unwrap()
 	s.grpcServer = grpcServer
 
@@ -125,6 +124,7 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
+	app := fiber.New()
 	var grpcWebPrefix = "/" + version.Project() + "/grpcweb"
 	var grpcPrefix = "/" + version.Project() + "/grpcweb"
 	app.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
