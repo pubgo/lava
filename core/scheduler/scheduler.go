@@ -56,27 +56,27 @@ func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
 	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name, log: s.log}, fn)
 }
 
-func (s *Scheduler) getTrigger() quartz.Trigger {
-	if s.once {
-		return quartz.NewRunOnceTrigger(s.dur)
+func getTrigger(once bool, cron string, dur time.Duration) quartz.Trigger {
+	if once {
+		return quartz.NewRunOnceTrigger(dur)
 	}
 
-	if s.cron != "" {
-		r := result.Wrap(quartz.NewCronTrigger(s.cron))
+	if cron != "" {
+		r := result.Wrap(quartz.NewCronTrigger(cron))
 		return r.Unwrap(func(err error) error {
-			return errors.WrapKV(err, "cron-expr", s.cron)
+			return errors.WrapKV(err, "cron-expr", cron)
 		})
 	}
 
-	if s.dur != 0 {
-		return quartz.NewSimpleTrigger(s.dur)
+	if dur != 0 {
+		return quartz.NewSimpleTrigger(dur)
 	}
 
 	return nil
 }
 
 func do(s *Scheduler, fn func(name string)) {
-	var trigger = s.getTrigger()
+	var trigger = getTrigger(s.once, s.cron, s.dur)
 	assert.If(s.key == "", "[name] should not be null")
 	assert.If(fn == nil, "[fn] should not be nil")
 	assert.If(trigger == nil, "please init dur or cron")

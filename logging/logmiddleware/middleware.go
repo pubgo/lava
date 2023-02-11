@@ -35,7 +35,7 @@ func Middleware(logger log.Logger) service.Middleware {
 				evt.Str("referer", referer)
 			}
 
-			var reqId = requestid.GetFromCtx(ctx)
+			var reqId = requestid.Ctx(ctx)
 			var tracerID, spanID = tracing.Ctx(ctx).SpanID()
 			evt.Str("requestId", reqId)
 			evt.Str("tracerId", tracerID)

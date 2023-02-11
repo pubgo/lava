@@ -12,7 +12,7 @@ func CreateCtx(ctx context.Context, reqId string) context.Context {
 	return context.WithValue(ctx, reqIdKey, reqId)
 }
 
-func GetFromCtx(ctx context.Context) string {
+func Ctx(ctx context.Context) string {
 	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId

@@ -12,8 +12,6 @@ import (
 	"github.com/pubgo/lava/service"
 )
 
-const Name = "x-request-id"
-
 func Middleware() service.Middleware {
 	return func(next service.HandlerFunc) service.HandlerFunc {
 		return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
@@ -29,7 +27,7 @@ func Middleware() service.Middleware {
 
 			rid := strutil.FirstFnNotEmpty(
 				func() string { return getReqID(ctx) },
-				func() string { return string(req.Header().Peek(Name)) },
+				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
 				func() string { return xid.New().String() },
 			)
 
