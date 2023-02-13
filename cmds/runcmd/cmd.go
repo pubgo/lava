@@ -24,7 +24,6 @@ import (
 	_ "github.com/pubgo/lava/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/modules/automaxprocs"
 	_ "github.com/pubgo/lava/modules/gcnotifier"
-	_ "github.com/pubgo/lava/modules/gops"
 )
 
 func Run(cmdL ...*cli.Command) {

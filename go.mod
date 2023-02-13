@@ -6,7 +6,6 @@ require (
 	github.com/gofiber/fiber/v2 v2.41.0
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2
-	github.com/google/gops v0.3.26
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -25,7 +24,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.4.0
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/net v0.4.0
+	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.4.0
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37
 	google.golang.org/grpc v1.51.0
@@ -56,17 +55,15 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
-	github.com/pubgo/dix v0.3.8-1
-	github.com/pubgo/funk v0.5.28-14
+	github.com/pubgo/dix v0.3.8
+	github.com/pubgo/funk v0.5.28
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
-	github.com/twitchtv/twirp v8.1.3+incompatible
-	github.com/urfave/cli/v3 v3.0.0-alpha
+	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.43.0
 	github.com/yuin/goldmark v1.4.13
 )
