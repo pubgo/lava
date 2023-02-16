@@ -1,13 +1,12 @@
 package cmdx
 
 import (
+	"flag"
 	"os"
 	"strings"
-
-	"github.com/urfave/cli/v3"
 )
 
-var _ cli.Generic = (*Generic)(nil)
+var _ flag.Value = (*Generic)(nil)
 
 type Generic struct {
 	Value       string

@@ -15,8 +15,9 @@ import (
 )
 
 type params struct {
-	Log log.Logger
-	Db  *orm.Client
+	Log        log.Logger
+	Db         *orm.Client
+	Migrations []migrates.Migrate
 }
 
 func migrate(m []migrates.Migrate) []*gormigrate.Migration {
@@ -27,7 +28,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 	return migrations
 }
 
-func New(migrations []migrates.Migrate) *cli.Command {
+func New() *cli.Command {
 	var id string
 	var ids []string
 	return &cli.Command{
@@ -46,8 +47,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 			assert.Must(p.Db.Table(gormigrate.DefaultOptions.TableName).Select("id").Find(&ids).Error)
 			return nil
 		},
-
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			{
 				Name:    "migrate",
 				Usage:   "do migrate",
@@ -56,7 +56,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
 					} else {
@@ -74,7 +74,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					for _, m := range migrate(migrations) {
+					for _, m := range migrate(p.Migrations) {
 						p.Log.Info().Msgf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", ""))
 					}
 					time.Sleep(time.Millisecond * 10)
@@ -89,7 +89,7 @@ func New(migrations []migrates.Migrate) *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(migrations))
+					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())
 					} else {

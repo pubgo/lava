@@ -51,8 +51,8 @@ func Middleware(logger log.Logger) service.Middleware {
 			defer func() {
 				if c := errutil.ParseError(errors.Parse(recover())); c != nil {
 					c.Operation = req.Operation()
-					c.BizCode = "lava.middleware.panic"
-					c.Code = errorpb.Code_Internal
+					c.Name = "lava.middleware.panic"
+					c.Code = uint32(errorpb.Code_Internal)
 					gErr = errutil.ConvertErr2Status(c).Err()
 				}
 

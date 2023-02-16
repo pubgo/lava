@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package gid;
+
+option go_package = "./gidpb;gidpb";
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "errorpb/status.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  host: "localhost:8080",
+  info: {
+    title: "A Bit of Everything";
+    version: "1.0";
+    contact: {
+      name: "gRPC-Gateway project";
+      url: "https://github.com/grpc-ecosystem/grpc-gateway";
+      email: "none@example.com";
+    };
+    license: {
+      name: "BSD 3-Clause License";
+      url: "https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt";
+    };
+    extensions: {
+      key: "x-something-something";
+      value {
+        string_value: "yadda";
+      }
+    }
+  };
+  // Overwriting host entry breaks tests, so this is not done here.
+  external_docs: {
+    url: "https://github.com/pubgo/lava/tree/master/example/gid";
+    description: "生成随机id";
+  }
+  schemes: HTTP;
+  schemes: HTTPS;
+  schemes: WSS;
+  consumes: "application/json";
+  consumes: "application/x-foo-mime";
+  produces: "application/json";
+  produces: "application/x-foo-mime";
+  extensions: {
+    key: "x-grpc-gateway-foo";
+    value {
+      string_value: "bar";
+    }
+  }
+  extensions: {
+    key: "x-grpc-gateway-baz-list";
+    value {
+      list_value: {
+        values: {
+          string_value: "one";
+        }
+        values: {
+          bool_value: true;
+        }
+      }
+    }
+  }
+};
+
+
+message Tag {
+  string key = 1;
+  string value = 2;
+}
+
+message GenerateResponse {
+  // the unique id generated
+  string id = 1;
+  // the type of id generated
+  string type = 2;
+}
+
+
+// Id 生成随机ID服务
+service Id {
+  option (google.api.default_host) = "localhost:8080";
+
+  // Generate 生成ID
+  rpc Generate(GenerateRequest) returns (GenerateResponse) {
+    option (google.api.http) = {
+      post: "/v1/id/generate"
+      body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Connect to a secure WebSocket to receive streaming notifications (see reference for notification to consumer for schema of messages received on websocket).";
+      deprecated: true,
+      responses: {
+        key: "101";
+        value: {
+          description: "Upgrade to Websockets";
+        }
+      }
+    };
+  }
+
+  // Types id类型
+  rpc Types(TypesRequest) returns (TypesResponse) {
+    option (google.api.http).get = "/v1/id/types";
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Registers a producer to begin publishing notifications in the local MEC environment.";
+      deprecated: true,
+      responses: {
+        key: "200";
+        value: {
+          description: "OK";
+        }
+      }
+      responses: {
+        key: "400";
+        value: {
+          description: "Invalid content, a required property is missing";
+        }
+      }
+    };
+  }
+}
+
+enum SrvErrCode {
+  option (status.opts).gen_enable = true;
+  OK = 0;
+
+  // id generate error
+  IDGenerateFailed = 1 [
+    (status.field).code = Internal
+  ];
+}
+
+// Generate a unique ID. Defaults to uuid.
+message GenerateRequest {
+  // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
+  string type = 1;
+}
+
+// List the types of IDs available. No query params needed.
+message TypesRequest {}
+
+// TypesResponse 返回值类型
+message TypesResponse {
+  repeated string types = 1;
+}
