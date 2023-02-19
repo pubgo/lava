@@ -11,12 +11,13 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/valyala/fasthttp"
+
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/service"
-	"github.com/valyala/fasthttp"
 )
 
 func New(cfg *Config, log log.Logger, mm ...service.Middleware) Client {

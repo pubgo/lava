@@ -20,6 +20,7 @@ func New() *cli.Command {
 			fmt.Println("project:", version.Project())
 			fmt.Println("version:", version.Version())
 			fmt.Println("commit-id:", version.CommitID())
+			fmt.Println("build-time:", version.BuildTime())
 			fmt.Println("device-id:", runmode.DeviceID)
 			fmt.Println("instance-id:", runmode.InstanceID)
 			return nil
