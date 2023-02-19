@@ -59,7 +59,8 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8
-	github.com/pubgo/funk v0.5.29-3
+	github.com/pubgo/funk v0.5.29-4
+	github.com/pubgo/opendoc v0.0.2
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
@@ -80,8 +81,12 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/getkin/kin-openapi v0.98.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-openapi/jsonpointer v0.19.5 // indirect
+	github.com/go-openapi/swag v0.22.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
@@ -90,12 +95,15 @@ require (
 	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/k0kubun/pp/v3 v3.2.0 // indirect
 	github.com/klauspost/compress v1.15.13 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/maragudk/gomponents v0.20.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -144,8 +152,9 @@ require (
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 	gorm.io/plugin/opentracing v0.0.0-20211220013347-7d2b2af23560 // indirect
 	k8s.io/api v0.21.1 // indirect
-	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b // indirect
+	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
+	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.1.1 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

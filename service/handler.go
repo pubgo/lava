@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc"
 )
 
@@ -15,6 +16,7 @@ type HttpRouter interface {
 	Init()
 	Middlewares() []Middleware
 	Router(app *fiber.App)
+	Openapi(swagger *opendoc.Service)
 }
 
 type HttpApiRouter interface {
