@@ -59,7 +59,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8
-	github.com/pubgo/funk v0.5.29-2
+	github.com/pubgo/funk v0.5.29-3
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1

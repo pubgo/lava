@@ -13,10 +13,11 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/internal/example/pkg/proto/gidpb"
 	"github.com/pubgo/lava/service"
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/internal/example/pkg/proto/gidpb"
 )
 
 var _ service.GrpcHandler = (*Id)(nil)
@@ -82,7 +83,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
-			return nil, gidpb.ErrSrvErrCodeIDGenerateFailed.SetErr(err)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -91,7 +92,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
-			return nil, gidpb.ErrSrvErrCodeIDGenerateFailed.SetErr(err)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -100,12 +101,12 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
-			return nil, gidpb.ErrSrvErrCodeIDGenerateFailed.SetErr(err)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, gidpb.ErrSrvErrCodeIDGenerateFailed.SetErr(errors.New("unsupported id type"))
+		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrSrvErrCodeIDGenerateFailed)
 	}
 
 	return rsp, nil

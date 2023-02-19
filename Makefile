@@ -1,7 +1,7 @@
 WORKDIR=`pwd`
 Domain=lava
 Project=test-grpc
-Base=github.com/pubgo/lava
+Base=github.com/pubgo/funk
 Tag=$(shell git describe --abbrev=0 --tags)
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")

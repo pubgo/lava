@@ -125,6 +125,7 @@ service Id {
 
 enum SrvErrCode {
   option (status.opts).gen_enable = true;
+
   OK = 0;
 
   // id generate error
