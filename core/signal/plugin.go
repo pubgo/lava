@@ -7,30 +7,15 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v3"
-
-	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/core/runmode"
 )
 
 const Name = "signal"
 
-func init() {
-	defer recovery.Exit()
-	flags.Register(&cli.BoolFlag{
-		Name:        "block",
-		Destination: &runmode.Block,
-		Usage:       "Whether block program",
-		Value:       runmode.Block,
-	})
-}
-
 func Wait() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
-	runmode.Signal = <-ch
-	log.Info().Str("signal", runmode.Signal.String()).Msg("signal trigger")
+	sig := <-ch
+	log.Info().Str("signal", sig.String()).Msg("signal trigger")
 }
 
 func Ctx() context.Context {

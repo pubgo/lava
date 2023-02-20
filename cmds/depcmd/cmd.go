@@ -9,10 +9,10 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/pkg/cmdx"
 )
 
@@ -39,7 +39,7 @@ func New() *cli.Command {
 
 			switch typ {
 			case "":
-				dt := assert.Must1(json.MarshalIndent(runmode.GetVersion(), "", "\t"))
+				dt := assert.Must1(json.MarshalIndent(runmode.GetSysInfo(), "", "\t"))
 				fmt.Println(string(dt))
 			case "json":
 				dt := assert.Must1(json.MarshalIndent(info, "", "\t"))

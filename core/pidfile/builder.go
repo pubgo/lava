@@ -11,12 +11,10 @@ import (
 
 func New() lifecycle.Handler {
 	return func(lc lifecycle.Lifecycle) {
-		pidPath = filepath.Join(config.CfgDir, "pidfile")
+		pidPath = filepath.Join(config.CfgDir, Name)
 
 		_ = pathutil.IsNotExistMkDir(pidPath)
 
-		lc.AfterStart(func() {
-			assert.Must(SavePid())
-		})
+		lc.AfterStart(func() { assert.Must(SavePid()) })
 	}
 }

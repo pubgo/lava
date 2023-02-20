@@ -7,8 +7,9 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v3"
+	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/cmds/depcmd"
 	"github.com/pubgo/lava/cmds/grpcservercmd"
@@ -17,7 +18,6 @@ import (
 	"github.com/pubgo/lava/cmds/migratecmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/core/runmode"
 
 	// 加载插件
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
@@ -37,7 +37,7 @@ func Run(cmdL ...*cli.Command) {
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
 		Commands:               append(cmdL, versioncmd.New(), migratecmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New(), httpservercmd.New()),
-		ExtraInfo:              runmode.GetVersion,
+		ExtraInfo:              runmode.GetSysInfo,
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

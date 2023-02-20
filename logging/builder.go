@@ -5,10 +5,10 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/runmode"
 	"github.com/rs/zerolog"
 	zl "github.com/rs/zerolog/log"
 
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/logging/logconfig"
 	"github.com/pubgo/lava/logging/logext"
 	"github.com/pubgo/lava/logging/logkey"
@@ -42,6 +42,7 @@ func New(cfg *logconfig.Config, logs []logext.ExtLog) log.Logger {
 		Str(logkey.Hostname, runmode.Hostname).
 		Str(logkey.Project, runmode.Project).
 		Str(logkey.Version, runmode.Version)
+
 	if runmode.Namespace != "" {
 		ee = ee.Str(logkey.Namespace, runmode.Namespace)
 	}

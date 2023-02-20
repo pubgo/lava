@@ -16,21 +16,5 @@ type HttpRouter interface {
 	Init()
 	Middlewares() []Middleware
 	Router(app *fiber.App)
-	Openapi(swagger *opendoc.Service)
-}
-
-type HttpApiRouter interface {
-	ApiRouter(app *fiber.App)
-}
-
-type HttpDebugRouter interface {
-	ApiRouter(app *fiber.App)
-}
-
-type HttpInternalRouter interface {
-	ApiRouter(app *fiber.App)
-}
-
-type HttpAdminRouter interface {
-	ApiRouter(app *fiber.App)
+	Openapi(swag *opendoc.Swagger)
 }

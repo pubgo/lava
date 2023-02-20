@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
-
-	"github.com/pubgo/lava/core/runmode"
 )
 
 func New() *cli.Command {
@@ -21,7 +20,6 @@ func New() *cli.Command {
 			fmt.Println("version:", version.Version())
 			fmt.Println("commit-id:", version.CommitID())
 			fmt.Println("build-time:", version.BuildTime())
-			fmt.Println("device-id:", runmode.DeviceID)
 			fmt.Println("instance-id:", runmode.InstanceID)
 			return nil
 		},

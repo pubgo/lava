@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/funk/runmode"
 )
 
 var Name = "gc"

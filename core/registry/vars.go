@@ -1,8 +1,8 @@
 package registry
 
 import (
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/vars"
-	"github.com/pubgo/lava/core/runmode"
 )
 
 func init() {

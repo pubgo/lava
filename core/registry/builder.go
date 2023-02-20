@@ -12,11 +12,11 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
 	"go.uber.org/zap"
 
 	"github.com/pubgo/funk/lifecycle"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 

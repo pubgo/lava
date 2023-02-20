@@ -2,7 +2,6 @@ package pidfile
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -10,12 +9,12 @@ import (
 
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/funk/runmode"
 )
 
 const Name = "pidfile"
 
-var pidPath = filepath.Join(config.CfgDir, "pidfile")
+var pidPath = filepath.Join(config.CfgDir, Name)
 
 const pidPerm os.FileMode = 0666
 
@@ -25,7 +24,7 @@ func GetPid() result.Result[int] {
 		return result.Err[int](f.Err())
 	}
 
-	p, err := ioutil.ReadFile(f.Unwrap())
+	p, err := os.ReadFile(f.Unwrap())
 	if err != nil {
 		return result.Wrap(0, err)
 	}
@@ -45,5 +44,5 @@ func SavePid() error {
 	}
 
 	pid := syscall.Getpid()
-	return ioutil.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm)
+	return os.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm)
 }

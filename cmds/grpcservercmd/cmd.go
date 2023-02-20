@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/servers/grpcs"
 )
 
@@ -19,9 +18,7 @@ func New() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 			srv := di.Inject(grpcs.New())
-			srv.Start()
-			signal.Wait()
-			srv.Stop()
+			srv.Run()
 			return nil
 		},
 	}

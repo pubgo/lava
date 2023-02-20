@@ -15,11 +15,11 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
 
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/core/runmode"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/service"
