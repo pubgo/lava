@@ -36,7 +36,7 @@ func New() *cli.Command {
 		Usage: "db migrate",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:        "mid",
+				Name:        "id",
 				Usage:       "migration id",
 				Destination: &id,
 			},

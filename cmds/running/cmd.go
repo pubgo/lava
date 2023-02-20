@@ -1,4 +1,4 @@
-package runcmd
+package running
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ import (
 	_ "github.com/pubgo/lava/modules/gcnotifier"
 )
 
-func Run(cmdL ...*cli.Command) {
+func Main(cmdL ...*cli.Command) {
 	defer recovery.Exit()
 	var app = &cli.App{
 		Name:                   version.Project(),

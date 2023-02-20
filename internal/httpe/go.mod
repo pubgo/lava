@@ -6,14 +6,11 @@ replace github.com/pubgo/lava => ../../
 
 require (
 	github.com/gofiber/fiber/v2 v2.41.0
-	github.com/google/uuid v1.3.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.8
 	github.com/pubgo/funk v0.5.29-4
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/pubgo/opendoc v0.0.2
-	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
-	google.golang.org/grpc v1.51.0
 	gorm.io/gorm v1.24.5
 )
 
@@ -118,6 +115,7 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
+	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -1,4 +1,4 @@
-package logconfig
+package logging
 
 import (
 	"io"
