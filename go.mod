@@ -48,14 +48,12 @@ require (
 )
 
 require (
-	github.com/dave/jennifer v1.6.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
-	github.com/iancoleman/strcase v0.2.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8
