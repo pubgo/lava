@@ -12,6 +12,7 @@ require (
 	github.com/pubgo/funk v0.5.29-4
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
+	github.com/twitchtv/twirp v8.1.3+incompatible
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1

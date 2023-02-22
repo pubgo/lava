@@ -1,8 +1,10 @@
 package grpcs
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"net"
 	"net/http"
 
@@ -112,6 +114,10 @@ func (s *serviceImpl) DixInject(
 	s.grpcServer = grpcServer
 
 	for _, h := range handlers {
+		h.Middlewares()
+		var mux = runtime.NewServeMux()
+		mux.HandlePath()
+		assert.Must(h.Gateway(context.Background(), mux))
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
