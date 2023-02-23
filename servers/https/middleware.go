@@ -16,53 +16,6 @@ import (
 // DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.
 const DefaultMaxBodyBytes = 256 * 1024
 
-// Fields tags used by tonic.
-const (
-	QueryTag      = "query"
-	PathTag       = "path"
-	HeaderTag     = "header"
-	EnumTag       = "enum"
-	RequiredTag   = "required"
-	DefaultTag    = "default"
-	ValidationTag = "validate"
-	ExplodeTag    = "explode"
-)
-
-const (
-	DEFAULT     = "default"
-	BINDING     = "binding"
-	DESCRIPTION = "description"
-	QUERY       = "query"
-	FORM        = "form"
-	URI         = "uri"
-	HEADER      = "header"
-	COOKIE      = "cookie"
-)
-
-// ParamIn defines parameter location.
-type ParamIn string
-
-const (
-	// ParamInPath indicates path parameters, such as `/users/{id}`.
-	ParamInPath = ParamIn("path")
-
-	// ParamInQuery indicates query parameters, such as `/users?page=10`.
-	ParamInQuery = ParamIn("query")
-
-	// ParamInBody indicates body value, such as `{"id": 10}`.
-	ParamInBody = ParamIn("body")
-
-	// ParamInFormData indicates body form parameters.
-	ParamInFormData = ParamIn("formData")
-
-	// ParamInCookie indicates cookie parameters, which are passed ParamIn the `Cookie` header,
-	// such as `Cookie: debug=0; gdpr=2`.
-	ParamInCookie = ParamIn("cookie")
-
-	// ParamInHeader indicates header parameters, such as `X-Header: value`.
-	ParamInHeader = ParamIn("header")
-)
-
 var parserTypes []fiber.ParserType
 
 func RegParserType(customType interface{}, converter func(string) reflect.Value) {
@@ -98,10 +51,6 @@ func init() {
 }
 
 var validate = validator.New()
-
-func HandlerGet[Req any, Rsp any](app fiber.Router, prefix string, hh func(ctx context.Context, req *Req) (rsp *Rsp, err error), middlewares ...service.Middleware) {
-	app.Get(prefix, handlerHttpMiddle(middlewares), Handler(hh))
-}
 
 func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
 	// TODO check tag
@@ -141,10 +90,10 @@ func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp,
 }
 
 func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
-	var h = func(ctx context.Context, req service.Request, rsp service.Response) error {
+	var h = func(ctx context.Context, req service.Request) (service.Response, error) {
 		var reqCtx = req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
-		return reqCtx.ctx.Next()
+		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -152,6 +101,7 @@ func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) 
 	}
 
 	return func(ctx *fiber.Ctx) error {
-		return h(ctx.Context(), &httpRequest{ctx: ctx}, &httpResponse{ctx: ctx})
+		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
+		return err
 	}
 }

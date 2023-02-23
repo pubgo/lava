@@ -14,22 +14,18 @@ const (
 	defaultContentType = "application/grpc"
 )
 
-type GrpcWebCfg struct {
-}
-
-type Cfg struct {
+type Config struct {
+	PathPrefix string               `yaml:"path-prefix"`
 	Grpc       *grpc_builder.Config `yaml:"grpc-server"`
-	GrpcWeb    *GrpcWebCfg          `yaml:"grpc-web"`
 	PrintRoute bool                 `yaml:"print-route"`
-	BasePrefix string               `yaml:"base-prefix"`
 }
 
 func init() {
-	di.Provide(func(c config.Config) *Cfg {
-		var cfg = Cfg{
+	di.Provide(func(c config.Config) *Config {
+		var cfg = Config{
 			Grpc:       grpc_builder.GetDefaultCfg(),
 			PrintRoute: true,
-			BasePrefix: version.Project(),
+			PathPrefix: version.Project(),
 		}
 
 		assert.Must(c.UnmarshalKey(Name, &cfg))

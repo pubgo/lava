@@ -55,7 +55,7 @@ func (s *serviceImpl) DixInject(
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
 	log log.Logger,
-	cfg *Cfg) {
+	cfg *Config) {
 
 	log = log.WithName("http-server")
 

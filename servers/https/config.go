@@ -14,20 +14,20 @@ const (
 	defaultContentType = "application/json"
 )
 
-type Cfg struct {
+type Config struct {
 	Http       *fiber_builder.Cfg   `yaml:"http"`
 	Ws         *fiber_builder.WsCfg `yaml:"ws"`
 	PrintRoute bool                 `yaml:"print-route"`
-	BasePrefix string               `yaml:"base-prefix"`
+	PathPrefix string               `yaml:"path-prefix"`
 }
 
 func init() {
-	di.Provide(func(c config.Config) *Cfg {
-		var cfg = Cfg{
+	di.Provide(func(c config.Config) *Config {
+		var cfg = Config{
 			Http:       &fiber_builder.Cfg{},
 			Ws:         &fiber_builder.WsCfg{},
 			PrintRoute: true,
-			BasePrefix: version.Project(),
+			PathPrefix: version.Project(),
 		}
 
 		assert.Must(c.UnmarshalKey(Name, &cfg))

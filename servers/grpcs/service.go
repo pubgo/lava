@@ -1,17 +1,15 @@
 package grpcs
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"net"
 	"net/http"
+	"path/filepath"
+	"strings"
 
-	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/debug"
@@ -62,8 +60,10 @@ func (s *serviceImpl) DixInject(
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
 	log log.Logger,
-	cfg *Cfg) {
+	cfg *Config,
+) {
 
+	pathPrefix := "/" + strings.Trim(cfg.PathPrefix, "/")
 	middlewares = append([]service.Middleware{
 		logmiddleware.Middleware(log),
 		requestid.Middleware(),
@@ -72,35 +72,27 @@ func (s *serviceImpl) DixInject(
 
 	log = log.WithName("grpc-server")
 
-	s.lc = getLifecycle
-	s.log = log
-
-	s.httpServer = fiber.New(fiber.Config{
+	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		EnablePrintRoutes:  true,
+		EnablePrintRoutes:  cfg.PrintRoute,
 		AppName:            version.Project(),
 	})
-
-	s.httpServer.Use(cors.New(cors.Config{
+	httpServer.Mount("/debug", debug.App())
+	httpServer.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
 	}))
-	s.httpServer.Mount("/debug", debug.App())
 
 	var srvMidMap = make(map[string][]service.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
 
-		s.initList = append(s.initList, h.Init)
-
-		// TODO 处理middleware
-		if len(srvMidMap[desc.ServiceName]) == 0 {
-			srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
-		}
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
+		s.initList = append(s.initList, h.Init)
 		if m, ok := h.(service.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
@@ -109,40 +101,18 @@ func (s *serviceImpl) DixInject(
 	// grpc server初始化
 	var grpcServer = cfg.Grpc.Build(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
-		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
-	).Unwrap()
-	s.grpcServer = grpcServer
+		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
 	for _, h := range handlers {
-		h.Middlewares()
-		var mux = runtime.NewServeMux()
-		mux.HandlePath()
-		assert.Must(h.Gateway(context.Background(), mux))
+		basePrefix := filepath.Join(pathPrefix, h.ServiceDesc().ServiceName, "*")
+		s.httpServer.Post(basePrefix, handlerTwMiddle(srvMidMap, h.Gateway(nil)))
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	wrappedGrpc := grpcweb.WrapServer(grpcServer,
-		grpcweb.WithWebsockets(true),
-		grpcweb.WithAllowNonRootResource(true),
-		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
-		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
-		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
-
-	var grpcWebPrefix = "/" + version.Project() + "/grpcweb"
-	s.httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
-
-	// 网关初始化
-	if cfg.PrintRoute {
-		for _, stacks := range s.httpServer.Stack() {
-			for _, route := range stacks {
-				log.Info().
-					Str("name", route.Name).
-					Str("path", route.Path).
-					Str("method", route.Method).
-					Msg("service route")
-			}
-		}
-	}
+	s.lc = getLifecycle
+	s.log = log
+	s.httpServer = httpServer
+	s.grpcServer = grpcServer
 }
 
 func (s *serviceImpl) start() {
@@ -163,7 +133,7 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service handler init", func() error {
 		defer recovery.Exit()
 		for _, ii := range s.initList {
-			s.log.Info().Msgf("handler %s", stack.CallerWithFunc(ii))
+			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(ii))
 			ii()
 		}
 		return nil

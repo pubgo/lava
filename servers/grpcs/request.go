@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/service"
 	"google.golang.org/grpc"
+	"path/filepath"
 )
 
 var _ service.Request = (*rpcRequest)(nil)
@@ -37,8 +38,12 @@ type httpRequest struct {
 	ctx *fiber.Ctx
 }
 
-func (r *httpRequest) Kind() string                   { return "http" }
-func (r *httpRequest) Operation() string              { return r.ctx.Route().Path }
+func (r *httpRequest) Kind() string { return "http" }
+func (r *httpRequest) Operation() string {
+	var _, srv, method = parsePath(r.ctx.OriginalURL())
+	return filepath.Join(srv, method)
+}
+
 func (r *httpRequest) Client() bool                   { return false }
 func (r *httpRequest) Header() *service.RequestHeader { return &r.ctx.Request().Header }
 func (r *httpRequest) Payload() interface{}           { return r.ctx.Body() }
@@ -47,6 +52,10 @@ func (r *httpRequest) ContentType() string {
 	return string(r.ctx.Request().Header.ContentType())
 }
 
-func (r *httpRequest) Service() string  { return r.ctx.OriginalURL() }
+func (r *httpRequest) Service() string {
+	var _, srv, _ = parsePath(r.ctx.OriginalURL())
+	return srv
+}
+
 func (r *httpRequest) Endpoint() string { return r.ctx.OriginalURL() }
 func (r *httpRequest) Stream() bool     { return false }

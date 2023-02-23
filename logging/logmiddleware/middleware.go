@@ -26,7 +26,7 @@ const Name = "accesslog"
 func Middleware(logger log.Logger) service.Middleware {
 	logger = logger.WithName(Name)
 	return func(next service.HandlerFunc) service.HandlerFunc {
-		return func(ctx context.Context, req service.Request, resp service.Response) (gErr error) {
+		return func(ctx context.Context, req service.Request) (rsp service.Response, gErr error) {
 			now := time.Now()
 
 			var evt = log.NewEvent()
@@ -58,11 +58,11 @@ func Middleware(logger log.Logger) service.Middleware {
 
 				// TODO type assert
 				reqBody := fmt.Sprintf("%v", req.Payload())
-				rspBody := fmt.Sprintf("%v", resp.Payload())
+				rspBody := fmt.Sprintf("%v", rsp.Payload())
 				evt.Str("req_body", reqBody)
 				evt.Str("rsp_body", rspBody)
 				evt.Any("req_header", req.Header())
-				evt.Any("rsp_header", resp.Header())
+				evt.Any("rsp_header", rsp.Header())
 
 				// 持续时间, 毫秒
 				evt.Str("dur", time.Since(now).String())
@@ -77,17 +77,17 @@ func Middleware(logger log.Logger) service.Middleware {
 			}()
 
 			if !req.Client() {
-				resp.Header().Set("Access-Control-Allow-Credentials", "true")
-				resp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-				resp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
+				rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
 			}
 
 			// 集成logger到context
 			ctxLog := logger.WithFields(log.Map{"tracerId": tracerID, "spanId": spanID, "requestId": reqId})
-			gErr = next(ctxLog.WithCtx(ctx), req, resp)
+			rsp, gErr = next(ctxLog.WithCtx(ctx), req)
 			var errPb = errutil.ParseError(gErr)
 			errPb.Operation = req.Operation()
-			return assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
+			return rsp, assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
 		}
 	}
 }

@@ -1,7 +1,7 @@
 app:
   addr: ":8080"
   debug: true
-service:
+server:
   middlewares:
     - accesslog
   print-route: true

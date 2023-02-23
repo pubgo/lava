@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
@@ -30,8 +29,8 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Gateway(ctx context.Context, mux *runtime.ServeMux) error {
-	return gidpb.RegisterIdHandlerServer(ctx, mux, id)
+func (id *Id) Gateway(opts []interface{}) service.TwirpServer {
+	return gidpb.NewIdServer(id, opts...)
 }
 
 func (id *Id) Middlewares() []service.Middleware {
