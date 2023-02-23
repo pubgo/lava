@@ -79,7 +79,7 @@ func WrapHandler[Req any, Rsp any](handle func(ctx context.Context, req *Req) (r
 			return fmt.Errorf("failed to validate request, err:%w", err)
 		}
 
-		var rsp, err = handle(ctx.Context(), &req)
+		var rsp, err = handle(ctx.UserContext(), &req)
 		if err != nil {
 			return err
 		}

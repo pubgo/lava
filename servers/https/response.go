@@ -11,7 +11,6 @@ type httpResponse struct {
 	ctx *fiber.Ctx
 }
 
-func (h *httpResponse) Write(p []byte) (n int, err error) { return h.ctx.Write(p) }
-func (h *httpResponse) Header() *service.ResponseHeader   { return &h.ctx.Response().Header }
-func (h *httpResponse) Payload() interface{}              { return h.ctx.Response().Body() }
-func (h *httpResponse) Stream() bool                      { return false }
+func (h *httpResponse) Header() *service.ResponseHeader { return &h.ctx.Response().Header }
+func (h *httpResponse) Payload() interface{}            { return h.ctx.Response().Body() }
+func (h *httpResponse) Stream() bool                    { return false }
