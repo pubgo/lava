@@ -1,4 +1,4 @@
-package service
+package lava
 
 type Init interface {
 	Init()

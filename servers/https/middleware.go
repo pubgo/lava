@@ -9,7 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc/codes"
 )
 
@@ -89,8 +89,8 @@ func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp,
 	}
 }
 
-func handlerHttpMiddle(middlewares []service.Middleware) func(fbCtx *fiber.Ctx) error {
-	var h = func(ctx context.Context, req service.Request) (service.Response, error) {
+func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
+	var h = func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		var reqCtx = req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
 		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()

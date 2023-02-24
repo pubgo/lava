@@ -10,7 +10,7 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/service"
+	service "github.com/pubgo/lava/lava"
 	"github.com/pubgo/opendoc/opendoc"
 )
 
@@ -28,8 +28,11 @@ func (id *Id) Router(app *fiber.App) {
 }
 
 func (id *Id) Openapi(swag *opendoc.Swagger) {
-	swag.ServiceOf("sss", func(srv *opendoc.Service) {
-
+	swag.ServiceOf("http", func(srv *opendoc.Service) {
+		srv.GetOf(func(op *opendoc.Operation) {
+			op.SetModel()
+			op.SetPath()
+		})
 	})
 }
 

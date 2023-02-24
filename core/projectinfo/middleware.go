@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/service"
 )
 
-func Middleware() service.Middleware {
-	return func(next service.HandlerFunc) service.HandlerFunc {
-		return func(ctx context.Context, req service.Request, rsp service.Response) (gErr error) {
+func Middleware() lava.Middleware {
+	return func(next lava.HandlerFunc) lava.HandlerFunc {
+		return func(ctx context.Context, req lava.Request) (lava.Response, error) {
 			req.Header().Set(httputil.HeaderXRequestProject, version.Project())
 			req.Header().Set(httputil.HeaderXRequestVersion, version.Version())
-			return next(ctx, req, rsp)
+			return next(ctx, req)
 		}
 	}
 }

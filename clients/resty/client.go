@@ -14,17 +14,17 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/service"
 )
 
-func New(cfg *Config, log log.Logger, mm ...service.Middleware) Client {
+func New(cfg *Config, log log.Logger, mm ...lava.Middleware) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
-	return cfg.Build(append([]service.Middleware{
+	return cfg.Build(append([]lava.Middleware{
 		logmiddleware.Middleware(log),
-		requestid.Middleware(),
+		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}, mm...)).Unwrap()
 }
@@ -35,7 +35,7 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	client *fasthttp.Client
 	cfg    Config
-	do     service.HandlerFunc
+	do     lava.HandlerFunc
 }
 
 func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {

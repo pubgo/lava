@@ -13,14 +13,14 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/lava"
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/internal/example/pkg/proto/gidpb"
 )
 
-var _ service.GrpcHandler = (*Id)(nil)
+var _ lava.GrpcHandler = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
@@ -29,11 +29,11 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Gateway(opts []interface{}) service.TwirpServer {
+func (id *Id) Gateway(opts []interface{}) lava.TwirpServer {
 	return gidpb.NewIdServer(id, opts...)
 }
 
-func (id *Id) Middlewares() []service.Middleware {
+func (id *Id) Middlewares() []lava.Middleware {
 	return nil
 }
 

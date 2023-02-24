@@ -2,11 +2,11 @@ package resty
 
 import (
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/lava"
 	"github.com/valyala/fasthttp"
 )
 
-var _ service.Request = (*Request)(nil)
+var _ lava.Request = (*Request)(nil)
 
 type Request struct {
 	req     *fasthttp.Request
@@ -20,7 +20,7 @@ func (r *Request) Kind() string                   { return Name }
 func (r *Request) Client() bool                   { return true }
 func (r *Request) Service() string                { return r.service }
 func (r *Request) Endpoint() string               { return utils.UnsafeString(r.req.URI().Path()) }
-func (r *Request) ContentType() string            { return r.ct }
-func (r *Request) Header() *service.RequestHeader { return &r.req.Header }
-func (r *Request) Payload() interface{}           { return r.data }
+func (r *Request) ContentType() string         { return r.ct }
+func (r *Request) Header() *lava.RequestHeader { return &r.req.Header }
+func (r *Request) Payload() interface{}        { return r.data }
 func (r *Request) Stream() bool                   { return false }

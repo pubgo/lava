@@ -1,4 +1,4 @@
-package service
+package lava
 
 import (
 	"github.com/valyala/fasthttp"

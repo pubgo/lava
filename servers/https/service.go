@@ -19,19 +19,19 @@ import (
 	"github.com/pubgo/funk/stack"
 
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"github.com/pubgo/lava/service"
 )
 
-func New() service.Service { return newService() }
+func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{}
 }
 
-var _ service.Service = (*serviceImpl)(nil)
+var _ lava.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
@@ -50,8 +50,8 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
-	handlers []service.HttpRouter,
-	middlewares []service.Middleware,
+	handlers []lava.HttpRouter,
+	middlewares []lava.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
 	log log.Logger,
@@ -75,7 +75,7 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 
-	var defaultMiddlewares = []service.Middleware{logmiddleware.Middleware(log), requestid.Middleware(), projectinfo.Middleware()}
+	var defaultMiddlewares = []lava.Middleware{logmiddleware.Middleware(log), tracing.Middleware(), projectinfo.Middleware()}
 	middlewares = append(defaultMiddlewares, middlewares...)
 
 	for _, h := range handlers {
@@ -84,7 +84,7 @@ func (s *serviceImpl) DixInject(
 
 		h.Router(app)
 
-		if m, ok := h.(service.Close); ok {
+		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}

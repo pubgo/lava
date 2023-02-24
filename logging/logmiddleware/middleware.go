@@ -6,27 +6,22 @@ import (
 	"time"
 
 	"github.com/gofiber/utils"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/tracing"
 	"github.com/pubgo/funk/version"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"github.com/pubgo/lava/core/requestid"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/lava"
 )
 
 const Name = "accesslog"
 
-func Middleware(logger log.Logger) service.Middleware {
+var errTimeout = errors.New("grpc server response timeout")
+
+func Middleware(logger log.Logger) lava.Middleware {
 	logger = logger.WithName(Name)
-	return func(next service.HandlerFunc) service.HandlerFunc {
-		return func(ctx context.Context, req service.Request) (rsp service.Response, gErr error) {
+	return func(next lava.HandlerFunc) lava.HandlerFunc {
+		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			now := time.Now()
 
 			var evt = log.NewEvent()
@@ -35,11 +30,8 @@ func Middleware(logger log.Logger) service.Middleware {
 				evt.Str("referer", referer)
 			}
 
-			var reqId = requestid.Ctx(ctx)
-			var tracerID, spanID = tracing.Ctx(ctx).SpanID()
-			evt.Str("requestId", reqId)
-			evt.Str("tracerId", tracerID)
-			evt.Str("spanId", spanID)
+			var reqId = tracing.RequestID(ctx)
+			evt.Str("request_id", reqId)
 			evt.Int64("start_time", now.UnixMicro())
 			evt.Str("service", req.Service())
 			evt.Str("operation", req.Operation())
@@ -49,13 +41,6 @@ func Middleware(logger log.Logger) service.Middleware {
 
 			// 错误和panic处理
 			defer func() {
-				if c := errutil.ParseError(errors.Parse(recover())); c != nil {
-					c.Operation = req.Operation()
-					c.Name = "lava.middleware.panic"
-					c.Code = uint32(errorpb.Code_Internal)
-					gErr = errutil.ConvertErr2Status(c).Err()
-				}
-
 				// TODO type assert
 				reqBody := fmt.Sprintf("%v", req.Payload())
 				rspBody := fmt.Sprintf("%v", rsp.Payload())
@@ -65,12 +50,18 @@ func Middleware(logger log.Logger) service.Middleware {
 				evt.Any("rsp_header", rsp.Header())
 
 				// 持续时间, 毫秒
-				evt.Str("dur", time.Since(now).String())
-				evt.Int64("dur_ms", time.Since(now).Milliseconds())
+				latency := time.Since(now)
+				evt.Dur("latency", latency)
+				evt.Str("user_agent", string(req.Header().UserAgent()))
 
 				// 记录错误日志
 				if generic.IsNil(gErr) {
-					logger.Info().Func(log.WithEvent(evt)).Msg(req.Endpoint())
+					// Record requests with a timeout of 200 milliseconds
+					if latency > time.Millisecond*200 {
+						logger.Err(errTimeout).Func(log.WithEvent(evt)).Msg(req.Endpoint())
+					} else {
+						logger.Info().Func(log.WithEvent(evt)).Msg(req.Endpoint())
+					}
 				} else {
 					logger.Err(gErr).Func(log.WithEvent(evt)).Msg(req.Endpoint())
 				}
@@ -83,11 +74,9 @@ func Middleware(logger log.Logger) service.Middleware {
 			}
 
 			// 集成logger到context
-			ctxLog := logger.WithFields(log.Map{"tracerId": tracerID, "spanId": spanID, "requestId": reqId})
-			rsp, gErr = next(ctxLog.WithCtx(ctx), req)
-			var errPb = errutil.ParseError(gErr)
-			errPb.Operation = req.Operation()
-			return rsp, assert.Must1(status.New(codes.Code(errPb.Code), errPb.ErrMsg).WithDetails(errPb)).Err()
+			ctx = logger.WithFields(log.Map{"request_id": reqId}).WithCtx(ctx)
+			rsp, gErr = next(ctx, req)
+			return
 		}
 	}
 }

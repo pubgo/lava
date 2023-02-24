@@ -1,4 +1,4 @@
-package validate
+package lava
 
 type Validator interface {
 	Validate() error

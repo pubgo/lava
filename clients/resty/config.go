@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/lava"
 	"github.com/valyala/fasthttp"
 )
 
@@ -34,7 +34,7 @@ type Config struct {
 	tlsConfig *tls.Config
 }
 
-func (t *Config) Build(mm []service.Middleware) (r result.Result[Client]) {
+func (t *Config) Build(mm []lava.Middleware) (r result.Result[Client]) {
 	defer recovery.Result(&r)
 
 	if t.Timeout != 0 {
@@ -42,7 +42,7 @@ func (t *Config) Build(mm []service.Middleware) (r result.Result[Client]) {
 	}
 
 	var client = &clientImpl{client: &fasthttp.Client{Name: version.Project(), ReadTimeout: t.Timeout, WriteTimeout: t.Timeout}}
-	client.do = func(ctx context.Context, req service.Request, resp service.Response) error {
+	client.do = func(ctx context.Context, req lava.Request, resp lava.Response) error {
 		return client.client.Do(req.(*Request).req, resp.(*Response).resp)
 	}
 

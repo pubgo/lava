@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/service"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -24,14 +24,14 @@ func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
 	}
 }
 
-func head2md(header *service.RequestHeader, md metadata.MD) {
+func head2md(header *lava.RequestHeader, md metadata.MD) {
 	header.VisitAll(func(key, value []byte) {
 		md.Append(convert.BtoS(key), convert.BtoS(value))
 	})
 }
 
-func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req service.Request, rsp service.Response) error {
+func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor {
+	var unaryWrapper = func(ctx context.Context, req lava.Request, rsp lava.Response) error {
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -102,13 +102,13 @@ func unaryInterceptor(middlewares []service.Middleware) grpc.UnaryClientIntercep
 				cc:      cc,
 				invoker: invoker,
 			},
-			&response{resp: reply, header: new(service.ResponseHeader)},
+			&response{resp: reply, header: new(lava.ResponseHeader)},
 		)
 	}
 }
 
-func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req service.Request, rsp service.Response) error {
+func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientInterceptor {
+	wrapperStream := func(ctx context.Context, req lava.Request, rsp lava.Response) error {
 		var reqCtx = req.(*request)
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
@@ -175,7 +175,7 @@ func streamInterceptor(middlewares []service.Middleware) grpc.StreamClientInterc
 				method:   method,
 				streamer: streamer,
 			},
-			&response{header: new(service.ResponseHeader)},
+			&response{header: new(lava.ResponseHeader)},
 		)
 	}
 }

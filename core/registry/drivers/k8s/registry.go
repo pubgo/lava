@@ -11,10 +11,10 @@ import (
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
+	"github.com/pubgo/lava/internal/consts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/pubgo/lava/consts"
 	"github.com/pubgo/lava/core/registry"
 	"github.com/pubgo/lava/pkg/k8sutil"
 )

@@ -23,19 +23,19 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/requestid"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"github.com/pubgo/lava/service"
 )
 
-func New() service.Service { return newService() }
+func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{}
 }
 
-var _ service.Service = (*serviceImpl)(nil)
+var _ lava.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.GetLifecycle
@@ -55,8 +55,8 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
-	handlers []service.GrpcHandler,
-	middlewares []service.Middleware,
+	handlers []lava.GrpcHandler,
+	middlewares []lava.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
 	log log.Logger,
@@ -64,9 +64,9 @@ func (s *serviceImpl) DixInject(
 ) {
 
 	pathPrefix := "/" + strings.Trim(cfg.PathPrefix, "/")
-	middlewares = append([]service.Middleware{
+	middlewares = append([]lava.Middleware{
 		logmiddleware.Middleware(log),
-		requestid.Middleware(),
+		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}, middlewares...)
 
@@ -84,7 +84,7 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
-	var srvMidMap = make(map[string][]service.Middleware)
+	var srvMidMap = make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
@@ -93,7 +93,7 @@ func (s *serviceImpl) DixInject(
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
 		s.initList = append(s.initList, h.Init)
-		if m, ok := h.(service.Close); ok {
+		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}

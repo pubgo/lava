@@ -14,19 +14,19 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/requestid"
+	"github.com/pubgo/lava/core/tracing"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"github.com/pubgo/lava/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func New(cfg *grpcc_config.Cfg, log log.Logger) Interface {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
-	var c = &clientImpl{cfg: cfg, log: log, middlewares: []service.Middleware{
+	var c = &clientImpl{cfg: cfg, log: log, middlewares: []lava.Middleware{
 		logmiddleware.Middleware(log),
-		requestid.Middleware(),
+		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}}
 
@@ -42,10 +42,10 @@ type clientImpl struct {
 	cfg         *grpcc_config.Cfg
 	mu          sync.Mutex
 	conn        grpc.ClientConnInterface
-	middlewares []service.Middleware
+	middlewares []lava.Middleware
 }
 
-func (t *clientImpl) Middleware(mm ...service.Middleware) {
+func (t *clientImpl) Middleware(mm ...lava.Middleware) {
 	t.middlewares = append(t.middlewares, mm...)
 }
 
@@ -126,7 +126,7 @@ func buildTarget(cfg *grpcc_config.Cfg) string {
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []service.Middleware) (grpc.ClientConnInterface, error) {
+func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (grpc.ClientConnInterface, error) {
 	// 创建grpc client
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
 	defer cancel()

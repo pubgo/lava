@@ -22,7 +22,7 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.4.0
+	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.4.0
@@ -54,8 +54,6 @@ require (
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
-	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8
 	github.com/pubgo/funk v0.5.29-4
@@ -63,7 +61,6 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
-	github.com/twitchtv/twirp v8.1.3+incompatible
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.43.0
 	github.com/yuin/goldmark v1.4.13
@@ -76,11 +73,9 @@ require (
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/getkin/kin-openapi v0.98.0 // indirect
@@ -121,13 +116,14 @@ require (
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rs/cors v1.8.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/twmb/murmur3 v1.1.5 // indirect
+	github.com/uber-go/tally/v4 v4.1.5 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -154,7 +150,6 @@ require (
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
-	nhooyr.io/websocket v1.8.6 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

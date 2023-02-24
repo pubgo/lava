@@ -1,13 +1,15 @@
 package grpcs
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/service"
-	"google.golang.org/grpc"
 	"path/filepath"
+
+	"github.com/gofiber/fiber/v2"
+	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/lava"
 )
 
-var _ service.Request = (*rpcRequest)(nil)
+var _ lava.Request = (*rpcRequest)(nil)
 
 type rpcRequest struct {
 	handler       grpc.UnaryHandler
@@ -18,21 +20,21 @@ type rpcRequest struct {
 	method        string
 	url           string
 	contentType   string
-	header        *service.RequestHeader
+	header        *lava.RequestHeader
 	payload       interface{}
 }
 
-func (r *rpcRequest) Kind() string                   { return "grpc" }
-func (r *rpcRequest) Client() bool                   { return false }
-func (r *rpcRequest) Header() *service.RequestHeader { return r.header }
-func (r *rpcRequest) Payload() interface{}           { return r.payload }
-func (r *rpcRequest) ContentType() string            { return r.contentType }
-func (r *rpcRequest) Service() string                { return r.service }
-func (r *rpcRequest) Operation() string              { return r.method }
-func (r *rpcRequest) Endpoint() string               { return r.url }
-func (r *rpcRequest) Stream() bool                   { return r.stream != nil }
+func (r *rpcRequest) Kind() string                { return "grpc" }
+func (r *rpcRequest) Client() bool                { return false }
+func (r *rpcRequest) Header() *lava.RequestHeader { return r.header }
+func (r *rpcRequest) Payload() interface{}        { return r.payload }
+func (r *rpcRequest) ContentType() string         { return r.contentType }
+func (r *rpcRequest) Service() string             { return r.service }
+func (r *rpcRequest) Operation() string           { return r.method }
+func (r *rpcRequest) Endpoint() string            { return r.url }
+func (r *rpcRequest) Stream() bool                { return r.stream != nil }
 
-var _ service.Request = (*httpRequest)(nil)
+var _ lava.Request = (*httpRequest)(nil)
 
 type httpRequest struct {
 	ctx *fiber.Ctx
@@ -44,9 +46,9 @@ func (r *httpRequest) Operation() string {
 	return filepath.Join(srv, method)
 }
 
-func (r *httpRequest) Client() bool                   { return false }
-func (r *httpRequest) Header() *service.RequestHeader { return &r.ctx.Request().Header }
-func (r *httpRequest) Payload() interface{}           { return r.ctx.Body() }
+func (r *httpRequest) Client() bool                { return false }
+func (r *httpRequest) Header() *lava.RequestHeader { return &r.ctx.Request().Header }
+func (r *httpRequest) Payload() interface{}        { return r.ctx.Body() }
 
 func (r *httpRequest) ContentType() string {
 	return string(r.ctx.Request().Header.ContentType())

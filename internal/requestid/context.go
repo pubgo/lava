@@ -21,7 +21,7 @@ func Ctx(ctx context.Context) string {
 	return xid.New().String()
 }
 
-func getReqID(ctx context.Context) string {
+func GetReqID(ctx context.Context) string {
 	var reqId, ok = ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
