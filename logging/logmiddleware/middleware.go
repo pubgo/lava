@@ -3,6 +3,7 @@ package logmiddleware
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/middlewares"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -10,7 +11,6 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/lava"
 )
 
@@ -30,7 +30,7 @@ func Middleware(logger log.Logger) lava.Middleware {
 				evt.Str("referer", referer)
 			}
 
-			var reqId = tracing.RequestID(ctx)
+			var reqId = middlewares.RequestID(ctx)
 			evt.Str("request_id", reqId)
 			evt.Int64("start_time", now.UnixMicro())
 			evt.Str("service", req.Service())

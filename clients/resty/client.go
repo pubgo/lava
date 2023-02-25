@@ -14,7 +14,6 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -24,7 +23,6 @@ func New(cfg *Config, log log.Logger, mm ...lava.Middleware) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
 	return cfg.Build(append([]lava.Middleware{
 		logmiddleware.Middleware(log),
-		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}, mm...)).Unwrap()
 }
@@ -43,15 +41,15 @@ func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fas
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
-	var request = &Request{service: version.Project(), req: req}
+	var request = &requestImpl{service: version.Project(), req: req}
 	request.req = req
 	request.ct = filterFlags(convert.BtoS(req.Header.ContentType()))
 	request.data = req.Body()
-	var resp = &Response{resp: fasthttp.AcquireResponse()}
-	if err := c.do(ctx, request, resp); err != nil {
+	resp, err := c.do(ctx, request)
+	if err != nil {
 		return r.WithErr(err)
 	}
-	return r.WithVal(resp.resp)
+	return r.WithVal(resp.(*responseImpl).resp)
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {

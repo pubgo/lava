@@ -9,6 +9,7 @@ import (
 var _ lava.Request = (*request)(nil)
 
 type request struct {
+	resp     grpc.ClientStream
 	ct       string
 	opts     []grpc.CallOption
 	method   string
@@ -21,12 +22,12 @@ type request struct {
 	header   *lava.RequestHeader
 }
 
-func (r *request) Operation() string              { return r.method }
-func (r *request) Kind() string                   { return grpcc_config.Name }
-func (r *request) Client() bool                   { return true }
-func (r *request) Service() string                { return r.service }
-func (r *request) Endpoint() string               { return r.method }
+func (r *request) Operation() string           { return r.method }
+func (r *request) Kind() string                { return grpcc_config.Name }
+func (r *request) Client() bool                { return true }
+func (r *request) Service() string             { return r.service }
+func (r *request) Endpoint() string            { return r.method }
 func (r *request) ContentType() string         { return r.ct }
 func (r *request) Header() *lava.RequestHeader { return r.header }
 func (r *request) Payload() interface{}        { return r.req }
-func (r *request) Stream() bool                   { return r.desc != nil }
+func (r *request) Stream() bool                { return r.desc != nil }

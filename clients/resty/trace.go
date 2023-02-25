@@ -33,7 +33,7 @@ type TraceInfo struct {
 	// ServerTime is a duration that server took to respond first byte.
 	ServerTime time.Duration
 
-	// ResponseTime is a duration since first Response byte from server to
+	// ResponseTime is a duration since first responseImpl byte from server to
 	// request completion.
 	ResponseTime time.Duration
 
@@ -66,7 +66,7 @@ type TraceInfo struct {
 
 // tracer struct maps the `httptrace.ClientTrace` hooks into Fields
 // with same naming for easy understanding. Plus additional insights
-// Request.
+// requestImpl.
 type clientTrace struct {
 	getConn              time.Time
 	dnsStart             time.Time

@@ -3,7 +3,6 @@ package resty
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/url"
 
 	"github.com/goccy/go-json"
@@ -27,7 +26,7 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 	// deal with it seeking so want it to match here instead of the
 	// io.ReadSeeker case.
 	case *bytes.Reader:
-		buf, err := ioutil.ReadAll(body)
+		buf, err := io.ReadAll(body)
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +39,7 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 			return nil, err
 		}
 
-		buf, err := ioutil.ReadAll(body)
+		buf, err := io.ReadAll(body)
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +47,7 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 
 	// Read all in so we can reset
 	case io.Reader:
-		buf, err := ioutil.ReadAll(body)
+		buf, err := io.ReadAll(body)
 		if err != nil {
 			return nil, err
 		}

@@ -42,8 +42,12 @@ func (t *Config) Build(mm []lava.Middleware) (r result.Result[Client]) {
 	}
 
 	var client = &clientImpl{client: &fasthttp.Client{Name: version.Project(), ReadTimeout: t.Timeout, WriteTimeout: t.Timeout}}
-	client.do = func(ctx context.Context, req lava.Request, resp lava.Response) error {
-		return client.client.Do(req.(*Request).req, resp.(*Response).resp)
+	client.do = func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		var rsp = &responseImpl{resp: fasthttp.AcquireResponse()}
+		if err := client.client.Do(req.(*requestImpl).req, rsp.resp); err != nil {
+			return nil, err
+		}
+		return rsp, nil
 	}
 
 	for i := len(mm); i > 0; i-- {

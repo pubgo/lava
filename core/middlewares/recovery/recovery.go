@@ -11,13 +11,14 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/rs/xid"
+
 	"github.com/pubgo/lava/internal/requestid"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/rs/xid"
 )
 
-func Recovery() lava.Middleware {
+func Middleware() lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			rid := strutil.FirstFnNotEmpty(
@@ -25,7 +26,6 @@ func Recovery() lava.Middleware {
 				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
 				func() string { return xid.New().String() },
 			)
-			req.Header().Set(httputil.HeaderXRequestID, rid)
 
 			defer func() {
 				if recovery := recover(); recovery != nil {
@@ -69,8 +69,12 @@ func Recovery() lava.Middleware {
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}()
 
+			req.Header().Set(httputil.HeaderXRequestID, rid)
 			ctx = requestid.CreateCtx(ctx, rid)
 			rsp, gErr = next(ctx, req)
+			if gErr == nil {
+				rsp.Header().Set(httputil.HeaderXRequestID, rid)
+			}
 			return
 		}
 	}

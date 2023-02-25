@@ -1,4 +1,4 @@
-package middlewares
+package whitelists
 
 import (
 	"io/ioutil"

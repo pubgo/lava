@@ -1,12 +1,17 @@
-package metric_middleware
+package metric
 
 import (
 	"context"
 	"time"
 
 	"github.com/pubgo/funk/metric"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/funk/strutil"
+	"github.com/rs/xid"
 	"github.com/uber-go/tally/v4"
+
+	"github.com/pubgo/lava/internal/requestid"
+	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/httputil"
 )
 
 // grpc metric
@@ -34,20 +39,27 @@ func grpcServerHandlingSecondsCount(m metric.Metric, method string, val time.Dur
 
 func Middleware(m metric.Metric) lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
-		return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
+			var now = time.Now()
+
+			rid := strutil.FirstFnNotEmpty(
+				func() string { return requestid.GetReqID(ctx) },
+				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
+				func() string { return xid.New().String() },
+			)
+
 			grpcServerRpcCallTotal(m, req.Operation())
 
-			var s = time.Now()
-			defer func() {
-				grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(s))
-			}()
-
-			resp, err := next(ctx, req)
-			if err != nil {
+			req.Header().Set(httputil.HeaderXRequestID, rid)
+			ctx = requestid.CreateCtx(ctx, rid)
+			rsp, gErr = next(ctx, req)
+			if gErr != nil {
 				grpcServerRpcErrTotal(m, req.Operation())
 			}
+			rsp.Header().Set(httputil.HeaderXRequestID, rid)
+			grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
 
-			return resp, nil
+			return rsp, nil
 		}
 	}
 }

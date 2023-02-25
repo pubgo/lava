@@ -5,12 +5,12 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var _ lava.Response = (*Response)(nil)
+var _ lava.Response = (*responseImpl)(nil)
 
-type Response struct {
+type responseImpl struct {
 	resp *fasthttp.Response
 }
 
-func (r *Response) Header() *lava.ResponseHeader { return &r.resp.Header }
-func (r *Response) Payload() interface{}         { return nil }
-func (r *Response) Stream() bool                    { return false }
+func (r *responseImpl) Header() *lava.ResponseHeader { return &r.resp.Header }
+func (r *responseImpl) Payload() interface{}         { return r.resp.Body() }
+func (r *responseImpl) Stream() bool                 { return false }

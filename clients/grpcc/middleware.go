@@ -7,13 +7,14 @@ import (
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/strutil"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/grpcutil"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
@@ -31,7 +32,7 @@ func head2md(header *lava.RequestHeader, md metadata.MD) {
 }
 
 func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req lava.Request, rsp lava.Response) error {
+	var unaryWrapper = func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -40,13 +41,14 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		var trailer = make(metadata.MD)
 		reqCtx.opts = append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
 
-		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, rsp.(*response).resp, reqCtx.cc, reqCtx.opts...); err != nil {
-			return err
+		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.resp, reqCtx.cc, reqCtx.opts...); err != nil {
+			return nil, err
 		}
 
-		md2Head(header, rsp.(*response).header)
-		md2Head(trailer, rsp.(*response).header)
-		return nil
+		rsp := &response{resp: reqCtx.resp, header: new(lava.ResponseHeader)}
+		md2Head(header, rsp.header)
+		md2Head(trailer, rsp.header)
+		return rsp, nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -91,24 +93,22 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		var header = &fasthttp.RequestHeader{}
 		md2Head(md, header)
 
-		return unaryWrapper(ctx,
-			&request{
-				ct:      ct,
-				header:  header,
-				service: serviceFromMethod(method),
-				opts:    opts,
-				method:  method,
-				req:     req,
-				cc:      cc,
-				invoker: invoker,
-			},
-			&response{resp: reply, header: new(lava.ResponseHeader)},
-		)
+		_, err = unaryWrapper(ctx, &request{
+			ct:      ct,
+			header:  header,
+			service: serviceFromMethod(method),
+			opts:    opts,
+			method:  method,
+			req:     req,
+			cc:      cc,
+			invoker: invoker,
+		})
+		return err
 	}
 }
 
 func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientInterceptor {
-	wrapperStream := func(ctx context.Context, req lava.Request, rsp lava.Response) error {
+	wrapperStream := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		var reqCtx = req.(*request)
 		var md = make(metadata.MD)
 		head2md(req.Header(), md)
@@ -116,10 +116,10 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		stream, err := reqCtx.streamer(ctx, reqCtx.desc, reqCtx.cc, reqCtx.method, reqCtx.opts...)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		rsp.(*response).stream = stream
-		return nil
+
+		return &response{header: new(lava.ResponseHeader), stream: stream}, nil
 	}
 
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -163,8 +163,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 
 		var header = &fasthttp.RequestHeader{}
 		md2Head(md, header)
-
-		return nil, wrapperStream(ctx,
+		rsp, err := wrapperStream(ctx,
 			&request{
 				ct:       ct,
 				service:  serviceFromMethod(method),
@@ -175,8 +174,9 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 				method:   method,
 				streamer: streamer,
 			},
-			&response{header: new(lava.ResponseHeader)},
 		)
+
+		return rsp.(*response).stream, err
 	}
 }
 
