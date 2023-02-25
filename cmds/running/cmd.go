@@ -22,6 +22,7 @@ import (
 	// 加载插件
 	_ "github.com/pubgo/lava/core/registry/drivers/mdns"
 	_ "github.com/pubgo/lava/encoding/protobuf"
+	_ "github.com/pubgo/lava/encoding/protojson"
 	_ "github.com/pubgo/lava/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/modules/automaxprocs"
 	_ "github.com/pubgo/lava/modules/gcnotifier"

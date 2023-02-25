@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/result"
 )
 
-type Cfg struct {
+type Config struct {
 	Prefork       bool   `yaml:"prefork"`
 	ServerHeader  string `yaml:"server_header"`
 	StrictRouting bool   `yaml:"strict_routing"`
@@ -40,7 +40,7 @@ type Cfg struct {
 	ReduceMemoryUsage         bool          `yaml:"reduce_memory_usage"`
 }
 
-func (t *Cfg) Build() (r result.Result[*fiber.App]) {
+func (t *Config) Build() (r result.Result[*fiber.App]) {
 	defer recovery.Result(&r)
 	fc := merge.Struct(fiber.New().Config(), &t).Unwrap()
 	if t.Templates.Dir != "" && t.Templates.Ext != "" {

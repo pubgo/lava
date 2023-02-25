@@ -6,14 +6,9 @@ import (
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
+	"github.com/pubgo/lava/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-)
-
-const (
-	DefaultContentType = "application/grpc"
-	DefaultMaxMsgSize  = 1024 * 1024 * 4
-	DefaultTimeout     = time.Second * 2
 )
 
 type KeepaliveParams struct {
@@ -75,25 +70,25 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]
 	opts = append(t.BuildOpts(), opts...)
 	var srv = grpc.NewServer(opts...)
 
-	EnableReflection(srv)
-	EnableHealth("", srv)
-	EnableDebug(srv)
+	grpcutil.EnableReflection(srv)
+	grpcutil.EnableHealth("", srv)
+	grpcutil.EnableDebug(srv)
 	return r.WithVal(srv)
 }
 
 func GetDefaultCfg() *Config {
 	return &Config{
-		MaxRecvMsgSize:    DefaultMaxMsgSize,
-		MaxSendMsgSize:    DefaultMaxMsgSize,
+		MaxRecvMsgSize:    grpcutil.DefaultMaxMsgSize,
+		MaxSendMsgSize:    grpcutil.DefaultMaxMsgSize,
 		WriteBufferSize:   32 * 1024,
 		ReadBufferSize:    32 * 1024,
 		ConnectionTimeout: 120 * time.Second,
 		KeepaliveParams: KeepaliveParams{
-			MaxConnectionIdle:     30 * time.Second, // If a client is idle for 15 seconds, send a GOAWAY
-			MaxConnectionAge:      55 * time.Second, // If any connection is alive for more than 30 seconds, send a GOAWAY
-			MaxConnectionAgeGrace: 5 * time.Second,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
-			Time:                  10 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-			Timeout:               2 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
+			MaxConnectionIdle:     30 * time.Second,        // If a client is idle for 15 seconds, send a GOAWAY
+			MaxConnectionAge:      55 * time.Second,        // If any connection is alive for more than 30 seconds, send a GOAWAY
+			MaxConnectionAgeGrace: 5 * time.Second,         // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
+			Time:                  10 * time.Second,        // Ping the client if it is idle for 5 seconds to ensure the connection is still active
+			Timeout:               grpcutil.DefaultTimeout, // Wait 1 second for the ping ack before assuming the connection is dead
 		},
 		KeepalivePolicy: KeepalivePolicy{
 			MinTime:             5 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection

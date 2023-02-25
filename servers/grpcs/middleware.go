@@ -102,11 +102,11 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		delete(md, "x-content-type")
 
 		// get peer from context
-		if p := grpcutil.GetClientIP(md); p != "" {
+		if p := grpcutil.ClientIP(md); p != "" {
 			md.Set("remote-ip", p)
 		}
 
-		if p := grpcutil.GetClientName(md); p != "" {
+		if p := grpcutil.ClientName(md); p != "" {
 			md.Set("remote-name", p)
 		}
 
