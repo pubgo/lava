@@ -20,7 +20,7 @@ import (
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
-func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
+func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	var cfg = DefaultCfg()
 
 	// 配置解析

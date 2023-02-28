@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 
@@ -24,7 +25,14 @@ const (
 	zeroconfInstance = "lava"
 )
 
-func New(cfg Cfg, log log.Logger) registry.Registry {
+func New(conf *registry.Config, log log.Logger) registry.Registry {
+	if conf.Driver != Name {
+		return nil
+	}
+
+	var cfg Cfg
+	merge.MapStruct(&cfg, conf.DriverCfg).Unwrap()
+
 	resolver, err := zeroconf.NewResolver()
 	assert.MustF(err, "Failed to initialize zeroconf resolver")
 	return &mdnsRegistry{resolver: resolver, cfg: cfg, log: log.WithName(registry.Name).WithName(Name)}

@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/internal/consts"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/internal/consts"
 	"github.com/pubgo/lava/pkg/k8sutil"
 )
 
@@ -74,16 +72,14 @@ const (
 	AnnotationsKeyProtocolMap = "lava-service-protocols"
 )
 
-func init() {
-	di.Provide(func(m config.CfgMap) (_ registry.Registry, err error) {
-		defer recovery.Err(&err)
+func New(c registry.Config) (_ registry.Registry, err error) {
+	defer recovery.Err(&err)
 
-		var cfg Cfg
-		merge.MapStruct(&cfg, m).Unwrap()
+	var cfg Cfg
+	merge.MapStruct(&cfg, c.DriverCfg).Unwrap()
 
-		var client = cfg.Build()
-		return NewRegistry(client), nil
-	})
+	var client = cfg.Build()
+	return NewRegistry(client), nil
 }
 
 // NewRegistry is used to initialize the Registry
