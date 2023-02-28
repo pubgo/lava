@@ -56,11 +56,12 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.8
-	github.com/pubgo/funk v0.5.29-4
+	github.com/pubgo/funk v0.5.29-5
 	github.com/pubgo/opendoc v0.0.2
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
+	github.com/uber-go/tally/v4 v4.1.5
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.43.0
 	github.com/yuin/goldmark v1.4.13
@@ -123,7 +124,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
-	github.com/uber-go/tally/v4 v4.1.5 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect

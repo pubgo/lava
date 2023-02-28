@@ -6,11 +6,14 @@ replace github.com/pubgo/lava => ../../
 
 require (
 	github.com/gofiber/fiber/v2 v2.41.0
+	github.com/google/uuid v1.3.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.8
-	github.com/pubgo/funk v0.5.29-4
+	github.com/pubgo/funk v0.5.29-5
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/pubgo/opendoc v0.0.2
+	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
+	google.golang.org/grpc v1.51.0
 	gorm.io/gorm v1.24.5
 )
 
@@ -21,10 +24,8 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
-	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fasthttp/websocket v1.5.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -45,7 +46,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -81,7 +81,6 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/reugn/go-quartz v0.3.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/rs/cors v1.8.3 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -115,7 +114,6 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
-	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -128,5 +126,4 @@ require (
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 	gorm.io/plugin/opentracing v0.0.0-20211220013347-7d2b2af23560 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
-	nhooyr.io/websocket v1.8.6 // indirect
 )

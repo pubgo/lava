@@ -24,7 +24,6 @@ import (
 
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
 )
@@ -66,7 +65,6 @@ func (s *serviceImpl) DixInject(
 	pathPrefix := "/" + strings.Trim(cfg.PathPrefix, "/")
 	middlewares = append([]lava.Middleware{
 		logmiddleware.Middleware(log),
-		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}, middlewares...)
 

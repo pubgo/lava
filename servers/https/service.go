@@ -20,7 +20,6 @@ import (
 
 	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logmiddleware"
 )
@@ -75,7 +74,7 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 
-	var defaultMiddlewares = []lava.Middleware{logmiddleware.Middleware(log), tracing.Middleware(), projectinfo.Middleware()}
+	var defaultMiddlewares = []lava.Middleware{logmiddleware.Middleware(log), projectinfo.Middleware()}
 	middlewares = append(defaultMiddlewares, middlewares...)
 
 	for _, h := range handlers {

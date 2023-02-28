@@ -3,7 +3,6 @@ package logmiddleware
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/middlewares"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -11,6 +10,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/middlewares"
 	"github.com/pubgo/lava/lava"
 )
 

@@ -3,23 +3,23 @@ package gidhandler
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/lava/internal/httpe/pkg/gidpb"
-	"github.com/teris-io/shortid"
 	"math/rand"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	service "github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/opendoc/opendoc"
+	"github.com/teris-io/shortid"
 )
 
-var _ service.HttpRouter = (*Id)(nil)
+var _ lava.HttpRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
@@ -29,20 +29,26 @@ type Id struct {
 }
 
 func (id *Id) Router(app *fiber.App) {
-	app.Get("/hello")
+	app.Post("/v1/id/generate", lava.WrapHandler(id.Generate))
+	app.Get("/v1/id/types", lava.WrapHandler(id.Types))
 }
 
 func (id *Id) Openapi(swag *opendoc.Swagger) {
 	swag.ServiceOf("http", func(srv *opendoc.Service) {
 		srv.GetOf(func(op *opendoc.Operation) {
-			op.SetModel(new(gidpb.GenerateRequest), new(gidpb.GenerateResponse))
-			op.SetPath()
+			op.SetModel(new(GenerateRequest), new(GenerateResponse))
+			op.SetPath("id.generate", "/v1/id/generate")
+		})
+
+		srv.GetOf(func(op *opendoc.Operation) {
+			op.SetModel(new(TypesRequest), new(TypesResponse))
+			op.SetPath("id.types", "/v1/id/types")
 		})
 	})
 }
 
-func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
-	var rsp = new(gidpb.GenerateResponse)
+func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
+	var rsp = new(GenerateResponse)
 	var logs = log.Ctx(ctx)
 
 	if len(req.Type) == 0 {
@@ -58,7 +64,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -67,7 +73,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -76,19 +82,19 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrSrvErrCodeIDGenerateFailed)
+		return nil, errors.WrapCode(errors.New("unsupported id type"), ErrSrvErrCodeIDGenerateFailed)
 	}
 
 	return rsp, nil
 }
 
-func (id *Id) Types(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
-	var rsp = new(gidpb.TypesResponse)
+func (id *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, error) {
+	var rsp = new(TypesResponse)
 	rsp.Types = []string{
 		"uuid",
 		"shortid",
@@ -98,17 +104,18 @@ func (id *Id) Types(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesR
 	return rsp, nil
 }
 
-func (id *Id) Middlewares() []service.Middleware {
+func (id *Id) Middlewares() []lava.Middleware {
 	return nil
 }
 
-func New(cron *scheduler.Scheduler, metric metric.Metric) service.HttpRouter {
+func New(cron *scheduler.Scheduler, metric metric.Metric) lava.HttpRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
 	if err != nil {
 		panic(err.Error())
 	}
+
 	bg, err := bigflake.New(uint64(id))
 	if err != nil {
 		panic(err.Error())

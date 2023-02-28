@@ -11,22 +11,21 @@ import (
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/projectinfo"
-	"github.com/pubgo/lava/core/tracing"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logkey"
 	"github.com/pubgo/lava/logging/logmiddleware"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func New(cfg *grpcc_config.Cfg, log log.Logger) Interface {
 	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
 	var c = &clientImpl{cfg: cfg, log: log, middlewares: []lava.Middleware{
 		logmiddleware.Middleware(log),
-		tracing.Middleware(),
 		projectinfo.Middleware(),
 	}}
 
