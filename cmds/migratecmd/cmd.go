@@ -30,7 +30,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 
 func New() *cli.Command {
 	var id string
-	var ids []string
+	var options = gormigrate.DefaultOptions
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "db migrate",
@@ -42,9 +42,8 @@ func New() *cli.Command {
 			},
 		},
 		Before: func(context *cli.Context) error {
-			gormigrate.DefaultOptions.TableName = "orm_migrations"
 			p := di.Inject(new(params))
-			assert.Must(p.Db.Table(gormigrate.DefaultOptions.TableName).Select("id").Find(&ids).Error)
+			options.TableName = p.Db.TablePrefix + gormigrate.DefaultOptions.TableName
 			return nil
 		},
 		Commands: []*cli.Command{
@@ -56,7 +55,7 @@ func New() *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
+					m := gormigrate.New(p.Db.DB, options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
 					} else {
@@ -74,9 +73,19 @@ func New() *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
+
+					var ids []string
+					assert.Must(p.Db.Table(options.TableName).Select("id").Find(&ids).Error)
+
 					for _, m := range migrate(p.Migrations) {
-						p.Log.Info().Msgf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", ""))
+						p.Log.Info().Msgf("migration-id=%s %s", m.ID, generic.Ternary(generic.Contains(ids, m.ID), "done", "missing"))
+						ids = generic.Delete(ids, m.ID)
 					}
+
+					for i := range ids {
+						p.Log.Info().Msgf("migration-id=%s %s", ids[i], "undo")
+					}
+
 					time.Sleep(time.Millisecond * 10)
 					return nil
 				},
@@ -89,7 +98,7 @@ func New() *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, gormigrate.DefaultOptions, migrate(p.Migrations))
+					m := gormigrate.New(p.Db.DB, options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())
 					} else {
