@@ -1,8 +1,10 @@
 package migrates
 
 import (
-	gormigrate "github.com/go-gormigrate/gormigrate/v2"
+	m "github.com/go-gormigrate/gormigrate/v2"
+	"gorm.io/gen"
 )
 
-type Migrate func() *gormigrate.Migration
-type Migration = gormigrate.Migration
+type Migration = m.Migration
+type Migrate func() *Migration
+type Generation func(g *gen.Generator) []interface{}
