@@ -35,6 +35,10 @@ func Main(cmdL ...*cli.Command) {
 		Flags:                  flags.GetFlags(),
 		Commands:               append(cmdL, versioncmd.New(), migratecmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New(), httpservercmd.New()),
 		ExtraInfo:              runmode.GetSysInfo,
+		Before: func(context *cli.Context) error {
+			version.Check()
+			return nil
+		},
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
