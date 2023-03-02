@@ -1,6 +1,8 @@
 package lava
 
-import "github.com/valyala/fasthttp"
+import (
+	"github.com/valyala/fasthttp"
+)
 
 type RequestHeader = fasthttp.RequestHeader
 

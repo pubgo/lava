@@ -15,7 +15,7 @@ LDFLAGS=-ldflags " \
 
 .PHONY: build
 build:
-	go build ${LDFLAGS} -mod vendor -v -o main cmd/lava/main.go
+	go build ${LDFLAGS} -mod vendor -v -o bin/main cmd/lava/main.go
 
 .PHONY: install
 install:

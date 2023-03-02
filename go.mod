@@ -55,7 +55,7 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
 	github.com/open2b/scriggo v0.56.1
-	github.com/pubgo/dix v0.3.8
+	github.com/pubgo/dix v0.3.9
 	github.com/pubgo/funk v0.5.29-8
 	github.com/pubgo/opendoc v0.0.2
 	github.com/rs/xid v1.4.0
