@@ -37,7 +37,7 @@ func New(cfg *Config, logs []logext.ExtLog) log.Logger {
 	zl.Logger = logger
 
 	// 全局log设置
-	var ee = logger.With().
+	var ee = logger.With().Caller().
 		Str(logkey.Hostname, runmode.Hostname).
 		Str(logkey.Project, runmode.Project).
 		Str(logkey.Version, runmode.Version)
