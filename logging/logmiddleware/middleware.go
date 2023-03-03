@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/middlewares"
 	"github.com/pubgo/lava/lava"
 )
 
@@ -30,7 +29,7 @@ func Middleware(logger log.Logger) lava.Middleware {
 				evt.Str("referer", referer)
 			}
 
-			var reqId = middlewares.RequestID(ctx)
+			var reqId = lava.GetReqID(ctx)
 			evt.Str("request_id", reqId)
 			evt.Int64("start_time", now.UnixMicro())
 			evt.Str("service", req.Service())

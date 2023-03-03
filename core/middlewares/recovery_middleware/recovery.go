@@ -1,4 +1,4 @@
-package httpmiddlewares
+package recovery_middleware
 
 import (
 	"context"
@@ -13,16 +13,15 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
 
-	"github.com/pubgo/lava/internal/requestid"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func Middleware() lava.Middleware {
+func New() lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			rid := strutil.FirstFnNotEmpty(
-				func() string { return requestid.GetReqID(ctx) },
+				func() string { return lava.GetReqID(ctx) },
 				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
 				func() string { return xid.New().String() },
 			)
@@ -61,7 +60,7 @@ func Middleware() lava.Middleware {
 
 				if pb.Reason == "" {
 					pb.Id = rid
-					pb.Code = uint32(errorpb.Code_Internal)
+					pb.Code = errorpb.Code_Internal
 					pb.Name = "lava.server.panic"
 					pb.Reason = gErr.Error()
 				}
@@ -70,11 +69,10 @@ func Middleware() lava.Middleware {
 			}()
 
 			req.Header().Set(httputil.HeaderXRequestID, rid)
-			ctx = requestid.CreateCtx(ctx, rid)
+			ctx = lava.CreateCtxWithReqID(ctx, rid)
+
 			rsp, gErr = next(ctx, req)
-			if gErr == nil {
-				rsp.Header().Set(httputil.HeaderXRequestID, rid)
-			}
+			rsp.Header().Set(httputil.HeaderXRequestID, rid)
 			return
 		}
 	}

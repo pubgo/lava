@@ -17,7 +17,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/reugn/go-quartz v0.3.7
 	github.com/spf13/viper v1.14.0 // indirect
-	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
@@ -56,7 +55,7 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.9
-	github.com/pubgo/funk v0.5.29-8
+	github.com/pubgo/funk v0.5.29-9
 	github.com/pubgo/opendoc v0.0.2
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
@@ -110,7 +109,6 @@ require (
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/phuslu/goid v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -129,8 +127,6 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	go.opentelemetry.io/otel v1.12.0 // indirect
-	go.opentelemetry.io/otel/trace v1.12.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20221114191408-850992195362 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
@@ -147,7 +143,6 @@ require (
 	gorm.io/driver/sqlite v1.4.4 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
-	gorm.io/plugin/opentracing v0.0.0-20211220013347-7d2b2af23560 // indirect
 	k8s.io/api v0.21.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect

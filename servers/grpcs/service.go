@@ -3,6 +3,7 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/middlewares/recovery_middleware"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -66,6 +67,7 @@ func (s *serviceImpl) DixInject(
 	middlewares = append([]lava.Middleware{
 		logmiddleware.Middleware(log),
 		projectinfo.Middleware(),
+		recovery_middleware.New(),
 	}, middlewares...)
 
 	log = log.WithName("grpc-server")
