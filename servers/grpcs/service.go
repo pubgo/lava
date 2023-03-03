@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/internal/consts"
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
@@ -107,7 +108,7 @@ func (s *serviceImpl) DixInject(
 
 	for _, h := range handlers {
 		basePrefix := filepath.Join(pathPrefix, h.ServiceDesc().ServiceName, "*")
-		s.httpServer.Post(basePrefix, handlerTwMiddle(srvMidMap, h.Gateway(nil)))
+		httpServer.Post(basePrefix, handlerTwMiddle(srvMidMap, h.Gateway(nil)))
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
@@ -196,7 +197,7 @@ func (s *serviceImpl) stop() {
 	})
 
 	logutil.LogOrErr(s.log, "[grpc-gateway] Shutdown", func() error {
-		return s.httpServer.Shutdown()
+		return s.httpServer.ShutdownWithTimeout(consts.DefaultTimeout)
 	})
 
 	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() error {
