@@ -1,4 +1,4 @@
-package logmiddleware
+package middleware_log
 
 import (
 	"context"
@@ -17,7 +17,7 @@ const Name = "accesslog"
 
 var errTimeout = errors.New("grpc server response timeout")
 
-func Middleware(logger log.Logger) lava.Middleware {
+func New(logger log.Logger) lava.Middleware {
 	logger = logger.WithName(Name)
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {

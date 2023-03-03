@@ -25,11 +25,3 @@ const (
 	CommitID  = "commit"
 	Config    = "config"
 )
-
-const (
-	HeaderVersion     = "X-Api-Version"
-	HeaderTrace       = "X-Api-Trace"
-	HeaderAddress     = "X-Api-Addr"
-	HeaderSetup       = "X-Api-Setup"
-	HeaderContentType = "Content-Type"
-)

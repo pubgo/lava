@@ -40,8 +40,8 @@ type Cfg struct {
 
 func (t Cfg) Check() error { return nil }
 
-func DefaultCfg() *Cfg {
-	var cfg = &Cfg{
+func DefaultCfg() Cfg {
+	var cfg = Cfg{
 		Scheme: grpcc_resolver.DirectScheme,
 		Client: &ClientCfg{
 			Insecure: true,

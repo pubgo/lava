@@ -7,8 +7,10 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
+	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc"
@@ -16,18 +18,24 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/core/projectinfo"
+	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
+	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/logging/logkey"
-	"github.com/pubgo/lava/logging/logmiddleware"
 )
 
-func New(cfg *grpcc_config.Cfg, log log.Logger) Interface {
-	cfg = merge.Copy(grpcc_config.DefaultCfg(), cfg).Unwrap()
-	var c = &clientImpl{cfg: cfg, log: log, middlewares: []lava.Middleware{
-		logmiddleware.Middleware(log),
-		projectinfo.Middleware(),
-	}}
+func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Interface {
+	cfg = merge.Copy(generic.Ptr(grpcc_config.DefaultCfg()), cfg).Unwrap()
+	var c = &clientImpl{
+		cfg: cfg,
+		log: log,
+		middlewares: []lava.Middleware{
+			middleware_metric.New(m),
+			middleware_log.New(log),
+			middleware_recovery.New(),
+		},
+	}
 
 	if cfg.Client.Block {
 		c.Get().Unwrap()
@@ -137,7 +145,8 @@ func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (gr
 		Str("addr", addr)
 	ee.Msg("grpc client init")
 
-	conn, err := grpc.DialContext(ctx, addr, append(cfg.Client.ToOpts(),
+	conn, err := grpc.DialContext(ctx, addr, append(
+		cfg.Client.ToOpts(),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
 	if err != nil {

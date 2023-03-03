@@ -8,7 +8,7 @@ import (
 
 var reqCtxKey = xid.New().String()
 
-func CreateCtxWithReq(ctx context.Context, header *RequestHeader) context.Context {
+func CreateCtxWithReqHeader(ctx context.Context, header *RequestHeader) context.Context {
 	return context.WithValue(ctx, reqCtxKey, header)
 }
 
@@ -22,7 +22,7 @@ func GetReqHeader(ctx context.Context) *RequestHeader {
 
 var rspCtxKey = xid.New().String()
 
-func CreateCtxWithRsp(ctx context.Context, header *ResponseHeader) context.Context {
+func CreateCtxWithRspHeader(ctx context.Context, header *ResponseHeader) context.Context {
 	return context.WithValue(ctx, rspCtxKey, header)
 }
 

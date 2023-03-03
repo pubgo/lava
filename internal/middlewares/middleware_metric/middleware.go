@@ -1,4 +1,4 @@
-package metric_middleware
+package middleware_metric
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
 	"github.com/uber-go/tally/v4"
 
@@ -36,7 +37,7 @@ func grpcServerHandlingSecondsCount(m metric.Metric, method string, val time.Dur
 		RecordValue(float64(val.Milliseconds()))
 }
 
-func Middleware(m metric.Metric) lava.Middleware {
+func New(m metric.Metric) lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			var now = time.Now()
@@ -50,6 +51,7 @@ func Middleware(m metric.Metric) lava.Middleware {
 			grpcServerRpcCallTotal(m, req.Operation())
 
 			req.Header().Set(httputil.HeaderXRequestID, reqId)
+
 			ctx = lava.CreateCtxWithReqID(ctx, reqId)
 			rsp, gErr = next(ctx, req)
 			if gErr != nil {
@@ -57,6 +59,7 @@ func Middleware(m metric.Metric) lava.Middleware {
 			}
 
 			rsp.Header().Set(httputil.HeaderXRequestID, reqId)
+			rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
 			grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
 
 			return rsp, nil

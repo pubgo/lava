@@ -7,7 +7,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/strutil"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -54,7 +53,7 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 		return buf, nil
 
 	case url.Values:
-		return strutil.ToBytes(body.Encode()), nil
+		return convert.StoB(body.Encode()), nil
 
 	case json.Marshaler:
 		return body.MarshalJSON()

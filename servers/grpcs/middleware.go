@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -12,8 +11,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/recovery"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -37,6 +34,7 @@ func parsePath(path string) (string, string, string) {
 func handlerTwMiddle(middlewares map[string][]lava.Middleware, handle http.Handler) func(fbCtx *fiber.Ctx) error {
 	var handler = func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		var reqCtx = req.(*httpRequest)
+		ctx = lava.CreateCtxWithReqHeader(ctx, req.Header())
 		var err = adaptor.HTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			handle.ServeHTTP(writer, request.WithContext(ctx))
 		})(reqCtx.ctx)
@@ -63,23 +61,11 @@ func handlerTwMiddle(middlewares map[string][]lava.Middleware, handle http.Handl
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-		// 错误和panic处理
-		defer recovery.Err(&gErr, func(err *errors.Event) {
-			err.Str("stack", string(debug.Stack()))
-			err.Str("operation", req.Operation())
-		})
-
-		var md = make(metadata.MD)
-		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(convert.BtoS(key), convert.BtoS(value))
-		})
-
-		ctx = metadata.NewIncomingContext(ctx, md)
+		ctx = lava.CreateCtxWithReqHeader(ctx, req.Header())
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return nil, err
 		}
-
 		return &rpcResponse{header: new(fasthttp.ResponseHeader), dt: dt}, nil
 	}
 
@@ -164,14 +150,12 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var md = make(metadata.MD)
-		req.Header().VisitAll(func(key, value []byte) {
-			md.Append(convert.BtoS(key), convert.BtoS(value))
-		})
-
-		ctx = metadata.NewIncomingContext(ctx, md)
 		var reqCtx = req.(*rpcRequest)
-		if err := reqCtx.handlerStream(reqCtx.srv, &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream}); err != nil {
+		var wrap = &grpcMiddle.WrappedServerStream{
+			WrappedContext: lava.CreateCtxWithReqHeader(ctx, req.Header()),
+			ServerStream:   reqCtx.stream,
+		}
+		if err := reqCtx.handlerStream(reqCtx.srv, wrap); err != nil {
 			return nil, err
 		}
 
@@ -214,7 +198,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 		}
 
-		var header = &fasthttp.RequestHeader{}
+		var header = new(fasthttp.RequestHeader)
 		for k, v := range md {
 			for i := range v {
 				header.Add(k, v[i])

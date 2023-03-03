@@ -1,4 +1,4 @@
-package recovery_middleware
+package middleware_recovery
 
 import (
 	"context"
@@ -9,38 +9,18 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
-	"github.com/rs/xid"
 
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/httputil"
 )
 
 func New() lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-			rid := strutil.FirstFnNotEmpty(
-				func() string { return lava.GetReqID(ctx) },
-				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
-				func() string { return xid.New().String() },
-			)
-
 			defer func() {
-				if recovery := recover(); recovery != nil {
+				if err := errors.Parse(recover()); err != nil {
 					debug.PrintStack()
-					switch ret := recovery.(type) {
-					case error:
-						gErr = ret
-					case string:
-						gErr = errors.New(ret)
-					case []byte:
-						gErr = errors.New(string(ret))
-					default:
-						gErr = errors.Parse(ret)
-					}
-
-					gErr = errors.WrapStack(gErr)
+					gErr = errors.WrapStack(err)
 				}
 
 				if generic.IsNil(gErr) {
@@ -59,7 +39,7 @@ func New() lava.Middleware {
 				pb.Tags["header"] = string(req.Header().Header())
 
 				if pb.Reason == "" {
-					pb.Id = rid
+					pb.Id = lava.GetReqID(ctx)
 					pb.Code = errorpb.Code_Internal
 					pb.Name = "lava.server.panic"
 					pb.Reason = gErr.Error()
@@ -68,11 +48,7 @@ func New() lava.Middleware {
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}()
 
-			req.Header().Set(httputil.HeaderXRequestID, rid)
-			ctx = lava.CreateCtxWithReqID(ctx, rid)
-
 			rsp, gErr = next(ctx, req)
-			rsp.Header().Set(httputil.HeaderXRequestID, rid)
 			return
 		}
 	}

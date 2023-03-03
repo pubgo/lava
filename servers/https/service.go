@@ -14,14 +14,16 @@ import (
 	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
+	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
 
-	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
+	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/logging/logmiddleware"
 )
 
 func New() lava.Service { return newService() }
@@ -53,6 +55,7 @@ func (s *serviceImpl) DixInject(
 	middlewares []lava.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
+	m metric.Metric,
 	log log.Logger,
 	cfg *Config) {
 
@@ -74,7 +77,11 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 
-	var defaultMiddlewares = []lava.Middleware{logmiddleware.Middleware(log), projectinfo.Middleware()}
+	var defaultMiddlewares = []lava.Middleware{
+		middleware_metric.New(m),
+		middleware_log.New(log),
+		middleware_recovery.New(),
+	}
 	middlewares = append(defaultMiddlewares, middlewares...)
 
 	for _, h := range handlers {

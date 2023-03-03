@@ -4,36 +4,47 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
+	"github.com/pubgo/funk/metric"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/core/projectinfo"
+	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
+	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/logging/logmiddleware"
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New(cfg *Config, log log.Logger, mm ...lava.Middleware) Client {
+func New(cfg *Config, log log.Logger, m metric.Metric) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
-	return cfg.Build(append([]lava.Middleware{
-		logmiddleware.Middleware(log),
-		projectinfo.Middleware(),
-	}, mm...)).Unwrap()
+	return &clientImpl{
+		cfg: cfg,
+		log: log,
+		m:   m,
+	}
 }
 
 var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	client *fasthttp.Client
-	cfg    Config
-	do     lava.HandlerFunc
+	cfg         *Config
+	do          lava.HandlerFunc
+	log         log.Logger
+	m           metric.Metric
+	once        sync.Once
+	middlewares []lava.Middleware
+}
+
+func (c *clientImpl) Middleware(mm ...lava.Middleware) {
+	c.middlewares = append(c.middlewares, mm...)
 }
 
 func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
@@ -41,6 +52,15 @@ func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fas
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
+	defer recovery.Result(&r)
+	c.once.Do(func() {
+		c.do = c.cfg.Build(append([]lava.Middleware{
+			middleware_metric.New(c.m),
+			middleware_log.New(c.log),
+			middleware_recovery.New(),
+		}, c.middlewares...))
+	})
+
 	var request = &requestImpl{service: version.Project(), req: req}
 	request.req = req
 	request.ct = filterFlags(convert.BtoS(req.Header.ContentType()))
@@ -49,6 +69,7 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	if err != nil {
 		return r.WithErr(err)
 	}
+
 	return r.WithVal(resp.(*responseImpl).resp)
 }
 
@@ -67,7 +88,7 @@ func (c *clientImpl) Post(ctx context.Context, url string, data interface{}, opt
 func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
 	return doRequest(ctx, c, http.MethodPost, url, nil, func(req *fasthttp.Request) {
 		req.Header.Set(httputil.HeaderContentType, "application/x-www-form-urlencoded")
-		req.SetBodyRaw(strutil.ToBytes(val.Encode()))
+		req.SetBodyRaw(convert.StoB(val.Encode()))
 
 		if len(opts) > 0 {
 			opts[0](req)

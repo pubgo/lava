@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/pubgo/funk/result"
+	"github.com/pubgo/lava/lava"
 	"github.com/valyala/fasthttp"
 )
 
@@ -12,6 +13,7 @@ const Name = "resty"
 
 // Client http client interface
 type Client interface {
+	Middleware(mm ...lava.Middleware)
 	Do(ctx context.Context, req *fasthttp.Request) result.Result[*fasthttp.Response]
 	Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response]
 	Get(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response]

@@ -3,7 +3,6 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/middlewares/recovery_middleware"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -17,16 +16,18 @@ import (
 	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
+	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/core/projectinfo"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
+	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/logging/logmiddleware"
 )
 
 func New() lava.Service { return newService() }
@@ -59,15 +60,16 @@ func (s *serviceImpl) DixInject(
 	middlewares []lava.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
+	metric metric.Metric,
 	log log.Logger,
 	cfg *Config,
 ) {
 
 	pathPrefix := "/" + strings.Trim(cfg.PathPrefix, "/")
 	middlewares = append([]lava.Middleware{
-		logmiddleware.Middleware(log),
-		projectinfo.Middleware(),
-		recovery_middleware.New(),
+		middleware_metric.New(metric),
+		middleware_log.New(log),
+		middleware_recovery.New(),
 	}, middlewares...)
 
 	log = log.WithName("grpc-server")
