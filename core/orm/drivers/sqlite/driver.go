@@ -2,7 +2,7 @@ package sqlite
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/core/orm"
 	"path/filepath"
 
 	"github.com/pubgo/funk/assert"

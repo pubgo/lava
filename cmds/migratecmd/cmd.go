@@ -1,6 +1,7 @@
 package migratecmd
 
 import (
+	"github.com/pubgo/lava/core/orm"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -11,7 +12,6 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/migrates"
 )
 

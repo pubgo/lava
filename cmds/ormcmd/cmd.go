@@ -4,10 +4,10 @@ import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/core/orm"
 	"github.com/urfave/cli/v3"
 	"gorm.io/gen"
 
-	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/migrates"
 )
 

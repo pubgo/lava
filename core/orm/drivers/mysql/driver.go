@@ -5,10 +5,10 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/core/orm"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/clients/orm"
 	"github.com/pubgo/lava/core/config"
 )
 

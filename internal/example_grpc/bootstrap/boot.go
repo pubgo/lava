@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/core/config"
+	"github.com/pubgo/lava/core/orm"
 
 	"github.com/pubgo/lava/internal/example/handlers/gidhandler"
 	"github.com/pubgo/lava/internal/example/internal/migrates"
