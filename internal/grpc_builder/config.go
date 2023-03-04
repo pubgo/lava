@@ -30,22 +30,22 @@ type KeepalivePolicy struct {
 }
 
 type Config struct {
-	Codec                 string          `json:"codec"`
-	ConnectionTimeout     time.Duration   `json:"connection_timeout"`
-	Cp                    string          `json:"cp"`
-	Creds                 string          `json:"creds"`
-	Dc                    string          `json:"dc"`
-	HeaderTableSize       int64           `json:"header_table_size"`
-	InitialConnWindowSize int64           `json:"initial_conn_window_size"`
-	InitialWindowSize     int64           `json:"initial_window_size"`
-	KeepaliveParams       KeepaliveParams `json:"keepalive_params"`
-	KeepalivePolicy       KeepalivePolicy `json:"keepalive_policy"`
-	MaxConcurrentStreams  int64           `json:"max_concurrent_streams"`
-	MaxHeaderListSize     int64           `json:"max_header_list_size"`
-	MaxRecvMsgSize        int             `json:"max_recv_msg_size"`
-	MaxSendMsgSize        int             `json:"max_send_msg_size"`
-	ReadBufferSize        int64           `json:"read_buffer_size"`
-	WriteBufferSize       int64           `json:"write_buffer_size"`
+	Codec                 string          `json:"codec" yaml:"codec"`
+	ConnectionTimeout     time.Duration   `json:"connection_timeout" yaml:"connection_timeout"`
+	Cp                    string          `json:"cp" yaml:"cp"`
+	Creds                 string          `json:"creds" yaml:"creds"`
+	Dc                    string          `json:"dc" yaml:"dc"`
+	HeaderTableSize       int64           `json:"header_table_size" yaml:"header_table_size"`
+	InitialConnWindowSize int64           `json:"initial_conn_window_size" yaml:"initial_conn_window_size"`
+	InitialWindowSize     int64           `json:"initial_window_size" yaml:"initial_window_size"`
+	KeepaliveParams       KeepaliveParams `json:"keepalive_params" yaml:"keepalive_params"`
+	KeepalivePolicy       KeepalivePolicy `json:"keepalive_policy" yaml:"keepalive_policy"`
+	MaxConcurrentStreams  int64           `json:"max_concurrent_streams" yaml:"max_concurrent_streams"`
+	MaxHeaderListSize     int64           `json:"max_header_list_size" yaml:"max_header_list_size"`
+	MaxRecvMsgSize        int             `json:"max_recv_msg_size" yaml:"max_recv_msg_size"`
+	MaxSendMsgSize        int             `json:"max_send_msg_size" yaml:"max_send_msg_size"`
+	ReadBufferSize        int64           `json:"read_buffer_size" yaml:"read_buffer_size"`
+	WriteBufferSize       int64           `json:"write_buffer_size" yaml:"write_buffer_size"`
 }
 
 func (t *Config) BuildOpts() []grpc.ServerOption {
