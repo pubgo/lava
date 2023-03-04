@@ -12,12 +12,13 @@ const (
 type Config struct {
 	PrintRoute bool                 `yaml:"print_route"`
 	BaseUrl    string               `yaml:"base_url"`
-	Grpc       *grpc_builder.Config `yaml:"grpc_config"`
+	GrpcConfig *grpc_builder.Config `yaml:"grpc_config"`
 }
 
 func defaultCfg() Config {
 	return Config{
-		Grpc:    grpc_builder.GetDefaultCfg(),
-		BaseUrl: version.Project(),
+		PrintRoute: true,
+		BaseUrl:    version.Project(),
+		GrpcConfig: grpc_builder.GetDefaultCfg(),
 	}
 }

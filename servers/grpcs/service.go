@@ -22,6 +22,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc"
 
@@ -69,6 +70,8 @@ func (s *serviceImpl) DixInject(
 ) {
 	cfg = merge.Struct(generic.Ptr(defaultCfg()), cfg).Unwrap()
 	pathPrefix := "/" + strings.Trim(cfg.BaseUrl, "/")
+	cfg.BaseUrl = pathPrefix
+
 	middlewares := generic.ListOf(middleware_metric.New(metric), middleware_log.New(log), middleware_recovery.New())
 	middlewares = append(middlewares, dixMiddlewares["server"]...)
 
@@ -101,7 +104,7 @@ func (s *serviceImpl) DixInject(
 	}
 
 	// grpc server初始化
-	var grpcServer = cfg.Grpc.Build(
+	var grpcServer = cfg.GrpcConfig.Build(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
@@ -115,6 +118,8 @@ func (s *serviceImpl) DixInject(
 	s.log = log
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
+
+	vars.Register("grpc-server-config", func() interface{} { return cfg })
 }
 
 func (s *serviceImpl) start() {
