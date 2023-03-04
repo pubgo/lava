@@ -2,9 +2,9 @@ package protobuf
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/core/encoding"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pubgo/lava/encoding"
 	pb "google.golang.org/protobuf/proto"
 )
 

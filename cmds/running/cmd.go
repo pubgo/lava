@@ -30,8 +30,8 @@ import (
 	_ "github.com/pubgo/lava/core/orm/drivers/sqlite"
 
 	// 加载插件
-	_ "github.com/pubgo/lava/encoding/protobuf"
-	_ "github.com/pubgo/lava/encoding/protojson"
+	_ "github.com/pubgo/lava/core/encoding/protobuf"
+	_ "github.com/pubgo/lava/core/encoding/protojson"
 )
 
 func Main(cmdL ...*cli.Command) {

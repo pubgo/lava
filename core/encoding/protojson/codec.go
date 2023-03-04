@@ -3,11 +3,10 @@ package protojson
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pubgo/lava/core/encoding"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/pubgo/lava/encoding"
 )
 
 const Name = "jsonpb"

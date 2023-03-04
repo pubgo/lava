@@ -6,16 +6,18 @@ import (
 	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/logging/logext"
+	"github.com/pubgo/lava/core/logging"
 )
 
-func New() logext.ExtLog {
-	return func(logger log.Logger) {
-		grpclog.SetLoggerV2(&loggerWrapper{
-			log:      logger.WithName("grpc").WithCallerSkip(4),
-			depthLog: logger.WithName("grpc-component").WithCallerSkip(2),
-		})
-	}
+func init() {
+	logging.Register("grpcLog", New)
+}
+
+func New(logger log.Logger) {
+	grpclog.SetLoggerV2(&loggerWrapper{
+		log:      logger.WithName("grpc").WithCallerSkip(4),
+		depthLog: logger.WithName("grpc-component").WithCallerSkip(2),
+	})
 }
 
 var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)

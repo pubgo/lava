@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"sync"
 
 	"github.com/pubgo/funk/assert"
@@ -22,7 +23,6 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/logging/logkey"
 )
 
 func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Interface {

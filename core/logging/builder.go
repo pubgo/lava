@@ -9,12 +9,11 @@ import (
 	"github.com/rs/zerolog"
 	zl "github.com/rs/zerolog/log"
 
-	"github.com/pubgo/lava/logging/logext"
-	"github.com/pubgo/lava/logging/logkey"
+	"github.com/pubgo/lava/core/logging/logkey"
 )
 
 // New logger
-func New(cfg *Config, logs []logext.ExtLog) log.Logger {
+func New(cfg *Config) log.Logger {
 	defer recovery.Exit()
 
 	level, err := zerolog.ParseLevel(cfg.Level)
@@ -50,8 +49,8 @@ func New(cfg *Config, logs []logext.ExtLog) log.Logger {
 	log.SetLogger(&logger)
 
 	var gl = log.New(&logger)
-	for i := range logs {
-		logs[i](gl)
+	for _, ext := range List() {
+		ext(gl)
 	}
 	return gl
 }

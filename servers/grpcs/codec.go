@@ -1,13 +1,13 @@
 package grpcs
 
 import (
-	encoding3 "github.com/pubgo/lava/encoding"
+	encoding2 "github.com/pubgo/lava/core/encoding"
 	"google.golang.org/grpc/encoding"
 )
 
 func init() {
 	// 编码注册
-	encoding3.Each(func(_ string, cdc encoding3.Codec) {
+	encoding2.Each(func(_ string, cdc encoding2.Codec) {
 		encoding.RegisterCodec(cdc)
 	})
 }
