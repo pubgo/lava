@@ -2,7 +2,6 @@ package running
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/cmds/ormcmd"
 	"os"
 	"sort"
 
@@ -17,21 +16,31 @@ import (
 	"github.com/pubgo/lava/cmds/healthcmd"
 	"github.com/pubgo/lava/cmds/httpservercmd"
 	"github.com/pubgo/lava/cmds/migratecmd"
+	"github.com/pubgo/lava/cmds/ormcmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 
+	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
 	_ "github.com/pubgo/lava/core/debug/stats"
 	_ "github.com/pubgo/lava/core/debug/trace"
 	_ "github.com/pubgo/lava/core/debug/vars"
 	_ "github.com/pubgo/lava/core/debug/version"
+
+	// metric
 	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
+
+	// sqlite
 	_ "github.com/pubgo/lava/core/orm/drivers/sqlite"
 
-	// 加载插件
+	// encoding
 	_ "github.com/pubgo/lava/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/core/encoding/protojson"
+
+	// logging
+	_ "github.com/pubgo/lava/core/logging/logext/grpclog"
+	_ "github.com/pubgo/lava/core/logging/logext/stdlog"
 )
 
 func Main(cmdL ...*cli.Command) {
