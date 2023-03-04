@@ -13,9 +13,11 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/debug"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
+	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
@@ -58,20 +60,17 @@ func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
 	handlers []lava.GrpcHandler,
-	middlewares []lava.Middleware,
+	dixMiddlewares map[string][]lava.Middleware,
 	getLifecycle lifecycle.GetLifecycle,
 	lifecycle lifecycle.Lifecycle,
 	metric metric.Metric,
 	log log.Logger,
 	cfg *Config,
 ) {
-
-	pathPrefix := "/" + strings.Trim(cfg.PathPrefix, "/")
-	middlewares = append([]lava.Middleware{
-		middleware_metric.New(metric),
-		middleware_log.New(log),
-		middleware_recovery.New(),
-	}, middlewares...)
+	cfg = merge.Struct(generic.Ptr(defaultCfg()), cfg).Unwrap()
+	pathPrefix := "/" + strings.Trim(cfg.BaseUrl, "/")
+	middlewares := generic.ListOf(middleware_metric.New(metric), middleware_log.New(log), middleware_recovery.New())
+	middlewares = append(middlewares, dixMiddlewares["server"]...)
 
 	log = log.WithName("grpc-server")
 

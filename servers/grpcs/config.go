@@ -6,20 +6,18 @@ import (
 )
 
 const (
-	Name               = "service"
 	defaultContentType = "application/grpc"
 )
 
 type Config struct {
-	PathPrefix string               `yaml:"path-prefix"`
-	Grpc       *grpc_builder.Config `yaml:"grpc-server"`
-	PrintRoute bool                 `yaml:"print-route"`
+	PrintRoute bool                 `yaml:"print_route"`
+	BaseUrl    string               `yaml:"base_url"`
+	Grpc       *grpc_builder.Config `yaml:"grpc_config"`
 }
 
 func defaultCfg() Config {
 	return Config{
-		Grpc:       grpc_builder.GetDefaultCfg(),
-		PrintRoute: true,
-		PathPrefix: version.Project(),
+		Grpc:    grpc_builder.GetDefaultCfg(),
+		BaseUrl: version.Project(),
 	}
 }
