@@ -4,11 +4,11 @@ import (
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/core/orm"
 	"github.com/urfave/cli/v3"
 	"gorm.io/gen"
 
 	"github.com/pubgo/lava/core/migrates"
+	"github.com/pubgo/lava/core/orm"
 )
 
 type params struct {
@@ -19,18 +19,18 @@ type params struct {
 
 func New() *cli.Command {
 	return &cli.Command{
-		Name:  "orm-gen",
-		Usage: "orm gen",
+		Name:  "orm",
+		Usage: "orm manager",
 		Commands: []*cli.Command{
 			{
-				Name:  "gen",
+				Name:  "gen-model",
 				Usage: "do gen query",
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
 					g := gen.NewGenerator(gen.Config{
-						OutPath:           "./model/v2/query",
-						ModelPkgPath:      "./model/v2/models",
+						OutPath:           "./internal/query",
+						ModelPkgPath:      "./internal/models",
 						FieldWithTypeTag:  false,
 						FieldWithIndexTag: false,
 						FieldNullable:     true,

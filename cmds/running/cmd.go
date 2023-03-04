@@ -2,6 +2,7 @@ package running
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/cmds/ormcmd"
 	"os"
 	"sort"
 
@@ -19,6 +20,15 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 
+	_ "github.com/pubgo/lava/core/debug/pprof"
+	_ "github.com/pubgo/lava/core/debug/process"
+	_ "github.com/pubgo/lava/core/debug/stats"
+	_ "github.com/pubgo/lava/core/debug/trace"
+	_ "github.com/pubgo/lava/core/debug/vars"
+	_ "github.com/pubgo/lava/core/debug/version"
+	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
+	_ "github.com/pubgo/lava/core/orm/drivers/sqlite"
+
 	// 加载插件
 	_ "github.com/pubgo/lava/encoding/protobuf"
 	_ "github.com/pubgo/lava/encoding/protojson"
@@ -26,6 +36,16 @@ import (
 
 func Main(cmdL ...*cli.Command) {
 	defer recovery.Exit()
+	cmdL = append(cmdL,
+		versioncmd.New(),
+		migratecmd.New(),
+		healthcmd.New(),
+		depcmd.New(),
+		grpcservercmd.New(),
+		httpservercmd.New(),
+		ormcmd.New(),
+	)
+
 	var app = &cli.App{
 		Name:                   version.Project(),
 		Suggest:                true,
@@ -33,7 +53,7 @@ func Main(cmdL ...*cli.Command) {
 		Usage:                  fmt.Sprintf("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
-		Commands:               append(cmdL, versioncmd.New(), migratecmd.New(), healthcmd.New(), depcmd.New(), grpcservercmd.New(), httpservercmd.New()),
+		Commands:               cmdL,
 		ExtraInfo:              runmode.GetSysInfo,
 		Before: func(context *cli.Context) error {
 			version.Check()

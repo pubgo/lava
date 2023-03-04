@@ -1,7 +1,6 @@
 package migratecmd
 
 import (
-	"github.com/pubgo/lava/core/orm"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -13,6 +12,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/migrates"
+	"github.com/pubgo/lava/core/orm"
 )
 
 type params struct {
