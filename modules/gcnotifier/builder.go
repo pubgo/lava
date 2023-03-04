@@ -5,9 +5,10 @@ import (
 
 	"github.com/CAFxX/gcnotifier"
 	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/runmode"
+
+	"github.com/pubgo/lava/core/lifecycle"
 )
 
 var Name = "gc"

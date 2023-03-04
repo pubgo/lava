@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
 	"github.com/uber-go/tally/v4"
 
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
 )

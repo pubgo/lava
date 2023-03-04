@@ -9,12 +9,12 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"

@@ -1,0 +1,12 @@
+orm:
+  - name: default1
+    driver: "sqlite3"
+    driver_config:
+      dsn: "file::memory:?cache=shared"
+  - name: test1
+    driver: "sqlite3"
+    driver_config:
+      dsn: "file::memory:?cache=shared"
+      data: '{{env "lava_hello" "lava_abc" | default "world"}}'
+      home: '{{env "home"}}'
+      other: '{{v "redis.codis.addr"}}'

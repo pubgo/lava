@@ -1,8 +1,6 @@
 package bootstrap
 
 import (
-	"github.com/pubgo/funk/clients/orm"
-	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/servers/grpcs"
 )

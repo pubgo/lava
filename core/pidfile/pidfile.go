@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/runmode"
+
+	"github.com/pubgo/lava/core/config"
 )
 
 const Name = "pidfile"

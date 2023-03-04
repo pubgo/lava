@@ -2,9 +2,10 @@ package automaxprocs
 
 import (
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"go.uber.org/automaxprocs/maxprocs"
+
+	"github.com/pubgo/lava/core/lifecycle"
 )
 
 // doc: https://github.com/KimMachineGun/automemlimit

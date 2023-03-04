@@ -6,12 +6,13 @@ import (
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/clients/orm"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/core/migrates"
 	"github.com/urfave/cli/v3"
+
+	"github.com/pubgo/lava/clients/orm"
+	"github.com/pubgo/lava/core/migrates"
 )
 
 type params struct {

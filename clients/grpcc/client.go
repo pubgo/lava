@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/metric"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"

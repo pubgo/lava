@@ -1,0 +1,17 @@
+redis:
+  codis1:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisSale1:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redisApiBusinessTwo1:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 0
+  redlock_0:
+    addr: "127.0.0.1:6379"
+    password: "foobared"
+    db: 123

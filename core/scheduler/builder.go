@@ -1,9 +1,10 @@
 package scheduler
 
 import (
-	"github.com/pubgo/funk/lifecycle"
 	"github.com/pubgo/funk/log"
 	"github.com/reugn/go-quartz/quartz"
+
+	"github.com/pubgo/lava/core/lifecycle"
 )
 
 const Name = "scheduler"

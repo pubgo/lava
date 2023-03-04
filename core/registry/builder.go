@@ -16,7 +16,7 @@ import (
 	"github.com/pubgo/funk/version"
 	"go.uber.org/zap"
 
-	"github.com/pubgo/funk/lifecycle"
+	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
