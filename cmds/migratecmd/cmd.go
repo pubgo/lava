@@ -1,12 +1,11 @@
 package migratecmd
 
 import (
-	"github.com/pubgo/funk/errors"
 	"time"
 
-	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
@@ -22,8 +21,8 @@ type params struct {
 	Migrations []migrates.Migrate
 }
 
-func migrate(m []migrates.Migrate) []*gormigrate.Migration {
-	var migrations []*gormigrate.Migration
+func migrate(m []migrates.Migrate) []*migrates.Migration {
+	var migrations []*migrates.Migration
 	for i := range m {
 		migrations = append(migrations, m[i]())
 	}
@@ -32,7 +31,7 @@ func migrate(m []migrates.Migrate) []*gormigrate.Migration {
 
 func New() *cli.Command {
 	var id string
-	var options = gormigrate.DefaultOptions
+	var options = migrates.DefaultConfig
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "db migrate",
@@ -45,7 +44,7 @@ func New() *cli.Command {
 		},
 		Before: func(context *cli.Context) error {
 			p := di.Inject(new(params))
-			options.TableName = p.Db.TablePrefix + gormigrate.DefaultOptions.TableName
+			options.TableName = p.Db.TablePrefix + migrates.DefaultConfig.TableName
 			return nil
 		},
 		Commands: []*cli.Command{
@@ -57,7 +56,7 @@ func New() *cli.Command {
 					defer recovery.Exit()
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, options, migrate(p.Migrations))
+					m := migrates.New(p.Db.DB, &options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
 					} else {
@@ -98,7 +97,7 @@ func New() *cli.Command {
 				Aliases: []string{"r"},
 				Action: func(context *cli.Context) error {
 					defer recovery.Recovery(func(err error) {
-						if errors.Is(err, gormigrate.ErrNoRunMigration) {
+						if errors.Is(err, migrates.ErrNoRunMigration) {
 							return
 						}
 
@@ -106,7 +105,7 @@ func New() *cli.Command {
 					})
 
 					p := di.Inject(new(params))
-					m := gormigrate.New(p.Db.DB, options, migrate(p.Migrations))
+					m := migrates.New(p.Db.DB, &options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())
 					} else {
