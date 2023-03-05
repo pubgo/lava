@@ -1,6 +1,7 @@
 package migratecmd
 
 import (
+	"github.com/pubgo/funk/errors"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"
@@ -96,7 +97,13 @@ func New() *cli.Command {
 				Usage:   "do rollback",
 				Aliases: []string{"r"},
 				Action: func(context *cli.Context) error {
-					defer recovery.Exit()
+					defer recovery.Recovery(func(err error) {
+						if errors.Is(err, gormigrate.ErrNoRunMigration) {
+							return
+						}
+
+						assert.Exit(err)
+					})
 
 					p := di.Inject(new(params))
 					m := gormigrate.New(p.Db.DB, options, migrate(p.Migrations))

@@ -2,6 +2,8 @@ package running
 
 import (
 	"fmt"
+	"github.com/pubgo/dix/di"
+	"github.com/pubgo/lava/core/lifecycle"
 	"os"
 	"sort"
 
@@ -45,6 +47,9 @@ import (
 
 func Main(cmdL ...*cli.Command) {
 	defer recovery.Exit()
+
+	di.Provide(lifecycle.New)
+
 	cmdL = append(cmdL,
 		versioncmd.New(),
 		migratecmd.New(),
