@@ -41,7 +41,7 @@ func New() lava.Middleware {
 				if pb.Reason == "" {
 					pb.Id = lava.GetReqID(ctx)
 					pb.Code = errorpb.Code_Internal
-					pb.Name = "lava.server.panic"
+					pb.Status = "lava.server.panic"
 					pb.Reason = gErr.Error()
 				}
 

@@ -645,8 +645,8 @@ github.com/prometheus/procfs v0.8.0 h1:ODq8ZFEaYeCaZOJlZZdJA2AbQR98dSHSM1KW/You5
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/pubgo/dix v0.3.9 h1:AKpalJre8s2taPPmStmvrkqxkcp8PR//DPvcABbozBc=
 github.com/pubgo/dix v0.3.9/go.mod h1:6MTMsX/yaHEAdF9byHEvYKPg99S/X1/Sx3EMNOQUYZ0=
-github.com/pubgo/funk v0.5.29-12 h1:MKt+1TnDMwnc1mR8HUHb23auos83FLqVtLsAfEZEoeE=
-github.com/pubgo/funk v0.5.29-12/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
+github.com/pubgo/funk v0.5.29-13 h1:6qUkMywSVYZLQJq6/OX4G0Hg4dbbdQgG3Q0im3Vm1e8=
+github.com/pubgo/funk v0.5.29-13/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/opendoc v0.0.3-1 h1:HtUyZIXDOPkwWNn1NZIYzUmu6fJdqVpQIeDDsU1Ljyk=
 github.com/pubgo/opendoc v0.0.3-1/go.mod h1:/ImGd3W5iinlUhS4KH52QTNaNsO7ivTWoTjsbbrG4j8=
 github.com/reugn/go-quartz v0.3.7 h1:4Xc90qSQa2WRkPU+wI9iV5o+mf+0e4W2nao5hUmPH/A=
