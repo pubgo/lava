@@ -3,8 +3,9 @@ package grpcc
 import (
 	"context"
 
-	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava"
 )
 
 // Interface grpc client interface

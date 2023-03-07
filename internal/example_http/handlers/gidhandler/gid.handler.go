@@ -12,9 +12,9 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/opendoc/opendoc"
 	"github.com/teris-io/shortid"
 )

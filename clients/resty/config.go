@@ -7,8 +7,9 @@ import (
 
 	"github.com/pubgo/funk/retry"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/lava"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lava"
 )
 
 const (

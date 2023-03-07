@@ -2,7 +2,7 @@ package https
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava"
 )
 
 var _ lava.Response = (*httpResponse)(nil)

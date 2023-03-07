@@ -3,7 +3,6 @@ package grpcc
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/logging/logkey"
 	"sync"
 
 	"github.com/pubgo/funk/assert"
@@ -16,13 +15,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/lava"
 )
 
 func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Interface {

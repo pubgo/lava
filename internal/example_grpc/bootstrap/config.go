@@ -1,9 +1,9 @@
 package bootstrap
 
 import (
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/orm"
-	"github.com/pubgo/lava/logging"
 	"github.com/pubgo/lava/servers/grpcs"
 )
 

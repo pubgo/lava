@@ -22,6 +22,7 @@ import (
 	"github.com/pubgo/funk/version"
 	"google.golang.org/grpc"
 
+	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metric"
@@ -31,7 +32,6 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/lava"
 )
 
 func New() lava.Service { return newService() }

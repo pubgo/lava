@@ -9,8 +9,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc/codes"
+
+	"github.com/pubgo/lava"
 )
 
 // DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.

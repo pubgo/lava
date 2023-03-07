@@ -10,7 +10,8 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/lava"
+
+	"github.com/pubgo/lava"
 )
 
 const Name = "accesslog"

@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
 
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava"
 )
 
 func New() lava.Middleware {

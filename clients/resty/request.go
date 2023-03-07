@@ -2,7 +2,7 @@ package resty
 
 import (
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava"
 	"github.com/valyala/fasthttp"
 )
 
