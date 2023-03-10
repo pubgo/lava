@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/log"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -11,18 +10,17 @@ import (
 
 	"github.com/a8m/envsubst"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/cast"
-	"github.com/spf13/viper"
-
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/env"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/pathutil"
 	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/version"
+	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 )
 
 // New 处理所有的配置,环境变量和flag
@@ -33,25 +31,15 @@ import (
 func New() Config {
 	defer recovery.Exit()
 
-	var prefix = strings.ToUpper(Replacer.Replace(version.Project()))
-
 	// 配置处理
 	v := viper.New()
 	v.SetEnvKeyReplacer(Replacer)
-	v.SetEnvPrefix(prefix)
+	v.SetEnvPrefix(Replacer.Replace(version.Project()))
 	v.SetConfigName(defaultConfigName)
 	v.SetConfigType(defaultConfigType)
 	v.AutomaticEnv()
 	v.AddConfigPath(".")
 	v.AddConfigPath(defaultConfigPath)
-
-	for name, val := range env.Map() {
-		if !strings.HasPrefix(name, prefix) {
-			continue
-		}
-
-		v.SetDefault(name, val)
-	}
 
 	var t = &configImpl{v: v}
 	// 初始化框架, 加载环境变量, 加载本地配置

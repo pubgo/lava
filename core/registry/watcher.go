@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/pubgo/lava/core/service"
 	"time"
 
 	"github.com/pubgo/funk/result"
@@ -20,7 +21,7 @@ type Watcher interface {
 // the watcher. Actions can be create, update, delete
 type Result struct {
 	Action  eventpbv1.EventType
-	Service *Service
+	Service *service.Service
 }
 
 // Event is registry event
@@ -32,5 +33,5 @@ type Event struct {
 	// Timestamp is event timestamp
 	Timestamp time.Time
 	// Service is registry service
-	Service *Service
+	Service *service.Service
 }

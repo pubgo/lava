@@ -53,7 +53,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 				}
 			}
 
-			assert.Must(nodes.Each(func(id string, n *registry.Node) {
+			assert.Must(nodes.Each(func(id string, n *service.Node) {
 				if allNodes.Has(id) {
 					return
 				}
@@ -61,11 +61,11 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 				allNodes.Set(id, n)
 				results <- &registry.Result{
 					Action:  eventpbv1.EventType_UPDATE,
-					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+					Service: &service.Service{Name: service, Nodes: service.Nodes{n}},
 				}
 			}))
 
-			assert.Must(allNodes.Each(func(id string, n *registry.Node) {
+			assert.Must(allNodes.Each(func(id string, n *service.Node) {
 				if nodes.Has(id) {
 					return
 				}
@@ -73,7 +73,7 @@ func newWatcher(m *mdnsRegistry, service string, opt ...registry.WatchOpt) resul
 				allNodes.Delete(id)
 				results <- &registry.Result{
 					Action:  eventpbv1.EventType_DELETE,
-					Service: &registry.Service{Name: service, Nodes: registry.Nodes{n}},
+					Service: &service.Service{Name: service, Nodes: service.Nodes{n}},
 				}
 			}))
 		}

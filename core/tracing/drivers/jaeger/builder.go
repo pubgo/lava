@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	tracing.RegisterFactory(Name, func(cfgMap config.CfgMap) error {
+	tracing.RegisterFactory(Name, func(cfgMap config.Map) error {
 		tracing.GetSpanID = GetSpanID
 
 		var cfg = DefaultCfg()

@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/service"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/result"
@@ -49,7 +50,7 @@ func (t *Watcher) Next() result.Result[*registry.Result] {
 
 			var resp = &registry.Result{
 				Action: eventpbv1.EventType_UPDATE,
-				Service: &registry.Service{
+				Service: &service.Service{
 					Name: t.service,
 				},
 			}
@@ -63,7 +64,7 @@ func (t *Watcher) Next() result.Result[*registry.Result] {
 					}
 
 					for _, addr := range subset.Addresses {
-						resp.Service.Nodes = append(resp.Service.Nodes, &registry.Node{
+						resp.Service.Nodes = append(resp.Service.Nodes, &service.Node{
 							Id:      string(addr.TargetRef.UID),
 							Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
 						})

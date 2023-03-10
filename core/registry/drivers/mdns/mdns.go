@@ -4,6 +4,7 @@ package mdns
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/service"
 	"time"
 
 	"github.com/grandcat/zeroconf"
@@ -59,7 +60,7 @@ func (m *mdnsRegistry) Close() {
 func (m *mdnsRegistry) Init() {
 }
 
-func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.RegOpt) (gErr error) {
+func (m *mdnsRegistry) Register(service *service.Service, optList ...registry.RegOpt) (gErr error) {
 	defer recovery.Recovery(func(err error) {
 		gErr = errors.WrapKV(err, "service", service)
 	})
@@ -90,7 +91,7 @@ func (m *mdnsRegistry) Register(service *registry.Service, optList ...registry.R
 	return
 }
 
-func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.DeregOpt) (gErr error) {
+func (m *mdnsRegistry) Deregister(service *service.Service, opt ...registry.DeregOpt) (gErr error) {
 	defer recovery.Recovery(func(err error) {
 		gErr = errors.WrapKV(err, "service", service)
 	})
@@ -108,13 +109,13 @@ func (m *mdnsRegistry) Deregister(service *registry.Service, opt ...registry.Der
 	return
 }
 
-func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.Result[[]*registry.Service] {
+func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.Result[[]*service.Service] {
 	entries := make(chan *zeroconf.ServiceEntry)
-	services := async.Yield(func(yield func(*registry.Service)) error {
+	services := async.Yield(func(yield func(*service.Service)) error {
 		for s := range entries {
-			yield(&registry.Service{
+			yield(&service.Service{
 				Name: s.Service,
-				Nodes: registry.Nodes{{
+				Nodes: service.Nodes{{
 					Id:      s.Instance,
 					Port:    s.Port,
 					Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
@@ -137,14 +138,14 @@ func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.R
 	return services.ToList()
 }
 
-func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) result.Result[[]*registry.Service] {
+func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) result.Result[[]*service.Service] {
 	var services []string
 	m.services.Range(func(key, value interface{}) bool {
 		services = append(services, key.(string))
 		return true
 	})
 
-	var ss []*registry.Service
+	var ss []*service.Service
 	for i := range services {
 		var s = m.GetService(services[i])
 		if s.IsErr() {

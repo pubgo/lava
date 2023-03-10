@@ -8,5 +8,5 @@ import (
 func init() {
 	defer recovery.Exit()
 
-	RegisterFactory("noop", func(cfg config.CfgMap) error { return nil })
+	RegisterFactory("noop", func(cfg config.Map) error { return nil })
 }

@@ -2,6 +2,7 @@ package grpcc_resolver
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/service"
 	"sync"
 
 	"github.com/pubgo/funk/assert"
@@ -27,7 +28,7 @@ type discovBuilder struct {
 func (d *discovBuilder) Scheme() string { return DiscovScheme }
 
 // 删除服务
-func (d *discovBuilder) delService(services ...*registry.Service) {
+func (d *discovBuilder) delService(services ...*service.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 删除服务信息
@@ -39,7 +40,7 @@ func (d *discovBuilder) delService(services ...*registry.Service) {
 }
 
 // 更新服务
-func (d *discovBuilder) updateService(services ...*registry.Service) {
+func (d *discovBuilder) updateService(services ...*service.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 更新服务信息

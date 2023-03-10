@@ -10,7 +10,7 @@ var Name = "metric"
 
 type Cfg struct {
 	Driver    string        `json:"driver"`
-	DriverCfg config.CfgMap `json:"driver_config"`
+	DriverCfg config.Map    `json:"driver_config"`
 	Interval  time.Duration `json:"interval"`
 }
 

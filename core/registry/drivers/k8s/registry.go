@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/service"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -105,12 +106,12 @@ func (s *Registry) Init() {
 func (s *Registry) Close() {
 }
 
-func (s *Registry) Deregister(service *registry.Service, opt ...registry.DeregOpt) error {
+func (s *Registry) Deregister(service *service.Service, opt ...registry.DeregOpt) error {
 	return nil
 	//return s.Dix(&registry.Service{Metadata: map[string]string{},})
 }
 
-func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result[[]*registry.Service] {
+func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result[[]*service.Service] {
 	var ctx, cancel = context.WithTimeout(context.Background(), consts.DefaultTimeout)
 	defer cancel()
 
@@ -119,7 +120,7 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result
 		Endpoints(k8sutil.Namespace()).
 		List(ctx, metav1.ListOptions{FieldSelector: fmt.Sprintf("%s=%s", "metadata.name", name)}))
 
-	return async.Yield(func(yield func(*registry.Service)) error {
+	return async.Yield(func(yield func(*service.Service)) error {
 		for _, endpoint := range endpoints.Items {
 			for _, subset := range endpoint.Subsets {
 				realPort := ""
@@ -129,9 +130,9 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result
 				}
 
 				for _, addr := range subset.Addresses {
-					yield(&registry.Service{
+					yield(&service.Service{
 						Name: name,
-						Nodes: []*registry.Node{
+						Nodes: []*service.Node{
 							{
 								Id:      string(addr.TargetRef.UID),
 								Address: fmt.Sprintf("%s:%s", addr.IP, realPort),
@@ -145,8 +146,8 @@ func (s *Registry) GetService(name string, opt ...registry.GetOpt) result.Result
 	}).ToList()
 }
 
-func (s *Registry) ListService(opt ...registry.ListOpt) result.Result[[]*registry.Service] {
-	return result.Result[[]*registry.Service]{}
+func (s *Registry) ListService(opt ...registry.ListOpt) result.Result[[]*service.Service] {
+	return result.Result[[]*service.Service]{}
 }
 
 func (s *Registry) String() string { return name }
@@ -154,7 +155,7 @@ func (s *Registry) String() string { return name }
 // Register is used to register services
 // Note that on Kubernetes, it can only be used to update the id/name/version/metadata/protocols of the current service,
 // but it cannot be used to update node.
-func (s *Registry) Register(service *registry.Service, opt ...registry.RegOpt) error {
+func (s *Registry) Register(service *service.Service, opt ...registry.RegOpt) error {
 	//patchBytes, err := jsoniter.Marshal(map[string]interface{}{
 	//	"metadata": metav1.ObjectMeta{
 	//		Labels: map[string]string{

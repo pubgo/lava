@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	orm.Register("sqlite3", func(cfg config.CfgMap) gorm.Dialector {
+	orm.Register("sqlite3", func(cfg config.Map) gorm.Dialector {
 		defer recovery.Raise(func(err error) error {
 			return errors.WrapKV(err, "cfg", cfg)
 		})

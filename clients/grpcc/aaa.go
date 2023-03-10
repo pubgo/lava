@@ -8,8 +8,8 @@ import (
 	"github.com/pubgo/lava"
 )
 
-// Interface grpc client interface
-type Interface interface {
+// Client grpc client interface
+type Client interface {
 	grpc.ClientConnInterface
 	Healthy(ctx context.Context) error
 	Middleware(mm ...lava.Middleware)

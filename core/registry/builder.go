@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/service"
 	"strconv"
 	"strings"
 	"time"
@@ -90,7 +91,7 @@ func register(reg Registry) {
 	}
 
 	// register service
-	node := &Node{
+	node := &service.Node{
 		Port:     port,
 		Version:  version.Version(),
 		Address:  fmt.Sprintf("%s:%d", host, port),
@@ -98,9 +99,9 @@ func register(reg Registry) {
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
-	s := &Service{
+	s := &service.Service{
 		Name:  runmode.Project,
-		Nodes: []*Node{node},
+		Nodes: []*service.Node{node},
 	}
 
 	logutil.OkOrFailed(
@@ -130,16 +131,16 @@ func deregister(reg Registry) {
 	}
 
 	// register service
-	node := &Node{
+	node := &service.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
 		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
 		Metadata: make(map[string]string),
 	}
 
-	s := &Service{
+	s := &service.Service{
 		Name:  runmode.Project,
-		Nodes: []*Node{node},
+		Nodes: []*service.Node{node},
 	}
 
 	logutil.OkOrFailed(

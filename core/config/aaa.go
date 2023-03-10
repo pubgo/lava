@@ -24,9 +24,9 @@ var (
 )
 
 type DecoderOption = viper.DecoderConfigOption
-type CfgMap map[string]any
+type Map map[string]any
 
-func (c CfgMap) Decode(val any, tags ...string) error {
+func (c Map) Decode(val any, tags ...string) error {
 	var tag = "yaml"
 	if len(tags) > 0 && tags[0] != "" {
 		tag = tags[0]

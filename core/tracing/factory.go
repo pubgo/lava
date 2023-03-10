@@ -14,7 +14,7 @@ var factories typex.SyncMap
 // GetSpanID 从SpanContext中获取spanID
 var GetSpanID = func(ctx opentracing.SpanContext) (string, string) { return "", "" }
 
-type Factory func(cfg config.CfgMap) error
+type Factory func(cfg config.Map) error
 
 func GetFactory(names ...string) Factory {
 	val, ok := factories.Load(strutil.GetDefault(names...))

@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/core/orm"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
@@ -11,10 +10,11 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/pubgo/lava/core/config"
+	"github.com/pubgo/lava/core/orm"
 )
 
 func init() {
-	orm.Register("postgres", func(cfg config.CfgMap) gorm.Dialector {
+	orm.Register("postgres", func(cfg config.Map) gorm.Dialector {
 		defer recovery.Raise(func(err error) error {
 			return errors.WrapKV(err, "cfg", cfg)
 		})

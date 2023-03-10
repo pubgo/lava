@@ -3,6 +3,7 @@ package registry
 import (
 	"context"
 	"crypto/tls"
+	"github.com/pubgo/lava/core/service"
 	"time"
 )
 
@@ -82,35 +83,10 @@ func RegisterContext(ctx context.Context) RegOpt {
 	}
 }
 
-// WatchService Watch a service
-func WatchService(name string) WatchOpt {
-	return func(o *WatchOpts) {
-		o.Service = name
-	}
-}
-
-func WatchContext(ctx context.Context) WatchOpt {
-	return func(o *WatchOpts) {
-		o.Context = ctx
-	}
-}
-
-func DeregContext(ctx context.Context) DeregOpt {
-	return func(o *DeregOpts) {
-		o.Context = ctx
-	}
-}
-
-func ListContext(ctx context.Context) ListOpt {
-	return func(o *ListOpts) {
-		o.Context = ctx
-	}
-}
-
 type servicesKey struct{}
 
 // Services is an option that preloads service data
-func Services(s map[string][]*Service) Opt {
+func Services(s map[string][]*service.Service) Opt {
 	return func(o *Opts) {
 		if o.Context == nil {
 			o.Context = context.Background()

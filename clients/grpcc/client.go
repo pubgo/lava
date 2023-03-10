@@ -7,9 +7,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc"
@@ -18,6 +16,7 @@ import (
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_log"
@@ -25,8 +24,8 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 )
 
-func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Interface {
-	cfg = merge.Copy(generic.Ptr(grpcc_config.DefaultCfg()), cfg).Unwrap()
+func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Client {
+	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg)
 	var c = &clientImpl{
 		cfg: cfg,
 		log: log,

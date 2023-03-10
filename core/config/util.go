@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/merge"
 )
 
 func getComponentName(m map[string]interface{}) string {
@@ -57,4 +59,8 @@ func Load[T any]() T {
 	var cfg T
 	assert.Must(c.Unmarshal(&cfg))
 	return cfg
+}
+
+func Merge[A any, B any](dst A, src *B) *A {
+	return merge.Copy(generic.Ptr(dst), src).Unwrap()
 }
