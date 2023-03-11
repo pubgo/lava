@@ -3,6 +3,7 @@ package service
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Service struct {
@@ -57,3 +58,34 @@ func addPort(addr string) int {
 
 	return 0
 }
+
+// ServiceInstance todo
+type ServiceInstance struct {
+	Region       string      `json:"region,omitempty"`
+	InstanceName string      `json:"instanceName,omitempty"`
+	ServiceName  string      `json:"serviceName,omitempty"`
+	Type         ServiceType `json:"serviceType,omitempty"`
+	Address      string      `json:"address,omitempty"`
+	Version      string      `json:"version,omitempty"`
+	GitBranch    string      `json:"gitBranch,omitempty"`
+	GitCommit    string      `json:"gitCommit,omitempty"`
+	BuildEnv     string      `json:"buildEnv,omitempty"`
+	BuildAt      string      `json:"buildAt,omitempty"`
+	Online       int64       `json:"online,omitempty"` // 毫秒时间戳
+
+	Meta map[string]interface{} `json:"meta,omitempty"`
+
+	Prefix   string        `json:"-"`
+	Interval time.Duration `json:"-"`
+	TTL      int64         `json:"-"`
+}
+
+// ServiceType 服务类型
+type ServiceType string
+
+const (
+	// API 提供API访问的服务
+	API = ServiceType("api")
+	// Worker 后台作业服务
+	Worker = ServiceType("worker")
+)

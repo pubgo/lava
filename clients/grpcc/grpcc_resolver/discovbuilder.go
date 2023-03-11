@@ -2,7 +2,6 @@ package grpcc_resolver
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/service"
 	"sync"
 
 	"github.com/pubgo/funk/assert"
@@ -13,9 +12,11 @@ import (
 	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/try"
-	"github.com/pubgo/lava/core/registry"
-	eventpbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/core/discovery"
+	"github.com/pubgo/lava/core/service"
+	eventpbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
 var _ resolver.Builder = (*discovBuilder)(nil)
@@ -23,6 +24,7 @@ var _ resolver.Builder = (*discovBuilder)(nil)
 type discovBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
+	disco    discovery.Discovery
 }
 
 func (d *discovBuilder) Scheme() string { return DiscovScheme }
@@ -81,14 +83,13 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.Info().Msgf("discovery builder, target=>%#v", target)
 
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
-	var r = registry.Default()
-	assert.If(r == nil, "registry is nil")
+	assert.If(d.disco == nil, "registry is nil")
 
 	var srv = target.URL.Host
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services := r.GetService(srv).Unwrap(func(err error) error {
+	services := d.disco.GetService(srv).Unwrap(func(err error) error {
 		return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
 	})
 
@@ -101,7 +102,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.Info().Msgf("discovery builder UpdateState, address=%v", address)
 	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w := r.Watch(srv).Unwrap(func(err error) error {
+	w := d.disco.Watch(srv).Unwrap(func(err error) error {
 		return errors.Wrapf(err, "target.Endpoint: %s", srv)
 	})
 
@@ -115,7 +116,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					return
 				default:
 					res := w.Next()
-					if res.Err() == registry.ErrWatcherStopped {
+					if res.Err() == discovery.ErrWatcherStopped {
 						return
 					}
 
