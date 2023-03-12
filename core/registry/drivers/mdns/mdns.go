@@ -3,21 +3,17 @@ package mdns
 
 import (
 	"context"
-	"fmt"
-	"github.com/pubgo/lava/core/service"
-	"time"
 
 	"github.com/grandcat/zeroconf"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/lava/core/registry"
+	"github.com/pubgo/lava/core/service"
 )
 
 const (
@@ -60,7 +56,7 @@ func (m *mdnsRegistry) Close() {
 func (m *mdnsRegistry) Init() {
 }
 
-func (m *mdnsRegistry) Register(service *service.Service, optList ...registry.RegOpt) (gErr error) {
+func (m *mdnsRegistry) Register(ctx context.Context, service *service.Service, optList ...registry.RegOpt) (gErr error) {
 	defer recovery.Recovery(func(err error) {
 		gErr = errors.WrapKV(err, "service", service)
 	})
@@ -91,7 +87,7 @@ func (m *mdnsRegistry) Register(service *service.Service, optList ...registry.Re
 	return
 }
 
-func (m *mdnsRegistry) Deregister(service *service.Service, opt ...registry.DeregOpt) (gErr error) {
+func (m *mdnsRegistry) Deregister(ctx context.Context, service *service.Service, opt ...registry.DeregOpt) (gErr error) {
 	defer recovery.Recovery(func(err error) {
 		gErr = errors.WrapKV(err, "service", service)
 	})
@@ -107,58 +103,6 @@ func (m *mdnsRegistry) Deregister(service *service.Service, opt ...registry.Dere
 
 	val.(*serverNode).srv.Shutdown()
 	return
-}
-
-func (m *mdnsRegistry) GetService(name string, opts ...registry.GetOpt) result.Result[[]*service.Service] {
-	entries := make(chan *zeroconf.ServiceEntry)
-	services := async.Yield(func(yield func(*service.Service)) error {
-		for s := range entries {
-			yield(&service.Service{
-				Name: s.Service,
-				Nodes: service.Nodes{{
-					Id:      s.Instance,
-					Port:    s.Port,
-					Address: fmt.Sprintf("%s:%d", s.AddrIPv4[0].String(), s.Port),
-				}},
-			})
-		}
-		return nil
-	})
-
-	var gOpts registry.GetOpts
-	for i := range opts {
-		opts[i](&gOpts)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancel()
-
-	assert.MustF(m.resolver.Browse(ctx, name, zeroconfDomain, entries), "Failed to Lookup Service %s", name)
-	<-ctx.Done()
-	return services.ToList()
-}
-
-func (m *mdnsRegistry) ListService(opts ...registry.ListOpt) result.Result[[]*service.Service] {
-	var services []string
-	m.services.Range(func(key, value interface{}) bool {
-		services = append(services, key.(string))
-		return true
-	})
-
-	var ss []*service.Service
-	for i := range services {
-		var s = m.GetService(services[i])
-		if s.IsErr() {
-			return s
-		}
-
-		ss = append(ss, s.Unwrap()...)
-	}
-	return result.OK(ss)
-}
-
-func (m *mdnsRegistry) Watch(service string, opt ...registry.WatchOpt) result.Result[registry.Watcher] {
-	return newWatcher(m, service, opt...)
 }
 
 func (m *mdnsRegistry) String() string { return Name }

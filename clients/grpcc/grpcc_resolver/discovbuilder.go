@@ -89,7 +89,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services := d.disco.GetService(srv).Unwrap(func(err error) error {
+	services := d.disco.GetService(context.Background(), srv).Unwrap(func(err error) error {
 		return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
 	})
 
@@ -102,7 +102,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	logs.Info().Msgf("discovery builder UpdateState, address=%v", address)
 	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w := d.disco.Watch(srv).Unwrap(func(err error) error {
+	w := d.disco.Watch(context.Background(), srv).Unwrap(func(err error) error {
 		return errors.Wrapf(err, "target.Endpoint: %s", srv)
 	})
 

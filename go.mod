@@ -20,7 +20,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.uber.org/atomic v1.10.0
 	go.uber.org/automaxprocs v1.5.1
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/net v0.5.0
@@ -52,7 +52,6 @@ require (
 	github.com/felixge/fgprof v0.9.3
 	github.com/go-echarts/go-echarts/v2 v2.2.5
 	github.com/go-echarts/statsview v0.3.4
-	github.com/go-gormigrate/gormigrate/v2 v2.0.2
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
@@ -67,6 +66,7 @@ require (
 	github.com/pubgo/funk v0.5.29-13
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
+	github.com/sercand/kuberesolver/v3 v3.1.1
 	github.com/stretchr/testify v1.8.1
 	github.com/uber-go/tally/v4 v4.1.5
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
@@ -83,6 +83,7 @@ require (
 	gorm.io/driver/postgres v1.4.1
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gen v0.3.21
+	k8s.io/api v0.21.1
 )
 
 require (
@@ -109,6 +110,7 @@ require (
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -170,7 +172,6 @@ require (
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
-	k8s.io/api v0.21.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect

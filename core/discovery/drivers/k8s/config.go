@@ -25,10 +25,6 @@ type Cfg struct {
 
 func (t *Cfg) Build() *kubernetes.Clientset {
 	var config *rest.Config
-	//if t.Filename != "" {
-	//	config = assert.Must1(clientcmd.LoadFromFile(t.Filename))
-	//}
-
 	if t.KubeConfig != "" {
 		config = assert.Must1(clientcmd.BuildConfigFromFlags(t.Master, t.KubeConfig))
 	} else {

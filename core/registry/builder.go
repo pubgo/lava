@@ -3,7 +3,6 @@ package registry
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/service"
 	"strconv"
 	"strings"
 	"time"
@@ -15,9 +14,9 @@ import (
 	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
-	"go.uber.org/zap"
 
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/service"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
@@ -59,7 +58,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 				case <-tick.C:
 					register(reg)
 				case <-ctx.Done():
-					zap.L().Info("service register cancelled")
+					log.Info().Msg("service register cancelled")
 					return nil
 				}
 			}
@@ -108,7 +107,7 @@ func register(reg Registry) {
 		log.GetLogger("service-registry"),
 		"register service node",
 		func() error {
-			var err = reg.Register(s)
+			var err = reg.Register(context.Background(), s)
 			return errors.WrapEventFn(err, func(evt *errors.Event) {
 				evt.Str("instance_id", node.Id)
 				evt.Str("service", runmode.Project)
@@ -147,7 +146,7 @@ func deregister(reg Registry) {
 		log.GetLogger("service-registry"),
 		"deregister service node",
 		func() error {
-			var err = reg.Deregister(s)
+			var err = reg.Deregister(context.Background(), s)
 			return errors.WrapEventFn(err, func(evt *errors.Event) {
 				evt.Str("id", node.Id)
 				evt.Str("name", runmode.Project)

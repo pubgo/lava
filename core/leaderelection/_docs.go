@@ -7,3 +7,4 @@ package leaderelection
 // etcd
 // https://github.com/translatecn/memberlist
 // raft
+// https://github.com/operator-framework/operator-lib/blob/main/leader/leader.go
