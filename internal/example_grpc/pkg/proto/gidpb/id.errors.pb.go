@@ -17,5 +17,5 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-var ErrSrvErrCodeOK = errors.NewCode(errorpb.Code_OK).SetStatus("gid.srv.ok").SetReason("ok")
-var ErrSrvErrCodeIDGenerateFailed = errors.NewCode(errorpb.Code_Internal).SetStatus("gid.srv.id_generate_failed").SetReason("id generate error")
+var ErrSrvCodeOK = errors.NewCode(errorpb.Code_OK).SetStatus("gid.srvcode.ok").SetReason("ok")
+var ErrSrvCodeIDGenerateFailed = errors.NewCode(errorpb.Code_Internal).SetStatus("gid.srvcode.id_generate_failed").SetReason("id generate error")

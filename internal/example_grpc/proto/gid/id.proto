@@ -123,7 +123,7 @@ service Id {
   }
 }
 
-enum SrvErrCode {
+enum SrvCode {
   option (status.opts).gen_enable = true;
 
   OK = 0;
