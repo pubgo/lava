@@ -2,7 +2,7 @@ package https
 
 import (
 	"github.com/pubgo/funk/version"
-	fiber_builder2 "github.com/pubgo/lava/internal/fiber_builder"
+	"github.com/pubgo/lava/internal/fiber_builder"
 )
 
 const (
@@ -11,16 +11,16 @@ const (
 )
 
 type Config struct {
-	Http       *fiber_builder2.Config `yaml:"http"`
-	Ws         *fiber_builder2.WsCfg  `yaml:"ws"`
-	PrintRoute bool                   `yaml:"print-route"`
-	PathPrefix string                 `yaml:"path-prefix"`
+	Http       *fiber_builder.Config `yaml:"http"`
+	Ws         *fiber_builder.WsCfg  `yaml:"ws"`
+	PrintRoute bool                  `yaml:"print-route"`
+	PathPrefix string                `yaml:"path-prefix"`
 }
 
 func defaultCfg() Config {
 	return Config{
-		Http:       &fiber_builder2.Config{},
-		Ws:         &fiber_builder2.WsCfg{},
+		Http:       &fiber_builder.Config{},
+		Ws:         &fiber_builder.WsCfg{},
 		PrintRoute: true,
 		PathPrefix: version.Project(),
 	}
