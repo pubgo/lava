@@ -3,6 +3,7 @@ package stdlog
 import (
 	"io"
 	"log"
+	"strings"
 
 	logger "github.com/pubgo/funk/log"
 
@@ -17,7 +18,7 @@ func init() {
 func New(logger logger.Logger) {
 	var stdLog = log.Default()
 	// 接管系统默认log
-	*stdLog = *log.New(&std{l: logger.WithName("std")}, "", 0)
+	*stdLog = *log.New(&std{l: logger.WithName("std").WithCallerSkip(3)}, "", 0)
 }
 
 var _ io.Writer = (*std)(nil)
@@ -27,6 +28,6 @@ type std struct {
 }
 
 func (s *std) Write(p []byte) (n int, err error) {
-	s.l.Info().Msg(string(p))
+	s.l.Info().Msg(strings.TrimSpace(string(p)))
 	return len(p), err
 }
