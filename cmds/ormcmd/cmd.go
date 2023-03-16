@@ -29,8 +29,8 @@ func New() *cli.Command {
 					defer recovery.Exit()
 
 					g := gen.NewGenerator(gen.Config{
-						OutPath:           "./internal/query",
-						ModelPkgPath:      "./internal/models",
+						OutPath:           "./internal/db/query",
+						ModelPkgPath:      "./internal/db/models",
 						FieldWithTypeTag:  false,
 						FieldWithIndexTag: false,
 						FieldNullable:     true,
