@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/gofiber/adaptor/v2"
@@ -117,8 +116,6 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
 	for _, h := range handlers {
-		basePrefix := filepath.Join(basePath, h.ServiceDesc().ServiceName, "*")
-		httpServer.Post(basePrefix, handlerTwMiddle(srvMidMap, h.Gateway(nil)))
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 

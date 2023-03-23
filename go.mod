@@ -63,10 +63,9 @@ require (
 	github.com/open2b/scriggo v0.56.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pubgo/dix v0.3.9
-	github.com/pubgo/funk v0.5.29-13
+	github.com/pubgo/funk v0.5.29-15
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
-	github.com/sercand/kuberesolver/v3 v3.1.1
 	github.com/stretchr/testify v1.8.2
 	github.com/uber-go/tally/v4 v4.1.5
 	github.com/uber/jaeger-client-go v2.30.0+incompatible

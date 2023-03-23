@@ -5,11 +5,6 @@ import (
 	"github.com/pubgo/lava/internal/fiber_builder"
 )
 
-const (
-	Name               = "service"
-	defaultContentType = "application/json"
-)
-
 type Config struct {
 	Http       *fiber_builder.Config `yaml:"http"`
 	Ws         *fiber_builder.WsCfg  `yaml:"ws"`
