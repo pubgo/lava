@@ -51,11 +51,11 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.2.5
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-playground/validator/v10 v10.10.1
-	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
 	github.com/google/gops v0.3.27
+	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jaegertracing/jaeger v1.42.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
@@ -91,11 +91,13 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/getkin/kin-openapi v0.98.0 // indirect
@@ -104,6 +106,7 @@ require (
 	github.com/go-openapi/swag v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -142,6 +145,7 @@ require (
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rs/cors v1.8.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20211223103454-d0aaa54c5899 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
@@ -167,4 +171,5 @@ require (
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20221123214604-86e75ddd809a // indirect
+	nhooyr.io/websocket v1.8.6 // indirect
 )

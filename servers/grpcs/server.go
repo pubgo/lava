@@ -3,19 +3,22 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/config"
 	"net"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
+	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
-	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
@@ -68,11 +71,12 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	cfg *Config,
 ) {
-	cfg = merge.Struct(generic.Ptr(defaultCfg()), cfg).Unwrap()
-	pathPrefix := "/" + strings.Trim(cfg.BaseUrl, "/")
-	cfg.BaseUrl = pathPrefix
+	cfg = config.Merge(defaultCfg(), cfg)
+	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
+	cfg.BaseUrl = basePath
 
 	middlewares := generic.ListOf(middleware_metric.New(metric), middleware_log.New(log), middleware_recovery.New())
+	// TODO server middleware handle
 	middlewares = append(middlewares, dixMiddlewares["server"]...)
 
 	log = log.WithName("grpc-server")
@@ -89,6 +93,7 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
+	var initList []func()
 	var srvMidMap = make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -97,7 +102,7 @@ func (s *serviceImpl) DixInject(
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
-		s.initList = append(s.initList, h.Init)
+		initList = append(initList, h.Init)
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
@@ -109,11 +114,22 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
 	for _, h := range handlers {
-		basePrefix := filepath.Join(pathPrefix, h.ServiceDesc().ServiceName, "*")
+		basePrefix := filepath.Join(basePath, h.ServiceDesc().ServiceName, "*")
 		httpServer.Post(basePrefix, handlerTwMiddle(srvMidMap, h.Gateway(nil)))
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
+	wrappedGrpc := grpcweb.WrapServer(grpcServer,
+		grpcweb.WithWebsockets(true),
+		grpcweb.WithAllowNonRootResource(true),
+		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
+		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
+
+	var grpcWebPrefix = assert.Must1(url.JoinPath(basePath, "web"))
+	httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
+
+	s.initList = initList
 	s.lc = getLifecycle
 	s.log = log
 	s.httpServer = httpServer

@@ -61,6 +61,6 @@ func Load[T any]() T {
 	return cfg
 }
 
-func Merge[A any, B any](dst A, src *B) *A {
-	return merge.Copy(generic.Ptr(dst), src).Unwrap()
+func Merge[A any, B any](to A, from *B) *A {
+	return merge.Copy(generic.Ptr(to), from).Unwrap()
 }
