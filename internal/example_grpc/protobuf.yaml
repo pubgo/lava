@@ -35,10 +35,6 @@ plugins:
   opt:
   - paths=import
   - require_unimplemented_servers=false
-- name: twirp
-  out: pkg/proto
-  opt:
-    - paths=import
 - name: lava-errors
   out: pkg/proto
   opt: paths=import

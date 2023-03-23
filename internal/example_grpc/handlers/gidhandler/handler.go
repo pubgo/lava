@@ -78,6 +78,8 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		req.Type = "uuid"
 	}
 
+	gidpb.RegisterIdHandler()
+
 	switch req.Type {
 	case "uuid":
 		rsp.Type = "uuid"

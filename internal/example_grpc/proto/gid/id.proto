@@ -100,6 +100,10 @@ service Id {
     };
   }
 
+  rpc Types1s(stream TypesRequest) returns (stream TypesResponse) {
+    option (google.api.http).get = "/v1/id/types1";
+  }
+
   // Types id类型
   rpc Types(TypesRequest) returns (TypesResponse) {
     option (google.api.http).get = "/v1/id/types";

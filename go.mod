@@ -48,6 +48,7 @@ require (
 	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.0
 	github.com/felixge/fgprof v0.9.3
+	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-echarts/go-echarts/v2 v2.2.5
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-playground/validator/v10 v10.10.1

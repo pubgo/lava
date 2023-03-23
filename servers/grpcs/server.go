@@ -3,7 +3,6 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/config"
 	"net"
 	"net/http"
 	"net/url"
@@ -23,9 +22,13 @@ import (
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 
+	_ "github.com/fullstorydev/grpchan"
 	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metric"
@@ -127,7 +130,24 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	var grpcWebPrefix = assert.Must1(url.JoinPath(basePath, "web"))
-	httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(grpcWebPrefix, wrappedGrpc)))
+	httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
+			writer.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if wrappedGrpc.IsGrpcWebSocketRequest(request) {
+			wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
+			return
+		}
+
+		if wrappedGrpc.IsGrpcWebRequest(request) {
+			wrappedGrpc.HandleGrpcWebRequest(writer, request)
+			return
+		}
+
+		grpcServer.ServeHTTP(writer, request)
+	})), &http2.Server{})))
 
 	s.initList = initList
 	s.lc = getLifecycle
