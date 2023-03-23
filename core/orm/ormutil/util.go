@@ -19,16 +19,16 @@ func ErrNotFound(err error) bool {
 
 func SubQuery(cols ...field.Expr) gen.Columns { return cols }
 
-var _ clause.Expression = (*expr)(nil)
 var _ gen.Condition = (*expr)(nil)
 
 type expr struct {
-	*clause.Expr
+	field.Expr
+	expr *clause.Expr
 }
 
-func Where(sql string, args ...interface{}) gen.Condition {
-	return expr{&clause.Expr{SQL: sql, Vars: args}}
+func RawCond(sql string, args ...interface{}) gen.Condition {
+	return expr{expr: &clause.Expr{SQL: sql, Vars: args}}
 }
 
-func (s expr) BeCond() interface{} { return s.Expr }
+func (s expr) BeCond() interface{} { return s.expr }
 func (s expr) CondError() error    { return nil }
