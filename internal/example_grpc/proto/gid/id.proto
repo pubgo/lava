@@ -100,7 +100,7 @@ service Id {
     };
   }
 
-  rpc Types1s(stream TypesRequest) returns (stream TypesResponse) {
+  rpc TypeStream(TypesRequest) returns (stream TypesResponse) {
     option (google.api.http).get = "/v1/id/types1";
   }
 

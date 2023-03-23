@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type IdClient interface {
 	// Generate 生成ID
 	Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error)
-	Types1S(ctx context.Context, opts ...grpc.CallOption) (Id_Types1SClient, error)
+	TypeStream(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (Id_TypeStreamClient, error)
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
 }
@@ -42,30 +42,31 @@ func (c *idClient) Generate(ctx context.Context, in *GenerateRequest, opts ...gr
 	return out, nil
 }
 
-func (c *idClient) Types1S(ctx context.Context, opts ...grpc.CallOption) (Id_Types1SClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Id_ServiceDesc.Streams[0], "/gid.Id/Types1s", opts...)
+func (c *idClient) TypeStream(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (Id_TypeStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Id_ServiceDesc.Streams[0], "/gid.Id/TypeStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &idTypes1SClient{stream}
+	x := &idTypeStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
 	return x, nil
 }
 
-type Id_Types1SClient interface {
-	Send(*TypesRequest) error
+type Id_TypeStreamClient interface {
 	Recv() (*TypesResponse, error)
 	grpc.ClientStream
 }
 
-type idTypes1SClient struct {
+type idTypeStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *idTypes1SClient) Send(m *TypesRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *idTypes1SClient) Recv() (*TypesResponse, error) {
+func (x *idTypeStreamClient) Recv() (*TypesResponse, error) {
 	m := new(TypesResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func (c *idClient) Types(ctx context.Context, in *TypesRequest, opts ...grpc.Cal
 type IdServer interface {
 	// Generate 生成ID
 	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
-	Types1S(Id_Types1SServer) error
+	TypeStream(*TypesRequest, Id_TypeStreamServer) error
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
 }
@@ -100,8 +101,8 @@ type UnimplementedIdServer struct {
 func (UnimplementedIdServer) Generate(context.Context, *GenerateRequest) (*GenerateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
 }
-func (UnimplementedIdServer) Types1S(Id_Types1SServer) error {
-	return status.Errorf(codes.Unimplemented, "method Types1S not implemented")
+func (UnimplementedIdServer) TypeStream(*TypesRequest, Id_TypeStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method TypeStream not implemented")
 }
 func (UnimplementedIdServer) Types(context.Context, *TypesRequest) (*TypesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Types not implemented")
@@ -136,30 +137,25 @@ func _Id_Generate_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Id_Types1S_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(IdServer).Types1S(&idTypes1SServer{stream})
-}
-
-type Id_Types1SServer interface {
-	Send(*TypesResponse) error
-	Recv() (*TypesRequest, error)
-	grpc.ServerStream
-}
-
-type idTypes1SServer struct {
-	grpc.ServerStream
-}
-
-func (x *idTypes1SServer) Send(m *TypesResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *idTypes1SServer) Recv() (*TypesRequest, error) {
+func _Id_TypeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(TypesRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	return m, nil
+	return srv.(IdServer).TypeStream(m, &idTypeStreamServer{stream})
+}
+
+type Id_TypeStreamServer interface {
+	Send(*TypesResponse) error
+	grpc.ServerStream
+}
+
+type idTypeStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *idTypeStreamServer) Send(m *TypesResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _Id_Types_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -198,10 +194,9 @@ var Id_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Types1s",
-			Handler:       _Id_Types1S_Handler,
+			StreamName:    "TypeStream",
+			Handler:       _Id_TypeStream_Handler,
 			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "gid/id.proto",

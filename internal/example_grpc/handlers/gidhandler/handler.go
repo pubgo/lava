@@ -29,8 +29,18 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Gateway(opts []interface{}) lava.TwirpServer {
-	return gidpb.NewIdServer(id, opts...)
+func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStreamServer) error {
+	for i := 0; i < 5; i++ {
+		var rsp = new(gidpb.TypesResponse)
+		rsp.Types = []string{
+			"uuid",
+			"shortid",
+			"snowflake",
+			"bigflake",
+		}
+		_ = server.Send(rsp)
+	}
+	return nil
 }
 
 func (id *Id) Middlewares() []lava.Middleware {
@@ -78,8 +88,6 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		req.Type = "uuid"
 	}
 
-	gidpb.RegisterIdHandler()
-
 	switch req.Type {
 	case "uuid":
 		rsp.Type = "uuid"
@@ -89,7 +97,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -98,7 +106,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
@@ -107,12 +115,12 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		if err != nil {
 			logs.Err(err).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrSrvErrCodeIDGenerateFailed)
+		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrSrvCodeIDGenerateFailed)
 	}
 
 	return rsp, nil
