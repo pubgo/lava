@@ -25,7 +25,6 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 
-	_ "github.com/fullstorydev/grpchan"
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/debug"
@@ -144,7 +143,7 @@ func (s *serviceImpl) DixInject(
 		}
 
 		grpcServer.ServeHTTP(writer, request)
-	})), &http2.Server{})))
+	})), new(http2.Server))))
 
 	s.initList = initList
 	s.lc = getLifecycle
