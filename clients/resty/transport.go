@@ -29,14 +29,13 @@ func DefaultPooledTransport() *http.Transport {
 			KeepAlive: 30 * time.Second,
 			DualStack: true,
 		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		//MaxIdleConnsPerHost:    100,
-		MaxResponseHeaderBytes: 4096, // net/http default is 10Mb
+		MaxIdleConns:           runtime.GOMAXPROCS(0)*12 + 100,
+		IdleConnTimeout:        90 * time.Second,
+		TLSHandshakeTimeout:    10 * time.Second,
+		ExpectContinueTimeout:  1 * time.Second,
+		ForceAttemptHTTP2:      true,
+		MaxIdleConnsPerHost:    runtime.GOMAXPROCS(0)*12 + 1, // http client缓存数量
+		MaxResponseHeaderBytes: 4096,                         // net/http default is 10Mb
 		TLSClientConfig: &tls.Config{
 			Renegotiation:      tls.RenegotiateOnceAsClient,
 			InsecureSkipVerify: true,

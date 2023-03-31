@@ -3,6 +3,7 @@ package resty
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"net/url"
 
 	"github.com/goccy/go-json"
@@ -68,4 +69,13 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 
 		return bb.Bytes(), nil
 	}
+}
+
+// StatusCodeIsRedirect returns true if the status code indicates a redirect.
+func StatusCodeIsRedirect(statusCode int) bool {
+	return statusCode == http.StatusMovedPermanently ||
+		statusCode == http.StatusFound ||
+		statusCode == http.StatusSeeOther ||
+		statusCode == http.StatusTemporaryRedirect ||
+		statusCode == http.StatusPermanentRedirect
 }

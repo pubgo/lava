@@ -44,11 +44,25 @@ type clientImpl struct {
 }
 
 func (c *clientImpl) Middleware(mm ...lava.Middleware) {
-	c.middlewares = append(c.middlewares, mm...)
-}
+	var jar = NewJar()
+	c.Middleware(func(next lava.HandlerFunc) lava.HandlerFunc {
+		return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+			for _, c := range jar.cookies {
+				req.Header().SetCookieBytesKV(c.Key(), c.Value())
+			}
 
-func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodHead, url, nil, opts...)
+			rsp, err := next(ctx, req)
+			rsp.Header().VisitAllCookie(func(key, value []byte) {
+				cookie := fasthttp.AcquireCookie()
+				cookie.ParseBytes(value)
+				jar.cookies[string(cookie.Key())] = cookie
+			})
+
+			return rsp, err
+		}
+	})
+
+	c.middlewares = append(c.middlewares, mm...)
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
@@ -71,6 +85,10 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	}
 
 	return r.WithVal(resp.(*responseImpl).resp)
+}
+
+func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodHead, url, nil, opts...)
 }
 
 func (c *clientImpl) Get(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {

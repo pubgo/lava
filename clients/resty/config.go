@@ -3,32 +3,56 @@ package resty
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
+	"net"
 	"time"
 
 	"github.com/pubgo/funk/retry"
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpproxy"
 
 	"github.com/pubgo/lava"
 )
 
-const (
-	defaultRetryCount  = 1
-	defaultHTTPTimeout = 2 * time.Second
-	defaultContentType = "application/json"
-)
+func (c *clientConfig) Initial() {
+	c.DialDualStack = false
+	c.MaxConnsPerHost = 512
+	c.MaxIdleConnDuration = 10 * time.Second
+	c.MaxIdemponentCallAttempts = 5
+	c.ReadBufferSize = 4096
+	c.WriteBufferSize = 4096
+	c.ReadTimeout = 10 * time.Second
+	c.WriteTimeout = 10 * time.Second
+	c.MaxResponseBodySize = 2 * 1024 * 1024
+}
+
+type clientConfig struct {
+	DialDualStack             bool          `json:"dialDualStack"`
+	MaxConnsPerHost           int           `josn:"maxConnsPerHost"`
+	MaxIdleConnDuration       time.Duration `json:"maxIdleConnDuration"`
+	MaxIdemponentCallAttempts int           `json:"maxIdemponentCallAttempts"`
+	ReadBufferSize            int           `json:"readBufferSize"`
+	WriteBufferSize           int           `json:"writeBufferSize"`
+	ReadTimeout               time.Duration `json:"readTimeout"`
+	WriteTimeout              time.Duration `json:"writeTimeout"`
+	MaxResponseBodySize       int           `json:"maxResponseBodySize"`
+}
 
 type Config struct {
-	Trace      bool              `yaml:"trace"`
-	Token      string            `yaml:"token"`
-	Timeout    time.Duration     `yaml:"timeout"`
-	RetryCount uint32            `yaml:"retry-count"`
-	Proxy      bool              `yaml:"proxy"`
-	Socks5     string            `yaml:"socks5"`
-	Insecure   bool              `yaml:"insecure"`
-	Header     map[string]string `yaml:"header"`
-	BasePath   string            `yaml:"base-path"`
+	Trace        bool              `yaml:"trace"`
+	Token        string            `yaml:"token"`
+	Timeout      time.Duration     `yaml:"timeout"`
+	ReadTimeout  time.Duration     `yaml:"read_timeout"`
+	WriteTimeout time.Duration     `yaml:"write_timeout"`
+	RetryCount   uint32            `yaml:"retry-count"`
+	Proxy        bool              `yaml:"proxy"`
+	Socks5       string            `yaml:"socks5"`
+	Insecure     bool              `yaml:"insecure"`
+	Header       map[string]string `yaml:"header"`
+	BasePath     string            `yaml:"base-path"`
 
+	proxy     string // set to all requests
 	backoff   retry.Backoff
 	tlsConfig *tls.Config
 }
@@ -38,13 +62,39 @@ func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
 		t.backoff = retry.NewConstant(t.Timeout)
 	}
 
-	var client = &fasthttp.Client{Name: version.Project(), ReadTimeout: t.Timeout, WriteTimeout: t.Timeout}
+	var client = &fasthttp.Client{
+		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
+		ReadTimeout:               t.Timeout,
+		WriteTimeout:              t.Timeout,
+		NoDefaultUserAgentHeader:  true,
+		MaxIdemponentCallAttempts: 5,
+	}
+
+	if t.proxy != "" {
+		client.Dial = fasthttpproxy.FasthttpHTTPDialer(t.proxy)
+	} else {
+		client.Dial = func(addr string) (net.Conn, error) {
+			return fasthttp.DialTimeout(addr, t.Timeout)
+		}
+	}
+
 	do := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var rsp = &responseImpl{resp: fasthttp.AcquireResponse()}
-		if err := client.Do(req.(*requestImpl).req, rsp.resp); err != nil {
+		req.Header().SetUserAgent(fmt.Sprintf("%s: %s", version.Project(), version.Version()))
+
+		var err error
+		var resp = fasthttp.AcquireResponse()
+		deadline, ok := ctx.Deadline()
+		if ok {
+			err = client.DoDeadline(req.(*requestImpl).req, resp, deadline)
+		} else {
+			err = client.Do(req.(*requestImpl).req, resp)
+		}
+
+		if err != nil {
 			return nil, err
 		}
-		return rsp, nil
+
+		return &responseImpl{resp: resp}, nil
 	}
 
 	do = lava.Chain(mm...)(do)
@@ -53,8 +103,10 @@ func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
 
 func DefaultCfg() *Config {
 	return &Config{
-		Timeout:    defaultHTTPTimeout,
-		RetryCount: defaultRetryCount,
-		backoff:    retry.NewNoop(),
+		Timeout:      defaultHTTPTimeout,
+		ReadTimeout:  6 * time.Second,
+		WriteTimeout: 6 * time.Second,
+		RetryCount:   defaultRetryCount,
+		backoff:      retry.NewNoop(),
 	}
 }
