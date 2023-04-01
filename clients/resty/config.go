@@ -40,17 +40,34 @@ type clientConfig struct {
 }
 
 type Config struct {
-	Trace        bool              `yaml:"trace"`
-	Token        string            `yaml:"token"`
-	Timeout      time.Duration     `yaml:"timeout"`
-	ReadTimeout  time.Duration     `yaml:"read_timeout"`
-	WriteTimeout time.Duration     `yaml:"write_timeout"`
-	RetryCount   uint32            `yaml:"retry-count"`
-	Proxy        bool              `yaml:"proxy"`
-	Socks5       string            `yaml:"socks5"`
-	Insecure     bool              `yaml:"insecure"`
-	Header       map[string]string `yaml:"header"`
-	BasePath     string            `yaml:"base-path"`
+	Trace          bool              `yaml:"trace"`
+	Token          string            `yaml:"token"`
+	Timeout        time.Duration     `yaml:"timeout"`
+	ReadTimeout    time.Duration     `yaml:"read_timeout"`
+	WriteTimeout   time.Duration     `yaml:"write_timeout"`
+	RetryCount     uint32            `yaml:"retry_count"`
+	Proxy          bool              `yaml:"proxy"`
+	Socks5         string            `yaml:"socks5"`
+	Insecure       bool              `yaml:"insecure"`
+	Header         map[string]string `yaml:"header"`
+	BaseUrl        string            `yaml:"base_url"`
+	TargetService  string
+	JwtToken       string
+	UserAgent      string
+	ContentType    string
+	Accept         string
+	TimeOut        time.Duration
+	Debug          bool
+	Authentication bool
+	GzipRequest    bool
+
+	DialDualStack             bool          `json:"dialDualStack"`
+	MaxConnsPerHost           int           `josn:"maxConnsPerHost"`
+	MaxIdleConnDuration       time.Duration `json:"maxIdleConnDuration"`
+	MaxIdemponentCallAttempts int           `json:"maxIdemponentCallAttempts"`
+	ReadBufferSize            int           `json:"readBufferSize"`
+	WriteBufferSize           int           `json:"writeBufferSize"`
+	MaxResponseBodySize       int           `json:"maxResponseBodySize"`
 
 	proxy     string // set to all requests
 	backoff   retry.Backoff
