@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/valyala/fasthttp"
 )
 
@@ -53,7 +54,7 @@ func (j *Jar) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	data, err := cookies.MarshalJSON()
+	data, err := json.Marshal(cookies)
 
 	return data, err
 }
@@ -61,12 +62,10 @@ func (j *Jar) MarshalJSON() ([]byte, error) {
 func (j *Jar) UnmarshalJSON(data []byte) error {
 	cooks := cookies{}
 
-	err := cooks.UnmarshalJSON(data)
+	err := json.Unmarshal(data, &cooks)
 	if err != nil {
 		return err
 	}
-
-	err = j.decode(cooks)
 
 	return err
 }

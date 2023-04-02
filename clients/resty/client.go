@@ -93,7 +93,7 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	resp.(*responseImpl).resp.CopyTo(out)
 
 	// Do we need to decompress the response?
-	contentEncoding := resp.Header.Peek("Content-Encoding")
+	contentEncoding := resp.Header().Peek("Content-Encoding")
 	if bytes.EqualFold(contentEncoding, []byte("gzip")) {
 		body, err := resp.BodyGunzip()
 		if err != nil {

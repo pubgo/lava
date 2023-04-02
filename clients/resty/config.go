@@ -40,34 +40,31 @@ type clientConfig struct {
 }
 
 type Config struct {
-	Trace          bool              `yaml:"trace"`
-	Token          string            `yaml:"token"`
-	Timeout        time.Duration     `yaml:"timeout"`
-	ReadTimeout    time.Duration     `yaml:"read_timeout"`
-	WriteTimeout   time.Duration     `yaml:"write_timeout"`
-	RetryCount     uint32            `yaml:"retry_count"`
-	Proxy          bool              `yaml:"proxy"`
-	Socks5         string            `yaml:"socks5"`
-	Insecure       bool              `yaml:"insecure"`
-	Header         map[string]string `yaml:"header"`
-	BaseUrl        string            `yaml:"base_url"`
-	TargetService  string
-	JwtToken       string
-	UserAgent      string
-	ContentType    string
-	Accept         string
-	TimeOut        time.Duration
-	Debug          bool
-	Authentication bool
-	GzipRequest    bool
-
-	DialDualStack             bool          `json:"dialDualStack"`
-	MaxConnsPerHost           int           `josn:"maxConnsPerHost"`
-	MaxIdleConnDuration       time.Duration `json:"maxIdleConnDuration"`
-	MaxIdemponentCallAttempts int           `json:"maxIdemponentCallAttempts"`
-	ReadBufferSize            int           `json:"readBufferSize"`
-	WriteBufferSize           int           `json:"writeBufferSize"`
-	MaxResponseBodySize       int           `json:"maxResponseBodySize"`
+	Trace                     bool              `yaml:"trace"`
+	Timeout                   time.Duration     `yaml:"timeout"`
+	ReadTimeout               time.Duration     `yaml:"read_timeout"`
+	WriteTimeout              time.Duration     `yaml:"write_timeout"`
+	RetryCount                uint32            `yaml:"retry_count"`
+	Proxy                     bool              `yaml:"proxy"`
+	Socks5                    string            `yaml:"socks5"`
+	Insecure                  bool              `yaml:"insecure"`
+	Header                    map[string]string `yaml:"header"`
+	BaseUrl                   string            `yaml:"base_url"`
+	TargetService             string            `yaml:"target_service"`
+	Token                     string            `yaml:"token"`
+	JwtToken                  string            `yaml:"jwt_token"`
+	UserAgent                 string            `yaml:"user_agent"`
+	ContentType               string            `yaml:"content_type"`
+	Accept                    string            `yaml:"accept"`
+	Debug                     bool              `yaml:"debug"`
+	Authentication            bool              `yaml:"authentication"`
+	GzipRequest               bool              `yaml:"gzip_request"`
+	MaxConnsPerHost           int               `yaml:"max_conns_per_host"`
+	MaxIdleConnDuration       time.Duration     `yaml:"max_idle_conn_duration"`
+	MaxIdemponentCallAttempts int               `yaml:"max_idemponent_call_attempts"`
+	ReadBufferSize            int               `yaml:"read_buffer_size"`
+	WriteBufferSize           int               `yaml:"write_buffer_size"`
+	MaxResponseBodySize       int               `yaml:"max_response_body_size"`
 
 	proxy     string // set to all requests
 	backoff   retry.Backoff
