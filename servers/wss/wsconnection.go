@@ -1,4 +1,4 @@
-package wsconnection
+package wss
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
+	"github.com/fasthttp/websocket"
+	"github.com/pubgo/funk/log"
 )
 
 // ConstructorArgs for WebsocketConnection
@@ -45,6 +45,7 @@ type connection struct {
 	writeLock      sync.Mutex
 	isClosed       bool
 	stopConnection func()
+	log            log.Logger
 }
 
 func (c *connection) Write(msg []byte) error {
@@ -92,12 +93,12 @@ func (c *connection) Start(ctx context.Context, readMsgHandler func(int, []byte)
 	lastMsgCh := make(chan struct{}, 1)
 	go c.startMonitorForZombieConns(ctxWithCancel, lastMsgCh)
 	c.Conn.SetPongHandler(func(_ string) error {
-		logrus.Debugf("received pong for conn %v", c.ID())
+		c.log.Debug().Msgf("received pong for conn %v", c.ID())
 		c.notifyLatestMessage(lastMsgCh)
 		return nil
 	})
 	c.Conn.SetPingHandler(func(message string) error {
-		logrus.Debugf("received ping for conn %v", c.ID())
+		c.log.Debug().Msgf("received ping for conn %v", c.ID())
 		c.notifyLatestMessage(lastMsgCh)
 		err := c.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(c.WriteDeadline))
 		if err == websocket.ErrCloseSent {
@@ -125,14 +126,14 @@ func (c *connection) Start(ctx context.Context, readMsgHandler func(int, []byte)
 		msgType, bytes, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				logrus.WithError(err).Debugf("failed to read msg for %v", c.ID())
+				c.log.Err(err).Msgf("failed to read msg for %v", c.ID())
 				return nil
 			}
 			if websocket.IsUnexpectedCloseError(err) || isClosedConnectionReadErr(err) {
-				logrus.WithError(err).Warnf("failed to read msg for %v", c.ID())
+				c.log.Err(err).Msgf("failed to read msg for %v", c.ID())
 				return nil
 			}
-			logrus.WithError(err).Warnf("failed to read msg for %v", c.ID())
+			c.log.Err(err).Msgf("failed to read msg for %v", c.ID())
 			return nil
 		}
 		c.notifyLatestMessage(lastMsgCh)
@@ -157,19 +158,19 @@ func (c *connection) startMonitorForZombieConns(ctx context.Context, anyMsgRecei
 			if timeSinceLastMsg >= c.PingInterval {
 				err := c.writePing([]byte(""))
 				if err != nil {
-					logrus.WithError(err).Warnf("failed to write ping msg for conn %v", c.ID())
+					c.log.Err(err).Msgf("failed to write ping msg for conn %v", c.ID())
 				}
 			} else {
-				logrus.Debugf("conn %v has received msg before send next ping", c.ID())
+				c.log.Debug().Msgf("conn %v has received msg before send next ping", c.ID())
 			}
 			continue
 		case <-inactiveCheckTicker.C:
 			timeSinceLastMsg := time.Now().Sub(lastMsgReceived)
 			if timeSinceLastMsg > c.MaxInactiveDuration {
-				logrus.Warningf("killing connection %v because haven't received any msg [ping, pong, application] in %v seconds",
+				c.log.Warn().Msgf("killing connection %v because haven't received any msg [ping, pong, application] in %v seconds",
 					c.ID(), timeSinceLastMsg.Seconds())
 				if err := c.Close(); err != nil {
-					logrus.WithError(err).Warnf("failed to properly close %v", c.ID())
+					c.log.Err(err).Msgf("failed to properly close %v", c.ID())
 				}
 				return
 			}
@@ -191,7 +192,7 @@ func (c *connection) notifyLatestMessage(ch chan<- struct{}) {
 	select {
 	case ch <- struct{}{}:
 	default:
-		logrus.Warnf("notify latest msg channel blocked for connection %v", c.ID())
+		c.log.Warn().Msgf("notify latest msg channel blocked for connection %v", c.ID())
 	}
 }
 

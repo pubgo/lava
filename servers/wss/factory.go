@@ -1,6 +1,6 @@
-package wsconnection
+package wss
 
-import "github.com/gorilla/websocket"
+import "github.com/fasthttp/websocket"
 
 // NewFactory for WSConnection. Saves and passes appropriate option.
 func NewFactory(opts ...Option) Factory {

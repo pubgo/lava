@@ -1,9 +1,8 @@
-package wsconnection
+package wss
 
 import (
+	"github.com/pubgo/funk/log"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 // configuration of WebsocketConnection.
@@ -25,7 +24,7 @@ func defaultConfiguration() *configuration {
 
 func (c *configuration) ensureValidated() {
 	if c.MaxInactiveDuration <= 2*c.PingInterval {
-		logrus.Warnf("websocket max_inactive_duration <= 2 * ping_interval, max_inactive_duration change to 3 * ping_interval")
+		log.Warn().Msgf("websocket max_inactive_duration <= 2 * ping_interval, max_inactive_duration change to 3 * ping_interval")
 		c.MaxInactiveDuration = 3 * c.PingInterval
 	}
 	return

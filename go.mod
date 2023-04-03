@@ -56,7 +56,6 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
 	github.com/google/gops v0.3.27
-	github.com/gorilla/websocket v1.5.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jaegertracing/jaeger v1.42.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
@@ -67,7 +66,6 @@ require (
 	github.com/pubgo/funk v0.5.29-15
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
-	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	github.com/uber-go/tally/v4 v4.1.5
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
@@ -152,6 +150,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
+	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect

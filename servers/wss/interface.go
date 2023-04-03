@@ -1,8 +1,9 @@
-package wsconnection
+package wss
 
 import (
 	"context"
-	"github.com/gorilla/websocket"
+
+	"github.com/fasthttp/websocket"
 )
 
 // Connection for Websocket Server 2.0
