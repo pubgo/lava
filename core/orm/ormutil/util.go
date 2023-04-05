@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// https://github.com/acmestack/gorm-plus/tree/main/gplus
+
 func ErrNotFound(err error) bool {
 	if err == gorm.ErrRecordNotFound {
 		return true

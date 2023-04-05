@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Cfg struct {
+type Config struct {
 	TablePrefix                              string                 `json:"table_prefix" yaml:"table_prefix"`
 	Driver                                   string                 `json:"driver" yaml:"driver"`
 	DriverCfg                                map[string]interface{} `json:"driver_config" yaml:"driver_config"`
@@ -23,8 +23,8 @@ type Cfg struct {
 	MaxConnOpen                              int                    `json:"max_conn_open" yaml:"max_conn_open"`
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
+func DefaultCfg() Config {
+	return Config{
 		SkipDefaultTransaction: true,
 		MaxConnTime:            time.Hour,
 		MaxConnIdle:            10,

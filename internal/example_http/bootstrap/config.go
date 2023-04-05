@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	Grpc   *grpcs.Config   `yaml:"grpc"`
-	Db     *orm.Cfg        `yaml:"orm"`
+	Db     *orm.Config     `yaml:"orm"`
 	Metric *metric.Cfg     `yaml:"metric"`
 	Log    *logging.Config `yaml:"logger"`
 }

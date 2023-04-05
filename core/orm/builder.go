@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-func New(cfg *Cfg, log log.Logger) *Client {
+func New(cfg *Config, log log.Logger) *Client {
 	log = log.WithName(Name)
 
 	builder := merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
