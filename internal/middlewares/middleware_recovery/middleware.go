@@ -48,8 +48,7 @@ func New() lava.Middleware {
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}()
 
-			rsp, gErr = next(ctx, req)
-			return
+			return next(ctx, req)
 		}
 	}
 }

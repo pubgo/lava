@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
@@ -52,20 +53,19 @@ func New(m metric.Metric) lava.Middleware {
 
 			req.Header().Set(httputil.HeaderXRequestID, reqId)
 
+			defer func() {
+				if !generic.IsNil(gErr) {
+					grpcServerRpcErrTotal(m, req.Operation())
+				} else {
+					rsp.Header().Set(httputil.HeaderXRequestID, reqId)
+					rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
+				}
+
+				grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
+			}()
+
 			ctx = lava.CreateCtxWithReqID(ctx, reqId)
-			rsp, gErr = next(ctx, req)
-			if gErr != nil {
-				grpcServerRpcErrTotal(m, req.Operation())
-			}
-
-			if gErr == nil {
-				rsp.Header().Set(httputil.HeaderXRequestID, reqId)
-				rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
-			}
-
-			grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
-
-			return rsp, nil
+			return next(ctx, req)
 		}
 	}
 }

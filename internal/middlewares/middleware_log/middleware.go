@@ -46,9 +46,8 @@ func New(logger log.Logger) lava.Middleware {
 				evt.Str("req_body", reqBody)
 				evt.Any("req_header", req.Header())
 
-				if gErr == nil {
-					rspBody := fmt.Sprintf("%v", rsp.Payload())
-					evt.Str("rsp_body", rspBody)
+				if generic.IsNil(gErr) {
+					evt.Any("rsp_body", rsp.Payload())
 					evt.Any("rsp_header", rsp.Header())
 
 					if !req.Client() {
@@ -78,8 +77,7 @@ func New(logger log.Logger) lava.Middleware {
 
 			// 集成logger到context
 			ctx = logger.WithFields(log.Map{"request_id": reqId}).WithCtx(ctx)
-			rsp, gErr = next(ctx, req)
-			return
+			return next(ctx, req)
 		}
 	}
 }
