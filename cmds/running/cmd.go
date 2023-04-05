@@ -2,11 +2,10 @@ package running
 
 import (
 	"fmt"
-	"github.com/pubgo/dix/di"
-	"github.com/pubgo/lava/core/lifecycle"
 	"os"
 	"sort"
 
+	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
@@ -21,6 +20,7 @@ import (
 	"github.com/pubgo/lava/cmds/ormcmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
+	"github.com/pubgo/lava/core/lifecycle"
 
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"

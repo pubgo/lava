@@ -20,7 +20,7 @@ const (
 var (
 	CfgDir   string
 	CfgPath  string
-	Replacer = strings.NewReplacer(".", "_", "-", "_", "/", "_")
+	replacer = strings.NewReplacer(".", "_", "-", "_", "/", "_")
 )
 
 type DecoderOption = viper.DecoderConfigOption

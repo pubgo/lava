@@ -33,8 +33,12 @@ func New() Config {
 
 	// 配置处理
 	v := viper.New()
-	v.SetEnvKeyReplacer(Replacer)
-	v.SetEnvPrefix(Replacer.Replace(version.Project()))
+	v.SetEnvKeyReplacer(replacer)
+
+	envPrefix := strings.ToUpper(replacer.Replace(version.Project()))
+	log.Debug().Str("env_prefix", envPrefix).Msg("set config env prefix")
+	v.SetEnvPrefix(envPrefix)
+
 	v.SetConfigName(defaultConfigName)
 	v.SetConfigType(defaultConfigType)
 	v.AutomaticEnv()
@@ -52,6 +56,11 @@ func New() Config {
 
 	// 加载自定义配置
 	t.loadCustomCfg()
+	log.Debug().Any("metadata", map[string]any{
+		"cfg_type": defaultConfigType,
+		"cfg_name": defaultConfigName,
+		"home":     CfgDir,
+		"cfg_path": CfgPath}).Msg("config metadata")
 	return t
 }
 
