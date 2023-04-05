@@ -3,6 +3,7 @@ package middleware_log
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/proto/errorpb"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -10,6 +11,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
+	"github.com/rs/zerolog"
 
 	"github.com/pubgo/lava"
 )
@@ -62,17 +64,30 @@ func New(logger log.Logger) lava.Middleware {
 				evt.Str("user_agent", string(req.Header().UserAgent()))
 
 				// 记录错误日志
+				var e *zerolog.Event
 				if generic.IsNil(gErr) {
 					// Record requests with a timeout of 200 milliseconds
 					if latency > time.Millisecond*200 {
-						logger.Err(errTimeout).Func(log.WithEvent(evt)).Msg(req.Endpoint())
+						e = logger.Err(errTimeout).Func(log.WithEvent(evt))
 					} else {
-						logger.Info().Func(log.WithEvent(evt)).Msg(req.Endpoint())
+						e = logger.Info().Func(log.WithEvent(evt))
 					}
 				} else {
-					logger.Err(gErr).Func(log.WithEvent(evt)).Msg(req.Endpoint())
+					e = logger.Err(gErr).Func(log.WithEvent(evt))
 				}
+				e.Msg("record request")
 			}()
+
+			if v, ok := req.Payload().(lava.Validator); ok && v != nil {
+				if e := logger.Debug(); e.Enabled() {
+					logger.Debug().Func(log.WithEvent(evt)).Msg("validate request")
+				}
+
+				gErr = v.Validate()
+				if gErr != nil {
+					return nil, errors.NewCode(errorpb.Code_InvalidArgument).SetErr(gErr)
+				}
+			}
 
 			// 集成logger到context
 			ctx = logger.WithFields(log.Map{"request_id": reqId}).WithCtx(ctx)

@@ -48,13 +48,6 @@ func New() lava.Middleware {
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}()
 
-			if v, ok := req.(lava.Validator); ok && v != nil {
-				gErr = v.Validate()
-				if gErr != nil {
-					return nil, gErr
-				}
-			}
-
 			return next(ctx, req)
 		}
 	}
