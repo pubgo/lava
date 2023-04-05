@@ -8,14 +8,14 @@ import (
 
 var Name = "metric"
 
-type Cfg struct {
+type Config struct {
 	Driver    string        `json:"driver"`
 	DriverCfg config.Map    `json:"driver_config"`
 	Interval  time.Duration `json:"interval"`
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
+func DefaultCfg() Config {
+	return Config{
 		Driver:   "noop",
 		Interval: 2 * time.Second,
 	}

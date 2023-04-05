@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 )
 
-func New(m lifecycle.Lifecycle, cfg *Cfg, log log.Logger) Metric {
+func New(m lifecycle.Lifecycle, cfg *Config, log log.Logger) Metric {
 	cfg = merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
 
 	log = log.WithName(Name)

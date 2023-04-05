@@ -5,7 +5,7 @@ import (
 	"github.com/uber-go/tally/v4"
 )
 
-type Factory func(cfg *Cfg, log log.Logger) *tally.ScopeOptions
+type Factory func(cfg *Config, log log.Logger) *tally.ScopeOptions
 type Tags = map[string]string
 type Counter = tally.Counter
 type Gauge = tally.Gauge

@@ -17,7 +17,7 @@ func init() {
 	metric.Register(Name, New)
 }
 
-func New(conf *metric.Cfg, log log.Logger) *tally.ScopeOptions {
+func New(conf *metric.Config, log log.Logger) *tally.ScopeOptions {
 	if conf.Driver != Name {
 		return nil
 	}
