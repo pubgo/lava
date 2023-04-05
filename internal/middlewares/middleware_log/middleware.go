@@ -43,11 +43,20 @@ func New(logger log.Logger) lava.Middleware {
 			defer func() {
 				// TODO type assert
 				reqBody := fmt.Sprintf("%v", req.Payload())
-				rspBody := fmt.Sprintf("%v", rsp.Payload())
 				evt.Str("req_body", reqBody)
-				evt.Str("rsp_body", rspBody)
 				evt.Any("req_header", req.Header())
-				evt.Any("rsp_header", rsp.Header())
+
+				if gErr == nil {
+					rspBody := fmt.Sprintf("%v", rsp.Payload())
+					evt.Str("rsp_body", rspBody)
+					evt.Any("rsp_header", rsp.Header())
+
+					if !req.Client() {
+						rsp.Header().Set("Access-Control-Allow-Credentials", "true")
+						rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+						rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+					}
+				}
 
 				// 持续时间, 毫秒
 				latency := time.Since(now)
@@ -66,12 +75,6 @@ func New(logger log.Logger) lava.Middleware {
 					logger.Err(gErr).Func(log.WithEvent(evt)).Msg(req.Endpoint())
 				}
 			}()
-
-			if !req.Client() {
-				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
-				rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
-			}
 
 			// 集成logger到context
 			ctx = logger.WithFields(log.Map{"request_id": reqId}).WithCtx(ctx)

@@ -34,7 +34,7 @@ func grpcServerRpcErrTotal(m metric.Metric, method string) {
 func grpcServerHandlingSecondsCount(m metric.Metric, method string, val time.Duration) {
 	m.Tagged(metric.Tags{"method": method}).
 		Histogram("grpc_server_handling_seconds_count", requestDurationBucket).
-		RecordValue(float64(val.Milliseconds()))
+		RecordDuration(val)
 }
 
 func New(m metric.Metric) lava.Middleware {
