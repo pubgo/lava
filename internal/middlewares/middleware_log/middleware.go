@@ -42,8 +42,7 @@ func New(logger log.Logger) lava.Middleware {
 			// 错误和panic处理
 			defer func() {
 				// TODO type assert
-				reqBody := fmt.Sprintf("%v", req.Payload())
-				evt.Str("req_body", reqBody)
+				evt.Any("req_body", req.Payload())
 				evt.Any("req_header", req.Header())
 
 				if generic.IsNil(gErr) {
