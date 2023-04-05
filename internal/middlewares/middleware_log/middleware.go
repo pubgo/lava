@@ -3,13 +3,13 @@ package middleware_log
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/proto/errorpb"
 	"time"
 
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/zerolog"
 
@@ -90,7 +90,7 @@ func New(logger log.Logger) lava.Middleware {
 			}
 
 			// 集成logger到context
-			ctx = logger.WithFields(log.Map{"request_id": reqId}).WithCtx(ctx)
+			ctx = logger.WithFields(log.Map{"request_id": reqId, "operation": req.Operation()}).WithCtx(ctx)
 			return next(ctx, req)
 		}
 	}

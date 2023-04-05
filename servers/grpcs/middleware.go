@@ -11,6 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/funk/version"
+	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -18,6 +23,7 @@ import (
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/httputil"
 )
 
 func parsePath(path string) (string, string, string) {
@@ -133,10 +139,40 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			header:      header,
 		}
 
+		reqId := strutil.FirstFnNotEmpty(
+			func() string { return lava.GetReqID(ctx) },
+			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
+			func() string { return xid.New().String() },
+		)
+		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
+		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+
 		var rsp, err = lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
-			return nil, err
+			pb := errutil.ParseError(err)
+			pb.Operation = rpcReq.Operation()
+			pb.Service = rpcReq.Service()
+			pb.Version = version.Version()
+			pb.ErrMsg = err.Error()
+			pb.ErrDetail = []byte(fmt.Sprintf("%#v", err))
+			if pb.Tags == nil {
+				pb.Tags = make(map[string]string)
+			}
+			pb.Tags["header"] = string(rpcReq.Header().Header())
+
+			if pb.Reason == "" {
+				pb.Reason = err.Error()
+			}
+
+			if pb.Code == 0 {
+				pb.Code = errorpb.Code_Internal
+			}
+
+			return nil, errutil.ConvertErr2Status(pb).Err()
 		}
+
+		rsp.Header().Set(httputil.HeaderXRequestID, reqId)
+		rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
 
 		var h = rsp.Header()
 		md = make(metadata.MD, h.Len())
@@ -216,9 +252,36 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			contentType:   ct,
 		}
 
+		reqId := strutil.FirstFnNotEmpty(
+			func() string { return lava.GetReqID(ctx) },
+			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
+			func() string { return xid.New().String() },
+		)
+		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
+
+		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 		var rsp, err = lava.Chain(middlewares[srvName]...)(streamWrapper)(ctx, rpcReq)
 		if err != nil {
-			return err
+			pb := errutil.ParseError(err)
+			pb.Operation = rpcReq.Operation()
+			pb.Service = rpcReq.Service()
+			pb.Version = version.Version()
+			pb.ErrMsg = err.Error()
+			pb.ErrDetail = []byte(fmt.Sprintf("%#v", err))
+			if pb.Tags == nil {
+				pb.Tags = make(map[string]string)
+			}
+			pb.Tags["header"] = string(rpcReq.Header().Header())
+
+			if pb.Reason == "" {
+				pb.Reason = err.Error()
+			}
+
+			if pb.Code == 0 {
+				pb.Code = errorpb.Code_Internal
+			}
+
+			return errutil.ConvertErr2Status(pb).Err()
 		}
 
 		var h = rsp.Header()

@@ -5,14 +5,10 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/strutil"
-	"github.com/pubgo/funk/version"
-	"github.com/rs/xid"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metric"
-	"github.com/pubgo/lava/pkg/httputil"
 )
 
 // grpc metric
@@ -43,28 +39,16 @@ func New(m metric.Metric) lava.Middleware {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			var now = time.Now()
 
-			reqId := strutil.FirstFnNotEmpty(
-				func() string { return lava.GetReqID(ctx) },
-				func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
-				func() string { return xid.New().String() },
-			)
-
 			grpcServerRpcCallTotal(m, req.Operation())
-
-			req.Header().Set(httputil.HeaderXRequestID, reqId)
 
 			defer func() {
 				if !generic.IsNil(gErr) {
 					grpcServerRpcErrTotal(m, req.Operation())
-				} else {
-					rsp.Header().Set(httputil.HeaderXRequestID, reqId)
-					rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
 				}
 
 				grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
 			}()
 
-			ctx = lava.CreateCtxWithReqID(ctx, reqId)
 			return next(ctx, req)
 		}
 	}
