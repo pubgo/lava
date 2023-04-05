@@ -9,7 +9,6 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/zerolog"
 
@@ -77,17 +76,6 @@ func New(logger log.Logger) lava.Middleware {
 				}
 				e.Msg("record request")
 			}()
-
-			if v, ok := req.Payload().(lava.Validator); ok && v != nil {
-				if e := logger.Debug(); e.Enabled() {
-					logger.Debug().Func(log.WithEvent(evt)).Msg("validate request")
-				}
-
-				gErr = v.Validate()
-				if gErr != nil {
-					return nil, errors.NewCode(errorpb.Code_InvalidArgument).SetErr(gErr)
-				}
-			}
 
 			// 集成logger到context
 			ctx = logger.WithFields(log.Map{"request_id": reqId, "operation": req.Operation()}).WithCtx(ctx)

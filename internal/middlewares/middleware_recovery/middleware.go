@@ -5,6 +5,9 @@ import (
 	"runtime/debug"
 
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
+
 	"github.com/pubgo/lava"
 )
 
@@ -17,6 +20,17 @@ func New() lava.Middleware {
 					gErr = errors.WrapStack(err)
 				}
 			}()
+
+			if v, ok := req.Payload().(lava.Validator); ok && v != nil {
+				if e := log.Ctx(ctx).Debug(); e.Enabled() {
+					e.Msg("validate request")
+				}
+
+				gErr = v.Validate()
+				if gErr != nil {
+					return nil, errors.NewCode(errorpb.Code_InvalidArgument).SetErr(gErr)
+				}
+			}
 
 			return next(ctx, req)
 		}
