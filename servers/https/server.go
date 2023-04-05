@@ -10,11 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
+	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
+	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/debug"
@@ -66,6 +68,23 @@ func (s *serviceImpl) DixInject(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
+		ETag:               true,
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			if err == nil {
+				return nil
+			}
+
+			code := fiber.StatusBadRequest
+			var errPb = errutil.ParseError(err)
+			if errPb == nil || errPb.Code == 0 {
+				return nil
+			}
+
+			errPb.Operation = ctx.Route().Path
+			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code))
+			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			return ctx.Status(code).JSON(errPb)
+		},
 	})
 
 	s.httpServer.Use(cors.New(cors.Config{

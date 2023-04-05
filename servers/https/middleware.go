@@ -8,9 +8,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/errors/errutil"
-	"google.golang.org/grpc/codes"
-
 	"github.com/pubgo/lava"
 )
 
@@ -23,31 +20,6 @@ func RegParserType(customType interface{}, converter func(string) reflect.Value)
 	parserTypes = append(parserTypes, fiber.ParserType{
 		Customtype: customType,
 		Converter:  converter,
-	})
-}
-
-func init() {
-	//http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
-	fiber.DefaultErrorHandler = func(c *fiber.Ctx, err error) error {
-		if err == nil {
-			return nil
-		}
-
-		code := fiber.StatusBadRequest
-		var errPb = errutil.ParseError(err)
-		if errPb == nil || errPb.Code == 0 {
-			return nil
-		}
-
-		code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code))
-		c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-		return c.Status(code).JSON(errPb)
-	}
-
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
 	})
 }
 
