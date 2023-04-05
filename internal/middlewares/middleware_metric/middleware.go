@@ -58,8 +58,11 @@ func New(m metric.Metric) lava.Middleware {
 				grpcServerRpcErrTotal(m, req.Operation())
 			}
 
-			rsp.Header().Set(httputil.HeaderXRequestID, reqId)
-			rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
+			if gErr == nil {
+				rsp.Header().Set(httputil.HeaderXRequestID, reqId)
+				rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
+			}
+
 			grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
 
 			return rsp, nil
