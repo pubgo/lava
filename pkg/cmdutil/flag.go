@@ -1,4 +1,4 @@
-package cmdx
+package cmdutil
 
 import (
 	"flag"

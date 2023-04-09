@@ -8,17 +8,18 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/pkg/cmdx"
-	netutil2 "github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/pkg/netutil"
 )
 
 func New() *cli.Command {
 	return &cli.Command{
 		Name:  "health",
-		Usage: "health check",
-		Description: cmdx.ExampleFmt(
+		Usage: cmdutil.UsageDesc("%s health check", version.Project()),
+		Description: cmdutil.ExampleFmt(
 			"lava health",
 			"lava health localhost:8080",
 		),
@@ -30,7 +31,7 @@ func New() *cli.Command {
 				addr = ctx.Args().First()
 			}
 
-			var resp = assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil2.GetLocalIP(), netutil2.MustGetPort(addr))))
+			var resp = assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr))))
 			assert.If(resp.StatusCode != http.StatusOK, "health check")
 			_, _ = io.Copy(os.Stdout, resp.Body)
 			return nil

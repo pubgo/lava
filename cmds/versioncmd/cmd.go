@@ -7,13 +7,15 @@ import (
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
+
+	"github.com/pubgo/lava/pkg/cmdutil"
 )
 
 func New() *cli.Command {
 	return &cli.Command{
 		Name:    "version",
 		Aliases: []string{"v"},
-		Usage:   "show the project version information",
+		Usage:   cmdutil.UsageDesc("%s version info", version.Project()),
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 			fmt.Println("project:", version.Project())

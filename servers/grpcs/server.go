@@ -142,7 +142,11 @@ func (s *serviceImpl) DixInject(
 			return
 		}
 
-		grpcServer.ServeHTTP(writer, request)
+		if request.ProtoMajor == 2 && strings.Contains(request.Header.Get("Content-Type"), "application/grpc") {
+			grpcServer.ServeHTTP(writer, request)
+		}
+
+		http.NotFound(writer, request)
 	})), new(http2.Server))))
 
 	s.initList = initList

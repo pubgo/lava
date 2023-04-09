@@ -1,7 +1,7 @@
 package running
 
 import (
-	"fmt"
+	"github.com/pubgo/lava/pkg/cmdutil"
 	"os"
 	"sort"
 
@@ -64,7 +64,7 @@ func Main(cmdL ...*cli.Command) {
 		Name:                   version.Project(),
 		Suggest:                true,
 		UseShortOptionHandling: true,
-		Usage:                  fmt.Sprintf("%s service", version.Project()),
+		Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
 		Commands:               cmdL,
