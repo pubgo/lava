@@ -3,6 +3,7 @@ package protojson
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/pubgo/lava/core/encoding"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -22,8 +23,10 @@ func UseNumber() {
 	useNumber = true
 }
 
-var jsonMarshaller = &protojson.MarshalOptions{EmitUnpopulated: true}
-var jsonUnmarshal = &protojson.UnmarshalOptions{AllowPartial: true}
+var (
+	jsonMarshaller = &protojson.MarshalOptions{EmitUnpopulated: true}
+	jsonUnmarshal  = &protojson.UnmarshalOptions{AllowPartial: true}
+)
 
 type jsonCodec struct{}
 

@@ -25,7 +25,7 @@ type Config struct {
 }
 
 func (t *Config) getOpts() *bolt.Options {
-	var options = bolt.DefaultOptions
+	options := bolt.DefaultOptions
 	options.Timeout = time.Second * 2
 	return merge.Struct(options, t).Unwrap()
 }
@@ -33,7 +33,7 @@ func (t *Config) getOpts() *bolt.Options {
 func DefaultConfig() *Config {
 	return &Config{
 		Path:     "./db/bolt",
-		FileMode: 0600,
+		FileMode: 0o600,
 		Timeout:  time.Second * 2,
 	}
 }

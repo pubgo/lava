@@ -11,8 +11,8 @@ import (
 )
 
 func TestResponse(t *testing.T) {
-	var err = errutil.ParseError(testcodepb.ErrCodeDbConn)
-	var rsp = &Response{Code: errorpb.Code_Internal, Message: "internal error", Detail: err, Data: nil}
+	err := errutil.ParseError(testcodepb.ErrCodeDbConn)
+	rsp := &Response{Code: errorpb.Code_Internal, Message: "internal error", Detail: err, Data: nil}
 	bytes, err1 := json.Marshal(rsp)
 	assert.Nil(t, err1)
 	t.Log(string(bytes))

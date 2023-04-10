@@ -95,7 +95,7 @@ func (s *serviceImpl) DixInject(
 	}))
 
 	var initList []func()
-	var srvMidMap = make(map[string][]lava.Middleware)
+	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
@@ -110,7 +110,7 @@ func (s *serviceImpl) DixInject(
 	}
 
 	// grpc server初始化
-	var grpcServer = cfg.GrpcConfig.Build(
+	grpcServer := cfg.GrpcConfig.Build(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
@@ -125,7 +125,7 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	var grpcWebPrefix = assert.Must1(url.JoinPath(basePath, "web"))
+	grpcWebPrefix := assert.Must1(url.JoinPath(basePath, "web"))
 	httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
 			writer.WriteHeader(http.StatusOK)

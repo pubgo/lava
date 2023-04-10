@@ -4,8 +4,10 @@ import (
 	"context"
 )
 
-type HandlerFunc func(ctx context.Context, req Request) (Response, error)
-type Middleware func(next HandlerFunc) HandlerFunc
+type (
+	HandlerFunc func(ctx context.Context, req Request) (Response, error)
+	Middleware  func(next HandlerFunc) HandlerFunc
+)
 
 func Chain(m ...Middleware) Middleware {
 	return func(next HandlerFunc) HandlerFunc {

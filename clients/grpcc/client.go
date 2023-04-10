@@ -26,7 +26,7 @@ import (
 
 func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Client {
 	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg)
-	var c = &clientImpl{
+	c := &clientImpl{
 		cfg: cfg,
 		log: log,
 		middlewares: []lava.Middleware{
@@ -60,7 +60,7 @@ func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}
 		err.Str("method", method).Any("input", args)
 	})
 
-	var conn = t.Get().Unwrap()
+	conn := t.Get().Unwrap()
 	assert.Must(conn.Invoke(ctx, method, args, reply, opts...))
 	return
 }
@@ -79,12 +79,12 @@ func (t *clientImpl) Healthy(ctx context.Context) error {
 }
 
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	var conn = t.Get()
+	conn := t.Get()
 	if conn.IsErr() {
 		return nil, errors.Wrapf(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
 	}
 
-	var c, err1 = conn.Unwrap().NewStream(ctx, desc, method, opts...)
+	c, err1 := conn.Unwrap().NewStream(ctx, desc, method, opts...)
 	return c, errors.Wrap(err1, method)
 }
 
@@ -114,8 +114,8 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 }
 
 func buildTarget(cfg *grpcc_config.Cfg) string {
-	var addr = cfg.Addr
-	var scheme = grpcc_resolver.DirectScheme
+	addr := cfg.Addr
+	scheme := grpcc_resolver.DirectScheme
 	if cfg.Scheme != "" {
 		scheme = cfg.Scheme
 	}
@@ -139,7 +139,7 @@ func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (gr
 
 	addr := buildTarget(cfg)
 
-	var ee = log.Info().
+	ee := log.Info().
 		Str(logkey.Service, cfg.Srv).
 		Str("addr", addr)
 	ee.Msg("grpc client init")

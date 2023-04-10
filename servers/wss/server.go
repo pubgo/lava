@@ -51,7 +51,6 @@ func init() {
 				break
 			}
 		}
-
 	}))
 
 	log.Fatal(app.Listen(":3000"))

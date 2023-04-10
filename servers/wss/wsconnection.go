@@ -84,7 +84,6 @@ func (c *connection) Close() error {
 	}
 	c.stopConnection()
 	return c.Conn.Close()
-
 }
 
 func (c *connection) Start(ctx context.Context, readMsgHandler func(int, []byte)) error {

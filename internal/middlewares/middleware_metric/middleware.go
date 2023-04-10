@@ -37,7 +37,7 @@ func grpcServerHandlingSecondsCount(m metric.Metric, method string, val time.Dur
 func New(m metric.Metric) lava.Middleware {
 	return func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-			var now = time.Now()
+			now := time.Now()
 
 			grpcServerRpcCallTotal(m, req.Operation())
 

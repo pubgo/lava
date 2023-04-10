@@ -61,7 +61,7 @@ func main() {
 		}
 
 		if d.IsDir() {
-			return os.MkdirAll(filepath.Join(dstDir, name), 0700)
+			return os.MkdirAll(filepath.Join(dstDir, name), 0o700)
 		}
 
 		ext := filepath.Ext(name)
@@ -84,7 +84,7 @@ func main() {
 				return err
 			}
 			name := filepath.Join(dstDir, fpath) + ".html"
-			fi, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0600)
+			fi, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0o600)
 			if err != nil {
 				return err
 			}
@@ -99,12 +99,12 @@ func main() {
 			}
 
 			name := filepath.Join(dstDir, name)
-			err = os.MkdirAll(filepath.Dir(name), 0700)
+			err = os.MkdirAll(filepath.Dir(name), 0o700)
 			if err != nil {
 				return err
 			}
 
-			dst, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0600)
+			dst, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0o600)
 			if err != nil {
 				return err
 			}

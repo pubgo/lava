@@ -2,8 +2,9 @@ package sqlite
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/core/orm"
 	"path/filepath"
+
+	"github.com/pubgo/lava/core/orm"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
@@ -23,7 +24,7 @@ func init() {
 
 		assert.If(cfg["dsn"] == nil, "dsn not found")
 
-		var dsn = fmt.Sprintf("%v", cfg["dsn"])
+		dsn := fmt.Sprintf("%v", cfg["dsn"])
 		dsn = filepath.Join(config.CfgDir, dsn)
 		assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(dsn)))
 		return sqlite.Open(dsn)

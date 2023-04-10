@@ -14,9 +14,9 @@ import (
 
 func init() {
 	debug.Get("/health", func(ctx *fiber.Ctx) error {
-		var dt = make(map[string]*health)
+		dt := make(map[string]*health)
 		for _, name := range healthy.List() {
-			var h = &health{}
+			h := &health{}
 			h.Err = try.Try(func() error {
 				defer func(s time.Time) { h.Cost = time.Since(s).String() }(time.Now())
 				return healthy.Get(name)(ctx)
@@ -24,7 +24,7 @@ func init() {
 			dt[name] = h
 		}
 
-		var bts, err = jjson.Marshal(dt)
+		bts, err := jjson.Marshal(dt)
 		if err != nil {
 			ctx.Status(http.StatusInternalServerError)
 			_, err = ctx.Write([]byte(err.Error()))

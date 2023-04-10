@@ -1,10 +1,11 @@
 package reporter
 
 import (
-	"github.com/pubgo/funk/log"
-	"github.com/uber/jaeger-client-go"
 	"io"
 	"time"
+
+	"github.com/pubgo/funk/log"
+	"github.com/uber/jaeger-client-go"
 
 	e "github.com/jaegertracing/jaeger/plugin/storage/es/spanstore/dbmodel"
 	json "github.com/json-iterator/go"
@@ -15,11 +16,13 @@ import (
 	"go.uber.org/atomic"
 )
 
-var logger = log.GetLogger("jaeger.reporter")
-var _ jaeger.Reporter = (*ioReporter)(nil)
+var (
+	logger                 = log.GetLogger("jaeger.reporter")
+	_      jaeger.Reporter = (*ioReporter)(nil)
+)
 
 func NewIoReporter(writer io.Writer, batch int32) jaeger.Reporter {
-	var reporter = &ioReporter{
+	reporter := &ioReporter{
 		writer:    writer,
 		batchSize: batch,
 		unbounded: syncutil.NewUnbounded(),
@@ -41,7 +44,7 @@ type ioReporter struct {
 }
 
 func (t *ioReporter) loop() {
-	var tick = time.NewTicker(time.Millisecond * 100)
+	tick := time.NewTicker(time.Millisecond * 100)
 	defer tick.Stop()
 
 	for {

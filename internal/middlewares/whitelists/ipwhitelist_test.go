@@ -27,7 +27,7 @@ func TestIPWhitelist(t *testing.T) {
 func testIPWhitelist(t *testing.T, whitelist map[string]bool, expectedStatusCode int) {
 	mw := IPWhitelist(whitelist)
 
-	var app = fiber.New()
+	app := fiber.New()
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return mw(ctx)
 	})

@@ -16,7 +16,7 @@ func init() {
 
 // New 替换std默认log
 func New(logger logger.Logger) {
-	var stdLog = log.Default()
+	stdLog := log.Default()
 	// 接管系统默认log
 	*stdLog = *log.New(&std{l: logger.WithName("std").WithCallerSkip(3)}, "", 0)
 }

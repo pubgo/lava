@@ -34,7 +34,7 @@ const (
 	DefaultTimeout     = 10 * time.Second
 )
 
-//e := w.logger.LogEvent().
+// e := w.logger.LogEvent().
 //		Str("method", methodName).
 //		Str("req.ID", reqID.String()).
 //		Str("req.timeOut", timeOut.String()).
@@ -45,12 +45,12 @@ const (
 //		Str("req.accept", w.Accept).
 //		Str("req.content-type", w.ContentType)
 
-//req.SetRequestURI(uri)
+// req.SetRequestURI(uri)
 //	req.Header.SetContentType(w.ContentType)
 //	req.Header.Add("User-Agent", w.UserAgent)
 //	req.Header.Add("Accept", w.Accept)
 //	req.Header.Add(contracts.ContextKeyRequestID.String(), reqID.String())
 
-//if w.Authentication && len(w.JwtToken) > 0 {
+// if w.Authentication && len(w.JwtToken) > 0 {
 //		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", w.JwtToken))
 //	}

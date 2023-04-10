@@ -38,11 +38,11 @@ func GraphViz(in, out string) (err error) {
 		return ret.Err()
 	}
 
-	return ioutil.WriteFile(out, []byte(ret.Unwrap()), 0600)
+	return ioutil.WriteFile(out, []byte(ret.Unwrap()), 0o600)
 }
 
 func Shell(args ...string) *exec.Cmd {
-	var shell = strings.Join(args, " ")
+	shell := strings.Join(args, " ")
 	cmd := exec.Command("/bin/sh", "-c", shell)
 	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout

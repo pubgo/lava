@@ -8,7 +8,7 @@ import (
 
 func registerVars(m Metric) {
 	vars.Register(Name+"_capabilities", func() interface{} {
-		var c = m.Capabilities()
+		c := m.Capabilities()
 		return typex.Ctx{
 			"reporting": c.Reporting(),
 			"tagging":   c.Tagging(),

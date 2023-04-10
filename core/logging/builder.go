@@ -36,7 +36,7 @@ func New(cfg *Config) log.Logger {
 	zl.Logger = logger
 
 	// 全局log设置
-	var ee = logger.With().Caller().
+	ee := logger.With().Caller().
 		Str(logkey.Hostname, runmode.Hostname).
 		Str(logkey.Project, runmode.Project).
 		Str(logkey.Version, runmode.Version)
@@ -48,7 +48,7 @@ func New(cfg *Config) log.Logger {
 	logger = ee.Logger()
 	log.SetLogger(&logger)
 
-	var gl = log.New(&logger)
+	gl := log.New(&logger)
 	for _, ext := range List() {
 		ext(gl)
 	}

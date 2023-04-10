@@ -59,8 +59,8 @@ func (s *serviceImpl) DixInject(
 	lifecycle lifecycle.Lifecycle,
 	m metric.Metric,
 	log log.Logger,
-	cfg *Config) {
-
+	cfg *Config,
+) {
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -75,7 +75,7 @@ func (s *serviceImpl) DixInject(
 			}
 
 			code := fiber.StatusBadRequest
-			var errPb = errutil.ParseError(err)
+			errPb := errutil.ParseError(err)
 			if errPb == nil || errPb.Code == 0 {
 				return nil
 			}
@@ -96,7 +96,7 @@ func (s *serviceImpl) DixInject(
 
 	app := fiber.New()
 
-	var defaultMiddlewares = []lava.Middleware{
+	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(m),
 		middleware_log.New(log),
 		middleware_recovery.New(),

@@ -38,10 +38,10 @@ func parsePath(path string) (string, string, string) {
 }
 
 func handlerTwMiddle(middlewares map[string][]lava.Middleware, handle http.Handler) func(fbCtx *fiber.Ctx) error {
-	var handler = func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var reqCtx = req.(*httpRequest)
+	handler := func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		reqCtx := req.(*httpRequest)
 		ctx = lava.CreateCtxWithReqHeader(ctx, req.Header())
-		var err = adaptor.HTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		err := adaptor.HTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			handle.ServeHTTP(writer, request.WithContext(ctx))
 		})(reqCtx.ctx)
 		if err != nil {
@@ -51,7 +51,7 @@ func handlerTwMiddle(middlewares map[string][]lava.Middleware, handle http.Handl
 	}
 
 	return func(fbCtx *fiber.Ctx) error {
-		var prefix, srv, _ = parsePath(fbCtx.OriginalURL())
+		prefix, srv, _ := parsePath(fbCtx.OriginalURL())
 		if prefix == "" || srv == "" {
 			return fmt.Errorf("invalid path, path=%q", fbCtx.OriginalURL())
 		}
@@ -76,7 +76,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 	}
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var md, ok = metadata.FromIncomingContext(ctx)
+		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			md = make(metadata.MD)
 		}
@@ -116,20 +116,20 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		}
 
 		// 从gateway获取url
-		var url = info.FullMethod
+		url := info.FullMethod
 		if _url, ok := md["url"]; ok {
 			url = _url[0]
 		}
 
-		var header = &fasthttp.RequestHeader{}
+		header := &fasthttp.RequestHeader{}
 		for k, v := range md {
 			for i := range v {
 				header.Add(k, v[i])
 			}
 		}
 
-		var srvName = serviceFromMethod(info.FullMethod)
-		var rpcReq = &rpcRequest{
+		srvName := serviceFromMethod(info.FullMethod)
+		rpcReq := &rpcRequest{
 			service:     srvName,
 			method:      info.FullMethod,
 			url:         url,
@@ -147,7 +147,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
-		var rsp, err = lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
+		rsp, err := lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
 			pb.Operation = rpcReq.Operation()
@@ -174,7 +174,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rsp.Header().Set(httputil.HeaderXRequestID, reqId)
 		rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
 
-		var h = rsp.Header()
+		h := rsp.Header()
 		md = make(metadata.MD, h.Len())
 		h.VisitAll(func(key, value []byte) {
 			md.Append(convert.BtoS(key), convert.BtoS(value))
@@ -186,8 +186,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var reqCtx = req.(*rpcRequest)
-		var wrap = &grpcMiddle.WrappedServerStream{
+		reqCtx := req.(*rpcRequest)
+		wrap := &grpcMiddle.WrappedServerStream{
 			WrappedContext: lava.CreateCtxWithReqHeader(ctx, req.Header()),
 			ServerStream:   reqCtx.stream,
 		}
@@ -199,8 +199,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 	}
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		var ctx = stream.Context()
-		var md, ok = metadata.FromIncomingContext(ctx)
+		ctx := stream.Context()
+		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			md = make(metadata.MD)
 		}
@@ -234,7 +234,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 		}
 
-		var header = new(fasthttp.RequestHeader)
+		header := new(fasthttp.RequestHeader)
 		for k, v := range md {
 			for i := range v {
 				header.Add(k, v[i])
@@ -242,7 +242,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		}
 
 		srvName := serviceFromMethod(info.FullMethod)
-		var rpcReq = &rpcRequest{
+		rpcReq := &rpcRequest{
 			stream:        stream,
 			srv:           srv,
 			handlerStream: handler,
@@ -260,7 +260,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
 
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
-		var rsp, err = lava.Chain(middlewares[srvName]...)(streamWrapper)(ctx, rpcReq)
+		rsp, err := lava.Chain(middlewares[srvName]...)(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
 			pb.Operation = rpcReq.Operation()
@@ -284,7 +284,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			return errutil.ConvertErr2Status(pb).Err()
 		}
 
-		var h = rsp.Header()
+		h := rsp.Header()
 		md = make(metadata.MD)
 		h.VisitAll(func(key, value []byte) {
 			md.Append(convert.BtoS(key), convert.BtoS(value))

@@ -68,7 +68,7 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]
 	defer recovery.Result(&r)
 
 	opts = append(t.BuildOpts(), opts...)
-	var srv = grpc.NewServer(opts...)
+	srv := grpc.NewServer(opts...)
 
 	grpcutil.EnableReflection(srv)
 	grpcutil.EnableHealth("", srv)

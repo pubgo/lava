@@ -25,13 +25,13 @@ func New(logger log.Logger) lava.Middleware {
 		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 			now := time.Now()
 
-			var evt = log.NewEvent()
+			evt := log.NewEvent()
 			referer := utils.UnsafeString(req.Header().Referer())
 			if referer != "" {
 				evt.Str("referer", referer)
 			}
 
-			var reqId = lava.GetReqID(ctx)
+			reqId := lava.GetReqID(ctx)
 			evt.Str("request_id", reqId)
 			evt.Int64("start_time", now.UnixMicro())
 			evt.Str("service", req.Service())

@@ -1,8 +1,9 @@
 package wss
 
 import (
-	"github.com/pubgo/funk/log"
 	"time"
+
+	"github.com/pubgo/funk/log"
 )
 
 // configuration of WebsocketConnection.

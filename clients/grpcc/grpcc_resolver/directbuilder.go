@@ -13,7 +13,8 @@ var _ resolver.Builder = (*directBuilder)(nil)
 
 // directBuilder creates a directBuilder which is used to factory direct resolvers.
 // example:
-//   direct://127.0.0.1:9000,127.0.0.2:9000
+//
+//	direct://127.0.0.1:9000,127.0.0.2:9000
 type directBuilder struct{}
 
 func (d *directBuilder) Scheme() string { return DirectScheme }

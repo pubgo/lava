@@ -10,8 +10,10 @@ import (
 	"github.com/pubgo/lava/core/metric"
 )
 
-const Name = "prometheus"
-const urlPath = "/metrics"
+const (
+	Name    = "prometheus"
+	urlPath = "/metrics"
+)
 
 func init() {
 	metric.Register(Name, New)
@@ -24,15 +26,15 @@ func New(conf *metric.Config, log log.Logger) *tally.ScopeOptions {
 
 	opts := tally.ScopeOptions{}
 	opts.Separator = prometheus.DefaultSeparator
-	//opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
+	// opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 
-	var proCfg = &prometheus.Configuration{TimerType: "histogram"}
+	proCfg := &prometheus.Configuration{TimerType: "histogram"}
 
 	if conf.DriverCfg != nil {
 		assert.Must(conf.DriverCfg.Decode(proCfg))
 	}
 
-	var logs = log.WithName(metric.Name).WithName(Name)
+	logs := log.WithName(metric.Name).WithName(Name)
 	reporter := assert.Must1(proCfg.NewReporter(
 		prometheus.ConfigurationOptions{
 			OnError: func(err error) {

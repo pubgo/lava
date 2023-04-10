@@ -32,13 +32,13 @@ func head2md(header *lava.RequestHeader, md metadata.MD) {
 }
 
 func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor {
-	var unaryWrapper = func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var md = make(metadata.MD)
+	unaryWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		md := make(metadata.MD)
 		head2md(req.Header(), md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
-		var reqCtx = req.(*request)
-		var header = make(metadata.MD)
-		var trailer = make(metadata.MD)
+		reqCtx := req.(*request)
+		header := make(metadata.MD)
+		trailer := make(metadata.MD)
 		reqCtx.opts = append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
 
 		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.resp, reqCtx.cc, reqCtx.opts...); err != nil {
@@ -56,7 +56,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 	}
 
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
-		var md, ok = metadata.FromOutgoingContext(ctx)
+		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
 			md = make(metadata.MD)
 		}
@@ -90,7 +90,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			}
 		}
 
-		var header = &fasthttp.RequestHeader{}
+		header := &fasthttp.RequestHeader{}
 		md2Head(md, header)
 
 		_, err = unaryWrapper(ctx, &request{
@@ -109,8 +109,8 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 
 func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientInterceptor {
 	wrapperStream := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var reqCtx = req.(*request)
-		var md = make(metadata.MD)
+		reqCtx := req.(*request)
+		md := make(metadata.MD)
 		head2md(req.Header(), md)
 
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -127,7 +127,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 	}
 
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (resp grpc.ClientStream, err error) {
-		var md, ok = metadata.FromOutgoingContext(ctx)
+		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
 			md = make(metadata.MD)
 		}
@@ -161,7 +161,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 			}
 		}
 
-		var header = &fasthttp.RequestHeader{}
+		header := &fasthttp.RequestHeader{}
 		md2Head(md, header)
 		rsp, err := wrapperStream(ctx,
 			&request{

@@ -45,7 +45,7 @@ func New() Config {
 	v.AddConfigPath(".")
 	v.AddConfigPath(defaultConfigPath)
 
-	var t = &configImpl{v: v}
+	t := &configImpl{v: v}
 	// 初始化框架, 加载环境变量, 加载本地配置
 	// 初始化完毕所有的配置以及外部配置以及相关的参数和变量
 	// 然后获取配置了
@@ -60,7 +60,8 @@ func New() Config {
 		"cfg_type": defaultConfigType,
 		"cfg_name": defaultConfigName,
 		"home":     CfgDir,
-		"cfg_path": CfgPath}).Msg("config metadata")
+		"cfg_path": CfgPath,
+	}).Msg("config metadata")
 	return t
 }
 
@@ -69,7 +70,7 @@ type configImpl struct {
 }
 
 func (t *configImpl) loadCustomCfg() {
-	var includes = t.v.GetStringSlice(includeConfigName)
+	includes := t.v.GetStringSlice(includeConfigName)
 	for _, path := range includes {
 		t.loadPath(filepath.Join(CfgDir, path))
 	}
@@ -128,7 +129,7 @@ func (t *configImpl) DecodeComponent(name string, cfgMap interface{}) (gErr erro
 			cfg = &typex.RwMap{}
 		}
 
-		var dm = assert.Must1(cast.ToStringMapE(data))
+		dm := assert.Must1(cast.ToStringMapE(data))
 		componentName := getComponentName(dm)
 		assert.Err(cfg.Has(componentName), errors.Err{
 			Msg:    "component name already exists",
@@ -184,7 +185,7 @@ func (t *configImpl) initCfg() {
 		return
 	}
 
-	var pathList = strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs") })
+	pathList := strMap(getPathList(), func(str string) string { return filepath.Join(str, "configs") })
 	assert.If(len(pathList) == 0, "config path not found")
 
 	for i := range pathList {
@@ -226,7 +227,7 @@ func (t *configImpl) loadPath(path string) {
 	assert.If(pathutil.IsNotExist(path), "path not found, path=%s", path)
 	log.Info().Msgf("load config path, path=%s", path)
 
-	var cfgData = string(assert.Must1(os.ReadFile(path)))
+	cfgData := string(assert.Must1(os.ReadFile(path)))
 	cfgData = assert.Must1(envsubst.String(cfgData))
 	assert.Must(t.v.MergeConfig(strings.NewReader(cfgData)))
 	return

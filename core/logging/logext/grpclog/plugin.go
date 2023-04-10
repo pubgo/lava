@@ -2,6 +2,7 @@ package grpclog
 
 import (
 	"fmt"
+
 	"github.com/rs/zerolog"
 
 	"github.com/pubgo/funk/log"
@@ -11,7 +12,7 @@ import (
 )
 
 func grpcComponentName(args interface{}) func(e *zerolog.Event) {
-	var name = args.(string)
+	name := args.(string)
 	return func(e *zerolog.Event) {
 		e.Str("grpc-component", name[1:len(name)-1])
 	}
@@ -28,8 +29,10 @@ func New(logger log.Logger) {
 	})
 }
 
-var _ grpclog.LoggerV2 = (*loggerWrapper)(nil)
-var _ grpclog.DepthLoggerV2 = (*loggerWrapper)(nil)
+var (
+	_ grpclog.LoggerV2      = (*loggerWrapper)(nil)
+	_ grpclog.DepthLoggerV2 = (*loggerWrapper)(nil)
+)
 
 type loggerWrapper struct {
 	log           log.Logger
@@ -58,9 +61,11 @@ func (l *loggerWrapper) FatalDepth(depth int, args ...interface{}) {
 func (l *loggerWrapper) SetPrintFilter(filter func(args ...interface{}) bool) {
 	l.printFilter = filter
 }
+
 func (l *loggerWrapper) SetPrintfFilter(filter func(format string, args ...interface{}) bool) {
 	l.printfFilter = filter
 }
+
 func (l *loggerWrapper) SetPrintlnFilter(filter func(args ...interface{}) bool) {
 	l.printlnFilter = filter
 }

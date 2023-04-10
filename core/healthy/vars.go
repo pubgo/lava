@@ -7,7 +7,7 @@ import (
 
 func init() {
 	vars.Register(Name, func() interface{} {
-		var data = make(map[string]any)
+		data := make(map[string]any)
 		healthList.Range(func(key, value interface{}) bool {
 			data[key.(string)] = stack.CallerWithFunc(value)
 			return true

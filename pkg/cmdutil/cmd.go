@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleFmt(data ...string) string {
-	var str = ""
+	str := ""
 	for i := range data {
 		str += "  " + data[i] + "\n"
 	}
@@ -14,6 +14,6 @@ func ExampleFmt(data ...string) string {
 }
 
 func UsageDesc(format string, args ...interface{}) string {
-	var s = fmt.Sprintf(format, args...)
+	s := fmt.Sprintf(format, args...)
 	return strings.ToUpper(s[0:1]) + s[1:]
 }

@@ -45,7 +45,7 @@ func New() *cli.Command {
 				},
 			},
 
-			//atlas migrate hash --dir file://<path-to-your-migration-directory>
+			// atlas migrate hash --dir file://<path-to-your-migration-directory>
 			// atlas migrate status \
 			//  --dir "file://ent/migrate/migrations" \
 			//  --url "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=public"

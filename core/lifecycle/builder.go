@@ -6,7 +6,7 @@ type Exporter struct {
 }
 
 func New(handlers []Handler) Exporter {
-	var lc = new(lifecycleImpl)
+	lc := new(lifecycleImpl)
 	for i := range handlers {
 		handlers[i](lc)
 	}

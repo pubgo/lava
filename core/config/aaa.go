@@ -23,11 +23,13 @@ var (
 	replacer = strings.NewReplacer(".", "_", "-", "_", "/", "_")
 )
 
-type DecoderOption = viper.DecoderConfigOption
-type Map map[string]any
+type (
+	DecoderOption = viper.DecoderConfigOption
+	Map           map[string]any
+)
 
 func (c Map) Decode(val any, tags ...string) error {
-	var tag = "yaml"
+	tag := "yaml"
 	if len(tags) > 0 && tags[0] != "" {
 		tag = tags[0]
 	}

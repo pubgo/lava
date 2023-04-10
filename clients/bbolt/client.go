@@ -21,7 +21,7 @@ import (
 func New(cfg *Config, log log.Logger) *Client {
 	cfg = merge.Copy(DefaultConfig(), cfg).Unwrap()
 
-	var path = filepath.Join(config.CfgDir, cfg.Path)
+	path := filepath.Join(config.CfgDir, cfg.Path)
 	assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(path)))
 	db := assert.Must1(bolt.Open(path, cfg.FileMode, cfg.getOpts()))
 
@@ -34,7 +34,7 @@ type Client struct {
 }
 
 func (t *Client) bucket(name string, tx *bolt.Tx) *bolt.Bucket {
-	var _, err = tx.CreateBucketIfNotExists([]byte(name))
+	_, err := tx.CreateBucketIfNotExists([]byte(name))
 	logutil.ErrRecord(t.log, err, func(evt *log.Event) string {
 		evt.Str("bucket_name", name)
 		return "failed to create bucket"
@@ -73,7 +73,7 @@ func (t *Client) Delete(ctx context.Context, key string, names ...string) error 
 func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := strutil.GetDefault(names...)
 
-	var span = tracing.CreateChild(ctx, name)
+	span := tracing.CreateChild(ctx, name)
 	defer span.Finish()
 	ext.DBType.Set(span, Name)
 
@@ -85,7 +85,7 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := strutil.GetDefault(names...)
 
-	var span = tracing.CreateChild(ctx, name)
+	span := tracing.CreateChild(ctx, name)
 	defer span.Finish()
 	ext.DBType.Set(span, Name)
 

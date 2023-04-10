@@ -16,7 +16,7 @@ func New(m lifecycle.Lifecycle, cfg *Config, log log.Logger) Metric {
 
 	log = log.WithName(Name)
 
-	var factory = Get(cfg.Driver)
+	factory := Get(cfg.Driver)
 	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
 	opts := factory(cfg, log)
 	if opts == nil {

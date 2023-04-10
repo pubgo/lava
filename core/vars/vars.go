@@ -13,7 +13,7 @@ import (
 )
 
 func Float(name string) *expvar.Float {
-	var v = expvar.Get(name)
+	v := expvar.Get(name)
 	if v == nil {
 		return expvar.NewFloat(name)
 	}
@@ -21,7 +21,7 @@ func Float(name string) *expvar.Float {
 }
 
 func Int(name string) *expvar.Int {
-	var v = expvar.Get(name)
+	v := expvar.Get(name)
 	if v == nil {
 		return expvar.NewInt(name)
 	}
@@ -29,7 +29,7 @@ func Int(name string) *expvar.Int {
 }
 
 func String(name string) *expvar.String {
-	var v = expvar.Get(name)
+	v := expvar.Get(name)
 	if v == nil {
 		return expvar.NewString(name)
 	}
@@ -37,7 +37,7 @@ func String(name string) *expvar.String {
 }
 
 func Map(name string) *expvar.Map {
-	var v = expvar.Get(name)
+	v := expvar.Get(name)
 	if v == nil {
 		return expvar.NewMap(name)
 	}

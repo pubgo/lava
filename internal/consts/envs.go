@@ -1,5 +1,7 @@
 package consts
 
-const EnvHome = "home"
-const EnvCfgPrefix = "env_prefix"
-const AppEnv = "app_env"
+const (
+	EnvHome      = "home"
+	EnvCfgPrefix = "env_prefix"
+	AppEnv       = "app_env"
+)

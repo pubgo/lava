@@ -13,7 +13,7 @@ func init() {
 	tracing.RegisterFactory(Name, func(cfgMap config.Map) error {
 		tracing.GetSpanID = GetSpanID
 
-		var cfg = DefaultCfg()
+		cfg := DefaultCfg()
 		cfg.ServiceName = runmode.Project
 		cfg.Tags = append(cfg.Tags, opentracing.Tag{Key: "version", Value: version.Version})
 		assert.Must(cfgMap.Decode(&cfg))

@@ -18,7 +18,7 @@ import (
 
 func init() {
 	defer recovery.Exit()
-	var index = func(keys []string) g.Node {
+	index := func(keys []string) g.Node {
 		var nodes []g.Node
 		nodes = append(nodes, h.H1(g.Text("/expvar")))
 		nodes = append(nodes, h.A(g.Text("/debug"), g.Attr("href", "/debug")), h.Br())
@@ -38,7 +38,7 @@ func init() {
 		}))
 
 		r.Get("/:name", func(ctx *fiber.Ctx) error {
-			var name = ctx.Params("name")
+			name := ctx.Params("name")
 			ctx.Response().Header.Set("Content-Type", "application/json; charset=utf-8")
 			fmt.Fprintln(ctx, expvar.Get(name).String())
 			return nil

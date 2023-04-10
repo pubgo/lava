@@ -17,8 +17,10 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const clientAppKey = "client-app"
-const clientIpKey = "client-ip"
+const (
+	clientAppKey = "client-app"
+	clientIpKey  = "client-ip"
+)
 
 // WithClientApp 获取对端应用名称
 func WithClientApp(ctx context.Context, name string) context.Context {

@@ -21,7 +21,7 @@ func NewSpan(sp opentracing.Span) *Span {
 }
 
 func StartSpan(operationName string, opts ...opentracing.StartSpanOption) *Span {
-	var sp = opentracing.StartSpan(operationName, opts...)
+	sp := opentracing.StartSpan(operationName, opts...)
 	return &Span{Span: sp}
 }
 

@@ -32,7 +32,7 @@ func DefaultCfg() Cfg {
 			Filename:   fmt.Sprintf("./logs/trace/%s.log", runmode.Project),
 			MaxSize:    50, // mb
 			MaxBackups: 10,
-			MaxAge:     1, //days
+			MaxAge:     1, // days
 		},
 	}
 }

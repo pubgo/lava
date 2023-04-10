@@ -44,11 +44,9 @@ func (j *Jar) ReleaseCookie(key string) {
 		fasthttp.ReleaseCookie(c)
 		delete(j.cookies, key)
 	}
-
 }
 
 func (j *Jar) MarshalJSON() ([]byte, error) {
-
 	cookies, err := j.makeEncodable()
 	if err != nil {
 		return nil, err

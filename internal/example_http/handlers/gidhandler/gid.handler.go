@@ -48,8 +48,8 @@ func (id *Id) Openapi(swag *opendoc.Swagger) {
 }
 
 func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
-	var rsp = new(GenerateResponse)
-	var logs = log.Ctx(ctx)
+	rsp := new(GenerateResponse)
+	logs := log.Ctx(ctx)
 
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
@@ -94,7 +94,7 @@ func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResp
 }
 
 func (id *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, error) {
-	var rsp = new(TypesResponse)
+	rsp := new(TypesResponse)
 	rsp.Types = []string{
 		"uuid",
 		"shortid",
@@ -131,8 +131,8 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) lava.HttpRouter {
 
 func (id *Id) Init() {
 	id.cron.Every("test gid", time.Second*2, func(name string) {
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 	})

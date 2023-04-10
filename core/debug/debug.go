@@ -16,7 +16,7 @@ func init() {
 
 func initDebug() {
 	Get("/", func(ctx *fiber.Ctx) error {
-		var pathMap = make(map[string]interface{})
+		pathMap := make(map[string]interface{})
 		stack := App().Stack()
 		for m := range stack {
 			for r := range stack[m] {
@@ -37,7 +37,7 @@ func initDebug() {
 		var nodes []g.Node
 		nodes = append(nodes, h.H1(g.Text("routes")))
 		for i := range pathList {
-			var path = "/debug" + pathList[i]
+			path := "/debug" + pathList[i]
 			nodes = append(nodes, h.A(g.Text(path), g.Attr("href", path)), h.Br())
 		}
 		ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)

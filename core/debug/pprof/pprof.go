@@ -15,7 +15,7 @@ func init() {
 	debug.Route("/pprof", func(r fiber.Router) {
 		r.Get("/", debug.WrapFunc(pprof.Index))
 		r.Get("/:name", func(ctx *fiber.Ctx) error {
-			var name = ctx.Params("name")
+			name := ctx.Params("name")
 			switch name {
 			case "cmdline":
 				return debug.WrapFunc(pprof.Cmdline)(ctx)

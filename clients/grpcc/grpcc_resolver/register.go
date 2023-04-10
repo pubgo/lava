@@ -8,5 +8,5 @@ import (
 func init() {
 	resolver.Register(&directBuilder{})
 	resolver.Register(&discovBuilder{})
-	//resolver.Register(kuberesolver.NewBuilder(nil, "kubernetes"))
+	// resolver.Register(kuberesolver.NewBuilder(nil, "kubernetes"))
 }

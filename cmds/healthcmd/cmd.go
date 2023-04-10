@@ -26,12 +26,12 @@ func New() *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 
-			var addr = ":8080"
+			addr := ":8080"
 			if ctx.NArg() > 0 {
 				addr = ctx.Args().First()
 			}
 
-			var resp = assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr))))
+			resp := assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr))))
 			assert.If(resp.StatusCode != http.StatusOK, "health check")
 			_, _ = io.Copy(os.Stdout, resp.Body)
 			return nil

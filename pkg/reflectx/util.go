@@ -26,7 +26,7 @@ func New(val interface{}) reflect.Value {
 }
 
 func FindFieldBy(v reflect.Value, handle func(field reflect.StructField) bool) reflect.Value {
-	var t = v.Type()
+	t := v.Type()
 	for i := v.NumField() - 1; i >= 0; i-- {
 		if handle(t.Field(i)) {
 			return v.Field(i)

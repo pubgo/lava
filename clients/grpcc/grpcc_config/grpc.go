@@ -99,7 +99,7 @@ type ClientCfg struct {
 }
 
 func (t ClientCfg) ToOpts() []grpc.DialOption {
-	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
+	opts := defaultOpts[0:len(defaultOpts):len(defaultOpts)]
 
 	if t.Insecure {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))

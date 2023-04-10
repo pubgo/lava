@@ -14,7 +14,7 @@ func CreateCtx(parent context.Context, scope tally.Scope) context.Context {
 }
 
 func Ctx(ctx context.Context) tally.Scope {
-	var l, ok = ctx.Value(metricKey).(tally.Scope)
+	l, ok := ctx.Value(metricKey).(tally.Scope)
 	if ok {
 		return l
 	}

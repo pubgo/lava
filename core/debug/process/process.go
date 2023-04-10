@@ -27,7 +27,7 @@ func init() {
 	debug.Get("/process", func(ctx *fiber.Ctx) error {
 		processes := assert.Must1(ps.Processes())
 		return ctx.JSON(generic.Map(processes, func(i int) map[string]any {
-			var p = processes[i]
+			p := processes[i]
 			return map[string]any{
 				"pid":        p.Pid(),
 				"ppid":       p.PPid(),

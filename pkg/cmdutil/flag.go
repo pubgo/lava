@@ -22,6 +22,6 @@ func (f Generic) String() string {
 }
 
 func IsHelp() bool {
-	var arg = strings.TrimSpace(os.Args[len(os.Args)-1])
+	arg := strings.TrimSpace(os.Args[len(os.Args)-1])
 	return arg == "--help" || arg == "-h"
 }

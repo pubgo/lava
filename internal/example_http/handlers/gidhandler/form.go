@@ -13,8 +13,7 @@ type GenerateResponse struct {
 }
 
 // List the types of IDs available. No query params needed.
-type TypesRequest struct {
-}
+type TypesRequest struct{}
 
 // TypesResponse 返回值类型
 type TypesResponse struct {

@@ -21,7 +21,7 @@ import (
 )
 
 func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
-	var cfg = DefaultCfg()
+	cfg := DefaultCfg()
 
 	// 配置解析
 	cfg.Check()
@@ -43,14 +43,14 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 
 		register(reg)
 
-		var cancel = async.GoCtx(func(ctx context.Context) error {
-			var interval = DefaultRegisterInterval
+		cancel := async.GoCtx(func(ctx context.Context) error {
+			interval := DefaultRegisterInterval
 
 			if cfg.RegisterInterval > time.Duration(0) {
 				interval = cfg.RegisterInterval
 			}
 
-			var tick = time.NewTicker(interval)
+			tick := time.NewTicker(interval)
 			defer tick.Stop()
 
 			for {
@@ -75,7 +75,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	var port = runmode.GrpcPort
+	port := runmode.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -107,7 +107,7 @@ func register(reg Registry) {
 		log.GetLogger("service-registry"),
 		"register service node",
 		func() error {
-			var err = reg.Register(context.Background(), s)
+			err := reg.Register(context.Background(), s)
 			return errors.WrapEventFn(err, func(evt *errors.Event) {
 				evt.Str("instance_id", node.Id)
 				evt.Str("service", runmode.Project)
@@ -119,7 +119,7 @@ func register(reg Registry) {
 
 func deregister(reg Registry) {
 	var advt, host string
-	var port = runmode.GrpcPort
+	port := runmode.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -146,7 +146,7 @@ func deregister(reg Registry) {
 		log.GetLogger("service-registry"),
 		"deregister service node",
 		func() error {
-			var err = reg.Deregister(context.Background(), s)
+			err := reg.Deregister(context.Background(), s)
 			return errors.WrapEventFn(err, func(evt *errors.Event) {
 				evt.Str("id", node.Id)
 				evt.Str("name", runmode.Project)

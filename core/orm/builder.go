@@ -19,7 +19,7 @@ func New(cfg *Config, log log.Logger) *Client {
 	builder := merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
 	ormCfg := merge.Struct(new(gorm.Config), builder).Unwrap()
 
-	var level = logger.Info
+	level := logger.Info
 	if !runmode.IsDebug {
 		level = logger.Warn
 	}
@@ -35,7 +35,7 @@ func New(cfg *Config, log log.Logger) *Client {
 		},
 	)
 
-	var factory = Get(cfg.Driver)
+	factory := Get(cfg.Driver)
 	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
 	dialect := factory(cfg.DriverCfg)
 

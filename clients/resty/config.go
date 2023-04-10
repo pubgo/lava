@@ -76,7 +76,7 @@ func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
 		t.backoff = retry.NewConstant(t.Timeout)
 	}
 
-	var client = &fasthttp.Client{
+	client := &fasthttp.Client{
 		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
 		ReadTimeout:               t.Timeout,
 		WriteTimeout:              t.Timeout,
@@ -96,7 +96,7 @@ func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
 		req.Header().SetUserAgent(fmt.Sprintf("%s: %s", version.Project(), version.Version()))
 
 		var err error
-		var resp = fasthttp.AcquireResponse()
+		resp := fasthttp.AcquireResponse()
 		deadline, ok := ctx.Deadline()
 		if ok {
 			err = client.DoDeadline(req.(*requestImpl).req, resp, deadline)

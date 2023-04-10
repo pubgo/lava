@@ -96,7 +96,7 @@ func (m *mdnsRegistry) Deregister(ctx context.Context, service *service.Service,
 	assert.If(len(service.Nodes) == 0, "[service] nodes should not be zero")
 
 	node := service.Nodes[0]
-	var val, ok = m.services.LoadAndDelete(node.Id)
+	val, ok := m.services.LoadAndDelete(node.Id)
 	if !ok || val == nil {
 		return
 	}

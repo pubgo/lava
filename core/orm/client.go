@@ -17,7 +17,7 @@ type Client struct {
 }
 
 func (c *Client) Ping() error {
-	var _db, err = c.DB.DB()
+	_db, err := c.DB.DB()
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (c *Client) Vars() vars.Value {
 }
 
 func (c *Client) Close() error {
-	var db, err = c.DB.DB()
+	db, err := c.DB.DB()
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) Stats() (r result.Result[sql.DBStats]) {
-	var db, err = c.DB.DB()
+	db, err := c.DB.DB()
 	if err != nil {
 		return r.WithErr(err)
 	}

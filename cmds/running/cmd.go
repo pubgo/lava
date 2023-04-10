@@ -1,9 +1,10 @@
 package running
 
 import (
-	"github.com/pubgo/lava/pkg/cmdutil"
 	"os"
 	"sort"
+
+	"github.com/pubgo/lava/pkg/cmdutil"
 
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
@@ -60,7 +61,7 @@ func Main(cmdL ...*cli.Command) {
 		ormcmd.New(),
 	)
 
-	var app = &cli.App{
+	app := &cli.App{
 		Name:                   version.Project(),
 		Suggest:                true,
 		UseShortOptionHandling: true,

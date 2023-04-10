@@ -10,7 +10,7 @@ import (
 const Name = "scheduler"
 
 func New(m lifecycle.Lifecycle, log log.Logger) *Scheduler {
-	var quart = &Scheduler{
+	quart := &Scheduler{
 		scheduler: quartz.NewStdScheduler(),
 		log:       log.WithName(Name),
 	}

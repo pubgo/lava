@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/lava/core/debug"
 )
 
-//https://github.com/arl/statsviz
+// https://github.com/arl/statsviz
 
 // viewManager ...
 type viewManager struct {
@@ -112,22 +112,22 @@ func initManager() *viewManager {
 
 		staticsPrev := "/statics/"
 		r.Get(staticsPrev+"echarts.min.js", func(ctx *fiber.Ctx) error {
-			var _, err = ctx.Write([]byte(statics.EchartJS))
+			_, err := ctx.Write([]byte(statics.EchartJS))
 			return err
 		})
 
 		r.Get(staticsPrev+"jquery.min.js", func(ctx *fiber.Ctx) error {
-			var _, err = ctx.Write([]byte(statics.JqueryJS))
+			_, err := ctx.Write([]byte(statics.JqueryJS))
 			return err
 		})
 
 		r.Get(staticsPrev+"themes/westeros.js", func(ctx *fiber.Ctx) error {
-			var _, err = ctx.Write([]byte(statics.WesterosJS))
+			_, err := ctx.Write([]byte(statics.WesterosJS))
 			return err
 		})
 
 		r.Get(staticsPrev+"themes/macarons.js", func(ctx *fiber.Ctx) error {
-			var _, err = ctx.Write([]byte(statics.MacaronsJS))
+			_, err := ctx.Write([]byte(statics.MacaronsJS))
 			return err
 		})
 	})

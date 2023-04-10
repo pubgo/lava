@@ -7,7 +7,7 @@ import (
 
 func init() {
 	vars.Register(Name+"_factory", func() interface{} {
-		var data = make(map[string]string)
+		data := make(map[string]string)
 		factories.Range(func(key, value interface{}) bool {
 			data[key.(string)] = stack.CallerWithFunc(value).String()
 			return true

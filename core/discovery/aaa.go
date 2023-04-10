@@ -16,8 +16,10 @@ type Discovery interface {
 	GetService(ctx context.Context, srv string, opts ...GetOpt) result.Result[[]*service.Service]
 }
 
-type WatchOpt func(*WatchOpts)
-type GetOpt func(*GetOpts)
+type (
+	WatchOpt func(*WatchOpts)
+	GetOpt   func(*GetOpts)
+)
 
 // Watcher is an interface that returns updates
 // about services within the registry.

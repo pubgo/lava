@@ -15,7 +15,7 @@ func getComponentName(m map[string]interface{}) string {
 		return defaultComponentKey
 	}
 
-	var val, ok = m[componentConfigKey]
+	val, ok := m[componentConfigKey]
 	if !ok || val == nil {
 		return defaultComponentKey
 	}
@@ -27,7 +27,7 @@ func getComponentName(m map[string]interface{}) string {
 //
 //	paths: [./, ../, ../../, ..., /]
 func getPathList() (paths []string) {
-	var wd = assert.Must1(filepath.Abs(""))
+	wd := assert.Must1(filepath.Abs(""))
 	for len(wd) > 0 && !os.IsPathSeparator(wd[len(wd)-1]) {
 		paths = append(paths, wd)
 		wd = filepath.Dir(wd)
@@ -43,7 +43,7 @@ func strMap(strList []string, fn func(str string) string) []string {
 }
 
 func getCfgData() interface{} {
-	var cfg = New()
+	cfg := New()
 	return map[string]any{
 		"cfg_type":   defaultConfigType,
 		"cfg_name":   defaultConfigName,
@@ -55,7 +55,7 @@ func getCfgData() interface{} {
 }
 
 func Load[T any]() T {
-	var c = New()
+	c := New()
 	var cfg T
 	assert.Must(c.Unmarshal(&cfg))
 	return cfg

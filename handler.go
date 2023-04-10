@@ -25,7 +25,7 @@ type HttpRouter interface {
 }
 
 func WrapHandler[Req any, Rsp any](handle func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
-	var validate = validator.New()
+	validate := validator.New()
 
 	// TODO check tag
 	return func(ctx *fiber.Ctx) error {
@@ -54,7 +54,7 @@ func WrapHandler[Req any, Rsp any](handle func(ctx context.Context, req *Req) (r
 			return fmt.Errorf("failed to validate request, err:%w", err)
 		}
 
-		var rsp, err = handle(ctx.UserContext(), &req)
+		rsp, err := handle(ctx.UserContext(), &req)
 		if err != nil {
 			return err
 		}

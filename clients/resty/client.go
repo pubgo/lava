@@ -46,7 +46,7 @@ type clientImpl struct {
 }
 
 func (c *clientImpl) Middleware(mm ...lava.Middleware) {
-	var jar = NewJar()
+	jar := NewJar()
 	c.Middleware(func(next lava.HandlerFunc) lava.HandlerFunc {
 		return func(ctx context.Context, req lava.Request) (lava.Response, error) {
 			for _, c := range jar.cookies {
@@ -80,7 +80,7 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse()
 
-	var request = &requestImpl{service: version.Project(), req: req}
+	request := &requestImpl{service: version.Project(), req: req}
 	request.req = req
 	request.ct = filterFlags(convert.BtoS(req.Header.ContentType()))
 	request.data = req.Body()
@@ -152,7 +152,7 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 		ctx = context.Background()
 	}
 
-	var req = fasthttp.AcquireRequest()
+	req := fasthttp.AcquireRequest()
 
 	req.Header.Set(httputil.HeaderContentType, defaultContentType)
 	req.Header.SetMethod(mth)

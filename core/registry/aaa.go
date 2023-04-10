@@ -16,6 +16,8 @@ type Registry interface {
 	Deregister(context.Context, *service.Service, ...DeregOpt) error
 }
 
-type Opt func(*Opts)
-type RegOpt func(*RegOpts)
-type DeregOpt func(*DeregOpts)
+type (
+	Opt      func(*Opts)
+	RegOpt   func(*RegOpts)
+	DeregOpt func(*DeregOpts)
+)

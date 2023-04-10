@@ -17,7 +17,7 @@ const Name = "pidfile"
 
 var pidPath = filepath.Join(config.CfgDir, Name)
 
-const pidPerm os.FileMode = 0666
+const pidPerm os.FileMode = 0o666
 
 func GetPid() result.Result[int] {
 	f := GetPidF()

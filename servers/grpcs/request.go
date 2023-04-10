@@ -42,7 +42,7 @@ type httpRequest struct {
 
 func (r *httpRequest) Kind() string { return "http" }
 func (r *httpRequest) Operation() string {
-	var _, srv, method = parsePath(r.ctx.OriginalURL())
+	_, srv, method := parsePath(r.ctx.OriginalURL())
 	return filepath.Join(srv, method)
 }
 
@@ -55,7 +55,7 @@ func (r *httpRequest) ContentType() string {
 }
 
 func (r *httpRequest) Service() string {
-	var _, srv, _ = parsePath(r.ctx.OriginalURL())
+	_, srv, _ := parsePath(r.ctx.OriginalURL())
 	return srv
 }
 

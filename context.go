@@ -41,7 +41,7 @@ func CreateCtxWithReqID(ctx context.Context, reqId string) context.Context {
 }
 
 func GetReqID(ctx context.Context) string {
-	var reqId, ok = ctx.Value(reqIdKey).(string)
+	reqId, ok := ctx.Value(reqIdKey).(string)
 	if ok {
 		return reqId
 	}

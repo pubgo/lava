@@ -30,10 +30,10 @@ func init() {
 			return errors.WrapKV(err, "cfg", cfg)
 		})
 
-		var conf = DefaultCfg()
+		conf := DefaultCfg()
 		assert.Must(cfg.Decode(&conf))
 
-		var ret = merge.Struct(new(mysql.Config), conf).Unwrap()
+		ret := merge.Struct(new(mysql.Config), conf).Unwrap()
 		return mysql.New(*ret)
 	})
 }

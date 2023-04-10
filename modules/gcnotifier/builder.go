@@ -18,11 +18,11 @@ func New(log log.Logger) lifecycle.Handler {
 		return nil
 	}
 
-	var logs = log.WithName(Name)
+	logs := log.WithName(Name)
 	return func(lc lifecycle.Lifecycle) {
 		lc.AfterStart(func() {
-			var cancel = async.GoCtx(func(ctx context.Context) error {
-				var gc = gcnotifier.New()
+			cancel := async.GoCtx(func(ctx context.Context) error {
+				gc := gcnotifier.New()
 				defer gc.Close()
 
 				// TODO handler

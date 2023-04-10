@@ -11,8 +11,10 @@ const (
 	initSchemaMigrationID = "SCHEMA_INIT"
 )
 
-type Migrate func() *Migration
-type Generation func(g *gen.Generator) []interface{}
+type (
+	Migrate    func() *Migration
+	Generation func(g *gen.Generator) []interface{}
+)
 
 // MigrateFunc is the func signature for migrating.
 type MigrateFunc func(*gorm.DB) error

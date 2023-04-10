@@ -3,8 +3,9 @@ package registry
 import (
 	"context"
 	"crypto/tls"
-	"github.com/pubgo/lava/core/service"
 	"time"
+
+	"github.com/pubgo/lava/core/service"
 )
 
 func TTL(dur time.Duration) RegOpt {

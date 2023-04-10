@@ -12,14 +12,16 @@ type Service struct {
 	Nodes     []*Node           `json:"nodes,omitempty"`
 }
 
-type Nodes []*Node
-type Node struct {
-	Id       string            `json:"id,omitempty"`
-	Version  string            `json:"version,omitempty"`
-	Address  string            `json:"address,omitempty"`
-	Port     int               `json:"port,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
-}
+type (
+	Nodes []*Node
+	Node  struct {
+		Id       string            `json:"id,omitempty"`
+		Version  string            `json:"version,omitempty"`
+		Address  string            `json:"address,omitempty"`
+		Port     int               `json:"port,omitempty"`
+		Metadata map[string]string `json:"metadata,omitempty"`
+	}
+)
 
 func (t Node) GetPort() int {
 	if t.Port != 0 {

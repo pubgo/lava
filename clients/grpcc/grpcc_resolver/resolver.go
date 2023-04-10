@@ -21,9 +21,7 @@ const (
 
 var logs = log.GetLogger("balancer.resolver")
 
-var (
-	Replica = 1
-)
+var Replica = 1
 
 type baseResolver struct {
 	builder string

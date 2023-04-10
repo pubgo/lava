@@ -31,7 +31,7 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 
 func New() *cli.Command {
 	var id string
-	var options = migrates.DefaultConfig
+	options := migrates.DefaultConfig
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "db migrate",

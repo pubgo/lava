@@ -63,7 +63,7 @@ func (d *discovBuilder) updateService(services ...*service.Service) {
 func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 	var addrList []resolver.Address
 	d.services.Range(func(_, value interface{}) bool {
-		var addr = *value.(*resolver.Address)
+		addr := *value.(*resolver.Address)
 		if addr.ServerName == name {
 			addrList = append(addrList, *value.(*resolver.Address))
 		}
@@ -85,7 +85,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	assert.If(d.disco == nil, "registry is nil")
 
-	var srv = target.URL.Host
+	srv := target.URL.Host
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
@@ -96,7 +96,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 启动后，更新服务地址
 	d.updateService(services...)
 
-	var address = d.getAddrList(srv)
+	address := d.getAddrList(srv)
 	assert.If(len(address) == 0, "service none available")
 
 	logs.Info().Msgf("discovery builder UpdateState, address=%v", address)
@@ -135,7 +135,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					}
 
 					logutil.ErrRecord(logs, try.Try(func() error {
-						var addrList = d.getAddrList(srv)
+						addrList := d.getAddrList(srv)
 						return cc.UpdateState(newState(addrList))
 					}), func(evt *log.Event) string {
 						return "failed to update resolver address"

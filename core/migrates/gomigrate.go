@@ -2,6 +2,7 @@ package migrates
 
 import (
 	"fmt"
+
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
 

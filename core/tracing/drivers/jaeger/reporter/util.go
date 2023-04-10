@@ -2,7 +2,7 @@ package reporter
 
 import (
 	"fmt"
-	
+
 	"github.com/jaegertracing/jaeger/model"
 	j "github.com/uber/jaeger-client-go/thrift-gen/jaeger"
 )
@@ -51,7 +51,7 @@ func getTag(tag *j.Tag) model.KeyValue {
 
 func transformSpan(jSpan *j.Span, mProcess *model.Process) *model.Span {
 	traceID := model.NewTraceID(uint64(jSpan.TraceIdHigh), uint64(jSpan.TraceIdLow))
-	//allocate extra space for future append operation
+	// allocate extra space for future append operation
 	tags := getTags(jSpan.Tags, 1)
 	refs := getReferences(jSpan.References)
 

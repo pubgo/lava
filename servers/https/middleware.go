@@ -53,7 +53,7 @@ func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp,
 			return fmt.Errorf("failed to validate request, err:%w", err)
 		}
 
-		var rsp, err = hh(ctx.Context(), &req)
+		rsp, err := hh(ctx.Context(), &req)
 		if err != nil {
 			return err
 		}
@@ -63,8 +63,8 @@ func Handler[Req any, Rsp any](hh func(ctx context.Context, req *Req) (rsp *Rsp,
 }
 
 func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
-	var h = func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var reqCtx = req.(*httpRequest)
+	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		reqCtx := req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
 		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
 	}

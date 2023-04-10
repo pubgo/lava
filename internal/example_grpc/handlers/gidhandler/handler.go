@@ -31,7 +31,7 @@ type Id struct {
 
 func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStreamServer) error {
 	for i := 0; i < 5; i++ {
-		var rsp = new(gidpb.TypesResponse)
+		rsp := new(gidpb.TypesResponse)
 		rsp.Types = []string{
 			"uuid",
 			"shortid",
@@ -73,16 +73,16 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) gidpb.IdServer {
 
 func (id *Id) Init() {
 	id.cron.Every("test gid", time.Second*2, func(name string) {
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-		//id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
+		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 	})
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
-	var rsp = new(gidpb.GenerateResponse)
-	var logs = log.Ctx(ctx)
+	rsp := new(gidpb.GenerateResponse)
+	logs := log.Ctx(ctx)
 
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
@@ -127,7 +127,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 }
 
 func (id *Id) Types(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
-	var rsp = new(gidpb.TypesResponse)
+	rsp := new(gidpb.TypesResponse)
 	rsp.Types = []string{
 		"uuid",
 		"shortid",
