@@ -1,6 +1,7 @@
 package ent
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"log"
 	"os"
@@ -21,6 +22,9 @@ type params struct {
 	Log            log.Logger
 	Tables         []*schema.Table
 	MigrateOptions []schema.MigrateOption
+}
+
+func init() {
 }
 
 func New() *cli.Command {
@@ -44,6 +48,55 @@ func New() *cli.Command {
 					})
 				},
 			},
+
+			{
+				Name:  "generate migration",
+				Usage: "automatically generate migration files for your Ent schema:",
+				Action: func(context *cli.Context) error {
+					// atlas migrate lint \
+					//  --dev-url="docker://mysql/8/test" \
+					//  --dir="file://ent/migrate/migrations" \
+					//  --latest=1
+
+					// atlas migrate diff migration_name \
+					//  --dev-url "docker://mysql/8/ent"
+					//  --dir "file://ent/migrate/migrations" \
+					//  --to "ent://ent/schema" \
+
+					defer recovery.Exit()
+					return entc.Generate("./ent/schema", &gen.Config{
+						Features: []gen.Feature{
+							gen.FeatureVersionedMigration,
+							gen.FeatureUpsert,
+							gen.FeatureSchemaConfig,
+							gen.FeatureModifier,
+							gen.FeatureExecQuery,
+						},
+					})
+				},
+			},
+
+			{
+				Name:  "apply migration",
+				Usage: "apply the pending migration files onto the database",
+				Action: func(context *cli.Context) error {
+					// atlas migrate status \
+					//  --dir "file://ent/migrate/migrations" \
+					//  --url "mysql://root:pass@localhost:3306/example"
+
+					//atlas migrate apply \
+					//--dir "file://ent/migrate/migrations" \
+					//--url "mysql://root:pass@localhost:3306/example"
+
+					// atlas migrate status \
+					//  --dir "file://ent/migrate/migrations" \
+					//  --url "mysql://root:pass@localhost:3306/example"
+
+				},
+			},
+
+			// atlas migrate hash \
+			//  --dir "file://my/project/migrations"
 
 			// atlas migrate hash --dir file://<path-to-your-migration-directory>
 			// atlas migrate status \
@@ -96,6 +149,7 @@ func New() *cli.Command {
 						schema.WithDropIndex(true),
 						schema.WithDropColumn(true),
 					}
+
 					if len(os.Args) != 2 {
 						log.Fatalln("migration name is required. Use: 'go run -mod=mod ent/migrate/main.go <name>'")
 					}
@@ -115,5 +169,18 @@ func New() *cli.Command {
 				},
 			},
 		},
+	}
+}
+
+func Open(driverName, dataSourceName string) (*sql.Driver, error) {
+	switch driverName {
+	case dialect.MySQL, dialect.Postgres, dialect.SQLite:
+		drv, err := sql.Open(driverName, dataSourceName)
+		if err != nil {
+			return nil, err
+		}
+		return drv, nil
+	default:
+		return nil, fmt.Errorf("unsupported driver: %q", driverName)
 	}
 }

@@ -43,8 +43,8 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.9.2-0.20230303073438-03a4779a6338
-	entgo.io/ent v0.11.10
+	ariga.io/atlas v0.10.0
+	entgo.io/ent v0.12.0
 	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
