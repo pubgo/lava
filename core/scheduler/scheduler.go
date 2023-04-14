@@ -14,6 +14,7 @@ import (
 )
 
 type Scheduler struct {
+	config    map[string]JobSetting
 	scheduler quartz.Scheduler
 	key       string
 	cron      string
