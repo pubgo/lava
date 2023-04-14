@@ -9,12 +9,13 @@ import (
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger) *Scheduler {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config) *Scheduler {
 	quart := &Scheduler{
 		scheduler: quartz.NewStdScheduler(),
 		log:       log.WithName(Name),
 	}
-	quart.Start()
-	m.BeforeStop(quart.Stop)
+
+	quart.start()
+	m.BeforeStop(quart.stop)
 	return quart
 }
