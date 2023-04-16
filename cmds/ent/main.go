@@ -1,13 +1,13 @@
 package ent
 
 import (
-	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"log"
 	"os"
 
 	atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -92,6 +92,7 @@ func New() *cli.Command {
 					//  --dir "file://ent/migrate/migrations" \
 					//  --url "mysql://root:pass@localhost:3306/example"
 
+					return nil
 				},
 			},
 

@@ -76,12 +76,12 @@ func (s *serviceImpl) DixInject(
 
 			code := fiber.StatusBadRequest
 			errPb := errutil.ParseError(err)
-			if errPb == nil || errPb.Code == 0 {
+			if errPb == nil || errPb.Code.Code == 0 {
 				return nil
 			}
 
-			errPb.Operation = ctx.Route().Path
-			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code))
+			errPb.Trace.Operation = ctx.Route().Path
+			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return ctx.Status(code).JSON(errPb)
 		},

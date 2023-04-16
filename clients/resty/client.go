@@ -78,7 +78,6 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	})
 
 	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse()
 
 	request := &requestImpl{service: version.Project(), req: req}
 	request.req = req

@@ -78,7 +78,7 @@ func New(logger log.Logger) lava.Middleware {
 			}()
 
 			// 集成logger到context
-			ctx = logger.WithFields(log.Map{"request_id": reqId, "operation": req.Operation()}).WithCtx(ctx)
+			ctx = log.WithCtx(ctx, logger.WithFields(log.Map{"request_id": reqId, "operation": req.Operation()}))
 			return next(ctx, req)
 		}
 	}

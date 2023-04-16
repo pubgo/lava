@@ -150,22 +150,22 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rsp, err := lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
-			pb.Operation = rpcReq.Operation()
-			pb.Service = rpcReq.Service()
-			pb.Version = version.Version()
-			pb.ErrMsg = err.Error()
-			pb.ErrDetail = []byte(fmt.Sprintf("%#v", err))
-			if pb.Tags == nil {
-				pb.Tags = make(map[string]string)
+			pb.Trace.Operation = rpcReq.Operation()
+			pb.Trace.Service = rpcReq.Service()
+			pb.Trace.Version = version.Version()
+			pb.Msg.Msg = err.Error()
+			pb.Msg.Detail = []byte(fmt.Sprintf("%#v", err))
+			if pb.Msg.Tags == nil {
+				pb.Msg.Tags = make(map[string]string)
 			}
-			pb.Tags["header"] = string(rpcReq.Header().Header())
+			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
-			if pb.Reason == "" {
-				pb.Reason = err.Error()
+			if pb.Code.Reason == "" {
+				pb.Code.Reason = err.Error()
 			}
 
-			if pb.Code == 0 {
-				pb.Code = errorpb.Code_Internal
+			if pb.Code.Code == 0 {
+				pb.Code.Code = errorpb.Code_Internal
 			}
 
 			return nil, errutil.ConvertErr2Status(pb).Err()
@@ -263,22 +263,22 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rsp, err := lava.Chain(middlewares[srvName]...)(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
-			pb.Operation = rpcReq.Operation()
-			pb.Service = rpcReq.Service()
-			pb.Version = version.Version()
-			pb.ErrMsg = err.Error()
-			pb.ErrDetail = []byte(fmt.Sprintf("%#v", err))
-			if pb.Tags == nil {
-				pb.Tags = make(map[string]string)
+			pb.Trace.Operation = rpcReq.Operation()
+			pb.Trace.Service = rpcReq.Service()
+			pb.Trace.Version = version.Version()
+			pb.Msg.Msg = err.Error()
+			pb.Msg.Detail = []byte(fmt.Sprintf("%#v", err))
+			if pb.Msg.Tags == nil {
+				pb.Msg.Tags = make(map[string]string)
 			}
-			pb.Tags["header"] = string(rpcReq.Header().Header())
+			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
-			if pb.Reason == "" {
-				pb.Reason = err.Error()
+			if pb.Code.Reason == "" {
+				pb.Code.Reason = err.Error()
 			}
 
-			if pb.Code == 0 {
-				pb.Code = errorpb.Code_Internal
+			if pb.Code.Code == 0 {
+				pb.Code.Code = errorpb.Code_Internal
 			}
 
 			return errutil.ConvertErr2Status(pb).Err()

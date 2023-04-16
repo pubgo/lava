@@ -1,15 +1,8 @@
-version: v1
+checksum: 70bb56d415d27f3ec8e3917dab740064d1342e58
 vendor: .proto
-checksum: 050e5a71ba4de3f034ea40ed09d2d3582f4e2110
+base_plugin_out: {}
 root:
 - proto
-deps:
-- name: google
-  url: github.com/googleapis/googleapis
-  path: /google
-  version: v0.0.0-20220224004616-3c171936039b
-- name: google/protobuf
-  url: /usr/local/include/google/protobuf
 plugins:
 - name: go
   out: pkg
@@ -18,4 +11,15 @@ plugins:
 - name: lava-errors
   out: pkg
   opt:
-    - paths=source_relative
+  - paths=source_relative
+deps:
+- name: google
+  url: github.com/googleapis/googleapis
+  path: /google
+  version: v0.0.0-20220224004616-3c171936039b
+- name: google/protobuf
+  url: /usr/local/include/google/protobuf
+- name: errorpb
+  url: github.com/pubgo/funk
+  path: /proto/errorpb
+  version: v0.5.29-17

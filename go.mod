@@ -62,8 +62,8 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pubgo/dix v0.3.9
-	github.com/pubgo/funk v0.5.29-15
+	github.com/pubgo/dix v0.3.10-5
+	github.com/pubgo/funk v0.5.29-17
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
