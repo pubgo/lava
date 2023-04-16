@@ -96,7 +96,6 @@ func (t namedJob) Key() int            { return quartz.HashCode(t.Description())
 func (t namedJob) Execute() {
 	s := time.Now()
 	err := try.Try(func() error { return t.fn(context.Background(), t.name) })
-
 	logger := generic.Ternary(generic.IsNil(err), t.log.Info(), t.log.Err(err))
 	logger.
 		Int64("job-cost-ms", time.Since(s).Milliseconds()).
