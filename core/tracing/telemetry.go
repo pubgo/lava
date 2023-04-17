@@ -1,9 +1,11 @@
-package telemetry
+package tracing
 
 import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
+	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
@@ -16,7 +18,6 @@ import (
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 
@@ -48,7 +49,6 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 		attributes:         map[string]string{},
 		headers:            map[string]string{},
 		idGenerator:        nil,
-		resource:           &resource.Resource{},
 		otelErrorHandler:   errorHandler{},
 		traceBatchOptions:  []sdktrace.BatchSpanProcessorOption{},
 		sampleRatio:        1,
@@ -64,7 +64,6 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 			propagation.Baggage{},
 		),
 	)
-
 	meterProvider := NewPrometheusMeterProvider(config)
 
 	lc.AfterStop(func() {
@@ -113,7 +112,12 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 	}
 
 	traceProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(traceExporter, config.traceBatchOptions...),
+		sdktrace.WithBatcher(traceExporter,
+			sdktrace.WithMaxQueueSize(queueSize()),
+			sdktrace.WithMaxExportBatchSize(queueSize()),
+			sdktrace.WithBatchTimeout(10*time.Second),
+			sdktrace.WithExportTimeout(10*time.Second),
+		),
 		sdktrace.WithResource(res),
 		sdktrace.WithSampler(sampler),
 	)
@@ -121,7 +125,7 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 	return traceProvider
 }
 
-func initTracerExporter(config *Config) (trace.SpanExporter, error) {
+func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 	if config.traceExporter.ExporterEndpoint == DefaultStdout {
 		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
@@ -159,4 +163,18 @@ func NewPrometheusMeterProvider(config *Config) *sdkmetric.MeterProvider {
 // GetTraceId return trace id in context
 func GetTraceId(ctx context.Context) string {
 	return oteltrace.SpanContextFromContext(ctx).TraceID().String()
+}
+
+func queueSize() int {
+	const min = 1000
+	const max = 16000
+
+	n := (runtime.GOMAXPROCS(0) / 2) * 1000
+	if n < min {
+		return min
+	}
+	if n > max {
+		return max
+	}
+	return n
 }
