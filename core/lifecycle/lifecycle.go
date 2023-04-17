@@ -13,7 +13,7 @@ type Lifecycle interface {
 	BeforeStart(f func())
 }
 
-type GetLifecycle interface {
+type Getter interface {
 	GetAfterStops() []executor
 	GetBeforeStops() []executor
 	GetAfterStarts() []executor
@@ -21,8 +21,8 @@ type GetLifecycle interface {
 }
 
 var (
-	_ Lifecycle    = (*lifecycleImpl)(nil)
-	_ GetLifecycle = (*lifecycleImpl)(nil)
+	_ Lifecycle = (*lifecycleImpl)(nil)
+	_ Getter    = (*lifecycleImpl)(nil)
 )
 
 type lifecycleImpl struct {

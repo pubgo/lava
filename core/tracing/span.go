@@ -16,7 +16,6 @@ func NewSpan(sp opentracing.Span) *Span {
 	if _sp, ok := sp.(*Span); ok {
 		return _sp
 	}
-
 	return &Span{Span: sp}
 }
 

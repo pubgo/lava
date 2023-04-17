@@ -37,7 +37,7 @@ func newService() *serviceImpl {
 var _ lava.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	lc         lifecycle.GetLifecycle
+	lc         lifecycle.Getter
 	httpServer *fiber.App
 	log        log.Logger
 	initList   []func()
@@ -55,7 +55,7 @@ func (s *serviceImpl) Stop()  { s.stop() }
 func (s *serviceImpl) DixInject(
 	handlers []lava.HttpRouter,
 	middlewares []lava.Middleware,
-	getLifecycle lifecycle.GetLifecycle,
+	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
 	m metric.Metric,
 	log log.Logger,

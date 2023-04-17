@@ -47,7 +47,7 @@ func newService() *serviceImpl {
 var _ lava.Service = (*serviceImpl)(nil)
 
 type serviceImpl struct {
-	lc         lifecycle.GetLifecycle
+	lc         lifecycle.Getter
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
@@ -66,7 +66,7 @@ func (s *serviceImpl) Stop()  { s.stop() }
 func (s *serviceImpl) DixInject(
 	handlers []lava.GrpcHandler,
 	dixMiddlewares map[string][]lava.Middleware,
-	getLifecycle lifecycle.GetLifecycle,
+	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
 	metric metric.Metric,
 	log log.Logger,
