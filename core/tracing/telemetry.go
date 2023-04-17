@@ -107,7 +107,7 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 	traceExporter := assert.Must1(initTracerExporter(config))
 	sampler := sdktrace.AlwaysSample()
 	if config.sampleRatio < 1 && config.sampleRatio >= 0 {
-		sampler = sdktrace.TraceIDRatioBased(config.sampleRatio)
+		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
 		log.Info().Msgf("set sample ratio %v", config.sampleRatio)
 	}
 
