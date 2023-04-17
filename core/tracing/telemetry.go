@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/version"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	otlpTraceGrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -112,14 +112,22 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 	}
 
 	traceProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithResource(res),
+		sdktrace.WithSampler(sampler),
 		sdktrace.WithBatcher(traceExporter,
 			sdktrace.WithMaxQueueSize(queueSize()),
 			sdktrace.WithMaxExportBatchSize(queueSize()),
 			sdktrace.WithBatchTimeout(10*time.Second),
 			sdktrace.WithExportTimeout(10*time.Second),
 		),
-		sdktrace.WithResource(res),
-		sdktrace.WithSampler(sampler),
+		sdktrace.WithRawSpanLimits(sdktrace.SpanLimits{
+			AttributeCountLimit:         1024,
+			EventCountLimit:             1024,
+			LinkCountLimit:              1024,
+			AttributePerEventCountLimit: 1024,
+			AttributePerLinkCountLimit:  1024,
+			AttributeValueLengthLimit:   1024,
+		}),
 	)
 
 	return traceProvider
@@ -160,21 +168,30 @@ func NewPrometheusMeterProvider(config *Config) *sdkmetric.MeterProvider {
 	return provider
 }
 
-// GetTraceId return trace id in context
-func GetTraceId(ctx context.Context) string {
+func TraceID(span oteltrace.Span) string {
+	traceID := span.SpanContext().TraceID()
+	if traceID.IsValid() {
+		return traceID.String()
+	}
+	return ""
+}
+
+func SpanID(span oteltrace.Span) string {
+	spanID := span.SpanContext().SpanID()
+	if spanID.IsValid() {
+		return spanID.String()
+	}
+	return ""
+}
+
+func TraceIdFromCtx(ctx context.Context) string {
 	return oteltrace.SpanContextFromContext(ctx).TraceID().String()
 }
 
-func queueSize() int {
-	const min = 1000
-	const max = 16000
+func Tracer() oteltrace.Tracer {
+	return otel.Tracer(version.Project())
+}
 
-	n := (runtime.GOMAXPROCS(0) / 2) * 1000
-	if n < min {
-		return min
-	}
-	if n > max {
-		return max
-	}
-	return n
+func CheckHasTraceID(ctx context.Context) bool {
+	return oteltrace.SpanFromContext(ctx).SpanContext().HasTraceID()
 }

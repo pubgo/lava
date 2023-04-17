@@ -2,6 +2,7 @@ package tracing
 
 import (
 	"context"
+	"runtime"
 
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
@@ -32,4 +33,18 @@ func SetIfCtxErr(span oteltrace.Span, ctx context.Context) {
 
 	SetIfErr(span, err)
 	span.SpanContext()
+}
+
+func queueSize() int {
+	const min = 1000
+	const max = 16000
+
+	n := (runtime.GOMAXPROCS(0) / 2) * 1000
+	if n < min {
+		return min
+	}
+	if n > max {
+		return max
+	}
+	return n
 }
