@@ -10,7 +10,11 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/pubgo/funk/assert"
 )
+
+var localIp = assert.Exit1(regexp.Compile(`\d+\.\d+\.\d+\.\d+`))
 
 func GetLocalIP() string {
 	localIP := "localhost"
@@ -27,7 +31,7 @@ func GetLocalIP() string {
 			continue
 		}
 
-		if match, err := regexp.MatchString(`\d+\.\d+\.\d+\.\d+`, items[0]); err == nil && match {
+		if localIp.MatchString(items[0]) {
 			localIP = items[0]
 		}
 	}

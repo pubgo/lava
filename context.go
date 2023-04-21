@@ -6,7 +6,9 @@ import (
 	"github.com/rs/xid"
 )
 
-var reqCtxKey = xid.New().String()
+type ctxKey string
+
+var reqCtxKey = ctxKey(xid.New().String())
 
 func CreateCtxWithReqHeader(ctx context.Context, header *RequestHeader) context.Context {
 	return context.WithValue(ctx, reqCtxKey, header)
@@ -20,7 +22,7 @@ func GetReqHeader(ctx context.Context) *RequestHeader {
 	return nil
 }
 
-var rspCtxKey = xid.New().String()
+var rspCtxKey = ctxKey(xid.New().String())
 
 func CreateCtxWithRspHeader(ctx context.Context, header *ResponseHeader) context.Context {
 	return context.WithValue(ctx, rspCtxKey, header)
@@ -34,7 +36,7 @@ func GetRspHeader(ctx context.Context) *ResponseHeader {
 	return val
 }
 
-var reqIdKey = xid.New().String()
+var reqIdKey = ctxKey(xid.New().String())
 
 func CreateCtxWithReqID(ctx context.Context, reqId string) context.Context {
 	return context.WithValue(ctx, reqIdKey, reqId)

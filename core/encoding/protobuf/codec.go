@@ -5,7 +5,7 @@ import (
 
 	"github.com/pubgo/lava/core/encoding"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	pb "google.golang.org/protobuf/proto"
 )
 
@@ -19,8 +19,8 @@ func init() {
 type protobufCodec struct{}
 
 func (c protobufCodec) Marshal(v interface{}) ([]byte, error) {
-	if m, ok := v.(proto.Marshaler); ok {
-		return m.Marshal()
+	if m, ok := v.(proto.Message); ok {
+		return proto.Marshal(m)
 	}
 
 	if m, ok := v.(pb.Message); ok {
@@ -31,8 +31,8 @@ func (c protobufCodec) Marshal(v interface{}) ([]byte, error) {
 }
 
 func (c protobufCodec) Unmarshal(data []byte, v interface{}) error {
-	if m, ok := v.(proto.Unmarshaler); ok {
-		return m.Unmarshal(data)
+	if m, ok := v.(proto.Message); ok {
+		return proto.Unmarshal(data, m)
 	}
 
 	if m, ok := v.(pb.Message); ok {
@@ -48,8 +48,8 @@ func (c protobufCodec) Name() string {
 
 // Encode encodes an object into slice of bytes.
 func (c protobufCodec) Encode(i interface{}) ([]byte, error) {
-	if m, ok := i.(proto.Marshaler); ok {
-		return m.Marshal()
+	if m, ok := i.(proto.Message); ok {
+		return proto.Marshal(m)
 	}
 
 	if m, ok := i.(pb.Message); ok {
@@ -61,8 +61,8 @@ func (c protobufCodec) Encode(i interface{}) ([]byte, error) {
 
 // Decode decodes an object from slice of bytes.
 func (c protobufCodec) Decode(data []byte, i interface{}) error {
-	if m, ok := i.(proto.Unmarshaler); ok {
-		return m.Unmarshal(data)
+	if m, ok := i.(proto.Message); ok {
+		return proto.Unmarshal(data, m)
 	}
 
 	if m, ok := i.(pb.Message); ok {

@@ -1,7 +1,7 @@
 package whitelists
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -35,7 +35,7 @@ func testIPWhitelist(t *testing.T, whitelist map[string]bool, expectedStatusCode
 	assert.NotNil(t, mw)
 	resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/", nil))
 	assert.Nil(t, err)
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	t.Log(string(data))
 	assert.Equal(t, expectedStatusCode, resp.StatusCode)

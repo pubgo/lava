@@ -2,7 +2,6 @@ package shutil
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -38,7 +37,7 @@ func GraphViz(in, out string) (err error) {
 		return ret.Err()
 	}
 
-	return ioutil.WriteFile(out, []byte(ret.Unwrap()), 0o600)
+	return os.WriteFile(out, []byte(ret.Unwrap()), 0o600)
 }
 
 func Shell(args ...string) *exec.Cmd {
