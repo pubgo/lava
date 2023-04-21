@@ -13,8 +13,8 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-func New(cfg *Config, log log.Logger) *Client {
-	log = log.WithName(Name)
+func New(cfg *Config, logs log.Logger) *Client {
+	logs = logs.WithName(Name)
 
 	builder := merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
 	ormCfg := merge.Struct(new(gorm.Config), builder).Unwrap()
@@ -26,7 +26,7 @@ func New(cfg *Config, log log.Logger) *Client {
 
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
 	ormCfg.Logger = logger.New(
-		log.WithName(Name).WithCallerSkip(4),
+		log.NewStd(logs.WithName(Name).WithCallerSkip(4)),
 		logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  level,

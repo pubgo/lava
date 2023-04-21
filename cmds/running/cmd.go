@@ -71,7 +71,7 @@ func Main(cmdL ...*cli.Command) {
 		Commands:               cmdL,
 		ExtraInfo:              runmode.GetSysInfo,
 		Before: func(context *cli.Context) error {
-			version.Check()
+			runmode.Check()
 			return nil
 		},
 	}

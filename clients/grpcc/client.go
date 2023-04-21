@@ -56,8 +56,11 @@ func (t *clientImpl) Middleware(mm ...lava.Middleware) {
 }
 
 func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
-	defer recovery.Err(&err, func(err *errors.Event) {
-		err.Str("method", method).Any("input", args)
+	defer recovery.Err(&err, func(err error) error {
+		return errors.WrapTags(err, errors.Tags{
+			"method": method,
+			"input":  args,
+		})
 	})
 
 	conn := t.Get().Unwrap()

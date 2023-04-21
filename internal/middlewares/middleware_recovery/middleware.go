@@ -28,7 +28,11 @@ func New() lava.Middleware {
 
 				gErr = v.Validate()
 				if gErr != nil {
-					return nil, errors.NewCode(errorpb.Code_InvalidArgument).SetErr(gErr)
+					return nil, errors.WrapCode(gErr, &errorpb.ErrCode{
+						Code:   errorpb.Code_InvalidArgument,
+						Status: "lava.request.validate",
+						Reason: gErr.Error(),
+					})
 				}
 			}
 

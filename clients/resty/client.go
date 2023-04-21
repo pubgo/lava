@@ -3,7 +3,6 @@ package resty
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -94,10 +93,10 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	// Do we need to decompress the response?
 	contentEncoding := resp.Header().Peek("Content-Encoding")
 	if bytes.EqualFold(contentEncoding, []byte("gzip")) {
-		body, err := resp.BodyGunzip()
-		if err != nil {
-			return nil, fmt.Errorf("WebClient resp.BodyGunzip error: %w", err)
-		}
+		//body, err := resp.BodyGunzip()
+		//if err != nil {
+		//	return nil, fmt.Errorf("WebClient resp.BodyGunzip error: %w", err)
+		//}
 
 		out.SetBody(body)
 	}

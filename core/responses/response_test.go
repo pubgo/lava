@@ -14,8 +14,7 @@ func TestResponse(t *testing.T) {
 		Err: &errorpb.Error{
 			Code: testcodepb.ErrCodeDbConn,
 			Msg: &errorpb.ErrMsg{
-				Msg:    "internal error",
-				Detail: nil,
+				Msg: "internal error",
 			}},
 		Data: nil}
 	bytes, err1 := json.Marshal(rsp)

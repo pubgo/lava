@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/gofiber/fiber/v2 v2.43.0
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -69,8 +69,8 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pubgo/dix v0.3.10-5
-	github.com/pubgo/funk v0.5.29-18
+	github.com/pubgo/dix v0.3.10-6
+	github.com/pubgo/funk v0.5.29-19
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2

@@ -154,7 +154,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			pb.Trace.Service = rpcReq.Service()
 			pb.Trace.Version = version.Version()
 			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = []byte(fmt.Sprintf("%#v", err))
+			pb.Msg.Detail = fmt.Sprintf("%#v", err)
 			if pb.Msg.Tags == nil {
 				pb.Msg.Tags = make(map[string]string)
 			}
@@ -267,7 +267,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			pb.Trace.Service = rpcReq.Service()
 			pb.Trace.Version = version.Version()
 			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = []byte(fmt.Sprintf("%#v", err))
+			pb.Msg.Detail = fmt.Sprintf("%#v", err)
 			if pb.Msg.Tags == nil {
 				pb.Msg.Tags = make(map[string]string)
 			}

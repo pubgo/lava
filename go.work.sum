@@ -210,10 +210,10 @@ github.com/mitchellh/go-wordwrap v1.0.0 h1:6GlHJ/LTGMrIJbwgdqdl2eEH8o+Exx/0m8ir9
 github.com/mitchellh/go-wordwrap v1.0.0/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58/go.mod h1:DXv8WO4yhMYhSNPKjeNKa5WY9YCIEBRbNzFFPJbWO6Y=
+github.com/pubgo/dix v0.3.10-6/go.mod h1:U2TfWDWIYtbI9r2cgVLMVircIsZlhYWsMCynX8T4qSY=
 github.com/pubgo/funk v0.5.28-1/go.mod h1:ATTJNALEF46nOaBaDW+DvJ7Ih9G1ZM3q0GCUVW46gGU=
 github.com/pubgo/funk v0.5.29-8/go.mod h1:jyv/Fr3KqWSOGBcqvXssAo7S4WUjJB7eGLuPyg0SPB4=
 github.com/pubgo/funk v0.5.29-12/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
-github.com/pubgo/funk v0.5.29-18/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=

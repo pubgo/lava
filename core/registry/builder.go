@@ -28,13 +28,13 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 
 	reg := regs[cfg.Driver]
 	assert.Fn(reg == nil, func() error {
-		return errors.SimpleErr(func(err *errors.Err) {
-			err.Msg = "registry driver is null"
-			err.Tags = errors.Tags{
+		return &errors.Err{
+			Msg: "registry driver is null",
+			Tags: errors.Tags{
 				"driver": cfg.Driver,
 				"regs":   regs,
-			}
-		})
+			},
+		}
 	})
 
 	// 服务注册
@@ -108,10 +108,10 @@ func register(reg Registry) {
 		"register service node",
 		func() error {
 			err := reg.Register(context.Background(), s)
-			return errors.WrapEventFn(err, func(evt *errors.Event) {
-				evt.Str("instance_id", node.Id)
-				evt.Str("service", runmode.Project)
-				evt.Str("registry", Default().String())
+			return errors.WrapTags(err, errors.Tags{
+				"instance_id": node.Id,
+				"service":     runmode.Project,
+				"registry":    Default().String(),
 			})
 		},
 	)
@@ -147,10 +147,7 @@ func deregister(reg Registry) {
 		"deregister service node",
 		func() error {
 			err := reg.Deregister(context.Background(), s)
-			return errors.WrapEventFn(err, func(evt *errors.Event) {
-				evt.Str("id", node.Id)
-				evt.Str("name", runmode.Project)
-			})
+			return errors.WrapTags(err, errors.Tags{"id": node.Id, "name": runmode.Project})
 		},
 	)
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/log/logutil"
@@ -15,7 +14,6 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/config"
-	"github.com/pubgo/lava/core/tracing"
 )
 
 func New(cfg *Config, log log.Logger) *Client {
@@ -73,10 +71,6 @@ func (t *Client) Delete(ctx context.Context, key string, names ...string) error 
 func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := strutil.GetDefault(names...)
 
-	span := tracing.CreateChild(ctx, name)
-	defer span.Finish()
-	ext.DBType.Set(span, Name)
-
 	return t.DB.View(func(tx *bolt.Tx) error {
 		return fn(t.bucket(name, tx))
 	})
@@ -84,10 +78,6 @@ func (t *Client) View(ctx context.Context, fn func(*bolt.Bucket) error, names ..
 
 func (t *Client) Update(ctx context.Context, fn func(*bolt.Bucket) error, names ...string) error {
 	name := strutil.GetDefault(names...)
-
-	span := tracing.CreateChild(ctx, name)
-	defer span.Finish()
-	ext.DBType.Set(span, Name)
 
 	return t.DB.Update(func(tx *bolt.Tx) (err error) {
 		return fn(t.bucket(name, tx))

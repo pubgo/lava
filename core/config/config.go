@@ -15,7 +15,6 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/pathutil"
-	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/version"
@@ -114,9 +113,11 @@ func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOp
 
 // DecodeComponent decode component config to map[string]*struct
 func (t *configImpl) DecodeComponent(name string, cfgMap interface{}) (gErr error) {
-	defer recovery.Err(&gErr, func(err *errors.Event) {
-		err.Str("name", name)
-		err.Any("cfgMap", pretty.Sprint(cfgMap))
+	defer recovery.Err(&gErr, func(err error) error {
+		return errors.WrapTags(err, errors.Tags{
+			"name":   name,
+			"cfgMap": cfgMap,
+		})
 	})
 
 	assert.If(name == "" || cfgMap == nil, "name,cfgMap params should not be nil")
@@ -199,9 +200,7 @@ func (t *configImpl) initCfg() {
 
 // loadPath 加载指定path的配置
 func (t *configImpl) loadPath(path string) {
-	defer recovery.Exit(func(evt *errors.Event) {
-		log.Info().Msgf("path=%s", path)
-	})
+	defer recovery.Exit()
 
 	fileStat := assert.Must1(os.Stat(path))
 	if fileStat.IsDir() {
