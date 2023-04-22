@@ -100,5 +100,5 @@ func (t namedJob) Execute() {
 	logger.
 		Float32("job-cost-ms", float32(time.Since(s).Microseconds())/1000).
 		Str("job-name", t.name).
-		Msg("scheduler trigger")
+		Msg("scheduler job execution")
 }
