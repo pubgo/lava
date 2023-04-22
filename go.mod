@@ -68,9 +68,8 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/open2b/scriggo v0.56.1
-	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pubgo/dix v0.3.10-6
-	github.com/pubgo/funk v0.5.29-19
+	github.com/pubgo/funk v0.5.29-21
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
