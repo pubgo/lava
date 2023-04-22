@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"gorm.io/gorm/logger"
 	"time"
 )
 
@@ -29,5 +30,14 @@ func DefaultCfg() Config {
 		MaxConnTime:            time.Hour,
 		MaxConnIdle:            10,
 		MaxConnOpen:            100,
+	}
+}
+
+func DefaultLoggerCfg() logger.Config {
+	return logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Info,
+		IgnoreRecordNotFoundError: false,
+		Colorful:                  false,
 	}
 }

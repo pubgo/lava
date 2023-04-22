@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/runmode"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -18,22 +17,13 @@ func New(cfg *Config, logs log.Logger) *Client {
 
 	builder := merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
 	ormCfg := merge.Struct(new(gorm.Config), builder).Unwrap()
-
-	level := logger.Info
-	if !runmode.IsDebug {
-		level = logger.Warn
-	}
-
-	var logCfg = logger.Config{
-		SlowThreshold:             200 * time.Millisecond,
-		LogLevel:                  level,
-		IgnoreRecordNotFoundError: false,
-		Colorful:                  false,
-	}
+	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
-	ormCfg.Logger = logger.New(log.NewStd(logs.WithCallerSkip(4)), logCfg)
 
+	var logCfg = DefaultLoggerCfg()
 	logs.Debug().Any("config", logCfg).Msg("orm config")
+
+	ormCfg.Logger = logger.New(log.NewStd(logs.WithCallerSkip(4)), logCfg)
 	logs.Debug().Any("config", ormCfg).Msg("orm log config")
 
 	factory := Get(cfg.Driver)
