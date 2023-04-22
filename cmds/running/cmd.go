@@ -4,8 +4,6 @@ import (
 	"os"
 	"sort"
 
-	"github.com/pubgo/lava/pkg/cmdutil"
-
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
@@ -22,6 +20,8 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/modules/gcnotifier"
+	"github.com/pubgo/lava/pkg/cmdutil"
 
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
@@ -44,12 +44,19 @@ import (
 	// logging
 	_ "github.com/pubgo/lava/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/core/logging/logext/stdlog"
+
+	_ "go.uber.org/automaxprocs"
 )
+
+func init() {
+	di.Provide(lifecycle.New)
+	di.Provide(gcnotifier.New)
+}
 
 func Main(cmdL ...*cli.Command) {
 	defer recovery.Exit()
 
-	di.Provide(lifecycle.New)
+	runmode.Check()
 
 	cmdL = append(cmdL,
 		versioncmd.New(),
@@ -70,10 +77,6 @@ func Main(cmdL ...*cli.Command) {
 		Flags:                  flags.GetFlags(),
 		Commands:               cmdL,
 		ExtraInfo:              runmode.GetSysInfo,
-		Before: func(context *cli.Context) error {
-			runmode.Check()
-			return nil
-		},
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
