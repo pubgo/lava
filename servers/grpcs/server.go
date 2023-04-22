@@ -161,7 +161,7 @@ func (s *serviceImpl) DixInject(
 func (s *serviceImpl) start() {
 	defer recovery.Exit()
 
-	logutil.OkOrFailed(s.log, "service before-start", func() error {
+	logutil.OkOrFailed(s.log, "running before service starts", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
@@ -170,10 +170,7 @@ func (s *serviceImpl) start() {
 		return nil
 	})
 
-	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
-
-	logutil.OkOrFailed(s.log, "service handler init", func() error {
+	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
 		defer recovery.Exit()
 		for _, ii := range s.initList {
 			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(ii))
@@ -182,7 +179,14 @@ func (s *serviceImpl) start() {
 		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service start", func() error {
+	s.log.Info().
+		Int("grpc-port", runmode.GrpcPort).
+		Int("http-port", runmode.HttpPort).
+		Msg("create network listener")
+	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
+	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
+
+	logutil.OkOrFailed(s.log, "service starts", func() error {
 		// 启动grpc服务
 		async.GoDelay(func() error {
 			s.log.Info().Msg("[grpc] Server Starting")
@@ -200,8 +204,8 @@ func (s *serviceImpl) start() {
 
 		// 启动grpc网关
 		async.GoDelay(func() error {
-			s.log.Info().Msg("[grpc-gw] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc-gw] Server Stop", func() error {
+			s.log.Info().Msg("[http] Server Starting")
+			logutil.LogOrErr(s.log, "[http] Server Stop", func() error {
 				defer recovery.Exit()
 				if err := s.httpServer.Listener(httpLn); err != nil &&
 					!errors.Is(err, http.ErrServerClosed) &&
@@ -215,11 +219,13 @@ func (s *serviceImpl) start() {
 		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service after-start", func() error {
-		defer recovery.Exit()
+	logutil.OkOrFailed(s.log, "running after service starts", func() error {
 		for _, run := range s.lc.GetAfterStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			logutil.LogOrErr(
+				s.log,
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
+				func() error { run.Handler(); return nil },
+			)
 		}
 		return nil
 	})
@@ -228,27 +234,33 @@ func (s *serviceImpl) start() {
 func (s *serviceImpl) stop() {
 	defer recovery.Exit()
 
-	logutil.OkOrFailed(s.log, "service before-stop", func() error {
+	logutil.OkOrFailed(s.log, "running before service stops", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			logutil.LogOrErr(
+				s.log,
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
+				func() error { run.Handler(); return nil },
+			)
 		}
 		return nil
 	})
 
-	logutil.LogOrErr(s.log, "[grpc-gateway] Shutdown", func() error {
-		return s.httpServer.ShutdownWithTimeout(consts.DefaultTimeout)
-	})
-
-	logutil.LogOrErr(s.log, "[grpc] GracefulStop", func() error {
+	logutil.LogOrErr(s.log, "[grpc] Server GracefulStop", func() error {
 		s.grpcServer.GracefulStop()
 		return nil
 	})
 
-	logutil.OkOrFailed(s.log, "service after-stop", func() error {
+	logutil.LogOrErr(s.log, "[http] Server Shutdown", func() error {
+		return s.httpServer.ShutdownWithTimeout(consts.DefaultTimeout)
+	})
+
+	logutil.OkOrFailed(s.log, "running after service stops", func() error {
 		for _, run := range s.lc.GetAfterStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			logutil.LogOrErr(
+				s.log,
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
+				func() error { run.Handler(); return nil },
+			)
 		}
 		return nil
 	})

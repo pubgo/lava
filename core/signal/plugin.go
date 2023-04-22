@@ -1,7 +1,6 @@
 package signal
 
 import (
-	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,14 +10,11 @@ import (
 
 const Name = "signal"
 
+var logger = log.GetLogger(Name)
+
 func Wait() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
 	sig := <-ch
-	log.Info().Str("signal", sig.String()).Msg("signal trigger")
-}
-
-func Ctx() context.Context {
-	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
-	return ctx
+	logger.Info().Str("signal", sig.String()).Msg("signal trigger notify")
 }
