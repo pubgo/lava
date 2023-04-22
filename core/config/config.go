@@ -35,7 +35,7 @@ func New() Config {
 	v.SetEnvKeyReplacer(replacer)
 
 	envPrefix := strings.ToUpper(replacer.Replace(version.Project()))
-	log.Debug().Str("env_prefix", envPrefix).Msg("set config env prefix")
+	log.Info().Str("env_prefix", envPrefix).Msg("set config env prefix")
 	v.SetEnvPrefix(envPrefix)
 
 	v.SetConfigName(defaultConfigName)
@@ -55,12 +55,13 @@ func New() Config {
 
 	// 加载自定义配置
 	t.loadCustomCfg()
-	log.Debug().Any("metadata", map[string]any{
+	log.Info().Any("metadata", map[string]any{
 		"cfg_type": defaultConfigType,
 		"cfg_name": defaultConfigName,
 		"home":     CfgDir,
 		"cfg_path": CfgPath,
 	}).Msg("config metadata")
+	log.Debug().Any("data", t.All()).Msg("config settings")
 	return t
 }
 
@@ -224,7 +225,7 @@ func (t *configImpl) loadPath(path string) {
 	}
 
 	assert.If(pathutil.IsNotExist(path), "path not found, path=%s", path)
-	log.Info().Msgf("load config path, path=%s", path)
+	log.Info().Str("path", path).Msgf("load config path")
 
 	cfgData := string(assert.Must1(os.ReadFile(path)))
 	cfgData = assert.Must1(envsubst.String(cfgData))
