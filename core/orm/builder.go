@@ -24,16 +24,17 @@ func New(cfg *Config, logs log.Logger) *Client {
 		level = logger.Warn
 	}
 
+	var logCfg = logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  level,
+		IgnoreRecordNotFoundError: false,
+		Colorful:                  false,
+	}
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
-	ormCfg.Logger = logger.New(
-		log.NewStd(logs.WithName(Name).WithCallerSkip(4)),
-		logger.Config{
-			SlowThreshold:             200 * time.Millisecond,
-			LogLevel:                  level,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  false,
-		},
-	)
+	ormCfg.Logger = logger.New(log.NewStd(logs.WithCallerSkip(4)), logCfg)
+
+	logs.Debug().Any("config", logCfg).Msg("orm config")
+	logs.Debug().Any("config", ormCfg).Msg("orm log config")
 
 	factory := Get(cfg.Driver)
 	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
