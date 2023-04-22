@@ -21,7 +21,7 @@ func New(log log.Logger) lifecycle.Handler {
 	logs := log.WithName(Name)
 	return func(lc lifecycle.Lifecycle) {
 		lc.AfterStart(func() {
-			cancel := async.GoCtx(func(ctx context.Context) error {
+			lc.BeforeStop(async.GoCtx(func(ctx context.Context) error {
 				gc := gcnotifier.New()
 				defer gc.Close()
 
@@ -35,8 +35,7 @@ func New(log log.Logger) lifecycle.Handler {
 						return nil
 					}
 				}
-			})
-			lc.BeforeStop(cancel)
+			}))
 		})
 	}
 }
