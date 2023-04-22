@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/runmode"
+	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/core/lifecycle"
 )
@@ -19,6 +20,7 @@ func New(log log.Logger) lifecycle.Handler {
 	}
 
 	logs := log.WithName(Name)
+	var num atomic.Uint64
 	return func(lc lifecycle.Lifecycle) {
 		lc.AfterStart(func() {
 			lc.BeforeStop(async.GoCtx(func(ctx context.Context) error {
@@ -30,7 +32,8 @@ func New(log log.Logger) lifecycle.Handler {
 				for {
 					select {
 					case <-gc.AfterGC():
-						logs.Info().Msg("gc notify")
+						num.Add(1)
+						logs.Info().Uint64("num", num.Load()).Msg("gc notify")
 					case <-ctx.Done():
 						return nil
 					}
