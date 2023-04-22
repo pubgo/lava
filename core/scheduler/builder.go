@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pubgo/funk/log"
@@ -23,10 +24,13 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config) *Scheduler {
 		}
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	quart := &Scheduler{
 		config:    config,
 		scheduler: quartz.NewStdScheduler(),
 		log:       log.WithName(Name),
+		ctx:       ctx,
+		cancel:    cancel,
 	}
 
 	quart.start()
