@@ -26,7 +26,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.14.0
 	go.opentelemetry.io/otel/sdk/metric v0.37.0
 	go.opentelemetry.io/otel/trace v1.14.0
-	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/atomic v1.10.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
@@ -69,7 +69,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.10-6
-	github.com/pubgo/funk v0.5.29-21
+	github.com/pubgo/funk v0.5.29-22
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
