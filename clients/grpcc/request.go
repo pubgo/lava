@@ -10,6 +10,7 @@ var _ lava.Request = (*request)(nil)
 
 type request struct {
 	resp     grpc.ClientStream
+	reply    interface{}
 	ct       string
 	opts     []grpc.CallOption
 	method   string

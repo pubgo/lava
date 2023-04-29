@@ -1,5 +1,8 @@
 checksum: 83f8f305e687035c289671cfb8958dd40772f356
 vendor: .proto
+base:
+  out: ./pkg
+  opt: paths=source_relative
 root:
   - proto
 deps:
@@ -12,13 +15,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.29-18
+    version: v0.5.29-22
 plugins:
   - name: go
-    out: pkg
-    opt:
-      - paths=source_relative
   - name: lava-errors
-    out: pkg
-    opt:
-      - paths=source_relative

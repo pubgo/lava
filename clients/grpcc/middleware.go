@@ -2,6 +2,8 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/rs/xid"
 	"strings"
 	"time"
 
@@ -41,7 +43,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		trailer := make(metadata.MD)
 		reqCtx.opts = append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
 
-		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.resp, reqCtx.cc, reqCtx.opts...); err != nil {
+		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc, reqCtx.opts...); err != nil {
 			return nil, err
 		}
 
@@ -77,6 +79,15 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			md.Set("remote", p.Addr.String())
 		}
 
+		var serviceInfo = lava.GetServiceInfo(ctx)
+		if serviceInfo != nil {
+			md.Set(grpcutil.ClientNameKey, serviceInfo.Name)
+			md.Set(grpcutil.ClientIpKey, serviceInfo.Ip)
+			md.Set(grpcutil.ClientHostnameKey, serviceInfo.Hostname)
+			md.Set(grpcutil.ClientVersion, serviceInfo.Version)
+			md.Set(grpcutil.ClientPath, serviceInfo.Path)
+		}
+
 		// timeout for server deadline
 		to := md.Get("timeout")
 		delete(md, "timeout")
@@ -93,7 +104,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		header := &fasthttp.RequestHeader{}
 		md2Head(md, header)
 
-		_, err = unaryWrapper(ctx, &request{
+		rpcReq := &request{
 			ct:      ct,
 			header:  header,
 			service: serviceFromMethod(method),
@@ -102,7 +113,17 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			req:     req,
 			cc:      cc,
 			invoker: invoker,
-		})
+			reply:   reply,
+		}
+
+		reqId := strutil.FirstFnNotEmpty(
+			func() string { return lava.GetReqID(ctx) },
+			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
+			func() string { return xid.New().String() },
+		)
+		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
+
+		_, err = unaryWrapper(ctx, rpcReq)
 		return err
 	}
 }

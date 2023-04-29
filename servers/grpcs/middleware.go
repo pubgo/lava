@@ -3,6 +3,8 @@ package grpcs
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/runmode"
+	lavapbv1 "github.com/pubgo/lava/pkg/proto/lava"
 	"net/http"
 	"strings"
 	"time"
@@ -93,13 +95,15 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		delete(md, "x-content-type")
 
+		var clientInfo = new(lavapbv1.ServiceInfo)
+
 		// get peer from context
 		if p := grpcutil.ClientIP(md); p != "" {
-			md.Set("remote-ip", p)
+			clientInfo.Ip = p
 		}
 
 		if p := grpcutil.ClientName(md); p != "" {
-			md.Set("remote-name", p)
+			clientInfo.Name = p
 		}
 
 		// timeout for server deadline
@@ -144,8 +148,22 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
-		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
-		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+
+		ctx = lava.CreateCtxWithServiceInfo(ctx, &lavapbv1.ServiceInfo{
+			Name:      version.Project(),
+			Version:   version.Version(),
+			Path:      info.FullMethod,
+			Hostname:  runmode.Hostname,
+			RequestId: reqId,
+		})
+
+		ctx = lava.CreateCtxWithClientInfo(ctx, &lavapbv1.ServiceInfo{
+			Name:      version.Project(),
+			Version:   version.Version(),
+			Path:      info.FullMethod,
+			Hostname:  runmode.Hostname,
+			RequestId: reqId,
+		})
 
 		rsp, err := lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
 		if err != nil {

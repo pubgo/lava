@@ -18,27 +18,35 @@ import (
 )
 
 const (
-	clientAppKey = "client-app"
-	clientIpKey  = "client-ip"
+	ClientNameKey     = "client-name"
+	ClientIpKey       = "client-ip"
+	ClientHostnameKey = "client-hostname"
+	ClientPath        = "client-path"
+	ClientVersion     = "client-version"
+	ServiceNameKey    = "service-name"
+	ServiceIpKey      = "service-ip"
+	ServiceHostname   = "service-hostname"
+	ServicePath       = "service-path"
+	ServiceVersion    = "service-version"
 )
 
 // WithClientApp 获取对端应用名称
 func WithClientApp(ctx context.Context, name string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, clientAppKey, name)
+	return metadata.AppendToOutgoingContext(ctx, ClientNameKey, name)
 }
 
 func WithClientIp(ctx context.Context, ip string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, clientIpKey, ip)
+	return metadata.AppendToOutgoingContext(ctx, ClientIpKey, ip)
 }
 
 // ClientName 获取对端应用名称
 func ClientName(md metadata.MD) string {
-	return HeaderGet(md, clientAppKey)
+	return HeaderGet(md, ClientNameKey)
 }
 
 // ClientIP 获取对端ip
 func ClientIP(md metadata.MD) string {
-	return HeaderGet(md, clientIpKey)
+	return HeaderGet(md, ClientIpKey)
 }
 
 func EnableHealth(srv string, s *grpc.Server) {

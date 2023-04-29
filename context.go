@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/xid"
+
+	lavapbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 type ctxKey string
@@ -48,4 +50,31 @@ func GetReqID(ctx context.Context) string {
 		return reqId
 	}
 	return ""
+}
+
+var reqClientInfoKey = ctxKey(xid.New().String())
+var reqServiceInfoKey = ctxKey(xid.New().String())
+
+func CreateCtxWithClientInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
+	return context.WithValue(ctx, reqClientInfoKey, info)
+}
+
+func CreateCtxWithServiceInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
+	return context.WithValue(ctx, reqServiceInfoKey, info)
+}
+
+func GetClientInfo(ctx context.Context) *lavapbv1.ServiceInfo {
+	reqId, ok := ctx.Value(reqClientInfoKey).(*lavapbv1.ServiceInfo)
+	if ok {
+		return reqId
+	}
+	return nil
+}
+
+func GetServiceInfo(ctx context.Context) *lavapbv1.ServiceInfo {
+	reqId, ok := ctx.Value(reqServiceInfoKey).(*lavapbv1.ServiceInfo)
+	if ok {
+		return reqId
+	}
+	return nil
 }
