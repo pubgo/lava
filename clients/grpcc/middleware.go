@@ -2,13 +2,12 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/rs/xid"
 	"strings"
 	"time"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/strutil"
+	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -17,6 +16,7 @@ import (
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/httputil"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
