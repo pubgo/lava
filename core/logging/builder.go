@@ -2,6 +2,7 @@ package logging
 
 import (
 	"os"
+	"time"
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
@@ -18,25 +19,20 @@ func New(cfg *Config) log.Logger {
 
 	level, err := zerolog.ParseLevel(cfg.Level)
 	if err != nil || level == zerolog.NoLevel {
-		level = zerolog.InfoLevel
+		level = zerolog.DebugLevel
 	}
 	zerolog.SetGlobalLevel(level)
 
-	writer := cfg.Writer
-	if writer == nil {
-		writer = os.Stdout
-	}
-
-	logger := zerolog.New(writer).Level(level).With().Timestamp().Logger()
+	logger := zerolog.New(os.Stdout).Level(level).With().Timestamp().Caller().Logger()
 	if !cfg.AsJson {
 		logger = logger.Output(zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
-			w.Out = writer
+			w.Out = os.Stdout
+			w.TimeFormat = time.RFC3339
 		}))
 	}
-	zl.Logger = logger
 
 	// 全局log设置
-	ee := logger.With().Caller().
+	ee := logger.With().
 		Str(logkey.Hostname, runmode.Hostname).
 		Str(logkey.Project, runmode.Project).
 		Str(logkey.Version, runmode.Version)
@@ -46,6 +42,7 @@ func New(cfg *Config) log.Logger {
 	}
 
 	logger = ee.Logger()
+	zl.Logger = logger
 	log.SetLogger(&logger)
 
 	gl := log.New(&logger)
