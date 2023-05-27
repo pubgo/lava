@@ -8,6 +8,6 @@ import (
 )
 
 func TestName(t *testing.T) {
-	New(log.GetLogger("test"))
+	SetLogger(log.GetLogger("test"))
 	stdLog.Print("hello")
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestName(t *testing.T) {
-	New(log.GetLogger("test"))
+	SetLogger(log.GetLogger("test"))
 
 	grpclog.Info("hello")
 	grpclog.Component("cccc").Info("hello")

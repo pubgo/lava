@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	logging.Register("stdLog", New)
+	logging.Register("stdLog", SetLogger)
 }
 
-// New 替换std默认log
-func New(logger logger.Logger) {
+// SetLogger 替换std默认log
+func SetLogger(logger logger.Logger) {
 	stdLog := log.Default()
 	// 接管系统默认log
 	*stdLog = *log.New(&std{l: logger.WithName("std-log").WithCallerSkip(3)}, "", 0)

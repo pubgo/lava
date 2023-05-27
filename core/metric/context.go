@@ -2,6 +2,7 @@ package metric
 
 import (
 	"context"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/rs/xid"
 	"github.com/uber-go/tally/v4"
@@ -20,4 +21,8 @@ func Ctx(ctx context.Context) tally.Scope {
 	}
 
 	return tally.NoopScope
+}
+
+func init() {
+	promhttp.WithExemplarFromContext()
 }

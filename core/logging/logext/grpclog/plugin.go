@@ -3,9 +3,8 @@ package grpclog
 import (
 	"fmt"
 
-	"github.com/rs/zerolog"
-
 	"github.com/pubgo/funk/log"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc/grpclog"
 
 	"github.com/pubgo/lava/core/logging"
@@ -19,10 +18,10 @@ func grpcComponentName(args interface{}) func(e *zerolog.Event) {
 }
 
 func init() {
-	logging.Register("grpcLog", New)
+	logging.Register("grpcLog", SetLogger)
 }
 
-func New(logger log.Logger) {
+func SetLogger(logger log.Logger) {
 	grpclog.SetLoggerV2(&loggerWrapper{
 		log:      logger.WithName("grpc").WithCallerSkip(2),
 		depthLog: logger.WithName("grpc-component").WithCallerSkip(2),

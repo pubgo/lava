@@ -3,6 +3,7 @@ package https
 import (
 	"errors"
 	"fmt"
+	"github.com/valyala/fasthttp"
 	"net"
 	"net/http"
 
@@ -47,6 +48,8 @@ func (s *serviceImpl) Run() {
 	defer s.stop()
 	s.start()
 	signal.Wait()
+
+	fasthttp.AcquireArgs()
 }
 
 func (s *serviceImpl) Start() { s.start() }
