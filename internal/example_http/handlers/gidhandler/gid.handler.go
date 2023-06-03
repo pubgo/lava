@@ -130,10 +130,11 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) lava.HttpRouter {
 }
 
 func (id *Id) Init() {
-	id.cron.Every("test gid", time.Second*2, func(name string) {
+	id.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
+		return nil
 	})
 }

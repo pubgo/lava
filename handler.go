@@ -13,12 +13,16 @@ import (
 
 type GrpcHandler interface {
 	Init()
+	Internal() bool
+	Version() string
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
 }
 
 type HttpRouter interface {
 	Init()
+	Internal() bool
+	Version() string
 	Middlewares() []Middleware
 	Router(app *fiber.App)
 	Openapi(swag *opendoc.Swagger)
