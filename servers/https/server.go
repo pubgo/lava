@@ -3,7 +3,6 @@ package https
 import (
 	"errors"
 	"fmt"
-	"github.com/valyala/fasthttp"
 	"net"
 	"net/http"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
+	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava"

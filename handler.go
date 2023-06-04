@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GrpcHandler interface {
+type GrpcRouter interface {
 	Init()
 	Internal() bool
 	Version() string
@@ -24,7 +24,7 @@ type HttpRouter interface {
 	Internal() bool
 	Version() string
 	Middlewares() []Middleware
-	Router(app *fiber.App)
+	Router(router fiber.Router)
 	Openapi(swag *opendoc.Swagger)
 }
 
