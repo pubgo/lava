@@ -1,4 +1,4 @@
-package whitelists
+package middleware_whitelists
 
 import (
 	"io"

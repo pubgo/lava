@@ -1,7 +1,7 @@
 go 1.19
 
 use (
-	./internal/example_grpc
-	./internal/example_http
+	./internal/example/grpc
+	./internal/example/http
 	.
 )
