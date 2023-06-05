@@ -17,16 +17,20 @@ import (
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/internal/example/pkg/proto/gidpb"
+	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 )
 
-var _ lava.GrpcHandler = (*Id)(nil)
+var _ lava.GrpcRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
 	metric    metric.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
+}
+
+func (id *Id) Version() string {
+	return ""
 }
 
 func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStreamServer) error {
@@ -72,11 +76,12 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) gidpb.IdServer {
 }
 
 func (id *Id) Init() {
-	id.cron.Every("test gid", time.Second*2, func(name string) {
+	id.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
+		return nil
 	})
 }
 

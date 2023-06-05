@@ -7,8 +7,8 @@ import (
 	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/orm"
 
-	"github.com/pubgo/lava/internal/example/handlers/gidhandler"
-	"github.com/pubgo/lava/internal/example/internal/migrates"
+	"github.com/pubgo/lava/internal/example/grpc/handlers/gidhandler"
+	"github.com/pubgo/lava/internal/example/grpc/internal/migrates"
 )
 
 func Main() {

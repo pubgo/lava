@@ -28,9 +28,13 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Router(app *fiber.App) {
-	app.Post("/v1/id/generate", lava.WrapHandler(id.Generate))
-	app.Get("/v1/id/types", lava.WrapHandler(id.Types))
+func (id *Id) Version() string {
+	return "v1"
+}
+
+func (id *Id) Router(app fiber.Router) {
+	app.Post("/id/generate", lava.WrapHandler(id.Generate))
+	app.Get("/id/types", lava.WrapHandler(id.Types))
 }
 
 func (id *Id) Openapi(swag *opendoc.Swagger) {

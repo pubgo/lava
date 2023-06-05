@@ -13,7 +13,6 @@ import (
 
 type GrpcRouter interface {
 	Init()
-	Internal() bool
 	Version() string
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
@@ -21,7 +20,6 @@ type GrpcRouter interface {
 
 type HttpRouter interface {
 	Init()
-	Internal() bool
 	Version() string
 	Middlewares() []Middleware
 	Router(router fiber.Router)
