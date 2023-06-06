@@ -12,16 +12,14 @@ import (
 )
 
 type GrpcRouter interface {
-	Version() string
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
 }
 
 type HttpRouter interface {
-	Version() string
 	Middlewares() []Middleware
 	Router(router fiber.Router)
-	Openapi(swag *opendoc.Swagger)
+	Openapi(doc *opendoc.Swagger)
 }
 
 func WrapHandler[Req any, Rsp any](handle func(ctx context.Context, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {

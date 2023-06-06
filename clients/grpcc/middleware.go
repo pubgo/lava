@@ -79,7 +79,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			md.Set("remote", p.Addr.String())
 		}
 
-		var serviceInfo = lava.GetServiceInfo(ctx)
+		var serviceInfo = lava.GetServerInfo(ctx)
 		if serviceInfo != nil {
 			md.Set(grpcutil.ClientNameKey, serviceInfo.Name)
 			md.Set(grpcutil.ClientIpKey, serviceInfo.Ip)

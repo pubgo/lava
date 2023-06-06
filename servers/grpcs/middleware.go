@@ -149,7 +149,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			func() string { return xid.New().String() },
 		)
 
-		ctx = lava.CreateCtxWithServiceInfo(ctx, &lavapbv1.ServiceInfo{
+		ctx = lava.CreateCtxWithServerInfo(ctx, &lavapbv1.ServiceInfo{
 			Name:      version.Project(),
 			Version:   version.Version(),
 			Path:      info.FullMethod,

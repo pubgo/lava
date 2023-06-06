@@ -41,7 +41,6 @@ type serviceImpl struct {
 	lc         lifecycle.Getter
 	httpServer *fiber.App
 	log        log.Logger
-	initList   []func()
 }
 
 func (s *serviceImpl) Run() {
@@ -107,7 +106,6 @@ func (s *serviceImpl) DixInject(
 	middlewares = append(defaultMiddlewares, middlewares...)
 
 	for _, h := range handlers {
-		s.initList = append(s.initList, h.Init)
 		middlewares = append(middlewares, h.Middlewares()...)
 
 		h.Router(app)
@@ -146,15 +144,6 @@ func (s *serviceImpl) start() {
 	})
 
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
-
-	logutil.OkOrFailed(s.log, "service handler init", func() error {
-		defer recovery.Exit()
-		for _, ii := range s.initList {
-			s.log.Info().Msgf("handler %s", stack.CallerWithFunc(ii))
-			ii()
-		}
-		return nil
-	})
 
 	logutil.OkOrFailed(s.log, "service start", func() error {
 		async.GoDelay(func() error {

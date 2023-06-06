@@ -51,7 +51,6 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
-	initList   []func()
 }
 
 func (s *serviceImpl) Run() {
@@ -64,7 +63,7 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
-	handlers []lava.GrpcHandler,
+	handlers []lava.GrpcRouter,
 	dixMiddlewares map[string][]lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
@@ -94,7 +93,6 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
-	var initList []func()
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -103,7 +101,6 @@ func (s *serviceImpl) DixInject(
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
-		initList = append(initList, h.Init)
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
@@ -149,7 +146,6 @@ func (s *serviceImpl) DixInject(
 		http.NotFound(writer, request)
 	})), new(http2.Server))))
 
-	s.initList = initList
 	s.lc = getLifecycle
 	s.log = log
 	s.httpServer = httpServer
@@ -166,15 +162,6 @@ func (s *serviceImpl) start() {
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
-		}
-		return nil
-	})
-
-	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
-		defer recovery.Exit()
-		for _, ii := range s.initList {
-			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(ii))
-			ii()
 		}
 		return nil
 	})

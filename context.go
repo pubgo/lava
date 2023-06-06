@@ -53,14 +53,14 @@ func GetReqID(ctx context.Context) string {
 }
 
 var reqClientInfoKey = ctxKey(xid.New().String())
-var reqServiceInfoKey = ctxKey(xid.New().String())
+var reqServerInfoKey = ctxKey(xid.New().String())
 
 func CreateCtxWithClientInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
 	return context.WithValue(ctx, reqClientInfoKey, info)
 }
 
-func CreateCtxWithServiceInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
-	return context.WithValue(ctx, reqServiceInfoKey, info)
+func CreateCtxWithServerInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
+	return context.WithValue(ctx, reqServerInfoKey, info)
 }
 
 func GetClientInfo(ctx context.Context) *lavapbv1.ServiceInfo {
@@ -71,8 +71,8 @@ func GetClientInfo(ctx context.Context) *lavapbv1.ServiceInfo {
 	return nil
 }
 
-func GetServiceInfo(ctx context.Context) *lavapbv1.ServiceInfo {
-	reqId, ok := ctx.Value(reqServiceInfoKey).(*lavapbv1.ServiceInfo)
+func GetServerInfo(ctx context.Context) *lavapbv1.ServiceInfo {
+	reqId, ok := ctx.Value(reqServerInfoKey).(*lavapbv1.ServiceInfo)
 	if ok {
 		return reqId
 	}

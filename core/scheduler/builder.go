@@ -12,7 +12,7 @@ import (
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config) *Scheduler {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter) *Scheduler {
 	var config = make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
 		for _, opt := range *opts[0] {
@@ -35,5 +35,10 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config) *Scheduler {
 
 	quart.start()
 	m.BeforeStop(quart.stop)
+
+	for _, r := range routers {
+		r.Crontab(quart)
+	}
+
 	return quart
 }
