@@ -12,14 +12,12 @@ import (
 )
 
 type GrpcRouter interface {
-	Init()
 	Version() string
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
 }
 
 type HttpRouter interface {
-	Init()
 	Version() string
 	Middlewares() []Middleware
 	Router(router fiber.Router)
