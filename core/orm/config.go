@@ -1,8 +1,9 @@
 package orm
 
 import (
-	"gorm.io/gorm/logger"
 	"time"
+
+	"gorm.io/gorm/logger"
 )
 
 type Config struct {
