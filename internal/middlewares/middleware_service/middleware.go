@@ -24,11 +24,10 @@ func New() lava.Middleware {
 				metadata.FromIncomingContext(ctx)
 
 				ctx = lava.CreateCtxWithServerInfo(ctx, &lavapbv1.ServiceInfo{
-					Name:      version.Project(),
-					Version:   version.Version(),
-					Path:      req.Operation(),
-					Hostname:  runmode.Hostname,
-					RequestId: lava.GetReqID(ctx),
+					Name:     version.Project(),
+					Version:  version.Version(),
+					Path:     req.Operation(),
+					Hostname: runmode.Hostname,
 				})
 			}
 
