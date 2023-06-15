@@ -3,8 +3,6 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/runmode"
-	lavapbv1 "github.com/pubgo/lava/pkg/proto/lava"
 	"net/http"
 	"strings"
 	"time"
@@ -23,9 +21,11 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
+	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 func parsePath(path string) (string, string, string) {
@@ -95,7 +95,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		delete(md, "x-content-type")
 
-		var clientInfo = new(lavapbv1.ServiceInfo)
+		var clientInfo = new(pbv1.ServiceInfo)
 
 		// get peer from context
 		if p := grpcutil.ClientIP(md); p != "" {
@@ -149,20 +149,18 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			func() string { return xid.New().String() },
 		)
 
-		ctx = lava.CreateCtxWithServerInfo(ctx, &lavapbv1.ServiceInfo{
-			Name:      version.Project(),
-			Version:   version.Version(),
-			Path:      info.FullMethod,
-			Hostname:  runmode.Hostname,
-			RequestId: reqId,
+		ctx = lava.CreateCtxWithServerInfo(ctx, &pbv1.ServiceInfo{
+			Name:     version.Project(),
+			Version:  version.Version(),
+			Path:     info.FullMethod,
+			Hostname: runmode.Hostname,
 		})
 
-		ctx = lava.CreateCtxWithClientInfo(ctx, &lavapbv1.ServiceInfo{
-			Name:      version.Project(),
-			Version:   version.Version(),
-			Path:      info.FullMethod,
-			Hostname:  runmode.Hostname,
-			RequestId: reqId,
+		ctx = lava.CreateCtxWithClientInfo(ctx, &pbv1.ServiceInfo{
+			Name:     version.Project(),
+			Version:  version.Version(),
+			Path:     info.FullMethod,
+			Hostname: runmode.Hostname,
 		})
 
 		rsp, err := lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)

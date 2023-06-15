@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -71,6 +72,8 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	cfg *Config,
 ) {
+	mux := runtime.NewServeMux()
+
 	cfg = config.Merge(defaultCfg(), cfg)
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
@@ -83,7 +86,7 @@ func (s *serviceImpl) DixInject(
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		EnablePrintRoutes:  cfg.PrintRoute,
+		EnablePrintRoutes:  cfg.EnablePrintRoutes,
 		AppName:            version.Project(),
 	})
 	httpServer.Mount("/debug", debug.App())

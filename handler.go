@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc"
 )
@@ -14,6 +15,10 @@ import (
 type GrpcRouter interface {
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
+}
+
+type GrpcGatewayRouter interface {
+	RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface)
 }
 
 type HttpRouter interface {

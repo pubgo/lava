@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/pkg/grpcutil"
 	lavapbv1 "github.com/pubgo/lava/pkg/proto/lava"
 
 	"google.golang.org/grpc/metadata"
@@ -17,7 +18,11 @@ func New() lava.Middleware {
 			if req.Client() {
 				defer func() {
 					info := lava.GetServerInfo(ctx)
-					metadata.AppendToOutgoingContext(ctx, "", "")
+					req.Header().Set(grpcutil.ClientHostnameKey, info.Name)
+					req.Header().Set(grpcutil.ClientHostnameKey, info.Version)
+					req.Header().Set(grpcutil.ClientHostnameKey, info.Path)
+					req.Header().Set(grpcutil.ClientHostnameKey, info.Hostname)
+					req.Header().Set(grpcutil.ClientHostnameKey, info.Ip)
 				}()
 			} else {
 				clientInfo := new(lavapbv1.ServiceInfo)

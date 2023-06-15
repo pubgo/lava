@@ -10,15 +10,15 @@ const (
 )
 
 type Config struct {
-	PrintRoute bool                 `yaml:"print_route"`
-	BaseUrl    string               `yaml:"base_url"`
-	GrpcConfig *grpc_builder.Config `yaml:"grpc_config"`
+	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
+	BaseUrl           string               `yaml:"base_url"`
+	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
 }
 
 func defaultCfg() Config {
 	return Config{
-		PrintRoute: true,
-		BaseUrl:    version.Project(),
-		GrpcConfig: grpc_builder.GetDefaultCfg(),
+		EnablePrintRoutes: true,
+		BaseUrl:           version.Project(),
+		GrpcConfig:        grpc_builder.GetDefaultCfg(),
 	}
 }
