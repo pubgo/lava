@@ -1,17 +1,20 @@
 package grpcs
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/fullstorydev/grpchan"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -42,7 +45,9 @@ import (
 func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
-	return &serviceImpl{}
+	return &serviceImpl{
+		handlers: make(grpchan.HandlerMap),
+	}
 }
 
 var _ lava.Service = (*serviceImpl)(nil)
@@ -52,6 +57,8 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
+	handlers   grpchan.HandlerMap
+	cc         inprocgrpc.Channel
 }
 
 func (s *serviceImpl) Run() {
@@ -72,8 +79,6 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	cfg *Config,
 ) {
-	mux := runtime.NewServeMux()
-
 	cfg = config.Merge(defaultCfg(), cfg)
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
@@ -96,6 +101,8 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
+	mux := runtime.NewServeMux()
+
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -107,7 +114,15 @@ func (s *serviceImpl) DixInject(
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
+
+		s.cc.RegisterService(desc, h)
+		if m, ok := h.(lava.GrpcGatewayRouter); ok {
+			m.RegisterGateway(context.Background(), mux, &s.cc)
+		}
 	}
+
+	s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
 	// grpc server初始化
 	grpcServer := cfg.GrpcConfig.Build(
@@ -144,9 +159,10 @@ func (s *serviceImpl) DixInject(
 
 		if request.ProtoMajor == 2 && strings.Contains(request.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(writer, request)
+			return
 		}
 
-		http.NotFound(writer, request)
+		mux.ServeHTTP(writer, request)
 	})), new(http2.Server))))
 
 	s.lc = getLifecycle

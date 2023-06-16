@@ -56,6 +56,7 @@ require (
 	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
+	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-echarts/go-echarts/v2 v2.2.5
 	github.com/go-echarts/statsview v0.3.4
 	github.com/go-playground/validator/v10 v10.10.1
@@ -64,10 +65,10 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
 	github.com/google/gops v0.3.27
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
-	github.com/open2b/scriggo v0.56.1
 	github.com/pubgo/dix v0.3.10-6
 	github.com/pubgo/funk v0.5.29-22
 	github.com/rs/xid v1.4.0
@@ -76,7 +77,6 @@ require (
 	github.com/uber-go/tally/v4 v4.1.5
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.45.0
-	github.com/yuin/goldmark v1.4.13
 	go.etcd.io/bbolt v1.3.7
 	go.etcd.io/etcd/client/v3 v3.5.6
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
@@ -115,7 +115,6 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
@@ -127,6 +126,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.12.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
+	github.com/jhump/protoreflect v1.11.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
