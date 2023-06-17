@@ -4,19 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lava/internal/logutil"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -38,9 +36,11 @@ import (
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/core/vars"
 	"github.com/pubgo/lava/internal/consts"
+	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 )
 
 func New() lava.Service { return newService() }
