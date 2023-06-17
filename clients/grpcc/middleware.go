@@ -53,10 +53,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		return rsp, nil
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		unaryWrapper = middlewares[i](unaryWrapper)
-	}
-
+	unaryWrapper = lava.Chain(middlewares...).Middleware(unaryWrapper)
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
 		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
@@ -84,8 +81,8 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			md.Set(grpcutil.ClientNameKey, serviceInfo.Name)
 			md.Set(grpcutil.ClientIpKey, serviceInfo.Ip)
 			md.Set(grpcutil.ClientHostnameKey, serviceInfo.Hostname)
-			md.Set(grpcutil.ClientVersion, serviceInfo.Version)
-			md.Set(grpcutil.ClientPath, serviceInfo.Path)
+			md.Set(grpcutil.ClientVersionKey, serviceInfo.Version)
+			md.Set(grpcutil.ClientPathKey, serviceInfo.Path)
 		}
 
 		// timeout for server deadline
@@ -143,10 +140,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		return &response{header: new(lava.ResponseHeader), stream: stream}, nil
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		wrapperStream = middlewares[i](wrapperStream)
-	}
-
+	wrapperStream = lava.Chain(middlewares...).Middleware(wrapperStream)
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (resp grpc.ClientStream, err error) {
 		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {

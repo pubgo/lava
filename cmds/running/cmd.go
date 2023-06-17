@@ -1,9 +1,11 @@
 package running
 
 import (
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"os"
 	"sort"
 
+	"github.com/pubgo/dix"
 	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
@@ -20,6 +22,7 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/modules/gcnotifier"
 	"github.com/pubgo/lava/pkg/cmdutil"
 
@@ -48,9 +51,26 @@ import (
 	_ "go.uber.org/automaxprocs"
 )
 
+func defaultProviders() []any {
+	return []any{
+		lifecycle.New,
+		gcnotifier.New,
+
+		middleware_accesslog.New,
+		middleware_metric.New,
+	}
+}
+
+func InitDefaultProvider(dix *dix.Dix) {
+	for _, p := range defaultProviders() {
+		dix.Provide(p)
+	}
+}
+
 func init() {
-	di.Provide(lifecycle.New)
-	di.Provide(gcnotifier.New)
+	for _, p := range defaultProviders() {
+		di.Provide(p)
+	}
 }
 
 func Main(cmdL ...*cli.Command) {

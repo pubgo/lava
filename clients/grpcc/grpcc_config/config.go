@@ -8,8 +8,6 @@ import (
 )
 
 const (
-	Name = "grpcc"
-
 	// DefaultTimeout 默认的连接超时时间
 	DefaultTimeout     = 2 * time.Second
 	DefaultContentType = "application/grpc"
@@ -32,18 +30,16 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 
 // Cfg ...
 type Cfg struct {
-	Client *ClientCfg `yaml:"client"`
-	Srv    string     `yaml:"srv"`
-	Addr   string     `yaml:"addr"`
-	Scheme string     `yaml:"scheme"`
+	Client *GrpcClientCfg `yaml:"grpc_client"`
+	Srv    string         `yaml:"srv"`
+	Addr   string         `yaml:"addr"`
+	Scheme string         `yaml:"scheme"`
 }
-
-func (t Cfg) Check() error { return nil }
 
 func DefaultCfg() Cfg {
 	cfg := Cfg{
 		Scheme: grpcc_resolver.DirectScheme,
-		Client: &ClientCfg{
+		Client: &GrpcClientCfg{
 			Insecure: true,
 			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
 			// refer: https://github.com/grpc/grpc-proto/blob/d653c6d98105b2af937511aa6e46610c7e677e6e/grpc/service_config/service_config.proto#L632

@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"google.golang.org/grpc"
 )
 
@@ -24,7 +23,7 @@ type request struct {
 }
 
 func (r *request) Operation() string           { return r.method }
-func (r *request) Kind() string                { return grpcc_config.Name }
+func (r *request) Kind() string                { return Name }
 func (r *request) Client() bool                { return true }
 func (r *request) Service() string             { return r.service }
 func (r *request) Endpoint() string            { return r.method }

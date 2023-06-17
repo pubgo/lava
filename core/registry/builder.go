@@ -11,7 +11,6 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/version"
 

@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
@@ -24,7 +23,7 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 )
@@ -100,7 +99,7 @@ func (s *serviceImpl) DixInject(
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(m),
-		middleware_log.New(log),
+		middleware_accesslog.New(log),
 		middleware_recovery.New(),
 	}
 	middlewares = append(defaultMiddlewares, middlewares...)

@@ -64,17 +64,17 @@ func CreateCtxWithServerInfo(ctx context.Context, info *lavapbv1.ServiceInfo) co
 }
 
 func GetClientInfo(ctx context.Context) *lavapbv1.ServiceInfo {
-	reqId, ok := ctx.Value(reqClientInfoKey).(*lavapbv1.ServiceInfo)
+	info, ok := ctx.Value(reqClientInfoKey).(*lavapbv1.ServiceInfo)
 	if ok {
-		return reqId
+		return info
 	}
 	return nil
 }
 
 func GetServerInfo(ctx context.Context) *lavapbv1.ServiceInfo {
-	reqId, ok := ctx.Value(reqServerInfoKey).(*lavapbv1.ServiceInfo)
+	info, ok := ctx.Value(reqServerInfoKey).(*lavapbv1.ServiceInfo)
 	if ok {
-		return reqId
+		return info
 	}
 	return nil
 }

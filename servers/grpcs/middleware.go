@@ -3,16 +3,14 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
@@ -21,7 +19,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -37,34 +34,6 @@ func parsePath(path string) (string, string, string) {
 	pkgService := parts[len(parts)-2]
 	prefix := strings.Join(parts[0:len(parts)-2], "/")
 	return prefix, pkgService, method
-}
-
-func handlerTwMiddle(middlewares map[string][]lava.Middleware, handle http.Handler) func(fbCtx *fiber.Ctx) error {
-	handler := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		reqCtx := req.(*httpRequest)
-		ctx = lava.CreateCtxWithReqHeader(ctx, req.Header())
-		err := adaptor.HTTPHandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			handle.ServeHTTP(writer, request.WithContext(ctx))
-		})(reqCtx.ctx)
-		if err != nil {
-			return nil, err
-		}
-		return &httpResponse{ctx: reqCtx.ctx}, nil
-	}
-
-	return func(fbCtx *fiber.Ctx) error {
-		prefix, srv, _ := parsePath(fbCtx.OriginalURL())
-		if prefix == "" || srv == "" {
-			return fmt.Errorf("invalid path, path=%q", fbCtx.OriginalURL())
-		}
-
-		_, err := lava.Chain(middlewares[srv]...)(handler)(fbCtx.Context(), &httpRequest{ctx: fbCtx})
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
 }
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
@@ -163,7 +132,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			Hostname: runmode.Hostname,
 		})
 
-		rsp, err := lava.Chain(middlewares[srvName]...)(unaryWrapper)(ctx, rpcReq)
+		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
 			pb.Trace.Operation = rpcReq.Operation()
@@ -276,7 +245,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
 
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
-		rsp, err := lava.Chain(middlewares[srvName]...)(streamWrapper)(ctx, rpcReq)
+		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
 			pb.Trace.Operation = rpcReq.Operation()

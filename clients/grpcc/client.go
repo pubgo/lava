@@ -18,22 +18,32 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/core/metric"
-	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 )
 
-func New(cfg *grpcc_config.Cfg, log log.Logger, m metric.Metric) Client {
+type Params struct {
+	Log       log.Logger
+	ReqMetric *middleware_metric.MetricMiddleware
+	AccessLog *middleware_accesslog.LogMiddleware
+}
+
+func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
 	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg)
+	var defaultMiddlewares = []lava.Middleware{
+		middleware_service_info.New(),
+		p.ReqMetric,
+		p.AccessLog,
+		middleware_recovery.New(),
+	}
+	defaultMiddlewares = append(defaultMiddlewares, middlewares...)
+
 	c := &clientImpl{
-		cfg: cfg,
-		log: log,
-		middlewares: []lava.Middleware{
-			middleware_metric.New(m),
-			middleware_log.New(log),
-			middleware_recovery.New(),
-		},
+		cfg:         cfg,
+		log:         p.Log,
+		middlewares: defaultMiddlewares,
 	}
 
 	if cfg.Client.Block {
@@ -51,16 +61,9 @@ type clientImpl struct {
 	middlewares []lava.Middleware
 }
 
-func (t *clientImpl) Middleware(mm ...lava.Middleware) {
-	t.middlewares = append(t.middlewares, mm...)
-}
-
 func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
 	defer recovery.Err(&err, func(err error) error {
-		return errors.WrapTags(err, errors.Tags{
-			"method": method,
-			"input":  args,
-		})
+		return errors.WrapTag(err, errors.T("method", method), errors.T("args", args))
 	})
 
 	conn := t.Get().Unwrap()

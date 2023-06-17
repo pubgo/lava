@@ -16,7 +16,7 @@ import (
 
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metric"
-	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -70,7 +70,7 @@ func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Re
 	c.once.Do(func() {
 		c.do = c.cfg.Build(append([]lava.Middleware{
 			middleware_metric.New(c.m),
-			middleware_log.New(c.log),
+			middleware_accesslog.New(c.log),
 			middleware_recovery.New(),
 		}, c.middlewares...))
 	})

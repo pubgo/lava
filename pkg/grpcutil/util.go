@@ -21,13 +21,8 @@ const (
 	ClientNameKey     = "client-name"
 	ClientIpKey       = "client-ip"
 	ClientHostnameKey = "client-hostname"
-	ClientPath        = "client-path"
-	ClientVersion     = "client-version"
-	ServiceNameKey    = "service-name"
-	ServiceIpKey      = "service-ip"
-	ServiceHostname   = "service-hostname"
-	ServicePath       = "service-path"
-	ServiceVersion    = "service-version"
+	ClientPathKey     = "client-path"
+	ClientVersionKey  = "client-version"
 )
 
 // WithClientApp 获取对端应用名称

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/pubgo/lava/internal/logutil"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"net"
 	"net/http"
 	"net/url"
@@ -20,7 +22,6 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logutil"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/stack"
@@ -37,7 +38,7 @@ import (
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/core/vars"
 	"github.com/pubgo/lava/internal/consts"
-	"github.com/pubgo/lava/internal/middlewares/middleware_log"
+	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 )
@@ -83,9 +84,17 @@ func (s *serviceImpl) DixInject(
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
 
-	middlewares := generic.ListOf(middleware_metric.New(metric), middleware_log.New(log), middleware_recovery.New())
+	middlewares := generic.ListOf(
+		middleware_service_info.New(),
+		middleware_metric.New(metric),
+		middleware_accesslog.New(log),
+		middleware_recovery.New(),
+	)
+
 	// TODO server middleware handle
-	middlewares = append(middlewares, dixMiddlewares["server"]...)
+	if dixMiddlewares != nil {
+		middlewares = append(middlewares, dixMiddlewares["server"]...)
+	}
 
 	log = log.WithName("grpc-server")
 

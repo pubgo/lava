@@ -6,9 +6,10 @@ import (
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/pubgo/lava/pkg/grpcutil"
 )
 
 type KeepaliveParams struct {

@@ -34,22 +34,30 @@ func grpcServerHandlingSecondsCount(m metric.Metric, method string, val time.Dur
 		RecordDuration(val)
 }
 
-func New(m metric.Metric) lava.Middleware {
-	return func(next lava.HandlerFunc) lava.HandlerFunc {
-		return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-			now := time.Now()
+func New(m metric.Metric) *MetricMiddleware {
+	return &MetricMiddleware{m: m}
+}
 
-			grpcServerRpcCallTotal(m, req.Operation())
+var _ lava.Middleware = (*MetricMiddleware)(nil)
 
-			defer func() {
-				if !generic.IsNil(gErr) {
-					grpcServerRpcErrTotal(m, req.Operation())
-				}
+type MetricMiddleware struct {
+	m metric.Metric
+}
 
-				grpcServerHandlingSecondsCount(m, req.Operation(), time.Since(now))
-			}()
+func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
+	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
+		now := time.Now()
 
-			return next(ctx, req)
-		}
+		grpcServerRpcCallTotal(m.m, req.Operation())
+
+		defer func() {
+			if !generic.IsNil(gErr) {
+				grpcServerRpcErrTotal(m.m, req.Operation())
+			}
+
+			grpcServerHandlingSecondsCount(m.m, req.Operation(), time.Since(now))
+		}()
+
+		return next(ctx, req)
 	}
 }
