@@ -16,6 +16,7 @@ import (
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
@@ -30,8 +31,8 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 		return &errors.Err{
 			Msg: "registry driver is null",
 			Tags: errors.Tags{
-				"driver": cfg.Driver,
-				"regs":   regs,
+				errors.T("driver", cfg.Driver),
+				errors.T("regs", regs),
 			},
 		}
 	})
@@ -107,11 +108,11 @@ func register(reg Registry) {
 		"register service node",
 		func() error {
 			err := reg.Register(context.Background(), s)
-			return errors.WrapTags(err, errors.Tags{
-				"instance_id": node.Id,
-				"service":     runmode.Project,
-				"registry":    Default().String(),
-			})
+			return errors.WrapTag(err,
+				errors.T("instance_id", node.Id),
+				errors.T("service", runmode.Project),
+				errors.T("registry", Default().String()),
+			)
 		},
 	)
 }
@@ -146,7 +147,10 @@ func deregister(reg Registry) {
 		"deregister service node",
 		func() error {
 			err := reg.Deregister(context.Background(), s)
-			return errors.WrapTags(err, errors.Tags{"id": node.Id, "name": runmode.Project})
+			return errors.WrapTag(err,
+				errors.T("id", node.Id),
+				errors.T("name", runmode.Project),
+			)
 		},
 	)
 }

@@ -18,7 +18,7 @@ type GrpcRouter interface {
 }
 
 type GrpcGatewayRouter interface {
-	RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface)
+	RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error
 }
 
 type HttpRouter interface {

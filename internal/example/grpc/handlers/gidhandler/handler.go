@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
@@ -21,16 +22,18 @@ import (
 )
 
 var _ lava.GrpcRouter = (*Id)(nil)
+var _ lava.GrpcGatewayRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
 	metric    metric.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
+	log       log.Logger
 }
 
-func (id *Id) Version() string {
-	return ""
+func (id *Id) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+	return gidpb.RegisterIdHandlerClient(ctx, mux, gidpb.NewIdClient(conn))
 }
 
 func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStreamServer) error {
@@ -55,7 +58,7 @@ func (id *Id) ServiceDesc() *grpc.ServiceDesc {
 	return &gidpb.Id_ServiceDesc
 }
 
-func New(cron *scheduler.Scheduler, metric metric.Metric) gidpb.IdServer {
+func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger) gidpb.IdServer {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -72,6 +75,7 @@ func New(cron *scheduler.Scheduler, metric metric.Metric) gidpb.IdServer {
 		metric:    metric,
 		snowflake: sf,
 		bigflake:  bg,
+		log:       log.WithName("gid"),
 	}
 }
 
@@ -87,8 +91,6 @@ func (id *Id) Init() {
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
 	rsp := new(gidpb.GenerateResponse)
-	logs := log.Ctx(ctx)
-
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
 	}
@@ -98,34 +100,34 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 		rsp.Type = "uuid"
 		rsp.Id = uuid.New().String()
 	case "snowflake":
-		id, err := id.snowflake.Mint()
+		da, err := id.snowflake.Mint()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate snowflake id")
+			id.log.Err(err).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
-		rsp.Id = fmt.Sprintf("%v", id)
+		rsp.Id = fmt.Sprintf("%v", da)
 	case "bigflake":
-		id, err := id.bigflake.Mint()
+		da, err := id.bigflake.Mint()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate bigflake id")
+			id.log.Err(err).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "bigflake"
-		rsp.Id = fmt.Sprintf("%v", id)
+		rsp.Id = fmt.Sprintf("%v", da)
 	case "shortid":
-		id, err := shortid.Generate()
+		da, err := shortid.Generate()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate shortid id")
+			id.log.Err(err).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
-			return nil, errors.WrapCode(err, gidpb.ErrSrvCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, gidpb.ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "shortid"
-		rsp.Id = id
+		rsp.Id = da
 	default:
-		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrSrvCodeIDGenerateFailed)
+		return nil, errors.WrapCode(errors.New("unsupported id type"), gidpb.ErrCodeIDGenerateFailed)
 	}
 
 	return rsp, nil

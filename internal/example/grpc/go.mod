@@ -8,8 +8,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.10-6
-	github.com/pubgo/funk v0.5.29-22
+	github.com/pubgo/dix v0.3.10-7
+	github.com/pubgo/funk v0.5.29-24
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
@@ -32,6 +32,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/fullstorydev/grpchan v1.1.1 // indirect
 	github.com/getkin/kin-openapi v0.98.0 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.5 // indirect
 	github.com/go-echarts/statsview v0.3.4 // indirect
@@ -54,6 +55,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
+	github.com/jhump/protoreflect v1.11.0 // indirect
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

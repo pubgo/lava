@@ -14,7 +14,10 @@ var app = fiber.New()
 func init() {
 	app.Use(func(c *fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
-			err = errors.WrapTags(err, errors.Tags{"headers": c.GetReqHeaders(), "url": c.Request().URI().String()})
+			err = errors.WrapTag(err,
+				errors.T("headers", c.GetReqHeaders()),
+				errors.T("url", c.Request().URI().String()),
+			)
 			gErr = c.JSON(err)
 		})
 

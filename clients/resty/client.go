@@ -44,23 +44,23 @@ type clientImpl struct {
 }
 
 func (c *clientImpl) Middleware(mm ...lava.Middleware) {
-	jar := NewJar()
-	c.Middleware(func(next lava.HandlerFunc) lava.HandlerFunc {
-		return func(ctx context.Context, req lava.Request) (lava.Response, error) {
-			for _, c := range jar.cookies {
-				req.Header().SetCookieBytesKV(c.Key(), c.Value())
-			}
-
-			rsp, err := next(ctx, req)
-			rsp.Header().VisitAllCookie(func(key, value []byte) {
-				cookie := fasthttp.AcquireCookie()
-				cookie.ParseBytes(value)
-				jar.cookies[string(cookie.Key())] = cookie
-			})
-
-			return rsp, err
-		}
-	})
+	//jar := NewJar()
+	//c.Middleware(func(next lava.HandlerFunc) lava.HandlerFunc {
+	//	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+	//		for _, c := range jar.cookies {
+	//			req.Header().SetCookieBytesKV(c.Key(), c.Value())
+	//		}
+	//
+	//		rsp, err := next(ctx, req)
+	//		rsp.Header().VisitAllCookie(func(key, value []byte) {
+	//			cookie := fasthttp.AcquireCookie()
+	//			cookie.ParseBytes(value)
+	//			jar.cookies[string(cookie.Key())] = cookie
+	//		})
+	//
+	//		return rsp, err
+	//	}
+	//})
 
 	c.middlewares = append(c.middlewares, mm...)
 }

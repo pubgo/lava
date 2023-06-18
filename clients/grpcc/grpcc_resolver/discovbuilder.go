@@ -15,6 +15,7 @@ import (
 
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/internal/logutil"
 	eventpbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
 )
 

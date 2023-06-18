@@ -23,6 +23,7 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metric"
 	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"

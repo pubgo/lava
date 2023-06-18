@@ -115,10 +115,10 @@ func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOp
 // DecodeComponent decode component config to map[string]*struct
 func (t *configImpl) DecodeComponent(name string, cfgMap interface{}) (gErr error) {
 	defer recovery.Err(&gErr, func(err error) error {
-		return errors.WrapTags(err, errors.Tags{
-			"name":   name,
-			"cfgMap": cfgMap,
-		})
+		return errors.WrapTag(err,
+			errors.T("cfgMap", cfgMap),
+			errors.T("name", name),
+		)
 	})
 
 	assert.If(name == "" || cfgMap == nil, "name,cfgMap params should not be nil")

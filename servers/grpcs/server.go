@@ -18,7 +18,6 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/runmode"
@@ -84,12 +83,12 @@ func (s *serviceImpl) DixInject(
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
 
-	middlewares := generic.ListOf(
+	middlewares := []lava.Middleware{
 		middleware_service_info.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),
-	)
+	}
 
 	// TODO server middleware handle
 	if dixMiddlewares != nil {

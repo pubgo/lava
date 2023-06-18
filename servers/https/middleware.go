@@ -69,10 +69,7 @@ func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) err
 		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
 	}
 
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		h = middlewares[i](h)
-	}
-
+	h = lava.Chain(middlewares...).Middleware(h)
 	return func(ctx *fiber.Ctx) error {
 		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
 		return err

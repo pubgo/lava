@@ -111,7 +111,7 @@ func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
 		return &responseImpl{resp: resp}, nil
 	}
 
-	do = lava.Chain(mm...)(do)
+	do = lava.Chain(mm...).Middleware(do)
 	return do
 }
 

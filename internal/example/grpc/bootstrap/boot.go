@@ -5,17 +5,20 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/cmds/running"
 	"github.com/pubgo/lava/core/config"
-	"github.com/pubgo/lava/core/orm"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/scheduler"
 
 	"github.com/pubgo/lava/internal/example/grpc/handlers/gidhandler"
-	"github.com/pubgo/lava/internal/example/grpc/internal/migrates"
 )
 
 func Main() {
 	defer recovery.Exit()
-	di.Provide(orm.New)
-	di.Provide(migrates.Migrations)
+
 	di.Provide(config.Load[Config])
+	di.Provide(logging.New)
+	di.Provide(metric.New)
+	di.Provide(scheduler.New)
 	di.Provide(gidhandler.New)
 
 	running.Main()

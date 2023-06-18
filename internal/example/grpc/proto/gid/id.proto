@@ -49,7 +49,7 @@ enum SrvCode {
   OK = 0;
 
   // id generate error
-  IDGenerateFailed = 1 [
+  IDGenerateFailed = 100 [
     (status.field).code = Internal
   ];
 }

@@ -13,6 +13,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/pubgo/lava/core/config"
+	"github.com/pubgo/lava/internal/logutil"
 )
 
 func New(cfg *Config, log log.Logger) *Client {
