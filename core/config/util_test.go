@@ -25,7 +25,7 @@ type configL struct {
 	Value string
 }
 
-func (c *configL) ConfigUniqueName() string {
+func (c configL) ConfigUniqueName() string {
 	return c.Name
 }
 
