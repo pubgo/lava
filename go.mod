@@ -66,6 +66,7 @@ require (
 	github.com/gofiber/websocket/v2 v2.1.5
 	github.com/google/gops v0.3.27
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/imdario/mergo v0.3.16
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0

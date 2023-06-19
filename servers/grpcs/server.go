@@ -80,7 +80,7 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	cfg *Config,
 ) {
-	cfg = config.Merge(defaultCfg(), cfg)
+	cfg = config.Merge(defaultCfg(), cfg).Unwrap()
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
 

@@ -15,7 +15,7 @@ import (
 func New(cfg *Config, logs log.Logger) *Client {
 	logs = logs.WithName(Name)
 
-	ormCfg := config.Merge(gorm.Config{}, config.Merge(DefaultCfg(), cfg))
+	ormCfg := config.Merge(gorm.Config{}, config.Merge(DefaultCfg(), cfg)).Unwrap()
 	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
 

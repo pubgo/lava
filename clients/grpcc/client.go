@@ -31,7 +31,7 @@ type Params struct {
 }
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg)
+	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg).Unwrap()
 	var defaultMiddlewares = []lava.Middleware{
 		middleware_service_info.New(),
 		p.ReqMetric,

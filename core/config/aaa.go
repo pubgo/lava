@@ -36,6 +36,11 @@ func (c Map) Decode(val any, tags ...string) error {
 	return merge.MapStruct(val, c, func(cfg *mapstructure.DecoderConfig) { cfg.TagName = tag }).Err()
 }
 
+type NamedConfig interface {
+	// ConfigUniqueName unique name
+	ConfigUniqueName() string
+}
+
 type Config interface {
 	UnmarshalKey(key string, rawVal interface{}, opts ...DecoderOption) error
 	Unmarshal(rawVal interface{}, opts ...DecoderOption) error

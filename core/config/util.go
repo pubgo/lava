@@ -2,12 +2,14 @@ package config
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/result"
 	"os"
 	"path/filepath"
+	"reflect"
 
+	"github.com/imdario/mergo"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/merge"
+	"github.com/pubgo/funk/errors"
 )
 
 func getComponentName(m map[string]interface{}) string {
@@ -61,6 +63,67 @@ func Load[T any]() T {
 	return cfg
 }
 
-func Merge[A any, B any](to A, from *B) *A {
-	return merge.Copy(generic.Ptr(to), from).Unwrap()
+func Merge[A any, B any](dst A, src ...B) (ret result.Result[*A]) {
+	for i := range src {
+		err := mergo.Merge(&dst, src[i], mergo.WithOverride, mergo.WithAppendSlice, mergo.WithTransformers(new(transformer)))
+		if err != nil {
+			return ret.WithErr(errors.WrapTag(err,
+				errors.T("dst", dst),
+				errors.T("src", src[i]),
+			))
+		}
+	}
+	return ret.WithVal(&dst)
+}
+
+type transformer struct{}
+
+func (s *transformer) Transformer(t reflect.Type) func(dst, src reflect.Value) error {
+	if t == nil || t.Kind() != reflect.Slice {
+		return nil
+	}
+
+	fmt.Println(t.Elem().String())
+	fmt.Println(reflect.TypeOf((*NamedConfig)(nil)).Elem().String())
+	fmt.Println(!t.Elem().Implements(reflect.TypeOf((*NamedConfig)(nil)).Elem()))
+	if !t.Elem().Implements(reflect.TypeOf((*NamedConfig)(nil)).Elem()) {
+		return nil
+	}
+
+	return func(dst, src reflect.Value) error {
+		fmt.Println(!src.IsValid() || src.IsNil())
+		if !src.IsValid() || src.IsNil() {
+			return nil
+		}
+
+		fmt.Println(dst.Len())
+		var dstMap = make(map[string]NamedConfig)
+		for i := 0; i < dst.Len(); i++ {
+			c := dst.Index(i).Interface().(NamedConfig)
+			fmt.Println(c.ConfigUniqueName())
+			dstMap[c.ConfigUniqueName()] = c
+		}
+
+		for i := 0; i < src.Len(); i++ {
+			c := src.Index(i).Interface().(NamedConfig)
+			if dstMap[c.ConfigUniqueName()] == nil {
+				dst = reflect.Append(dst, reflect.ValueOf(c))
+				dstMap[c.ConfigUniqueName()] = c
+				continue
+			}
+
+			d := dstMap[c.ConfigUniqueName()]
+			err := mergo.Merge(d, c, mergo.WithOverride, mergo.WithAppendSlice, mergo.WithTransformers(new(transformer)))
+			if err != nil {
+				return errors.WrapFn(err, func() errors.Tags {
+					return errors.Tags{
+						errors.T("dst", d),
+						errors.T("src", c),
+					}
+				})
+			}
+		}
+
+		return nil
+	}
 }
