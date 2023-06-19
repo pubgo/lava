@@ -83,24 +83,18 @@ func (s *transformer) Transformer(t reflect.Type) func(dst, src reflect.Value) e
 		return nil
 	}
 
-	fmt.Println(t.Elem().String())
-	fmt.Println(reflect.TypeOf((*NamedConfig)(nil)).Elem().String())
-	fmt.Println(!t.Elem().Implements(reflect.TypeOf((*NamedConfig)(nil)).Elem()))
 	if !t.Elem().Implements(reflect.TypeOf((*NamedConfig)(nil)).Elem()) {
 		return nil
 	}
 
 	return func(dst, src reflect.Value) error {
-		fmt.Println(!src.IsValid() || src.IsNil())
 		if !src.IsValid() || src.IsNil() {
 			return nil
 		}
 
-		fmt.Println(dst.Len())
 		var dstMap = make(map[string]NamedConfig)
 		for i := 0; i < dst.Len(); i++ {
 			c := dst.Index(i).Interface().(NamedConfig)
-			fmt.Println(c.ConfigUniqueName())
 			dstMap[c.ConfigUniqueName()] = c
 		}
 
