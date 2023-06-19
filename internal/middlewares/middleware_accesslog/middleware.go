@@ -58,11 +58,13 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			if !generic.IsNil(gErr) || logOpts["all"] {
 				evt.Any("req_body", req.Payload())
 				evt.Bytes("req_header", req.Header().Header())
-				evt.Any("rsp_body", rsp.Payload())
-				evt.Any("rsp_header", rsp.Header())
+				if rsp != nil {
+					evt.Any("rsp_body", rsp.Payload())
+					evt.Any("rsp_header", rsp.Header())
+				}
 			}
 
-			if !req.Client() {
+			if !req.Client() && rsp != nil {
 				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
 				rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
 				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))

@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 
 	"github.com/pubgo/lava/internal/example/grpc/handlers/gidhandler"
+	"github.com/pubgo/lava/internal/example/grpc/services/gidclient"
 )
 
 func Main() {
@@ -19,7 +20,9 @@ func Main() {
 	di.Provide(logging.New)
 	di.Provide(metric.New)
 	di.Provide(scheduler.New)
+
 	di.Provide(gidhandler.New)
+	di.Provide(gidclient.New)
 
 	running.Main()
 }

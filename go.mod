@@ -74,7 +74,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
-	github.com/uber-go/tally/v4 v4.1.5
+	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.45.0
 	go.etcd.io/bbolt v1.3.7

@@ -59,6 +59,7 @@ type serviceImpl struct {
 	log        log.Logger
 	handlers   grpchan.HandlerMap
 	cc         inprocgrpc.Channel
+	initList   []func()
 }
 
 func (s *serviceImpl) Run() {
@@ -123,9 +124,17 @@ func (s *serviceImpl) DixInject(
 			lifecycle.BeforeStop(m.Close)
 		}
 
+		if m, ok := h.(lava.Initializer); ok {
+			s.initList = append(s.initList, m.Initialize)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
+		}
+
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
-			m.RegisterGateway(context.Background(), mux, &s.cc)
+			assert.Exit(m.RegisterGateway(context.Background(), mux, &s.cc))
 		}
 	}
 
@@ -189,6 +198,15 @@ func (s *serviceImpl) start() {
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
 			run.Handler()
+		}
+		return nil
+	})
+
+	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
+		defer recovery.Exit()
+		for _, ii := range s.initList {
+			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(ii))
+			ii()
 		}
 		return nil
 	})

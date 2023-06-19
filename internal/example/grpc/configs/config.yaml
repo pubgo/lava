@@ -5,10 +5,10 @@ app:
   addr: ":8080"
   debug: true
 
-grpcc:
-  - name: test-grpc
-    registry: "mdns"
-#    addr: "localhost:8080"
+gid-client:
+  addr: localhost:50051
+  srv: gid
+
 registry:
   driver: "mdns"
 tracing:

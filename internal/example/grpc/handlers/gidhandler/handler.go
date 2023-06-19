@@ -3,7 +3,9 @@ package gidhandler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/internal/example/grpc/services/gidclient"
 	"math/rand"
+	"runtime/debug"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +32,7 @@ type Id struct {
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 	log       log.Logger
+	service   *gidclient.Service
 }
 
 func (id *Id) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
@@ -58,7 +61,7 @@ func (id *Id) ServiceDesc() *grpc.ServiceDesc {
 	return &gidpb.Id_ServiceDesc
 }
 
-func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger) gidpb.IdServer {
+func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger, service *gidclient.Service) lava.GrpcRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -71,6 +74,7 @@ func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger) gidpb.
 	}
 
 	return &Id{
+		service:   service,
 		cron:      cron,
 		metric:    metric,
 		snowflake: sf,
@@ -80,22 +84,29 @@ func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger) gidpb.
 }
 
 func (id *Id) Init() {
-	id.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
-		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
-		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
+	debug.PrintStack()
+	fmt.Println("test cron every")
+	id.cron.Every("test_gid", time.Second*2, func(ctx context.Context, name string) error {
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
+
+		rsp, err := id.service.Types(ctx, &gidpb.TypesRequest{})
+		if err != nil {
+			return err
+		}
+		id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
 		return nil
 	})
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
 	rsp := new(gidpb.GenerateResponse)
-	if len(req.Type) == 0 {
-		req.Type = "uuid"
+	var typ = req.GetType().String()
+	if len(typ) == 0 {
+		typ = "uuid"
 	}
 
-	switch req.Type {
+	switch typ {
 	case "uuid":
 		rsp.Type = "uuid"
 		rsp.Id = uuid.New().String()

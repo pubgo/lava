@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/runmode"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
@@ -47,37 +46,37 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 	}
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		md, ok := metadata.FromIncomingContext(ctx)
+		rspMetadata, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			md = make(metadata.MD)
+			rspMetadata = make(metadata.MD)
 		}
 
 		// get content type
 		ct := defaultContentType
-		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {
+		if c := rspMetadata.Get("x-content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		if c := md.Get("content-type"); len(c) != 0 && c[0] != "" {
+		if c := rspMetadata.Get("content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		delete(md, "x-content-type")
+		delete(rspMetadata, "x-content-type")
 
 		var clientInfo = new(pbv1.ServiceInfo)
 
 		// get peer from context
-		if p := grpcutil.ClientIP(md); p != "" {
+		if p := grpcutil.ClientIP(rspMetadata); p != "" {
 			clientInfo.Ip = p
 		}
 
-		if p := grpcutil.ClientName(md); p != "" {
+		if p := grpcutil.ClientName(rspMetadata); p != "" {
 			clientInfo.Name = p
 		}
 
 		// timeout for server deadline
-		to := md.Get("timeout")
-		delete(md, "timeout")
+		to := rspMetadata.Get("timeout")
+		delete(rspMetadata, "timeout")
 
 		// set the timeout if we have it
 		if len(to) != 0 && to[0] != "" {
@@ -90,12 +89,12 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		// 从gateway获取url
 		url := info.FullMethod
-		if _url, ok := md["url"]; ok {
+		if _url, ok := rspMetadata["url"]; ok {
 			url = _url[0]
 		}
 
 		header := &fasthttp.RequestHeader{}
-		for k, v := range md {
+		for k, v := range rspMetadata {
 			for i := range v {
 				header.Add(k, v[i])
 			}
@@ -118,26 +117,26 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			func() string { return xid.New().String() },
 		)
 
-		ctx = lava.CreateCtxWithServerInfo(ctx, &pbv1.ServiceInfo{
-			Name:     version.Project(),
-			Version:  version.Version(),
-			Path:     info.FullMethod,
-			Hostname: runmode.Hostname,
-		})
+		header.Set(httputil.HeaderXRequestID, reqId)
+		header.Set(httputil.HeaderXRequestVersion, version.Version())
 
-		ctx = lava.CreateCtxWithClientInfo(ctx, &pbv1.ServiceInfo{
-			Name:     version.Project(),
-			Version:  version.Version(),
-			Path:     info.FullMethod,
-			Hostname: runmode.Hostname,
-		})
+		rspMetadata = make(metadata.MD)
+		rspMetadata.Set(httputil.HeaderXRequestID, reqId)
+		rspMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
+			if pb.Trace == nil {
+				pb.Trace = new(errorpb.ErrTrace)
+			}
 			pb.Trace.Operation = rpcReq.Operation()
 			pb.Trace.Service = rpcReq.Service()
 			pb.Trace.Version = version.Version()
+
+			if pb.Msg != nil {
+				pb.Msg = new(errorpb.ErrMsg)
+			}
 			pb.Msg.Msg = err.Error()
 			pb.Msg.Detail = fmt.Sprintf("%#v", err)
 			if pb.Msg.Tags == nil {
@@ -153,19 +152,22 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 				pb.Code.Code = errorpb.Code_Internal
 			}
 
+			if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
+				return nil, err
+			}
+
 			return nil, errutil.ConvertErr2Status(pb).Err()
 		}
 
-		rsp.Header().Set(httputil.HeaderXRequestID, reqId)
-		rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
-
-		h := rsp.Header()
-		md = make(metadata.MD, h.Len())
-		h.VisitAll(func(key, value []byte) {
-			md.Append(convert.BtoS(key), convert.BtoS(value))
+		rsp.Header().VisitAll(func(key, value []byte) {
+			rspMetadata.Set(convert.BtoS(key), convert.BtoS(value))
 		})
 
-		return rsp.(*rpcResponse).dt, grpc.SetTrailer(ctx, md)
+		if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
+			return nil, err
+		}
+
+		return rsp.(*rpcResponse).dt, nil
 	}
 }
 

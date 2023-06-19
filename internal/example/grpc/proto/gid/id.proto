@@ -54,10 +54,18 @@ enum SrvCode {
   ];
 }
 
+enum GenType {
+  default = 0;
+  uuid = 1;
+  snowflake = 2;
+  bigflake = 3;
+  shortid = 4;
+}
+
 // Generate a unique ID. Defaults to uuid.
 message GenerateRequest {
   // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
-  string type = 1;
+  GenType type = 1;
 }
 
 // List the types of IDs available. No query params needed.
