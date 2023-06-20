@@ -59,13 +59,6 @@ func getPathList() (paths []string) {
 	return
 }
 
-func strMap(strList []string, fn func(str string) string) []string {
-	for i := range strList {
-		strList[i] = fn(strList[i])
-	}
-	return strList
-}
-
 func Load[T any]() T {
 	configPath, configDir := getConfigPath("", "")
 	configBytes := assert.Must1(os.ReadFile(configPath))

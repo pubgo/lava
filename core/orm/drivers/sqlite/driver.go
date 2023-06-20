@@ -17,14 +17,14 @@ import (
 )
 
 func init() {
-	orm.Register("sqlite3", func(cfg config.Map) gorm.Dialector {
+	orm.Register("sqlite3", func(cfg config.Node) gorm.Dialector {
 		defer recovery.Raise(func(err error) error {
 			return errors.WrapKV(err, "cfg", cfg)
 		})
 
-		assert.If(cfg["dsn"] == nil, "dsn not found")
+		assert.If(cfg.Get("dsn") == nil, "dsn not found")
 
-		dsn := fmt.Sprintf("%v", cfg["dsn"])
+		dsn := fmt.Sprintf("%v", cfg.Get("dsn"))
 		dsn = filepath.Join(config.CfgDir, dsn)
 		assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(dsn)))
 		return sqlite.Open(dsn)

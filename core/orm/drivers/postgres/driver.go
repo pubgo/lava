@@ -14,15 +14,15 @@ import (
 )
 
 func init() {
-	orm.Register("postgres", func(cfg config.Map) gorm.Dialector {
+	orm.Register("postgres", func(cfg config.Node) gorm.Dialector {
 		defer recovery.Raise(func(err error) error {
 			return errors.WrapKV(err, "cfg", cfg)
 		})
 
-		assert.If(cfg["dsn"] == nil, "dsn not found")
+		assert.If(cfg.Get("dsn") == nil, "dsn not found")
 
 		return postgres.New(postgres.Config{
-			DSN: fmt.Sprintf("%v", cfg["dsn"]),
+			DSN: fmt.Sprintf("%v", cfg.Get("dsn")),
 			// refer: https://github.com/go-gorm/postgres
 			// disables implicit prepared statement usage. By default pgx automatically uses the extended protocol
 			PreferSimpleProtocol: true,

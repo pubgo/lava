@@ -25,7 +25,7 @@ type Config struct {
 }
 
 func init() {
-	orm.Register("mysql", func(cfg config.Map) gorm.Dialector {
+	orm.Register("mysql", func(cfg config.Node) gorm.Dialector {
 		defer recovery.Raise(func(err error) error {
 			return errors.WrapKV(err, "cfg", cfg)
 		})

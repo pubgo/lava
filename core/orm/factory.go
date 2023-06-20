@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/lava/core/config"
 )
 
-type Factory func(cfg config.Map) gorm.Dialector
+type Factory func(cfg config.Node) gorm.Dialector
 
 var factories = make(map[string]Factory)
 

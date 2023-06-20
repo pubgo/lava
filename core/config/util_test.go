@@ -14,10 +14,6 @@ func TestConfigPath(t *testing.T) {
 	})
 }
 
-func TestNew(t *testing.T) {
-	assert.NotNil(t, New())
-}
-
 var _ NamedConfig = (*configL)(nil)
 
 type configL struct {
