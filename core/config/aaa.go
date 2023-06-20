@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	defaultConfigName = "config"
-	defaultConfigType = "yaml"
-	defaultConfigPath = "./configs"
-	includeConfigName = "resources"
+	defaultConfigName   = "config"
+	defaultConfigType   = "yaml"
+	defaultConfigPath   = "./configs"
+	includeResourceName = "resources"
 )
 
 var (

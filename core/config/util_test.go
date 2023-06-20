@@ -1,11 +1,18 @@
 package config
 
 import (
-	"github.com/pubgo/funk/pretty"
 	"testing"
 
+	"github.com/pubgo/funk/pretty"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestConfigPath(t *testing.T) {
+	t.Log(getConfigPath("", ""))
+	assert.Panics(t, func() {
+		t.Log(getConfigPath("", "toml"))
+	})
+}
 
 func TestNew(t *testing.T) {
 	assert.NotNil(t, New())

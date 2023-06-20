@@ -1,7 +1,8 @@
 package config
 
 import (
-	"github.com/pubgo/funk/result"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -9,7 +10,40 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/pathutil"
+	"github.com/pubgo/funk/result"
 )
+
+func getConfigPath(name, typ string, configDir ...string) (config string, dir string) {
+	if len(configDir) == 0 {
+		configDir = append(configDir, "./", defaultConfigPath)
+	}
+
+	if name == "" {
+		name = defaultConfigName
+	}
+
+	if typ == "" {
+		typ = defaultConfigType
+	}
+
+	var configName = fmt.Sprintf("%s.%s", name, typ)
+	var notFoundPath []string
+	for _, path := range getPathList() {
+		for _, dir := range configDir {
+			var configPath = filepath.Join(path, dir, configName)
+			if pathutil.IsNotExist(configPath) {
+				notFoundPath = append(notFoundPath, configPath)
+			} else {
+				return configPath, filepath.Dir(configPath)
+			}
+		}
+	}
+
+	log.Panicf("config not found in: %v\n", notFoundPath)
+
+	return "", ""
+}
 
 // getPathList 递归得到当前目录到跟目录中所有的目录路径
 //

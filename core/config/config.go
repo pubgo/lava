@@ -63,7 +63,7 @@ type configImpl struct {
 }
 
 func (t *configImpl) loadCustomCfg() {
-	includes := t.v.GetStringSlice(includeConfigName)
+	includes := t.v.GetStringSlice(includeResourceName)
 	for _, path := range includes {
 		t.loadPath(filepath.Join(CfgDir, path))
 	}
