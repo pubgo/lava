@@ -1,11 +1,9 @@
 package main
 
 import (
-	"github.com/pubgo/lava/cmds/running"
-	"github.com/pubgo/lava/internal/httpe/bootstrap"
+	"github.com/pubgo/lava/internal/example/http/bootstrap"
 )
 
 func main() {
-	bootstrap.Init()
-	running.Main()
+	bootstrap.Main()
 }
