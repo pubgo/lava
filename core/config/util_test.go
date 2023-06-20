@@ -46,7 +46,7 @@ func TestMerge(t *testing.T) {
 	))
 	t.Logf("%#v", cfg)
 
-	cfg := &configA{}
+	cfg = &configA{}
 	assert.Nil(t, Merge(
 		cfg,
 		configA{
