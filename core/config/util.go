@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 
+	"github.com/a8m/envsubst"
 	"github.com/imdario/mergo"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
@@ -62,6 +63,7 @@ func getPathList() (paths []string) {
 func Load[T any]() T {
 	configPath, configDir := getConfigPath("", "")
 	configBytes := assert.Must1(os.ReadFile(configPath))
+	configBytes = assert.Must1(envsubst.Bytes(configBytes))
 
 	var cfg T
 	assert.Must(yaml.Unmarshal(configBytes, &cfg))
@@ -77,6 +79,19 @@ func Load[T any]() T {
 			log.Panicln("resources config path not found:", resAbsPath)
 		}
 		resBytes := assert.Must1(os.ReadFile(resAbsPath))
+		resBytes = assert.Must1(envsubst.Bytes(resBytes))
+		assert.Must(yaml.Unmarshal(resBytes, &cfg1))
+		cfgList = append(cfgList, cfg1)
+	}
+
+	for _, resPath := range res.PatchResources {
+		var cfg1 T
+		resAbsPath := filepath.Join(configDir, resPath)
+		if pathutil.IsNotExist(resAbsPath) {
+			continue
+		}
+		resBytes := assert.Must1(os.ReadFile(resAbsPath))
+		resBytes = assert.Must1(envsubst.Bytes(resBytes))
 		assert.Must(yaml.Unmarshal(resBytes, &cfg1))
 		cfgList = append(cfgList, cfg1)
 	}

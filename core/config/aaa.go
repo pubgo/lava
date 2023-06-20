@@ -49,5 +49,6 @@ type NamedConfig interface {
 }
 
 type Resources struct {
-	Resources []string `yaml:"resources"`
+	Resources      []string `yaml:"resources"`
+	PatchResources []string `yaml:"patch_resources"`
 }
