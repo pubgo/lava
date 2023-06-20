@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	grpcc.Config `yaml:",squash"`
+	grpcc.Config `yaml:",inline"`
 }
 
 type Service struct {

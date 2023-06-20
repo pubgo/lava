@@ -12,6 +12,9 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/pathutil"
 	"github.com/pubgo/funk/result"
+	"gopkg.in/yaml.v3"
+
+	"github.com/pubgo/lava/core/vars"
 )
 
 func getConfigPath(name, typ string, configDir ...string) (config string, dir string) {
@@ -64,22 +67,38 @@ func strMap(strList []string, fn func(str string) string) []string {
 	return strList
 }
 
-func getCfgData() interface{} {
-	cfg := New()
-	return map[string]any{
-		"cfg_type":   defaultConfigType,
-		"cfg_name":   defaultConfigName,
-		"home":       CfgDir,
-		"cfg_path":   CfgPath,
-		"all_key":    cfg.AllKeys(),
-		"all_config": cfg.All(),
-	}
-}
-
 func Load[T any]() T {
-	c := New()
+	configPath, configDir := getConfigPath("", "")
+	configBytes := assert.Must1(os.ReadFile(configPath))
+
 	var cfg T
-	assert.Must(c.Unmarshal(&cfg))
+	assert.Must(yaml.Unmarshal(configBytes, &cfg))
+
+	var res Resources
+	assert.Must(yaml.Unmarshal(configBytes, &res))
+
+	var cfgList []T
+	for _, resPath := range res.Resources {
+		var cfg1 T
+		resAbsPath := filepath.Join(configDir, resPath)
+		if pathutil.IsNotExist(resAbsPath) {
+			log.Panicln("resources config path not found:", resAbsPath)
+		}
+		resBytes := assert.Must1(os.ReadFile(resAbsPath))
+		assert.Must(yaml.Unmarshal(resBytes, &cfg1))
+		cfgList = append(cfgList, cfg1)
+	}
+
+	_ = Merge(&cfg, cfgList...).Unwrap()
+
+	vars.RegisterValue("config", map[string]any{
+		"config_type": defaultConfigType,
+		"config_name": defaultConfigName,
+		"config_path": CfgPath,
+		"config_dir":  CfgDir,
+		"config_data": cfg,
+	})
+
 	return cfg
 }
 

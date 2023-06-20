@@ -48,3 +48,7 @@ type Config interface {
 	AllKeys() []string
 	All() map[string]interface{}
 }
+
+type Resources struct {
+	Resources []string `yaml:"resources"`
+}

@@ -83,6 +83,12 @@ func Register(name string, data func() interface{}) {
 	expvar.Publish(name, Value(data))
 }
 
+func RegisterValue(name string, data interface{}) {
+	defer recovery.Exit()
+	assert.If(Has(name), "name:%s already exists", name)
+	expvar.Publish(name, Value(func() interface{} { return data }))
+}
+
 func Has(name string) bool {
 	return expvar.Get(name) != nil
 }
