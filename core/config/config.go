@@ -1,24 +1,17 @@
 package config
 
 import (
-	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/a8m/envsubst"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/pathutil"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/version"
-	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
@@ -112,43 +105,6 @@ func (t *configImpl) Unmarshal(rawVal interface{}, opts ...viper.DecoderConfigOp
 	})...)
 }
 
-// DecodeComponent decode component config to map[string]*struct
-func (t *configImpl) DecodeComponent(name string, cfgMap interface{}) (gErr error) {
-	defer recovery.Err(&gErr, func(err error) error {
-		return errors.WrapTag(err,
-			errors.T("cfgMap", cfgMap),
-			errors.T("name", name),
-		)
-	})
-
-	assert.If(name == "" || cfgMap == nil, "name,cfgMap params should not be nil")
-	assert.If(reflect.Indirect(reflect.ValueOf(cfgMap)).Kind() != reflect.Map, "cfgMap param should be map type")
-	assert.If(t.Get(name) == nil, "config value not found")
-
-	var cfg *typex.RwMap
-	for _, data := range cast.ToSlice(t.Get(name)) {
-		if cfg == nil {
-			cfg = &typex.RwMap{}
-		}
-
-		dm := assert.Must1(cast.ToStringMapE(data))
-		componentName := getComponentName(dm)
-		assert.Err(cfg.Has(componentName), errors.Err{
-			Msg:    "component name already exists",
-			Detail: fmt.Sprintf("key=%s component_name=%s", name, componentName),
-		})
-
-		cfg.Set(componentName, dm)
-	}
-
-	if cfg == nil {
-		cfg = &typex.RwMap{}
-		cfg.Set(defaultComponentKey, t.Get(name))
-	}
-
-	return merge.MapStruct(cfgMap, cfg.Map()).Err()
-}
-
 func (t *configImpl) addConfigPath(in string) bool {
 	t.v.AddConfigPath(in)
 	err := t.v.ReadInConfig()
@@ -202,27 +158,6 @@ func (t *configImpl) initCfg() {
 // loadPath 加载指定path的配置
 func (t *configImpl) loadPath(path string) {
 	defer recovery.Exit()
-
-	fileStat := assert.Must1(os.Stat(path))
-	if fileStat.IsDir() {
-		assert.Must(filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if info.IsDir() {
-				return nil
-			}
-
-			if !strings.HasSuffix(info.Name(), "."+defaultConfigType) {
-				return nil
-			}
-
-			t.loadPath(path)
-			return nil
-		}))
-		return
-	}
 
 	assert.If(pathutil.IsNotExist(path), "path not found, path=%s", path)
 	log.Info().Str("path", path).Msgf("load config path")

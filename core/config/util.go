@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/pubgo/funk/result"
 	"os"
 	"path/filepath"
@@ -11,19 +10,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 )
-
-func getComponentName(m map[string]interface{}) string {
-	if m == nil || len(m) == 0 {
-		return defaultComponentKey
-	}
-
-	val, ok := m[componentConfigKey]
-	if !ok || val == nil {
-		return defaultComponentKey
-	}
-
-	return fmt.Sprintf("%v", val)
-}
 
 // getPathList 递归得到当前目录到跟目录中所有的目录路径
 //
