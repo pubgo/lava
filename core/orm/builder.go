@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/merge"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -12,10 +14,11 @@ import (
 	"github.com/pubgo/lava/core/config"
 )
 
-func New(cfg *Config, logs log.Logger) *Client {
+func New(conf *Config, logs log.Logger) *Client {
 	logs = logs.WithName(Name)
-
-	ormCfg := config.Merge(gorm.Config{}, config.Merge(DefaultCfg(), cfg)).Unwrap()
+	cfg := generic.Ptr(DefaultCfg())
+	assert.Must(config.Merge(cfg, conf))
+	ormCfg := merge.Copy(new(gorm.Config), cfg).Unwrap()
 	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
 

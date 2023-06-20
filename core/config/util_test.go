@@ -35,18 +35,20 @@ type configA struct {
 }
 
 func TestMerge(t *testing.T) {
-	cfg := Merge(
-		configA{},
+	cfg := &configA{}
+	assert.Nil(t, Merge(
+		&configA{},
 		configA{
 			Name1: configL{
 				Name: "a1",
 			},
 		},
-	).Unwrap()
+	))
 	t.Logf("%#v", cfg)
 
-	cfg = Merge(
-		configA{},
+	cfg := &configA{}
+	assert.Nil(t, Merge(
+		cfg,
 		configA{
 			Name1: configL{
 				Name: "a1",
@@ -60,11 +62,12 @@ func TestMerge(t *testing.T) {
 				Name: "a2",
 			},
 		},
-	).Unwrap()
+	))
 	t.Logf("%#v", cfg)
 
-	cfg = Merge(
-		configA{},
+	cfg = new(configA)
+	assert.Nil(t, Merge(
+		cfg,
 		configA{
 			Name1: configL{
 				Name: "a1",
@@ -89,7 +92,7 @@ func TestMerge(t *testing.T) {
 				Name: "a3",
 			},
 		},
-	).Unwrap()
+	))
 	pretty.Println(cfg)
 	t.Logf("%#v", cfg)
 }

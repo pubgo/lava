@@ -7,6 +7,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
@@ -31,7 +32,8 @@ type Params struct {
 }
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	cfg = config.Merge(grpcc_config.DefaultCfg(), cfg).Unwrap()
+	conf := generic.Ptr(grpcc_config.DefaultCfg())
+	assert.Must(config.Merge(conf, cfg))
 	var defaultMiddlewares = []lava.Middleware{
 		middleware_service_info.New(),
 		p.ReqMetric,
@@ -41,12 +43,12 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 	defaultMiddlewares = append(defaultMiddlewares, middlewares...)
 
 	c := &clientImpl{
-		cfg:         cfg,
+		cfg:         conf,
 		log:         p.Log,
 		middlewares: defaultMiddlewares,
 	}
 
-	if cfg.Client.Block {
+	if conf.Client.Block {
 		c.Get().Unwrap()
 	}
 

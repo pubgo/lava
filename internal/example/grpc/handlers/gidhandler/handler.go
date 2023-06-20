@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/pubgo/lava/internal/example/grpc/services/gidclient"
 	"math/rand"
-	"runtime/debug"
 	"time"
 
 	"github.com/google/uuid"
@@ -84,7 +83,6 @@ func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger, servic
 }
 
 func (id *Id) Init() {
-	debug.PrintStack()
 	fmt.Println("test cron every")
 	id.cron.Every("test_gid", time.Second*2, func(ctx context.Context, name string) error {
 		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)

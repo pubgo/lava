@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/generic"
 	"net"
 	"net/http"
 	"net/url"
@@ -78,9 +79,10 @@ func (s *serviceImpl) DixInject(
 	lifecycle lifecycle.Lifecycle,
 	metric metric.Metric,
 	log log.Logger,
-	cfg *Config,
+	conf *Config,
 ) {
-	cfg = config.Merge(defaultCfg(), cfg).Unwrap()
+	cfg := generic.Ptr(defaultCfg())
+	assert.Must(config.Merge(cfg, conf))
 	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
 	cfg.BaseUrl = basePath
 

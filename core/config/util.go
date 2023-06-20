@@ -11,7 +11,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/pathutil"
-	"github.com/pubgo/funk/result"
 	"gopkg.in/yaml.v3"
 
 	"github.com/pubgo/lava/core/vars"
@@ -89,7 +88,7 @@ func Load[T any]() T {
 		cfgList = append(cfgList, cfg1)
 	}
 
-	_ = Merge(&cfg, cfgList...).Unwrap()
+	assert.Must(Merge(&cfg, cfgList...))
 
 	vars.RegisterValue("config", map[string]any{
 		"config_type": defaultConfigType,
@@ -102,17 +101,19 @@ func Load[T any]() T {
 	return cfg
 }
 
-func Merge[A any, B any](dst A, src ...B) (ret result.Result[*A]) {
+func Merge[A any, B any](dst *A, src ...B) error {
 	for i := range src {
-		err := mergo.Merge(&dst, src[i], mergo.WithOverride, mergo.WithAppendSlice, mergo.WithTransformers(new(transformer)))
+		err := mergo.Merge(dst, src[i], mergo.WithOverride, mergo.WithAppendSlice, mergo.WithTransformers(new(transformer)))
 		if err != nil {
-			return ret.WithErr(errors.WrapTag(err,
+			return errors.WrapTag(err,
+				errors.T("dst_type", reflect.TypeOf(dst).String()),
 				errors.T("dst", dst),
+				errors.T("src_type", reflect.TypeOf(src[i]).String()),
 				errors.T("src", src[i]),
-			))
+			)
 		}
 	}
-	return ret.WithVal(&dst)
+	return nil
 }
 
 type transformer struct{}
@@ -152,6 +153,8 @@ func (s *transformer) Transformer(t reflect.Type) func(dst, src reflect.Value) e
 					return errors.Tags{
 						errors.T("dst", d),
 						errors.T("src", c),
+						errors.T("dst-type", reflect.TypeOf(d).String()),
+						errors.T("src-type", reflect.TypeOf(c).String()),
 					}
 				})
 			}
