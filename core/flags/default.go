@@ -13,13 +13,19 @@ func init() {
 		Usage:       "service http port",
 		Value:       running.HttpPort,
 		Destination: &running.HttpPort,
-		EnvVars:     typex.StrOf(env.Key("http_port")),
+		EnvVars:     typex.StrOf(env.Key("server_http_port")),
 	})
 	Register(&cli.IntFlag{
 		Name:        "grpc-port",
 		Usage:       "service grpc port",
 		Value:       running.GrpcPort,
 		Destination: &running.GrpcPort,
-		EnvVars:     typex.StrOf(env.Key("grpc_port")),
+		EnvVars:     typex.StrOf(env.Key("server_grpc_port")),
+	})
+	Register(&cli.BoolFlag{
+		Name:        "debug",
+		Usage:       "enable debug mode",
+		Value:       running.IsDebug,
+		Destination: &running.IsDebug,
 	})
 }

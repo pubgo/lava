@@ -22,7 +22,7 @@ type Node struct {
 	value *yaml.Node
 }
 
-func (c Node) UnmarshalYAML(value *yaml.Node) error {
+func (c *Node) UnmarshalYAML(value *yaml.Node) error {
 	if c.maps == nil {
 		c.maps = make(map[string]any)
 	}
@@ -36,12 +36,12 @@ func (c Node) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (c Node) IsNil() bool {
+func (c *Node) IsNil() bool {
 	return c.value == nil
 }
 
-func (c Node) Get(key string) any   { return c.maps[key] }
-func (c Node) Decode(val any) error { return c.value.Decode(val) }
+func (c *Node) Get(key string) any   { return c.maps[key] }
+func (c *Node) Decode(val any) error { return c.value.Decode(val) }
 
 type NamedConfig interface {
 	// ConfigUniqueName unique name

@@ -1,6 +1,6 @@
 package lifecycle
 
-type executor struct {
+type Executor struct {
 	Handler func()
 }
 
@@ -14,10 +14,10 @@ type Lifecycle interface {
 }
 
 type Getter interface {
-	GetAfterStops() []executor
-	GetBeforeStops() []executor
-	GetAfterStarts() []executor
-	GetBeforeStarts() []executor
+	GetAfterStops() []Executor
+	GetBeforeStops() []Executor
+	GetAfterStarts() []Executor
+	GetBeforeStarts() []Executor
 }
 
 var (
@@ -26,28 +26,28 @@ var (
 )
 
 type lifecycleImpl struct {
-	beforeStarts []executor
-	afterStarts  []executor
-	beforeStops  []executor
-	afterStops   []executor
+	beforeStarts []Executor
+	afterStarts  []Executor
+	beforeStops  []Executor
+	afterStops   []Executor
 }
 
-func (t *lifecycleImpl) GetAfterStops() []executor   { return t.afterStops }
-func (t *lifecycleImpl) GetBeforeStops() []executor  { return t.beforeStops }
-func (t *lifecycleImpl) GetAfterStarts() []executor  { return t.afterStarts }
-func (t *lifecycleImpl) GetBeforeStarts() []executor { return t.beforeStarts }
+func (t *lifecycleImpl) GetAfterStops() []Executor   { return t.afterStops }
+func (t *lifecycleImpl) GetBeforeStops() []Executor  { return t.beforeStops }
+func (t *lifecycleImpl) GetAfterStarts() []Executor  { return t.afterStarts }
+func (t *lifecycleImpl) GetBeforeStarts() []Executor { return t.beforeStarts }
 func (t *lifecycleImpl) BeforeStart(f func()) {
-	t.beforeStarts = append(t.beforeStarts, executor{Handler: f})
+	t.beforeStarts = append(t.beforeStarts, Executor{Handler: f})
 }
 
 func (t *lifecycleImpl) BeforeStop(f func()) {
-	t.beforeStops = append(t.beforeStops, executor{Handler: f})
+	t.beforeStops = append(t.beforeStops, Executor{Handler: f})
 }
 
 func (t *lifecycleImpl) AfterStart(f func()) {
-	t.afterStarts = append(t.afterStarts, executor{Handler: f})
+	t.afterStarts = append(t.afterStarts, Executor{Handler: f})
 }
 
 func (t *lifecycleImpl) AfterStop(f func()) {
-	t.afterStops = append(t.afterStops, executor{Handler: f})
+	t.afterStops = append(t.afterStops, Executor{Handler: f})
 }

@@ -25,7 +25,6 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/modules/gcnotifier"
 	"github.com/pubgo/lava/pkg/cmdutil"
 
 	// debug
@@ -54,7 +53,6 @@ import (
 
 var defaultProviders = []any{
 	lifecycle.New,
-	gcnotifier.New,
 
 	middleware_accesslog.New,
 	middleware_metric.New,

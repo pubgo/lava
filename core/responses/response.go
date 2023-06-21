@@ -5,6 +5,6 @@ import (
 )
 
 type Response struct {
-	Err  *errorpb.Error `json:"err"`
-	Data any            `json:"data"`
+	Err  *errorpb.ErrCode `json:"err"`
+	Data any              `json:"data"`
 }

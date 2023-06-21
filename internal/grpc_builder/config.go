@@ -13,11 +13,11 @@ import (
 )
 
 type KeepaliveParams struct {
-	MaxConnectionAge      time.Duration `json:"max_connection_age"`
-	MaxConnectionAgeGrace time.Duration `json:"max_connection_age_grace"`
-	MaxConnectionIdle     time.Duration `json:"max_connection_idle"`
-	Time                  time.Duration `json:"time"`
-	Timeout               time.Duration `json:"timeout"`
+	MaxConnectionAge      time.Duration `json:"max_connection_age" yaml:"max_connection_age"`
+	MaxConnectionAgeGrace time.Duration `json:"max_connection_age_grace" yaml:"max_connection_age_grace"`
+	MaxConnectionIdle     time.Duration `json:"max_connection_idle" yaml:"max_connection_idle"`
+	Time                  time.Duration `json:"time" yaml:"time"`
+	Timeout               time.Duration `json:"timeout" yaml:"timeout"`
 }
 
 func (t KeepaliveParams) ToCfg() (sp keepalive.ServerParameters) {
@@ -26,8 +26,13 @@ func (t KeepaliveParams) ToCfg() (sp keepalive.ServerParameters) {
 }
 
 type KeepalivePolicy struct {
-	MinTime             time.Duration `json:"min_time"`
-	PermitWithoutStream bool          `json:"permit_without_stream"`
+	MinTime             time.Duration `json:"min_time" yaml:"min_time"`
+	PermitWithoutStream bool          `json:"permit_without_stream" yaml:"permit_without_stream"`
+}
+
+func (t KeepalivePolicy) ToCfg() (sp keepalive.EnforcementPolicy) {
+	merge.Copy(&sp, &t).Unwrap()
+	return
 }
 
 type Config struct {
@@ -51,17 +56,8 @@ type Config struct {
 
 func (t *Config) BuildOpts() []grpc.ServerOption {
 	return []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(t.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(t.MaxSendMsgSize),
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionAgeGrace: 5 * time.Minute,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
-			Time:                  30 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-			Timeout:               5 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
-		}),
-		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             30 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
-			PermitWithoutStream: true,             // Allow pings even when there are no active streams
-		}),
+		grpc.KeepaliveParams(t.KeepaliveParams.ToCfg()),
+		grpc.KeepaliveEnforcementPolicy(t.KeepalivePolicy.ToCfg()),
 	}
 }
 
@@ -79,10 +75,6 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]
 
 func GetDefaultCfg() *Config {
 	return &Config{
-		MaxRecvMsgSize:    grpcutil.DefaultMaxMsgSize,
-		MaxSendMsgSize:    grpcutil.DefaultMaxMsgSize,
-		WriteBufferSize:   32 * 1024,
-		ReadBufferSize:    32 * 1024,
 		ConnectionTimeout: 120 * time.Second,
 		KeepaliveParams: KeepaliveParams{
 			MaxConnectionIdle:     30 * time.Second,        // If a client is idle for 15 seconds, send a GOAWAY

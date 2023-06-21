@@ -90,5 +90,25 @@ func TestMerge(t *testing.T) {
 		},
 	))
 	pretty.Println(cfg)
-	t.Logf("%#v", cfg)
+
+	cfg = new(configA)
+	assert.Nil(t, Merge(
+		cfg,
+		configA{
+			Name1: configL{
+				Name:  "a1",
+				Value: "a1",
+			},
+		},
+
+		configA{
+			Names: []*configL{
+				{Name: "a1", Value: ""},
+			},
+			Name1: configL{
+				Name: "a1",
+			},
+		},
+	))
+	pretty.Println(cfg)
 }

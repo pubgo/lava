@@ -5,7 +5,6 @@ import (
 
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
-
 	"gorm.io/gorm"
 )
 
