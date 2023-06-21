@@ -2,12 +2,17 @@ package grpcs
 
 import (
 	"github.com/pubgo/funk/version"
+
 	"github.com/pubgo/lava/internal/grpc_builder"
 )
 
 const (
 	defaultContentType = "application/grpc"
 )
+
+type GrpcServerLoader struct {
+	GrpcServer *Config `yaml:"grpc_server"`
+}
 
 type Config struct {
 	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`

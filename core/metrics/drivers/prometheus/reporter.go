@@ -7,7 +7,7 @@ import (
 	"github.com/uber-go/tally/v4/prometheus"
 
 	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 )
 
 const (
@@ -16,10 +16,10 @@ const (
 )
 
 func init() {
-	metric.Register(Name, New)
+	metrics.Register(Name, New)
 }
 
-func New(conf *metric.Config, log log.Logger) *tally.ScopeOptions {
+func New(conf *metrics.Config, log log.Logger) *tally.ScopeOptions {
 	if conf.Driver != Name {
 		return nil
 	}
@@ -34,7 +34,7 @@ func New(conf *metric.Config, log log.Logger) *tally.ScopeOptions {
 		assert.Must(conf.DriverCfg.Decode(proCfg))
 	}
 
-	logs := log.WithName(metric.Name).WithName(Name)
+	logs := log.WithName(metrics.Name).WithName(Name)
 	reporter := assert.Must1(proCfg.NewReporter(
 		prometheus.ConfigurationOptions{
 			OnError: func(err error) {

@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
@@ -21,7 +21,7 @@ import (
 	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -59,7 +59,7 @@ func (s *serviceImpl) DixInject(
 	middlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
-	m metric.Metric,
+	m metrics.Metric,
 	log log.Logger,
 	cfg *Config,
 ) {
@@ -143,7 +143,7 @@ func (s *serviceImpl) start() {
 		return nil
 	})
 
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
+	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
 
 	logutil.OkOrFailed(s.log, "service start", func() error {
 		async.GoDelay(func() error {

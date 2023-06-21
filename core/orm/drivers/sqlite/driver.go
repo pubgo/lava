@@ -25,7 +25,7 @@ func init() {
 		assert.If(cfg.Get("dsn") == nil, "dsn not found")
 
 		dsn := fmt.Sprintf("%v", cfg.Get("dsn"))
-		dsn = filepath.Join(config.CfgDir, dsn)
+		dsn = filepath.Join(config.GetConfigDir(), dsn)
 		assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(dsn)))
 		return sqlite.Open(dsn)
 	})

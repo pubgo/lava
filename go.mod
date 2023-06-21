@@ -49,6 +49,7 @@ require (
 require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
+	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
@@ -65,8 +66,8 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
-	github.com/pubgo/dix v0.3.10-7
-	github.com/pubgo/funk v0.5.29-24
+	github.com/pubgo/dix v0.3.10-9
+	github.com/pubgo/funk v0.5.29-25
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
@@ -84,7 +85,6 @@ require (
 )
 
 require (
-	github.com/a8m/envsubst v1.3.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect

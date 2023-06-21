@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/funk/generic"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,9 +18,10 @@ import (
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
 	"golang.org/x/net/http2"
@@ -32,7 +32,7 @@ import (
 	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/core/vars"
 	"github.com/pubgo/lava/internal/consts"
@@ -77,7 +77,7 @@ func (s *serviceImpl) DixInject(
 	dixMiddlewares map[string][]lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
-	metric metric.Metric,
+	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
 ) {
@@ -189,7 +189,7 @@ func (s *serviceImpl) DixInject(
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
-	vars.Register("grpc-server-config", func() interface{} { return cfg })
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config", version.Project()), &cfg)
 }
 
 func (s *serviceImpl) start() {
@@ -214,11 +214,11 @@ func (s *serviceImpl) start() {
 	})
 
 	s.log.Info().
-		Int("grpc-port", runmode.GrpcPort).
-		Int("http-port", runmode.HttpPort).
+		Int("grpc-port", running.GrpcPort).
+		Int("http-port", running.HttpPort).
 		Msg("create network listener")
-	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.GrpcPort)))
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", runmode.HttpPort)))
+	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort)))
+	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
 
 	logutil.OkOrFailed(s.log, "service starts", func() error {
 		// 启动grpc服务

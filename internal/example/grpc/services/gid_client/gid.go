@@ -1,4 +1,4 @@
-package gidclient
+package gid_client
 
 import (
 	"github.com/pubgo/lava/clients/grpcc"
@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	grpcc.Config `yaml:",inline"`
+	*grpcc.Config `yaml:",inline"`
 }
 
 type Service struct {
@@ -14,6 +14,6 @@ type Service struct {
 }
 
 func New(cfg *Config, p grpcc.Params) *Service {
-	cli := grpcc.New(&cfg.Config, p)
+	cli := grpcc.New(cfg.Config, p)
 	return &Service{IdClient: gidpb.NewIdClient(cli)}
 }

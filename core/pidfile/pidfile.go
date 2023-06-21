@@ -8,14 +8,14 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 
 	"github.com/pubgo/lava/core/config"
 )
 
 const Name = "pidfile"
 
-var pidPath = filepath.Join(config.CfgDir, Name)
+var pidPath = filepath.Join(config.GetConfigDir(), Name)
 
 const pidPerm os.FileMode = 0o666
 
@@ -34,7 +34,7 @@ func GetPid() result.Result[int] {
 }
 
 func GetPidF() result.Result[string] {
-	filename := fmt.Sprintf("%s.pid", runmode.Project)
+	filename := fmt.Sprintf("%s.pid", running.Project)
 	return result.OK(filepath.Join(pidPath, filename))
 }
 

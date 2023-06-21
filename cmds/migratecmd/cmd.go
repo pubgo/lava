@@ -3,7 +3,7 @@ package migratecmd
 import (
 	"time"
 
-	"github.com/pubgo/dix/di"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
@@ -29,7 +29,7 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 	return migrations
 }
 
-func New() *cli.Command {
+func New(di *dix.Dix) *cli.Command {
 	var id string
 	options := migrates.DefaultConfig
 	return &cli.Command{
@@ -43,7 +43,7 @@ func New() *cli.Command {
 			},
 		},
 		Before: func(context *cli.Context) error {
-			p := di.Inject(new(params))
+			p := dix.Inject(di, new(params))
 			options.TableName = p.Db.TablePrefix + migrates.DefaultConfig.TableName
 			return nil
 		},
@@ -55,7 +55,7 @@ func New() *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					p := di.Inject(new(params))
+					p := dix.Inject(di, new(params))
 					m := migrates.New(p.Db.DB, &options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.Migrate())
@@ -73,7 +73,7 @@ func New() *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					p := di.Inject(new(params))
+					p := dix.Inject(di, new(params))
 
 					var ids []string
 					assert.Must(p.Db.Table(options.TableName).Select("id").Find(&ids).Error)
@@ -104,7 +104,7 @@ func New() *cli.Command {
 						assert.Exit(err)
 					})
 
-					p := di.Inject(new(params))
+					p := dix.Inject(di, new(params))
 					m := migrates.New(p.Db.DB, &options, migrate(p.Migrations))
 					if id == "" {
 						assert.Must(m.RollbackLast())

@@ -19,6 +19,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/core/vars"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
@@ -52,6 +53,7 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 		c.Get().Unwrap()
 	}
 
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", conf.Srv), conf)
 	return c
 }
 

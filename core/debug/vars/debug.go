@@ -25,12 +25,14 @@ func init() {
 		return c.HTML5(c.HTML5Props{Title: "/expvar", Body: nodes})
 	}
 
-	debug.Route("/expvar", func(r fiber.Router) {
+	debug.Route("/vars", func(r fiber.Router) {
 		r.Get("/", func(ctx *fiber.Ctx) error {
+			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 			var keys []string
 			expvar.Do(func(kv expvar.KeyValue) {
-				keys = append(keys, fmt.Sprintf("/debug/expvar/%s", kv.Key))
+				keys = append(keys, fmt.Sprintf("/debug/vars/%s", kv.Key))
 			})
+
 			return index(keys).Render(ctx)
 		})
 

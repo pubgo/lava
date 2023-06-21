@@ -12,7 +12,7 @@ import (
 
 func New() lifecycle.Handler {
 	return func(lc lifecycle.Lifecycle) {
-		pidPath = filepath.Join(config.CfgDir, Name)
+		pidPath = filepath.Join(config.GetConfigDir(), Name)
 
 		_ = pathutil.IsNotExistMkDir(pidPath)
 

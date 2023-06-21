@@ -6,7 +6,7 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/rs/zerolog"
 	zl "github.com/rs/zerolog/log"
 
@@ -33,12 +33,12 @@ func New(cfg *Config) log.Logger {
 
 	// 全局log设置
 	ee := logger.With().
-		Str(logkey.Hostname, runmode.Hostname).
-		Str(logkey.Project, runmode.Project).
-		Str(logkey.Version, runmode.Version)
+		Str(logkey.Hostname, running.Hostname).
+		Str(logkey.Project, running.Project).
+		Str(logkey.Version, running.Version)
 
-	if runmode.Namespace != "" {
-		ee = ee.Str(logkey.Namespace, runmode.Namespace)
+	if running.Namespace != "" {
+		ee = ee.Str(logkey.Namespace, running.Namespace)
 	}
 
 	logger = ee.Logger()

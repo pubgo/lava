@@ -1,15 +1,13 @@
-package running
+package builder
 
 import (
-	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"os"
 	"sort"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/dix/di"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
@@ -22,20 +20,23 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
+	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/modules/gcnotifier"
 	"github.com/pubgo/lava/pkg/cmdutil"
 
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
-	_ "github.com/pubgo/lava/core/debug/stats"
 	_ "github.com/pubgo/lava/core/debug/trace"
 	_ "github.com/pubgo/lava/core/debug/vars"
 	_ "github.com/pubgo/lava/core/debug/version"
 
 	// metric
-	_ "github.com/pubgo/lava/core/metric/drivers/prometheus"
+	_ "github.com/pubgo/lava/core/metrics/drivers/prometheus"
 
 	// sqlite
 	_ "github.com/pubgo/lava/core/orm/drivers/sqlite"
@@ -51,41 +52,40 @@ import (
 	_ "go.uber.org/automaxprocs"
 )
 
-func defaultProviders() []any {
-	return []any{
-		lifecycle.New,
-		gcnotifier.New,
+var defaultProviders = []any{
+	lifecycle.New,
+	gcnotifier.New,
 
-		middleware_accesslog.New,
-		middleware_metric.New,
-	}
+	middleware_accesslog.New,
+	middleware_metric.New,
+
+	logging.New,
+	metrics.New,
+
+	scheduler.New,
 }
 
-func InitDefaultProvider(dix *dix.Dix) {
-	for _, p := range defaultProviders() {
-		dix.Provide(p)
-	}
-}
-
-func init() {
-	for _, p := range defaultProviders() {
+func New(opts ...dix.Option) *dix.Dix {
+	var di = dix.New(opts...)
+	for _, p := range defaultProviders {
 		di.Provide(p)
 	}
+	return di
 }
 
-func Main(cmdL ...*cli.Command) {
+func Run(di *dix.Dix, cmdL ...*cli.Command) {
 	defer recovery.Exit()
 
-	runmode.Check()
+	running.CheckVersion()
 
 	cmdL = append(cmdL,
 		versioncmd.New(),
-		migratecmd.New(),
+		migratecmd.New(di),
 		healthcmd.New(),
-		depcmd.New(),
-		grpcservercmd.New(),
-		httpservercmd.New(),
-		ormcmd.New(),
+		depcmd.New(di),
+		grpcservercmd.New(di),
+		httpservercmd.New(di),
+		ormcmd.New(di),
 	)
 
 	app := &cli.App{
@@ -96,7 +96,7 @@ func Main(cmdL ...*cli.Command) {
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
 		Commands:               cmdL,
-		ExtraInfo:              runmode.GetSysInfo,
+		ExtraInfo:              running.GetSysInfo,
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

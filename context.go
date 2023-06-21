@@ -10,34 +10,6 @@ import (
 
 type ctxKey string
 
-var reqCtxKey = ctxKey(xid.New().String())
-
-func CreateCtxWithReqHeader(ctx context.Context, header *RequestHeader) context.Context {
-	return context.WithValue(ctx, reqCtxKey, header)
-}
-
-func GetReqHeader(ctx context.Context) *RequestHeader {
-	val, ok := ctx.Value(reqCtxKey).(*RequestHeader)
-	if ok {
-		return val
-	}
-	return nil
-}
-
-var rspCtxKey = ctxKey(xid.New().String())
-
-func CreateCtxWithRspHeader(ctx context.Context, header *ResponseHeader) context.Context {
-	return context.WithValue(ctx, rspCtxKey, header)
-}
-
-func GetRspHeader(ctx context.Context) *ResponseHeader {
-	val, ok := ctx.Value(rspCtxKey).(*ResponseHeader)
-	if ok {
-		return val
-	}
-	return val
-}
-
 var reqIdKey = ctxKey(xid.New().String())
 
 func CreateCtxWithReqID(ctx context.Context, reqId string) context.Context {

@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -75,7 +75,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	port := runmode.GrpcPort
+	port := running.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -94,12 +94,12 @@ func register(reg Registry) {
 		Port:     port,
 		Version:  version.Version(),
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
+		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
 	s := &service.Service{
-		Name:  runmode.Project,
+		Name:  running.Project,
 		Nodes: []*service.Node{node},
 	}
 
@@ -110,7 +110,7 @@ func register(reg Registry) {
 			err := reg.Register(context.Background(), s)
 			return errors.WrapTag(err,
 				errors.T("instance_id", node.Id),
-				errors.T("service", runmode.Project),
+				errors.T("service", running.Project),
 				errors.T("registry", Default().String()),
 			)
 		},
@@ -119,7 +119,7 @@ func register(reg Registry) {
 
 func deregister(reg Registry) {
 	var advt, host string
-	port := runmode.GrpcPort
+	port := running.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -133,12 +133,12 @@ func deregister(reg Registry) {
 	node := &service.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
+		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: make(map[string]string),
 	}
 
 	s := &service.Service{
-		Name:  runmode.Project,
+		Name:  running.Project,
 		Nodes: []*service.Node{node},
 	}
 
@@ -149,7 +149,7 @@ func deregister(reg Registry) {
 			err := reg.Deregister(context.Background(), s)
 			return errors.WrapTag(err,
 				errors.T("id", node.Id),
-				errors.T("name", runmode.Project),
+				errors.T("name", running.Project),
 			)
 		},
 	)

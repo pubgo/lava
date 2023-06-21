@@ -8,8 +8,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.10-7
-	github.com/pubgo/funk v0.5.29-24
+	github.com/pubgo/dix v0.3.10-9
+	github.com/pubgo/funk v0.5.29-25
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
@@ -30,7 +30,6 @@ require (
 	github.com/fasthttp/websocket v1.5.2 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fullstorydev/grpchan v1.1.1 // indirect
 	github.com/getkin/kin-openapi v0.98.0 // indirect
 	github.com/go-echarts/go-echarts/v2 v2.2.5 // indirect
@@ -51,7 +50,6 @@ require (
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
@@ -64,7 +62,6 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailgun/holster/v4 v4.11.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/maragudk/gomponents v0.20.0 // indirect
@@ -76,7 +73,6 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/phuslu/goid v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -94,12 +90,6 @@ require (
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/spf13/afero v1.9.3 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.15.0 // indirect
-	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/uber-go/tally/v4 v4.1.7 // indirect
@@ -118,7 +108,6 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/tools v0.6.1-0.20230222164832-25d2519c8696 // indirect
-	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/driver/mysql v1.4.5 // indirect

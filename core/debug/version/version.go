@@ -5,10 +5,10 @@ import (
 	"os"
 	rd "runtime/debug"
 
-	jjson "github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 
 	"github.com/pubgo/lava/core/debug"
 )
@@ -22,14 +22,14 @@ func init() {
 func envHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt := assert.Must1(jjson.Marshal(os.Environ()))
+	dt := assert.Must1(json.Marshal(os.Environ()))
 	assert.Must1(writer.Write(dt))
 }
 
 func versionHandle(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
-	dt := assert.Must1(jjson.Marshal(runmode.GetSysInfo()))
+	dt := assert.Must1(json.Marshal(running.GetSysInfo()))
 	assert.Must1(writer.Write(dt))
 }
 
@@ -43,6 +43,6 @@ func depHandle(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	dt := assert.Must1(jjson.Marshal(info))
+	dt := assert.Must1(json.Marshal(info))
 	assert.Must1(writer.Write(dt))
 }

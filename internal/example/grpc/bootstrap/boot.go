@@ -1,28 +1,23 @@
 package bootstrap
 
 import (
-	"github.com/pubgo/dix/di"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/cmds/running"
+	"github.com/pubgo/lava/cmds/builder"
 	"github.com/pubgo/lava/core/config"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/metric"
-	"github.com/pubgo/lava/core/scheduler"
 
-	"github.com/pubgo/lava/internal/example/grpc/handlers/gidhandler"
-	"github.com/pubgo/lava/internal/example/grpc/services/gidclient"
+	"github.com/pubgo/lava/internal/example/grpc/handlers/gid_handler"
+	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
 
 func Main() {
 	defer recovery.Exit()
 
+	var di = builder.New(dix.WithValuesNull())
 	di.Provide(config.Load[Config])
-	di.Provide(logging.New)
-	di.Provide(metric.New)
-	di.Provide(scheduler.New)
 
-	di.Provide(gidhandler.New)
-	di.Provide(gidclient.New)
+	di.Provide(gid_handler.New)
+	di.Provide(gid_client.New)
 
-	running.Main()
+	builder.Run(di)
 }

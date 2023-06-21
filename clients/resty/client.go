@@ -15,14 +15,14 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New(cfg *Config, log log.Logger, m metric.Metric) Client {
+func New(cfg *Config, log log.Logger, m metrics.Metric) Client {
 	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
 	return &clientImpl{
 		cfg: cfg,
@@ -38,7 +38,7 @@ type clientImpl struct {
 	cfg         *Config
 	do          lava.HandlerFunc
 	log         log.Logger
-	m           metric.Metric
+	m           metrics.Metric
 	once        sync.Once
 	middlewares []lava.Middleware
 }

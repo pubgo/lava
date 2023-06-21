@@ -1,9 +1,8 @@
-package gidhandler
+package gid_handler
 
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/internal/example/grpc/services/gidclient"
 	"math/rand"
 	"time"
 
@@ -14,12 +13,13 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
+	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
 
 var _ lava.GrpcRouter = (*Id)(nil)
@@ -27,11 +27,11 @@ var _ lava.GrpcGatewayRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
-	metric    metric.Metric
+	metric    metrics.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 	log       log.Logger
-	service   *gidclient.Service
+	service   *gid_client.Service
 }
 
 func (id *Id) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
@@ -60,7 +60,7 @@ func (id *Id) ServiceDesc() *grpc.ServiceDesc {
 	return &gidpb.Id_ServiceDesc
 }
 
-func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger, service *gidclient.Service) lava.GrpcRouter {
+func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, service *gid_client.Service) lava.GrpcRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -85,7 +85,7 @@ func New(cron *scheduler.Scheduler, metric metric.Metric, log log.Logger, servic
 func (id *Id) Init() {
 	fmt.Println("test cron every")
 	id.cron.Every("test_gid", time.Second*2, func(ctx context.Context, name string) error {
-		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
+		id.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 
 		rsp, err := id.service.Types(ctx, &gidpb.TypesRequest{})

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 
 	"github.com/pubgo/lava"
@@ -51,8 +51,8 @@ func New() lava.Middleware {
 					Name:     version.Project(),
 					Version:  version.Version(),
 					Path:     req.Operation(),
-					Hostname: runmode.Hostname,
-					Ip:       runmode.LocalIP,
+					Hostname: running.Hostname,
+					Ip:       running.LocalIP,
 				})
 			}
 

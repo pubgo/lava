@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava"
-	"github.com/pubgo/lava/core/metric"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/opendoc/opendoc"
 	"github.com/teris-io/shortid"
@@ -23,7 +23,7 @@ var _ lava.HttpRouter = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
-	metric    metric.Metric
+	metric    metrics.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 }
@@ -112,7 +112,7 @@ func (id *Id) Middlewares() []lava.Middleware {
 	return nil
 }
 
-func New(cron *scheduler.Scheduler, metric metric.Metric) lava.HttpRouter {
+func New(cron *scheduler.Scheduler, metric metrics.Metric) lava.HttpRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -137,7 +137,7 @@ func (id *Id) Init() {
 	id.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-		id.metric.Tagged(metric.Tags{"module": "scheduler"}).Counter(name).Inc(1)
+		id.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 		return nil
 	})

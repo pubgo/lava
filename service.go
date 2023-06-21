@@ -23,3 +23,12 @@ type Service interface {
 type Server interface {
 	Serve(context.Context, net.Listener) error
 }
+
+type Validator interface {
+	Validate() error
+}
+
+// Initializer ...
+type Initializer interface {
+	Initialize()
+}

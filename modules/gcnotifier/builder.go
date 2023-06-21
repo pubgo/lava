@@ -6,7 +6,7 @@ import (
 	"github.com/CAFxX/gcnotifier"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -15,7 +15,7 @@ import (
 var Name = "gc"
 
 func New(log log.Logger) lifecycle.Handler {
-	if !runmode.IsDebug {
+	if !running.IsDebug {
 		return nil
 	}
 

@@ -19,7 +19,7 @@ import (
 func New(cfg *Config, log log.Logger) *Client {
 	cfg = merge.Copy(DefaultConfig(), cfg).Unwrap()
 
-	path := filepath.Join(config.CfgDir, cfg.Path)
+	path := filepath.Join(config.GetConfigDir(), cfg.Path)
 	assert.Must(pathutil.IsNotExistMkDir(filepath.Dir(path)))
 	db := assert.Must1(bolt.Open(path, cfg.FileMode, cfg.getOpts()))
 

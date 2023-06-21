@@ -11,6 +11,7 @@ gid-client:
 
 registry:
   driver: "mdns"
+
 tracing:
   driver: "jaeger"
 

@@ -6,17 +6,17 @@ import (
 	"runtime/debug"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/dix/di"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/runmode"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/pkg/cmdutil"
 )
 
-func New() *cli.Command {
+func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "dep",
 		Usage: "Print the dependency package information",
@@ -41,7 +41,7 @@ func New() *cli.Command {
 			case "":
 				pretty.Println(info)
 			case "sys":
-				pretty.Println(runmode.GetSysInfo())
+				pretty.Println(running.GetSysInfo())
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)
 				table.SetHeader([]string{"path", "Version", "Replace"})

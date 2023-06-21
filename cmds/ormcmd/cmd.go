@@ -1,7 +1,7 @@
 package ormcmd
 
 import (
-	"github.com/pubgo/dix/di"
+	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v3"
@@ -17,7 +17,7 @@ type params struct {
 	Generations migrates.Generation
 }
 
-func New() *cli.Command {
+func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "orm",
 		Usage: "orm manager",
@@ -38,7 +38,7 @@ func New() *cli.Command {
 						Mode:              gen.WithQueryInterface | gen.WithDefaultQuery | gen.WithoutContext,
 					})
 
-					p := di.Inject(new(params))
+					p := dix.Inject(di, new(params))
 					g.UseDB(p.Db.DB)
 
 					g.ApplyBasic(p.Generations(g)...)

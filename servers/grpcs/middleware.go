@@ -37,7 +37,6 @@ func parsePath(path string) (string, string, string) {
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-		ctx = lava.CreateCtxWithReqHeader(ctx, req.Header())
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return nil, err
@@ -175,7 +174,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 	streamWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		reqCtx := req.(*rpcRequest)
 		wrap := &grpcMiddle.WrappedServerStream{
-			WrappedContext: lava.CreateCtxWithReqHeader(ctx, req.Header()),
+			WrappedContext: ctx,
 			ServerStream:   reqCtx.stream,
 		}
 		if err := reqCtx.handlerStream(reqCtx.srv, wrap); err != nil {

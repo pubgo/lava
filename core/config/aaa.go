@@ -11,8 +11,8 @@ const (
 )
 
 var (
-	CfgDir  string
-	CfgPath string
+	configDir  string
+	configPath string
 )
 
 var _ yaml.Unmarshaler = (*Node)(nil)

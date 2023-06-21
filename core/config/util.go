@@ -17,6 +17,14 @@ import (
 	"github.com/pubgo/lava/core/vars"
 )
 
+func GetConfigDir() string {
+	return configDir
+}
+
+func GetConfigPath() string {
+	return configPath
+}
+
 func getConfigPath(name, typ string, configDir ...string) (config string, dir string) {
 	if len(configDir) == 0 {
 		configDir = append(configDir, "./", defaultConfigPath)
@@ -61,7 +69,7 @@ func getPathList() (paths []string) {
 }
 
 func Load[T any]() T {
-	configPath, configDir := getConfigPath("", "")
+	configPath, configDir = getConfigPath("", "")
 	configBytes := assert.Must1(os.ReadFile(configPath))
 	configBytes = assert.Must1(envsubst.Bytes(configBytes))
 
@@ -101,8 +109,8 @@ func Load[T any]() T {
 	vars.RegisterValue("config", map[string]any{
 		"config_type": defaultConfigType,
 		"config_name": defaultConfigName,
-		"config_path": CfgPath,
-		"config_dir":  CfgDir,
+		"config_path": configPath,
+		"config_dir":  configDir,
 		"config_data": cfg,
 	})
 
