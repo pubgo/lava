@@ -93,6 +93,7 @@ func (l *loggerWrapper) Infoln(args ...interface{}) {
 	if l.filterln(args) {
 		return
 	}
+
 	l.log.Info().Msg(fmt.Sprint(args...))
 }
 
@@ -100,6 +101,7 @@ func (l *loggerWrapper) Infof(format string, args ...interface{}) {
 	if l.filterf(format, args...) {
 		return
 	}
+
 	l.log.Info().Msg(fmt.Sprintf(format, args...))
 }
 
@@ -147,6 +149,7 @@ func (l *loggerWrapper) Errorf(format string, args ...interface{}) {
 	if l.filterf(format, args...) {
 		return
 	}
+
 	l.log.Error().Msg(fmt.Sprintf(format, args...))
 }
 
