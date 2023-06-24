@@ -9,7 +9,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.10-9
-	github.com/pubgo/funk v0.5.29-25
+	github.com/pubgo/funk v0.5.29-26
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
@@ -18,7 +18,6 @@ require (
 )
 
 require (
-	github.com/CAFxX/gcnotifier v0.0.0-20190112062741-224a280d589d // indirect
 	github.com/a8m/envsubst v1.3.0 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -32,8 +31,6 @@ require (
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/fullstorydev/grpchan v1.1.1 // indirect
 	github.com/getkin/kin-openapi v0.98.0 // indirect
-	github.com/go-echarts/go-echarts/v2 v2.2.5 // indirect
-	github.com/go-echarts/statsview v0.3.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -46,7 +43,6 @@ require (
 	github.com/gofiber/template v1.6.25 // indirect
 	github.com/gofiber/utils v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/gops v0.3.27 // indirect
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect

@@ -9,9 +9,9 @@ import (
 )
 
 type Config struct {
-	grpcs.GrpcServerLoader     `yaml:",inline"`
-	metrics.MetricConfigLoader `yaml:",inline"`
-	logging.LogConfigLoader    `yaml:",inline"`
+	grpcs.GrpcServerConfigLoader `yaml:",inline"`
+	metrics.MetricConfigLoader   `yaml:",inline"`
+	logging.LogConfigLoader      `yaml:",inline"`
 
 	GidCli *gid_client.Config `yaml:"gid-client"`
 }

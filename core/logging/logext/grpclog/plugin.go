@@ -10,6 +10,23 @@ import (
 	"github.com/pubgo/lava/core/logging"
 )
 
+const (
+	grpcLvlInfo int = iota
+	grpcLvlWarn
+	grpcLvlError
+	grpcLvlFatal
+)
+
+var (
+	// _grpcToZapLevel maps gRPC log levels to zap log levels.
+	_grpcToZapLevel = map[int]zerolog.Level{
+		grpcLvlInfo:  zerolog.InfoLevel,
+		grpcLvlWarn:  zerolog.WarnLevel,
+		grpcLvlError: zerolog.ErrorLevel,
+		grpcLvlFatal: zerolog.FatalLevel,
+	}
+)
+
 func grpcComponentName(args interface{}) func(e *zerolog.Event) {
 	name := args.(string)
 	return func(e *zerolog.Event) {
@@ -177,4 +194,6 @@ func (l *loggerWrapper) Fatalf(format string, args ...interface{}) {
 	l.log.Fatal().Msg(fmt.Sprintf(format, args...))
 }
 
-func (l *loggerWrapper) V(_ int) bool { return true }
+func (l *loggerWrapper) V(level int) bool {
+	return _grpcToZapLevel[level] >= zerolog.GlobalLevel()
+}

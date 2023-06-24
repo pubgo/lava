@@ -44,6 +44,10 @@ type MetricMiddleware struct {
 	m metrics.Metric
 }
 
+func (m MetricMiddleware) String() string {
+	return "metric"
+}
+
 func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 		now := time.Now()

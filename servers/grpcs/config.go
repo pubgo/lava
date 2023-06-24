@@ -10,7 +10,7 @@ const (
 	defaultContentType = "application/grpc"
 )
 
-type GrpcServerLoader struct {
+type GrpcServerConfigLoader struct {
 	GrpcServer *Config `yaml:"grpc_server"`
 }
 

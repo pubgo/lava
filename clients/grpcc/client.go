@@ -27,9 +27,9 @@ import (
 )
 
 type Params struct {
-	Log       log.Logger
-	ReqMetric *middleware_metric.MetricMiddleware
-	AccessLog *middleware_accesslog.LogMiddleware
+	Log                 log.Logger
+	MetricMiddleware    *middleware_metric.MetricMiddleware
+	AccessLogMiddleware *middleware_accesslog.LogMiddleware
 }
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
@@ -37,8 +37,8 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 	assert.Must(config.Merge(conf, cfg))
 	var defaultMiddlewares = []lava.Middleware{
 		middleware_service_info.New(),
-		p.ReqMetric,
-		p.AccessLog,
+		p.MetricMiddleware,
+		p.AccessLogMiddleware,
 		middleware_recovery.New(),
 	}
 	defaultMiddlewares = append(defaultMiddlewares, middlewares...)

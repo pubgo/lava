@@ -24,7 +24,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.14.0
 	go.opentelemetry.io/otel/sdk/metric v0.37.0
 	go.opentelemetry.io/otel/trace v1.14.0
-	go.uber.org/atomic v1.10.0
+	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
@@ -37,7 +37,6 @@ require (
 )
 
 require (
-	github.com/CAFxX/gcnotifier v0.0.0-20190112062741-224a280d589d
 	github.com/bradleyjkemp/memviz v0.2.3
 	github.com/goccy/go-json v0.10.0
 	github.com/mailgun/holster/v4 v4.11.0
@@ -53,21 +52,18 @@ require (
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
-	github.com/go-echarts/go-echarts/v2 v2.2.5
-	github.com/go-echarts/statsview v0.3.4
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
-	github.com/google/gops v0.3.27
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/imdario/mergo v0.3.16
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/pubgo/dix v0.3.10-9
-	github.com/pubgo/funk v0.5.29-25
+	github.com/pubgo/funk v0.5.29-26
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2

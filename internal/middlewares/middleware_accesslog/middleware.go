@@ -32,6 +32,10 @@ type LogMiddleware struct {
 	logger log.Logger
 }
 
+func (l LogMiddleware) String() string {
+	return Name
+}
+
 func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 		now := time.Now()
