@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/recovery"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/orm"
 )
 

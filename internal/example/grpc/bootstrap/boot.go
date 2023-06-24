@@ -2,9 +2,9 @@ package bootstrap
 
 import (
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/cmds/builder"
-	"github.com/pubgo/lava/core/config"
 
 	"github.com/pubgo/lava/internal/example/grpc/handlers/gid_handler"
 	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"

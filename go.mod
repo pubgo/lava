@@ -48,7 +48,6 @@ require (
 require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
-	github.com/a8m/envsubst v1.3.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
@@ -58,22 +57,19 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
-	github.com/imdario/mergo v0.3.16
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/pubgo/dix v0.3.10-9
-	github.com/pubgo/funk v0.5.29-26
+	github.com/pubgo/funk v0.5.29-27
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
 	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.45.0
-	go.etcd.io/bbolt v1.3.7
 	go.etcd.io/etcd/client/v3 v3.5.6
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
-	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/driver/postgres v1.4.1
 	gorm.io/driver/sqlite v1.4.4
@@ -81,6 +77,8 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.0 // indirect
+	github.com/a8m/envsubst v1.3.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
@@ -163,6 +161,7 @@ require (
 	golang.org/x/exp v0.0.0-20221114191408-850992195362 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/tools v0.6.1-0.20230222164832-25d2519c8696 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect

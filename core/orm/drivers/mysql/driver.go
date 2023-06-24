@@ -2,14 +2,14 @@ package mysql
 
 import (
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/core/orm"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/core/config"
+	"github.com/pubgo/lava/core/orm"
 )
 
 type Config struct {

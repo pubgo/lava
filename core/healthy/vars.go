@@ -2,7 +2,7 @@ package healthy
 
 import (
 	"github.com/pubgo/funk/stack"
-	"github.com/pubgo/lava/core/vars"
+	"github.com/pubgo/funk/vars"
 )
 
 func init() {

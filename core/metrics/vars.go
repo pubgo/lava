@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"github.com/pubgo/funk/typex"
-	"github.com/pubgo/lava/core/vars"
+	"github.com/pubgo/funk/vars"
 	"github.com/uber-go/tally/v4"
 )
 

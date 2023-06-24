@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/pathutil"
 
-	"github.com/pubgo/lava/core/config"
 	"github.com/pubgo/lava/core/lifecycle"
 )
 

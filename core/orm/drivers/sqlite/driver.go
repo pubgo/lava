@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/pubgo/lava/core/orm"
-
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/pathutil"
 	"github.com/pubgo/funk/recovery"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/pubgo/lava/core/config"
+	"github.com/pubgo/lava/core/orm"
 )
 
 func init() {

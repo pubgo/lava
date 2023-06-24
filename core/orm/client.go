@@ -2,11 +2,10 @@ package orm
 
 import (
 	"database/sql"
+	"github.com/pubgo/funk/vars"
 
 	"github.com/pubgo/funk/result"
 	"gorm.io/gorm"
-
-	"github.com/pubgo/lava/core/vars"
 )
 
 const Name = "orm"

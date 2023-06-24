@@ -4,14 +4,13 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-
-	"github.com/pubgo/lava/core/config"
 )
 
 func New(conf *Config, logs log.Logger) *Client {

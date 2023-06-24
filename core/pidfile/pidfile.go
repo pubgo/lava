@@ -2,6 +2,7 @@ package pidfile
 
 import (
 	"fmt"
+	"github.com/pubgo/funk/config"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -9,8 +10,6 @@ import (
 
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
-
-	"github.com/pubgo/lava/core/config"
 )
 
 const Name = "pidfile"

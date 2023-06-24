@@ -2,10 +2,9 @@ package orm
 
 import (
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/recovery"
 	"gorm.io/gorm"
-
-	"github.com/pubgo/lava/core/config"
 )
 
 type Factory func(cfg config.Node) gorm.Dialector

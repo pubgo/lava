@@ -1,11 +1,10 @@
 package orm
 
 import (
+	"github.com/pubgo/funk/config"
 	"time"
 
 	"gorm.io/gorm/logger"
-
-	"github.com/pubgo/lava/core/config"
 )
 
 type Config struct {
