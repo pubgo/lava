@@ -12,9 +12,9 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/lava"
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
 

@@ -4,6 +4,8 @@ import "context"
 
 type HandlerFunc func(ctx context.Context, req Request) (Response, error)
 
+type Middlewares []Middleware
+
 type Middleware interface {
 	Middleware(next HandlerFunc) HandlerFunc
 	String() string

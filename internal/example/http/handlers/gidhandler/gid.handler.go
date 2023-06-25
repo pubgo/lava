@@ -12,9 +12,9 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/opendoc/opendoc"
 	"github.com/teris-io/shortid"
 )
@@ -22,22 +22,23 @@ import (
 var _ lava.HttpRouter = (*Id)(nil)
 
 type Id struct {
+	log       log.Logger
 	cron      *scheduler.Scheduler
 	metric    metrics.Metric
 	snowflake *snowflake.Snowflake
 	bigflake  *bigflake.Bigflake
 }
 
-func (id *Id) Version() string {
+func (t *Id) Version() string {
 	return "v1"
 }
 
-func (id *Id) Router(app fiber.Router) {
-	app.Post("/id/generate", lava.WrapHandler(id.Generate))
-	app.Get("/id/types", lava.WrapHandler(id.Types))
+func (t *Id) Router(app fiber.Router) {
+	app.Post("/id/generate", lava.WrapHandler(t.Generate))
+	app.Get("/id/types", lava.WrapHandler(t.Types))
 }
 
-func (id *Id) Openapi(swag *opendoc.Swagger) {
+func (t *Id) Openapi(swag *opendoc.Swagger) {
 	swag.ServiceOf("http", func(srv *opendoc.Service) {
 		srv.GetOf(func(op *opendoc.Operation) {
 			op.SetModel(new(GenerateRequest), new(GenerateResponse))
@@ -51,10 +52,8 @@ func (id *Id) Openapi(swag *opendoc.Swagger) {
 	})
 }
 
-func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
+func (t *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
 	rsp := new(GenerateResponse)
-	logs := log.Ctx(ctx)
-
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
 	}
@@ -64,18 +63,18 @@ func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResp
 		rsp.Type = "uuid"
 		rsp.Id = uuid.New().String()
 	case "snowflake":
-		id, err := id.snowflake.Mint()
+		id, err := t.snowflake.Mint()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate snowflake id")
+			t.log.Err(err, ctx).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
 			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
 	case "bigflake":
-		id, err := id.bigflake.Mint()
+		id, err := t.bigflake.Mint()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate bigflake id")
+			t.log.Err(err, ctx).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
 			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
@@ -84,7 +83,7 @@ func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResp
 	case "shortid":
 		id, err := shortid.Generate()
 		if err != nil {
-			logs.Err(err).Msg("Failed to generate shortid id")
+			t.log.Err(err, ctx).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
 			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
 		}
@@ -97,7 +96,7 @@ func (id *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResp
 	return rsp, nil
 }
 
-func (id *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, error) {
+func (t *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, error) {
 	rsp := new(TypesResponse)
 	rsp.Types = []string{
 		"uuid",
@@ -108,7 +107,7 @@ func (id *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, err
 	return rsp, nil
 }
 
-func (id *Id) Middlewares() []lava.Middleware {
+func (t *Id) Middlewares() []lava.Middleware {
 	return nil
 }
 
@@ -133,11 +132,11 @@ func New(cron *scheduler.Scheduler, metric metrics.Metric) lava.HttpRouter {
 	}
 }
 
-func (id *Id) Init() {
-	id.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
+func (t *Id) Init() {
+	t.cron.Every("test gid", time.Second*2, func(ctx context.Context, name string) error {
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Counter(name).Inc(1)
 		// id.Metric.Tagged(metric.Tags{"name": name, "time": time.Now().Format("15:04")}).Gauge(name).Update(1)
-		id.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
+		t.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 		return nil
 	})

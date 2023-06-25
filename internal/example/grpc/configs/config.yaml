@@ -9,12 +9,6 @@ gid-client:
   addr: localhost:50051
   srv: gid
 
-registry:
-  driver: "mdns"
-
-tracing:
-  driver: "jaeger"
-
 logger:
   level: debug
   as-json: false

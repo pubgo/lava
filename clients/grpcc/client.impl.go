@@ -17,8 +17,6 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
@@ -34,7 +32,7 @@ type Params struct {
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
 	cfg = config.MergeR(grpcc_config.DefaultCfg(), generic.DePtr(cfg)).Unwrap()
-	var defaultMiddlewares = []lava.Middleware{
+	var defaultMiddlewares = lava.Middlewares{
 		middleware_service_info.New(),
 		p.MetricMiddleware,
 		p.AccessLogMiddleware,
@@ -52,7 +50,7 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 		c.Get().Unwrap()
 	}
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Srv), cfg)
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), cfg)
 	return c
 }
 
@@ -77,12 +75,12 @@ func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}
 func (t *clientImpl) Healthy(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
-		return errors.Wrapf(conn.Err(), "get client failed, service=%s", t.cfg.Srv)
+		return errors.Wrapf(conn.Err(), "get client failed, service=%s", t.cfg.Service)
 	}
 
 	_, err := grpc_health_v1.NewHealthClient(conn.Unwrap()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 	if err != nil {
-		return errors.Wrapf(err, "service %s heath check failed", t.cfg.Srv)
+		return errors.Wrapf(err, "service %s heath check failed", t.cfg.Service)
 	}
 	return nil
 }
@@ -90,7 +88,7 @@ func (t *clientImpl) Healthy(ctx context.Context) error {
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	conn := t.Get()
 	if conn.IsErr() {
-		return nil, errors.Wrapf(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Srv, method)
+		return nil, errors.Wrapf(conn.Err(), "get client failed, service=%s method=%s", t.cfg.Service, method)
 	}
 
 	c, err1 := conn.Unwrap().NewStream(ctx, desc, method, opts...)
@@ -120,47 +118,4 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 
 	t.conn = conn
 	return r.WithVal(t.conn)
-}
-
-func buildTarget(cfg *grpcc_config.Cfg) string {
-	addr := cfg.Addr
-	scheme := grpcc_resolver.DirectScheme
-	if cfg.Scheme != "" {
-		scheme = cfg.Scheme
-	}
-
-	switch scheme {
-	case grpcc_resolver.DiscovScheme:
-		return grpcc_resolver.BuildDiscovTarget(addr)
-	case grpcc_resolver.DirectScheme:
-		return grpcc_resolver.BuildDirectTarget(addr)
-	case grpcc_resolver.K8sScheme, grpcc_resolver.DnsScheme:
-		return fmt.Sprintf("dns:///%s", addr)
-	default:
-		return addr
-	}
-}
-
-func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (grpc.ClientConnInterface, error) {
-	// 创建grpc client
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
-	defer cancel()
-
-	addr := buildTarget(cfg)
-
-	ee := log.Info().
-		Str(logkey.Service, cfg.Srv).
-		Str("addr", addr)
-	ee.Msg("grpc client init")
-
-	conn, err := grpc.DialContext(ctx, addr, append(
-		cfg.Client.ToOpts(),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
-		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "grpc dial failed, target=>%s", addr)
-	}
-
-	ee.Msg("grpc client init ok")
-	return conn, nil
 }

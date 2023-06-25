@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/grpcutil"
 )
 
 const Name = "accesslog"
@@ -56,6 +57,12 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		evt.Str("endpoint", req.Endpoint())
 		evt.Bool("client", req.Client())
 		evt.Str("version", version.Version())
+
+		var clientInfo = lava.GetClientInfo(ctx)
+		if clientInfo != nil {
+			evt.Str(grpcutil.ClientNameKey, clientInfo.GetName())
+			evt.Str(grpcutil.ClientPathKey, clientInfo.GetPath())
+		}
 
 		// 错误和panic处理
 		defer func() {

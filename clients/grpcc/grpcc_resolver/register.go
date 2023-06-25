@@ -7,6 +7,6 @@ import (
 
 func init() {
 	resolver.Register(&directBuilder{})
-	resolver.Register(&discovBuilder{})
+	resolver.Register(&discoveryBuilder{})
 	// resolver.Register(kuberesolver.NewBuilder(nil, "kubernetes"))
 }

@@ -30,15 +30,21 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 
 // Cfg ...
 type Cfg struct {
-	Client *GrpcClientCfg `yaml:"grpc_client"`
-	Srv    string         `yaml:"srv"`
-	Addr   string         `yaml:"addr"`
-	Scheme string         `yaml:"scheme"`
+	Client  *GrpcClientCfg `yaml:"grpc_client"`
+	Service *ServiceCfg    `yaml:"service"`
+}
+
+type ServiceCfg struct {
+	Name   string `yaml:"name"`
+	Addr   string `yaml:"addr"`
+	Scheme string `yaml:"scheme"`
 }
 
 func DefaultCfg() *Cfg {
 	cfg := &Cfg{
-		Scheme: grpcc_resolver.DirectScheme,
+		Service: &ServiceCfg{
+			Scheme: grpcc_resolver.DirectScheme,
+		},
 		Client: &GrpcClientCfg{
 			Insecure: true,
 			// refer: https://github.com/grpc/grpc/blob/master/doc/service_config.md
@@ -63,7 +69,7 @@ func DefaultCfg() *Cfg {
 			},
 			Call: callParameters{
 				MaxCallRecvMsgSize: 1024 * 1024 * 4,
-				// DefaultMaxSendMsgSize maximum message that Srv can send (4 MB).
+				// DefaultMaxSendMsgSize maximum message that Service can send (4 MB).
 				MaxCallSendMsgSize: 1024 * 1024 * 4,
 			},
 		},

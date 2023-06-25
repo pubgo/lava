@@ -16,21 +16,21 @@ import (
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/service"
 	"github.com/pubgo/lava/internal/logutil"
-	eventpbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
+	pbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
 )
 
-var _ resolver.Builder = (*discovBuilder)(nil)
+var _ resolver.Builder = (*discoveryBuilder)(nil)
 
-type discovBuilder struct {
+type discoveryBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
 	disco    discovery.Discovery
 }
 
-func (d *discovBuilder) Scheme() string { return DiscovScheme }
+func (d *discoveryBuilder) Scheme() string { return DiscoveryScheme }
 
 // 删除服务
-func (d *discovBuilder) delService(services ...*service.Service) {
+func (d *discoveryBuilder) delService(services ...*service.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 删除服务信息
@@ -42,7 +42,7 @@ func (d *discovBuilder) delService(services ...*service.Service) {
 }
 
 // 更新服务
-func (d *discovBuilder) updateService(services ...*service.Service) {
+func (d *discoveryBuilder) updateService(services ...*service.Service) {
 	for i := range services {
 		for _, n := range services[i].Nodes {
 			// 更新服务信息
@@ -60,7 +60,7 @@ func (d *discovBuilder) updateService(services ...*service.Service) {
 }
 
 // 获取服务地址
-func (d *discovBuilder) getAddrList(name string) []resolver.Address {
+func (d *discoveryBuilder) getAddrList(name string) []resolver.Address {
 	var addrList []resolver.Address
 	d.services.Range(func(_, value interface{}) bool {
 		addr := *value.(*resolver.Address)
@@ -72,8 +72,8 @@ func (d *discovBuilder) getAddrList(name string) []resolver.Address {
 	return addrList
 }
 
-// Build discov://service_name
-func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, gErr error) {
+// Build discovery://service_name:50051
+func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (_ resolver.Resolver, gErr error) {
 	defer recovery.Recovery(func(err error) {
 		gErr = err
 		pretty.Println(target.URL.String())
@@ -82,7 +82,6 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	// 服务发现
 	logs.Info().Msgf("discovery builder, target=>%#v", target)
 
-	// 直接通过全局变量[registry.Default]获取注册中心, 然后进行判断
 	assert.If(d.disco == nil, "registry is nil")
 
 	srv := target.URL.Host
@@ -107,6 +106,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	})
 
 	return &baseResolver{
+		builder: DiscoveryScheme,
 		cancel: async.GoCtx(func(ctx context.Context) (gErr error) {
 			defer logutil.HandleClose(logs, w.Stop)
 
@@ -128,7 +128,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 					}
 
 					// 注册中心删除服务
-					if res.Unwrap().Action == eventpbv1.EventType_DELETE {
+					if res.Unwrap().Action == pbv1.EventType_DELETE {
 						d.delService(res.Unwrap().Service)
 					} else {
 						d.updateService(res.Unwrap().Service)
@@ -143,6 +143,5 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 				}
 			}
 		}),
-		builder: DiscovScheme,
 	}, nil
 }
