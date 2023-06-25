@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )

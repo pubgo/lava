@@ -8,14 +8,14 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/pkg/cmds"
 )
 
 func New() *cli.Command {
 	return &cli.Command{
 		Name:    "version",
 		Aliases: []string{"v"},
-		Usage:   cmdutil.UsageDesc("%s version info", version.Project()),
+		Usage:   cmds.UsageDesc("%s version info", version.Project()),
 		Action: func(ctx *cli.Context) error {
 			defer recovery.Exit()
 			fmt.Println("project:", version.Project())

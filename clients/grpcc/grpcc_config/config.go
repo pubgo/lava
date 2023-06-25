@@ -36,8 +36,8 @@ type Cfg struct {
 	Scheme string         `yaml:"scheme"`
 }
 
-func DefaultCfg() Cfg {
-	cfg := Cfg{
+func DefaultCfg() *Cfg {
+	cfg := &Cfg{
 		Scheme: grpcc_resolver.DirectScheme,
 		Client: &GrpcClientCfg{
 			Insecure: true,

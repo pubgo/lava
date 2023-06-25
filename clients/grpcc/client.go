@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/logging/logkey"
@@ -24,6 +23,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
+	"github.com/pubgo/lava/lava"
 )
 
 type Params struct {
@@ -33,8 +33,7 @@ type Params struct {
 }
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	conf := generic.Ptr(grpcc_config.DefaultCfg())
-	assert.Must(config.Merge(conf, cfg))
+	cfg = config.MergeR(grpcc_config.DefaultCfg(), generic.DePtr(cfg)).Unwrap()
 	var defaultMiddlewares = []lava.Middleware{
 		middleware_service_info.New(),
 		p.MetricMiddleware,
@@ -44,16 +43,16 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 	defaultMiddlewares = append(defaultMiddlewares, middlewares...)
 
 	c := &clientImpl{
-		cfg:         conf,
+		cfg:         cfg,
 		log:         p.Log,
 		middlewares: defaultMiddlewares,
 	}
 
-	if conf.Client.Block {
+	if cfg.Client.Block {
 		c.Get().Unwrap()
 	}
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", conf.Srv), conf)
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Srv), cfg)
 	return c
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 var _ lava.Request = (*rpcRequest)(nil)

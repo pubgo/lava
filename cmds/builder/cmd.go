@@ -25,7 +25,7 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/pkg/cmds"
 
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
@@ -90,7 +90,7 @@ func Run(di *dix.Dix, cmdL ...*cli.Command) {
 		Name:                   version.Project(),
 		Suggest:                true,
 		UseShortOptionHandling: true,
-		Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
+		Usage:                  cmds.UsageDesc("%s service", version.Project()),
 		Version:                version.Version(),
 		Flags:                  flags.GetFlags(),
 		Commands:               cmdL,

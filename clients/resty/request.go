@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/utils"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 var _ lava.Request = (*requestImpl)(nil)

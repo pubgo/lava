@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
@@ -30,7 +29,6 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -41,6 +39,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
+	"github.com/pubgo/lava/lava"
 )
 
 func New() lava.Service { return newService() }
@@ -81,10 +80,9 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	conf *Config,
 ) {
-	cfg := generic.Ptr(defaultCfg())
-	assert.Must(config.Merge(cfg, conf))
-	basePath := "/" + strings.Trim(cfg.BaseUrl, "/")
-	cfg.BaseUrl = basePath
+	conf = config.MergeR(defaultCfg(), conf).Unwrap()
+	basePath := "/" + strings.Trim(conf.BaseUrl, "/")
+	conf.BaseUrl = basePath
 
 	middlewares := []lava.Middleware{
 		middleware_service_info.New(),
@@ -102,7 +100,7 @@ func (s *serviceImpl) DixInject(
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		EnablePrintRoutes:  cfg.EnablePrintRoutes,
+		EnablePrintRoutes:  conf.EnablePrintRoutes,
 		AppName:            version.Project(),
 	})
 	httpServer.Mount("/debug", debug.App())
@@ -144,7 +142,7 @@ func (s *serviceImpl) DixInject(
 	s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
 	// grpc server初始化
-	grpcServer := cfg.GrpcConfig.Build(
+	grpcServer := conf.GrpcConfig.Build(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
@@ -189,7 +187,7 @@ func (s *serviceImpl) DixInject(
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config", version.Project()), &cfg)
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config", version.Project()), &conf)
 }
 
 func (s *serviceImpl) start() {

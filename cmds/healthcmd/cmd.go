@@ -11,15 +11,15 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/pkg/cmds"
 	"github.com/pubgo/lava/pkg/netutil"
 )
 
 func New() *cli.Command {
 	return &cli.Command{
 		Name:  "health",
-		Usage: cmdutil.UsageDesc("%s health check", version.Project()),
-		Description: cmdutil.ExampleFmt(
+		Usage: cmds.UsageDesc("%s health check", version.Project()),
+		Description: cmds.ExampleFmt(
 			"lava health",
 			"lava health localhost:8080",
 		),

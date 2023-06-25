@@ -7,8 +7,8 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/uber-go/tally/v4"
 
-	"github.com/pubgo/lava"
 	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/lava"
 )
 
 // grpc metric

@@ -1,7 +1,7 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
 )
 

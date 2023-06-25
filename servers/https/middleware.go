@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 // DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.

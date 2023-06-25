@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 const Name = "resty"

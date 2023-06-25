@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 func New() lava.Middleware {

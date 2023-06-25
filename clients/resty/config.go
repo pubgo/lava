@@ -12,7 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 func (c *clientConfig) Initial() {

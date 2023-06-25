@@ -3,7 +3,7 @@ package resty
 import (
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava"
+	"github.com/pubgo/lava/lava"
 )
 
 var _ lava.Response = (*responseImpl)(nil)

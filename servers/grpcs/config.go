@@ -20,8 +20,8 @@ type Config struct {
 	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
 }
 
-func defaultCfg() Config {
-	return Config{
+func defaultCfg() *Config {
+	return &Config{
 		EnablePrintRoutes: true,
 		BaseUrl:           version.Project(),
 		GrpcConfig:        grpc_builder.GetDefaultCfg(),
