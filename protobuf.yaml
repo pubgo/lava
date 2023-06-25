@@ -1,4 +1,4 @@
-checksum: 726223e2caccb7cbc600c7b6f4c6bc28dff9707b
+checksum: 37dd528ded32fd3c8ae45f9f93ac65dd49214965
 vendor: .proto
 base:
   out: ./pkg
@@ -18,4 +18,4 @@ deps:
     version: v0.5.29-30
 plugins:
   - name: go
-  - name: lava-errors
+  - name: go-errors
