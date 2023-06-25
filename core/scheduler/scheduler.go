@@ -12,6 +12,8 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/try"
 	"github.com/reugn/go-quartz/quartz"
+
+	"github.com/pubgo/lava/core/metrics"
 )
 
 type job struct {
@@ -22,6 +24,7 @@ type job struct {
 }
 
 type Scheduler struct {
+	metric    metrics.Metric
 	config    map[string]JobSetting
 	scheduler quartz.Scheduler
 	log       log.Logger
@@ -102,6 +105,8 @@ func (t namedJob) Execute() {
 
 		return t.fn(ctx, t.name)
 	})
+
+	t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("scheduler_job_cost").Update(float64(time.Since(start).Microseconds()) / 1000)
 
 	logger := generic.Ternary(generic.IsNil(err), t.log.Info(), t.log.Err(err))
 	logger.

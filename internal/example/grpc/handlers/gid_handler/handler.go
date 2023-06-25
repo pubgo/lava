@@ -84,13 +84,13 @@ func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, servi
 
 func (id *Id) Init() {
 	id.cron.Every("test_gid", time.Second*10, func(ctx context.Context, name string) error {
-		id.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 
 		rsp, err := id.service.Types(ctx, &gidpb.TypesRequest{})
 		if err != nil {
 			return err
 		}
+
 		id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
 		return nil
 	})

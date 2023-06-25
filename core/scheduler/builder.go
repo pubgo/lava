@@ -8,11 +8,12 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/metrics"
 )
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter) *Scheduler {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter, metric metrics.Metric) *Scheduler {
 	var config = make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
 		for _, setting := range opts[0].JobSettings {
@@ -26,6 +27,7 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRo
 
 	ctx, cancel := context.WithCancel(context.Background())
 	quart := &Scheduler{
+		metric:    metric,
 		config:    config,
 		scheduler: quartz.NewStdScheduler(),
 		log:       log.WithName(Name),
