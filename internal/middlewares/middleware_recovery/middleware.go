@@ -5,11 +5,13 @@ import (
 	"runtime/debug"
 
 	"github.com/pubgo/funk/errors"
+
 	"github.com/pubgo/lava/lava"
 )
 
 func New() lava.Middleware {
 	return lava.MiddlewareWrap{
+		Name: "recovery",
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 				defer func() {
@@ -22,6 +24,5 @@ func New() lava.Middleware {
 				return next(ctx, req)
 			}
 		},
-		Name: "recovery",
 	}
 }

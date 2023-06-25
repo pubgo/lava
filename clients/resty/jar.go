@@ -2,18 +2,53 @@ package resty
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
+	"github.com/pubgo/funk/log"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lava/lava"
 )
 
+var _ lava.Middleware = (*Jar)(nil)
+
 type Jar struct {
-	mu sync.Mutex
+	mu  sync.Mutex
+	log log.Logger
 
 	cookies map[string]*fasthttp.Cookie
+}
+
+func (j *Jar) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
+	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		for _, c := range j.cookies {
+			req.Header().SetCookieBytesKV(c.Key(), c.Value())
+		}
+
+		rsp, err := next(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		rsp.Header().VisitAllCookie(func(key, value []byte) {
+			acquireCookie := fasthttp.AcquireCookie()
+			if err := acquireCookie.ParseBytes(value); err != nil {
+				j.log.Err(err, ctx).Msg("failed to parse cookie")
+			} else {
+				j.cookies[string(acquireCookie.Key())] = acquireCookie
+			}
+		})
+
+		return rsp, err
+	}
+}
+
+func (j *Jar) String() string {
+	return "cookie-jar"
 }
 
 func NewJar() *Jar {

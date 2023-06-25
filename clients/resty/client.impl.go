@@ -6,28 +6,36 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New(cfg *Config, log log.Logger, m metrics.Metric) Client {
-	cfg = merge.Copy(DefaultCfg(), cfg).Unwrap()
+type Params struct {
+	Log                 log.Logger
+	MetricMiddleware    *middleware_metric.MetricMiddleware
+	AccessLogMiddleware *middleware_accesslog.LogMiddleware
+}
+
+func New(cfg *Config, p Params, middlewares ...lava.Middleware) Client {
+	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	return &clientImpl{
-		cfg: cfg,
-		log: log,
-		m:   m,
+		cfg:                 cfg,
+		log:                 p.Log,
+		middlewares:         middlewares,
+		metricMiddleware:    p.MetricMiddleware,
+		accessLogMiddleware: p.AccessLogMiddleware,
 	}
 }
 
@@ -35,42 +43,22 @@ var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	cfg         *Config
-	do          lava.HandlerFunc
-	log         log.Logger
-	m           metrics.Metric
-	once        sync.Once
-	middlewares []lava.Middleware
-}
-
-func (c *clientImpl) Middleware(mm ...lava.Middleware) {
-	//jar := NewJar()
-	//c.Middleware(func(next lava.HandlerFunc) lava.HandlerFunc {
-	//	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
-	//		for _, c := range jar.cookies {
-	//			req.Header().SetCookieBytesKV(c.Key(), c.Value())
-	//		}
-	//
-	//		rsp, err := next(ctx, req)
-	//		rsp.Header().VisitAllCookie(func(key, value []byte) {
-	//			cookie := fasthttp.AcquireCookie()
-	//			cookie.ParseBytes(value)
-	//			jar.cookies[string(cookie.Key())] = cookie
-	//		})
-	//
-	//		return rsp, err
-	//	}
-	//})
-
-	c.middlewares = append(c.middlewares, mm...)
+	cfg                 *Config
+	do                  lava.HandlerFunc
+	log                 log.Logger
+	once                sync.Once
+	metricMiddleware    *middleware_metric.MetricMiddleware
+	accessLogMiddleware *middleware_accesslog.LogMiddleware
+	middlewares         []lava.Middleware
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
 	defer recovery.Result(&r)
 	c.once.Do(func() {
 		c.do = c.cfg.Build(append([]lava.Middleware{
-			middleware_metric.New(c.m),
-			middleware_accesslog.New(c.log),
+			middleware_service_info.New(),
+			c.metricMiddleware,
+			c.accessLogMiddleware,
 			middleware_recovery.New(),
 		}, c.middlewares...))
 	})
@@ -146,11 +134,6 @@ func doRequest(ctx context.Context, c *clientImpl, mth string, url string, data 
 	req.SetBodyRaw(body)
 	if len(opts) > 0 {
 		opts[0](req)
-	}
-
-	// Enable trace
-	if c.cfg.Trace {
-		ctx = (&clientTrace{}).createContext(ctx)
 	}
 
 	return c.Do(ctx, req)

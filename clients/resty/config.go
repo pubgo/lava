@@ -40,7 +40,6 @@ type clientConfig struct {
 }
 
 type Config struct {
-	Trace                     bool              `yaml:"trace"`
 	Timeout                   time.Duration     `yaml:"timeout"`
 	ReadTimeout               time.Duration     `yaml:"read_timeout"`
 	WriteTimeout              time.Duration     `yaml:"write_timeout"`
