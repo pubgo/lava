@@ -27,5 +27,6 @@ func init() {
 		Usage:       "enable debug mode",
 		Value:       running.IsDebug,
 		Destination: &running.IsDebug,
+		EnvVars:     typex.StrOf(env.Key("debug"), env.Key("enable_debug")),
 	})
 }

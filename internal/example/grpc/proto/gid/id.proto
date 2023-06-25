@@ -8,11 +8,6 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "errorpb/status.proto";
 
-message Tag {
-  string key = 1;
-  string value = 2;
-}
-
 message GenerateResponse {
   // the unique id generated
   string id = 1;
