@@ -2,13 +2,14 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/try"
 	"github.com/reugn/go-quartz/quartz"
 )
@@ -26,6 +27,7 @@ type Scheduler struct {
 	log       log.Logger
 	cancel    context.CancelFunc
 	ctx       context.Context
+	jobs      map[string]JobFunc
 }
 
 func (s *Scheduler) stop() {
@@ -41,7 +43,21 @@ func (s *Scheduler) start() {
 	s.scheduler.Start()
 }
 
-func (s *Scheduler) Once(name string, delay time.Duration, fn func(ctx context.Context, name string) error) {
+func (s *Scheduler) checkJobExists(name string, fn JobFunc) error {
+	if s.jobs[name] != nil {
+		return &errors.Err{
+			Msg:    fmt.Sprintf("job %s exists", name),
+			Detail: stack.CallerWithFunc(s.jobs[name]).String(),
+		}
+	}
+
+	s.jobs[name] = fn
+	return nil
+}
+
+func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
 	s.log.WithCallerSkip(1).Info().
 		Str("name", name).
 		Str("delay", delay.String()).
@@ -49,7 +65,9 @@ func (s *Scheduler) Once(name string, delay time.Duration, fn func(ctx context.C
 	do(s, job{dur: delay, key: name, once: true}, fn)
 }
 
-func (s *Scheduler) Every(name string, dur time.Duration, fn func(ctx context.Context, name string) error) {
+func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
 	s.log.WithCallerSkip(1).Info().
 		Str("name", name).
 		Str("dur", dur.String()).
@@ -57,7 +75,9 @@ func (s *Scheduler) Every(name string, dur time.Duration, fn func(ctx context.Co
 	do(s, job{dur: dur, key: name}, fn)
 }
 
-func (s *Scheduler) Cron(name string, expr string, fn func(ctx context.Context, name string) error) {
+func (s *Scheduler) Cron(name string, expr string, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
 	s.log.WithCallerSkip(1).Info().
 		Str("name", name).
 		Str("expr", expr).
@@ -65,37 +85,10 @@ func (s *Scheduler) Cron(name string, expr string, fn func(ctx context.Context, 
 	do(s, job{cron: expr, key: name}, fn)
 }
 
-func getTrigger(j job) quartz.Trigger {
-	if j.once {
-		return quartz.NewRunOnceTrigger(j.dur)
-	}
-
-	if j.cron != "" {
-		r := result.Wrap(quartz.NewCronTrigger(j.cron))
-		return r.Unwrap(func(err error) error {
-			return errors.WrapKV(err, "cron-expr", j.cron)
-		})
-	}
-
-	if j.dur != 0 {
-		return quartz.NewSimpleTrigger(j.dur)
-	}
-
-	return nil
-}
-
-func do(s *Scheduler, job job, fn func(ctx context.Context, name string) error) {
-	trigger := getTrigger(job)
-	assert.If(job.key == "", "[name] should not be null")
-	assert.If(fn == nil, "[fn] should not be nil")
-	assert.If(trigger == nil, "please init dur or cron")
-	assert.Must(s.scheduler.ScheduleJob(namedJob{s: s, name: job.key, fn: fn, log: s.log}, trigger))
-}
-
 type namedJob struct {
 	s    *Scheduler
 	name string
-	fn   func(ctx context.Context, name string) error
+	fn   JobFunc
 	log  log.Logger
 }
 

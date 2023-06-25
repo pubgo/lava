@@ -15,12 +15,12 @@ const Name = "scheduler"
 func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter) *Scheduler {
 	var config = make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
-		for _, opt := range *opts[0] {
-			if _, ok := config[opt.Name]; ok {
-				panic(fmt.Sprintf("schedule job(%s) exists", opt.Name))
+		for _, setting := range opts[0].JobSettings {
+			if _, ok := config[setting.Name]; ok {
+				panic(fmt.Sprintf("schedule job(%s) exists", setting.Name))
 			}
 
-			config[opt.Name] = opt
+			config[setting.Name] = setting
 		}
 	}
 
@@ -31,6 +31,7 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRo
 		log:       log.WithName(Name),
 		ctx:       ctx,
 		cancel:    cancel,
+		jobs:      make(map[string]JobFunc),
 	}
 
 	quart.start()

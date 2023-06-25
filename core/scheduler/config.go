@@ -7,4 +7,7 @@ type JobSetting struct {
 	Timeout  string `yaml:"timeout"`
 }
 
-type Config []JobSetting
+type Config struct {
+	Timeout     string       `yaml:"timeout"`
+	JobSettings []JobSetting `yaml:"jobs"`
+}

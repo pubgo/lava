@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/funk/pretty"
 	"strings"
 	"time"
 
@@ -38,7 +37,6 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 	unaryWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		md := make(metadata.MD)
 		head2md(req.Header(), md)
-		pretty.Println(md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		reqCtx := req.(*request)
 		header := make(metadata.MD)
