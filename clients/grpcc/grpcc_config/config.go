@@ -60,7 +60,7 @@ func DefaultCfg() *Cfg {
 			ClientParameters: clientParameters{
 				PermitWithoutStream: true,             // send pings even without active streams
 				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
-				Timeout:             2 * time.Second,  // wait 2 second for ping ack before considering the connection dead
+				Timeout:             5 * time.Second,  // wait 2 second for ping ack before considering the connection dead
 			},
 			ConnectParams: connectParams{
 				Backoff: backoffConfig{

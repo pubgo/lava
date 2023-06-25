@@ -6,15 +6,6 @@ grpc_server:
     read_buffer_size: 1024
     initial_window_size: 1
     initial_conn_window_size: 1
-    keepalive_params:
-      max_connection_idle: 1s
-      max_connection_age: 2s
-      max_connection_age_grace: 2s
-      time: 1s
-      timeout: 1s
-    keepalive_policy:
-      permit_without_stream: true
-      min_time: 1s
     codec: json
     cp: gzip
     dc: gzip

@@ -84,7 +84,7 @@ func (s *serviceImpl) DixInject(
 	basePath := "/" + strings.Trim(conf.BaseUrl, "/")
 	conf.BaseUrl = basePath
 
-	middlewares := []lava.Middleware{
+	middlewares := lava.Middlewares{
 		middleware_service_info.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
