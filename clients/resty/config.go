@@ -1,7 +1,6 @@
 package resty
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -11,35 +10,12 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
-
-	"github.com/pubgo/lava/lava"
+	"golang.org/x/net/http/httpproxy"
 )
 
-func (c *clientConfig) Initial() {
-	c.DialDualStack = false
-	c.MaxConnsPerHost = 512
-	c.MaxIdleConnDuration = 10 * time.Second
-	c.MaxIdemponentCallAttempts = 5
-	c.ReadBufferSize = 4096
-	c.WriteBufferSize = 4096
-	c.ReadTimeout = 10 * time.Second
-	c.WriteTimeout = 10 * time.Second
-	c.MaxResponseBodySize = 2 * 1024 * 1024
-}
-
-type clientConfig struct {
-	DialDualStack             bool          `json:"dialDualStack"`
-	MaxConnsPerHost           int           `josn:"maxConnsPerHost"`
-	MaxIdleConnDuration       time.Duration `json:"maxIdleConnDuration"`
-	MaxIdemponentCallAttempts int           `json:"maxIdemponentCallAttempts"`
-	ReadBufferSize            int           `json:"readBufferSize"`
-	WriteBufferSize           int           `json:"writeBufferSize"`
-	ReadTimeout               time.Duration `json:"readTimeout"`
-	WriteTimeout              time.Duration `json:"writeTimeout"`
-	MaxResponseBodySize       int           `json:"maxResponseBodySize"`
-}
-
 type Config struct {
+	BaseUrl string `yaml:"base_url"`
+
 	Timeout                   time.Duration     `yaml:"timeout"`
 	ReadTimeout               time.Duration     `yaml:"read_timeout"`
 	WriteTimeout              time.Duration     `yaml:"write_timeout"`
@@ -48,7 +24,6 @@ type Config struct {
 	Socks5                    string            `yaml:"socks5"`
 	Insecure                  bool              `yaml:"insecure"`
 	Header                    map[string]string `yaml:"header"`
-	BaseUrl                   string            `yaml:"base_url"`
 	TargetService             string            `yaml:"target_service"`
 	Token                     string            `yaml:"token"`
 	JwtToken                  string            `yaml:"jwt_token"`
@@ -70,56 +45,48 @@ type Config struct {
 	tlsConfig *tls.Config
 }
 
-func (t *Config) Build(mm []lava.Middleware) lava.HandlerFunc {
+func (t *Config) Build() *fasthttp.Client {
 	if t.Timeout != 0 {
 		t.backoff = retry.NewConstant(t.Timeout)
 	}
 
 	client := &fasthttp.Client{
 		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
-		ReadTimeout:               t.Timeout,
-		WriteTimeout:              t.Timeout,
+		ReadTimeout:               t.ReadTimeout,
+		WriteTimeout:              t.WriteTimeout,
 		NoDefaultUserAgentHeader:  true,
-		MaxIdemponentCallAttempts: 5,
+		MaxConnsPerHost:           t.MaxConnsPerHost,
+		MaxIdleConnDuration:       t.MaxIdleConnDuration,
+		MaxIdemponentCallAttempts: t.MaxIdemponentCallAttempts,
+		ReadBufferSize:            t.ReadBufferSize,
+		WriteBufferSize:           t.WriteBufferSize,
+		MaxResponseBodySize:       t.MaxResponseBodySize,
 	}
 
-	if t.proxy != "" {
-		client.Dial = fasthttpproxy.FasthttpHTTPDialer(t.proxy)
+	if t.Proxy && httpproxy.FromEnvironment() != nil {
+		client.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(t.Timeout)
 	} else {
 		client.Dial = func(addr string) (net.Conn, error) {
 			return fasthttp.DialTimeout(addr, t.Timeout)
 		}
 	}
 
-	do := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		req.Header().SetUserAgent(fmt.Sprintf("%s: %s", version.Project(), version.Version()))
-
-		var err error
-		resp := fasthttp.AcquireResponse()
-		deadline, ok := ctx.Deadline()
-		if ok {
-			err = client.DoDeadline(req.(*requestImpl).req, resp, deadline)
-		} else {
-			err = client.Do(req.(*requestImpl).req, resp)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		return &responseImpl{resp: resp}, nil
-	}
-
-	do = lava.Chain(mm...).Middleware(do)
-	return do
+	return client
 }
 
 func DefaultCfg() *Config {
 	return &Config{
-		Timeout:      defaultHTTPTimeout,
-		ReadTimeout:  6 * time.Second,
-		WriteTimeout: 6 * time.Second,
-		RetryCount:   defaultRetryCount,
-		backoff:      retry.NewNoop(),
+		backoff: retry.NewNoop(),
+
+		Timeout:                   defaultHTTPTimeout,
+		ReadTimeout:               10 * time.Second,
+		WriteTimeout:              10 * time.Second,
+		RetryCount:                defaultRetryCount,
+		MaxConnsPerHost:           512,
+		MaxIdleConnDuration:       10 * time.Second,
+		MaxIdemponentCallAttempts: 5,
+		ReadBufferSize:            4096,
+		WriteBufferSize:           4096,
+		MaxResponseBodySize:       2 * 1024 * 1024,
 	}
 }

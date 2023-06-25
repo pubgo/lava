@@ -9,7 +9,12 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/convert"
 	"github.com/valyala/bytebufferpool"
+	"github.com/valyala/fasthttp"
 )
+
+func NewRequest() *fasthttp.Request {
+	return fasthttp.AcquireRequest()
+}
 
 func getBodyReader(rawBody interface{}) ([]byte, error) {
 	switch body := rawBody.(type) {

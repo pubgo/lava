@@ -2,6 +2,7 @@ package resty
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
@@ -28,14 +29,15 @@ type Params struct {
 	AccessLogMiddleware *middleware_accesslog.LogMiddleware
 }
 
-func New(cfg *Config, p Params, middlewares ...lava.Middleware) Client {
+func New(cfg *Config, p Params, mm ...lava.Middleware) Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
+	middlewares := []lava.Middleware{middleware_service_info.New(), p.MetricMiddleware, p.AccessLogMiddleware, middleware_recovery.New()}
+	middlewares = append(middlewares, mm...)
+
 	return &clientImpl{
-		cfg:                 cfg,
-		log:                 p.Log,
-		middlewares:         middlewares,
-		metricMiddleware:    p.MetricMiddleware,
-		accessLogMiddleware: p.AccessLogMiddleware,
+		cfg:         cfg,
+		log:         p.Log,
+		middlewares: middlewares,
 	}
 }
 
@@ -43,24 +45,35 @@ var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	cfg                 *Config
-	do                  lava.HandlerFunc
-	log                 log.Logger
-	once                sync.Once
-	metricMiddleware    *middleware_metric.MetricMiddleware
-	accessLogMiddleware *middleware_accesslog.LogMiddleware
-	middlewares         []lava.Middleware
+	cfg         *Config
+	do          lava.HandlerFunc
+	log         log.Logger
+	once        sync.Once
+	middlewares []lava.Middleware
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
 	defer recovery.Result(&r)
 	c.once.Do(func() {
-		c.do = c.cfg.Build(append([]lava.Middleware{
-			middleware_service_info.New(),
-			c.metricMiddleware,
-			c.accessLogMiddleware,
-			middleware_recovery.New(),
-		}, c.middlewares...))
+		var client = c.cfg.Build()
+		c.do = lava.Chain(c.middlewares...).Middleware(func(ctx context.Context, req lava.Request) (lava.Response, error) {
+			req.Header().SetUserAgent(fmt.Sprintf("%s: %s", version.Project(), version.Version()))
+
+			var err error
+			resp := fasthttp.AcquireResponse()
+			deadline, ok := ctx.Deadline()
+			if ok {
+				err = client.DoDeadline(req.(*requestImpl).req, resp, deadline)
+			} else {
+				err = client.Do(req.(*requestImpl).req, resp)
+			}
+
+			if err != nil {
+				return nil, err
+			}
+
+			return &responseImpl{resp: resp}, nil
+		})
 	})
 
 	defer fasthttp.ReleaseRequest(req)

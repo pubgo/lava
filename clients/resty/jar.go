@@ -14,6 +14,13 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
+func NewJar(log log.Logger) *Jar {
+	return &Jar{
+		log:     log.WithName("cookie-jar"),
+		cookies: make(map[string]*fasthttp.Cookie),
+	}
+}
+
 var _ lava.Middleware = (*Jar)(nil)
 
 type Jar struct {
@@ -49,10 +56,6 @@ func (j *Jar) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 func (j *Jar) String() string {
 	return "cookie-jar"
-}
-
-func NewJar() *Jar {
-	return &Jar{cookies: make(map[string]*fasthttp.Cookie)}
 }
 
 func (j *Jar) PeekValue(key string) []byte {
