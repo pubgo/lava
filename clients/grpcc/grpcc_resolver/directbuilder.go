@@ -5,9 +5,16 @@ import (
 	"strings"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"google.golang.org/grpc/resolver"
 )
+
+func NewDirectBuilder() resolver.Builder {
+	return &directBuilder{
+		log: logs.WithName(DirectScheme),
+	}
+}
 
 var _ resolver.Builder = (*directBuilder)(nil)
 
@@ -15,7 +22,9 @@ var _ resolver.Builder = (*directBuilder)(nil)
 // example:
 //
 //	direct://127.0.0.1:9000,127.0.0.2:9000?name=test-srv
-type directBuilder struct{}
+type directBuilder struct {
+	log log.Logger
+}
 
 func (d *directBuilder) Scheme() string { return DirectScheme }
 
@@ -40,5 +49,5 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	}
 
 	assert.MustF(cc.UpdateState(newState(addrList)), "failed to update resolver address, address=%v", addrList)
-	return &baseResolver{builder: DirectScheme, name: name}, nil
+	return &baseResolver{builder: DirectScheme, serviceName: name}, nil
 }

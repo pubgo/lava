@@ -8,13 +8,13 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/vars"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -28,10 +28,13 @@ type Params struct {
 	Log                 log.Logger
 	MetricMiddleware    *middleware_metric.MetricMiddleware
 	AccessLogMiddleware *middleware_accesslog.LogMiddleware
+	Resolvers           []resolver.Builder
 }
 
 func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	cfg = config.MergeR(grpcc_config.DefaultCfg(), generic.DePtr(cfg)).Unwrap()
+	cfg = config.MergeR(grpcc_config.DefaultCfg(), cfg).Unwrap()
+	cfg.Resolvers = p.Resolvers
+
 	var defaultMiddlewares = lava.Middlewares{
 		middleware_service_info.New(),
 		p.MetricMiddleware,

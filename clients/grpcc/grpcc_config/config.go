@@ -3,8 +3,10 @@ package grpcc_config
 import (
 	"time"
 
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 )
 
 const (
@@ -30,8 +32,9 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 
 // Cfg ...
 type Cfg struct {
-	Client  *GrpcClientCfg `yaml:"grpc_client"`
-	Service *ServiceCfg    `yaml:"service"`
+	Client    *GrpcClientCfg     `yaml:"grpc_client"`
+	Service   *ServiceCfg        `yaml:"service"`
+	Resolvers []resolver.Builder `yaml:"-"`
 }
 
 type ServiceCfg struct {

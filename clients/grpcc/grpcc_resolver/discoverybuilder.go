@@ -2,6 +2,7 @@ package grpcc_resolver
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/pubgo/funk/assert"
@@ -16,8 +17,15 @@ import (
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/service"
 	"github.com/pubgo/lava/internal/logutil"
-	pbv1 "github.com/pubgo/lava/pkg/proto/event/v1"
+	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
+
+func NewDiscoveryBuilder(disco discovery.Discovery) resolver.Builder {
+	return &discoveryBuilder{
+		log:   logs.WithName(DiscoveryScheme),
+		disco: disco,
+	}
+}
 
 var _ resolver.Builder = (*discoveryBuilder)(nil)
 
@@ -25,6 +33,7 @@ type discoveryBuilder struct {
 	// getServiceUniqueId -> *resolver.Address
 	services sync.Map
 	disco    discovery.Discovery
+	log      log.Logger
 }
 
 func (d *discoveryBuilder) Scheme() string { return DiscoveryScheme }
@@ -83,8 +92,7 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	logs.Info().Msgf("discovery builder, target=>%#v", target)
 
 	assert.If(d.disco == nil, "registry is nil")
-
-	srv := target.URL.Host
+	srv := strings.SplitN(target.URL.Host, ":", 2)[0]
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
@@ -106,7 +114,8 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	})
 
 	return &baseResolver{
-		builder: DiscoveryScheme,
+		serviceName: srv,
+		builder:     DiscoveryScheme,
 		cancel: async.GoCtx(func(ctx context.Context) (gErr error) {
 			defer logutil.HandleClose(logs, w.Stop)
 
@@ -116,14 +125,17 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 					return
 				default:
 					res := w.Next()
-					if res.Err() == discovery.ErrWatcherStopped {
-						return
-					}
-
 					if res.IsErr() {
-						logutil.ErrRecord(logs, res.Err(), func(evt *log.Event) string {
-							return "failed to get watcher service event"
-						})
+						if errors.Is(res.Err(), discovery.ErrWatcherStopped) {
+							return
+						}
+
+						d.log.Err(res.Err(), ctx).Msg("failed to get service watcher event")
+
+						if errors.Is(res.Err(), discovery.ErrTimeout) {
+							continue
+						}
+
 						continue
 					}
 

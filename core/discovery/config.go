@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 )
 
 type Config struct {
-	RegisterInterval time.Duration          `yaml:"registerInterval"`
-	Driver           string                 `json:"driver" yaml:"driver"`
-	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
+	Interval  time.Duration `yaml:"interval"`
+	Driver    string        `yaml:"driver"`
+	DriverCfg *config.Node  `yaml:"driver_config"`
 }
 
 func (cfg *Config) Check() *Config {

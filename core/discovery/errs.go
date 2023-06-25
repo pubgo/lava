@@ -2,5 +2,5 @@ package discovery
 
 import "errors"
 
-// ErrWatcherStopped Watcher stopped error when watcher is stopped
-var ErrWatcherStopped = errors.New("watcher stopped")
+var ErrWatcherStopped = errors.New("err watcher stopped")
+var ErrTimeout = errors.New("err watcher timeout")

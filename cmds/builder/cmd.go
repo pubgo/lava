@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
+	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/cmds/depcmd"
 	"github.com/pubgo/lava/cmds/grpcservercmd"
 	"github.com/pubgo/lava/cmds/healthcmd"
@@ -18,6 +19,7 @@ import (
 	"github.com/pubgo/lava/cmds/migratecmd"
 	"github.com/pubgo/lava/cmds/ormcmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
+	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/logging"
@@ -52,14 +54,16 @@ import (
 )
 
 var defaultProviders = []any{
-	lifecycle.New,
+	grpcc_resolver.NewDirectBuilder,
+	grpcc_resolver.NewDiscoveryBuilder,
+	discovery.NewNoopDiscovery,
 
 	middleware_accesslog.New,
 	middleware_metric.New,
-
 	logging.New,
 	metrics.New,
 
+	lifecycle.New,
 	scheduler.New,
 }
 
