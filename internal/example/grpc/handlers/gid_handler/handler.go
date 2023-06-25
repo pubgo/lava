@@ -83,8 +83,7 @@ func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, servi
 }
 
 func (id *Id) Init() {
-	fmt.Println("test cron every")
-	id.cron.Every("test_gid", time.Second*2, func(ctx context.Context, name string) error {
+	id.cron.Every("test_gid", time.Second*10, func(ctx context.Context, name string) error {
 		id.metric.Tagged(metrics.Tags{"module": "scheduler"}).Counter(name).Inc(1)
 		fmt.Println("test cron every")
 

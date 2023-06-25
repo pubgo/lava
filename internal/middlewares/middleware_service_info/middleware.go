@@ -17,15 +17,20 @@ func New() lava.Middleware {
 		Name: "service_info",
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
+				var serverInfo = &pbv1.ServiceInfo{
+					Name:     version.Project(),
+					Version:  version.Version(),
+					Path:     req.Operation(),
+					Hostname: running.Hostname,
+					Ip:       running.LocalIP,
+				}
+
 				if req.Client() {
-					info := lava.GetServerInfo(ctx)
-					if info != nil {
-						req.Header().Set(grpcutil.ClientNameKey, info.Name)
-						req.Header().Set(grpcutil.ClientVersionKey, info.Version)
-						req.Header().Set(grpcutil.ClientPathKey, info.Path)
-						req.Header().Set(grpcutil.ClientHostnameKey, info.Hostname)
-						req.Header().Set(grpcutil.ClientIpKey, info.Ip)
-					}
+					req.Header().Set(grpcutil.ClientNameKey, serverInfo.Name)
+					req.Header().Set(grpcutil.ClientVersionKey, serverInfo.Version)
+					req.Header().Set(grpcutil.ClientPathKey, serverInfo.Path)
+					req.Header().Set(grpcutil.ClientHostnameKey, serverInfo.Hostname)
+					req.Header().Set(grpcutil.ClientIpKey, serverInfo.Ip)
 				} else {
 					clientInfo := new(pbv1.ServiceInfo)
 					if data := req.Header().Peek(grpcutil.ClientHostnameKey); data != nil {
@@ -49,13 +54,7 @@ func New() lava.Middleware {
 					}
 
 					ctx = lava.CreateCtxWithClientInfo(ctx, clientInfo)
-					ctx = lava.CreateCtxWithServerInfo(ctx, &pbv1.ServiceInfo{
-						Name:     version.Project(),
-						Version:  version.Version(),
-						Path:     req.Operation(),
-						Hostname: running.Hostname,
-						Ip:       running.LocalIP,
-					})
+					ctx = lava.CreateCtxWithServerInfo(ctx, serverInfo)
 				}
 
 				return next(ctx, req)

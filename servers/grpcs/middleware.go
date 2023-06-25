@@ -115,6 +115,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
+		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
 		header.Set(httputil.HeaderXRequestID, reqId)
 		header.Set(httputil.HeaderXRequestVersion, version.Version())
@@ -244,8 +245,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			func() string { return xid.New().String() },
 		)
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
-
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)

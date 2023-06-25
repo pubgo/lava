@@ -2,6 +2,7 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/funk/pretty"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 	unaryWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		md := make(metadata.MD)
 		head2md(req.Header(), md)
+		pretty.Println(md)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		reqCtx := req.(*request)
 		header := make(metadata.MD)
@@ -76,15 +78,6 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			md.Set("remote", p.Addr.String())
 		}
 
-		var serviceInfo = lava.GetServerInfo(ctx)
-		if serviceInfo != nil {
-			md.Set(grpcutil.ClientNameKey, serviceInfo.Name)
-			md.Set(grpcutil.ClientIpKey, serviceInfo.Ip)
-			md.Set(grpcutil.ClientHostnameKey, serviceInfo.Hostname)
-			md.Set(grpcutil.ClientVersionKey, serviceInfo.Version)
-			md.Set(grpcutil.ClientPathKey, serviceInfo.Path)
-		}
-
 		// timeout for server deadline
 		to := md.Get("timeout")
 		delete(md, "timeout")
@@ -119,6 +112,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			func() string { return xid.New().String() },
 		)
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
+		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
 		_, err = unaryWrapper(ctx, rpcReq)
 		return err
@@ -178,6 +172,15 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 
 		header := &fasthttp.RequestHeader{}
 		md2Head(md, header)
+
+		reqId := strutil.FirstFnNotEmpty(
+			func() string { return lava.GetReqID(ctx) },
+			func() string { return string(header.Peek(httputil.HeaderXRequestID)) },
+			func() string { return xid.New().String() },
+		)
+		header.Set(httputil.HeaderXRequestID, reqId)
+		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+
 		rsp, err := wrapperStream(ctx,
 			&request{
 				ct:       ct,

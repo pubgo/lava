@@ -57,8 +57,8 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
-	github.com/pubgo/dix v0.3.10-9
-	github.com/pubgo/funk v0.5.29-30
+	github.com/pubgo/dix v0.3.10-10
+	github.com/pubgo/funk v0.5.29-31
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2

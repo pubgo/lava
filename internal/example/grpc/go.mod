@@ -8,8 +8,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.10-9
-	github.com/pubgo/funk v0.5.29-30
+	github.com/pubgo/dix v0.3.10-10
+	github.com/pubgo/funk v0.5.29-31
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
