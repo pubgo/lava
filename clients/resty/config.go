@@ -14,33 +14,28 @@ import (
 )
 
 type Config struct {
-	BaseUrl string `yaml:"base_url"`
+	BaseUrl            string            `yaml:"base_url"`
+	DefaultHeader      map[string]string `yaml:"default_header"`
+	DefaultContentType string            `yaml:"default_content_type"`
+	RetryCount         uint32            `yaml:"retry_count"`
+	Proxy              bool              `yaml:"proxy"`
+	Socks5             string            `yaml:"socks5"`
+	TargetService      string            `yaml:"target_service"`
+	BasicToken         string            `yaml:"token"`
+	JwtToken           string            `yaml:"jwt_token"`
+	Debug              bool              `yaml:"debug"`
+	GzipRequest        bool              `yaml:"gzip_request"`
 
-	Timeout                   time.Duration     `yaml:"timeout"`
-	ReadTimeout               time.Duration     `yaml:"read_timeout"`
-	WriteTimeout              time.Duration     `yaml:"write_timeout"`
-	RetryCount                uint32            `yaml:"retry_count"`
-	Proxy                     bool              `yaml:"proxy"`
-	Socks5                    string            `yaml:"socks5"`
-	Insecure                  bool              `yaml:"insecure"`
-	Header                    map[string]string `yaml:"header"`
-	TargetService             string            `yaml:"target_service"`
-	Token                     string            `yaml:"token"`
-	JwtToken                  string            `yaml:"jwt_token"`
-	UserAgent                 string            `yaml:"user_agent"`
-	ContentType               string            `yaml:"content_type"`
-	Accept                    string            `yaml:"accept"`
-	Debug                     bool              `yaml:"debug"`
-	Authentication            bool              `yaml:"authentication"`
-	GzipRequest               bool              `yaml:"gzip_request"`
-	MaxConnsPerHost           int               `yaml:"max_conns_per_host"`
-	MaxIdleConnDuration       time.Duration     `yaml:"max_idle_conn_duration"`
-	MaxIdemponentCallAttempts int               `yaml:"max_idemponent_call_attempts"`
-	ReadBufferSize            int               `yaml:"read_buffer_size"`
-	WriteBufferSize           int               `yaml:"write_buffer_size"`
-	MaxResponseBodySize       int               `yaml:"max_response_body_size"`
+	Timeout                   time.Duration `yaml:"timeout"`
+	ReadTimeout               time.Duration `yaml:"read_timeout"`
+	WriteTimeout              time.Duration `yaml:"write_timeout"`
+	MaxConnsPerHost           int           `yaml:"max_conns_per_host"`
+	MaxIdleConnDuration       time.Duration `yaml:"max_idle_conn_duration"`
+	MaxIdemponentCallAttempts int           `yaml:"max_idemponent_call_attempts"`
+	ReadBufferSize            int           `yaml:"read_buffer_size"`
+	WriteBufferSize           int           `yaml:"write_buffer_size"`
+	MaxResponseBodySize       int           `yaml:"max_response_body_size"`
 
-	proxy     string // set to all requests
 	backoff   retry.Backoff
 	tlsConfig *tls.Config
 }
@@ -49,6 +44,8 @@ func (t *Config) Build() *fasthttp.Client {
 	if t.Timeout != 0 {
 		t.backoff = retry.NewConstant(t.Timeout)
 	}
+
+	t.backoff.Next()
 
 	client := &fasthttp.Client{
 		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
