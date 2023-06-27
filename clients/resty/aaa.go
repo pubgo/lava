@@ -17,6 +17,12 @@ const (
 	DefaultTimeout     = 10 * time.Second
 )
 
+type PathParams[T PathParamsValue] map[string]T
+
+type PathParamsValue interface {
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64 | ~string
+}
+
 const Name = "resty"
 
 // Client http client interface

@@ -3,15 +3,18 @@ package resty
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/result"
 	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasttemplate"
 
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -35,10 +38,6 @@ func do(cfg *Config) lava.HandlerFunc {
 
 		return &responseImpl{resp: resp}, nil
 	}
-}
-
-func NewRequest() *fasthttp.Request {
-	return fasthttp.AcquireRequest()
 }
 
 func getBodyReader(rawBody interface{}) ([]byte, error) {
@@ -141,4 +140,41 @@ func filterFlags(content string) string {
 		}
 	}
 	return content
+}
+
+func toString(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	case bool:
+		return strconv.FormatBool(t)
+	case int:
+		return strconv.Itoa(t)
+	case int8:
+		return strconv.FormatInt(int64(t), 10)
+	case int16:
+		return strconv.FormatInt(int64(t), 10)
+	case int32:
+		return strconv.FormatInt(int64(t), 10)
+	case int64:
+		return strconv.FormatInt(int64(t), 10)
+	case uint:
+		return strconv.FormatUint(uint64(t), 10)
+	case uint8:
+		return strconv.FormatUint(uint64(t), 10)
+	case uint16:
+		return strconv.FormatUint(uint64(t), 10)
+	case uint32:
+		return strconv.FormatUint(uint64(t), 10)
+	case uint64:
+		return strconv.FormatUint(uint64(t), 10)
+	default:
+		return fmt.Sprintf("%v", t)
+	}
+}
+
+func pathTemplateRun[T PathParamsValue](tpl *fasttemplate.Template, params PathParams[T]) (string, error) {
+	return tpl.ExecuteFuncStringWithErr(func(w io.Writer, tag string) (int, error) {
+		return w.Write(convert.StoB(toString(params[tag])))
+	})
 }
