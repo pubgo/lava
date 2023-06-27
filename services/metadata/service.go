@@ -25,8 +25,18 @@ import (
 	"github.com/pubgo/lava/pkg/proto/services/metadata"
 )
 
-// NewServer create server instance
-func NewServer(srv *grpc.Server) lava.GrpcRouter {
+type Provider struct {
+	A lava.GrpcRouter
+}
+
+func New() Provider {
+	var srv = NewService(nil)
+	return Provider{
+		A: srv,
+	}
+}
+
+func NewService(srv *grpc.Server) *Server {
 	return &Server{
 		srv:      srv,
 		services: make(map[string]*dpb.FileDescriptorSet),
