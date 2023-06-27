@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
-	"net/url"
-	"strings"
-
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
@@ -20,15 +15,12 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -40,6 +32,14 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/grpcutil"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+	"google.golang.org/grpc"
+	"net"
+	"net/http"
+	"net/url"
+	"strings"
 )
 
 func New() lava.Service { return newService() }
@@ -80,6 +80,8 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	conf *Config,
 ) {
+	s.lc = getLifecycle
+
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
 	basePath := "/" + strings.Trim(conf.BaseUrl, "/")
 	conf.BaseUrl = basePath
@@ -97,6 +99,7 @@ func (s *serviceImpl) DixInject(
 	}
 
 	log = log.WithName("grpc-server")
+	s.log = log
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
@@ -138,6 +141,8 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	pretty.Println(mux)
+
 	s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
@@ -158,7 +163,8 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	grpcWebPrefix := assert.Must1(url.JoinPath(basePath, "web"))
-	httpServer.Post(grpcWebPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	s.log.Info().Str("path", grpcWebPrefix).Msg("service web base path")
+	httpServer.Group(grpcWebPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
 			writer.WriteHeader(http.StatusOK)
 			return
@@ -174,7 +180,7 @@ func (s *serviceImpl) DixInject(
 			return
 		}
 
-		if request.ProtoMajor == 2 && strings.Contains(request.Header.Get("Content-Type"), "application/grpc") {
+		if grpcutil.IsGRPCRequest(request) {
 			grpcServer.ServeHTTP(writer, request)
 			return
 		}
@@ -182,8 +188,6 @@ func (s *serviceImpl) DixInject(
 		mux.ServeHTTP(writer, request)
 	})), new(http2.Server))))
 
-	s.lc = getLifecycle
-	s.log = log
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 

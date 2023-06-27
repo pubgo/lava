@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Metadata_ListServices_FullMethodName   = "/kratos.api.Metadata/ListServices"
-	Metadata_GetServiceDesc_FullMethodName = "/kratos.api.Metadata/GetServiceDesc"
+	Metadata_ListServices_FullMethodName   = "/lava.service.Metadata/ListServices"
+	Metadata_GetServiceDesc_FullMethodName = "/lava.service.Metadata/GetServiceDesc"
 )
 
 // MetadataClient is the client API for Metadata service.
@@ -131,7 +131,7 @@ func _Metadata_GetServiceDesc_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Metadata_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "kratos.api.Metadata",
+	ServiceName: "lava.service.Metadata",
 	HandlerType: (*MetadataServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

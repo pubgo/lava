@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package kratos.api;
+package lava.service;
 
 import "google/protobuf/descriptor.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/go-kratos/kratos/v2/api/proto/kratos/api;metadata";
+option go_package = "github.com/pubgo/lava/pkg/proto/metadata;metadata";
 option java_multiple_files = true;
-option java_package = "com.github.kratos.api";
-option objc_class_prefix = "KratosAPI";
+option java_package = "com.github.metadata.api";
+option objc_class_prefix = "LavaService";
 
 
 // Metadata is api definition metadata service.

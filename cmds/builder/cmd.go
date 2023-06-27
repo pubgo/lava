@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/pubgo/lava/services/metadata"
 	"os"
 	"sort"
 
@@ -65,6 +66,8 @@ var defaultProviders = []any{
 
 	lifecycle.New,
 	scheduler.New,
+
+	metadata.New,
 }
 
 func New(opts ...dix.Option) *dix.Dix {
