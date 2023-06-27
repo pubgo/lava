@@ -6,12 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/lava/lava"
 	"io"
 	"sort"
 	"sync"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -22,8 +21,18 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/proto/services/metadata"
 )
+
+// NewServer create server instance
+func NewServer(srv *grpc.Server) lava.GrpcRouter {
+	return &Server{
+		srv:      srv,
+		services: make(map[string]*dpb.FileDescriptorSet),
+		methods:  make(map[string][]string),
+	}
+}
 
 var _ metadata.MetadataServer = (*Server)(nil)
 var _ lava.GrpcGatewayRouter = (*Server)(nil)
@@ -46,15 +55,6 @@ func (s *Server) ServiceDesc() *grpc.ServiceDesc {
 
 func (s *Server) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
 	return metadata.RegisterMetadataHandlerClient(ctx, mux, metadata.NewMetadataClient(conn))
-}
-
-// NewServer create server instance
-func NewServer(srv *grpc.Server) lava.GrpcRouter {
-	return &Server{
-		srv:      srv,
-		services: make(map[string]*dpb.FileDescriptorSet),
-		methods:  make(map[string][]string),
-	}
 }
 
 func (s *Server) load() error {
@@ -171,10 +171,12 @@ func parseMetadata(meta interface{}) (*dpb.FileDescriptorProto, error) {
 	if fileNameForMeta, ok := meta.(string); ok {
 		return fileDescriptorProto(fileNameForMeta)
 	}
+
 	// Check if meta is the byte slice.
 	if enc, ok := meta.([]byte); ok {
 		return decodeFileDesc(enc)
 	}
+
 	return nil, fmt.Errorf("proto not sumpport metadata: %v", meta)
 }
 
@@ -185,10 +187,12 @@ func decodeFileDesc(enc []byte) (*dpb.FileDescriptorProto, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to decompress enc: %v", err)
 	}
+
 	fd := new(dpb.FileDescriptorProto)
 	if err := proto.Unmarshal(raw, fd); err != nil {
 		return nil, fmt.Errorf("bad descriptor: %v", err)
 	}
+
 	return fd, nil
 }
 
@@ -200,12 +204,15 @@ func allDependency(fd *dpb.FileDescriptorProto) ([]*dpb.FileDescriptorProto, err
 			log.Warn().Err(err).Msg(err.Error())
 			continue
 		}
+
 		temp, err := allDependency(fdDep)
 		if err != nil {
 			return nil, err
 		}
+
 		files = append(files, temp...)
 	}
+
 	files = append(files, fd)
 	return files, nil
 }
@@ -216,10 +223,12 @@ func decompress(b []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("bad gzipped descriptor: %v", err)
 	}
+
 	out, err := io.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("bad gzipped descriptor: %v", err)
 	}
+
 	return out, nil
 }
 
@@ -228,6 +237,7 @@ func fileDescriptorProto(path string) (*dpb.FileDescriptorProto, error) {
 	if err != nil {
 		return nil, fmt.Errorf("find proto by path failed, path: %s, err: %s", path, err)
 	}
+
 	fdpb := protodesc.ToFileDescriptorProto(fd)
 	return fdpb, nil
 }
