@@ -25,15 +25,9 @@ import (
 	"github.com/pubgo/lava/pkg/proto/services/metadata"
 )
 
-type Provider struct {
-	A lava.GrpcRouter
-}
-
-func New() Provider {
+func New() lava.GrpcRouter {
 	var srv = NewService(nil)
-	return Provider{
-		A: srv,
-	}
+	return srv
 }
 
 func NewService(srv *grpc.Server) *Server {
