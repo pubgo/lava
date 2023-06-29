@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 
-	_ "github.com/imroc/req/v3"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
@@ -45,9 +44,10 @@ var _ Client = (*clientImpl)(nil)
 
 // clientImpl is the Client implementation
 type clientImpl struct {
-	do  lava.HandlerFunc
-	log log.Logger
-	cfg *Config
+	do      lava.HandlerFunc
+	log     log.Logger
+	cfg     *Config
+	baseUrl *url.URL
 }
 
 func (c *clientImpl) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {

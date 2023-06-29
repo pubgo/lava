@@ -3,6 +3,7 @@ package resty
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -177,4 +178,92 @@ func pathTemplateRun(tpl *fasttemplate.Template, params map[string]any) (string,
 	return tpl.ExecuteFuncStringWithErr(func(w io.Writer, tag string) (int, error) {
 		return w.Write(convert.StoB(toString(params[tag])))
 	})
+}
+
+// get is like Get, but key must already be in CanonicalHeaderKey form.
+func headerGet(h http.Header, key string) string {
+	if v := h[key]; len(v) > 0 {
+		return v[0]
+	}
+	return ""
+}
+
+// has reports whether h has the provided key defined, even if it's
+// set to 0-length slice.
+func headerHas(h http.Header, key string) bool {
+	_, ok := h[key]
+	return ok
+}
+
+func unmarshalBody(c *Client, r *Response, v interface{}) (err error) {
+	body, err := r.ToBytes() // in case req.SetResult or req.SetError with cient.DisalbeAutoReadResponse(true)
+	if err != nil {
+		return
+	}
+	ct := r.GetContentType()
+	if util.IsJSONType(ct) {
+		return c.jsonUnmarshal(body, v)
+	} else if util.IsXMLType(ct) {
+		return c.xmlUnmarshal(body, v)
+	} else {
+		if c.DebugLog {
+			c.log.Debugf("cannot determine the unmarshal function with %q Content-Type, default to json", ct)
+		}
+		return c.jsonUnmarshal(body, v)
+	}
+	return
+}
+
+func parseRequestBody(c *Client, r *Request) (err error) {
+	if c.isPayloadForbid(r.Method) {
+		r.marshalBody = nil
+		r.Body = nil
+		r.GetBody = nil
+		return
+	}
+	// handle multipart
+	if r.isMultiPart {
+		return handleMultiPart(c, r)
+	}
+
+	// handle form data
+	if len(c.FormData) > 0 {
+		r.SetFormDataFromValues(c.FormData)
+	}
+	if len(r.FormData) > 0 {
+		handleFormData(r)
+		return
+	}
+
+	// handle marshal body
+	if r.marshalBody != nil {
+		err = handleMarshalBody(c, r)
+		if err != nil {
+			return
+		}
+	}
+
+	if r.Body == nil {
+		return
+	}
+	// body is in-memory []byte, so we can guess content type
+	if r.getHeader(header.ContentType) == "" {
+		r.SetContentType(http.DetectContentType(r.Body))
+	}
+	return
+}
+
+// See 2 (end of page 4) https://www.ietf.org/rfc/rfc2617.txt
+// "To receive authorization, the client sends the userid and password,
+// separated by a single colon (":") character, within a base64
+// encoded string in the credentials."
+// It is not meant to be urlencoded.
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
+// BasicAuthHeaderValue return the header of basic auth.
+func BasicAuthHeaderValue(username, password string) string {
+	return "Basic " + basicAuth(username, password)
 }

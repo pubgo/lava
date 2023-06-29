@@ -21,6 +21,8 @@ type Request struct {
 	req          *fasthttp.Request
 	pathTemplate *fasttemplate.Template
 	err          error
+	getBody      GetContentFunc
+	operation    string
 }
 
 func (req *Request) Err() error {
@@ -35,6 +37,20 @@ func (req *Request) Copy() *Request {
 		err:          req.err,
 		pathTemplate: req.pathTemplate,
 	}
+}
+
+// func WithParam(key string, val any) CallOption {
+// func WithParams(params map[string]any) CallOption {
+// func WithBasicAuth(username, password string) CallOption {
+// func WithHeader(key, value string) CallOption {
+// func (r *Request) SetURL(url string) *Request {
+// func (r *Request) SetFormDataFromValues(data urlpkg.Values) *Request {
+// func (r *Request) SetFormData(data map[string]string) *Request {
+// func (r *Request) SetFormDataAnyType(data map[string]interface{}) *Request {
+// func (r *Request) SetQueryString(query string) *Request {
+
+func (req *Request) WithContentType(contentType string) *Request {
+
 }
 
 func (req *Request) SetQueryValue(params url.Values) *Request {

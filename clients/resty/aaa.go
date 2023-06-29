@@ -2,6 +2,7 @@ package resty
 
 import (
 	"context"
+	"io"
 	"net/url"
 	"time"
 
@@ -18,6 +19,8 @@ const (
 )
 
 const Name = "resty"
+
+type GetContentFunc func() (io.ReadCloser, error)
 
 // Client http client interface
 type Client interface {
