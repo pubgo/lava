@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	_ "github.com/imroc/req/v3"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
@@ -46,13 +47,14 @@ var _ Client = (*clientImpl)(nil)
 type clientImpl struct {
 	do  lava.HandlerFunc
 	log log.Logger
+	cfg *Config
 }
 
-func (c *clientImpl) Do(ctx context.Context, req *fasthttp.Request) (r result.Result[*fasthttp.Response]) {
+func (c *clientImpl) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
 	defer recovery.Result(&r)
-	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseRequest(req.req)
 
-	request := &requestImpl{service: version.Project(), req: req}
+	request := &requestImpl{service: version.Project(), req: req.req}
 	request.ct = filterFlags(convert.BtoS(req.Header.ContentType()))
 	request.data = req.Body()
 	resp, err := c.do(ctx, request)

@@ -173,7 +173,7 @@ func toString(v any) string {
 	}
 }
 
-func pathTemplateRun[T PathParamsValue](tpl *fasttemplate.Template, params PathParams[T]) (string, error) {
+func pathTemplateRun(tpl *fasttemplate.Template, params map[string]any) (string, error) {
 	return tpl.ExecuteFuncStringWithErr(func(w io.Writer, tag string) (int, error) {
 		return w.Write(convert.StoB(toString(params[tag])))
 	})

@@ -15,16 +15,14 @@ import (
 
 type Config struct {
 	BaseUrl            string            `yaml:"base_url"`
+	ServiceName        string            `yaml:"service_name"`
 	DefaultHeader      map[string]string `yaml:"default_header"`
 	DefaultContentType string            `yaml:"default_content_type"`
 	RetryCount         uint32            `yaml:"retry_count"`
 	Proxy              bool              `yaml:"proxy"`
 	Socks5             string            `yaml:"socks5"`
-	TargetService      string            `yaml:"target_service"`
-	BasicToken         string            `yaml:"token"`
+	BasicToken         string            `yaml:"basic_token"`
 	JwtToken           string            `yaml:"jwt_token"`
-	Debug              bool              `yaml:"debug"`
-	GzipRequest        bool              `yaml:"gzip_request"`
 
 	Timeout                   time.Duration `yaml:"timeout"`
 	ReadTimeout               time.Duration `yaml:"read_timeout"`
@@ -44,8 +42,6 @@ func (t *Config) Build() *fasthttp.Client {
 	if t.Timeout != 0 {
 		t.backoff = retry.NewConstant(t.Timeout)
 	}
-
-	t.backoff.Next()
 
 	client := &fasthttp.Client{
 		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
