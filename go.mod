@@ -45,6 +45,7 @@ require (
 require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
@@ -63,6 +64,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
+	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.45.0

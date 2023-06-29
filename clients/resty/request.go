@@ -1,27 +1,74 @@
 package resty
 
 import (
-	"github.com/gofiber/utils"
-	"github.com/valyala/fasthttp"
+	"net/url"
+	"regexp"
 
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/funk/assert"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasttemplate"
 )
 
-var _ lava.Request = (*requestImpl)(nil)
+var regParam = regexp.MustCompile(`{.+}`)
 
-type requestImpl struct {
-	req     *fasthttp.Request
-	service string
-	ct      string
-	data    []byte
+func NewRequest() *Request {
+	return &Request{
+		req: fasthttp.AcquireRequest(),
+	}
 }
 
-func (r *requestImpl) Operation() string           { return utils.UnsafeString(r.req.Header.Method()) }
-func (r *requestImpl) Kind() string                { return Name }
-func (r *requestImpl) Client() bool                { return true }
-func (r *requestImpl) Service() string             { return r.service }
-func (r *requestImpl) Endpoint() string            { return utils.UnsafeString(r.req.URI().Path()) }
-func (r *requestImpl) ContentType() string         { return r.ct }
-func (r *requestImpl) Header() *lava.RequestHeader { return &r.req.Header }
-func (r *requestImpl) Payload() interface{}        { return r.data }
-func (r *requestImpl) Stream() bool                { return false }
+type Request struct {
+	req          *fasthttp.Request
+	pathTemplate *fasttemplate.Template
+	err          error
+}
+
+func (req *Request) Err() error {
+	return req.err
+}
+
+func (req *Request) Copy() *Request {
+	var r = fasthttp.AcquireRequest()
+	req.req.CopyTo(r)
+	return &Request{
+		req:          r,
+		err:          req.err,
+		pathTemplate: req.pathTemplate,
+	}
+}
+
+func (req *Request) SetQueryValue(params url.Values) *Request {
+	req.req.URI().SetQueryString(params.Encode())
+	return req
+}
+
+func (req *Request) SetPathValue(params map[string]any) *Request {
+	if params == nil || len(params) == 0 {
+		return req
+	}
+
+	if req.pathTemplate == nil {
+		return req
+	}
+
+	path, err := pathTemplateRun(req.pathTemplate, params)
+	if err != nil {
+		req.err = err
+	} else {
+		req.req.URI().SetPath(path)
+	}
+
+	return req
+}
+
+func (req *Request) WithPath(path string) *Request {
+	r := req.Copy()
+	if regParam.MatchString(path) {
+		pathTemplate, err := fasttemplate.NewTemplate(path, "{", "}")
+		assert.Must(err, path)
+		r.pathTemplate = pathTemplate
+	} else {
+		r.req.URI().SetPath(path)
+	}
+	return r
+}
