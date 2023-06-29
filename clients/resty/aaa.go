@@ -2,7 +2,6 @@ package resty
 
 import (
 	"context"
-	"io"
 	"net/url"
 	"time"
 
@@ -16,11 +15,8 @@ const (
 	defaultContentType = "application/json"
 	maxRedirectsCount  = 16
 	DefaultTimeout     = 10 * time.Second
+	Name               = "resty"
 )
-
-const Name = "resty"
-
-type GetContentFunc func() (io.ReadCloser, error)
 
 // Client http client interface
 type Client interface {

@@ -65,37 +65,36 @@ func (c *clientImpl) Do(ctx context.Context, req *Request) (r result.Result[*fas
 	return r.WithVal(resp.(*responseImpl).resp)
 }
 
-func (c *clientImpl) Head(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodHead, url, nil, opts...)
+func (c *clientImpl) Head(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodHead, req)
 }
 
-func (c *clientImpl) Get(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodGet, url, nil, opts...)
+func (c *clientImpl) Get(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodGet, req)
 }
 
-func (c *clientImpl) Delete(ctx context.Context, url string, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodDelete, url, nil, opts...)
+func (c *clientImpl) Delete(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodDelete, req)
 }
 
-func (c *clientImpl) Post(ctx context.Context, url string, data interface{}, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPost, url, data, opts...)
+func (c *clientImpl) Post(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodPost, req)
 }
 
-func (c *clientImpl) PostForm(ctx context.Context, url string, val url.Values, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPost, url, nil, func(req *fasthttp.Request) {
-		req.Header.Set(httputil.HeaderContentType, "application/x-www-form-urlencoded")
-		req.SetBodyRaw(convert.StoB(val.Encode()))
+func (c *clientImpl) PostForm(ctx context.Context, val url.Values, req *Request) result.Result[*fasthttp.Response] {
+	req.SetClient(c)
+	req.SetContentType("application/x-www-form-urlencoded")
+	return req.Post(ctx, val)
 
-		if len(opts) > 0 {
-			opts[0](req)
-		}
-	})
+	_ = httputil.HeaderContentType
+
+	return doRequest(ctx, c, http.MethodPost, req)
 }
 
-func (c *clientImpl) Put(ctx context.Context, url string, data interface{}, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPut, url, data, opts...)
+func (c *clientImpl) Put(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodPut, req)
 }
 
-func (c *clientImpl) Patch(ctx context.Context, url string, data interface{}, opts ...func(req *fasthttp.Request)) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPatch, url, data, opts...)
+func (c *clientImpl) Patch(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
+	return doRequest(ctx, c, http.MethodPatch, req)
 }
