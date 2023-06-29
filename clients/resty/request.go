@@ -19,7 +19,6 @@ var regParam = regexp.MustCompile(`{.+}`)
 type RequestConfig struct {
 	Header      map[string]string
 	Cookies     []*http.Cookie
-	Operation   string
 	Path        string
 	Method      string
 	ContentType string
@@ -50,7 +49,7 @@ type Request struct {
 	operation    string
 	contentType  string
 	retry        retry.Retry
-	c            Client
+	c            *Client
 }
 
 func (req *Request) Err() error {
@@ -157,6 +156,6 @@ func (req *Request) SetParams(params map[string]string) *Request {
 }
 
 func (req *Request) SetContentType(contentType string) *Request {
-	req.contentType = contentType
+	req.contentType = filterFlags(contentType)
 	return req
 }

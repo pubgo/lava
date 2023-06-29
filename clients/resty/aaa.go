@@ -18,8 +18,7 @@ const (
 	Name               = "resty"
 )
 
-// Client http client interface
-type Client interface {
+type IClient interface {
 	Do(ctx context.Context, req *Request) result.Result[*fasthttp.Response]
 	Head(ctx context.Context, req *Request) result.Result[*fasthttp.Response]
 	Get(ctx context.Context, req *Request) result.Result[*fasthttp.Response]

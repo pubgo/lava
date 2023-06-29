@@ -113,8 +113,8 @@ func IsRedirect(statusCode int) bool {
 }
 
 // doRequest data:[bytes|string|map|struct]
-func doRequest(ctx context.Context, c Client, mth string, req *Request) (r result.Result[*fasthttp.Response]) {
-	body, err := getBodyReader(data)
+func doRequest(ctx context.Context, c *Client, mth string, req *Request) (r result.Result[*fasthttp.Response]) {
+	body, err := getBodyReader(req.body)
 	if err != nil {
 		return r.WithErr(err)
 	}
@@ -345,4 +345,8 @@ func reqWantsClose(r *http.Request) bool {
 		return true
 	}
 	return hasToken(headerGet(r.Header, "Connection"), "close")
+}
+
+func genFastRequest(req *Request) *fasthttp.Request {
+
 }
