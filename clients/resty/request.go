@@ -1,28 +1,54 @@
 package resty
 
 import (
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/retry"
+	"net/http"
 	"net/url"
 	"regexp"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
 )
 
 var regParam = regexp.MustCompile(`{.+}`)
 
-func NewRequest() *Request {
+type RequestConfig struct {
+	Header      map[string]string
+	Cookies     []*http.Cookie
+	Operation   string
+	Path        string
+	Method      string
+	ContentType string
+	Retry       retry.Retry
+}
+
+func NewRequest(cfg *RequestConfig) *Request {
+	req := &Request{cfg: cfg}
+
+	if regParam.MatchString(cfg.Path) {
+		pathTemplate, err := fasttemplate.NewTemplate(cfg.Path, "{", "}")
+		assert.Must(err, cfg.Path)
+		r.pathTemplate = pathTemplate
+	} else {
+		r.req.URI().SetPath(path)
+	}
+
 	return &Request{
-		req: fasthttp.AcquireRequest(),
+		cfg: cfg,
 	}
 }
 
 type Request struct {
-	req          *fasthttp.Request
+	cfg          *RequestConfig
+	header       http.Header
+	cookies      []*http.Cookie
+	query        url.Values
 	pathTemplate *fasttemplate.Template
 	err          error
-	getBody      GetContentFunc
+	body         any
 	operation    string
+	contentType  string
+	retry        retry.Retry
 }
 
 func (req *Request) Err() error {
@@ -30,31 +56,61 @@ func (req *Request) Err() error {
 }
 
 func (req *Request) Copy() *Request {
-	var r = fasthttp.AcquireRequest()
-	req.req.CopyTo(r)
 	return &Request{
-		req:          r,
+		cfg:          req.cfg,
 		err:          req.err,
+		header:       req.header,
+		cookies:      req.cookies,
+		query:        req.query,
 		pathTemplate: req.pathTemplate,
+		body:         req.body,
+		operation:    req.operation,
+		contentType:  req.contentType,
+		retry:        req.retry,
 	}
 }
 
-// func WithParam(key string, val any) CallOption {
-// func WithParams(params map[string]any) CallOption {
-// func WithBasicAuth(username, password string) CallOption {
-// func WithHeader(key, value string) CallOption {
-// func (r *Request) SetURL(url string) *Request {
-// func (r *Request) SetFormDataFromValues(data urlpkg.Values) *Request {
-// func (r *Request) SetFormData(data map[string]string) *Request {
-// func (r *Request) SetFormDataAnyType(data map[string]interface{}) *Request {
-// func (r *Request) SetQueryString(query string) *Request {
-
-func (req *Request) WithContentType(contentType string) *Request {
-
+func (req *Request) SetBody(body any) *Request {
+	req.body = body
+	return req
 }
 
-func (req *Request) SetQueryValue(params url.Values) *Request {
-	req.req.URI().SetQueryString(params.Encode())
+func (req *Request) SetQuery(query map[string]string) *Request {
+	if query == nil || len(query) == 0 {
+		return req
+	}
+	for k, v := range query {
+		req.query.Set(k, v)
+	}
+	return req
+}
+
+func (req *Request) SetQueryString(query string) *Request {
+	return req
+}
+
+func (req *Request) SetURL(url string) *Request {
+	return req
+}
+
+func (req *Request) SetBasicAuth(username, password string) *Request {
+	return req
+}
+
+func (req *Request) SetHeader(key, value string) *Request {
+	return req
+}
+
+func (req *Request) SetParam(key string, val string) *Request {
+	return req
+}
+
+func (req *Request) SetParams(params map[string]string) *Request {
+	return req
+}
+
+func (req *Request) SetContentType(contentType string) *Request {
+	req.contentType = contentType
 	return req
 }
 
@@ -75,16 +131,4 @@ func (req *Request) SetPathValue(params map[string]any) *Request {
 	}
 
 	return req
-}
-
-func (req *Request) WithPath(path string) *Request {
-	r := req.Copy()
-	if regParam.MatchString(path) {
-		pathTemplate, err := fasttemplate.NewTemplate(path, "{", "}")
-		assert.Must(err, path)
-		r.pathTemplate = pathTemplate
-	} else {
-		r.req.URI().SetPath(path)
-	}
-	return r
 }

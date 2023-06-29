@@ -195,64 +195,6 @@ func headerHas(h http.Header, key string) bool {
 	return ok
 }
 
-func unmarshalBody(c *Client, r *Response, v interface{}) (err error) {
-	body, err := r.ToBytes() // in case req.SetResult or req.SetError with cient.DisalbeAutoReadResponse(true)
-	if err != nil {
-		return
-	}
-	ct := r.GetContentType()
-	if util.IsJSONType(ct) {
-		return c.jsonUnmarshal(body, v)
-	} else if util.IsXMLType(ct) {
-		return c.xmlUnmarshal(body, v)
-	} else {
-		if c.DebugLog {
-			c.log.Debugf("cannot determine the unmarshal function with %q Content-Type, default to json", ct)
-		}
-		return c.jsonUnmarshal(body, v)
-	}
-	return
-}
-
-func parseRequestBody(c *Client, r *Request) (err error) {
-	if c.isPayloadForbid(r.Method) {
-		r.marshalBody = nil
-		r.Body = nil
-		r.GetBody = nil
-		return
-	}
-	// handle multipart
-	if r.isMultiPart {
-		return handleMultiPart(c, r)
-	}
-
-	// handle form data
-	if len(c.FormData) > 0 {
-		r.SetFormDataFromValues(c.FormData)
-	}
-	if len(r.FormData) > 0 {
-		handleFormData(r)
-		return
-	}
-
-	// handle marshal body
-	if r.marshalBody != nil {
-		err = handleMarshalBody(c, r)
-		if err != nil {
-			return
-		}
-	}
-
-	if r.Body == nil {
-		return
-	}
-	// body is in-memory []byte, so we can guess content type
-	if r.getHeader(header.ContentType) == "" {
-		r.SetContentType(http.DetectContentType(r.Body))
-	}
-	return
-}
-
 // See 2 (end of page 4) https://www.ietf.org/rfc/rfc2617.txt
 // "To receive authorization, the client sends the userid and password,
 // separated by a single colon (":") character, within a base64
