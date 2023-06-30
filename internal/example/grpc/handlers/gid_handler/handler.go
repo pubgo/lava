@@ -3,7 +3,10 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/clients/resty"
 	"math/rand"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +24,11 @@ import (
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
+
+var typesReq = resty.RequestConfig{
+	Method: http.MethodGet,
+	Path:   "/v1/id/types",
+}
 
 var _ lava.GrpcRouter = (*Id)(nil)
 var _ lava.GrpcGatewayRouter = (*Id)(nil)
@@ -92,6 +100,15 @@ func (id *Id) Init() {
 		}
 
 		id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
+
+		defer recovery.Exit()
+		rsp1 := id.service.Do(ctx, resty.NewRequest(&typesReq))
+		if rsp1.IsErr() {
+			return rsp1.Err()
+		}
+
+		id.log.Info(ctx).Any("data", string(rsp1.Unwrap().Body())).Msg("Types http")
+
 		return nil
 	})
 }

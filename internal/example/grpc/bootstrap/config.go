@@ -13,5 +13,6 @@ type Config struct {
 	metrics.MetricConfigLoader   `yaml:",inline"`
 	logging.LogConfigLoader      `yaml:",inline"`
 
-	GidCli *gid_client.Config `yaml:"gid-client"`
+	GidCli  *gid_client.GrpcConfig `yaml:"gid-client"`
+	GidCli1 *gid_client.HttpConfig `yaml:"gid-client-http"`
 }
