@@ -2,12 +2,11 @@ package resty
 
 import (
 	"context"
-	"net/http"
+	"github.com/pubgo/funk/assert"
 	"net/url"
 	"sync"
 
 	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
@@ -34,19 +33,22 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	middlewares = append(middlewares, mm...)
 
 	return &Client{
-		do:  lava.Chain(middlewares...).Middleware(do(cfg)),
-		log: p.Log,
+		do:      lava.Chain(middlewares...).Middleware(do(cfg)),
+		log:     p.Log,
+		cfg:     cfg,
+		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
 	}
 }
 
 var _ IClient = (*Client)(nil)
 
-// Client is the Client implementation
+// Client is the IClient implementation
 type Client struct {
-	do            lava.HandlerFunc
-	log           log.Logger
-	cfg           *Config
-	baseUrl       *url.URL
+	do      lava.HandlerFunc
+	log     log.Logger
+	cfg     *Config
+	baseUrl *url.URL
+
 	pathTemplates sync.Map
 }
 
@@ -55,42 +57,10 @@ func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthtt
 	defer fasthttp.ReleaseRequest(req.req)
 
 	request := &requestImpl{service: c.cfg.ServiceName, req: req.req}
-	request.ct = filterFlags(convert.BtoS(req.Header.ContentType()))
-	request.data = req.Body()
 	resp, err := c.do(ctx, request)
 	if err != nil {
 		return r.WithErr(err)
 	}
 
 	return r.WithVal(resp.(*responseImpl).resp)
-}
-
-func (c *Client) Head(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodHead, req)
-}
-
-func (c *Client) Get(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodGet, req)
-}
-
-func (c *Client) Delete(ctx context.Context, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodDelete, req)
-}
-
-func (c *Client) Post(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPost, req)
-}
-
-func (c *Client) PostForm(ctx context.Context, val url.Values, req *Request) result.Result[*fasthttp.Response] {
-	req.SetClient(c)
-	req.SetContentType("application/x-www-form-urlencoded")
-	return req.Post(ctx, val)
-}
-
-func (c *Client) Put(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPut, req)
-}
-
-func (c *Client) Patch(ctx context.Context, data interface{}, req *Request) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, c, http.MethodPatch, req)
 }

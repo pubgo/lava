@@ -61,8 +61,8 @@ func (t *Config) Build() *fasthttp.Client {
 func DefaultCfg() *Config {
 	return &Config{
 		DialTimeout:               defaultHTTPTimeout,
-		ReadTimeout:               10 * time.Second,
-		WriteTimeout:              10 * time.Second,
+		ReadTimeout:               defaultTimeout,
+		WriteTimeout:              defaultTimeout,
 		DefaultRetryCount:         defaultRetryCount,
 		DefaultRetryInterval:      defaultRetryInterval,
 		MaxConnsPerHost:           512,

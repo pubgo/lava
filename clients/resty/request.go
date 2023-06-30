@@ -1,11 +1,13 @@
 package resty
 
 import (
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/retry"
 	"net/http"
 	"net/url"
 	"regexp"
+
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/retry"
+	"github.com/valyala/fasthttp"
 )
 
 var regParam = regexp.MustCompile(`{.+}`)
@@ -25,6 +27,7 @@ func NewRequest(cfg RequestConfig) *Request {
 }
 
 type Request struct {
+	req         *fasthttp.Request
 	cfg         *RequestConfig
 	header      http.Header
 	cookies     []*http.Cookie
