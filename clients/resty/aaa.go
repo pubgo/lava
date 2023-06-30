@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	defaultRetryCount  = 1
+	defaultRetryCount  = 3
+	defaultRetryInterval  = 10 * time.Millisecond
 	defaultHTTPTimeout = 2 * time.Second
 	defaultContentType = "application/json"
 	maxRedirectsCount  = 16

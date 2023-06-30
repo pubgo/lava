@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/result"
+	"github.com/segmentio/asm/ascii"
 	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
@@ -113,7 +115,7 @@ func IsRedirect(statusCode int) bool {
 }
 
 // doRequest data:[bytes|string|map|struct]
-func doRequest(ctx context.Context, c *Client, mth string, req *Request) (r result.Result[*fasthttp.Response]) {
+func doRequest(ctx context.Context, c *Client, req *Request) (r result.Result[*fasthttp.Response]) {
 	body, err := getBodyReader(req.body)
 	if err != nil {
 		return r.WithErr(err)
@@ -123,12 +125,11 @@ func doRequest(ctx context.Context, c *Client, mth string, req *Request) (r resu
 		ctx = context.Background()
 	}
 
-	req := fasthttp.AcquireRequest()
-
-	req.Header.Set(httputil.HeaderContentType, defaultContentType)
-	req.Header.SetMethod(mth)
-	req.Header.SetRequestURI(url)
-	req.SetBodyRaw(body)
+	r := fasthttp.AcquireRequest()
+	r.Header.Set(httputil.HeaderContentType, defaultContentType)
+	r.Header.SetMethod(mth)
+	r.Header.SetRequestURI(url)
+	r.SetBodyRaw(body)
 	if len(opts) > 0 {
 		opts[0](req)
 	}

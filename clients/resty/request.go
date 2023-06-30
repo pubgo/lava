@@ -1,16 +1,13 @@
 package resty
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 	"regexp"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
-	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
 )
 
@@ -45,11 +42,9 @@ type Request struct {
 	params       map[string]string
 	pathTemplate *fasttemplate.Template
 	err          error
-	body         any
 	operation    string
 	contentType  string
 	retry        retry.Retry
-	c            *Client
 }
 
 func (req *Request) Err() error {
@@ -64,41 +59,10 @@ func (req *Request) Copy() *Request {
 		cookies:      req.cookies,
 		query:        req.query,
 		pathTemplate: req.pathTemplate,
-		body:         req.body,
 		operation:    req.operation,
 		contentType:  req.contentType,
 		retry:        req.retry,
 	}
-}
-
-func (req *Request) SetClient(c Client) *Request {
-	req.c = c
-	return req
-}
-
-func (req *Request) Get(ctx context.Context) result.Result[*fasthttp.Response] {
-
-}
-
-func (req *Request) Delete(ctx context.Context) result.Result[*fasthttp.Response] {
-
-}
-
-func (req *Request) Post(ctx context.Context, body any) result.Result[*fasthttp.Response] {
-	return doRequest(ctx, req.c, http.MethodPost, req)
-}
-
-func (req *Request) Put(ctx context.Context, body any) result.Result[*fasthttp.Response] {
-
-}
-
-func (req *Request) Patch(ctx context.Context, body any) result.Result[*fasthttp.Response] {
-
-}
-
-func (req *Request) SetBody(body any) *Request {
-	req.body = body
-	return req
 }
 
 func (req *Request) SetQuery(query map[string]string) *Request {
