@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/retry"
 	"github.com/valyala/fasthttp"
 )
@@ -14,7 +13,6 @@ var regParam = regexp.MustCompile(`{.+}`)
 
 type RequestConfig struct {
 	Header      map[string]string
-	Cookies     []*http.Cookie
 	Path        string
 	Method      string
 	ContentType string
@@ -22,8 +20,8 @@ type RequestConfig struct {
 	EnableAuth  bool
 }
 
-func NewRequest(cfg RequestConfig) *Request {
-	r := &Request{cfg: &cfg}
+func NewRequest(cfg *RequestConfig) *Request {
+	r := &Request{cfg: cfg}
 	return r
 }
 
@@ -31,30 +29,10 @@ type Request struct {
 	req         *fasthttp.Request
 	cfg         *RequestConfig
 	header      http.Header
-	cookies     []*http.Cookie
 	query       url.Values
 	params      map[string]any
-	err         error
 	operation   string
 	contentType string
-	retry       retry.Retry
-}
-
-func (req *Request) Err() error {
-	return req.err
-}
-
-func (req *Request) copy() *Request {
-	return &Request{
-		cfg:         req.cfg,
-		err:         req.err,
-		header:      req.header,
-		cookies:     req.cookies,
-		query:       req.query,
-		operation:   req.operation,
-		contentType: req.contentType,
-		retry:       req.retry,
-	}
 }
 
 func (req *Request) SetQuery(query map[string]string) *Request {
@@ -64,21 +42,6 @@ func (req *Request) SetQuery(query map[string]string) *Request {
 
 	for k, v := range query {
 		req.query.Add(k, v)
-	}
-
-	return req
-}
-
-func (req *Request) SetQueryString(query string) *Request {
-	values, err := url.ParseQuery(query)
-	if err != nil {
-		req.err = errors.Wrap(err, query)
-	} else {
-		for k, v := range values {
-			for i := range v {
-				req.query.Add(k, v[i])
-			}
-		}
 	}
 
 	return req

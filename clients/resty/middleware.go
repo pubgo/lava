@@ -1,6 +1,7 @@
 package resty
 
 import (
+	"fmt"
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/convert"
 	"github.com/valyala/fasthttp"
@@ -11,11 +12,15 @@ import (
 var _ lava.Request = (*requestImpl)(nil)
 
 type requestImpl struct {
-	req     *fasthttp.Request
-	service string
+	req       *fasthttp.Request
+	operation string
+	service   string
 }
 
-func (r *requestImpl) Operation() string           { return utils.UnsafeString(r.req.Header.Method()) }
+func (r *requestImpl) Operation() string {
+	return fmt.Sprintf("%s %s", r.req.Header.Method(), r.operation)
+}
+
 func (r *requestImpl) Kind() string                { return Name }
 func (r *requestImpl) Client() bool                { return true }
 func (r *requestImpl) Service() string             { return r.service }

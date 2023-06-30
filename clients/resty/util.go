@@ -27,13 +27,17 @@ import (
 func do(cfg *Config) lava.HandlerFunc {
 	var client = cfg.Build()
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		var r = req.(*requestImpl).req
+
+		defer fasthttp.ReleaseRequest(r)
+
 		var err error
 		resp := fasthttp.AcquireResponse()
 		deadline, ok := ctx.Deadline()
 		if ok {
-			err = client.DoDeadline(req.(*requestImpl).req, resp, deadline)
+			err = client.DoDeadline(r, resp, deadline)
 		} else {
-			err = client.Do(req.(*requestImpl).req, resp)
+			err = client.Do(r, resp)
 		}
 
 		if err != nil {
@@ -177,10 +181,6 @@ func handleContentType(c *Client, req *Request) (string, error) {
 
 // doRequest data:[bytes|string|map|struct]
 func doRequest(ctx context.Context, c *Client, mth string, body any, req *Request) (rsp result.Result[*fasthttp.Response]) {
-	if err := req.Err(); err != nil {
-		return rsp.WithErr(err)
-	}
-
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -201,6 +201,10 @@ func doRequest(ctx context.Context, c *Client, mth string, body any, req *Reques
 
 	if mth == "" {
 		mth = req.cfg.Method
+	}
+
+	if mth == "" {
+		return rsp.WithErr(fmt.Errorf("http method is empty"))
 	}
 
 	r.Header.SetMethod(mth)
