@@ -66,9 +66,12 @@ type Client struct {
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
 	defer recovery.Result(&r)
 
-	defer recovery.Exit()
+	reqErr := doRequest(ctx, c, req)
+	if reqErr.IsErr() {
+		return r.WithErr(reqErr.Err())
+	}
 
-	doRequest(ctx, c, req)
+	req.req = reqErr.Unwrap()
 
 	request := &requestImpl{service: c.cfg.ServiceName, req: req}
 	resp, err := c.do(ctx, request)
