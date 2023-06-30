@@ -62,6 +62,7 @@ require (
 	github.com/pubgo/funk v0.5.29-31
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
+	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7

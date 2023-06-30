@@ -114,11 +114,72 @@ func IsRedirect(statusCode int) bool {
 		statusCode == http.StatusPermanentRedirect
 }
 
+func handleHeader(c *Client, req *Request) {
+	header := c.cfg.DefaultHeader
+	if header != nil {
+		for k, v := range header {
+			req.header.Add(k, v)
+		}
+	}
+}
+
+func handlePath(c *Client, req *Request) (path string, err error) {
+	var reqConf = req.cfg
+
+	reqUrl := c.baseUrl.JoinPath(reqConf.Path)
+	req.operation = reqUrl.Path
+	path = reqUrl.Path
+
+	if v, ok := c.pathTemplates.Load(reqUrl.Path); ok {
+		if v != nil {
+			path, err = pathTemplateRun(v.(*fasttemplate.Template), req.params)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		if regParam.MatchString(reqUrl.Path) {
+			pathTemplate, err := fasttemplate.NewTemplate(reqUrl.Path, "{", "}")
+			if err != nil {
+				return "", err
+			}
+			c.pathTemplates.Store(reqUrl.Path, pathTemplate)
+		} else {
+			c.pathTemplates.Store(reqUrl.Path, nil)
+		}
+	}
+
+	return
+}
+
+func handleContentType(c *Client, req *Request) (string, error) {
+	var defaultConf = c.cfg
+	var reqConf = req.cfg
+
+	contentType := defaultContentType
+	if defaultConf.DefaultContentType != "" {
+		contentType = defaultConf.DefaultContentType
+	}
+
+	if reqConf.ContentType != "" {
+		contentType = reqConf.ContentType
+	}
+
+	if req.contentType != "" {
+		contentType = req.contentType
+	}
+
+	if contentType == "" {
+		return "", errors.New("context-type header is empty")
+	}
+
+	return contentType, nil
+}
+
 // doRequest data:[bytes|string|map|struct]
-func doRequest(ctx context.Context, c *Client, req *Request) (r result.Result[*fasthttp.Response]) {
-	body, err := getBodyReader(req.body)
-	if err != nil {
-		return r.WithErr(err)
+func doRequest(ctx context.Context, c *Client, mth string, body any, req *Request) (rsp result.Result[*fasthttp.Response]) {
+	if err := req.Err(); err != nil {
+		return rsp.WithErr(err)
 	}
 
 	if ctx == nil {
@@ -126,13 +187,47 @@ func doRequest(ctx context.Context, c *Client, req *Request) (r result.Result[*f
 	}
 
 	r := fasthttp.AcquireRequest()
-	r.Header.Set(httputil.HeaderContentType, defaultContentType)
-	r.Header.SetMethod(mth)
-	r.Header.SetRequestURI(url)
-	r.SetBodyRaw(body)
-	if len(opts) > 0 {
-		opts[0](req)
+
+	ct, err := handleContentType(c, req)
+	if err != nil {
+		return rsp.WithErr(err)
 	}
+	r.Header.Set(httputil.HeaderContentType, ct)
+
+	path, err := handlePath(c, req)
+	if err != nil {
+		return rsp.WithErr(err)
+	}
+	r.SetRequestURI(path)
+
+	if mth == "" {
+		mth = req.cfg.Method
+	}
+
+	r.Header.SetMethod(mth)
+
+	bodyRaw, err := getBodyReader(body)
+	if err != nil {
+		return rsp.WithErr(err)
+	}
+	r.SetBodyRaw(bodyRaw)
+
+	handleHeader(c, req)
+
+	for k, v := range req.header {
+		for i := range v {
+			r.Header.Add(k, v[i])
+		}
+	}
+
+	var uri = fasthttp.AcquireURI()
+	uri.SetScheme(c.baseUrl.Scheme)
+	uri.SetHost(c.baseUrl.Host)
+	uri.SetPath(path)
+	if req.query != nil {
+		uri.SetQueryString(req.query.Encode())
+	}
+	r.SetURI(uri)
 
 	return c.Do(ctx, req)
 }

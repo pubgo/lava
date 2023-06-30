@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/convert"
@@ -42,10 +43,11 @@ var _ IClient = (*Client)(nil)
 
 // Client is the Client implementation
 type Client struct {
-	do      lava.HandlerFunc
-	log     log.Logger
-	cfg     *Config
-	baseUrl *url.URL
+	do            lava.HandlerFunc
+	log           log.Logger
+	cfg           *Config
+	baseUrl       *url.URL
+	pathTemplates sync.Map
 }
 
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {

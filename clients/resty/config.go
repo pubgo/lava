@@ -1,12 +1,10 @@
 package resty
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"time"
 
-	"github.com/pubgo/funk/retry"
 	"github.com/pubgo/funk/version"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
@@ -20,11 +18,11 @@ type Config struct {
 	DefaultContentType   string            `yaml:"default_content_type"`
 	DefaultRetryCount    uint32            `yaml:"default_retry_count"`
 	DefaultRetryInterval time.Duration     `yaml:"default_retry_interval"`
-	Proxy                bool              `yaml:"proxy"`
 	BasicToken           string            `yaml:"basic_token"`
 	JwtToken             string            `yaml:"jwt_token"`
 
-	Timeout                   time.Duration `yaml:"timeout"`
+	EnableProxy               bool          `yaml:"enable_proxy"`
+	DialTimeout               time.Duration `yaml:"dial_timeout"`
 	ReadTimeout               time.Duration `yaml:"read_timeout"`
 	WriteTimeout              time.Duration `yaml:"write_timeout"`
 	MaxConnsPerHost           int           `yaml:"max_conns_per_host"`
@@ -33,16 +31,9 @@ type Config struct {
 	ReadBufferSize            int           `yaml:"read_buffer_size"`
 	WriteBufferSize           int           `yaml:"write_buffer_size"`
 	MaxResponseBodySize       int           `yaml:"max_response_body_size"`
-
-	backoff   retry.Backoff
-	tlsConfig *tls.Config
 }
 
 func (t *Config) Build() *fasthttp.Client {
-	if t.Timeout != 0 {
-		t.backoff = retry.NewConstant(t.Timeout)
-	}
-
 	client := &fasthttp.Client{
 		Name:                      fmt.Sprintf("%s: %s", version.Project(), version.Version()),
 		ReadTimeout:               t.ReadTimeout,
@@ -56,11 +47,11 @@ func (t *Config) Build() *fasthttp.Client {
 		MaxResponseBodySize:       t.MaxResponseBodySize,
 	}
 
-	if t.Proxy && httpproxy.FromEnvironment() != nil {
-		client.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(t.Timeout)
+	if t.EnableProxy && httpproxy.FromEnvironment() != nil {
+		client.Dial = fasthttpproxy.FasthttpProxyHTTPDialerTimeout(t.DialTimeout)
 	} else {
 		client.Dial = func(addr string) (net.Conn, error) {
-			return fasthttp.DialTimeout(addr, t.Timeout)
+			return fasthttp.DialTimeout(addr, t.DialTimeout)
 		}
 	}
 
@@ -69,9 +60,7 @@ func (t *Config) Build() *fasthttp.Client {
 
 func DefaultCfg() *Config {
 	return &Config{
-		backoff: retry.NewNoop(),
-
-		Timeout:                   defaultHTTPTimeout,
+		DialTimeout:               defaultHTTPTimeout,
 		ReadTimeout:               10 * time.Second,
 		WriteTimeout:              10 * time.Second,
 		DefaultRetryCount:         defaultRetryCount,
