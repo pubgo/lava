@@ -13,13 +13,12 @@ import (
 var _ lava.Request = (*requestImpl)(nil)
 
 type requestImpl struct {
-	req       *Request
-	operation string
-	service   string
+	req     *Request
+	service string
 }
 
 func (r *requestImpl) Operation() string {
-	return fmt.Sprintf("%s %s", r.req.req.Header.Method(), r.operation)
+	return fmt.Sprintf("%s %s", r.req.req.Header.Method(), r.req.operation)
 }
 
 func (r *requestImpl) Kind() string                { return Name }

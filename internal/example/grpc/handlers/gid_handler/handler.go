@@ -3,8 +3,6 @@ package gid_handler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/clients/resty"
 	"math/rand"
 	"net/http"
 	"time"
@@ -15,6 +13,8 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/lava/clients/resty"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/lava"
