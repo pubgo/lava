@@ -112,7 +112,7 @@ const (
 	HeaderLargeAllocation                 = "Large-Allocation"
 	HeaderLink                            = "Link"
 	HeaderPushPolicy                      = "Push-Policy"
-	HeaderRetryAfter                      = "Retry-After"
+	HeaderRetryAfter                      = "Backoff-After"
 	HeaderServerTiming                    = "Server-Timing"
 	HeaderSignature                       = "Signature"
 	HeaderSignedHeaders                   = "Signed-Headers"

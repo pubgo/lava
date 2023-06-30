@@ -16,7 +16,7 @@ type RequestConfig struct {
 	Path        string
 	Method      string
 	ContentType string
-	Retry       retry.Backoff
+	Backoff     retry.Backoff
 	EnableAuth  bool
 }
 
@@ -33,6 +33,18 @@ type Request struct {
 	params      map[string]any
 	operation   string
 	contentType string
+	body        any
+	backoff     retry.Backoff
+}
+
+func (req *Request) SetBackoff(backoff retry.Backoff) *Request {
+	req.backoff = backoff
+	return req
+}
+
+func (req *Request) SetBody(body any) *Request {
+	req.body = body
+	return req
 }
 
 func (req *Request) SetQuery(query map[string]string) *Request {

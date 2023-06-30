@@ -29,15 +29,25 @@ func do(cfg *Config) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		var r = req.(*requestImpl).req
 
-		defer fasthttp.ReleaseRequest(r)
+		defer fasthttp.ReleaseRequest(r.req)
 
 		var err error
-		resp := fasthttp.AcquireResponse()
-		deadline, ok := ctx.Deadline()
-		if ok {
-			err = client.DoDeadline(r, resp, deadline)
+		var resp = fasthttp.AcquireResponse()
+
+		var handle = func() error {
+			deadline, ok := ctx.Deadline()
+			if ok {
+				err = client.DoDeadline(r.req, resp, deadline)
+			} else {
+				err = client.Do(r.req, resp)
+			}
+			return err
+		}
+
+		if r.backoff != nil {
+			err = retry.New(r.backoff).Do(func(i int) error { return handle() })
 		} else {
-			err = client.Do(r, resp)
+			err = handle()
 		}
 
 		if err != nil {
@@ -180,7 +190,7 @@ func handleContentType(c *Client, req *Request) (string, error) {
 }
 
 // doRequest data:[bytes|string|map|struct]
-func doRequest(ctx context.Context, c *Client, mth string, body any, req *Request) (rsp result.Result[*fasthttp.Response]) {
+func doRequest(ctx context.Context, c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -199,17 +209,14 @@ func doRequest(ctx context.Context, c *Client, mth string, body any, req *Reques
 	}
 	r.SetRequestURI(path)
 
-	if mth == "" {
-		mth = req.cfg.Method
-	}
-
+	mth := req.cfg.Method
 	if mth == "" {
 		return rsp.WithErr(fmt.Errorf("http method is empty"))
 	}
 
 	r.Header.SetMethod(mth)
 
-	bodyRaw, err := getBodyReader(body)
+	bodyRaw, err := getBodyReader(req.body)
 	if err != nil {
 		return rsp.WithErr(err)
 	}
@@ -243,23 +250,17 @@ func doRequest(ctx context.Context, c *Client, mth string, body any, req *Reques
 	}
 	r.SetURI(uri)
 
-	var retryHandle = c.backoff
-	if req.cfg.Retry != nil {
-		retryHandle = req.cfg.Retry
-	}
-
-	if retryHandle != nil {
-		err = retry.New(retryHandle).Do(func(i int) error {
-			rsp = c.Do(ctx, req)
-			return rsp.Err()
-		})
-		if err != nil {
-			return rsp.WithErr(err)
+	if req.backoff == nil {
+		if c.backoff != nil {
+			req.backoff = c.backoff
 		}
-		return rsp
+
+		if req.cfg.Backoff != nil {
+			req.backoff = req.cfg.Backoff
+		}
 	}
 
-	return c.Do(ctx, req)
+	return rsp.WithVal(r)
 }
 
 func filterFlags(content string) string {
