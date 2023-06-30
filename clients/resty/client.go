@@ -2,14 +2,15 @@ package resty
 
 import (
 	"context"
-	"github.com/pubgo/funk/assert"
 	"net/url"
 	"sync"
 
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/retry"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -32,11 +33,21 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	}
 	middlewares = append(middlewares, mm...)
 
+	var backoff retry.Backoff
+	if cfg.DefaultRetryInterval > 0 {
+		backoff = retry.NewConstant(cfg.DefaultRetryInterval)
+	}
+
+	if cfg.DefaultRetryCount > 0 {
+		backoff = retry.WithMaxRetries(cfg.DefaultRetryCount, backoff)
+	}
+
 	return &Client{
 		do:      lava.Chain(middlewares...).Middleware(do(cfg)),
 		log:     p.Log,
 		cfg:     cfg,
 		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
+		retry:   retry.New(backoff),
 	}
 }
 
@@ -44,11 +55,11 @@ var _ IClient = (*Client)(nil)
 
 // Client is the IClient implementation
 type Client struct {
-	do      lava.HandlerFunc
-	log     log.Logger
-	cfg     *Config
-	baseUrl *url.URL
-
+	do            lava.HandlerFunc
+	log           log.Logger
+	cfg           *Config
+	baseUrl       *url.URL
+	retry         retry.Retry
 	pathTemplates sync.Map
 }
 

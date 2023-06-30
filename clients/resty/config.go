@@ -22,6 +22,7 @@ type Config struct {
 	JwtToken             string            `yaml:"jwt_token"`
 
 	EnableProxy               bool          `yaml:"enable_proxy"`
+	EnableAuth                bool          `yaml:"enable_auth"`
 	DialTimeout               time.Duration `yaml:"dial_timeout"`
 	ReadTimeout               time.Duration `yaml:"read_timeout"`
 	WriteTimeout              time.Duration `yaml:"write_timeout"`

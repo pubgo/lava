@@ -19,6 +19,7 @@ type RequestConfig struct {
 	Method      string
 	ContentType string
 	Retry       retry.Retry
+	EnableAuth  bool
 }
 
 func NewRequest(cfg RequestConfig) *Request {
@@ -80,11 +81,6 @@ func (req *Request) SetQueryString(query string) *Request {
 		}
 	}
 
-	return req
-}
-
-func (req *Request) SetBasicAuth(username, password string) *Request {
-	req.header.Set("Authentication", BasicAuthHeaderValue(username, password))
 	return req
 }
 

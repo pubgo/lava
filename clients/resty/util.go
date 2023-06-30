@@ -3,7 +3,6 @@ package resty
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -220,6 +219,17 @@ func doRequest(ctx context.Context, c *Client, mth string, body any, req *Reques
 		}
 	}
 
+	// enable auth
+	if c.cfg.EnableAuth || req.cfg.EnableAuth {
+		if c.cfg.BasicToken != "" {
+			r.Header.Set("Authentication", "Basic "+c.cfg.BasicToken)
+		}
+
+		if c.cfg.JwtToken != "" {
+			r.Header.Set("Authentication", "Bearer "+c.cfg.JwtToken)
+		}
+	}
+
 	var uri = fasthttp.AcquireURI()
 	uri.SetScheme(c.baseUrl.Scheme)
 	uri.SetHost(c.baseUrl.Host)
@@ -291,21 +301,6 @@ func headerGet(h http.Header, key string) string {
 func headerHas(h http.Header, key string) bool {
 	_, ok := h[key]
 	return ok
-}
-
-// See 2 (end of page 4) https://www.ietf.org/rfc/rfc2617.txt
-// "To receive authorization, the client sends the userid and password,
-// separated by a single colon (":") character, within a base64
-// encoded string in the credentials."
-// It is not meant to be urlencoded.
-func basicAuth(username, password string) string {
-	auth := username + ":" + password
-	return base64.StdEncoding.EncodeToString([]byte(auth))
-}
-
-// BasicAuthHeaderValue return the header of basic auth.
-func BasicAuthHeaderValue(username, password string) string {
-	return "Basic " + basicAuth(username, password)
 }
 
 // Given a string of the form "host", "host:port", or "[ipv6::address]:port",
@@ -441,8 +436,4 @@ func reqWantsClose(r *http.Request) bool {
 		return true
 	}
 	return hasToken(headerGet(r.Header, "Connection"), "close")
-}
-
-func genFastRequest(req *Request) *fasthttp.Request {
-
 }
