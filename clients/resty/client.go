@@ -47,7 +47,7 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 		log:     p.Log,
 		cfg:     cfg,
 		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
-		retry:   retry.New(backoff),
+		backoff: backoff,
 	}
 }
 
@@ -59,7 +59,7 @@ type Client struct {
 	log           log.Logger
 	cfg           *Config
 	baseUrl       *url.URL
-	retry         retry.Retry
+	backoff       retry.Backoff
 	pathTemplates sync.Map
 }
 

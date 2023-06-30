@@ -18,7 +18,7 @@ type RequestConfig struct {
 	Path        string
 	Method      string
 	ContentType string
-	Retry       retry.Retry
+	Retry       retry.Backoff
 	EnableAuth  bool
 }
 
