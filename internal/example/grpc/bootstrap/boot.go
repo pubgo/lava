@@ -13,7 +13,7 @@ import (
 func Main() {
 	defer recovery.Exit()
 
-	var di = builder.New(dix.WithValuesNull())
+	var di = builder.NewDix(dix.WithValuesNull())
 	di.Provide(config.Load[Config])
 
 	di.Provide(gid_handler.New)

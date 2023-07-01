@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"github.com/pubgo/lava/services/metadata"
 	"os"
 	"sort"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/pkg/cmds"
+	"github.com/pubgo/lava/services/metadata"
 
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
@@ -70,7 +70,7 @@ var defaultProviders = []any{
 	metadata.New,
 }
 
-func New(opts ...dix.Option) *dix.Dix {
+func NewDix(opts ...dix.Option) *dix.Dix {
 	var di = dix.New(opts...)
 	for _, p := range defaultProviders {
 		di.Provide(p)

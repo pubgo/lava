@@ -8,8 +8,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.10-10
-	github.com/pubgo/funk v0.5.29-31
+	github.com/pubgo/dix v0.3.11
+	github.com/pubgo/funk v0.5.31-2
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
@@ -31,7 +31,7 @@ require (
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/fullstorydev/grpchan v1.1.1 // indirect
-	github.com/getkin/kin-openapi v0.98.0 // indirect
+	github.com/getkin/kin-openapi v0.115.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -68,7 +68,9 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/perimeterx/marshmallow v1.1.4 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/phuslu/goid v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -76,7 +78,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
-	github.com/pubgo/opendoc v0.0.3-1 // indirect
+	github.com/pubgo/opendoc v0.0.3 // indirect
 	github.com/reugn/go-quartz v0.3.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect

@@ -13,7 +13,7 @@ import (
 
 func Main() {
 	defer recovery.Exit()
-	di := builder.New(dix.WithValuesNull())
+	di := builder.NewDix(dix.WithValuesNull())
 	di.Provide(orm.New)
 	di.Provide(migrates.Migrations)
 	di.Provide(gidhandler.New)
