@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
@@ -15,12 +20,15 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+	"google.golang.org/grpc"
+
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -33,13 +41,6 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-	"google.golang.org/grpc"
-	"net"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 func New() lava.Service { return newService() }
@@ -140,8 +141,6 @@ func (s *serviceImpl) DixInject(
 			assert.Exit(m.RegisterGateway(context.Background(), mux, &s.cc))
 		}
 	}
-
-	pretty.Println(mux)
 
 	s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))

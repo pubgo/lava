@@ -3,7 +3,6 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -24,23 +23,13 @@ import (
 	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
-func parsePath(path string) (string, string, string) {
-	parts := strings.Split(path, "/")
-	if len(parts) < 2 {
-		return "", "", ""
-	}
-	method := parts[len(parts)-1]
-	pkgService := parts[len(parts)-2]
-	prefix := strings.Join(parts[0:len(parts)-2], "/")
-	return prefix, pkgService, method
-}
-
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 		dt, err := req.(*rpcRequest).handler(ctx, req.Payload())
 		if err != nil {
 			return nil, err
 		}
+
 		return &rpcResponse{header: new(fasthttp.ResponseHeader), dt: dt}, nil
 	}
 
@@ -278,14 +267,4 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		})
 		return grpc.SetTrailer(ctx, md)
 	}
-}
-
-// serviceFromMethod returns the service
-// /service.Foo/Bar => service.Foo
-func serviceFromMethod(m string) string {
-	if len(m) == 0 {
-		return m
-	}
-
-	return strings.Split(strings.Trim(m, "/"), "/")[0]
 }
