@@ -1,5 +1,7 @@
 package grpcs
 
+import "strings"
+
 // serviceFromMethod returns the service
 // /service.Foo/Bar => service.Foo
 func serviceFromMethod(m string) string {
