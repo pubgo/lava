@@ -1,0 +1,3 @@
+grpc_server:
+  base_url: gid
+  enable_print_routes: true

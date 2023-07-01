@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 )
 
 type sockOpts struct {
@@ -21,20 +22,20 @@ type sockOpts struct {
 type SockOpt func(opts *sockOpts) error
 
 func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
-	defer xerror.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	if !strings.Contains(address, "//") {
 		address = "tcp4://" + address
 	}
 
-	uri := xerror.PanicErr(url.Parse(address)).(*url.URL)
+	uri := assert.Must1(url.Parse(address))
 	if uri.Scheme == "" {
 		uri.Scheme = "tcp4"
 	}
 
 	var sOpts sockOpts
 	for i := range opts {
-		xerror.Panic(opts[i](&sOpts))
+		assert.Must(opts[i](&sOpts))
 	}
 
 	var lc net.ListenConfig
@@ -46,17 +47,16 @@ func Listen(address string, opts ...SockOpt) (_ net.Listener, err error) {
 }
 
 func ListenPacket(address string, opts ...SockOpt) (_ net.PacketConn, err error) {
-	defer xerror.RecoverErr(&err)
+	defer recovery.Err(&err)
 
-	uri, err := url.Parse(address)
-	xerror.Panic(err)
+	uri := assert.Must1(url.Parse(address))
 	if uri.Scheme == "" {
 		uri.Scheme = "udp4"
 	}
 
 	var sOpts sockOpts
 	for i := range opts {
-		xerror.Panic(opts[i](&sOpts))
+		assert.Must(opts[i](&sOpts))
 	}
 
 	var lc net.ListenConfig
@@ -111,7 +111,7 @@ func WithChmod(mask os.FileMode) SockOpt {
 }
 
 func MustGetPort(addrOrNet interface{}) int {
-	return xerror.PanicErr(GetPort(addrOrNet)).(int)
+	return assert.Must1(GetPort(addrOrNet))
 }
 
 // GetPort returns the port of an endpoint address.

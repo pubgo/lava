@@ -57,7 +57,7 @@ func NewWs(handler func(*fiber.Ctx, *Conn), config ...WsCfg) fiber.Handler {
 	if cfg.WriteBufferSize == 0 {
 		cfg.WriteBufferSize = 1024
 	}
-	var upgrader = websocket.FastHTTPUpgrader{
+	upgrader := websocket.FastHTTPUpgrader{
 		HandshakeTimeout:  cfg.HandshakeTimeout,
 		Subprotocols:      cfg.Subprotocols,
 		ReadBufferSize:    cfg.ReadBufferSize,
@@ -67,7 +67,7 @@ func NewWs(handler func(*fiber.Ctx, *Conn), config ...WsCfg) fiber.Handler {
 			if cfg.Origins[0] == "*" {
 				return true
 			}
-			origin := utils.GetString(fctx.Request.Header.Peek("Origin"))
+			origin := utils.UnsafeString(fctx.Request.Header.Peek("Origin"))
 			for i := range cfg.Origins {
 				if cfg.Origins[i] == origin {
 					return true

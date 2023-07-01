@@ -1,17 +1,25 @@
-version: v1
+checksum: 37dd528ded32fd3c8ae45f9f93ac65dd49214965
 vendor: .proto
-checksum: 050e5a71ba4de3f034ea40ed09d2d3582f4e2110
+base:
+  out: ./pkg
+  paths: source_relative
 root:
-- proto
+  - proto
 deps:
-- name: google
-  url: github.com/googleapis/googleapis
-  path: /google
-  version: v0.0.0-20220224004616-3c171936039b
-- name: google/protobuf
-  url: /usr/local/include/google/protobuf
+  - name: google
+    url: github.com/googleapis/googleapis
+    path: /google
+    version: v0.0.0-20220224004616-3c171936039b
+  - name: google/protobuf
+    url: /usr/local/include/google/protobuf
+  - name: errorpb
+    url: github.com/pubgo/funk
+    path: /proto/errorpb
+    version: v0.5.29-30
 plugins:
-- name: go
-  out: pkg
-  opt:
-  - paths=source_relative
+  - name: go
+  - name: go-errors
+  - name: go-grpc
+    opt:
+      - require_unimplemented_servers=false
+  - name: grpc-gateway

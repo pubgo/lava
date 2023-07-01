@@ -1,0 +1,27 @@
+package logkey
+
+const (
+	ErrMsg    = "err_msg"
+	ErrDetail = "err_detail"
+	Stack     = "stack"
+	Key       = "key"
+	Debug     = "debug"
+	Version   = "version"
+	TraceID   = "traceID"
+	Namespace = "namespace"
+	Module    = "module"
+	Project   = "project"
+	Fields    = "fields"
+	Env       = "env"
+	Hostname  = "hostname"
+	Kind      = "kind"
+	Name      = "name"
+	Service   = "service"
+	Request   = "request"
+	Operation = "operation"
+	Resource  = "resource"
+	UserInfo  = "userinfo"
+	Pod       = "pod"
+	CommitID  = "commit"
+	Config    = "config"
+)

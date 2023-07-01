@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package gid;
+
+option go_package = "./gidpb;gidpb";
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "errorpb/status.proto";
+
+message GenerateResponse {
+  // the unique id generated
+  string id = 1;
+  // the type of id generated
+  string type = 2;
+}
+
+
+// Id 生成随机ID服务
+service Id {
+  option (google.api.default_host) = "localhost:8080";
+
+  // Generate 生成ID
+  rpc Generate(GenerateRequest) returns (GenerateResponse) {
+    option (google.api.http) = {
+      post: "/v1/id/generate"
+      body: "*"
+    };
+  }
+
+  rpc TypeStream(TypesRequest) returns (stream TypesResponse) {
+    option (google.api.http).get = "/v1/id/types1";
+  }
+
+  // Types id类型
+  rpc Types(TypesRequest) returns (TypesResponse) {
+    option (google.api.http).get = "/v1/id/types";
+  }
+}
+
+enum SrvCode {
+  option (status.opts).gen = true;
+
+  OK = 0;
+
+  // id generate error
+  IDGenerateFailed = 100 [
+    (status.field).code = Internal
+  ];
+}
+
+enum GenType {
+  default = 0;
+  uuid = 1;
+  snowflake = 2;
+  bigflake = 3;
+  shortid = 4;
+}
+
+// Generate a unique ID. Defaults to uuid.
+message GenerateRequest {
+  // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
+  GenType type = 1;
+}
+
+// List the types of IDs available. No query params needed.
+message TypesRequest {}
+
+// TypesResponse 返回值类型
+message TypesResponse {
+  repeated string types = 1;
+}

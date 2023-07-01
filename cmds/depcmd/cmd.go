@@ -1,26 +1,26 @@
 package depcmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime/debug"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/version"
+	cli "github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/pkg/cmdx"
-	"github.com/pubgo/lava/version"
+	"github.com/pubgo/lava/pkg/cmds"
 )
 
-func New() *cli.Command {
+func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "dep",
 		Usage: "Print the dependency package information",
-		Description: cmdx.ExampleFmt(
+		Description: cmds.ExampleFmt(
 			"lava dep",
 			"lava dep json",
 			"lava dep t"),
@@ -39,11 +39,9 @@ func New() *cli.Command {
 
 			switch typ {
 			case "":
-				dt := assert.Must1(json.MarshalIndent(runmode.GetVersion(), "", "\t"))
-				fmt.Println(string(dt))
-			case "json":
-				dt := assert.Must1(json.MarshalIndent(info, "", "\t"))
-				fmt.Println(string(dt))
+				pretty.Println(info)
+			case "sys":
+				pretty.Println(running.GetSysInfo())
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)
 				table.SetHeader([]string{"path", "Version", "Replace"})
@@ -53,6 +51,9 @@ func New() *cli.Command {
 					table.Append([]string{dep.Path, dep.Version, replace(dep.Replace)})
 				}
 				table.Render()
+			case "di":
+				fmt.Println(di.Graph().Objects)
+				fmt.Println(di.Graph().Providers)
 			}
 			return nil
 		},

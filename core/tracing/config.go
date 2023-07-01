@@ -1,32 +1,57 @@
 package tracing
 
 import (
-	"github.com/pubgo/xerror"
+	"crypto/tls"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/grpc/credentials"
 )
 
-const Name = "tracing"
+type Config struct {
+	traceExporter      *Exporter
+	metricExporter     *Exporter
+	metricReportPeriod string
+	serviceInfo        *ServiceInfo
+	attributes         map[string]string
+	headers            map[string]string
+	idGenerator        sdktrace.IDGenerator
+	otelErrorHandler   otel.ErrorHandler
+	traceBatchOptions  []sdktrace.BatchSpanProcessorOption
+	sampleRatio        float64
 
-type Cfg struct {
-	Driver    string                 `json:"driver"`
-	DriverCfg map[string]interface{} `json:"driver_config"`
+	resourceAttributes []attribute.KeyValue
+	resourceDetectors  []resource.Detector
+
+	tlsConf *tls.Config
+
+	// Tracing options
+
+	tracingEnabled    bool
+	textMapPropagator propagation.TextMapPropagator
+	tracerProvider    *sdktrace.TracerProvider
+	traceSampler      sdktrace.Sampler
+	prettyPrint       bool
+	bspOptions        []sdktrace.BatchSpanProcessorOption
+
+	// Metrics options
+
+	metricsEnabled bool
+	metricOptions  []metric.Option
 }
 
-func (cfg Cfg) Build() (err error) {
-	defer xerror.RecoverErr(&err, func(err xerror.XErr) xerror.XErr {
-		return err.WrapF("cfg=>\n\t%#v", cfg)
-	})
-
-	driver := cfg.Driver
-	xerror.Assert(driver == "", "tracer driver is null")
-
-	fc := GetFactory(driver)
-	xerror.Assert(fc == nil, "tracer driver [%s] not found", driver)
-
-	return fc(cfg.DriverCfg)
+type Exporter struct {
+	ExporterEndpoint string
+	Insecure         bool
+	Creds            credentials.TransportCredentials
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
-		Driver: "noop",
-	}
+type ServiceInfo struct {
+	Name      string
+	Namespace string
+	Version   string
 }

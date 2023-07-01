@@ -8,30 +8,33 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errorx"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/syncx"
-	"go.uber.org/zap"
+	"github.com/pubgo/funk/async"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/version"
 
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/runmode"
-	"github.com/pubgo/lava/logging/logutil"
+	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/pkg/netutil"
-	"github.com/pubgo/lava/version"
 )
 
-func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
-	var cfg = DefaultCfg()
+func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
+	cfg := DefaultCfg()
 
 	// 配置解析
 	cfg.Check()
 
 	reg := regs[cfg.Driver]
 	assert.Fn(reg == nil, func() error {
-		var errs = fmt.Errorf("registry driver is null")
-		errs = errorx.WrapF(errs, "driver=>%s", cfg.Driver)
-		errs = errorx.WrapF(errs, "regs=>%v", regs)
-		return errs
+		return &errors.Err{
+			Msg: "registry driver is null",
+			Tags: errors.Tags{
+				errors.T("driver", cfg.Driver),
+				errors.T("regs", regs),
+			},
+		}
 	})
 
 	// 服务注册
@@ -40,14 +43,14 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 
 		register(reg)
 
-		var cancel = syncx.GoCtx(func(ctx context.Context) result.Error {
-			var interval = DefaultRegisterInterval
+		cancel := async.GoCtx(func(ctx context.Context) error {
+			interval := DefaultRegisterInterval
 
 			if cfg.RegisterInterval > time.Duration(0) {
 				interval = cfg.RegisterInterval
 			}
 
-			var tick = time.NewTicker(interval)
+			tick := time.NewTicker(interval)
 			defer tick.Stop()
 
 			for {
@@ -55,8 +58,8 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 				case <-tick.C:
 					register(reg)
 				case <-ctx.Done():
-					zap.L().Info("service register cancelled")
-					return result.Error{}
+					log.Info().Msg("service register cancelled")
+					return nil
 				}
 			}
 		})
@@ -72,7 +75,7 @@ func New(c *Cfg, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	var port = runmode.GrpcPort
+	port := running.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -87,32 +90,36 @@ func register(reg Registry) {
 	}
 
 	// register service
-	node := &Node{
+	node := &service.Node{
 		Port:     port,
 		Version:  version.Version(),
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
+		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
-	s := &Service{
-		Name:  runmode.Project,
-		Nodes: []*Node{node},
+	s := &service.Service{
+		Name:  running.Project,
+		Nodes: []*service.Node{node},
 	}
 
 	logutil.OkOrFailed(
-		zap.L(),
+		log.GetLogger("service-registry"),
 		"register service node",
-		func() result.Error { return reg.Register(s) },
-		zap.String("instance_id", node.Id),
-		zap.String("service", runmode.Project),
-		zap.String("registry", Default().String()),
+		func() error {
+			err := reg.Register(context.Background(), s)
+			return errors.WrapTag(err,
+				errors.T("instance_id", node.Id),
+				errors.T("service", running.Project),
+				errors.T("registry", Default().String()),
+			)
+		},
 	)
 }
 
 func deregister(reg Registry) {
 	var advt, host string
-	var port = runmode.GrpcPort
+	port := running.GrpcPort
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -123,23 +130,27 @@ func deregister(reg Registry) {
 	}
 
 	// register service
-	node := &Node{
+	node := &service.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       runmode.Project + "-" + runmode.Hostname + "-" + runmode.InstanceID,
+		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: make(map[string]string),
 	}
 
-	s := &Service{
-		Name:  runmode.Project,
-		Nodes: []*Node{node},
+	s := &service.Service{
+		Name:  running.Project,
+		Nodes: []*service.Node{node},
 	}
 
 	logutil.OkOrFailed(
-		zap.L(),
+		log.GetLogger("service-registry"),
 		"deregister service node",
-		func() result.Error { return reg.Deregister(s) },
-		zap.String("id", node.Id),
-		zap.String("name", runmode.Project),
+		func() error {
+			err := reg.Deregister(context.Background(), s)
+			return errors.WrapTag(err,
+				errors.T("id", node.Id),
+				errors.T("name", running.Project),
+			)
+		},
 	)
 }

@@ -5,5 +5,5 @@ import "time"
 const Name = "mdns"
 
 type Cfg struct {
-	TTL  time.Duration `json:"ttl"`
+	TTL time.Duration `json:"ttl"`
 }

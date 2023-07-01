@@ -1,9 +1,11 @@
 package grpcc_resolver
 
 import (
-	"net"
+	"fmt"
+	"math/rand"
 	"strings"
 
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -11,29 +13,36 @@ func newState(addrList []resolver.Address) resolver.State {
 	return resolver.State{Addresses: reshuffle(addrList)}
 }
 
-func BuildTarget(service string, registry ...string) string {
-	// 127.0.0.1,127.0.0.1,127.0.0.1;127.0.0.1
-	var host = extractHostFromHostPort(service)
-	var scheme = DiscovScheme
-	var reg = "mdns"
-	if len(registry) > 0 {
-		reg = registry[0]
-	}
+// gRPC名称解析
+// 	https://github.com/grpc/grpc/blob/master/doc/naming.md
+// 	dns:[//authority/]host[:port]
 
-	if strings.Contains(service, ",") || net.ParseIP(host) != nil || host == "localhost" {
-		scheme = DirectScheme
-	}
+// BuildDirectTarget direct://localhost:8080,localhost:8081
+func BuildDirectTarget(name string, endpoints ...string) string {
+	return fmt.Sprintf("%s://%s?name=%s", DirectScheme, strings.Join(endpoints, EndpointSep), name)
+}
 
-	if strings.Contains(service, "k8s://") || net.ParseIP(host) != nil || host == "localhost" {
-		scheme = K8sScheme
-	}
+// BuildDiscoveryTarget discovery://test-service:8080
+func BuildDiscoveryTarget(service string) string {
+	return fmt.Sprintf("%s://%s", DiscoveryScheme, service)
+}
 
-	switch scheme {
-	case DiscovScheme:
-		return BuildDiscovTarget(service, reg)
-	case DirectScheme:
-		return BuildDirectTarget(service)
-	default:
-		panic("schema is unknown")
+// reshuffle 打散targets
+func reshuffle(targets []resolver.Address) []resolver.Address {
+	rand.Shuffle(len(targets), func(i, j int) { targets[i], targets[j] = targets[j], targets[i] })
+	return targets
+}
+
+// 创建新的Address
+func newAddr(addr string, name string) resolver.Address {
+	return resolver.Address{
+		Addr:       addr,
+		Attributes: attributes.New(addr, name),
+		ServerName: name,
 	}
+}
+
+// 组合服务的id和replica序列号
+func getServiceUniqueId(name string, id int) string {
+	return fmt.Sprintf("%s-%d", name, id)
 }

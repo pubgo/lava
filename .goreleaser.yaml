@@ -1,5 +1,5 @@
 builds:
-  - main: ./cmd/lava/main.go
+  - main: ./cmds/lava/main.go
     id: lava
     binary: lava
     env:
@@ -14,17 +14,6 @@ builds:
       - -X 'github.com/pubgo/lava/version.BuildTime={{ .Date }}'
       - -X 'github.com/pubgo/lava/version.CommitID={{ .Commit }}'
       - -X 'github.com/pubgo/lava/version.Version={{ .Version }}'
-  - main: ./cmd/protoc-gen-errors/main.go
-    id: protoc-gen-errors
-    binary: protoc-gen-errors
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
 archives:
   - name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
     format: binary

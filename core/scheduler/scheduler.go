@@ -1,96 +1,116 @@
 package scheduler
 
 import (
-	"github.com/pubgo/funk/result"
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/try"
 	"github.com/reugn/go-quartz/quartz"
-	"go.uber.org/zap"
 
-	"github.com/pubgo/lava/logging"
-	"github.com/pubgo/lava/logging/logutil"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/lava/core/metrics"
 )
 
-func New(log *logging.Logger) *Scheduler {
-	return &Scheduler{
-		scheduler: quartz.NewStdScheduler(),
-		log:       logging.ModuleLog(log, Name),
-	}
+type job struct {
+	key  string
+	cron string
+	dur  time.Duration
+	once bool
 }
 
 type Scheduler struct {
+	metric    metrics.Metric
+	config    map[string]JobSetting
 	scheduler quartz.Scheduler
-	key       string
-	cron      string
-	dur       time.Duration
-	once      bool
-	log       *logging.ModuleLogger
+	log       log.Logger
+	cancel    context.CancelFunc
+	ctx       context.Context
+	jobs      map[string]JobFunc
 }
 
-func (s *Scheduler) Stop() {
+func (s *Scheduler) stop() {
+	s.cancel()
 	s.scheduler.Stop()
 }
 
-func (s *Scheduler) Start() {
+func (s *Scheduler) start() {
 	if s.scheduler.IsStarted() {
 		return
 	}
+
 	s.scheduler.Start()
 }
 
-func (s *Scheduler) Once(name string, delay time.Duration, fn func(name string)) {
-	s.log.Depth(1).Info("register once scheduler", zap.String("name", name), zap.String("delay", delay.String()))
-	do(&Scheduler{scheduler: s.scheduler, dur: delay, key: name, once: true, log: s.log}, fn)
-}
-
-func (s *Scheduler) Every(name string, dur time.Duration, fn func(name string)) {
-	s.log.Depth(1).Info("register every scheduler", zap.String("name", name), zap.String("dur", dur.String()))
-	do(&Scheduler{scheduler: s.scheduler, dur: dur, key: name, log: s.log}, fn)
-}
-
-func (s *Scheduler) Cron(name string, expr string, fn func(name string)) {
-	s.log.Depth(1).Info("register cron scheduler", zap.String("name", name), zap.String("expr", expr))
-	do(&Scheduler{scheduler: s.scheduler, cron: expr, key: name, log: s.log}, fn)
-}
-
-func (s *Scheduler) getTrigger() quartz.Trigger {
-	if s.once {
-		return quartz.NewRunOnceTrigger(s.dur)
+func (s *Scheduler) checkJobExists(name string, fn JobFunc) error {
+	if s.jobs[name] != nil {
+		return &errors.Err{
+			Msg:    fmt.Sprintf("job %s exists", name),
+			Detail: stack.CallerWithFunc(s.jobs[name]).String(),
+		}
 	}
 
-	if s.cron != "" {
-		return assert.Must1(quartz.NewCronTrigger(s.cron))
-	}
-
-	if s.dur != 0 {
-		return quartz.NewSimpleTrigger(s.dur)
-	}
-
+	s.jobs[name] = fn
 	return nil
 }
 
-func do(s *Scheduler, fn func(name string)) {
-	var trigger = s.getTrigger()
-	assert.If(s.key == "", "[name] should not be null")
-	assert.If(fn == nil, "[fn] should not be nil")
-	assert.If(trigger == nil, "please init dur or cron")
-	assert.Must(s.scheduler.ScheduleJob(namedJob{name: s.key, fn: fn, log: s.log}, trigger))
+func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("delay", delay.String()).
+		Msg("register once scheduler")
+	do(s, job{dur: delay, key: name, once: true}, fn)
+}
+
+func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("dur", dur.String()).
+		Msg("register periodic scheduler")
+	do(s, job{dur: dur, key: name}, fn)
+}
+
+func (s *Scheduler) Cron(name string, expr string, fn JobFunc) {
+	assert.Must(s.checkJobExists(name, fn))
+
+	s.log.WithCallerSkip(1).Info().
+		Str("name", name).
+		Str("expr", expr).
+		Msg("register cron scheduler")
+	do(s, job{cron: expr, key: name}, fn)
 }
 
 type namedJob struct {
+	s    *Scheduler
 	name string
-	fn   func(name string)
-	log  *logging.ModuleLogger
+	fn   JobFunc
+	log  log.Logger
 }
 
 func (t namedJob) Description() string { return t.name }
 func (t namedJob) Key() int            { return quartz.HashCode(t.Description()) }
 func (t namedJob) Execute() {
-	var dur, err = utils.Cost(func() { t.fn(t.name) })
-	logutil.LogOrErr(t.log.L(), "scheduler trigger",
-		func() result.Error { return result.WithErr(err) },
-		zap.String("job-name", t.name),
-		zap.Int64("job-cost-ms", dur.Milliseconds()))
+	start := time.Now()
+	err := try.Try(func() error {
+		ctx, cancel := context.WithCancel(t.s.ctx)
+		defer cancel()
+
+		return t.fn(ctx, t.name)
+	})
+
+	t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("scheduler_job_cost").Update(float64(time.Since(start).Microseconds()) / 1000)
+
+	logger := generic.Ternary(generic.IsNil(err), t.log.Info(), t.log.Err(err))
+	logger.
+		Float32("job-cost-ms", float32(time.Since(start).Microseconds())/1000).
+		Str("job-name", t.name).
+		Msg("scheduler job execution")
 }

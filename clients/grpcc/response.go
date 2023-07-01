@@ -1,18 +1,18 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/service"
+	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
 )
 
-var _ service.Response = (*response)(nil)
+var _ lava.Response = (*response)(nil)
 
 type response struct {
-	header *service.ResponseHeader
+	header *lava.ResponseHeader
 	stream grpc.ClientStream
 	resp   interface{}
 }
 
-func (r *response) Stream() bool                    { return r.stream != nil }
-func (r *response) Header() *service.ResponseHeader { return r.header }
-func (r *response) Payload() interface{}            { return r.resp }
+func (r *response) Stream() bool                 { return r.stream != nil }
+func (r *response) Header() *lava.ResponseHeader { return r.header }
+func (r *response) Payload() interface{}         { return r.resp }

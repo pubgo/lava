@@ -1,8 +1,6 @@
 WORKDIR=`pwd`
-Domain=lava
-Project=test-grpc
-Base=github.com/pubgo/lava
-Tag=$(shell git describe --abbrev=0 --tags)
+Project=lava
+Base=github.com/pubgo/funk
 Version=$(shell git tag --sort=committerdate | tail -n 1)
 BuildTime=$(shell date "+%F %T")
 CommitID=$(shell git rev-parse --short=8 HEAD)
@@ -12,15 +10,12 @@ LDFLAGS=-ldflags " \
 -X '${Base}/version.buildTime=${BuildTime}' \
 -X '${Base}/version.commitID=${CommitID}' \
 -X '${Base}/version.version=${Version:=v0.0.1-dev}' \
--X '${Base}/version.tag=${Tag}' \
--X '${Base}/version.domain=${Domain}' \
 -X '${Base}/version.project=${Project}' \
--X '${Base}/version.data=hello' \
 "
 
 .PHONY: build
 build:
-	go build ${LDFLAGS} -mod vendor -v -o main cmd/lava/main.go
+	go build ${LDFLAGS} -mod vendor -v -o bin/main cmd/lava/main.go
 
 .PHONY: install
 install:

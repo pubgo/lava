@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/assert"
-	_ "github.com/pubgo/funk/errorx"
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk/errors"
 )
 
 const DefaultPrefix = "/registry"
@@ -31,23 +30,22 @@ const (
 	DefaultSleepAfterDeregister = time.Second * 2
 )
 
-type Cfg struct {
+type Config struct {
 	RegisterInterval time.Duration          `yaml:"registerInterval"`
 	Driver           string                 `json:"driver" yaml:"driver"`
 	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
 }
 
-func (cfg *Cfg) Check() *Cfg {
+func (cfg *Config) Check() *Config {
 	assert.Fn(cfg.Driver == "", func() error {
 		err := fmt.Errorf("registry driver is null")
-
-		return xerror.WrapF(err, "cfg=>%#v", cfg)
+		return errors.WrapKV(err, "cfg", cfg)
 	})
 	return cfg
 }
 
-func DefaultCfg() Cfg {
-	return Cfg{
+func DefaultCfg() Config {
+	return Config{
 		Driver: "mdns",
 	}
 }

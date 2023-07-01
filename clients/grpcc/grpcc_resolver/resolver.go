@@ -2,75 +2,35 @@ package grpcc_resolver
 
 import (
 	"context"
-	"fmt"
-	"github.com/pubgo/lava/logging"
-	"math/rand"
-	"strings"
 
-	"google.golang.org/grpc/attributes"
+	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc/resolver"
 )
 
 const (
-	DnsScheme    = "dns"
-	K8sScheme    = "k8s"
-	DirectScheme = "direct"
-	DiscovScheme = "discov"
-	EndpointSep  = ","
+	DnsScheme       = "dns"
+	K8sScheme       = "k8s"
+	DirectScheme    = "direct"
+	DiscoveryScheme = "discovery"
+	EndpointSep     = ","
 )
 
-var logs = logging.GetGlobal("balancer.resolver")
+var logs = log.GetLogger("balancer.resolver")
 
-var (
-	Replica = 1
-)
+var Replica = 1
 
 type baseResolver struct {
-	builder string
-	cancel  context.CancelFunc
+	builder     string
+	serviceName string
+	cancel      context.CancelFunc
 }
 
 func (r *baseResolver) Close() {
-	if r.cancel == nil {
-		return
+	if r.cancel != nil {
+		r.cancel()
 	}
-	r.cancel()
 }
 
 func (r *baseResolver) ResolveNow(_ resolver.ResolveNowOptions) {
-	logs.S().Infof("[grpc] %s ResolveNow", r.builder)
-}
-
-// gRPC名称解析
-// 	https://github.com/grpc/grpc/blob/master/doc/naming.md
-// 	dns:[//authority/]host[:port]
-
-// BuildDirectTarget direct://localhost:8080,localhost:8081
-func BuildDirectTarget(endpoints ...string) string {
-	return fmt.Sprintf("%s://%s", DirectScheme, strings.Join(endpoints, EndpointSep))
-}
-
-// BuildDiscovTarget discov://test-service
-func BuildDiscovTarget(service string, registry string) string {
-	return fmt.Sprintf("%s://%s?registry=%s", DiscovScheme, service, registry)
-}
-
-// reshuffle 打散targets
-func reshuffle(targets []resolver.Address) []resolver.Address {
-	rand.Shuffle(len(targets), func(i, j int) { targets[i], targets[j] = targets[j], targets[i] })
-	return targets
-}
-
-// 创建新的Address
-func newAddr(addr string, name string) resolver.Address {
-	return resolver.Address{
-		Addr:       addr,
-		Attributes: attributes.New(addr, name),
-		ServerName: name,
-	}
-}
-
-// 组合服务的id和replica序列号
-func getServiceUniqueId(name string, id int) string {
-	return fmt.Sprintf("%s-%d", name, id)
+	logs.Info().Str("service-name", r.serviceName).Str("resolver-builder", r.builder).Msgf("grpc balancer resolve now")
 }

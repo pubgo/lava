@@ -21,7 +21,7 @@ type loadAggregate struct {
 	rand  *rand.Rand
 }
 
-func NewP2cAgl() *loadAggregate {
+func newP2cAgl() *loadAggregate {
 	return &loadAggregate{
 		items: make([]*node, 0),
 		rand:  rand.New(rand.NewSource(time.Now().Unix())),

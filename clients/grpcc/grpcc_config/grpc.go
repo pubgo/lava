@@ -62,7 +62,7 @@ func (t connectParams) toConnectParams() grpc.ConnectParams {
 	}
 }
 
-type ClientCfg struct {
+type GrpcClientCfg struct {
 	MaxMsgSize           int           `json:"max_msg_size"`
 	Codec                string        `json:"codec"`
 	Compressor           string        `json:"compressor"`
@@ -98,8 +98,8 @@ type ClientCfg struct {
 	Call             callParameters   `json:"call"`
 }
 
-func (t ClientCfg) ToOpts() []grpc.DialOption {
-	var opts = defaultOpts[0:len(defaultOpts):len(defaultOpts)]
+func (t GrpcClientCfg) ToOpts() []grpc.DialOption {
+	opts := defaultOpts[0:len(defaultOpts):len(defaultOpts)]
 
 	if t.Insecure {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))

@@ -2,17 +2,15 @@ package healthy
 
 import (
 	"github.com/pubgo/funk/assert"
-
-	"github.com/pubgo/lava/pkg/typex"
-	"github.com/pubgo/lava/pkg/utils"
+	"github.com/pubgo/funk/typex"
 )
 
 const Name = "healthy"
 
-var healthList typex.SMap
+var healthList typex.SyncMap
 
-func Get(names ...string) Handler {
-	val, ok := healthList.Load(utils.GetDefault(names...))
+func Get(name string) Handler {
+	val, ok := healthList.Load(name)
 	if !ok {
 		return nil
 	}

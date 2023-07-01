@@ -1,13 +1,7 @@
 package grpcc_resolver
 
-import (
-	"github.com/pubgo/funk/recovery"
-	"google.golang.org/grpc/resolver"
-)
-
 func init() {
-	defer recovery.Exit()
-
-	resolver.Register(&directBuilder{})
-	resolver.Register(&discovBuilder{})
+	// resolver.Register(&directBuilder{})
+	// resolver.Register(&discoveryBuilder{})
+	// resolver.Register(kuberesolver.NewBuilder(nil, "kubernetes"))
 }

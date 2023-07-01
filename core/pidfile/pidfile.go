@@ -2,22 +2,21 @@ package pidfile
 
 import (
 	"fmt"
-	"io/ioutil"
+	"github.com/pubgo/funk/config"
 	"os"
 	"path/filepath"
 	"strconv"
 	"syscall"
 
 	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/config"
-	"github.com/pubgo/lava/core/runmode"
+	"github.com/pubgo/funk/running"
 )
 
 const Name = "pidfile"
 
-var pidPath = filepath.Join(config.CfgDir, "pidfile")
+var pidPath = filepath.Join(config.GetConfigDir(), Name)
 
-const pidPerm os.FileMode = 0666
+const pidPerm os.FileMode = 0o666
 
 func GetPid() result.Result[int] {
 	f := GetPidF()
@@ -25,7 +24,7 @@ func GetPid() result.Result[int] {
 		return result.Err[int](f.Err())
 	}
 
-	p, err := ioutil.ReadFile(f.Unwrap())
+	p, err := os.ReadFile(f.Unwrap())
 	if err != nil {
 		return result.Wrap(0, err)
 	}
@@ -34,16 +33,16 @@ func GetPid() result.Result[int] {
 }
 
 func GetPidF() result.Result[string] {
-	filename := fmt.Sprintf("%s.pid", runmode.Project)
+	filename := fmt.Sprintf("%s.pid", running.Project)
 	return result.OK(filepath.Join(pidPath, filename))
 }
 
-func SavePid() result.Error {
+func SavePid() error {
 	f := GetPidF()
 	if f.IsErr() {
 		return f.Err()
 	}
 
 	pid := syscall.Getpid()
-	return result.WithErr(ioutil.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm))
+	return os.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm)
 }

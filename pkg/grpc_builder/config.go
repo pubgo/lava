@@ -1,104 +1,88 @@
 package grpc_builder
 
 import (
+	"time"
+
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"google.golang.org/grpc"
-	"time"
-
-	"github.com/pubgo/x/merge"
-	"github.com/pubgo/xerror"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/pubgo/lava/pkg/grpcutil"
 )
 
-const (
-	DefaultContentType = "application/grpc"
-	DefaultMaxMsgSize  = 1024 * 1024 * 4
-	DefaultTimeout     = time.Second * 2
-)
+// default config: google.golang.org/grpc/internal/transport/defaults.go
 
 type KeepaliveParams struct {
-	MaxConnectionAge      time.Duration `json:"max_connection_age"`
-	MaxConnectionAgeGrace time.Duration `json:"max_connection_age_grace"`
-	MaxConnectionIdle     time.Duration `json:"max_connection_idle"`
-	Time                  time.Duration `json:"time"`
-	Timeout               time.Duration `json:"timeout"`
+	MaxConnectionAge      time.Duration `yaml:"max_connection_age"`
+	MaxConnectionAgeGrace time.Duration `yaml:"max_connection_age_grace"`
+	MaxConnectionIdle     time.Duration `yaml:"max_connection_idle"`
+	Time                  time.Duration `yaml:"time"`
+	Timeout               time.Duration `yaml:"timeout"`
 }
 
-func (t KeepaliveParams) ToCfg() (sp keepalive.ServerParameters) {
-	xerror.Panic(merge.Copy(&sp, &t))
-	return
+func (t *KeepaliveParams) ToOpts() grpc.ServerOption {
+	return grpc.KeepaliveParams(keepalive.ServerParameters{
+		MaxConnectionAge:      t.MaxConnectionAge,
+		MaxConnectionAgeGrace: t.MaxConnectionAgeGrace,
+		MaxConnectionIdle:     t.MaxConnectionIdle,
+		Time:                  t.Time,
+		Timeout:               t.Timeout,
+	})
 }
 
 type KeepalivePolicy struct {
-	MinTime             time.Duration `json:"min_time"`
-	PermitWithoutStream bool          `json:"permit_without_stream"`
+	MinTime             time.Duration `yaml:"min_time"`
+	PermitWithoutStream bool          `yaml:"permit_without_stream"`
+}
+
+func (t *KeepalivePolicy) ToOpts() grpc.ServerOption {
+	return grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+		MinTime:             t.MinTime,
+		PermitWithoutStream: t.PermitWithoutStream,
+	})
 }
 
 type Config struct {
-	Codec                 string          `json:"codec"`
-	ConnectionTimeout     time.Duration   `json:"connection_timeout"`
-	Cp                    string          `json:"cp"`
-	Creds                 string          `json:"creds"`
-	Dc                    string          `json:"dc"`
-	HeaderTableSize       int64           `json:"header_table_size"`
-	InitialConnWindowSize int64           `json:"initial_conn_window_size"`
-	InitialWindowSize     int64           `json:"initial_window_size"`
-	KeepaliveParams       KeepaliveParams `json:"keepalive_params"`
-	KeepalivePolicy       KeepalivePolicy `json:"keepalive_policy"`
-	MaxConcurrentStreams  int64           `json:"max_concurrent_streams"`
-	MaxHeaderListSize     int64           `json:"max_header_list_size"`
-	MaxRecvMsgSize        int             `json:"max_recv_msg_size"`
-	MaxSendMsgSize        int             `json:"max_send_msg_size"`
-	ReadBufferSize        int64           `json:"read_buffer_size"`
-	WriteBufferSize       int64           `json:"write_buffer_size"`
-}
-
-func (t *Config) BuildOpts() []grpc.ServerOption {
-	return []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(t.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(t.MaxSendMsgSize),
-		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionAgeGrace: 5 * time.Minute,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
-			Time:                  30 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-			Timeout:               5 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
-		}),
-		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             30 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
-			PermitWithoutStream: true,             // Allow pings even when there are no active streams
-		}),
-	}
+	Codec                 string           `yaml:"codec"`
+	ConnectionTimeout     time.Duration    `yaml:"connection_timeout"`
+	Cp                    string           `yaml:"cp"`
+	Creds                 string           `yaml:"creds"`
+	Dc                    string           `yaml:"dc"`
+	HeaderTableSize       int64            `yaml:"header_table_size"`
+	InitialConnWindowSize int64            `yaml:"initial_conn_window_size"`
+	InitialWindowSize     int64            `yaml:"initial_window_size"`
+	KeepaliveParams       *KeepaliveParams `yaml:"keepalive_params"`
+	KeepalivePolicy       *KeepalivePolicy `yaml:"keepalive_policy"`
+	MaxConcurrentStreams  int64            `yaml:"max_concurrent_streams"`
+	MaxHeaderListSize     int64            `yaml:"max_header_list_size"`
+	MaxRecvMsgSize        int              `yaml:"max_recv_msg_size"`
+	MaxSendMsgSize        int              `yaml:"max_send_msg_size"`
+	ReadBufferSize        int64            `yaml:"read_buffer_size"`
+	WriteBufferSize       int64            `yaml:"write_buffer_size"`
 }
 
 func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
 	defer recovery.Result(&r)
 
-	opts = append(t.BuildOpts(), opts...)
-	var srv = grpc.NewServer(opts...)
+	if t.KeepalivePolicy != nil {
+		opts = append(opts, t.KeepalivePolicy.ToOpts())
+	}
 
-	EnableReflection(srv)
-	EnableHealth("", srv)
-	EnableDebug(srv)
+	if t.KeepaliveParams != nil {
+		opts = append(opts, t.KeepaliveParams.ToOpts())
+	}
+
+	srv := grpc.NewServer(opts...)
+
+	grpcutil.EnableReflection(srv)
+	grpcutil.EnableHealth("", srv)
+	grpcutil.EnableDebug(srv)
 	return r.WithVal(srv)
 }
 
 func GetDefaultCfg() *Config {
 	return &Config{
-		MaxRecvMsgSize:    DefaultMaxMsgSize,
-		MaxSendMsgSize:    DefaultMaxMsgSize,
-		WriteBufferSize:   32 * 1024,
-		ReadBufferSize:    32 * 1024,
 		ConnectionTimeout: 120 * time.Second,
-		KeepaliveParams: KeepaliveParams{
-			MaxConnectionIdle:     30 * time.Second, // If a client is idle for 15 seconds, send a GOAWAY
-			MaxConnectionAge:      55 * time.Second, // If any connection is alive for more than 30 seconds, send a GOAWAY
-			MaxConnectionAgeGrace: 5 * time.Second,  // Allow 5 seconds for pending RPCs to complete before forcibly closing connections
-			Time:                  10 * time.Second, // Ping the client if it is idle for 5 seconds to ensure the connection is still active
-			Timeout:               2 * time.Second,  // Wait 1 second for the ping ack before assuming the connection is dead
-		},
-		KeepalivePolicy: KeepalivePolicy{
-			MinTime:             5 * time.Second, // If a client pings more than once every 5 seconds, terminate the connection
-			PermitWithoutStream: true,            // Allow pings even when there are no active streams
-		},
 	}
 }
