@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pubgo/opendoc v0.0.3-1
+	github.com/pubgo/opendoc v0.0.3
 	github.com/reugn/go-quartz v0.3.7
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.opentelemetry.io/otel v1.14.0
@@ -58,11 +58,10 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
-	github.com/pubgo/dix v0.3.10-10
-	github.com/pubgo/funk v0.5.29-31
+	github.com/pubgo/dix v0.3.11
+	github.com/pubgo/funk v0.5.30
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.29.0
-	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7
@@ -91,7 +90,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
-	github.com/getkin/kin-openapi v0.98.0 // indirect
+	github.com/getkin/kin-openapi v0.115.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
@@ -131,6 +130,8 @@ require (
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/perimeterx/marshmallow v1.1.4 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/phuslu/goid v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
