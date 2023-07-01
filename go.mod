@@ -3,7 +3,7 @@ module github.com/pubgo/lava
 go 1.19
 
 require (
-	github.com/gofiber/fiber/v2 v2.43.0
+	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
@@ -66,7 +66,7 @@ require (
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
-	github.com/valyala/fasthttp v1.45.0
+	github.com/valyala/fasthttp v1.47.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
 	gorm.io/driver/mysql v1.4.5
@@ -122,7 +122,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect

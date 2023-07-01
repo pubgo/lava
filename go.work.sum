@@ -393,6 +393,7 @@ github.com/go-openapi/jsonreference v0.19.3 h1:5cxNfTy0UVC3X8JL5ymxzyoUZmo8iZb+j
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
 github.com/go-test/deep v1.0.3/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/godbus/dbus/v5 v5.0.4 h1:9349emZab16e7zQvpmsbtjc18ykshndd8y2PG3sgJbA=
+github.com/gofiber/fiber/v2 v2.47.0/go.mod h1:mbFMVN1lQuzziTkkakgtKKdjfsXSw9BKR5lmcNksUoU=
 github.com/gogf/gf/v2 v2.3.1 h1:uptCJK47N6KSRwTBnFAqBWYnYa/OXBkZ0OlhO9CK7bQ=
 github.com/gogf/gf/v2 v2.3.1/go.mod h1:tsbmtwcAl2chcYoq/fP9W2FZf06aw4i89X34nbSHo9Y=
 github.com/gogo/googleapis v1.1.0 h1:kFkMAZBNAn4j7K0GiZr8cRYzejq68VbheufiV3YuyFI=
@@ -521,6 +522,7 @@ github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 h1:6E+4a0GO5zZEnZ
 github.com/lyft/protoc-gen-star v0.6.0/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
 github.com/lyft/protoc-gen-star v0.6.1 h1:erE0rdztuaDq3bpGifD95wfoPrSZc95nGA6tbiNYh6M=
 github.com/lyft/protoc-gen-validate v0.0.13 h1:KNt/RhmQTOLr7Aj8PsJ7mTronaFyx80mRTT9qF261dA=
+github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-slim v0.0.0-20200618151855-bde33eecb5ee h1:M3l0/LNEemy7ykM6qCZylkWmFPyvDLDCl7bZPLTfaBQ=
 github.com/mitchellh/cli v1.1.0 h1:tEElEatulEHDeedTxwckzyYMA5c86fbmNIUL1hBIiTg=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
@@ -575,7 +577,6 @@ github.com/pubgo/funk v0.5.29-8/go.mod h1:jyv/Fr3KqWSOGBcqvXssAo7S4WUjJB7eGLuPyg
 github.com/pubgo/funk v0.5.29-12/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/funk v0.5.29-19/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/funk v0.5.29-24/go.mod h1:HZ2HYLRc3EBJ03P3c+fOhOH5jCObGEW4wUv+wI24v6Y=
-github.com/pubgo/funk v0.5.31-2/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a h1:9ZKAASQSHhDYGoxY8uLVpewe1GDZ2vu2Tr/vTdVAkFQ=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 h1:OdAsTTz6OkFY5QxjkYwrChwuRruF69c169dPK26NUlk=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
@@ -629,6 +630,7 @@ github.com/uber/jaeger-lib v2.4.1+incompatible h1:td4jdvLcExb4cBISKIpHuGoVXh+dVK
 github.com/uptrace/opentelemetry-go-extra/otellogrus v0.1.16 h1:Um7W0ZO+1wTDWWP/io3YO1VnI6rgJXVUQN6t8Y9iuiI=
 github.com/uptrace/opentelemetry-go-extra/otelutil v0.1.16 h1:bJld2pB1BJjbsh4SDOazz3Gies8gJhjTh/oapV54Vtw=
 github.com/urfave/cli v1.22.1 h1:+mkCCcOFKPnCmVYVcURKps1Xe+3zP90gSYGNfRkjoIY=
+github.com/valyala/fasthttp v1.47.0/go.mod h1:k2zXd82h/7UZc3VOdJ2WaUqt1uZ/XpXAfE9i+HBC3lA=
 github.com/valyala/fastrand v1.1.0/go.mod h1:HWqCzkrkg6QXT8V2EXWvXCoow7vLwOFN002oeRzjapQ=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack/v4 v4.3.12 h1:07s4sz9IReOgdikxLTKNbBdqDMLsjPKXwvCazn8G65U=
