@@ -5,15 +5,15 @@ go 1.19
 replace github.com/pubgo/lava => ../../../
 
 require (
-	github.com/gofiber/fiber/v2 v2.43.0
+	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/google/uuid v1.3.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.11
-	github.com/pubgo/funk v0.5.30
+	github.com/pubgo/funk v0.5.31-2
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
 	github.com/pubgo/opendoc v0.0.3
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
-	google.golang.org/grpc v1.52.3
+	google.golang.org/grpc v1.53.0
 	gorm.io/gorm v1.24.5
 )
 
@@ -63,7 +63,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -92,7 +92,7 @@ require (
 	github.com/uber-go/tally/v4 v4.1.7 // indirect
 	github.com/urfave/cli/v3 v3.0.0-alpha2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.45.0 // indirect
+	github.com/valyala/fasthttp v1.47.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -105,7 +105,7 @@ require (
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
-	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
