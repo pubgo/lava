@@ -1,8 +1,9 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/lava"
 )
 
 var _ lava.Request = (*request)(nil)
