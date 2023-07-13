@@ -3,6 +3,9 @@ package tracing
 import (
 	"context"
 	"fmt"
+	"github.com/goccy/go-json"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/metric/global"
 	"os"
 	"time"
 
@@ -27,10 +30,20 @@ import (
 	"google.golang.org/grpc/encoding/gzip"
 
 	"github.com/pubgo/lava/core/lifecycle"
+
+	"go.opentelemetry.io/otel/sdk/metric"
+
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 )
+
+var logs = log.GetLogger("tracing")
 
 const (
 	DefaultStdout = "stdout"
+
+	grpcHealthyMethod   = "/healthy.HealthService/Health"
+	healthHost          = "127.0.0.1"
+	instrumentationName = "github.com/gowins/dionysus/opentelemetry"
 )
 
 type Provider struct {
@@ -65,24 +78,20 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 		),
 	)
 	meterProvider := NewPrometheusMeterProvider(config)
+	global.SetMeterProvider(meterProvider)
 
 	lc.AfterStop(func() {
 		assert.Must(tracerProvider.Shutdown(context.Background()))
 		assert.Must(meterProvider.Shutdown(context.Background()))
 	})
 
+	//name := instrumentationName + "/" + config.serviceInfo.Namespace + "/" + config.serviceInfo.Name
+	//	defaultTracer = otel.GetTracerProvider().Tracer(name, oteltrace.WithInstrumentationVersion("v1.1.0"))
+
 	return Provider{
 		TracerProvider: tracerProvider,
 		MeterProvider:  meterProvider,
 	}
-}
-
-type errorHandler struct {
-}
-
-// Handle default error handler when span send failed
-func (errorHandler) Handle(err error) {
-	log.Err(err).Msg("tracer exporter error")
 }
 
 // merge config resource with default resource
@@ -110,6 +119,13 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
 		log.Info().Msgf("set sample ratio %v", config.sampleRatio)
 	}
+
+	traceProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(traceExporter, config.traceBatchOptions...),
+		sdktrace.WithIDGenerator(config.idGenerator),
+		sdktrace.WithResource(config.resource),
+		sdktrace.WithSampler(sampler),
+	)
 
 	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithResource(res),
@@ -194,4 +210,31 @@ func Tracer() oteltrace.Tracer {
 
 func CheckHasTraceID(ctx context.Context) bool {
 	return oteltrace.SpanFromContext(ctx).SpanContext().HasTraceID()
+}
+
+// GetTraceId return trace id in context
+func GetTraceId(ctx context.Context) string {
+	return oteltrace.SpanContextFromContext(ctx).TraceID().String()
+}
+
+func initMetricExporter(config *Config) (metric.Exporter, error) {
+	if config.metricExporter.ExporterEndpoint == DefaultStdout {
+		encoder := json.NewEncoder(os.Stdout)
+		return stdoutmetric.New(stdoutmetric.WithEncoder(encoder))
+	}
+
+	if config.metricExporter.ExporterEndpoint != "" {
+		metricSecureOption := otlpmetricgrpc.WithTLSCredentials(config.metricExporter.Creds)
+		if config.metricExporter.Insecure {
+			metricSecureOption = otlpmetricgrpc.WithInsecure()
+		}
+
+		return otlpmetricgrpc.New(
+			context.Background(),
+			otlpmetricgrpc.WithEndpoint(config.metricExporter.ExporterEndpoint),
+			metricSecureOption,
+			otlpmetricgrpc.WithHeaders(config.headers),
+			otlpmetricgrpc.WithCompressor(gzip.Name))
+	}
+	return nil, fmt.Errorf("metric exporter endpoint is nil, no exporter is inited")
 }

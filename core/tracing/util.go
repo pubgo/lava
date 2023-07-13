@@ -7,6 +7,14 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
+type errorHandler struct {
+}
+
+// Handle default error handler when span send failed
+func (errorHandler) Handle(err error) {
+	logs.Err(err).Msg("tracer exporter error")
+}
+
 const (
 	KeyErrMsg = "err_msg"
 )
