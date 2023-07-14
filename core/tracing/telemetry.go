@@ -3,20 +3,20 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"github.com/goccy/go-json"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/metric/global"
 	"os"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	otlpTraceGrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -119,13 +119,6 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
 		log.Info().Msgf("set sample ratio %v", config.sampleRatio)
 	}
-
-	traceProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(traceExporter, config.traceBatchOptions...),
-		sdktrace.WithIDGenerator(config.idGenerator),
-		sdktrace.WithResource(config.resource),
-		sdktrace.WithSampler(sampler),
-	)
 
 	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithResource(res),
