@@ -17,7 +17,6 @@ import (
 	"github.com/pubgo/lava/cmds/healthcmd"
 	"github.com/pubgo/lava/cmds/httpservercmd"
 	"github.com/pubgo/lava/cmds/migratecmd"
-	"github.com/pubgo/lava/cmds/ormcmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/flags"
@@ -90,7 +89,6 @@ func Run(di *dix.Dix, cmdL ...*cli.Command) {
 		depcmd.New(di),
 		grpcservercmd.New(di),
 		httpservercmd.New(di),
-		ormcmd.New(di),
 	)
 
 	app := &cli.App{
