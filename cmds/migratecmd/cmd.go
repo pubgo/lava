@@ -33,6 +33,8 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 
 func New(di *dix.Dix) *cli.Command {
 	var id string
+	var path = "./internal/db/query"
+
 	options := migrates.DefaultConfig
 	return &cli.Command{
 		Name:  "migrate",
@@ -118,15 +120,22 @@ func New(di *dix.Dix) *cli.Command {
 				},
 			},
 			{
-				Name:    "gen-model",
-				Usage:   "do gen orm model and query",
+				Name:    "gen",
+				Usage:   "do gen orm model and query code",
 				Aliases: []string{"g"},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "out-path",
+						Usage:       "query out path",
+						Destination: &path,
+					},
+				},
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
 					g := gen.NewGenerator(gen.Config{
-						OutPath:           "./internal/db/query",
-						ModelPkgPath:      "./internal/db/models",
+						OutPath:           path,
+						ModelPkgPath:      "models",
 						FieldWithTypeTag:  false,
 						FieldWithIndexTag: false,
 						FieldNullable:     true,
