@@ -1,6 +1,7 @@
 package migratecmd
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/pubgo/dix"
@@ -33,7 +34,7 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 
 func New(di *dix.Dix) *cli.Command {
 	var id string
-	var path = "./internal/db/query"
+	var genPath = "./internal/db"
 
 	options := migrates.DefaultConfig
 	return &cli.Command{
@@ -125,17 +126,18 @@ func New(di *dix.Dix) *cli.Command {
 				Aliases: []string{"g"},
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "out-path",
-						Usage:       "query out path",
-						Destination: &path,
+						Name:        "path",
+						Usage:       "code gen path",
+						Destination: &genPath,
+						DefaultText: genPath,
 					},
 				},
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
 					g := gen.NewGenerator(gen.Config{
-						OutPath:           path,
-						ModelPkgPath:      "models",
+						OutPath:           filepath.Join(genPath, "query"),
+						ModelPkgPath:      filepath.Join(genPath, "models"),
 						FieldWithTypeTag:  false,
 						FieldWithIndexTag: false,
 						FieldNullable:     true,
