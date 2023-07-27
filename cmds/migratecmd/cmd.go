@@ -34,7 +34,6 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 
 func New(di *dix.Dix) *cli.Command {
 	var id string
-	var genPath = "./internal/db"
 
 	options := migrates.DefaultConfig
 	return &cli.Command{
@@ -121,19 +120,17 @@ func New(di *dix.Dix) *cli.Command {
 				},
 			},
 			{
-				Name:    "gen",
-				Usage:   "do gen orm model and query code",
-				Aliases: []string{"g"},
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:        "path",
-						Usage:       "code gen path",
-						Destination: &genPath,
-						DefaultText: genPath,
-					},
-				},
+				Name:      "gen",
+				Usage:     "do gen orm model and query code",
+				Aliases:   []string{"g"},
+				UsageText: "migrate gen [./internal/db]",
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
+
+					var genPath = "./internal/db"
+					if context.NArg() > 0 {
+						genPath = context.Args().First()
+					}
 
 					g := gen.NewGenerator(gen.Config{
 						OutPath:           filepath.Join(genPath, "query"),
