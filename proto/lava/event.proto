@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package lava.v1;
 
-import "google/api/httpbody.proto";
-
 option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
 
 enum EventType {
