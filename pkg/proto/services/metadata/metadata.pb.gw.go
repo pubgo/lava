@@ -115,7 +115,7 @@ func RegisterMetadataHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/lava.service.Metadata/ListServices", runtime.WithHTTPPathPattern("/services"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/lava.service.Metadata/ListServices", runtime.WithHTTPPathPattern("/metadata/services"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -140,7 +140,7 @@ func RegisterMetadataHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/lava.service.Metadata/GetServiceDesc", runtime.WithHTTPPathPattern("/services/{name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/lava.service.Metadata/GetServiceDesc", runtime.WithHTTPPathPattern("/metadata/services/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -204,7 +204,7 @@ func RegisterMetadataHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/lava.service.Metadata/ListServices", runtime.WithHTTPPathPattern("/services"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/lava.service.Metadata/ListServices", runtime.WithHTTPPathPattern("/metadata/services"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -226,7 +226,7 @@ func RegisterMetadataHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/lava.service.Metadata/GetServiceDesc", runtime.WithHTTPPathPattern("/services/{name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/lava.service.Metadata/GetServiceDesc", runtime.WithHTTPPathPattern("/metadata/services/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -246,9 +246,9 @@ func RegisterMetadataHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_Metadata_ListServices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"services"}, ""))
+	pattern_Metadata_ListServices_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"metadata", "services"}, ""))
 
-	pattern_Metadata_GetServiceDesc_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"services", "name"}, ""))
+	pattern_Metadata_GetServiceDesc_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"metadata", "services", "name"}, ""))
 )
 
 var (
