@@ -114,7 +114,7 @@ func (s *serviceImpl) DixInject(
 		AllowCredentials: true,
 	}))
 
-	mux := runtime.NewServeMux()
+	grpcGateway := runtime.NewServeMux()
 
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
@@ -138,7 +138,7 @@ func (s *serviceImpl) DixInject(
 
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
-			assert.Exit(m.RegisterGateway(context.Background(), mux, &s.cc))
+			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, &s.cc))
 		}
 	}
 
@@ -184,7 +184,7 @@ func (s *serviceImpl) DixInject(
 			return
 		}
 
-		mux.ServeHTTP(writer, request)
+		grpcGateway.ServeHTTP(writer, request)
 	})), new(http2.Server))))
 
 	s.httpServer = httpServer
