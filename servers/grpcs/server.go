@@ -13,7 +13,6 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
@@ -48,6 +47,7 @@ func New() lava.Service { return newService() }
 func newService() *serviceImpl {
 	return &serviceImpl{
 		handlers: make(grpchan.HandlerMap),
+		cc:       new(inprocgrpc.Channel),
 	}
 }
 
@@ -59,7 +59,7 @@ type serviceImpl struct {
 	grpcServer *grpc.Server
 	log        log.Logger
 	handlers   grpchan.HandlerMap
-	cc         inprocgrpc.Channel
+	cc         *inprocgrpc.Channel
 	initList   []func()
 }
 
@@ -108,11 +108,8 @@ func (s *serviceImpl) DixInject(
 		AppName:            version.Project(),
 	})
 	httpServer.Mount("/debug", debug.App())
-	httpServer.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowCredentials: true,
-	}))
+
+	apiPrefix := assert.Must1(url.JoinPath(basePath, "api"))
 
 	grpcGateway := runtime.NewServeMux()
 
@@ -138,12 +135,12 @@ func (s *serviceImpl) DixInject(
 
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
-			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, &s.cc))
+			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
 		}
 	}
 
-	s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
 	// grpc server初始化
 	grpcServer := conf.GrpcConfig.Build(
@@ -161,9 +158,8 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	grpcWebPrefix := assert.Must1(url.JoinPath(basePath, "web"))
-	s.log.Info().Str("path", grpcWebPrefix).Msg("service web base path")
-	httpServer.Group(grpcWebPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	s.log.Info().Str("path", apiPrefix).Msg("service web base path")
+	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
 			writer.WriteHeader(http.StatusOK)
 			return
