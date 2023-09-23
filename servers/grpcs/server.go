@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/metadata"
 	"net"
 	"net/http"
 	"net/url"
@@ -111,7 +112,21 @@ func (s *serviceImpl) DixInject(
 
 	apiPrefix := assert.Must1(url.JoinPath(basePath, "api"))
 
-	grpcGateway := runtime.NewServeMux()
+	grpcGateway := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
+			return strings.ToLower(s), true
+		}),
+		runtime.WithOutgoingHeaderMatcher(func(s string) (string, bool) {
+			return strings.ToUpper(s), true
+		}),
+		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
+			path, ok := runtime.HTTPPathPattern(ctx)
+			if !ok {
+				return nil
+			}
+			return metadata.Pairs("http_path", path)
+		}),
+	)
 
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
