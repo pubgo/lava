@@ -4,7 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/proto/errorpb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -125,6 +130,59 @@ func (s *serviceImpl) DixInject(
 				return nil
 			}
 			return metadata.Pairs("http_path", path)
+		}),
+		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
+			sts, ok := status.FromError(err)
+			if !ok {
+				runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
+				return
+			}
+
+			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
+
+			errpb := sts.Details()[0].(*errorpb.Error)
+
+			s := status.Convert(err)
+			pb := s.Proto()
+
+			w.Header().Del("Trailer")
+			w.Header().Del("Transfer-Encoding")
+
+			w.Header().Set("Content-Type", marshaler.ContentType(pb))
+
+			if s.Code() == codes.Unauthenticated {
+				w.Header().Set("WWW-Authenticate", s.Message())
+			}
+
+			buf, merr := marshaler.Marshal(pb)
+			if merr != nil {
+				grpclog.Infof("Failed to marshal error message %q: %v", s, merr)
+				w.WriteHeader(http.StatusInternalServerError)
+				if _, err := io.WriteString(w, fallback); err != nil {
+					grpclog.Infof("Failed to write response: %v", err)
+				}
+				return
+			}
+
+			md, ok := runtime.ServerMetadataFromContext(ctx)
+			if ok && w != nil {
+				for k, v := range md.HeaderMD {
+					for i := range v {
+						w.Header().Add(k, v[i])
+					}
+				}
+
+				for k, v := range md.TrailerMD {
+					for i := range v {
+						w.Header().Add(k, v[i])
+					}
+				}
+			}
+
+			w.WriteHeader(runtime.HTTPStatusFromCode(s.Code()))
+			if _, err := w.Write(buf); err != nil {
+				grpclog.Infof("Failed to write response: %v", err)
+			}
 		}),
 	)
 

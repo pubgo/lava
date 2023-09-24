@@ -24,9 +24,6 @@ type params struct {
 	MigrateOptions []schema.MigrateOption
 }
 
-func init() {
-}
-
 func New() *cli.Command {
 	return &cli.Command{
 		Name:  "ent",
