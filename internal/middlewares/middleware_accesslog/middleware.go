@@ -77,7 +77,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 			if !req.Client() && rsp != nil {
 				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
-				rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
 				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
 			}
 
