@@ -152,6 +152,10 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			rspMetadata.Set(convert.BtoS(key), convert.BtoS(value))
 		})
 
+		if err = grpc.SetHeader(ctx, rspMetadata); err != nil {
+			return nil, err
+		}
+
 		if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
 			return nil, err
 		}
