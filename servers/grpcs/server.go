@@ -140,29 +140,11 @@ func (s *serviceImpl) DixInject(
 
 			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
 
-			errpb := sts.Details()[0].(*errorpb.Error)
-
-			s := status.Convert(err)
-			pb := s.Proto()
+			pb := sts.Details()[0].(*errorpb.Error).Code
 
 			w.Header().Del("Trailer")
 			w.Header().Del("Transfer-Encoding")
-
 			w.Header().Set("Content-Type", marshaler.ContentType(pb))
-
-			if s.Code() == codes.Unauthenticated {
-				w.Header().Set("WWW-Authenticate", s.Message())
-			}
-
-			buf, merr := marshaler.Marshal(pb)
-			if merr != nil {
-				grpclog.Infof("Failed to marshal error message %q: %v", s, merr)
-				w.WriteHeader(http.StatusInternalServerError)
-				if _, err := io.WriteString(w, fallback); err != nil {
-					grpclog.Infof("Failed to write response: %v", err)
-				}
-				return
-			}
 
 			md, ok := runtime.ServerMetadataFromContext(ctx)
 			if ok && w != nil {
@@ -179,7 +161,17 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
-			w.WriteHeader(runtime.HTTPStatusFromCode(s.Code()))
+			buf, merr := marshaler.Marshal(pb)
+			if merr != nil {
+				grpclog.Infof("Failed to marshal error message %q: %v", s, merr)
+				w.WriteHeader(http.StatusInternalServerError)
+				if _, err := io.WriteString(w, fallback); err != nil {
+					grpclog.Infof("Failed to write response: %v", err)
+				}
+				return
+			}
+
+			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.Code)))
 			if _, err := w.Write(buf); err != nil {
 				grpclog.Infof("Failed to write response: %v", err)
 			}
