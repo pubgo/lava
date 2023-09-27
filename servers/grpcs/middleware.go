@@ -30,7 +30,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			return nil, err
 		}
 
-		return &rpcResponse{header: new(fasthttp.ResponseHeader), dt: dt}, nil
+		return &rpcResponse{header: req.(*rpcRequest).rspHeader, dt: dt}, nil
 	}
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -97,6 +97,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			contentType: ct,
 			payload:     req,
 			header:      header,
+			rspHeader:   new(fasthttp.ResponseHeader),
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
@@ -113,6 +114,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rspMetadata.Set(httputil.HeaderXRequestID, reqId)
 		rspMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 
+		ctx = lava.CreateReqHeader(ctx, header)
+		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)

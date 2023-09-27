@@ -18,6 +18,7 @@ type rpcRequest struct {
 	url           string
 	contentType   string
 	header        *lava.RequestHeader
+	rspHeader     *lava.ResponseHeader
 	payload       interface{}
 }
 
