@@ -132,12 +132,6 @@ func (s *serviceImpl) DixInject(
 			return metadata.Pairs("http_path", path)
 		}),
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
-			sts, ok := status.FromError(err)
-			if !ok {
-				runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
-				return
-			}
-
 			w.Header().Del("Trailer")
 			w.Header().Del("Transfer-Encoding")
 
@@ -156,8 +150,23 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
+			sts, ok := status.FromError(err)
+			if !ok {
+				runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
+				return
+			}
+
 			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
-			pb := sts.Details()[0].(*errorpb.Error).Code
+			var pb any
+			var cc int
+			if len(sts.Details()) == 0 {
+				pb = sts
+				cc = int(sts.Code())
+			} else if code, ok := sts.Details()[0].(*errorpb.Error); ok {
+				pb = code
+				cc = int(code.Code.Code)
+			}
+
 			buf, mErr := marshaler.Marshal(pb)
 			if mErr != nil {
 				grpclog.Infof("Failed to marshal error message %q: %v", s, mErr)
@@ -168,7 +177,7 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.Code)))
+			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(cc)))
 			if _, err := w.Write(buf); err != nil {
 				grpclog.Infof("Failed to write response: %v", err)
 			}
