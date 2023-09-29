@@ -132,9 +132,6 @@ func (s *serviceImpl) DixInject(
 			return metadata.Pairs("http_path", path)
 		}),
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
-			w.Header().Del("Trailer")
-			w.Header().Del("Transfer-Encoding")
-
 			md, ok := runtime.ServerMetadataFromContext(ctx)
 			if ok && w != nil {
 				for k, v := range md.HeaderMD {
@@ -151,20 +148,26 @@ func (s *serviceImpl) DixInject(
 			}
 
 			sts, ok := status.FromError(err)
-			if !ok {
+			if !ok || sts == nil {
 				runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
 				return
 			}
 
+			w.Header().Set("Content-Type", marshaler.ContentType(sts))
+
 			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
-			var pb any
-			var cc int
-			if len(sts.Details()) == 0 {
-				pb = sts
-				cc = int(sts.Code())
-			} else if code, ok := sts.Details()[0].(*errorpb.Error); ok {
-				pb = code
-				cc = int(code.Code.Code)
+			var pb *errorpb.ErrCode
+			if len(sts.Details()) > 0 {
+				if code, ok := sts.Details()[0].(*errorpb.Error); ok {
+					pb = code.Code
+				}
+			} else {
+				pb = &errorpb.ErrCode{
+					Reason:  sts.Message(),
+					Code:    errorpb.Code(sts.Code()),
+					Name:    "lava.grpc.status",
+					Details: sts.Proto().Details,
+				}
 			}
 
 			buf, mErr := marshaler.Marshal(pb)
@@ -177,7 +180,7 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(cc)))
+			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.Code)))
 			if _, err := w.Write(buf); err != nil {
 				grpclog.Infof("Failed to write response: %v", err)
 			}
