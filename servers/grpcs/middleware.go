@@ -3,6 +3,7 @@ package grpcs
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/log"
 	"time"
 
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -156,11 +157,11 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		})
 
 		if err = grpc.SetHeader(ctx, rspMetadata); err != nil {
-			return nil, err
+			log.Err(err, ctx).Msg("grpc set header failed")
 		}
 
 		if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
-			return nil, err
+			log.Err(err, ctx).Msg("grpc set trailer failed")
 		}
 
 		return rsp.(*rpcResponse).dt, nil

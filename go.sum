@@ -736,8 +736,8 @@ github.com/prometheus/procfs v0.8.0 h1:ODq8ZFEaYeCaZOJlZZdJA2AbQR98dSHSM1KW/You5
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/pubgo/dix v0.3.11 h1:Vv1oD+XK9ISjZBjXxMmHO0pJNdg54Gf4Z1AOd/Uxn9U=
 github.com/pubgo/dix v0.3.11/go.mod h1:1vO0kgk1dTUxM8v1f4F5eSZGUJK+xrVcLh11rsWTqa0=
-github.com/pubgo/funk v0.5.31-2 h1:U2nbt9WS1c4ysTysfipQTXgog2oLYaSIgHmwUTqGn0c=
-github.com/pubgo/funk v0.5.31-2/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
+github.com/pubgo/funk v0.5.32-2 h1:agZ0EL4pDFy1AFg05MGl5tO1cwOakzZN6IPzje83hMQ=
+github.com/pubgo/funk v0.5.32-2/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
 github.com/pubgo/opendoc v0.0.3 h1:F80npr/x1pynEVeBXLmOAokKdKn/28vAfdvryOM7n/w=
 github.com/pubgo/opendoc v0.0.3/go.mod h1:V1OwejurDnIZgozvBC+C+bOngl9UwJBbG0D/a7SJK9k=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=

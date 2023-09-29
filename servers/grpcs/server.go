@@ -138,13 +138,8 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
-
-			pb := sts.Details()[0].(*errorpb.Error).Code
-
 			w.Header().Del("Trailer")
 			w.Header().Del("Transfer-Encoding")
-			w.Header().Set("Content-Type", marshaler.ContentType(pb))
 
 			md, ok := runtime.ServerMetadataFromContext(ctx)
 			if ok && w != nil {
@@ -161,9 +156,11 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
-			buf, merr := marshaler.Marshal(pb)
-			if merr != nil {
-				grpclog.Infof("Failed to marshal error message %q: %v", s, merr)
+			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
+			pb := sts.Details()[0].(*errorpb.Error).Code
+			buf, mErr := marshaler.Marshal(pb)
+			if mErr != nil {
+				grpclog.Infof("Failed to marshal error message %q: %v", s, mErr)
 				w.WriteHeader(http.StatusInternalServerError)
 				if _, err := io.WriteString(w, fallback); err != nil {
 					grpclog.Infof("Failed to write response: %v", err)
