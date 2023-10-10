@@ -13,6 +13,14 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+func NewClients(conf map[string]*Config, logs log.Logger) map[string]*Client {
+	var clients = make(map[string]*Client, len(conf))
+	for name, c := range conf {
+		clients[name] = New(c, logs)
+	}
+	return clients
+}
+
 func New(conf *Config, logs log.Logger) *Client {
 	logs = logs.WithName(Name)
 	conf = config.MergeR(generic.Ptr(DefaultCfg()), conf).Unwrap()
