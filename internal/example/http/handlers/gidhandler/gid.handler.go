@@ -34,12 +34,14 @@ func (t *Id) Router(router *lava.Router) {
 	https.Get(router, "/types", t.Types,
 		func(op *opendoc.Operation) {
 			op.SetSummary("获取类型")
+			op.SetOperation("get_types")
 		},
 	)
 
 	https.Post(router, "/generate", t.Generate,
 		func(op *opendoc.Operation) {
 			op.SetSummary("生成 id")
+			op.SetOperation("create_id")
 		},
 	)
 }

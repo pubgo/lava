@@ -9,17 +9,17 @@ import (
 const DefaultMaxBodyBytes = 256 * 1024
 
 type Config struct {
-	Http       *fiber_builder.Config `yaml:"http"`
-	Ws         *fiber_builder.WsCfg  `yaml:"ws"`
-	PrintRoute bool                  `yaml:"print-route"`
-	PathPrefix string                `yaml:"path-prefix"`
+	Http              *fiber_builder.Config `yaml:"http"`
+	Ws                *fiber_builder.WsCfg  `yaml:"ws"`
+	EnablePrintRouter bool                  `yaml:"enable_print_router"`
+	BaseUrl           string                `yaml:"base_url"`
 }
 
 func DefaultCfg() Config {
 	return Config{
-		Http:       &fiber_builder.Config{},
-		Ws:         &fiber_builder.WsCfg{},
-		PrintRoute: true,
-		PathPrefix: version.Project(),
+		Http:              &fiber_builder.Config{},
+		Ws:                &fiber_builder.WsCfg{},
+		EnablePrintRouter: true,
+		BaseUrl:           version.Project(),
 	}
 }

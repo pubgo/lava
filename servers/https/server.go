@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/opendoc/opendoc"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -20,7 +22,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
-	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/signal"
@@ -66,8 +67,8 @@ func (s *serviceImpl) DixInject(
 	cfg *Config,
 	docs []*opendoc.Swagger,
 ) {
-	if cfg.PathPrefix == "" {
-		cfg.PathPrefix = "/" + version.Project()
+	if cfg.BaseUrl == "" {
+		cfg.BaseUrl = "/" + version.Project()
 	}
 
 	fiber.SetParserDecoder(fiber.ParserConfig{
@@ -95,7 +96,7 @@ func (s *serviceImpl) DixInject(
 	if len(docs) > 0 {
 		doc = docs[0]
 	}
-	doc.SetRootPath(cfg.PathPrefix)
+	doc.SetRootPath(cfg.BaseUrl)
 
 	log = log.WithName("http-server")
 
@@ -128,7 +129,6 @@ func (s *serviceImpl) DixInject(
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
 	}))
-	s.httpServer.Mount("/debug", debug.App())
 
 	app := fiber.New()
 
@@ -140,7 +140,7 @@ func (s *serviceImpl) DixInject(
 		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
 		h.Router(&lava.Router{
 			R:   g,
-			Doc: doc.Service(),
+			Doc: doc.WithService(),
 		})
 
 		if m, ok := h.(lava.Close); ok {
@@ -148,10 +148,12 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	s.httpServer.Mount(cfg.PathPrefix, app)
+	s.httpServer.Mount("/debug", debug.App())
+	s.httpServer.Mount(cfg.BaseUrl, app)
+	doc.InitRouter(s.httpServer)
 
 	// 网关初始化
-	if cfg.PrintRoute {
+	if cfg.EnablePrintRouter {
 		for _, stacks := range s.httpServer.Stack() {
 			for _, route := range stacks {
 				s.log.Info().
@@ -213,7 +215,7 @@ func (s *serviceImpl) stop() {
 	})
 
 	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
-		return s.httpServer.Shutdown()
+		return s.httpServer.ShutdownWithTimeout(time.Second * 5)
 	})
 
 	logutil.OkOrFailed(s.log, "service after-stop", func() error {

@@ -12,7 +12,7 @@ func Get[Req any, Rsp any](r *lava.Router, path string, w Handler[Req, Rsp], opt
 	r.R.Get(path, WrapHandler(w))
 	r.Doc.GetOf(func(op *opendoc.Operation) {
 		op.SetModel(new(Req), new(Rsp))
-		op.SetPath("", path)
+		op.SetPath(path)
 		for i := range opts {
 			opts[i](op)
 		}
@@ -23,7 +23,7 @@ func Post[Req any, Rsp any](r *lava.Router, path string, w Handler[Req, Rsp], op
 	r.R.Post(path, WrapHandler(w))
 	r.Doc.PostOf(func(op *opendoc.Operation) {
 		op.SetModel(new(Req), new(Rsp))
-		op.SetPath("", path)
+		op.SetPath(path)
 		for i := range opts {
 			opts[i](op)
 		}
@@ -34,7 +34,7 @@ func Put[Req any, Rsp any](r *lava.Router, path string, w Handler[Req, Rsp], opt
 	r.R.Put(path, WrapHandler(w))
 	r.Doc.PutOf(func(op *opendoc.Operation) {
 		op.SetModel(new(Req), new(Rsp))
-		op.SetPath("", path)
+		op.SetPath(path)
 		for i := range opts {
 			opts[i](op)
 		}
@@ -45,7 +45,7 @@ func Delete[Req any, Rsp any](r *lava.Router, path string, w Handler[Req, Rsp], 
 	r.R.Delete(path, WrapHandler(w))
 	r.Doc.DeleteOf(func(op *opendoc.Operation) {
 		op.SetModel(new(Req), new(Rsp))
-		op.SetPath("", path)
+		op.SetPath(path)
 		for i := range opts {
 			opts[i](op)
 		}
@@ -56,7 +56,7 @@ func Patch[Req any, Rsp any](r *lava.Router, path string, w Handler[Req, Rsp], o
 	r.R.Patch(path, WrapHandler(w))
 	r.Doc.PatchOf(func(op *opendoc.Operation) {
 		op.SetModel(new(Req), new(Rsp))
-		op.SetPath("", path)
+		op.SetPath(path)
 		for i := range opts {
 			opts[i](op)
 		}
