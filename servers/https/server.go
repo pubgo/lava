@@ -3,6 +3,8 @@ package https
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/version"
+	"github.com/pubgo/opendoc/opendoc"
 	"net"
 	"net/http"
 
@@ -62,7 +64,39 @@ func (s *serviceImpl) DixInject(
 	m metrics.Metric,
 	log log.Logger,
 	cfg *Config,
+	docs []*opendoc.Swagger,
 ) {
+	if cfg.PathPrefix == "" {
+		cfg.PathPrefix = "/" + version.Project()
+	}
+
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+		ParserType:        parserTypes,
+	})
+
+	var doc = opendoc.New(func(swag *opendoc.Swagger) {
+		swag.Config.Title = "service title "
+		swag.Description = "this is description"
+		swag.License = &opendoc.License{
+			Name: "Apache License 2.0",
+			URL:  "https://github.com/pubgo/opendoc/blob/master/LICENSE",
+		}
+
+		swag.Contact = &opendoc.Contact{
+			Name:  "barry",
+			URL:   "https://github.com/pubgo/opendoc",
+			Email: "kooksee@163.com",
+		}
+
+		swag.TermsOfService = "https://github.com/pubgo"
+	})
+	if len(docs) > 0 {
+		doc = docs[0]
+	}
+	doc.SetRootPath(cfg.PathPrefix)
+
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -99,25 +133,22 @@ func (s *serviceImpl) DixInject(
 	app := fiber.New()
 
 	defaultMiddlewares := []lava.Middleware{
-		middleware_metric.New(m),
-		middleware_accesslog.New(log),
-		middleware_recovery.New(),
-	}
-	middlewares = append(defaultMiddlewares, middlewares...)
+		middleware_metric.New(m), middleware_accesslog.New(log), middleware_recovery.New()}
+	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
 
 	for _, h := range handlers {
-		middlewares = append(middlewares, h.Middlewares()...)
-
-		h.Router(app)
+		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		h.Router(&lava.Router{
+			R:   g,
+			Doc: doc.Service(),
+		})
 
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}
 
-	app.Use(handlerHttpMiddle(middlewares))
-
-	s.httpServer.Mount("/", app)
+	s.httpServer.Mount(cfg.PathPrefix, app)
 
 	// 网关初始化
 	if cfg.PrintRoute {

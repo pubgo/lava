@@ -5,15 +5,15 @@ go 1.19
 replace github.com/pubgo/lava => ../../../
 
 require (
-	github.com/gofiber/fiber/v2 v2.43.0
+	github.com/gofiber/fiber/v2 v2.47.0
 	github.com/google/uuid v1.3.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.11
-	github.com/pubgo/funk v0.5.30
+	github.com/pubgo/dix v0.3.13
+	github.com/pubgo/funk v0.5.32-3
 	github.com/pubgo/lava v0.0.0-00010101000000-000000000000
-	github.com/pubgo/opendoc v0.0.3
+	github.com/pubgo/opendoc v0.0.3-4
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
-	google.golang.org/grpc v1.52.3
+	google.golang.org/grpc v1.58.0
 	gorm.io/gorm v1.24.5
 )
 
@@ -38,14 +38,14 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
-	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gofiber/adaptor/v2 v2.1.30 // indirect
 	github.com/gofiber/template v1.6.25 // indirect
 	github.com/gofiber/utils v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0 // indirect
 	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -81,8 +81,8 @@ require (
 	github.com/reugn/go-quartz v0.3.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
-	github.com/rs/xid v1.4.0 // indirect
-	github.com/rs/zerolog v1.29.0 // indirect
+	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/zerolog v1.30.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
@@ -92,21 +92,23 @@ require (
 	github.com/uber-go/tally/v4 v4.1.7 // indirect
 	github.com/urfave/cli/v3 v3.0.0-alpha2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.45.0 // indirect
+	github.com/valyala/fasthttp v1.47.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1 // indirect
-	golang.org/x/crypto v0.10.0 // indirect
-	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/net v0.11.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
-	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/driver/mysql v1.4.5 // indirect

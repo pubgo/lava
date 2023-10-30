@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pubgo/opendoc v0.0.3
+	github.com/pubgo/opendoc v0.0.3-4
 	github.com/reugn/go-quartz v0.3.7
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.opentelemetry.io/otel v1.14.0
@@ -37,7 +37,7 @@ require (
 )
 
 require (
-	github.com/goccy/go-json v0.10.0
+	github.com/goccy/go-json v0.10.2
 	github.com/mailgun/holster/v4 v4.11.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/valyala/bytebufferpool v1.0.0
@@ -60,10 +60,10 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
-	github.com/pubgo/dix v0.3.11
-	github.com/pubgo/funk v0.5.32-2
-	github.com/rs/xid v1.4.0
-	github.com/rs/zerolog v1.29.0
+	github.com/pubgo/dix v0.3.13
+	github.com/pubgo/funk v0.5.32-3
+	github.com/rs/xid v1.5.0
+	github.com/rs/zerolog v1.30.0
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7
@@ -156,7 +156,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.13.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.36.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
+	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect

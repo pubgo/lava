@@ -1,10 +1,12 @@
 package https
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/pkg/fiber_builder"
 )
+
+// DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.
+const DefaultMaxBodyBytes = 256 * 1024
 
 type Config struct {
 	Http       *fiber_builder.Config `yaml:"http"`
@@ -20,12 +22,4 @@ func DefaultCfg() Config {
 		PrintRoute: true,
 		PathPrefix: version.Project(),
 	}
-}
-
-func init() {
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
-	})
 }

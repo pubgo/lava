@@ -1,4 +1,4 @@
-checksum: c639fde0bdeb5afca23591a7be143542d48295c1
+checksum: 02498c0cebbc5738f6dc1790afacd6eae5c1a1c6
 vendor: .proto
 base:
   out: ./pkg
@@ -15,7 +15,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.31-2
+    version: v0.5.32-3
 plugins:
   - name: go
   - name: go-errors

@@ -3,6 +3,7 @@ package gidhandler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/servers/https"
 	"math/rand"
 	"time"
 
@@ -29,30 +30,25 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
-func (t *Id) Version() string {
-	return "v1"
+func (t *Id) Router(router *lava.Router) {
+	https.Get(router, "/types", t.Types,
+		func(op *opendoc.Operation) {
+			op.SetSummary("获取类型")
+		},
+	)
+
+	https.Post(router, "/generate", t.Generate,
+		func(op *opendoc.Operation) {
+			op.SetSummary("生成 id")
+		},
+	)
 }
 
-func (t *Id) Router(app fiber.Router) {
-	app.Post("/id/generate", lava.WrapHandler(t.Generate))
-	app.Get("/id/types", lava.WrapHandler(t.Types))
+func (t *Id) Prefix() string {
+	return "/id"
 }
 
-func (t *Id) Openapi(swag *opendoc.Swagger) {
-	swag.ServiceOf("http", func(srv *opendoc.Service) {
-		srv.GetOf(func(op *opendoc.Operation) {
-			op.SetModel(new(GenerateRequest), new(GenerateResponse))
-			op.SetPath("id.generate", "/v1/id/generate")
-		})
-
-		srv.GetOf(func(op *opendoc.Operation) {
-			op.SetModel(new(TypesRequest), new(TypesResponse))
-			op.SetPath("id.types", "/v1/id/types")
-		})
-	})
-}
-
-func (t *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
+func (t *Id) Generate(ctx *fiber.Ctx, req *GenerateRequest) (*GenerateResponse, error) {
 	rsp := new(GenerateResponse)
 	if len(req.Type) == 0 {
 		req.Type = "uuid"
@@ -65,38 +61,38 @@ func (t *Id) Generate(ctx context.Context, req *GenerateRequest) (*GenerateRespo
 	case "snowflake":
 		id, err := t.snowflake.Mint()
 		if err != nil {
-			t.log.Err(err, ctx).Msg("Failed to generate snowflake id")
+			t.log.Err(err, ctx.Context()).Msg("Failed to generate snowflake id")
 			err = errors.Wrap(err, "Failed to generate snowflake id")
-			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "snowflake"
 		rsp.Id = fmt.Sprintf("%v", id)
 	case "bigflake":
 		id, err := t.bigflake.Mint()
 		if err != nil {
-			t.log.Err(err, ctx).Msg("Failed to generate bigflake id")
+			t.log.Err(err, ctx.Context()).Msg("Failed to generate bigflake id")
 			err = errors.Wrap(err, "failed to mint bigflake id")
-			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "bigflake"
 		rsp.Id = fmt.Sprintf("%v", id)
 	case "shortid":
 		id, err := shortid.Generate()
 		if err != nil {
-			t.log.Err(err, ctx).Msg("Failed to generate shortid id")
+			t.log.Err(err, ctx.Context()).Msg("Failed to generate shortid id")
 			err = errors.Wrap(err, "failed to generate short id")
-			return nil, errors.WrapCode(err, ErrSrvErrCodeIDGenerateFailed)
+			return nil, errors.WrapCode(err, ErrCodeIDGenerateFailed)
 		}
 		rsp.Type = "shortid"
 		rsp.Id = id
 	default:
-		return nil, errors.WrapCode(errors.New("unsupported id type"), ErrSrvErrCodeIDGenerateFailed)
+		return nil, errors.WrapCode(errors.New("unsupported id type"), ErrCodeIDGenerateFailed)
 	}
 
 	return rsp, nil
 }
 
-func (t *Id) Types(ctx context.Context, req *TypesRequest) (*TypesResponse, error) {
+func (t *Id) Types(ctx *fiber.Ctx, req *TypesRequest) (*TypesResponse, error) {
 	rsp := new(TypesResponse)
 	rsp.Types = []string{
 		"uuid",
