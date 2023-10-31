@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pubgo/opendoc v0.0.4-2
+	github.com/pubgo/opendoc v0.0.4-3
 	github.com/reugn/go-quartz v0.3.7
 	github.com/vmihailenco/msgpack/v5 v5.3.1
 	go.opentelemetry.io/otel v1.14.0

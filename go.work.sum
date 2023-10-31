@@ -711,7 +711,7 @@ github.com/pubgo/funk v0.5.29-12/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgy
 github.com/pubgo/funk v0.5.29-19/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/funk v0.5.29-24/go.mod h1:HZ2HYLRc3EBJ03P3c+fOhOH5jCObGEW4wUv+wI24v6Y=
 github.com/pubgo/funk v0.5.30/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
-github.com/pubgo/opendoc v0.0.4-2/go.mod h1:V1OwejurDnIZgozvBC+C+bOngl9UwJBbG0D/a7SJK9k=
+github.com/pubgo/opendoc v0.0.4-3/go.mod h1:V1OwejurDnIZgozvBC+C+bOngl9UwJBbG0D/a7SJK9k=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a h1:9ZKAASQSHhDYGoxY8uLVpewe1GDZ2vu2Tr/vTdVAkFQ=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 h1:OdAsTTz6OkFY5QxjkYwrChwuRruF69c169dPK26NUlk=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=

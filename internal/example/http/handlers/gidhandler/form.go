@@ -17,5 +17,5 @@ type TypesRequest struct{}
 
 // TypesResponse 返回值类型
 type TypesResponse struct {
-	Types []string `protobuf:"bytes,1,rep,name=types,proto3" json:"types,omitempty"`
+	Types []string `json:"types,omitempty" doc:"类型" required:"true" example:"[\"a\",\"b\"]" readOnly:"true"`
 }
