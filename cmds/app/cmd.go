@@ -76,31 +76,31 @@ func NewBuilder(opts ...dix.Option) *dix.Dix {
 	return di
 }
 
-func Run(di *dix.Dix, cmdL ...*cli.Command) {
+func Run(di *dix.Dix) {
 	defer recovery.Exit()
 
 	running.CheckVersion()
 
-	cmdL = append(cmdL,
-		versioncmd.New(),
-		healthcmd.New(),
-		depcmd.New(di),
-		grpcservercmd.New(di),
-		httpservercmd.New(di),
-	)
+	di.Provide(versioncmd.New)
+	di.Provide(healthcmd.New)
+	di.Provide(depcmd.New)
+	di.Provide(grpcservercmd.New)
+	di.Provide(httpservercmd.New)
 
-	app := &cli.App{
-		Name:                   version.Project(),
-		Suggest:                true,
-		UseShortOptionHandling: true,
-		Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
-		Version:                version.Version(),
-		Flags:                  flags.GetFlags(),
-		Commands:               cmdL,
-		ExtraInfo:              running.GetSysInfo,
-	}
+	di.Inject(func(cmd []*cli.Command) {
+		app := &cli.App{
+			Name:                   version.Project(),
+			Suggest:                true,
+			UseShortOptionHandling: true,
+			Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
+			Version:                version.Version(),
+			Flags:                  flags.GetFlags(),
+			Commands:               cmd,
+			ExtraInfo:              running.GetSysInfo,
+		}
 
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-	assert.Must(app.Run(os.Args))
+		sort.Sort(cli.FlagsByName(app.Flags))
+		sort.Sort(cli.CommandsByName(app.Commands))
+		assert.Must(app.Run(os.Args))
+	})
 }
