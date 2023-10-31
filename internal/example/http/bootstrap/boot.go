@@ -1,10 +1,9 @@
 package bootstrap
 
 import (
-	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/lava/cmds/builder"
+	"github.com/pubgo/lava/cmds/app"
 	"github.com/pubgo/lava/core/orm"
 
 	"github.com/pubgo/lava/internal/example/http/handlers/gidhandler"
@@ -13,10 +12,10 @@ import (
 
 func Main() {
 	defer recovery.Exit()
-	di := builder.NewDix(dix.WithValuesNull())
-	di.Provide(orm.New)
-	di.Provide(migrates.Migrations)
-	di.Provide(gidhandler.New)
-	di.Provide(config.Load[Config])
-	builder.Run(di)
+	builder := app.NewBuilder()
+	builder.Provide(orm.New)
+	builder.Provide(migrates.Migrations)
+	builder.Provide(gidhandler.New)
+	builder.Provide(config.Load[Config])
+	app.Run(builder)
 }

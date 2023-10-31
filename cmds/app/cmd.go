@@ -1,4 +1,4 @@
-package builder
+package app
 
 import (
 	"os"
@@ -68,8 +68,8 @@ var defaultProviders = []any{
 	metadata.New,
 }
 
-func NewDix(opts ...dix.Option) *dix.Dix {
-	var di = dix.New(opts...)
+func NewBuilder(opts ...dix.Option) *dix.Dix {
+	var di = dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
 		di.Provide(p)
 	}

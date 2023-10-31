@@ -3,9 +3,6 @@ package https
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/opendoc/opendoc"
 	"net"
 	"net/http"
 	"time"
@@ -19,9 +16,13 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/version"
+	"github.com/pubgo/opendoc/opendoc"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
+	"github.com/pubgo/lava/core/annotation"
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/signal"
@@ -138,9 +139,20 @@ func (s *serviceImpl) DixInject(
 
 	for _, h := range handlers {
 		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		srv := doc.WithService()
+
+		for _, an := range h.Annotation() {
+			switch a := an.(type) {
+			case *annotation.Openapi:
+				if a.ServiceName != "" {
+					srv.SetName(a.ServiceName)
+				}
+			}
+		}
+
 		h.Router(&lava.Router{
 			R:   g,
-			Doc: doc.WithService(),
+			Doc: srv,
 		})
 
 		if m, ok := h.(lava.Close); ok {

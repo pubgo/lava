@@ -3,7 +3,6 @@ package gidhandler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/servers/https"
 	"math/rand"
 	"time"
 
@@ -13,9 +12,11 @@ import (
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/servers/https/httprouter"
 	"github.com/pubgo/opendoc/opendoc"
 	"github.com/teris-io/shortid"
 )
@@ -30,15 +31,23 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 }
 
+func (t *Id) Annotation() []lava.Annotation {
+	return lava.Annotations{
+		&annotation.Openapi{
+			ServiceName: "id 服务",
+		},
+	}
+}
+
 func (t *Id) Router(router *lava.Router) {
-	https.Get(router, "/types", t.Types,
+	httprouter.Get(router, "/types", t.Types,
 		func(op *opendoc.Operation) {
 			op.SetSummary("获取类型")
 			op.SetOperation("get_types")
 		},
 	)
 
-	https.Post(router, "/generate", t.Generate,
+	httprouter.Post(router, "/generate", t.Generate,
 		func(op *opendoc.Operation) {
 			op.SetSummary("生成 id")
 			op.SetOperation("create_id")

@@ -22,6 +22,7 @@ type HttpRouter interface {
 	Middlewares() []Middleware
 	Router(router *Router)
 	Prefix() string
+	Annotation() []Annotation
 }
 
 type Router struct {
