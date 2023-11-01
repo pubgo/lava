@@ -6,7 +6,8 @@ option go_package = "./gidpb;gidpb";
 
 import "google/api/annotations.proto";
 import "google/api/client.proto";
-import "errorpb/status.proto";
+import "errorpb/options.proto";
+import "errorpb/code.proto";
 
 message GenerateResponse {
   // the unique id generated
@@ -39,13 +40,13 @@ service Id {
 }
 
 enum SrvCode {
-  option (status.opts).gen = true;
+  option (errors.opts).gen = true;
 
   OK = 0;
 
   // id generate error
   IDGenerateFailed = 100 [
-    (status.field).code = Internal
+    (errors.field).code = Internal
   ];
 }
 

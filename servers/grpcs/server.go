@@ -117,7 +117,6 @@ func (s *serviceImpl) DixInject(
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		ETag:               true,
 		EnablePrintRoutes:  conf.EnablePrintRoutes,
 		AppName:            version.Project(),
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
@@ -138,7 +137,7 @@ func (s *serviceImpl) DixInject(
 		},
 	})
 
-	s.httpServer.Use(cors.New(cors.Config{
+	httpServer.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
 		AllowCredentials: true,
