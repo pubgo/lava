@@ -12,7 +12,7 @@ import (
 
 var (
 	showVersion = flag.Bool("version", false, "print the version and exit")
-	omitempty   = flag.Bool("omitempty", true, "omit if google.api is empty")
+	omitempty   = flag.Bool("omitempty", false, "omit if google.api is empty")
 )
 
 func main() {
@@ -30,6 +30,7 @@ func main() {
 			if !f.Generate {
 				continue
 			}
+
 			internal.GenerateFile(gen, f, *omitempty)
 		}
 		return nil

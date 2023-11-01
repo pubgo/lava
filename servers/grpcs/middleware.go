@@ -3,7 +3,9 @@ package grpcs
 import (
 	"context"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/log"
+	"reflect"
 	"time"
 
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -23,6 +25,15 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
+
+var parserTypes []fiber.ParserType
+
+func RegParser(customType interface{}, converter func(string) reflect.Value) {
+	parserTypes = append(parserTypes, fiber.ParserType{
+		Customtype: customType,
+		Converter:  converter,
+	})
+}
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
 	unaryWrapper := func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {

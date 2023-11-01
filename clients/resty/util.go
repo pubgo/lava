@@ -242,6 +242,7 @@ func doRequest(ctx context.Context, c *Client, req *Request) (rsp result.Result[
 	}
 
 	var uri = fasthttp.AcquireURI()
+	defer fasthttp.ReleaseURI(uri)
 	uri.SetScheme(c.baseUrl.Scheme)
 	uri.SetHost(c.baseUrl.Host)
 	uri.SetPath(path)

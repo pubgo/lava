@@ -48,6 +48,7 @@ require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/dave/jennifer v1.6.0
 	github.com/fasthttp/websocket v1.5.2
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -80,18 +82,27 @@ func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
 	handlers []lava.GrpcRouter,
-	dixMiddlewares map[string][]lava.Middleware,
+	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
 ) {
+	if conf.BaseUrl == "" {
+		conf.BaseUrl = "/" + version.Project()
+	}
+
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+		ParserType:        parserTypes,
+	})
+
 	s.lc = getLifecycle
 
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
-	basePath := "/" + strings.Trim(conf.BaseUrl, "/")
-	conf.BaseUrl = basePath
+	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
 
 	middlewares := lava.Middlewares{
 		middleware_service_info.New(),
@@ -99,31 +110,51 @@ func (s *serviceImpl) DixInject(
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),
 	}
-
-	// TODO server middleware handle
-	if dixMiddlewares != nil {
-		middlewares = append(middlewares, dixMiddlewares["server"]...)
-	}
+	middlewares = append(middlewares, dixMiddlewares...)
 
 	log = log.WithName("grpc-server")
 	s.log = log
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
+		ETag:               true,
 		EnablePrintRoutes:  conf.EnablePrintRoutes,
 		AppName:            version.Project(),
-	})
-	httpServer.Mount("/debug", debug.App())
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			if err == nil {
+				return nil
+			}
 
-	apiPrefix := assert.Must1(url.JoinPath(basePath, "api"))
+			code := fiber.StatusBadRequest
+			errPb := errutil.ParseError(err)
+			if errPb == nil || errPb.Code.Code == 0 {
+				return nil
+			}
+
+			errPb.Trace.Operation = ctx.Route().Path
+			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
+			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			return ctx.Status(code).JSON(errPb.Code)
+		},
+	})
+
+	s.httpServer.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowCredentials: true,
+	}))
+
+	httpServer.Mount("/debug", debug.App())
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToLower(s), true
 		}),
+
 		runtime.WithOutgoingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToUpper(s), true
 		}),
+
 		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
 			path, ok := runtime.HTTPPathPattern(ctx)
 			if !ok {
@@ -131,6 +162,7 @@ func (s *serviceImpl) DixInject(
 			}
 			return metadata.Pairs("http_path", path)
 		}),
+
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
 			md, ok := runtime.ServerMetadataFromContext(ctx)
 			if ok && w != nil {
@@ -232,30 +264,33 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
+	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service web base path")
-	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
-			writer.WriteHeader(http.StatusOK)
-			return
-		}
+	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix,
+		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
+				writer.WriteHeader(http.StatusOK)
+				return
+			}
 
-		if wrappedGrpc.IsGrpcWebSocketRequest(request) {
-			wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
-			return
-		}
+			if wrappedGrpc.IsGrpcWebSocketRequest(request) {
+				wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
+				return
+			}
 
-		if wrappedGrpc.IsGrpcWebRequest(request) {
-			wrappedGrpc.HandleGrpcWebRequest(writer, request)
-			return
-		}
+			if wrappedGrpc.IsGrpcWebRequest(request) {
+				wrappedGrpc.HandleGrpcWebRequest(writer, request)
+				return
+			}
 
-		if grpcutil.IsGRPCRequest(request) {
-			grpcServer.ServeHTTP(writer, request)
-			return
-		}
+			if grpcutil.IsGRPCRequest(request) {
+				grpcServer.ServeHTTP(writer, request)
+				return
+			}
 
-		grpcGateway.ServeHTTP(writer, request)
-	})), new(http2.Server))))
+			request.Header.Set("grpc-gateway", "true")
+			grpcGateway.ServeHTTP(writer, request)
+		})), new(http2.Server))))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer

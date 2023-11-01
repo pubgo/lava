@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"google.golang.org/protobuf/compiler/protogen"
 	"strings"
 	"text/template"
 )
@@ -112,8 +113,8 @@ type methodDesc struct {
 	Name         string
 	OriginalName string // The parsed original name
 	Num          int
-	Request      string
-	Reply        string
+	Request      protogen.GoIdent
+	Reply        protogen.GoIdent
 	// http_rule
 	Path         string
 	Method       string

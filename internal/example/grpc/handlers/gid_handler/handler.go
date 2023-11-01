@@ -25,7 +25,7 @@ import (
 	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
 
-var typesReq = resty.RequestConfig{
+var typesReq = &resty.RequestConfig{
 	Method: http.MethodGet,
 	Path:   "/v1/id/types",
 }
@@ -102,7 +102,7 @@ func (id *Id) Init() {
 		id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
 
 		defer recovery.Exit()
-		rsp1 := id.service.Do(ctx, resty.NewRequest(&typesReq))
+		rsp1 := id.service.Do(ctx, resty.NewRequest(typesReq))
 		if rsp1.IsErr() {
 			return rsp1.Err()
 		}
