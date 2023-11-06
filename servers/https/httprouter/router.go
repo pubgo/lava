@@ -100,6 +100,10 @@ func WrapHandler[Req any, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *R
 			return err
 		}
 
+		if rsp == nil {
+			return ctx.JSON(make(map[string]any))
+		}
+
 		return ctx.JSON(rsp)
 	}
 }
