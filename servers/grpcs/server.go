@@ -138,11 +138,7 @@ func (s *serviceImpl) DixInject(
 	})
 
 	if conf.EnableCors {
-		httpServer.Use(cors.New(cors.Config{
-			AllowOrigins:     "*",
-			AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-			AllowCredentials: true,
-		}))
+		httpServer.Use(cors.New())
 	}
 
 	httpServer.Mount("/debug", debug.App())
