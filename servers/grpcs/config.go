@@ -17,6 +17,7 @@ type Config struct {
 	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
 	BaseUrl           string               `yaml:"base_url"`
 	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
+	EnableCors        bool                 `yaml:"enable_cors"`
 }
 
 func defaultCfg() *Config {
