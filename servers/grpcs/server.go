@@ -138,7 +138,22 @@ func (s *serviceImpl) DixInject(
 	})
 
 	if conf.EnableCors {
-		httpServer.Use(cors.New())
+		httpServer.Use(cors.New(cors.Config{
+			AllowOrigins: "*",
+			AllowMethods: strings.Join([]string{
+				fiber.MethodGet,
+				fiber.MethodPost,
+				fiber.MethodPut,
+				fiber.MethodDelete,
+				fiber.MethodPatch,
+				fiber.MethodHead,
+				fiber.MethodOptions,
+			}, ","),
+			AllowHeaders:     "",
+			AllowCredentials: false,
+			ExposeHeaders:    "",
+			MaxAge:           0,
+		}))
 	}
 
 	httpServer.Mount("/debug", debug.App())
