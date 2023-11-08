@@ -139,7 +139,7 @@ func (s *serviceImpl) DixInject(
 
 	if conf.EnableCors {
 		httpServer.Use(cors.New(cors.Config{
-			AllowOrigins: "*",
+			AllowOrigins: "",
 			AllowMethods: strings.Join([]string{
 				fiber.MethodGet,
 				fiber.MethodPost,
