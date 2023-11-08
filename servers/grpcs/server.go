@@ -153,7 +153,7 @@ func (s *serviceImpl) DixInject(
 				fiber.MethodOptions,
 			}, ","),
 			AllowHeaders:     "",
-			AllowCredentials: false,
+			AllowCredentials: true,
 			ExposeHeaders:    "",
 			MaxAge:           0,
 		}))
