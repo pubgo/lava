@@ -135,8 +135,8 @@ func New(di *dix.Dix) *cli.Command {
 					g := gen.NewGenerator(gen.Config{
 						OutPath:           filepath.Join(genPath, "query"),
 						ModelPkgPath:      filepath.Join(genPath, "models"),
-						FieldWithTypeTag:  false,
-						FieldWithIndexTag: false,
+						FieldWithTypeTag:  true,
+						FieldWithIndexTag: true,
 						FieldNullable:     true,
 						FieldCoverable:    true,
 						Mode:              gen.WithQueryInterface | gen.WithDefaultQuery | gen.WithoutContext,
