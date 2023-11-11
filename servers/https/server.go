@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -125,13 +126,26 @@ func (s *serviceImpl) DixInject(
 		},
 	})
 
-	s.httpServer.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowCredentials: true,
-	}))
-
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
+		AllowOrigins: "*",
+		AllowMethods: strings.Join([]string{
+			fiber.MethodGet,
+			fiber.MethodPost,
+			fiber.MethodPut,
+			fiber.MethodDelete,
+			fiber.MethodPatch,
+			fiber.MethodHead,
+			fiber.MethodOptions,
+		}, ","),
+		AllowHeaders:     "",
+		AllowCredentials: true,
+		ExposeHeaders:    "",
+		MaxAge:           0,
+	}))
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(m), middleware_accesslog.New(log), middleware_recovery.New()}
