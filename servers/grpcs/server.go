@@ -162,6 +162,7 @@ func (s *serviceImpl) DixInject(
 	httpServer.Mount("/debug", debug.App())
 
 	grpcGateway := runtime.NewServeMux(
+		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
 		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToLower(s), true
 		}),
