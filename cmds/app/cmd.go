@@ -79,8 +79,6 @@ func NewBuilder(opts ...dix.Option) *dix.Dix {
 func Run(di *dix.Dix) {
 	defer recovery.Exit()
 
-	running.CheckVersion()
-
 	di.Provide(versioncmd.New)
 	di.Provide(healthcmd.New)
 	di.Provide(depcmd.New)
