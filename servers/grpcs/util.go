@@ -23,15 +23,17 @@ type DefaultQueryParser struct{}
 // Parse populates "values" into "msg".
 // A value is ignored if its key starts with one of the elements in "filter".
 func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
-	for _, v := range values {
+	for key, v := range values {
 		if len(v) == 0 {
+			delete(values, key)
 			continue
 		}
 
-		if v[0] == "" {
+		if len(v) == 1 && v[0] == "" {
+			delete(values, key)
 			continue
 		}
 	}
 
-	return runtime.PopulateQueryParameters(msg, values, filter)
+	return new(runtime.DefaultQueryParser).Parse(msg, values, filter)
 }
