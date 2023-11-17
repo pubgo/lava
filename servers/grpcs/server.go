@@ -176,7 +176,7 @@ func (s *serviceImpl) DixInject(
 			if !ok {
 				return nil
 			}
-			return metadata.Pairs("http_path", path)
+			return metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
 		}),
 
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
