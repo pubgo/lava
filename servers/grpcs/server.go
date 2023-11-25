@@ -47,7 +47,6 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
 )
 
 func New() lava.Service { return newService() }
@@ -281,11 +280,15 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	s.log.Info().Str("path", apiPrefix).Msg("service web base path")
-	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix,
+	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
+	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(apiPrefix, grpcGateway)))
+
+	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
+	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
+	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix,
 		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
-				writer.WriteHeader(http.StatusOK)
+				writer.WriteHeader(http.StatusNoContent)
 				return
 			}
 
@@ -299,13 +302,7 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			if grpcutil.IsGRPCRequest(request) {
-				grpcServer.ServeHTTP(writer, request)
-				return
-			}
-
-			request.Header.Set("grpc-gateway", "true")
-			grpcGateway.ServeHTTP(writer, request)
+			grpcServer.ServeHTTP(writer, request)
 		})), new(http2.Server))))
 
 	s.httpServer = httpServer
