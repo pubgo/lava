@@ -297,12 +297,14 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			if wrappedGrpc.IsGrpcWebRequest(request) {
-				wrappedGrpc.HandleGrpcWebRequest(writer, request)
-				return
-			}
+			//if wrappedGrpc.IsGrpcWebRequest(request) {
+			//	wrappedGrpc.HandleGrpcWebRequest(writer, request)
+			//	return
+			//}
 
-			grpcServer.ServeHTTP(writer, request)
+			wrappedGrpc.HandleGrpcWebRequest(writer, request)
+
+			//grpcServer.ServeHTTP(writer, request)
 		})), new(http2.Server))))
 
 	s.httpServer = httpServer
