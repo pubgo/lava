@@ -285,7 +285,7 @@ func (s *serviceImpl) DixInject(
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
-	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(apiPrefix,
+	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
 		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
 				writer.WriteHeader(http.StatusNoContent)
@@ -297,14 +297,12 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			//if wrappedGrpc.IsGrpcWebRequest(request) {
-			//	wrappedGrpc.HandleGrpcWebRequest(writer, request)
-			//	return
-			//}
+			if wrappedGrpc.IsGrpcWebRequest(request) {
+				wrappedGrpc.HandleGrpcWebRequest(writer, request)
+				return
+			}
 
-			wrappedGrpc.HandleGrpcWebRequest(writer, request)
-
-			//grpcServer.ServeHTTP(writer, request)
+			grpcServer.ServeHTTP(writer, request)
 		})), new(http2.Server))))
 
 	s.httpServer = httpServer
