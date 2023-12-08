@@ -11,7 +11,9 @@ import (
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"io"
+	"larking.io/larking"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,6 +49,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
+	_ "larking.io/larking"
 )
 
 func New() lava.Service { return newService() }
@@ -114,6 +117,8 @@ func (s *serviceImpl) DixInject(
 	log = log.WithName("grpc-server")
 	s.log = log
 
+	mux := assert.Must1(larking.NewMux())
+
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
 		EnablePrintRoutes:  conf.EnablePrintRoutes,
@@ -160,7 +165,19 @@ func (s *serviceImpl) DixInject(
 
 	httpServer.Mount("/debug", debug.App())
 
+	//UseProtoNames:  true, // 使用proto字段名代替JSON中的骆驼式名称的字段名。
+	//			UseEnumNumbers: true, // 使用protoc枚举定义的值作为数字发送。
 	grpcGateway := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+			MarshalOptions: protojson.MarshalOptions{
+				//UseProtoNames:   true, // 使用proto字段名代替JSON中的骆驼式名称的字段名。
+				//UseEnumNumbers:  true, // 使用protoc枚举定义的值作为数字发送。
+				EmitUnpopulated: true,
+			},
+			UnmarshalOptions: protojson.UnmarshalOptions{
+				DiscardUnknown: true, // 未知字段将被忽略
+			},
+		}),
 		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
 		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToLower(s), true
@@ -269,8 +286,11 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
 	for _, h := range handlers {
+		mux.RegisterService(h.ServiceDesc(), h)
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
+
+	mux.RegisterReflectionServer(grpcServer)
 
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithWebsockets(true),
@@ -282,6 +302,9 @@ func (s *serviceImpl) DixInject(
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
 	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(apiPrefix, grpcGateway)))
+
+	srv := assert.Must1(larking.NewServer(mux, larking.MuxHandleOption(conf.BaseUrl)))
+	httpServer.Group("/*", adaptor.HTTPHandler(srv.Handler))
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")

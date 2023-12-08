@@ -80,6 +80,7 @@ require (
 	gorm.io/driver/postgres v1.4.1
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gen v0.3.21
+	larking.io v0.3.1
 )
 
 require (
@@ -106,6 +107,9 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.2.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect

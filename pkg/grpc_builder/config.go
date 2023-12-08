@@ -75,7 +75,7 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]
 
 	srv := grpc.NewServer(opts...)
 
-	grpcutil.EnableReflection(srv)
+	//grpcutil.EnableReflection(srv)
 	grpcutil.EnableHealth("", srv)
 	grpcutil.EnableDebug(srv)
 	return r.WithVal(srv)
