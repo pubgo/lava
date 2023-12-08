@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
@@ -47,6 +48,8 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
+
+	_ "github.com/tmc/grpc-websocket-proxy/wsproxy"
 )
 
 func New() lava.Service { return newService() }
@@ -282,6 +285,9 @@ func (s *serviceImpl) DixInject(
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
 	httpServer.Group(apiPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(apiPrefix, grpcGateway)))
+
+	wsPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "ws"))
+	httpServer.Group(wsPrefix+"/*", adaptor.HTTPHandler(http.StripPrefix(wsPrefix, wsproxy.WebsocketProxy(grpcGateway))))
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
