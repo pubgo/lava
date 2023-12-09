@@ -58,6 +58,7 @@ require (
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
 	github.com/google/uuid v1.3.0
+	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
@@ -67,6 +68,7 @@ require (
 	github.com/pubgo/funk v0.5.32-3
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	github.com/tidwall/match v1.1.1
@@ -109,7 +111,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
@@ -152,7 +153,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/tinylib/msgp v1.1.8 // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
