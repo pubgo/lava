@@ -7,8 +7,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsproxy"
+	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
@@ -85,12 +87,14 @@ func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
 	handlers []lava.GrpcRouter,
+	httpRouters []lava.HttpRouter,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
+	docs []*opendoc.Swagger,
 ) {
 	if conf.BaseUrl == "" {
 		conf.BaseUrl = "/" + version.Project()
@@ -106,6 +110,27 @@ func (s *serviceImpl) DixInject(
 
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
 	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
+
+	var doc = opendoc.New(func(swag *opendoc.Swagger) {
+		swag.Config.Title = "service title "
+		swag.Description = "this is description"
+		swag.License = &opendoc.License{
+			Name: "Apache License 2.0",
+			URL:  "https://github.com/pubgo/opendoc/blob/master/LICENSE",
+		}
+
+		swag.Contact = &opendoc.Contact{
+			Name:  "barry",
+			URL:   "https://github.com/pubgo/opendoc",
+			Email: "kooksee@163.com",
+		}
+
+		swag.TermsOfService = "https://github.com/pubgo"
+	})
+	if len(docs) > 0 {
+		doc = docs[0]
+	}
+	doc.SetRootPath(conf.BaseUrl)
 
 	middlewares := lava.Middlewares{
 		middleware_service_info.New(),
@@ -163,6 +188,38 @@ func (s *serviceImpl) DixInject(
 	}
 
 	httpServer.Mount("/debug", debug.App())
+
+	app := fiber.New()
+	defaultMiddlewares := []lava.Middleware{
+		middleware_metric.New(metric), middleware_accesslog.New(log), middleware_recovery.New()}
+	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
+	for _, h := range httpRouters {
+		srv := doc.WithService()
+		for _, an := range h.Annotation() {
+			switch a := an.(type) {
+			case *annotation.Openapi:
+				if a.ServiceName != "" {
+					srv.SetName(a.ServiceName)
+				}
+			}
+		}
+
+		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		h.Router(&lava.Router{
+			R:   g,
+			Doc: srv,
+		})
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
+		}
+	}
+
+	s.httpServer.Mount(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
