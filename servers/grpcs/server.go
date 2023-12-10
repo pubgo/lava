@@ -219,7 +219,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	s.httpServer.Mount(conf.BaseUrl, app)
+	httpServer.Mount(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
