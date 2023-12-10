@@ -52,17 +52,35 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *jen.File,
 
 	var data []*serviceDesc
 	for _, service := range file.Services {
-		data = append(data, genService(gen, file, g, service, omitempty))
+		if service.Desc.Options().(*descriptorpb.ServiceOptions).GetDeprecated() {
+			g.Comment("")
+			g.Comment(deprecationComment)
+		}
+
+		data = append(data, genService(gen, file, service, omitempty))
 	}
 
 	for _, srv := range data {
+		for _, mth := range srv.Methods {
+			path := strings.ReplaceAll(mth.Path, ":", "_")
+			g.Var().
+				Id(srv.ServiceType + mth.Name + "Path").
+				Op("=").
+				Lit(strings.ReplaceAll(strings.ReplaceAll(path, "{", ":"), "}", ""))
+			g.Var().
+				Id(srv.ServiceType + mth.Name + "Method").
+				Op("=").
+				Lit(strings.ToUpper(mth.Method))
+		}
+
 		g.Type().Id(srv.ServiceType + "Handler").InterfaceFunc(func(group *jen.Group) {
 			for _, mth := range srv.Methods {
 				group.Id(mth.Name+"Handler").
-					Params(jen.Qual("context", "Context"), goIdent(mth.Request, file.GoPackageName)).
+					Params(jen.Op("*").Qual("github.com/gofiber/fiber/v2", "Ctx"), goIdent(mth.Request, file.GoPackageName)).
 					Params(goIdent(mth.Reply, file.GoPackageName), jen.Id("error"))
 			}
 		})
+		g.Line()
 	}
 }
 
@@ -71,18 +89,13 @@ func goIdent(ident protogen.GoIdent, pkg protogen.GoPackageName) *jen.Statement 
 	path = strings.Trim(path, "/")
 
 	if string(pkg) == path {
-		return jen.Id(ident.GoName)
+		return jen.Op("*").Id(ident.GoName)
 	} else {
-		return jen.Qual(string(ident.GoImportPath), ident.GoName)
+		return jen.Op("*").Qual(string(ident.GoImportPath), ident.GoName)
 	}
 }
 
-func genService(gen *protogen.Plugin, file *protogen.File, g *jen.File, service *protogen.Service, omitempty bool) *serviceDesc {
-	if service.Desc.Options().(*descriptorpb.ServiceOptions).GetDeprecated() {
-		g.Comment("")
-		g.Comment(deprecationComment)
-	}
-
+func genService(gen *protogen.Plugin, file *protogen.File, service *protogen.Service, omitempty bool) *serviceDesc {
 	// HTTP Server.
 	sd := &serviceDesc{
 		ServiceType: service.GoName,
@@ -98,12 +111,12 @@ func genService(gen *protogen.Plugin, file *protogen.File, g *jen.File, service 
 		rule, ok := proto.GetExtension(method.Desc.Options(), annotations.E_Http).(*annotations.HttpRule)
 		if rule != nil && ok {
 			for _, bind := range rule.AdditionalBindings {
-				sd.Methods = append(sd.Methods, buildHTTPRule(g, method, bind))
+				sd.Methods = append(sd.Methods, buildHTTPRule(method, bind))
 			}
-			sd.Methods = append(sd.Methods, buildHTTPRule(g, method, rule))
+			sd.Methods = append(sd.Methods, buildHTTPRule(method, rule))
 		} else if !omitempty {
 			path := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
-			sd.Methods = append(sd.Methods, buildMethodDesc(g, method, http.MethodPost, path))
+			sd.Methods = append(sd.Methods, buildMethodDesc(method, http.MethodPost, path))
 		}
 	}
 
@@ -126,7 +139,7 @@ func hasHTTPRule(services []*protogen.Service) bool {
 	return false
 }
 
-func buildHTTPRule(g *jen.File, m *protogen.Method, rule *annotations.HttpRule) *methodDesc {
+func buildHTTPRule(m *protogen.Method, rule *annotations.HttpRule) *methodDesc {
 	var (
 		path         string
 		method       string
@@ -156,7 +169,7 @@ func buildHTTPRule(g *jen.File, m *protogen.Method, rule *annotations.HttpRule) 
 	}
 	body = rule.Body
 	responseBody = rule.ResponseBody
-	md := buildMethodDesc(g, m, method, path)
+	md := buildMethodDesc(m, method, path)
 	if method == http.MethodGet || method == http.MethodDelete {
 		if body != "" {
 			_, _ = fmt.Fprintf(os.Stderr, "\u001B[31mWARN\u001B[m: %s %s body should not be declared.\n", method, path)
@@ -183,7 +196,7 @@ func buildHTTPRule(g *jen.File, m *protogen.Method, rule *annotations.HttpRule) 
 	return md
 }
 
-func buildMethodDesc(g *jen.File, m *protogen.Method, method, path string) *methodDesc {
+func buildMethodDesc(m *protogen.Method, method, path string) *methodDesc {
 	defer func() { methodSets[m.GoName]++ }()
 
 	vars := buildPathVars(path)
