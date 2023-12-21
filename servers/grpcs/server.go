@@ -98,6 +98,7 @@ func (s *serviceImpl) DixInject(
 	conf *Config,
 	docs []*opendoc.Swagger,
 ) {
+	s.conf = conf
 	if conf.HttpPort == nil {
 		conf.HttpPort = generic.Ptr(running.HttpPort)
 	}
