@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -74,6 +75,7 @@ type serviceImpl struct {
 	handlers   grpchan.HandlerMap
 	cc         *inprocgrpc.Channel
 	initList   []func()
+	conf       *Config
 }
 
 func (s *serviceImpl) Run() {
@@ -96,6 +98,14 @@ func (s *serviceImpl) DixInject(
 	conf *Config,
 	docs []*opendoc.Swagger,
 ) {
+	if conf.HttpPort == nil {
+		conf.HttpPort = generic.Ptr(running.HttpPort)
+	}
+
+	if conf.GrpcPort == nil {
+		conf.GrpcPort = generic.Ptr(running.GrpcPort)
+	}
+
 	if conf.BaseUrl == "" {
 		conf.BaseUrl = "/" + version.Project()
 	}
@@ -394,11 +404,11 @@ func (s *serviceImpl) start() {
 	})
 
 	s.log.Info().
-		Int("grpc-port", running.GrpcPort).
-		Int("http-port", running.HttpPort).
+		Int("grpc-port", *s.conf.GrpcPort).
+		Int("http-port", *s.conf.HttpPort).
 		Msg("create network listener")
-	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort)))
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
+	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.GrpcPort)))
+	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.HttpPort)))
 
 	logutil.OkOrFailed(s.log, "service starts", func() error {
 		// 启动grpc服务

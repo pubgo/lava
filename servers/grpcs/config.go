@@ -18,6 +18,8 @@ type Config struct {
 	BaseUrl           string               `yaml:"base_url"`
 	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
 	EnableCors        bool                 `yaml:"enable_cors"`
+	GrpcPort          *int                 `yaml:"grpc_port"`
+	HttpPort          *int                 `yaml:"http_port"`
 }
 
 func defaultCfg() *Config {
