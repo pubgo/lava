@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/env"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/typex"
@@ -28,5 +29,16 @@ func init() {
 		Value:       running.IsDebug,
 		Destination: &running.IsDebug,
 		EnvVars:     typex.StrOf(env.Key("debug"), env.Key("enable_debug")),
+	})
+	Register(&cli.StringFlag{
+		Name:    "config",
+		Aliases: []string{"c"},
+		Usage:   "config path",
+		Value:   config.GetConfigPath(),
+		EnvVars: typex.StrOf(env.Key("config_path")),
+		Action: func(context *cli.Context, s string) error {
+			config.SetConfigPath(s)
+			return nil
+		},
 	})
 }
