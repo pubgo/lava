@@ -12,14 +12,12 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsproxy"
 	"github.com/pubgo/opendoc/opendoc"
-	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
-	"larking.io/larking"
 	"net"
 	"net/http"
 	"net/url"
@@ -205,9 +203,10 @@ func (s *serviceImpl) DixInject(
 
 	httpServer.Mount("/debug", debug.App())
 
-	mux := assert.Must1(larking.NewMux(
-		larking.ServiceConfigOption(&serviceconfig.Service{}),
-	))
+	//mux := assert.Must1(larking.NewMux(
+	//	larking.ServiceConfigOption(&serviceconfig.Service{}),
+	//))
+	//mux.RegisterService()
 
 	app := fiber.New()
 	defaultMiddlewares := []lava.Middleware{
