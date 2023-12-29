@@ -12,11 +12,14 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsproxy"
 	"github.com/pubgo/opendoc/opendoc"
+	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"io"
+	"larking.io/larking"
 	"net"
 	"net/http"
 	"net/url"
@@ -54,6 +57,8 @@ import (
 	"github.com/pubgo/lava/lava"
 
 	_ "github.com/tmc/grpc-websocket-proxy/wsproxy"
+
+	_ "larking.io/larking"
 )
 
 func New() lava.Service { return newService() }
@@ -200,6 +205,10 @@ func (s *serviceImpl) DixInject(
 
 	httpServer.Mount("/debug", debug.App())
 
+	mux := assert.Must1(larking.NewMux(
+		larking.ServiceConfigOption(&serviceconfig.Service{}),
+	))
+
 	app := fiber.New()
 	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(metric), middleware_accesslog.New(log), middleware_recovery.New()}
@@ -233,15 +242,23 @@ func (s *serviceImpl) DixInject(
 	httpServer.Mount(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: &runtime.JSONPb{
+				MarshalOptions: protojson.MarshalOptions{
+					EmitUnpopulated: true,
+				},
+				UnmarshalOptions: protojson.UnmarshalOptions{
+					DiscardUnknown: true,
+				},
+			},
+		}),
 		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
 		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToLower(s), true
 		}),
-
 		runtime.WithOutgoingHeaderMatcher(func(s string) (string, bool) {
 			return strings.ToUpper(s), true
 		}),
-
 		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
 			path, ok := runtime.HTTPPathPattern(ctx)
 			if !ok {
@@ -249,7 +266,6 @@ func (s *serviceImpl) DixInject(
 			}
 			return metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
 		}),
-
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshal runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
 			md, ok := runtime.ServerMetadataFromContext(ctx)
 			if ok && w != nil {
