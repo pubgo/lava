@@ -6,7 +6,7 @@ app:
   debug: true
 
 gid-client-http:
-  base_url: "http://localhost:8080/gid/web"
+  base_url: "http://localhost:8080/gid/grpc-web"
   service_name: "gid"
 
 gid-client:

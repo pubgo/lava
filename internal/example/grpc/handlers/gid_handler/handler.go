@@ -3,23 +3,20 @@ package gid_handler
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"net/http"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/clients/resty"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/lava"
 	"github.com/teris-io/shortid"
 	"google.golang.org/grpc"
+	"math/rand"
+	"net/http"
 
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
@@ -32,6 +29,7 @@ var typesReq = &resty.RequestConfig{
 
 var _ lava.GrpcRouter = (*Id)(nil)
 var _ lava.GrpcGatewayRouter = (*Id)(nil)
+var _ gidpb.IdServer = (*Id)(nil)
 
 type Id struct {
 	cron      *scheduler.Scheduler
@@ -40,6 +38,17 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 	log       log.Logger
 	service   *gid_client.Service
+}
+
+func (id *Id) Chat(server gidpb.Id_ChatServer) error {
+	for {
+		hello, err := server.Recv()
+		if err != nil {
+			return err
+		}
+		log.Info().Msg(hello.Name)
+		server.Send(hello)
+	}
 }
 
 func (id *Id) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
@@ -91,26 +100,26 @@ func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, servi
 }
 
 func (id *Id) Init() {
-	id.cron.Every("test_gid", time.Second*10, func(ctx context.Context, name string) error {
-		fmt.Println("test cron every")
-
-		rsp, err := id.service.Types(ctx, &gidpb.TypesRequest{})
-		if err != nil {
-			return err
-		}
-
-		id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
-
-		defer recovery.Exit()
-		rsp1 := id.service.Do(ctx, resty.NewRequest(typesReq))
-		if rsp1.IsErr() {
-			return rsp1.Err()
-		}
-
-		id.log.Info(ctx).Any("data", string(rsp1.Unwrap().Body())).Msg("Types http")
-
-		return nil
-	})
+	//id.cron.Every("test_gid", time.Second*10, func(ctx context.Context, name string) error {
+	//	fmt.Println("test cron every")
+	//
+	//	rsp, err := id.service.Types(ctx, &gidpb.TypesRequest{})
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	id.log.Info(ctx).Any("data", rsp.Types).Msg("Types")
+	//
+	//	defer recovery.Exit()
+	//	rsp1 := id.service.Do(ctx, resty.NewRequest(typesReq))
+	//	if rsp1.IsErr() {
+	//		return rsp1.Err()
+	//	}
+	//
+	//	id.log.Info(ctx).Any("data", string(rsp1.Unwrap().Body())).Msg("Types http")
+	//
+	//	return nil
+	//})
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {

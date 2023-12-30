@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/pkg/larking"
 	"github.com/pubgo/lava/pkg/wsproxy"
 	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc/codes"
@@ -18,7 +19,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
-	"larking.io/larking"
 	"net"
 	"net/http"
 	"net/url"
@@ -368,8 +368,8 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
-	larkPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "lark"))
-	httpServer.Group(larkPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(larkPrefix, mux)))
+	gwPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
+	httpServer.Group(gwPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(gwPrefix, mux)))
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")

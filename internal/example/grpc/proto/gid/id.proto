@@ -37,6 +37,18 @@ service Id {
   rpc Types(TypesRequest) returns (TypesResponse) {
     option (google.api.http).get = "/v1/id/types";
   }
+
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
+    option (google.api.http) = {
+      custom : {kind : "websocket" path : "/ws/chat"}
+      body : "*"
+    };
+  }
+}
+
+message ChatMessage {
+  string name = 1;
+  string text = 2;
 }
 
 enum SrvCode {

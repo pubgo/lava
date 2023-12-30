@@ -13,6 +13,9 @@ LDFLAGS=-ldflags " \
 -X '${Base}/version.project=${Project}' \
 "
 
+run:
+	go run ${LDFLAGS} -v main.go grpc
+
 .PHONY: build
 build-gid:
 	go build ${LDFLAGS} -v -o bin/gid *.go
