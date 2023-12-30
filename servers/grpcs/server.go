@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
+	"larking.io/larking"
 	"net"
 	"net/http"
 	"net/url"
@@ -203,11 +204,6 @@ func (s *serviceImpl) DixInject(
 
 	httpServer.Mount("/debug", debug.App())
 
-	//mux := assert.Must1(larking.NewMux(
-	//	larking.ServiceConfigOption(&serviceconfig.Service{}),
-	//))
-	//mux.RegisterService()
-
 	app := fiber.New()
 	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(metric), middleware_accesslog.New(log), middleware_recovery.New()}
@@ -347,6 +343,11 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	mux := assert.Must1(larking.NewMux(
+		larking.UnaryServerInterceptorOption(handlerUnaryMiddle(srvMidMap)),
+		larking.StreamServerInterceptorOption(handlerStreamMiddle(srvMidMap)),
+	))
+
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
@@ -356,6 +357,7 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
 	for _, h := range handlers {
+		mux.RegisterService(h.ServiceDesc(), h)
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
@@ -365,6 +367,9 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
+
+	larkPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "lark"))
+	httpServer.Group(larkPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(larkPrefix, mux)))
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
