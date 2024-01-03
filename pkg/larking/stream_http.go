@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/log"
 	"io"
 	"net/http"
 	"strings"
@@ -345,18 +344,13 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		verb = kindWebsocket
 	}
 
-	log.Info().Msg(r.URL.Path)
-
 	methodName := "/" + strings.Trim(strings.TrimSpace(r.URL.Path), "/")
 	hds := s.handlers[methodName]
-	var hd *handler
-	var method = &method{
-		name:    methodName,
-		hasBody: true,
-	}
 	var (
+		hd     *handler
 		params params
 		err    error
+		method = &method{name: methodName, hasBody: true}
 	)
 	if len(hds) == 0 {
 		method, params, err = s.match(r.URL.Path, verb)
