@@ -40,7 +40,6 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
-
 	// Load the state for writing.
 	m.mu.Lock()
 	defer m.mu.Unlock()

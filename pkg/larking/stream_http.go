@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/log"
 	"io"
 	"net/http"
 	"strings"
@@ -335,6 +336,8 @@ func (m *Mux) encError(w http.ResponseWriter, r *http.Request, err error) {
 
 func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 	ctx, mdata := newIncomingContext(r.Context(), r.Header)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	s := m.loadState()
 	isWebsocket := isWebsocketRequest(r)
@@ -410,6 +413,25 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		conn.SetPongHandler(func(string) error {
 			return conn.SetReadDeadline(time.Now().Add(pongWait))
 		})
+		go func() {
+			ticker := time.NewTicker(pingPeriod)
+			defer ticker.Stop()
+			defer func() {
+				log.Info().Msg("close websocket ping")
+			}()
+			for {
+				select {
+				case <-ticker.C:
+					conn.SetWriteDeadline(time.Now().Add(writeWait))
+					if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+						log.Err(err).Msg("failed to write ping message")
+						break
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
 
 		stream := &streamWS{
 			ctx:    ctx,
