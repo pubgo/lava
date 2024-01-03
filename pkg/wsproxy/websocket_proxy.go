@@ -106,8 +106,7 @@ func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {
 	return p
 }
 
-// TODO(tmc): allow modification of upgrader settings?
-var upgrader = websocket.Upgrader{
+var upgrade = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin:     func(r *http.Request) bool { return true },
@@ -130,7 +129,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 			"Sec-WebSocket-Protocol": []string{"Bearer"},
 		}
 	}
-	conn, err := upgrader.Upgrade(w, r, responseHeader)
+	conn, err := upgrade.Upgrade(w, r, responseHeader)
 	if err != nil {
 		p.logger.Warnln("error upgrading websocket:", err)
 		return

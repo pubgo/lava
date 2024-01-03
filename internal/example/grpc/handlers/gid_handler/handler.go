@@ -78,7 +78,18 @@ func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStream
 }
 
 func (id *Id) Middlewares() []lava.Middleware {
-	return nil
+	return lava.Middlewares{
+		lava.MiddlewareWrap{
+			Next: func(next lava.HandlerFunc) lava.HandlerFunc {
+				return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+					id.log.Info().Msgf("middleware %s", req.Endpoint())
+					fmt.Println(req.Header().String())
+					return next(ctx, req)
+				}
+			},
+			Name: "header",
+		},
+	}
 }
 
 func (id *Id) ServiceDesc() *grpc.ServiceDesc {

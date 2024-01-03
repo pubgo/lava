@@ -370,6 +370,7 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		}
 	} else {
 		hd = hds[0]
+		method.desc = hd.desc
 	}
 
 	// Handle stats.

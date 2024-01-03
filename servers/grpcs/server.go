@@ -9,7 +9,6 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/larking"
@@ -208,20 +207,20 @@ func (s *serviceImpl) DixInject(
 		middleware_metric.New(metric), middleware_accesslog.New(log), middleware_recovery.New()}
 	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
 	for _, h := range httpRouters {
-		srv := doc.WithService()
-		for _, an := range h.Annotation() {
-			switch a := an.(type) {
-			case *annotation.Openapi:
-				if a.ServiceName != "" {
-					srv.SetName(a.ServiceName)
-				}
-			}
-		}
+		//srv := doc.WithService()
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
 
 		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
 		h.Router(&lava.Router{
 			R:   g,
-			Doc: srv,
+			Doc: doc.WithService(),
 		})
 
 		if m, ok := h.(lava.Close); ok {
@@ -361,9 +360,15 @@ func (s *serviceImpl) DixInject(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-		httpServer.Post(pattern, httputil.HTTPHandler(http.HandlerFunc(handler)))
-	}, assert.Must1(url.JoinPath(conf.BaseUrl, "api")), s.reg, handlerUnaryMiddle(srvMidMap), handlerStreamMiddle(srvMidMap))
+	httpgrpc.HandleServices(
+		func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+			httpServer.Post(pattern, httputil.HTTPHandler(http.HandlerFunc(handler)))
+		},
+		assert.Must1(url.JoinPath(conf.BaseUrl, "api")),
+		s.reg,
+		handlerUnaryMiddle(srvMidMap),
+		handlerStreamMiddle(srvMidMap),
+	)
 
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithWebsockets(true),

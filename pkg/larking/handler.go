@@ -20,7 +20,6 @@ type handler struct {
 	desc    protoreflect.MethodDescriptor
 	handler handlerFunc
 	method  string // /Service/Method
-	m       *method
 }
 
 // TODO: use grpclog?

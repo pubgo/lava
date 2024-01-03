@@ -22,7 +22,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
-	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -155,14 +154,14 @@ func (s *serviceImpl) DixInject(
 		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
 		srv := doc.WithService()
 
-		for _, an := range h.Annotation() {
-			switch a := an.(type) {
-			case *annotation.Openapi:
-				if a.ServiceName != "" {
-					srv.SetName(a.ServiceName)
-				}
-			}
-		}
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
 
 		h.Router(&lava.Router{
 			R:   g,
