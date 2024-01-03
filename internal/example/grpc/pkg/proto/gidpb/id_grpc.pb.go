@@ -38,6 +38,7 @@ type IdClient interface {
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
 	Chat(ctx context.Context, opts ...grpc.CallOption) (Id_ChatClient, error)
+	// ws: chat1
 	Chat1(ctx context.Context, opts ...grpc.CallOption) (Id_Chat1Client, error)
 	UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
@@ -181,6 +182,7 @@ type IdServer interface {
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
 	Chat(Id_ChatServer) error
+	// ws: chat1
 	Chat1(Id_Chat1Server) error
 	UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error)
 }

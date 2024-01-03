@@ -45,6 +45,7 @@ service Id {
     };
   }
 
+  // ws: chat1
   rpc Chat1(stream ChatMessage) returns (stream ChatMessage) {}
 
   rpc UploadDownload(UploadFileRequest) returns (google.api.HttpBody) {

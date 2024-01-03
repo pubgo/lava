@@ -44,3 +44,13 @@ plugins:
     out: pkg/proto
     opt:
       - paths=import
+  - name: openapiv2
+    skip_base: true
+    opt:
+      - use_allof_for_refs=true
+      - proto3_optional_nullable=true
+      - generate_unbound_methods=true
+      - allow_merge=true
+      - merge_file_name=openapi
+      - use_go_templates=true
+      - openapi_naming_strategy=simple
