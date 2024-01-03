@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "errorpb/options.proto";
 import "errorpb/code.proto";
+import "google/api/httpbody.proto";
 
 message GenerateResponse {
   // the unique id generated
@@ -43,6 +44,18 @@ service Id {
       body : "*"
     };
   }
+
+  rpc UploadDownload(UploadFileRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      post : "/files/{filename}"
+      body : "file"
+    };
+  }
+}
+
+message UploadFileRequest {
+  string filename = 1;
+  google.api.HttpBody file = 2;
 }
 
 message ChatMessage {

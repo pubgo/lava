@@ -3,11 +3,14 @@ package larking
 import (
 	"context"
 	"github.com/gorilla/websocket"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -42,8 +45,7 @@ type streamWS struct {
 	header     metadata.MD
 	trailer    metadata.MD
 	params     params
-	recvN      int
-	sendN      int
+	recOnce    sync.Once
 	sentHeader bool
 }
 
@@ -74,7 +76,6 @@ func (s *streamWS) Context() context.Context {
 }
 
 func (s *streamWS) SendMsg(v interface{}) error {
-	s.sendN += 1
 	reply := v.(proto.Message)
 	//ctx := s.ctx
 
@@ -93,7 +94,6 @@ func (s *streamWS) SendMsg(v interface{}) error {
 }
 
 func (s *streamWS) RecvMsg(m interface{}) error {
-	s.recvN += 1
 	args := m.(proto.Message)
 
 	if s.method.hasBody {
@@ -111,14 +111,15 @@ func (s *streamWS) RecvMsg(m interface{}) error {
 		// TODO: contentType check?
 		// What marshalling options should we support?
 		if err := protojson.Unmarshal(message, msg); err != nil {
-			return err
+			return errors.Wrap(err, "failed to unmarshal protobuf json message")
 		}
 	}
 
-	if s.recvN == 1 {
+	s.recOnce.Do(func() {
 		if err := s.params.set(args); err != nil {
-			return err
+			log.Err(err).Msg("failed to set params")
 		}
-	}
+	})
+
 	return nil
 }

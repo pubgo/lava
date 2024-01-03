@@ -8,6 +8,7 @@ package gidpb
 
 import (
 	context "context"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,10 +20,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Id_Generate_FullMethodName   = "/gid.Id/Generate"
-	Id_TypeStream_FullMethodName = "/gid.Id/TypeStream"
-	Id_Types_FullMethodName      = "/gid.Id/Types"
-	Id_Chat_FullMethodName       = "/gid.Id/Chat"
+	Id_Generate_FullMethodName       = "/gid.Id/Generate"
+	Id_TypeStream_FullMethodName     = "/gid.Id/TypeStream"
+	Id_Types_FullMethodName          = "/gid.Id/Types"
+	Id_Chat_FullMethodName           = "/gid.Id/Chat"
+	Id_UploadDownload_FullMethodName = "/gid.Id/UploadDownload"
 )
 
 // IdClient is the client API for Id service.
@@ -35,6 +37,7 @@ type IdClient interface {
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
 	Chat(ctx context.Context, opts ...grpc.CallOption) (Id_ChatClient, error)
+	UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
 type idClient struct {
@@ -126,6 +129,15 @@ func (x *idChatClient) Recv() (*ChatMessage, error) {
 	return m, nil
 }
 
+func (c *idClient) UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
+	out := new(httpbody.HttpBody)
+	err := c.cc.Invoke(ctx, Id_UploadDownload_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdServer is the server API for Id service.
 // All implementations should embed UnimplementedIdServer
 // for forward compatibility
@@ -136,6 +148,7 @@ type IdServer interface {
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
 	Chat(Id_ChatServer) error
+	UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error)
 }
 
 // UnimplementedIdServer should be embedded to have forward compatible implementations.
@@ -153,6 +166,9 @@ func (UnimplementedIdServer) Types(context.Context, *TypesRequest) (*TypesRespon
 }
 func (UnimplementedIdServer) Chat(Id_ChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method Chat not implemented")
+}
+func (UnimplementedIdServer) UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadDownload not implemented")
 }
 
 // UnsafeIdServer may be embedded to opt out of forward compatibility for this service.
@@ -249,6 +265,24 @@ func (x *idChatServer) Recv() (*ChatMessage, error) {
 	return m, nil
 }
 
+func _Id_UploadDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdServer).UploadDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Id_UploadDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdServer).UploadDownload(ctx, req.(*UploadFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Id_ServiceDesc is the grpc.ServiceDesc for Id service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -263,6 +297,10 @@ var Id_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Types",
 			Handler:    _Id_Types_Handler,
+		},
+		{
+			MethodName: "UploadDownload",
+			Handler:    _Id_UploadDownload_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

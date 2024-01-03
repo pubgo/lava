@@ -7,6 +7,7 @@
 package gidpb
 
 import (
+	errors "github.com/pubgo/funk/errors"
 	errorpb "github.com/pubgo/funk/proto/errorpb"
 	grpc "google.golang.org/grpc"
 )
@@ -19,13 +20,15 @@ const _ = grpc.SupportPackageIsVersion7
 var ErrCodeOK = &errorpb.ErrCode{
 	BizCode: int32(0),
 	Code:    errorpb.Code_OK,
-	Name:    "gid.err_code.ok",
+	Name:    "gid.ok",
 	Reason:  "ok",
 }
+var _ = errors.RegisterErrCodes(ErrCodeOK)
 
 var ErrCodeIDGenerateFailed = &errorpb.ErrCode{
 	BizCode: int32(100),
 	Code:    errorpb.Code_Internal,
-	Name:    "gid.err_code.id_generate_failed",
+	Name:    "gid.id_generate_failed",
 	Reason:  "id generate error",
 }
+var _ = errors.RegisterErrCodes(ErrCodeIDGenerateFailed)

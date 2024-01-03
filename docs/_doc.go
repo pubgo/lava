@@ -2,6 +2,8 @@ package docs
 
 // https://github.com/twitchtv/twirp
 // https://github.com/bufbuild/connect-go
+// https://github.com/emcfarlane/larking
+// https://github.com/connectrpc/vanguard-go
 // https://github.com/gogs/gogs/tree/main/internal
 // https://github.com/go-gitea/gitea/tree/main/modules
 // https://github.com/xlab/treeprint

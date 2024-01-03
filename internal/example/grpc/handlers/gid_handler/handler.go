@@ -14,6 +14,7 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/lava"
 	"github.com/teris-io/shortid"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"math/rand"
 	"net/http"
@@ -39,6 +40,11 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 	log       log.Logger
 	service   *gid_client.Service
+}
+
+func (id *Id) UploadDownload(ctx context.Context, request *gidpb.UploadFileRequest) (*httpbody.HttpBody, error) {
+	log.Info().Msg(request.Filename)
+	return request.File, nil
 }
 
 func (id *Id) Chat(server gidpb.Id_ChatServer) error {
