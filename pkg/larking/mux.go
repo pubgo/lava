@@ -794,24 +794,19 @@ func (s *state) match(route, verb string) (*method, params, error) {
 // ServeHTTP implements http.Handler.
 // It supports both gRPC and HTTP requests.
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.ProtoMajor == 2 && strings.HasPrefix(
-		r.Header.Get("Content-Type"), "application/grpc",
-	) {
+	contentType := r.Header.Get("Content-Type")
+	if r.ProtoMajor == 2 &&
+		strings.HasPrefix(contentType, "application/grpc") {
 		m.serveGRPC(w, r)
 		return
 	}
 
-	if strings.HasPrefix(
-		r.Header.Get("Content-Type"), "application/grpc-web",
-	) {
+	if strings.HasPrefix(contentType, "application/grpc-web") {
 		m.serveGRPCWeb(w, r)
 		return
 	}
 
-	if !strings.HasPrefix(r.URL.Path, "/") {
-		r.URL.Path = "/" + r.URL.Path
-	}
-	r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+	r.URL.Path = "/" + strings.Trim(strings.TrimSpace(r.URL.Path), "/")
 	if err := m.serveHTTP(w, r); err != nil {
 		m.encError(w, r, err)
 	}

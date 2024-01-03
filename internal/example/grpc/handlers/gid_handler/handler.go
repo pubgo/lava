@@ -42,6 +42,17 @@ type Id struct {
 	service   *gid_client.Service
 }
 
+func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
+	for {
+		hello, err := server.Recv()
+		if err != nil {
+			return err
+		}
+		log.Info().Msg(hello.Name)
+		server.Send(hello)
+	}
+}
+
 func (id *Id) UploadDownload(ctx context.Context, request *gidpb.UploadFileRequest) (*httpbody.HttpBody, error) {
 	log.Info().Msg(request.Filename)
 	return request.File, nil

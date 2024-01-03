@@ -24,6 +24,7 @@ const (
 	Id_TypeStream_FullMethodName     = "/gid.Id/TypeStream"
 	Id_Types_FullMethodName          = "/gid.Id/Types"
 	Id_Chat_FullMethodName           = "/gid.Id/Chat"
+	Id_Chat1_FullMethodName          = "/gid.Id/Chat1"
 	Id_UploadDownload_FullMethodName = "/gid.Id/UploadDownload"
 )
 
@@ -37,6 +38,7 @@ type IdClient interface {
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
 	Chat(ctx context.Context, opts ...grpc.CallOption) (Id_ChatClient, error)
+	Chat1(ctx context.Context, opts ...grpc.CallOption) (Id_Chat1Client, error)
 	UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
@@ -129,6 +131,37 @@ func (x *idChatClient) Recv() (*ChatMessage, error) {
 	return m, nil
 }
 
+func (c *idClient) Chat1(ctx context.Context, opts ...grpc.CallOption) (Id_Chat1Client, error) {
+	stream, err := c.cc.NewStream(ctx, &Id_ServiceDesc.Streams[2], Id_Chat1_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &idChat1Client{stream}
+	return x, nil
+}
+
+type Id_Chat1Client interface {
+	Send(*ChatMessage) error
+	Recv() (*ChatMessage, error)
+	grpc.ClientStream
+}
+
+type idChat1Client struct {
+	grpc.ClientStream
+}
+
+func (x *idChat1Client) Send(m *ChatMessage) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *idChat1Client) Recv() (*ChatMessage, error) {
+	m := new(ChatMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *idClient) UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
 	out := new(httpbody.HttpBody)
 	err := c.cc.Invoke(ctx, Id_UploadDownload_FullMethodName, in, out, opts...)
@@ -148,6 +181,7 @@ type IdServer interface {
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
 	Chat(Id_ChatServer) error
+	Chat1(Id_Chat1Server) error
 	UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error)
 }
 
@@ -166,6 +200,9 @@ func (UnimplementedIdServer) Types(context.Context, *TypesRequest) (*TypesRespon
 }
 func (UnimplementedIdServer) Chat(Id_ChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method Chat not implemented")
+}
+func (UnimplementedIdServer) Chat1(Id_Chat1Server) error {
+	return status.Errorf(codes.Unimplemented, "method Chat1 not implemented")
 }
 func (UnimplementedIdServer) UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadDownload not implemented")
@@ -265,6 +302,32 @@ func (x *idChatServer) Recv() (*ChatMessage, error) {
 	return m, nil
 }
 
+func _Id_Chat1_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(IdServer).Chat1(&idChat1Server{stream})
+}
+
+type Id_Chat1Server interface {
+	Send(*ChatMessage) error
+	Recv() (*ChatMessage, error)
+	grpc.ServerStream
+}
+
+type idChat1Server struct {
+	grpc.ServerStream
+}
+
+func (x *idChat1Server) Send(m *ChatMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *idChat1Server) Recv() (*ChatMessage, error) {
+	m := new(ChatMessage)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func _Id_UploadDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UploadFileRequest)
 	if err := dec(in); err != nil {
@@ -312,6 +375,12 @@ var Id_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Chat",
 			Handler:       _Id_Chat_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Chat1",
+			Handler:       _Id_Chat1_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

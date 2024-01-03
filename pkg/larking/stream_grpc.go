@@ -460,11 +460,13 @@ func (m *Mux) serveGRPC(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
+
 	if r.Method != "POST" {
 		msg := fmt.Sprintf("invalid gRPC request method %q", r.Method)
 		http.Error(w, msg, http.StatusBadRequest)
 		return
 	}
+
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		msg := "Streaming unsupported"
@@ -479,6 +481,7 @@ func (m *Mux) serveGRPC(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msg, http.StatusUnsupportedMediaType)
 		return
 	}
+
 	messageEncoding := r.Header.Get("Grpc-Encoding")
 	var compressor Compressor
 	if messageEncoding != "" {
@@ -492,7 +495,6 @@ func (m *Mux) serveGRPC(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx, md := newIncomingContext(r.Context(), r.Header)
-
 	if v := r.Header.Get("grpc-timeout"); v != "" {
 		to, err := decodeTimeout(v)
 		if err != nil {

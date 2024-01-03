@@ -45,6 +45,8 @@ service Id {
     };
   }
 
+  rpc Chat1(stream ChatMessage) returns (stream ChatMessage) {}
+
   rpc UploadDownload(UploadFileRequest) returns (google.api.HttpBody) {
     option (google.api.http) = {
       post : "/files/{filename}"
