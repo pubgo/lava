@@ -16,7 +16,6 @@ message GenerateResponse {
   string type = 2;
 }
 
-
 // Id 生成随机ID服务
 service Id {
   option (google.api.default_host) = "localhost:8080";

@@ -453,11 +453,7 @@ func (r *resolver) FindDescriptorByName(fullname protoreflect.FullName) (protore
 	return r.files.FindDescriptorByName(fullname)
 }
 
-func (s *state) appendHandler(
-	opts muxOptions,
-	desc protoreflect.MethodDescriptor,
-	h *handler,
-) error {
+func (s *state) appendHandler(opts muxOptions, desc protoreflect.MethodDescriptor, h *handler) error {
 	// Add an implicit rule for the method.
 	implicitRule := &annotations.HttpRule{
 		Pattern: &annotations.HttpRule_Custom{

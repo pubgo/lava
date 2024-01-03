@@ -74,7 +74,6 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	github.com/tidwall/match v1.1.1
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8
 	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
 	github.com/valyala/fasthttp v1.51.0
@@ -86,7 +85,6 @@ require (
 	gorm.io/driver/postgres v1.4.1
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gen v0.3.21
-	larking.io v0.3.1
 	nhooyr.io/websocket v1.8.6
 )
 

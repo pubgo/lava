@@ -2,12 +2,12 @@ package wsproxy
 
 import (
 	"bufio"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
@@ -85,9 +85,12 @@ func WithLogger(logger Logger) Option {
 // The cookie name is specified by the TokenCookieName value.
 //
 // example:
-//   Sec-Websocket-Protocol: Bearer, foobar
+//
+//	Sec-Websocket-Protocol: Bearer, foobar
+//
 // is converted to:
-//   Authorization: Bearer foobar
+//
+//	Authorization: Bearer foobar
 //
 // Method can be overwritten with the MethodOverrideParam get parameter in the requested URL
 func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {

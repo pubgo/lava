@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/log"
 	"io"
 	"net/http"
 	"strings"
@@ -113,7 +114,6 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	reply := m.(proto.Message)
 
 	fRsp, ok := s.w.(http.Flusher)
-	fmt.Println(ok)
 	if ok {
 		defer fRsp.Flush()
 	}
@@ -159,6 +159,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	if _, err := s.writeMsg(c, b, contentType); err != nil {
 		return err
 	}
+
 	if stats := s.opts.statsHandler; stats != nil {
 		// TODO: raw payload stats.
 		stats.HandleRPC(s.ctx, outPayload(false, m, b, b, time.Now()))
@@ -344,20 +345,37 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		verb = kindWebsocket
 	}
 
-	method, params, err := s.match(r.URL.Path, verb)
-	if err != nil {
-		return err
-	}
+	log.Info().Msg(r.URL.Path)
 
-	queryParams, err := method.parseQueryParams(r.URL.Query())
-	if err != nil {
-		return err
+	methodName := "/" + strings.Trim(strings.TrimSpace(r.URL.Path), "/")
+	hds := s.handlers[methodName]
+	var hd *handler
+	var method = &method{
+		name:    methodName,
+		hasBody: true,
 	}
-	params = append(params, queryParams...)
+	var (
+		params params
+		err    error
+	)
+	if len(hds) == 0 {
+		method, params, err = s.match(r.URL.Path, verb)
+		if err != nil {
+			return err
+		}
 
-	hd, err := s.pickMethodHandler(method.name)
-	if err != nil {
-		return err
+		queryParams, err := method.parseQueryParams(r.URL.Query())
+		if err != nil {
+			return err
+		}
+		params = append(params, queryParams...)
+
+		hd, err = s.pickMethodHandler(method.name)
+		if err != nil {
+			return err
+		}
+	} else {
+		hd = hds[0]
 	}
 
 	// Handle stats.
@@ -386,7 +404,7 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if isWebsocket {
-		conn, err := upgrader.Upgrade(w, r, nil)
+		conn, err := upgrade.Upgrade(w, r, nil)
 		conn.SetReadLimit(maxMessageSize)
 		conn.SetReadDeadline(time.Now().Add(pongWait))
 		conn.SetPongHandler(func(string) error {

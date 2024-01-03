@@ -20,6 +20,7 @@ type handler struct {
 	desc    protoreflect.MethodDescriptor
 	handler handlerFunc
 	method  string // /Service/Method
+	m       *method
 }
 
 // TODO: use grpclog?
@@ -92,6 +93,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			return err
 		}
 	}
+
 	for i := range gsd.Streams {
 		d := &gsd.Streams[i]
 		method := "/" + gsd.ServiceName + "/" + d.StreamName

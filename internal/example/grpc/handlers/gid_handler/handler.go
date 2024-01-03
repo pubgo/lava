@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
@@ -65,6 +66,7 @@ func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStream
 			"bigflake",
 		}
 		_ = server.Send(rsp)
+		time.Sleep(time.Second)
 	}
 	return nil
 }
@@ -123,6 +125,7 @@ func (id *Id) Init() {
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
+	log.Info().Any("type", req.Type.String()).Msg("request")
 	rsp := new(gidpb.GenerateResponse)
 	var typ = req.GetType().String()
 	if len(typ) == 0 {

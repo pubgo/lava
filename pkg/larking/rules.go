@@ -402,6 +402,39 @@ func (p *path) addRule(rule *annotations.HttpRule, desc protoreflect.MethodDescr
 	return nil
 }
 
+func getMethodRule(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, name string) (*method, error) {
+	msgDesc := desc.Input()
+	fieldDescs := msgDesc.Fields()
+
+	m := &method{
+		desc: desc,
+		name: name,
+	}
+	switch rule.Body {
+	case "*":
+		m.hasBody = true
+	case "":
+		m.hasBody = false
+	default:
+		m.body = fieldPath(fieldDescs, strings.Split(rule.Body, ".")...)
+		if m.body == nil {
+			return nil, fmt.Errorf("body field error %v", rule.Body)
+		}
+		m.hasBody = true
+	}
+
+	switch rule.ResponseBody {
+	case "":
+	default:
+		m.resp = fieldPath(fieldDescs, strings.Split(rule.Body, ".")...)
+		if m.resp == nil {
+			return nil, fmt.Errorf("response body field error %v", rule.ResponseBody)
+		}
+	}
+
+	return m, nil
+}
+
 func quote(raw []byte) []byte {
 	if n := len(raw); n > 0 && (raw[0] != '"' || raw[n-1] != '"') {
 		raw = strconv.AppendQuote(raw[:0], string(raw))

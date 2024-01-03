@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-var upgrader = websocket.Upgrader{
+var upgrade = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {

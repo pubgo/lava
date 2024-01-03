@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fullstorydev/grpchan/httpgrpc"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/lava/core/annotation"
+	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/larking"
 	"github.com/pubgo/lava/pkg/wsproxy"
@@ -25,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/fullstorydev/grpchan"
+	_ "github.com/fullstorydev/grpchan/httpgrpc"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
@@ -54,18 +57,14 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
-
-	_ "github.com/tmc/grpc-websocket-proxy/wsproxy"
-
-	_ "larking.io/larking"
 )
 
 func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{
-		handlers: make(grpchan.HandlerMap),
-		cc:       new(inprocgrpc.Channel),
+		reg: make(grpchan.HandlerMap),
+		cc:  new(inprocgrpc.Channel),
 	}
 }
 
@@ -76,7 +75,7 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
-	handlers   grpchan.HandlerMap
+	reg        grpchan.HandlerMap
 	cc         *inprocgrpc.Channel
 	initList   []func()
 	conf       *Config
@@ -337,16 +336,12 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 
+		s.reg.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
 			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
 		}
 	}
-
-	mux := assert.Must1(larking.NewMux(
-		larking.UnaryServerInterceptorOption(handlerUnaryMiddle(srvMidMap)),
-		larking.StreamServerInterceptorOption(handlerStreamMiddle(srvMidMap)),
-	))
 
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
@@ -356,10 +351,19 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
+	mux := assert.Must1(larking.NewMux(
+		larking.UnaryServerInterceptorOption(handlerUnaryMiddle(srvMidMap)),
+		larking.StreamServerInterceptorOption(handlerStreamMiddle(srvMidMap)),
+	))
+
 	for _, h := range handlers {
 		mux.RegisterService(h.ServiceDesc(), h)
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
+
+	httpgrpc.HandleServices(func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		httpServer.Post(pattern, httputil.HTTPHandler(http.HandlerFunc(handler)))
+	}, assert.Must1(url.JoinPath(conf.BaseUrl, "api")), s.reg, handlerUnaryMiddle(srvMidMap), handlerStreamMiddle(srvMidMap))
 
 	wrappedGrpc := grpcweb.WrapServer(grpcServer,
 		grpcweb.WithWebsockets(true),
@@ -394,7 +398,9 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			grpcServer.ServeHTTP(writer, request)
+			if grpcutil.IsGRPCRequest(request) {
+				grpcServer.ServeHTTP(writer, request)
+			}
 		})), new(http2.Server))))
 
 	s.httpServer = httpServer
