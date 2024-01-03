@@ -400,11 +400,15 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 
 	if isWebsocket {
 		conn, err := upgrade.Upgrade(w, r, nil)
+		if err != nil {
+			return err
+		}
+
 		conn.SetReadLimit(maxMessageSize)
 		conn.SetReadDeadline(time.Now().Add(pongWait))
+		conn.SetPingHandler(nil)
 		conn.SetPongHandler(func(string) error {
-			conn.SetReadDeadline(time.Now().Add(pongWait))
-			return nil
+			return conn.SetReadDeadline(time.Now().Add(pongWait))
 		})
 
 		stream := &streamWS{
