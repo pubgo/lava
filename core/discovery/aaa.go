@@ -8,7 +8,6 @@ import (
 
 	"github.com/pubgo/lava/core/service"
 	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
-	//	 https://github.com/prometheus/prometheus/tree/main/discovery
 )
 
 type (

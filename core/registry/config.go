@@ -8,6 +8,8 @@ import (
 	"github.com/pubgo/funk/errors"
 )
 
+// https://github.com/go-eagle/eagle/blob/master/pkg/registry/registry.go
+
 const DefaultPrefix = "/registry"
 
 var Name = "registry"

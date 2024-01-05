@@ -9,6 +9,9 @@ import (
 	"github.com/pubgo/funk/errors"
 )
 
+// https://github.com/go-eagle/eagle/blob/master/pkg/registry/registry.go
+// https://github.com/prometheus/prometheus/tree/main/discovery
+
 type Config struct {
 	Interval  time.Duration `yaml:"interval"`
 	Driver    string        `yaml:"driver"`
