@@ -232,6 +232,37 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	for _, handler := range handlers {
+		//srv := doc.WithService()
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
+
+		h, ok := handler.(lava.HttpRouter)
+		if !ok {
+			continue
+		}
+
+		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		h.Router(&lava.Router{
+			R:   g,
+			Doc: doc.WithService(),
+		})
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
+		}
+	}
+
 	httpServer.Mount(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
