@@ -16,6 +16,7 @@ func Main() {
 	di.Provide(config.Load[Config])
 
 	di.Provide(gid_handler.New)
+	di.Provide(gid_handler.NewHttp)
 	di.Provide(gid_client.New)
 
 	app.Run(di)
