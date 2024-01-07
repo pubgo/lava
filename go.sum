@@ -744,8 +744,8 @@ github.com/prometheus/procfs v0.3.0/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/procfs v0.8.0 h1:ODq8ZFEaYeCaZOJlZZdJA2AbQR98dSHSM1KW/You5mo=
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
-github.com/pubgo/dix v0.3.13 h1:Su9b3ozA4e5fTKYhLIz1SIb7WbcQ6sswHbQtuTDzu6k=
-github.com/pubgo/dix v0.3.13/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
+github.com/pubgo/dix v0.3.14 h1:cXk8Evy6EEIuDROv39WiiQ/DtJz8lqaO5+RtmISaGWU=
+github.com/pubgo/dix v0.3.14/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
 github.com/pubgo/funk v0.5.35-4 h1:s9kUg+hRX1DeJs6MWuKYifi6Ypa97Tpem2WW8mtyofE=
 github.com/pubgo/funk v0.5.35-4/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
 github.com/pubgo/opendoc v0.0.4-3 h1:ugzqc5AunF1dbO+NIjJ23bFrGa/Bkv9fHxXpl9vPoRc=

@@ -14,11 +14,7 @@ import (
 	"math/rand"
 )
 
-type Rsp struct {
-	SS lava.HttpRouter
-}
-
-type IdHttp struct {
+type IdHttp111 struct {
 	cron      *scheduler.Scheduler
 	metric    metrics.Metric
 	snowflake *snowflake.Snowflake
@@ -27,14 +23,14 @@ type IdHttp struct {
 	service   *gid_client.Service
 }
 
-func (id *IdHttp) Router(router *lava.Router) {
-	router.R.Get("/test123", func(ctx *fiber.Ctx) error {
+func (id *IdHttp111) Router(router *lava.Router) {
+	router.R.Get("/test123111", func(ctx *fiber.Ctx) error {
 		ctx.WriteString("hello world")
 		return nil
 	})
 }
 
-func (id *IdHttp) Middlewares() []lava.Middleware {
+func (id *IdHttp111) Middlewares() []lava.Middleware {
 	return lava.Middlewares{
 		lava.MiddlewareWrap{
 			Next: func(next lava.HandlerFunc) lava.HandlerFunc {
@@ -49,7 +45,7 @@ func (id *IdHttp) Middlewares() []lava.Middleware {
 	}
 }
 
-func NewHttp(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, service *gid_client.Service) Rsp {
+func NewHttp111(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, service *gid_client.Service) lava.HttpRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -61,14 +57,12 @@ func NewHttp(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, s
 		panic(err.Error())
 	}
 
-	return Rsp{
-		SS: &IdHttp{
-			service:   service,
-			cron:      cron,
-			metric:    metric,
-			snowflake: sf,
-			bigflake:  bg,
-			log:       log.WithName("gid"),
-		},
+	return &IdHttp111{
+		service:   service,
+		cron:      cron,
+		metric:    metric,
+		snowflake: sf,
+		bigflake:  bg,
+		log:       log.WithName("gid"),
 	}
 }

@@ -66,7 +66,7 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.13
+	github.com/pubgo/dix v0.3.14
 	github.com/pubgo/funk v0.5.35-4
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0

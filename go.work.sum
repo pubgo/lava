@@ -867,14 +867,14 @@ github.com/prometheus/client_model v0.4.0/go.mod h1:oMQmHW1/JoDwqLtg57MGgP/Fb1CJ
 github.com/prometheus/common v0.32.1/go.mod h1:vu+V0TpY+O6vW9J44gczi3Ap/oXXR10b+M/gUGO4Hls=
 github.com/prometheus/common v0.37.0/go.mod h1:phzohg0JFMnBEFGxTDbfu3QyL5GI8gTQJFhYO5B3mfA=
 github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
+github.com/pubgo/dix v0.3.14 h1:cXk8Evy6EEIuDROv39WiiQ/DtJz8lqaO5+RtmISaGWU=
+github.com/pubgo/dix v0.3.14/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
 github.com/pubgo/funk v0.5.28-1/go.mod h1:ATTJNALEF46nOaBaDW+DvJ7Ih9G1ZM3q0GCUVW46gGU=
 github.com/pubgo/funk v0.5.29-8/go.mod h1:jyv/Fr3KqWSOGBcqvXssAo7S4WUjJB7eGLuPyg0SPB4=
 github.com/pubgo/funk v0.5.29-12/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/funk v0.5.29-19/go.mod h1:yCtRCGR2MXSoHBbbReZNktbJWxd3yrsctehgyCr6oHk=
 github.com/pubgo/funk v0.5.29-24/go.mod h1:HZ2HYLRc3EBJ03P3c+fOhOH5jCObGEW4wUv+wI24v6Y=
 github.com/pubgo/funk v0.5.30/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
-github.com/pubgo/funk v0.5.35-4 h1:s9kUg+hRX1DeJs6MWuKYifi6Ypa97Tpem2WW8mtyofE=
-github.com/pubgo/funk v0.5.35-4/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a h1:9ZKAASQSHhDYGoxY8uLVpewe1GDZ2vu2Tr/vTdVAkFQ=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 h1:OdAsTTz6OkFY5QxjkYwrChwuRruF69c169dPK26NUlk=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
