@@ -121,12 +121,8 @@ func isClosedConnError(err error) bool {
 }
 
 func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		p.logger.Warnln("websocket proxy only supports POST requests")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("websocket proxy only supports POST requests"))
-		return
-	}
+	p.logger.Warnln("websocket proxy only supports POST requests")
+	r.Method = http.MethodPost
 
 	var responseHeader http.Header
 	// If Sec-WebSocket-Protocol starts with "Bearer", respond in kind.
