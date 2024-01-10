@@ -121,9 +121,6 @@ func isClosedConnError(err error) bool {
 }
 
 func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
-	p.logger.Warnln("websocket proxy only supports POST requests")
-	r.Method = http.MethodPost
-
 	var responseHeader http.Header
 	// If Sec-WebSocket-Protocol starts with "Bearer", respond in kind.
 	// TODO(tmc): consider customizability/extension point here.
@@ -144,7 +141,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	defer cancelFn()
 
 	requestBodyR, requestBodyW := io.Pipe()
-	request, err := http.NewRequest(r.Method, r.URL.String(), requestBodyR)
+	p.logger.Warnln("backend service only supports POST requests")
+	request, err := http.NewRequest(http.MethodPost, r.URL.String(), requestBodyR)
 	if err != nil {
 		p.logger.Warnln("error preparing request:", err)
 		return
