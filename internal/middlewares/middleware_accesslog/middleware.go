@@ -90,7 +90,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			var e *zerolog.Event
 			if generic.IsNil(gErr) {
 				// Record requests with a timeout of 200 milliseconds
-				if latency > time.Millisecond*200 {
+				if latency > time.Millisecond*200 && !req.Stream() {
 					e = l.logger.Err(errTimeout).Func(log.WithEvent(evt))
 				} else {
 					e = l.logger.Info().Func(log.WithEvent(evt))
