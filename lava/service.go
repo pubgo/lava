@@ -2,6 +2,7 @@ package lava
 
 import (
 	"context"
+	"google.golang.org/grpc"
 	"net"
 )
 
@@ -31,4 +32,8 @@ type Validator interface {
 // Initializer ...
 type Initializer interface {
 	Initialize()
+}
+
+type InnerServer struct {
+	grpc.ClientConnInterface
 }

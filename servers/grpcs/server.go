@@ -203,9 +203,7 @@ func (s *serviceImpl) DixInject(
 	httpServer.Mount("/debug", debug.App())
 
 	app := fiber.New()
-	defaultMiddlewares := []lava.Middleware{
-		middleware_metric.New(metric), middleware_accesslog.New(log), middleware_recovery.New()}
-	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
+	app.Use(handlerHttpMiddle(middlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()
 		//for _, an := range h.Annotation() {
