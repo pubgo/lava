@@ -9,6 +9,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+type EmptyRouter struct{}
+
 type GrpcRouter interface {
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc

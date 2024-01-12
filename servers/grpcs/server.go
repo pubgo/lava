@@ -99,7 +99,9 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	conf *Config,
 	docs []*opendoc.Swagger,
+	empty []*lava.EmptyRouter,
 ) {
+	_ = empty
 	s.conf = conf
 	if conf.HttpPort == nil {
 		conf.HttpPort = generic.Ptr(running.HttpPort)
