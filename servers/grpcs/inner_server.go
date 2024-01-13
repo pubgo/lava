@@ -30,6 +30,7 @@ func NewInner(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metr
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
+		cc.RegisterService(h.ServiceDesc(), h)
 	}
 
 	cc = cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
