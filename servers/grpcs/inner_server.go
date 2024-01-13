@@ -22,6 +22,7 @@ func NewInner(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metr
 	}
 	middlewares = append(middlewares, dixMiddlewares...)
 
+	var cc = new(inprocgrpc.Channel)
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -31,7 +32,7 @@ func NewInner(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metr
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 	}
 
-	cc := new(inprocgrpc.Channel).WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	cc = cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	cc = cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	return &lava.InnerServer{ClientConnInterface: cc}
 }
