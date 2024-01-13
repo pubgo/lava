@@ -2,13 +2,29 @@ package wsproxy
 
 import (
 	"bufio"
+	"github.com/pubgo/funk/log"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"golang.org/x/net/context"
+)
+
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from peer.
+	maxMessageSize = 1024 * 10
 )
 
 // MethodOverrideParam defines the special URL parameter that is translated into the subsequent proxied streaming http request's method.
@@ -137,6 +153,15 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	conn.SetReadLimit(maxMessageSize)
+	if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		log.Err(err).Msg("failed to set read deadline")
+	}
+	conn.SetPingHandler(nil)
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(pongWait))
+	})
+
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
 
@@ -186,36 +211,46 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		p.h.ServeHTTP(response, request)
 	}()
 
+	ticker := time.NewTicker(pingPeriod)
+	defer ticker.Stop()
+	defer func() {
+		log.Info().Msg("close websocket ping")
+	}()
+
 	// read loop -- take messages from websocket and write to http request
 	go func() {
 		defer cancelFn()
 		for {
 			select {
+			case <-ticker.C:
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					log.Err(err).Msg("failed to write ping message")
+				}
 			case <-ctx.Done():
 				p.logger.Debugln("read loop done")
 				return
 			default:
-			}
-
-			p.logger.Debugln("[read] reading from socket.")
-			_, payload, err := conn.ReadMessage()
-			if err != nil {
-				if isClosedConnError(err) {
-					p.logger.Debugln("[read] websocket closed:", err)
+				p.logger.Debugln("[read] reading from socket.")
+				_, payload, err := conn.ReadMessage()
+				if err != nil {
+					if isClosedConnError(err) {
+						p.logger.Debugln("[read] websocket closed:", err)
+						return
+					}
+					p.logger.Warnln("error reading websocket message:", err)
 					return
 				}
-				p.logger.Warnln("error reading websocket message:", err)
-				return
-			}
 
-			p.logger.Debugln("[read] read payload:", string(payload))
-			p.logger.Debugln("[read] writing to requestBody:")
-			n, err := requestBodyW.Write(payload)
-			requestBodyW.Write([]byte("\n"))
-			p.logger.Debugln("[read] wrote to requestBody", n)
-			if err != nil {
-				p.logger.Warnln("[read] error writing message to upstream http server:", err)
-				return
+				p.logger.Debugln("[read] read payload:", string(payload))
+				p.logger.Debugln("[read] writing to requestBody:")
+				n, err := requestBodyW.Write(payload)
+				requestBodyW.Write([]byte("\n"))
+				p.logger.Debugln("[read] wrote to requestBody", n)
+				if err != nil {
+					p.logger.Warnln("[read] error writing message to upstream http server:", err)
+					return
+				}
 			}
 		}
 	}()
