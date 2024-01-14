@@ -1,6 +1,9 @@
 package debug
 
 import (
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/running"
+	"github.com/valyala/fasthttp"
 	"net/http"
 
 	"github.com/gofiber/adaptor/v2"
@@ -12,6 +15,7 @@ import (
 var app = fiber.New()
 
 func init() {
+	log.Info().Str("password", running.InstanceID).Msg("debug password")
 	app.Use(func(c *fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
 			err = errors.WrapTag(err,
@@ -21,6 +25,26 @@ func init() {
 			gErr = c.JSON(err)
 		})
 
+		token := string(c.Request().Header.Peek("token"))
+		if token == "" {
+			token = c.Query("token")
+		}
+
+		if token == "" {
+			token = c.Cookies("token")
+		}
+
+		if token == "" || token != running.CommitID {
+			c.WriteString("token 不存在或者密码不对")
+			return nil
+		}
+
+		cc := fasthttp.AcquireCookie()
+		defer fasthttp.ReleaseCookie(cc)
+
+		cc.SetKey("token")
+		cc.SetValue(token)
+		c.Response().Header.SetCookie(cc)
 		return c.Next()
 	})
 }
