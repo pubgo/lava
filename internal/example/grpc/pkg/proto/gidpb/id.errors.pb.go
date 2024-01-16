@@ -18,17 +18,17 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 var ErrCodeOK = &errorpb.ErrCode{
-	BizCode: int32(0),
-	Code:    errorpb.Code_OK,
-	Name:    "gid.ok",
-	Reason:  "ok",
+	Code:       int32(0),
+	Name:       "gid.ok",
+	Reason:     "ok",
+	StatusCode: errorpb.Code_OK,
 }
 var _ = errors.RegisterErrCodes(ErrCodeOK)
 
 var ErrCodeIDGenerateFailed = &errorpb.ErrCode{
-	BizCode: int32(100),
-	Code:    errorpb.Code_Internal,
-	Name:    "gid.id_generate_failed",
-	Reason:  "id generate error",
+	Code:       int32(100),
+	Name:       "gid.id_generate_failed",
+	Reason:     "id generate error",
+	StatusCode: errorpb.Code_Internal,
 }
 var _ = errors.RegisterErrCodes(ErrCodeIDGenerateFailed)

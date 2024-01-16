@@ -53,7 +53,7 @@ require (
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-playground/validator/v10 v10.10.1
-	github.com/gobwas/ws v1.2.0
+	github.com/gobwas/ws v1.3.2
 	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/contrib/websocket v1.3.0
 	github.com/gofiber/template v1.6.25
@@ -67,7 +67,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.14
-	github.com/pubgo/funk v0.5.35-4
+	github.com/pubgo/funk v0.5.37-0.20240116092024-158556a9908a
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
 	github.com/sirupsen/logrus v1.9.0

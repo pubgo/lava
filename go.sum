@@ -260,8 +260,8 @@ github.com/gobwas/pool v0.2.0/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6Wezm
 github.com/gobwas/pool v0.2.1 h1:xfeeEhW7pwmX8nuLVlqbzVc7udMDrwetjEv+TZIz1og=
 github.com/gobwas/pool v0.2.1/go.mod h1:q8bcK0KcYlCgd9e7WYLm9LpyS+YeLd8JVDW6WezmKEw=
 github.com/gobwas/ws v1.0.2/go.mod h1:szmBTxLgaFppYjEmNtny/v3w89xOydFnnZMcgRRu/EM=
-github.com/gobwas/ws v1.2.0 h1:u0p9s3xLYpZCA1z5JgCkMeB34CKCMMQbM+G8Ii7YD0I=
-github.com/gobwas/ws v1.2.0/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/KY=
+github.com/gobwas/ws v1.3.2 h1:zlnbNHxumkRvfPWgfXu8RBwyNR1x8wh9cf5PTOCqs9Q=
+github.com/gobwas/ws v1.3.2/go.mod h1:hRKAFb8wOxFROYNsT1bqfWnhX+b5MFeJM9r2ZSwg/KY=
 github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
 github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
@@ -746,8 +746,8 @@ github.com/prometheus/procfs v0.8.0 h1:ODq8ZFEaYeCaZOJlZZdJA2AbQR98dSHSM1KW/You5
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/pubgo/dix v0.3.14 h1:cXk8Evy6EEIuDROv39WiiQ/DtJz8lqaO5+RtmISaGWU=
 github.com/pubgo/dix v0.3.14/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
-github.com/pubgo/funk v0.5.35-4 h1:s9kUg+hRX1DeJs6MWuKYifi6Ypa97Tpem2WW8mtyofE=
-github.com/pubgo/funk v0.5.35-4/go.mod h1:Z5Wp7OoxjmSlWH+6waFSbao5MSD942LVhkBSlUu4s4s=
+github.com/pubgo/funk v0.5.37-0.20240116092024-158556a9908a h1:qMlOJ70XYhgQc/wCToQTJXo0ooWmyQUJQZQMDxu+BcQ=
+github.com/pubgo/funk v0.5.37-0.20240116092024-158556a9908a/go.mod h1:TVWtPYpAoDVhAIiaZ4cZ7IYzbVx5QdZPYyUzbSMR6zk=
 github.com/pubgo/opendoc v0.0.4-3 h1:ugzqc5AunF1dbO+NIjJ23bFrGa/Bkv9fHxXpl9vPoRc=
 github.com/pubgo/opendoc v0.0.4-3/go.mod h1:V1OwejurDnIZgozvBC+C+bOngl9UwJBbG0D/a7SJK9k=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=

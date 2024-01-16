@@ -153,7 +153,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			}
 
 			if pb.Code.Code == 0 {
-				pb.Code.Code = errorpb.Code_Internal
+				pb.Code.StatusCode = errorpb.Code_Internal
 			}
 
 			if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
@@ -273,7 +273,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 
 			if pb.Code.Code == 0 {
-				pb.Code.Code = errorpb.Code_Internal
+				pb.Code.StatusCode = errorpb.Code_Internal
 			}
 
 			return errutil.ConvertErr2Status(pb).Err()
