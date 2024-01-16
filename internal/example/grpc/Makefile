@@ -14,7 +14,7 @@ LDFLAGS=-ldflags " \
 "
 
 run:
-	go run ${LDFLAGS} -v main.go grpc
+	go run ${LDFLAGS} -mod=vendor -v main.go grpc
 
 .PHONY: build
 build-gid:

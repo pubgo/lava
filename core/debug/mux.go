@@ -1,15 +1,15 @@
 package debug
 
 import (
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/running"
-	"github.com/valyala/fasthttp"
-	"net/http"
-
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/strutil"
+	"github.com/valyala/fasthttp"
+	"net/http"
 )
 
 var app = fiber.New()
@@ -25,18 +25,16 @@ func init() {
 			gErr = c.JSON(err)
 		})
 
-		token := string(c.Request().Header.Peek("token"))
-		if token == "" {
-			token = c.Query("token")
-		}
+		token := strutil.FirstFnNotEmpty(
+			func() string { return c.Query("token") },
+			func() string { return string(c.Request().Header.Peek("token")) },
+			func() string { return c.Cookies("token") },
+		)
 
-		if token == "" {
-			token = c.Cookies("token")
-		}
-
-		if token == "" || token != running.CommitID {
-			c.WriteString("token 不存在或者密码不对")
-			return nil
+		if token == "" || token != running.InstanceID {
+			var err = errors.New("token 不存在或者密码不对")
+			c.WriteString(err.Error())
+			return err
 		}
 
 		cc := fasthttp.AcquireCookie()
