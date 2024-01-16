@@ -138,11 +138,9 @@ func isClosedConnError(err error) bool {
 
 func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	var responseHeader http.Header
-	// If Sec-WebSocket-Protocol starts with "Bearer", respond in kind.
-	// TODO(tmc): consider customizability/extension point here.
-	if strings.HasPrefix(r.Header.Get("Sec-WebSocket-Protocol"), "Bearer") {
+	if r.Header.Get("Sec-WebSocket-Protocol") != "" {
 		responseHeader = http.Header{
-			"Sec-WebSocket-Protocol": []string{"Bearer"},
+			"Sec-WebSocket-Protocol": []string{r.Header.Get("Sec-WebSocket-Protocol")},
 		}
 	}
 

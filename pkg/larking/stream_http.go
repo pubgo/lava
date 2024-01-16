@@ -402,7 +402,13 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if isWebsocket {
-		conn, err := upgrade.Upgrade(w, r, nil)
+		var responseHeader http.Header
+		if r.Header.Get("Sec-WebSocket-Protocol") != "" {
+			responseHeader = http.Header{
+				"Sec-WebSocket-Protocol": []string{r.Header.Get("Sec-WebSocket-Protocol")},
+			}
+		}
+		conn, err := upgrade.Upgrade(w, r, responseHeader)
 		if err != nil {
 			return err
 		}
