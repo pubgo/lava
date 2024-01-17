@@ -153,6 +153,14 @@ func (id *Id) Init() {
 }
 
 func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.GenerateResponse, error) {
+	//return nil, errors.New("hello error")
+	//return nil, errors.NewCodeErr(&errorpb.ErrCode{
+	//	StatusCode: errorpb.Code_Internal,
+	//	Code:       2222,
+	//	Message:    "ddd",
+	//	Name:       "dd.sss",
+	//}, gidpb.ErrCodeIDGenerateFailed)
+
 	log.Info().Any("type", req.Type.String()).Msg("request")
 	rsp := new(gidpb.GenerateResponse)
 	var typ = req.GetType().String()
