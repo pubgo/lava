@@ -3,6 +3,7 @@ package wsproxy
 import (
 	"bufio"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/internal/logutil"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -14,8 +15,8 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
+	// Time allowed to read write a message to the peer.
+	timeWait = 90 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
@@ -152,9 +153,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	conn.SetReadLimit(maxMessageSize)
-	if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		log.Err(err).Msg("failed to set read deadline")
-	}
+	logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+	logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	conn.SetPingHandler(nil)
 	conn.SetPongHandler(func(string) error {
 		return conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -221,8 +221,15 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		for {
 			select {
 			case <-ticker.C:
-				conn.SetWriteDeadline(time.Now().Add(writeWait))
-				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+				pingH := conn.PingHandler()
+				if pingH != nil {
+					pingH = func(appData string) error {
+						return conn.WriteMessage(websocket.PingMessage, []byte(appData))
+					}
+				}
+
+				if err := pingH("server ping"); err != nil {
 					log.Err(err).Msg("failed to write ping message")
 				}
 			case <-ctx.Done():

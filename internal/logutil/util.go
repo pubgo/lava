@@ -8,6 +8,14 @@ import (
 	"github.com/pubgo/funk/try"
 )
 
+func HandlerErr(err error) {
+	if err == nil || generic.IsNil(err) {
+		return
+	}
+
+	log.Err(err).CallerSkipFrame(1).Msg(err.Error())
+}
+
 func HandleClose(log log.Logger, fn func() error) {
 	if fn == nil || log == nil {
 		log.Error().Msgf("log and fn are all required")
