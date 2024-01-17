@@ -329,6 +329,11 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
+			// skip error
+			if pb.StatusCode == errorpb.Code_OK {
+				return
+			}
+
 			buf, mErr := marshal.Marshal(pb)
 			if mErr != nil {
 				grpclog.Infof("Failed to marshal error message %q: %v", s, mErr)
@@ -339,7 +344,7 @@ func (s *serviceImpl) DixInject(
 				return
 			}
 
-			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.Code)))
+			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.StatusCode)))
 			if _, err := w.Write(buf); err != nil {
 				grpclog.Infof("Failed to write response: %v", err)
 			}
