@@ -67,7 +67,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.15-0.20240107153647-472348fb7f95
-	github.com/pubgo/funk v0.5.37-0.20240117023931-a38cf4c91c48
+	github.com/pubgo/funk v0.5.37-0.20240117034259-f9cf0bc0559b
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
 	github.com/sirupsen/logrus v1.9.0

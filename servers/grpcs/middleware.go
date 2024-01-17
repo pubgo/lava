@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/log"
+	"google.golang.org/grpc/codes"
 	"reflect"
 	"time"
 
@@ -154,6 +155,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 			if pb.Code.Code == 0 {
 				pb.Code.StatusCode = errorpb.Code_Internal
+				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
 			}
 
 			if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
