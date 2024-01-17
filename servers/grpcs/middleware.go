@@ -148,8 +148,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			}
 			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
-			if pb.Code.Reason == "" {
-				pb.Code.Reason = err.Error()
+			if pb.Code.Message == "" {
+				pb.Code.Message = err.Error()
 			}
 
 			if pb.Code.Code == 0 {
@@ -268,8 +268,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
-			if pb.Code.Reason == "" {
-				pb.Code.Reason = err.Error()
+			if pb.Code.Message == "" {
+				pb.Code.Message = err.Error()
 			}
 
 			if pb.Code.Code == 0 {

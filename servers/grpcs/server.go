@@ -322,7 +322,7 @@ func (s *serviceImpl) DixInject(
 				}
 			} else {
 				pb = &errorpb.ErrCode{
-					Reason:     sts.Message(),
+					Message:    sts.Message(),
 					StatusCode: errorpb.Code(sts.Code()),
 					Name:       "lava.grpc.status",
 					Details:    sts.Proto().Details,
