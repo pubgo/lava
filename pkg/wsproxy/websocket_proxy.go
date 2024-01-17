@@ -3,7 +3,6 @@ package wsproxy
 import (
 	"bufio"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/internal/logutil"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -153,8 +152,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	conn.SetReadLimit(maxMessageSize)
-	logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
-	logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+	//logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+	//logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	conn.SetPingHandler(nil)
 	conn.SetPongHandler(func(string) error {
 		return conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -209,8 +208,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		p.h.ServeHTTP(response, request)
 	}()
 
-	ticker := time.NewTicker(pingPeriod)
-	defer ticker.Stop()
+	//ticker := time.NewTicker(pingPeriod)
+	//defer ticker.Stop()
 	defer func() {
 		log.Info().Msg("close websocket ping")
 	}()
@@ -220,18 +219,18 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		defer cancelFn()
 		for {
 			select {
-			case <-ticker.C:
-				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-				pingH := conn.PingHandler()
-				if pingH != nil {
-					pingH = func(appData string) error {
-						return conn.WriteMessage(websocket.PingMessage, []byte(appData))
-					}
-				}
-
-				if err := pingH("server ping"); err != nil {
-					log.Err(err).Msg("failed to write ping message")
-				}
+			//case <-ticker.C:
+			//	logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+			//	pingH := conn.PingHandler()
+			//	if pingH != nil {
+			//		pingH = func(appData string) error {
+			//			return conn.WriteMessage(websocket.PingMessage, []byte(appData))
+			//		}
+			//	}
+			//
+			//	if err := pingH("server ping"); err != nil {
+			//		log.Err(err).Msg("failed to write ping message")
+			//	}
 			case <-ctx.Done():
 				p.logger.Debugln("read loop done")
 				return
