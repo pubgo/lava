@@ -1,6 +1,9 @@
 resources:
   - resources/grpc.yaml
 
+debug:
+  password: "1234567890"
+
 app:
   addr: ":8080"
   debug: true

@@ -31,6 +31,7 @@ import (
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
+	_ "github.com/pubgo/lava/core/debug/statsviz"
 	_ "github.com/pubgo/lava/core/debug/trace"
 	_ "github.com/pubgo/lava/core/debug/vars"
 	_ "github.com/pubgo/lava/core/debug/version"

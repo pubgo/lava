@@ -11,7 +11,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/pubgo/opendoc v0.0.4-3
 	github.com/reugn/go-quartz v0.3.7
 	github.com/vmihailenco/msgpack/v5 v5.3.1
@@ -48,6 +48,7 @@ require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.6.0
 	github.com/fasthttp/websocket v1.5.7
 	github.com/felixge/fgprof v0.9.3

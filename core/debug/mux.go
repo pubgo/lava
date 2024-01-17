@@ -3,16 +3,30 @@ package debug
 import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/valyala/fasthttp"
+	"gopkg.in/yaml.v3"
 	"net/http"
+	"os"
+	"strings"
+	"sync"
 )
 
+type Config struct {
+	Debug struct {
+		Password string `yaml:"password"`
+	} `yaml:"debug"`
+}
+
 var app = fiber.New()
+var passwd string = running.InstanceID
+var once sync.Once
 
 func init() {
 	log.Info().Str("password", running.InstanceID).Msg("debug password")
@@ -31,10 +45,21 @@ func init() {
 			func() string { return c.Cookies("token") },
 		)
 
-		if token == "" || token != running.InstanceID {
-			var err = errors.New("token 不存在或者密码不对")
-			c.WriteString(err.Error())
-			return err
+		once.Do(func() {
+			configBytes := assert.Must1(os.ReadFile(config.GetConfigPath()))
+			var cfg Config
+			assert.Must(yaml.Unmarshal(configBytes, &cfg))
+			passwd = cfg.Debug.Password
+		})
+
+		host := strings.Split(c.Hostname(), ":")[0]
+		if host != "localhost" && host != "127.0.0.1" {
+			if token != passwd {
+				var err = errors.New("token 不存在或者密码不对")
+				c.WriteString(err.Error())
+				c.SendStatus(http.StatusInternalServerError)
+				return err
+			}
 		}
 
 		cc := fasthttp.AcquireCookie()
@@ -43,6 +68,9 @@ func init() {
 		cc.SetKey("token")
 		cc.SetValue(token)
 		c.Response().Header.SetCookie(cc)
+
+		log.Info().Str("path", c.Request().URI().String()).Msg("request")
+
 		return c.Next()
 	})
 }

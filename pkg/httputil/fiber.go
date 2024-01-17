@@ -64,7 +64,12 @@ func NewFastHTTPHandler(h http.Handler) fasthttp.RequestHandler {
 			return
 		}
 
-		w := netHTTPResponseWriter{w: ctx.Response.BodyWriter(), r: ctx.RequestBodyStream(), conn: ctx.Conn()}
+		w := netHTTPResponseWriter{
+			h:    r.Header,
+			w:    ctx.Response.BodyWriter(),
+			r:    ctx.RequestBodyStream(),
+			conn: ctx.Conn(),
+		}
 		h.ServeHTTP(&w, r.WithContext(ctx))
 
 		ctx.SetStatusCode(w.StatusCode())
@@ -122,7 +127,12 @@ func (w *netHTTPResponseWriter) Write(p []byte) (int, error) {
 	return w.w.Write(p)
 }
 
-func (w *netHTTPResponseWriter) Flush() {}
+func (w *netHTTPResponseWriter) Flush() {
+	ff, ok := w.w.(http.Flusher)
+	if ok {
+		ff.Flush()
+	}
+}
 
 func (w *netHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.conn, &bufio.ReadWriter{Reader: bufio.NewReader(w.r), Writer: bufio.NewWriter(w.w)}, nil
