@@ -257,6 +257,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
+		ctx = lava.CreateReqHeader(ctx, header)
+		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)

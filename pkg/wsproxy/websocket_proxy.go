@@ -176,6 +176,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	request.Header.Set("query", r.URL.RawQuery)
+
 	if swsp := r.Header.Get("Sec-WebSocket-Protocol"); swsp != "" {
 		request.Header.Set("Authorization", strings.Replace(swsp, "Bearer, ", "Bearer ", 1))
 	}
