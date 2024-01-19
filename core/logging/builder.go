@@ -1,14 +1,14 @@
 package logging
 
 import (
-	"os"
-	"time"
-
+	"fmt"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/rs/zerolog"
 	zl "github.com/rs/zerolog/log"
+	"os"
+	"time"
 
 	"github.com/pubgo/lava/core/logging/logkey"
 )
@@ -25,10 +25,12 @@ func New(cfg *Config) log.Logger {
 
 	logger := zerolog.New(os.Stdout).Level(level).With().Timestamp().Caller().Logger()
 	if !cfg.AsJson {
-		logger = logger.Output(zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
-			w.Out = os.Stdout
-			w.TimeFormat = time.RFC3339
-		}))
+		logger = logger.Output(&writer{
+			ConsoleWriter: zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
+				w.Out = os.Stdout
+				w.TimeFormat = time.RFC3339
+			}),
+		})
 	}
 
 	// 全局log设置
@@ -50,4 +52,16 @@ func New(cfg *Config) log.Logger {
 		ext(gl)
 	}
 	return gl
+}
+
+type writer struct {
+	zerolog.ConsoleWriter
+}
+
+func (w writer) Write(p []byte) (n int, err error) {
+	n, err = w.ConsoleWriter.Write(p)
+	if err != nil {
+		fmt.Println("invalid json: ", string(p))
+	}
+	return
 }

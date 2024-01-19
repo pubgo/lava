@@ -68,7 +68,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/pubgo/dix v0.3.15-0.20240107153647-472348fb7f95
-	github.com/pubgo/funk v0.5.37-0.20240117034259-f9cf0bc0559b
+	github.com/pubgo/funk v0.5.39-0.20240119085415-f9786f6f04fc
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
 	github.com/sirupsen/logrus v1.9.0
@@ -82,6 +82,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
+	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/driver/postgres v1.4.1
 	gorm.io/driver/sqlite v1.4.4
@@ -168,7 +169,6 @@ require (
 	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.10.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
