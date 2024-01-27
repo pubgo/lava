@@ -139,12 +139,12 @@ func (m *method) String() string {
 	return m.name
 }
 
-func fieldPath(fieldDescs protoreflect.FieldDescriptors, names ...string) []protoreflect.FieldDescriptor {
+func fieldPath(fields protoreflect.FieldDescriptors, names ...string) []protoreflect.FieldDescriptor {
 	fds := make([]protoreflect.FieldDescriptor, len(names))
 	for i, name := range names {
-		fd := fieldDescs.ByJSONName(name)
+		fd := fields.ByJSONName(name)
 		if fd == nil {
-			fd = fieldDescs.ByName(protoreflect.Name(name))
+			fd = fields.ByName(protoreflect.Name(name))
 		}
 		if fd == nil {
 			return nil
@@ -158,7 +158,7 @@ func fieldPath(fieldDescs protoreflect.FieldDescriptors, names ...string) []prot
 			if msgDesc == nil {
 				return nil
 			}
-			fieldDescs = msgDesc.Fields()
+			fields = msgDesc.Fields()
 		}
 	}
 	return fds
@@ -256,7 +256,7 @@ func (p *path) addRule(rule *annotations.HttpRule, desc protoreflect.MethodDescr
 	}
 
 	msgDesc := desc.Input()
-	fieldDescs := msgDesc.Fields()
+	fieldDescriptors := msgDesc.Fields()
 
 	// Hold state for the lexer.
 	l := &lexer{input: tmpl}
@@ -320,7 +320,7 @@ func (p *path) addRule(rule *annotations.HttpRule, desc protoreflect.MethodDescr
 				invalid(nxt)
 			}
 
-			fds := fieldPath(fieldDescs, keys...)
+			fds := fieldPath(fieldDescriptors, keys...)
 			if fds == nil {
 				return fmt.Errorf("field not found %v", keys)
 			}
@@ -366,7 +366,7 @@ func (p *path) addRule(rule *annotations.HttpRule, desc protoreflect.MethodDescr
 	case "":
 		m.hasBody = false
 	default:
-		m.body = fieldPath(fieldDescs, strings.Split(rule.Body, ".")...)
+		m.body = fieldPath(fieldDescriptors, strings.Split(rule.Body, ".")...)
 		if m.body == nil {
 			return fmt.Errorf("body field error %v", rule.Body)
 		}
@@ -376,7 +376,7 @@ func (p *path) addRule(rule *annotations.HttpRule, desc protoreflect.MethodDescr
 	switch rule.ResponseBody {
 	case "":
 	default:
-		m.resp = fieldPath(fieldDescs, strings.Split(rule.Body, ".")...)
+		m.resp = fieldPath(fieldDescriptors, strings.Split(rule.Body, ".")...)
 		if m.resp == nil {
 			return fmt.Errorf("response body field error %v", rule.ResponseBody)
 		}

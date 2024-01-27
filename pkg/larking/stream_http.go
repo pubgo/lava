@@ -355,6 +355,7 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		err    error
 		method = &method{name: methodName, hasBody: true}
 	)
+
 	if len(hds) == 0 {
 		method, params, err = s.match(r.URL.Path, verb)
 		if err != nil {
