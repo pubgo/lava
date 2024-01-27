@@ -4,7 +4,7 @@
 // - protoc             v4.25.1
 // source: proto/services/metadata/metadata.proto
 
-package metadata
+package metadatapb
 
 import (
 	context "context"

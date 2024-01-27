@@ -2,11 +2,11 @@
 // source: proto/services/metadata/metadata.proto
 
 /*
-Package metadata is a reverse proxy.
+Package metadatapb is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package metadata
+package metadatapb
 
 import (
 	"context"

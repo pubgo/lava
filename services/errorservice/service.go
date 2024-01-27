@@ -5,7 +5,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/lava"
-	errcodepb "github.com/pubgo/lava/pkg/proto/services/errcode"
+	"github.com/pubgo/lava/pkg/proto/errcodepb"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -24,16 +24,13 @@ func (s service) Codes(ctx context.Context, empty *emptypb.Empty) (*errcodepb.Er
 }
 
 func (s service) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-	//TODO implement me
-	panic("implement me")
+	return errcodepb.RegisterErrorServiceHandlerClient(ctx, mux, errcodepb.NewErrorServiceClient(conn))
 }
 
 func (s service) Middlewares() []lava.Middleware {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (s service) ServiceDesc() *grpc.ServiceDesc {
-	//TODO implement me
-	panic("implement me")
+	return &errcodepb.ErrorService_ServiceDesc
 }

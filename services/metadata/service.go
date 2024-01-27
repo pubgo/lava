@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/pkg/proto/metadatapb"
 	"io"
 	"sort"
 	"sync"
@@ -22,7 +23,6 @@ import (
 	dpb "google.golang.org/protobuf/types/descriptorpb"
 
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/proto/services/metadata"
 )
 
 func New() lava.GrpcRouter {
@@ -38,7 +38,7 @@ func NewService(srv *grpc.Server) *Server {
 	}
 }
 
-var _ metadata.MetadataServer = (*Server)(nil)
+var _ metadatapb.MetadataServer = (*Server)(nil)
 var _ lava.GrpcGatewayRouter = (*Server)(nil)
 
 // Server is api meta server
@@ -54,11 +54,11 @@ func (s *Server) Middlewares() []lava.Middleware {
 }
 
 func (s *Server) ServiceDesc() *grpc.ServiceDesc {
-	return &metadata.Metadata_ServiceDesc
+	return &metadatapb.Metadata_ServiceDesc
 }
 
 func (s *Server) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-	return metadata.RegisterMetadataHandlerClient(ctx, mux, metadata.NewMetadataClient(conn))
+	return metadatapb.RegisterMetadataHandlerClient(ctx, mux, metadatapb.NewMetadataClient(conn))
 }
 
 func (s *Server) load() error {
@@ -123,14 +123,14 @@ func (s *Server) load() error {
 }
 
 // ListServices return all services
-func (s *Server) ListServices(_ context.Context, _ *metadata.ListServicesRequest) (*metadata.ListServicesReply, error) {
+func (s *Server) ListServices(_ context.Context, _ *metadatapb.ListServicesRequest) (*metadatapb.ListServicesReply, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if err := s.load(); err != nil {
 		return nil, err
 	}
 
-	reply := &metadata.ListServicesReply{
+	reply := &metadatapb.ListServicesReply{
 		Services: make([]string, 0, len(s.services)),
 		Methods:  make([]string, 0, len(s.methods)),
 	}
@@ -151,7 +151,7 @@ func (s *Server) ListServices(_ context.Context, _ *metadata.ListServicesRequest
 }
 
 // GetServiceDesc return service meta by name
-func (s *Server) GetServiceDesc(_ context.Context, in *metadata.GetServiceDescRequest) (*metadata.GetServiceDescReply, error) {
+func (s *Server) GetServiceDesc(_ context.Context, in *metadatapb.GetServiceDescRequest) (*metadatapb.GetServiceDescReply, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if err := s.load(); err != nil {
@@ -163,7 +163,7 @@ func (s *Server) GetServiceDesc(_ context.Context, in *metadata.GetServiceDescRe
 		return nil, status.Errorf(codes.NotFound, "service %s not found", in.Name)
 	}
 
-	return &metadata.GetServiceDescReply{FileDescSet: fds}, nil
+	return &metadatapb.GetServiceDescReply{FileDescSet: fds}, nil
 }
 
 // parseMetadata finds the file descriptor bytes specified meta.

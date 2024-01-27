@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/grpc/codes"
 	"reflect"
 	"time"
@@ -24,7 +25,6 @@ import (
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
-	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 var parserTypes []fiber.ParserType
@@ -64,7 +64,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		delete(rspMetadata, "x-content-type")
 
-		var clientInfo = new(pbv1.ServiceInfo)
+		var clientInfo = new(lavapbv1.ServiceInfo)
 
 		// get peer from context
 		if p := grpcutil.ClientIP(rspMetadata); p != "" {

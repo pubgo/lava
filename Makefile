@@ -73,3 +73,8 @@ deps:
 
 lint:
 	@golangci-lint run --skip-dirs-use-default --timeout 3m0s
+
+.PHONY: protobuf
+protobuf:
+	protobuild vendor
+	protobuild gen

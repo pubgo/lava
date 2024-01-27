@@ -5,7 +5,7 @@ package lava.service;
 import "google/protobuf/descriptor.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/pubgo/lava/pkg/proto/metadata;metadata";
+option go_package = "github.com/pubgo/lava/pkg/proto/metadatapb;metadatapb";
 
 // Metadata is api definition metadata service.
 service Metadata {

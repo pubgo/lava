@@ -1,8 +1,9 @@
-checksum: 642140f10407cf230563900e792665b64fe5c870
+checksum: 340b20e7371e152d93936acff633360cb2a01449
 vendor: .proto
 base:
   out: ./pkg
-  paths: source_relative
+  paths: import
+  module: github.com/pubgo/lava/pkg
 root:
   - proto
 deps:
@@ -15,7 +16,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.37-0.20240116092024-158556a9908a
+    version: v0.5.39-0.20240119085415-f9786f6f04fc
 plugins:
   - name: go
   - name: go-errors

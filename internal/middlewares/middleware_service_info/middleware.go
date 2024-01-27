@@ -6,10 +6,10 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
-	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 func New() lava.Middleware {
@@ -17,7 +17,7 @@ func New() lava.Middleware {
 		Name: "service_info",
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-				var serverInfo = &pbv1.ServiceInfo{
+				var serverInfo = &lavapbv1.ServiceInfo{
 					Name:     version.Project(),
 					Version:  version.Version(),
 					Path:     req.Operation(),
@@ -32,7 +32,7 @@ func New() lava.Middleware {
 					req.Header().Set(grpcutil.ClientHostnameKey, serverInfo.Hostname)
 					req.Header().Set(grpcutil.ClientIpKey, serverInfo.Ip)
 				} else {
-					clientInfo := new(pbv1.ServiceInfo)
+					clientInfo := new(lavapbv1.ServiceInfo)
 					if data := req.Header().Peek(grpcutil.ClientHostnameKey); data != nil {
 						clientInfo.Hostname = convert.B2S(data)
 					}
