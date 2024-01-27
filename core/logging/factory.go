@@ -10,7 +10,6 @@ type Factory func(log log.Logger)
 
 var factories = make(map[string]Factory)
 
-func Get(name string) Factory  { return factories[name] }
 func List() map[string]Factory { return factories }
 func Register(name string, factory Factory) {
 	defer recovery.Exit()
