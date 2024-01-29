@@ -111,6 +111,7 @@ var (
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
 		app:                   fiber.New(),
+		handlers:              make(map[string]*handler),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -223,8 +224,7 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	return &Mux{
-		opts:     muxOpts,
-		handlers: make(map[string]*handler),
+		opts: muxOpts,
 	}
 }
 
@@ -298,7 +298,9 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		}
 
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
-		h := &handler{
+		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
+
+		m.opts.handlers[grpcMethod] = &handler{
 			method: grpcMethod,
 			desc:   methodDesc,
 			handler: func(opts *muxOptions, stream grpc.ServerStream) error {
@@ -312,8 +314,6 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 				return errors.WrapCaller(stream.SendMsg(reply))
 			},
 		}
-		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
-		m.opts.handlers[grpcMethod] = h
 		if rule := getExtensionHTTP(methodDesc.Options()); rule != nil {
 			for _, mth := range getMethod(rule, methodDesc, grpcMethod) {
 				m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
@@ -324,12 +324,14 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	for i := range gsd.Streams {
 		grpcMth := &gsd.Streams[i]
 		grpcMethod := "/" + gsd.ServiceName + "/" + grpcMth.StreamName
+		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
+
 		methodDesc, err := findMethodDesc(grpcMth.StreamName)
 		if err != nil {
 			return err
 		}
 
-		h := &handler{
+		m.opts.handlers[grpcMethod] = &handler{
 			method: grpcMethod,
 			desc:   methodDesc,
 			handler: func(opts *muxOptions, stream grpc.ServerStream) error {
@@ -342,8 +344,6 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 				return opts.stream(ss, stream, info, grpcMth.Handler)
 			},
 		}
-		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
-		m.opts.handlers[grpcMethod] = h
 		if rule := getExtensionHTTP(methodDesc.Options()); rule != nil {
 			for _, mth := range getMethod(rule, methodDesc, grpcMethod) {
 				m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
