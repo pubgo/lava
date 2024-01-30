@@ -2,10 +2,7 @@ package wsutil
 
 import (
 	"errors"
-	"fmt"
 	"io"
-	"os"
-	"runtime/debug"
 	"time"
 
 	"github.com/fasthttp/websocket"
@@ -51,21 +48,6 @@ type Config struct {
 	// guarantee that compression will be supported. Currently only "no context
 	// takeover" modes are supported.
 	EnableCompression bool
-
-	// RecoverHandler is a panic handler function that recovers from panics
-	// Default recover function is used when nil and writes error message in a response field `error`
-	// It prints stack trace to the stderr by default
-	// Optional. Default: defaultRecover
-	RecoverHandler func(*Conn)
-}
-
-func defaultRecover(c *websocket.Conn) {
-	if err := recover(); err != nil {
-		_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", err, debug.Stack())) //nolint:errcheck // This will never fail
-		if err := c.WriteJSON(fiber.Map{"error": err}); err != nil {
-			_, _ = os.Stderr.WriteString(fmt.Sprintf("could not write error response: %v\n", err))
-		}
-	}
 }
 
 // New returns a new `handler func(*Conn)` that upgrades a client to the
@@ -87,10 +69,6 @@ func New(ctx *fiber.Ctx, config ...Config) (c *websocket.Conn, err error) {
 
 	if cfg.WriteBufferSize == 0 {
 		cfg.WriteBufferSize = 1024
-	}
-
-	if cfg.RecoverHandler == nil {
-		cfg.RecoverHandler = defaultRecover
 	}
 
 	var wsUp = websocket.FastHTTPUpgrader{

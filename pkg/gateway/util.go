@@ -27,7 +27,7 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		var values = make(url.Values)
 		for k, v := range path.vars {
-			values.Set(k, v)
+			values.Set(k, ctx.Params(v))
 		}
 
 		for k, v := range ctx.Queries() {
@@ -37,23 +37,24 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 		var h = path.opts.handlers[path.grpcMethodName]
 
 		if wsutil.IsWebSocketUpgrade(ctx) {
-			if !h.desc.IsStreamingClient() || !h.desc.IsStreamingServer() {
+			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
 				return errors.Format("服务不支持 websocket")
 			}
 
 			conn, err := wsutil.New(ctx)
-			err := h.handler(path.opts, &streamWS{
+			err := h(path.opts, &streamWS{
 				ctx:      ctx.Context(),
 				conn:     conn,
 				pathRule: path,
+				params:   values,
 			})
 			return nil
 		}
 
-		err := h.handler(path.opts, &streamHTTP{
+		err := h(path.opts, &streamHTTP{
 			ctx:    ctx.Context(),
-			method: method,
-			params: params,
+			method: path,
+			params: values,
 			opts:   m.opts,
 
 			// write
@@ -158,7 +159,9 @@ func getPathVariables(fields protoreflect.FieldDescriptors, path string) map[str
 }
 
 func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, name string) []*httpPathRule {
-	var data []*httpPathRule
+	if rule == nil {
+		return nil
+	}
 
 	var pathUrl, verb string
 	switch v := rule.Pattern.(type) {
@@ -181,10 +184,10 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 		verb = strings.ToUpper(v.Custom.Kind)
 		pathUrl = v.Custom.Path
 	default:
-		panic(fmt.Errorf("unsupported pattern %v", v))
+		panic(fmt.Errorf("unsupported http rule pattern %v", v))
 	}
 
-	assert.If(strings.Contains(pathUrl, ":"), "url should not contain ':'")
+	assert.If(strings.Contains(pathUrl, ":"), "grpc http rule pattern url should not contain ':'")
 
 	inputFieldDescriptors := desc.Input().Fields()
 	outputFieldDescriptors := desc.Output().Fields()
@@ -216,9 +219,9 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 		m.rspBody = fieldPath(outputFieldDescriptors, strings.Split(rule.ResponseBody, ".")...)
 	}
 
-	data = append(data, m)
+	var data = []*httpPathRule{m}
 	for _, addRule := range rule.AdditionalBindings {
-		assert.If(len(addRule.AdditionalBindings) != 0, "nested rules")
+		assert.If(len(addRule.AdditionalBindings) != 0, "nested rules are not allowed")
 		data = append(data, getMethod(addRule, desc, name)...)
 	}
 	return data
@@ -232,8 +235,20 @@ func quote(raw []byte) []byte {
 }
 
 // getExtensionHTTP
-func getExtensionHTTP(m proto.Message) *annotations.HttpRule {
-	return proto.GetExtension(m, annotations.E_Http).(*annotations.HttpRule)
+func getExtensionHTTP(m protoreflect.MethodDescriptor) *annotations.HttpRule {
+	if m == nil {
+		return nil
+	}
+
+	if m.Options() == nil {
+		return nil
+	}
+
+	ext, ok := proto.GetExtension(m.Options(), annotations.E_Http).(*annotations.HttpRule)
+	if ok {
+		return ext
+	}
+	return nil
 }
 
 // AsHTTPBodyWriter returns the writer of a stream of google.api.HttpBody.

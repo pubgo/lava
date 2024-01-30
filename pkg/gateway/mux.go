@@ -7,22 +7,23 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/log"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"io"
 	"math"
+	"net/http"
 	"reflect"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/log"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/stats"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
@@ -42,7 +43,7 @@ type muxOptions struct {
 	maxSendMessageSize    int
 	connectionTimeout     time.Duration
 	app                   *fiber.App
-	handlers              map[string]*handler
+	handlers              map[string]handlerFunc
 }
 
 // readAll reads from r until an error or EOF and returns the data it read.
@@ -109,7 +110,7 @@ var (
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
 		app:                   fiber.New(),
-		handlers:              make(map[string]*handler),
+		handlers:              make(map[string]handlerFunc),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -277,25 +278,31 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		m.opts.handlers[grpcMethod] = &handler{
-			method: grpcMethod,
-			desc:   methodDesc,
-			handler: func(opts *muxOptions, stream grpc.ServerStream) error {
-				ctx := stream.Context()
+		m.opts.handlers[grpcMethod] = func(opts *muxOptions, stream grpc.ServerStream) error {
+			ctx := stream.Context()
 
-				reply, err := grpcMth.Handler(ss, ctx, stream.RecvMsg, opts.unaryInterceptor)
-				if err != nil {
-					return errors.WrapCaller(err)
-				}
+			reply, err := grpcMth.Handler(ss, ctx, stream.RecvMsg, opts.unaryInterceptor)
+			if err != nil {
+				return errors.WrapCaller(err)
+			}
 
-				return errors.WrapCaller(stream.SendMsg(reply))
-			},
+			return errors.WrapCaller(stream.SendMsg(reply))
 		}
 
-		if rule := getExtensionHTTP(methodDesc.Options()); rule != nil {
-			for _, mth := range getMethod(rule, methodDesc, grpcMethod) {
-				m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
-			}
+		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
+			opts:           &m.opts,
+			desc:           methodDesc,
+			httpMethod:     http.MethodPost,
+			httpPath:       grpcMethod,
+			rawHttpPath:    grpcMethod,
+			grpcMethodName: grpcMethod,
+			vars:           make(map[string]string),
+			hasReqBody:     true,
+			hasRspBody:     true,
+		}))
+
+		for _, mth := range getMethod(getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
+			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
 		}
 	}
 
@@ -309,23 +316,30 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			return err
 		}
 
-		m.opts.handlers[grpcMethod] = &handler{
-			method: grpcMethod,
-			desc:   methodDesc,
-			handler: func(opts *muxOptions, stream grpc.ServerStream) error {
-				info := &grpc.StreamServerInfo{
-					FullMethod:     grpcMethod,
-					IsClientStream: grpcMth.ClientStreams,
-					IsServerStream: grpcMth.ServerStreams,
-				}
-
-				return opts.stream(ss, stream, info, grpcMth.Handler)
-			},
-		}
-		if rule := getExtensionHTTP(methodDesc.Options()); rule != nil {
-			for _, mth := range getMethod(rule, methodDesc, grpcMethod) {
-				m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
+		m.opts.handlers[grpcMethod] = func(opts *muxOptions, stream grpc.ServerStream) error {
+			info := &grpc.StreamServerInfo{
+				FullMethod:     grpcMethod,
+				IsClientStream: grpcMth.ClientStreams,
+				IsServerStream: grpcMth.ServerStreams,
 			}
+
+			return opts.stream(ss, stream, info, grpcMth.Handler)
+		}
+
+		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
+			opts:           &m.opts,
+			desc:           methodDesc,
+			httpMethod:     http.MethodPost,
+			httpPath:       grpcMethod,
+			rawHttpPath:    grpcMethod,
+			grpcMethodName: grpcMethod,
+			vars:           make(map[string]string),
+			hasReqBody:     true,
+			hasRspBody:     true,
+		}))
+
+		for _, mth := range getMethod(getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
+			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
 		}
 	}
 

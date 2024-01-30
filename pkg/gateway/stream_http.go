@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -37,7 +38,7 @@ type streamHTTP struct {
 	rHeader        http.Header
 	header         metadata.MD
 	trailer        metadata.MD
-	params         params
+	params         url.Values
 	contentType    string
 	accept         string
 	acceptEncoding string
