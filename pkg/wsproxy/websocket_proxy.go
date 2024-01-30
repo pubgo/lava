@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -111,8 +112,16 @@ func WithLogger(logger Logger) Option {
 // Method can be overwritten with the MethodOverrideParam get parameter in the requested URL
 func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {
 	p := &Proxy{
-		h:                   h,
-		logger:              logrus.New(),
+		h: h,
+		//logger:              logrus.New(),
+		logger: &logrus.Logger{
+			Out:          os.Stderr,
+			Formatter:    new(logrus.TextFormatter),
+			Hooks:        make(logrus.LevelHooks),
+			Level:        logrus.DebugLevel,
+			ExitFunc:     os.Exit,
+			ReportCaller: true,
+		},
 		methodOverrideParam: MethodOverrideParam,
 		tokenCookieName:     TokenCookieName,
 	}
