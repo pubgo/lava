@@ -3,10 +3,8 @@ package wsproxy
 import (
 	"bufio"
 	"github.com/pubgo/funk/log"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -44,16 +42,9 @@ type RequestMutatorFunc func(incoming *http.Request, outgoing *http.Request) *ht
 // Proxy provides websocket transport upgrade to compatible endpoints.
 type Proxy struct {
 	h                   http.Handler
-	logger              Logger
 	methodOverrideParam string
 	tokenCookieName     string
 	requestMutator      RequestMutatorFunc
-}
-
-// Logger collects log messages.
-type Logger interface {
-	Warnln(...interface{})
-	Debugln(...interface{})
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -88,13 +79,6 @@ func WithRequestMutator(fn RequestMutatorFunc) Option {
 	}
 }
 
-// WithLogger allows a custom FieldLogger to be supplied
-func WithLogger(logger Logger) Option {
-	return func(p *Proxy) {
-		p.logger = logger
-	}
-}
-
 // WebsocketProxy attempts to expose the underlying handler as a bidi websocket stream with newline-delimited
 // JSON as the content encoding.
 //
@@ -112,16 +96,7 @@ func WithLogger(logger Logger) Option {
 // Method can be overwritten with the MethodOverrideParam get parameter in the requested URL
 func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {
 	p := &Proxy{
-		h: h,
-		//logger:              logrus.New(),
-		logger: &logrus.Logger{
-			Out:          os.Stderr,
-			Formatter:    new(logrus.TextFormatter),
-			Hooks:        make(logrus.LevelHooks),
-			Level:        logrus.DebugLevel,
-			ExitFunc:     os.Exit,
-			ReportCaller: true,
-		},
+		h:                   h,
 		methodOverrideParam: MethodOverrideParam,
 		tokenCookieName:     TokenCookieName,
 	}
@@ -155,7 +130,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrade.Upgrade(w, r, responseHeader)
 	if err != nil {
-		p.logger.Warnln("error upgrading websocket:", err)
+		log.Warn().Err(err).Msg("error upgrading websocket")
 		return
 	}
 	defer conn.Close()
@@ -172,10 +147,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	defer cancelFn()
 
 	requestBodyR, requestBodyW := io.Pipe()
-	p.logger.Warnln("backend service only supports POST requests")
+	log.Warn().Msg("backend service only supports POST requests")
 	request, err := http.NewRequest(http.MethodPost, r.URL.String(), requestBodyR)
 	if err != nil {
-		p.logger.Warnln("error preparing request:", err)
+		log.Warn().Err(err).Msg("error preparing request")
 		return
 	}
 
@@ -208,7 +183,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	response := newInMemoryResponseWriter(responseBodyW)
 	go func() {
 		<-ctx.Done()
-		p.logger.Debugln("closing websocket io pipes")
+		log.Debug().Msg("closing websocket io pipes")
 		requestBodyW.CloseWithError(io.EOF)
 		responseBodyW.CloseWithError(io.EOF)
 		response.closed <- true
@@ -243,27 +218,27 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 			//		log.Err(err).Msg("failed to write ping message")
 			//	}
 			case <-ctx.Done():
-				p.logger.Debugln("read loop done")
+				log.Debug().Msg("read loop done")
 				return
 			default:
-				p.logger.Debugln("[read] reading from socket.")
+				log.Debug().Msg("[read] reading from socket.")
 				_, payload, err := conn.ReadMessage()
 				if err != nil {
 					if isClosedConnError(err) {
-						p.logger.Debugln("[read] websocket closed:", err)
+						log.Debug().Err(err).Msg("[read] websocket closed")
 						return
 					}
-					p.logger.Warnln("error reading websocket message:", err)
+					log.Warn().Err(err).Msg("error reading websocket message")
 					return
 				}
 
-				p.logger.Debugln("[read] read payload:", string(payload))
-				p.logger.Debugln("[read] writing to requestBody:")
+				log.Debug().Str("payload", string(payload)).Msg("[read] read payload")
+				log.Debug().Msg("[read] writing to requestBody:")
 				n, err := requestBodyW.Write(payload)
 				requestBodyW.Write([]byte("\n"))
-				p.logger.Debugln("[read] wrote to requestBody", n)
+				log.Debug().Msgf("[read] wrote to requestBody %d", n)
 				if err != nil {
-					p.logger.Warnln("[read] error writing message to upstream http server:", err)
+					log.Warn().Err(err).Msg("[read] error writing message to upstream http server")
 					return
 				}
 			}
@@ -274,18 +249,18 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	scanner := bufio.NewScanner(responseBodyR)
 	for scanner.Scan() {
 		if len(scanner.Bytes()) == 0 {
-			p.logger.Warnln("[write] empty scan", scanner.Err())
+			log.Warn().Err(scanner.Err()).Msg("[write] empty scan")
 			continue
 		}
 
-		p.logger.Debugln("[write] scanned", scanner.Text())
+		log.Debug().Str("data", scanner.Text()).Msg("[write] scanned")
 		if err = conn.WriteMessage(websocket.TextMessage, scanner.Bytes()); err != nil {
-			p.logger.Warnln("[write] error writing websocket message:", err)
+			log.Warn().Err(err).Msg("[write] error writing websocket message")
 			return
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		p.logger.Warnln("scanner err:", err)
+		log.Warn().Err(err).Msg("scanner err")
 	}
 }
 
