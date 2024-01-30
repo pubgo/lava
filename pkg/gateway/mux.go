@@ -22,14 +22,12 @@ import (
 	"github.com/pubgo/funk/log"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/stats"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
-	statsHandler          stats.Handler
 	files                 *protoregistry.Files
 	serviceConfig         *serviceconfig.Service
 	unaryInterceptor      grpc.UnaryServerInterceptor
@@ -132,10 +130,6 @@ func UnaryServerInterceptorOption(interceptor grpc.UnaryServerInterceptor) MuxOp
 
 func StreamServerInterceptorOption(interceptor grpc.StreamServerInterceptor) MuxOption {
 	return func(opts *muxOptions) { opts.streamInterceptor = interceptor }
-}
-
-func StatsOption(h stats.Handler) MuxOption {
-	return func(opts *muxOptions) { opts.statsHandler = h }
 }
 
 func MaxReceiveMessageSizeOption(s int) MuxOption {

@@ -5,3 +5,4 @@ package gateway
 // https://github.com/dgrr/http2
 // https://github.com/r3labs/sse
 // https://github.com/googollee/go-socket.io
+// https://github.com/connectrpc/vanguard-go/tree/main

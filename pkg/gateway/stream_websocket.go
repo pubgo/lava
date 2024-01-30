@@ -71,17 +71,12 @@ func (s *streamWS) SetTrailer(md metadata.MD) {
 }
 
 func (s *streamWS) Context() context.Context {
-	sts := &serverTransportStream{s, s.pathRule.grpcMethodName}
+	sts := &serverTransportStream{ServerStream: s, method: s.pathRule.grpcMethodName}
 	return grpc.NewContextWithServerTransportStream(s.ctx, sts)
 }
 
 func (s *streamWS) SendMsg(v interface{}) error {
-	if s.pathRule.hasRspBody {
-
-	}
-
 	reply := v.(proto.Message)
-	//ctx := s.ctx
 
 	cur := reply.ProtoReflect()
 	for _, fd := range s.pathRule.rspBody {
@@ -100,8 +95,10 @@ func (s *streamWS) SendMsg(v interface{}) error {
 func (s *streamWS) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
-		log.Err(err).Msg("failed to set params")
+	if len(s.params) > 0 {
+		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
+			log.Err(err).Msg("failed to set params")
+		}
 	}
 
 	if s.pathRule.hasReqBody {

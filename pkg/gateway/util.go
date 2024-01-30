@@ -34,7 +34,7 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 			values.Set(k, v)
 		}
 
-		var h = path.opts.handlers[path.grpcMethodName]
+		var doRequest = path.opts.handlers[path.grpcMethodName]
 
 		if wsutil.IsWebSocketUpgrade(ctx) {
 			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
@@ -42,7 +42,7 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 			}
 
 			conn, err := wsutil.New(ctx)
-			err := h(path.opts, &streamWS{
+			err := doRequest(path.opts, &streamWS{
 				ctx:      ctx.Context(),
 				conn:     conn,
 				pathRule: path,
@@ -51,25 +51,13 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 			return nil
 		}
 
-		err := h(path.opts, &streamHTTP{
-			ctx:    ctx.Context(),
+		err := doRequest(path.opts, &streamHTTP{
+			ctx:    ctx,
 			method: path,
 			params: values,
-			opts:   m.opts,
-
-			// write
-			w:       ctx,
-			wHeader: w.Header(),
-
-			// read
-			r:       ctx.Body(),
-			rHeader: r.Header,
-
-			contentType:    contentType,
-			accept:         accept,
-			acceptEncoding: acceptEncoding,
-			hasBody:        r.ContentLength > 0 || r.ContentLength == -1,
+			opts:   path.opts,
 		})
+
 		return err
 	}
 }
@@ -189,19 +177,18 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 
 	assert.If(strings.Contains(pathUrl, ":"), "grpc http rule pattern url should not contain ':'")
 
-	inputFieldDescriptors := desc.Input().Fields()
-	outputFieldDescriptors := desc.Output().Fields()
-
 	// Method already registered.
 	m := &httpPathRule{
 		desc: desc,
 		//vars:           getPathVariables(inputFieldDescriptors, pathUrl),
-		vars:           getPathVarMap(pathUrl),
 		grpcMethodName: name,
 		rawHttpPath:    pathUrl,
-		httpPath:       strings.ReplaceAll(pathUrl, ".", "_"),
 		httpMethod:     verb,
-		isGroup:        isGroup(pathUrl),
+
+		// TODO 未来需要调整
+		vars:     getPathVarMap(pathUrl),
+		httpPath: strings.ReplaceAll(pathUrl, ".", "_"),
+		isGroup:  isGroup(pathUrl),
 	}
 
 	switch rule.Body {
@@ -211,11 +198,13 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 		m.hasReqBody = false
 	default:
 		m.hasReqBody = true
+		inputFieldDescriptors := desc.Input().Fields()
 		m.reqBody = fieldPath(inputFieldDescriptors, strings.Split(rule.Body, ".")...)
 	}
 
 	m.hasRspBody = true
 	if rule.ResponseBody != "" {
+		outputFieldDescriptors := desc.Output().Fields()
 		m.rspBody = fieldPath(outputFieldDescriptors, strings.Split(rule.ResponseBody, ".")...)
 	}
 
