@@ -83,8 +83,10 @@ func (s *streamHTTP) SetTrailer(md metadata.MD) {
 }
 
 func (s *streamHTTP) Context() context.Context {
-	sts := &serverTransportStream{s, s.method.grpcMethodName}
-	return grpc.NewContextWithServerTransportStream(s.ctx, sts)
+	return grpc.NewContextWithServerTransportStream(s.ctx, &serverTransportStream{
+		ServerStream: s,
+		method:       s.method.grpcMethodName,
+	})
 }
 
 func (s *streamHTTP) writeMsg(c Codec, b []byte, contentType string) (int, error) {
@@ -417,10 +419,10 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		}()
 
 		stream := &streamWS{
-			ctx:    ctx,
-			conn:   conn,
-			method: method,
-			params: params,
+			ctx:      ctx,
+			conn:     conn,
+			pathRule: method,
+			params:   params,
 		}
 		herr := hd.handler(&m.opts, stream)
 		if herr != nil {
@@ -491,103 +493,4 @@ func (m *Mux) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		m.encError(w, r, herr)
 	}
 	return nil
-}
-
-func streamHTTPFromCtx(ctx context.Context) (*streamHTTP, error) {
-	ss := grpc.ServerTransportStreamFromContext(ctx)
-	if ss == nil {
-		return nil, fmt.Errorf("invalid server transport stream")
-	}
-	sts, ok := ss.(*serverTransportStream)
-	if !ok {
-		return nil, fmt.Errorf("unknown server transport stream")
-	}
-	s, ok := sts.ServerStream.(*streamHTTP)
-	if !ok {
-		return nil, fmt.Errorf("expected HTTP stream got %T", sts.ServerStream)
-	}
-	return s, nil
-}
-
-// AsHTTPBodyReader returns the reader of a stream of google.api.HttpBody.
-// The first message will be unmarshalled into msg excluding the data field.
-// The returned reader is only valid during the lifetime of the RPC.
-func AsHTTPBodyReader(stream grpc.ServerStream, msg proto.Message) (body io.Reader, err error) {
-	ctx := stream.Context()
-	s, err := streamHTTPFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !s.method.desc.IsStreamingClient() {
-		return nil, fmt.Errorf("expected streaming client")
-	}
-	if s.recvCount > 0 {
-		return nil, fmt.Errorf("expected first message")
-	}
-
-	cur := msg.ProtoReflect()
-	if name, want := cur.Descriptor().FullName(), s.method.desc.Input().FullName(); name != want {
-		return nil, fmt.Errorf("expected %s got %s", want, name)
-	}
-	for _, fd := range s.method.reqBody {
-		cur = cur.Mutable(fd).Message()
-	}
-
-	if typ := cur.Descriptor().FullName(); typ != "google.api.HttpBody" {
-		return nil, fmt.Errorf("expected body type of google.api.HttpBody got %s", typ)
-	}
-
-	fds := cur.Descriptor().Fields()
-	fdContentType := fds.ByName("content_type")
-	cur.Set(fdContentType, protoreflect.ValueOfString(s.contentType))
-	// TODO: extensions?
-
-	if err := s.params.set(msg); err != nil {
-		return nil, err
-	}
-	s.recvCount += 1
-	return s.r, nil
-}
-
-// AsHTTPBodyWriter returns the writer of a stream of google.api.HttpBody.
-// The first message will be marshalled from msg excluding the data field.
-// The returned writer is only valid during the lifetime of the RPC.
-func AsHTTPBodyWriter(stream grpc.ServerStream, msg proto.Message) (body io.Writer, err error) {
-	ctx := stream.Context()
-	s, err := streamHTTPFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !s.method.desc.IsStreamingServer() {
-		return nil, fmt.Errorf("expected streaming server")
-	}
-	if s.sendCount > 0 {
-		return nil, fmt.Errorf("expected first message")
-	}
-
-	cur := msg.ProtoReflect()
-	if name, want := cur.Descriptor().FullName(), s.method.desc.Output().FullName(); name != want {
-		return nil, fmt.Errorf("expected %s got %s", want, name)
-	}
-	for _, fd := range s.method.rspBody {
-		cur = cur.Mutable(fd).Message()
-	}
-
-	if typ := cur.Descriptor().FullName(); typ != "google.api.HttpBody" {
-		return nil, fmt.Errorf("expected body type of google.api.HttpBody got %s", typ)
-	}
-
-	fds := cur.Descriptor().Fields()
-	fdContentType := fds.ByName("content_type")
-	pContentType := cur.Get(fdContentType)
-	contentType := pContentType.String()
-
-	s.wHeader.Set("Content-Type", contentType)
-	if !s.sentHeader {
-		if err := s.SendHeader(nil); err != nil {
-			return nil, err
-		}
-	}
-	s.sendCount += 1
-	return s.w, nil
 }

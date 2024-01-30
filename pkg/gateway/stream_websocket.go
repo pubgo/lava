@@ -41,7 +41,7 @@ const kindWebsocket = "WEBSOCKET"
 type streamWS struct {
 	ctx        context.Context
 	conn       *websocket.Conn
-	method     *httpPathRule
+	pathRule   *httpPathRule
 	header     metadata.MD
 	trailer    metadata.MD
 	params     params
@@ -71,16 +71,20 @@ func (s *streamWS) SetTrailer(md metadata.MD) {
 }
 
 func (s *streamWS) Context() context.Context {
-	sts := &serverTransportStream{s, s.method.grpcMethodName}
+	sts := &serverTransportStream{s, s.pathRule.grpcMethodName}
 	return grpc.NewContextWithServerTransportStream(s.ctx, sts)
 }
 
 func (s *streamWS) SendMsg(v interface{}) error {
+	if s.pathRule.hasRspBody {
+
+	}
+
 	reply := v.(proto.Message)
 	//ctx := s.ctx
 
 	cur := reply.ProtoReflect()
-	for _, fd := range s.method.rspBody {
+	for _, fd := range s.pathRule.rspBody {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
@@ -96,9 +100,9 @@ func (s *streamWS) SendMsg(v interface{}) error {
 func (s *streamWS) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.method.hasReqBody {
+	if s.pathRule.hasReqBody {
 		cur := args.ProtoReflect()
-		for _, fd := range s.method.reqBody {
+		for _, fd := range s.pathRule.reqBody {
 			cur = cur.Mutable(fd).Message()
 		}
 
@@ -108,8 +112,6 @@ func (s *streamWS) RecvMsg(m interface{}) error {
 			return err
 		}
 
-		// TODO: contentType check?
-		// What marshalling options should we support?
 		if err := protojson.Unmarshal(message, msg); err != nil {
 			return errors.Wrap(err, "failed to unmarshal protobuf json message")
 		}

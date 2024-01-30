@@ -14,10 +14,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"io"
 	"math"
-	"net/http"
 	"reflect"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -230,27 +228,6 @@ func NewMux(opts ...MuxOption) *Mux {
 
 func (m *Mux) GetApp() *fiber.App { return m.opts.app }
 
-// ServeHTTP implements http.Handler.
-// It supports both gRPC and HTTP requests.
-func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	contentType := r.Header.Get("Content-Type")
-	if r.ProtoMajor == 2 &&
-		strings.HasPrefix(contentType, "application/grpc") {
-		m.serveGRPC(w, r)
-		return
-	}
-
-	if strings.HasPrefix(contentType, "application/grpc-web") {
-		m.serveGRPCWeb(w, r)
-		return
-	}
-
-	r.URL.Path = "/" + strings.Trim(strings.TrimSpace(r.URL.Path), "/")
-	if err := m.serveHTTP(w, r); err != nil {
-		m.encError(w, r, err)
-	}
-}
-
 // RegisterService satisfies grpc.ServiceRegistrar for generated service code hooks.
 func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	assert.If(generic.IsNil(ss), "ss params is nil")
@@ -314,6 +291,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 				return errors.WrapCaller(stream.SendMsg(reply))
 			},
 		}
+
 		if rule := getExtensionHTTP(methodDesc.Options()); rule != nil {
 			for _, mth := range getMethod(rule, methodDesc, grpcMethod) {
 				m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))

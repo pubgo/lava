@@ -7,7 +7,7 @@ import (
 
 var _ grpc.ServerTransportStream = (*serverTransportStream)(nil)
 
-// serverTransportStream wraps gprc.SeverStream to support header/trailers.
+// serverTransportStream wraps grpc.SeverStream to support header/trailers.
 type serverTransportStream struct {
 	grpc.ServerStream
 	method string
