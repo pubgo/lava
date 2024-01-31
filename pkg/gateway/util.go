@@ -34,29 +34,34 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 
 		var doRequest = path.opts.handlers[path.grpcMethodName]
 
+		fmt.Println(wsutil.IsWebSocketUpgrade(ctx))
 		if wsutil.IsWebSocketUpgrade(ctx) {
+			ctx.Context().Request.Header.SetMethod(http.MethodGet)
+			fmt.Println(ctx.Context().IsGet())
+			fmt.Println(string(ctx.Context().Method()))
 			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
 				return errors.Format("服务不支持 websocket")
 			}
 
 			conn, err := wsutil.New(ctx)
-			err := doRequest(path.opts, &streamWS{
-				ctx:      ctx.Context(),
+			if err != nil {
+				return err
+			}
+
+			return doRequest(&streamWS{
+				ctx:      ctx,
 				conn:     conn,
 				pathRule: path,
 				params:   values,
 			})
-			return nil
 		}
 
-		err := doRequest(path.opts, &streamHTTP{
+		return doRequest(&streamHTTP{
 			ctx:    ctx,
 			method: path,
 			params: values,
 			opts:   path.opts,
 		})
-
-		return err
 	}
 }
 
@@ -144,7 +149,7 @@ func getPathVariables(fields protoreflect.FieldDescriptors, path string) map[str
 	return ret
 }
 
-func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, name string) []*httpPathRule {
+func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, name string) []*httpPathRule {
 	if rule == nil {
 		return nil
 	}
@@ -177,6 +182,7 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 
 	// Method already registered.
 	m := &httpPathRule{
+		opts: opts,
 		desc: desc,
 		//vars:           getPathVariables(inputFieldDescriptors, pathUrl),
 		grpcMethodName: name,
@@ -212,7 +218,13 @@ func getMethod(rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, n
 	var data = []*httpPathRule{m}
 	for _, addRule := range rule.AdditionalBindings {
 		assert.If(len(addRule.AdditionalBindings) != 0, "nested rules are not allowed")
-		data = append(data, getMethod(addRule, desc, name)...)
+		for _, m1 := range getMethod(opts, addRule, desc, name) {
+			if m1 == nil {
+				continue
+			}
+
+			data = append(data, m1)
+		}
 	}
 	return data
 }

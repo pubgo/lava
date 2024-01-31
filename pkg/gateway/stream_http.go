@@ -3,19 +3,17 @@ package gateway
 import (
 	"context"
 	"fmt"
-	_ "github.com/gofiber/contrib/websocket"
+	"net/http"
+	"net/url"
+
 	"github.com/gofiber/fiber/v2"
-	_ "github.com/gorilla/websocket"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-	"github.com/mailgun/holster/v4/errors"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"net/http"
-	"net/url"
-	_ "nhooyr.io/websocket"
 )
 
 type streamHTTP struct {

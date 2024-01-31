@@ -6,6 +6,7 @@ package gateway
 
 import (
 	"fmt"
+	"github.com/pubgo/lava/pkg/httputil"
 	"io"
 	"math"
 	"net/http"
@@ -25,7 +26,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-type handlerFunc func(*muxOptions, grpc.ServerStream) error
+type handlerFunc func(grpc.ServerStream) error
 
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
@@ -154,7 +155,7 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 }
 
 type Mux struct {
-	opts muxOptions
+	opts *muxOptions
 	mu   sync.Mutex
 }
 
@@ -201,12 +202,31 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 	sort.Strings(muxOpts.encodingTypeOffers)
 
+	muxOpts.app.Use(func(ctx *fiber.Ctx) error {
+		if httputil.IsWebsocket(&ctx.Request().Header) {
+			ctx.Context().Request.Header.SetMethod(http.MethodPost)
+			fmt.Println(ctx.Context().Request.String())
+		}
+		return nil
+	})
 	return &Mux{
-		opts: muxOpts,
+		opts: &muxOpts,
 	}
 }
 
 func (m *Mux) GetApp() *fiber.App { return m.opts.app }
+
+func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) *Mux {
+	m.opts.unaryInterceptor = interceptor
+	return m
+}
+
+// WithServerStreamInterceptor configures the in-process channel to use the
+// given server interceptor for streaming RPCs when dispatching.
+func (m *Mux) WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor) *Mux {
+	m.opts.streamInterceptor = interceptor
+	return m
+}
 
 // RegisterService satisfies grpc.ServiceRegistrar for generated service code hooks.
 func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
@@ -257,10 +277,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		m.opts.handlers[grpcMethod] = func(opts *muxOptions, stream grpc.ServerStream) error {
+		fmt.Println(grpcMethod)
+		m.opts.handlers[grpcMethod] = func(stream grpc.ServerStream) error {
 			ctx := stream.Context()
 
-			reply, err := grpcMth.Handler(ss, ctx, stream.RecvMsg, opts.unaryInterceptor)
+			reply, err := grpcMth.Handler(ss, ctx, stream.RecvMsg, m.opts.unaryInterceptor)
 			if err != nil {
 				return errors.WrapCaller(err)
 			}
@@ -269,7 +290,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		}
 
 		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
-			opts:           &m.opts,
+			opts:           m.opts,
 			desc:           methodDesc,
 			httpMethod:     http.MethodPost,
 			httpPath:       grpcMethod,
@@ -280,7 +301,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			hasRspBody:     true,
 		}))
 
-		for _, mth := range getMethod(getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
+		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
 			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
 		}
 	}
@@ -295,22 +316,22 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			return err
 		}
 
-		m.opts.handlers[grpcMethod] = func(opts *muxOptions, stream grpc.ServerStream) error {
+		m.opts.handlers[grpcMethod] = func(stream grpc.ServerStream) error {
 			info := &grpc.StreamServerInfo{
 				FullMethod:     grpcMethod,
 				IsClientStream: grpcMth.ClientStreams,
 				IsServerStream: grpcMth.ServerStreams,
 			}
 
-			if opts.streamInterceptor != nil {
-				return opts.streamInterceptor(stream.Context(), stream, info, grpcMth.Handler)
+			if m.opts.streamInterceptor != nil {
+				return m.opts.streamInterceptor(stream.Context(), stream, info, grpcMth.Handler)
 			} else {
 				return grpcMth.Handler(ss, stream)
 			}
 		}
 
 		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
-			opts:           &m.opts,
+			opts:           m.opts,
 			desc:           methodDesc,
 			httpMethod:     http.MethodPost,
 			httpPath:       grpcMethod,
@@ -321,7 +342,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			hasRspBody:     true,
 		}))
 
-		for _, mth := range getMethod(getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
+		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
+			if mth.httpMethod == "WEBSOCKET" {
+				continue
+			}
+
 			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
 		}
 	}

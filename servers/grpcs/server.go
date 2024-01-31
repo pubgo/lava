@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/proto/errorpb"
+	"github.com/pubgo/lava/pkg/gateway"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/larking"
@@ -204,6 +205,8 @@ func (s *serviceImpl) DixInject(
 
 	httpServer.Mount("/debug", debug.App())
 
+	var ggg = gateway.NewMux()
+
 	app := fiber.New()
 	app.Use(handlerHttpMiddle(middlewares))
 	for _, h := range httpRouters {
@@ -371,12 +374,17 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 
+		ggg.RegisterService(desc, h)
+
 		s.reg.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
 			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
 		}
 	}
+
+	ggg.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	ggg.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
@@ -419,6 +427,9 @@ func (s *serviceImpl) DixInject(
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
 	httpServer.Group(apiPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway))))
+
+	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "api-gw"))
+	httpServer.Mount(apiPrefix1, ggg.GetApp())
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")

@@ -40,7 +40,7 @@ service Id {
 
   rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
     option (google.api.http) = {
-      custom : {kind : "websocket" path : "/ws/chat"}
+      post : "/ws/chat"
       body : "*"
     };
   }
@@ -92,7 +92,9 @@ message GenerateRequest {
 }
 
 // List the types of IDs available. No query params needed.
-message TypesRequest {}
+message TypesRequest {
+  string name=1;
+}
 
 // TypesResponse 返回值类型
 message TypesResponse {
