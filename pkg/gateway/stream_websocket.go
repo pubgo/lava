@@ -10,18 +10,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"net/http"
 	"net/url"
 	"time"
 )
-
-var upgrade = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
 
 const (
 	// Time allowed to write a message to the peer.
@@ -36,8 +27,6 @@ const (
 	// Maximum message size allowed from peer.
 	maxMessageSize = 1024 * 10
 )
-
-const kindWebsocket = "WEBSOCKET"
 
 type streamWS struct {
 	ctx        context.Context
@@ -54,8 +43,8 @@ func (s *streamWS) SetHeader(md metadata.MD) error {
 		s.header = metadata.Join(s.header, md)
 	}
 	return nil
-
 }
+
 func (s *streamWS) SendHeader(md metadata.MD) error {
 	if s.sentHeader {
 		return nil // already sent?

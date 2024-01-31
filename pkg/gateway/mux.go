@@ -5,7 +5,6 @@
 package gateway
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"math"
@@ -25,6 +24,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
+
+type handlerFunc func(*muxOptions, grpc.ServerStream) error
 
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
@@ -73,22 +74,6 @@ func (o *muxOptions) writeAll(dst io.Writer, b []byte) error {
 		return io.ErrShortWrite
 	}
 	return err
-}
-
-// unary is a nil-safe interceptor unary call.
-func (o *muxOptions) unary(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	if ui := o.unaryInterceptor; ui != nil {
-		return ui(ctx, req, info, handler)
-	}
-	return handler(ctx, req)
-}
-
-// stream is a nil-safe interceptor stream call.
-func (o *muxOptions) stream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	if si := o.streamInterceptor; si != nil {
-		return si(srv, ss, info, handler)
-	}
-	return handler(srv, ss)
 }
 
 // MuxOption is an option for a mux.
@@ -317,7 +302,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 				IsServerStream: grpcMth.ServerStreams,
 			}
 
-			return opts.stream(ss, stream, info, grpcMth.Handler)
+			if opts.streamInterceptor != nil {
+				return opts.streamInterceptor(stream.Context(), stream, info, grpcMth.Handler)
+			} else {
+				return grpcMth.Handler(ss, stream)
+			}
 		}
 
 		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
