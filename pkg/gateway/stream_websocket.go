@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
@@ -33,10 +34,10 @@ type streamWS struct {
 	ctx        *fiber.Ctx
 	conn       *websocket.Conn
 	pathRule   *httpPathRule
-	header     metadata.MD
-	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
+	header     metadata.MD
+	trailer    metadata.MD
 }
 
 func (s *streamWS) SetHeader(md metadata.MD) error {
@@ -62,8 +63,10 @@ func (s *streamWS) SetTrailer(md metadata.MD) {
 
 func (s *streamWS) Context() context.Context {
 	//metadata.NewIncomingContext()
+	fmt.Println("Context", s.ctx.Context())
+	s.ctx.SetUserContext(s.ctx.Context())
 	sts := &serverTransportStream{ServerStream: s, method: s.pathRule.grpcMethodName}
-	return grpc.NewContextWithServerTransportStream(s.ctx.Context(), sts)
+	return grpc.NewContextWithServerTransportStream(s.ctx.UserContext(), sts)
 }
 
 func (s *streamWS) SendMsg(v interface{}) error {

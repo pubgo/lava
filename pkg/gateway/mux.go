@@ -6,7 +6,6 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/pubgo/lava/pkg/httputil"
 	"io"
 	"math"
 	"net/http"
@@ -93,7 +92,7 @@ var (
 		connectionTimeout:     defaultServerConnectionTimeout,
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
-		app:                   fiber.New(),
+		app:                   fiber.New(fiber.Config{EnablePrintRoutes: true}),
 		handlers:              make(map[string]handlerFunc),
 	}
 
@@ -202,13 +201,6 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 	sort.Strings(muxOpts.encodingTypeOffers)
 
-	muxOpts.app.Use(func(ctx *fiber.Ctx) error {
-		if httputil.IsWebsocket(&ctx.Request().Header) {
-			ctx.Context().Request.Header.SetMethod(http.MethodPost)
-			fmt.Println(ctx.Context().Request.String())
-		}
-		return nil
-	})
 	return &Mux{
 		opts: &muxOpts,
 	}
@@ -324,7 +316,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			}
 
 			if m.opts.streamInterceptor != nil {
-				return m.opts.streamInterceptor(stream.Context(), stream, info, grpcMth.Handler)
+				return m.opts.streamInterceptor(ss, stream, info, grpcMth.Handler)
 			} else {
 				return grpcMth.Handler(ss, stream)
 			}
@@ -347,7 +339,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 				continue
 			}
 
-			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
+			m.opts.app.Add(http.MethodGet, mth.httpPath, handlerWrap(mth))
 		}
 	}
 

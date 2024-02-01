@@ -52,7 +52,7 @@ type Config struct {
 
 // New returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
-func New(ctx *fiber.Ctx, config ...Config) (c *websocket.Conn, err error) {
+func New(ctx *fiber.Ctx, call func(c *websocket.Conn), config ...Config) (err error) {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
@@ -91,12 +91,7 @@ func New(ctx *fiber.Ctx, config ...Config) (c *websocket.Conn, err error) {
 			return false
 		}}
 
-	err = wsUp.Upgrade(ctx.Context(), func(conn *websocket.Conn) { c = conn })
-	if err != nil { // Upgrading required
-		return nil, fiber.ErrUpgradeRequired
-	}
-
-	return
+	return wsUp.Upgrade(ctx.Context(), call)
 }
 
 // Close codes defined in RFC 6455, section 11.7.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
@@ -34,25 +35,19 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 
 		var doRequest = path.opts.handlers[path.grpcMethodName]
 
-		fmt.Println(wsutil.IsWebSocketUpgrade(ctx))
+		fmt.Println("IsWebSocketUpgrade", wsutil.IsWebSocketUpgrade(ctx))
 		if wsutil.IsWebSocketUpgrade(ctx) {
-			ctx.Context().Request.Header.SetMethod(http.MethodGet)
-			fmt.Println(ctx.Context().IsGet())
-			fmt.Println(string(ctx.Context().Method()))
 			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
 				return errors.Format("服务不支持 websocket")
 			}
 
-			conn, err := wsutil.New(ctx)
-			if err != nil {
-				return err
-			}
-
-			return doRequest(&streamWS{
-				ctx:      ctx,
-				conn:     conn,
-				pathRule: path,
-				params:   values,
+			return wsutil.New(ctx, func(c *websocket.Conn) {
+				fmt.Println(doRequest(&streamWS{
+					ctx:      ctx,
+					conn:     c,
+					pathRule: path,
+					params:   values,
+				}))
 			})
 		}
 
