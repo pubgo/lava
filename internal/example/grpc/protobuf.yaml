@@ -1,4 +1,4 @@
-checksum: b3ba79da7fbdc8a2739ff807693935b7deecd91c
+checksum: aee8784f82df4d509be444939f78575ded8b0af7
 vendor: ../../../.proto
 root:
   - proto
@@ -40,17 +40,8 @@ plugins:
     out: pkg/proto
     opt:
       - paths=import
-  - name: grpc-gateway
-    out: pkg/proto
-    opt:
-      - paths=import
-  - name: openapiv2
+  - name: openapi
     skip_base: true
     opt:
-      - use_allof_for_refs=true
-      - proto3_optional_nullable=true
-      - generate_unbound_methods=true
-      - allow_merge=true
-      - merge_file_name=openapi
-      - use_go_templates=true
-      - openapi_naming_strategy=simple
+      - default_response=true
+      - enum_type=string

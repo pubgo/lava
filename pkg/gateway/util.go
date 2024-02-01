@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsutil"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
@@ -35,20 +36,22 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 
 		var doRequest = path.opts.handlers[path.grpcMethodName]
 
-		fmt.Println("IsWebSocketUpgrade", wsutil.IsWebSocketUpgrade(ctx))
 		if wsutil.IsWebSocketUpgrade(ctx) {
 			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
 				return errors.Format("服务不支持 websocket")
 			}
 
-			return wsutil.New(ctx, func(c *websocket.Conn) {
+			return httputil.HTTPHandler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				request.Header.Del("Sec-Websocket-Extensions")
+				conn, err := new(websocket.Upgrader).Upgrade(writer, request, request.Header)
+				assert.Must(err)
 				fmt.Println(doRequest(&streamWS{
 					ctx:      ctx,
-					conn:     c,
+					conn:     conn,
 					pathRule: path,
 					params:   values,
 				}))
-			})
+			}))(ctx)
 		}
 
 		return doRequest(&streamHTTP{
@@ -175,6 +178,10 @@ func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.M
 
 	assert.If(strings.Contains(pathUrl, ":"), "grpc http rule pattern url should not contain ':'")
 
+	normalPath := strings.ReplaceAll(pathUrl, ".", "_")
+	normalPath = strings.ReplaceAll(normalPath, "}", "")
+	normalPath = strings.ReplaceAll(normalPath, "{", ":")
+
 	// Method already registered.
 	m := &httpPathRule{
 		opts: opts,
@@ -186,7 +193,7 @@ func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.M
 
 		// TODO 未来需要调整
 		vars:     getPathVarMap(pathUrl),
-		httpPath: strings.ReplaceAll(pathUrl, ".", "_"),
+		httpPath: normalPath,
 		isGroup:  isGroup(pathUrl),
 	}
 

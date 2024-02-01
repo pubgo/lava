@@ -444,7 +444,10 @@ func RegisterIdHandlerClient(ctx context.Context, mux *runtime.ServeMux, client 
 			return
 		}
 
-		forward_Id_Chat_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_Id_Chat_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) {
+			res, err := resp.Recv()
+			return response_Id_Chat_0{res}, err
+		}, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -471,6 +474,15 @@ func RegisterIdHandlerClient(ctx context.Context, mux *runtime.ServeMux, client 
 	})
 
 	return nil
+}
+
+type response_Id_Chat_0 struct {
+	proto.Message
+}
+
+func (m response_Id_Chat_0) XXX_ResponseBody() interface{} {
+	response := m.Message.(*ChatMessage)
+	return response.Msg
 }
 
 var (
