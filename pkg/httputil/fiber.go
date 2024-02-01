@@ -3,13 +3,20 @@ package httputil
 import (
 	"bufio"
 	"github.com/gofiber/fiber/v2"
+	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 	"io"
 	"net"
 	"net/http"
-
-	"github.com/valyala/fasthttp"
+	"strings"
 )
+
+func StripPrefix(prefix string, hh fiber.Handler) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), prefix))
+		return hh(ctx)
+	}
+}
 
 func HTTPHandler(h http.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {

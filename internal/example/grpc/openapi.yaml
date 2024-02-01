@@ -31,12 +31,6 @@ paths:
                     description: OK
                     content:
                         '*/*': {}
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /v1/id/generate:
         post:
             tags:
@@ -56,12 +50,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GenerateResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /v1/id/types:
         get:
             tags:
@@ -80,16 +68,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TypesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /v1/id/types1:
         get:
             tags:
                 - Id
+            description: 返回流
             operationId: Id_TypeStream
             parameters:
                 - name: name
@@ -103,16 +86,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TypesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /ws/chat/{sessionId}:
         post:
             tags:
                 - Id
+            description: 聊天
             operationId: Id_Chat
             parameters:
                 - name: sessionId
@@ -137,12 +115,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ChatMessage'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
 components:
     schemas:
         ChatMessage:
@@ -177,14 +149,6 @@ components:
                 type:
                     type: string
                     description: the type of id generated
-        GoogleProtobufAny:
-            type: object
-            properties:
-                '@type':
-                    type: string
-                    description: The type of the serialized message.
-            additionalProperties: true
-            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
         Message:
             type: object
             properties:
@@ -192,22 +156,6 @@ components:
                     type: string
                 text:
                     type: string
-        Status:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-                    format: int32
-                message:
-                    type: string
-                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-                details:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/GoogleProtobufAny'
-                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
-            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
         TypesResponse:
             type: object
             properties:

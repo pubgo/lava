@@ -29,6 +29,7 @@ service Id {
     };
   }
 
+  // 返回流
   rpc TypeStream(TypesRequest) returns (stream TypesResponse) {
     option (google.api.http).get = "/v1/id/types1";
   }
@@ -38,6 +39,7 @@ service Id {
     option (google.api.http).get = "/v1/id/types";
   }
 
+  // 聊天
   rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
     option (google.api.http) = {
       post : "/ws/chat/{session_id}"

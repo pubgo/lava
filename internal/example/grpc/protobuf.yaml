@@ -45,3 +45,5 @@ plugins:
     opt:
       - default_response=true
       - enum_type=string
+      - default_response=false
+      - depth=10

@@ -34,9 +34,11 @@ const (
 type IdClient interface {
 	// Generate 生成ID
 	Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error)
+	// 返回流
 	TypeStream(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (Id_TypeStreamClient, error)
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
+	// 聊天
 	Chat(ctx context.Context, opts ...grpc.CallOption) (Id_ChatClient, error)
 	// ws: chat1
 	Chat1(ctx context.Context, opts ...grpc.CallOption) (Id_Chat1Client, error)
@@ -178,9 +180,11 @@ func (c *idClient) UploadDownload(ctx context.Context, in *UploadFileRequest, op
 type IdServer interface {
 	// Generate 生成ID
 	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
+	// 返回流
 	TypeStream(*TypesRequest, Id_TypeStreamServer) error
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
+	// 聊天
 	Chat(Id_ChatServer) error
 	// ws: chat1
 	Chat1(Id_Chat1Server) error

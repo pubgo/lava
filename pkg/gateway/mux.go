@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
@@ -154,6 +155,7 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 }
 
 type Mux struct {
+	cc   *inprocgrpc.Channel
 	opts *muxOptions
 	mu   sync.Mutex
 }
@@ -202,6 +204,7 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	return &Mux{
+		cc:   new(inprocgrpc.Channel),
 		opts: &muxOpts,
 	}
 }
@@ -210,6 +213,7 @@ func (m *Mux) GetApp() *fiber.App { return m.opts.app }
 
 func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) *Mux {
 	m.opts.unaryInterceptor = interceptor
+	m.cc.WithServerUnaryInterceptor(interceptor)
 	return m
 }
 
@@ -217,6 +221,7 @@ func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor
 // given server interceptor for streaming RPCs when dispatching.
 func (m *Mux) WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor) *Mux {
 	m.opts.streamInterceptor = interceptor
+	m.cc.WithServerStreamInterceptor(interceptor)
 	return m
 }
 
@@ -233,6 +238,8 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	if err := m.registerService(sd, ss); err != nil {
 		log.Fatal().Err(err).Msgf("gateway: RegisterService error: %v", err)
 	}
+
+	m.cc.RegisterService(sd, ss)
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -269,7 +276,6 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		fmt.Println(grpcMethod)
 		m.opts.handlers[grpcMethod] = func(stream grpc.ServerStream) error {
 			ctx := stream.Context()
 
