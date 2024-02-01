@@ -49,7 +49,7 @@ func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
 			return err
 		}
 		log.Info().Msg(hello.Name)
-		server.Send(hello)
+		fmt.Println(server.Send(hello))
 	}
 }
 

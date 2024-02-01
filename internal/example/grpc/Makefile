@@ -22,3 +22,8 @@ build-gid:
 
 vet:
 	@go vet ./...
+
+.PHONY: protobuf
+protobuf:
+	protobuild vendor
+	protobuild gen
