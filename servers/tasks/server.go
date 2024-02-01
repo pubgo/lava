@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
@@ -34,6 +35,7 @@ type Server struct {
 	log        log.Logger
 	lc         lifecycle.Getter
 	httpServer *fiber.App
+	conf       *Config
 }
 
 func (s *Server) Run() {
@@ -46,10 +48,17 @@ func (s *Server) DixInject(
 	getLifecycle lifecycle.Getter,
 	log log.Logger,
 	empty []*lava.EmptyRouter,
+	conf []*Config,
 ) {
 	_ = empty
 	s.lc = getLifecycle
 	s.log = log.WithName("task-server")
+
+	if len(conf) > 0 {
+		s.conf = conf[0]
+	} else {
+		s.conf = &Config{HttpPort: generic.Ptr(running.HttpPort)}
+	}
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
@@ -87,7 +96,7 @@ func (s *Server) start() {
 		return nil
 	})
 
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
+	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", generic.DePtr(s.conf.HttpPort))))
 
 	logutil.OkOrFailed(s.log, "service starts", func() error {
 		async.GoDelay(func() error {
