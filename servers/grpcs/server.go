@@ -3,6 +3,7 @@ package grpcs
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/core/annotation"
 	"net"
 	"net/http"
 	"net/url"
@@ -190,28 +191,24 @@ func (s *serviceImpl) DixInject(
 	app := fiber.New()
 	app.Use(handlerHttpMiddle(middlewares))
 	for _, h := range httpRouters {
-		//srv := doc.WithService()
-		//for _, an := range h.Annotation() {
-		//	switch a := an.(type) {
-		//	case *annotation.Openapi:
-		//		if a.ServiceName != "" {
-		//			srv.SetName(a.ServiceName)
-		//		}
-		//	}
-		//}
-
-		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
-		h.Router(&lava.Router{
-			R:   g,
-			Doc: doc.WithService(),
-		})
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
+		srv := doc.WithService()
+		for _, an := range h.Annotation() {
+			switch a := an.(type) {
+			case *annotation.Openapi:
+				if a.ServiceName != "" {
+					srv.SetName(a.ServiceName)
+				}
+			}
 		}
+
+		h.Router(&lava.Router{R: app.Group("", handlerHttpMiddle(h.Middlewares())), Doc: srv})
 
 		if m, ok := h.(lava.Init); ok {
 			s.initList = append(s.initList, m.Init)
+		}
+
+		if m, ok := h.(lava.Initializer); ok {
+			s.initList = append(s.initList, m.Initialize)
 		}
 	}
 
@@ -225,10 +222,6 @@ func (s *serviceImpl) DixInject(
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
 
 		if m, ok := h.(lava.Initializer); ok {
 			s.initList = append(s.initList, m.Initialize)
@@ -266,7 +259,7 @@ func (s *serviceImpl) DixInject(
 		return nil
 	}))
 
-	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
+	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
 	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
 		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {

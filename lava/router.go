@@ -24,7 +24,7 @@ type GrpcGatewayRouter interface {
 type HttpRouter interface {
 	Middlewares() []Middleware
 	Router(router *Router)
-	//Annotation() []Annotation
+	Annotation() []Annotation
 }
 
 type Router struct {

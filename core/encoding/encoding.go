@@ -21,7 +21,7 @@ func Get(name string) Codec {
 		return nil
 	}
 
-	return val.(Codec)
+	return val
 }
 
 func Keys() []string { return data.Keys() }
