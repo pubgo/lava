@@ -253,14 +253,11 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
 
 	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, func(ctx *fiber.Ctx) error {
-		mux.GetApp().Handler()(ctx.Context())
-		return nil
-	}))
+	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.ServeFast))
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
-	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
+	httpServer.Group(grpcWebApiPrefix, adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
 		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
 				writer.WriteHeader(http.StatusNoContent)

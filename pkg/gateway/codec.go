@@ -7,22 +7,13 @@ package gateway
 import (
 	"encoding/binary"
 	"fmt"
-	"io"
-	"sync"
-
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/encoding/protodelim"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
+	"io"
 )
-
-var bytesPool = sync.Pool{
-	New: func() interface{} {
-		b := make([]byte, 0, 64)
-		return &b
-	},
-}
 
 // growcap scales up the capacity of a slice.
 // Taken from the Go 1.14 runtime and proto package.

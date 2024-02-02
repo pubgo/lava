@@ -27,6 +27,10 @@ type IdHttp struct {
 	service   *gid_client.Service
 }
 
+func (id *IdHttp) Annotation() []lava.Annotation {
+	return nil
+}
+
 func (id *IdHttp) Router(router *lava.Router) {
 	router.R.Get("/test123", func(ctx *fiber.Ctx) error {
 		ctx.WriteString("hello world")

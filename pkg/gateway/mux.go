@@ -5,9 +5,14 @@
 package gateway
 
 import (
+	"context"
 	"fmt"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttputil"
 	"io"
 	"math"
+	"net"
 	"net/http"
 	"reflect"
 	"sort"
@@ -154,10 +159,54 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 	}
 }
 
+var _ Gateway = (*Mux)(nil)
+
 type Mux struct {
 	cc   *inprocgrpc.Channel
 	opts *muxOptions
 	mu   sync.Mutex
+	mem  *fasthttputil.InmemoryListener
+}
+
+func (m *Mux) ServeFast(ctx *fiber.Ctx) error {
+	m.opts.app.Handler()(ctx.Context())
+	return nil
+}
+
+func (m *Mux) FastClient() *fasthttp.Client {
+	return &fasthttp.Client{
+		Dial:                func(addr string) (net.Conn, error) { return m.mem.Dial() },
+		MaxConnsPerHost:     100,
+		MaxIdleConnDuration: 90 * time.Second,
+		ReadTimeout:         10 * time.Second,
+	}
+}
+
+func (m *Mux) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {
+	return m.cc.Invoke(ctx, method, args, reply, opts...)
+}
+
+func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	return m.cc.NewStream(ctx, desc, method, opts...)
+}
+
+func (m *Mux) HttpClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return m.mem.Dial()
+			},
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+	}
+}
+
+func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	adaptor.FiberApp(m.opts.app).ServeHTTP(writer, request)
 }
 
 func NewMux(opts ...MuxOption) *Mux {
@@ -204,25 +253,24 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	return &Mux{
-		cc:   new(inprocgrpc.Channel),
 		opts: &muxOpts,
+		cc:   new(inprocgrpc.Channel),
+		mem:  fasthttputil.NewInmemoryListener(),
 	}
 }
 
 func (m *Mux) GetApp() *fiber.App { return m.opts.app }
 
-func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) *Mux {
+func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.opts.unaryInterceptor = interceptor
 	m.cc.WithServerUnaryInterceptor(interceptor)
-	return m
 }
 
 // WithServerStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
-func (m *Mux) WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor) *Mux {
+func (m *Mux) WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.opts.streamInterceptor = interceptor
 	m.cc.WithServerStreamInterceptor(interceptor)
-	return m
 }
 
 // RegisterService satisfies grpc.ServiceRegistrar for generated service code hooks.
