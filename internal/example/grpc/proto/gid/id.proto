@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "errorpb/options.proto";
 import "errorpb/code.proto";
+import "openapiv3/annotations.proto";
 import "google/api/httpbody.proto";
 
 message GenerateResponse {
@@ -41,6 +42,10 @@ service Id {
 
   // 聊天
   rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
+    option (openapi.v3.operation).tags = "chat/test/tag";
+    option (openapi.v3.operation).tags = "chat/test/tag1";
+    option (openapi.v3.operation).summary = "聊天";
+
     option (google.api.http) = {
       post : "/ws/chat/{session_id}"
       body : "msg"

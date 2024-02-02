@@ -90,6 +90,9 @@ paths:
         post:
             tags:
                 - Id
+                - chat/test/tag
+                - chat/test/tag1
+            summary: 聊天
             description: 聊天
             operationId: Id_Chat
             parameters:
