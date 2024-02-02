@@ -3,14 +3,11 @@ package grpcs
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/core/annotation"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
-	_ "github.com/fullstorydev/grpchan/httpgrpc"
-	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -25,6 +22,7 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/gateway"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -84,7 +82,6 @@ func (s *serviceImpl) DixInject(
 	docs []*opendoc.Swagger,
 	empty []*lava.EmptyRouter,
 ) {
-	_ = empty
 	s.conf = conf
 	if conf.HttpPort == nil {
 		conf.HttpPort = generic.Ptr(running.HttpPort)
@@ -251,33 +248,35 @@ func (s *serviceImpl) DixInject(
 		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
-
-	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.ServeFast))
+	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
+	httpServer.Group(apiPrefix, httputil.StripPrefix(apiPrefix, mux.ServeFast))
 
 	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc"))
 	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
-	httpServer.Group(grpcWebApiPrefix, adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
-		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
-				writer.WriteHeader(http.StatusNoContent)
-				return
-			}
+	var muxHandler = httputil.HTTPHandler(h2c.NewHandler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
+			writer.WriteHeader(http.StatusNoContent)
+			return
+		}
 
-			if wrappedGrpc.IsGrpcWebSocketRequest(request) {
-				wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
-				return
-			}
+		if wrappedGrpc.IsGrpcWebSocketRequest(request) {
+			wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
+			return
+		}
 
-			if wrappedGrpc.IsGrpcWebRequest(request) {
-				wrappedGrpc.HandleGrpcWebRequest(writer, request)
-				return
-			}
+		if wrappedGrpc.IsGrpcWebRequest(request) {
+			wrappedGrpc.HandleGrpcWebRequest(writer, request)
+			return
+		}
 
-			if grpcutil.IsGRPCRequest(request) {
-				grpcServer.ServeHTTP(writer, request)
-			}
-		})), new(http2.Server))))
+		if grpcutil.IsGRPCRequest(request) {
+			grpcServer.ServeHTTP(writer, request)
+			return
+		}
+
+		mux.ServeHTTP(writer, request)
+	}), &http2.Server{}))
+	httpServer.Group(grpcWebApiPrefix, httputil.StripPrefix(grpcWebApiPrefix, muxHandler))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
