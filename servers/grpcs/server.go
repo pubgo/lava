@@ -212,10 +212,7 @@ func (s *serviceImpl) DixInject(
 		//}
 
 		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
-		h.Router(&lava.Router{
-			R:   g,
-			Doc: doc.WithService(),
-		})
+		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
@@ -243,10 +240,7 @@ func (s *serviceImpl) DixInject(
 		}
 
 		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
-		h.Router(&lava.Router{
-			R:   g,
-			Doc: doc.WithService(),
-		})
+		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)

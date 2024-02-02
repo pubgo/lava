@@ -17,7 +17,6 @@ import (
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/servers/https/httprouter"
-	"github.com/pubgo/opendoc/opendoc"
 	"github.com/teris-io/shortid"
 )
 
@@ -39,20 +38,9 @@ func (t *Id) Annotation() []lava.Annotation {
 	}
 }
 
-func (t *Id) Router(router *lava.Router) {
-	httprouter.Get(router, "/types", t.Types,
-		func(op *opendoc.Operation) {
-			op.SetSummary("获取类型")
-			op.SetOperation("get_types")
-		},
-	)
-
-	httprouter.Post(router, "/generate", t.Generate,
-		func(op *opendoc.Operation) {
-			op.SetSummary("生成 id")
-			op.SetOperation("create_id")
-		},
-	)
+func (t *Id) Router(router fiber.Router) {
+	router.Get("/types", httprouter.WrapHandler(t.Types))
+	router.Post("/generate", httprouter.WrapHandler(t.Generate))
 }
 
 func (t *Id) Prefix() string {

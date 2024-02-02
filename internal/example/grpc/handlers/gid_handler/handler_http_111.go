@@ -27,8 +27,8 @@ func (id *IdHttp111) Annotation() []lava.Annotation {
 	return nil
 }
 
-func (id *IdHttp111) Router(router *lava.Router) {
-	router.R.Get("/test123111", func(ctx *fiber.Ctx) error {
+func (id *IdHttp111) Router(router fiber.Router) {
+	router.Get("/test123111", func(ctx *fiber.Ctx) error {
 		ctx.WriteString("hello world")
 		return nil
 	})

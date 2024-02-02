@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc"
 )
 
@@ -23,11 +22,6 @@ type GrpcGatewayRouter interface {
 
 type HttpRouter interface {
 	Middlewares() []Middleware
-	Router(router *Router)
+	Router(router fiber.Router)
 	//Annotation() []Annotation
-}
-
-type Router struct {
-	R   fiber.Router
-	Doc *opendoc.Service
 }

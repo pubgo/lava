@@ -78,27 +78,6 @@ func (s *serviceImpl) DixInject(
 		ParserType:        parserTypes,
 	})
 
-	var doc = opendoc.New(func(swag *opendoc.Swagger) {
-		swag.Config.Title = "service title "
-		swag.Description = "this is description"
-		swag.License = &opendoc.License{
-			Name: "Apache License 2.0",
-			URL:  "https://github.com/pubgo/opendoc/blob/master/LICENSE",
-		}
-
-		swag.Contact = &opendoc.Contact{
-			Name:  "barry",
-			URL:   "https://github.com/pubgo/opendoc",
-			Email: "kooksee@163.com",
-		}
-
-		swag.TermsOfService = "https://github.com/pubgo"
-	})
-	if len(docs) > 0 {
-		doc = docs[0]
-	}
-	doc.SetRootPath(cfg.BaseUrl)
-
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -152,7 +131,6 @@ func (s *serviceImpl) DixInject(
 
 	for _, h := range handlers {
 		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
-		srv := doc.WithService()
 
 		//for _, an := range h.Annotation() {
 		//	switch a := an.(type) {
@@ -163,10 +141,7 @@ func (s *serviceImpl) DixInject(
 		//	}
 		//}
 
-		h.Router(&lava.Router{
-			R:   g,
-			Doc: srv,
-		})
+		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
@@ -175,7 +150,6 @@ func (s *serviceImpl) DixInject(
 
 	s.httpServer.Mount("/debug", debug.App())
 	s.httpServer.Mount(cfg.BaseUrl, app)
-	doc.InitRouter(s.httpServer)
 
 	// 网关初始化
 	if cfg.EnablePrintRouter {
