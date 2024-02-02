@@ -78,7 +78,6 @@ func (s *serviceImpl) DixInject(
 	httpRouters []lava.HttpRouter,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
-	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
