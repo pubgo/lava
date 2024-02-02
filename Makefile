@@ -9,7 +9,7 @@ GOPATH=$(shell go env GOPATH )
 LDFLAGS=-ldflags " \
 -X '${Base}/version.buildTime=${BuildTime}' \
 -X '${Base}/version.commitID=${CommitID}' \
--X '${Base}/version.version=${Version:=v0.0.1-dev}' \
+-X '${Base}/version.version=${Version:-"v0.0.1-dev"}' \
 -X '${Base}/version.project=${Project}' \
 "
 

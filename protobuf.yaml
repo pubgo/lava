@@ -23,4 +23,3 @@ plugins:
   - name: go-grpc
     opt:
       - require_unimplemented_servers=false
-  - name: grpc-gateway

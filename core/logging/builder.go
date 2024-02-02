@@ -2,24 +2,24 @@ package logging
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
-	"github.com/rs/zerolog"
-	zl "github.com/rs/zerolog/log"
 	"os"
 	"time"
 
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/rs/zerolog"
 )
 
 // New logger
 func New(cfg *Config) log.Logger {
 	defer recovery.Exit()
 
-	level, err := zerolog.ParseLevel(cfg.Level)
-	if err != nil || level == zerolog.NoLevel {
-		level = zerolog.DebugLevel
+	var level = zerolog.DebugLevel
+	if cfg.Level != "" {
+		level = result.Of(zerolog.ParseLevel(cfg.Level)).Expect("log level is invalid")
 	}
 	zerolog.SetGlobalLevel(level)
 
@@ -44,7 +44,6 @@ func New(cfg *Config) log.Logger {
 	}
 
 	logger = ee.Logger()
-	zl.Logger = logger
 	log.SetLogger(&logger)
 
 	gl := log.New(&logger)

@@ -50,7 +50,6 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.6.0
-	github.com/dgrr/http2 v0.3.5
 	github.com/fasthttp/websocket v1.5.7
 	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpchan v1.1.1
@@ -61,6 +60,7 @@ require (
 	github.com/gofiber/template v1.6.25
 	github.com/gofiber/utils v1.0.1
 	github.com/gofiber/websocket/v2 v2.1.5
+	github.com/google/gnostic v0.5.7-v3refs
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
@@ -166,7 +166,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/twmb/murmur3 v1.1.5 // indirect
-	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect

@@ -5,8 +5,6 @@ package lava.service;
 import "google/protobuf/descriptor.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "errorpb/options.proto";
-import "errorpb/code.proto";
 import "errorpb/errors.proto";
 
 option go_package = "github.com/pubgo/lava/pkg/proto/errcodepb;errcodepb";
