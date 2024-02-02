@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/errors"
@@ -30,7 +29,6 @@ var typesReq = &resty.RequestConfig{
 }
 
 var _ lava.GrpcRouter = (*Id)(nil)
-var _ lava.GrpcGatewayRouter = (*Id)(nil)
 var _ gidpb.IdServer = (*Id)(nil)
 
 type Id struct {
@@ -49,7 +47,7 @@ func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
 			return err
 		}
 		log.Info().Msg(hello.Name)
-		server.Send(hello)
+		fmt.Println(server.Send(hello))
 	}
 }
 
@@ -67,10 +65,6 @@ func (id *Id) Chat(server gidpb.Id_ChatServer) error {
 		log.Info().Msg(hello.Name)
 		server.Send(hello)
 	}
-}
-
-func (id *Id) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-	return gidpb.RegisterIdHandlerClient(ctx, mux, gidpb.NewIdClient(conn))
 }
 
 func (id *Id) TypeStream(request *gidpb.TypesRequest, server gidpb.Id_TypeStreamServer) error {

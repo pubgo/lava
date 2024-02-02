@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
@@ -27,8 +28,26 @@ type IdHttp struct {
 	service   *gid_client.Service
 }
 
+func (id *IdHttp) Annotation() []lava.Annotation {
+	return nil
+}
+
 func (id *IdHttp) Router(router *lava.Router) {
 	router.R.Get("/test123", func(ctx *fiber.Ctx) error {
+		ctx.WriteString("hello world")
+		return nil
+	})
+
+	router.R.Post("/file", func(ctx *fiber.Ctx) error {
+		form, err := ctx.MultipartForm()
+		assert.Must(err)
+		//map[Content-Disposition:[form-data; name="abc"; filename="WechatIMG856.jpg"] Content-Type:[image/jpeg]]
+		for k, fields := range form.File {
+			for _, f := range fields {
+				fmt.Println(k, f.Filename, f.Size, f.Header)
+			}
+		}
+
 		ctx.WriteString("hello world")
 		return nil
 	})

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package lava.v1;
+
+option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
+
+message FormFile {
+  string name = 1;
+  string filename = 2;
+  repeated string content_type = 3;
+  int64 site = 4;
+}

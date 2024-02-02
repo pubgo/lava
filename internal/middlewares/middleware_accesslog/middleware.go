@@ -3,6 +3,7 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -67,11 +68,13 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		// 错误和panic处理
 		defer func() {
 			if !generic.IsNil(gErr) || logOpts["all"] {
-				evt.Any("req_body", req.Payload())
-				evt.Bytes("req_header", req.Header().Header())
-				if rsp != nil {
-					evt.Any("rsp_body", rsp.Payload())
-					evt.Any("rsp_header", rsp.Header())
+				if !strings.HasPrefix(req.ContentType(), "multipart/form-data") {
+					evt.Any("req_body", req.Payload())
+					evt.Bytes("req_header", req.Header().Header())
+					if rsp != nil {
+						evt.Any("rsp_body", rsp.Payload())
+						evt.Any("rsp_header", rsp.Header())
+					}
 				}
 			}
 

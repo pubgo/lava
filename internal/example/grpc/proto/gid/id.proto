@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "errorpb/options.proto";
 import "errorpb/code.proto";
+import "openapiv3/annotations.proto";
 import "google/api/httpbody.proto";
 
 message GenerateResponse {
@@ -29,6 +30,7 @@ service Id {
     };
   }
 
+  // 返回流
   rpc TypeStream(TypesRequest) returns (stream TypesResponse) {
     option (google.api.http).get = "/v1/id/types1";
   }
@@ -38,10 +40,15 @@ service Id {
     option (google.api.http).get = "/v1/id/types";
   }
 
+  // 聊天
   rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
+    option (openapi.v3.operation).tags = "chat/test/tag";
+    option (openapi.v3.operation).tags = "chat/test/tag1";
+    option (openapi.v3.operation).summary = "聊天";
+
     option (google.api.http) = {
-      custom : {kind : "websocket" path : "/ws/chat"}
-      body : "*"
+      post : "/ws/chat/{session_id}"
+      body : "msg"
     };
   }
 
@@ -62,6 +69,12 @@ message UploadFileRequest {
 }
 
 message ChatMessage {
+  string name = 1;
+  string session_id = 3;
+  Message msg = 2;
+}
+
+message Message {
   string name = 1;
   string text = 2;
 }
@@ -92,7 +105,9 @@ message GenerateRequest {
 }
 
 // List the types of IDs available. No query params needed.
-message TypesRequest {}
+message TypesRequest {
+  string name = 1;
+}
 
 // TypesResponse 返回值类型
 message TypesResponse {

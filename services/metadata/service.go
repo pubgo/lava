@@ -6,13 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/pkg/proto/metadatapb"
+
 	"io"
 	"sort"
 	"sync"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/pkg/proto/metadatapb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,7 +39,6 @@ func NewService(srv *grpc.Server) *Server {
 }
 
 var _ metadatapb.MetadataServer = (*Server)(nil)
-var _ lava.GrpcGatewayRouter = (*Server)(nil)
 
 // Server is api meta server
 type Server struct {
@@ -55,10 +54,6 @@ func (s *Server) Middlewares() []lava.Middleware {
 
 func (s *Server) ServiceDesc() *grpc.ServiceDesc {
 	return &metadatapb.Metadata_ServiceDesc
-}
-
-func (s *Server) RegisterGateway(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
-	return metadatapb.RegisterMetadataHandlerClient(ctx, mux, metadatapb.NewMetadataClient(conn))
 }
 
 func (s *Server) load() error {

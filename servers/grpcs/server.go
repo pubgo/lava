@@ -4,21 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fullstorydev/grpchan/httpgrpc"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/pkg/larking"
-	"github.com/pubgo/lava/pkg/wsproxy"
-	"github.com/pubgo/opendoc/opendoc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/encoding/protojson"
+	"github.com/rs/xid"
 	"io"
 	"net"
 	"net/http"
@@ -26,24 +12,32 @@ import (
 	"strings"
 
 	"github.com/fullstorydev/grpchan"
-	_ "github.com/fullstorydev/grpchan/httpgrpc"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
+	"github.com/pubgo/lava/pkg/gateway"
+	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/pkg/wsproxy"
+	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -351,6 +345,7 @@ func (s *serviceImpl) DixInject(
 		}),
 	)
 
+	var mux = gateway.NewMux()
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -371,6 +366,7 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 
+		mux.RegisterService(desc, h)
 		s.reg.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
@@ -378,6 +374,8 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	mux.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	mux.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
@@ -386,68 +384,23 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
 
-	mux := assert.Must1(larking.NewMux(
-		larking.UnaryServerInterceptorOption(handlerUnaryMiddle(srvMidMap)),
-		larking.StreamServerInterceptorOption(handlerStreamMiddle(srvMidMap)),
-	))
-
 	for _, h := range handlers {
-		mux.RegisterService(h.ServiceDesc(), h)
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	httpgrpc.HandleServices(
-		func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-			httpServer.Post(pattern, httputil.HTTPHandler(http.HandlerFunc(handler)))
-		},
-		assert.Must1(url.JoinPath(conf.BaseUrl, "api")),
-		s.reg,
-		handlerUnaryMiddle(srvMidMap),
-		handlerStreamMiddle(srvMidMap),
-	)
-
-	wrappedGrpc := grpcweb.WrapServer(grpcServer,
-		grpcweb.WithWebsockets(true),
-		grpcweb.WithAllowNonRootResource(true),
-		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
-		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
-		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
-
-	gwPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
-	httpServer.Group(gwPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(gwPrefix, mux)))
+	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
+	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
+	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.ServeFast))
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix+"/*", httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway))))
-
-	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc-web"))
-	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
-	httpServer.Group(grpcWebApiPrefix+"/*", adaptor.HTTPHandler(h2c.NewHandler(http.StripPrefix(grpcWebApiPrefix,
-		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
-				writer.WriteHeader(http.StatusNoContent)
-				return
-			}
-
-			if wrappedGrpc.IsGrpcWebSocketRequest(request) {
-				wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
-				return
-			}
-
-			if wrappedGrpc.IsGrpcWebRequest(request) {
-				wrappedGrpc.HandleGrpcWebRequest(writer, request)
-				return
-			}
-
-			if grpcutil.IsGRPCRequest(request) {
-				grpcServer.ServeHTTP(writer, request)
-			}
-		})), new(http2.Server))))
+	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway))))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config", version.Project()), &conf)
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.GetApp().Stack())
 }
 
 func (s *serviceImpl) start() {

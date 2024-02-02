@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"github.com/pubgo/lava/core/debug"
 	"sort"
 	"strings"
 
@@ -15,9 +16,9 @@ func init() {
 }
 
 func initDebug() {
-	Get("/", func(ctx *fiber.Ctx) error {
+	debug.Get("/", func(ctx *fiber.Ctx) error {
 		pathMap := make(map[string]interface{})
-		stack := App().Stack()
+		stack := debug.App().Stack()
 		for m := range stack {
 			for r := range stack[m] {
 				route := stack[m][r]

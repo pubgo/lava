@@ -8,8 +8,7 @@ CommitID=$(shell git rev-parse --short=8 HEAD)
 LDFLAGS=-ldflags " \
 -X '${Base}/version.buildTime=${BuildTime}' \
 -X '${Base}/version.commitID=${CommitID}' \
--X '${Base}/version.version=${Version}' \
--X '${Base}/version.tag=${Tag}' \
+-X '${Base}/version.version=${Version:-"v0.0.1-dev"}' \
 -X '${Base}/version.project=${Project}' \
 "
 
@@ -22,3 +21,8 @@ build-gid:
 
 vet:
 	@go vet ./...
+
+.PHONY: protobuf
+protobuf:
+	protobuild vendor
+	protobuild gen

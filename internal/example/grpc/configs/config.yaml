@@ -25,5 +25,9 @@ metric:
   driver: "prometheus"
   interval: 5s
 
+grpc_server:
+  enable_print_routes: true
+  enable_cors: true
+
 #task:
 #  http_port: 8081

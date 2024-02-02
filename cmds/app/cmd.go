@@ -29,6 +29,7 @@ import (
 	"github.com/pubgo/lava/services/errorservice"
 	"github.com/pubgo/lava/services/metadata"
 
+	_ "github.com/pubgo/lava/core/debug/debug"
 	// debug
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
