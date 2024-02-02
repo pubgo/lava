@@ -3,22 +3,22 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
-	"google.golang.org/grpc/codes"
 	"reflect"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
@@ -293,14 +293,14 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 	}
 }
 
-func handlerHttpMiddle(middlewares []lava.Middleware) fiber.Handler {
-	h := lava.Chain(middlewares...).Middleware(
-		func(ctx context.Context, req lava.Request) (lava.Response, error) {
-			reqCtx := req.(*httpRequest)
-			reqCtx.ctx.SetUserContext(ctx)
-			return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
-		},
-	)
+func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
+	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		reqCtx := req.(*httpRequest)
+		reqCtx.ctx.SetUserContext(ctx)
+		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
+	}
+
+	h = lava.Chain(middlewares...).Middleware(h)
 	return func(ctx *fiber.Ctx) error {
 		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
 		return err

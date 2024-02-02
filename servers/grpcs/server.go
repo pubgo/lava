@@ -1,36 +1,42 @@
 package grpcs
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/fullstorydev/grpchan"
+	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/annotation"
 	"github.com/pubgo/lava/pkg/gateway"
-	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/pkg/wsproxy"
 	"github.com/pubgo/opendoc/opendoc"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -48,7 +54,10 @@ import (
 func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
-	return &serviceImpl{}
+	return &serviceImpl{
+		reg: make(grpchan.HandlerMap),
+		cc:  new(inprocgrpc.Channel),
+	}
 }
 
 var _ lava.Service = (*serviceImpl)(nil)
@@ -58,6 +67,8 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
+	reg        grpchan.HandlerMap
+	cc         *inprocgrpc.Channel
 	initList   []func()
 	conf       *Config
 }
@@ -76,12 +87,14 @@ func (s *serviceImpl) DixInject(
 	httpRouters []lava.HttpRouter,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
+	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
 	docs []*opendoc.Swagger,
 	empty []*lava.EmptyRouter,
 ) {
+	_ = empty
 	s.conf = conf
 	if conf.HttpPort == nil {
 		conf.HttpPort = generic.Ptr(running.HttpPort)
@@ -187,28 +200,149 @@ func (s *serviceImpl) DixInject(
 	app := fiber.New()
 	app.Use(handlerHttpMiddle(middlewares))
 	for _, h := range httpRouters {
-		srv := doc.WithService()
-		for _, an := range h.Annotation() {
-			switch a := an.(type) {
-			case *annotation.Openapi:
-				if a.ServiceName != "" {
-					srv.SetName(a.ServiceName)
-				}
-			}
-		}
+		//srv := doc.WithService()
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
 
-		h.Router(&lava.Router{R: app.Group("", handlerHttpMiddle(h.Middlewares())), Doc: srv})
+		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		h.Router(&lava.Router{
+			R:   g,
+			Doc: doc.WithService(),
+		})
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
 
 		if m, ok := h.(lava.Init); ok {
 			s.initList = append(s.initList, m.Init)
 		}
+	}
 
-		if m, ok := h.(lava.Initializer); ok {
-			s.initList = append(s.initList, m.Initialize)
+	for _, handler := range handlers {
+		//srv := doc.WithService()
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
+
+		h, ok := handler.(lava.HttpRouter)
+		if !ok {
+			continue
+		}
+
+		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		h.Router(&lava.Router{
+			R:   g,
+			Doc: doc.WithService(),
+		})
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
 		}
 	}
 
 	httpServer.Mount(conf.BaseUrl, app)
+
+	grpcGateway := runtime.NewServeMux(
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: &runtime.JSONPb{
+				MarshalOptions: protojson.MarshalOptions{
+					EmitUnpopulated: true,
+				},
+				UnmarshalOptions: protojson.UnmarshalOptions{
+					DiscardUnknown: true,
+				},
+			},
+		}),
+		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
+		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
+			return strings.ToLower(s), true
+		}),
+		runtime.WithOutgoingHeaderMatcher(func(s string) (string, bool) {
+			return strings.ToUpper(s), true
+		}),
+		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
+			path, ok := runtime.HTTPPathPattern(ctx)
+			if !ok {
+				return nil
+			}
+			return metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
+		}),
+		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshal runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
+			md, ok := runtime.ServerMetadataFromContext(ctx)
+			if ok && w != nil {
+				for k, v := range md.HeaderMD {
+					for i := range v {
+						w.Header().Add(k, v[i])
+					}
+				}
+
+				for k, v := range md.TrailerMD {
+					for i := range v {
+						w.Header().Add(k, v[i])
+					}
+				}
+			}
+
+			sts, ok := status.FromError(err)
+			if !ok || sts == nil {
+				runtime.DefaultHTTPErrorHandler(ctx, mux, marshal, w, request, err)
+				return
+			}
+
+			w.Header().Set("Content-Type", marshal.ContentType(sts))
+
+			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
+			var pb *errorpb.ErrCode
+			if len(sts.Details()) > 0 {
+				if code, ok := sts.Details()[0].(*errorpb.Error); ok {
+					pb = code.Code
+				}
+			} else {
+				pb = &errorpb.ErrCode{
+					Message:    sts.Message(),
+					StatusCode: errorpb.Code(sts.Code()),
+					Name:       "lava.grpc.status",
+					Details:    sts.Proto().Details,
+				}
+			}
+
+			// skip error
+			if pb.StatusCode == errorpb.Code_OK {
+				return
+			}
+
+			buf, mErr := marshal.Marshal(pb)
+			if mErr != nil {
+				grpclog.Infof("Failed to marshal error message %q: %v", s, mErr)
+				w.WriteHeader(http.StatusInternalServerError)
+				if _, err := io.WriteString(w, fallback); err != nil {
+					grpclog.Infof("Failed to write response: %v", err)
+				}
+				return
+			}
+
+			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.StatusCode)))
+			if _, err := w.Write(buf); err != nil {
+				grpclog.Infof("Failed to write response: %v", err)
+			}
+		}),
+	)
 
 	var mux = gateway.NewMux()
 	srvMidMap := make(map[string][]lava.Middleware)
@@ -219,6 +353,10 @@ func (s *serviceImpl) DixInject(
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
 		if m, ok := h.(lava.Initializer); ok {
 			s.initList = append(s.initList, m.Initialize)
 		}
@@ -228,10 +366,17 @@ func (s *serviceImpl) DixInject(
 		}
 
 		mux.RegisterService(desc, h)
+		s.reg.RegisterService(desc, h)
+		s.cc.RegisterService(desc, h)
+		if m, ok := h.(lava.GrpcGatewayRouter); ok {
+			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
+		}
 	}
 
 	mux.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
 	// grpc server初始化
 	grpcServer := conf.GrpcConfig.Build(
@@ -242,41 +387,13 @@ func (s *serviceImpl) DixInject(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	wrappedGrpc := grpcweb.WrapServer(grpcServer,
-		grpcweb.WithWebsockets(true),
-		grpcweb.WithAllowNonRootResource(true),
-		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool { return true }),
-		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
-		grpcweb.WithOriginFunc(func(origin string) bool { return true }))
+	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
+	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
+	httpServer.Group(apiPrefix1, httputil.HTTPHandler(http.StripPrefix(apiPrefix1, mux)))
+
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	httpServer.Group(apiPrefix, httputil.StripPrefix(apiPrefix, mux.ServeFast))
-
-	grpcWebApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "grpc"))
-	s.log.Info().Str("path", grpcWebApiPrefix).Msg("service grpc web base path")
-	var muxHandler = httputil.HTTPHandler(h2c.NewHandler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if wrappedGrpc.IsAcceptableGrpcCorsRequest(request) {
-			writer.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		if wrappedGrpc.IsGrpcWebSocketRequest(request) {
-			wrappedGrpc.HandleGrpcWebsocketRequest(writer, request)
-			return
-		}
-
-		if wrappedGrpc.IsGrpcWebRequest(request) {
-			wrappedGrpc.HandleGrpcWebRequest(writer, request)
-			return
-		}
-
-		if grpcutil.IsGRPCRequest(request) {
-			grpcServer.ServeHTTP(writer, request)
-			return
-		}
-
-		mux.ServeHTTP(writer, request)
-	}), &http2.Server{}))
-	httpServer.Group(grpcWebApiPrefix, httputil.StripPrefix(grpcWebApiPrefix, muxHandler))
+	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
+	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway))))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
