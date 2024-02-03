@@ -24,6 +24,8 @@ func FastHandler(h fasthttp.RequestHandler) http.Handler {
 	return handlerFunc(h)
 }
 
+func HTTPHandlerFunc(h http.HandlerFunc) fiber.Handler { return HTTPHandler(h) }
+
 func HTTPHandler(h http.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		handler := NewFastHTTPHandler(h)
