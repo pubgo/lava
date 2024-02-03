@@ -7,7 +7,7 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/gofiber/adaptor/v2"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
 	"io"
@@ -168,7 +168,7 @@ type Mux struct {
 	mem  *fasthttputil.InmemoryListener
 }
 
-func (m *Mux) ServeFast(ctx *fiber.Ctx) error {
+func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	m.opts.app.Handler()(ctx.Context())
 	return nil
 }
@@ -206,7 +206,7 @@ func (m *Mux) HttpClient() *http.Client {
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	adaptor.FiberApp(m.opts.app).ServeHTTP(writer, request)
+	httputil.FastHandler(m.opts.app.Handler()).ServeHTTP(writer, request)
 }
 
 func NewMux(opts ...MuxOption) *Mux {
@@ -259,7 +259,7 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 }
 
-func (m *Mux) GetApp() *fiber.App { return m.opts.app }
+func (m *Mux) App() *fiber.App { return m.opts.app }
 
 func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.opts.unaryInterceptor = interceptor

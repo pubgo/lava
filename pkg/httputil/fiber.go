@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
@@ -17,6 +18,10 @@ func StripPrefix(prefix string, hh fiber.Handler) fiber.Handler {
 		ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), prefix))
 		return hh(ctx)
 	}
+}
+
+func FastHandler(h fasthttp.RequestHandler) http.Handler {
+	return handlerFunc(h)
 }
 
 func HTTPHandler(h http.Handler) fiber.Handler {
@@ -144,4 +149,54 @@ func (w *netHTTPResponseWriter) Flush() {
 
 func (w *netHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.conn, &bufio.ReadWriter{Reader: bufio.NewReader(w.r), Writer: bufio.NewWriter(w.w)}, nil
+}
+
+func handlerFunc(h fasthttp.RequestHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// New fasthttp request
+		req := fasthttp.AcquireRequest()
+		defer fasthttp.ReleaseRequest(req)
+
+		// Convert net/http -> fasthttp request
+		if r.Body != nil {
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
+				return
+			}
+			req.Header.SetContentLength(len(body))
+			_, _ = req.BodyWriter().Write(body)
+		}
+
+		req.Header.SetMethod(r.Method)
+		req.SetRequestURI(r.RequestURI)
+		req.SetHost(r.Host)
+		for key, val := range r.Header {
+			for _, v := range val {
+				req.Header.Set(key, v)
+			}
+		}
+
+		if _, _, err := net.SplitHostPort(r.RemoteAddr); err != nil && err.(*net.AddrError).Err == "missing port in address" {
+			r.RemoteAddr = net.JoinHostPort(r.RemoteAddr, "80")
+		}
+
+		remoteAddr, err := net.ResolveTCPAddr("tcp", r.RemoteAddr)
+		if err != nil {
+			http.Error(w, utils.StatusMessage(fiber.StatusInternalServerError), fiber.StatusInternalServerError)
+			return
+		}
+
+		var ctx fasthttp.RequestCtx
+		ctx.Init(req, remoteAddr, nil)
+
+		h(&ctx)
+
+		// Convert fasthttp Ctx > net/http
+		ctx.Response.Header.VisitAll(func(k, v []byte) {
+			w.Header().Add(string(k), string(v))
+		})
+		w.WriteHeader(ctx.Response.StatusCode())
+		_, _ = w.Write(ctx.Response.Body())
+	}
 }

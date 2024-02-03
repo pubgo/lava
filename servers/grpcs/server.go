@@ -120,27 +120,6 @@ func (s *serviceImpl) DixInject(
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
 	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
 
-	var doc = opendoc.New(func(swag *opendoc.Swagger) {
-		swag.Config.Title = "service title "
-		swag.Description = "this is description"
-		swag.License = &opendoc.License{
-			Name: "Apache License 2.0",
-			URL:  "https://github.com/pubgo/opendoc/blob/master/LICENSE",
-		}
-
-		swag.Contact = &opendoc.Contact{
-			Name:  "barry",
-			URL:   "https://github.com/pubgo/opendoc",
-			Email: "kooksee@163.com",
-		}
-
-		swag.TermsOfService = "https://github.com/pubgo"
-	})
-	if len(docs) > 0 {
-		doc = docs[0]
-	}
-	doc.SetRootPath(conf.BaseUrl)
-
 	middlewares := lava.Middlewares{
 		middleware_service_info.New(),
 		middleware_metric.New(metric),
@@ -384,7 +363,7 @@ func (s *serviceImpl) DixInject(
 
 	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
 	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.ServeFast))
+	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
@@ -394,7 +373,7 @@ func (s *serviceImpl) DixInject(
 	s.grpcServer = grpcServer
 
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.GetApp().Stack())
+	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
 }
 
 func (s *serviceImpl) start() {

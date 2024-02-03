@@ -13,11 +13,9 @@ type Gateway interface {
 	WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor)
 	RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
-	ServeHTTP(http.ResponseWriter, *http.Request)
+	Handler(*fiber.Ctx) error
 	HttpClient() *http.Client
-
-	ServeFast(*fiber.Ctx) error
 	FastClient() *fasthttp.Client
 
-	GetApp() *fiber.App
+	App() *fiber.App
 }
