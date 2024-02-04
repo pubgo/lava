@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
+	"google.golang.org/protobuf/proto"
 	"io"
 	"math"
 	"net"
@@ -49,6 +50,9 @@ type muxOptions struct {
 	connectionTimeout     time.Duration
 	app                   *fiber.App
 	handlers              map[string]handlerFunc
+	errHandler            func(err error, ctx *fiber.Ctx)
+	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 }
 
 // readAll reads from r until an error or EOF and returns the data it read.
@@ -100,6 +104,8 @@ var (
 		types:                 protoregistry.GlobalTypes,
 		app:                   fiber.New(fiber.Config{EnablePrintRoutes: true}),
 		handlers:              make(map[string]handlerFunc),
+		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -166,6 +172,16 @@ type Mux struct {
 	opts *muxOptions
 	mu   sync.Mutex
 	mem  *fasthttputil.InmemoryListener
+}
+
+func (m *Mux) SetResponseInterceptor(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *Mux) SetRequestInterceptor(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {

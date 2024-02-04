@@ -73,7 +73,12 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	}
 	msg := cur.Interface()
 
-	var err error
+	var reqName = msg.ProtoReflect().Descriptor().FullName()
+	handler := s.opts.responseInterceptors[reqName]
+	if handler != nil {
+		return errors.Wrapf(handler(s.ctx, msg), "failed to handler response data by %s", reqName)
+	}
+
 	b, err := protojson.Marshal(msg)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal response by protojson")
@@ -99,10 +104,13 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		}
 		msg := cur.Interface()
 
-		if err := protojson.Unmarshal(s.ctx.Body(), msg); err != nil {
-			return errors.Wrap(err, "failed to unmarshal body by protojson")
+		var reqName = msg.ProtoReflect().Descriptor().FullName()
+		handler := s.opts.requestInterceptors[reqName]
+		if handler != nil {
+			return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
 		}
-		return nil
+
+		return errors.Wrap(protojson.Unmarshal(s.ctx.Body(), msg), "failed to unmarshal body by protojson")
 	}
 
 	return nil
