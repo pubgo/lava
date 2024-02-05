@@ -208,7 +208,9 @@
           }
         ],
         "tags": [
-          "openapiv2/frontend"
+          "openapiv2/frontend",
+          "openapiv2/frontend/test",
+          "openapiv2/frontend1/test"
         ]
       }
     }
