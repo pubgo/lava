@@ -86,7 +86,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TypesResponse'
-    /ws/chat/{sessionId}:
+    /ws/chat:
         post:
             tags:
                 - Id
@@ -96,12 +96,11 @@ paths:
             description: 聊天
             operationId: Id_Chat
             parameters:
-                - name: sessionId
-                  in: path
-                  required: true
+                - name: name
+                  in: query
                   schema:
                     type: string
-                - name: name
+                - name: sessionId
                   in: query
                   schema:
                     type: string

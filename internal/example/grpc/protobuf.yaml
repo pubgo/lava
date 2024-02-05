@@ -51,3 +51,17 @@ plugins:
       - enum_type=string
       - default_response=false
       - depth=10
+  - name: openapiv2
+    skip_base: true
+    opt:
+      - use_allof_for_refs=true
+      - proto3_optional_nullable=true
+      - allow_delete_body=true
+      - generate_unbound_methods=true
+      - allow_merge=false
+      - merge_file_name=openapi
+      - use_go_templates=true
+      - openapi_naming_strategy=simple
+      - version=true
+      - disable_default_errors=true
+      - omit_enum_default_value=true

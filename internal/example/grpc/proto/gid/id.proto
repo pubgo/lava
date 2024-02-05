@@ -10,6 +10,7 @@ import "errorpb/options.proto";
 import "errorpb/code.proto";
 import "openapiv3/annotations.proto";
 import "google/api/httpbody.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 message GenerateResponse {
   // the unique id generated
@@ -45,9 +46,10 @@ service Id {
     option (openapi.v3.operation).tags = "chat/test/tag";
     option (openapi.v3.operation).tags = "chat/test/tag1";
     option (openapi.v3.operation).summary = "聊天";
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend";
 
     option (google.api.http) = {
-      post : "/ws/chat/{session_id}"
+      post : "/ws/chat"
       body : "msg"
     };
   }
