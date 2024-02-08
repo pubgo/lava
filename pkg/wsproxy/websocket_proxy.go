@@ -2,25 +2,23 @@ package wsproxy
 
 import (
 	"bufio"
+	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/log"
+	"golang.org/x/net/context"
 	"io"
 	"net/http"
 	"strings"
-	"time"
-
-	"github.com/gorilla/websocket"
-	"golang.org/x/net/context"
 )
 
 const (
 	// Time allowed to read write a message to the peer.
-	timeWait = 90 * time.Second
+	//timeWait = 90 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	//pongWait = 60 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
+	//pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
 	maxMessageSize = 1024 * 10 * 10
@@ -139,9 +137,9 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	//logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 	//logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	conn.SetPingHandler(nil)
-	conn.SetPongHandler(func(string) error {
-		return conn.SetReadDeadline(time.Now().Add(pongWait))
-	})
+	//conn.SetPongHandler(func(string) error {
+	//	return conn.SetReadDeadline(time.Now().Add(pongWait))
+	//})
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
