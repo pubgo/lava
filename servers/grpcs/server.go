@@ -273,28 +273,33 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
+			var pb *errorpb.ErrCode
 			sts, ok := status.FromError(err)
 			if !ok || sts == nil {
-				runtime.DefaultHTTPErrorHandler(ctx, mux, marshal, w, request, err)
-				return
-			}
-
-			w.Header().Set("Content-Type", marshal.ContentType(sts))
-
-			const fallback = `{"code": 13, "message": "failed to marshal error message"}`
-			var pb *errorpb.ErrCode
-			if len(sts.Details()) > 0 {
-				if code, ok := sts.Details()[0].(*errorpb.Error); ok {
-					pb = code.Code
+				w.Header().Set("Content-Type", "application/json")
+				pb = &errorpb.ErrCode{
+					Message:    err.Error(),
+					StatusCode: errorpb.Code_Internal,
+					Code:       500,
+					Name:       "lava.grpc.status",
 				}
 			} else {
-				pb = &errorpb.ErrCode{
-					Message:    sts.Message(),
-					StatusCode: errorpb.Code(sts.Code()),
-					Name:       "lava.grpc.status",
-					Details:    sts.Proto().Details,
+				w.Header().Set("Content-Type", marshal.ContentType(sts))
+				if len(sts.Details()) > 0 {
+					if code, ok := sts.Details()[0].(*errorpb.Error); ok {
+						pb = code.Code
+					}
+				} else {
+					pb = &errorpb.ErrCode{
+						Message:    sts.Message(),
+						StatusCode: errorpb.Code(sts.Code()),
+						Name:       "lava.grpc.status",
+						Details:    sts.Proto().Details,
+					}
 				}
 			}
+
+			const fallback = `{"code":500, "name":"lava.grpc.status", "status_code": 13, "message": "failed to marshal error message"}`
 
 			// skip error
 			if pb.StatusCode == errorpb.Code_OK {
@@ -303,7 +308,7 @@ func (s *serviceImpl) DixInject(
 
 			buf, mErr := marshal.Marshal(pb)
 			if mErr != nil {
-				grpclog.Infof("Failed to marshal error message %q: %v", s, mErr)
+				grpclog.Infof("Failed to marshal error message %q: %v", pb, mErr)
 				w.WriteHeader(http.StatusInternalServerError)
 				if _, err := io.WriteString(w, fallback); err != nil {
 					grpclog.Infof("Failed to write response: %v", err)
