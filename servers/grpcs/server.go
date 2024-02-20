@@ -190,7 +190,11 @@ func (s *serviceImpl) DixInject(
 		//	}
 		//}
 
-		var g = app.Group("/*", handlerHttpMiddle(h.Middlewares()))
+		if h.Prefix() == "" {
+			panic("http handler prefix is required")
+		}
+
+		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -218,7 +222,11 @@ func (s *serviceImpl) DixInject(
 			continue
 		}
 
-		var g = app.Group("/*", handlerHttpMiddle(h.Middlewares()))
+		if h.Prefix() == "" {
+			panic("http handler prefix is required")
+		}
+
+		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
