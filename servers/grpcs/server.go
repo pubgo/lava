@@ -230,7 +230,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	httpServer.Mount(conf.BaseUrl+"/*", app)
+	httpServer.Mount(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
