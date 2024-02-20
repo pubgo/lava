@@ -151,7 +151,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	conn.SetReadLimit(maxMessageSize)
 	conn.SetPingHandler(nil)
 	conn.SetPongHandler(func(string) error {
-		return conn.SetReadDeadline(time.Now().Add(timeWait))
+		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+		return nil
 	})
 
 	if p.enablePingPong {
@@ -216,14 +217,15 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		defer ticker.Stop()
 		go func() {
 			for range ticker.C {
-				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-				err = conn.WriteMessage(websocket.TextMessage, pingPayload)
-				log.Err(err).Msg("server ping message")
+				//err = conn.WriteMessage(websocket.TextMessage, pingPayload)
+				//log.Err(err).Msg("server ping message")
 
-				//err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
-				//if err != nil {
-				//	log.Err(err).Msg("failed to write ping message")
-				//}
+				err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
+				if err != nil {
+					log.Err(err).Msg("failed to write ping message")
+				} else {
+					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+				}
 			}
 		}()
 	}
@@ -256,11 +258,6 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 					if bytes.Equal(payload, pingPayload) {
 						logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
-						continue
-					}
-
-					if bytes.Equal(payload, pongPayload) {
-						logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 						continue
 					}
 				}
