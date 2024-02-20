@@ -190,7 +190,7 @@ func (s *serviceImpl) DixInject(
 		//	}
 		//}
 
-		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		var g = app.Group("/*", handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -218,7 +218,7 @@ func (s *serviceImpl) DixInject(
 			continue
 		}
 
-		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		var g = app.Group("/*", handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -230,7 +230,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	httpServer.Mount(conf.BaseUrl, app)
+	httpServer.Mount(conf.BaseUrl+"/*", app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
