@@ -207,6 +207,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		p.h.ServeHTTP(response, request)
 	}()
 
+	if p.enablePingPong {
+		log.Info().Msg("enable ping pong")
+	}
+
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
 	defer func() {
@@ -219,10 +223,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		for {
 			select {
 			case <-ticker.C:
-				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-				if err = conn.WriteMessage(websocket.TextMessage, pingPayload); err != nil {
-					log.Err(err).Msg("failed to write customer ping message")
-					return
+				if p.enablePingPong {
+					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+					err = conn.WriteMessage(websocket.TextMessage, pingPayload)
+					log.Err(err).Msg("server ping message")
 				}
 
 				//err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
@@ -244,15 +248,17 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				if bytes.Equal(payload, pingPayload) {
-					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-					logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
-					continue
-				}
+				if p.enablePingPong {
+					if bytes.Equal(payload, pingPayload) {
+						logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
+						continue
+					}
 
-				if bytes.Equal(payload, pongPayload) {
-					logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
-					continue
+					if bytes.Equal(payload, pongPayload) {
+						logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+						continue
+					}
 				}
 
 				log.Debug().Str("payload", string(payload)).Msg("[read] read payload")
