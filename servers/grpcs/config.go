@@ -18,6 +18,7 @@ type Config struct {
 	BaseUrl           string               `yaml:"base_url"`
 	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
 	EnableCors        bool                 `yaml:"enable_cors"`
+	EnablePingPong    bool                 `yaml:"enable_ping_pong"`
 	GrpcPort          *int                 `yaml:"grpc_port"`
 	HttpPort          *int                 `yaml:"http_port"`
 }

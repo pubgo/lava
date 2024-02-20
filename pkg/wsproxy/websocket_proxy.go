@@ -2,26 +2,34 @@ package wsproxy
 
 import (
 	"bufio"
+	"bytes"
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/internal/logutil"
 	"golang.org/x/net/context"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
 	// Time allowed to read write a message to the peer.
-	//timeWait = 90 * time.Second
+	timeWait = 90 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	//pongWait = 60 * time.Second
+	pongWait = 60 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	//pingPeriod = (pongWait * 9) / 10
+	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
 	maxMessageSize = 1024 * 10 * 10
+)
+
+var (
+	pingPayload = []byte("ping")
+	pongPayload = []byte("pong")
 )
 
 // MethodOverrideParam defines the special URL parameter that is translated into the subsequent proxied streaming http request's method.
@@ -43,6 +51,7 @@ type Proxy struct {
 	methodOverrideParam string
 	tokenCookieName     string
 	requestMutator      RequestMutatorFunc
+	enablePingPong      bool
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +83,12 @@ func WithTokenCookieName(param string) Option {
 func WithRequestMutator(fn RequestMutatorFunc) Option {
 	return func(p *Proxy) {
 		p.requestMutator = fn
+	}
+}
+
+func WithPingPong(b bool) Option {
+	return func(p *Proxy) {
+		p.enablePingPong = b
 	}
 }
 
@@ -137,9 +152,9 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	//logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 	//logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	conn.SetPingHandler(nil)
-	//conn.SetPongHandler(func(string) error {
-	//	return conn.SetReadDeadline(time.Now().Add(pongWait))
-	//})
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(timeWait))
+	})
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
@@ -192,8 +207,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		p.h.ServeHTTP(response, request)
 	}()
 
-	//ticker := time.NewTicker(pingPeriod)
-	//defer ticker.Stop()
+	ticker := time.NewTicker(pingPeriod)
+	defer ticker.Stop()
 	defer func() {
 		log.Info().Msg("close websocket ping")
 	}()
@@ -203,18 +218,17 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		defer cancelFn()
 		for {
 			select {
-			//case <-ticker.C:
-			//	logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-			//	pingH := conn.PingHandler()
-			//	if pingH != nil {
-			//		pingH = func(appData string) error {
-			//			return conn.WriteMessage(websocket.PingMessage, []byte(appData))
-			//		}
-			//	}
-			//
-			//	if err := pingH("server ping"); err != nil {
-			//		log.Err(err).Msg("failed to write ping message")
-			//	}
+			case <-ticker.C:
+				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+				if err = conn.WriteMessage(websocket.TextMessage, pingPayload); err != nil {
+					log.Err(err).Msg("failed to write customer ping message")
+					return
+				}
+
+				//err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
+				//if err != nil {
+				//	log.Err(err).Msg("failed to write ping message")
+				//}
 			case <-ctx.Done():
 				log.Debug().Msg("read loop done")
 				return
@@ -228,6 +242,17 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 					}
 					log.Warn().Err(err).Msg("error reading websocket message")
 					return
+				}
+
+				if bytes.Equal(payload, pingPayload) {
+					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+					logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
+					continue
+				}
+
+				if bytes.Equal(payload, pongPayload) {
+					logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+					continue
 				}
 
 				log.Debug().Str("payload", string(payload)).Msg("[read] read payload")
