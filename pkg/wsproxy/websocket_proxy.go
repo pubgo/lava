@@ -149,12 +149,16 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	conn.SetReadLimit(maxMessageSize)
-	//logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
-	//logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	conn.SetPingHandler(nil)
 	conn.SetPongHandler(func(string) error {
 		return conn.SetReadDeadline(time.Now().Add(timeWait))
 	})
+
+	if p.enablePingPong {
+		log.Info().Msg("enable ping pong")
+		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+		logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+	}
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
@@ -208,11 +212,22 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if p.enablePingPong {
-		log.Info().Msg("enable ping pong")
+		ticker := time.NewTicker(pingPeriod)
+		defer ticker.Stop()
+		go func() {
+			for range ticker.C {
+				logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+				err = conn.WriteMessage(websocket.TextMessage, pingPayload)
+				log.Err(err).Msg("server ping message")
+
+				//err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
+				//if err != nil {
+				//	log.Err(err).Msg("failed to write ping message")
+				//}
+			}
+		}()
 	}
 
-	ticker := time.NewTicker(pingPeriod)
-	defer ticker.Stop()
 	defer func() {
 		log.Info().Msg("close websocket ping")
 	}()
@@ -222,17 +237,6 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		defer cancelFn()
 		for {
 			select {
-			case <-ticker.C:
-				if p.enablePingPong {
-					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-					err = conn.WriteMessage(websocket.TextMessage, pingPayload)
-					log.Err(err).Msg("server ping message")
-				}
-
-				//err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
-				//if err != nil {
-				//	log.Err(err).Msg("failed to write ping message")
-				//}
 			case <-ctx.Done():
 				log.Debug().Msg("read loop done")
 				return
