@@ -254,7 +254,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 
 				if p.enablePingPong {
 					if bytes.Equal(payload, pingPayload) {
-						logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
+						logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
 						continue
 					}
