@@ -7,10 +7,6 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttputil"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"math"
 	"net"
@@ -26,8 +22,12 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttputil"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
@@ -53,6 +53,7 @@ type muxOptions struct {
 	errHandler            func(err error, ctx *fiber.Ctx)
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	routes                map[string]map[string]*httpPathRule
 }
 
 // readAll reads from r until an error or EOF and returns the data it read.
@@ -106,6 +107,7 @@ var (
 		handlers:              make(map[string]handlerFunc),
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		routes:                make(map[string]map[string]*httpPathRule),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -174,12 +176,12 @@ type Mux struct {
 	mem  *fasthttputil.InmemoryListener
 }
 
-func (m *Mux) SetResponseInterceptor(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m *Mux) SetRequestInterceptor(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -277,14 +279,14 @@ func NewMux(opts ...MuxOption) *Mux {
 
 func (m *Mux) App() *fiber.App { return m.opts.app }
 
-func (m *Mux) WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
+func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.opts.unaryInterceptor = interceptor
 	m.cc.WithServerUnaryInterceptor(interceptor)
 }
 
 // WithServerStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
-func (m *Mux) WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
+func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.opts.streamInterceptor = interceptor
 	m.cc.WithServerStreamInterceptor(interceptor)
 }
@@ -304,6 +306,15 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	}
 
 	m.cc.RegisterService(sd, ss)
+}
+
+func (m *Mux) registerRouter(method, path string, rule *httpPathRule) {
+	if m.opts.routes[method] == nil {
+		m.opts.routes[method] = make(map[string]*httpPathRule)
+	}
+	m.opts.routes[method][path] = rule
+
+	m.opts.app.Add(method, path, handlerWrap(rule))
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -351,7 +362,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			return errors.WrapCaller(stream.SendMsg(reply))
 		}
 
-		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
+		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
 			opts:           m.opts,
 			desc:           methodDesc,
 			httpMethod:     http.MethodPost,
@@ -361,10 +372,10 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			vars:           make(map[string]string),
 			hasReqBody:     true,
 			hasRspBody:     true,
-		}))
+		})
 
 		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
-			m.opts.app.Add(mth.httpMethod, mth.httpPath, handlerWrap(mth))
+			m.registerRouter(mth.httpMethod, mth.httpPath, mth)
 		}
 	}
 
@@ -392,7 +403,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			}
 		}
 
-		m.opts.app.Post(grpcMethod, handlerWrap(&httpPathRule{
+		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
 			opts:           m.opts,
 			desc:           methodDesc,
 			httpMethod:     http.MethodPost,
@@ -402,14 +413,14 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			vars:           make(map[string]string),
 			hasReqBody:     true,
 			hasRspBody:     true,
-		}))
+		})
 
 		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
 			if mth.httpMethod == "WEBSOCKET" {
 				continue
 			}
 
-			m.opts.app.Add(http.MethodGet, mth.httpPath, handlerWrap(mth))
+			m.registerRouter(http.MethodGet, mth.httpPath, mth)
 		}
 	}
 

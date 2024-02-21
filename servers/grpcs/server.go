@@ -360,8 +360,8 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	mux.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	mux.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	s.cc = s.cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 

@@ -59,7 +59,7 @@ func NewMux(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metric
 		mux.RegisterService(desc, h)
 	}
 
-	mux.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	mux.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
+	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	return mux
 }

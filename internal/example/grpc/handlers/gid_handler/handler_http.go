@@ -28,6 +28,10 @@ type IdHttp struct {
 	service   *gid_client.Service
 }
 
+func (id *IdHttp) Prefix() string {
+	return "/test"
+}
+
 func (id *IdHttp) Annotation() []lava.Annotation {
 	return nil
 }

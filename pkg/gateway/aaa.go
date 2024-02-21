@@ -11,11 +11,11 @@ import (
 
 type Gateway interface {
 	grpc.ClientConnInterface
-	WithServerUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
-	WithServerStreamInterceptor(interceptor grpc.StreamServerInterceptor)
+	SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
+	SetStreamInterceptor(interceptor grpc.StreamServerInterceptor)
 
-	SetResponseInterceptor(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
-	SetRequestInterceptor(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
+	SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
+	SetRequestDecoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
 	RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
 	Handler(*fiber.Ctx) error
