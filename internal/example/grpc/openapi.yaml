@@ -50,7 +50,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GenerateResponse'
-    /v1/id/types/{name}/{name1}:
+    /v1/id/types/{name}/{nameId}:
         get:
             tags:
                 - Id
@@ -62,7 +62,7 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: name1
+                - name: nameId
                   in: path
                   required: true
                   schema:
@@ -84,7 +84,7 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: name1
+                - name: nameId
                   in: path
                   required: true
                   schema:
@@ -107,7 +107,7 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: name1
+                - name: nameId
                   in: query
                   schema:
                     type: string

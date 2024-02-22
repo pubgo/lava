@@ -110,7 +110,7 @@
         ]
       }
     },
-    "/v1/id/types/{name}/{name1}": {
+    "/v1/id/types/{name}/{nameId}": {
       "get": {
         "summary": "Types id类型",
         "operationId": "Id_Types",
@@ -130,7 +130,7 @@
             "type": "string"
           },
           {
-            "name": "name1",
+            "name": "nameId",
             "in": "path",
             "required": true,
             "type": "string",
@@ -159,7 +159,7 @@
             "type": "string"
           },
           {
-            "name": "name1",
+            "name": "nameId",
             "in": "path",
             "required": true,
             "type": "string",
@@ -197,7 +197,7 @@
             "type": "string"
           },
           {
-            "name": "name1",
+            "name": "nameId",
             "in": "query",
             "required": false,
             "type": "string",

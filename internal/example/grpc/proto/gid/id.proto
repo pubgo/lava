@@ -38,11 +38,11 @@ service Id {
 
   // Types id类型
   rpc Types(TypesRequest) returns (TypesResponse) {
-    option (google.api.http).get = "/v1/id/types/{name}/{name1}";
+    option (google.api.http).get = "/v1/id/types/{name}/{name_id}";
   }
 
   rpc PutTypes(TypesRequest) returns (TypesResponse) {
-    option (google.api.http).put = "/v1/id/types/{name}/{name1}";
+    option (google.api.http).put = "/v1/id/types/{name}/{name_id}";
   }
 
   // 聊天
@@ -115,7 +115,7 @@ message GenerateRequest {
 // List the types of IDs available. No query params needed.
 message TypesRequest {
   string name = 1;
-  uint64 name1 = 2;
+  uint64 name_id = 2;
 }
 
 // TypesResponse 返回值类型
