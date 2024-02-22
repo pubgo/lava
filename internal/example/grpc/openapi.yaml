@@ -67,6 +67,10 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: hello
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -89,6 +93,12 @@ paths:
                   required: true
                   schema:
                     type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TypesRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -108,6 +118,10 @@ paths:
                   schema:
                     type: string
                 - name: nameId
+                  in: query
+                  schema:
+                    type: string
+                - name: hello
                   in: query
                   schema:
                     type: string
@@ -190,6 +204,16 @@ components:
                     type: string
                 text:
                     type: string
+        TypesRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                nameId:
+                    type: string
+                hello:
+                    type: string
+            description: List the types of IDs available. No query params needed.
         TypesResponse:
             type: object
             properties:

@@ -3,13 +3,13 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	"github.com/pubgo/funk/log"
 	"net/http"
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -91,12 +91,6 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 func (s *streamHTTP) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.params != nil && len(s.params) > 0 {
-		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
-			log.Err(err).Msg("failed to set params")
-		}
-	}
-
 	if s.method.hasReqBody {
 		cur := args.ProtoReflect()
 		for _, fd := range s.method.reqBody {
@@ -110,7 +104,16 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 			return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
 		}
 
-		return errors.Wrap(protojson.Unmarshal(s.ctx.Body(), msg), "failed to unmarshal body by protojson")
+		err := protojson.Unmarshal(s.ctx.Body(), msg)
+		if err != nil {
+			return errors.Wrap(err, "failed to unmarshal body by protojson")
+		}
+	}
+
+	if s.params != nil && len(s.params) > 0 {
+		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
+			log.Err(err).Msg("failed to set params")
+		}
 	}
 
 	return nil

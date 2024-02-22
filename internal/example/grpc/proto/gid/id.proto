@@ -43,6 +43,7 @@ service Id {
 
   rpc PutTypes(TypesRequest) returns (TypesResponse) {
     option (google.api.http).put = "/v1/id/types/{name}/{name_id}";
+    option (google.api.http).body = "*";
   }
 
   // 聊天
@@ -116,6 +117,7 @@ message GenerateRequest {
 message TypesRequest {
   string name = 1;
   uint64 name_id = 2;
+  string hello = 3;
 }
 
 // TypesResponse 返回值类型

@@ -135,6 +135,12 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "hello",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -164,6 +170,14 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PutTypesBody"
+            }
           }
         ],
         "tags": [
@@ -202,6 +216,12 @@
             "required": false,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "hello",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -342,6 +362,15 @@
           "type": "string"
         }
       }
+    },
+    "PutTypesBody": {
+      "type": "object",
+      "properties": {
+        "hello": {
+          "type": "string"
+        }
+      },
+      "description": "List the types of IDs available. No query params needed."
     },
     "TypesResponse": {
       "type": "object",

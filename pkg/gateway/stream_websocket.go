@@ -85,12 +85,6 @@ func (s *streamWS) SendMsg(v interface{}) error {
 func (s *streamWS) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if len(s.params) > 0 {
-		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
-			log.Err(err).Msg("failed to set params")
-		}
-	}
-
 	if s.pathRule.hasReqBody {
 		cur := args.ProtoReflect()
 		for _, fd := range s.pathRule.reqBody {
@@ -105,6 +99,12 @@ func (s *streamWS) RecvMsg(m interface{}) error {
 
 		if err := protojson.Unmarshal(message, msg); err != nil {
 			return errors.Wrap(err, "failed to unmarshal protobuf json message")
+		}
+	}
+
+	if len(s.params) > 0 {
+		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
+			log.Err(err).Msg("failed to set params")
 		}
 	}
 
