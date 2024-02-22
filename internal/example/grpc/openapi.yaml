@@ -50,7 +50,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GenerateResponse'
-    /v1/id/types:
+    /v1/id/types/{name}/{name1}:
         get:
             tags:
                 - Id
@@ -58,7 +58,13 @@ paths:
             operationId: Id_Types
             parameters:
                 - name: name
-                  in: query
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: name1
+                  in: path
+                  required: true
                   schema:
                     type: string
             responses:
@@ -76,6 +82,10 @@ paths:
             operationId: Id_TypeStream
             parameters:
                 - name: name
+                  in: query
+                  schema:
+                    type: string
+                - name: name1
                   in: query
                   schema:
                     type: string

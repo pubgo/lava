@@ -201,6 +201,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 }
 
 func (id *Id) Types(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
+	fmt.Println(req.String() + "\n\n\n\n")
 	rsp := new(gidpb.TypesResponse)
 	rsp.Types = []string{
 		"uuid",

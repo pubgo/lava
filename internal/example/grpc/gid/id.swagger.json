@@ -110,7 +110,7 @@
         ]
       }
     },
-    "/v1/id/types": {
+    "/v1/id/types/{name}/{name1}": {
       "get": {
         "summary": "Types id类型",
         "operationId": "Id_Types",
@@ -125,9 +125,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
+          },
+          {
+            "name": "name1",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
           }
         ],
         "tags": [
@@ -159,6 +166,13 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "name1",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
           }
         ],
         "tags": [
