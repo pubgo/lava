@@ -140,6 +140,35 @@
         "tags": [
           "Id"
         ]
+      },
+      "put": {
+        "operationId": "Id_PutTypes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/TypesResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name1",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "Id"
+        ]
       }
     },
     "/v1/id/types1": {

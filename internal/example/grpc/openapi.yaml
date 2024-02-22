@@ -74,6 +74,28 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TypesResponse'
+        put:
+            tags:
+                - Id
+            operationId: Id_PutTypes
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: name1
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TypesResponse'
     /v1/id/types1:
         get:
             tags:

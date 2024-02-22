@@ -41,6 +41,10 @@ service Id {
     option (google.api.http).get = "/v1/id/types/{name}/{name1}";
   }
 
+  rpc PutTypes(TypesRequest) returns (TypesResponse) {
+    option (google.api.http).put = "/v1/id/types/{name}/{name1}";
+  }
+
   // 聊天
   rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
     option (openapi.v3.operation).tags = "chat/test/tag";

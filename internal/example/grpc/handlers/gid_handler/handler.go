@@ -40,6 +40,18 @@ type Id struct {
 	service   *gid_client.Service
 }
 
+func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
+	fmt.Println(req.String() + "\n\n\n\n")
+	rsp := new(gidpb.TypesResponse)
+	rsp.Types = []string{
+		"uuid",
+		"shortid",
+		"snowflake",
+		"bigflake",
+	}
+	return rsp, nil
+}
+
 func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
 	for {
 		hello, err := server.Recv()

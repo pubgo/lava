@@ -23,6 +23,7 @@ const (
 	Id_Generate_FullMethodName       = "/gid.Id/Generate"
 	Id_TypeStream_FullMethodName     = "/gid.Id/TypeStream"
 	Id_Types_FullMethodName          = "/gid.Id/Types"
+	Id_PutTypes_FullMethodName       = "/gid.Id/PutTypes"
 	Id_Chat_FullMethodName           = "/gid.Id/Chat"
 	Id_Chat1_FullMethodName          = "/gid.Id/Chat1"
 	Id_UploadDownload_FullMethodName = "/gid.Id/UploadDownload"
@@ -38,6 +39,7 @@ type IdClient interface {
 	TypeStream(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (Id_TypeStreamClient, error)
 	// Types id类型
 	Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
+	PutTypes(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error)
 	// 聊天
 	Chat(ctx context.Context, opts ...grpc.CallOption) (Id_ChatClient, error)
 	// ws: chat1
@@ -97,6 +99,15 @@ func (x *idTypeStreamClient) Recv() (*TypesResponse, error) {
 func (c *idClient) Types(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error) {
 	out := new(TypesResponse)
 	err := c.cc.Invoke(ctx, Id_Types_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *idClient) PutTypes(ctx context.Context, in *TypesRequest, opts ...grpc.CallOption) (*TypesResponse, error) {
+	out := new(TypesResponse)
+	err := c.cc.Invoke(ctx, Id_PutTypes_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -184,6 +195,7 @@ type IdServer interface {
 	TypeStream(*TypesRequest, Id_TypeStreamServer) error
 	// Types id类型
 	Types(context.Context, *TypesRequest) (*TypesResponse, error)
+	PutTypes(context.Context, *TypesRequest) (*TypesResponse, error)
 	// 聊天
 	Chat(Id_ChatServer) error
 	// ws: chat1
@@ -203,6 +215,9 @@ func (UnimplementedIdServer) TypeStream(*TypesRequest, Id_TypeStreamServer) erro
 }
 func (UnimplementedIdServer) Types(context.Context, *TypesRequest) (*TypesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Types not implemented")
+}
+func (UnimplementedIdServer) PutTypes(context.Context, *TypesRequest) (*TypesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutTypes not implemented")
 }
 func (UnimplementedIdServer) Chat(Id_ChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method Chat not implemented")
@@ -278,6 +293,24 @@ func _Id_Types_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IdServer).Types(ctx, req.(*TypesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Id_PutTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TypesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdServer).PutTypes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Id_PutTypes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdServer).PutTypes(ctx, req.(*TypesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -366,6 +399,10 @@ var Id_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Types",
 			Handler:    _Id_Types_Handler,
+		},
+		{
+			MethodName: "PutTypes",
+			Handler:    _Id_PutTypes_Handler,
 		},
 		{
 			MethodName: "UploadDownload",
