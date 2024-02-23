@@ -16,7 +16,6 @@ import (
 	otlpTraceGrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/metric/global"
 	"go.opentelemetry.io/otel/propagation"
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -78,7 +77,6 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 		),
 	)
 	meterProvider := NewPrometheusMeterProvider(config)
-	global.SetMeterProvider(meterProvider)
 
 	lc.AfterStop(func() {
 		assert.Must(tracerProvider.Shutdown(context.Background()))
