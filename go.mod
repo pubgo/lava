@@ -46,7 +46,6 @@ require (
 	entgo.io/ent v0.12.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/arl/statsviz v0.6.0
-	github.com/dave/jennifer v1.6.0
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/fasthttp/websocket v1.5.7
 	github.com/felixge/fgprof v0.9.3
