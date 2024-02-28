@@ -1,13 +1,9 @@
 package gateway
 
 import (
-	"net/url"
-	"strings"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	_ "google.golang.org/genproto/googleapis/api/httpbody"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	_ "google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -46,30 +42,4 @@ type httpPathRule struct {
 	hasRspBody bool
 
 	isGroup bool
-}
-
-func (m *httpPathRule) String() string {
-	return m.grpcMethodName
-}
-
-func (m *httpPathRule) parseQueryParams(values url.Values) (params, error) {
-	msgDesc := m.desc.Input()
-	fieldDescs := msgDesc.Fields()
-
-	var ps params
-	for key, vs := range values {
-		fds := fieldPath(fieldDescs, strings.Split(key, ".")...)
-		if fds == nil {
-			return nil, status.Errorf(codes.InvalidArgument, "unknown query param %q", key)
-		}
-
-		for _, v := range vs {
-			p, err := parseParam(fds, []byte(v))
-			if err != nil {
-				return nil, err
-			}
-			ps = append(ps, p)
-		}
-	}
-	return ps, nil
 }

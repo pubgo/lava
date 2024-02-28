@@ -284,7 +284,7 @@ func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.cc.WithServerUnaryInterceptor(interceptor)
 }
 
-// WithServerStreamInterceptor configures the in-process channel to use the
+// SetStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
 func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.opts.streamInterceptor = interceptor

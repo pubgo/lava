@@ -4,6 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"net/textproto"
+	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
@@ -15,12 +22,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"net/http"
-	"net/textproto"
-	"net/url"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 func handlerWrap(path *httpPathRule) fiber.Handler {
