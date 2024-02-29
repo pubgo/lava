@@ -1317,8 +1317,8 @@ github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/procfs v0.12.0 h1:jluTpSng7V9hY0O2R9DzzJHYb2xULk9VTR1V1R/k6Bo=
 github.com/prometheus/procfs v0.12.0/go.mod h1:pcuDEFsWDnvcgNzo4EEweacyhjeA9Zk3cnaOZAZEfOo=
-github.com/pubgo/dix v0.3.15-0.20240107153647-472348fb7f95 h1:GZ69thN1EGTyKmh4K/fhgWB7E15BLFIe3z8IV6GYiek=
-github.com/pubgo/dix v0.3.15-0.20240107153647-472348fb7f95/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
+github.com/pubgo/dix v0.3.15-0.20240229041028-32b6443f17ff h1:R50xcYPux/k3zDftwDXPGu2plL0mAVZZ5jfT+Gx9NBw=
+github.com/pubgo/dix v0.3.15-0.20240229041028-32b6443f17ff/go.mod h1:BjxoZ5AAxIqbk3SXXMmpxDr4JIU7fDxt23+02FRD4mE=
 github.com/pubgo/funk v0.5.39-0.20240218021552-f8223b071505 h1:YB6cc5z1hewPJ8/0oo3u4SUYtQexz/NzBUjWX20v9M4=
 github.com/pubgo/funk v0.5.39-0.20240218021552-f8223b071505/go.mod h1:PyZFMHF0ZyKsgULPsEYG4j+CJtPQsrzplFwlMqbYtKI=
 github.com/pubgo/opendoc v0.0.4-3 h1:ugzqc5AunF1dbO+NIjJ23bFrGa/Bkv9fHxXpl9vPoRc=

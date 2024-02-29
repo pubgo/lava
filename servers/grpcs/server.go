@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rs/xid"
 	"io"
 	"net"
 	"net/http"
@@ -32,6 +31,7 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsproxy"
 	"github.com/pubgo/opendoc/opendoc"
+	"github.com/rs/xid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -94,6 +94,7 @@ func (s *serviceImpl) DixInject(
 	conf *Config,
 	docs []*opendoc.Swagger,
 	empty []*lava.EmptyRouter,
+	gw []*gateway.Mux,
 ) {
 	_ = empty
 	s.conf = conf
@@ -332,6 +333,9 @@ func (s *serviceImpl) DixInject(
 	)
 
 	var mux = gateway.NewMux()
+	if len(gw) > 0 {
+		mux = gw[0]
+	}
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
