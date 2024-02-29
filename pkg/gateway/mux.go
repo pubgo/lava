@@ -365,17 +365,17 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
 			opts:           m.opts,
 			desc:           methodDesc,
-			httpMethod:     http.MethodPost,
-			httpPath:       grpcMethod,
-			rawHttpPath:    grpcMethod,
-			grpcMethodName: grpcMethod,
-			vars:           make(map[string]string),
-			hasReqBody:     true,
-			hasRspBody:     true,
+			HttpMethod:     http.MethodPost,
+			HttpPath:       grpcMethod,
+			RawHttpPath:    grpcMethod,
+			GrpcMethodName: grpcMethod,
+			Vars:           make(map[string]string),
+			HasReqBody:     true,
+			HasRspBody:     true,
 		})
 
 		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
-			m.registerRouter(mth.httpMethod, mth.httpPath, mth)
+			m.registerRouter(mth.HttpMethod, mth.HttpPath, mth)
 		}
 	}
 
@@ -406,21 +406,21 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
 			opts:           m.opts,
 			desc:           methodDesc,
-			httpMethod:     http.MethodPost,
-			httpPath:       grpcMethod,
-			rawHttpPath:    grpcMethod,
-			grpcMethodName: grpcMethod,
-			vars:           make(map[string]string),
-			hasReqBody:     true,
-			hasRspBody:     true,
+			HttpMethod:     http.MethodPost,
+			HttpPath:       grpcMethod,
+			RawHttpPath:    grpcMethod,
+			GrpcMethodName: grpcMethod,
+			Vars:           make(map[string]string),
+			HasReqBody:     true,
+			HasRspBody:     true,
 		})
 
 		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
-			if mth.httpMethod == "WEBSOCKET" {
+			if mth.HttpMethod == "WEBSOCKET" {
 				continue
 			}
 
-			m.registerRouter(http.MethodGet, mth.httpPath, mth)
+			m.registerRouter(http.MethodGet, mth.HttpPath, mth)
 		}
 	}
 

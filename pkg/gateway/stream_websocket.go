@@ -61,7 +61,7 @@ func (s *streamWS) SetTrailer(md metadata.MD) {
 }
 
 func (s *streamWS) Context() context.Context {
-	sts := &serverTransportStream{ServerStream: s, method: s.pathRule.grpcMethodName}
+	sts := &serverTransportStream{ServerStream: s, method: s.pathRule.GrpcMethodName}
 	return grpc.NewContextWithServerTransportStream(s.ctx.Context(), sts)
 }
 
@@ -85,7 +85,7 @@ func (s *streamWS) SendMsg(v interface{}) error {
 func (s *streamWS) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.pathRule.hasReqBody {
+	if s.pathRule.HasReqBody {
 		cur := args.ProtoReflect()
 		for _, fd := range s.pathRule.reqBody {
 			cur = cur.Mutable(fd).Message()

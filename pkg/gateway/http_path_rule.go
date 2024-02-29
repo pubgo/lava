@@ -15,19 +15,19 @@ type httpPathRule struct {
 	// Variables split the search tree:
 	//
 	//	/path/{variable/*}/to/{end/**} ?:VERB
-	httpPath string
+	HttpPath string
 
-	rawHttpPath string
+	RawHttpPath string
 
-	httpMethod string
+	HttpMethod string
 
 	// /{ServiceName}/{MethodName}
-	grpcMethodName string
+	GrpcMethodName string
 
 	// variables on path
 	// a.b.c=>a_b_c
-	vars map[string]string
-	//vars map[string][]protoreflect.FieldDescriptor
+	Vars map[string]string
+	// Vars map[string][]protoreflect.FieldDescriptor
 
 	// body=[""|"*"|"name"]
 	reqBody []protoreflect.FieldDescriptor
@@ -36,10 +36,10 @@ type httpPathRule struct {
 	rspBody []protoreflect.FieldDescriptor
 
 	// body="*" or body="field.name" or body="" for no body
-	hasReqBody bool
+	HasReqBody bool
 
 	// response_body="*" or response_body="field.name" or response_body="" for no body
-	hasRspBody bool
+	HasRspBody bool
 
-	isGroup bool
+	IsGroup bool
 }

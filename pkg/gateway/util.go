@@ -27,7 +27,7 @@ import (
 func handlerWrap(path *httpPathRule) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		var values = make(url.Values)
-		for k, v := range path.vars {
+		for k, v := range path.Vars {
 			values.Set(k, ctx.Params(v))
 		}
 
@@ -35,7 +35,7 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 			values.Set(k, v)
 		}
 
-		var doRequest = path.opts.handlers[path.grpcMethodName]
+		var doRequest = path.opts.handlers[path.GrpcMethodName]
 
 		if wsutil.IsWebSocketUpgrade(ctx) {
 			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
@@ -187,32 +187,32 @@ func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.M
 	m := &httpPathRule{
 		opts: opts,
 		desc: desc,
-		//vars:           getPathVariables(inputFieldDescriptors, pathUrl),
-		grpcMethodName: name,
-		rawHttpPath:    pathUrl,
-		httpMethod:     verb,
+		//Vars:           getPathVariables(inputFieldDescriptors, pathUrl),
+		GrpcMethodName: name,
+		RawHttpPath:    pathUrl,
+		HttpMethod:     verb,
 
 		// TODO 未来需要调整
-		vars:     getPathVarMap(pathUrl),
-		httpPath: normalPath,
-		isGroup:  isGroup(pathUrl),
+		Vars:     getPathVarMap(pathUrl),
+		HttpPath: normalPath,
+		IsGroup:  isGroup(pathUrl),
 	}
 
 	switch rule.Body {
 	case "*":
-		m.hasReqBody = true
+		m.HasReqBody = true
 	case "":
-		m.hasReqBody = false
+		m.HasReqBody = false
 	default:
-		m.hasReqBody = true
+		m.HasReqBody = true
 		inputFieldDescriptors := desc.Input().Fields()
 		m.reqBody = fieldPath(inputFieldDescriptors, strings.Split(rule.Body, ".")...)
 	}
 	if verb == http.MethodGet {
-		m.hasReqBody = false
+		m.HasReqBody = false
 	}
 
-	m.hasRspBody = true
+	m.HasRspBody = true
 	if rule.ResponseBody != "" {
 		outputFieldDescriptors := desc.Output().Fields()
 		m.rspBody = fieldPath(outputFieldDescriptors, strings.Split(rule.ResponseBody, ".")...)

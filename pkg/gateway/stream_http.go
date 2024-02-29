@@ -54,7 +54,7 @@ func (s *streamHTTP) Context() context.Context {
 		s.ctx.Context(),
 		&serverTransportStream{
 			ServerStream: s,
-			method:       s.method.grpcMethodName,
+			method:       s.method.GrpcMethodName,
 		},
 	)
 }
@@ -91,7 +91,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 func (s *streamHTTP) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.method.hasReqBody {
+	if s.method.HasReqBody {
 		cur := args.ProtoReflect()
 		for _, fd := range s.method.reqBody {
 			cur = cur.Mutable(fd).Message()

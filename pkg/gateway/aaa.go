@@ -22,5 +22,7 @@ type Gateway interface {
 	HttpClient() *http.Client
 	FastClient() *fasthttp.Client
 
+	GetPathRules() []*httpPathRule
+
 	App() *fiber.App
 }
