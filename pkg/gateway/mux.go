@@ -176,6 +176,16 @@ type Mux struct {
 	mem  *fasthttputil.InmemoryListener
 }
 
+func (m *Mux) GetPathRules() []*httpPathRule {
+	var rules []*httpPathRule
+	for _, v := range m.opts.routes {
+		for _, vv := range v {
+			rules = append(rules, vv)
+		}
+	}
+	return rules
+}
+
 func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
 	//TODO implement me
 	panic("implement me")
