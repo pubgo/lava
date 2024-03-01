@@ -3,22 +3,24 @@ package wsproxy
 import (
 	"bufio"
 	"bytes"
+	"io"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/internal/logutil"
 	"golang.org/x/net/context"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const (
 	// Time allowed to read write a message to the peer.
-	timeWait = 90 * time.Second
+	timeWait = 15 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -148,21 +150,37 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+
 	conn.SetReadLimit(maxMessageSize)
-	conn.SetPingHandler(nil)
-	conn.SetPongHandler(func(string) error {
+	conn.SetPingHandler(func(text string) error {
+		log.Info().Str("text", text).Msg("websocket received ping frame")
+		err := conn.WriteControl(websocket.PongMessage, []byte(text), time.Now().Add(timeWait))
+		if err == websocket.ErrCloseSent {
+			return nil
+		} else if _, ok := err.(net.Error); ok {
+			return nil
+		}
+		return err
+	})
+
+	conn.SetPongHandler(func(text string) error {
+		log.Info().Str("text", text).Msg("websocket received pong frame")
 		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+		return nil
+	})
+
+	conn.SetCloseHandler(func(code int, text string) error {
+		log.Info().Any("code", code).Any("text", text).Msg("websocket received close frame")
+		cancelFn()
 		return nil
 	})
 
 	if p.enablePingPong {
 		log.Info().Msg("enable ping pong")
 		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
-		logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
 	}
-
-	ctx, cancelFn := context.WithCancel(context.Background())
-	defer cancelFn()
 
 	requestBodyR, requestBodyW := io.Pipe()
 	log.Warn().Msg("backend service only supports POST requests")
@@ -211,24 +229,6 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		defer cancelFn()
 		p.h.ServeHTTP(response, request)
 	}()
-
-	if p.enablePingPong {
-		ticker := time.NewTicker(pingPeriod)
-		defer ticker.Stop()
-		go func() {
-			for range ticker.C {
-				//err = conn.WriteMessage(websocket.TextMessage, pingPayload)
-				//log.Err(err).Msg("server ping message")
-
-				err := conn.WriteMessage(websocket.PingMessage, []byte("server ping"))
-				if err != nil {
-					log.Err(err).Msg("failed to write ping message")
-				} else {
-					logutil.HandlerErr(conn.SetWriteDeadline(time.Now().Add(timeWait)))
-				}
-			}
-		}()
-	}
 
 	defer func() {
 		log.Info().Msg("close websocket ping")
