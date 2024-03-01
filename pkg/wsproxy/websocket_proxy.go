@@ -156,7 +156,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 	conn.SetReadLimit(maxMessageSize)
 	conn.SetPingHandler(func(text string) error {
 		log.Info().Str("text", text).Msg("websocket received ping frame")
-		err := conn.WriteControl(websocket.PongMessage, []byte(text), time.Now().Add(timeWait))
+		// 不设置 write deadline
+		err := conn.WriteControl(websocket.PongMessage, []byte(text), time.Time{})
 		if err == websocket.ErrCloseSent {
 			return nil
 		} else if _, ok := err.(net.Error); ok {
@@ -254,9 +255,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
+				_ = conn.SetReadDeadline(time.Now().Add(timeWait))
+
 				if p.enablePingPong {
 					if bytes.Equal(payload, pingPayload) {
-						logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
 						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
 						continue
 					}
