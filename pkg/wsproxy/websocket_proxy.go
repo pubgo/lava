@@ -17,7 +17,7 @@ import (
 
 const (
 	// Time allowed to read write a message to the peer.
-	timeWait = 90 * time.Second
+	timeWait = 15 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 10 * time.Second
@@ -255,9 +255,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				_ = conn.SetReadDeadline(time.Now().Add(timeWait))
-
 				if p.enablePingPong {
+					_ = conn.SetReadDeadline(time.Now().Add(timeWait))
 					if bytes.Equal(payload, pingPayload) {
 						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
 						continue
