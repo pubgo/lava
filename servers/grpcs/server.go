@@ -385,7 +385,9 @@ func (s *serviceImpl) DixInject(
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
 	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
-		wsproxy.WithPingPong(conf.EnablePingPong)))))
+		wsproxy.WithPingPong(conf.EnablePingPong),
+		wsproxy.WithTimeWait(conf.PingPongTime),
+	))))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer

@@ -54,6 +54,7 @@ type Proxy struct {
 	tokenCookieName     string
 	requestMutator      RequestMutatorFunc
 	enablePingPong      bool
+	timeWait            time.Duration
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +92,12 @@ func WithRequestMutator(fn RequestMutatorFunc) Option {
 func WithPingPong(b bool) Option {
 	return func(p *Proxy) {
 		p.enablePingPong = b
+	}
+}
+
+func WithTimeWait(t int32) Option {
+	return func(p *Proxy) {
+		p.timeWait = time.Second * time.Duration(t)
 	}
 }
 
@@ -177,6 +184,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		cancelFn()
 		return nil
 	})
+
+	if p.timeWait == 0 {
+		p.timeWait = timeWait
+	}
 
 	if p.enablePingPong {
 		log.Info().Msg("enable ping pong")
