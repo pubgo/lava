@@ -150,6 +150,10 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if p.timeWait == 0 {
+		p.timeWait = timeWait
+	}
+
 	conn, err := upgrade.Upgrade(w, r, responseHeader)
 	if err != nil {
 		log.Warn().Err(err).Msg("error upgrading websocket")
@@ -175,7 +179,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetPongHandler(func(text string) error {
 		log.Info().Str("text", text).Msg("websocket received pong frame")
-		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(p.timeWait)))
 		return nil
 	})
 
@@ -185,13 +189,9 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	if p.timeWait == 0 {
-		p.timeWait = timeWait
-	}
-
 	if p.enablePingPong {
-		log.Info().Msg("enable ping pong")
-		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(timeWait)))
+		log.Info().Str("time_wait", p.timeWait.String()).Msg("enable ping pong")
+		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(p.timeWait)))
 	}
 
 	requestBodyR, requestBodyW := io.Pipe()
@@ -267,7 +267,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if p.enablePingPong {
-					_ = conn.SetReadDeadline(time.Now().Add(timeWait))
+					_ = conn.SetReadDeadline(time.Now().Add(p.timeWait))
 					if bytes.Equal(payload, pingPayload) {
 						logutil.HandlerErr(conn.WriteMessage(websocket.TextMessage, pongPayload))
 						continue
