@@ -166,6 +166,8 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetReadLimit(maxMessageSize)
 	conn.SetPingHandler(func(text string) error {
+		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(p.timeWait)))
+
 		log.Info().Str("text", text).Msg("websocket received ping frame")
 		// 不设置 write deadline
 		err := conn.WriteControl(websocket.PongMessage, []byte(text), time.Time{})
