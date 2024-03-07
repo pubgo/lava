@@ -1,0 +1,4 @@
+create_table: "CREATE TABLE if not exists %s (%s VARCHAR(%d) PRIMARY KEY)"
+create_migration: "INSERT INTO %s (%s) VALUES ($1)"
+drop_migration: "DELETE FROM %s WHERE %s = $1"
+list_migration: "SELECT %s FROM %s"

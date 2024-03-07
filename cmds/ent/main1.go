@@ -24,7 +24,7 @@ type params struct {
 	MigrateOptions []schema.MigrateOption
 }
 
-func New() *cli.Command {
+func New1() *cli.Command {
 	return &cli.Command{
 		Name:  "ent",
 		Usage: "ent manager",
