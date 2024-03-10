@@ -4,7 +4,7 @@ import (
 	"expvar"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -26,7 +26,7 @@ func init() {
 	}
 
 	debug.Route("/vars", func(r fiber.Router) {
-		r.Get("/", func(ctx *fiber.Ctx) error {
+		r.Get("/", func(ctx fiber.Ctx) error {
 			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 			var keys []string
 			expvar.Do(func(kv expvar.KeyValue) {
@@ -36,7 +36,7 @@ func init() {
 			return index(keys).Render(ctx)
 		})
 
-		r.Get("/:name", func(ctx *fiber.Ctx) error {
+		r.Get("/:name", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			ctx.Response().Header.Set("Content-Type", "application/json; charset=utf-8")
 			return ctx.SendString(expvar.Get(name).String())

@@ -5,7 +5,7 @@ go 1.19
 replace github.com/google/gnostic => github.com/google/gnostic v0.7.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/gofiber/fiber/v2 v2.52.2
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
@@ -24,10 +24,10 @@ require (
 	go.opentelemetry.io/otel/trace v1.23.1
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/net v0.19.0
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/net v0.21.0
+	golang.org/x/sys v0.18.0 // indirect
 	google.golang.org/genproto v0.0.0-20231212172506-995d672761c0 // indirect
 	google.golang.org/grpc v1.61.0
 	google.golang.org/protobuf v1.32.0
@@ -52,11 +52,11 @@ require (
 	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-playground/validator/v10 v10.10.1
 	github.com/gobwas/ws v1.3.2
-	github.com/gofiber/adaptor/v2 v2.1.30
 	github.com/gofiber/contrib/websocket v1.3.0
-	github.com/gofiber/template v1.6.25
-	github.com/gofiber/utils v1.0.1
-	github.com/gofiber/websocket/v2 v2.1.5
+	github.com/gofiber/fiber/v3 v3.0.0-20240310114021-7bc43dcabfc0
+	github.com/gofiber/template/html/v2 v2.1.1
+	github.com/gofiber/utils v1.1.0
+	github.com/gofiber/utils/v2 v2.0.0-beta.3
 	github.com/google/gnostic v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.0
@@ -69,12 +69,12 @@ require (
 	github.com/pubgo/funk v0.5.39-0.20240218021552-f8223b071505
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.7
 	github.com/urfave/cli/v3 v3.0.0-alpha2
-	github.com/valyala/fasthttp v1.51.0
+	github.com/valyala/fasthttp v1.52.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.23.1
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.19.0
@@ -102,7 +102,7 @@ require (
 	github.com/a8m/envsubst v1.3.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/alecthomas/repr v0.2.0 // indirect
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
@@ -131,6 +131,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gofiber/template v1.8.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -154,7 +155,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/k0kubun/pp/v3 v3.2.0 // indirect
-	github.com/klauspost/compress v1.17.3 // indirect
+	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/koron/go-ssdp v0.0.4 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/libp2p/go-netroute v0.2.1 // indirect

@@ -5,7 +5,7 @@ import (
 	"net/http/pprof"
 
 	"github.com/felixge/fgprof"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/core/debug"
 )
@@ -14,7 +14,7 @@ func init() {
 	debug.Get("/gprof", debug.Wrap(fgprof.Handler()))
 	debug.Route("/pprof", func(r fiber.Router) {
 		r.Get("/", debug.WrapFunc(pprof.Index))
-		r.Get("/:name", func(ctx *fiber.Ctx) error {
+		r.Get("/:name", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			switch name {
 			case "cmdline":

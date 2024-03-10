@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
@@ -25,7 +25,7 @@ import (
 )
 
 func handlerWrap(path *httpPathRule) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		var values = make(url.Values)
 		for k, v := range path.Vars {
 			values.Set(k, ctx.Params(v))

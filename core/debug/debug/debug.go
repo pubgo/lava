@@ -1,14 +1,14 @@
 package debug
 
 import (
-	"github.com/pubgo/lava/core/debug"
 	"sort"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/lava/core/debug"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 }
 
 func initDebug() {
-	debug.Get("/", func(ctx *fiber.Ctx) error {
+	debug.Get("/", func(ctx fiber.Ctx) error {
 		pathMap := make(map[string]interface{})
 		stack := debug.App().Stack()
 		for m := range stack {

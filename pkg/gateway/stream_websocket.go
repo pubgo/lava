@@ -3,7 +3,7 @@ package gateway
 import (
 	"context"
 	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
@@ -30,7 +30,7 @@ const (
 )
 
 type streamWS struct {
-	ctx        *fiber.Ctx
+	ctx        fiber.Ctx
 	conn       *websocket.Conn
 	pathRule   *httpPathRule
 	params     url.Values

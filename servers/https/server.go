@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors/errutil"
@@ -72,12 +72,6 @@ func (s *serviceImpl) DixInject(
 		cfg.BaseUrl = "/" + version.Project()
 	}
 
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
-	})
-
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -85,8 +79,7 @@ func (s *serviceImpl) DixInject(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		ETag:               true,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
 			}

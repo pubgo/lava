@@ -2,12 +2,12 @@ package wsutil
 
 import (
 	"errors"
+	"github.com/gofiber/utils/v2"
 	"io"
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
+	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp"
 )
 
@@ -52,7 +52,7 @@ type Config struct {
 
 // New returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
-func New(ctx *fiber.Ctx, call func(c *websocket.Conn), config ...Config) (err error) {
+func New(ctx fiber.Ctx, call func(c *websocket.Conn), config ...Config) (err error) {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
@@ -167,7 +167,7 @@ func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
 
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
-func IsWebSocketUpgrade(c *fiber.Ctx) bool {
+func IsWebSocketUpgrade(c fiber.Ctx) bool {
 	return websocket.FastHTTPIsWebSocketUpgrade(c.Context())
 }
 

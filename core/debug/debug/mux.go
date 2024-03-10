@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
@@ -23,7 +23,7 @@ var once sync.Once
 
 func init() {
 	log.Info().Str("password", running.InstanceID).Msg("debug password")
-	debug.App().Use(func(c *fiber.Ctx) (gErr error) {
+	debug.App().Use(func(c fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
 			err = errors.WrapTag(err,
 				errors.T("headers", c.GetReqHeaders()),

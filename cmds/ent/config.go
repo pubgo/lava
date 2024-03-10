@@ -3,7 +3,6 @@ package ent
 import (
 	"context"
 	_ "embed"
-
 	"github.com/pubgo/funk/assert"
 	"gopkg.in/yaml.v3"
 )

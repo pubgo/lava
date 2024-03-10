@@ -3,13 +3,13 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-	"github.com/pubgo/funk/log"
 	"net/http"
 	"net/url"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -19,7 +19,7 @@ import (
 type streamHTTP struct {
 	opts       *muxOptions
 	method     *httpPathRule
-	ctx        *fiber.Ctx
+	ctx        fiber.Ctx
 	header     metadata.MD
 	trailer    metadata.MD
 	params     url.Values

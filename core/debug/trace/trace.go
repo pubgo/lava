@@ -1,7 +1,7 @@
 package trace
 
 import (
-	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"golang.org/x/net/trace"
 
 	"github.com/pubgo/lava/core/debug"
