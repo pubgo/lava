@@ -39,8 +39,6 @@ type Migration struct {
 
 	SchemaSqlFile string
 
-	SkipExecSchemaSql bool
-
 	// DataMigrate is a function that will br executed while running this migration.
 	DataMigrate MigrateFunc
 
@@ -236,16 +234,14 @@ func (g *GoMigrate) createTableIfNotExists(ctx context.Context) error {
 
 func (g *GoMigrate) insertMigration(ctx context.Context, m *Migration) error {
 	sql := fmt.Sprintf(sqlTmpl.CreateMigration, g.config.TableName, g.config.ColumnName)
-	tx := g.config.GetTx(ctx)
+	tx := g.config.GenTx(ctx)
 	return withTx(ctx, tx, func(tx Tx) error {
-		if !m.SkipExecSchemaSql {
-			_, err := tx.ExecContext(ctx, m.SchemaSqlFile)
-			if err != nil {
-				return err
-			}
+		_, err := tx.ExecContext(ctx, m.SchemaSqlFile)
+		if err != nil {
+			return err
 		}
 
-		_, err := tx.ExecContext(ctx, sql, m.Name)
+		_, err = tx.ExecContext(ctx, sql, m.Name)
 		if err != nil {
 			return err
 		}
@@ -260,7 +256,7 @@ func (g *GoMigrate) insertMigration(ctx context.Context, m *Migration) error {
 
 func (g *GoMigrate) rollbackMigration(ctx context.Context, m *Migration) error {
 	sql := fmt.Sprintf(sqlTmpl.DropMigration, g.config.TableName, g.config.ColumnName)
-	tx := g.config.GetTx(ctx)
+	tx := g.config.GenTx(ctx)
 
 	return withTx(ctx, tx, func(tx Tx) error {
 		_, err := tx.ExecContext(ctx, sql, m.Name)

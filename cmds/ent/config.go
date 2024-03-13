@@ -1,8 +1,8 @@
 package ent
 
 import (
-	"context"
 	_ "embed"
+	entsql "entgo.io/ent/dialect/sql"
 
 	"github.com/pubgo/funk/assert"
 	"gopkg.in/yaml.v3"
@@ -25,7 +25,7 @@ type sqlConfig struct {
 
 // Config define config for all migrations.
 type Config struct {
-	GetTx func(parent context.Context) Tx `yaml:"-"`
+	GenTx func(db *entsql.Driver) Tx `yaml:"-" json:"-"`
 
 	// TableName is the migration table.
 	TableName string `yaml:"table_name"`
@@ -36,7 +36,7 @@ type Config struct {
 	// ColumnSize is the length of the migration id column
 	ColumnSize int `yaml:"column_size"`
 
-	MigrationPath string `yaml:"sql_path"`
+	MigrationPath string `yaml:"migration_path"`
 }
 
 // DefaultConfig can be used if you don't want to think about config.
