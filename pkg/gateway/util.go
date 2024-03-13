@@ -177,7 +177,12 @@ func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.M
 		panic(fmt.Errorf("unsupported http rule pattern %v", v))
 	}
 
-	assert.If(strings.Contains(pathUrl, ":"), "grpc http rule pattern url should not contain ':'")
+	if strings.Contains(pathUrl, ":") {
+		log.Error().Any("path", pathUrl).Msg("grpc http rule pattern url should not contain ':'")
+		return nil
+	}
+
+	assert.If(strings.Contains(pathUrl, ":"), "grpc http rule pattern url should not contain ':', path=%s", pathUrl)
 
 	normalPath := strings.ReplaceAll(pathUrl, ".", "_")
 	normalPath = strings.ReplaceAll(normalPath, "}", "")
