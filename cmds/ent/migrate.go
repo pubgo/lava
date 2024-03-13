@@ -234,7 +234,7 @@ func (g *GoMigrate) createTableIfNotExists(ctx context.Context) error {
 
 func (g *GoMigrate) insertMigration(ctx context.Context, m *Migration) error {
 	sql := fmt.Sprintf(sqlTmpl.CreateMigration, g.config.TableName, g.config.ColumnName)
-	tx := g.config.GenTx(ctx)
+	tx := g.config.GenTx(g.db)
 	return withTx(ctx, tx, func(tx Tx) error {
 		_, err := tx.ExecContext(ctx, m.SchemaSqlFile)
 		if err != nil {
@@ -256,7 +256,7 @@ func (g *GoMigrate) insertMigration(ctx context.Context, m *Migration) error {
 
 func (g *GoMigrate) rollbackMigration(ctx context.Context, m *Migration) error {
 	sql := fmt.Sprintf(sqlTmpl.DropMigration, g.config.TableName, g.config.ColumnName)
-	tx := g.config.GenTx(ctx)
+	tx := g.config.GenTx(g.db)
 
 	return withTx(ctx, tx, func(tx Tx) error {
 		_, err := tx.ExecContext(ctx, sql, m.Name)
