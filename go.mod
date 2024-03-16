@@ -45,7 +45,9 @@ require (
 	ariga.io/atlas v0.10.0
 	entgo.io/ent v0.12.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/Masterminds/squirrel v1.5.4
 	github.com/arl/statsviz v0.6.0
+	github.com/dave/jennifer v1.6.0
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/fasthttp/websocket v1.5.7
 	github.com/felixge/fgprof v0.9.3
@@ -156,6 +158,8 @@ require (
 	github.com/k0kubun/pp/v3 v3.2.0 // indirect
 	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/koron/go-ssdp v0.0.4 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/libp2p/go-netroute v0.2.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

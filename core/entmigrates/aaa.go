@@ -1,11 +1,10 @@
-package migrates
+package entmigrates
 
 import (
 	"context"
-	"errors"
 
-	"database/sql/driver"
 	entsql "entgo.io/ent/dialect/sql"
+	sq "github.com/Masterminds/squirrel"
 )
 
 // The version of postgres against which the tests are run
@@ -13,35 +12,40 @@ import (
 const defaultPostgresVersion = "15"
 
 // MigrateFunc is the func signature for migrating.
-type MigrateFunc func(ctx context.Context, tx Tx) error
+type MigrateFunc func(ctx context.Context, builder sq.StatementBuilderType, tx *Tx) error
 
 // RollbackFunc is the func signature for rollbacking.
-type RollbackFunc func(ctx context.Context, tx Tx) error
+type RollbackFunc func(ctx context.Context, builder sq.StatementBuilderType, tx *Tx) error
 
-var (
-	// ErrRollbackImpossible is returned when trying to rollback a migration
-	// that has no rollback function.
-	ErrRollbackImpossible = errors.New("ormigrate: It's impossible to rollback this migration")
+type Tx struct {
+	driver *entsql.Driver
+	sqlTx  *entsql.Tx
+}
 
-	// ErrNoMigrationDefined is returned when no migration is defined.
-	ErrNoMigrationDefined = errors.New("ormigrate: No migration defined")
+func (tx *Tx) GetDriver() *entsql.Driver {
+	return tx.driver
+}
 
-	// ErrMissingID is returned when the ID od migration is equal to ""
-	ErrMissingID = errors.New("ormigrate: Missing ID in migration")
+func (tx *Tx) QueryList(ctx context.Context, query string, args []any, v any) error {
+	rows, err := tx.sqlTx.QueryContext(ctx, query, args)
+	if err != nil {
+		return err
+	}
+	return entsql.ScanSlice(rows, v)
+}
 
-	// ErrNoRunMigration is returned when any run migration was found while
-	// running RollbackLast
-	ErrNoRunMigration = errors.New("ormigrate: Could not find last run migration")
+func (tx *Tx) QueryOne(ctx context.Context, query string, args []any, v any) error {
+	rows, err := tx.sqlTx.QueryContext(ctx, query, args)
+	if err != nil {
+		return err
+	}
+	return entsql.ScanOne(rows, v)
+}
 
-	// ErrMigrationIDDoesNotExist is returned when migrating or rolling back to a migration ID that
-	// does not exist in the list of migrations
-	ErrMigrationIDDoesNotExist = errors.New("ormigrate: Tried to migrate to an ID that doesn't exist")
-
-	// ErrUnknownPastMigration is returned if a migration exists in the DB that doesn't exist in the code
-	ErrUnknownPastMigration = errors.New("ormigrate: Found migration in DB that does not exist in code")
-)
-
-type Tx interface {
-	driver.Tx
-	entsql.ExecQuerier
+func (tx *Tx) Exec(ctx context.Context, query string, args []any) error {
+	_, err := tx.sqlTx.ExecContext(ctx, query, args)
+	if err != nil {
+		return err
+	}
+	return nil
 }

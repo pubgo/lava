@@ -1,7 +1,6 @@
-package migrates
+package entmigrates
 
 import (
-	"context"
 	_ "embed"
 
 	"github.com/pubgo/funk/assert"
@@ -25,8 +24,6 @@ type sqlConfig struct {
 
 // Config define config for all migrations.
 type Config struct {
-	GetTx func(parent context.Context) Tx `yaml:"-"`
-
 	// TableName is the migration table.
 	TableName string `yaml:"table_name"`
 
