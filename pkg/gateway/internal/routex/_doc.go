@@ -6,3 +6,6 @@ package routex
 // https://github.com/solo-io/gloo
 // https://github.com/altipla-consulting/protoc-gen-grpc_browser/tree/master
 // https://github.com/emcfarlane/larking/blob/91250e03da0d4670288dbc663aab7481e07c81dc/larking/rules.go#L53
+// https://github.com/connectrpc/vanguard-go
+// https://github.com/stackrox/go-grpc-http1
+// https://github.com/flakrimjusufi/grpc-with-rest

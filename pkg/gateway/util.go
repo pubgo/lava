@@ -16,7 +16,6 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsutil"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
@@ -42,17 +41,15 @@ func handlerWrap(path *httpPathRule) fiber.Handler {
 				return errors.Format("服务不支持 websocket")
 			}
 
-			return httputil.HTTPHandler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-				request.Header.Del("Sec-Websocket-Extensions")
-				conn, err := new(websocket.Upgrader).Upgrade(writer, request, request.Header)
-				assert.Must(err)
+			new(websocket.FastHTTPUpgrader).Upgrade(ctx.Context(), func(conn *websocket.Conn) {
 				fmt.Println(doRequest(&streamWS{
 					ctx:      ctx,
 					conn:     conn,
 					pathRule: path,
 					params:   values,
 				}))
-			}))(ctx)
+			})
+			return nil
 		}
 
 		return doRequest(&streamHTTP{
