@@ -70,13 +70,13 @@ func TestPath_ParsePathTemplate(t *testing.T) {
 		expectedErr: "syntax error at column 1: expected '/', got 'f'", // must start with slash
 	}, {
 		tmpl:        "/foo/bar/",
-		expectedErr: "syntax error at column 9: expected path value", // must not end in slash
+		expectedErr: "syntax error at column 9: expected httpPath value", // must not end in slash
 	}, {
 		tmpl:        "/foo/bar:baz/buzz",
 		expectedErr: "syntax error at column 13: unexpected '/'", // ":baz" verb can only come at the very end
 	}, {
 		tmpl:        "/foo/{bar/baz}/buzz",
-		expectedErr: "syntax error at column 10: expected '}', got '/'", // invalid field path
+		expectedErr: "syntax error at column 10: expected '}', got '/'", // invalid field httpPath
 	}, {
 		tmpl:     "/foo/bar:baz%12xyz%abcde",
 		wantPath: []string{"foo", "bar"},
@@ -92,13 +92,13 @@ func TestPath_ParsePathTemplate(t *testing.T) {
 		expectedErr: "syntax error at column 17: invalid URL escape \"%1\"",
 	}, {
 		tmpl:        "/foo/bar*",
-		expectedErr: "syntax error at column 9: unexpected '*'", // wildcard must be entire path component
+		expectedErr: "syntax error at column 9: unexpected '*'", // wildcard must be entire httpPath component
 	}, {
 		tmpl:        "/foo/bar/***",
 		expectedErr: "syntax error at column 12: unexpected '*'", // no such thing as triple-wildcard
 	}, {
 		tmpl:        "/foo/**/bar",
-		expectedErr: "double wildcard '**' must be the final path segment", // double-wildcard must be at end
+		expectedErr: "double wildcard '**' must be the final httpPath segment", // double-wildcard must be at end
 	}, {
 		tmpl:        "/{a}/{a}", // TODO: allow this?
 		expectedErr: "duplicate variable \"a\"",
@@ -240,7 +240,7 @@ func TestPath_ParsePathTemplate(t *testing.T) {
 			}
 			t.Log(segments)
 			require.NoError(t, err)
-			assert.ElementsMatch(t, testCase.wantPath, segments.path, "path mismatch")
+			assert.ElementsMatch(t, testCase.wantPath, segments.path, "httpPath mismatch")
 			assert.Equal(t, testCase.wantVerb, segments.verb, "verb mismatch")
 			assert.ElementsMatch(t, testCase.wantVars, variables, "variables mismatch")
 		})

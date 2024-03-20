@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"reflect"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
@@ -21,6 +20,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
 	"google.golang.org/grpc"
@@ -28,8 +28,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
-
-type handlerFunc func(grpc.ServerStream) error
 
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
@@ -47,8 +45,7 @@ type muxOptions struct {
 	errHandler            func(err error, ctx *fiber.Ctx)
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	routes                map[string]map[string]*httpPathRule
-	handlers              map[string]handlerFunc
+	handlers              map[string]*methodWrap
 }
 
 // MuxOption is an option for a mux.
@@ -67,10 +64,9 @@ var (
 		connectionTimeout:     defaultServerConnectionTimeout,
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
-		handlers:              make(map[string]handlerFunc),
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		routes:                make(map[string]map[string]*httpPathRule),
+		handlers:              make(map[string]*methodWrap),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -125,20 +121,10 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 var _ Gateway = (*Mux)(nil)
 
 type Mux struct {
-	cc   *inprocgrpc.Channel
-	opts *muxOptions
-	mu   sync.Mutex
-	mem  *fasthttputil.InmemoryListener
-}
-
-func (m *Mux) GetPathRules() []*httpPathRule {
-	var rules []*httpPathRule
-	for _, v := range m.opts.routes {
-		for _, vv := range v {
-			rules = append(rules, vv)
-		}
-	}
-	return rules
+	cc    *inprocgrpc.Channel
+	opts  *muxOptions
+	mem   *fasthttputil.InmemoryListener
+	route *routex.RouteTrie
 }
 
 func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
@@ -188,6 +174,16 @@ func (m *Mux) HttpClient() *http.Client {
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	restTarget, restVars, methods := m.route.Match(request.RequestURI, request.Method)
+
+	var mth *methodWrap
+	mth.Handle(&streamHTTP{
+		ctx:    ctx,
+		method: mth,
+		params: values,
+		opts:   path.opts,
+	})
+
 	//httputil.FastHandler(m.opts.app.Handler()).ServeHTTP(writer, request)
 }
 
@@ -261,6 +257,8 @@ func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	assert.If(generic.IsNil(ss), "ss params is nil")
 
+	m.cc.RegisterService(sd, ss)
+
 	ht := reflect.TypeOf(sd.HandlerType).Elem()
 	st := reflect.TypeOf(ss)
 	if !st.Implements(ht) {
@@ -270,21 +268,13 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	if err := m.registerService(sd, ss); err != nil {
 		log.Fatal().Err(err).Msgf("gateway: RegisterService error: %v", err)
 	}
-
-	m.cc.RegisterService(sd, ss)
 }
 
-func (m *Mux) registerRouter(method, path string, rule *httpPathRule) {
-	if m.opts.routes[method] == nil {
-		m.opts.routes[method] = make(map[string]*httpPathRule)
-	}
-	m.opts.routes[method][path] = rule
+func (m *Mux) registerRouter(rule *methodWrap) {
+	m.opts.handlers[rule.methodName] = rule
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	d, err := m.opts.files.FindDescriptorByName(protoreflect.FullName(gsd.ServiceName))
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -295,53 +285,32 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		return errors.Format("invalid httpPathRule descriptor %T", d)
 	}
 
-	mds := sd.Methods()
+	var srv = &serviceWrap{
+		opts:        m.opts,
+		srv:         ss,
+		serviceDesc: gsd,
+		servicePB:   sd,
+	}
 
-	findMethodDesc := func(methodName string) (protoreflect.MethodDescriptor, error) {
-		md := mds.ByName(protoreflect.Name(methodName))
-		if md == nil {
-			return nil, fmt.Errorf("missing httpPathRule descriptor for %v", methodName)
-		}
-		return md, nil
+	findMethodDesc := func(methodName string) protoreflect.MethodDescriptor {
+		md := sd.Methods().ByName(protoreflect.Name(methodName))
+		assert.If(md == nil, "missing protobuf descriptor for %v", methodName)
+		return md
 	}
 
 	for i := range gsd.Methods {
 		grpcMth := &gsd.Methods[i]
-		methodDesc, err := findMethodDesc(grpcMth.MethodName)
-		if err != nil {
-			return errors.WrapCaller(err)
-		}
+		methodDesc := findMethodDesc(grpcMth.MethodName)
 
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		m.opts.handlers[grpcMethod] = func(stream grpc.ServerStream) error {
-			ctx := stream.Context()
-
-			reply, err := grpcMth.Handler(ss, ctx, stream.RecvMsg, m.opts.unaryInterceptor)
-			if err != nil {
-				return errors.WrapCaller(err)
-			}
-
-			return errors.WrapCaller(stream.SendMsg(reply))
-		}
-
-		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
-			opts:           m.opts,
-			desc:           methodDesc,
-			methodDesc:     grpcMth,
-			HttpMethod:     http.MethodPost,
-			HttpPath:       grpcMethod,
-			RawHttpPath:    grpcMethod,
-			GrpcMethodName: grpcMethod,
-			Vars:           make(map[string]string),
-			HasReqBody:     true,
-			HasRspBody:     true,
+		m.registerRouter(&methodWrap{
+			srv:        srv,
+			methodDesc: grpcMth,
+			grpcMethod: methodDesc,
+			methodName: grpcMethod,
 		})
-
-		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
-			m.registerRouter(mth.HttpMethod, mth.HttpPath, mth)
-		}
 	}
 
 	for i := range gsd.Streams {
@@ -349,44 +318,14 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		grpcMethod := "/" + gsd.ServiceName + "/" + grpcMth.StreamName
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		methodDesc, err := findMethodDesc(grpcMth.StreamName)
-		if err != nil {
-			return err
-		}
+		methodDesc := findMethodDesc(grpcMth.StreamName)
 
-		m.opts.handlers[grpcMethod] = func(stream grpc.ServerStream) error {
-			info := &grpc.StreamServerInfo{
-				FullMethod:     grpcMethod,
-				IsClientStream: grpcMth.ClientStreams,
-				IsServerStream: grpcMth.ServerStreams,
-			}
-
-			if m.opts.streamInterceptor != nil {
-				return m.opts.streamInterceptor(ss, stream, info, grpcMth.Handler)
-			} else {
-				return grpcMth.Handler(ss, stream)
-			}
-		}
-
-		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
-			opts:           m.opts,
-			desc:           methodDesc,
-			HttpMethod:     http.MethodPost,
-			HttpPath:       grpcMethod,
-			RawHttpPath:    grpcMethod,
-			GrpcMethodName: grpcMethod,
-			Vars:           make(map[string]string),
-			HasReqBody:     true,
-			HasRspBody:     true,
+		m.registerRouter(&methodWrap{
+			srv:        srv,
+			streamDesc: grpcMth,
+			grpcMethod: methodDesc,
+			methodName: grpcMethod,
 		})
-
-		for _, mth := range getMethod(m.opts, getExtensionHTTP(methodDesc), methodDesc, grpcMethod) {
-			if mth.HttpMethod == "WEBSOCKET" {
-				continue
-			}
-
-			m.registerRouter(http.MethodGet, mth.HttpPath, mth)
-		}
 	}
 
 	return nil

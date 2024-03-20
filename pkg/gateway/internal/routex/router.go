@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -29,26 +30,50 @@ func NewRouteTrie() *RouteTrie {
 }
 
 // RouteTrie is a prefix trie of valid REST URI paths to route targets.
-// It supports evaluation of variables as the path is matched, for
-// interpolating parts of the URI path into an RPC request field. The
-// map is keyed by the path component that corresponds to a given node.
+// It supports evaluation of variables as the httpPath is matched, for
+// interpolating parts of the URI httpPath into an RPC request field. The
+// map is keyed by the httpPath component that corresponds to a given node.
 type RouteTrie struct {
-	// Child nodes, keyed by the next segment in the path.
+	// Child nodes, keyed by the next segment in the httpPath.
 	children map[string]*RouteTrie
-	// Final node in the path has a map of verbs to methods.
+	// Final node in the httpPath has a map of verbs to methods.
 	// Verbs are either an empty string or a single literal.
-	verbs map[string]routeMethods
+	verbs map[string]RouteMethods
 }
 
-func (t *RouteTrie) AddRoute(config *methodConfig, httpRule *annotations.HttpRule) error {
-	return t.addRoute(config, httpRule)
+func (t *RouteTrie) GetRouteMethods() []*RouteTarget {
+	var rr []*RouteTarget
+	for _, verbs := range t.verbs {
+		for _, target := range verbs {
+			rr = append(rr, target)
+		}
+	}
+
+	for _, child := range t.children {
+		rr = append(rr, child.GetRouteMethods()...)
+	}
+
+	return rr
 }
 
-// addRoute adds a target to the router for the given method and the given
+func (t *RouteTrie) Match(uriPath, httpMethod string) (*RouteTarget, []RouteTargetVarMatch, RouteMethods) {
+	return t.match(uriPath, httpMethod)
+}
+
+func (t *RouteTrie) AddRoute(mth protoreflect.MethodDescriptor) error {
+	httpRule := getExtensionHTTP(mth)
+	return t.addRoute(&MethodConfig{Descriptor: mth, MethodPath: string(mth.FullName())}, httpRule)
+}
+
+// addRoute adds a target to the router for the given httpMethod and the given
 // HTTP rule. Only the rule itself is added. If the rule indicates additional
 // bindings, they are ignored. To add routes for all bindings, callers must
-// invoke this method for each rule.
-func (t *RouteTrie) addRoute(config *methodConfig, httpRule *annotations.HttpRule) error {
+// invoke this httpMethod for each rule.
+func (t *RouteTrie) addRoute(config *MethodConfig, httpRule *annotations.HttpRule) error {
+	if httpRule == nil {
+		return nil
+	}
+
 	var method, template string
 	switch pattern := httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
@@ -66,11 +91,12 @@ func (t *RouteTrie) addRoute(config *methodConfig, httpRule *annotations.HttpRul
 	default:
 		return fmt.Errorf("invalid type of pattern for HTTP httpRule: %T", pattern)
 	}
+
 	if method == "" {
-		return errors.New("invalid HTTP httpRule: method is blank")
+		return errors.New("invalid HTTP httpRule: httpMethod is blank")
 	}
 	if template == "" {
-		return errors.New("invalid HTTP httpRule: path template is blank")
+		return errors.New("invalid HTTP httpRule: httpPath template is blank")
 	}
 	segments, variables, err := parsePathTemplate(template)
 	if err != nil {
@@ -86,10 +112,10 @@ func (t *RouteTrie) addRoute(config *methodConfig, httpRule *annotations.HttpRul
 
 	for i, rule := range httpRule.GetAdditionalBindings() {
 		if len(rule.GetAdditionalBindings()) > 0 {
-			return fmt.Errorf("nested additional bindings are not supported (method %s)", config.methodPath)
+			return fmt.Errorf("nested additional bindings are not supported (httpMethod %s)", config.MethodPath)
 		}
 		if err = t.addRoute(config, rule); err != nil {
-			return fmt.Errorf("failed to add REST route (add'l binding #%d) for method %s: %w", i+1, config.methodPath, err)
+			return fmt.Errorf("failed to add REST route (add'l binding #%d) for httpMethod %s: %w", i+1, config.MethodPath, err)
 		}
 	}
 
@@ -108,21 +134,21 @@ func (t *RouteTrie) insertChild(segment string) *RouteTrie {
 	return child
 }
 
-func (t *RouteTrie) insertVerb(verb string) routeMethods {
+func (t *RouteTrie) insertVerb(verb string) RouteMethods {
 	methods := t.verbs[verb]
 	if methods == nil {
 		if t.verbs == nil {
-			t.verbs = make(map[string]routeMethods, 1)
+			t.verbs = make(map[string]RouteMethods, 1)
 		}
-		methods = make(routeMethods, 1)
+		methods = make(RouteMethods, 1)
 		t.verbs[verb] = methods
 	}
 	return methods
 }
 
-// insert the target into the trie using the given method and segment path.
-// The path is followed until the final segment is reached.
-func (t *RouteTrie) insert(method string, target *routeTarget, segments pathSegments) error {
+// insert the target into the trie using the given httpMethod and segment httpPath.
+// The httpPath is followed until the final segment is reached.
+func (t *RouteTrie) insert(method string, target *RouteTarget, segments pathSegments) error {
 	cursor := t
 	for _, segment := range segments.path {
 		cursor = cursor.insertChild(segment)
@@ -138,13 +164,9 @@ func (t *RouteTrie) insert(method string, target *routeTarget, segments pathSegm
 	return nil
 }
 
-func (t *RouteTrie) Match(uriPath, httpMethod string) (*routeTarget, []routeTargetVarMatch, routeMethods) {
-	return t.match(uriPath, httpMethod)
-}
-
 // match finds a route for the given request. If a match is found, the associated target and a map
 // of matched variable values is returned.
-func (t *RouteTrie) match(uriPath, httpMethod string) (*routeTarget, []routeTargetVarMatch, routeMethods) {
+func (t *RouteTrie) match(uriPath, httpMethod string) (*RouteTarget, []RouteTargetVarMatch, RouteMethods) {
 	if len(uriPath) == 0 || uriPath[0] != '/' || uriPath[len(uriPath)-1] == ':' {
 		// Must start with "/" or if it ends with ":" it won't match
 		return nil, nil, nil
@@ -171,13 +193,13 @@ func (t *RouteTrie) match(uriPath, httpMethod string) (*routeTarget, []routeTarg
 	return target, vars, nil
 }
 
-// findTarget finds the target for the given path components, verb, and method.
-// The method either returns a target OR the set of methods for the given path
+// findTarget finds the target for the given httpPath components, verb, and httpMethod.
+// The httpMethod either returns a target OR the set of methods for the given httpPath
 // and verb. If the target is non-nil, the request was matched. If the target
-// is nil but methods are non-nil, the path and verb matched a route, but not
-// the method. This can be used to send back a well-formed "Allow" response
-// header. If both are nil, the path and verb did not match.
-func (t *RouteTrie) findTarget(path []string, verb, method string) (*routeTarget, routeMethods) {
+// is nil but methods are non-nil, the httpPath and verb matched a route, but not
+// the httpMethod. This can be used to send back a well-formed "Allow" response
+// header. If both are nil, the httpPath and verb did not match.
+func (t *RouteTrie) findTarget(path []string, verb, method string) (*RouteTarget, RouteMethods) {
 	if len(path) == 0 {
 		return t.getTarget(verb, method)
 	}
@@ -199,35 +221,36 @@ func (t *RouteTrie) findTarget(path []string, verb, method string) (*routeTarget
 	}
 
 	// Double-asterisk must be the last element in pattern.
-	// So it consumes all remaining path elements.
+	// So it consumes all remaining httpPath elements.
 	if childDblAst := t.children["**"]; childDblAst != nil {
 		return childDblAst.findTarget(nil, verb, method)
 	}
 	return nil, nil
 }
 
-// getTarget gets the target for the given verb and method from the
+// getTarget gets the target for the given verb and httpMethod from the
 // node trie. It is like findTarget, except that it does not use a
-// path to first descend into a sub-trie.
-func (t *RouteTrie) getTarget(verb, method string) (*routeTarget, routeMethods) {
+// httpPath to first descend into a sub-trie.
+func (t *RouteTrie) getTarget(verb, method string) (*RouteTarget, RouteMethods) {
 	methods := t.verbs[verb]
 	if target := methods[method]; target != nil {
 		return target, methods
 	}
-	// See if a wildcard method was used
+	// See if a wildcard httpMethod was used
 	if target := methods["*"]; target != nil {
 		return target, methods
 	}
 	return nil, methods
 }
 
-type routeMethods map[string]*routeTarget
+type RouteMethods map[string]*RouteTarget
 
-type routeTarget struct {
-	config                *methodConfig
-	method                string // HTTP method
-	path                  []string
-	verb                  string
+type RouteTarget struct {
+	grpcMethodName string
+	httpMethod     string
+	httpPath       []string
+	verb           string
+
 	requestBodyFieldPath  string
 	requestBodyFields     []protoreflect.FieldDescriptor
 	responseBodyFieldPath string
@@ -235,48 +258,51 @@ type routeTarget struct {
 	vars                  []routeTargetVar
 }
 
-func makeTarget(config *methodConfig, method, requestBody, responseBody string, segments pathSegments, variables []pathVariable) (*routeTarget, error) {
-	requestBodyFields, err := resolvePathToDescriptors(config.descriptor.Input(), requestBody)
+func makeTarget(config *MethodConfig, method, requestBody, responseBody string, segments pathSegments, variables []pathVariable) (*RouteTarget, error) {
+	requestBodyFields, err := resolvePathToDescriptors(config.Descriptor.Input(), requestBody)
 	if err != nil {
 		return nil, err
 	}
 	if len(requestBodyFields) > 1 {
 		return nil, fmt.Errorf(
-			"unexpected request body path %q: must be a single field",
+			"unexpected request body httpPath %q: must be a single field",
 			requestBody,
 		)
 	}
-	responseBodyFields, err := resolvePathToDescriptors(config.descriptor.Output(), responseBody)
+
+	responseBodyFields, err := resolvePathToDescriptors(config.Descriptor.Output(), responseBody)
 	if err != nil {
 		return nil, err
 	}
 	if len(responseBodyFields) > 1 {
 		return nil, fmt.Errorf(
-			"unexpected response body path %q: must be a single field",
+			"unexpected response body httpPath %q: must be a single field",
 			requestBody,
 		)
 	}
+
 	routeTargetVars := make([]routeTargetVar, len(variables))
 	for i, variable := range variables {
-		fields, err := resolvePathToDescriptors(config.descriptor.Input(), variable.fieldPath)
+		fields, err := resolvePathToDescriptors(config.Descriptor.Input(), variable.fieldPath)
 		if err != nil {
 			return nil, err
 		}
 		if last := fields[len(fields)-1]; last.IsList() {
 			return nil, fmt.Errorf(
-				"unexpected path variable %q: cannot be a repeated field",
+				"unexpected httpPath variable %q: cannot be a repeated field",
 				variable.fieldPath,
 			)
 		}
+
 		routeTargetVars[i] = routeTargetVar{
 			pathVariable: variable,
 			fields:       fields,
 		}
 	}
-	return &routeTarget{
-		config:                config,
-		method:                method,
-		path:                  segments.path,
+	return &RouteTarget{
+		grpcMethodName:        config.MethodPath,
+		httpMethod:            method,
+		httpPath:              segments.path,
 		verb:                  segments.verb,
 		requestBodyFieldPath:  requestBody,
 		requestBodyFields:     requestBodyFields,
@@ -328,16 +354,16 @@ func (v routeTargetVar) capture(segments []string) (string, error) {
 	return sb.String(), nil
 }
 
-type routeTargetVarMatch struct {
+type RouteTargetVarMatch struct {
 	fields []protoreflect.FieldDescriptor
 	value  string
 }
 
-func computeVarValues(path []string, target *routeTarget) ([]routeTargetVarMatch, error) {
+func computeVarValues(path []string, target *RouteTarget) ([]RouteTargetVarMatch, error) {
 	if len(target.vars) == 0 {
 		return nil, nil
 	}
-	vars := make([]routeTargetVarMatch, len(target.vars))
+	vars := make([]RouteTargetVarMatch, len(target.vars))
 	for i, varDef := range target.vars {
 		val, err := varDef.capture(path)
 		if err != nil {
@@ -349,8 +375,8 @@ func computeVarValues(path []string, target *routeTarget) ([]routeTargetVarMatch
 	return vars, nil
 }
 
-// resolvePathToDescriptors translates the given path string, in the form of "ident.ident.ident",
-// into a path of FieldDescriptors, relative to the given msg.
+// resolvePathToDescriptors translates the given httpPath string, in the form of "ident.ident.ident",
+// into a httpPath of FieldDescriptors, relative to the given msg.
 func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) ([]protoreflect.FieldDescriptor, error) {
 	if path == "" {
 		return nil, nil
@@ -359,13 +385,14 @@ func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) (
 		// non-nil, empty slice means use the whole thing
 		return []protoreflect.FieldDescriptor{}, nil
 	}
+
 	fields := msg.Fields()
 	parts := strings.Split(path, ".")
 	result := make([]protoreflect.FieldDescriptor, len(parts))
 	for i, part := range parts {
 		field := fields.ByName(protoreflect.Name(part))
 		if field == nil {
-			return nil, fmt.Errorf("in field path %q: element %q does not correspond to any field of type %s",
+			return nil, fmt.Errorf("in field httpPath %q: element %q does not correspond to any field of type %s",
 				path, part, msg.FullName())
 		}
 		result[i] = field
@@ -373,12 +400,12 @@ func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) (
 			break
 		}
 		if field.Cardinality() == protoreflect.Repeated {
-			return nil, fmt.Errorf("in field path %q: field %q of type %s should not be a list or map",
+			return nil, fmt.Errorf("in field httpPath %q: field %q of type %s should not be a list or map",
 				path, part, msg.FullName())
 		}
 		msg = field.Message()
 		if msg == nil {
-			return nil, fmt.Errorf("in field path %q: field %q of type %s should be a message but is instead %s",
+			return nil, fmt.Errorf("in field httpPath %q: field %q of type %s should be a message but is instead %s",
 				path, part, msg.FullName(), field.Kind())
 		}
 		fields = msg.Fields()
@@ -386,7 +413,7 @@ func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) (
 	return result, nil
 }
 
-// resolveFieldDescriptorsToPath translates the given path of FieldDescriptors into a string
+// resolveFieldDescriptorsToPath translates the given httpPath of FieldDescriptors into a string
 // of the form "ident.ident.ident".
 func resolveFieldDescriptorsToPath(fields []protoreflect.FieldDescriptor) string {
 	if len(fields) == 0 {
@@ -400,10 +427,27 @@ func resolveFieldDescriptorsToPath(fields []protoreflect.FieldDescriptor) string
 }
 
 type alreadyExistsError struct {
-	existing            *routeTarget
+	existing            *RouteTarget
 	pathPattern, method string
 }
 
 func (a alreadyExistsError) Error() string {
-	return fmt.Sprintf("target for %s, method %s already exists: %s", a.pathPattern, a.method, a.existing.config.descriptor.FullName())
+	return fmt.Sprintf("target for %s, httpMethod %s already exists: %s", a.pathPattern, a.method, a.existing.grpcMethodName)
+}
+
+// getExtensionHTTP
+func getExtensionHTTP(m protoreflect.MethodDescriptor) *annotations.HttpRule {
+	if m == nil {
+		return nil
+	}
+
+	if m.Options() == nil {
+		return nil
+	}
+
+	ext, ok := proto.GetExtension(m.Options(), annotations.E_Http).(*annotations.HttpRule)
+	if ok {
+		return ext
+	}
+	return nil
 }

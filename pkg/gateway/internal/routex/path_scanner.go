@@ -38,6 +38,7 @@ func (s *pathScanner) next() rune {
 	s.pos += s.width
 	return char
 }
+
 func (s *pathScanner) current() rune {
 	var char rune
 	if s.width > 0 {
@@ -47,10 +48,12 @@ func (s *pathScanner) current() rune {
 	}
 	return char
 }
+
 func (s *pathScanner) backup() {
 	s.pos -= s.width
 	s.width = 0
 }
+
 func (s *pathScanner) captureRun(isValid func(r rune) bool) string {
 	for isValid(s.next()) {
 		continue
@@ -58,6 +61,7 @@ func (s *pathScanner) captureRun(isValid func(r rune) bool) string {
 	s.backup()
 	return s.capture()
 }
+
 func (s *pathScanner) consume(expected rune) bool {
 	if s.next() == expected {
 		s.discard()
@@ -65,9 +69,11 @@ func (s *pathScanner) consume(expected rune) bool {
 	}
 	return false
 }
+
 func (s *pathScanner) discard() {
 	s.start = s.pos
 }
+
 func (s *pathScanner) capture() string {
 	value := s.input[s.start:s.pos]
 	s.discard()

@@ -23,6 +23,4 @@ type Gateway interface {
 	Handler(*fiber.Ctx) error
 	HttpClient() *http.Client
 	FastClient() *fasthttp.Client
-
-	GetPathRules() []*httpPathRule
 }

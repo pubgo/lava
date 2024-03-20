@@ -34,7 +34,7 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		path         string
-		expectedPath string // if blank, path is expected to NOT match
+		expectedPath string // if blank, httpPath is expected to NOT match
 		expectedVars map[string]string
 	}{
 		{
@@ -118,11 +118,11 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 			},
 		},
 		{
-			// No trailing slash in the path, so this should not match.
+			// No trailing slash in the httpPath, so this should not match.
 			path: "/trailing:slash",
 		},
 		{
-			// Trailing slash in the path, so this should match.
+			// Trailing slash in the httpPath, so this should match.
 			path:         "/trailing/:slash",
 			expectedPath: "/trailing/**:slash",
 		},
@@ -136,7 +136,7 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 			expectedPath: "/verb",
 		},
 		{
-			// Var capture use path unescaping.
+			// Var capture use httpPath unescaping.
 			path:         "/foo/bar/baz/%2f/%2A/%2f",
 			expectedPath: "/foo/bar/*/{thing.id}/{cat=**}",
 			expectedVars: map[string]string{"thing.id": "/", "cat": "*/%2F"},
@@ -162,7 +162,7 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 					t.Parallel()
 					target, vars, _ := trie.match(testCase.path, method)
 					require.NotNil(t, target)
-					require.Equal(t, protoreflect.Name(fmt.Sprintf("%s %s", method, testCase.expectedPath)), target.config.descriptor.Name())
+					require.Equal(t, protoreflect.Name(fmt.Sprintf("%s %s", method, testCase.expectedPath)), target.config.Descriptor.Name())
 					require.Equal(t, len(testCase.expectedVars), len(vars))
 					for _, varMatch := range vars {
 						names := make([]string, len(varMatch.fields))
@@ -192,15 +192,15 @@ func BenchmarkTrieMatch(b *testing.B) {
 	trie := initTrie(b)
 	path := "/foo/blah/A/B/C/foo/D/E/F/G/foo/H/I/J/K/L/M:details"
 	var (
-		method *routeTarget
-		vars   []routeTargetVarMatch
+		method *RouteTarget
+		vars   []RouteTargetVarMatch
 	)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		method, vars, _ = trie.match(path, http.MethodPost)
 		if method == nil {
-			b.Fatal("method not found")
+			b.Fatal("httpMethod not found")
 		}
 	}
 	b.StopTimer()
@@ -229,8 +229,8 @@ func initTrie(tb testing.TB) *RouteTrie {
 		require.NoError(tb, err)
 
 		for _, method := range []string{http.MethodGet, http.MethodPost} {
-			config := &methodConfig{
-				descriptor: &fakeMethodDescriptor{
+			config := &MethodConfig{
+				Descriptor: &fakeMethodDescriptor{
 					name: fmt.Sprintf("%s %s", method, route),
 				},
 			}
