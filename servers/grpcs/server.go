@@ -394,7 +394,7 @@ func (s *serviceImpl) DixInject(
 	s.grpcServer = grpcServer
 
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
+	//vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
 }
 
 func (s *serviceImpl) start() {

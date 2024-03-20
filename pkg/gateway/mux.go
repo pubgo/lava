@@ -22,7 +22,6 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
@@ -48,7 +47,6 @@ type muxOptions struct {
 	maxReceiveMessageSize int
 	maxSendMessageSize    int
 	connectionTimeout     time.Duration
-	app                   *fiber.App
 	handlers              map[string]handlerFunc
 	errHandler            func(err error, ctx *fiber.Ctx)
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
@@ -103,7 +101,6 @@ var (
 		connectionTimeout:     defaultServerConnectionTimeout,
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
-		app:                   fiber.New(fiber.Config{EnablePrintRoutes: true}),
 		handlers:              make(map[string]handlerFunc),
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
@@ -197,7 +194,6 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
-	m.opts.app.Handler()(ctx.Context())
 	return nil
 }
 
@@ -234,7 +230,7 @@ func (m *Mux) HttpClient() *http.Client {
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	httputil.FastHandler(m.opts.app.Handler()).ServeHTTP(writer, request)
+	//httputil.FastHandler(m.opts.app.Handler()).ServeHTTP(writer, request)
 }
 
 func NewMux(opts ...MuxOption) *Mux {
@@ -287,8 +283,6 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 }
 
-func (m *Mux) App() *fiber.App { return m.opts.app }
-
 func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.opts.unaryInterceptor = interceptor
 	m.cc.WithServerUnaryInterceptor(interceptor)
@@ -323,8 +317,6 @@ func (m *Mux) registerRouter(method, path string, rule *httpPathRule) {
 		m.opts.routes[method] = make(map[string]*httpPathRule)
 	}
 	m.opts.routes[method][path] = rule
-
-	m.opts.app.Add(method, path, handlerWrap(rule))
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
