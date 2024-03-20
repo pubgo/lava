@@ -208,9 +208,9 @@ func BenchmarkTrieMatch(b *testing.B) {
 	assert.Len(b, vars, 10)
 }
 
-func initTrie(tb testing.TB) *routeTrie {
+func initTrie(tb testing.TB) *RouteTrie {
 	tb.Helper()
-	var trie routeTrie
+	var trie RouteTrie
 	for _, route := range []string{
 		"/foo/bar/baz/buzz",
 		"/foo/bar/{name}",

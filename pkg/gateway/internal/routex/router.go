@@ -24,25 +24,33 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// routeTrie is a prefix trie of valid REST URI paths to route targets.
+func NewRouteTrie() *RouteTrie {
+	return new(RouteTrie)
+}
+
+// RouteTrie is a prefix trie of valid REST URI paths to route targets.
 // It supports evaluation of variables as the path is matched, for
 // interpolating parts of the URI path into an RPC request field. The
 // map is keyed by the path component that corresponds to a given node.
-type routeTrie struct {
+type RouteTrie struct {
 	// Child nodes, keyed by the next segment in the path.
-	children map[string]*routeTrie
+	children map[string]*RouteTrie
 	// Final node in the path has a map of verbs to methods.
 	// Verbs are either an empty string or a single literal.
 	verbs map[string]routeMethods
+}
+
+func (t *RouteTrie) AddRoute(config *methodConfig, httpRule *annotations.HttpRule) error {
+	return t.addRoute(config, httpRule)
 }
 
 // addRoute adds a target to the router for the given method and the given
 // HTTP rule. Only the rule itself is added. If the rule indicates additional
 // bindings, they are ignored. To add routes for all bindings, callers must
 // invoke this method for each rule.
-func (t *routeTrie) addRoute(config *methodConfig, rule *annotations.HttpRule) (*routeTarget, error) {
+func (t *RouteTrie) addRoute(config *methodConfig, httpRule *annotations.HttpRule) error {
 	var method, template string
-	switch pattern := rule.GetPattern().(type) {
+	switch pattern := httpRule.GetPattern().(type) {
 	case *annotations.HttpRule_Get:
 		method, template = http.MethodGet, pattern.Get
 	case *annotations.HttpRule_Put:
@@ -56,40 +64,51 @@ func (t *routeTrie) addRoute(config *methodConfig, rule *annotations.HttpRule) (
 	case *annotations.HttpRule_Custom:
 		method, template = pattern.Custom.GetKind(), pattern.Custom.GetPath()
 	default:
-		return nil, fmt.Errorf("invalid type of pattern for HTTP rule: %T", pattern)
+		return fmt.Errorf("invalid type of pattern for HTTP httpRule: %T", pattern)
 	}
 	if method == "" {
-		return nil, errors.New("invalid HTTP rule: method is blank")
+		return errors.New("invalid HTTP httpRule: method is blank")
 	}
 	if template == "" {
-		return nil, errors.New("invalid HTTP rule: path template is blank")
+		return errors.New("invalid HTTP httpRule: path template is blank")
 	}
 	segments, variables, err := parsePathTemplate(template)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	target, err := makeTarget(config, method, rule.GetBody(), rule.GetResponseBody(), segments, variables)
+	target, err := makeTarget(config, method, httpRule.GetBody(), httpRule.GetResponseBody(), segments, variables)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if err := t.insert(method, target, segments); err != nil {
-		return nil, err
+		return err
 	}
-	return target, nil
+
+	for i, rule := range httpRule.GetAdditionalBindings() {
+		if len(rule.GetAdditionalBindings()) > 0 {
+			return fmt.Errorf("nested additional bindings are not supported (method %s)", config.methodPath)
+		}
+		if err = t.addRoute(config, rule); err != nil {
+			return fmt.Errorf("failed to add REST route (add'l binding #%d) for method %s: %w", i+1, config.methodPath, err)
+		}
+	}
+
+	return nil
 }
 
-func (t *routeTrie) insertChild(segment string) *routeTrie {
+func (t *RouteTrie) insertChild(segment string) *RouteTrie {
 	child := t.children[segment]
 	if child == nil {
 		if t.children == nil {
-			t.children = make(map[string]*routeTrie, 1)
+			t.children = make(map[string]*RouteTrie, 1)
 		}
-		child = &routeTrie{}
+		child = &RouteTrie{}
 		t.children[segment] = child
 	}
 	return child
 }
-func (t *routeTrie) insertVerb(verb string) routeMethods {
+
+func (t *RouteTrie) insertVerb(verb string) routeMethods {
 	methods := t.verbs[verb]
 	if methods == nil {
 		if t.verbs == nil {
@@ -103,23 +122,29 @@ func (t *routeTrie) insertVerb(verb string) routeMethods {
 
 // insert the target into the trie using the given method and segment path.
 // The path is followed until the final segment is reached.
-func (t *routeTrie) insert(method string, target *routeTarget, segments pathSegments) error {
+func (t *RouteTrie) insert(method string, target *routeTarget, segments pathSegments) error {
 	cursor := t
 	for _, segment := range segments.path {
 		cursor = cursor.insertChild(segment)
 	}
 	if existing := cursor.verbs[segments.verb][method]; existing != nil {
 		return alreadyExistsError{
-			existing: existing, pathPattern: segments.String(), method: method,
+			existing:    existing,
+			pathPattern: segments.String(),
+			method:      method,
 		}
 	}
 	cursor.insertVerb(segments.verb)[method] = target
 	return nil
 }
 
+func (t *RouteTrie) Match(uriPath, httpMethod string) (*routeTarget, []routeTargetVarMatch, routeMethods) {
+	return t.match(uriPath, httpMethod)
+}
+
 // match finds a route for the given request. If a match is found, the associated target and a map
 // of matched variable values is returned.
-func (t *routeTrie) match(uriPath, httpMethod string) (*routeTarget, []routeTargetVarMatch, routeMethods) {
+func (t *RouteTrie) match(uriPath, httpMethod string) (*routeTarget, []routeTargetVarMatch, routeMethods) {
 	if len(uriPath) == 0 || uriPath[0] != '/' || uriPath[len(uriPath)-1] == ':' {
 		// Must start with "/" or if it ends with ":" it won't match
 		return nil, nil, nil
@@ -152,7 +177,7 @@ func (t *routeTrie) match(uriPath, httpMethod string) (*routeTarget, []routeTarg
 // is nil but methods are non-nil, the path and verb matched a route, but not
 // the method. This can be used to send back a well-formed "Allow" response
 // header. If both are nil, the path and verb did not match.
-func (t *routeTrie) findTarget(path []string, verb, method string) (*routeTarget, routeMethods) {
+func (t *RouteTrie) findTarget(path []string, verb, method string) (*routeTarget, routeMethods) {
 	if len(path) == 0 {
 		return t.getTarget(verb, method)
 	}
@@ -184,7 +209,7 @@ func (t *routeTrie) findTarget(path []string, verb, method string) (*routeTarget
 // getTarget gets the target for the given verb and method from the
 // node trie. It is like findTarget, except that it does not use a
 // path to first descend into a sub-trie.
-func (t *routeTrie) getTarget(verb, method string) (*routeTarget, routeMethods) {
+func (t *RouteTrie) getTarget(verb, method string) (*routeTarget, routeMethods) {
 	methods := t.verbs[verb]
 	if target := methods[method]; target != nil {
 		return target, methods
@@ -210,12 +235,7 @@ type routeTarget struct {
 	vars                  []routeTargetVar
 }
 
-func makeTarget(
-	config *methodConfig,
-	method, requestBody, responseBody string,
-	segments pathSegments,
-	variables []pathVariable,
-) (*routeTarget, error) {
+func makeTarget(config *methodConfig, method, requestBody, responseBody string, segments pathSegments, variables []pathVariable) (*routeTarget, error) {
 	requestBodyFields, err := resolvePathToDescriptors(config.descriptor.Input(), requestBody)
 	if err != nil {
 		return nil, err

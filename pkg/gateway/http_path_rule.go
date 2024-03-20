@@ -2,7 +2,8 @@ package gateway
 
 import (
 	"fmt"
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/httprule"
+	"github.com/pubgo/funk/errors"
+	"google.golang.org/grpc"
 	"net/http"
 	"strings"
 
@@ -11,9 +12,17 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+type serviceWrap struct {
+	serviceDesc *grpc.ServiceDesc
+	ss          interface{}
+}
+
 type httpPathRule struct {
-	opts *muxOptions
-	desc protoreflect.MethodDescriptor
+	srv        *serviceWrap
+	opts       *muxOptions
+	methodDesc *grpc.MethodDesc
+	streamDesc *grpc.StreamDesc
+	desc       protoreflect.MethodDescriptor
 
 	// Depth first search preferring path segments over variables.
 	// Variables split the search tree:
@@ -46,6 +55,31 @@ type httpPathRule struct {
 	HasRspBody bool
 
 	IsGroup bool
+}
+
+func (h httpPathRule) Handle(stream grpc.ServerStream) error {
+	if h.methodDesc != nil {
+		ctx := stream.Context()
+
+		reply, err := h.methodDesc.Handler(ss, ctx, stream.RecvMsg, h.opts.unaryInterceptor)
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		return errors.WrapCaller(stream.SendMsg(reply))
+	} else {
+		info := &grpc.StreamServerInfo{
+			FullMethod:     string(h.desc.FullName()),
+			IsClientStream: h.streamDesc.ClientStreams,
+			IsServerStream: h.streamDesc.ServerStreams,
+		}
+
+		if h.opts.streamInterceptor != nil {
+			return h.opts.streamInterceptor(ss, stream, info, h.streamDesc.Handler)
+		} else {
+			return h.streamDesc.Handler(ss, stream)
+		}
+	}
 }
 
 func getMethod(opts *muxOptions, rule *annotations.HttpRule, desc protoreflect.MethodDescriptor, name string) []*httpPathRule {

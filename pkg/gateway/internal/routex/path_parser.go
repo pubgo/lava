@@ -68,9 +68,7 @@ type pathVariable struct {
 //	Verb     = ":" LITERAL ;
 //
 // [google/api/http.proto]: https://github.com/googleapis/googleapis/blob/ecb1cf0a0021267dd452289fc71c75674ae29fe3/google/api/http.proto#L227-L235
-func parsePathTemplate(template string) (
-	pathSegments, []pathVariable, error,
-) {
+func parsePathTemplate(template string) (pathSegments, []pathVariable, error) {
 	parser := &pathParser{scan: pathScanner{input: template}}
 	if err := parser.parseTemplate(); err != nil {
 		return pathSegments{}, nil, err

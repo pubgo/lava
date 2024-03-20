@@ -7,7 +7,6 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"io"
 	"math"
 	"net"
 	"net/http"
@@ -24,7 +23,6 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
-	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -36,7 +34,6 @@ type handlerFunc func(grpc.ServerStream) error
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
 	files                 *protoregistry.Files
-	serviceConfig         *serviceconfig.Service
 	unaryInterceptor      grpc.UnaryServerInterceptor
 	streamInterceptor     grpc.StreamServerInterceptor
 	codecs                map[string]Codec
@@ -47,42 +44,11 @@ type muxOptions struct {
 	maxReceiveMessageSize int
 	maxSendMessageSize    int
 	connectionTimeout     time.Duration
-	handlers              map[string]handlerFunc
 	errHandler            func(err error, ctx *fiber.Ctx)
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	routes                map[string]map[string]*httpPathRule
-}
-
-// readAll reads from r until an error or EOF and returns the data it read.
-func (o *muxOptions) readAll(b []byte, r io.Reader) ([]byte, error) {
-	var total int64
-	for {
-		if len(b) == cap(b) {
-			// Add more capacity (let append pick how much).
-			b = append(b, 0)[:len(b)]
-		}
-		n, err := r.Read(b[len(b):cap(b)])
-		b = b[:len(b)+n]
-		total += int64(n)
-		if total > int64(o.maxReceiveMessageSize) {
-			return nil, fmt.Errorf("max receive message size reached")
-		}
-		if err != nil {
-			return b, err
-		}
-	}
-}
-
-func (o *muxOptions) writeAll(dst io.Writer, b []byte) error {
-	if len(b) > o.maxSendMessageSize {
-		return fmt.Errorf("max send message size reached")
-	}
-	n, err := dst.Write(b)
-	if err == nil && n != len(b) {
-		return io.ErrShortWrite
-	}
-	return err
+	handlers              map[string]handlerFunc
 }
 
 // MuxOption is an option for a mux.
@@ -119,14 +85,6 @@ var (
 		"identity": nil,
 	}
 )
-
-func UnaryServerInterceptorOption(interceptor grpc.UnaryServerInterceptor) MuxOption {
-	return func(opts *muxOptions) { opts.unaryInterceptor = interceptor }
-}
-
-func StreamServerInterceptorOption(interceptor grpc.StreamServerInterceptor) MuxOption {
-	return func(opts *muxOptions) { opts.streamInterceptor = interceptor }
-}
 
 func MaxReceiveMessageSizeOption(s int) MuxOption {
 	return func(opts *muxOptions) { opts.maxReceiveMessageSize = s }
@@ -276,11 +234,15 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 	sort.Strings(muxOpts.encodingTypeOffers)
 
-	return &Mux{
+	mux := &Mux{
 		opts: &muxOpts,
 		cc:   new(inprocgrpc.Channel),
 		mem:  fasthttputil.NewInmemoryListener(),
 	}
+
+	go http.Serve(mux.mem, mux)
+
+	return mux
 }
 
 func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
@@ -367,6 +329,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		m.registerRouter(http.MethodPost, grpcMethod, &httpPathRule{
 			opts:           m.opts,
 			desc:           methodDesc,
+			methodDesc:     grpcMth,
 			HttpMethod:     http.MethodPost,
 			HttpPath:       grpcMethod,
 			RawHttpPath:    grpcMethod,
