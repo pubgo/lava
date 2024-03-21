@@ -3,7 +3,6 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/running"
 	"strings"
 	"time"
 
@@ -12,16 +11,14 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	"github.com/rs/zerolog"
-
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/rs/zerolog"
 )
 
 const Name = "accesslog"
-
-var errTimeout = errors.New("grpc server response timeout")
 
 func New(logger log.Logger) *LogMiddleware {
 	return &LogMiddleware{
@@ -92,8 +89,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
 				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
 				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
-				rsp.Header().Set("X-Server-Timing", latency.String())
-				rsp.Header().Set("", latency.String())
+				rsp.Header().Set("X-Server-Latency", latency.String())
 			}
 
 			// 记录错误日志

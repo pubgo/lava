@@ -1,18 +1,14 @@
-// Copyright 2023 Edward McFarlane. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gateway
 
 import (
 	"encoding/binary"
 	"fmt"
-	"google.golang.org/grpc/encoding"
+	"io"
+
 	"google.golang.org/protobuf/encoding/protodelim"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
-	"io"
 )
 
 // growcap scales up the capacity of a slice.
@@ -35,29 +31,6 @@ func growcap(oldcap, wantcap int) (newcap int) {
 		}
 	}
 	return newcap
-}
-
-// Codec defines the interface used to encode and decode messages.
-type Codec interface {
-	encoding.Codec
-	// MarshalAppend appends the marshaled form of v to b and returns the result.
-	MarshalAppend([]byte, interface{}) ([]byte, error)
-}
-
-// StreamCodec is used in streaming RPCs where the message boundaries are
-// determined by the codec.
-type StreamCodec interface {
-	Codec
-
-	// ReadNext returns the size of the next message appended to buf.
-	// ReadNext reads from r until either it has read a complete message or
-	// encountered an error and returns all the data read from r.
-	// The message is contained in dst[:n].
-	// Excess data read from r is stored in dst[n:].
-	ReadNext(buf []byte, r io.Reader, limit int) (dst []byte, n int, err error)
-	// WriteNext writes the message to w with a size aware encoding
-	// returning the number of bytes written.
-	WriteNext(w io.Writer, src []byte) (n int, err error)
 }
 
 func errInvalidType(v any) error {

@@ -4,15 +4,7 @@ import (
 	"compress/gzip"
 	"io"
 	"sync"
-
-	"google.golang.org/grpc/encoding"
 )
-
-// Compressor is used to compress and decompress messages.
-// Based on grpc/encoding.
-type Compressor interface {
-	encoding.Compressor
-}
 
 // CompressorGzip implements the Compressor interface.
 // Based on grpc/encoding/gzip.

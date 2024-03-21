@@ -60,6 +60,20 @@ func (s *streamHTTP) Context() context.Context {
 }
 
 func (s *streamHTTP) SendMsg(m interface{}) error {
+	defer func() {
+		for k, v := range s.header {
+			for i := range v {
+				s.ctx.Response().Header.Set(k, v[i])
+			}
+		}
+
+		for k, v := range s.trailer {
+			for i := range v {
+				s.ctx.Response().Header.Set(k, v[i])
+			}
+		}
+	}()
+
 	reply := m.(proto.Message)
 
 	fRsp, ok := s.ctx.Response().BodyWriter().(http.Flusher)

@@ -90,6 +90,7 @@ func isReservedHeader(k string) bool {
 		return false
 	}
 }
+
 func isWhitelistedHeader(k string) bool {
 	switch k {
 	case ":authority", "user-agent":

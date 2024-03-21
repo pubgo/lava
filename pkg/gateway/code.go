@@ -1,14 +1,9 @@
-// Copyright 2021 Edward McFarlane. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gateway
 
 import (
-	"google.golang.org/grpc/grpclog"
 	"net/http"
 
-	"github.com/gobwas/ws"
+	"github.com/pubgo/funk/log"
 	"google.golang.org/grpc/codes"
 )
 
@@ -37,34 +32,6 @@ func HTTPStatusCode(c codes.Code) int {
 		return http.StatusInternalServerError
 	}
 	return codeToHTTPStatus[c]
-}
-
-// TODO: validate error codes.
-var codeToWSStatus = [...]ws.StatusCode{
-	ws.StatusNormalClosure,       // 0
-	ws.StatusGoingAway,           // 1
-	ws.StatusInternalServerError, // 2
-	ws.StatusUnsupportedData,     // 3
-	ws.StatusGoingAway,           // 4
-	ws.StatusInternalServerError, // 5
-	ws.StatusGoingAway,           // 6
-	ws.StatusInternalServerError, // 7
-	ws.StatusInternalServerError, // 8
-	ws.StatusInternalServerError, // 9
-	ws.StatusInternalServerError, // 10
-	ws.StatusInternalServerError, // 11
-	ws.StatusUnsupportedData,     // 12
-	ws.StatusInternalServerError, // 13
-	ws.StatusInternalServerError, // 14
-	ws.StatusInternalServerError, // 15
-	ws.StatusPolicyViolation,     // 16
-}
-
-func WSStatusCode(c codes.Code) ws.StatusCode {
-	if int(c) > len(codeToHTTPStatus) {
-		return ws.StatusInternalServerError
-	}
-	return codeToWSStatus[c]
 }
 
 // HTTPStatusFromCode converts a gRPC error code into the corresponding HTTP response status.
@@ -107,7 +74,7 @@ func HTTPStatusFromCode(code codes.Code) int {
 	case codes.DataLoss:
 		return http.StatusInternalServerError
 	default:
-		grpclog.Infof("Unknown gRPC error code: %v", code)
+		log.Warn().Msgf("Unknown gRPC error code: %v", code)
 		return http.StatusInternalServerError
 	}
 }
