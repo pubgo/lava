@@ -127,6 +127,9 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rspMetadata.Set(httputil.HeaderXRequestID, reqId)
 		rspMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 
+		rpcReq.rspHeader.Set(httputil.HeaderXRequestID, reqId)
+		rpcReq.rspHeader.Set(httputil.HeaderXRequestVersion, version.Version())
+
 		ctx = lava.CreateReqHeader(ctx, header)
 		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)

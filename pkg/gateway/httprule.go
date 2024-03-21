@@ -35,7 +35,7 @@ func (h methodWrap) Handle(stream grpc.ServerStream) error {
 		return errors.WrapCaller(stream.SendMsg(reply))
 	} else {
 		info := &grpc.StreamServerInfo{
-			FullMethod:     string(h.grpcMethod.FullName()),
+			FullMethod:     h.grpcMethodName,
 			IsClientStream: h.streamDesc.ClientStreams,
 			IsServerStream: h.streamDesc.ServerStreams,
 		}

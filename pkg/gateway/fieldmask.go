@@ -9,7 +9,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	field_mask "google.golang.org/protobuf/types/known/fieldmaskpb"
+	fieldmask "google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 func getFieldByName(fields protoreflect.FieldDescriptors, name string) protoreflect.FieldDescriptor {
@@ -22,8 +22,8 @@ func getFieldByName(fields protoreflect.FieldDescriptors, name string) protorefl
 }
 
 // FieldMaskFromRequestBody creates a FieldMask printing all complete paths from the JSON body.
-func FieldMaskFromRequestBody(r io.Reader, msg proto.Message) (*field_mask.FieldMask, error) {
-	fm := &field_mask.FieldMask{}
+func FieldMaskFromRequestBody(r io.Reader, msg proto.Message) (*fieldmask.FieldMask, error) {
+	fm := &fieldmask.FieldMask{}
 	var root interface{}
 
 	if err := json.NewDecoder(r).Decode(&root); err != nil {

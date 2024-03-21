@@ -149,6 +149,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	}
 
 	mth := m.opts.handlers[restTarget.GrpcMethodName]
+	if mth == nil {
+		return errors.NewFmt("grpc method not found, method=%s", restTarget.GrpcMethodName)
+	}
+
 	return mth.Handle(&streamHTTP{
 		ctx:    ctx,
 		method: mth,
