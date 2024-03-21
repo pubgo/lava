@@ -1,4 +1,4 @@
-checksum: 7160ce2b25de0266e34af69e842577ef07632169
+checksum: 968a9367f7956e65897045b7b8216a520cb192d7
 vendor: ../../../.proto
 root:
   - proto
@@ -12,7 +12,7 @@ deps:
   - name: protoc-gen-openapiv2
     url: github.com/grpc-ecosystem/grpc-gateway/v2
     path: /protoc-gen-openapiv2
-    version: v2.19.0
+    version: v2.18.0
   - name: openapiv3
     url: github.com/google/gnostic
     path: /openapiv3
@@ -45,8 +45,29 @@ plugins:
     opt:
       - paths=import
   - name: openapi
+    skip_base: true
     opt:
       - default_response=true
+      - enum_type=string
+      - default_response=false
+      - depth=10
+  - name: openapiv2
+    skip_base: true
+    opt:
+      - use_allof_for_refs=true
+      - proto3_optional_nullable=true
+      - allow_delete_body=true
+      - generate_unbound_methods=true
+      - allow_merge=false
+      - merge_file_name=openapi
+      - use_go_templates=true
+      - openapi_naming_strategy=simple
+      - version=true
+      - disable_default_errors=true
+      - omit_enum_default_value=true
+  - name: openapi
+    opt:
+      - paths=import
       - enum_type=string
       - default_response=false
       - depth=10

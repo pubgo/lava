@@ -3,6 +3,7 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/running"
 	"strings"
 	"time"
 
@@ -67,6 +68,10 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		// 错误和panic处理
 		defer func() {
+			if gErr != nil && running.IsDebug {
+				errors.Debug(gErr)
+			}
+
 			if !generic.IsNil(gErr) || logOpts["all"] {
 				if !strings.HasPrefix(req.ContentType(), "multipart/form-data") {
 					evt.Any("req_body", req.Payload())
@@ -78,16 +83,18 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				}
 			}
 
-			if !req.Client() && rsp != nil {
-				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
-				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
-			}
-
 			// 持续时间, 毫秒
 			latency := time.Since(now)
 			evt.Dur("latency", latency)
 			evt.Str("user_agent", string(req.Header().UserAgent()))
+
+			if !req.Client() && rsp != nil {
+				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
+				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+				rsp.Header().Set("X-Server-Timing", latency.String())
+				rsp.Header().Set("", latency.String())
+			}
 
 			// 记录错误日志
 			var e *zerolog.Event

@@ -125,6 +125,10 @@ type Mux struct {
 	route *routex.RouteTrie
 }
 
+func (m *Mux) GetRouteMethods() []*routex.RouteTarget {
+	return m.route.GetRouteMethods()
+}
+
 func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
 	m.opts.responseInterceptors[name] = f
 }
@@ -134,7 +138,7 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
-	restTarget, restVars, _ := m.route.Match(string(ctx.Request().RequestURI()), ctx.Method())
+	restTarget, restVars, _ := m.route.Match(string(ctx.Request().URI().Path()), ctx.Method())
 	if restTarget == nil {
 		return fiber.ErrNotFound
 	}
@@ -153,6 +157,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		ctx:    ctx,
 		method: mth,
 		params: values,
+		path:   restTarget,
 	})
 }
 
@@ -250,7 +255,7 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 }
 
 func (m *Mux) registerRouter(rule *methodWrap) {
-	m.opts.handlers[rule.methodName] = rule
+	m.opts.handlers[rule.grpcMethodName] = rule
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -285,11 +290,12 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
 		m.registerRouter(&methodWrap{
-			srv:        srv,
-			methodDesc: grpcMth,
-			grpcMethod: methodDesc,
-			methodName: grpcMethod,
+			srv:            srv,
+			methodDesc:     grpcMth,
+			grpcMethod:     methodDesc,
+			grpcMethodName: grpcMethod,
 		})
+		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
 	}
 
 	for i := range gsd.Streams {
@@ -300,11 +306,12 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		methodDesc := findMethodDesc(grpcMth.StreamName)
 
 		m.registerRouter(&methodWrap{
-			srv:        srv,
-			streamDesc: grpcMth,
-			grpcMethod: methodDesc,
-			methodName: grpcMethod,
+			srv:            srv,
+			streamDesc:     grpcMth,
+			grpcMethod:     methodDesc,
+			grpcMethodName: grpcMethod,
 		})
+		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
 	}
 
 	return nil

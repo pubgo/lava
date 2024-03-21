@@ -60,9 +60,9 @@ func (t *RouteTrie) Match(uriPath, httpMethod string) (*RouteTarget, []RouteTarg
 	return t.match(uriPath, httpMethod)
 }
 
-func (t *RouteTrie) AddRoute(mth protoreflect.MethodDescriptor) error {
+func (t *RouteTrie) AddRoute(grpcMethod string, mth protoreflect.MethodDescriptor) error {
 	httpRule := getExtensionHTTP(mth)
-	return t.addRoute(&MethodConfig{Descriptor: mth, MethodPath: string(mth.FullName())}, httpRule)
+	return t.addRoute(&MethodConfig{Descriptor: mth, MethodPath: grpcMethod}, httpRule)
 }
 
 // addRoute adds a target to the router for the given HttpMethod and the given

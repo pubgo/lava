@@ -54,7 +54,7 @@ func (s *streamHTTP) Context() context.Context {
 		s.ctx.Context(),
 		&serverTransportStream{
 			ServerStream: s,
-			method:       s.method.methodName,
+			method:       s.method.grpcMethodName,
 		},
 	)
 }
@@ -91,21 +91,27 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 func (s *streamHTTP) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	cur := args.ProtoReflect()
-	for _, fd := range s.path.RequestBodyFields {
-		cur = cur.Mutable(fd).Message()
-	}
-	msg := cur.Interface()
+	if s.path.HttpMethod == http.MethodPut ||
+		s.path.HttpMethod == http.MethodPost ||
+		s.path.HttpMethod == http.MethodPatch {
+		cur := args.ProtoReflect()
+		for _, fd := range s.path.RequestBodyFields {
+			cur = cur.Mutable(fd).Message()
+		}
+		msg := cur.Interface()
 
-	var reqName = msg.ProtoReflect().Descriptor().FullName()
-	handler := s.method.srv.opts.requestInterceptors[reqName]
-	if handler != nil {
-		return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
-	}
+		var reqName = msg.ProtoReflect().Descriptor().FullName()
+		handler := s.method.srv.opts.requestInterceptors[reqName]
+		if handler != nil {
+			return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
+		}
 
-	err := protojson.Unmarshal(s.ctx.Body(), msg)
-	if err != nil {
-		return errors.Wrap(err, "failed to unmarshal body by protojson")
+		if s.ctx.Body() != nil && len(s.ctx.Body()) != 0 {
+			err := protojson.Unmarshal(s.ctx.Body(), msg)
+			if err != nil {
+				return errors.Wrap(err, "failed to unmarshal body by protojson")
+			}
+		}
 	}
 
 	if s.params != nil && len(s.params) > 0 {

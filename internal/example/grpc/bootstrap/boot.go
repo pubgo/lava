@@ -29,8 +29,8 @@ func Main() {
 			Name: "t",
 			Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 				return func(ctx context.Context, req lava.Request) (lava.Response, error) {
-					fmt.Println("global", req.Endpoint())
-					fmt.Printf("%#v\n", req.Payload())
+					fmt.Println("endpoint", req.Endpoint())
+					fmt.Println("header", req.Header().String())
 					return next(ctx, req)
 				}
 			},

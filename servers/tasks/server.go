@@ -47,10 +47,8 @@ func (s *Server) Run() {
 func (s *Server) DixInject(
 	getLifecycle lifecycle.Getter,
 	log log.Logger,
-	empty []*lava.EmptyRouter,
 	conf []*Config,
 ) {
-	_ = empty
 	s.lc = getLifecycle
 	s.log = log.WithName("task-server")
 

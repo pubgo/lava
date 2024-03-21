@@ -20,7 +20,7 @@ type methodWrap struct {
 	grpcMethod protoreflect.MethodDescriptor
 
 	// /{ServiceName}/{MethodName}
-	methodName string
+	grpcMethodName string
 }
 
 func (h methodWrap) Handle(stream grpc.ServerStream) error {

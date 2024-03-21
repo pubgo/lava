@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,4 +21,5 @@ type Gateway interface {
 
 	Handler(*fiber.Ctx) error
 	ServeHTTP(http.ResponseWriter, *http.Request)
+	GetRouteMethods() []*routex.RouteTarget
 }

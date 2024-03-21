@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/fullstorydev/grpchan"
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -30,7 +29,6 @@ import (
 	"github.com/pubgo/lava/pkg/gateway"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/wsproxy"
-	"github.com/pubgo/opendoc/opendoc"
 	"github.com/rs/xid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -56,8 +54,7 @@ func New() lava.Service { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{
-		reg: make(grpchan.HandlerMap),
-		cc:  new(inprocgrpc.Channel),
+		cc: new(inprocgrpc.Channel),
 	}
 }
 
@@ -68,7 +65,6 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
-	reg        grpchan.HandlerMap
 	cc         *inprocgrpc.Channel
 	initList   []func()
 	conf       *Config
@@ -92,11 +88,8 @@ func (s *serviceImpl) DixInject(
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
-	docs []*opendoc.Swagger,
-	empty []*lava.EmptyRouter,
 	gw []*gateway.Mux,
 ) {
-	_ = empty
 	s.conf = conf
 	if conf.HttpPort == nil {
 		conf.HttpPort = generic.Ptr(running.HttpPort)
@@ -358,7 +351,6 @@ func (s *serviceImpl) DixInject(
 		}
 
 		mux.RegisterService(desc, h)
-		s.reg.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
 		if m, ok := h.(lava.GrpcGatewayRouter); ok {
 			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
@@ -373,7 +365,8 @@ func (s *serviceImpl) DixInject(
 	// grpc server初始化
 	grpcServer := conf.GrpcConfig.Build(
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
-		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap))).Unwrap()
+		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
+	).Expect("failed to build grpc server")
 
 	for _, h := range handlers {
 		grpcServer.RegisterService(h.ServiceDesc(), h)
@@ -382,6 +375,17 @@ func (s *serviceImpl) DixInject(
 	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
 	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
 	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
+	for _, m := range mux.GetRouteMethods() {
+		log.Info().
+			Str("method-name", m.GrpcMethodName).
+			Str("http-method", m.HttpMethod).
+			Str("http-path", apiPrefix1+"/"+strings.Join(m.HttpPath, "/")).
+			Str("verb", m.Verb).
+			Str("req-field-path", m.RequestBodyFieldPath).
+			Str("rsp-field-path", m.ResponseBodyFieldPath).
+			Any("path-vars", m.Vars).
+			Msg("grpc gateway method router")
+	}
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
 	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")

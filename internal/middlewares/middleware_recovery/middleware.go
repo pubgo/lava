@@ -18,6 +18,7 @@ func New() lava.Middleware {
 					if err := errors.Parse(recover()); err != nil {
 						debug.PrintStack()
 						gErr = errors.WrapStack(err)
+						errors.Debug(gErr)
 					}
 				}()
 

@@ -50,16 +50,28 @@ type DefaultQueryParser struct{}
 // Parse populates "values" into "msg".
 // A value is ignored if its key starts with one of the elements in "filter".
 func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
-	for key, values := range values {
+	for key, v := range values {
+		if len(v) == 0 {
+			delete(values, key)
+			continue
+		}
+
+		if len(v) == 1 && v[0] == "" {
+			delete(values, key)
+			continue
+		}
+	}
+
+	for key, vv := range values {
 		if match := valuesKeyRegexp.FindStringSubmatch(key); len(match) == 3 {
 			key = match[1]
-			values = append([]string{match[2]}, values...)
+			vv = append([]string{match[2]}, vv...)
 		}
 		fieldPath := strings.Split(key, ".")
 		if filter.HasCommonPrefix(fieldPath) {
 			continue
 		}
-		if err := populateFieldValueFromPath(msg.ProtoReflect(), fieldPath, values); err != nil {
+		if err := populateFieldValueFromPath(msg.ProtoReflect(), fieldPath, vv); err != nil {
 			return err
 		}
 	}
