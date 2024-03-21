@@ -30,7 +30,7 @@ import (
 
 // isParameterType returns true if the field is a primitive type, or a
 // well-known-type that can be represented as a scalar in JSON.
-// These are valid leaf fields for use in URL paths and query parameters.
+// These are valid leaf Fields for use in URL paths and query parameters.
 func isParameterType(field protoreflect.FieldDescriptor) bool {
 	kind := field.Kind()
 	return kind != protoreflect.GroupKind &&
@@ -57,10 +57,10 @@ func isWKTWithScalarJSONMapping(field protoreflect.FieldDescriptor) bool {
 	}
 }
 
-// setParameter sets the value of a field on a message using the ident fields.
-// Leaf fields must be a primitive type, or a well-known JSON scalar type.
-// Repeated fields of a primitive type are supported and will be appended to.
-// Map fields and other message types are not supported.
+// setParameter sets the Value of a field on a message using the ident Fields.
+// Leaf Fields must be a primitive type, or a well-known JSON scalar type.
+// Repeated Fields of a primitive type are supported and will be appended to.
+// Map Fields and other message types are not supported.
 //
 // See: https://github.com/googleapis/googleapis/blob/2c28ce13ade62398e152ff3eb840f4f934812597/google/api/http.proto#L117-L122
 func setParameter(msg protoreflect.Message, fields []protoreflect.FieldDescriptor, param string) error {
@@ -77,7 +77,7 @@ func setParameter(msg protoreflect.Message, fields []protoreflect.FieldDescripto
 		if jsonErr := (*json.UnmarshalTypeError)(nil); errors.As(err, &jsonErr) ||
 			// protojson errors are not exported, check the error string.
 			strings.HasPrefix(err.Error(), "proto") {
-			return fmt.Errorf("invalid parameter %q value for type %q: %s",
+			return fmt.Errorf("invalid parameter %q Value for type %q: %s",
 				resolveFieldDescriptorsToPath(fields), field.Kind(), data,
 			)
 		}
@@ -87,7 +87,7 @@ func setParameter(msg protoreflect.Message, fields []protoreflect.FieldDescripto
 		)
 	}
 
-	// Set the value on the leaf message.
+	// Set the Value on the leaf message.
 	// Cannot be a map type, only lists, primitives or messages.
 	if field.IsList() {
 		l := leaf.Mutable(field).List()
@@ -179,7 +179,7 @@ func unmarshalFieldWKT(msg protoreflect.Message, field protoreflect.FieldDescrip
 	switch field.Message().Name() {
 	case "DoubleValue", "FloatValue":
 		value := msg.NewField(field)
-		subField := value.Message().Descriptor().Fields().ByName("value")
+		subField := value.Message().Descriptor().Fields().ByName("Value")
 		subValue, err := unmarshalFieldValue(value.Message(), subField, data)
 		if err != nil {
 			return protoreflect.Value{}, err
@@ -245,8 +245,8 @@ func isNullValue(field protoreflect.FieldDescriptor) bool {
 	return ed != nil && ed.FullName() == "google.protobuf.NullValue"
 }
 
-// getParameter gets the value of a field on a message using the ident fields.
-// Optionally, an index can be provided to get the value of a repeated field.
+// getParameter gets the Value of a field on a message using the ident Fields.
+// Optionally, an index can be provided to get the Value of a repeated field.
 func getParameter(msg protoreflect.Message, fields []protoreflect.FieldDescriptor, index int) (string, error) {
 	// Traverse the message to the last field.
 	leaf := msg
@@ -290,7 +290,7 @@ func marshalFieldValue(field protoreflect.FieldDescriptor, value protoreflect.Va
 	case protoreflect.EnumKind:
 		enumValue := field.Enum().Values().ByNumber(value.Enum())
 		if enumValue == nil {
-			return nil, fmt.Errorf("unknown enum value %d", value.Enum())
+			return nil, fmt.Errorf("unknown enum Value %d", value.Enum())
 		}
 		return []byte(enumValue.Name()), nil
 	case protoreflect.MessageKind:
@@ -309,7 +309,7 @@ func marshalFieldWKT(field protoreflect.FieldDescriptor, value protoreflect.Valu
 	case "BytesValue", "DoubleValue", "FloatValue":
 		// Switch to base64.URLEncoding for BytesValue and handling
 		// of float/double string values.
-		field := field.Message().Fields().ByName("value")
+		field := field.Message().Fields().ByName("Value")
 		value := value.Message().Get(field)
 		return marshalFieldValue(field, value)
 	}

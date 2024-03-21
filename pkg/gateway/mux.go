@@ -8,21 +8,20 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net"
 	"net/http"
+	"net/url"
 	"reflect"
 	"sort"
 	"time"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
+	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/pkg/gateway/internal/routex"
-	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttputil"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -123,31 +122,38 @@ var _ Gateway = (*Mux)(nil)
 type Mux struct {
 	cc    *inprocgrpc.Channel
 	opts  *muxOptions
-	mem   *fasthttputil.InmemoryListener
 	route *routex.RouteTrie
 }
 
 func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
-	//TODO implement me
-	panic("implement me")
+	m.opts.responseInterceptors[name] = f
 }
 
 func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
-	//TODO implement me
-	panic("implement me")
+	m.opts.requestInterceptors[name] = f
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
-	return nil
-}
-
-func (m *Mux) FastClient() *fasthttp.Client {
-	return &fasthttp.Client{
-		Dial:                func(addr string) (net.Conn, error) { return m.mem.Dial() },
-		MaxConnsPerHost:     100,
-		MaxIdleConnDuration: 90 * time.Second,
-		ReadTimeout:         10 * time.Second,
+	restTarget, restVars, _ := m.route.Match(string(ctx.Request().RequestURI()), ctx.Method())
+	if restTarget == nil {
+		return fiber.ErrNotFound
 	}
+
+	var values = make(url.Values)
+	for _, v := range restVars {
+		values.Set(v.Name, v.Value)
+	}
+
+	for k, v := range ctx.Queries() {
+		values.Set(k, v)
+	}
+
+	mth := m.opts.handlers[restTarget.GrpcMethodName]
+	return mth.Handle(&streamHTTP{
+		ctx:    ctx,
+		method: mth,
+		params: values,
+	})
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {
@@ -158,33 +164,8 @@ func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method strin
 	return m.cc.NewStream(ctx, desc, method, opts...)
 }
 
-func (m *Mux) HttpClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return m.mem.Dial()
-			},
-			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-		},
-	}
-}
-
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	restTarget, restVars, methods := m.route.Match(request.RequestURI, request.Method)
-
-	var mth *methodWrap
-	mth.Handle(&streamHTTP{
-		ctx:    ctx,
-		method: mth,
-		params: values,
-		opts:   path.opts,
-	})
-
-	//httputil.FastHandler(m.opts.app.Handler()).ServeHTTP(writer, request)
+	adaptor.FiberHandler(m.Handler).ServeHTTP(writer, request)
 }
 
 func NewMux(opts ...MuxOption) *Mux {
@@ -231,12 +212,10 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	mux := &Mux{
-		opts: &muxOpts,
-		cc:   new(inprocgrpc.Channel),
-		mem:  fasthttputil.NewInmemoryListener(),
+		opts:  &muxOpts,
+		cc:    new(inprocgrpc.Channel),
+		route: routex.NewRouteTrie(),
 	}
-
-	go http.Serve(mux.mem, mux)
 
 	return mux
 }

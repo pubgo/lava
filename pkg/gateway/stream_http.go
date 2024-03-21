@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -18,7 +17,6 @@ import (
 )
 
 type streamHTTP struct {
-	opts       *muxOptions
 	method     *methodWrap
 	path       *routex.RouteTarget
 	ctx        *fiber.Ctx
@@ -70,13 +68,13 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	}
 
 	cur := reply.ProtoReflect()
-	for _, fd := range s.method.rspBody {
+	for _, fd := range s.path.ResponseBodyFields {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
 
 	var reqName = msg.ProtoReflect().Descriptor().FullName()
-	handler := s.opts.responseInterceptors[reqName]
+	handler := s.method.srv.opts.responseInterceptors[reqName]
 	if handler != nil {
 		return errors.Wrapf(handler(s.ctx, msg), "failed to handler response data by %s", reqName)
 	}
@@ -93,28 +91,26 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 func (s *streamHTTP) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.method.HasReqBody {
-		cur := args.ProtoReflect()
-		for _, fd := range s.method.reqBody {
-			cur = cur.Mutable(fd).Message()
-		}
-		msg := cur.Interface()
+	cur := args.ProtoReflect()
+	for _, fd := range s.path.RequestBodyFields {
+		cur = cur.Mutable(fd).Message()
+	}
+	msg := cur.Interface()
 
-		var reqName = msg.ProtoReflect().Descriptor().FullName()
-		handler := s.opts.requestInterceptors[reqName]
-		if handler != nil {
-			return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
-		}
+	var reqName = msg.ProtoReflect().Descriptor().FullName()
+	handler := s.method.srv.opts.requestInterceptors[reqName]
+	if handler != nil {
+		return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
+	}
 
-		err := protojson.Unmarshal(s.ctx.Body(), msg)
-		if err != nil {
-			return errors.Wrap(err, "failed to unmarshal body by protojson")
-		}
+	err := protojson.Unmarshal(s.ctx.Body(), msg)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmarshal body by protojson")
 	}
 
 	if s.params != nil && len(s.params) > 0 {
 		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
-			log.Err(err).Msg("failed to set params")
+			return errors.Wrapf(err, "failed to set query params")
 		}
 	}
 

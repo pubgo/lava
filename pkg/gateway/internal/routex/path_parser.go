@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-// pathSegments holds the path segments for a httpMethod.
+// pathSegments holds the path segments for a HttpMethod.
 // The verb is the final segment, if any. Wildcards segments are annotated by
 // '*' and '**' path values. Each segment is URL unescaped.
 type pathSegments struct {
@@ -30,7 +30,7 @@ type pathSegments struct {
 	verb string   // final segment verb, if any.
 }
 
-// String returns the URL httpPath representation of the segments.
+// String returns the URL HttpPath representation of the segments.
 func (s pathSegments) String() string {
 	var out strings.Builder
 	for _, value := range s.path {
@@ -47,17 +47,17 @@ func (s pathSegments) String() string {
 	return out.String()
 }
 
-// pathVariable holds the httpPath variables for a httpMethod.
-// The start and end fields are the start and end httpPath segments, inclusive-exclusive.
+// pathVariable holds the HttpPath variables for a HttpMethod.
+// The start and end Fields are the start and end HttpPath segments, inclusive-exclusive.
 // If the end is -1, the variable is unbounded, representing a '**' wildcard capture.
 type pathVariable struct {
-	fieldPath  string // field httpPath for the variable.
-	start, end int    // start and end httpPath segments, inclusive-exclusive, -1 for unbounded.
+	FieldPath  string // field HttpPath for the variable.
+	start, end int    // start and end HttpPath segments, inclusive-exclusive, -1 for unbounded.
 }
 
-// parsePathTemplate parsers a methods template into httpPath segments and variables.
+// parsePathTemplate parsers a methods template into HttpPath segments and variables.
 //
-// The grammar for the httpPath template is given in the protobuf definition
+// The grammar for the HttpPath template is given in the protobuf definition
 // in [google/api/http.proto].
 //
 //	Template = "/" Segments [ Verb ] ;
@@ -76,7 +76,7 @@ func parsePathTemplate(template string) (pathSegments, []pathVariable, error) {
 	return parser.segments, parser.variables, nil
 }
 
-// pathParser holds the state for the recursive descent httpPath template parser.
+// pathParser holds the state for the recursive descent HttpPath template parser.
 type pathParser struct {
 	scan           pathScanner     // scanner for the input.
 	seenVars       map[string]bool // set of field paths.
@@ -103,7 +103,7 @@ func (p *pathParser) errExpected(expected rune) error {
 
 func (p *pathParser) parseTemplate() error {
 	if !p.scan.consume('/') {
-		return p.errExpected('/') // empty httpPath is not allowed.
+		return p.errExpected('/') // empty HttpPath is not allowed.
 	}
 	if err := p.parseSegments(); err != nil {
 		return err
@@ -142,12 +142,12 @@ func (p *pathParser) parseSegments() error {
 		}
 		p.scan.discard()
 		if p.seenDoubleStar {
-			return errors.New("double wildcard '**' must be the final httpPath segment")
+			return errors.New("double wildcard '**' must be the final HttpPath segment")
 		}
 	}
 }
 
-// parseLiteral parses a URL httpPath segment in URL httpPath escaped form.
+// parseLiteral parses a URL HttpPath segment in URL HttpPath escaped form.
 func (p *pathParser) parseLiteral() (string, error) {
 	literal := p.scan.captureRun(isLiteral)
 	if literal == "" {
@@ -176,7 +176,7 @@ func (p *pathParser) parseSegment() error {
 		return p.parseVariable()
 	default:
 		if !isLiteral(p.scan.current()) {
-			return p.errSyntax("expected httpPath value")
+			return p.errSyntax("expected HttpPath Value")
 		}
 		literal, err := p.parseLiteral()
 		if err != nil {
@@ -216,7 +216,7 @@ func (p *pathParser) parseVariable() error {
 	}
 	p.seenVars[fieldPath] = true
 
-	variable := pathVariable{fieldPath: fieldPath, start: len(p.segments.path)}
+	variable := pathVariable{FieldPath: fieldPath, start: len(p.segments.path)}
 
 	switch p.scan.next() {
 	case '}':
@@ -266,11 +266,11 @@ func unhex(char byte) byte {
 	return 0
 }
 
-// pathEncoding is the encoding used for httpPath variables.
+// pathEncoding is the encoding used for HttpPath variables.
 // Single encoding is used for single segment capture variables,
 // while multi encoding is used for multi segment capture variables.
 // On multi encoding variables, '/' is not escaped and is preserved
-// as '%2F' if encoded in the httpPath.
+// as '%2F' if encoded in the HttpPath.
 //
 // See: https://github.com/googleapis/googleapis/blob/1769846666fbeb0f9ece6ad929ddc0d563cccd8d/google/api/http.proto#L249-L264
 type pathEncoding int

@@ -3,63 +3,16 @@ package gateway
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"net/textproto"
-	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/pkg/wsutil"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
-
-func handlerWrap(path *httpPathRule) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		var values = make(url.Values)
-		for k, v := range path.Vars {
-			values.Set(k, ctx.Params(v))
-		}
-
-		for k, v := range ctx.Queries() {
-			values.Set(k, v)
-		}
-
-		var doRequest = path.opts.handlers[path.GrpcMethodName]
-
-		if wsutil.IsWebSocketUpgrade(ctx) {
-			if !path.desc.IsStreamingClient() || !path.desc.IsStreamingServer() {
-				return errors.Format("服务不支持 websocket")
-			}
-
-			new(websocket.FastHTTPUpgrader).Upgrade(ctx.Context(), func(conn *websocket.Conn) {
-				fmt.Println(doRequest(&streamWS{
-					ctx:      ctx,
-					conn:     conn,
-					pathRule: path,
-					params:   values,
-				}))
-			})
-			return nil
-		}
-
-		return doRequest(&streamHTTP{
-			ctx:    ctx,
-			method: path,
-			params: values,
-			opts:   path.opts,
-		})
-	}
-}
 
 func fieldPath(fields protoreflect.FieldDescriptors, names ...string) []protoreflect.FieldDescriptor {
 	fds := make([]protoreflect.FieldDescriptor, len(names))
@@ -84,65 +37,6 @@ func fieldPath(fields protoreflect.FieldDescriptors, names ...string) []protoref
 		}
 	}
 	return fds
-}
-
-func isGroup(path string) bool {
-	re := regexp.MustCompile(`\{([^}]*)\}`)
-	for _, match := range re.FindAllStringSubmatch(path, -1) {
-		vars := strings.SplitN(match[1], "=", 2)
-		if len(vars) == 2 {
-			if strings.Contains(vars[1], "*") {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func getPathVarMap(path string) map[string]string {
-	var ret = make(map[string]string)
-	re := regexp.MustCompile(`\{([^}]*)\}`)
-	for _, match := range re.FindAllStringSubmatch(path, -1) {
-		vars := strings.SplitN(match[1], "=", 2)
-		field := vars[0]
-		varName := strings.ReplaceAll(field, ".", "_")
-		assert.If(strings.Contains(field, "*"), "field should not contain *, path=%s", path)
-		if len(vars) == 2 {
-			if strings.Contains(vars[1], "*") {
-				ret[field] = "*"
-			} else {
-				log.Fatal().Str("name", vars[0]).Str("path", path).Msg("var field should contain *")
-			}
-		} else {
-			ret[field] = varName
-		}
-	}
-	return ret
-}
-
-// getPathVariables
-//
-// {field1}/field2/{field3}, {field1.abc}/field2/{field3.abc}
-// {name=*}, {name=**}, {name.abc=*}
-func getPathVariables(fields protoreflect.FieldDescriptors, path string) map[string][]protoreflect.FieldDescriptor {
-	var ret = make(map[string][]protoreflect.FieldDescriptor)
-	re := regexp.MustCompile(`\{([^}]*)\}`)
-	for _, match := range re.FindAllStringSubmatch(path, -1) {
-		vars := strings.SplitN(match[1], "=", 2)
-		field := vars[0]
-		varName := strings.ReplaceAll(field, ".", "_")
-		assert.If(strings.Contains(field, "*"), "field should not contain *, path=%s", path)
-		if len(vars) == 2 {
-			if strings.Contains(vars[1], "*") {
-				ret[varName] = fieldPath(fields, strings.Split(field, ".")...)
-			} else {
-				log.Fatal().Str("name", vars[0]).Str("path", path).Msg("var field should contain *")
-			}
-		} else {
-			ret[varName] = fieldPath(fields, strings.Split(field, ".")...)
-		}
-	}
-	return ret
 }
 
 func quote(raw []byte) []byte {

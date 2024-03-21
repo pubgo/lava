@@ -34,7 +34,7 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		path         string
-		expectedPath string // if blank, httpPath is expected to NOT match
+		expectedPath string // if blank, HttpPath is expected to NOT match
 		expectedVars map[string]string
 	}{
 		{
@@ -42,8 +42,8 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 		},
 		{
 			path:         "/foo/bar/baz",
-			expectedPath: "/foo/bar/{name}",
-			expectedVars: map[string]string{"name": "baz"},
+			expectedPath: "/foo/bar/{Name}",
+			expectedVars: map[string]string{"Name": "baz"},
 		},
 		{
 			path: "/foo/bob/lob/law",
@@ -54,13 +54,13 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 		},
 		{
 			path:         "/foo/bar/baz/baz/buzz",
-			expectedPath: "/foo/bar/{name}/baz/{child}",
-			expectedVars: map[string]string{"name": "baz", "child": "buzz"},
+			expectedPath: "/foo/bar/{Name}/baz/{child}",
+			expectedVars: map[string]string{"Name": "baz", "child": "buzz"},
 		},
 		{
 			path:         "/foo/bar/1/baz/2/buzz/3",
-			expectedPath: "/foo/bar/{name}/baz/{child.id}/buzz/{child.thing.id}",
-			expectedVars: map[string]string{"name": "1", "child.id": "2", "child.thing.id": "3"},
+			expectedPath: "/foo/bar/{Name}/baz/{child.id}/buzz/{child.thing.id}",
+			expectedVars: map[string]string{"Name": "1", "child.id": "2", "child.thing.id": "3"},
 		},
 		{
 			path: "/foo/bar/baz/123",
@@ -118,25 +118,25 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 			},
 		},
 		{
-			// No trailing slash in the httpPath, so this should not match.
+			// No trailing slash in the HttpPath, so this should not match.
 			path: "/trailing:slash",
 		},
 		{
-			// Trailing slash in the httpPath, so this should match.
+			// Trailing slash in the HttpPath, so this should match.
 			path:         "/trailing/:slash",
 			expectedPath: "/trailing/**:slash",
 		},
 		{
-			// Trailing verb, should not match.
-			path: "/verb:",
+			// Trailing Verb, should not match.
+			path: "/Verb:",
 		},
 		{
-			// No trailing verb, should match.
-			path:         "/verb",
-			expectedPath: "/verb",
+			// No trailing Verb, should match.
+			path:         "/Verb",
+			expectedPath: "/Verb",
 		},
 		{
-			// Var capture use httpPath unescaping.
+			// Var capture use HttpPath unescaping.
 			path:         "/foo/bar/baz/%2f/%2A/%2f",
 			expectedPath: "/foo/bar/*/{thing.id}/{cat=**}",
 			expectedVars: map[string]string{"thing.id": "/", "cat": "*/%2F"},
@@ -165,14 +165,14 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 					require.Equal(t, protoreflect.Name(fmt.Sprintf("%s %s", method, testCase.expectedPath)), target.config.Descriptor.Name())
 					require.Equal(t, len(testCase.expectedVars), len(vars))
 					for _, varMatch := range vars {
-						names := make([]string, len(varMatch.fields))
-						for i, fld := range varMatch.fields {
+						names := make([]string, len(varMatch.Fields))
+						for i, fld := range varMatch.Fields {
 							names[i] = string(fld.Name())
 						}
 						name := strings.Join(names, ".")
 						expectedValue, ok := testCase.expectedVars[name]
 						assert.True(t, ok, name)
-						require.Equal(t, expectedValue, varMatch.value, name)
+						require.Equal(t, expectedValue, varMatch.Value, name)
 					}
 				})
 			}
@@ -200,7 +200,7 @@ func BenchmarkTrieMatch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		method, vars, _ = trie.match(path, http.MethodPost)
 		if method == nil {
-			b.Fatal("httpMethod not found")
+			b.Fatal("HttpMethod not found")
 		}
 	}
 	b.StopTimer()
@@ -213,9 +213,9 @@ func initTrie(tb testing.TB) *RouteTrie {
 	var trie RouteTrie
 	for _, route := range []string{
 		"/foo/bar/baz/buzz",
-		"/foo/bar/{name}",
-		"/foo/bar/{name}/baz/{child}",
-		"/foo/bar/{name}/baz/{child.id}/buzz/{child.thing.id}",
+		"/foo/bar/{Name}",
+		"/foo/bar/{Name}/baz/{child}",
+		"/foo/bar/{Name}/baz/{child.id}/buzz/{child.thing.id}",
 		"/foo/bar/*/{thing.id}/{cat=**}",
 		"/foo/bar/*/{thing.id}/{cat=**}:do",
 		"/foo/bar/*/{thing.id}/{cat=**}:cancel",
@@ -223,7 +223,7 @@ func initTrie(tb testing.TB) *RouteTrie {
 		"/foo/blah/{longest_var={long_var.a={medium.a={short.aa}/*/{short.ab}/foo}/*}/{long_var.b={medium.b={short.ba}/*/{short.bb}/foo}/{last=**}}}:details",
 		"/foo%2Fbar/%2A/%2A%2a/{starstar=%2A%2a/**}:%2c",
 		"/trailing/**:slash",
-		"/verb",
+		"/Verb",
 	} {
 		segments, variables, err := parsePathTemplate(route)
 		require.NoError(tb, err)
