@@ -2,125 +2,124 @@ syntax = "proto3";
 
 package gid;
 
-option go_package = "./gidpb;gidpb";
-
+import "errorpb/options.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
-import "errorpb/options.proto";
-import "errorpb/code.proto";
-import "openapiv3/annotations.proto";
 import "google/api/httpbody.proto";
+import "openapiv3/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+option go_package = "./gidpb;gidpb";
+
 message GenerateResponse {
-  // the unique id generated
-  string id = 1;
-  // the type of id generated
-  string type = 2;
+    // the unique id generated
+    string id = 1;
+    // the type of id generated
+    string type = 2;
 }
 
 // Id 生成随机ID服务
 service Id {
-  option (google.api.default_host) = "localhost:8080";
+    option (google.api.default_host) = "localhost:8080";
 
-  // Generate 生成ID
-  rpc Generate(GenerateRequest) returns (GenerateResponse) {
-    option (google.api.http) = {
-      post: "/v1/id/generate"
-      body: "*"
-    };
-  }
+    // Generate 生成ID
+    rpc Generate (GenerateRequest) returns (GenerateResponse) {
+        option (google.api.http) = {
+            post: "/v1/id/generate"
+            body: "*"
+        };
+    }
 
-  // 返回流
-  rpc TypeStream(TypesRequest) returns (stream TypesResponse) {
-    option (google.api.http).get = "/v1/id/types1";
-  }
+    // 返回流
+    rpc TypeStream (TypesRequest) returns (stream TypesResponse) {
+        option (google.api.http).get = "/v1/id/types1";
+    }
 
-  // Types id类型
-  rpc Types(TypesRequest) returns (TypesResponse) {
-    option (google.api.http).get = "/v1/id/types/{name}/{name_id}";
-  }
+    // Types id类型
+    rpc Types (TypesRequest) returns (TypesResponse) {
+        option (google.api.http).get = "/v1/id/types/{name}/{name_id}";
+    }
 
-  rpc PutTypes(TypesRequest) returns (TypesResponse) {
-    option (google.api.http).put = "/v1/id/types/{name}/{name_id}";
-    option (google.api.http).body = "*";
-  }
+    rpc PutTypes (TypesRequest) returns (TypesResponse) {
+        option (google.api.http).put = "/v1/id/types/{name}/{name_id}";
+        option (google.api.http).body = "*";
+    }
 
-  // 聊天
-  rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
-    option (openapi.v3.operation).tags = "chat/test/tag";
-    option (openapi.v3.operation).tags = "chat/test/tag1";
-    option (openapi.v3.operation).summary = "聊天";
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend";
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend/test";
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend1/test";
+    // 聊天
+    rpc Chat (stream ChatMessage) returns (stream ChatMessage) {
+        option (openapi.v3.operation).tags = "chat/test/tag";
+        option (openapi.v3.operation).tags = "chat/test/tag1";
+        option (openapi.v3.operation).summary = "聊天";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend/test";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation).tags = "openapiv2/frontend1/test";
 
-    option (google.api.http) = {
-      post : "/ws/chat"
-      body : "msg"
-    };
-  }
+        option (google.api.http) = {
+            post: "/ws/chat"
+            body: "msg"
+        };
+    }
 
-  // ws: chat1
-  rpc Chat1(stream ChatMessage) returns (stream ChatMessage) {}
+    // ws: chat1
+    rpc Chat1 (stream ChatMessage) returns (stream ChatMessage) {}
 
-  rpc UploadDownload(UploadFileRequest) returns (google.api.HttpBody) {
-    option (google.api.http) = {
-      post : "/files/{filename}"
-      body : "file"
-    };
-  }
+    rpc UploadDownload (UploadFileRequest) returns (google.api.HttpBody) {
+        option (google.api.http) = {
+            post: "/files/{filename}"
+            body: "file"
+        };
+    }
 }
 
 message UploadFileRequest {
-  string filename = 1;
-  google.api.HttpBody file = 2;
+    string filename = 1;
+    google.api.HttpBody file = 2;
 }
 
 message ChatMessage {
-  string name = 1;
-  string session_id = 3;
-  Message msg = 2;
+    string name = 1;
+    string session_id = 3;
+    Message msg = 2;
 }
 
 message Message {
-  string name = 1;
-  string text = 2;
+    string name = 1;
+    string text = 2;
 }
 
 enum SrvCode {
-  option (errors.opts).gen = true;
+    option (errors.opts).gen = true;
 
-  OK = 0;
+    OK = 0;
 
-  // id generate error
-  IDGenerateFailed = 100 [
-    (errors.field).code = Internal
-  ];
+    // id generate error
+    IDGenerateFailed = 100 [
+        (errors.field).code = Internal
+    ];
 }
 
 enum GenType {
-  default = 0;
-  uuid = 1;
-  snowflake = 2;
-  bigflake = 3;
-  shortid = 4;
+    default = 0;
+    uuid = 1;
+    snowflake = 2;
+    bigflake = 3;
+    shortid = 4;
 }
 
 // Generate a unique ID. Defaults to uuid.
 message GenerateRequest {
-  // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
-  GenType type = 1;
+    // type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
+    GenType type = 1;
 }
 
 // List the types of IDs available. No query params needed.
 message TypesRequest {
-  string name = 1;
-  uint64 name_id = 2;
-  string hello = 3;
+    string name = 1;
+    uint64 name_id = 2;
+    string hello = 3;
 }
 
 // TypesResponse 返回值类型
 message TypesResponse {
-  repeated string types = 1;
+    repeated string types = 1;
 }

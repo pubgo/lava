@@ -3,10 +3,11 @@ package taskcmd
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/servers/tasks"
 	"github.com/urfave/cli/v3"
-	"time"
 )
 
 func New(di *dix.Dix) *cli.Command {

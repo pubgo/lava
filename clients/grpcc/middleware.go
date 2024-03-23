@@ -2,21 +2,21 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/funk/errors"
 	"strings"
 	"time"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/httputil"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
@@ -113,7 +113,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
 		_, err = unaryWrapper(ctx, rpcReq)
-		return err
+		return errors.WrapCaller(err)
 	}
 }
 

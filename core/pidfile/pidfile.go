@@ -2,12 +2,12 @@ package pidfile
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/config"
 	"os"
 	"path/filepath"
 	"strconv"
 	"syscall"
 
+	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
 )
