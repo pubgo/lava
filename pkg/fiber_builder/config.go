@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/template/html"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"
@@ -44,8 +43,5 @@ type Config struct {
 func (t *Config) Build() (r result.Result[*fiber.App]) {
 	defer recovery.Result(&r)
 	fc := merge.Struct(generic.Ptr(fiber.New().Config()), &t).Unwrap()
-	if t.Templates.Dir != "" && t.Templates.Ext != "" {
-		fc.Views = html.New(t.Templates.Dir, t.Templates.Ext)
-	}
 	return r.WithVal(fiber.New(*fc))
 }
