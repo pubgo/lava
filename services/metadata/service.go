@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"io"
 	"sort"
 	"sync"
 
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/proto/metadatapb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,8 +21,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	dpb "google.golang.org/protobuf/types/descriptorpb"
-
-	"github.com/pubgo/lava/lava"
 )
 
 func New() lava.GrpcRouter {
