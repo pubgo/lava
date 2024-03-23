@@ -3,6 +3,9 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/httputil"
 	"math"
 	"net/http"
 	"net/url"
@@ -139,6 +142,12 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	if restTarget == nil {
 		return errors.Wrapf(fiber.ErrNotFound, "path=%s", string(ctx.Request().URI().Path()))
 	}
+
+	defer func() {
+		ctx.Response().Header.Set(httputil.HeaderXRequestID, lava.GetReqID(ctx.Context()))
+		ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
+		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, restTarget.GrpcMethodName)
+	}()
 
 	var values = make(url.Values)
 	for _, v := range restVars {

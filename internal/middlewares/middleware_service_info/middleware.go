@@ -4,10 +4,13 @@ import (
 	"context"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
+	"github.com/rs/xid"
 )
 
 func New() lava.Middleware {
@@ -15,6 +18,19 @@ func New() lava.Middleware {
 		Name: "service_info",
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
+				reqId := strutil.FirstFnNotEmpty(
+					func() string { return lava.GetReqID(ctx) },
+					func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
+					func() string { return xid.New().String() },
+				)
+				ctx = lava.CreateCtxWithReqID(ctx, reqId)
+
+				defer func() {
+					if gErr != nil && rsp != nil {
+						rsp.Header().Set(httputil.HeaderXRequestID, reqId)
+					}
+				}()
+
 				var serverInfo = &lavapbv1.ServiceInfo{
 					Name:     version.Project(),
 					Version:  version.Version(),

@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/httputil"
 	"google.golang.org/grpc/codes"
 	"runtime/debug"
 
@@ -28,12 +27,6 @@ func New() lava.Middleware {
 
 					if gErr != nil {
 						errors.Debug(gErr)
-
-						defer func() {
-							rsp.Header().Set(httputil.HeaderXRequestID, lava.GetReqID(ctx))
-							rsp.Header().Set(httputil.HeaderXRequestVersion, version.Version())
-							rsp.Header().Set(httputil.HeaderXRequestOperation, req.Operation())
-						}()
 
 						pb := errutil.ParseError(gErr)
 						if pb.Trace == nil {
