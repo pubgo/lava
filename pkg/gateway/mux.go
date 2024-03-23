@@ -19,6 +19,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -136,7 +137,7 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	restTarget, restVars, _ := m.route.Match(string(ctx.Request().URI().Path()), ctx.Method())
 	if restTarget == nil {
-		return fiber.ErrNotFound
+		return errors.Wrapf(fiber.ErrNotFound, "path=%s", string(ctx.Request().URI().Path()))
 	}
 
 	var values = make(url.Values)
@@ -153,12 +154,19 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		return errors.NewFmt("grpc method not found, method=%s", restTarget.GrpcMethodName)
 	}
 
-	return mth.Handle(&streamHTTP{
-		ctx:    ctx,
-		method: mth,
-		params: values,
-		path:   restTarget,
-	})
+	md := metadata.New(nil)
+	for k, v := range ctx.GetReqHeaders() {
+		md.Append(k, v...)
+	}
+
+	rspCtx := metadata.NewIncomingContext(ctx.Context(), md)
+	return errors.WrapCaller(mth.Handle(&streamHTTP{
+		handler: ctx,
+		ctx:     rspCtx,
+		method:  mth,
+		params:  values,
+		path:    restTarget,
+	}))
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {

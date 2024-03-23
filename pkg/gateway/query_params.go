@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	"github.com/pubgo/funk/errors"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -38,7 +38,7 @@ type QueryParameterParser interface {
 // PopulateQueryParameters parses query parameters
 // into "msg" using current query parser
 func PopulateQueryParameters(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
-	return currentQueryParser.Parse(msg, values, filter)
+	return errors.WrapCaller(currentQueryParser.Parse(msg, values, filter))
 }
 
 // DefaultQueryParser is a QueryParameterParser which implements the default
@@ -71,8 +71,9 @@ func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *u
 		if filter.HasCommonPrefix(fieldPath) {
 			continue
 		}
+
 		if err := populateFieldValueFromPath(msg.ProtoReflect(), fieldPath, vv); err != nil {
-			return err
+			return errors.WrapCaller(err)
 		}
 	}
 	return nil
@@ -115,7 +116,7 @@ func populateFieldValueFromPath(msgValue protoreflect.Message, fieldPath []strin
 
 		// Only singular message fields are allowed
 		if fieldDescriptor.Message() == nil || fieldDescriptor.Cardinality() == protoreflect.Repeated {
-			return fmt.Errorf("invalid path: %q is not a message", fieldName)
+			return errors.WrapCaller(fmt.Errorf("invalid path: %q is not a message", fieldName))
 		}
 
 		// Get the nested message
@@ -125,28 +126,28 @@ func populateFieldValueFromPath(msgValue protoreflect.Message, fieldPath []strin
 	// Check if oneof already set
 	if of := fieldDescriptor.ContainingOneof(); of != nil {
 		if f := msgValue.WhichOneof(of); f != nil {
-			return fmt.Errorf("field already set for oneof %q", of.FullName().Name())
+			return errors.WrapCaller(fmt.Errorf("field already set for oneof %q", of.FullName().Name()))
 		}
 	}
 
 	switch {
 	case fieldDescriptor.IsList():
-		return populateRepeatedField(fieldDescriptor, msgValue.Mutable(fieldDescriptor).List(), values)
+		return errors.WrapCaller(populateRepeatedField(fieldDescriptor, msgValue.Mutable(fieldDescriptor).List(), values))
 	case fieldDescriptor.IsMap():
-		return populateMapField(fieldDescriptor, msgValue.Mutable(fieldDescriptor).Map(), values)
+		return errors.WrapCaller(populateMapField(fieldDescriptor, msgValue.Mutable(fieldDescriptor).Map(), values))
 	}
 
 	if len(values) > 1 {
-		return fmt.Errorf("too many values for field %q: %s", fieldDescriptor.FullName().Name(), strings.Join(values, ", "))
+		return errors.WrapCaller(fmt.Errorf("too many values for field %q: %s", fieldDescriptor.FullName().Name(), strings.Join(values, ", ")))
 	}
 
-	return populateField(fieldDescriptor, msgValue, values[0])
+	return errors.WrapCaller(populateField(fieldDescriptor, msgValue, values[0]))
 }
 
 func populateField(fieldDescriptor protoreflect.FieldDescriptor, msgValue protoreflect.Message, value string) error {
 	v, err := parseField(fieldDescriptor, value)
 	if err != nil {
-		return fmt.Errorf("parsing field %q: %w", fieldDescriptor.FullName().Name(), err)
+		return errors.Wrap(err, fmt.Sprintf("parsing field %q", fieldDescriptor.FullName().Name()))
 	}
 
 	msgValue.Set(fieldDescriptor, v)
@@ -157,7 +158,7 @@ func populateRepeatedField(fieldDescriptor protoreflect.FieldDescriptor, list pr
 	for _, value := range values {
 		v, err := parseField(fieldDescriptor, value)
 		if err != nil {
-			return fmt.Errorf("parsing list %q: %w", fieldDescriptor.FullName().Name(), err)
+			return errors.Wrap(err, fmt.Sprintf("parsing list %q", fieldDescriptor.FullName().Name()))
 		}
 		list.Append(v)
 	}
@@ -190,64 +191,64 @@ func parseField(fieldDescriptor protoreflect.FieldDescriptor, value string) (pro
 	case protoreflect.BoolKind:
 		v, err := strconv.ParseBool(value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfBool(v), nil
 	case protoreflect.EnumKind:
 		enum, err := protoregistry.GlobalTypes.FindEnumByName(fieldDescriptor.Enum().FullName())
 		if err != nil {
 			if errors.Is(err, protoregistry.NotFound) {
-				return protoreflect.Value{}, fmt.Errorf("enum %q is not registered", fieldDescriptor.Enum().FullName())
+				return protoreflect.Value{}, errors.WrapCaller(fmt.Errorf("enum %q is not registered", fieldDescriptor.Enum().FullName()))
 			}
-			return protoreflect.Value{}, fmt.Errorf("failed to look up enum: %w", err)
+			return protoreflect.Value{}, errors.Wrap(err, "failed to look up enum")
 		}
 		// Look for enum by name
 		v := enum.Descriptor().Values().ByName(protoreflect.Name(value))
 		if v == nil {
 			i, err := strconv.Atoi(value)
 			if err != nil {
-				return protoreflect.Value{}, fmt.Errorf("%q is not a valid value", value)
+				return protoreflect.Value{}, errors.WrapCaller(fmt.Errorf("%q is not a valid value", value))
 			}
 			// Look for enum by number
 			if v = enum.Descriptor().Values().ByNumber(protoreflect.EnumNumber(i)); v == nil {
-				return protoreflect.Value{}, fmt.Errorf("%q is not a valid value", value)
+				return protoreflect.Value{}, errors.WrapCaller(fmt.Errorf("%q is not a valid value", value))
 			}
 		}
 		return protoreflect.ValueOfEnum(v.Number()), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
 		v, err := strconv.ParseInt(value, 10, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfInt32(int32(v)), nil
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfInt64(v), nil
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
 		v, err := strconv.ParseUint(value, 10, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfUint32(uint32(v)), nil
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
 		v, err := strconv.ParseUint(value, 10, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.Wrapf(err, "name:%s, value:%s", string(fieldDescriptor.FullName()), value)
 		}
 		return protoreflect.ValueOfUint64(v), nil
 	case protoreflect.FloatKind:
 		v, err := strconv.ParseFloat(value, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfFloat32(float32(v)), nil
 	case protoreflect.DoubleKind:
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfFloat64(v), nil
 	case protoreflect.StringKind:
@@ -255,7 +256,7 @@ func parseField(fieldDescriptor protoreflect.FieldDescriptor, value string) (pro
 	case protoreflect.BytesKind:
 		v, err := base64Bytes(value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		return protoreflect.ValueOfBytes(v), nil
 	case protoreflect.MessageKind, protoreflect.GroupKind:
@@ -271,55 +272,55 @@ func parseMessage(msgDescriptor protoreflect.MessageDescriptor, value string) (p
 	case "google.protobuf.Timestamp":
 		t, err := time.Parse(time.RFC3339Nano, value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = timestamppb.New(t)
 	case "google.protobuf.Duration":
 		d, err := time.ParseDuration(value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = durationpb.New(d)
 	case "google.protobuf.DoubleValue":
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Double(v)
 	case "google.protobuf.FloatValue":
 		v, err := strconv.ParseFloat(value, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Float(float32(v))
 	case "google.protobuf.Int64Value":
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Int64(v)
 	case "google.protobuf.Int32Value":
 		v, err := strconv.ParseInt(value, 10, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Int32(int32(v))
 	case "google.protobuf.UInt64Value":
 		v, err := strconv.ParseUint(value, 10, 64)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.UInt64(v)
 	case "google.protobuf.UInt32Value":
 		v, err := strconv.ParseUint(value, 10, 32)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.UInt32(uint32(v))
 	case "google.protobuf.BoolValue":
 		v, err := strconv.ParseBool(value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Bool(v)
 	case "google.protobuf.StringValue":
@@ -327,7 +328,7 @@ func parseMessage(msgDescriptor protoreflect.MessageDescriptor, value string) (p
 	case "google.protobuf.BytesValue":
 		v, err := base64Bytes(value)
 		if err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = wrapperspb.Bytes(v)
 	case "google.protobuf.FieldMask":
@@ -337,17 +338,17 @@ func parseMessage(msgDescriptor protoreflect.MessageDescriptor, value string) (p
 	case "google.protobuf.Value":
 		var v structpb.Value
 		if err := protojson.Unmarshal([]byte(value), &v); err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = &v
 	case "google.protobuf.Struct":
 		var v structpb.Struct
 		if err := protojson.Unmarshal([]byte(value), &v); err != nil {
-			return protoreflect.Value{}, err
+			return protoreflect.Value{}, errors.WrapCaller(err)
 		}
 		msg = &v
 	default:
-		return protoreflect.Value{}, fmt.Errorf("unsupported message type: %q", string(msgDescriptor.FullName()))
+		return protoreflect.Value{}, errors.Format("unsupported message type: %q", string(msgDescriptor.FullName()))
 	}
 
 	return protoreflect.ValueOfMessage(msg.ProtoReflect()), nil
@@ -363,49 +364,49 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 	case protoreflect.BoolKind:
 		var b bool
 		if err := json.Unmarshal(raw, &b); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfBool(b)}, nil
 
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
 		var x int32
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfInt32(x)}, nil
 
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
 		var x int64
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfInt64(x)}, nil
 
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
 		var x uint32
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfUint32(x)}, nil
 
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
 		var x uint64
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfUint64(x)}, nil
 
 	case protoreflect.FloatKind:
 		var x float32
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfFloat32(x)}, nil
 
 	case protoreflect.DoubleKind:
 		var x float64
 		if err := json.Unmarshal(raw, &x); err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfFloat64(x)}, nil
 
@@ -424,7 +425,7 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 		dst := make([]byte, enc.DecodedLen(len(raw)))
 		n, err := enc.Decode(dst, raw)
 		if err != nil {
-			return param{}, err
+			return param{}, errors.WrapCaller(err)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfBytes(dst[:n])}, nil
 
@@ -441,7 +442,7 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 
 		enumVal := fd.Enum().Values().ByName(protoreflect.Name(s))
 		if enumVal == nil {
-			return param{}, fmt.Errorf("unexpected enum %s", raw)
+			return param{}, errors.Format("unexpected enum %s", raw)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfEnum(enumVal.Number())}, nil
 
@@ -454,81 +455,81 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 			case "Timestamp":
 				var msg timestamppb.Timestamp
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "Duration":
 				var msg durationpb.Duration
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "BoolValue":
 				var msg wrapperspb.BoolValue
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "Int32Value":
 				var msg wrapperspb.Int32Value
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "Int64Value":
 				var msg wrapperspb.Int64Value
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "UInt32Value":
 				var msg wrapperspb.UInt32Value
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "UInt64Value":
 				var msg wrapperspb.UInt64Value
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "FloatValue":
 				var msg wrapperspb.FloatValue
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "DoubleValue":
 				var msg wrapperspb.DoubleValue
 				if err := protojson.Unmarshal(raw, &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "BytesValue":
 				var msg wrapperspb.BytesValue
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "StringValue":
 				var msg wrapperspb.StringValue
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "FieldMask":
 				var msg fieldmaskpb.FieldMask
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
-					return param{}, err
+					return param{}, errors.WrapCaller(err)
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			}
 		}
-		return param{}, fmt.Errorf("unexpected message type %s", name)
+		return param{}, errors.Format("unexpected message type %s", name)
 
 	default:
-		return param{}, fmt.Errorf("unknown param type %s", kind)
+		return param{}, errors.Format("unknown param type %s", kind)
 
 	}
 }
@@ -555,7 +556,7 @@ func (ps params) set(m proto.Message) error {
 					l := cur.Mutable(fd).List()
 					l.Append(p.val)
 				case fd.IsMap():
-					return fmt.Errorf("map fields are not supported")
+					return errors.New("map fields are not supported")
 				default:
 					cur.Set(fd, p.val)
 				}
@@ -573,7 +574,7 @@ func base64Bytes(val string) ([]byte, error) {
 	if err != nil {
 		b, err = base64.URLEncoding.DecodeString(val)
 		if err != nil {
-			return nil, err
+			return nil, errors.WrapCaller(err)
 		}
 	}
 	return b, nil

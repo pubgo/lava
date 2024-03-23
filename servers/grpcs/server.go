@@ -103,12 +103,6 @@ func (s *serviceImpl) DixInject(
 		conf.BaseUrl = "/" + version.Project()
 	}
 
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
-	})
-
 	s.lc = getLifecycle
 
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()

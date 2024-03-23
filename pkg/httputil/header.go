@@ -123,6 +123,7 @@ const (
 	HeaderXRequestID                      = "X-Request-ID"
 	HeaderXRequestProject                 = "X-Request-Project"
 	HeaderXRequestVersion                 = "X-Request-Version"
+	HeaderXRequestOperation               = "X-Request-Operation"
 	HeaderAuthAct                         = "X-Request-Auth-Act"
 	HeaderXRequestedWith                  = "X-Requested-With"
 	HeaderXRobotsTag                      = "X-Robots-Tag"

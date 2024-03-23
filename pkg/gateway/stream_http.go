@@ -19,9 +19,9 @@ import (
 type streamHTTP struct {
 	method     *methodWrap
 	path       *routex.RouteTarget
-	ctx        *fiber.Ctx
+	handler    *fiber.Ctx
+	ctx        context.Context
 	header     metadata.MD
-	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
 }
@@ -30,7 +30,7 @@ var _ grpc.ServerStream = (*streamHTTP)(nil)
 
 func (s *streamHTTP) SetHeader(md metadata.MD) error {
 	if s.sentHeader {
-		return fmt.Errorf("already sent headers")
+		return errors.WrapStack(fmt.Errorf("already sent headers"))
 	}
 	s.header = metadata.Join(s.header, md)
 	return nil
@@ -38,20 +38,27 @@ func (s *streamHTTP) SetHeader(md metadata.MD) error {
 
 func (s *streamHTTP) SendHeader(md metadata.MD) error {
 	if s.sentHeader {
-		return fmt.Errorf("already sent headers")
+		return errors.WrapCaller(fmt.Errorf("already sent headers"))
 	}
 	s.header = metadata.Join(s.header, md)
 	s.sentHeader = true
+
+	for k, v := range s.header {
+		for i := range v {
+			s.handler.Response().Header.Set(k, v[i])
+		}
+	}
+
 	return nil
 }
 
 func (s *streamHTTP) SetTrailer(md metadata.MD) {
-	s.trailer = metadata.Join(s.trailer, md)
+	s.header = metadata.Join(s.header, md)
 }
 
 func (s *streamHTTP) Context() context.Context {
 	return grpc.NewContextWithServerTransportStream(
-		s.ctx.Context(),
+		s.ctx,
 		&serverTransportStream{
 			ServerStream: s,
 			method:       s.method.grpcMethodName,
@@ -60,23 +67,9 @@ func (s *streamHTTP) Context() context.Context {
 }
 
 func (s *streamHTTP) SendMsg(m interface{}) error {
-	defer func() {
-		for k, v := range s.header {
-			for i := range v {
-				s.ctx.Response().Header.Set(k, v[i])
-			}
-		}
-
-		for k, v := range s.trailer {
-			for i := range v {
-				s.ctx.Response().Header.Set(k, v[i])
-			}
-		}
-	}()
-
 	reply := m.(proto.Message)
 
-	fRsp, ok := s.ctx.Response().BodyWriter().(http.Flusher)
+	fRsp, ok := s.handler.Response().BodyWriter().(http.Flusher)
 	if ok {
 		defer fRsp.Flush()
 	}
@@ -90,7 +83,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	var reqName = msg.ProtoReflect().Descriptor().FullName()
 	handler := s.method.srv.opts.responseInterceptors[reqName]
 	if handler != nil {
-		return errors.Wrapf(handler(s.ctx, msg), "failed to handler response data by %s", reqName)
+		return errors.Wrapf(handler(s.handler, msg), "failed to handler response data by %s", reqName)
 	}
 
 	b, err := protojson.Marshal(msg)
@@ -98,8 +91,8 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 		return errors.Wrap(err, "failed to marshal response by protojson")
 	}
 
-	_, err = s.ctx.Write(b)
-	return err
+	_, err = s.handler.Write(b)
+	return errors.WrapCaller(err)
 }
 
 func (s *streamHTTP) RecvMsg(m interface{}) error {
@@ -117,11 +110,11 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		var reqName = msg.ProtoReflect().Descriptor().FullName()
 		handler := s.method.srv.opts.requestInterceptors[reqName]
 		if handler != nil {
-			return errors.Wrapf(handler(s.ctx, msg), "failed to handler request data by %s", reqName)
+			return errors.Wrapf(handler(s.handler, msg), "failed to handler request data by %s", reqName)
 		}
 
-		if s.ctx.Body() != nil && len(s.ctx.Body()) != 0 {
-			err := protojson.Unmarshal(s.ctx.Body(), msg)
+		if s.handler.Body() != nil && len(s.handler.Body()) != 0 {
+			err := protojson.Unmarshal(s.handler.Body(), msg)
 			if err != nil {
 				return errors.Wrap(err, "failed to unmarshal body by protojson")
 			}

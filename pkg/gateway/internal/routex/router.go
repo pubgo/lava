@@ -15,8 +15,9 @@
 package routex
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"net/http"
 	"strings"
 
@@ -190,8 +191,10 @@ func (t *RouteTrie) match(uriPath, httpMethod string) (*RouteTarget, []RouteTarg
 
 	vars, err := computeVarValues(path, target)
 	if err != nil {
+		log.Err(err).Msg("failed to compute var values")
 		return nil, nil, nil
 	}
+
 	return target, vars, nil
 }
 
@@ -342,6 +345,7 @@ func (v RouteTargetVar) capture(segments []string) (string, error) {
 	if v.end == -1 || v.start-v.end > 1 {
 		mode = pathEncodeMulti
 	}
+
 	var sb strings.Builder
 	for i, part := range parts {
 		val, err := pathUnescape(part, mode)

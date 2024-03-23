@@ -15,7 +15,7 @@ package gateway
 //)
 //
 //type streamWS struct {
-//	ctx        *fiber.Ctx
+//	handler        *fiber.Ctx
 //	conn       *websocket.Conn
 //	pathRule   *httpPathRule
 //	params     url.Values
@@ -47,7 +47,7 @@ package gateway
 //
 //func (s *streamWS) Context() context.Context {
 //	sts := &serverTransportStream{ServerStream: s, method: s.pathRule.GrpcMethodName}
-//	return grpc.NewContextWithServerTransportStream(s.ctx.Context(), sts)
+//	return grpc.NewContextWithServerTransportStream(s.handler.Context(), sts)
 //}
 //
 //func (s *streamWS) SendMsg(v interface{}) error {

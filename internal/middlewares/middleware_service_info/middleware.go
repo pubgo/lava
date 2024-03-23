@@ -2,14 +2,12 @@ package middleware_service_info
 
 import (
 	"context"
-
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
-
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 )
 
 func New() lava.Middleware {
@@ -25,6 +23,8 @@ func New() lava.Middleware {
 					Ip:       running.LocalIP,
 				}
 
+				clientInfo := new(lavapbv1.ServiceInfo)
+
 				if req.Client() {
 					req.Header().Set(grpcutil.ClientNameKey, serverInfo.Name)
 					req.Header().Set(grpcutil.ClientVersionKey, serverInfo.Version)
@@ -32,7 +32,6 @@ func New() lava.Middleware {
 					req.Header().Set(grpcutil.ClientHostnameKey, serverInfo.Hostname)
 					req.Header().Set(grpcutil.ClientIpKey, serverInfo.Ip)
 				} else {
-					clientInfo := new(lavapbv1.ServiceInfo)
 					if data := req.Header().Peek(grpcutil.ClientHostnameKey); data != nil {
 						clientInfo.Hostname = convert.B2S(data)
 					}
@@ -52,10 +51,10 @@ func New() lava.Middleware {
 					if data := req.Header().Peek(grpcutil.ClientPathKey); data != nil {
 						clientInfo.Path = convert.B2S(data)
 					}
-
-					ctx = lava.CreateCtxWithClientInfo(ctx, clientInfo)
-					ctx = lava.CreateCtxWithServerInfo(ctx, serverInfo)
 				}
+
+				ctx = lava.CreateCtxWithClientInfo(ctx, clientInfo)
+				ctx = lava.CreateCtxWithServerInfo(ctx, serverInfo)
 
 				return next(ctx, req)
 			}

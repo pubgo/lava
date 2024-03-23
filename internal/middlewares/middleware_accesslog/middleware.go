@@ -8,10 +8,8 @@ import (
 
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
@@ -50,7 +48,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		reqId := lava.GetReqID(ctx)
 		evt.Str("req_id", reqId)
-		evt.Int64("start_time", now.UnixMicro())
+		evt.Int64("start_at", now.Unix())
 		evt.Str("service", req.Service())
 		evt.Str("operation", req.Operation())
 		evt.Str("endpoint", req.Endpoint())
@@ -65,10 +63,6 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		// 错误和panic处理
 		defer func() {
-			if gErr != nil && running.IsDebug {
-				errors.Debug(gErr)
-			}
-
 			if !generic.IsNil(gErr) || logOpts["all"] {
 				if !strings.HasPrefix(req.ContentType(), "multipart/form-data") {
 					evt.Any("req_body", req.Payload())
@@ -88,8 +82,8 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			if !req.Client() && rsp != nil {
 				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
 				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-				rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
-				rsp.Header().Set("X-Server-Latency", latency.String())
+				//rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+				rsp.Header().Set("X-Request-Latency", fmt.Sprintf("%d", latency.Microseconds()))
 			}
 
 			// 记录错误日志
@@ -102,7 +96,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
+				e = l.logger.Err(gErr).Any("err_detail", gErr).Func(log.WithEvent(evt))
 			}
 			e.Msg("record request")
 		}()

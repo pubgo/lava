@@ -40,7 +40,7 @@ type httpRequest struct {
 }
 
 func (r *httpRequest) Kind() string                { return "http" }
-func (r *httpRequest) Operation() string           { return r.ctx.Route().Path }
+func (r *httpRequest) Operation() string           { return string(r.ctx.Request().URI().Path()) }
 func (r *httpRequest) Client() bool                { return false }
 func (r *httpRequest) Header() *lava.RequestHeader { return &r.ctx.Request().Header }
 func (r *httpRequest) Payload() interface{}        { return r.ctx.Body() }

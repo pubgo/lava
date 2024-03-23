@@ -15,11 +15,12 @@
 package routex
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/pubgo/funk/errors"
 )
 
 // pathSegments holds the path segments for a HttpMethod.
@@ -152,12 +153,14 @@ func (p *pathParser) parseLiteral() (string, error) {
 	literal := p.scan.captureRun(isLiteral)
 	if literal == "" {
 		p.scan.next()
-		return "", p.errUnexpected()
+		return "", errors.WrapCaller(p.errUnexpected())
 	}
+
 	unescaped, err := pathUnescape(literal, pathEncodeSingle)
 	if err != nil {
-		return "", p.errSyntax(err.Error())
+		return "", errors.WrapCaller(p.errSyntax(err.Error()))
 	}
+
 	return pathEscape(unescaped, pathEncodeSingle), nil
 }
 
@@ -319,15 +322,17 @@ func pathEscape(input string, mode pathEncoding) string {
 	}
 	return sb.String()
 }
+
 func validateHex(input string) error {
 	if len(input) < 3 || input[0] != '%' || !ishex(input[1]) || !ishex(input[2]) {
 		if len(input) > 3 {
 			input = input[:3]
 		}
-		return url.EscapeError(input)
+		return errors.WrapCaller(url.EscapeError(input))
 	}
 	return nil
 }
+
 func pathUnescape(input string, mode pathEncoding) (string, error) {
 	// Count %, check that they're well-formed.
 	percentCount := 0
@@ -336,7 +341,7 @@ func pathUnescape(input string, mode pathEncoding) (string, error) {
 		case '%':
 			percentCount++
 			if err := validateHex(input[i:]); err != nil {
-				return "", err
+				return "", errors.WrapCaller(err)
 			}
 			i += 3
 		default:
