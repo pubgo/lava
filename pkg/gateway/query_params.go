@@ -26,7 +26,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var valuesKeyRegexp = regexp.MustCompile(`^(.*)\[(.*)\]$`)
+var valuesKeyRegexp = regexp.MustCompile(`^(.*)\[(.*)]$`)
 
 var currentQueryParser QueryParameterParser = &DefaultQueryParser{}
 

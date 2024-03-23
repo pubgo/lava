@@ -26,17 +26,6 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/gateway"
-	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/pkg/wsproxy"
-	"github.com/rs/xid"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/encoding/protojson"
-
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -48,6 +37,16 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/gateway"
+	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/pkg/wsproxy"
+	"github.com/rs/xid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func New() lava.Service { return newService() }
@@ -147,7 +146,6 @@ func (s *serviceImpl) DixInject(
 			AllowOriginsFunc: func(origin string) bool {
 				return true
 			},
-			AllowOrigins: "*",
 			AllowMethods: strings.Join([]string{
 				fiber.MethodGet,
 				fiber.MethodPost,
@@ -164,7 +162,10 @@ func (s *serviceImpl) DixInject(
 		}))
 	}
 
-	httpServer.Mount("/debug", debug.App())
+	httpServer.Group("/debug", func(ctx *fiber.Ctx) error {
+		debug.App().Handler()(ctx.Context())
+		return nil
+	})
 
 	app := fiber.New()
 	app.Use(handlerHttpMiddle(globalMiddlewares))

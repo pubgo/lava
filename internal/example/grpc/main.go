@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pubgo/lava/internal/example/grpc/bootstrap"
+	"github.com/pubgo/lava/internal/example/grpc/internal/bootstrap"
 )
 
 func main() {

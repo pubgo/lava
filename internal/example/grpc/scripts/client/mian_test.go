@@ -5,10 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/pubgo/funk/assert"
-	"golang.org/x/net/http2"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 	"io/ioutil"
 	"net"
@@ -16,6 +12,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/pubgo/funk/assert"
+	"golang.org/x/net/http2"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestName(t1 *testing.T) {

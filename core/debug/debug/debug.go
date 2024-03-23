@@ -1,7 +1,6 @@
 package debug
 
 import (
-	"github.com/pubgo/lava/core/debug"
 	"sort"
 	"strings"
 
@@ -9,6 +8,7 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+	"github.com/pubgo/lava/core/debug"
 )
 
 func init() {

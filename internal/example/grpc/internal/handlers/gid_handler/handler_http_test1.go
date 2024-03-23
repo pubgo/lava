@@ -3,15 +3,16 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"math/rand"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
+	"github.com/pubgo/lava/internal/example/grpc/internal/services/gid_client"
 	"github.com/pubgo/lava/lava"
-	"math/rand"
 )
 
 type IdHttp111 struct {

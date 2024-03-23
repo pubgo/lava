@@ -11,6 +11,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -21,15 +22,17 @@ import (
 )
 
 type Params struct {
-	Log                 log.Logger
-	MetricMiddleware    *middleware_metric.MetricMiddleware
-	AccessLogMiddleware *middleware_accesslog.LogMiddleware
+	Log    log.Logger
+	Metric metrics.Metric
 }
 
 func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	middlewares := lava.Middlewares{
-		middleware_service_info.New(), p.MetricMiddleware, p.AccessLogMiddleware, middleware_recovery.New(),
+		middleware_service_info.New(),
+		middleware_metric.New(p.Metric),
+		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.ServiceName})),
+		middleware_recovery.New(),
 	}
 	middlewares = append(middlewares, mm...)
 

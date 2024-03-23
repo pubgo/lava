@@ -3,7 +3,7 @@ package bootstrap
 import (
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
+	"github.com/pubgo/lava/internal/example/grpc/internal/services/gid_client"
 	"github.com/pubgo/lava/servers/grpcs"
 )
 

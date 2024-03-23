@@ -3,6 +3,10 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"net/http"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
 	"github.com/mattheath/kala/snowflake"
@@ -11,16 +15,12 @@ import (
 	"github.com/pubgo/lava/clients/resty"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/internal/example/grpc/internal/services/gid_client"
+	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/lava"
 	"github.com/teris-io/shortid"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
-	"math/rand"
-	"net/http"
-	"time"
-
-	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
-	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
 
 var typesReq = &resty.RequestConfig{

@@ -3,6 +3,10 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/proto/errorpb"
+	"google.golang.org/grpc/codes"
 	"strings"
 	"time"
 
@@ -96,7 +100,36 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				e = l.logger.Err(gErr).Any("err_detail", gErr).Func(log.WithEvent(evt))
+				errors.Debug(gErr)
+				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
+
+				pb := errutil.ParseError(gErr)
+				if pb.Trace == nil {
+					pb.Trace = new(errorpb.ErrTrace)
+				}
+				pb.Trace.Operation = req.Operation()
+				pb.Trace.Service = req.Service()
+				pb.Trace.Version = version.Version()
+
+				if pb.Msg != nil {
+					pb.Msg = new(errorpb.ErrMsg)
+				}
+				pb.Msg.Msg = gErr.Error()
+				pb.Msg.Detail = fmt.Sprintf("%#v", gErr)
+				if pb.Msg.Tags == nil {
+					pb.Msg.Tags = make(map[string]string)
+				}
+				pb.Msg.Tags["reqHeader"] = string(req.Header().Header())
+
+				if pb.Code.Message == "" {
+					pb.Code.Message = gErr.Error()
+				}
+
+				if pb.Code.Code == 0 {
+					pb.Code.StatusCode = errorpb.Code_Internal
+					pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
+				}
+				gErr = errutil.ConvertErr2Status(pb).Err()
 			}
 			e.Msg("record request")
 		}()

@@ -1,6 +1,11 @@
 package debug
 
 import (
+	"net/http"
+	"os"
+	"strings"
+	"sync"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
@@ -12,10 +17,6 @@ import (
 	"github.com/pubgo/lava/core/debug"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
-	"net/http"
-	"os"
-	"strings"
-	"sync"
 )
 
 var passwd = running.InstanceID

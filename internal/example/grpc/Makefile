@@ -13,7 +13,7 @@ LDFLAGS=-ldflags " \
 "
 
 run:
-	enable_debug=true go run ${LDFLAGS} -mod=vendor -v main.go grpc
+	enable_debug=true go run ${LDFLAGS} -v main.go grpc
 
 .PHONY: build
 build-gid:

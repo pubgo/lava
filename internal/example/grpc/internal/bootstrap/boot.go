@@ -3,14 +3,14 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/lava/cmds/app"
+	"github.com/pubgo/lava/internal/example/grpc/internal/handlers/gid_handler"
+	"github.com/pubgo/lava/internal/example/grpc/internal/services/gid_client"
 	"github.com/pubgo/lava/internal/example/grpc/taskcmd"
 	"github.com/pubgo/lava/lava"
-
-	"github.com/pubgo/lava/internal/example/grpc/handlers/gid_handler"
-	"github.com/pubgo/lava/internal/example/grpc/services/gid_client"
 )
 
 func Main() {

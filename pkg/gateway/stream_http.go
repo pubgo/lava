@@ -123,7 +123,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 
 	if s.params != nil && len(s.params) > 0 {
 		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
-			return errors.Wrapf(err, "failed to set query params")
+			return errors.Wrapf(err, "failed to set query params, params=%v", s.params)
 		}
 	}
 

@@ -1,9 +1,11 @@
 package debug
 
 import (
+	"net/http"
+
+	_ "github.com/fasthttp/router"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 type Config struct {

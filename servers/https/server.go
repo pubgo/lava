@@ -126,7 +126,10 @@ func (s *serviceImpl) DixInject(
 	}))
 
 	defaultMiddlewares := []lava.Middleware{
-		middleware_metric.New(m), middleware_accesslog.New(log), middleware_recovery.New()}
+		middleware_metric.New(m),
+		middleware_accesslog.New(log),
+		middleware_recovery.New(),
+	}
 	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
 
 	for _, h := range handlers {
