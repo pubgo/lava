@@ -18,7 +18,7 @@ type requestImpl struct {
 }
 
 func (r *requestImpl) Operation() string {
-	return fmt.Sprintf("%s %s", r.req.req.Header.Method(), r.req.operation)
+	return fmt.Sprintf("%s %s", r.req.cfg.Method, r.req.operation)
 }
 
 func (r *requestImpl) Kind() string                { return Name }

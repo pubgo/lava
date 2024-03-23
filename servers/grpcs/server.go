@@ -108,13 +108,13 @@ func (s *serviceImpl) DixInject(
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
 	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
 
-	middlewares := lava.Middlewares{
+	globalMiddlewares := lava.Middlewares{
 		middleware_service_info.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),
 	}
-	middlewares = append(middlewares, dixMiddlewares...)
+	globalMiddlewares = append(globalMiddlewares, dixMiddlewares...)
 
 	log = log.WithName("grpc-server")
 	s.log = log
@@ -167,7 +167,7 @@ func (s *serviceImpl) DixInject(
 	httpServer.Mount("/debug", debug.App())
 
 	app := fiber.New()
-	app.Use(handlerHttpMiddle(middlewares))
+	app.Use(handlerHttpMiddle(globalMiddlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()
 		//for _, an := range h.Annotation() {
@@ -329,7 +329,7 @@ func (s *serviceImpl) DixInject(
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
 
-		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
 		if m, ok := h.(lava.Close); ok {
