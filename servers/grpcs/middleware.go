@@ -3,13 +3,13 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"

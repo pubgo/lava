@@ -1,11 +1,12 @@
 package grpcs
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"google.golang.org/protobuf/proto"
-	"net/url"
-	"strings"
 )
 
 // serviceFromMethod returns the service

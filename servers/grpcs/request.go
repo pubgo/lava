@@ -2,10 +2,10 @@ package grpcs
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/lava"
+	"google.golang.org/grpc"
 )
 
 var _ lava.Request = (*rpcRequest)(nil)

@@ -6,12 +6,11 @@ import (
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/lava"
+	"google.golang.org/grpc"
 )
 
 func buildTarget(cfg *grpcc_config.ServiceCfg) string {
