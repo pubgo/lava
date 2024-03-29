@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
@@ -162,12 +163,9 @@ func (s *serviceImpl) DixInject(
 		}))
 	}
 
-	httpServer.Group("/debug", func(ctx *fiber.Ctx) error {
-		debug.App().Handler()(ctx.Context())
-		return nil
-	})
-
 	app := fiber.New()
+	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
+
 	app.Use(handlerHttpMiddle(globalMiddlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()

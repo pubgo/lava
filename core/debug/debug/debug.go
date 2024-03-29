@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -38,8 +39,8 @@ func initDebug() {
 		var nodes []g.Node
 		nodes = append(nodes, h.H1(g.Text("routes")))
 		for i := range pathList {
-			path := "/debug" + pathList[i]
-			nodes = append(nodes, h.A(g.Text(path), g.Attr("href", path)), h.Br())
+			path := pathList[i]
+			nodes = append(nodes, h.A(g.Text(path), g.Attr("href", filepath.Join(string(ctx.Request().Header.Peek("Path-Prefix")), path))), h.Br())
 		}
 		ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 		return c.HTML5(c.HTML5Props{Title: "/app/routes", Body: nodes}).Render(ctx)

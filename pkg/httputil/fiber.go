@@ -15,6 +15,7 @@ import (
 
 func StripPrefix(prefix string, hh fiber.Handler) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		ctx.Request().Header.Set("Path-Prefix", prefix)
 		ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), prefix))
 		return hh(ctx)
 	}
