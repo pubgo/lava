@@ -3,21 +3,21 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/proto/errorpb"
-	"google.golang.org/grpc/codes"
 	"strings"
 	"time"
 
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
 )
 
 const Name = "accesslog"
@@ -119,15 +119,14 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				if pb.Msg.Tags == nil {
 					pb.Msg.Tags = make(map[string]string)
 				}
-				pb.Msg.Tags["reqHeader"] = string(req.Header().Header())
 
 				if pb.Code.Message == "" {
 					pb.Code.Message = gErr.Error()
 				}
 
 				if pb.Code.Code == 0 {
+					pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
 					pb.Code.StatusCode = errorpb.Code_Internal
-					pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
 				}
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}

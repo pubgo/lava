@@ -254,19 +254,18 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			pb.Trace.Service = rpcReq.Service()
 			pb.Trace.Version = version.Version()
 			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = fmt.Sprintf("%#v", err)
+			pb.Msg.Detail = fmt.Sprintf("%v", err)
 			if pb.Msg.Tags == nil {
 				pb.Msg.Tags = make(map[string]string)
 			}
-			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
 			if pb.Code.Message == "" {
 				pb.Code.Message = err.Error()
 			}
 
 			if pb.Code.Code == 0 {
+				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
 				pb.Code.StatusCode = errorpb.Code_Internal
-				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
 			}
 
 			return errutil.ConvertErr2Status(pb).Err()
