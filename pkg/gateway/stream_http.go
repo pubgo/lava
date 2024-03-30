@@ -100,6 +100,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 
 	if s.path.HttpMethod == http.MethodPut ||
 		s.path.HttpMethod == http.MethodPost ||
+		s.path.HttpMethod == http.MethodDelete ||
 		s.path.HttpMethod == http.MethodPatch {
 		cur := args.ProtoReflect()
 		for _, fd := range s.path.RequestBodyFields {
