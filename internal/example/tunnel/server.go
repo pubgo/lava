@@ -7,6 +7,7 @@ import (
 	_ "github.com/libp2p/go-yamux/v4"
 	"github.com/pubgo/funk/assert"
 	logger "github.com/pubgo/funk/log"
+	"google.golang.org/grpc"
 	"io"
 	"net"
 	"net/http"
@@ -51,5 +52,9 @@ func main() {
 		req := assert.Must1(http.NewRequest("GET", "http://localhost:8080/hello", nil))
 		rsp := assert.Must1(cli.Do(req))
 		fmt.Println(string(assert.Must1(io.ReadAll(rsp.Body))))
+
+		connCli := assert.Must1(grpc.Dial("test:8080", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+			return session.Open(ctx)
+		})))
 	}
 }
