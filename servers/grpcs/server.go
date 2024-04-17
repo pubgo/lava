@@ -288,6 +288,7 @@ func (s *serviceImpl) DixInject(
 				} else {
 					pb = &errorpb.ErrCode{
 						Message:    sts.Message(),
+						Code:       500,
 						StatusCode: errorpb.Code(sts.Code()),
 						Name:       "lava.grpc.status",
 						Details:    sts.Proto().Details,
