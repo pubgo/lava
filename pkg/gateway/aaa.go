@@ -54,3 +54,9 @@ type StreamCodec interface {
 type Compressor interface {
 	encoding.Compressor
 }
+
+type CustomMethod struct {
+	grpc.EmptyCallOption
+	Path string
+	Kind string
+}
