@@ -179,15 +179,6 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {
-	path, err := getCustomPath(m.route, opts)
-	if err != nil {
-		return errors.WrapCaller(err)
-	}
-
-	if path != "" {
-		method = path
-	}
-
 	return m.cc.Invoke(ctx, method, args, reply, opts...)
 }
 
@@ -343,28 +334,19 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	return nil
 }
 
-func getCustomPath(route *routex.RouteTrie, opts []grpc.CallOption) (string, error) {
-	var kind *string
-	var path *string
-	for _, v := range opts {
-		if v, ok := v.(CustomMethod); ok {
-			kind = &v.Kind
-			path = &v.Path
-			break
-		}
+func GetRouterTarget(mux *Mux, kind string, path string) (*RouteTarget, error) {
+	if path == "" {
+		return nil, errors.New("path is null")
 	}
 
-	if path != nil && *path != "" {
-		if kind == nil || *kind == "" {
-			kind = generic.Ptr("ws")
-		}
-
-		restTarget, _, _ := route.Match(*path, *kind)
-		if restTarget == nil {
-			return "", errors.Format("path not found, kind=%s path=%s", *kind, *path)
-		}
-
-		return restTarget.GrpcMethodName, nil
+	if kind == "" {
+		kind = "ws"
 	}
-	return "", nil
+
+	restTarget, _, _ := mux.route.Match(path, kind)
+	if restTarget == nil {
+		return nil, errors.Format("path not found, kind=%s path=%s", kind, path)
+	}
+
+	return restTarget, nil
 }

@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+type RouteTarget = routex.RouteTarget
 type Gateway interface {
 	grpc.ClientConnInterface
 	SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
@@ -53,10 +54,4 @@ type StreamCodec interface {
 // Based on grpc/encoding.
 type Compressor interface {
 	encoding.Compressor
-}
-
-type CustomMethod struct {
-	grpc.EmptyCallOption
-	Path string
-	Kind string
 }
