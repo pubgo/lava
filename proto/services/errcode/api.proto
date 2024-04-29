@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package lava.service;
+
+import "errorpb/errors.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/pubgo/lava/pkg/proto/errcodepb;errcodepb";
+
+service ErrorService {
+    rpc Codes (google.protobuf.Empty) returns (ErrCodes) {
+        option (google.api.http) = {
+            get: "/lava/err_codes"
+        };
+    }
+}
+
+message ErrCodes {
+    repeated errors.ErrCode codes = 1;
+}

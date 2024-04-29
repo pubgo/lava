@@ -1,6 +1,7 @@
 package migratecmd
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/pubgo/dix"
@@ -9,16 +10,18 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
+	"gorm.io/gen"
 
 	"github.com/pubgo/lava/core/migrates"
 	"github.com/pubgo/lava/core/orm"
 )
 
 type params struct {
-	Log        log.Logger
-	Db         *orm.Client
-	Migrations []migrates.Migrate
+	Log         log.Logger
+	Db          *orm.Client
+	Migrations  []migrates.Migrate
+	Generations migrates.Generation
 }
 
 func migrate(m []migrates.Migrate) []*migrates.Migration {
@@ -31,6 +34,7 @@ func migrate(m []migrates.Migrate) []*migrates.Migration {
 
 func New(di *dix.Dix) *cli.Command {
 	var id string
+
 	options := migrates.DefaultConfig
 	return &cli.Command{
 		Name:  "migrate",
@@ -47,7 +51,7 @@ func New(di *dix.Dix) *cli.Command {
 			options.TableName = p.Db.TablePrefix + migrates.DefaultConfig.TableName
 			return nil
 		},
-		Commands: []*cli.Command{
+		Subcommands: []*cli.Command{
 			{
 				Name:    "migrate",
 				Usage:   "do migrate",
@@ -112,6 +116,38 @@ func New(di *dix.Dix) *cli.Command {
 						assert.Must(m.RollbackTo(id))
 					}
 					p.Log.Info().Msg("rollback last ok")
+					return nil
+				},
+			},
+			{
+				Name:      "gen",
+				Usage:     "do gen orm model and query code",
+				Aliases:   []string{"g"},
+				UsageText: "migrate gen [./internal/db]",
+				Action: func(context *cli.Context) error {
+					defer recovery.Exit()
+
+					genPath := "./internal/db"
+					if context.NArg() > 0 {
+						genPath = context.Args().First()
+					}
+
+					g := gen.NewGenerator(gen.Config{
+						OutPath:           filepath.Join(genPath, "query"),
+						ModelPkgPath:      filepath.Join(genPath, "models"),
+						FieldWithTypeTag:  true,
+						FieldWithIndexTag: true,
+						FieldNullable:     true,
+						FieldCoverable:    true,
+						Mode:              gen.WithQueryInterface | gen.WithDefaultQuery | gen.WithoutContext,
+					})
+
+					p := dix.Inject(di, new(params))
+					g.UseDB(p.Db.DB)
+
+					g.ApplyBasic(p.Generations(g)...)
+					g.Execute()
+
 					return nil
 				},
 			},

@@ -12,7 +12,10 @@ func do(s *Scheduler, job job, fn JobFunc) {
 	assert.If(job.key == "", "[name] should not be null")
 	assert.If(fn == nil, "[fn] should not be nil")
 	assert.If(trigger == nil, "please init dur or cron")
-	assert.Must(s.scheduler.ScheduleJob(namedJob{s: s, name: job.key, fn: fn, log: s.log}, trigger))
+	assert.Must(s.scheduler.ScheduleJob(
+		quartz.NewJobDetail(
+			&namedJob{s: s, name: job.key, fn: fn, log: s.log},
+			quartz.NewJobKey(job.key)), trigger))
 }
 
 func getTrigger(j job) quartz.Trigger {

@@ -34,7 +34,7 @@ func reshuffle(targets []resolver.Address) []resolver.Address {
 }
 
 // 创建新的Address
-func newAddr(addr string, name string) resolver.Address {
+func newAddr(addr, name string) resolver.Address {
 	return resolver.Address{
 		Addr:       addr,
 		Attributes: attributes.New(addr, name),

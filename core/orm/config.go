@@ -1,9 +1,9 @@
 package orm
 
 import (
-	"github.com/pubgo/funk/config"
 	"time"
 
+	"github.com/pubgo/funk/config"
 	"gorm.io/gorm/logger"
 )
 

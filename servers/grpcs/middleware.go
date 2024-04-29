@@ -5,22 +5,25 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
-	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
@@ -30,41 +33,41 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			return nil, err
 		}
 
-		return &rpcResponse{header: new(fasthttp.ResponseHeader), dt: dt}, nil
+		return &rpcResponse{header: req.(*rpcRequest).rspHeader, dt: dt}, nil
 	}
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		rspMetadata, ok := metadata.FromIncomingContext(ctx)
+		reqMetadata, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			rspMetadata = make(metadata.MD)
+			reqMetadata = make(metadata.MD)
 		}
 
 		// get content type
 		ct := defaultContentType
-		if c := rspMetadata.Get("x-content-type"); len(c) != 0 && c[0] != "" {
+		if c := reqMetadata.Get("x-content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		if c := rspMetadata.Get("content-type"); len(c) != 0 && c[0] != "" {
+		if c := reqMetadata.Get("content-type"); len(c) != 0 && c[0] != "" {
 			ct = c[0]
 		}
 
-		delete(rspMetadata, "x-content-type")
+		delete(reqMetadata, "x-content-type")
 
-		var clientInfo = new(pbv1.ServiceInfo)
+		clientInfo := new(lavapbv1.ServiceInfo)
 
 		// get peer from context
-		if p := grpcutil.ClientIP(rspMetadata); p != "" {
+		if p := grpcutil.ClientIP(reqMetadata); p != "" {
 			clientInfo.Ip = p
 		}
 
-		if p := grpcutil.ClientName(rspMetadata); p != "" {
+		if p := grpcutil.ClientName(reqMetadata); p != "" {
 			clientInfo.Name = p
 		}
 
 		// timeout for server deadline
-		to := rspMetadata.Get("timeout")
-		delete(rspMetadata, "timeout")
+		to := reqMetadata.Get("timeout")
+		delete(reqMetadata, "timeout")
 
 		// set the timeout if we have it
 		if len(to) != 0 && to[0] != "" {
@@ -77,14 +80,14 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		// 从gateway获取url
 		url := info.FullMethod
-		if _url, ok := rspMetadata["url"]; ok {
+		if _url, ok := reqMetadata["url"]; ok {
 			url = _url[0]
 		}
 
-		header := &fasthttp.RequestHeader{}
-		for k, v := range rspMetadata {
+		reqHeader := &fasthttp.RequestHeader{}
+		for k, v := range reqMetadata {
 			for i := range v {
-				header.Add(k, v[i])
+				reqHeader.Add(k, v[i])
 			}
 		}
 
@@ -96,7 +99,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			handler:     handler,
 			contentType: ct,
 			payload:     req,
-			header:      header,
+			header:      reqHeader,
+			rspHeader:   new(fasthttp.ResponseHeader),
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
@@ -106,13 +110,29 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		)
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
-		header.Set(httputil.HeaderXRequestID, reqId)
-		header.Set(httputil.HeaderXRequestVersion, version.Version())
+		reqHeader.Set(httputil.HeaderXRequestID, reqId)
+		reqHeader.Set(httputil.HeaderXRequestVersion, version.Version())
 
-		rspMetadata = make(metadata.MD)
-		rspMetadata.Set(httputil.HeaderXRequestID, reqId)
-		rspMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
+		defer func() {
+			reqMetadata = make(metadata.MD)
+			reqMetadata.Set(httputil.HeaderXRequestID, reqId)
+			reqMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
+			reqMetadata.Set(httputil.HeaderXRequestOperation, info.FullMethod)
+			rpcReq.rspHeader.VisitAll(func(key, value []byte) {
+				reqMetadata.Set(convert.BtoS(key), convert.BtoS(value))
+			})
 
+			if err := grpc.SetHeader(ctx, reqMetadata); err != nil {
+				log.Err(err, ctx).Msg("grpc set trailer failed")
+			}
+
+			if err := grpc.SendHeader(ctx, reqMetadata); err != nil {
+				log.Err(err, ctx).Msg("grpc send trailer failed")
+			}
+		}()
+
+		ctx = lava.CreateReqHeader(ctx, reqHeader)
+		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
@@ -131,29 +151,18 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			if pb.Msg.Tags == nil {
 				pb.Msg.Tags = make(map[string]string)
 			}
-			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
+			pb.Msg.Tags["reqHeader"] = string(rpcReq.Header().Header())
 
-			if pb.Code.Reason == "" {
-				pb.Code.Reason = err.Error()
+			if pb.Code.Message == "" {
+				pb.Code.Message = err.Error()
 			}
 
 			if pb.Code.Code == 0 {
-				pb.Code.Code = errorpb.Code_Internal
-			}
-
-			if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
-				return nil, err
+				pb.Code.StatusCode = errorpb.Code_Internal
+				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
 			}
 
 			return nil, errutil.ConvertErr2Status(pb).Err()
-		}
-
-		rsp.Header().VisitAll(func(key, value []byte) {
-			rspMetadata.Set(convert.BtoS(key), convert.BtoS(value))
-		})
-
-		if err = grpc.SetTrailer(ctx, rspMetadata); err != nil {
-			return nil, err
 		}
 
 		return rsp.(*rpcResponse).dt, nil
@@ -236,6 +245,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
 		ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
+		ctx = lava.CreateReqHeader(ctx, header)
+		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
@@ -243,18 +254,18 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			pb.Trace.Service = rpcReq.Service()
 			pb.Trace.Version = version.Version()
 			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = fmt.Sprintf("%#v", err)
+			pb.Msg.Detail = fmt.Sprintf("%v", err)
 			if pb.Msg.Tags == nil {
 				pb.Msg.Tags = make(map[string]string)
 			}
-			pb.Msg.Tags["header"] = string(rpcReq.Header().Header())
 
-			if pb.Code.Reason == "" {
-				pb.Code.Reason = err.Error()
+			if pb.Code.Message == "" {
+				pb.Code.Message = err.Error()
 			}
 
 			if pb.Code.Code == 0 {
-				pb.Code.Code = errorpb.Code_Internal
+				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
+				pb.Code.StatusCode = errorpb.Code_Internal
 			}
 
 			return errutil.ConvertErr2Status(pb).Err()
@@ -266,5 +277,19 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			md.Append(convert.BtoS(key), convert.BtoS(value))
 		})
 		return grpc.SetTrailer(ctx, md)
+	}
+}
+
+func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
+	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		reqCtx := req.(*httpRequest)
+		reqCtx.ctx.SetUserContext(ctx)
+		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
+	}
+
+	h = lava.Chain(middlewares...).Middleware(h)
+	return func(ctx *fiber.Ctx) error {
+		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
+		return err
 	}
 }

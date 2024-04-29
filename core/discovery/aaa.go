@@ -5,10 +5,8 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/result"
-
 	"github.com/pubgo/lava/core/service"
-	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
-	//	 https://github.com/prometheus/prometheus/tree/main/discovery
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 )
 
 type (
@@ -33,7 +31,7 @@ type Watcher interface {
 // Result is returned by a call to Next on
 // the watcher. Actions can be create, update, delete
 type Result struct {
-	Action  pbv1.EventType
+	Action  lavapbv1.EventType
 	Service *service.Service
 }
 

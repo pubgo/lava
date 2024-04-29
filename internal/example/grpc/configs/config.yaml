@@ -1,12 +1,15 @@
 resources:
   - resources/grpc.yaml
 
+debug:
+  password: "1234567890"
+
 app:
   addr: ":8080"
   debug: true
 
 gid-client-http:
-  base_url: "http://localhost:8080/gid/web"
+  base_url: "http://localhost:8080/gid/grpc-web"
   service_name: "gid"
 
 gid-client:
@@ -21,3 +24,10 @@ logger:
 metric:
   driver: "prometheus"
   interval: 5s
+
+grpc_server:
+  enable_print_routes: true
+  enable_cors: true
+
+#task:
+#  http_port: 8081

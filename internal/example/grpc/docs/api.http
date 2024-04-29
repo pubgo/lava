@@ -1,0 +1,11 @@
+###
+GET http://localhost:8080/gid/gw/v1/id/types/hello/111
+
+###
+
+PUT http://localhost:8080/gid/gw/v1/id/types/hello/111
+Content-Type: application/json
+
+{
+  "hello": "content"
+}

@@ -11,10 +11,10 @@ import (
 )
 
 func init() {
-	debug.Get("/gprof", debug.Wrap(fgprof.Handler()))
-	debug.Route("/pprof", func(r fiber.Router) {
-		r.Get("/", debug.WrapFunc(pprof.Index))
-		r.Get("/:name", func(ctx *fiber.Ctx) error {
+	debug.Get("/gprof/", debug.Wrap(fgprof.Handler()))
+	debug.Route("/pprof/", func(r fiber.Router) {
+		r.Get("", debug.WrapFunc(pprof.Index))
+		r.Get(":name", func(ctx *fiber.Ctx) error {
 			name := ctx.Params("name")
 			switch name {
 			case "cmdline":

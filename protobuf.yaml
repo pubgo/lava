@@ -1,8 +1,9 @@
-checksum: 37dd528ded32fd3c8ae45f9f93ac65dd49214965
+checksum: b55b45d0a21049cf1428cc849a514a13bad82d90
 vendor: .proto
 base:
   out: ./pkg
-  paths: source_relative
+  paths: import
+  module: github.com/pubgo/lava/pkg
 root:
   - proto
 deps:
@@ -15,11 +16,10 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.29-30
+    version: v0.5.42
 plugins:
   - name: go
   - name: go-errors
   - name: go-grpc
     opt:
       - require_unimplemented_servers=false
-  - name: grpc-gateway

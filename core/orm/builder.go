@@ -13,23 +13,31 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+func NewClients(conf map[string]*Config, logs log.Logger) map[string]*Client {
+	clients := make(map[string]*Client, len(conf))
+	for name, c := range conf {
+		clients[name] = New(c, logs)
+	}
+	return clients
+}
+
 func New(conf *Config, logs log.Logger) *Client {
 	logs = logs.WithName(Name)
-	cfg := generic.Ptr(DefaultCfg())
-	assert.Must(config.Merge(cfg, conf))
-	ormCfg := merge.Copy(new(gorm.Config), cfg).Unwrap()
-	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
-	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: cfg.TablePrefix}
+	conf = config.MergeR(generic.Ptr(DefaultCfg()), conf).Unwrap()
 
-	var logCfg = DefaultLoggerCfg()
+	ormCfg := merge.Copy(new(gorm.Config), conf).Unwrap()
+	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
+	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: conf.TablePrefix}
+
+	logCfg := DefaultLoggerCfg()
 	logs.Debug().Any("config", logCfg).Msg("orm config")
 
 	ormCfg.Logger = logger.New(log.NewStd(logs.WithCallerSkip(4)), logCfg)
 	logs.Debug().Any("config", ormCfg).Msg("orm log config")
 
-	factory := Get(cfg.Driver)
-	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
-	dialect := factory(cfg.DriverCfg)
+	factory := Get(conf.Driver)
+	assert.If(factory == nil, "driver factory[%s] not found", conf.Driver)
+	dialect := factory(conf.DriverCfg)
 
 	db := assert.Must1(gorm.Open(dialect, ormCfg))
 
@@ -37,17 +45,20 @@ func New(conf *Config, logs log.Logger) *Client {
 	sqlDB := assert.Must1(db.DB())
 	assert.Must(sqlDB.Ping())
 
-	if cfg.MaxConnTime != 0 {
-		sqlDB.SetConnMaxLifetime(cfg.MaxConnTime)
+	if conf.MaxConnTime != 0 {
+		sqlDB.SetConnMaxLifetime(conf.MaxConnTime)
 	}
 
-	if cfg.MaxConnIdle != 0 {
-		sqlDB.SetMaxIdleConns(cfg.MaxConnIdle)
+	if conf.MaxConnIdle != 0 {
+		sqlDB.SetMaxIdleConns(conf.MaxConnIdle)
 	}
 
-	if cfg.MaxConnOpen != 0 {
-		sqlDB.SetMaxOpenConns(cfg.MaxConnOpen)
+	if conf.MaxConnOpen != 0 {
+		sqlDB.SetMaxOpenConns(conf.MaxConnOpen)
 	}
 
-	return &Client{DB: db, TablePrefix: cfg.TablePrefix}
+	return &Client{
+		DB:          db,
+		TablePrefix: conf.TablePrefix,
+	}
 }

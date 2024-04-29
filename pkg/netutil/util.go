@@ -40,7 +40,7 @@ func GetLocalIP() string {
 }
 
 // IsPortUsed 检查端口是否被占用
-func IsPortUsed(protocol string, addr string) bool {
+func IsPortUsed(protocol, addr string) bool {
 	conn, err := net.DialTimeout(protocol, addr, 3*time.Second)
 	if err != nil {
 		return false
@@ -50,7 +50,7 @@ func IsPortUsed(protocol string, addr string) bool {
 }
 
 // DiscoverDNS ...
-func DiscoverDNS(service, proto string, address string) ([]*net.SRV, error) {
+func DiscoverDNS(service, proto, address string) ([]*net.SRV, error) {
 	_, addresses, err := net.LookupSRV(service, proto, address)
 	if err != nil {
 		return nil, err

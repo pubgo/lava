@@ -3,26 +3,22 @@ package debug
 import (
 	"net/http"
 
+	_ "github.com/fasthttp/router"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/recovery"
 )
+
+type Config struct {
+	Debug struct {
+		Password string `yaml:"password"`
+	} `yaml:"debug"`
+}
 
 var app = fiber.New()
 
-func init() {
-	app.Use(func(c *fiber.Ctx) (gErr error) {
-		defer recovery.Recovery(func(err error) {
-			err = errors.WrapTag(err,
-				errors.T("headers", c.GetReqHeaders()),
-				errors.T("url", c.Request().URI().String()),
-			)
-			gErr = c.JSON(err)
-		})
-
-		return c.Next()
-	})
+func Handler(ctx *fiber.Ctx) error {
+	app.Handler()(ctx.Context())
+	return nil
 }
 
 func App() *fiber.App                                    { return app }

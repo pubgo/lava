@@ -1,4 +1,4 @@
-checksum: b3ba79da7fbdc8a2739ff807693935b7deecd91c
+checksum: 7160ce2b25de0266e34af69e842577ef07632169
 vendor: ../../../.proto
 root:
   - proto
@@ -12,7 +12,11 @@ deps:
   - name: protoc-gen-openapiv2
     url: github.com/grpc-ecosystem/grpc-gateway/v2
     path: /protoc-gen-openapiv2
-    version: v2.15.2
+    version: v2.19.0
+  - name: openapiv3
+    url: github.com/google/gnostic
+    path: /openapiv3
+    version: v0.7.0
   - name: go-proto-validators
     url: github.com/mwitkow/go-proto-validators
     version: v0.3.2
@@ -25,7 +29,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.29-24
+    version: v0.5.39-0.20240218021552-f8223b071505
 plugins:
   - name: go
     out: pkg/proto
@@ -40,7 +44,9 @@ plugins:
     out: pkg/proto
     opt:
       - paths=import
-  - name: grpc-gateway
-    out: pkg/proto
+  - name: openapi
     opt:
-      - paths=import
+      - default_response=true
+      - enum_type=string
+      - default_response=false
+      - depth=10

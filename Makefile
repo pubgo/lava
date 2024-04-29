@@ -9,7 +9,7 @@ GOPATH=$(shell go env GOPATH )
 LDFLAGS=-ldflags " \
 -X '${Base}/version.buildTime=${BuildTime}' \
 -X '${Base}/version.commitID=${CommitID}' \
--X '${Base}/version.version=${Version:=v0.0.1-dev}' \
+-X '${Base}/version.version=${Version:-"v0.0.1-dev"}' \
 -X '${Base}/version.project=${Project}' \
 "
 
@@ -73,3 +73,8 @@ deps:
 
 lint:
 	@golangci-lint run --skip-dirs-use-default --timeout 3m0s
+
+.PHONY: protobuf
+protobuf:
+	protobuild vendor
+	protobuild gen

@@ -17,7 +17,7 @@ import (
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/service"
 	"github.com/pubgo/lava/internal/logutil"
-	pbv1 "github.com/pubgo/lava/pkg/proto/lava"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 )
 
 func NewDiscoveryBuilder(disco discovery.Discovery) resolver.Builder {
@@ -140,7 +140,7 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 					}
 
 					// 注册中心删除服务
-					if res.Unwrap().Action == pbv1.EventType_DELETE {
+					if res.Unwrap().Action == lavapbv1.EventType_DELETE {
 						d.delService(res.Unwrap().Service)
 					} else {
 						d.updateService(res.Unwrap().Service)

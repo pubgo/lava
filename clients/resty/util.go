@@ -25,16 +25,16 @@ import (
 )
 
 func do(cfg *Config) lava.HandlerFunc {
-	var client = cfg.Build()
+	client := cfg.Build()
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var r = req.(*requestImpl).req
+		r := req.(*requestImpl).req
 
 		defer fasthttp.ReleaseRequest(r.req)
 
 		var err error
-		var resp = fasthttp.AcquireResponse()
+		resp := fasthttp.AcquireResponse()
 
-		var handle = func() error {
+		handle := func() error {
 			deadline, ok := ctx.Deadline()
 			if ok {
 				err = client.DoDeadline(r.req, resp, deadline)
@@ -137,7 +137,7 @@ func handleHeader(c *Client, req *Request) {
 }
 
 func handlePath(c *Client, req *Request) (path string, err error) {
-	var reqConf = req.cfg
+	reqConf := req.cfg
 
 	reqUrl := c.baseUrl.JoinPath(reqConf.Path)
 	req.operation = reqUrl.Path
@@ -166,8 +166,8 @@ func handlePath(c *Client, req *Request) (path string, err error) {
 }
 
 func handleContentType(c *Client, req *Request) (string, error) {
-	var defaultConf = c.cfg
-	var reqConf = req.cfg
+	defaultConf := c.cfg
+	reqConf := req.cfg
 
 	contentType := defaultContentType
 	if defaultConf.DefaultContentType != "" {
@@ -241,7 +241,8 @@ func doRequest(ctx context.Context, c *Client, req *Request) (rsp result.Result[
 		}
 	}
 
-	var uri = fasthttp.AcquireURI()
+	uri := fasthttp.AcquireURI()
+	defer fasthttp.ReleaseURI(uri)
 	uri.SetScheme(c.baseUrl.Scheme)
 	uri.SetHost(c.baseUrl.Host)
 	uri.SetPath(path)
@@ -342,19 +343,6 @@ func isNotToken(r rune) bool {
 }
 
 func validMethod(method string) bool {
-	/*
-	     Method         = "OPTIONS"                ; Section 9.2
-	                    | "GET"                    ; Section 9.3
-	                    | "HEAD"                   ; Section 9.4
-	                    | "POST"                   ; Section 9.5
-	                    | "PUT"                    ; Section 9.6
-	                    | "DELETE"                 ; Section 9.7
-	                    | "TRACE"                  ; Section 9.8
-	                    | "CONNECT"                ; Section 9.9
-	                    | extension-method
-	   extension-method = token
-	     token          = 1*<any CHAR except CTLs or separators>
-	*/
 	return len(method) > 0 && strings.IndexFunc(method, isNotToken) == -1
 }
 

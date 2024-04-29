@@ -26,7 +26,7 @@ type TestingTB interface {
 	Errorf(message string, args ...interface{})
 }
 
-func NewResult(lastInsertID int64, rowsAffected int64) driver.Result {
+func NewResult(lastInsertID, rowsAffected int64) driver.Result {
 	return sqlmock.NewResult(lastInsertID, rowsAffected)
 }
 
@@ -65,7 +65,6 @@ func NewMockPG(tb TestingTB) (*gorm.DB, sqlmock.Sqlmock) {
 
 		return fmt.Errorf(`could not match actual sql: "%s" with expected regexp "%s"`, actualSQL, expectedSQL)
 	})))
-
 	if err != nil {
 		tb.Fatalf("failed to create sql mock, err=%w", err)
 		return nil, nil
@@ -86,7 +85,6 @@ func NewMockPG(tb TestingTB) (*gorm.DB, sqlmock.Sqlmock) {
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
-
 	if err != nil {
 		tb.Fatalf("failed to create gorm, err=%w", err)
 		return nil, nil

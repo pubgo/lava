@@ -2,41 +2,38 @@ syntax = "proto3";
 
 package lava.service;
 
-import "google/protobuf/descriptor.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/pubgo/lava/pkg/proto/metadata;metadata";
-option java_multiple_files = true;
-option java_package = "com.github.metadata.api";
-option objc_class_prefix = "LavaService";
-
+option go_package = "github.com/pubgo/lava/pkg/proto/metadatapb;metadatapb";
 
 // Metadata is api definition metadata service.
 service Metadata {
-  // ListServices list the full name of all services.
-  rpc ListServices (ListServicesRequest) returns (ListServicesReply)  {
-    option (google.api.http) = {
-      get: "/services",
-    };
-  }
-  // GetServiceDesc get the full fileDescriptorSet of service.
-  rpc GetServiceDesc (GetServiceDescRequest) returns (GetServiceDescReply)  {
-    option (google.api.http) = {
-      get: "/services/{name}",
-    };
-  }
+    // ListServices list the full name of all services.
+    rpc ListServices (ListServicesRequest) returns (ListServicesReply) {
+        option (google.api.http) = {
+            get: "/lava/metadata/services",
+        };
+    }
+
+    // GetServiceDesc get the full fileDescriptorSet of service.
+    rpc GetServiceDesc (GetServiceDescRequest) returns (GetServiceDescReply) {
+        option (google.api.http) = {
+            get: "/lava/metadata/services/{name}",
+        };
+    }
 }
 
 message ListServicesRequest {}
 message ListServicesReply {
-  repeated string services = 1;
-  repeated string methods = 2;
+    repeated string services = 1;
+    repeated string methods = 2;
 }
 
 message GetServiceDescRequest {
-  string name = 1;
+    string name = 1;
 }
 
 message GetServiceDescReply {
-  google.protobuf.FileDescriptorSet file_desc_set = 1;
+    google.protobuf.FileDescriptorSet file_desc_set = 1;
 }

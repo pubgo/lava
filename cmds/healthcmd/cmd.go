@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/pkg/netutil"

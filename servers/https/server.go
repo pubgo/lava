@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -15,6 +17,8 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/version"
+	"github.com/pubgo/opendoc/opendoc"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
@@ -62,7 +66,18 @@ func (s *serviceImpl) DixInject(
 	m metrics.Metric,
 	log log.Logger,
 	cfg *Config,
+	docs []*opendoc.Swagger,
 ) {
+	if cfg.BaseUrl == "" {
+		cfg.BaseUrl = "/" + version.Project()
+	}
+
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+		ParserType:        parserTypes,
+	})
+
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -89,38 +104,58 @@ func (s *serviceImpl) DixInject(
 		},
 	})
 
-	s.httpServer.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowCredentials: true,
-	}))
-	s.httpServer.Mount("/debug", debug.App())
-
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
+		AllowOrigins: "*",
+		AllowMethods: strings.Join([]string{
+			fiber.MethodGet,
+			fiber.MethodPost,
+			fiber.MethodPut,
+			fiber.MethodDelete,
+			fiber.MethodPatch,
+			fiber.MethodHead,
+			fiber.MethodOptions,
+		}, ","),
+		AllowHeaders:     "",
+		AllowCredentials: true,
+		ExposeHeaders:    "",
+		MaxAge:           0,
+	}))
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_metric.New(m),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),
 	}
-	middlewares = append(defaultMiddlewares, middlewares...)
+	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
 
 	for _, h := range handlers {
-		middlewares = append(middlewares, h.Middlewares()...)
+		g := app.Group("", handlerHttpMiddle(h.Middlewares()))
 
-		h.Router(app)
+		//for _, an := range h.Annotation() {
+		//	switch a := an.(type) {
+		//	case *annotation.Openapi:
+		//		if a.ServiceName != "" {
+		//			srv.SetName(a.ServiceName)
+		//		}
+		//	}
+		//}
+
+		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
 			lifecycle.BeforeStop(m.Close)
 		}
 	}
 
-	app.Use(handlerHttpMiddle(middlewares))
-
-	s.httpServer.Mount("/", app)
+	s.httpServer.Mount("/debug", debug.App())
+	s.httpServer.Mount(cfg.BaseUrl, app)
 
 	// 网关初始化
-	if cfg.PrintRoute {
+	if cfg.EnablePrintRouter {
 		for _, stacks := range s.httpServer.Stack() {
 			for _, route := range stacks {
 				s.log.Info().
@@ -182,7 +217,7 @@ func (s *serviceImpl) stop() {
 	})
 
 	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
-		return s.httpServer.Shutdown()
+		return s.httpServer.ShutdownWithTimeout(time.Second * 5)
 	})
 
 	logutil.OkOrFailed(s.log, "service after-stop", func() error {

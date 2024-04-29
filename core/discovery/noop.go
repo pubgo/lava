@@ -12,11 +12,12 @@ func NewNoopDiscovery() Discovery {
 	return new(noopDiscovery)
 }
 
-var _ Discovery = (*noopDiscovery)(nil)
-var _ Watcher = (*noopDiscovery)(nil)
+var (
+	_ Discovery = (*noopDiscovery)(nil)
+	_ Watcher   = (*noopDiscovery)(nil)
+)
 
-type noopDiscovery struct {
-}
+type noopDiscovery struct{}
 
 func (n *noopDiscovery) Next() result.Result[*Result] {
 	return result.Err[*Result](ErrWatcherStopped)

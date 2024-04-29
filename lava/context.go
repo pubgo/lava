@@ -3,9 +3,8 @@ package lava
 import (
 	"context"
 
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
-
-	lavapbv1 "github.com/pubgo/lava/pkg/proto/lava"
 )
 
 type ctxKey string
@@ -24,8 +23,10 @@ func GetReqID(ctx context.Context) string {
 	return ""
 }
 
-var reqClientInfoKey = ctxKey(xid.New().String())
-var reqServerInfoKey = ctxKey(xid.New().String())
+var (
+	reqClientInfoKey = ctxKey(xid.New().String())
+	reqServerInfoKey = ctxKey(xid.New().String())
+)
 
 func CreateCtxWithClientInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
 	return context.WithValue(ctx, reqClientInfoKey, info)
@@ -49,4 +50,25 @@ func GetServerInfo(ctx context.Context) *lavapbv1.ServiceInfo {
 		return info
 	}
 	return nil
+}
+
+var (
+	reqHeader = ctxKey(xid.New().String())
+	rspHeader = ctxKey(xid.New().String())
+)
+
+func CreateReqHeader(ctx context.Context, header *RequestHeader) context.Context {
+	return context.WithValue(ctx, reqHeader, header)
+}
+
+func ReqHeader(ctx context.Context) *RequestHeader {
+	return ctx.Value(reqHeader).(*RequestHeader)
+}
+
+func CreateRspHeader(ctx context.Context, header *ResponseHeader) context.Context {
+	return context.WithValue(ctx, rspHeader, header)
+}
+
+func RspHeader(ctx context.Context) *ResponseHeader {
+	return ctx.Value(rspHeader).(*ResponseHeader)
 }

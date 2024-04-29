@@ -1,7 +1,7 @@
 package flags
 
 import (
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 )
 
 var flags []cli.Flag

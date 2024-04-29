@@ -2,7 +2,6 @@ package grpcs
 
 import (
 	"github.com/pubgo/funk/version"
-
 	"github.com/pubgo/lava/pkg/grpc_builder"
 )
 
@@ -18,6 +17,13 @@ type Config struct {
 	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
 	BaseUrl           string               `yaml:"base_url"`
 	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
+	EnableCors        bool                 `yaml:"enable_cors"`
+	EnablePingPong    bool                 `yaml:"enable_ping_pong"`
+
+	// unix seconds
+	PingPongTime int32 `yaml:"ping_pong_time"`
+	GrpcPort     *int  `yaml:"grpc_port"`
+	HttpPort     *int  `yaml:"http_port"`
 }
 
 func defaultCfg() *Config {

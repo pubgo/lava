@@ -41,7 +41,7 @@ func (t *lifecycleImpl) BeforeStart(f func()) {
 }
 
 func (t *lifecycleImpl) BeforeStop(f func()) {
-	t.beforeStops = append(t.beforeStops, Executor{Handler: f})
+	t.beforeStops = append([]Executor{{Handler: f}}, t.beforeStops...)
 }
 
 func (t *lifecycleImpl) AfterStart(f func()) {
@@ -49,5 +49,5 @@ func (t *lifecycleImpl) AfterStart(f func()) {
 }
 
 func (t *lifecycleImpl) AfterStop(f func()) {
-	t.afterStops = append(t.afterStops, Executor{Handler: f})
+	t.afterStops = append([]Executor{{Handler: f}}, t.afterStops...)
 }

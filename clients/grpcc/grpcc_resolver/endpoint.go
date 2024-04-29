@@ -100,7 +100,7 @@ func schemeToCredsRequirement(schema string) CredsRequirement {
 //   - https://github.com/grpc/grpc-go/blob/26c143bd5f59344a4b8a1e491e0f5e18aa97abc7/internal/grpcutil/target.go#L47
 //   - https://golang.org/pkg/net/#Dial
 //   - https://github.com/grpc/grpc/blob/master/doc/naming.md
-func translateEndpoint(ep string) (addr string, serverName string, requireCreds CredsRequirement) {
+func translateEndpoint(ep string) (addr, serverName string, requireCreds CredsRequirement) {
 	if hasPrefix(ep, "unix:", "unixs:") {
 		if hasPrefix(ep, "unix:///", "unixs:///") {
 			// absolute path case
@@ -135,7 +135,7 @@ func translateEndpoint(ep string) (addr string, serverName string, requireCreds 
 // (http|https)://<host>*|(unix|unixs)://<path>)
 // and returns low-level address (supported by 'net') to connect to,
 // and a server name used for x509 certificate matching.
-func Interpret(ep string) (address string, serverName string) {
+func Interpret(ep string) (address, serverName string) {
 	addr, serverName, _ := translateEndpoint(ep)
 	return addr, serverName
 }

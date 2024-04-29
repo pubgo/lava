@@ -1,8 +1,9 @@
 package metrics
 
 import (
-	"github.com/pubgo/funk/config"
 	"time"
+
+	"github.com/pubgo/funk/config"
 )
 
 var Name = "metric"
