@@ -1,8 +1,9 @@
 package gencmd
 
 import (
-	"github.com/urfave/cli/v2"
 	"os"
+
+	"github.com/urfave/cli/v2"
 
 	"github.com/pubgo/funk/recovery"
 )

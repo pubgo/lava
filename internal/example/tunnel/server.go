@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"time"
+
 	"github.com/libp2p/go-yamux/v4"
 	_ "github.com/libp2p/go-yamux/v4"
 	"github.com/pubgo/funk/assert"
 	logger "github.com/pubgo/funk/log"
 	"google.golang.org/grpc"
-	"io"
-	"net"
-	"net/http"
-	"time"
 )
 
 func main2() {
@@ -26,7 +27,7 @@ func main2() {
 	// 验证密码，获取服务信息，版本信息
 	// 验证通过之后才能真正的建立连接
 	sss := assert.Must1(session.AcceptStream())
-	var dd = make([]byte, 1024)
+	dd := make([]byte, 1024)
 	n := assert.Must1(sss.Read(dd))
 	fmt.Println(string(dd[:n]))
 
@@ -34,7 +35,7 @@ func main2() {
 
 	// Accept a stream
 
-	var cli = http.Client{
+	cli := http.Client{
 		Transport: &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				stream := assert.Must1(session.OpenStream(context.Background()))

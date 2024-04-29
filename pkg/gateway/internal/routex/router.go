@@ -16,10 +16,11 @@ package routex
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
 	"net/http"
 	"strings"
+
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/proto"
@@ -329,6 +330,7 @@ func (v RouteTargetVar) size() int {
 	}
 	return v.end - v.start
 }
+
 func (v RouteTargetVar) index(segments []string) []string {
 	start, end := v.start, v.end
 	if end == -1 {
@@ -339,6 +341,7 @@ func (v RouteTargetVar) index(segments []string) []string {
 	}
 	return segments[start:end]
 }
+
 func (v RouteTargetVar) capture(segments []string) (string, error) {
 	parts := v.index(segments)
 	mode := pathEncodeSingle

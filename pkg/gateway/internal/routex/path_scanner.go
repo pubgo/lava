@@ -83,15 +83,19 @@ func (s *pathScanner) capture() string {
 func isIdentStart(char rune) bool {
 	return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || char == '_'
 }
+
 func isDigit(char rune) bool {
 	return char >= '0' && char <= '9'
 }
+
 func isIdent(char rune) bool {
 	return isIdentStart(char) || isDigit(char)
 }
+
 func isFieldPath(char rune) bool {
 	return isIdent(char) || char == '.'
 }
+
 func isLiteral(char rune) bool {
 	// Allow [-_.~0-9a-zA-Z] and % for escaped characters.
 	return isVariable(char) || char == '%'

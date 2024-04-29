@@ -80,7 +80,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	}
 	msg := cur.Interface()
 
-	var reqName = msg.ProtoReflect().Descriptor().FullName()
+	reqName := msg.ProtoReflect().Descriptor().FullName()
 	handler := s.method.srv.opts.responseInterceptors[reqName]
 	if handler != nil {
 		return errors.Wrapf(handler(s.handler, msg), "failed to handler response data by %s", reqName)
@@ -108,7 +108,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		}
 		msg := cur.Interface()
 
-		var reqName = msg.ProtoReflect().Descriptor().FullName()
+		reqName := msg.ProtoReflect().Descriptor().FullName()
 		handler := s.method.srv.opts.requestInterceptors[reqName]
 		if handler != nil {
 			return errors.Wrapf(handler(s.handler, msg), "failed to handler request data by %s", reqName)

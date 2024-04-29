@@ -69,7 +69,7 @@ func (req *Request) SetHeader(key, value string) *Request {
 	return req
 }
 
-func (req *Request) SetParam(key string, val string) *Request {
+func (req *Request) SetParam(key, val string) *Request {
 	req.params[key] = val
 	return req
 }

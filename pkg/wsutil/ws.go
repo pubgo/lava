@@ -71,7 +71,7 @@ func New(ctx *fiber.Ctx, call func(c *websocket.Conn), config ...Config) (err er
 		cfg.WriteBufferSize = 1024
 	}
 
-	var wsUp = websocket.FastHTTPUpgrader{
+	wsUp := websocket.FastHTTPUpgrader{
 		HandshakeTimeout:  cfg.HandshakeTimeout,
 		Subprotocols:      cfg.Subprotocols,
 		ReadBufferSize:    cfg.ReadBufferSize,
@@ -89,7 +89,8 @@ func New(ctx *fiber.Ctx, call func(c *websocket.Conn), config ...Config) (err er
 				}
 			}
 			return false
-		}}
+		},
+	}
 
 	return wsUp.Upgrade(ctx.Context(), call)
 }

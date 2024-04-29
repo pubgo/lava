@@ -25,16 +25,16 @@ import (
 )
 
 func do(cfg *Config) lava.HandlerFunc {
-	var client = cfg.Build()
+	client := cfg.Build()
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		var r = req.(*requestImpl).req
+		r := req.(*requestImpl).req
 
 		defer fasthttp.ReleaseRequest(r.req)
 
 		var err error
-		var resp = fasthttp.AcquireResponse()
+		resp := fasthttp.AcquireResponse()
 
-		var handle = func() error {
+		handle := func() error {
 			deadline, ok := ctx.Deadline()
 			if ok {
 				err = client.DoDeadline(r.req, resp, deadline)
@@ -137,7 +137,7 @@ func handleHeader(c *Client, req *Request) {
 }
 
 func handlePath(c *Client, req *Request) (path string, err error) {
-	var reqConf = req.cfg
+	reqConf := req.cfg
 
 	reqUrl := c.baseUrl.JoinPath(reqConf.Path)
 	req.operation = reqUrl.Path
@@ -166,8 +166,8 @@ func handlePath(c *Client, req *Request) (path string, err error) {
 }
 
 func handleContentType(c *Client, req *Request) (string, error) {
-	var defaultConf = c.cfg
-	var reqConf = req.cfg
+	defaultConf := c.cfg
+	reqConf := req.cfg
 
 	contentType := defaultContentType
 	if defaultConf.DefaultContentType != "" {
@@ -241,7 +241,7 @@ func doRequest(ctx context.Context, c *Client, req *Request) (rsp result.Result[
 		}
 	}
 
-	var uri = fasthttp.AcquireURI()
+	uri := fasthttp.AcquireURI()
 	defer fasthttp.ReleaseURI(uri)
 	uri.SetScheme(c.baseUrl.Scheme)
 	uri.SetHost(c.baseUrl.Host)

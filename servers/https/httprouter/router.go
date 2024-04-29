@@ -2,16 +2,17 @@ package httprouter
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 type Handler[Req any, Rsp any] func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)
 
 var validate = validator.New()
 
-func WrapHandler[Req any, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
+func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
 		var req Req
 

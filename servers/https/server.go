@@ -133,7 +133,7 @@ func (s *serviceImpl) DixInject(
 	app.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
 
 	for _, h := range handlers {
-		var g = app.Group("", handlerHttpMiddle(h.Middlewares()))
+		g := app.Group("", handlerHttpMiddle(h.Middlewares()))
 
 		//for _, an := range h.Annotation() {
 		//	switch a := an.(type) {

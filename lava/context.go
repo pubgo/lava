@@ -23,8 +23,10 @@ func GetReqID(ctx context.Context) string {
 	return ""
 }
 
-var reqClientInfoKey = ctxKey(xid.New().String())
-var reqServerInfoKey = ctxKey(xid.New().String())
+var (
+	reqClientInfoKey = ctxKey(xid.New().String())
+	reqServerInfoKey = ctxKey(xid.New().String())
+)
 
 func CreateCtxWithClientInfo(ctx context.Context, info *lavapbv1.ServiceInfo) context.Context {
 	return context.WithValue(ctx, reqClientInfoKey, info)
@@ -50,8 +52,10 @@ func GetServerInfo(ctx context.Context) *lavapbv1.ServiceInfo {
 	return nil
 }
 
-var reqHeader = ctxKey(xid.New().String())
-var rspHeader = ctxKey(xid.New().String())
+var (
+	reqHeader = ctxKey(xid.New().String())
+	rspHeader = ctxKey(xid.New().String())
+)
 
 func CreateReqHeader(ctx context.Context, header *RequestHeader) context.Context {
 	return context.WithValue(ctx, reqHeader, header)

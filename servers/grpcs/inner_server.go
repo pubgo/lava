@@ -23,7 +23,7 @@ func NewInner(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metr
 	}
 	middlewares = append(middlewares, dixMiddlewares...)
 
-	var cc = new(inprocgrpc.Channel)
+	cc := new(inprocgrpc.Channel)
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()
@@ -48,7 +48,7 @@ func NewMux(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metric
 	}
 	middlewares = append(middlewares, dixMiddlewares...)
 
-	var mux = gateway.NewMux()
+	mux := gateway.NewMux()
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range handlers {
 		desc := h.ServiceDesc()

@@ -59,7 +59,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		evt.Bool("client", req.Client())
 		evt.Str("version", version.Version())
 
-		var clientInfo = lava.GetClientInfo(ctx)
+		clientInfo := lava.GetClientInfo(ctx)
 		if clientInfo != nil {
 			evt.Str(grpcutil.ClientNameKey, clientInfo.GetName())
 			evt.Str(grpcutil.ClientPathKey, clientInfo.GetPath())
@@ -85,8 +85,8 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 			if !req.Client() && rsp != nil {
 				rsp.Header().Set("Access-Control-Allow-Credentials", "true")
-				//rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
-				//rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
+				// rsp.Header().Set("Access-Control-Expose-Headers", "X-Server-Time")
+				// rsp.Header().Set("X-Server-Time", fmt.Sprintf("%v", now.Unix()))
 				rsp.Header().Set("X-Request-Latency", fmt.Sprintf("%d", latency.Microseconds()))
 			}
 

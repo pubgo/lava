@@ -2,9 +2,11 @@ package ent
 
 import (
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"log"
-	//atlas "ariga.io/atlas/sql/migrate"
+
+	"github.com/urfave/cli/v2"
+
+	// atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"

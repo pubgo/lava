@@ -84,15 +84,19 @@ var (
 func MaxReceiveMessageSizeOption(s int) MuxOption {
 	return func(opts *muxOptions) { opts.maxReceiveMessageSize = s }
 }
+
 func MaxSendMessageSizeOption(s int) MuxOption {
 	return func(opts *muxOptions) { opts.maxSendMessageSize = s }
 }
+
 func ConnectionTimeoutOption(d time.Duration) MuxOption {
 	return func(opts *muxOptions) { opts.connectionTimeout = d }
 }
+
 func TypesOption(t protoregistry.MessageTypeResolver) MuxOption {
 	return func(opts *muxOptions) { opts.types = t }
 }
+
 func FilesOption(f *protoregistry.Files) MuxOption {
 	return func(opts *muxOptions) { opts.files = f }
 }
@@ -149,7 +153,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, restTarget.GrpcMethodName)
 	}()
 
-	var values = make(url.Values)
+	values := make(url.Values)
 	for _, v := range restVars {
 		values.Set(v.Name, v.Value)
 	}
@@ -178,7 +182,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	}))
 }
 
-func (m *Mux) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {
+func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
 	return m.cc.Invoke(ctx, method, args, reply, opts...)
 }
 
@@ -191,7 +195,7 @@ func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 func NewMux(opts ...MuxOption) *Mux {
-	var muxOpts = defaultMuxOptions
+	muxOpts := defaultMuxOptions
 	for _, opt := range opts {
 		opt(&muxOpts)
 	}
@@ -286,7 +290,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		return errors.Format("invalid httpPathRule descriptor %T", d)
 	}
 
-	var srv = &serviceWrap{
+	srv := &serviceWrap{
 		opts:        m.opts,
 		srv:         ss,
 		serviceDesc: gsd,
@@ -334,7 +338,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	return nil
 }
 
-func GetRouterTarget(mux *Mux, kind string, path string) (*RouteTarget, error) {
+func GetRouterTarget(mux *Mux, kind, path string) (*RouteTarget, error) {
 	if path == "" {
 		return nil, errors.New("path is null")
 	}

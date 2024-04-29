@@ -17,15 +17,13 @@ const (
 	grpcLvlFatal
 )
 
-var (
-	// _grpcToZapLevel maps gRPC log levels to zap log levels.
-	_grpcToZapLevel = map[int]zerolog.Level{
-		grpcLvlInfo:  zerolog.InfoLevel,
-		grpcLvlWarn:  zerolog.WarnLevel,
-		grpcLvlError: zerolog.ErrorLevel,
-		grpcLvlFatal: zerolog.FatalLevel,
-	}
-)
+// _grpcToZapLevel maps gRPC log levels to zap log levels.
+var _grpcToZapLevel = map[int]zerolog.Level{
+	grpcLvlInfo:  zerolog.InfoLevel,
+	grpcLvlWarn:  zerolog.WarnLevel,
+	grpcLvlError: zerolog.ErrorLevel,
+	grpcLvlFatal: zerolog.FatalLevel,
+}
 
 func grpcComponentName(args interface{}) func(e *zerolog.Event) {
 	name := args.(string)

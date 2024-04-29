@@ -127,7 +127,7 @@ func New(di *dix.Dix) *cli.Command {
 				Action: func(context *cli.Context) error {
 					defer recovery.Exit()
 
-					var genPath = "./internal/db"
+					genPath := "./internal/db"
 					if context.NArg() > 0 {
 						genPath = context.Args().First()
 					}

@@ -2,9 +2,10 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/funk/errors"
 	"strings"
 	"time"
+
+	"github.com/pubgo/funk/errors"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/strutil"

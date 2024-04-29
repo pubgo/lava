@@ -46,7 +46,7 @@ func (id *IdHttp) Router(router fiber.Router) {
 	router.Post("/file", func(ctx *fiber.Ctx) error {
 		form, err := ctx.MultipartForm()
 		assert.Must(err)
-		//map[Content-Disposition:[form-data; name="abc"; filename="WechatIMG856.jpg"] Content-Type:[image/jpeg]]
+		// map[Content-Disposition:[form-data; name="abc"; filename="WechatIMG856.jpg"] Content-Type:[image/jpeg]]
 		for k, fields := range form.File {
 			for _, f := range fields {
 				fmt.Println(k, f.Filename, f.Size, f.Header)

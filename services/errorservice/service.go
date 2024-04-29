@@ -14,8 +14,7 @@ func New() lava.GrpcRouter {
 	return new(service)
 }
 
-type service struct {
-}
+type service struct{}
 
 func (s service) Codes(ctx context.Context, empty *emptypb.Empty) (*errcodepb.ErrCodes, error) {
 	return &errcodepb.ErrCodes{

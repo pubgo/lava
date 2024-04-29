@@ -14,5 +14,5 @@ type Config struct {
 
 	GidCli  *gid_client.GrpcConfig `yaml:"gid-client"`
 	GidCli1 *gid_client.HttpConfig `yaml:"gid-client-http"`
-	//Task    *tasks.Config          `yaml:"task"`
+	// Task    *tasks.Config          `yaml:"task"`
 }

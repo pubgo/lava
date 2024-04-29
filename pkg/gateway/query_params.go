@@ -80,12 +80,12 @@ func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *u
 }
 
 // PopulateFieldFromPath sets a value in a nested Protobuf structure.
-func PopulateFieldFromPath(msg proto.Message, fieldPathString string, value string) error {
+func PopulateFieldFromPath(msg proto.Message, fieldPathString, value string) error {
 	fieldPath := strings.Split(fieldPathString, ".")
 	return populateFieldValueFromPath(msg.ProtoReflect(), fieldPath, []string{value})
 }
 
-func populateFieldValueFromPath(msgValue protoreflect.Message, fieldPath []string, values []string) error {
+func populateFieldValueFromPath(msgValue protoreflect.Message, fieldPath, values []string) error {
 	if len(fieldPath) < 1 {
 		return errors.New("no field path")
 	}

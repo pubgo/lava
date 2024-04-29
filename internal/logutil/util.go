@@ -22,7 +22,7 @@ func HandleClose(log log.Logger, fn func() error) {
 		return
 	}
 
-	var err = fn()
+	err := fn()
 	if generic.IsNil(err) {
 		return
 	}
@@ -34,7 +34,7 @@ func LogOrErr(log log.Logger, msg string, fn func() error) {
 	msg = strings.TrimSpace(msg)
 	log = log.WithCallerSkip(1)
 
-	var err = try.Try(fn)
+	err := try.Try(fn)
 	if generic.IsNil(err) {
 		log.Info().Msg(msg)
 	} else {
@@ -46,7 +46,7 @@ func OkOrFailed(log log.Logger, msg string, fn func() error) {
 	log = log.WithCallerSkip(1)
 	log.Info().Msg(msg)
 
-	var err = try.Try(fn)
+	err := try.Try(fn)
 	if generic.IsNil(err) {
 		log.Info().Msg(msg + " ok")
 	} else {
@@ -59,7 +59,7 @@ func ErrRecord(logger log.Logger, err error, fn func(evt *log.Event) string) {
 		return
 	}
 
-	var evt = log.NewEvent()
-	var msg = fn(evt)
+	evt := log.NewEvent()
+	msg := fn(evt)
 	logger.WithCallerSkip(1).Err(err).Func(log.WithEvent(evt)).Msg(msg)
 }

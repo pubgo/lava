@@ -326,6 +326,7 @@ func (f *fakeFieldDescriptor) Message() protoreflect.MessageDescriptor {
 	}
 	return f.msg
 }
+
 func (f *fakeFieldDescriptor) IsList() bool {
 	return false
 }

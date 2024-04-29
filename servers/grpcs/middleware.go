@@ -54,7 +54,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		delete(reqMetadata, "x-content-type")
 
-		var clientInfo = new(lavapbv1.ServiceInfo)
+		clientInfo := new(lavapbv1.ServiceInfo)
 
 		// get peer from context
 		if p := grpcutil.ClientIP(reqMetadata); p != "" {

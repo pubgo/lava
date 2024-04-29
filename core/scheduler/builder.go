@@ -14,7 +14,7 @@ import (
 const Name = "scheduler"
 
 func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter, metric metrics.Metric) *Scheduler {
-	var config = make(map[string]JobSetting)
+	config := make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
 		for _, setting := range opts[0].JobSettings {
 			if _, ok := config[setting.Name]; ok {

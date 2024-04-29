@@ -33,7 +33,7 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 	cfg = config.MergeR(grpcc_config.DefaultCfg(), cfg).Unwrap()
 	cfg.Resolvers = p.Resolvers
 
-	var defaultMiddlewares = lava.Middlewares{
+	defaultMiddlewares := lava.Middlewares{
 		middleware_service_info.New(),
 		middleware_metric.New(p.Metric),
 		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.Service.Name})),
@@ -63,7 +63,7 @@ type clientImpl struct {
 	middlewares []lava.Middleware
 }
 
-func (t *clientImpl) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
+func (t *clientImpl) Invoke(ctx context.Context, method string, args, reply interface{}, opts ...grpc.CallOption) (err error) {
 	defer recovery.Err(&err, func(err error) error {
 		return errors.WrapTag(err, errors.T("method", method), errors.T("args", args))
 	})

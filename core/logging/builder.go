@@ -17,7 +17,7 @@ import (
 func New(cfg *Config) log.Logger {
 	defer recovery.Exit()
 
-	var level = zerolog.DebugLevel
+	level := zerolog.DebugLevel
 	if cfg.Level != "" {
 		level = result.Of(zerolog.ParseLevel(cfg.Level)).Expect("log level is invalid")
 	}

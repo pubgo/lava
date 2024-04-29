@@ -83,7 +83,7 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 		assert.Must(meterProvider.Shutdown(context.Background()))
 	})
 
-	//name := instrumentationName + "/" + config.serviceInfo.Namespace + "/" + config.serviceInfo.Name
+	// name := instrumentationName + "/" + config.serviceInfo.Namespace + "/" + config.serviceInfo.Name
 	//	defaultTracer = otel.GetTracerProvider().Tracer(name, oteltrace.WithInstrumentationVersion("v1.1.0"))
 
 	return Provider{

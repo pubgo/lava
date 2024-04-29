@@ -78,7 +78,7 @@ func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) {
 	do(s, job{dur: dur, key: name}, fn)
 }
 
-func (s *Scheduler) Cron(name string, expr string, fn JobFunc) {
+func (s *Scheduler) Cron(name, expr string, fn JobFunc) {
 	assert.Must(s.checkJobExists(name, fn))
 
 	s.log.WithCallerSkip(1).Info().

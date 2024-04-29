@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/libp2p/go-yamux/v4"
-	"github.com/pubgo/funk/assert"
 	"net"
 	"net/http"
+
+	"github.com/libp2p/go-yamux/v4"
+	"github.com/pubgo/funk/assert"
 )
 
 func main1() {
@@ -24,9 +25,9 @@ func main1() {
 	ssss.Write([]byte("service name, secret, 版本信息等"))
 
 	// Open a new stream
-	//stream := assert.Must1(session.AcceptStream())
-	//defer stream.Close()
-	//fmt.Println(stream.StreamID())
+	// stream := assert.Must1(session.AcceptStream())
+	// defer stream.Close()
+	// fmt.Println(stream.StreamID())
 
 	server := &http.Server{}
 	fmt.Println(server.Serve(session))

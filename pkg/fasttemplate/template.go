@@ -3,9 +3,10 @@ package fasttemplate
 import (
 	"bytes"
 	"fmt"
+	"io"
+
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
-	"io"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/valyala/bytebufferpool"

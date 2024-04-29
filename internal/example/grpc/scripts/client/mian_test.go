@@ -37,7 +37,6 @@ func TestName(t1 *testing.T) {
 		"application/grpc",
 		bytes.NewReader(ddd),
 	)
-
 	if err != nil {
 		fmt.Printf("Failed get: %s\r\n", err)
 		return

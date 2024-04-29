@@ -73,7 +73,7 @@ var defaultProviders = []any{
 }
 
 func NewBuilder(opts ...dix.Option) *dix.Dix {
-	var di = dix.New(append(opts, dix.WithValuesNull())...)
+	di := dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
 		di.Provide(p)
 	}

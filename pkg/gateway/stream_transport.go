@@ -17,9 +17,11 @@ func (s *serverTransportStream) Method() string { return s.method }
 func (s *serverTransportStream) SetHeader(md metadata.MD) error {
 	return s.ServerStream.SetHeader(md)
 }
+
 func (s *serverTransportStream) SendHeader(md metadata.MD) error {
 	return s.ServerStream.SendHeader(md)
 }
+
 func (s *serverTransportStream) SetTrailer(md metadata.MD) error {
 	s.ServerStream.SetTrailer(md)
 	return nil

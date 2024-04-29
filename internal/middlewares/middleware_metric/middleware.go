@@ -53,7 +53,7 @@ func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		grpcServerRpcCallTotal(m.m, req.Operation())
 
-		var clientInfo = lava.GetClientInfo(ctx)
+		clientInfo := lava.GetClientInfo(ctx)
 		if !req.Client() && clientInfo != nil {
 			m.m.Tagged(metrics.Tags{
 				"server_name":   running.Project,

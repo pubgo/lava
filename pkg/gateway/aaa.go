@@ -12,20 +12,22 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type RouteTarget = routex.RouteTarget
-type Gateway interface {
-	grpc.ClientConnInterface
-	SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
-	SetStreamInterceptor(interceptor grpc.StreamServerInterceptor)
+type (
+	RouteTarget = routex.RouteTarget
+	Gateway     interface {
+		grpc.ClientConnInterface
+		SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
+		SetStreamInterceptor(interceptor grpc.StreamServerInterceptor)
 
-	SetRequestDecoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
-	SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
-	RegisterService(sd *grpc.ServiceDesc, ss interface{})
+		SetRequestDecoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
+		SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
+		RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
-	Handler(*fiber.Ctx) error
-	ServeHTTP(http.ResponseWriter, *http.Request)
-	GetRouteMethods() []*routex.RouteTarget
-}
+		Handler(*fiber.Ctx) error
+		ServeHTTP(http.ResponseWriter, *http.Request)
+		GetRouteMethods() []*routex.RouteTarget
+	}
+)
 
 // Codec defines the interface used to encode and decode messages.
 type Codec interface {

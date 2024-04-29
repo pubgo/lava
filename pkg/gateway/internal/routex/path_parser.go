@@ -92,12 +92,15 @@ func (p *pathParser) currentChar() string {
 	}
 	return "EOF"
 }
+
 func (p *pathParser) errSyntax(msg string) error {
 	return fmt.Errorf("syntax error at column %v: %s", p.scan.pos, msg)
 }
+
 func (p *pathParser) errUnexpected() error {
 	return p.errSyntax("unexpected " + p.currentChar())
 }
+
 func (p *pathParser) errExpected(expected rune) error {
 	return p.errSyntax("expected " + strconv.QuoteRune(expected) + ", got " + p.currentChar())
 }
@@ -257,6 +260,7 @@ func ishex(char byte) bool {
 	}
 	return false
 }
+
 func unhex(char byte) byte {
 	switch {
 	case '0' <= char && char <= '9':
@@ -286,6 +290,7 @@ const (
 func pathShouldEscape(char byte, _ pathEncoding) bool {
 	return !isVariable(rune(char))
 }
+
 func pathIsHexSlash(input string) bool {
 	if len(input) < 3 {
 		return false

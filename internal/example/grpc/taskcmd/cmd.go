@@ -25,7 +25,7 @@ type service struct {
 }
 
 func (s *service) Start() {
-	var ctx, cancel = context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	s.cancel = cancel
 	for {
 		select {
@@ -43,6 +43,6 @@ func (s *service) Stop() {
 }
 
 func (s *service) Run() {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }

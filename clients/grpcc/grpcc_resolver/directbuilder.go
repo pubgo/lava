@@ -37,7 +37,7 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		return nil, fmt.Errorf("%s has not endpoint", target.URL.String())
 	}
 
-	var name = target.URL.Query().Get("name")
+	name := target.URL.Query().Get("name")
 
 	// 构造resolver address, 并处理副本集
 	var addrList []resolver.Address

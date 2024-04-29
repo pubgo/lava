@@ -28,8 +28,10 @@ var typesReq = &resty.RequestConfig{
 	Path:   "/v1/id/types",
 }
 
-var _ lava.GrpcRouter = (*Id)(nil)
-var _ gidpb.IdServer = (*Id)(nil)
+var (
+	_ lava.GrpcRouter = (*Id)(nil)
+	_ gidpb.IdServer  = (*Id)(nil)
+)
 
 type Id struct {
 	cron      *scheduler.Scheduler
@@ -169,7 +171,7 @@ func (id *Id) Generate(ctx context.Context, req *gidpb.GenerateRequest) (*gidpb.
 
 	log.Info().Any("type", req.Type.String()).Msg("request")
 	rsp := new(gidpb.GenerateResponse)
-	var typ = req.GetType().String()
+	typ := req.GetType().String()
 	if len(typ) == 0 {
 		typ = "uuid"
 	}

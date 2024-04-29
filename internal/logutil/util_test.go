@@ -1,8 +1,9 @@
 package logutil
 
 import (
-	"github.com/pkg/errors"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestName(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 func Main() {
 	defer recovery.Exit()
 
-	var di = app.NewBuilder()
+	di := app.NewBuilder()
 	di.Provide(config.Load[Config])
 
 	di.Provide(gid_handler.New)

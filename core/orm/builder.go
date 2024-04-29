@@ -14,7 +14,7 @@ import (
 )
 
 func NewClients(conf map[string]*Config, logs log.Logger) map[string]*Client {
-	var clients = make(map[string]*Client, len(conf))
+	clients := make(map[string]*Client, len(conf))
 	for name, c := range conf {
 		clients[name] = New(c, logs)
 	}
@@ -29,7 +29,7 @@ func New(conf *Config, logs log.Logger) *Client {
 	ormCfg.NowFunc = func() time.Time { return time.Now().UTC() }
 	ormCfg.NamingStrategy = schema.NamingStrategy{TablePrefix: conf.TablePrefix}
 
-	var logCfg = DefaultLoggerCfg()
+	logCfg := DefaultLoggerCfg()
 	logs.Debug().Any("config", logCfg).Msg("orm config")
 
 	ormCfg.Logger = logger.New(log.NewStd(logs.WithCallerSkip(4)), logCfg)

@@ -182,7 +182,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -214,7 +214,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		var g = app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -320,7 +320,7 @@ func (s *serviceImpl) DixInject(
 		}),
 	)
 
-	var mux = gateway.NewMux()
+	mux := gateway.NewMux()
 	if len(gw) > 0 {
 		mux = gw[0]
 	}
@@ -392,7 +392,7 @@ func (s *serviceImpl) DixInject(
 	s.grpcServer = grpcServer
 
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
-	//vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
+	// vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
 }
 
 func (s *serviceImpl) start() {

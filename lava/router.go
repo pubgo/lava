@@ -22,5 +22,5 @@ type HttpRouter interface {
 	Middlewares() []Middleware
 	Router(router fiber.Router)
 	Prefix() string
-	//Annotation() []Annotation
+	// Annotation() []Annotation
 }

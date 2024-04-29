@@ -32,7 +32,7 @@ func New() lava.Middleware {
 					}
 				}()
 
-				var serverInfo = &lavapbv1.ServiceInfo{
+				serverInfo := &lavapbv1.ServiceInfo{
 					Name:     version.Project(),
 					Version:  version.Version(),
 					Path:     req.Operation(),

@@ -24,7 +24,7 @@ import (
 )
 
 func New() lava.GrpcRouter {
-	var srv = NewService(nil)
+	srv := NewService(nil)
 	return srv
 }
 

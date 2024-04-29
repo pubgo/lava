@@ -2,8 +2,9 @@ package lava
 
 import (
 	"context"
-	"google.golang.org/grpc"
 	"net"
+
+	"google.golang.org/grpc"
 )
 
 type Init interface {
