@@ -43,7 +43,7 @@ func (s *Scheduler) start() {
 		return
 	}
 
-	s.scheduler.Start()
+	s.scheduler.Start(s.ctx)
 }
 
 func (s *Scheduler) checkJobExists(name string, fn JobFunc) error {
@@ -96,11 +96,10 @@ type namedJob struct {
 }
 
 func (t namedJob) Description() string { return t.name }
-func (t namedJob) Key() int            { return quartz.HashCode(t.Description()) }
-func (t namedJob) Execute() {
+func (t namedJob) Execute(ctx context.Context) error {
 	start := time.Now()
 	err := try.Try(func() error {
-		ctx, cancel := context.WithCancel(t.s.ctx)
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
 		return t.fn(ctx, t.name)
@@ -113,4 +112,6 @@ func (t namedJob) Execute() {
 		Float32("job-cost-ms", float32(time.Since(start).Microseconds())/1000).
 		Str("job-name", t.name).
 		Msg("scheduler job execution")
+
+	return err
 }

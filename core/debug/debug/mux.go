@@ -19,8 +19,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var passwd = running.InstanceID
-var once sync.Once
+var (
+	passwd = running.InstanceID
+	once   sync.Once
+)
 
 func init() {
 	log.Info().Str("password", running.InstanceID).Msg("debug password")
@@ -49,7 +51,7 @@ func init() {
 		host := strings.Split(c.Hostname(), ":")[0]
 		if host != "localhost" && host != "127.0.0.1" {
 			if token != passwd {
-				var err = errors.New("token 不存在或者密码不对")
+				err := errors.New("token 不存在或者密码不对")
 				c.WriteString(err.Error())
 				c.SendStatus(http.StatusInternalServerError)
 				return err

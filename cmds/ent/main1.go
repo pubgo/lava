@@ -3,15 +3,12 @@ package ent
 import (
 	"fmt"
 	"log"
-	"os"
-
-	atlas "ariga.io/atlas/sql/migrate"
+	//atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/urfave/cli/v3"
 	// https://github.com/ent/ent/blob/master/cmd/internal/base/base.go
@@ -124,48 +121,48 @@ func New1() *cli.Command {
 			// atlas migrate status --dir file://ent/migrate/migrations --url postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=public
 			//  atlas schema inspect -u "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=public" > schema.hcl
 
-			{
-				Name:  "create-migration",
-				Usage: "create migration",
-				Action: func(context *cli.Context) error {
-					defer recovery.Exit()
-					ctx := context.Context
-					dir, err := atlas.NewLocalDir("./ent/migrate/migrations")
-					assert.Must(err)
-
-					hash := assert.Must1(dir.Checksum())
-					assert.Must(atlas.WriteSumFile(dir, hash))
-
-					assert.Must(atlas.Validate(dir))
-
-					// Migrate diff options.
-					opts := []schema.MigrateOption{
-						schema.WithDir(dir),                         // provide migration directory
-						schema.WithMigrationMode(schema.ModeReplay), // provide migration mode
-						schema.WithDialect(dialect.MySQL),           // Ent dialect to use
-						schema.WithFormatter(atlas.DefaultFormatter),
-						schema.WithDropIndex(true),
-						schema.WithDropColumn(true),
-					}
-
-					if len(os.Args) != 2 {
-						log.Fatalln("migration name is required. Use: 'go run -mod=mod ent/migrate/main.go <name>'")
-					}
-
-					var drv dialect.Driver
-					migrate, err := schema.NewMigrate(drv, opts...)
-					if err != nil {
-						return fmt.Errorf("ent/migrate: %w", err)
-					}
-
-					var Tables []*schema.Table
-					if err := migrate.VerifyTableRange(ctx, Tables); err != nil {
-						log.Fatalf("failed verifyint range allocations: %v", err)
-					}
-
-					return migrate.NamedDiff(ctx, "change name", Tables...)
-				},
-			},
+			//{
+			//	Name:  "create-migration",
+			//	Usage: "create migration",
+			//	Action: func(context *cli.Context) error {
+			//		defer recovery.Exit()
+			//		ctx := context.Context
+			//		dir, err := atlas.NewLocalDir("./ent/migrate/migrations")
+			//		assert.Must(err)
+			//
+			//		hash := assert.Must1(dir.Checksum())
+			//		assert.Must(atlas.WriteSumFile(dir, hash))
+			//
+			//		assert.Must(atlas.Validate(dir))
+			//
+			//		// Migrate diff options.
+			//		opts := []schema.MigrateOption{
+			//			schema.WithDir(dir),                         // provide migration directory
+			//			schema.WithMigrationMode(schema.ModeReplay), // provide migration mode
+			//			schema.WithDialect(dialect.MySQL),           // Ent dialect to use
+			//			schema.WithFormatter(atlas.DefaultFormatter),
+			//			schema.WithDropIndex(true),
+			//			schema.WithDropColumn(true),
+			//		}
+			//
+			//		if len(os.Args) != 2 {
+			//			log.Fatalln("migration name is required. Use: 'go run -mod=mod ent/migrate/main.go <name>'")
+			//		}
+			//
+			//		var drv dialect.Driver
+			//		migrate, err := schema.NewMigrate(drv, opts...)
+			//		if err != nil {
+			//			return fmt.Errorf("ent/migrate: %w", err)
+			//		}
+			//
+			//		var Tables []*schema.Table
+			//		if err := migrate.VerifyTableRange(ctx, Tables); err != nil {
+			//			log.Fatalf("failed verifyint range allocations: %v", err)
+			//		}
+			//
+			//		return migrate.NamedDiff(ctx, "change name", Tables...)
+			//	},
+			//},
 		},
 	}
 }

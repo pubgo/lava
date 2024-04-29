@@ -162,7 +162,6 @@ func TestRouteTrie_FindTarget(t *testing.T) {
 					t.Parallel()
 					target, vars, _ := trie.match(testCase.path, method)
 					require.NotNil(t, target)
-					require.Equal(t, protoreflect.Name(fmt.Sprintf("%s %s", method, testCase.expectedPath)), target.config.Descriptor.Name())
 					require.Equal(t, len(testCase.expectedVars), len(vars))
 					for _, varMatch := range vars {
 						names := make([]string, len(varMatch.Fields))

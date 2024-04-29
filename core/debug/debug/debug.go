@@ -3,7 +3,6 @@ package debug
 import (
 	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
@@ -23,9 +22,9 @@ func initDebug() {
 		for m := range stack {
 			for r := range stack[m] {
 				route := stack[m][r]
-				if strings.Contains(route.Path, "*") || strings.Contains(route.Path, ":") {
-					continue
-				}
+				//if strings.Contains(route.Path, "*") || strings.Contains(route.Path, ":") {
+				//	continue
+				//}
 				pathMap[route.Path] = nil
 			}
 		}

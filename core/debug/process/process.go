@@ -2,6 +2,7 @@ package process
 
 import (
 	"debug/buildinfo"
+
 	"github.com/gofiber/fiber/v2"
 	ps "github.com/keybase/go-ps"
 	"github.com/pubgo/funk/assert"

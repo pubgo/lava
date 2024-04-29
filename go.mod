@@ -1,21 +1,21 @@
 module github.com/pubgo/lava
 
-go 1.19
+go 1.22
 
 replace github.com/google/gnostic => github.com/google/gnostic v0.7.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.2
+	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/jinzhu/copier v0.3.5 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
+	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
-	github.com/pubgo/opendoc v0.0.4-3
-	github.com/reugn/go-quartz v0.3.7
+	github.com/pubgo/opendoc v0.0.4
+	github.com/reugn/go-quartz v0.11.2
 	github.com/testcontainers/testcontainers-go v0.28.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.28.0
 	github.com/vmihailenco/msgpack/v5 v5.3.1
@@ -25,7 +25,7 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/automaxprocs v1.5.1
 	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/mod v0.11.0 // indirect
+	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.21.0
 	golang.org/x/sys v0.18.0 // indirect
 	google.golang.org/genproto v0.0.0-20231212172506-995d672761c0 // indirect
@@ -42,8 +42,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.10.0
-	entgo.io/ent v0.12.0
+	entgo.io/ent v0.13.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.6.0
@@ -64,8 +63,8 @@ require (
 	github.com/libp2p/go-yamux/v4 v4.0.1
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/pubgo/dix v0.3.15-0.20240229041028-32b6443f17ff
-	github.com/pubgo/funk v0.5.39-10
+	github.com/pubgo/dix v0.3.15
+	github.com/pubgo/funk v0.5.42
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.30.0
 	github.com/stretchr/testify v1.8.4
@@ -92,6 +91,7 @@ require (
 )
 
 require (
+	ariga.io/atlas v0.21.1 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -195,7 +195,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.1.0 // indirect
 	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.10.0 // indirect
+	golang.org/x/tools v0.18.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/hints v1.1.0 // indirect
