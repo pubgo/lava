@@ -22,7 +22,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 	dp "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -184,7 +184,7 @@ func (g *GoMigrate) Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "migrate database schema",
-		Commands: cli.Commands{
+		Subcommands: cli.Commands{
 			&cli.Command{
 				Name:  "migrate",
 				Usage: "migrate all migrations",

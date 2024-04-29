@@ -7,7 +7,7 @@ import (
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/servers/tasks"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 )
 
 func New(di *dix.Dix) *cli.Command {

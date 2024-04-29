@@ -2,6 +2,7 @@ package ent
 
 import (
 	"fmt"
+	"github.com/urfave/cli/v2"
 	"log"
 	//atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"
@@ -10,7 +11,6 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v3"
 	// https://github.com/ent/ent/blob/master/cmd/internal/base/base.go
 )
 
@@ -25,7 +25,7 @@ func New1() *cli.Command {
 	return &cli.Command{
 		Name:  "ent",
 		Usage: "ent manager",
-		Commands: []*cli.Command{
+		Subcommands: []*cli.Command{
 			{
 				Name:  "gen",
 				Usage: "do gen query",

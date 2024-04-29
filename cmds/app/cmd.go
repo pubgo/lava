@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	cli "github.com/urfave/cli/v3"
+	cli "github.com/urfave/cli/v2"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/cmds/depcmd"

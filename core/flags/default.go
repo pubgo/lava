@@ -5,7 +5,7 @@ import (
 	"github.com/pubgo/funk/env"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/typex"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 )
 
 func init() {

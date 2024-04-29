@@ -4,10 +4,9 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v3"
-
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/servers/grpcs"
+	"github.com/urfave/cli/v2"
 )
 
 func New(di *dix.Dix) *cli.Command {

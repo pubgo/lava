@@ -14,47 +14,46 @@ import (
 	"time"
 )
 
-func main() {
+func main2() {
 	listener := assert.Must1(net.Listen("tcp", ":8888"))
 
-	for {
-		// Accept a TCP connection
-		conn := assert.Must1(listener.Accept())
+	// Accept a TCP connection
+	conn := assert.Must1(listener.Accept())
 
-		// Setup server side of yamux
-		session := assert.Must1(yamux.Client(conn, nil, nil))
+	// Setup server side of yamux
+	session := assert.Must1(yamux.Client(conn, nil, nil))
 
-		// 验证密码，获取服务信息，版本信息
-		// 验证通过之后才能真正的建立连接
-		sss := assert.Must1(session.AcceptStream())
-		var dd = make([]byte, 1024)
-		n := assert.Must1(sss.Read(dd))
-		fmt.Println(string(dd[:n]))
+	// 验证密码，获取服务信息，版本信息
+	// 验证通过之后才能真正的建立连接
+	sss := assert.Must1(session.AcceptStream())
+	var dd = make([]byte, 1024)
+	n := assert.Must1(sss.Read(dd))
+	fmt.Println(string(dd[:n]))
 
-		logger.Info().Msg("session")
+	logger.Info().Msg("session")
 
-		// Accept a stream
+	// Accept a stream
 
-		var cli = http.Client{
-			Transport: &http.Transport{
-				DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-					stream := assert.Must1(session.OpenStream(context.Background()))
-					return stream, nil
-				},
-				ForceAttemptHTTP2:     true,
-				MaxIdleConns:          100,
-				IdleConnTimeout:       90 * time.Second,
-				TLSHandshakeTimeout:   10 * time.Second,
-				ExpectContinueTimeout: 1 * time.Second,
+	var cli = http.Client{
+		Transport: &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				stream := assert.Must1(session.OpenStream(context.Background()))
+				return stream, nil
 			},
-		}
-
-		req := assert.Must1(http.NewRequest("GET", "http://localhost:8080/hello", nil))
-		rsp := assert.Must1(cli.Do(req))
-		fmt.Println(string(assert.Must1(io.ReadAll(rsp.Body))))
-
-		connCli := assert.Must1(grpc.Dial("test:8080", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
-			return session.Open(ctx)
-		})))
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
 	}
+
+	req := assert.Must1(http.NewRequest("GET", "http://localhost:8080/hello", nil))
+	rsp := assert.Must1(cli.Do(req))
+	fmt.Println(string(assert.Must1(io.ReadAll(rsp.Body))))
+
+	connCli := assert.Must1(grpc.Dial("test:8080", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+		return session.Open(ctx)
+	})))
+	_ = connCli
 }

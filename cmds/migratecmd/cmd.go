@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v3"
+	"github.com/urfave/cli/v2"
 	"gorm.io/gen"
 
 	"github.com/pubgo/lava/core/migrates"
@@ -51,7 +51,7 @@ func New(di *dix.Dix) *cli.Command {
 			options.TableName = p.Db.TablePrefix + migrates.DefaultConfig.TableName
 			return nil
 		},
-		Commands: []*cli.Command{
+		Subcommands: []*cli.Command{
 			{
 				Name:    "migrate",
 				Usage:   "do migrate",
