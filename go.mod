@@ -44,6 +44,7 @@ require (
 require (
 	entgo.io/ent v0.13.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.7.0
 	github.com/deckarep/golang-set/v2 v2.6.0
