@@ -53,9 +53,13 @@ type Variable struct {
 	Segments *Segments `("=" @@)? "}"`
 }
 
+func Eval(rule *HttpRule) {
+
+}
+
 func main() {
 	ini := assert.Must1(parser.Parse("",
-		strings.NewReader("/v1/users/{aa.ba.ca=hh/*}/hello/{hello}/messages/{messageId=nn/ss/**}:change"),
+		strings.NewReader("/v1/users/{aa.ba.ca=hh/*}/hello/{hello.abc}/messages/{messageId=nn/ss/**}:change"),
 		// participle.Trace(os.Stdout),
 	))
 
