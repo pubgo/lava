@@ -1,9 +1,10 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/pretty"
-	"strings"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -55,7 +56,7 @@ type Variable struct {
 func main() {
 	ini := assert.Must1(parser.Parse("",
 		strings.NewReader("/v1/users/{aa.ba.ca=hh/*}/hello/{hello}/messages/{messageId=nn/ss/**}:change"),
-		//participle.Trace(os.Stdout),
+		// participle.Trace(os.Stdout),
 	))
 
 	pretty.Println(ini)
