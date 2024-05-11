@@ -12,8 +12,8 @@ import (
 
 var (
 	lex = lexer.MustSimple([]lexer.SimpleRule{
-		{"Ident", `[a-zA-Z]\w*`},
-		{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
+		{Name: "Ident", Pattern: `[a-zA-Z]\w*`},
+		{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
 	})
 
 	parser = participle.MustBuild[HttpRule](
@@ -21,17 +21,17 @@ var (
 	)
 )
 
+//     http rule
 //     Template = "/" Segments [ Verb ] ;
 //     Segments = Segment { "/" Segment } ;
 //     Segment  = "*" | "**" | LITERAL | Variable ;
 //     Variable = "{" FieldPath [ "=" Segments ] "}" ;
 //     FieldPath = IDENT { "." IDENT } ;
 //     Verb     = ":" LITERAL ;
-//
 
 type HttpRule struct {
 	Pos      lexer.Position
-	Slash    string    `"/" `
+	Slash    string    `"/"`
 	Segments *Segments `@@!`
 	Verb     *string   `(":" @Ident)?`
 }
@@ -53,8 +53,51 @@ type Variable struct {
 	Segments *Segments `("=" @@)? "}"`
 }
 
-func Eval(rule *HttpRule) {
+type pathVariable struct {
+	Fields     []string
+	start, end int
+}
 
+type RouteTarget struct {
+	Paths []string
+	Verb  *string
+	Vars  []*pathVariable
+}
+
+func handleSegments(s *Segment, rr *RouteTarget) {
+	if s.Path != nil {
+		rr.Paths = append(rr.Paths, *s.Path)
+		return
+	}
+
+	vv := &pathVariable{Fields: s.Variable.Fields, start: len(rr.Paths)}
+	if s.Variable.Segments == nil {
+		rr.Paths = append(rr.Paths, "*")
+	} else {
+		for _, v := range s.Variable.Segments.Segments {
+			handleSegments(v, rr)
+		}
+	}
+
+	vv.end = len(rr.Paths) - 1
+	if len(rr.Paths) > 0 && rr.Paths[len(rr.Paths)-1] == "**" {
+		vv.end = -1
+	}
+
+	rr.Vars = append(rr.Vars, vv)
+}
+
+func Eval(rule *HttpRule) *RouteTarget {
+	var r = new(RouteTarget)
+	r.Verb = rule.Verb
+
+	if rule.Segments != nil {
+		for _, v := range rule.Segments.Segments {
+			handleSegments(v, r)
+		}
+	}
+
+	return r
 }
 
 func main() {
@@ -64,4 +107,6 @@ func main() {
 	))
 
 	pretty.Println(ini)
+
+	pretty.Println(Eval(ini))
 }
