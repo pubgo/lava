@@ -1,6 +1,7 @@
 package migratecmd
 
 import (
+	"context"
 	"path/filepath"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"gorm.io/gen"
 
 	"github.com/pubgo/lava/core/migrates"
@@ -46,17 +47,17 @@ func New(di *dix.Dix) *cli.Command {
 				Destination: &id,
 			},
 		},
-		Before: func(context *cli.Context) error {
+		Before: func(ctx context.Context, command *cli.Command) error {
 			p := dix.Inject(di, new(params))
 			options.TableName = p.Db.TablePrefix + migrates.DefaultConfig.TableName
 			return nil
 		},
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			{
 				Name:    "migrate",
 				Usage:   "do migrate",
 				Aliases: []string{"m"},
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					defer recovery.Exit()
 
 					p := dix.Inject(di, new(params))
@@ -74,7 +75,7 @@ func New(di *dix.Dix) *cli.Command {
 				Name:    "list",
 				Usage:   "list migrate",
 				Aliases: []string{"l"},
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					defer recovery.Exit()
 
 					p := dix.Inject(di, new(params))
@@ -99,7 +100,7 @@ func New(di *dix.Dix) *cli.Command {
 				Name:    "rollback",
 				Usage:   "do rollback",
 				Aliases: []string{"r"},
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					defer recovery.Recovery(func(err error) {
 						if errors.Is(err, migrates.ErrNoRunMigration) {
 							return
@@ -124,12 +125,12 @@ func New(di *dix.Dix) *cli.Command {
 				Usage:     "do gen orm model and query code",
 				Aliases:   []string{"g"},
 				UsageText: "migrate gen [./internal/db]",
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					defer recovery.Exit()
 
 					genPath := "./internal/db"
-					if context.NArg() > 0 {
-						genPath = context.Args().First()
+					if command.NArg() > 0 {
+						genPath = command.Args().First()
 					}
 
 					g := gen.NewGenerator(gen.Config{

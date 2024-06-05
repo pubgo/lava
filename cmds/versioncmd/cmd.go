@@ -1,13 +1,13 @@
 package versioncmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v2"
-
 	"github.com/pubgo/lava/pkg/cmdutil"
 )
 
@@ -16,7 +16,7 @@ func New() *cli.Command {
 		Name:    "version",
 		Aliases: []string{"v"},
 		Usage:   cmdutil.UsageDesc("%s version info", version.Project()),
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 			fmt.Println("project:", version.Project())
 			fmt.Println("version:", version.Version())

@@ -1,6 +1,7 @@
 package healthcmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/pkg/netutil"
@@ -23,12 +24,12 @@ func New() *cli.Command {
 			"lava health",
 			"lava health localhost:8080",
 		),
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 
 			addr := ":8080"
-			if ctx.NArg() > 0 {
-				addr = ctx.Args().First()
+			if command.NArg() > 0 {
+				addr = command.Args().First()
 			}
 
 			resp := assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr))))

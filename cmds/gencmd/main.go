@@ -1,9 +1,10 @@
 package gencmd
 
 import (
+	"context"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/funk/recovery"
 )
@@ -12,7 +13,7 @@ func New() *cli.Command {
 	return &cli.Command{
 		Name:  "gen-makefile",
 		Usage: "gen makefile",
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 			os.Stdout.Write([]byte(`
 Project=gid
