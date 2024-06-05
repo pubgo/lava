@@ -136,7 +136,7 @@ func (s *serviceImpl) DixInject(
 			}
 
 			errPb.Trace.Operation = ctx.Route().Path
-			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
+			code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.StatusCode))
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return ctx.Status(code).JSON(errPb.Code)
 		},
