@@ -71,7 +71,7 @@ require (
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.16
-	github.com/urfave/cli/v2 v2.27.2
+	github.com/urfave/cli/v3 v3.0.0-alpha9
 	github.com/valyala/fasthttp v1.52.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.26.0
@@ -108,7 +108,6 @@ require (
 	github.com/containerd/containerd v1.7.12 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/docker v25.0.5+incompatible // indirect
@@ -179,7 +178,6 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect

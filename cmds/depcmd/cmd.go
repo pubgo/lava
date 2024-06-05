@@ -1,6 +1,7 @@
 package depcmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -11,7 +12,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	cli "github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/pkg/cmdutil"
 )
@@ -24,7 +25,7 @@ func New(di *dix.Dix) *cli.Command {
 			"lava dep",
 			"lava dep json",
 			"lava dep t"),
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 
 			info, ok := debug.ReadBuildInfo()
@@ -33,8 +34,8 @@ func New(di *dix.Dix) *cli.Command {
 			}
 
 			var typ string
-			if ctx.NArg() > 0 {
-				typ = ctx.Args().First()
+			if command.NArg() > 0 {
+				typ = command.Args().First()
 			}
 
 			switch typ {

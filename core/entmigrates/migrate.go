@@ -22,7 +22,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	dp "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -184,11 +184,11 @@ func (g *GoMigrate) Cmd() *cli.Command {
 	return &cli.Command{
 		Name:  "migrate",
 		Usage: "migrate database schema",
-		Subcommands: cli.Commands{
+		Commands: []*cli.Command{
 			&cli.Command{
 				Name:  "migrate",
 				Usage: "migrate all migrations",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.Migrate()
 				},
 			},
@@ -196,21 +196,21 @@ func (g *GoMigrate) Cmd() *cli.Command {
 				Name:      "migrate_to",
 				Usage:     "migrate_to <name>",
 				UsageText: "migrate migrate_to <name>",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, c *cli.Command) error {
 					return g.MigrateTo(c.Args().First())
 				},
 			},
 			&cli.Command{
 				Name:  "rollback",
 				Usage: "rollback last migration",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.RollbackLast()
 				},
 			},
 			&cli.Command{
 				Name:  "rollback_to",
 				Usage: "rollback_to <name>",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, c *cli.Command) error {
 					return g.RollbackTo(c.Args().First())
 				},
 			},
@@ -218,14 +218,14 @@ func (g *GoMigrate) Cmd() *cli.Command {
 			&cli.Command{
 				Name:  "create",
 				Usage: "create migration",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.Create(g.tables)
 				},
 			},
 			&cli.Command{
 				Name:  "list",
 				Usage: "list all migrations",
-				Action: func(c *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					for _, m := range assert.Must1(g.List()) {
 						fmt.Println("name:", m.Name, "executed:", m.Executed, "description:", m.Description)
 					}

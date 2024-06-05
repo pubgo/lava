@@ -7,13 +7,13 @@ import (
 
 	"github.com/pubgo/dix"
 	"github.com/pubgo/lava/servers/tasks"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name: "test-task",
-		Action: func(ctx *cli.Context) error {
+		Action: func(ctx context.Context, command *cli.Command) error {
 			dix.Inject(di, tasks.New(new(service))).Run()
 			return nil
 		},

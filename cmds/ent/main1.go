@@ -1,10 +1,11 @@
 package ent
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 
 	// atlas "ariga.io/atlas/sql/migrate"
 	"entgo.io/ent/dialect"
@@ -27,11 +28,11 @@ func New1() *cli.Command {
 	return &cli.Command{
 		Name:  "ent",
 		Usage: "ent manager",
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			{
 				Name:  "gen",
 				Usage: "do gen query",
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					defer recovery.Exit()
 					return entc.Generate("./ent/schema", &gen.Config{
 						Features: []gen.Feature{
@@ -48,7 +49,7 @@ func New1() *cli.Command {
 			{
 				Name:  "generate migration",
 				Usage: "automatically generate migration files for your Ent schema:",
-				Action: func(context *cli.Context) error {
+				Action: func(ctx context.Context, command *cli.Command) error {
 					// atlas migrate lint \
 					//  --dev-url="docker://mysql/8/test" \
 					//  --dir="file://ent/migrate/migrations" \
@@ -75,19 +76,7 @@ func New1() *cli.Command {
 			{
 				Name:  "apply migration",
 				Usage: "apply the pending migration files onto the database",
-				Action: func(context *cli.Context) error {
-					// atlas migrate status \
-					//  --dir "file://ent/migrate/migrations" \
-					//  --url "mysql://root:pass@localhost:3306/example"
-
-					//atlas migrate apply \
-					//--dir "file://ent/migrate/migrations" \
-					//--url "mysql://root:pass@localhost:3306/example"
-
-					// atlas migrate status \
-					//  --dir "file://ent/migrate/migrations" \
-					//  --url "mysql://root:pass@localhost:3306/example"
-
+				Action: func(ctx context.Context, command *cli.Command) error {
 					return nil
 				},
 			},

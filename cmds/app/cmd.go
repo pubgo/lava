@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"os"
 	"sort"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	cli "github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/cmds/depcmd"
@@ -90,7 +91,7 @@ func Run(di *dix.Dix) {
 	di.Provide(httpservercmd.New)
 
 	di.Inject(func(cmd []*cli.Command) {
-		app := &cli.App{
+		app := &cli.Command{
 			Name:                   version.Project(),
 			Suggest:                true,
 			UseShortOptionHandling: true,
@@ -102,7 +103,6 @@ func Run(di *dix.Dix) {
 		}
 
 		sort.Sort(cli.FlagsByName(app.Flags))
-		sort.Sort(cli.CommandsByName(app.Commands))
-		assert.Must(app.Run(os.Args))
+		assert.Must(app.Run(context.Background(), os.Args))
 	})
 }
