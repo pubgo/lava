@@ -14,9 +14,9 @@ deps:
     path: /protoc-gen-openapiv2
     version: v2.18.0
   - name: openapiv3
-    url: github.com/google/gnostic
-    path: /openapiv3
-    version: v0.7.0
+    url: github.com/pubgo/protoc-gen-openapi
+    path: /proto/openapiv3
+    version: v0.7.4
   - name: go-proto-validators
     url: github.com/mwitkow/go-proto-validators
     version: v0.3.2

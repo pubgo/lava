@@ -1,5 +1,5 @@
 # Generated with protoc-gen-openapi
-# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+# https://github.com/pubgo/protoc-gen-openapi
 
 openapi: 3.0.3
 info:
@@ -185,6 +185,7 @@ components:
                         - bigflake
                         - shortid
                     type: string
+                    default: default
                     description: type of id e.g uuid, shortid, snowflake (64 bit), bigflake (128 bit)
                     format: enum
             description: Generate a unique ID. Defaults to uuid.
