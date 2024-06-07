@@ -24,6 +24,8 @@ type Config struct {
 	PingPongTime int32 `yaml:"ping_pong_time"`
 	GrpcPort     *int  `yaml:"grpc_port"`
 	HttpPort     *int  `yaml:"http_port"`
+
+	WsReadLimit *int `yaml:"ws_read_limit"`
 }
 
 func defaultCfg() *Config {

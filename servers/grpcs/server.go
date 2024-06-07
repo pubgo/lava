@@ -386,6 +386,7 @@ func (s *serviceImpl) DixInject(
 	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
 		wsproxy.WithPingPong(conf.EnablePingPong),
 		wsproxy.WithTimeWait(conf.PingPongTime),
+		wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
 	))))
 
 	s.httpServer = httpServer
