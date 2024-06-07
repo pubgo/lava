@@ -44,8 +44,9 @@ func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (gr
 		Str("addr", addr)
 	ee.Msg("grpc client init")
 
-	conn, err := grpc.DialContext(ctx, addr, append(
+	conn, err := grpc.NewClient(addr, append(
 		append(cfg.Client.ToOpts(), grpc.WithResolvers(cfg.Resolvers...)),
+		grpc.WithTimeout()
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
 	if err != nil {

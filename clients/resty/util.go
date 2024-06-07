@@ -62,12 +62,12 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 	switch body := rawBody.(type) {
 	case nil:
 		return nil, nil
+	case *bytes.Buffer:
+		return body.Bytes(), nil
 	case []byte:
 		return body, nil
 	case string:
 		return convert.StoB(body), nil
-	case *bytes.Buffer:
-		return body.Bytes(), nil
 
 	// We prioritize *bytes.Reader here because we don't really want to
 	// deal with it seeking so want it to match here instead of the
@@ -92,6 +92,9 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 		}
 		return buf, nil
 
+	case url.Values:
+		return convert.StoB(body.Encode()), nil
+
 	// Read all in so we can reset
 	case io.Reader:
 		buf, err := io.ReadAll(body)
@@ -99,9 +102,6 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 			return nil, err
 		}
 		return buf, nil
-
-	case url.Values:
-		return convert.StoB(body.Encode()), nil
 
 	case json.Marshaler:
 		return body.MarshalJSON()

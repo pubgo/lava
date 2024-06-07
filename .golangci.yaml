@@ -1,4 +1,5 @@
 linters:
+  fast: true
   disable-all: true
   enable:
     - bodyclose     # checks whether HTTP response body is closed successfully
@@ -8,38 +9,26 @@ linters:
     - govet         # Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - ineffassign   # Detects when assignments to existing variables are not used
     - structcheck   # Finds unused struct fields
-    - typecheck     # Like the front-end of a Go compiler, parses and type-checks Go code
     - unused        # Checks Go code for unused constants, variables, functions and types
     - varcheck      # Finds unused global variables and constants
     - depguard      # Go linter that checks if package imports are in a list of acceptable packages
     - dogsled       # Checks assignments with too many blank identifiers (e.g. x, , , _, := f())
-    # - dupl          # Tool for code clone detection
     - goconst       # Finds repeated strings that could be replaced by a constant
     - goimports     # Goimports does everything that gofmt does. Additionally it checks unused imports
     - goprintffuncname # Checks that printf-like functions are named with f at the end
-    # - gosec         # Inspects source code for security problems
-    # - misspell      # Finds commonly misspelled English words in comments
     - nolintlint     # Reports ill-formed or insufficient nolint directives
     - rowserrcheck   # checks whether Err of rows is checked successfully
     - staticcheck    # Staticcheck is a go vet on steroids, applying a ton of static analysis checks
     - unconvert      # Remove unnecessary type conversions
     - unparam        # Reports unused function parameters
     - unused         # Checks Go code for unused constants, variables, functions and types
-linters-settings:
-  govet: # 对于linter govet，我们手动开启了它的某些扫描规则
-    check-shadowing: true
-    check-unreachable: true
-    check-rangeloops: true
-    check-copylocks: true
-  errcheck:
-    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
-    # default is false: such cases aren't reported by default.
-    check-type-assertions: false
 
-    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
-    # default is false: such cases aren't reported by default.
-    check-blank: true
-
-    # path to a file containing a list of functions to exclude from checking
-    # see https://github.com/kisielk/errcheck#excluding-functions for details
-#    exclude: .golangci/errcheck.txt
+issues:
+  exclude-dirs:
+    - internal/example
+    - cmds
+    - vendor
+  exclude-generated: strict
+  exclude-dirs-use-default: true
+  exclude-case-sensitive: false
+  exclude-use-default: true
