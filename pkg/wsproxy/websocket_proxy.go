@@ -55,6 +55,7 @@ type Proxy struct {
 	requestMutator      RequestMutatorFunc
 	enablePingPong      bool
 	timeWait            time.Duration
+	ReadLimit           int64
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +87,12 @@ func WithTokenCookieName(param string) Option {
 func WithRequestMutator(fn RequestMutatorFunc) Option {
 	return func(p *Proxy) {
 		p.requestMutator = fn
+	}
+}
+
+func WithReadLimit(limit int64) Option {
+	return func(p *Proxy) {
+		p.ReadLimit = limit
 	}
 }
 
@@ -125,6 +132,15 @@ func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {
 	for _, o := range opts {
 		o(p)
 	}
+
+	if p.ReadLimit < maxMessageSize {
+		p.ReadLimit = maxMessageSize
+	}
+
+	if p.ReadLimit > 1024*1024 {
+		p.ReadLimit = 1024 * 1024
+	}
+	log.Debug().Any("read_limit", p.ReadLimit).Msg("read limit")
 	return p
 }
 
