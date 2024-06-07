@@ -171,7 +171,6 @@ func (t GrpcClientCfg) ToOpts() []grpc.DialOption {
 	}
 
 	opts = append(opts, grpc.WithDefaultCallOptions(cos...))
-	opts = append(opts, grpc.FailOnNonTempDialError(true))
 	opts = append(opts, grpc.WithKeepaliveParams(t.ClientParameters.toClientParameters()))
 	opts = append(opts, grpc.WithConnectParams(t.ConnectParams.toConnectParams()))
 	return opts
