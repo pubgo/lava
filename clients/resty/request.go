@@ -48,7 +48,7 @@ func (req *Request) SetBody(body any) *Request {
 }
 
 func (req *Request) SetQuery(query map[string]string) *Request {
-	if query == nil || len(query) == 0 {
+	if len(query) == 0 {
 		return req
 	}
 

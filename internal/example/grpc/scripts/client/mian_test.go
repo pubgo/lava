@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func TestName(t1 *testing.T) {
+func _TestName(t1 *testing.T) {
 	t := &http2.Transport{
 		AllowHTTP: true,
 		TLSClientConfig: &tls.Config{
@@ -49,7 +49,7 @@ func TestName(t1 *testing.T) {
 	fmt.Printf("Client Got response %d: %s %s\r\n", resp.StatusCode, resp.Proto, string(body))
 }
 
-func TestName2(t *testing.T) {
+func _TestName2(t *testing.T) {
 	client := http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Get("http://localhost:8080/gid/grpc/lava/err_codes")
 	if err != nil {
@@ -65,7 +65,7 @@ func TestName2(t *testing.T) {
 	fmt.Printf("Client Got response %d: %s %s\r\n", resp.StatusCode, resp.Proto, string(body))
 }
 
-func TestName3(t *testing.T) {
+func _TestName3(t *testing.T) {
 	client := http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Post(
 		"http://localhost:8080/gid/grpc/lava.service.ErrorService/Codes",

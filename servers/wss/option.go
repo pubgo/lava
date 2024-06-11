@@ -28,7 +28,6 @@ func (c *configuration) ensureValidated() {
 		log.Warn().Msgf("websocket max_inactive_duration <= 2 * ping_interval, max_inactive_duration change to 3 * ping_interval")
 		c.MaxInactiveDuration = 3 * c.PingInterval
 	}
-	return
 }
 
 // Option is the function signature that applies configurable option for UILoadWebsocket.

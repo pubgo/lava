@@ -1,7 +1,6 @@
 package grpcc
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/pubgo/funk/errors"
@@ -33,10 +32,6 @@ func buildTarget(cfg *grpcc_config.ServiceCfg) string {
 }
 
 func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (grpc.ClientConnInterface, error) {
-	// 创建grpc client
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.Client.DialTimeout)
-	defer cancel()
-
 	addr := buildTarget(cfg.Service)
 
 	ee := log.Info().
@@ -44,7 +39,7 @@ func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (gr
 		Str("addr", addr)
 	ee.Msg("grpc client init")
 
-	conn, err := grpc.DialContext(ctx, addr, append(
+	conn, err := grpc.NewClient(addr, append(
 		append(cfg.Client.ToOpts(), grpc.WithResolvers(cfg.Resolvers...)),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
 		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)

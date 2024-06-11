@@ -165,7 +165,7 @@ func (c CodecJSON) ReadNext(b []byte, r io.Reader, limit int) ([]byte, int, erro
 		isString   bool
 		isEscaped  bool
 	)
-	for i := 0; i < int(limit); i++ {
+	for i := 0; i < limit; i++ {
 		for i >= len(b) {
 			if len(b) == cap(b) {
 				// Add more capacity (let append pick how much).
@@ -244,7 +244,7 @@ func (codecHTTPBody) ReadNext(b []byte, r io.Reader, limit int) ([]byte, int, er
 		}
 		n, err := r.Read(b[len(b):cap(b)])
 		b = b[:len(b)+n]
-		total += int(n)
+		total += n
 		if total > limit {
 			total = limit
 		}

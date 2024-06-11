@@ -7,7 +7,9 @@ import (
 	"github.com/uber-go/tally/v4"
 )
 
-var metricKey = xid.New().String()
+type ctxKet string
+
+var metricKey = ctxKet(xid.New().String())
 
 func CreateCtx(parent context.Context, scope tally.Scope) context.Context {
 	return context.WithValue(parent, metricKey, scope)

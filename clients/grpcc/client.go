@@ -47,10 +47,6 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 		middlewares: defaultMiddlewares,
 	}
 
-	if cfg.Client.Block {
-		_ = c.Get().Unwrap()
-	}
-
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), cfg)
 	return c
 }
