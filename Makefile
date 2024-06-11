@@ -80,4 +80,5 @@ protobuf:
 	protobuild gen
 
 lint:
+	golangci-lint --version
 	golangci-lint run --timeout 3m --verbose
