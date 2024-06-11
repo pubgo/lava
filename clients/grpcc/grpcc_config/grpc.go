@@ -82,7 +82,6 @@ type GrpcClientCfg struct {
 	MaxHeaderListSize  uint32 `json:"max_header_list_size"`
 	DisableHealthCheck bool   `json:"disable_health_check"`
 	Insecure           bool   `json:"insecure"`
-	Block              bool   `json:"block"`
 	IdleNum            uint32 `json:"idle_num"`
 	WriteBuffer        int    `json:"write_buffer"`
 	ReadBuffer         int    `json:"read_buffer"`
@@ -103,10 +102,6 @@ func (t GrpcClientCfg) ToOpts() []grpc.DialOption {
 
 	if t.Insecure {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	}
-
-	if t.Block {
-		opts = append(opts, grpc.WithBlock())
 	}
 
 	if !t.Proxy {

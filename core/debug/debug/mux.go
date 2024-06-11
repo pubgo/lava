@@ -12,6 +12,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/lava/core/debug"
@@ -52,8 +53,13 @@ func init() {
 		if host != "localhost" && host != "127.0.0.1" {
 			if token != passwd {
 				err := errors.New("token 不存在或者密码不对")
-				c.WriteString(err.Error())
-				c.SendStatus(http.StatusInternalServerError)
+				if ret := result.Of(c.WriteString(err.Error())); ret.IsErr() {
+					return errors.WrapCaller(ret.Err())
+				}
+
+				if err := c.SendStatus(http.StatusInternalServerError); err != nil {
+					return errors.WrapCaller(err)
+				}
 				return err
 			}
 		}

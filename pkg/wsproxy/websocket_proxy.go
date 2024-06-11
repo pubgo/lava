@@ -294,8 +294,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 
 				log.Debug().Str("payload", string(payload)).Msg("[read] read payload")
 				log.Debug().Msg("[read] writing to requestBody:")
-				n, err := requestBodyW.Write(payload)
-				requestBodyW.Write([]byte("\n"))
+				n, err := requestBodyW.Write(append(payload, '\n'))
 				log.Debug().Msgf("[read] wrote to requestBody %d", n)
 				if err != nil {
 					log.Warn().Err(err).Msg("[read] error writing message to upstream http server")

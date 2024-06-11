@@ -2,6 +2,7 @@ package wss
 
 import (
 	"context"
+	"errors"
 	"net"
 	"strings"
 	"sync"
@@ -100,9 +101,12 @@ func (c *connection) Start(ctx context.Context, readMsgHandler func(int, []byte)
 		c.log.Debug().Msgf("received ping for conn %v", c.ID())
 		c.notifyLatestMessage(lastMsgCh)
 		err := c.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(c.WriteDeadline))
-		if err == websocket.ErrCloseSent {
+		if errors.Is(err, websocket.ErrCloseSent) {
 			return nil
-		} else if e, ok := err.(net.Error); ok && e.Temporary() {
+		}
+
+		var e net.Error
+		if errors.As(err, &e) && e.Timeout() {
 			return nil
 		}
 		return err
@@ -153,7 +157,7 @@ func (c *connection) startMonitorForZombieConns(ctx context.Context, anyMsgRecei
 		case <-ctx.Done():
 			return
 		case <-pingTicker.C:
-			timeSinceLastMsg := time.Now().Sub(lastMsgReceived)
+			timeSinceLastMsg := time.Since(lastMsgReceived)
 			if timeSinceLastMsg >= c.PingInterval {
 				err := c.writePing([]byte(""))
 				if err != nil {
@@ -164,7 +168,7 @@ func (c *connection) startMonitorForZombieConns(ctx context.Context, anyMsgRecei
 			}
 			continue
 		case <-inactiveCheckTicker.C:
-			timeSinceLastMsg := time.Now().Sub(lastMsgReceived)
+			timeSinceLastMsg := time.Since(lastMsgReceived)
 			if timeSinceLastMsg > c.MaxInactiveDuration {
 				c.log.Warn().Msgf("killing connection %v because haven't received any msg [ping, pong, application] in %v seconds",
 					c.ID(), timeSinceLastMsg.Seconds())

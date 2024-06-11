@@ -140,7 +140,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 }
 
 func handleLogOption(data [][]byte) (val map[string]bool) {
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		val = map[string]bool{}
 		return
 	}

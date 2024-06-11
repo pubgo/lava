@@ -129,10 +129,8 @@ func IsRedirect(statusCode int) bool {
 
 func handleHeader(c *Client, req *Request) {
 	header := c.cfg.DefaultHeader
-	if header != nil {
-		for k, v := range header {
-			req.header.Add(k, v)
-		}
+	for k, v := range header {
+		req.header.Add(k, v)
 	}
 }
 
@@ -190,11 +188,7 @@ func handleContentType(c *Client, req *Request) (string, error) {
 }
 
 // doRequest data:[bytes|string|map|struct]
-func doRequest(ctx context.Context, c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
+func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	r := fasthttp.AcquireRequest()
 
 	ct, err := handleContentType(c, req)
@@ -288,7 +282,7 @@ func toString(v any) string {
 	case int32:
 		return strconv.FormatInt(int64(t), 10)
 	case int64:
-		return strconv.FormatInt(int64(t), 10)
+		return strconv.FormatInt(t, 10)
 	case uint:
 		return strconv.FormatUint(uint64(t), 10)
 	case uint8:
@@ -298,7 +292,7 @@ func toString(v any) string {
 	case uint32:
 		return strconv.FormatUint(uint64(t), 10)
 	case uint64:
-		return strconv.FormatUint(uint64(t), 10)
+		return strconv.FormatUint(t, 10)
 	default:
 		return fmt.Sprintf("%v", t)
 	}
@@ -369,13 +363,6 @@ func valueOrDefault(value, def string) string {
 // errMissingHost is returned by Write when there is no Host or URL present in
 // the Request.
 var errMissingHost = errors.New("http: Request.Write on Request with no Host or URL set")
-
-func closeRequestBody(r *http.Request) error {
-	if r.Body == nil {
-		return nil
-	}
-	return r.Body.Close()
-}
 
 // Headers that Request.Write handles itself and should be skipped.
 var reqWriteExcludeHeader = map[string]bool{
