@@ -19,6 +19,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"github.com/pubgo/lava/pkg/httputil"
 	"google.golang.org/grpc"
@@ -124,9 +125,10 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 var _ Gateway = (*Mux)(nil)
 
 type Mux struct {
-	cc    *inprocgrpc.Channel
-	opts  *muxOptions
-	route *routex.RouteTrie
+	cc         *inprocgrpc.Channel
+	opts       *muxOptions
+	route      *routex.RouteTrie
+	routerTree *routertree.RouteTree
 }
 
 func (m *Mux) GetRouteMethods() []*routex.RouteTarget {
@@ -238,9 +240,10 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	mux := &Mux{
-		opts:  &muxOpts,
-		cc:    new(inprocgrpc.Channel),
-		route: routex.NewRouteTrie(),
+		opts:       &muxOpts,
+		cc:         new(inprocgrpc.Channel),
+		route:      routex.NewRouteTrie(),
+		routerTree: routertree.NewRouteTree(),
 	}
 
 	return mux
@@ -316,7 +319,12 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcMethod:     methodDesc,
 			grpcMethodName: grpcMethod,
 		})
+
 		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
+		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
+			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
+		}))
+
 	}
 
 	for i := range gsd.Streams {
@@ -333,6 +341,9 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcMethodName: grpcMethod,
 		})
 		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
+		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
+			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
+		}))
 	}
 
 	return nil

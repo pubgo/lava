@@ -3,6 +3,8 @@ package gateway
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
+	"github.com/pubgo/funk/errors"
 	"net/http"
 	"net/textproto"
 	"strconv"
@@ -138,4 +140,52 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 		md[k] = vs
 	}
 	return metadata.NewIncomingContext(ctx, md), md
+}
+
+func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path string) error) error {
+	if httpRule == nil {
+		return nil
+	}
+
+	var method, template string
+	switch pattern := httpRule.GetPattern().(type) {
+	case *annotations.HttpRule_Get:
+		method, template = http.MethodGet, pattern.Get
+	case *annotations.HttpRule_Put:
+		method, template = http.MethodPut, pattern.Put
+	case *annotations.HttpRule_Post:
+		method, template = http.MethodPost, pattern.Post
+	case *annotations.HttpRule_Delete:
+		method, template = http.MethodDelete, pattern.Delete
+	case *annotations.HttpRule_Patch:
+		method, template = http.MethodPatch, pattern.Patch
+	case *annotations.HttpRule_Custom:
+		method, template = pattern.Custom.GetKind(), pattern.Custom.GetPath()
+	default:
+		return fmt.Errorf("invalid type of pattern for HTTP httpRule: %T", pattern)
+	}
+
+	if method == "" {
+		return errors.New("invalid HTTP httpRule: HttpMethod is blank")
+	}
+
+	if template == "" {
+		return errors.New("invalid HTTP httpRule: HttpPath template is blank")
+	}
+
+	if err := cb(method, template); err != nil {
+		return err
+	}
+
+	for i, rule := range httpRule.GetAdditionalBindings() {
+		if len(rule.GetAdditionalBindings()) > 0 {
+			return fmt.Errorf("nested additional bindings are not supported")
+		}
+
+		if err := handlerHttpRoute(rule, cb); err != nil {
+			return fmt.Errorf("failed to add REST route (add'l binding #%d): %w", i+1, err)
+		}
+	}
+
+	return nil
 }
