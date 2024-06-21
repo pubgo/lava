@@ -370,14 +370,13 @@ func (s *serviceImpl) DixInject(
 	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
-			Str("method-name", m.GrpcMethodName).
-			Str("http-method", m.HttpMethod).
-			Str("http-path", apiPrefix1+"/"+strings.Join(m.HttpPath, "/")).
+			Str("method-name", m.Operation).
+			Str("http-method", m.Method).
+			Str("http-path", assert.Must1(url.JoinPath(apiPrefix1, m.Path))).
 			Str("verb", m.Verb).
-			Str("req-field-path", m.RequestBodyFieldPath).
-			Str("rsp-field-path", m.ResponseBodyFieldPath).
 			Any("path-vars", m.Vars).
-			Msg("grpc gateway method router")
+			Any("extras", m.Extras).
+			Msg("grpc gateway router info")
 	}
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
