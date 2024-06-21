@@ -3,17 +3,37 @@ package gateway
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/textproto"
 	"strconv"
 	"strings"
 
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func getReqBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
+	return path.Extras["req_body_desc"].([]protoreflect.FieldDescriptor)
+}
+
+func getRspBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
+	return path.Extras["rsp_body_desc"].([]protoreflect.FieldDescriptor)
+}
+
+func resolveBodyDesc(methodDesc protoreflect.MethodDescriptor, reqBody, rspBody string) map[string]any {
+	return map[string]any{
+		"req_body_field": reqBody,
+		"req_body_desc":  assert.Must1(resolvePathToDescriptors(methodDesc.Input(), reqBody)),
+		"rsp_body_field": rspBody,
+		"rsp_body_desc":  assert.Must1(resolvePathToDescriptors(methodDesc.Output(), rspBody)),
+	}
+}
 
 func fieldPathToDesc(fields protoreflect.FieldDescriptors, names ...string) []protoreflect.FieldDescriptor {
 	fds := make([]protoreflect.FieldDescriptor, len(names))
@@ -168,7 +188,19 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 		return errors.New("invalid HTTP httpRule: HttpPath template is blank")
 	}
 
-	if err := cb(method, template, httpRule.GetBody(), httpRule.GetResponseBody()); err != nil {
+	var reqBody = httpRule.GetBody()
+	switch reqBody {
+	case "", "*":
+		reqBody = "*"
+	}
+
+	var rspBody = httpRule.GetResponseBody()
+	switch rspBody {
+	case "", "*":
+		rspBody = "*"
+	}
+
+	if err := cb(method, template, reqBody, rspBody); err != nil {
 		return err
 	}
 
@@ -183,4 +215,42 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 	}
 
 	return nil
+}
+
+func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) ([]protoreflect.FieldDescriptor, error) {
+	if path == "" {
+		return nil, nil
+	}
+	if path == "*" {
+		// non-nil, empty slice means use the whole thing
+		return []protoreflect.FieldDescriptor{}, nil
+	}
+
+	fields := msg.Fields()
+	parts := strings.Split(path, ".")
+	result := make([]protoreflect.FieldDescriptor, len(parts))
+	for i, part := range parts {
+		field := fields.ByName(protoreflect.Name(part))
+		if field == nil {
+			return nil, errors.Format("in field HttpPath %q: element %q does not correspond to any field of type %s",
+				path, part, msg.FullName())
+		}
+
+		result[i] = field
+		if i == len(parts)-1 {
+			break
+		}
+
+		if field.Cardinality() == protoreflect.Repeated {
+			return nil, errors.Format("in field HttpPath %q: field %q of type %s should not be a list or map", path, part, msg.FullName())
+		}
+
+		msg = field.Message()
+		if msg == nil {
+			return nil, fmt.Errorf("in field HttpPath %q: field %q of type %s should be a message", path, part, field.Kind())
+		}
+
+		fields = msg.Fields()
+	}
+	return result, nil
 }

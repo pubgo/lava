@@ -25,12 +25,12 @@ func (r *RouteTree) List() []RouteOperation {
 	return getOpt(r.nodes)
 }
 
-func (r *RouteTree) Add(method string, url string, operation string) error {
+func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
 	var errMsg = func() string {
-		return fmt.Sprintf("method: %s, url: %s, operation: %s", method, url, operation)
+		return fmt.Sprintf("method: %s, path: %s, operation: %s", method, path, operation)
 	}
 
-	rule, err := parse(url)
+	rule, err := parse(path)
 	if err != nil {
 		return errors.Wrap(err, errMsg())
 	}
@@ -44,10 +44,7 @@ func (r *RouteTree) Add(method string, url string, operation string) error {
 	for i, n := range node.Paths {
 		var lastNode = nodes[n]
 		if lastNode == nil {
-			lastNode = &nodeTree{
-				nodes: make(map[string]*nodeTree),
-				verbs: make(map[string]*routeTarget),
-			}
+			lastNode = &nodeTree{nodes: make(map[string]*nodeTree), verbs: make(map[string]*routeTarget)}
 			nodes[n] = lastNode
 		}
 		nodes = lastNode.nodes
@@ -55,9 +52,10 @@ func (r *RouteTree) Add(method string, url string, operation string) error {
 		if i == len(node.Paths)-1 {
 			lastNode.verbs[generic.FromPtr(node.Verb)] = &routeTarget{
 				Method:    method,
-				Path:      url,
+				Path:      path,
 				Operation: operation,
-				Verb:      &method,
+				extras:    extras,
+				Verb:      node.Verb,
 				Vars:      node.Vars,
 			}
 		}
@@ -113,6 +111,9 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 
 		if vv := path.verbs[verb]; vv != nil && vv.Operation != "" && vv.Method == method {
 			return &MatchOperation{
+				Extras:    vv.extras,
+				Method:    vv.Method,
+				Path:      vv.Path,
 				Operation: vv.Operation,
 				Verb:      verb,
 				Vars:      getVars(vv.Vars, paths),
@@ -125,11 +126,12 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 }
 
 type RouteOperation struct {
-	Method    string   `json:"method,omitempty"`
-	Path      string   `json:"path,omitempty"`
-	Operation string   `json:"operation,omitempty"`
-	Verb      string   `json:"verb,omitempty"`
-	Vars      []string `json:"vars,omitempty"`
+	Method    string         `json:"method,omitempty"`
+	Path      string         `json:"path,omitempty"`
+	Operation string         `json:"operation,omitempty"`
+	Verb      string         `json:"verb,omitempty"`
+	Vars      []string       `json:"vars,omitempty"`
+	Extras    map[string]any `json:"extras"`
 }
 
 type routeTarget struct {
@@ -138,6 +140,7 @@ type routeTarget struct {
 	Operation string
 	Verb      *string
 	Vars      []*pathVariable
+	extras    map[string]any
 }
 
 type nodeTree struct {
@@ -146,9 +149,12 @@ type nodeTree struct {
 }
 
 type MatchOperation struct {
+	Method    string
+	Path      string
 	Operation string
 	Verb      string
 	Vars      []PathFieldVar
+	Extras    map[string]any
 }
 
 func getOpt(nodes map[string]*nodeTree) []RouteOperation {
@@ -161,6 +167,7 @@ func getOpt(nodes map[string]*nodeTree) []RouteOperation {
 				Operation: v.Operation,
 				Verb:      generic.FromPtr(v.Verb),
 				Vars:      generic.Map(v.Vars, func(i int) string { return strings.Join(v.Vars[i].Fields, ".") }),
+				Extras:    v.extras,
 			})
 		}
 		sets = append(sets, getOpt(n.nodes)...)

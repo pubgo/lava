@@ -75,7 +75,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	}
 
 	cur := reply.ProtoReflect()
-	for _, fd := range s.path.ResponseBodyFields {
+	for _, fd := range getReqBodyDesc(s.path) {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
@@ -103,7 +103,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		s.handler.Method() == http.MethodDelete ||
 		s.handler.Method() == http.MethodPatch {
 		cur := args.ProtoReflect()
-		for _, fd := range s.path.RequestBodyFields {
+		for _, fd := range getRspBodyDesc(s.path) {
 			cur = cur.Mutable(fd).Message()
 		}
 		msg := cur.Interface()

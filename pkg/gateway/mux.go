@@ -316,8 +316,8 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcFullMethod:   grpcMethod,
 		})
 
-		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
-			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
+		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}
 
@@ -335,8 +335,8 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcFullMethod:   grpcMethod,
 		})
 
-		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
-			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
+		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}
 
