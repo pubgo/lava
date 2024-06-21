@@ -3,13 +3,12 @@ package gateway
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
-	"github.com/pubgo/funk/errors"
 	"net/http"
 	"net/textproto"
 	"strconv"
 	"strings"
 
+	"github.com/pubgo/funk/errors"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -50,11 +49,7 @@ func quote(raw []byte) []byte {
 
 // getExtensionHTTP
 func getExtensionHTTP(m protoreflect.MethodDescriptor) *annotations.HttpRule {
-	if m == nil {
-		return nil
-	}
-
-	if m.Options() == nil {
+	if m == nil || m.Options() == nil {
 		return nil
 	}
 
@@ -142,7 +137,7 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 	return metadata.NewIncomingContext(ctx, md), md
 }
 
-func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path string) error) error {
+func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path string, reqBody, rspBody string) error) error {
 	if httpRule == nil {
 		return nil
 	}
@@ -162,7 +157,7 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 	case *annotations.HttpRule_Custom:
 		method, template = pattern.Custom.GetKind(), pattern.Custom.GetPath()
 	default:
-		return fmt.Errorf("invalid type of pattern for HTTP httpRule: %T", pattern)
+		return errors.Format("invalid type of pattern for HTTP httpRule: %T", pattern)
 	}
 
 	if method == "" {
@@ -173,17 +168,17 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 		return errors.New("invalid HTTP httpRule: HttpPath template is blank")
 	}
 
-	if err := cb(method, template); err != nil {
+	if err := cb(method, template, httpRule.GetBody(), httpRule.GetResponseBody()); err != nil {
 		return err
 	}
 
 	for i, rule := range httpRule.GetAdditionalBindings() {
 		if len(rule.GetAdditionalBindings()) > 0 {
-			return fmt.Errorf("nested additional bindings are not supported")
+			return errors.New("nested additional bindings are not supported")
 		}
 
 		if err := handlerHttpRoute(rule, cb); err != nil {
-			return fmt.Errorf("failed to add REST route (add'l binding #%d): %w", i+1, err)
+			return errors.Format("failed to add REST route (add'l binding #%d): %w", i+1, err)
 		}
 	}
 

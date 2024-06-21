@@ -62,12 +62,12 @@ type routePath struct {
 	Vars  []*pathVariable
 }
 
-type pathFieldVar struct {
+type PathFieldVar struct {
 	Fields []string
 	Value  string
 }
 
-func (r routePath) Match(urls []string, verb string) ([]pathFieldVar, error) {
+func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 	if len(urls) < len(r.Paths) {
 		return nil, errors.New("urls length not match")
 	}
@@ -95,9 +95,9 @@ func (r routePath) Match(urls []string, verb string) ([]pathFieldVar, error) {
 		return nil, errors.New("path is not match")
 	}
 
-	var vv []pathFieldVar
+	var vv []PathFieldVar
 	for _, v := range r.Vars {
-		pathVar := pathFieldVar{Fields: v.Fields}
+		pathVar := PathFieldVar{Fields: v.Fields}
 		if v.end > 0 {
 			pathVar.Value = strings.Join(urls[v.start:v.end+1], "/")
 		} else {

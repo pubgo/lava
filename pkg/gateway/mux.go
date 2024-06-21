@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
@@ -20,7 +21,6 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
-	"github.com/pubgo/lava/pkg/gateway/internal/routex"
 	"github.com/pubgo/lava/pkg/httputil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -45,7 +45,7 @@ type muxOptions struct {
 	errHandler            func(err error, ctx *fiber.Ctx)
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	handlers              map[string]*methodWrap
+	handlers              map[string]*methodWrapper
 }
 
 // MuxOption is an option for a mux.
@@ -66,7 +66,7 @@ var (
 		types:                 protoregistry.GlobalTypes,
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		handlers:              make(map[string]*methodWrap),
+		handlers:              make(map[string]*methodWrapper),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -127,13 +127,10 @@ var _ Gateway = (*Mux)(nil)
 type Mux struct {
 	cc         *inprocgrpc.Channel
 	opts       *muxOptions
-	route      *routex.RouteTrie
 	routerTree *routertree.RouteTree
 }
 
-func (m *Mux) GetRouteMethods() []*routex.RouteTarget {
-	return m.route.GetRouteMethods()
-}
+func (m *Mux) GetRouteMethods() []RouteOperation { return m.routerTree.List() }
 
 func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
 	m.opts.responseInterceptors[name] = f
@@ -144,29 +141,29 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
-	restTarget, restVars, _ := m.route.Match(string(ctx.Request().URI().Path()), ctx.Method())
-	if restTarget == nil {
-		return errors.Wrapf(fiber.ErrNotFound, "path=%s", string(ctx.Request().URI().Path()))
+	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
+	if err != nil {
+		return errors.WrapCaller(err)
 	}
 
 	defer func() {
 		ctx.Response().Header.Set(httputil.HeaderXRequestID, lava.GetReqID(ctx.Context()))
 		ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
-		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, restTarget.GrpcMethodName)
+		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
 	}()
 
 	values := make(url.Values)
-	for _, v := range restVars {
-		values.Set(v.Name, v.Value)
+	for _, v := range matchOperation.Vars {
+		values.Set(strings.Join(v.Fields, "."), v.Value)
 	}
 
 	for k, v := range ctx.Queries() {
 		values.Set(k, v)
 	}
 
-	mth := m.opts.handlers[restTarget.GrpcMethodName]
+	mth := m.opts.handlers[matchOperation.Operation]
 	if mth == nil {
-		return errors.NewFmt("grpc method not found, method=%s", restTarget.GrpcMethodName)
+		return errors.Format("grpc method not found, method=%s", matchOperation.Operation)
 	}
 
 	md := metadata.New(nil)
@@ -180,7 +177,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		ctx:     rspCtx,
 		method:  mth,
 		params:  values,
-		path:    restTarget,
+		path:    matchOperation,
 	}))
 }
 
@@ -242,7 +239,6 @@ func NewMux(opts ...MuxOption) *Mux {
 	mux := &Mux{
 		opts:       &muxOpts,
 		cc:         new(inprocgrpc.Channel),
-		route:      routex.NewRouteTrie(),
 		routerTree: routertree.NewRouteTree(),
 	}
 
@@ -278,8 +274,8 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	}
 }
 
-func (m *Mux) registerRouter(rule *methodWrap) {
-	m.opts.handlers[rule.grpcMethodName] = rule
+func (m *Mux) registerRouter(rule *methodWrapper) {
+	m.opts.handlers[rule.grpcFullMethod] = rule
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -293,11 +289,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		return errors.Format("invalid httpPathRule descriptor %T", d)
 	}
 
-	srv := &serviceWrap{
-		opts:        m.opts,
-		srv:         ss,
-		serviceDesc: gsd,
-		servicePB:   sd,
+	srv := &serviceWrapper{
+		opts:          m.opts,
+		srv:           ss,
+		serviceDesc:   gsd,
+		servicePbDesc: sd,
 	}
 
 	findMethodDesc := func(methodName string) protoreflect.MethodDescriptor {
@@ -313,18 +309,16 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		grpcMethod := fmt.Sprintf("/%s/%s", gsd.ServiceName, grpcMth.MethodName)
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
-		m.registerRouter(&methodWrap{
-			srv:            srv,
-			methodDesc:     grpcMth,
-			grpcMethod:     methodDesc,
-			grpcMethodName: grpcMethod,
+		m.registerRouter(&methodWrapper{
+			srv:              srv,
+			grpcMethodDesc:   grpcMth,
+			grpcMethodPbDesc: methodDesc,
+			grpcFullMethod:   grpcMethod,
 		})
 
-		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
 		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
 		}))
-
 	}
 
 	for i := range gsd.Streams {
@@ -334,13 +328,13 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 
 		methodDesc := findMethodDesc(grpcMth.StreamName)
 
-		m.registerRouter(&methodWrap{
-			srv:            srv,
-			streamDesc:     grpcMth,
-			grpcMethod:     methodDesc,
-			grpcMethodName: grpcMethod,
+		m.registerRouter(&methodWrapper{
+			srv:              srv,
+			grpcStreamDesc:   grpcMth,
+			grpcMethodPbDesc: methodDesc,
+			grpcFullMethod:   grpcMethod,
 		})
-		assert.Must(m.route.AddRoute(grpcMethod, methodDesc))
+
 		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod))
 		}))
@@ -349,7 +343,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	return nil
 }
 
-func GetRouterTarget(mux *Mux, kind, path string) (*RouteTarget, error) {
+func GetRouterTarget(mux *Mux, kind, path string) (*MatchOperation, error) {
 	if path == "" {
 		return nil, errors.New("path is null")
 	}
@@ -358,9 +352,9 @@ func GetRouterTarget(mux *Mux, kind, path string) (*RouteTarget, error) {
 		kind = "ws"
 	}
 
-	restTarget, _, _ := mux.route.Match(path, kind)
-	if restTarget == nil {
-		return nil, errors.Format("path not found, kind=%s path=%s", kind, path)
+	restTarget, err := mux.routerTree.Match(path, kind)
+	if err != nil {
+		return nil, errors.Wrapf(err, "path not found, kind=%s path=%s", kind, path)
 	}
 
 	return restTarget, nil
