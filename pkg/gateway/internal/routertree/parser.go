@@ -18,7 +18,7 @@ const (
 var (
 	parser = assert.Exit1(participle.Build[httpRule](
 		participle.Lexer(assert.Exit1(lexer.NewSimple([]lexer.SimpleRule{
-			{Name: "Ident", Pattern: `[a-zA-Z]\w*`},
+			{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
 			{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
 		}))),
 	))
@@ -43,7 +43,7 @@ type segments struct {
 
 type segment struct {
 	Path     *string   `@("*" "*" | "*" | Ident)`
-	Variable *variable `| @@`
+	Variable *variable `| @@*`
 }
 
 type variable struct {
@@ -179,4 +179,6 @@ func parseToRoute(rule *httpRule) *routePath {
 
 func parse(url string) (*httpRule, error) {
 	return parser.ParseString("", url)
+	//participle.AllowTrailing(true),
+	//participle.Trace(os.Stdout),
 }
