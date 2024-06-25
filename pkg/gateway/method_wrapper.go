@@ -55,6 +55,20 @@ func (h methodWrapper) Handle(stream grpc.ServerStream) error {
 			h.srv.opts.streamInterceptor(nil, stream, info, func(srv any, stream grpc.ServerStream) error {
 				_ = stream
 				_ = clientStream
+
+				go func() {
+					for {
+						var msg any
+						clientStream.RecvMsg(&msg)
+						stream.SendMsg(msg)
+					}
+				}()
+
+				for {
+					var msg any
+					stream.RecvMsg(&msg)
+					clientStream.SendMsg(msg)
+				}
 			})
 		}
 
