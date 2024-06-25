@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -146,10 +147,12 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		return errors.WrapCaller(err)
 	}
 
+	var now = time.Now()
 	defer func() {
 		ctx.Response().Header.Set(httputil.HeaderXRequestID, lava.GetReqID(ctx.Context()))
 		ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
 		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+		ctx.Response().Header.Set("X-Request-Latency", strconv.Itoa(int(time.Since(now).Milliseconds())))
 	}()
 
 	values := make(url.Values)

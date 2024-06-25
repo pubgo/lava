@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"github.com/pubgo/funk/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -9,6 +10,7 @@ import (
 type serviceWrapper struct {
 	opts          *muxOptions
 	srv           interface{}
+	target        grpc.ClientConnInterface
 	serviceDesc   *grpc.ServiceDesc
 	servicePbDesc protoreflect.ServiceDescriptor
 }
@@ -27,17 +29,33 @@ func (h methodWrapper) Handle(stream grpc.ServerStream) error {
 	if h.grpcMethodDesc != nil {
 		ctx := stream.Context()
 
-		reply, err := h.grpcMethodDesc.Handler(h.srv.srv, ctx, stream.RecvMsg, h.srv.opts.unaryInterceptor)
-		if err != nil {
-			return errors.WrapCaller(err)
+		if h.srv.target != nil {
+			h.srv.opts.unaryInterceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
+				h.srv.target.Invoke(stream.Context(), "", nil, nil)
+			})
+		} else {
+			reply, err := h.grpcMethodDesc.Handler(h.srv.srv, ctx, stream.RecvMsg, h.srv.opts.unaryInterceptor)
+			if err != nil {
+				return errors.WrapCaller(err)
+			}
+
+			return errors.WrapCaller(stream.SendMsg(reply))
 		}
 
-		return errors.WrapCaller(stream.SendMsg(reply))
 	} else {
 		info := &grpc.StreamServerInfo{
 			FullMethod:     h.grpcFullMethod,
 			IsClientStream: h.grpcStreamDesc.ClientStreams,
 			IsServerStream: h.grpcStreamDesc.ServerStreams,
+		}
+
+		if h.srv.target != nil {
+			clientStream, err := h.srv.target.NewStream(nil, h.grpcStreamDesc, "", nil)
+
+			h.srv.opts.streamInterceptor(nil, stream, info, func(srv any, stream grpc.ServerStream) error {
+				_ = stream
+				_ = clientStream
+			})
 		}
 
 		if h.srv.opts.streamInterceptor != nil {
