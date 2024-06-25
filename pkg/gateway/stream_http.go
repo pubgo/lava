@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -123,7 +124,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 	}
 
 	if s.params != nil && len(s.params) > 0 {
-		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
+		if err := grpcutil.PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
 			return errors.Wrapf(err, "failed to set query params, params=%v", s.params)
 		}
 	}

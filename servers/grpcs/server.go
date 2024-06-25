@@ -83,6 +83,7 @@ func (s *serviceImpl) DixInject(
 	handlers []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
 	dixMiddlewares []lava.Middleware,
+	proxyList []lava.ProxyRouter,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,

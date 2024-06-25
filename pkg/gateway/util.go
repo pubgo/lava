@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/textproto"
-	"strconv"
 	"strings"
 
 	"github.com/pubgo/funk/assert"
@@ -58,13 +57,6 @@ func fieldPathToDesc(fields protoreflect.FieldDescriptors, names ...string) []pr
 		}
 	}
 	return fds
-}
-
-func quote(raw []byte) []byte {
-	if n := len(raw); n > 0 && (raw[0] != '"' || raw[n-1] != '"') {
-		raw = strconv.AppendQuote(raw[:0], string(raw))
-	}
-	return raw
 }
 
 // getExtensionHTTP

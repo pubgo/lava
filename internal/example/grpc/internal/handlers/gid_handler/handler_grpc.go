@@ -34,6 +34,7 @@ var (
 )
 
 type Id struct {
+	gidpb.IdServer
 	cron      *scheduler.Scheduler
 	metric    metrics.Metric
 	snowflake *snowflake.Snowflake
@@ -54,16 +55,16 @@ func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.Typ
 	return rsp, nil
 }
 
-func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
-	for {
-		hello, err := server.Recv()
-		if err != nil {
-			return err
-		}
-		log.Info().Msg(hello.Name)
-		fmt.Println(server.Send(hello))
-	}
-}
+//func (id *Id) Chat1(server gidpb.Id_Chat1Server) error {
+//	for {
+//		hello, err := server.Recv()
+//		if err != nil {
+//			return err
+//		}
+//		log.Info().Msg(hello.Name)
+//		fmt.Println(server.Send(hello))
+//	}
+//}
 
 func (id *Id) UploadDownload(ctx context.Context, request *gidpb.UploadFileRequest) (*httpbody.HttpBody, error) {
 	log.Info().Msg(request.Filename)

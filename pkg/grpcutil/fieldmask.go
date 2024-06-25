@@ -1,4 +1,4 @@
-package gateway
+package grpcutil
 
 import (
 	"encoding/json"

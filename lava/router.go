@@ -24,3 +24,9 @@ type HttpRouter interface {
 	Prefix() string
 	// Annotation() []Annotation
 }
+
+type ProxyRouter interface {
+	GrpcRouter
+	Prefix() string
+	Target() grpc.ClientConnInterface
+}
