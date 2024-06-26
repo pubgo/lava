@@ -31,6 +31,7 @@ func (h methodWrapper) Handle(stream grpc.ServerStream) error {
 
 		if h.srv.target != nil {
 			h.srv.opts.unaryInterceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
+				// change header
 				h.srv.target.Invoke(stream.Context(), "", nil, nil)
 			})
 		} else {
