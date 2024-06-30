@@ -144,7 +144,7 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {
 	act := m.opts.actions[name]
-	if act != nil {
+	if act == nil {
 		return nil
 	}
 
