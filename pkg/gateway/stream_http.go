@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/lava/pkg/gateway/internal/routex"
+	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -17,8 +17,8 @@ import (
 )
 
 type streamHTTP struct {
-	method     *methodWrap
-	path       *routex.RouteTarget
+	method     *methodWrapper
+	path       *routertree.MatchOperation
 	handler    *fiber.Ctx
 	ctx        context.Context
 	header     metadata.MD
@@ -61,7 +61,7 @@ func (s *streamHTTP) Context() context.Context {
 		s.ctx,
 		&serverTransportStream{
 			ServerStream: s,
-			method:       s.method.grpcMethodName,
+			method:       s.method.grpcFullMethod,
 		},
 	)
 }
@@ -75,7 +75,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	}
 
 	cur := reply.ProtoReflect()
-	for _, fd := range s.path.ResponseBodyFields {
+	for _, fd := range getReqBodyDesc(s.path) {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
@@ -98,12 +98,12 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 func (s *streamHTTP) RecvMsg(m interface{}) error {
 	args := m.(proto.Message)
 
-	if s.path.HttpMethod == http.MethodPut ||
-		s.path.HttpMethod == http.MethodPost ||
-		s.path.HttpMethod == http.MethodDelete ||
-		s.path.HttpMethod == http.MethodPatch {
+	if s.handler.Method() == http.MethodPut ||
+		s.handler.Method() == http.MethodPost ||
+		s.handler.Method() == http.MethodDelete ||
+		s.handler.Method() == http.MethodPatch {
 		cur := args.ProtoReflect()
-		for _, fd := range s.path.RequestBodyFields {
+		for _, fd := range getRspBodyDesc(s.path) {
 			cur = cur.Mutable(fd).Message()
 		}
 		msg := cur.Interface()
