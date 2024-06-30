@@ -46,6 +46,7 @@ type muxOptions struct {
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	handlers              map[string]*methodWrapper
+	actions               map[string]*methodWrapper
 }
 
 // MuxOption is an option for a mux.
@@ -67,6 +68,7 @@ var (
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		handlers:              make(map[string]*methodWrapper),
+		actions:               make(map[string]*methodWrapper),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -140,21 +142,22 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 	m.opts.requestInterceptors[name] = f
 }
 
+func (m *Mux) GetOperationByName(name string) *GrpcMethod {
+	act := m.opts.actions[name]
+	if act != nil {
+		return nil
+	}
+
+	return handleOperation(act)
+}
+
 func (m *Mux) GetOperation(operation string) *GrpcMethod {
 	var opt = m.opts.handlers[operation]
 	if opt == nil {
 		return nil
 	}
 
-	return &GrpcMethod{
-		Srv:            opt.srv.srv,
-		SrvDesc:        opt.srv.serviceDesc,
-		GrpcMethodDesc: opt.grpcMethodDesc,
-		GrpcStreamDesc: opt.grpcStreamDesc,
-		MethodDesc:     opt.grpcMethodPbDesc,
-		GrpcFullMethod: opt.grpcFullMethod,
-		Meta:           opt.meta,
-	}
+	return handleOperation(opt)
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
@@ -293,6 +296,9 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 
 func (m *Mux) registerRouter(rule *methodWrapper) {
 	m.opts.handlers[rule.grpcFullMethod] = rule
+	if rule.meta != nil {
+		m.opts.actions[rule.meta.Name] = rule
+	}
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -377,4 +383,16 @@ func GetRouterTarget(mux *Mux, kind, path string) (*MatchOperation, error) {
 	}
 
 	return restTarget, nil
+}
+
+func handleOperation(opt *methodWrapper) *GrpcMethod {
+	return &GrpcMethod{
+		Srv:            opt.srv.srv,
+		SrvDesc:        opt.srv.serviceDesc,
+		GrpcMethodDesc: opt.grpcMethodDesc,
+		GrpcStreamDesc: opt.grpcStreamDesc,
+		MethodDesc:     opt.grpcMethodPbDesc,
+		GrpcFullMethod: opt.grpcFullMethod,
+		Meta:           opt.meta,
+	}
 }

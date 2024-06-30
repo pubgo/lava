@@ -86,7 +86,7 @@ func getExtensionRpc(m protoreflect.MethodDescriptor) *lavapbv1.RpcMeta {
 		return nil
 	}
 
-	ext, ok := proto.GetExtension(m.Options(), lavapbv1.E_Rpc).(*lavapbv1.RpcMeta)
+	ext, ok := proto.GetExtension(m.Options(), lavapbv1.E_Options).(*lavapbv1.RpcMeta)
 	if ok {
 		return ext
 	}

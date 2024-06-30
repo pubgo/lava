@@ -25,6 +25,7 @@ type (
 		SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
 		RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
+		GetOperation(operation string) *GrpcMethod
 		Handler(*fiber.Ctx) error
 		ServeHTTP(http.ResponseWriter, *http.Request)
 		GetRouteMethods() []RouteOperation

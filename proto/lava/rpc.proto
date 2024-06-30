@@ -12,5 +12,5 @@ message RpcMeta {
 }
 
 extend google.protobuf.MethodOptions {
-    RpcMeta rpc = 100004;
+    RpcMeta options = 100004;
 }
