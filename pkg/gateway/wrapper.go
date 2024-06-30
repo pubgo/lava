@@ -2,15 +2,28 @@ package gateway
 
 import (
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type serviceWrapper struct {
 	opts          *muxOptions
-	srv           interface{}
+	srv           any
 	serviceDesc   *grpc.ServiceDesc
 	servicePbDesc protoreflect.ServiceDescriptor
+}
+
+type GrpcMethod struct {
+	Srv     any
+	SrvDesc *grpc.ServiceDesc
+
+	GrpcMethodDesc *grpc.MethodDesc
+	GrpcStreamDesc *grpc.StreamDesc
+	MethodDesc     protoreflect.MethodDescriptor
+
+	GrpcFullMethod string
+	Meta           *lavapbv1.RpcMeta
 }
 
 type methodWrapper struct {
@@ -21,6 +34,7 @@ type methodWrapper struct {
 
 	// /{ServiceName}/{MethodName}
 	grpcFullMethod string
+	meta           *lavapbv1.RpcMeta
 }
 
 func (h methodWrapper) Handle(stream grpc.ServerStream) error {

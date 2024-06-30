@@ -12,6 +12,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -74,6 +75,18 @@ func getExtensionHTTP(m protoreflect.MethodDescriptor) *annotations.HttpRule {
 	}
 
 	ext, ok := proto.GetExtension(m.Options(), annotations.E_Http).(*annotations.HttpRule)
+	if ok {
+		return ext
+	}
+	return nil
+}
+
+func getExtensionRpc(m protoreflect.MethodDescriptor) *lavapbv1.RpcMeta {
+	if m == nil || m.Options() == nil {
+		return nil
+	}
+
+	ext, ok := proto.GetExtension(m.Options(), lavapbv1.E_Rpc).(*lavapbv1.RpcMeta)
 	if ok {
 		return ext
 	}

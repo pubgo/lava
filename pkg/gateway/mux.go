@@ -140,6 +140,23 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 	m.opts.requestInterceptors[name] = f
 }
 
+func (m *Mux) GetOperation(operation string) *GrpcMethod {
+	var opt = m.opts.handlers[operation]
+	if opt == nil {
+		return nil
+	}
+
+	return &GrpcMethod{
+		Srv:            opt.srv.srv,
+		SrvDesc:        opt.srv.serviceDesc,
+		GrpcMethodDesc: opt.grpcMethodDesc,
+		GrpcStreamDesc: opt.grpcStreamDesc,
+		MethodDesc:     opt.grpcMethodPbDesc,
+		GrpcFullMethod: opt.grpcFullMethod,
+		Meta:           opt.meta,
+	}
+}
+
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 	if err != nil {
@@ -314,9 +331,10 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcMethodDesc:   grpcMth,
 			grpcMethodPbDesc: methodDesc,
 			grpcFullMethod:   grpcMethod,
+			meta:             getExtensionRpc(methodDesc),
 		})
 
-		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}
@@ -333,9 +351,10 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 			grpcStreamDesc:   grpcMth,
 			grpcMethodPbDesc: methodDesc,
 			grpcFullMethod:   grpcMethod,
+			meta:             getExtensionRpc(methodDesc),
 		})
 
-		assert.Must(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}
