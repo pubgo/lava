@@ -3,7 +3,7 @@ module github.com/pubgo/lava
 go 1.22
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
