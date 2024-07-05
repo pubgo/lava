@@ -68,7 +68,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		// 错误和panic处理
 		defer func() {
 			if !generic.IsNil(gErr) || logOpts["all"] {
-				if !strings.HasPrefix(req.ContentType(), "multipart/form-data") {
+				if strings.HasPrefix(req.ContentType(), "application/json") {
 					evt.Any("req_body", req.Payload())
 					evt.Bytes("req_header", req.Header().Header())
 					if rsp != nil {
