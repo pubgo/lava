@@ -128,7 +128,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 					}
 
 					if pb.Code.StatusCode == errorpb.Code_OK {
-						log.Warn(ctx).Any("code", pb.Code).Msg("rpc response error with grpc status code is 0")
+						log.Warn(ctx).Any("code", pb.Code).Msg("grpc response error with status code is 0")
 					}
 
 					if pb.Code.Code == 0 {
