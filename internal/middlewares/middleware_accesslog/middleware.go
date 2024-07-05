@@ -102,30 +102,41 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
 				pb := errutil.ParseError(gErr)
-				if pb.Trace == nil {
-					pb.Trace = new(errorpb.ErrTrace)
-				}
-				pb.Trace.Operation = req.Operation()
-				pb.Trace.Service = req.Service()
-				pb.Trace.Version = version.Version()
-
-				if pb.Msg != nil {
-					pb.Msg = new(errorpb.ErrMsg)
-				}
-				pb.Msg.Msg = gErr.Error()
-				pb.Msg.Detail = fmt.Sprintf("%#v", gErr)
-				if pb.Msg.Tags == nil {
-					pb.Msg.Tags = make(map[string]string)
+				{
+					if pb.Trace == nil {
+						pb.Trace = new(errorpb.ErrTrace)
+					}
+					pb.Trace.Operation = req.Operation()
+					pb.Trace.Service = req.Service()
+					pb.Trace.Version = version.Version()
 				}
 
-				if pb.Code.Message == "" {
-					pb.Code.Message = gErr.Error()
+				{
+					if pb.Msg != nil {
+						pb.Msg = new(errorpb.ErrMsg)
+					}
+					pb.Msg.Msg = gErr.Error()
+					pb.Msg.Detail = fmt.Sprintf("%#v", gErr)
+					if pb.Msg.Tags == nil {
+						pb.Msg.Tags = make(map[string]string)
+					}
 				}
 
-				if pb.Code.Code == 0 {
-					pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
-					pb.Code.StatusCode = errorpb.Code_Internal
+				{
+					if pb.Code.Message == "" {
+						pb.Code.Message = gErr.Error()
+					}
+
+					if pb.Code.StatusCode == errorpb.Code_OK {
+						log.Warn(ctx).Any("code", pb.Code).Msg("rpc response error with grpc status code is 0")
+					}
+
+					if pb.Code.Code == 0 {
+						pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
+						pb.Code.StatusCode = errorpb.Code_Internal
+					}
 				}
+
 				gErr = errutil.ConvertErr2Status(pb).Err()
 			}
 			e.Msg("record request")
