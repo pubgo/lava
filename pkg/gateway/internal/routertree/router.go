@@ -41,7 +41,8 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 	}
 
 	var nodes = r.nodes
-	for i, n := range node.Paths {
+	paths := append(node.Paths, handlerMethod(method))
+	for i, n := range paths {
 		var lastNode = nodes[n]
 		if lastNode == nil {
 			lastNode = &nodeTree{nodes: make(map[string]*nodeTree), verbs: make(map[string]*routeTarget)}
@@ -49,7 +50,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 		}
 		nodes = lastNode.nodes
 
-		if i == len(node.Paths)-1 {
+		if i == len(paths)-1 {
 			lastNode.verbs[generic.FromPtr(node.Verb)] = &routeTarget{
 				Method:    method,
 				Path:      path,
@@ -76,6 +77,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 		verb = lastPath[1]
 	}
 
+	paths = append(paths, handlerMethod(method))
 	var getVars = func(vars []*pathVariable, paths []string) []PathFieldVar {
 		var vv = make([]PathFieldVar, 0, len(vars))
 		for _, v := range vars {
@@ -173,4 +175,8 @@ func getOpt(nodes map[string]*nodeTree) []RouteOperation {
 		sets = append(sets, getOpt(n.nodes)...)
 	}
 	return sets
+}
+
+func handlerMethod(method string) string {
+	return fmt.Sprintf("__%s__", strings.ToUpper(method))
 }
