@@ -206,6 +206,7 @@ func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts .
 }
 
 func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	desc.Handler(new(methodWrapper).srv.srv, new(serverInProcess))
 	return m.cc.NewStream(ctx, desc, method, opts...)
 }
 
