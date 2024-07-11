@@ -51,6 +51,8 @@ func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.Typ
 		"snowflake",
 		"bigflake",
 	}
+	var req1 = resty.NewRequest(typesReq)
+	id.service.IClient.Do(nil, req1)
 	return rsp, nil
 }
 
