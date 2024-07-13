@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/funk/result"
 	"math"
 	"net/http"
 	"net/url"
@@ -19,6 +18,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
