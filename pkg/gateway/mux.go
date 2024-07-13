@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/result"
 	"math"
 	"net/http"
 	"net/url"
@@ -46,7 +47,7 @@ type muxOptions struct {
 	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
 	handlers              map[string]*methodWrapper
-	actions               map[string]*methodWrapper
+	customOperationNames  map[string]*methodWrapper
 }
 
 // MuxOption is an option for a mux.
@@ -68,7 +69,7 @@ var (
 		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
 		handlers:              make(map[string]*methodWrapper),
-		actions:               make(map[string]*methodWrapper),
+		customOperationNames:  make(map[string]*methodWrapper),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -142,13 +143,30 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 	m.opts.requestInterceptors[name] = f
 }
 
+func (m *Mux) MatchOperation(method string, path string) (r result.Result[*MatchOperation]) {
+	restTarget, err := m.routerTree.Match(method, path)
+	if err != nil {
+		return r.WithErr(errors.Wrapf(err, "path not found, method=%s path=%s", method, path))
+	}
+
+	return r.WithVal(restTarget)
+}
+
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {
-	act := m.opts.actions[name]
+	act := m.opts.customOperationNames[name]
 	if act == nil {
 		return nil
 	}
 
 	return handleOperation(act)
+}
+
+func (m *Mux) HandleStream(operation string, stream grpc.ServerStream) error {
+	mth := m.opts.handlers[operation]
+	if mth == nil {
+		return errors.Format("grpc method not found, method=%s", operation)
+	}
+	return errors.WrapCaller(mth.Handle(stream))
 }
 
 func (m *Mux) GetOperation(operation string) *GrpcMethod {
@@ -297,7 +315,7 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 func (m *Mux) registerRouter(rule *methodWrapper) {
 	m.opts.handlers[rule.grpcFullMethod] = rule
 	if rule.meta != nil {
-		m.opts.actions[rule.meta.Name] = rule
+		m.opts.customOperationNames[rule.meta.Name] = rule
 	}
 }
 
