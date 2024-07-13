@@ -11,3 +11,4 @@ package gateway
 // github.com/improbable-eng/grpc-web
 // github.com/grpc-ecosystem/grpc-gateway/v2
 // https://github.com/nhooyr/websocket
+// https://github.com/connectrpc/vanguard-go
