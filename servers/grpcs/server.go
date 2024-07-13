@@ -370,9 +370,9 @@ func (s *serviceImpl) DixInject(
 	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
-			Str("method-name", m.Operation).
+			Str("operation", m.Operation).
 			Str("http-method", m.Method).
-			Str("http-path", assert.Must1(url.JoinPath(apiPrefix1, m.Path))).
+			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
 			Str("verb", m.Verb).
 			Any("path-vars", m.Vars).
 			Any("extras", m.Extras).

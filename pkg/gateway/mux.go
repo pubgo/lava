@@ -317,6 +317,9 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 	if rule.meta != nil {
 		m.opts.customOperationNames[rule.meta.Name] = rule
 	}
+
+	assert.Exit(m.routerTree.Add(http.MethodPost, rule.grpcFullMethod, rule.grpcFullMethod,
+		resolveBodyDesc(rule.grpcMethodPbDesc, "*", "*")))
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
