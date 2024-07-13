@@ -58,10 +58,7 @@ func (s *streamHTTP) SetTrailer(md metadata.MD) {
 }
 
 func (s *streamHTTP) Context() context.Context {
-	return grpc.NewContextWithServerTransportStream(
-		s.ctx,
-		&serverTransportStream{ServerStream: s, method: s.method.grpcFullMethod},
-	)
+	return NewContextWithServerTransportStream(s.ctx, s, s.method.grpcFullMethod)
 }
 
 func (s *streamHTTP) SendMsg(m interface{}) error {
