@@ -375,7 +375,7 @@ func (s *serviceImpl) DixInject(
 			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
 			Str("verb", m.Verb).
 			Any("path-vars", m.Vars).
-			Any("extras", m.Extras).
+			Str("extras", fmt.Sprintf("%v", m.Extras)).
 			Msg("grpc gateway router info")
 	}
 

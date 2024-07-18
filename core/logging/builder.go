@@ -9,9 +9,16 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/rs/zerolog"
 )
+
+func init() {
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		return stack.Stack(pc).Short()
+	}
+}
 
 // New logger
 func New(cfg *Config) log.Logger {
