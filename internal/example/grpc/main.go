@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pubgo/funk/log"
+	_ "github.com/pubgo/lava/core/debug/logdy"
 	"github.com/pubgo/lava/internal/example/grpc/internal/bootstrap"
 )
 

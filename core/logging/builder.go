@@ -1,10 +1,13 @@
 package logging
 
 import (
-	"fmt"
 	"os"
 	"time"
 
+	"github.com/logdyhq/logdy-core/http"
+	"github.com/logdyhq/logdy-core/models"
+	"github.com/logdyhq/logdy-core/modes"
+	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
@@ -67,7 +70,12 @@ type writer struct {
 func (w writer) Write(p []byte) (n int, err error) {
 	n, err = w.ConsoleWriter.Write(p)
 	if err != nil {
-		fmt.Println("invalid json: ", string(p))
+		log.Err(err).Str("raw_json", string(p)).Msg("failed to decode invalid json")
+		return
+	}
+
+	if http.Ch != nil {
+		go modes.ProduceMessageString(http.Ch, convert.BtoS(p), models.MessageTypeStdout, &models.MessageOrigin{})
 	}
 	return
 }
