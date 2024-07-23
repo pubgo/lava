@@ -371,6 +371,7 @@ func (s *serviceImpl) DixInject(
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
 			Str("operation", m.Operation).
+			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
 			Str("http-method", m.Method).
 			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
 			Str("verb", m.Verb).

@@ -24,7 +24,10 @@ service Id {
 
     // Generate 生成ID
     rpc Generate (GenerateRequest) returns (GenerateResponse) {
-        option (lava.rpc.options) = {name: "id.gen"};
+        option (lava.rpc.options) = {
+            name: "id.gen",
+            tags: [{key: "internal",value: "true"},{key: "hello",value: "world"}]
+        };
         option (google.api.http) = {
             post: "/v1/id/generate"
             body: "*"

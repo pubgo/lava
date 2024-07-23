@@ -16,7 +16,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.45
+    version: v0.5.48
 plugins:
   - name: go
   - name: go-errors
