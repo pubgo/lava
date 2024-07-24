@@ -211,7 +211,6 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	}
 
 	rspCtx := metadata.NewIncomingContext(ctx.Context(), md)
-
 	return errors.WrapCaller(mth.Handle(&streamHTTP{
 		handler: ctx,
 		ctx:     rspCtx,
