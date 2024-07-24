@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/pubgo/funk/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,13 +24,14 @@ var (
 // TransparentHandler returns a handler that attempts to proxy all requests that are not registered in the server.
 // The indented use here is as a transparent proxy, where the server doesn't know about the services implemented by the
 // backends. It should be used as a `grpc.UnknownServiceHandler`.
-func TransparentHandler(director StreamDirector) grpc.StreamHandler {
-	streamer := &handler{director: director}
+func TransparentHandler(director StreamDirector, opts ...grpc.CallOption) grpc.StreamHandler {
+	streamer := &handler{director: director, opts: opts}
 	return streamer.handler
 }
 
 type handler struct {
 	director StreamDirector
+	opts     []grpc.CallOption
 }
 
 // handler is where the real magic of proxying happens.
@@ -41,18 +43,20 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	if !ok {
 		return status.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
+
 	// We require that the director's returned context inherits from the serverStream.Context().
 	outgoingCtx, backendConn, err := s.director(serverStream.Context(), fullMethodName)
 	if err != nil {
-		return err
+		return errors.WrapCaller(err)
 	}
 
 	clientCtx, clientCancel := context.WithCancel(outgoingCtx)
 	defer clientCancel()
-	clientStream, err := backendConn.NewStream(clientCtx, clientStreamDescForProxying, fullMethodName)
+	clientStream, err := backendConn.NewStream(clientCtx, clientStreamDescForProxying, fullMethodName, s.opts...)
 	if err != nil {
-		return err
+		return errors.WrapCaller(err)
 	}
+
 	// Explicitly *do not close* s2cErrChan and c2sErrChan, otherwise the select below will not terminate.
 	// Channels do not have to be closed, it is just a control flow mechanism, see
 	// https://groups.google.com/forum/#!msg/golang-nuts/pZwdYRGxCIk/qpbHxRRPJdUJ

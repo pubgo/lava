@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"context"
-
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/grpc"
@@ -98,5 +97,5 @@ func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcM
 func grpcMethodStreamWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcStreamHandler {
 	return TransparentHandler(func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error) {
 		return ctx, mth.srv.remoteProxyCli, nil
-	})
+	}, opts...)
 }
