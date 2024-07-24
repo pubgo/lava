@@ -82,9 +82,9 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	msg := cur.Interface()
 
 	reqName := msg.ProtoReflect().Descriptor().FullName()
-	handler := s.method.srv.opts.responseInterceptors[reqName]
-	if handler != nil {
-		return errors.Wrapf(handler(s.handler, msg), "failed to handler response data by %s", reqName)
+	rspInterceptor := s.method.srv.opts.responseInterceptors[reqName]
+	if rspInterceptor != nil {
+		return errors.Wrapf(rspInterceptor(s.handler, msg), "failed to do rsp interceptor response data by %s", reqName)
 	}
 
 	b, err := protojson.Marshal(msg)
@@ -119,9 +119,9 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		msg := cur.Interface()
 
 		reqName := msg.ProtoReflect().Descriptor().FullName()
-		handler := s.method.srv.opts.requestInterceptors[reqName]
-		if handler != nil {
-			return errors.Wrapf(handler(s.handler, msg), "failed to handler request data by %s", reqName)
+		reqInterceptor := s.method.srv.opts.requestInterceptors[reqName]
+		if reqInterceptor != nil {
+			return errors.Wrapf(reqInterceptor(s.handler, msg), "failed to go req interceptor request data by %s", reqName)
 		}
 
 		if method == http.MethodPut ||

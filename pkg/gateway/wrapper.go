@@ -10,11 +10,11 @@ import (
 )
 
 type serviceWrapper struct {
-	opts          *muxOptions
-	srv           any
-	serviceDesc   *grpc.ServiceDesc
-	servicePbDesc protoreflect.ServiceDescriptor
-	grpcProxyCli  grpc.ClientConnInterface
+	opts           *muxOptions
+	srv            any
+	serviceDesc    *grpc.ServiceDesc
+	servicePbDesc  protoreflect.ServiceDescriptor
+	remoteProxyCli grpc.ClientConnInterface
 }
 
 type GrpcMethod struct {
@@ -79,7 +79,7 @@ func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcM
 
 		var h = func(ctx context.Context, req any) (any, error) {
 			var out = mth.outputType.New().Interface()
-			err := mth.srv.grpcProxyCli.Invoke(ctx, mth.grpcFullMethod, in, out, opts...)
+			err := mth.srv.remoteProxyCli.Invoke(ctx, mth.grpcFullMethod, in, out, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -97,6 +97,6 @@ func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcM
 
 func grpcMethodStreamWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcStreamHandler {
 	return TransparentHandler(func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error) {
-		return ctx, mth.srv.grpcProxyCli, nil
+		return ctx, mth.srv.remoteProxyCli, nil
 	})
 }

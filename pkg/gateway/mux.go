@@ -129,9 +129,9 @@ func CompressorOption(contentEncoding string, c Compressor) MuxOption {
 var _ Gateway = (*Mux)(nil)
 
 type Mux struct {
-	cc         *inprocgrpc.Channel
-	opts       *muxOptions
-	routerTree *routertree.RouteTree
+	localClient *inprocgrpc.Channel
+	opts        *muxOptions
+	routerTree  *routertree.RouteTree
 }
 
 func (m *Mux) GetRouteMethods() []RouteOperation { return m.routerTree.List() }
@@ -221,11 +221,23 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
-	return m.cc.Invoke(ctx, method, args, reply, opts...)
+	if mth := m.opts.handlers[method]; mth != nil {
+		if mth.srv.remoteProxyCli != nil {
+			return mth.srv.remoteProxyCli.Invoke(ctx, method, args, reply, opts...)
+		}
+	}
+
+	return m.localClient.Invoke(ctx, method, args, reply, opts...)
 }
 
 func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	return m.cc.NewStream(ctx, desc, method, opts...)
+	if mth := m.opts.handlers[method]; mth != nil {
+		if mth.srv.remoteProxyCli != nil {
+			return mth.srv.remoteProxyCli.NewStream(ctx, desc, method, opts...)
+		}
+	}
+
+	return m.localClient.NewStream(ctx, desc, method, opts...)
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -276,9 +288,9 @@ func NewMux(opts ...MuxOption) *Mux {
 	sort.Strings(muxOpts.encodingTypeOffers)
 
 	mux := &Mux{
-		opts:       &muxOpts,
-		cc:         new(inprocgrpc.Channel),
-		routerTree: routertree.NewRouteTree(),
+		opts:        &muxOpts,
+		localClient: new(inprocgrpc.Channel),
+		routerTree:  routertree.NewRouteTree(),
 	}
 
 	return mux
@@ -286,14 +298,14 @@ func NewMux(opts ...MuxOption) *Mux {
 
 func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
 	m.opts.unaryInterceptor = interceptor
-	m.cc.WithServerUnaryInterceptor(interceptor)
+	m.localClient.WithServerUnaryInterceptor(interceptor)
 }
 
 // SetStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
 func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.opts.streamInterceptor = interceptor
-	m.cc.WithServerStreamInterceptor(interceptor)
+	m.localClient.WithServerStreamInterceptor(interceptor)
 }
 
 func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcProxy) {
@@ -306,7 +318,7 @@ func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcProxy) {
 func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	assert.If(generic.IsNil(ss), "ss params is nil")
 
-	m.cc.RegisterService(sd, ss)
+	m.localClient.RegisterService(sd, ss)
 
 	ht := reflect.TypeOf(sd.HandlerType).Elem()
 	st := reflect.TypeOf(ss)
@@ -328,7 +340,7 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 	rule.inputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Input().FullName()))
 	rule.outputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Output().FullName()))
 
-	if rule.srv.grpcProxyCli != nil {
+	if rule.srv.remoteProxyCli != nil {
 		if rule.grpcMethodDesc != nil {
 			rule.grpcMethodDesc.Handler = grpcMethodHandlerWrapper(rule)
 		}
@@ -365,7 +377,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	}
 
 	if p, ok := ss.(lava.GrpcProxy); ok && p != nil {
-		srv.grpcProxyCli = p.Proxy()
+		srv.remoteProxyCli = p.Proxy()
 	}
 
 	findMethodDesc := func(methodName string) protoreflect.MethodDescriptor {
