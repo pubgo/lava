@@ -5,9 +5,9 @@ package gateway
 // https://github.com/dgrr/http2
 // https://github.com/r3labs/sse
 // https://github.com/googollee/go-socket.io
-// https://github.com/connectrpc/vanguard-go/tree/main
+// https://github.com/connectrpc/vanguard-go
 // https://github.com/twitchtv/twirp
-// https://github.com/stackrox/go-grpc-http1/blob/main/tools/imports.go
+// https://github.com/stackrox/go-grpc-http1
 // github.com/improbable-eng/grpc-web
 // github.com/grpc-ecosystem/grpc-gateway/v2
 // https://github.com/nhooyr/websocket

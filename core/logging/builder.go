@@ -75,7 +75,7 @@ func (w writer) Write(p []byte) (n int, err error) {
 	}
 
 	if http.Ch != nil {
-		go modes.ProduceMessageString(http.Ch, convert.BtoS(p), models.MessageTypeStdout, &models.MessageOrigin{})
+		go modes.ProduceMessageString(http.Ch, convert.BtoS(p[:n]), models.MessageTypeStdout, &models.MessageOrigin{})
 	}
 	return
 }

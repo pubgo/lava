@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"context"
+
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/grpc"
@@ -12,6 +14,7 @@ type serviceWrapper struct {
 	srv           any
 	serviceDesc   *grpc.ServiceDesc
 	servicePbDesc protoreflect.ServiceDescriptor
+	grpcProxyCli  grpc.ClientConnInterface
 }
 
 type GrpcMethod struct {
@@ -27,10 +30,13 @@ type GrpcMethod struct {
 }
 
 type methodWrapper struct {
-	srv              *serviceWrapper
-	grpcMethodDesc   *grpc.MethodDesc
-	grpcStreamDesc   *grpc.StreamDesc
-	grpcMethodPbDesc protoreflect.MethodDescriptor
+	srv                 *serviceWrapper
+	grpcMethodDesc      *grpc.MethodDesc
+	grpcStreamDesc      *grpc.StreamDesc
+	grpcMethodProtoDesc protoreflect.MethodDescriptor
+
+	inputType  protoreflect.MessageType
+	outputType protoreflect.MessageType
 
 	// /{ServiceName}/{MethodName}
 	grpcFullMethod string
@@ -47,7 +53,7 @@ func (h methodWrapper) Handle(stream grpc.ServerStream) error {
 		}
 
 		return errors.WrapCaller(stream.SendMsg(reply))
-	} else {
+	} else if h.grpcStreamDesc != nil {
 		info := &grpc.StreamServerInfo{
 			FullMethod:     h.grpcFullMethod,
 			IsClientStream: h.grpcStreamDesc.ClientStreams,
@@ -59,5 +65,38 @@ func (h methodWrapper) Handle(stream grpc.ServerStream) error {
 		} else {
 			return errors.WrapCaller(h.grpcStreamDesc.Handler(h.srv.srv, stream))
 		}
+	} else {
+		return errors.Format("cannot find server handler")
 	}
+}
+
+func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcMethodHandler {
+	return func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
+		var in = mth.inputType.New().Interface()
+		if err := dec(in); err != nil {
+			return nil, errors.WrapCaller(err)
+		}
+
+		var h = func(ctx context.Context, req any) (any, error) {
+			var out = mth.outputType.New().Interface()
+			err := mth.srv.grpcProxyCli.Invoke(ctx, mth.grpcFullMethod, in, out, opts...)
+			if err != nil {
+				return nil, err
+			}
+			return out, nil
+		}
+
+		// 获取 server header 并转换成 client header
+		if interceptor == nil {
+			return h(ctx, in)
+		}
+
+		return interceptor(ctx, in, &grpc.UnaryServerInfo{FullMethod: mth.grpcFullMethod}, h)
+	}
+}
+
+func grpcMethodStreamWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcStreamHandler {
+	return TransparentHandler(func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error) {
+		return ctx, mth.srv.grpcProxyCli, nil
+	})
 }

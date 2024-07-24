@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"io"
 	"net/http"
 
@@ -60,3 +61,7 @@ type StreamCodec interface {
 type Compressor interface {
 	encoding.Compressor
 }
+
+type GrpcMethodHandler = func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error)
+type GrpcStreamHandler = grpc.StreamHandler
+type StreamDirector func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error)

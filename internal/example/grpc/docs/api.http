@@ -9,3 +9,11 @@ Content-Type: application/json
 {
   "hello": "content"
 }
+
+### proxy
+POST http://localhost:8081/gid/gw/v1/id/echo
+Content-Type: application/json
+
+{
+  "hello": "hello"
+}

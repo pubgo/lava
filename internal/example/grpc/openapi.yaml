@@ -3,8 +3,7 @@
 
 openapi: 3.0.3
 info:
-    title: Id API
-    description: Id 生成随机ID服务
+    title: ""
     version: 0.0.1
 servers:
     - url: https:8080
@@ -31,6 +30,24 @@ paths:
                     description: OK
                     content:
                         '*/*': {}
+    /v1/id/echo:
+        post:
+            tags:
+                - IdProxy
+            operationId: IdProxy_Echo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EchoReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EchoRsp'
     /v1/id/generate:
         post:
             tags:
@@ -174,6 +191,16 @@ components:
                     type: string
                 msg:
                     $ref: '#/components/schemas/Message'
+        EchoReq:
+            type: object
+            properties:
+                hello:
+                    type: string
+        EchoRsp:
+            type: object
+            properties:
+                hello:
+                    type: string
         GenerateRequest:
             type: object
             properties:
@@ -225,3 +252,5 @@ components:
             description: TypesResponse 返回值类型
 tags:
     - name: Id
+      description: Id 生成随机ID服务
+    - name: IdProxy

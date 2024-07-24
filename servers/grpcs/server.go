@@ -80,8 +80,9 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
-	handlers []lava.GrpcRouter,
+	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
+	grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
@@ -193,7 +194,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	for _, handler := range handlers {
+	for _, handler := range grpcRouters {
 		//srv := doc.WithService()
 		//for _, an := range h.Annotation() {
 		//	switch a := an.(type) {
@@ -324,7 +325,7 @@ func (s *serviceImpl) DixInject(
 		mux = gw[0]
 	}
 	srvMidMap := make(map[string][]lava.Middleware)
-	for _, h := range handlers {
+	for _, h := range grpcRouters {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
 
@@ -350,6 +351,28 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	for _, h := range grpcProxy {
+		desc := h.ServiceDesc()
+		assert.If(desc == nil, "desc is nil")
+
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
+		if m, ok := h.(lava.Initializer); ok {
+			s.initList = append(s.initList, m.Initialize)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
+		}
+
+		mux.RegisterProxy(desc, h)
+	}
+
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
@@ -361,7 +384,7 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
 	).Expect("failed to build grpc server")
 
-	for _, h := range handlers {
+	for _, h := range grpcRouters {
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 

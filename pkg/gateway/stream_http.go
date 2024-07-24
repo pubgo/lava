@@ -134,7 +134,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 
 		if len(s.handler.Body()) > 0 {
 			if err := protojson.Unmarshal(s.handler.Body(), msg); err != nil {
-				return errors.Wrap(err, "failed to unmarshal body by proto-json")
+				return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
 			}
 		}
 	}

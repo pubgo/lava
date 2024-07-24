@@ -14,6 +14,7 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/mwitkow/grpc-proxy/proxy"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
@@ -204,12 +205,13 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		return errors.Format("grpc method not found, method=%s", matchOperation.Operation)
 	}
 
-	md := metadata.New(nil)
+	md := metadata.MD{}
 	for k, v := range ctx.GetReqHeaders() {
 		md.Append(k, v...)
 	}
 
 	rspCtx := metadata.NewIncomingContext(ctx.Context(), md)
+
 	return errors.WrapCaller(mth.Handle(&streamHTTP{
 		handler: ctx,
 		ctx:     rspCtx,
@@ -295,6 +297,12 @@ func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.cc.WithServerStreamInterceptor(interceptor)
 }
 
+func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcProxy) {
+	if err := m.registerService(sd, proxy); err != nil {
+		log.Fatal().Err(err).Msgf("gateway: RegisterProxy error: %v", err)
+	}
+}
+
 // RegisterService satisfies grpc.ServiceRegistrar for generated service code hooks.
 func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 	assert.If(generic.IsNil(ss), "ss params is nil")
@@ -318,8 +326,25 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 		m.opts.customOperationNames[rule.meta.Name] = rule
 	}
 
-	assert.Exit(m.routerTree.Add(http.MethodPost, rule.grpcFullMethod, rule.grpcFullMethod,
-		resolveBodyDesc(rule.grpcMethodPbDesc, "*", "*")))
+	rule.inputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Input().FullName()))
+	rule.outputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Output().FullName()))
+
+	if rule.srv.grpcProxyCli != nil {
+		if rule.grpcMethodDesc != nil {
+			rule.grpcMethodDesc.Handler = grpcMethodHandlerWrapper(rule)
+		}
+
+		if rule.grpcStreamDesc != nil {
+			rule.grpcStreamDesc.Handler = grpcMethodStreamWrapper(rule)
+		}
+	}
+
+	assert.Exit(m.routerTree.Add(
+		http.MethodPost,
+		rule.grpcFullMethod,
+		rule.grpcFullMethod,
+		resolveBodyDesc(rule.grpcMethodProtoDesc, "*", "*")),
+	)
 }
 
 func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
@@ -340,6 +365,10 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		servicePbDesc: sd,
 	}
 
+	if p, ok := ss.(lava.GrpcProxy); ok && p != nil {
+		srv.grpcProxyCli = p.Proxy()
+	}
+
 	findMethodDesc := func(methodName string) protoreflect.MethodDescriptor {
 		md := sd.Methods().ByName(protoreflect.Name(methodName))
 		assert.If(md == nil, "missing protobuf descriptor for %v", methodName)
@@ -354,11 +383,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		assert.If(m.opts.handlers[grpcMethod] != nil, "grpc httpPathRule has existed")
 
 		m.registerRouter(&methodWrapper{
-			srv:              srv,
-			grpcMethodDesc:   grpcMth,
-			grpcMethodPbDesc: methodDesc,
-			grpcFullMethod:   grpcMethod,
-			meta:             getExtensionRpc(methodDesc),
+			srv:                 srv,
+			grpcMethodDesc:      grpcMth,
+			grpcMethodProtoDesc: methodDesc,
+			grpcFullMethod:      grpcMethod,
+			meta:                getExtensionRpc(methodDesc),
 		})
 
 		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
@@ -374,11 +403,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 		methodDesc := findMethodDesc(grpcMth.StreamName)
 
 		m.registerRouter(&methodWrapper{
-			srv:              srv,
-			grpcStreamDesc:   grpcMth,
-			grpcMethodPbDesc: methodDesc,
-			grpcFullMethod:   grpcMethod,
-			meta:             getExtensionRpc(methodDesc),
+			srv:                 srv,
+			grpcStreamDesc:      grpcMth,
+			grpcMethodProtoDesc: methodDesc,
+			grpcFullMethod:      grpcMethod,
+			meta:                getExtensionRpc(methodDesc),
 		})
 
 		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
@@ -412,7 +441,7 @@ func handleOperation(opt *methodWrapper) *GrpcMethod {
 		SrvDesc:        opt.srv.serviceDesc,
 		GrpcMethodDesc: opt.grpcMethodDesc,
 		GrpcStreamDesc: opt.grpcStreamDesc,
-		MethodDesc:     opt.grpcMethodPbDesc,
+		MethodDesc:     opt.grpcMethodProtoDesc,
 		GrpcFullMethod: opt.grpcFullMethod,
 		Meta:           opt.meta,
 	}

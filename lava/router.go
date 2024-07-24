@@ -8,6 +8,11 @@ import (
 	"google.golang.org/grpc"
 )
 
+type GrpcProxy interface {
+	GrpcRouter
+	Proxy() grpc.ClientConnInterface
+}
+
 type GrpcRouter interface {
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc
