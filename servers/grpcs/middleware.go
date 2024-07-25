@@ -123,12 +123,13 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			})
 
 			if err := grpc.SetHeader(ctx, reqMetadata); err != nil {
-				log.Err(err, ctx).Msg("grpc set trailer failed")
+				log.Err(err, ctx).Msg("grpc send trailer failed")
 			}
 
 			if err := grpc.SendHeader(ctx, reqMetadata); err != nil {
 				log.Err(err, ctx).Msg("grpc send trailer failed")
 			}
+
 		}()
 
 		ctx = lava.CreateReqHeader(ctx, reqHeader)

@@ -27,6 +27,8 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/clients/grpcc"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -156,10 +158,10 @@ func (s *serviceImpl) DixInject(
 				fiber.MethodHead,
 				fiber.MethodOptions,
 			}, ","),
-			AllowHeaders:     "",
+			//AllowHeaders:     "",
 			AllowCredentials: true,
-			ExposeHeaders:    "",
-			MaxAge:           0,
+			//ExposeHeaders:    "",
+			MaxAge: 0,
 		}))
 	}
 
@@ -370,7 +372,23 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 
-		mux.RegisterProxy(desc, h)
+		mux.RegisterProxy(
+			desc, h,
+			grpcc.New(
+				&grpcc_config.Cfg{
+					Service: &grpcc_config.ServiceCfg{
+						Name:   h.Proxy().Name,
+						Addr:   h.Proxy().Addr,
+						Scheme: h.Proxy().Resolver,
+					},
+				},
+				grpcc.Params{
+					Log:    log,
+					Metric: metric,
+				},
+				srvMidMap[desc.ServiceName]...,
+			),
+		)
 	}
 
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))

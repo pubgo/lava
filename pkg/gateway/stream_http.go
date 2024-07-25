@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -132,9 +133,20 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 			}
 		}
 
-		if len(s.handler.Body()) > 0 {
-			if err := protojson.Unmarshal(s.handler.Body(), msg); err != nil {
+		if s.handler.Request().IsBodyStream() {
+			var b json.RawMessage
+			if err := json.NewDecoder(s.handler.Request().BodyStream()).Decode(&b); err != nil {
+				return errors.WrapCaller(err)
+			}
+
+			if err := protojson.Unmarshal(b, msg); err != nil {
 				return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+			}
+		} else {
+			if body := s.handler.Body(); len(body) > 0 {
+				if err := protojson.Unmarshal(body, msg); err != nil {
+					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+				}
 			}
 		}
 	}

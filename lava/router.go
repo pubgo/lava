@@ -8,9 +8,18 @@ import (
 	"google.golang.org/grpc"
 )
 
+type ProxyCfg struct {
+	// Name service name
+	Name string `yaml:"name"`
+	// Addr service address
+	Addr string `yaml:"addr"`
+	// Resolver service resolver, default direct
+	Resolver string `yaml:"resolver"`
+}
+
 type GrpcProxy interface {
 	GrpcRouter
-	Proxy() grpc.ClientConnInterface
+	Proxy() ProxyCfg
 }
 
 type GrpcRouter interface {

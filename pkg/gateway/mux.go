@@ -14,7 +14,6 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	_ "github.com/mwitkow/grpc-proxy/proxy"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
@@ -24,6 +23,7 @@ import (
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -34,8 +34,6 @@ import (
 type muxOptions struct {
 	types                 protoregistry.MessageTypeResolver
 	files                 *protoregistry.Files
-	unaryInterceptor      grpc.UnaryServerInterceptor
-	streamInterceptor     grpc.StreamServerInterceptor
 	codecs                map[string]Codec
 	codecsByName          map[string]Codec
 	compressors           map[string]Compressor
@@ -162,14 +160,6 @@ func (m *Mux) GetOperationByName(name string) *GrpcMethod {
 	return handleOperation(act)
 }
 
-func (m *Mux) HandleStream(operation string, stream grpc.ServerStream) error {
-	mth := m.opts.handlers[operation]
-	if mth == nil {
-		return errors.Format("grpc method not found, method=%s", operation)
-	}
-	return errors.WrapCaller(mth.Handle(stream))
-}
-
 func (m *Mux) GetOperation(operation string) *GrpcMethod {
 	var opt = m.opts.handlers[operation]
 	if opt == nil {
@@ -184,12 +174,6 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	if err != nil {
 		return errors.WrapCaller(err)
 	}
-
-	defer func() {
-		ctx.Response().Header.Set(httputil.HeaderXRequestID, lava.GetReqID(ctx.Context()))
-		ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
-		ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
-	}()
 
 	values := make(url.Values)
 	for _, v := range matchOperation.Vars {
@@ -210,14 +194,50 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		md.Append(k, v...)
 	}
 
-	rspCtx := metadata.NewIncomingContext(ctx.Context(), md)
-	return errors.WrapCaller(mth.Handle(&streamHTTP{
+	stream := &streamHTTP{
 		handler: ctx,
-		ctx:     rspCtx,
+		ctx:     metadata.NewIncomingContext(ctx.Context(), md),
 		method:  mth,
 		params:  values,
 		path:    matchOperation,
-	}))
+	}
+
+	var in = mth.inputType.New().Interface()
+	err = stream.RecvMsg(in)
+	if err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	var out = mth.outputType.New().Interface()
+	var header metadata.MD
+	var trailer metadata.MD
+	err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
+	if err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	var hh = make(metadata.MD)
+	for k, v := range header {
+		hh.Set(k, v...)
+	}
+
+	for k, v := range trailer {
+		hh.Set(k, v...)
+	}
+
+	for k, v := range hh {
+		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
+		if len(v) == 0 {
+			continue
+		}
+
+		ctx.Response().Header.Set(k, v[0])
+	}
+
+	ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
+	ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+	ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
+	return errors.WrapCaller(stream.SendMsg(out))
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
@@ -297,19 +317,18 @@ func NewMux(opts ...MuxOption) *Mux {
 }
 
 func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
-	m.opts.unaryInterceptor = interceptor
 	m.localClient.WithServerUnaryInterceptor(interceptor)
 }
 
 // SetStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
 func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
-	m.opts.streamInterceptor = interceptor
 	m.localClient.WithServerStreamInterceptor(interceptor)
 }
 
-func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcProxy) {
-	if err := m.registerService(sd, proxy); err != nil {
+func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcRouter, cli grpc.ClientConnInterface) {
+	assert.If(cli == nil, "cli is nil")
+	if err := m.registerService(sd, proxy, cli); err != nil {
 		log.Fatal().Err(err).Msgf("gateway: RegisterProxy error: %v", err)
 	}
 }
@@ -326,7 +345,7 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 		log.Fatal().Msgf("gateway: RegisterService found the handler of type %v that does not satisfy %v", st, ht)
 	}
 
-	if err := m.registerService(sd, ss); err != nil {
+	if err := m.registerService(sd, ss, nil); err != nil {
 		log.Fatal().Err(err).Msgf("gateway: RegisterService error: %v", err)
 	}
 }
@@ -340,16 +359,6 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 	rule.inputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Input().FullName()))
 	rule.outputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Output().FullName()))
 
-	if rule.srv.remoteProxyCli != nil {
-		if rule.grpcMethodDesc != nil {
-			rule.grpcMethodDesc.Handler = grpcMethodHandlerWrapper(rule)
-		}
-
-		if rule.grpcStreamDesc != nil {
-			rule.grpcStreamDesc.Handler = grpcMethodStreamWrapper(rule)
-		}
-	}
-
 	assert.Exit(m.routerTree.Add(
 		http.MethodPost,
 		rule.grpcFullMethod,
@@ -358,7 +367,7 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 	)
 }
 
-func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
+func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}, cli grpc.ClientConnInterface) error {
 	d, err := m.opts.files.FindDescriptorByName(protoreflect.FullName(gsd.ServiceName))
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -370,14 +379,11 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}) error {
 	}
 
 	srv := &serviceWrapper{
-		opts:          m.opts,
-		srv:           ss,
-		serviceDesc:   gsd,
-		servicePbDesc: sd,
-	}
-
-	if p, ok := ss.(lava.GrpcProxy); ok && p != nil {
-		srv.remoteProxyCli = p.Proxy()
+		opts:           m.opts,
+		srv:            ss,
+		serviceDesc:    gsd,
+		servicePbDesc:  sd,
+		remoteProxyCli: cli,
 	}
 
 	findMethodDesc := func(methodName string) protoreflect.MethodDescriptor {

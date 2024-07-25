@@ -28,7 +28,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/services/errorservice"
-	"github.com/pubgo/lava/services/metadata"
+	"github.com/pubgo/lava/services/metadataservice"
 
 	_ "github.com/pubgo/lava/core/debug/debug"
 	// debug
@@ -69,7 +69,7 @@ var defaultProviders = []any{
 	lifecycle.New,
 	scheduler.New,
 
-	metadata.New,
+	metadataservice.New,
 	errorservice.New,
 }
 

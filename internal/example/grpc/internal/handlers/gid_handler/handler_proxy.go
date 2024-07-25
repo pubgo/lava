@@ -3,9 +3,7 @@ package gid_handler
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
@@ -38,6 +36,7 @@ func (i IdProxy) Middlewares() []lava.Middleware {
 
 func (i IdProxy) ServiceDesc() *grpc.ServiceDesc { return &gidpb.IdProxy_ServiceDesc }
 
-func (i IdProxy) Proxy() grpc.ClientConnInterface {
-	return assert.Must1(grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials())))
+func (i IdProxy) Proxy() lava.ProxyCfg {
+	//return assert.Must1(grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials())))
+	return lava.ProxyCfg{Addr: "localhost:50052"}
 }

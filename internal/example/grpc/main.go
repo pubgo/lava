@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
+	"github.com/pubgo/funk/env"
 
+	_ "github.com/joho/godotenv"
 	"github.com/pubgo/funk/log"
 	_ "github.com/pubgo/lava/core/debug/logdy"
 	"github.com/pubgo/lava/internal/example/grpc/internal/bootstrap"
 )
 
 func main() {
+	env.Get()
 	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, nameOrMessage string, fields log.Map) bool {
 		//if nameOrMessage == "eval type value" {
 		//	return false

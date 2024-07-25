@@ -57,12 +57,12 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
+	github.com/joho/godotenv v1.5.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/libp2p/go-yamux/v4 v4.0.1
 	github.com/logdyhq/logdy-core v0.13.0
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/mwitkow/grpc-proxy v0.0.0-20230212185441-f345521cb9c9
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.17
 	github.com/pubgo/funk v0.5.48
