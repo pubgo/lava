@@ -223,7 +223,7 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 		}
 
 		if err := handlerHttpRoute(rule, cb); err != nil {
-			return errors.Format("failed to add REST route (add binding #%d): %w", i+1, err)
+			return errors.Format("failed to add REST route (add binding #%d): %v", i+1, err)
 		}
 	}
 

@@ -13,7 +13,7 @@ LDFLAGS=-ldflags " \
 "
 
 run_proxy:
-	enable_debug=true server_grpc_port=50052 server_http_port=8081 go run ${LDFLAGS} -v main_proxy.go grpc
+	enable_debug=true server_grpc_port=50052 server_http_port=8081 go run ${LDFLAGS} -v cmds/main_proxy.go grpc
 
 run:
 	enable_debug=true server_grpc_port=50051 server_http_port=8080 go run ${LDFLAGS} -v main.go grpc
