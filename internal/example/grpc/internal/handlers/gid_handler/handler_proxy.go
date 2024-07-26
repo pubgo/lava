@@ -18,6 +18,7 @@ func NewIdProxy() lava.GrpcProxy {
 }
 
 type IdProxy struct {
+	gidpb.IdProxyServer
 }
 
 func (i IdProxy) Middlewares() []lava.Middleware {

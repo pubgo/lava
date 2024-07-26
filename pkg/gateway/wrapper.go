@@ -94,9 +94,3 @@ func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcM
 		return interceptor(ctx, in, &grpc.UnaryServerInfo{FullMethod: mth.grpcFullMethod}, h)
 	}
 }
-
-func grpcMethodStreamWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcStreamHandler {
-	return TransparentHandler(func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error) {
-		return ctx, mth.srv.remoteProxyCli, nil
-	}, opts...)
-}

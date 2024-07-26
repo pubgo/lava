@@ -71,37 +71,17 @@ func NewInner(handlers []lava.GrpcRouter, grpcProxy []lava.GrpcProxy, dixMiddlew
 			inT, outT := getMthType(desc.ServiceName, desc.Methods[i].MethodName)
 			desc.Methods[i].Handler = grpcMethodHandlerWrapper(cli, fullPath, inT, outT)
 		}
+
+		for i := range desc.Streams {
+			inT, outT := getMthType(desc.ServiceName, desc.Methods[i].MethodName)
+			desc.Streams[i].Handler = grpcMethodStreamWrapper(cli, inT, outT)
+		}
 		cc.RegisterService(h.ServiceDesc(), h)
 	}
 
 	cc = cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	cc = cc.WithServerStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	return &lava.InnerServer{ClientConnInterface: cc}
-}
-
-func NewMux(handlers []lava.GrpcRouter, dixMiddlewares []lava.Middleware, metric metrics.Metric, log log.Logger) *gateway.Mux {
-	middlewares := lava.Middlewares{
-		middleware_service_info.New(),
-		middleware_metric.New(metric),
-		middleware_accesslog.New(log),
-		middleware_recovery.New(),
-	}
-	middlewares = append(middlewares, dixMiddlewares...)
-
-	mux := gateway.NewMux()
-	srvMidMap := make(map[string][]lava.Middleware)
-	for _, h := range handlers {
-		desc := h.ServiceDesc()
-		assert.If(desc == nil, "desc is nil")
-
-		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], middlewares...)
-		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-		mux.RegisterService(desc, h)
-	}
-
-	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
-	return mux
 }
 
 func grpcMethodHandlerWrapper(cli grpc.ClientConnInterface, fullPath string, inType, outType protoreflect.MessageType) gateway.GrpcMethodHandler {
@@ -150,4 +130,8 @@ func getMthType(srvName string, mthName string) (protoreflect.MessageType, proto
 	inputType := assert.Must1(protoregistry.GlobalTypes.FindMessageByName(mthDesc.Input().FullName()))
 	outputType := assert.Must1(protoregistry.GlobalTypes.FindMessageByName(mthDesc.Output().FullName()))
 	return inputType, outputType
+}
+
+func grpcMethodStreamWrapper(cli grpc.ClientConnInterface, inType, outType protoreflect.MessageType) gateway.GrpcStreamHandler {
+	return gateway.TransparentHandler(cli, inType, outType)
 }

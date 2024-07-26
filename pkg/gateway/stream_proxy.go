@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var (
@@ -21,17 +21,15 @@ var (
 	}
 )
 
-// TransparentHandler returns a handler that attempts to proxy all requests that are not registered in the server.
-// The indented use here is as a transparent proxy, where the server doesn't know about the services implemented by the
-// backends. It should be used as a `grpc.UnknownServiceHandler`.
-func TransparentHandler(director StreamDirector, opts ...grpc.CallOption) grpc.StreamHandler {
-	streamer := &handler{director: director, opts: opts}
+func TransparentHandler(cli grpc.ClientConnInterface, inType, outType protoreflect.MessageType, opts ...grpc.CallOption) grpc.StreamHandler {
+	streamer := &handler{cli: cli, opts: opts, inType: inType, outType: outType}
 	return streamer.handler
 }
 
 type handler struct {
-	director StreamDirector
-	opts     []grpc.CallOption
+	cli             grpc.ClientConnInterface
+	inType, outType protoreflect.MessageType
+	opts            []grpc.CallOption
 }
 
 // handler is where the real magic of proxying happens.
@@ -44,15 +42,9 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 		return status.Errorf(codes.Internal, "lowLevelServerStream not exists in context")
 	}
 
-	// We require that the director's returned context inherits from the serverStream.Context().
-	outgoingCtx, backendConn, err := s.director(serverStream.Context(), fullMethodName)
-	if err != nil {
-		return errors.WrapCaller(err)
-	}
-
-	clientCtx, clientCancel := context.WithCancel(outgoingCtx)
+	clientCtx, clientCancel := context.WithCancel(serverStream.Context())
 	defer clientCancel()
-	clientStream, err := backendConn.NewStream(clientCtx, clientStreamDescForProxying, fullMethodName, s.opts...)
+	clientStream, err := s.cli.NewStream(clientCtx, clientStreamDescForProxying, fullMethodName, s.opts...)
 	if err != nil {
 		return errors.WrapCaller(err)
 	}
@@ -60,8 +52,8 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	// Explicitly *do not close* s2cErrChan and c2sErrChan, otherwise the select below will not terminate.
 	// Channels do not have to be closed, it is just a control flow mechanism, see
 	// https://groups.google.com/forum/#!msg/golang-nuts/pZwdYRGxCIk/qpbHxRRPJdUJ
-	s2cErrChan := s.forwardServerToClient(serverStream, clientStream)
-	c2sErrChan := s.forwardClientToServer(clientStream, serverStream)
+	s2cErrChan := forwardServerToClient(s.inType, serverStream, clientStream)
+	c2sErrChan := forwardClientToServer(s.outType, clientStream, serverStream)
 	// We don't know which side is going to stop sending first, so we need a select between the two.
 	for i := 0; i < 2; i++ {
 		select {
@@ -92,10 +84,10 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	return status.Errorf(codes.Internal, "gRPC proxying should never reach this stage.")
 }
 
-func (s *handler) forwardClientToServer(src grpc.ClientStream, dst grpc.ServerStream) chan error {
+func forwardClientToServer(out protoreflect.MessageType, src grpc.ClientStream, dst grpc.ServerStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
-		f := &emptypb.Empty{}
+		f := out.New().Interface()
 		for i := 0; ; i++ {
 			if err := src.RecvMsg(f); err != nil {
 				ret <- err // this can be io.EOF which is happy case
@@ -124,10 +116,10 @@ func (s *handler) forwardClientToServer(src grpc.ClientStream, dst grpc.ServerSt
 	return ret
 }
 
-func (s *handler) forwardServerToClient(src grpc.ServerStream, dst grpc.ClientStream) chan error {
+func forwardServerToClient(in protoreflect.MessageType, src grpc.ServerStream, dst grpc.ClientStream) chan error {
 	ret := make(chan error, 1)
 	go func() {
-		f := &emptypb.Empty{}
+		f := in.New().Interface()
 		for i := 0; ; i++ {
 			if err := src.RecvMsg(f); err != nil {
 				ret <- err // this can be io.EOF which is happy case

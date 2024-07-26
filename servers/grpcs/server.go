@@ -372,23 +372,27 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 
-		mux.RegisterProxy(
-			desc, h,
-			grpcc.New(
-				&grpcc_config.Cfg{
-					Service: &grpcc_config.ServiceCfg{
-						Name:   h.Proxy().Name,
-						Addr:   h.Proxy().Addr,
-						Scheme: h.Proxy().Resolver,
-					},
+		cli := grpcc.New(
+			&grpcc_config.Cfg{
+				Service: &grpcc_config.ServiceCfg{
+					Name:   h.Proxy().Name,
+					Addr:   h.Proxy().Addr,
+					Scheme: h.Proxy().Resolver,
 				},
-				grpcc.Params{
-					Log:    log,
-					Metric: metric,
-				},
-				srvMidMap[desc.ServiceName]...,
-			),
+			},
+			grpcc.Params{
+				Log:    log,
+				Metric: metric,
+			},
+			srvMidMap[desc.ServiceName]...,
 		)
+
+		for i := range desc.Methods {
+			var fullPath = fmt.Sprintf("/%s/%s", desc.ServiceName, desc.Methods[i].MethodName)
+			inT, outT := getMthType(desc.ServiceName, desc.Methods[i].MethodName)
+			desc.Methods[i].Handler = grpcMethodHandlerWrapper(cli, fullPath, inT, outT)
+		}
+		mux.RegisterService(desc, h)
 	}
 
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
