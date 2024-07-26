@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
@@ -98,7 +97,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				errors.Debug(gErr)
+				//errors.Debug(gErr)
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
 				pb := errutil.ParseError(gErr)

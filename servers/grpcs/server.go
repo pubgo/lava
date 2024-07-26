@@ -168,7 +168,7 @@ func (s *serviceImpl) DixInject(
 	app := fiber.New()
 	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
 
-	app.Use(handlerHttpMiddle(globalMiddlewares))
+	//app.Use(handlerHttpMiddle(globalMiddlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()
 		//for _, an := range h.Annotation() {
@@ -184,7 +184,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -197,16 +197,6 @@ func (s *serviceImpl) DixInject(
 	}
 
 	for _, handler := range grpcRouters {
-		//srv := doc.WithService()
-		//for _, an := range h.Annotation() {
-		//	switch a := an.(type) {
-		//	case *annotation.Openapi:
-		//		if a.ServiceName != "" {
-		//			srv.SetName(a.ServiceName)
-		//		}
-		//	}
-		//}
-
 		h, ok := handler.(lava.HttpRouter)
 		if !ok {
 			continue
@@ -216,7 +206,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -326,6 +316,7 @@ func (s *serviceImpl) DixInject(
 	if len(gw) > 0 {
 		mux = gw[0]
 	}
+
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range grpcRouters {
 		desc := h.ServiceDesc()
@@ -387,12 +378,7 @@ func (s *serviceImpl) DixInject(
 			srvMidMap[desc.ServiceName]...,
 		)
 
-		for i := range desc.Methods {
-			var fullPath = fmt.Sprintf("/%s/%s", desc.ServiceName, desc.Methods[i].MethodName)
-			inT, outT := getMthType(desc.ServiceName, desc.Methods[i].MethodName)
-			desc.Methods[i].Handler = grpcMethodHandlerWrapper(cli, fullPath, inT, outT)
-		}
-		mux.RegisterService(desc, h)
+		mux.RegisterProxy(desc, h, cli)
 	}
 
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))

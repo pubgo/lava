@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/lava/internal/example/grpc/internal/handlers/gid_handler"
 	"github.com/pubgo/lava/internal/example/grpc/internal/services/gid_client"
 	"github.com/pubgo/lava/internal/example/grpc/taskcmd"
+	"github.com/pubgo/lava/pkg/gateway"
 )
 
 func Main() {
@@ -19,6 +20,9 @@ func Main() {
 	di.Provide(gid_handler.NewHttp)
 	di.Provide(gid_handler.NewHttp111)
 	di.Provide(gid_client.New)
+	di.Provide(func() *gateway.Mux {
+		return gateway.NewMux()
+	})
 	di.Provide(taskcmd.New)
 	//di.Provide(func() lava.Middleware {
 	//	return lava.MiddlewareWrap{

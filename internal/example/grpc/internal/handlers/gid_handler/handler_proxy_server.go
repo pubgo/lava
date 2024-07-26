@@ -23,6 +23,7 @@ type IdProxyServer struct {
 
 func (i IdProxyServer) Echo(ctx context.Context, req *gidpb.EchoReq) (*gidpb.EchoRsp, error) {
 	fmt.Println("get echo request", req.String())
+	fmt.Println("req", lava.ReqHeader(ctx).String())
 	return &gidpb.EchoRsp{Hello: req.Hello}, nil
 }
 

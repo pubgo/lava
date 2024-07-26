@@ -27,6 +27,8 @@ func (i IdProxy) Middlewares() []lava.Middleware {
 			Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 				return func(ctx context.Context, req lava.Request) (lava.Response, error) {
 					fmt.Println("proxy-header", req.Header().String())
+
+					req.Header().Set("inner", "proxy")
 					return next(ctx, req)
 				}
 			},

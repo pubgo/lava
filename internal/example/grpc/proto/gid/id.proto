@@ -26,7 +26,7 @@ service Id {
     rpc Generate (GenerateRequest) returns (GenerateResponse) {
         option (lava.rpc.options) = {
             name: "id.gen",
-            tags: [{key: "internal",value: "true"},{key: "hello",value: "world"}]
+            tags: [{key: "internal",value: "true"}, {key: "hello",value: "world"}]
         };
         option (google.api.http) = {
             post: "/v1/id/generate"
@@ -70,6 +70,15 @@ service Id {
             body: "file"
         };
     }
+
+    rpc DoProxy (Empty) returns (Empty) {
+        option (google.api.http) = {
+            get: "/proxy/test"
+        };
+    }
+}
+
+message Empty {
 }
 
 message UploadFileRequest {

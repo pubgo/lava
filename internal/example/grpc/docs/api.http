@@ -3,7 +3,10 @@ GET http://localhost:8080/gid/gw/v1/id/types/hello/111
 Content-Type: application/json
 
 ###
+GET http://localhost:8080/gid/gw/proxy/test
+Content-Type: application/json
 
+###
 PUT http://localhost:8080/gid/gw/v1/id/types/hello/111
 Content-Type: application/json
 
@@ -12,7 +15,7 @@ Content-Type: application/json
 }
 
 ### proxy
-POST http://localhost:8081/gid/gw/v1/id/echo
+POST http://localhost:8080/gid/gw/v1/id/echo
 Content-Type: application/json
 
 {

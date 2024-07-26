@@ -30,6 +30,18 @@ paths:
                     description: OK
                     content:
                         '*/*': {}
+    /proxy/test:
+        get:
+            tags:
+                - Id
+            operationId: Id_DoProxy
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Empty'
     /v1/id/echo:
         post:
             tags:
@@ -201,6 +213,9 @@ components:
             properties:
                 hello:
                     type: string
+        Empty:
+            type: object
+            properties: {}
         GenerateRequest:
             type: object
             properties:

@@ -63,7 +63,7 @@ func NewInner(handlers []lava.GrpcRouter, grpcProxy []lava.GrpcProxy, dixMiddlew
 				Log:    log,
 				Metric: metric,
 			},
-			srvMidMap[desc.ServiceName]...,
+			h.Middlewares()...,
 		)
 
 		for i := range desc.Methods {
@@ -97,7 +97,7 @@ func grpcMethodHandlerWrapper(cli grpc.ClientConnInterface, fullPath string, inT
 			var trailer metadata.MD
 			err := cli.Invoke(ctx, fullPath, req, out, append([]grpc.CallOption{}, grpc.Header(&header), grpc.Trailer(&trailer))...)
 			if err != nil {
-				return nil, err
+				return nil, errors.WrapCaller(err)
 			}
 			return out, nil
 		}

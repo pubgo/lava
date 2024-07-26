@@ -27,7 +27,7 @@ func New() lava.Middleware {
 				ctx = lava.CreateCtxWithReqID(ctx, reqId)
 
 				defer func() {
-					if gErr != nil && rsp != nil {
+					if rsp != nil {
 						rsp.Header().Set(httputil.HeaderXRequestID, reqId)
 					}
 				}()
