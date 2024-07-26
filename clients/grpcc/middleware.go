@@ -2,7 +2,6 @@ package grpcc
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/lavacontexts"
 	"strings"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"

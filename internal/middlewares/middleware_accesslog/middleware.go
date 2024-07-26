@@ -3,7 +3,6 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -13,6 +12,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/rs/zerolog"

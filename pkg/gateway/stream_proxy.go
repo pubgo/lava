@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/lava/internal/logutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -61,7 +62,7 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 			if s2cErr == io.EOF {
 				// this is the happy case where the sender has encountered io.EOF, and won't be sending anymore./
 				// the clientStream>serverStream may continue pumping though.
-				clientStream.CloseSend()
+				logutil.HandlerErr(clientStream.CloseSend())
 			} else {
 				// however, we may have gotten a receive error (stream disconnected, a read error etc) in which case we need
 				// to cancel the clientStream to the backend, let all of its goroutines be freed up by the CancelFunc and

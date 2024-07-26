@@ -2,12 +2,12 @@ package middleware_service_info
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/lavacontexts"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"

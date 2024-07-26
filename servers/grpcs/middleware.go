@@ -3,7 +3,6 @@ package grpcs
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +13,7 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"

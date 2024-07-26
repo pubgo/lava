@@ -23,6 +23,7 @@ issues:
     - internal/example
     - cmds
     - vendor
+    - pkg/proto
   exclude-generated: strict
   exclude-dirs-use-default: true
   exclude-case-sensitive: false

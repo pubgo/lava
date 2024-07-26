@@ -2,11 +2,11 @@ package middleware_metric
 
 import (
 	"context"
-	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/core/metrics"
