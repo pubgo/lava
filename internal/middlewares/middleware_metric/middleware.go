@@ -2,6 +2,7 @@ package middleware_metric
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/pubgo/funk/generic"
@@ -53,7 +54,7 @@ func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		grpcServerRpcCallTotal(m.m, req.Operation())
 
-		clientInfo := lava.GetClientInfo(ctx)
+		clientInfo := lavacontexts.GetClientInfo(ctx)
 		if !req.Client() && clientInfo != nil {
 			m.m.Tagged(metrics.Tags{
 				"server_name":   running.Project,

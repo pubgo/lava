@@ -3,6 +3,7 @@ package grpcs
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -104,11 +105,11 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
-			func() string { return lava.GetReqID(ctx) },
+			func() string { return lavacontexts.GetReqID(ctx) },
 			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
-		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
 		reqHeader.Set(httputil.HeaderXRequestID, reqId)
 		reqHeader.Set(httputil.HeaderXRequestVersion, version.Version())
@@ -132,8 +133,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 		}()
 
-		ctx = lava.CreateReqHeader(ctx, reqHeader)
-		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
+		ctx = lavacontexts.CreateReqHeader(ctx, reqHeader)
+		ctx = lavacontexts.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
@@ -239,15 +240,15 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
-			func() string { return lava.GetReqID(ctx) },
+			func() string { return lavacontexts.GetReqID(ctx) },
 			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
-		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
-		ctx = lava.CreateReqHeader(ctx, header)
-		ctx = lava.CreateRspHeader(ctx, rpcReq.rspHeader)
+		ctx = lavacontexts.CreateReqHeader(ctx, header)
+		ctx = lavacontexts.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)

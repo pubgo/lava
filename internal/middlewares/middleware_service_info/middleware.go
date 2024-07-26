@@ -2,6 +2,7 @@ package middleware_service_info
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/lavacontexts"
 
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/running"
@@ -20,11 +21,11 @@ func New() lava.Middleware {
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 				reqId := strutil.FirstFnNotEmpty(
-					func() string { return lava.GetReqID(ctx) },
+					func() string { return lavacontexts.GetReqID(ctx) },
 					func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
 					func() string { return xid.New().String() },
 				)
-				ctx = lava.CreateCtxWithReqID(ctx, reqId)
+				ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
 				defer func() {
 					if rsp != nil {
@@ -70,8 +71,8 @@ func New() lava.Middleware {
 					}
 				}
 
-				ctx = lava.CreateCtxWithClientInfo(ctx, clientInfo)
-				ctx = lava.CreateCtxWithServerInfo(ctx, serverInfo)
+				ctx = lavacontexts.CreateCtxWithClientInfo(ctx, clientInfo)
+				ctx = lavacontexts.CreateCtxWithServerInfo(ctx, serverInfo)
 
 				return next(ctx, req)
 			}

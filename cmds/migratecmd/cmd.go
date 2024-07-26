@@ -14,8 +14,8 @@ import (
 	"github.com/urfave/cli/v3"
 	"gorm.io/gen"
 
-	"github.com/pubgo/lava/core/migrates"
 	"github.com/pubgo/lava/core/orm"
+	"github.com/pubgo/lava/core/orm/migrates"
 )
 
 type params struct {

@@ -2,12 +2,12 @@ package grpcc
 
 import (
 	"context"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/errors"
-
 	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/lava"
@@ -106,12 +106,12 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
-			func() string { return lava.GetReqID(ctx) },
+			func() string { return lavacontexts.GetReqID(ctx) },
 			func() string { return string(rpcReq.Header().Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
-		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
 		_, err = unaryWrapper(ctx, rpcReq)
 		return errors.WrapCaller(err)
@@ -173,12 +173,12 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		md2Head(md, header)
 
 		reqId := strutil.FirstFnNotEmpty(
-			func() string { return lava.GetReqID(ctx) },
+			func() string { return lavacontexts.GetReqID(ctx) },
 			func() string { return string(header.Peek(httputil.HeaderXRequestID)) },
 			func() string { return xid.New().String() },
 		)
 		header.Set(httputil.HeaderXRequestID, reqId)
-		ctx = lava.CreateCtxWithReqID(ctx, reqId)
+		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
 		rsp, err := wrapperStream(ctx,
 			&request{

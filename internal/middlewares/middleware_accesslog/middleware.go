@@ -3,6 +3,7 @@ package middleware_accesslog
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"time"
 
 	"github.com/gofiber/utils"
@@ -46,7 +47,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			evt.Str("referer", referer)
 		}
 
-		reqId := lava.GetReqID(ctx)
+		reqId := lavacontexts.GetReqID(ctx)
 		evt.Str("req_id", reqId)
 		evt.Int64("start_at", now.Unix())
 		evt.Str("service", req.Service())
@@ -55,7 +56,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		evt.Bool("client", req.Client())
 		evt.Str("version", version.Version())
 
-		clientInfo := lava.GetClientInfo(ctx)
+		clientInfo := lavacontexts.GetClientInfo(ctx)
 		if clientInfo != nil {
 			evt.Str(grpcutil.ClientNameKey, clientInfo.GetName())
 			evt.Str(grpcutil.ClientPathKey, clientInfo.GetPath())

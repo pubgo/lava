@@ -3,6 +3,7 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/core/lavacontexts"
 
 	"github.com/pubgo/lava/internal/example/grpc/pkg/proto/gidpb"
 	"github.com/pubgo/lava/lava"
@@ -23,7 +24,7 @@ type IdProxyServer struct {
 
 func (i IdProxyServer) Echo(ctx context.Context, req *gidpb.EchoReq) (*gidpb.EchoRsp, error) {
 	fmt.Println("get echo request", req.String())
-	fmt.Println("req", lava.ReqHeader(ctx).String())
+	fmt.Println("req", lavacontexts.ReqHeader(ctx).String())
 	return &gidpb.EchoRsp{Hello: req.Hello}, nil
 }
 
