@@ -1,17 +1,27 @@
 package logging
 
 import (
-	"fmt"
 	"os"
 	"time"
 
+	"github.com/logdyhq/logdy-core/http"
+	"github.com/logdyhq/logdy-core/models"
+	"github.com/logdyhq/logdy-core/modes"
+	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/rs/zerolog"
 )
+
+func init() {
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		return stack.Stack(pc).Short()
+	}
+}
 
 // New logger
 func New(cfg *Config) log.Logger {
@@ -60,7 +70,12 @@ type writer struct {
 func (w writer) Write(p []byte) (n int, err error) {
 	n, err = w.ConsoleWriter.Write(p)
 	if err != nil {
-		fmt.Println("invalid json: ", string(p))
+		log.Err(err).Str("raw_json", string(p)).Msg("failed to decode invalid json")
+		return
+	}
+
+	if http.Ch != nil {
+		go modes.ProduceMessageString(http.Ch, convert.BtoS(p[:n]), models.MessageTypeStdout, &models.MessageOrigin{})
 	}
 	return
 }

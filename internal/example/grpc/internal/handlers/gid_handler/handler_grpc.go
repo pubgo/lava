@@ -3,6 +3,7 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/pkg/gateway"
 	"math/rand"
 	"net/http"
 	"time"
@@ -40,6 +41,16 @@ type Id struct {
 	bigflake  *bigflake.Bigflake
 	log       log.Logger
 	service   *gid_client.Service
+	mux       *gateway.Mux
+}
+
+func (id *Id) DoProxy(ctx context.Context, empty *gidpb.Empty) (*gidpb.Empty, error) {
+	rsp, err := gidpb.NewIdProxyClient(id.mux).Echo(ctx, &gidpb.EchoReq{Hello: "hello"})
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(rsp.String())
+	return new(gidpb.Empty), nil
 }
 
 func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
@@ -51,6 +62,8 @@ func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.Typ
 		"snowflake",
 		"bigflake",
 	}
+	var req1 = resty.NewRequest(typesReq)
+	id.service.IClient.Do(nil, req1)
 	return rsp, nil
 }
 
@@ -115,7 +128,7 @@ func (id *Id) ServiceDesc() *grpc.ServiceDesc {
 	return &gidpb.Id_ServiceDesc
 }
 
-func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, service *gid_client.Service) lava.GrpcRouter {
+func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, service *gid_client.Service, mux *gateway.Mux) lava.GrpcRouter {
 	id := rand.Intn(100)
 
 	sf, err := snowflake.New(uint32(id))
@@ -134,6 +147,7 @@ func New(cron *scheduler.Scheduler, metric metrics.Metric, log log.Logger, servi
 		snowflake: sf,
 		bigflake:  bg,
 		log:       log.WithName("gid"),
+		mux:       mux,
 	}
 }
 

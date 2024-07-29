@@ -3,10 +3,9 @@ package grpcc_config
 import (
 	"time"
 
+	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
-
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 )
 
 const (
@@ -57,20 +56,20 @@ func DefaultCfg() *Cfg {
 			MaxHeaderListSize: 1024 * 4,
 			MaxRecvMsgSize:    1024 * 1024 * 4,
 			// refer: https://github.com/grpc/grpc-go/blob/master/examples/features/keepalive/client/main.go
-			ClientParameters: clientParameters{
+			ClientParameters: ClientParameters{
 				PermitWithoutStream: true,             // send pings even without active streams
 				Time:                10 * time.Second, // send pings every 10 seconds if there is no activity
 				Timeout:             5 * time.Second,  // wait 2 second for ping ack before considering the connection dead
 			},
-			ConnectParams: connectParams{
-				Backoff: backoffConfig{
+			ConnectParams: ConnectParams{
+				Backoff: BackoffConfig{
 					Multiplier: 1.6,
 					Jitter:     0.2,
 					BaseDelay:  1.0 * time.Second,
 					MaxDelay:   120 * time.Second,
 				},
 			},
-			Call: callParameters{
+			Call: CallParameters{
 				MaxCallRecvMsgSize: 1024 * 1024 * 4,
 				// DefaultMaxSendMsgSize maximum message that Service can send (4 MB).
 				MaxCallSendMsgSize: 1024 * 1024 * 4,

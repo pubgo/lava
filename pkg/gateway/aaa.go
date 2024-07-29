@@ -1,11 +1,12 @@
 package gateway
 
 import (
+	"context"
 	"io"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/pkg/gateway/internal/routex"
+	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
@@ -13,8 +14,10 @@ import (
 )
 
 type (
-	RouteTarget = routex.RouteTarget
-	Gateway     interface {
+	MatchOperation = routertree.MatchOperation
+	PathFieldVar   = routertree.PathFieldVar
+	RouteOperation = routertree.RouteOperation
+	Gateway        interface {
 		grpc.ClientConnInterface
 		SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
 		SetStreamInterceptor(interceptor grpc.StreamServerInterceptor)
@@ -23,9 +26,10 @@ type (
 		SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
 		RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
+		GetOperation(operation string) *GrpcMethod
 		Handler(*fiber.Ctx) error
 		ServeHTTP(http.ResponseWriter, *http.Request)
-		GetRouteMethods() []*routex.RouteTarget
+		GetRouteMethods() []RouteOperation
 	}
 )
 
@@ -57,3 +61,7 @@ type StreamCodec interface {
 type Compressor interface {
 	encoding.Compressor
 }
+
+type GrpcMethodHandler = func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error)
+type GrpcStreamHandler = grpc.StreamHandler
+type StreamDirector func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error)

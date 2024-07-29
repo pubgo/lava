@@ -6,6 +6,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/version"
+	lo "github.com/samber/lo"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -18,14 +19,14 @@ func New(m lifecycle.Lifecycle, cfg *Config, log log.Logger) Metric {
 
 	factory := Get(cfg.Driver)
 	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
-	opts := factory(cfg, log)
+	opts := factory(cfg, log.WithName("driver"))
 	if opts == nil {
 		return tally.NoopScope
 	}
 
 	opts.Tags = Tags{"project": version.Project()}
 
-	scope, closer := tally.NewRootScope(*opts, cfg.Interval)
+	scope, closer := tally.NewRootScope(lo.FromPtr(opts), cfg.Interval)
 	m.BeforeStop(func() { assert.Must(closer.Close()) })
 
 	registerVars(scope)

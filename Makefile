@@ -13,55 +13,20 @@ LDFLAGS=-ldflags " \
 -X '${Base}/version.project=${Project}' \
 "
 
-.PHONY: build
-build:
-	go build ${LDFLAGS} -mod vendor -v -o bin/main cmd/lava/main.go
-
-.PHONY: install
-install:
-	@go build ${LDFLAGS} -mod vendor -tags trace -o lava -v cmd/lava/*.go
-	@mv lava ${GOPATH}/bin/lava
-
-build_hello_test:
-	@go build ${LDFLAGS} -mod vendor -v -o main  example/hello/main.go
-
-.PHONY: test./ma
+.PHONY: test
 test:
 	@go test -short -race -v ./... -cover
 
-ci:
-	@golangci-lint run -v --timeout=5m
-
-.PHONY: gen
-proto-plugin-gen:
-	cd cmd/protoc-gen-errors && go install -v .
-
-.PHONY: example
-example:
-	go build ${LDFLAGS} -mod vendor -v -o main example/*.go
-
-docker:
-	docker build -t lug .
-
-build-all:
-	go build -tags "kcp quic" ./...
-
+.PHONY: cover
 cover:
 	gocov test -tags "kcp quic" ./... | gocov-html > cover.html
 	open cover.html
 
-check-libs:
-	GIT_TERMINAL_PROMPT=1 GO111MODULE=on go list -m -u all | column -t
-
-update-libs:
-	GIT_TERMINAL_PROMPT=1 GO111MODULE=on go get -u -v ./...
-
-mod-tidy:
-	GIT_TERMINAL_PROMPT=1 GO111MODULE=on go mod tidy
-
+.PHONY: vet
 vet:
 	@go vet ./...
 
+.PHONY: generate
 generate:
 	@go generate ./...
 
@@ -71,14 +36,12 @@ deps:
 	@go install -v github.com/tinylib/msgp
 	@go install -v github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 
-lint:
-	@golangci-lint run --skip-dirs-use-default --timeout 3m0s
-
 .PHONY: protobuf
 protobuf:
 	protobuild vendor
 	protobuild gen
 
+.PHONY: lint
 lint:
 	golangci-lint --version
-	golangci-lint run --timeout 3m --verbose
+	golangci-lint run --timeout 3m --verbose ./...

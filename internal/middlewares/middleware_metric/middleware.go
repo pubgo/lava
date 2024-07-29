@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/core/metrics"
@@ -53,7 +54,7 @@ func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		grpcServerRpcCallTotal(m.m, req.Operation())
 
-		clientInfo := lava.GetClientInfo(ctx)
+		clientInfo := lavacontexts.GetClientInfo(ctx)
 		if !req.Client() && clientInfo != nil {
 			m.m.Tagged(metrics.Tags{
 				"server_name":   running.Project,

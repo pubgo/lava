@@ -1,11 +1,23 @@
 ###
 GET http://localhost:8080/gid/gw/v1/id/types/hello/111
+Content-Type: application/json
 
 ###
+GET http://localhost:8080/gid/gw/proxy/test
+Content-Type: application/json
 
+###
 PUT http://localhost:8080/gid/gw/v1/id/types/hello/111
 Content-Type: application/json
 
 {
   "hello": "content"
+}
+
+### proxy
+POST http://localhost:8080/gid/gw/v1/id/echo
+Content-Type: application/json
+
+{
+  "hello": "hello"
 }

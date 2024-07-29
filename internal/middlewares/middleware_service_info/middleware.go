@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -20,14 +21,14 @@ func New() lava.Middleware {
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 				reqId := strutil.FirstFnNotEmpty(
-					func() string { return lava.GetReqID(ctx) },
+					func() string { return lavacontexts.GetReqID(ctx) },
 					func() string { return string(req.Header().Peek(httputil.HeaderXRequestID)) },
 					func() string { return xid.New().String() },
 				)
-				ctx = lava.CreateCtxWithReqID(ctx, reqId)
+				ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
 				defer func() {
-					if gErr != nil && rsp != nil {
+					if rsp != nil {
 						rsp.Header().Set(httputil.HeaderXRequestID, reqId)
 					}
 				}()
@@ -70,8 +71,8 @@ func New() lava.Middleware {
 					}
 				}
 
-				ctx = lava.CreateCtxWithClientInfo(ctx, clientInfo)
-				ctx = lava.CreateCtxWithServerInfo(ctx, serverInfo)
+				ctx = lavacontexts.CreateCtxWithClientInfo(ctx, clientInfo)
+				ctx = lavacontexts.CreateCtxWithServerInfo(ctx, serverInfo)
 
 				return next(ctx, req)
 			}

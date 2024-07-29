@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package lava.rpc;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
+
+message RpcMeta {
+    string name = 1;
+    optional string version = 2;
+    map<string, string > tags = 3;
+}
+
+extend google.protobuf.MethodOptions {
+    RpcMeta options = 100004;
+}

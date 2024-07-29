@@ -27,6 +27,8 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/clients/grpcc"
+	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -80,8 +82,9 @@ func (s *serviceImpl) Start() { s.start() }
 func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
-	handlers []lava.GrpcRouter,
+	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
+	grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
 	lifecycle lifecycle.Lifecycle,
@@ -155,17 +158,17 @@ func (s *serviceImpl) DixInject(
 				fiber.MethodHead,
 				fiber.MethodOptions,
 			}, ","),
-			AllowHeaders:     "",
+			//AllowHeaders:     "",
 			AllowCredentials: true,
-			ExposeHeaders:    "",
-			MaxAge:           0,
+			//ExposeHeaders:    "",
+			MaxAge: 0,
 		}))
 	}
 
 	app := fiber.New()
 	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
 
-	app.Use(handlerHttpMiddle(globalMiddlewares))
+	//app.Use(handlerHttpMiddle(globalMiddlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()
 		//for _, an := range h.Annotation() {
@@ -181,7 +184,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -193,17 +196,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	for _, handler := range handlers {
-		//srv := doc.WithService()
-		//for _, an := range h.Annotation() {
-		//	switch a := an.(type) {
-		//	case *annotation.Openapi:
-		//		if a.ServiceName != "" {
-		//			srv.SetName(a.ServiceName)
-		//		}
-		//	}
-		//}
-
+	for _, handler := range grpcRouters {
 		h, ok := handler.(lava.HttpRouter)
 		if !ok {
 			continue
@@ -213,7 +206,7 @@ func (s *serviceImpl) DixInject(
 			panic("http handler prefix is required")
 		}
 
-		g := app.Group(h.Prefix(), handlerHttpMiddle(h.Middlewares()))
+		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -323,8 +316,9 @@ func (s *serviceImpl) DixInject(
 	if len(gw) > 0 {
 		mux = gw[0]
 	}
+
 	srvMidMap := make(map[string][]lava.Middleware)
-	for _, h := range handlers {
+	for _, h := range grpcRouters {
 		desc := h.ServiceDesc()
 		assert.If(desc == nil, "desc is nil")
 
@@ -350,6 +344,43 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
+	for _, h := range grpcProxy {
+		desc := h.ServiceDesc()
+		assert.If(desc == nil, "desc is nil")
+
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
+		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
+
+		if m, ok := h.(lava.Close); ok {
+			lifecycle.BeforeStop(m.Close)
+		}
+
+		if m, ok := h.(lava.Initializer); ok {
+			s.initList = append(s.initList, m.Initialize)
+		}
+
+		if m, ok := h.(lava.Init); ok {
+			s.initList = append(s.initList, m.Init)
+		}
+
+		cli := grpcc.New(
+			&grpcc_config.Cfg{
+				Service: &grpcc_config.ServiceCfg{
+					Name:   h.Proxy().Name,
+					Addr:   h.Proxy().Addr,
+					Scheme: h.Proxy().Resolver,
+				},
+			},
+			grpcc.Params{
+				Log:    log,
+				Metric: metric,
+			},
+			srvMidMap[desc.ServiceName]...,
+		)
+
+		mux.RegisterProxy(desc, h, cli)
+	}
+
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 	s.cc = s.cc.WithServerUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
@@ -361,7 +392,7 @@ func (s *serviceImpl) DixInject(
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
 	).Expect("failed to build grpc server")
 
-	for _, h := range handlers {
+	for _, h := range grpcRouters {
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
@@ -370,14 +401,14 @@ func (s *serviceImpl) DixInject(
 	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
-			Str("method-name", m.GrpcMethodName).
-			Str("http-method", m.HttpMethod).
-			Str("http-path", apiPrefix1+"/"+strings.Join(m.HttpPath, "/")).
+			Str("operation", m.Operation).
+			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
+			Str("http-method", m.Method).
+			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
 			Str("verb", m.Verb).
-			Str("req-field-path", m.RequestBodyFieldPath).
-			Str("rsp-field-path", m.ResponseBodyFieldPath).
 			Any("path-vars", m.Vars).
-			Msg("grpc gateway method router")
+			Str("extras", fmt.Sprintf("%v", m.Extras)).
+			Msg("grpc gateway router info")
 	}
 
 	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))

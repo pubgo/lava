@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"os"
 	"sort"
 
@@ -24,11 +23,12 @@ import (
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/services/errorservice"
-	"github.com/pubgo/lava/services/metadata"
+	"github.com/pubgo/lava/services/metadataservice"
 
 	_ "github.com/pubgo/lava/core/debug/debug"
 	// debug
@@ -69,7 +69,7 @@ var defaultProviders = []any{
 	lifecycle.New,
 	scheduler.New,
 
-	metadata.New,
+	metadataservice.New,
 	errorservice.New,
 }
 
@@ -103,6 +103,6 @@ func Run(di *dix.Dix) {
 		}
 
 		sort.Sort(cli.FlagsByName(app.Flags))
-		assert.Must(app.Run(context.Background(), os.Args))
+		assert.Must(app.Run(signal.Context(), os.Args))
 	})
 }

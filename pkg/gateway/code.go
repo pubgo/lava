@@ -7,6 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+// https://github.com/dapr/kit/tree/main/grpccodes
+
 var codeToHTTPStatus = [...]int{
 	http.StatusOK,                  // 0
 	http.StatusRequestTimeout,      // 1

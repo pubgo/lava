@@ -7,12 +7,12 @@ import (
 
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"github.com/rs/zerolog"
@@ -47,7 +47,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			evt.Str("referer", referer)
 		}
 
-		reqId := lava.GetReqID(ctx)
+		reqId := lavacontexts.GetReqID(ctx)
 		evt.Str("req_id", reqId)
 		evt.Int64("start_at", now.Unix())
 		evt.Str("service", req.Service())
@@ -56,7 +56,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		evt.Bool("client", req.Client())
 		evt.Str("version", version.Version())
 
-		clientInfo := lava.GetClientInfo(ctx)
+		clientInfo := lavacontexts.GetClientInfo(ctx)
 		if clientInfo != nil {
 			evt.Str(grpcutil.ClientNameKey, clientInfo.GetName())
 			evt.Str(grpcutil.ClientPathKey, clientInfo.GetPath())
@@ -98,7 +98,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				errors.Debug(gErr)
+				//errors.Debug(gErr)
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
 				pb := errutil.ParseError(gErr)
