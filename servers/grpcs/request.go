@@ -2,6 +2,7 @@ package grpcs
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/lava"
@@ -40,8 +41,10 @@ type httpRequest struct {
 	ctx *fiber.Ctx
 }
 
-func (r *httpRequest) Kind() string                { return "http" }
-func (r *httpRequest) Operation() string           { return fmt.Sprintf("%s %s", r.ctx.Method(), r.ctx.Path()) }
+func (r *httpRequest) Kind() string { return "http" }
+func (r *httpRequest) Operation() string {
+	return fmt.Sprintf("%s %s", strings.TrimSpace(r.ctx.Method()), strings.TrimSpace(r.ctx.Path()))
+}
 func (r *httpRequest) Client() bool                { return false }
 func (r *httpRequest) Header() *lava.RequestHeader { return &r.ctx.Request().Header }
 func (r *httpRequest) Payload() interface{}        { return r.ctx.Body() }
@@ -51,5 +54,5 @@ func (r *httpRequest) ContentType() string {
 }
 
 func (r *httpRequest) Service() string  { return r.ctx.OriginalURL() }
-func (r *httpRequest) Endpoint() string { return r.ctx.OriginalURL() }
+func (r *httpRequest) Endpoint() string { return string(r.ctx.Request().RequestURI()) }
 func (r *httpRequest) Stream() bool     { return false }
