@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/lava"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )
 
@@ -31,22 +32,35 @@ func buildTarget(cfg *grpcc_config.ServiceCfg) string {
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (grpc.ClientConnInterface, error) {
+func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (_ grpc.ClientConnInterface, gErr error) {
 	addr := buildTarget(cfg.Service)
 
-	ee := log.Info().
-		Str(logkey.Service, cfg.Service.Name).
-		Str("addr", addr)
-	ee.Msg("grpc client init")
+	var logMsg = func(e *zerolog.Event) {
+		e.Any(logkey.Service, cfg.Service)
+		e.Any("config", cfg.Client)
+		e.Str("addr", addr)
+	}
 
-	conn, err := grpc.NewClient(addr, append(
-		append(cfg.Client.ToOpts(), grpc.WithResolvers(cfg.Resolvers...)),
+	defer func() {
+		if gErr == nil {
+			log.Info().
+				Func(logMsg).Msg("succeed to create grpc client")
+		} else {
+			log.Err(gErr).
+				Func(logMsg).Msg("failed to create grpc client")
+		}
+	}()
+
+	opts := append(
+		cfg.Client.ToOpts(),
+		grpc.WithResolvers(cfg.Resolvers...),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
-		grpc.WithChainStreamInterceptor(streamInterceptor(mm)))...)
+		grpc.WithChainStreamInterceptor(streamInterceptor(mm)),
+	)
+	conn, err := grpc.NewClient(addr, opts...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "grpc dial failed, target=>%s", addr)
 	}
 
-	ee.Msg("grpc client init ok")
 	return conn, nil
 }
