@@ -42,13 +42,12 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		reqCtx := req.(*request)
 		header := make(metadata.MD)
 		trailer := make(metadata.MD)
-		reqCtx.opts = append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
-
-		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc, reqCtx.opts...); err != nil {
+		opts := append(reqCtx.opts, grpc.Header(&header), grpc.Trailer(&trailer))
+		if err := reqCtx.invoker(ctx, reqCtx.method, reqCtx.req, reqCtx.reply, reqCtx.cc, opts...); err != nil {
 			return nil, err
 		}
 
-		rsp := &response{resp: reqCtx.resp, header: new(lava.ResponseHeader)}
+		rsp := &response{header: new(lava.ResponseHeader)}
 		md2Head(header, rsp.header)
 		md2Head(trailer, rsp.header)
 		return rsp, nil
