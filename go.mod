@@ -63,6 +63,7 @@ require (
 	github.com/logdyhq/logdy-core v0.13.0
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
+	github.com/nats-io/nats.go v1.37.0
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.17
 	github.com/pubgo/funk v0.5.48
@@ -174,6 +175,8 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/nats-io/nkeys v0.4.7 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect

@@ -1,0 +1,14 @@
+jobs:
+  # stream name: stream config
+  streams:
+    gid:
+      storage: "file"
+      subjects: ["gid.>"]
+  consumers:
+    gid:
+      - consumer: "test:gid"
+        stream: "gid"
+        subjects: "gid.proxy.exec"
+        job:
+          timeout: "1m"
+          max_retries: 10
