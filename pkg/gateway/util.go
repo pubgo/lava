@@ -3,16 +3,38 @@ package gateway
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/textproto"
 	"strconv"
 	"strings"
 
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func getReqBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
+	return path.Extras["req_body_desc"].([]protoreflect.FieldDescriptor)
+}
+
+func getRspBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
+	return path.Extras["rsp_body_desc"].([]protoreflect.FieldDescriptor)
+}
+
+func resolveBodyDesc(methodDesc protoreflect.MethodDescriptor, reqBody, rspBody string) map[string]any {
+	return map[string]any{
+		"req_body_field": reqBody,
+		"req_body_desc":  assert.Must1(resolvePathToDescriptors(methodDesc.Input(), reqBody)),
+		"rsp_body_field": rspBody,
+		"rsp_body_desc":  assert.Must1(resolvePathToDescriptors(methodDesc.Output(), rspBody)),
+	}
+}
 
 func fieldPathToDesc(fields protoreflect.FieldDescriptors, names ...string) []protoreflect.FieldDescriptor {
 	fds := make([]protoreflect.FieldDescriptor, len(names))
@@ -48,15 +70,23 @@ func quote(raw []byte) []byte {
 
 // getExtensionHTTP
 func getExtensionHTTP(m protoreflect.MethodDescriptor) *annotations.HttpRule {
-	if m == nil {
-		return nil
-	}
-
-	if m.Options() == nil {
+	if m == nil || m.Options() == nil {
 		return nil
 	}
 
 	ext, ok := proto.GetExtension(m.Options(), annotations.E_Http).(*annotations.HttpRule)
+	if ok {
+		return ext
+	}
+	return nil
+}
+
+func getExtensionRpc(m protoreflect.MethodDescriptor) *lavapbv1.RpcMeta {
+	if m == nil || m.Options() == nil {
+		return nil
+	}
+
+	ext, ok := proto.GetExtension(m.Options(), lavapbv1.E_Options).(*lavapbv1.RpcMeta)
 	if ok {
 		return ext
 	}
@@ -138,4 +168,102 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 		md[k] = vs
 	}
 	return metadata.NewIncomingContext(ctx, md), md
+}
+
+func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path string, reqBody, rspBody string) error) error {
+	if httpRule == nil {
+		return nil
+	}
+
+	var method, template string
+	switch pattern := httpRule.GetPattern().(type) {
+	case *annotations.HttpRule_Get:
+		method, template = http.MethodGet, pattern.Get
+	case *annotations.HttpRule_Put:
+		method, template = http.MethodPut, pattern.Put
+	case *annotations.HttpRule_Post:
+		method, template = http.MethodPost, pattern.Post
+	case *annotations.HttpRule_Delete:
+		method, template = http.MethodDelete, pattern.Delete
+	case *annotations.HttpRule_Patch:
+		method, template = http.MethodPatch, pattern.Patch
+	case *annotations.HttpRule_Custom:
+		method, template = pattern.Custom.GetKind(), pattern.Custom.GetPath()
+	default:
+		return errors.Format("invalid type of pattern for HTTP httpRule: %T", pattern)
+	}
+
+	if method == "" {
+		return errors.New("invalid HTTP httpRule: HttpMethod is blank")
+	}
+
+	if template == "" {
+		return errors.New("invalid HTTP httpRule: HttpPath template is blank")
+	}
+
+	var reqBody = httpRule.GetBody()
+	switch reqBody {
+	case "", "*":
+		reqBody = "*"
+	}
+
+	var rspBody = httpRule.GetResponseBody()
+	switch rspBody {
+	case "", "*":
+		rspBody = "*"
+	}
+
+	if err := cb(method, template, reqBody, rspBody); err != nil {
+		return err
+	}
+
+	for i, rule := range httpRule.GetAdditionalBindings() {
+		if len(rule.GetAdditionalBindings()) > 0 {
+			return errors.New("nested additional bindings are not supported")
+		}
+
+		if err := handlerHttpRoute(rule, cb); err != nil {
+			return errors.Format("failed to add REST route (add binding #%d): %v", i+1, err)
+		}
+	}
+
+	return nil
+}
+
+func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) ([]protoreflect.FieldDescriptor, error) {
+	if path == "" {
+		return nil, nil
+	}
+	if path == "*" {
+		// non-nil, empty slice means use the whole thing
+		return []protoreflect.FieldDescriptor{}, nil
+	}
+
+	fields := msg.Fields()
+	parts := strings.Split(path, ".")
+	result := make([]protoreflect.FieldDescriptor, len(parts))
+	for i, part := range parts {
+		field := fields.ByName(protoreflect.Name(part))
+		if field == nil {
+			return nil, errors.Format("in field HttpPath %q: element %q does not correspond to any field of type %s",
+				path, part, msg.FullName())
+		}
+
+		result[i] = field
+		if i == len(parts)-1 {
+			break
+		}
+
+		if field.Cardinality() == protoreflect.Repeated {
+			return nil, errors.Format("in field HttpPath %q: field %q of type %s should not be a list or map", path, part, msg.FullName())
+		}
+
+		msg = field.Message()
+		if msg == nil {
+			return nil, fmt.Errorf("in field HttpPath %q: field %q of type %s should be a message", path, part, field.Kind())
+		}
+
+		fields = msg.Fields()
+	}
+	return result, nil
 }

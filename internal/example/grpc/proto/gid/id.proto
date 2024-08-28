@@ -6,6 +6,7 @@ import "errorpb/options.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/httpbody.proto";
+import "lava/rpc.proto";
 import "openapiv3/annotations.proto";
 
 option go_package = "./gidpb;gidpb";
@@ -23,6 +24,10 @@ service Id {
 
     // Generate 生成ID
     rpc Generate (GenerateRequest) returns (GenerateResponse) {
+        option (lava.rpc.options) = {
+            name: "id.gen",
+            tags: [{key: "internal",value: "true"}, {key: "hello",value: "world"}]
+        };
         option (google.api.http) = {
             post: "/v1/id/generate"
             body: "*"
@@ -65,6 +70,15 @@ service Id {
             body: "file"
         };
     }
+
+    rpc DoProxy (Empty) returns (Empty) {
+        option (google.api.http) = {
+            get: "/proxy/test"
+        };
+    }
+}
+
+message Empty {
 }
 
 message UploadFileRequest {

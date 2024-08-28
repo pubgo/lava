@@ -11,9 +11,9 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
-	"github.com/pubgo/lava/core/metrics"
 	"github.com/valyala/fasthttp"
 
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"

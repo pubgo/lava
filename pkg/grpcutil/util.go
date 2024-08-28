@@ -18,11 +18,11 @@ import (
 )
 
 const (
-	ClientNameKey     = "client-name"
-	ClientIpKey       = "client-ip"
-	ClientHostnameKey = "client-hostname"
-	ClientPathKey     = "client-path"
-	ClientVersionKey  = "client-version"
+	ClientNameKey     = "x-lava-client-name"
+	ClientIpKey       = "x-lava-client-ip"
+	ClientHostnameKey = "x-lava-client-hostname"
+	ClientPathKey     = "x-lava-client-path"
+	ClientVersionKey  = "x-lava-client-version"
 )
 
 // WithClientApp 获取对端应用名称

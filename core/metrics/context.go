@@ -11,11 +11,11 @@ type ctxKet string
 
 var metricKey = ctxKet(xid.New().String())
 
-func CreateCtx(parent context.Context, scope tally.Scope) context.Context {
+func InjectToCtx(parent context.Context, scope tally.Scope) context.Context {
 	return context.WithValue(parent, metricKey, scope)
 }
 
-func Ctx(ctx context.Context) tally.Scope {
+func GetFromCtx(ctx context.Context) tally.Scope {
 	l, ok := ctx.Value(metricKey).(tally.Scope)
 	if ok {
 		return l
