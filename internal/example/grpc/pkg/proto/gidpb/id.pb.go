@@ -9,6 +9,7 @@ package gidpb
 import (
 	_ "github.com/google/gnostic-models/openapiv3"
 	_ "github.com/pubgo/funk/proto/errorpb"
+	_ "github.com/pubgo/lava/pkg/proto/cloudjobpb"
 	_ "github.com/pubgo/lava/pkg/proto/lavapbv1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
@@ -184,6 +185,44 @@ func (x *GenerateResponse) GetType() string {
 	return ""
 }
 
+type DoProxyEventReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DoProxyEventReq) Reset() {
+	*x = DoProxyEventReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gid_id_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DoProxyEventReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DoProxyEventReq) ProtoMessage() {}
+
+func (x *DoProxyEventReq) ProtoReflect() protoreflect.Message {
+	mi := &file_gid_id_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DoProxyEventReq.ProtoReflect.Descriptor instead.
+func (*DoProxyEventReq) Descriptor() ([]byte, []int) {
+	return file_gid_id_proto_rawDescGZIP(), []int{1}
+}
+
 type Empty struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -193,7 +232,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[1]
+		mi := &file_gid_id_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -206,7 +245,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[1]
+	mi := &file_gid_id_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -219,7 +258,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{1}
+	return file_gid_id_proto_rawDescGZIP(), []int{2}
 }
 
 type UploadFileRequest struct {
@@ -234,7 +273,7 @@ type UploadFileRequest struct {
 func (x *UploadFileRequest) Reset() {
 	*x = UploadFileRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[2]
+		mi := &file_gid_id_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -247,7 +286,7 @@ func (x *UploadFileRequest) String() string {
 func (*UploadFileRequest) ProtoMessage() {}
 
 func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[2]
+	mi := &file_gid_id_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -260,7 +299,7 @@ func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFileRequest.ProtoReflect.Descriptor instead.
 func (*UploadFileRequest) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{2}
+	return file_gid_id_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UploadFileRequest) GetFilename() string {
@@ -290,7 +329,7 @@ type ChatMessage struct {
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[3]
+		mi := &file_gid_id_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -303,7 +342,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[3]
+	mi := &file_gid_id_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -316,7 +355,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{3}
+	return file_gid_id_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ChatMessage) GetName() string {
@@ -352,7 +391,7 @@ type Message struct {
 func (x *Message) Reset() {
 	*x = Message{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[4]
+		mi := &file_gid_id_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -365,7 +404,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[4]
+	mi := &file_gid_id_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -378,7 +417,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{4}
+	return file_gid_id_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Message) GetName() string {
@@ -408,7 +447,7 @@ type GenerateRequest struct {
 func (x *GenerateRequest) Reset() {
 	*x = GenerateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[5]
+		mi := &file_gid_id_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -421,7 +460,7 @@ func (x *GenerateRequest) String() string {
 func (*GenerateRequest) ProtoMessage() {}
 
 func (x *GenerateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[5]
+	mi := &file_gid_id_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -434,7 +473,7 @@ func (x *GenerateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateRequest.ProtoReflect.Descriptor instead.
 func (*GenerateRequest) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{5}
+	return file_gid_id_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GenerateRequest) GetType() GenType {
@@ -458,7 +497,7 @@ type TypesRequest struct {
 func (x *TypesRequest) Reset() {
 	*x = TypesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[6]
+		mi := &file_gid_id_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -471,7 +510,7 @@ func (x *TypesRequest) String() string {
 func (*TypesRequest) ProtoMessage() {}
 
 func (x *TypesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[6]
+	mi := &file_gid_id_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -484,7 +523,7 @@ func (x *TypesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TypesRequest.ProtoReflect.Descriptor instead.
 func (*TypesRequest) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{6}
+	return file_gid_id_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *TypesRequest) GetName() string {
@@ -520,7 +559,7 @@ type TypesResponse struct {
 func (x *TypesResponse) Reset() {
 	*x = TypesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_gid_id_proto_msgTypes[7]
+		mi := &file_gid_id_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -533,7 +572,7 @@ func (x *TypesResponse) String() string {
 func (*TypesResponse) ProtoMessage() {}
 
 func (x *TypesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gid_id_proto_msgTypes[7]
+	mi := &file_gid_id_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -546,7 +585,7 @@ func (x *TypesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TypesResponse.ProtoReflect.Descriptor instead.
 func (*TypesResponse) Descriptor() ([]byte, []int) {
-	return file_gid_id_proto_rawDescGZIP(), []int{7}
+	return file_gid_id_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *TypesResponse) GetTypes() []string {
@@ -566,14 +605,17 @@ var file_gid_id_proto_rawDesc = []byte{
 	0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x17, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x1a, 0x19, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x68, 0x74,
-	0x74, 0x70, 0x62, 0x6f, 0x64, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x0e, 0x6c, 0x61,
-	0x76, 0x61, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1b, 0x6f, 0x70,
-	0x65, 0x6e, 0x61, 0x70, 0x69, 0x76, 0x33, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x36, 0x0a, 0x10, 0x47, 0x65, 0x6e,
-	0x65, 0x72, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a,
-	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a,
-	0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x59, 0x0a, 0x11, 0x55, 0x70,
+	0x74, 0x70, 0x62, 0x6f, 0x64, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1b, 0x6c, 0x61,
+	0x76, 0x61, 0x2f, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x6a, 0x6f, 0x62, 0x2f, 0x6f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x0e, 0x6c, 0x61, 0x76, 0x61, 0x2f,
+	0x72, 0x70, 0x63, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1b, 0x6f, 0x70, 0x65, 0x6e, 0x61,
+	0x70, 0x69, 0x76, 0x33, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x36, 0x0a, 0x10, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79,
+	0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x11,
+	0x0a, 0x0f, 0x44, 0x6f, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x59, 0x0a, 0x11, 0x55, 0x70,
 	0x6c, 0x6f, 0x61, 0x64, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
 	0x1a, 0x0a, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x28, 0x0a, 0x04, 0x66,
@@ -607,8 +649,8 @@ var file_gid_id_proto_rawDesc = []byte{
 	0x07, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x10, 0x00, 0x12, 0x08, 0x0a, 0x04, 0x75, 0x75,
 	0x69, 0x64, 0x10, 0x01, 0x12, 0x0d, 0x0a, 0x09, 0x73, 0x6e, 0x6f, 0x77, 0x66, 0x6c, 0x61, 0x6b,
 	0x65, 0x10, 0x02, 0x12, 0x0c, 0x0a, 0x08, 0x62, 0x69, 0x67, 0x66, 0x6c, 0x61, 0x6b, 0x65, 0x10,
-	0x03, 0x12, 0x0b, 0x0a, 0x07, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x69, 0x64, 0x10, 0x04, 0x32, 0xda,
-	0x05, 0x0a, 0x02, 0x49, 0x64, 0x12, 0x81, 0x01, 0x0a, 0x08, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x03, 0x12, 0x0b, 0x0a, 0x07, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x69, 0x64, 0x10, 0x04, 0x32, 0xa9,
+	0x06, 0x0a, 0x02, 0x49, 0x64, 0x12, 0x81, 0x01, 0x0a, 0x08, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61,
 	0x74, 0x65, 0x12, 0x14, 0x2e, 0x67, 0x69, 0x64, 0x2e, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
 	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x67, 0x69, 0x64, 0x2e, 0x47,
 	0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
@@ -652,10 +694,15 @@ var file_gid_id_proto_rawDesc = []byte{
 	0x12, 0x36, 0x0a, 0x07, 0x44, 0x6f, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x12, 0x0a, 0x2e, 0x67, 0x69,
 	0x64, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0a, 0x2e, 0x67, 0x69, 0x64, 0x2e, 0x45, 0x6d,
 	0x70, 0x74, 0x79, 0x22, 0x13, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0d, 0x12, 0x0b, 0x2f, 0x70, 0x72,
-	0x6f, 0x78, 0x79, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x1a, 0x11, 0xca, 0x41, 0x0e, 0x6c, 0x6f, 0x63,
-	0x61, 0x6c, 0x68, 0x6f, 0x73, 0x74, 0x3a, 0x38, 0x30, 0x38, 0x30, 0x42, 0x0f, 0x5a, 0x0d, 0x2e,
-	0x2f, 0x67, 0x69, 0x64, 0x70, 0x62, 0x3b, 0x67, 0x69, 0x64, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x78, 0x79, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0e, 0x50, 0x72, 0x6f, 0x78,
+	0x79, 0x45, 0x78, 0x65, 0x63, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x14, 0x2e, 0x67, 0x69, 0x64,
+	0x2e, 0x44, 0x6f, 0x50, 0x72, 0x6f, 0x78, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71,
+	0x1a, 0x0a, 0x2e, 0x67, 0x69, 0x64, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x12, 0xda, 0xf1,
+	0x04, 0x0e, 0x67, 0x69, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x78, 0x79, 0x2e, 0x65, 0x78, 0x65, 0x63,
+	0x1a, 0x18, 0xca, 0x41, 0x0e, 0x6c, 0x6f, 0x63, 0x61, 0x6c, 0x68, 0x6f, 0x73, 0x74, 0x3a, 0x38,
+	0x30, 0x38, 0x30, 0xd2, 0xf1, 0x04, 0x03, 0x67, 0x69, 0x64, 0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f,
+	0x67, 0x69, 0x64, 0x70, 0x62, 0x3b, 0x67, 0x69, 0x64, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -671,42 +718,45 @@ func file_gid_id_proto_rawDescGZIP() []byte {
 }
 
 var file_gid_id_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gid_id_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_gid_id_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_gid_id_proto_goTypes = []any{
 	(SrvCode)(0),              // 0: gid.SrvCode
 	(GenType)(0),              // 1: gid.GenType
 	(*GenerateResponse)(nil),  // 2: gid.GenerateResponse
-	(*Empty)(nil),             // 3: gid.Empty
-	(*UploadFileRequest)(nil), // 4: gid.UploadFileRequest
-	(*ChatMessage)(nil),       // 5: gid.ChatMessage
-	(*Message)(nil),           // 6: gid.Message
-	(*GenerateRequest)(nil),   // 7: gid.GenerateRequest
-	(*TypesRequest)(nil),      // 8: gid.TypesRequest
-	(*TypesResponse)(nil),     // 9: gid.TypesResponse
-	(*httpbody.HttpBody)(nil), // 10: google.api.HttpBody
+	(*DoProxyEventReq)(nil),   // 3: gid.DoProxyEventReq
+	(*Empty)(nil),             // 4: gid.Empty
+	(*UploadFileRequest)(nil), // 5: gid.UploadFileRequest
+	(*ChatMessage)(nil),       // 6: gid.ChatMessage
+	(*Message)(nil),           // 7: gid.Message
+	(*GenerateRequest)(nil),   // 8: gid.GenerateRequest
+	(*TypesRequest)(nil),      // 9: gid.TypesRequest
+	(*TypesResponse)(nil),     // 10: gid.TypesResponse
+	(*httpbody.HttpBody)(nil), // 11: google.api.HttpBody
 }
 var file_gid_id_proto_depIdxs = []int32{
-	10, // 0: gid.UploadFileRequest.file:type_name -> google.api.HttpBody
-	6,  // 1: gid.ChatMessage.msg:type_name -> gid.Message
+	11, // 0: gid.UploadFileRequest.file:type_name -> google.api.HttpBody
+	7,  // 1: gid.ChatMessage.msg:type_name -> gid.Message
 	1,  // 2: gid.GenerateRequest.type:type_name -> gid.GenType
-	7,  // 3: gid.Id.Generate:input_type -> gid.GenerateRequest
-	8,  // 4: gid.Id.TypeStream:input_type -> gid.TypesRequest
-	8,  // 5: gid.Id.Types:input_type -> gid.TypesRequest
-	8,  // 6: gid.Id.PutTypes:input_type -> gid.TypesRequest
-	5,  // 7: gid.Id.Chat:input_type -> gid.ChatMessage
-	5,  // 8: gid.Id.Chat1:input_type -> gid.ChatMessage
-	4,  // 9: gid.Id.UploadDownload:input_type -> gid.UploadFileRequest
-	3,  // 10: gid.Id.DoProxy:input_type -> gid.Empty
-	2,  // 11: gid.Id.Generate:output_type -> gid.GenerateResponse
-	9,  // 12: gid.Id.TypeStream:output_type -> gid.TypesResponse
-	9,  // 13: gid.Id.Types:output_type -> gid.TypesResponse
-	9,  // 14: gid.Id.PutTypes:output_type -> gid.TypesResponse
-	5,  // 15: gid.Id.Chat:output_type -> gid.ChatMessage
-	5,  // 16: gid.Id.Chat1:output_type -> gid.ChatMessage
-	10, // 17: gid.Id.UploadDownload:output_type -> google.api.HttpBody
-	3,  // 18: gid.Id.DoProxy:output_type -> gid.Empty
-	11, // [11:19] is the sub-list for method output_type
-	3,  // [3:11] is the sub-list for method input_type
+	8,  // 3: gid.Id.Generate:input_type -> gid.GenerateRequest
+	9,  // 4: gid.Id.TypeStream:input_type -> gid.TypesRequest
+	9,  // 5: gid.Id.Types:input_type -> gid.TypesRequest
+	9,  // 6: gid.Id.PutTypes:input_type -> gid.TypesRequest
+	6,  // 7: gid.Id.Chat:input_type -> gid.ChatMessage
+	6,  // 8: gid.Id.Chat1:input_type -> gid.ChatMessage
+	5,  // 9: gid.Id.UploadDownload:input_type -> gid.UploadFileRequest
+	4,  // 10: gid.Id.DoProxy:input_type -> gid.Empty
+	3,  // 11: gid.Id.ProxyExecEvent:input_type -> gid.DoProxyEventReq
+	2,  // 12: gid.Id.Generate:output_type -> gid.GenerateResponse
+	10, // 13: gid.Id.TypeStream:output_type -> gid.TypesResponse
+	10, // 14: gid.Id.Types:output_type -> gid.TypesResponse
+	10, // 15: gid.Id.PutTypes:output_type -> gid.TypesResponse
+	6,  // 16: gid.Id.Chat:output_type -> gid.ChatMessage
+	6,  // 17: gid.Id.Chat1:output_type -> gid.ChatMessage
+	11, // 18: gid.Id.UploadDownload:output_type -> google.api.HttpBody
+	4,  // 19: gid.Id.DoProxy:output_type -> gid.Empty
+	4,  // 20: gid.Id.ProxyExecEvent:output_type -> gid.Empty
+	12, // [12:21] is the sub-list for method output_type
+	3,  // [3:12] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
@@ -731,7 +781,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*Empty); i {
+			switch v := v.(*DoProxyEventReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -743,7 +793,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*UploadFileRequest); i {
+			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -755,7 +805,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*ChatMessage); i {
+			switch v := v.(*UploadFileRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -767,7 +817,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[4].Exporter = func(v any, i int) any {
-			switch v := v.(*Message); i {
+			switch v := v.(*ChatMessage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -779,7 +829,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[5].Exporter = func(v any, i int) any {
-			switch v := v.(*GenerateRequest); i {
+			switch v := v.(*Message); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -791,7 +841,7 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[6].Exporter = func(v any, i int) any {
-			switch v := v.(*TypesRequest); i {
+			switch v := v.(*GenerateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -803,6 +853,18 @@ func file_gid_id_proto_init() {
 			}
 		}
 		file_gid_id_proto_msgTypes[7].Exporter = func(v any, i int) any {
+			switch v := v.(*TypesRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gid_id_proto_msgTypes[8].Exporter = func(v any, i int) any {
 			switch v := v.(*TypesResponse); i {
 			case 0:
 				return &v.state
@@ -821,7 +883,7 @@ func file_gid_id_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_gid_id_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

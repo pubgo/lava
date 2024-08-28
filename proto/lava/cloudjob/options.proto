@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package lava.asyncjob;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/pubgo/lava/pkg/proto/asyncjobpb;asyncjobpb";
+
+extend google.protobuf.ServiceOptions {
+    // job name, same with config jobs consumers job name
+    string job_name = 10010;
+}
+
+extend google.protobuf.MethodOptions {
+    string subject_name = 10011;
+}
