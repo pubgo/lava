@@ -2,7 +2,7 @@ package cloudjobs
 
 import "github.com/pubgo/funk/errors"
 
-var errReject = errors.New("asyncjob: reject retry and discard msg")
+var errReject = errors.New("cloudjobs: reject retry and discard msg")
 
 func Reject(errs ...error) error {
 	var reason = "reject"

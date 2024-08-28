@@ -103,7 +103,7 @@ func (c *Client) initConsumer() error {
 	defer cancel()
 	for jobOrConsumerName, consumers := range c.p.Cfg.Consumers {
 		jobName := jobOrConsumerName
-		assert.If(c.handlers[jobName] == nil, "failed to find job handler: %s, please impl RegisterAsyncJob", jobName)
+		assert.If(c.handlers[jobName] == nil, "failed to find job handler: %s, please impl RegisterCloudJob", jobName)
 
 		consumerName := jobOrConsumerName
 		for _, cfg := range consumers {
@@ -180,7 +180,7 @@ func (c *Client) initConsumer() error {
 						e.Any("stream_name", streamName)
 						e.Any("consumer_name", consumerName)
 						e.Any("job_subject", subName)
-						e.Msg("register async job handler executor")
+						e.Msg("register cloud job handler executor")
 					})
 					c.jobs[streamName][consumerName][subName] = job
 				}
@@ -228,7 +228,7 @@ func (c *Client) doHandler(meta *jetstream.MsgMetadata, msg jetstream.Msg, job *
 			e.Str("timeout", timeout.String())
 			e.Str("start_time", now.String())
 			e.Str("job_cost", time.Since(now).String())
-			e.Msg("failed to do async job handler")
+			e.Msg("failed to do cloud job handler")
 		})
 	}()
 
@@ -252,7 +252,7 @@ func (c *Client) doHandler(meta *jetstream.MsgMetadata, msg jetstream.Msg, job *
 
 	return errors.WrapFn(job.handler(msgCtx, dst), func() errors.Tags {
 		return errors.Tags{
-			errors.T("msg", "failed to do async job handler"),
+			errors.T("msg", "failed to do cloud job handler"),
 			errors.T("args", dst),
 			errors.T("any_pb", pb.String()),
 		}
@@ -271,7 +271,7 @@ func (c *Client) doConsume() error {
 				e.Str("stream", streamName)
 				e.Str("consumer", consumerName)
 				e.Any("subjects", lo.MapKeys(jobSubjects, func(_ *jobHandler, key string) string { return key }))
-				e.Msg("async job do consumer")
+				e.Msg("cloud job do consumer")
 			})
 
 			var doConsumeHandler = func(msg jetstream.Msg) {
@@ -288,7 +288,7 @@ func (c *Client) doConsume() error {
 
 				logger.Debug().Func(func(e *zerolog.Event) {
 					addMsgInfo(e)
-					e.Msg("received async job event")
+					e.Msg("received cloud job event")
 				})
 
 				handler := jobSubjects[msg.Subject()]
@@ -341,12 +341,12 @@ func (c *Client) doConsume() error {
 						Err(err).
 						Func(addMsgInfo).
 						Any("metadata", meta).
-						Msg("retry nats stream async job event")
+						Msg("retry nats stream cloud job event")
 					checkErrAndLog(msg.NakWithDelay(backoff), "failed to retry msg with delay nak")
 					return
 				}
 
-				checkErrAndLog(err, "failed to do handler async job")
+				checkErrAndLog(err, "failed to do handler cloud job")
 				checkErrAndLog(msg.Ack(), "failed to do msg ack with handler error")
 			}
 
@@ -392,9 +392,9 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 			}
 		}
 		if gErr == nil {
-			logger.Info(ctx).Func(msgFn).Msg("succeed to publish async job event to stream")
+			logger.Info(ctx).Func(msgFn).Msg("succeed to publish cloud job event to stream")
 		} else {
-			logger.Err(gErr, ctx).Func(msgFn).Msg("failed to publish async job event to stream")
+			logger.Err(gErr, ctx).Func(msgFn).Msg("failed to publish cloud job event to stream")
 		}
 	}()
 
@@ -467,6 +467,6 @@ func (c *Client) registerJobHandler(jobName string, topic string, handler JobHan
 		e.Str("job_name", jobName)
 		e.Str("topic", topic)
 		e.Str("job_handler", stack.CallerWithFunc(handler).String())
-		e.Msg("register async job handler")
+		e.Msg("register cloud job handler")
 	})
 }

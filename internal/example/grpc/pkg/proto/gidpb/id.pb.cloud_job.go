@@ -16,10 +16,10 @@ const IdProxyExecEventKey = "gid.proxy.exec"
 
 var _ = cloudjobs.RegisterSubject(IdProxyExecEventKey, new(DoProxyEventReq))
 
-func RegisterIdProxyExecEventAsyncJob(jobCli *cloudjobs.Client, handler func(ctx *cloudjobs.Context, req *DoProxyEventReq) error) {
+func RegisterIdProxyExecEventCloudJob(jobCli *cloudjobs.Client, handler func(ctx *cloudjobs.Context, req *DoProxyEventReq) error) {
 	cloudjobs.RegisterJobHandler(jobCli, "gid", IdProxyExecEventKey, handler)
 }
 
-func PushIdProxyExecEventAsyncJob(jobCli *cloudjobs.Client, ctx context.Context, req *DoProxyEventReq) error {
+func PushIdProxyExecEventCloudJob(jobCli *cloudjobs.Client, ctx context.Context, req *DoProxyEventReq) error {
 	return jobCli.Publish(ctx, IdProxyExecEventKey, req)
 }
