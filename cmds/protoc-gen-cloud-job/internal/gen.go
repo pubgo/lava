@@ -84,7 +84,7 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 
 			genFile.
 				Func().
-				Id(fmt.Sprintf("Register%s%sAsyncJob", code, info.mth.GoName)).
+				Id(fmt.Sprintf("Register%s%sCloudJob", code, info.mth.GoName)).
 				Params(
 					jen.Id("jobCli").Op("*").Qual(jobPkg, "Client"),
 					jen.Id("handler").Func().Params(
@@ -96,7 +96,7 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 			genFile.Line()
 
 			var prefix = fmt.Sprintf("Push%s", code)
-			var mthName = fmt.Sprintf("%sAsyncJob", info.mth.GoName)
+			var mthName = fmt.Sprintf("%sCloudJob", info.mth.GoName)
 			mthName = handlerPushEventName(mthName, prefix)
 			genFile.
 				Func().
