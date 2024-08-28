@@ -1,8 +1,9 @@
-package lava
+package lavacontexts
 
 import (
 	"context"
 
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 )
@@ -57,18 +58,18 @@ var (
 	rspHeader = ctxKey(xid.New().String())
 )
 
-func CreateReqHeader(ctx context.Context, header *RequestHeader) context.Context {
+func CreateReqHeader(ctx context.Context, header *lava.RequestHeader) context.Context {
 	return context.WithValue(ctx, reqHeader, header)
 }
 
-func ReqHeader(ctx context.Context) *RequestHeader {
-	return ctx.Value(reqHeader).(*RequestHeader)
+func ReqHeader(ctx context.Context) *lava.RequestHeader {
+	return ctx.Value(reqHeader).(*lava.RequestHeader)
 }
 
-func CreateRspHeader(ctx context.Context, header *ResponseHeader) context.Context {
+func CreateRspHeader(ctx context.Context, header *lava.ResponseHeader) context.Context {
 	return context.WithValue(ctx, rspHeader, header)
 }
 
-func RspHeader(ctx context.Context) *ResponseHeader {
-	return ctx.Value(rspHeader).(*ResponseHeader)
+func RspHeader(ctx context.Context) *lava.ResponseHeader {
+	return ctx.Value(rspHeader).(*lava.ResponseHeader)
 }

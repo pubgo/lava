@@ -1,9 +1,10 @@
-checksum: db889045c39c093d2e967b4d457fa36fe2e0f420
+checksum: 1aee5ba9edd17a44e0dc80045c51f3b1dbbc99a6
 vendor: ../../../.proto
 root:
   - proto
 includes:
   - proto
+  - ../../../proto
 deps:
   - name: google
     url: github.com/googleapis/googleapis
@@ -29,7 +30,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.42
+    version: v0.5.48
 plugins:
   - name: go
     out: pkg/proto

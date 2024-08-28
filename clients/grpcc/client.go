@@ -13,10 +13,6 @@ import (
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -33,18 +29,10 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 	cfg = config.MergeR(grpcc_config.DefaultCfg(), cfg).Unwrap()
 	cfg.Resolvers = p.Resolvers
 
-	defaultMiddlewares := lava.Middlewares{
-		middleware_service_info.New(),
-		middleware_metric.New(p.Metric),
-		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.Service.Name})),
-		middleware_recovery.New(),
-	}
-	defaultMiddlewares = append(defaultMiddlewares, middlewares...)
-
 	c := &clientImpl{
 		cfg:         cfg,
 		log:         p.Log,
-		middlewares: defaultMiddlewares,
+		middlewares: middlewares,
 	}
 
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), cfg)

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-type callParameters struct {
+type CallParameters struct {
 	Header                map[string]string `json:"header"`
 	Trailer               map[string]string `json:"trailer"`
 	WaitForReady          bool              `json:"wait_for_ready"`
@@ -23,13 +23,13 @@ type callParameters struct {
 	MaxRetryRPCBufferSize int               `json:"max_retry_rpc_buffer_size"`
 }
 
-type clientParameters struct {
+type ClientParameters struct {
 	PermitWithoutStream bool          `json:"permit_without_stream"`
 	Time                time.Duration `json:"time"`
 	Timeout             time.Duration `json:"timeout"`
 }
 
-func (t clientParameters) toClientParameters() keepalive.ClientParameters {
+func (t ClientParameters) toClientParameters() keepalive.ClientParameters {
 	return keepalive.ClientParameters{
 		PermitWithoutStream: t.PermitWithoutStream,
 		Time:                t.Time,
@@ -37,20 +37,20 @@ func (t clientParameters) toClientParameters() keepalive.ClientParameters {
 	}
 }
 
-// backoffConfig defines the configuration options for backoff.
-type backoffConfig struct {
+// BackoffConfig defines the configuration options for backoff.
+type BackoffConfig struct {
 	BaseDelay  time.Duration `json:"base_delay"`
 	Multiplier float64       `json:"multiplier"`
 	Jitter     float64       `json:"jitter"`
 	MaxDelay   time.Duration `json:"max_delay"`
 }
 
-type connectParams struct {
-	Backoff           backoffConfig `json:"backoff"`
+type ConnectParams struct {
+	Backoff           BackoffConfig `json:"backoff"`
 	MinConnectTimeout time.Duration `json:"min_connect_timeout"`
 }
 
-func (t connectParams) toConnectParams() grpc.ConnectParams {
+func (t ConnectParams) toConnectParams() grpc.ConnectParams {
 	return grpc.ConnectParams{
 		Backoff: backoff.Config{
 			BaseDelay:  t.Backoff.BaseDelay,
@@ -92,9 +92,9 @@ type GrpcClientCfg struct {
 	MaxRecvMsgSize   int              `json:"max_recv_msg_size"`
 	NoProxy          bool             `json:"no_proxy"`
 	Proxy            bool             `json:"proxy"`
-	ConnectParams    connectParams    `json:"connect_params"`
-	ClientParameters clientParameters `json:"client_parameters"`
-	Call             callParameters   `json:"call"`
+	ConnectParams    ConnectParams    `json:"connect_params"`
+	ClientParameters ClientParameters `json:"client_parameters"`
+	Call             CallParameters   `json:"call"`
 }
 
 func (t GrpcClientCfg) ToOpts() []grpc.DialOption {

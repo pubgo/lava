@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"github.com/prometheus/common/model"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	tally "github.com/uber-go/tally/v4"
@@ -26,7 +27,8 @@ func New(conf *metrics.Config, log log.Logger) *tally.ScopeOptions {
 
 	opts := tally.ScopeOptions{}
 	opts.Separator = prometheus.DefaultSeparator
-	// opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
+	//opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
+	model.NameValidationScheme = model.UTF8Validation
 
 	proCfg := &prometheus.Configuration{TimerType: "histogram"}
 
@@ -34,7 +36,7 @@ func New(conf *metrics.Config, log log.Logger) *tally.ScopeOptions {
 		assert.Must(conf.DriverCfg.Decode(proCfg))
 	}
 
-	logs := log.WithName(metrics.Name).WithName(Name)
+	logs := log.WithName(Name)
 	reporter := assert.Must1(proCfg.NewReporter(
 		prometheus.ConfigurationOptions{
 			OnError: func(err error) {
