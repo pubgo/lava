@@ -1,4 +1,4 @@
-package eventjob
+package cloudjobs
 
 import "github.com/pubgo/funk/errors"
 

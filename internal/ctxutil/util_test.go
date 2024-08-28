@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aginetwork7/portal-server/pkg/ctxutil"
+	"github.com/pubgo/lava/internal/ctxutil"
 	"github.com/stretchr/testify/assert"
 )
 

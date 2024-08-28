@@ -1,4 +1,4 @@
-package eventjob
+package cloudjobs
 
 import "google.golang.org/protobuf/proto"
 

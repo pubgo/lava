@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package lava.asyncjob;
+package lava.cloudjob;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/pubgo/lava/pkg/proto/asyncjobpb;asyncjobpb";
+option go_package = "github.com/pubgo/lava/pkg/proto/cloudjobpb;cloudjobpb";
 
 extend google.protobuf.ServiceOptions {
     // job name, same with config jobs consumers job name
