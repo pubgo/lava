@@ -268,7 +268,7 @@ func (s *serviceImpl) DixInject(
 				pb = &errorpb.ErrCode{
 					Message:    err.Error(),
 					StatusCode: errorpb.Code_Internal,
-					Code:       500,
+					Code:       int32(errorpb.Code_Internal),
 					Name:       "lava.grpc.status",
 				}
 			} else {
@@ -280,7 +280,7 @@ func (s *serviceImpl) DixInject(
 				} else {
 					pb = &errorpb.ErrCode{
 						Message:    sts.Message(),
-						Code:       500,
+						Code:       int32(errorpb.Code(sts.Code())),
 						StatusCode: errorpb.Code(sts.Code()),
 						Name:       "lava.grpc.status",
 						Details:    sts.Proto().Details,
@@ -288,7 +288,7 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
-			const fallback = `{"code":500, "name":"lava.grpc.status", "status_code": 13, "message": "failed to marshal error message"}`
+			const fallback = `{"code":13, "name":"lava.grpc.status", "status_code": 13, "message": "failed to marshal error message"}`
 
 			// skip error
 			if pb.StatusCode == errorpb.Code_OK {
