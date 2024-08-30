@@ -288,7 +288,7 @@ func (s *serviceImpl) DixInject(
 				}
 			}
 
-			const fallback = `{"code":13, "name":"lava.grpc.status", "status_code": 13, "message": "failed to marshal error message"}`
+			const fallback = `{"code":13, "name":"lava.grpc.status", "status_code": 500, "message": "failed to marshal error message"}`
 
 			// skip error
 			if pb.StatusCode == errorpb.Code_OK {
