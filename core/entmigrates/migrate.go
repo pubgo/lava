@@ -185,14 +185,14 @@ func (g *GoMigrate) Cmd() *cli.Command {
 		Name:  "migrate",
 		Usage: "migrate database schema",
 		Commands: []*cli.Command{
-			&cli.Command{
+			{
 				Name:  "migrate",
 				Usage: "migrate all migrations",
 				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.Migrate()
 				},
 			},
-			&cli.Command{
+			{
 				Name:      "migrate_to",
 				Usage:     "migrate_to <name>",
 				UsageText: "migrate migrate_to <name>",
@@ -200,14 +200,14 @@ func (g *GoMigrate) Cmd() *cli.Command {
 					return g.MigrateTo(c.Args().First())
 				},
 			},
-			&cli.Command{
+			{
 				Name:  "rollback",
 				Usage: "rollback last migration",
 				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.RollbackLast()
 				},
 			},
-			&cli.Command{
+			{
 				Name:  "rollback_to",
 				Usage: "rollback_to <name>",
 				Action: func(ctx context.Context, c *cli.Command) error {
@@ -215,14 +215,14 @@ func (g *GoMigrate) Cmd() *cli.Command {
 				},
 			},
 
-			&cli.Command{
+			{
 				Name:  "create",
 				Usage: "create migration",
 				Action: func(ctx context.Context, command *cli.Command) error {
 					return g.Create(g.tables)
 				},
 			},
-			&cli.Command{
+			{
 				Name:  "list",
 				Usage: "list all migrations",
 				Action: func(ctx context.Context, command *cli.Command) error {
