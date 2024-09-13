@@ -9,43 +9,63 @@ import (
 
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/internal/ctxutil"
+	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// PushEventSync push event sync
-func PushEventSync[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T) error {
-	return pushEventBasic(handler, ctx, t, false)
+func PushEventWithOpt[T any](handler func(*Client, context.Context, T, ...PushEventOpt) error, jobCli *Client, ctx context.Context, t T, opts ...PushEventOpt) chan error {
+	errChan := make(chan error, 1)
+	timeout := ctxutil.GetTimeout(ctx)
+	now := time.Now()
+	fnCaller := stack.Caller(1).String()
+
+	// clone ctx and recalculate timeout
+	ctx = lo.T2(ctxutil.Clone(ctx, DefaultTimeout)).A
+	doHandler := func() error {
+		err := try.Try(func() error { return errors.WrapCaller(handler(jobCli, ctx, t, opts...)) })
+		if err == nil {
+			return nil
+		}
+
+		logger.Err(err, ctx).Func(func(e *zerolog.Event) {
+			if timeout != nil {
+				e.Str("timeout", timeout.String())
+			}
+
+			e.Str("fn_caller", fnCaller)
+			e.Bool("async", true)
+			e.Any("input", t)
+			e.Str("stack", stack.CallerWithFunc(handler).String())
+			e.Str("cost", time.Since(now).String())
+			e.Msg("failed to push event msg to nats stream")
+		})
+		return err
+	}
+	go func() { errChan <- doHandler() }()
+	return errChan
 }
 
 // PushEvent push event async
-func PushEvent[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, errs ...chan error) {
+func PushEvent[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, opts ...*cloudjobpb.PushEventOptions) chan error {
 	// clone ctx and recalculate timeout
-	ctx, cancel := ctxutil.Clone(ctx, DefaultTimeout)
-	defer cancel()
+	ctx = lo.T2(ctxutil.Clone(ctx, DefaultTimeout)).A
+	fnCaller := stack.Caller(1).String()
+	errChan := make(chan error, 1)
 
-	err := pushEventBasic(handler, ctx, t, true)
-	if err == nil || len(errs) == 0 {
-		return
+	if len(opts) > 0 {
+		ctx = withOptions(ctx, opts[0])
 	}
 
-	select {
-	case errs[0] <- err:
-		return
-	default:
-		log.Warn(ctx).Func(func(e *zerolog.Event) {
-			e.Str("fn_caller", stack.CallerWithFunc(handler).String())
-			e.Msg("failed to receive error message with push event")
-		})
-	}
+	go func() { errChan <- pushEventBasic(handler, ctx, t, true, fnCaller) }()
+	return errChan
 }
 
-func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, async bool) error {
+func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, async bool, caller string) error {
 	timeout := ctxutil.GetTimeout(ctx)
 	now := time.Now()
 	err := try.Try(func() error { return lo.T2(handler(ctx, t)).B })
@@ -58,10 +78,9 @@ func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, err
 			e.Str("timeout", timeout.String())
 		}
 
-		e.Str("fn_caller", stack.Caller(1).String())
-		e.Str("deal", stack.Caller(1).String())
+		e.Str("fn_caller", caller)
 		e.Bool("async", async)
-		e.Any("input_params", t)
+		e.Any("input", t)
 		e.Str("stack", stack.CallerWithFunc(handler).String())
 		e.Str("cost", time.Since(now).String())
 		e.Msg("failed to push event msg to nats stream")
