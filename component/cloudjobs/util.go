@@ -3,29 +3,18 @@ package cloudjobs
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/internal/ctxutil"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-func RegisterJobHandler[T proto.Message](jobCli *Client, jobName string, topic string, handler JobHandler[T]) {
-	assert.Fn(reflect.TypeOf(subjects[topic]) != reflect.TypeOf(lo.Empty[T]()), func() error {
-		return fmt.Errorf("type not match, topic-type=%s handler-input-type=%s", reflect.TypeOf(subjects[topic]).String(), reflect.TypeOf(lo.Empty[T]()).String())
-	})
-
-	jobCli.registerJobHandler(jobName, topic, func(ctx *Context, args proto.Message) error { return handler(ctx, args.(T)) })
-}
 
 // PushEventSync push event sync
 func PushEventSync[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T) error {

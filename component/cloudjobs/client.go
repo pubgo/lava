@@ -451,22 +451,3 @@ func (c *Client) consumerName(name string) string {
 func (c *Client) subjectName(name string) string {
 	return handleSubjectName(name, c.prefix)
 }
-
-func (c *Client) registerJobHandler(jobName string, topic string, handler JobHandler[proto.Message]) {
-	assert.If(handler == nil, "job handler is nil")
-	assert.If(subjects[topic] == nil, "topic:%s not found", topic)
-
-	if c.handlers[jobName] == nil {
-		c.handlers[jobName] = map[string]JobHandler[proto.Message]{}
-	}
-
-	topic = c.subjectName(topic)
-	c.handlers[jobName][topic] = handler
-
-	logger.Info().Func(func(e *zerolog.Event) {
-		e.Str("job_name", jobName)
-		e.Str("topic", topic)
-		e.Str("job_handler", stack.CallerWithFunc(handler).String())
-		e.Msg("register cloud job handler")
-	})
-}

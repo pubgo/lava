@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lava.cloudjob;
+package lava.cloudevents;
 
 import "google/protobuf/descriptor.proto";
 
@@ -12,5 +12,6 @@ extend google.protobuf.ServiceOptions {
 }
 
 extend google.protobuf.MethodOptions {
+    // subject name, same with config jobs consumers subject name
     string subject_name = 10011;
 }

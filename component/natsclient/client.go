@@ -18,26 +18,39 @@ type Param struct {
 
 type Client struct {
 	Param
-
 	*nats.Conn
+
+	logger log.Logger
 }
 
 func New(p Param) *Client {
-	c := &Client{Param: p}
-	c.Logger = c.Logger.WithName("nats")
+	logger := p.Logger.WithName("nats-client")
 
-	nc := assert.Must1(nats.Connect(c.Cfg.Url, func(o *nats.Options) error {
+	nc := assert.Must1(nats.Connect(p.Cfg.Url, func(o *nats.Options) error {
 		o.AllowReconnect = true
 		o.Name = fmt.Sprintf("%s/%s/%s", running.Hostname, running.Project, running.InstanceID)
 		return nil
 	}))
-	log.Info().Bool("status", nc.IsConnected()).Msg("nats connection ...")
 
-	c.Lc.BeforeStop(func() {
-		nc.Close()
+	nc.SetDisconnectErrHandler(func(nc *nats.Conn, err error) {
+		logger.Err(err).Msg("nats disconnect")
+	})
+	nc.SetReconnectHandler(func(nc *nats.Conn) {
+		logger.Info().Bool("status", nc.IsConnected()).Msg("nats reconnect")
+	})
+	nc.SetClosedHandler(func(nc *nats.Conn) {
+		logger.Info().Bool("status", nc.IsClosed()).Msg("nats closed")
+	})
+	nc.SetErrorHandler(func(nc *nats.Conn, sub *nats.Subscription, err error) {
+		logger.Err(err).Msg("nats error")
+	})
+	nc.SetDiscoveredServersHandler(func(nc *nats.Conn) {
+		logger.Info().Bool("status", nc.IsConnected()).Msg("nats discovered")
 	})
 
-	c.Conn = nc
+	log.Info().Bool("status", nc.IsConnected()).Msg("nats connection ...")
 
-	return c
+	p.Lc.BeforeStop(func() { nc.Close() })
+
+	return &Client{Param: p, logger: logger, Conn: nc}
 }
