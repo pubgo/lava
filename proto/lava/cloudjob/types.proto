@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package agi7.asyncjob;
+
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/aginetwork7/portal-server/pkg/gen/asyncjobpb;asyncjobpb";
+
+message PushEventOptions {
+    // The content type for the data (optional).
+    optional string content_type = 1;
+
+    // The metadata passing to pub components
+    //
+    // metadata property:
+    // - key : the key of the message.
+    map<string, string> metadata = 2;
+
+    // The delay duration of the message.
+    optional google.protobuf.Duration delay_dur = 3;
+
+    // The message id
+    optional string msg_id = 4;
+}

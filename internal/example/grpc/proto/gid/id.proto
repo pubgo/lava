@@ -82,6 +82,10 @@ service Id {
     rpc ProxyExecEvent (DoProxyEventReq) returns (Empty) {
         option (lava.cloudjob.subject_name) = "gid.proxy.exec";
     }
+
+    rpc EventChanged (DoProxyEventReq) returns (Empty) {
+        option (lava.cloudjob.subject_name) = "gid.event.update";
+    }
 }
 
 message DoProxyEventReq {

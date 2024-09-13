@@ -69,7 +69,19 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	}
 
 	g.Unskip()
-	for name, subjects := range events {
+	for jobName, subjects := range events {
+		if len(subjects) == 0 {
+			continue
+		}
+
+		srvInfo := getSrv(subjects)
+
+		jobKeyName := fmt.Sprintf("%sJobKey", strings.ReplaceAll(srvInfo.GoName, "Inner", ""))
+		genFile.Const().
+			Id(jobKeyName).
+			Op("=").
+			Lit(jobName)
+
 		for subName, info := range subjects {
 			code := strings.ReplaceAll(info.srv.GoName, "InnerService", "")
 			code = strings.ReplaceAll(code, "Service", "")
@@ -92,7 +104,12 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 						jen.Id("req").Op("*").Id(info.mth.Input.GoIdent.GoName),
 					).Error(),
 				).
-				Block(jen.Qual(jobPkg, "RegisterJobHandler").Call(jen.Id("jobCli"), jen.Lit(name), jen.Id(keyName), jen.Id("handler")))
+				Block(jen.Qual(jobPkg, "RegisterJobHandler").Call(
+					jen.Id("jobCli"),
+					jen.Id(jobKeyName),
+					jen.Id(keyName),
+					jen.Id("handler"),
+				))
 			genFile.Line()
 
 			var prefix = fmt.Sprintf("Push%s", code)
@@ -132,4 +149,11 @@ func handlerPushEventName(name string, prefix string) string {
 		return name
 	}
 	return fmt.Sprintf("%s%s", prefix, name)
+}
+
+func getSrv(data map[string]*eventInfo) *protogen.Service {
+	for _, srv := range data {
+		return srv.srv
+	}
+	return nil
 }
