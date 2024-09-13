@@ -21,6 +21,7 @@ import (
 	"github.com/pubgo/lava/component/natsclient"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/internal/ctxutil"
+	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
 	"github.com/pubgo/lava/pkg/typex"
 	"github.com/rs/xid"
 	"github.com/rs/zerolog"
@@ -372,14 +373,16 @@ func (c *Client) Start() error {
 	return errors.WrapCaller(c.doConsume())
 }
 
-func (c *Client) Publish(ctx context.Context, key string, args proto.Message, opts ...jetstream.PublishOpt) error {
+func (c *Client) Publish(ctx context.Context, key string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) error {
 	return c.publish(ctx, key, args, opts...)
 }
 
-func (c *Client) publish(ctx context.Context, key string, args proto.Message, opts ...jetstream.PublishOpt) (gErr error) {
+func (c *Client) publish(ctx context.Context, key string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) (gErr error) {
 	var timeout = ctxutil.GetTimeout(ctx)
 	var now = time.Now()
 	var msgId = xid.New().String()
+	var pushEventOpt *cloudjobpb.PushEventOptions
+
 	defer func() {
 		var msgFn = func(e *zerolog.Event) {
 			e.Str("pub_topic", key)
@@ -398,13 +401,18 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 		}
 	}()
 
+	pushEventOpt = getOptions(ctx, opts...)
+
+	if pushEventOpt.MsgId != nil {
+		msgId = pushEventOpt.GetMsgId()
+	}
+
 	pb, err := anypb.New(args)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal args to any proto")
 	}
 
 	// TODO get info from ctx
-
 	data, err := proto.Marshal(pb)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal any proto to bytes")
@@ -417,12 +425,17 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 		Subject: key,
 		Data:    data,
 		Header: nats.Header{
-			senderKey: []string{fmt.Sprintf("%s/%s", running.Project, running.Version)},
+			senderKey:        []string{fmt.Sprintf("%s/%s", running.Project, running.Version)},
+			asyncJobDelayKey: []string{encodeDelayTime(pushEventOpt.DelayDur.AsDuration())},
 		},
 	}
 
-	opts = append(opts, jetstream.WithMsgID(msgId))
-	_, err = c.js.PublishMsg(ctx, msg, opts...)
+	for k, v := range pushEventOpt.Metadata {
+		msg.Header.Add(k, v)
+	}
+
+	jetOpts := append([]jetstream.PublishOpt{}, jetstream.WithMsgID(msgId))
+	_, err = c.js.PublishMsg(ctx, msg, jetOpts...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to publish msg to stream, topic=%s msg_id=%s", key, msgId)
 	}

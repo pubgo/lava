@@ -3,10 +3,12 @@ package cloudjobs
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/nats-io/nats.go/jetstream"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/try"
@@ -129,4 +131,16 @@ func handleSubjectName(name string, prefix string) string {
 	}
 
 	return fmt.Sprintf("%s%s", prefix, name)
+}
+
+func encodeDelayTime(duration time.Duration) string {
+	return strconv.Itoa(int(time.Now().Add(duration).UnixMilli()))
+}
+
+func decodeDelayTime(delayTime string) (time.Duration, error) {
+	tt, err := strconv.Atoi(delayTime)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to parse async job delay time, time=%s", delayTime)
+	}
+	return time.Until(time.UnixMilli(int64(tt))), nil
 }

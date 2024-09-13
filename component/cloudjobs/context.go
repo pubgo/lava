@@ -4,7 +4,13 @@ import (
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
+	"github.com/rs/xid"
+	"google.golang.org/protobuf/proto"
 )
+
+var pushEventCtxKey = xid.New().String()
 
 type Context struct {
 	context.Context
@@ -32,4 +38,33 @@ type Context struct {
 
 	// Config job config from config file or default
 	Config *JobConfig
+}
+
+func withOptions(ctx context.Context, opts *cloudjobpb.PushEventOptions) context.Context {
+	if opts == nil {
+		return ctx
+	}
+
+	oldOpts, ok := ctx.Value(pushEventCtxKey).(*cloudjobpb.PushEventOptions)
+	if !ok {
+		oldOpts = opts
+	} else {
+		proto.Merge(oldOpts, opts)
+	}
+
+	return context.WithValue(ctx, pushEventCtxKey, oldOpts)
+}
+
+func getOptions(ctx context.Context, opts ...*cloudjobpb.PushEventOptions) *cloudjobpb.PushEventOptions {
+	var evtOpt = new(cloudjobpb.PushEventOptions)
+	opt, ok := ctx.Value(pushEventCtxKey).(*cloudjobpb.PushEventOptions)
+	if ok {
+		evtOpt = opt
+	}
+
+	for _, o := range opts {
+		proto.Merge(evtOpt, o)
+	}
+
+	return evtOpt
 }
