@@ -3,10 +3,11 @@ package gid_handler
 import (
 	"context"
 	"fmt"
-	"github.com/pubgo/lava/pkg/gateway"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/pubgo/lava/pkg/gateway"
 
 	"github.com/google/uuid"
 	"github.com/mattheath/kala/bigflake"
@@ -42,6 +43,11 @@ type Id struct {
 	log       log.Logger
 	service   *gid_client.Service
 	mux       *gateway.Mux
+}
+
+// ProxyExecEvent implements gidpb.IdServer.
+func (id *Id) ProxyExecEvent(context.Context, *gidpb.DoProxyEventReq) (*gidpb.Empty, error) {
+	panic("unimplemented")
 }
 
 func (id *Id) DoProxy(ctx context.Context, empty *gidpb.Empty) (*gidpb.Empty, error) {
