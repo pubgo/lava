@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lava.cloudevents;
+package lava.cloudjob;
 
 import "google/protobuf/descriptor.proto";
 

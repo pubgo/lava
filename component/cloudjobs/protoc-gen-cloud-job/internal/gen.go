@@ -11,6 +11,7 @@ import (
 )
 
 const jobPkg = "github.com/pubgo/lava/component/cloudjobs"
+const jobTypesPkg = "github.com/pubgo/lava/pkg/proto/cloudjobpb"
 
 type eventInfo struct {
 	srv *protogen.Service
@@ -40,13 +41,13 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 
 	var events = make(map[string]map[string]*eventInfo)
 	for _, srv := range file.Services {
-		name, ok := proto.GetExtension(srv.Desc.Options(), cloudjobpb.E_JobName).(string)
-		if !ok || name == "" {
+		jobName, ok := proto.GetExtension(srv.Desc.Options(), cloudjobpb.E_JobName).(string)
+		if !ok || jobName == "" {
 			continue
 		}
 
-		if events[name] == nil {
-			events[name] = map[string]*eventInfo{}
+		if events[jobName] == nil {
+			events[jobName] = map[string]*eventInfo{}
 		}
 
 		for _, m := range srv.Methods {
@@ -55,12 +56,12 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 				continue
 			}
 
-			if events[name][jobSubjectName] != nil {
-				gen.Error(fmt.Errorf("cloud job:%s subject:%s exists", name, jobSubjectName))
+			if events[jobName][jobSubjectName] != nil {
+				gen.Error(fmt.Errorf("cloud job:%s subject:%s exists", jobName, jobSubjectName))
 				return g
 			}
 
-			events[name][jobSubjectName] = &eventInfo{srv: srv, mth: m}
+			events[jobName][jobSubjectName] = &eventInfo{srv: srv, mth: m}
 		}
 	}
 
@@ -68,51 +69,57 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 		return g
 	}
 
-	g.Unskip()
 	for jobName, subjects := range events {
 		if len(subjects) == 0 {
 			continue
 		}
+		g.Unskip()
 
 		srvInfo := getSrv(subjects)
 
-		jobKeyName := fmt.Sprintf("%sJobKey", strings.ReplaceAll(srvInfo.GoName, "Inner", ""))
+		jobKeyPrefix := strings.ReplaceAll(srvInfo.GoName, "InnerService", "")
+		jobKeyPrefix = strings.ReplaceAll(jobKeyPrefix, "Inner", "") + "Service"
+		jobKeyName := fmt.Sprintf("%sJobKey", jobKeyPrefix)
 		genFile.Const().
 			Id(jobKeyName).
 			Op("=").
 			Lit(jobName)
-
 		for subName, info := range subjects {
-			code := strings.ReplaceAll(info.srv.GoName, "InnerService", "")
-			code = strings.ReplaceAll(code, "Service", "")
-			var keyName = fmt.Sprintf("%s%sKey", code, info.mth.GoName)
+			var keyName = fmt.Sprintf("%s%sKey", jobKeyPrefix, info.mth.GoName)
 			genFile.Commentf("%s %s/%s", keyName, info.srv.GoName, info.mth.GoName)
+			genFile.Commentf(strings.TrimSpace(info.mth.Comments.Leading.String()))
 			genFile.Const().
 				Id(keyName).
 				Op("=").
 				Lit(subName)
+		}
+
+		for _, info := range subjects {
+			var keyName = fmt.Sprintf("%s%sKey", jobKeyPrefix, info.mth.GoName)
 			genFile.Var().Id("_").Op("=").Qual(jobPkg, "RegisterSubject").
 				Call(jen.Id(keyName), jen.New(jen.Id(info.mth.Input.GoIdent.GoName))).Line()
 
 			genFile.
 				Func().
-				Id(fmt.Sprintf("Register%s%sCloudJob", code, info.mth.GoName)).
+				Id(fmt.Sprintf("Register%s%sCloudJob", jobKeyPrefix, info.mth.GoName)).
 				Params(
 					jen.Id("jobCli").Op("*").Qual(jobPkg, "Client"),
 					jen.Id("handler").Func().Params(
 						jen.Id("ctx").Op("*").Qual(jobPkg, "Context"),
 						jen.Id("req").Op("*").Id(info.mth.Input.GoIdent.GoName),
 					).Error(),
+					jen.Id("opts").Op("...").Op("*").Qual(jobTypesPkg, "RegisterJobOptions"),
 				).
 				Block(jen.Qual(jobPkg, "RegisterJobHandler").Call(
 					jen.Id("jobCli"),
 					jen.Id(jobKeyName),
 					jen.Id(keyName),
 					jen.Id("handler"),
+					jen.Id("opts").Op("..."),
 				))
 			genFile.Line()
 
-			var prefix = fmt.Sprintf("Push%s", code)
+			var prefix = fmt.Sprintf("Push%s", jobKeyPrefix)
 			var mthName = fmt.Sprintf("%sCloudJob", info.mth.GoName)
 			mthName = handlerPushEventName(mthName, prefix)
 			genFile.

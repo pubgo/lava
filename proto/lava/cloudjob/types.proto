@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package agi7.asyncjob;
+package agi7.cloudjob;
 
 import "google/protobuf/duration.proto";
 
-option go_package = "github.com/aginetwork7/portal-server/pkg/gen/asyncjobpb;asyncjobpb";
+option go_package = "github.com/pubgo/lava/pkg/proto/cloudjobpb;cloudjobpb";
 
 message PushEventOptions {
     // The content type for the data (optional).
@@ -21,4 +21,8 @@ message PushEventOptions {
 
     // The message id
     optional string msg_id = 4;
+}
+
+message RegisterJobOptions {
+    optional string job_name = 1;
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/proto"
@@ -27,15 +28,15 @@ func RegisterSubject(subject string, subType proto.Message) any {
 	return nil
 }
 
-func RegisterJobHandler[T proto.Message](jobCli *Client, jobName string, topic string, handler JobHandler[T]) {
+func RegisterJobHandler[T proto.Message](jobCli *Client, jobName string, topic string, handler JobHandler[T], opts ...*cloudjobpb.RegisterJobOptions) {
 	assert.Fn(reflect.TypeOf(subjects[topic]) != reflect.TypeOf(lo.Empty[T]()), func() error {
 		return fmt.Errorf("type not match, topic-type=%s handler-input-type=%s", reflect.TypeOf(subjects[topic]).String(), reflect.TypeOf(lo.Empty[T]()).String())
 	})
 
-	jobCli.registerJobHandler(jobName, topic, func(ctx *Context, args proto.Message) error { return handler(ctx, args.(T)) })
+	jobCli.registerJobHandler(jobName, topic, func(ctx *Context, args proto.Message) error { return handler(ctx, args.(T)) }, opts...)
 }
 
-func (c *Client) registerJobHandler(jobName string, topic string, handler JobHandler[proto.Message]) {
+func (c *Client) registerJobHandler(jobName string, topic string, handler JobHandler[proto.Message], opts ...*cloudjobpb.RegisterJobOptions) {
 	assert.If(handler == nil, "job handler is nil")
 	assert.If(subjects[topic] == nil, "topic:%s not found", topic)
 

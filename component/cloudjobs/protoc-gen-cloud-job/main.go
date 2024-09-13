@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/pubgo/lava/cmds/protoc-gen-cloud-job/internal"
+	"github.com/pubgo/lava/component/cloudjobs/protoc-gen-cloud-job/internal"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
