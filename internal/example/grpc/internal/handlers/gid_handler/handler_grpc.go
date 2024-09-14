@@ -3,6 +3,8 @@ package gid_handler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/lava/component/cloudjobs"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"math/rand"
 	"net/http"
 	"time"
@@ -45,12 +47,19 @@ type Id struct {
 	mux       *gateway.Mux
 }
 
+func (id *Id) EventChanged(ctx context.Context, req *gidpb.DoProxyEventReq) (*emptypb.Empty, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 // ProxyExecEvent implements gidpb.IdServer.
 func (id *Id) ProxyExecEvent(context.Context, *gidpb.DoProxyEventReq) (*gidpb.Empty, error) {
 	panic("unimplemented")
 }
 
-func (id *Id) DoProxy(ctx context.Context, empty *gidpb.Empty) (*gidpb.Empty, error) {
+func (id *Id) DoProxy(ctx context.Context, empty *gidpb.Empty) (*emptypb.Empty, error) {
+	cloudjobs.PushEvent(id.EventChanged, ctx, &gidpb.DoProxyEventReq{})
+
 	rsp, err := gidpb.NewIdProxyClient(id.mux).Echo(ctx, &gidpb.EchoReq{Hello: "hello"})
 	if err != nil {
 		return nil, err

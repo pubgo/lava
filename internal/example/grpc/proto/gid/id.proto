@@ -6,6 +6,7 @@ import "errorpb/options.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/httpbody.proto";
+import "google/protobuf/empty.proto";
 import "lava/cloudjob/options.proto";
 import "lava/rpc.proto";
 import "openapiv3/annotations.proto";
@@ -79,11 +80,11 @@ service Id {
         };
     }
 
-    rpc ProxyExecEvent (DoProxyEventReq) returns (Empty) {
+    rpc ProxyExecEvent (DoProxyEventReq) returns (google.protobuf.Empty) {
         option (lava.cloudjob.subject_name) = "gid.proxy.exec";
     }
 
-    rpc EventChanged (DoProxyEventReq) returns (Empty) {
+    rpc EventChanged (DoProxyEventReq) returns (google.protobuf.Empty) {
         option (lava.cloudjob.subject_name) = "gid.event.update";
     }
 }

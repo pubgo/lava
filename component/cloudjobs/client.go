@@ -89,7 +89,7 @@ func (c *Client) initStream() error {
 		}
 
 		stream, err := c.js.CreateOrUpdateStream(ctx, streamCfg)
-		if err != nil && !errors.Is(err, jetstream.ErrStreamNameAlreadyInUse) {
+		if err != nil {
 			return errors.Wrapf(err, "failed to create stream:%s", streamName)
 		}
 		c.streams[streamName] = stream
@@ -114,12 +114,7 @@ func (c *Client) initConsumer() error {
 				assert.If(!allEventKeysSet.Contains(name), "subject:%s not found, please check protobuf define and service", name)
 			}
 
-			consumerName = c.consumerName(typex.DoFunc1(func() string {
-				if cfg.Consumer != nil {
-					return lo.FromPtr(cfg.Consumer)
-				}
-				return consumerName
-			}))
+			consumerName = c.consumerName(lo.Ternary(cfg.Consumer != nil, lo.FromPtr(cfg.Consumer), consumerName))
 			streamName := c.streamName(cfg.Stream)
 
 			// consumer init
@@ -138,7 +133,7 @@ func (c *Client) initConsumer() error {
 				}
 
 				consumer, err := c.js.CreateOrUpdateConsumer(ctx, streamName, consumerCfg)
-				assert.Fn(err != nil && !errors.Is(err, jetstream.ErrConsumerExists), func() error {
+				assert.Fn(err != nil, func() error {
 					return errors.Wrapf(err, "stream=%s consumer=%s", streamName, consumerName)
 				})
 				logger.Info().Func(func(e *zerolog.Event) {
@@ -292,6 +287,33 @@ func (c *Client) doConsume() error {
 					e.Msg("received cloud job event")
 				})
 
+				var handlerDelayJob = func() (r result.Result[bool]) {
+					delayDur := strings.TrimSpace(msg.Headers().Get(asyncJobDelayKey))
+					if delayDur == "" {
+						return r.WithVal(false)
+					}
+
+					dur, err := decodeDelayTime(delayDur)
+					if err != nil {
+						return r.WithErr(errors.Wrap(err, "failed to parse async job delay time"))
+					}
+
+					// ignore negative delay
+					if dur < 0 {
+						return r.WithVal(false)
+					}
+
+					return r.WithErr(msg.NakWithDelay(dur))
+				}
+
+				if err := handlerDelayJob(); err.Err() != nil {
+					logger.Err(err.Err()).Func(addMsgInfo).Msg("failed to handle async delay job and no ack")
+					return
+				} else if err.Unwrap() {
+					logger.Info().Func(addMsgInfo).Msg("redeliver the message after the given delay")
+					return
+				}
+
 				handler := jobSubjects[msg.Subject()]
 				if handler == nil {
 					logger.Error().Func(addMsgInfo).Msg("failed to find subject job handler")
@@ -335,6 +357,11 @@ func (c *Client) doConsume() error {
 
 				var backoff = lo.FromPtr(cfg.RetryBackoff)
 				var maxRetries = lo.FromPtr(cfg.MaxRetry)
+
+				// If the error is a redelivery error, then the backoff duration is the error duration
+				if err1 := isRedeliveryErr(err); err1 != nil {
+					backoff = err1.delay
+				}
 
 				// Proactively retry and did not reach the maximum retry count
 				if meta.NumDelivered < uint64(maxRetries) {

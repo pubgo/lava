@@ -12,6 +12,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -51,8 +52,8 @@ type IdClient interface {
 	Chat1(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
 	UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*Empty, error)
-	EventChanged(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*Empty, error)
+	ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	EventChanged(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type idClient struct {
@@ -158,9 +159,9 @@ func (c *idClient) DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOpti
 	return out, nil
 }
 
-func (c *idClient) ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*Empty, error) {
+func (c *idClient) ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Id_ProxyExecEvent_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -168,9 +169,9 @@ func (c *idClient) ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts
 	return out, nil
 }
 
-func (c *idClient) EventChanged(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*Empty, error) {
+func (c *idClient) EventChanged(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Id_EventChanged_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -197,8 +198,8 @@ type IdServer interface {
 	Chat1(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
 	UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error)
 	DoProxy(context.Context, *Empty) (*Empty, error)
-	ProxyExecEvent(context.Context, *DoProxyEventReq) (*Empty, error)
-	EventChanged(context.Context, *DoProxyEventReq) (*Empty, error)
+	ProxyExecEvent(context.Context, *DoProxyEventReq) (*emptypb.Empty, error)
+	EventChanged(context.Context, *DoProxyEventReq) (*emptypb.Empty, error)
 }
 
 // UnimplementedIdServer should be embedded to have
@@ -232,10 +233,10 @@ func (UnimplementedIdServer) UploadDownload(context.Context, *UploadFileRequest)
 func (UnimplementedIdServer) DoProxy(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DoProxy not implemented")
 }
-func (UnimplementedIdServer) ProxyExecEvent(context.Context, *DoProxyEventReq) (*Empty, error) {
+func (UnimplementedIdServer) ProxyExecEvent(context.Context, *DoProxyEventReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProxyExecEvent not implemented")
 }
-func (UnimplementedIdServer) EventChanged(context.Context, *DoProxyEventReq) (*Empty, error) {
+func (UnimplementedIdServer) EventChanged(context.Context, *DoProxyEventReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EventChanged not implemented")
 }
 func (UnimplementedIdServer) testEmbeddedByValue() {}

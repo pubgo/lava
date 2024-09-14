@@ -18,7 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func PushEventWithOpt[T any](handler func(*Client, context.Context, T, ...PushEventOpt) error, jobCli *Client, ctx context.Context, t T, opts ...PushEventOpt) chan error {
+func PushEventWithOpt[T any](handler func(*Client, context.Context, T, ...*cloudjobpb.PushEventOptions) error, jobCli *Client, ctx context.Context, t T, opts ...*cloudjobpb.PushEventOptions) chan error {
 	errChan := make(chan error, 1)
 	timeout := ctxutil.GetTimeout(ctx)
 	now := time.Now()
@@ -159,7 +159,7 @@ func encodeDelayTime(duration time.Duration) string {
 func decodeDelayTime(delayTime string) (time.Duration, error) {
 	tt, err := strconv.Atoi(delayTime)
 	if err != nil {
-		return 0, errors.Wrapf(err, "failed to parse async job delay time, time=%s", delayTime)
+		return 0, errors.Wrapf(err, "failed to parse cloud job delay time, time=%s", delayTime)
 	}
 	return time.Until(time.UnixMilli(int64(tt))), nil
 }

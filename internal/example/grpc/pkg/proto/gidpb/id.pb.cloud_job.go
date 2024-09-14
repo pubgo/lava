@@ -20,16 +20,6 @@ const IdServiceProxyExecEventKey = "gid.proxy.exec"
 // IdServiceEventChangedKey Id/EventChanged
 const IdServiceEventChangedKey = "gid.event.update"
 
-var _ = cloudjobs.RegisterSubject(IdServiceEventChangedKey, new(DoProxyEventReq))
-
-func RegisterIdServiceEventChangedCloudJob(jobCli *cloudjobs.Client, handler func(ctx *cloudjobs.Context, req *DoProxyEventReq) error, opts ...*cloudjobpb.RegisterJobOptions) {
-	cloudjobs.RegisterJobHandler(jobCli, IdServiceJobKey, IdServiceEventChangedKey, handler, opts...)
-}
-
-func PushIdServiceEventChangedCloudJob(jobCli *cloudjobs.Client, ctx context.Context, req *DoProxyEventReq, opts ...*cloudjobpb.PushEventOptions) error {
-	return jobCli.Publish(ctx, IdServiceEventChangedKey, req, opts...)
-}
-
 var _ = cloudjobs.RegisterSubject(IdServiceProxyExecEventKey, new(DoProxyEventReq))
 
 func RegisterIdServiceProxyExecEventCloudJob(jobCli *cloudjobs.Client, handler func(ctx *cloudjobs.Context, req *DoProxyEventReq) error, opts ...*cloudjobpb.RegisterJobOptions) {
@@ -38,4 +28,14 @@ func RegisterIdServiceProxyExecEventCloudJob(jobCli *cloudjobs.Client, handler f
 
 func PushIdServiceProxyExecEventCloudJob(jobCli *cloudjobs.Client, ctx context.Context, req *DoProxyEventReq, opts ...*cloudjobpb.PushEventOptions) error {
 	return jobCli.Publish(ctx, IdServiceProxyExecEventKey, req, opts...)
+}
+
+var _ = cloudjobs.RegisterSubject(IdServiceEventChangedKey, new(DoProxyEventReq))
+
+func RegisterIdServiceEventChangedCloudJob(jobCli *cloudjobs.Client, handler func(ctx *cloudjobs.Context, req *DoProxyEventReq) error, opts ...*cloudjobpb.RegisterJobOptions) {
+	cloudjobs.RegisterJobHandler(jobCli, IdServiceJobKey, IdServiceEventChangedKey, handler, opts...)
+}
+
+func PushIdServiceEventChangedCloudJob(jobCli *cloudjobs.Client, ctx context.Context, req *DoProxyEventReq, opts ...*cloudjobpb.PushEventOptions) error {
+	return jobCli.Publish(ctx, IdServiceEventChangedKey, req, opts...)
 }
