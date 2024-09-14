@@ -3,14 +3,8 @@ syntax = "proto3";
 package agi7.cloudjob;
 
 import "google/protobuf/duration.proto";
-import "errorpb/errors.proto";
 
 option go_package = "github.com/pubgo/lava/pkg/proto/cloudjobpb;cloudjobpb";
-
-message PushEventResp {
-    string msg_id = 1;
-    errors.ErrCode error = 2;
-}
 
 message PushEventOptions {
     // The content type for the data (optional).

@@ -129,9 +129,14 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 					jen.Id("jobCli").Op("*").Qual(jobPkg, "Client"),
 					jen.Id("ctx").Qual("context", "Context"),
 					jen.Id("req").Op("*").Id(info.mth.Input.GoIdent.GoName),
-				).
-				Error().
-				Block(jen.Return().Id("jobCli").Dot("Publish").Call(jen.Id("ctx"), jen.Id(keyName), jen.Id("req")))
+					jen.Id("opts").Op("...").Op("*").Qual(jobTypesPkg, "PushEventOptions"),
+				).Error().
+				Block(jen.Return().Id("jobCli").Dot("Publish").Call(
+					jen.Id("ctx"),
+					jen.Id(keyName),
+					jen.Id("req"),
+					jen.Id("opts").Op("..."),
+				))
 		}
 	}
 

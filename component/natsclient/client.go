@@ -36,19 +36,19 @@ func New(p Param) *Client {
 		logger.Err(err).Msg("nats disconnect")
 	})
 	nc.SetReconnectHandler(func(nc *nats.Conn) {
-		logger.Info().Bool("status", nc.IsConnected()).Msg("nats reconnect")
+		logger.Info().Bool("is_connected", nc.IsConnected()).Msg("nats reconnect")
 	})
 	nc.SetClosedHandler(func(nc *nats.Conn) {
-		logger.Info().Bool("status", nc.IsClosed()).Msg("nats closed")
+		logger.Info().Bool("is_closed", nc.IsClosed()).Msg("nats closed")
 	})
 	nc.SetErrorHandler(func(nc *nats.Conn, sub *nats.Subscription, err error) {
 		logger.Err(err).Msg("nats error")
 	})
 	nc.SetDiscoveredServersHandler(func(nc *nats.Conn) {
-		logger.Info().Bool("status", nc.IsConnected()).Msg("nats discovered")
+		logger.Info().Bool("is_connected", nc.IsConnected()).Msg("nats discovered")
 	})
 
-	log.Info().Bool("status", nc.IsConnected()).Msg("nats connection ...")
+	log.Info().Bool("is_connected", nc.IsConnected()).Msg("nats connection ...")
 
 	p.Lc.BeforeStop(func() { nc.Close() })
 
