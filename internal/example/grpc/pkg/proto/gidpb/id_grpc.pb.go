@@ -51,7 +51,7 @@ type IdClient interface {
 	// ws: chat1
 	Chat1(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
 	UploadDownload(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
-	DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ProxyExecEvent(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	EventChanged(ctx context.Context, in *DoProxyEventReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -149,9 +149,9 @@ func (c *idClient) UploadDownload(ctx context.Context, in *UploadFileRequest, op
 	return out, nil
 }
 
-func (c *idClient) DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+func (c *idClient) DoProxy(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Id_DoProxy_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ type IdServer interface {
 	// ws: chat1
 	Chat1(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
 	UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error)
-	DoProxy(context.Context, *Empty) (*Empty, error)
+	DoProxy(context.Context, *Empty) (*emptypb.Empty, error)
 	ProxyExecEvent(context.Context, *DoProxyEventReq) (*emptypb.Empty, error)
 	EventChanged(context.Context, *DoProxyEventReq) (*emptypb.Empty, error)
 }
@@ -230,7 +230,7 @@ func (UnimplementedIdServer) Chat1(grpc.BidiStreamingServer[ChatMessage, ChatMes
 func (UnimplementedIdServer) UploadDownload(context.Context, *UploadFileRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadDownload not implemented")
 }
-func (UnimplementedIdServer) DoProxy(context.Context, *Empty) (*Empty, error) {
+func (UnimplementedIdServer) DoProxy(context.Context, *Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DoProxy not implemented")
 }
 func (UnimplementedIdServer) ProxyExecEvent(context.Context, *DoProxyEventReq) (*emptypb.Empty, error) {

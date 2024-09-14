@@ -45,15 +45,18 @@ type Id struct {
 	log       log.Logger
 	service   *gid_client.Service
 	mux       *gateway.Mux
+	jobCli    *cloudjobs.Client
 }
 
 func (id *Id) EventChanged(ctx context.Context, req *gidpb.DoProxyEventReq) (*emptypb.Empty, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := gidpb.PushIdServiceEventChangedCloudJob(id.jobCli, ctx, req); err != nil {
+		return nil, err
+	}
+	return new(emptypb.Empty), nil
 }
 
 // ProxyExecEvent implements gidpb.IdServer.
-func (id *Id) ProxyExecEvent(context.Context, *gidpb.DoProxyEventReq) (*gidpb.Empty, error) {
+func (id *Id) ProxyExecEvent(context.Context, *gidpb.DoProxyEventReq) (*emptypb.Empty, error) {
 	panic("unimplemented")
 }
 
@@ -65,7 +68,7 @@ func (id *Id) DoProxy(ctx context.Context, empty *gidpb.Empty) (*emptypb.Empty, 
 		return nil, err
 	}
 	fmt.Println(rsp.String())
-	return new(gidpb.Empty), nil
+	return new(emptypb.Empty), nil
 }
 
 func (id *Id) PutTypes(ctx context.Context, req *gidpb.TypesRequest) (*gidpb.TypesResponse, error) {
