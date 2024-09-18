@@ -144,7 +144,7 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 		Data:    data,
 		Header: nats.Header{
 			senderKey:        []string{fmt.Sprintf("%s/%s", running.Project, running.Version)},
-			asyncJobDelayKey: []string{encodeDelayTime(pushEventOpt.DelayDur.AsDuration())},
+			cloudJobDelayKey: []string{encodeDelayTime(pushEventOpt.DelayDur.AsDuration())},
 		},
 	}
 

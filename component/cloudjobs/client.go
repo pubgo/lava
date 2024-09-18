@@ -284,7 +284,7 @@ func (c *Client) doConsume() error {
 				})
 
 				var handlerDelayJob = func() (r result.Result[bool]) {
-					delayDur := strings.TrimSpace(msg.Headers().Get(asyncJobDelayKey))
+					delayDur := strings.TrimSpace(msg.Headers().Get(cloudJobDelayKey))
 					if delayDur == "" {
 						return r.WithVal(false)
 					}
