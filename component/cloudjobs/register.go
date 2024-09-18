@@ -33,12 +33,25 @@ func RegisterJobHandler[T proto.Message](jobCli *Client, jobName string, topic s
 		return fmt.Errorf("type not match, topic-type=%s handler-input-type=%s", reflect.TypeOf(subjects[topic]).String(), reflect.TypeOf(lo.Empty[T]()).String())
 	})
 
+	if jobName == "" {
+		jobName = defaultJobName
+	}
+
 	jobCli.registerJobHandler(jobName, topic, func(ctx *Context, args proto.Message) error { return handler(ctx, args.(T)) }, opts...)
 }
 
 func (c *Client) registerJobHandler(jobName string, topic string, handler JobHandler[proto.Message], opts ...*cloudjobpb.RegisterJobOptions) {
 	assert.If(handler == nil, "job handler is nil")
 	assert.If(subjects[topic] == nil, "topic:%s not found", topic)
+
+	var evtOpt = new(cloudjobpb.RegisterJobOptions)
+	for _, o := range opts {
+		proto.Merge(evtOpt, o)
+	}
+
+	if lo.FromPtr(evtOpt.JobName) != "" {
+		jobName = lo.FromPtr(evtOpt.JobName)
+	}
 
 	if c.handlers[jobName] == nil {
 		c.handlers[jobName] = map[string]JobHandler[proto.Message]{}

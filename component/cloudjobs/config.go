@@ -16,6 +16,7 @@ const DefaultMaxRetry = 3
 const DefaultRetryBackoff = time.Second
 const senderKey = "sender"
 const cloudJobDelayKey = "__cloud_jobs_delay_run_at"
+const defaultJobName = "default"
 
 type Config struct {
 	// Streams: nats stream config
