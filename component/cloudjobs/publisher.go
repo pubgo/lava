@@ -91,11 +91,11 @@ func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, err
 	return err
 }
 
-func (c *Client) Publish(ctx context.Context, key string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) error {
-	return c.publish(ctx, key, args, opts...)
+func (c *Client) Publish(ctx context.Context, topic string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) error {
+	return c.publish(ctx, topic, args, opts...)
 }
 
-func (c *Client) publish(ctx context.Context, key string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) (gErr error) {
+func (c *Client) publish(ctx context.Context, topic string, args proto.Message, opts ...*cloudjobpb.PushEventOptions) (gErr error) {
 	var timeout = ctxutil.GetTimeout(ctx)
 	var now = time.Now()
 	var msgId = xid.New().String()
@@ -103,7 +103,7 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 
 	defer func() {
 		var msgFn = func(e *zerolog.Event) {
-			e.Str("pub_topic", key)
+			e.Str("pub_topic", topic)
 			e.Str("pub_start", now.String())
 			e.Any("pub_args", args)
 			e.Str("pub_cost", time.Since(now).String())
@@ -137,10 +137,10 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 	}
 
 	// subject|topic name
-	key = c.subjectName(key)
+	topic = c.subjectName(topic)
 
 	msg := &nats.Msg{
-		Subject: key,
+		Subject: topic,
 		Data:    data,
 		Header: nats.Header{
 			senderKey:        []string{fmt.Sprintf("%s/%s", running.Project, running.Version)},
@@ -155,7 +155,7 @@ func (c *Client) publish(ctx context.Context, key string, args proto.Message, op
 	jetOpts := append([]jetstream.PublishOpt{}, jetstream.WithMsgID(msgId))
 	_, err = c.js.PublishMsg(ctx, msg, jetOpts...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to publish msg to stream, topic=%s msg_id=%s", key, msgId)
+		return errors.Wrapf(err, "failed to publish msg to stream, topic=%s msg_id=%s", topic, msgId)
 	}
 
 	return nil
