@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/empty.proto";
-import "lava/cloudjob/options.proto";
+import "lava/cloudjobs/options.proto";
 import "lava/rpc.proto";
 import "openapiv3/annotations.proto";
 
@@ -23,7 +23,7 @@ message GenerateResponse {
 // Id 生成随机ID服务
 service Id {
     option (google.api.default_host) = "localhost:8080";
-    option (lava.cloudjob.job_name)="gid";
+    option (lava.cloudjobs.job_name) = "gid";
 
     // Generate 生成ID
     rpc Generate (GenerateRequest) returns (GenerateResponse) {
@@ -81,11 +81,11 @@ service Id {
     }
 
     rpc ProxyExecEvent (DoProxyEventReq) returns (google.protobuf.Empty) {
-        option (lava.cloudjob.subject_name) = "gid.proxy.exec";
+        option (lava.cloudjobs.subject_name) = "gid.proxy.exec";
     }
 
     rpc EventChanged (DoProxyEventReq) returns (google.protobuf.Empty) {
-        option (lava.cloudjob.subject_name) = "gid.event.update";
+        option (lava.cloudjobs.subject_name) = "gid.event.update";
     }
 }
 

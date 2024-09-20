@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package agi7.cloudjob;
+package agi7.cloudjobs;
 
 import "google/protobuf/duration.proto";
 

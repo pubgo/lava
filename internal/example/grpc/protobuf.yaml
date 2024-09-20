@@ -32,7 +32,11 @@ deps:
     path: /proto/errorpb
     version: v0.5.48
 plugins:
-  - name: cloud-job
+  - name: cloudjobs
+    out: pkg/proto
+    opt:
+      - paths=import
+  - name: lava
     out: pkg/proto
     opt:
       - paths=import

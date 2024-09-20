@@ -1,17 +1,18 @@
 syntax = "proto3";
 
-package lava.cloudjob;
+package lava.cloudjobs;
 
 import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/pubgo/lava/pkg/proto/cloudjobpb;cloudjobpb";
 
 extend google.protobuf.ServiceOptions {
-    // job name, same with config jobs consumers job name
+    // job name is same with config jobs consumers job name
     string job_name = 10010;
 }
 
 extend google.protobuf.MethodOptions {
-    // subject name, same with config jobs consumers subject name
+    // subject name is same with config jobs consumers
+    // subject name sametime is topic name
     string subject_name = 10011;
 }
