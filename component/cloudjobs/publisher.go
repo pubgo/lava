@@ -13,6 +13,7 @@ import (
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/internal/ctxutil"
 	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
@@ -41,7 +42,6 @@ func PushEventWithOpt[T any](handler func(*Client, context.Context, T, ...*cloud
 			}
 
 			e.Str("fn_caller", fnCaller)
-			e.Bool("async", true)
 			e.Any("input", t)
 			e.Str("stack", stack.CallerWithFunc(handler).String())
 			e.Str("cost", time.Since(now).String())
@@ -60,15 +60,11 @@ func PushEvent[T any](handler func(context.Context, T) (*emptypb.Empty, error), 
 	fnCaller := stack.Caller(1).String()
 	errChan := make(chan error, 1)
 
-	if len(opts) > 0 {
-		ctx = withOptions(ctx, opts[0])
-	}
-
-	go func() { errChan <- pushEventBasic(handler, ctx, t, true, fnCaller) }()
+	go func() { errChan <- pushEventBasic(handler, withOptions(ctx, opts...), t, fnCaller) }()
 	return errChan
 }
 
-func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, async bool, caller string) error {
+func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, error), ctx context.Context, t T, caller string) error {
 	timeout := ctxutil.GetTimeout(ctx)
 	now := time.Now()
 	err := try.Try(func() error { return lo.T2(handler(ctx, t)).B })
@@ -82,7 +78,6 @@ func pushEventBasic[T any](handler func(context.Context, T) (*emptypb.Empty, err
 		}
 
 		e.Str("fn_caller", caller)
-		e.Bool("async", async)
 		e.Any("input", t)
 		e.Str("stack", stack.CallerWithFunc(handler).String())
 		e.Str("cost", time.Since(now).String())
@@ -100,6 +95,7 @@ func (c *Client) publish(ctx context.Context, topic string, args proto.Message, 
 	var now = time.Now()
 	var msgId = xid.New().String()
 	var pushEventOpt *cloudjobpb.PushEventOptions
+	var pubActInfo any
 
 	defer func() {
 		var msgFn = func(e *zerolog.Event) {
@@ -108,6 +104,7 @@ func (c *Client) publish(ctx context.Context, topic string, args proto.Message, 
 			e.Any("pub_args", args)
 			e.Str("pub_cost", time.Since(now).String())
 			e.Str("pub_msg_id", msgId)
+			e.Any("pub_ack_info", pubActInfo)
 			if timeout != nil {
 				e.Str("timeout", timeout.String())
 			}
@@ -120,7 +117,6 @@ func (c *Client) publish(ctx context.Context, topic string, args proto.Message, 
 	}()
 
 	pushEventOpt = getOptions(ctx, opts...)
-
 	if pushEventOpt.MsgId != nil {
 		msgId = pushEventOpt.GetMsgId()
 	}
@@ -130,7 +126,7 @@ func (c *Client) publish(ctx context.Context, topic string, args proto.Message, 
 		return errors.Wrap(err, "failed to marshal args to any proto")
 	}
 
-	// TODO get info from ctx
+	// TODO get parent event info from ctx
 	data, err := proto.Marshal(pb)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal any proto to bytes")
@@ -138,22 +134,19 @@ func (c *Client) publish(ctx context.Context, topic string, args proto.Message, 
 
 	// subject|topic name
 	topic = c.subjectName(topic)
-
-	msg := &nats.Msg{
-		Subject: topic,
-		Data:    data,
-		Header: nats.Header{
+	header := typex.DoBlock1(func() nats.Header {
+		header := nats.Header{
 			senderKey:        []string{fmt.Sprintf("%s/%s", running.Project, running.Version)},
 			cloudJobDelayKey: []string{encodeDelayTime(pushEventOpt.DelayDur.AsDuration())},
-		},
-	}
-
-	for k, v := range pushEventOpt.Metadata {
-		msg.Header.Add(k, v)
-	}
-
+		}
+		for k, v := range pushEventOpt.Metadata {
+			header.Add(k, v)
+		}
+		return header
+	})
+	msg := &nats.Msg{Subject: topic, Data: data, Header: header}
 	jetOpts := append([]jetstream.PublishOpt{}, jetstream.WithMsgID(msgId))
-	_, err = c.js.PublishMsg(ctx, msg, jetOpts...)
+	pubActInfo, err = c.js.PublishMsg(ctx, msg, jetOpts...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to publish msg to stream, topic=%s msg_id=%s", topic, msgId)
 	}

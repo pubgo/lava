@@ -15,8 +15,11 @@ const DefaultTimeout = 15 * time.Second
 const DefaultMaxRetry = 3
 const DefaultRetryBackoff = time.Second
 const senderKey = "sender"
-const cloudJobDelayKey = "__cloud_jobs_delay_run_at"
+const cloudJobDelayKey = "__cloudjobs_delay_run_at"
 const defaultJobName = "default"
+const defaultConcurrent = 100
+const defaultMaxConcurrent = 1000
+const defaultMinConcurrent = 1
 
 type Config struct {
 	// Streams: nats stream config
@@ -37,6 +40,9 @@ type StreamConfig struct {
 type ConsumerConfig struct {
 	// Consumer name without prefix
 	Consumer *string `yaml:"consumer"`
+
+	// Concurrent default: 100
+	Concurrent *int `yaml:"concurrent"`
 
 	// Stream name without prefix
 	Stream string `yaml:"stream"`

@@ -67,6 +67,7 @@ require (
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/nats-io/nats.go v1.37.0
+	github.com/panjf2000/ants/v2 v2.10.0
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.17
 	github.com/pubgo/funk v0.5.48
@@ -88,6 +89,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.23.1
 	go.opentelemetry.io/otel/sdk v1.30.0
 	go.opentelemetry.io/otel/sdk/metric v1.26.0
+	golang.org/x/tools v0.25.0
 	golang.org/x/vuln v1.1.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
 	gopkg.in/yaml.v3 v3.0.1
@@ -357,7 +359,6 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
 	golang.org/x/text v0.18.0 // indirect
-	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

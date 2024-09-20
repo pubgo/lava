@@ -40,16 +40,18 @@ type Context struct {
 	Config *JobConfig
 }
 
-func withOptions(ctx context.Context, opts *cloudjobpb.PushEventOptions) context.Context {
-	if opts == nil {
+func withOptions(ctx context.Context, opts ...*cloudjobpb.PushEventOptions) context.Context {
+	if len(opts) == 0 {
 		return ctx
 	}
 
 	oldOpts, ok := ctx.Value(pushEventCtxKey).(*cloudjobpb.PushEventOptions)
 	if !ok {
-		oldOpts = opts
-	} else {
-		proto.Merge(oldOpts, opts)
+		oldOpts = new(cloudjobpb.PushEventOptions)
+	}
+
+	for i := range opts {
+		proto.Merge(oldOpts, opts[i])
 	}
 
 	return context.WithValue(ctx, pushEventCtxKey, oldOpts)

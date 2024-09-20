@@ -9,6 +9,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/nats-io/nats.go/jetstream"
+	ants "github.com/panjf2000/ants/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
@@ -40,7 +41,7 @@ func New(p Params) *Client {
 		prefix:    DefaultPrefix,
 		handlers:  make(map[string]map[string]JobHandler[proto.Message]),
 		streams:   make(map[string]jetstream.Stream),
-		consumers: make(map[string]map[string]jetstream.Consumer),
+		consumers: make(map[string]map[string]*Consumer),
 		jobs:      make(map[string]map[string]map[string]*jobHandler),
 	}
 }
@@ -53,7 +54,7 @@ type Client struct {
 	streams map[string]jetstream.Stream
 
 	// jobs: stream->consumer->Consumer
-	consumers map[string]map[string]jetstream.Consumer
+	consumers map[string]map[string]*Consumer
 
 	// handlers: job name -> subject -> job handler
 	handlers map[string]map[string]JobHandler[proto.Message]
@@ -114,9 +115,9 @@ func (c *Client) initConsumer() error {
 			streamName := c.streamName(cfg.Stream)
 
 			// consumer init
-			typex.DoFunc(func() {
+			typex.DoBlock(func() {
 				if c.consumers[streamName] == nil {
-					c.consumers[streamName] = make(map[string]jetstream.Consumer)
+					c.consumers[streamName] = make(map[string]*Consumer)
 				}
 				// A streaming consumer can only have one corresponding job handler
 				assert.If(c.consumers[streamName][consumerName] != nil, "consumer %s already exists", consumerName)
@@ -138,10 +139,10 @@ func (c *Client) initConsumer() error {
 					e.Msg("register consumer success")
 				})
 
-				c.consumers[streamName][consumerName] = consumer
+				c.consumers[streamName][consumerName] = &Consumer{Consumer: consumer, Config: cfg}
 			})
 
-			typex.DoFunc(func() {
+			typex.DoBlock(func() {
 				if c.jobs[streamName] == nil {
 					c.jobs[streamName] = make(map[string]map[string]*jobHandler)
 				}
@@ -180,6 +181,149 @@ func (c *Client) initConsumer() error {
 		}
 	}
 	return nil
+}
+
+func (c *Client) doConsumeHandler(streamName, consumerName string, jobSubjects map[string]*jobHandler, concurrent int) func(msg jetstream.Msg) {
+	var handler = func(msg jetstream.Msg) {
+		var now = time.Now()
+		var addMsgInfo = func(e *zerolog.Event) {
+			e.Str("stream", streamName)
+			e.Str("consumer", consumerName)
+			e.Any("header", msg.Headers())
+			e.Any("msg_id", msg.Headers().Get(jetstream.MsgIDHeader))
+			e.Str("subject", msg.Subject())
+			e.Str("msg_received_time", now.String())
+			e.Str("job_cost", time.Since(now).String())
+		}
+
+		logger.Debug().Func(func(e *zerolog.Event) {
+			addMsgInfo(e)
+			e.Msg("received cloud job event")
+		})
+
+		var handlerDelayJob = func() (r result.Result[bool]) {
+			delayDur := strings.TrimSpace(msg.Headers().Get(cloudJobDelayKey))
+			if delayDur == "" {
+				return r.WithVal(false)
+			}
+
+			dur, err := decodeDelayTime(delayDur)
+			if err != nil {
+				return r.WithErr(errors.Wrap(err, "failed to parse cloud job delay time"))
+			}
+
+			// ignore negative delay
+			if dur < 0 {
+				return r.WithVal(false)
+			}
+
+			return r.WithErr(msg.NakWithDelay(dur))
+		}
+
+		if err := handlerDelayJob(); err.Err() != nil {
+			logger.Err(err.Err()).Func(addMsgInfo).Msg("failed to handle cloud delay job and no ack")
+			return
+		} else if err.Unwrap() {
+			logger.Info().Func(addMsgInfo).Msg("redeliver the message after the given delay")
+			return
+		}
+
+		handler := jobSubjects[msg.Subject()]
+		if handler == nil {
+			logger.Error().Func(addMsgInfo).Msg("failed to find subject job handler")
+			return
+		}
+
+		meta, err := msg.Metadata()
+		if err != nil {
+			// no ack, retry always, unless it can recognize special error information
+			logger.Err(err).Func(addMsgInfo).Msg("failed to parse nats stream msg metadata")
+			return
+		}
+
+		var cfg = handler.cfg
+		var checkErrAndLog = func(err error, msg string) {
+			if err == nil {
+				return
+			}
+
+			logger.Err(err).
+				Str("fn_caller", stack.Caller(1).String()).
+				Func(addMsgInfo).
+				Any("metadata", meta).
+				Any("config", cfg).
+				Any("msg_received_time", now.String()).
+				Str("job_cost", time.Since(now).String()).
+				Msg(msg)
+		}
+
+		err = try.Try(func() error { return c.doHandler(meta, msg, handler, cfg) })
+		if err == nil {
+			checkErrAndLog(msg.Ack(), "failed to do msg ack with handler ok")
+			return
+		}
+
+		// reject job msg
+		if isRejectErr(err) {
+			checkErrAndLog(msg.TermWithReason("reject by caller"), "failed to do msg ack with reject err")
+			return
+		}
+
+		var backoff = lo.FromPtr(cfg.RetryBackoff)
+		var maxRetries = lo.FromPtr(cfg.MaxRetry)
+
+		// If the error is a redelivery error, then the backoff duration is the error duration
+		if err1 := isRedeliveryErr(err); err1 != nil {
+			backoff = err1.delay
+		}
+
+		// Proactively retry and did not reach the maximum retry count
+		if meta.NumDelivered < uint64(maxRetries) {
+			logger.Warn().
+				Err(err).
+				Func(addMsgInfo).
+				Any("metadata", meta).
+				Msg("retry nats stream cloud job event")
+			checkErrAndLog(msg.NakWithDelay(backoff), "failed to retry msg with delay nak")
+			return
+		}
+
+		checkErrAndLog(err, "failed to do handler cloud job")
+		checkErrAndLog(msg.Ack(), "failed to do msg ack with handler error")
+	}
+
+	pool := assert.Must1(ants.NewPool(
+		concurrent,
+		ants.WithLogger(log.NewStd(logger)),
+		ants.WithNonblocking(false),
+	))
+	// pool.Release()
+	return func(msg jetstream.Msg) {
+		if pool.Running() == concurrent {
+			logger.Warn().Func(func(e *zerolog.Event) {
+				e.Int("concurrent", concurrent)
+				e.Str("stream", streamName)
+				e.Str("consumer", consumerName)
+				e.Msg("concurrent limit occurred, please check the concurrent limit")
+			})
+		}
+		if err := pool.Submit(func() { handler(msg) }); err != nil {
+			logger.Err(err).Func(func(e *zerolog.Event) {
+				e.Str("stream", streamName)
+				e.Str("consumer", consumerName)
+				e.Msg("failed to submit job to pool")
+			})
+		}
+	}
+}
+
+func (c *Client) doErrHandler(streamName, consumerName string) jetstream.PullConsumeOpt {
+	return jetstream.ConsumeErrHandler(func(consumeCtx jetstream.ConsumeContext, err error) {
+		logger.Err(err).
+			Str("stream", streamName).
+			Str("consumer", consumerName).
+			Msg("nats consumer error")
+	})
 }
 
 func (c *Client) doHandler(meta *jetstream.MsgMetadata, msg jetstream.Msg, job *jobHandler, cfg *JobConfig) (gErr error) {
@@ -259,6 +403,14 @@ func (c *Client) doConsume() error {
 
 			jobSubjects := c.jobs[streamName][consumerName]
 
+			concurrent := defaultConcurrent
+			if consumer.Config.Concurrent != nil {
+				concurrent = lo.FromPtr(consumer.Config.Concurrent)
+			}
+			if concurrent < defaultMinConcurrent || concurrent > defaultMaxConcurrent {
+				return fmt.Errorf("concurrent must be in the range of %d-%d", defaultMinConcurrent, defaultMaxConcurrent)
+			}
+
 			logger.Info().Func(func(e *zerolog.Event) {
 				e.Str("stream", streamName)
 				e.Str("consumer", consumerName)
@@ -266,134 +418,21 @@ func (c *Client) doConsume() error {
 				e.Msg("cloud job do consumer")
 			})
 
-			var doConsumeHandler = func(msg jetstream.Msg) {
-				var now = time.Now()
-				var addMsgInfo = func(e *zerolog.Event) {
-					e.Str("stream", streamName)
-					e.Str("consumer", consumerName)
-					e.Any("header", msg.Headers())
-					e.Any("msg_id", msg.Headers().Get(jetstream.MsgIDHeader))
-					e.Str("subject", msg.Subject())
-					e.Str("msg_received_time", now.String())
-					e.Str("job_cost", time.Since(now).String())
-				}
-
-				logger.Debug().Func(func(e *zerolog.Event) {
-					addMsgInfo(e)
-					e.Msg("received cloud job event")
-				})
-
-				var handlerDelayJob = func() (r result.Result[bool]) {
-					delayDur := strings.TrimSpace(msg.Headers().Get(cloudJobDelayKey))
-					if delayDur == "" {
-						return r.WithVal(false)
-					}
-
-					dur, err := decodeDelayTime(delayDur)
-					if err != nil {
-						return r.WithErr(errors.Wrap(err, "failed to parse async job delay time"))
-					}
-
-					// ignore negative delay
-					if dur < 0 {
-						return r.WithVal(false)
-					}
-
-					return r.WithErr(msg.NakWithDelay(dur))
-				}
-
-				if err := handlerDelayJob(); err.Err() != nil {
-					logger.Err(err.Err()).Func(addMsgInfo).Msg("failed to handle async delay job and no ack")
-					return
-				} else if err.Unwrap() {
-					logger.Info().Func(addMsgInfo).Msg("redeliver the message after the given delay")
-					return
-				}
-
-				handler := jobSubjects[msg.Subject()]
-				if handler == nil {
-					logger.Error().Func(addMsgInfo).Msg("failed to find subject job handler")
-					return
-				}
-
-				meta, err := msg.Metadata()
-				if err != nil {
-					// no ack, retry always, unless it can recognize special error information
-					logger.Err(err).Func(addMsgInfo).Msg("failed to parse nats stream msg metadata")
-					return
-				}
-
-				var cfg = handler.cfg
-				var checkErrAndLog = func(err error, msg string) {
-					if err == nil {
-						return
-					}
-
-					logger.Err(err).
-						Str("fn_caller", stack.Caller(1).String()).
-						Func(addMsgInfo).
-						Any("metadata", meta).
-						Any("config", cfg).
-						Any("msg_received_time", now.String()).
-						Str("job_cost", time.Since(now).String()).
-						Msg(msg)
-				}
-
-				err = try.Try(func() error { return c.doHandler(meta, msg, handler, cfg) })
-				if err == nil {
-					checkErrAndLog(msg.Ack(), "failed to do msg ack with handler ok")
-					return
-				}
-
-				// reject job msg
-				if isRejectErr(err) {
-					checkErrAndLog(msg.TermWithReason("reject by caller"), "failed to do msg ack with reject err")
-					return
-				}
-
-				var backoff = lo.FromPtr(cfg.RetryBackoff)
-				var maxRetries = lo.FromPtr(cfg.MaxRetry)
-
-				// If the error is a redelivery error, then the backoff duration is the error duration
-				if err1 := isRedeliveryErr(err); err1 != nil {
-					backoff = err1.delay
-				}
-
-				// Proactively retry and did not reach the maximum retry count
-				if meta.NumDelivered < uint64(maxRetries) {
-					logger.Warn().
-						Err(err).
-						Func(addMsgInfo).
-						Any("metadata", meta).
-						Msg("retry nats stream cloud job event")
-					checkErrAndLog(msg.NakWithDelay(backoff), "failed to retry msg with delay nak")
-					return
-				}
-
-				checkErrAndLog(err, "failed to do handler cloud job")
-				checkErrAndLog(msg.Ack(), "failed to do msg ack with handler error")
-			}
-
-			con := result.Of(consumer.Consume(doConsumeHandler))
-			if con.IsErr() {
-				return errors.WrapCaller(con.Err())
-			}
-			c.p.Lc.BeforeStop(func() { con.Unwrap().Stop() })
+			con := assert.Must1(consumer.Consume(
+				c.doConsumeHandler(streamName, consumerName, jobSubjects, concurrent),
+				c.doErrHandler(streamName, consumerName),
+			))
+			c.p.Lc.BeforeStop(func() { con.Stop() })
 		}
 	}
 	return nil
 }
 
 func (c *Client) Start() error {
-	if err := c.initStream(); err != nil {
-		return errors.WrapCaller(err)
-	}
-
-	if err := c.initConsumer(); err != nil {
-		return errors.WrapCaller(err)
-	}
-
-	return errors.WrapCaller(c.doConsume())
+	assert.Exit(c.initStream())
+	assert.Exit(c.initConsumer())
+	assert.Exit(c.doConsume())
+	return nil
 }
 
 func (c *Client) streamName(name string) string {

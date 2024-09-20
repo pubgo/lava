@@ -6,11 +6,35 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/lava/pkg/proto/cloudjobpb"
+	"github.com/pubgo/lava/pkg/typex"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/proto"
 )
+
+func init() {
+	vars.Register("cloudjobs", func() any {
+		subjectAndPbType := typex.DoBlock1(func() map[string]string {
+			subjectAndPbType := make(map[string]string)
+			for k, v := range subjects {
+				subjectAndPbType[k] = string(v.ProtoReflect().Descriptor().FullName())
+			}
+			return subjectAndPbType
+		})
+
+		return map[string]any{
+			"all_register_subjects": subjectAndPbType,
+			"default_prefix":        DefaultPrefix,
+			"default_timeout":       DefaultTimeout,
+			"default_max_retry":     DefaultMaxRetry,
+			"default_retry_backoff": DefaultRetryBackoff,
+			"default_job_name":      defaultJobName,
+			"cloudJobDelayKey":      cloudJobDelayKey,
+		}
+	})
+}
 
 var subjects = make(map[string]proto.Message)
 

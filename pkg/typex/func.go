@@ -1,9 +1,9 @@
 package typex
 
-func DoFunc(fn func()) {
+func DoBlock(fn func()) {
 	fn()
 }
 
-func DoFunc1[T any](fn func() T) T {
+func DoBlock1[T any](fn func() T) T {
 	return fn()
 }
