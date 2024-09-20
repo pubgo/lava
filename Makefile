@@ -47,5 +47,4 @@ lint:
 	golangci-lint run --timeout 3m --verbose ./...
 
 install-protoc:
-	go install -v ./component/cloudjobs/protoc-gen-cloudjobs
 	go install -v ./cmds/protoc-gen-lava

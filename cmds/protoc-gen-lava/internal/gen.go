@@ -2,18 +2,17 @@ package internal
 
 import (
 	"fmt"
-	"github.com/pubgo/funk/assert"
-	"google.golang.org/protobuf/encoding/protojson"
 	"strings"
 
 	"github.com/dave/jennifer/jen"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 const protoJsonNamePkg = "google.golang.org/protobuf/encoding/protojson"
-const typexNamePkg = "github.com/pubgo/lava/pkg/typex"
 const assertNamePkg = "github.com/pubgo/funk/assert"
 const lavapbv1Pkg = "github.com/pubgo/lava/pkg/proto/lavapbv1"
 
@@ -77,27 +76,27 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) (g *protogen.Genera
 		keyPrefix = strings.ReplaceAll(keyPrefix, "Inner", "") + "Service"
 		keyName := fmt.Sprintf("%s%sAction", keyPrefix, meta.mth.GoName)
 
+		//func() T{return T}()
 		genFile.Commentf("%s %s/%s", keyName, meta.srv.GoName, meta.mth.GoName)
 		genFile.Commentf(strings.TrimSpace(meta.mth.Comments.Leading.String()))
 		genFile.Var().
 			Id(keyName).
 			Op("=").
-			Qual(typexNamePkg, "DoBlock1").Call(
-			jen.Func().Call().Qual(lavapbv1Pkg, "RpcMeta").
-				BlockFunc(
-					func(group *jen.Group) {
-						group.Var().Id("p").Qual(lavapbv1Pkg, "RpcMeta")
-						group.Var().Id("data").Op("=").Id(fmt.Sprintf("`%s`", assert.Exit1(protojson.Marshal(meta.meta))))
-						group.Qual(assertNamePkg, "Exit").Call(
-							jen.Qual(protoJsonNamePkg, "Unmarshal").Call(
-								jen.Op("[]").Byte().Call(jen.Id("data")),
-								jen.Id("&p"),
-							),
-						)
-						group.Return(jen.Id("p"))
-					},
-				),
-		)
+			Func().Params().Qual(lavapbv1Pkg, "RpcMeta").
+			BlockFunc(
+				func(group *jen.Group) {
+					group.Var().Id("p").Qual(lavapbv1Pkg, "RpcMeta")
+					group.Var().Id("data").Op("=").Id(fmt.Sprintf("`%s`", assert.Exit1(protojson.Marshal(meta.meta))))
+					group.Qual(assertNamePkg, "Exit").Call(
+						jen.Qual(protoJsonNamePkg, "Unmarshal").Call(
+							jen.Op("[]").Byte().Call(jen.Id("data")),
+							jen.Id("&p"),
+						),
+					)
+					group.Return(jen.Id("p"))
+				},
+			).Call()
+
 	}
 
 	g.P(genFile.GoString())
