@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package lava.service;
+
+import "errorpb/errors.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/pubgo/lava/pkg/proto/websocketpb;websocketpb";
+
+message WebsocketPayload {
+    enum Type {
+        // Request and Response
+        RR = 0;
+
+        // Request and Stream
+        RS = 1;
+
+        // Stream and Stream
+        SS = 2;
+
+        // Fire and Forget
+        FF = 3;
+    }
+
+    // websocket payload id, used to identify the request and response
+    string id = 1 [
+        (google.api.field_behavior) = REQUIRED
+    ];
+
+    // websocket payload method, such as "device.echo"
+    string method = 2 [
+        (google.api.field_behavior) = REQUIRED
+    ];
+
+    // transparent data transmission requires response to be accompanied by
+    optional bytes embed = 3 [
+        (google.api.field_behavior) = OPTIONAL
+    ];
+
+    // websocket request payload data
+    WebsocketRequest request = 4;
+
+    // websocket response payload data
+    WebsocketResponse response = 5;
+
+    // request type
+    optional WebsocketPayload.Type type = 6;
+
+    // websocket payload source indicates the source of the request
+    optional Terminal source = 7 [
+        (google.api.field_behavior) = OPTIONAL
+    ];
+
+    // websocket response target indicates the target of the response
+    optional Terminal target = 8 [
+        (google.api.field_behavior) = OPTIONAL
+    ];
+
+    // terminal request signature
+    optional bytes sign = 9;
+}
+
+message WebsocketRequest {
+    map<string, string> header = 1 [
+        (google.api.field_behavior) = OPTIONAL
+    ];
+    bytes body = 2 [
+        (google.api.field_behavior) = REQUIRED
+    ];
+}
+
+message WebsocketResponse {
+    map<string, string> header = 1 [
+        (google.api.field_behavior) = OPTIONAL
+    ];
+
+    // error or body should be only one
+    optional errors.ErrCode error = 2;
+    optional bytes body = 3;
+}
+
+message WebsocketConnectReq {
+    string session_id = 1;
+    WebsocketPayload request = 10;
+}
+
+// terminal platform
+enum TerminalPlatform {
+    unknown_platform = 0;
+    and = 1;
+    ios = 2;
+    web = 3;
+}
+
+// terminal user type
+enum TerminalType {
+    unknown_type = 0;
+    user = 1;
+    device = 2;
+}
+
+message Terminal {
+    optional TerminalPlatform platform = 1;
+    TerminalType type = 2;
+
+    // terminal id: device id or user id ...
+    string id = 3;
+
+    // terminal online session id
+    string session_id = 4;
+}

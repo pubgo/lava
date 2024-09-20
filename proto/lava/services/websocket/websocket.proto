@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package lava.service;
+
+import "lava/services/websocket/websocket_model.proto";
+
+option go_package = "github.com/pubgo/lava/pkg/proto/websocketpb;websocketpb";
+
+service WebsocketService {
+    rpc Connect (stream WebsocketConnectReq) returns (stream WebsocketPayload) {
+    }
+}
