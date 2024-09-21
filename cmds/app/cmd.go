@@ -42,9 +42,6 @@ import (
 	// metric
 	_ "github.com/pubgo/lava/core/metrics/drivers/prometheus"
 
-	// sqlite
-	_ "github.com/pubgo/lava/core/orm/drivers/sqlite"
-
 	// encoding
 	_ "github.com/pubgo/lava/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/core/encoding/protojson"
