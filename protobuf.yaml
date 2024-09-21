@@ -1,10 +1,12 @@
-checksum: 7fbdb7a7a048f416861d2e7a3221d7ae80df14bf
+checksum: 3c56fe865d5c58a597e2a00e689b5e5e9d3a12a0
 vendor: .proto
 base:
   out: ./pkg
   paths: import
   module: github.com/pubgo/lava/pkg
 root:
+  - proto
+includes:
   - proto
 deps:
   - name: google
@@ -16,7 +18,7 @@ deps:
   - name: errorpb
     url: github.com/pubgo/funk
     path: /proto/errorpb
-    version: v0.5.48
+    version: v0.5.52
 plugins:
   - name: go
   - name: go-errors

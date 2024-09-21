@@ -10,6 +10,8 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
+// github.com/go-echarts/statsview
+
 func init() {
 	srv := assert.Exit1(statsviz.NewServer(statsviz.Root("/statsviz")))
 	debug.Route("/statsviz", func(router fiber.Router) {

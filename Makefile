@@ -45,3 +45,6 @@ protobuf:
 lint:
 	golangci-lint --version
 	golangci-lint run --timeout 3m --verbose ./...
+
+install-protoc:
+	go install -v ./cmds/protoc-gen-lava
