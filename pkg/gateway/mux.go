@@ -353,6 +353,7 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
 func (m *Mux) registerRouter(rule *methodWrapper) {
 	m.opts.handlers[rule.grpcFullMethod] = rule
 	if rule.meta != nil {
+		assert.If(m.opts.customOperationNames[rule.meta.Name] != nil, "rpc custome name:%s already exists", rule.meta.Name)
 		m.opts.customOperationNames[rule.meta.Name] = rule
 	}
 

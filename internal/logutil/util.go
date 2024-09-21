@@ -1,6 +1,7 @@
 package logutil
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/pubgo/funk/generic"
@@ -18,7 +19,7 @@ func HandlerErr(err error) {
 
 func HandleClose(log log.Logger, fn func() error) {
 	if fn == nil || log == nil {
-		log.Error().Msgf("log and fn are all required")
+		slog.Error("log and fn are all required")
 		return
 	}
 
