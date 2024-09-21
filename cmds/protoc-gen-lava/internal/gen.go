@@ -82,7 +82,7 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) (g *protogen.Genera
 		genFile.Var().
 			Id(keyName).
 			Op("=").
-			Func().Params().Qual(lavapbv1Pkg, "RpcMeta").
+			Func().Params().Op("*").Qual(lavapbv1Pkg, "RpcMeta").
 			BlockFunc(
 				func(group *jen.Group) {
 					group.Var().Id("p").Qual(lavapbv1Pkg, "RpcMeta")
@@ -93,10 +93,9 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) (g *protogen.Genera
 							jen.Id("&p"),
 						),
 					)
-					group.Return(jen.Id("p"))
+					group.Return(jen.Id("&p"))
 				},
 			).Call()
-
 	}
 
 	g.P(genFile.GoString())
