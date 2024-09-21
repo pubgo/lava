@@ -55,16 +55,11 @@ require (
 	github.com/gofiber/utils v1.1.0
 	github.com/gofiber/websocket/v2 v2.2.1
 	github.com/golangci/golangci-lint v1.61.0
-	github.com/google/gnostic-models v0.6.9-0.20230804172637-c7be7c783f49
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
-	github.com/joho/godotenv v1.5.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/libp2p/go-yamux/v4 v4.0.1
 	github.com/logdyhq/logdy-core v0.13.0
 	github.com/maragudk/gomponents v0.20.0
-	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.17
 	github.com/pubgo/funk v0.5.48
@@ -72,7 +67,6 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/samber/lo v1.44.0
 	github.com/stretchr/testify v1.9.0
-	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 	github.com/tidwall/match v1.1.1
 	github.com/uber-go/tally/v4 v4.1.16
 	github.com/urfave/cli/v3 v3.0.0-alpha9
@@ -202,6 +196,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20240309020433-c5143eacb3ed // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -243,7 +238,6 @@ require (
 	github.com/ldez/tagliatelle v0.5.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/leonklingele/grouper v1.1.2 // indirect
-	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/lufeee/execinquery v1.2.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/macabu/inamedparam v0.1.3 // indirect
@@ -252,7 +246,6 @@ require (
 	github.com/maratori/testableexamples v1.0.0 // indirect
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
-	github.com/mattheath/base62 v0.0.0-20150408093626-b80cdc656a7a // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
