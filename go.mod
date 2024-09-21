@@ -63,11 +63,8 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/libp2p/go-yamux/v4 v4.0.1
 	github.com/logdyhq/logdy-core v0.13.0
-	github.com/magefile/mage v1.15.0
 	github.com/maragudk/gomponents v0.20.0
 	github.com/mattheath/kala v0.0.0-20171219141654-d6276794bf0e
-	github.com/nats-io/nats.go v1.37.0
-	github.com/panjf2000/ants/v2 v2.10.0
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.17
 	github.com/pubgo/funk v0.5.48
@@ -276,8 +273,6 @@ require (
 	github.com/moricho/tparallel v0.3.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
-	github.com/nats-io/nkeys v0.4.7 // indirect
-	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.16.2 // indirect

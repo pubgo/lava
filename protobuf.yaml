@@ -6,6 +6,8 @@ base:
   module: github.com/pubgo/lava/pkg
 root:
   - proto
+includes:
+  - proto
 deps:
   - name: google
     url: github.com/googleapis/googleapis

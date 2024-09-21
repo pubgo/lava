@@ -9,7 +9,6 @@ package gidpb
 import (
 	_ "github.com/google/gnostic-models/openapiv3"
 	_ "github.com/pubgo/funk/proto/errorpb"
-	_ "github.com/pubgo/lava/pkg/proto/cloudjobpb"
 	_ "github.com/pubgo/lava/pkg/proto/lavapbv1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
