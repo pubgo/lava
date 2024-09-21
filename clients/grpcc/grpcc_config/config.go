@@ -33,7 +33,7 @@ var defaultOpts = []grpc.DialOption{grpc.WithDefaultServiceConfig(`{
 type Cfg struct {
 	Client    *GrpcClientCfg     `yaml:"grpc_client"`
 	Service   *ServiceCfg        `yaml:"service"`
-	Resolvers []resolver.Builder `yaml:"-"`
+	Resolvers []resolver.Builder `yaml:"-" json:"-"`
 }
 
 type ServiceCfg struct {
