@@ -18,7 +18,6 @@ import (
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
@@ -161,7 +160,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 			if pb.Code.Code == 0 {
 				pb.Code.StatusCode = errorpb.Code_Internal
-				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(uint32(errorpb.Code_Internal))))
+				pb.Code.Code = int32(errorpb.Code_Internal)
 			}
 
 			return nil, errutil.ConvertErr2Status(pb).Err()
@@ -266,7 +265,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 
 			if pb.Code.Code == 0 {
-				pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
+				pb.Code.Code = int32(errorpb.Code_Internal)
 				pb.Code.StatusCode = errorpb.Code_Internal
 			}
 
