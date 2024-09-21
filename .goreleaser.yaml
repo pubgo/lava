@@ -1,5 +1,12 @@
 builds:
-  - main: ./cmds/lava/main.go
+  - main: ./cmds/protoc-gen-lava/main.go
+    id: protoc-gen-lava
+    binary: protoc-gen-lava
+    goos:
+      - linux
+      - darwin
+      - windows
+  - main: ./main.go
     id: lava
     binary: lava
     env:
@@ -8,8 +15,6 @@ builds:
       - linux
       - darwin
       - windows
-    goarch:
-      - amd64
     ldflags:
       - -X 'github.com/pubgo/lava/version.BuildTime={{ .Date }}'
       - -X 'github.com/pubgo/lava/version.CommitID={{ .Commit }}'

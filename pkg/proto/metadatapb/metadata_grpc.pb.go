@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.28.0
-// source: proto/lava/services/metadata/metadata.proto
+// source: lava/services/metadata/metadata.proto
 
 package metadatapb
 
@@ -161,5 +161,5 @@ var Metadata_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/lava/services/metadata/metadata.proto",
+	Metadata: "lava/services/metadata/metadata.proto",
 }

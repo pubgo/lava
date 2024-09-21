@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.28.0
-// source: proto/lava/services/errcode/api.proto
+// source: lava/services/errcode/api.proto
 
 package errcodepb
 
@@ -116,5 +116,5 @@ var ErrorService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/lava/services/errcode/api.proto",
+	Metadata: "lava/services/errcode/api.proto",
 }
