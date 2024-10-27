@@ -25,6 +25,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/clients/grpcc"
@@ -396,28 +397,32 @@ func (s *serviceImpl) DixInject(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
-	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
-	for _, m := range mux.GetRouteMethods() {
-		log.Info().
-			Str("operation", m.Operation).
-			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
-			Str("http-method", m.Method).
-			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
-			Str("verb", m.Verb).
-			Any("path-vars", m.Vars).
-			Str("extras", fmt.Sprintf("%v", m.Extras)).
-			Msg("grpc gateway router info")
-	}
+	typex.DoBlock(func() {
+		apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
+		s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
+		httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
+		for _, m := range mux.GetRouteMethods() {
+			log.Info().
+				Str("operation", m.Operation).
+				Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
+				Str("http-method", m.Method).
+				Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
+				Str("verb", m.Verb).
+				Any("path-vars", m.Vars).
+				Str("extras", fmt.Sprintf("%v", m.Extras)).
+				Msg("grpc gateway router info")
+		}
+	})
 
-	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
-		wsproxy.WithPingPong(conf.EnablePingPong),
-		wsproxy.WithTimeWait(conf.PingPongTime),
-		wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
-	))))
+	typex.DoBlock(func() {
+		apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
+		s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
+		httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
+			wsproxy.WithPingPong(conf.EnablePingPong),
+			wsproxy.WithTimeWait(conf.PingPongTime),
+			wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
+		))))
+	})
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
