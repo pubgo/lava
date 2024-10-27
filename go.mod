@@ -3,7 +3,6 @@ module github.com/pubgo/lava
 go 1.22.1
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -40,14 +39,15 @@ require (
 	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.7.0
 	github.com/ecordell/optgen v0.0.9
+	github.com/ettle/strcase v0.2.0
 	github.com/fasthttp/router v1.5.0
-	github.com/fasthttp/websocket v1.5.8
+	github.com/fasthttp/websocket v1.5.10
 	github.com/felixge/fgprof v0.9.5
 	github.com/fullstorydev/grpchan v1.1.1
 	github.com/go-playground/validator/v10 v10.19.0
-	github.com/gofiber/adaptor/v2 v2.2.1
+	github.com/gofiber/fiber/v3 v3.0.0-beta.3
 	github.com/gofiber/utils v1.1.0
-	github.com/gofiber/websocket/v2 v2.2.1
+	github.com/gofiber/utils/v2 v2.0.0-beta.7
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/goyek/goyek/v2 v2.2.0
@@ -66,7 +66,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/uber-go/tally/v4 v4.1.16
 	github.com/urfave/cli/v3 v3.0.0-alpha9.0.20240717192922-127cf54fac9f
-	github.com/valyala/fasthttp v1.52.0
+	github.com/valyala/fasthttp v1.55.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.26.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.26.0
@@ -130,7 +130,6 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
-	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.5 // indirect
@@ -245,7 +244,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
 	github.com/sashamelentyev/usestdlibvars v1.27.0 // indirect
-	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
+	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/securego/gosec/v2 v2.21.2 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

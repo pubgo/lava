@@ -6,7 +6,7 @@ import (
 	rd "runtime/debug"
 
 	json "github.com/goccy/go-json"
-	"github.com/gofiber/adaptor/v2"
+	adaptor "github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/running"
 

@@ -4,7 +4,7 @@ import (
 	"expvar"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -25,21 +25,20 @@ func init() {
 		return c.HTML5(c.HTML5Props{Title: "/expvar", Body: nodes})
 	}
 
-	debug.Route("/vars", func(r fiber.Router) {
-		r.Get("/", func(ctx *fiber.Ctx) error {
-			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
-			var keys []string
-			expvar.Do(func(kv expvar.KeyValue) {
-				keys = append(keys, fmt.Sprintf("/debug/vars/%s", kv.Key))
-			})
-
-			return index(keys).Render(ctx)
+	r := debug.Use("/vars")
+	r.Get("/", func(ctx fiber.Ctx) error {
+		ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
+		var keys []string
+		expvar.Do(func(kv expvar.KeyValue) {
+			keys = append(keys, fmt.Sprintf("/debug/vars/%s", kv.Key))
 		})
 
-		r.Get("/:name", func(ctx *fiber.Ctx) error {
-			name := ctx.Params("name")
-			ctx.Response().Header.Set("Content-Type", "application/json; charset=utf-8")
-			return ctx.SendString(expvar.Get(name).String())
-		})
+		return index(keys).Render(ctx)
+	})
+
+	r.Get("/:name", func(ctx fiber.Ctx) error {
+		name := ctx.Params("name")
+		ctx.Response().Header.Set("Content-Type", "application/json; charset=utf-8")
+		return ctx.SendString(expvar.Get(name).String())
 	})
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
@@ -60,8 +60,7 @@ func (s *Server) DixInject(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		ETag:               true,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
 			}
@@ -77,7 +76,7 @@ func (s *Server) DixInject(
 		},
 	})
 
-	s.httpServer.Mount("/debug", debug.App())
+	s.httpServer.Use("/debug", debug.App())
 }
 
 func (s *Server) start() {

@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	fiber "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -125,10 +125,9 @@ func (s *serviceImpl) DixInject(
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		EnablePrintRoutes:  conf.EnablePrintRoutes,
 		AppName:            version.Project(),
 		BodyLimit:          100 * 1024 * 1024,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
 			}
@@ -150,7 +149,7 @@ func (s *serviceImpl) DixInject(
 			AllowOriginsFunc: func(origin string) bool {
 				return true
 			},
-			AllowMethods: strings.Join([]string{
+			AllowMethods: []string{
 				fiber.MethodGet,
 				fiber.MethodPost,
 				fiber.MethodPut,
@@ -158,7 +157,7 @@ func (s *serviceImpl) DixInject(
 				fiber.MethodPatch,
 				fiber.MethodHead,
 				fiber.MethodOptions,
-			}, ","),
+			},
 			//AllowHeaders:     "",
 			AllowCredentials: true,
 			//ExposeHeaders:    "",
@@ -219,7 +218,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	httpServer.Mount(conf.BaseUrl, app)
+	httpServer.Use(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{

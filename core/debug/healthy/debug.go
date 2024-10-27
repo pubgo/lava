@@ -5,14 +5,14 @@ import (
 	"time"
 
 	jjson "github.com/goccy/go-json"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/healthy"
 )
 
 func init() {
-	debug.Get("/health", func(ctx *fiber.Ctx) error {
+	debug.Get("/health", func(ctx fiber.Ctx) error {
 		dt := make(map[string]*health)
 		for _, name := range healthy.List() {
 			h := &health{}
