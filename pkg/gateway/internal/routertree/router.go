@@ -36,12 +36,12 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 	}
 
 	var node = parseToRoute(rule)
-	if len(node.Paths) == 0 {
+	if len(node.Segments) == 0 {
 		return errors.Wrap(fmt.Errorf("path is null"), errMsg())
 	}
 
 	var nodes = r.nodes
-	paths := append(node.Paths, handlerMethod(method))
+	paths := append(node.Segments, handlerMethod(method))
 	for i, n := range paths {
 		var lastNode = nodes[n]
 		if lastNode == nil {
@@ -51,13 +51,13 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 		nodes = lastNode.nodes
 
 		if i == len(paths)-1 {
-			lastNode.verbs[generic.FromPtr(node.Verb)] = &routeTarget{
+			lastNode.verbs[generic.FromPtr(node.HttpVerb)] = &routeTarget{
 				Method:    method,
 				Path:      path,
 				Operation: operation,
 				extras:    extras,
-				Verb:      node.Verb,
-				Vars:      node.Vars,
+				Verb:      node.HttpVerb,
+				Vars:      node.Variables,
 			}
 		}
 	}
@@ -78,14 +78,14 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	}
 
 	paths = append(paths, handlerMethod(method))
-	var getVars = func(vars []*pathVariable, paths []string) []PathFieldVar {
+	var getVars = func(vars []*PathVariable, paths []string) []PathFieldVar {
 		var vv = make([]PathFieldVar, 0, len(vars))
 		for _, v := range vars {
-			pathVar := PathFieldVar{Fields: v.Fields}
-			if v.end > 0 {
-				pathVar.Value = strings.Join(paths[v.start:v.end+1], "/")
+			pathVar := PathFieldVar{Fields: v.FieldPath}
+			if v.EndIdx > 0 {
+				pathVar.Value = strings.Join(paths[v.StartIdx:v.EndIdx+1], "/")
 			} else {
-				pathVar.Value = strings.Join(paths[v.start:], "/")
+				pathVar.Value = strings.Join(paths[v.StartIdx:], "/")
 			}
 
 			vv = append(vv, pathVar)
@@ -141,7 +141,7 @@ type routeTarget struct {
 	Path      string
 	Operation string
 	Verb      *string
-	Vars      []*pathVariable
+	Vars      []*PathVariable
 	extras    map[string]any
 }
 
@@ -168,7 +168,7 @@ func getOpt(nodes map[string]*nodeTree) []RouteOperation {
 				Path:      v.Path,
 				Operation: v.Operation,
 				Verb:      generic.FromPtr(v.Verb),
-				Vars:      generic.Map(v.Vars, func(i int) string { return strings.Join(v.Vars[i].Fields, ".") }),
+				Vars:      generic.Map(v.Vars, func(i int) string { return strings.Join(v.Vars[i].FieldPath, ".") }),
 				Extras:    v.extras,
 			})
 		}

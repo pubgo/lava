@@ -23,8 +23,8 @@ require (
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.29.0
 	golang.org/x/sys v0.25.0 // indirect
-	google.golang.org/grpc v1.66.1
-	google.golang.org/protobuf v1.34.3-0.20240816073751-94ecbc261689
+	google.golang.org/grpc v1.67.1
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
@@ -53,12 +53,13 @@ require (
 	github.com/goyek/goyek/v2 v2.2.0
 	github.com/goyek/workflow v0.0.0-20240815094733-414d2a904ff9
 	github.com/goyek/x v0.2.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.18
-	github.com/pubgo/funk v0.5.52
+	github.com/pubgo/funk v0.5.54
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.33.0
@@ -78,7 +79,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.26.0
 	golang.org/x/tools v0.25.0
 	golang.org/x/vuln v1.1.3
-	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
+	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -129,7 +130,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
-	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.5 // indirect
@@ -288,8 +288,8 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/telemetry v0.0.0-20240522233618-39ace7a40ae7 // indirect
-	golang.org/x/text v0.18.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	golang.org/x/text v0.19.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/tools v0.5.1 // indirect
