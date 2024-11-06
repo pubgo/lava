@@ -33,7 +33,7 @@ var (
 		}))),
 	))
 
-	debug = env.Define("HTTP_RULE_PARSER_DEBUG", "Enable debug mode for HTTP rule parser").Bool() == true
+	debug = env.Define("HTTP_RULE_PARSER_DEBUG", "Enable debug mode for HTTP rule parser").Bool()
 )
 
 // httpRule defines the syntax structure for HTTP routing rules
@@ -82,7 +82,7 @@ type PathFieldVar struct {
 	Value  string
 }
 
-func (r RoutePattern) Match(urls []string, verb string) ([]PathFieldVar, error) {
+func (r *RoutePattern) Match(urls []string, verb string) ([]PathFieldVar, error) {
 	if len(urls) < len(r.Segments) {
 		return nil, errors.Format("url segments length %d is less than path length %d", len(urls), len(r.Segments))
 	}
@@ -158,7 +158,7 @@ func (r RoutePattern) Match(urls []string, verb string) ([]PathFieldVar, error) 
 }
 
 // String generates a string representation of the RoutePattern
-func (r RoutePattern) String() string {
+func (r *RoutePattern) String() string {
 	url := "/"
 
 	paths := make([]string, len(r.Segments))
@@ -266,7 +266,7 @@ func parse(url string) (*httpRule, error) {
 		return cached, nil
 	}
 
-	var options []participle.ParseOption
+	var options = make([]participle.ParseOption, 0)
 	if debug {
 		options = append(options, participle.Trace(os.Stdout))
 		options = append(options, participle.AllowTrailing(true))

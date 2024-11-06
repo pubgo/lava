@@ -3,7 +3,11 @@ package routertree
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
+	"github.com/pubgo/funk/assert"
+
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 )
@@ -13,170 +17,341 @@ var (
 	ErrNotFound         = errors.New("operation not found")
 )
 
-func NewRouteTree() *RouteTree {
-	return &RouteTree{nodes: make(map[string]*nodeTree)}
-}
-
+// RouteTree represents a prefix tree for routing
 type RouteTree struct {
-	nodes map[string]*nodeTree
+	root        *node
+	cache       *lru.Cache[string, *MatchOperation]
+	matchCount  int64
+	cacheHits   int64
+	cacheMisses int64
 }
 
-func (r *RouteTree) List() []RouteOperation {
-	return getOpt(r.nodes)
+// node represents a node in the routing tree
+type node struct {
+	path     string
+	children []*node
+	isWild   bool // whether this is a wildcard node (* or **)
+	target   *routeTarget
+	indices  string // first letters of children paths for quick lookup
 }
 
-func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
-	var errMsg = func() string {
-		return fmt.Sprintf("method: %s, path: %s, operation: %s", method, path, operation)
-	}
-
-	rule, err := parse(path)
-	if err != nil {
-		return errors.Wrap(err, errMsg())
-	}
-
-	var node = parseToRoute(rule)
-	if len(node.Segments) == 0 {
-		return errors.Wrap(fmt.Errorf("path is null"), errMsg())
-	}
-
-	var nodes = r.nodes
-	paths := append(node.Segments, handlerMethod(method))
-	for i, n := range paths {
-		var lastNode = nodes[n]
-		if lastNode == nil {
-			lastNode = &nodeTree{nodes: make(map[string]*nodeTree), verbs: make(map[string]*routeTarget)}
-			nodes[n] = lastNode
-		}
-		nodes = lastNode.nodes
-
-		if i == len(paths)-1 {
-			lastNode.verbs[generic.FromPtr(node.HttpVerb)] = &routeTarget{
-				Method:    method,
-				Path:      path,
-				Operation: operation,
-				extras:    extras,
-				Verb:      node.HttpVerb,
-				Vars:      node.Variables,
-			}
-		}
-	}
-	return nil
+// routeTarget holds the endpoint information
+type routeTarget struct {
+	Method    string
+	Path      string
+	Operation string
+	Verb      *string
+	Vars      []*PathVariable // reuse PathVariable from parser.go
+	extras    map[string]any
 }
 
-func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
-	var paths = strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
-	var lastPath = strings.SplitN(paths[len(paths)-1], ":", 2)
-	var errMsg = func(tags ...errors.Tag) errors.Tags {
-		return append(tags, errors.T("method", method), errors.T("url", url))
-	}
-	var verb = ""
-
-	paths[len(paths)-1] = lastPath[0]
-	if len(lastPath) > 1 {
-		verb = lastPath[1]
-	}
-
-	paths = append(paths, handlerMethod(method))
-	var getVars = func(vars []*PathVariable, paths []string) []PathFieldVar {
-		var vv = make([]PathFieldVar, 0, len(vars))
-		for _, v := range vars {
-			pathVar := PathFieldVar{Fields: v.FieldPath}
-			if v.EndIdx > 0 {
-				pathVar.Value = strings.Join(paths[v.StartIdx:v.EndIdx+1], "/")
-			} else {
-				pathVar.Value = strings.Join(paths[v.StartIdx:], "/")
-			}
-
-			vv = append(vv, pathVar)
-		}
-		return vv
-	}
-	var getPath = func(nodes map[string]*nodeTree, names ...string) *nodeTree {
-		for _, n := range names {
-			path := nodes[n]
-			if path != nil {
-				return path
-			}
-		}
-		return nil
-	}
-
-	var nodes = r.nodes
-	for _, n := range paths {
-		path := getPath(nodes, n, star, doubleStar)
-		if path == nil {
-			return nil, errors.WrapFn(ErrPathNodeNotFound, func() errors.Tags {
-				return errMsg(errors.T("node", n))
-			})
-		}
-
-		if vv := path.verbs[verb]; vv != nil && vv.Operation != "" && vv.Method == method {
-			return &MatchOperation{
-				Extras:    vv.extras,
-				Method:    vv.Method,
-				Path:      vv.Path,
-				Operation: vv.Operation,
-				Verb:      verb,
-				Vars:      getVars(vv.Vars, paths),
-			}, nil
-		}
-		nodes = path.nodes
-	}
-
-	return nil, errors.WrapTag(ErrNotFound, errMsg()...)
-}
-
+// RouteOperation represents a route operation for external use
 type RouteOperation struct {
 	Method    string         `json:"method,omitempty"`
 	Path      string         `json:"path,omitempty"`
 	Operation string         `json:"operation,omitempty"`
 	Verb      string         `json:"verb,omitempty"`
 	Vars      []string       `json:"vars,omitempty"`
-	Extras    map[string]any `json:"extras"`
+	Extras    map[string]any `json:"extras,omitempty"`
 }
 
-type routeTarget struct {
-	Method    string
-	Path      string
-	Operation string
-	Verb      *string
-	Vars      []*PathVariable
-	extras    map[string]any
-}
-
-type nodeTree struct {
-	nodes map[string]*nodeTree
-	verbs map[string]*routeTarget
-}
-
+// MatchOperation represents a matched route operation
 type MatchOperation struct {
 	Method    string
 	Path      string
 	Operation string
 	Verb      string
-	Vars      []PathFieldVar
+	Vars      []PathFieldVar // reuse PathFieldVar from parser.go
 	Extras    map[string]any
 }
 
-func getOpt(nodes map[string]*nodeTree) []RouteOperation {
-	var sets []RouteOperation
-	for _, n := range nodes {
-		for _, v := range n.verbs {
-			sets = append(sets, RouteOperation{
-				Method:    v.Method,
-				Path:      v.Path,
-				Operation: v.Operation,
-				Verb:      generic.FromPtr(v.Verb),
-				Vars:      generic.Map(v.Vars, func(i int) string { return strings.Join(v.Vars[i].FieldPath, ".") }),
-				Extras:    v.extras,
-			})
-		}
-		sets = append(sets, getOpt(n.nodes)...)
+// NewRouteTree creates a new routing tree
+func NewRouteTree() *RouteTree {
+	cache := assert.Must1(lru.New[string, *MatchOperation](1000))
+	return &RouteTree{
+		root:  &node{},
+		cache: cache,
 	}
-	return sets
 }
 
+// Add adds a new route to the tree
+func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
+	rule, err := parse(path)
+	if err != nil {
+		return err
+	}
+
+	pattern := parseToRoute(rule)
+
+	// 先添加 method 节点
+	methodNode := r.root.findChild(handlerMethod(method))
+	if methodNode == nil {
+		methodNode = &node{
+			path: handlerMethod(method),
+		}
+		r.root.children = append(r.root.children, methodNode)
+		r.root.indices += string(methodNode.path[0])
+	}
+
+	n := methodNode
+	// 移除空路径段
+	for _, segment := range pattern.Segments {
+		if segment == "" {
+			continue
+		}
+
+		// 查找或创建子节点
+		child := n.findChild(segment)
+		if child == nil {
+			child = &node{
+				path:   segment,
+				isWild: segment == star || segment == doubleStar,
+			}
+			n.children = append(n.children, child)
+			n.indices += string(segment[0])
+		}
+		n = child
+	}
+
+	n.target = &routeTarget{
+		Method:    method,
+		Path:      path,
+		Operation: operation,
+		extras:    extras,
+		Verb:      pattern.HttpVerb,
+		Vars:      pattern.Variables,
+	}
+
+	return nil
+}
+
+// findChild finds a child node by path
+func (n *node) findChild(path string) *node {
+	for _, child := range n.children {
+		if child.path == path {
+			return child
+		}
+	}
+	return nil
+}
+
+// Match finds a matching route for the given method and URL
+func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
+	atomic.AddInt64(&r.matchCount, 1)
+
+	cacheKey := method + ":" + url
+	if cached, ok := r.cache.Get(cacheKey); ok {
+		atomic.AddInt64(&r.cacheHits, 1)
+		return cached, nil
+	}
+	atomic.AddInt64(&r.cacheMisses, 1)
+
+	result, err := r.match(method, url)
+	if err == nil {
+		r.cache.Add(cacheKey, result)
+	}
+	return result, err
+}
+
+// List returns all registered routes
+func (r *RouteTree) List() []RouteOperation {
+	ops := make([]RouteOperation, 0, 32)
+	r.walkNode(r.root, "", &ops)
+	return ops
+}
+
+// walkNode recursively walks the route tree and collects all operations
+func (r *RouteTree) walkNode(n *node, prefix string, ops *[]RouteOperation) {
+	if n == nil {
+		return
+	}
+
+	// 构建当前路径
+	path := prefix
+	if len(n.path) > 0 {
+		if path == "" {
+			path = n.path
+		} else {
+			path += "/" + n.path
+		}
+	}
+
+	// 如果当前节点有目标操作，添加到结果中
+	if n.target != nil {
+		vars := make([]string, 0, len(n.target.Vars))
+		for _, v := range n.target.Vars {
+			vars = append(vars, strings.Join(v.FieldPath, "."))
+		}
+
+		*ops = append(*ops, RouteOperation{
+			Method:    n.target.Method,
+			Path:      n.target.Path,
+			Operation: n.target.Operation,
+			Verb:      generic.FromPtr(n.target.Verb),
+			Vars:      vars,
+			Extras:    n.target.extras,
+		})
+	}
+
+	// 递归遍历所有子节点
+	for _, child := range n.children {
+		r.walkNode(child, path, ops)
+	}
+}
+
+// Stats returns the router's statistics
+func (r *RouteTree) Stats() map[string]interface{} {
+	return map[string]interface{}{
+		"total_matches": atomic.LoadInt64(&r.matchCount),
+		"cache_hits":    atomic.LoadInt64(&r.cacheHits),
+		"cache_misses":  atomic.LoadInt64(&r.cacheMisses),
+	}
+}
+
+// Helper functions
 func handlerMethod(method string) string {
 	return fmt.Sprintf("__%s__", strings.ToUpper(method))
+}
+
+// match finds a matching route
+func (r *RouteTree) match(method, url string) (*MatchOperation, error) {
+	// 先检查 method
+	methodSegment := handlerMethod(method)
+
+	// 解析URL路径
+	paths := strings.Split(strings.Trim(url, "/"), "/")
+
+	// 移除空路径段
+	urlPaths := make([]string, 0, len(paths))
+	for _, p := range paths {
+		if p != "" {
+			urlPaths = append(urlPaths, p)
+		}
+	}
+
+	// 处理最后一个路径段中的verb
+	verb := ""
+	if len(urlPaths) > 0 {
+		lastPath := urlPaths[len(urlPaths)-1]
+		if idx := strings.LastIndex(lastPath, ":"); idx >= 0 {
+			verb = lastPath[idx+1:]
+			urlPaths[len(urlPaths)-1] = lastPath[:idx]
+		}
+	}
+
+	// 执行匹配
+	n := r.root
+	var wildcardValues []string
+	var doubleStarStart int = -1
+	var doubleStarEnd int = -1
+
+	// 检查是否存在对应的 method 节点
+	var methodNode *node
+	for _, child := range n.children {
+		if child.path == methodSegment {
+			methodNode = child
+			break
+		}
+	}
+
+	// 如果找不到对应的 method 节点，直接返回错误
+	if methodNode == nil {
+		return nil, ErrNotFound
+	}
+	n = methodNode
+
+	// 匹配路径段
+	for i := 0; i < len(urlPaths); i++ {
+		path := urlPaths[i]
+		found := false
+
+		// 如果在双星号模式中
+		if doubleStarStart >= 0 && doubleStarEnd == -1 {
+			// 尝试查找下一个固定段
+			for _, child := range n.children {
+				if !child.isWild {
+					// 找到固定段，记录双星号结束位置
+					if child.path == path {
+						doubleStarEnd = i
+						n = child
+						found = true
+						break
+					}
+				}
+			}
+			if !found {
+				// 继续收集双星号段
+				continue
+			}
+		} else {
+			// 常规匹配
+			for _, child := range n.children {
+				if !child.isWild && child.path == path {
+					n = child
+					found = true
+					break
+				} else if child.isWild {
+					if child.path == doubleStar {
+						doubleStarStart = i
+						n = child
+						found = true
+						break
+					} else if child.path == star {
+						wildcardValues = append(wildcardValues, path)
+						n = child
+						found = true
+						break
+					}
+				}
+			}
+		}
+
+		if !found && doubleStarStart < 0 {
+			return nil, ErrPathNodeNotFound
+		}
+	}
+
+	// 确保找到了目标节点
+	if n.target == nil {
+		return nil, ErrNotFound
+	}
+
+	// 如果双星号匹配还未结束，设置结束位置为最后一个段
+	if doubleStarStart >= 0 && doubleStarEnd == -1 {
+		doubleStarEnd = len(urlPaths)
+	}
+
+	// 构建变量列表
+	var vars []PathFieldVar
+	if len(n.target.Vars) > 0 {
+		vars = make([]PathFieldVar, len(n.target.Vars))
+		wildcardIndex := 0
+
+		for i, v := range n.target.Vars {
+			if v.EndIdx == -1 && doubleStarStart >= 0 {
+				// 处理双星号变量
+				value := strings.Join(urlPaths[doubleStarStart:doubleStarEnd], "/")
+				vars[i] = PathFieldVar{
+					Fields: v.FieldPath,
+					Value:  value,
+				}
+			} else if v.EndIdx >= 0 && wildcardIndex < len(wildcardValues) {
+				// 处理普通变量
+				vars[i] = PathFieldVar{
+					Fields: v.FieldPath,
+					Value:  wildcardValues[wildcardIndex],
+				}
+				wildcardIndex++
+			}
+		}
+	}
+
+	return &MatchOperation{
+		Method:    method,
+		Path:      n.target.Path,
+		Operation: n.target.Operation,
+		Verb:      verb,
+		Vars:      vars,
+		Extras:    n.target.extras,
+	}, nil
 }
