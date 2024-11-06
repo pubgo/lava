@@ -102,12 +102,20 @@ func NewRouteTree() *RouteTree {
 // Add adds a new route to the tree
 func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
 	if r == nil || r.root == nil {
-		return ErrRouterNotInitialized
+		return errors.WrapKV(ErrRouterNotInitialized,
+			"method", method,
+			"path", path,
+			"operation", operation,
+		)
 	}
 
 	pattern, err := routerparser.ParsePattern(path)
 	if err != nil {
-		return err
+		return errors.WrapKV(err,
+			"method", method,
+			"path", path,
+			"operation", operation,
+		)
 	}
 
 	segments := make([]string, 0, len(pattern.Segments))
@@ -190,7 +198,7 @@ func (n *nodeChildren) addChild(path string, child *node) {
 // Match finds a matching route for the given method and URL
 func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	if r == nil || r.root == nil {
-		return nil, ErrRouterNotInitialized
+		return nil, errors.WrapKV(ErrRouterNotInitialized, "method", method, "url", url)
 	}
 
 	r.stats.matchCount.Add(1)
@@ -203,10 +211,15 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	r.stats.cacheMisses.Add(1)
 
 	result, err := r.match(method, url)
-	if err == nil && result != nil {
+	if err != nil {
+		return nil, errors.WrapKV(err, "method", method, "url", url)
+	}
+
+	if result != nil {
 		r.cache.Add(cacheKey, result)
 	}
-	return result, err
+
+	return result, nil
 }
 
 // List returns all routes in the tree
@@ -324,25 +337,27 @@ func handlerMethod(method string) string {
 
 // match finds a matching route
 func (r *RouteTree) match(method, url string) (*MatchOperation, error) {
-	// 解析URL
 	urlInfo := parseURL(url)
 
-	// 查找方法节点
 	methodNode := r.root.children.findChild(handlerMethod(method))
 	if methodNode == nil {
-		return nil, ErrMethodNotAllowed
+		return nil, errors.WrapKV(ErrMethodNotAllowed,
+			"method", method,
+			"allowed_methods", r.getAllowedMethods(),
+		)
 	}
 
-	// 执行路径匹配
 	result, err := r.matchPath(methodNode, urlInfo)
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapCaller(err)
 	}
 
-	// 验证动词
 	if result.target.Verb != nil {
 		if urlInfo.verb == "" || *result.target.Verb != urlInfo.verb {
-			return nil, ErrVerbNotMatch
+			return nil, errors.WrapKV(ErrVerbNotMatch,
+				"expected_verb", *result.target.Verb,
+				"actual_verb", urlInfo.verb,
+			)
 		}
 	}
 
@@ -382,7 +397,7 @@ func parseURL(url string) *urlInfo {
 // matchPath 在给定的节点下匹配路径
 func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
 	if n == nil || info == nil {
-		return nil, ErrInvalidInput
+		return nil, errors.WrapKV(ErrInvalidInput, "node", n == nil, "info", info == nil)
 	}
 
 	type matchState struct {
@@ -451,13 +466,17 @@ func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
 		return bestMatch, nil
 	}
 
-	return nil, ErrPathNodeNotFound
+	return nil, errors.WrapKV(ErrPathNodeNotFound, "segments", info.segments)
 }
 
 // buildMatchOperation 构建匹配结果
 func (r *RouteTree) buildMatchOperation(n *node, info *urlInfo) (*MatchOperation, error) {
 	if n == nil || n.target == nil || info == nil {
-		return nil, ErrNotFound
+		return nil, errors.WrapKV(ErrNotFound,
+			"node", n == nil,
+			"target", n != nil && n.target == nil,
+			"info", info == nil,
+		)
 	}
 
 	pattern := &routerparser.Pattern{
@@ -466,15 +485,13 @@ func (r *RouteTree) buildMatchOperation(n *node, info *urlInfo) (*MatchOperation
 		Variables: n.target.Vars,
 	}
 
-	var vars []routerparser.PathFieldVar
-	var err error
-
-	// 只有在有变量定义时才进行变量匹配
-	if len(pattern.Variables) > 0 {
-		vars, err = pattern.Match(info.segments, info.verb)
-		if err != nil {
-			return nil, err
-		}
+	vars, err := pattern.Match(info.segments, info.verb)
+	if err != nil {
+		return nil, errors.WrapKV(err,
+			"pattern", pattern.Raw,
+			"segments", info.segments,
+			"verb", info.verb,
+		)
 	}
 
 	return &MatchOperation{
@@ -485,4 +502,13 @@ func (r *RouteTree) buildMatchOperation(n *node, info *urlInfo) (*MatchOperation
 		Vars:      vars,
 		Extras:    n.target.extras,
 	}, nil
+}
+
+// getAllowedMethods 获取所有允许的方法（辅助函数）
+func (r *RouteTree) getAllowedMethods() []string {
+	methods := make([]string, 0)
+	for method := range r.root.children.static {
+		methods = append(methods, method)
+	}
+	return methods
 }

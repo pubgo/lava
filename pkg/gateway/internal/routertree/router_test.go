@@ -3,7 +3,6 @@ package routertree
 import (
 	"testing"
 
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/lava/pkg/gateway/internal/routerparser"
 	"github.com/stretchr/testify/assert"
 )
@@ -489,11 +488,7 @@ func TestRouteTree_Match(t *testing.T) {
 			op, err := tree.Match(tt.testMethod, tt.url)
 			if tt.wantError != nil {
 				assert.Error(t, err)
-				if errors.Is(err, ErrPathNodeNotFound) {
-					assert.Equal(t, tt.wantError, err)
-				} else {
-					assert.Contains(t, err.Error(), tt.wantError.Error())
-				}
+				assert.Contains(t, err.Error(), tt.wantError.Error())
 				return
 			}
 
