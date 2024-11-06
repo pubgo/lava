@@ -5,11 +5,12 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/pubgo/funk/assert"
-
 	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
+
+	"github.com/pubgo/lava/pkg/gateway/internal/routerparser"
 )
 
 var (
@@ -41,7 +42,7 @@ type routeTarget struct {
 	Path      string
 	Operation string
 	Verb      *string
-	Vars      []*PathVariable // reuse PathVariable from parser.go
+	Vars      []*routerparser.PathVariable // reuse PathVariable from parser.go
 	extras    map[string]any
 }
 
@@ -61,7 +62,7 @@ type MatchOperation struct {
 	Path      string
 	Operation string
 	Verb      string
-	Vars      []PathFieldVar // reuse PathFieldVar from parser.go
+	Vars      []routerparser.PathFieldVar // reuse PathFieldVar from parser.go
 	Extras    map[string]any
 }
 
@@ -76,19 +77,15 @@ func NewRouteTree() *RouteTree {
 
 // Add adds a new route to the tree
 func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
-	rule, err := parse(path)
+	pattern, err := routerparser.ParseRoutePattern(path)
 	if err != nil {
 		return err
 	}
 
-	pattern := parseToRoute(rule)
-
 	// 先添加 method 节点
 	methodNode := r.root.findChild(handlerMethod(method))
 	if methodNode == nil {
-		methodNode = &node{
-			path: handlerMethod(method),
-		}
+		methodNode = &node{path: handlerMethod(method)}
 		r.root.children = append(r.root.children, methodNode)
 		r.root.indices += string(methodNode.path[0])
 	}
@@ -105,7 +102,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 		if child == nil {
 			child = &node{
 				path:   segment,
-				isWild: segment == star || segment == doubleStar,
+				isWild: segment == routerparser.Star || segment == routerparser.DoubleStar,
 			}
 			n.children = append(n.children, child)
 			n.indices += string(segment[0])
@@ -291,12 +288,12 @@ func (r *RouteTree) match(method, url string) (*MatchOperation, error) {
 					found = true
 					break
 				} else if child.isWild {
-					if child.path == doubleStar {
+					if child.path == routerparser.DoubleStar {
 						doubleStarStart = i
 						n = child
 						found = true
 						break
-					} else if child.path == star {
+					} else if child.path == routerparser.Star {
 						wildcardValues = append(wildcardValues, path)
 						n = child
 						found = true
@@ -322,22 +319,22 @@ func (r *RouteTree) match(method, url string) (*MatchOperation, error) {
 	}
 
 	// 构建变量列表
-	var vars []PathFieldVar
+	var vars []routerparser.PathFieldVar
 	if len(n.target.Vars) > 0 {
-		vars = make([]PathFieldVar, len(n.target.Vars))
+		vars = make([]routerparser.PathFieldVar, len(n.target.Vars))
 		wildcardIndex := 0
 
 		for i, v := range n.target.Vars {
 			if v.EndIdx == -1 && doubleStarStart >= 0 {
 				// 处理双星号变量
 				value := strings.Join(urlPaths[doubleStarStart:doubleStarEnd], "/")
-				vars[i] = PathFieldVar{
+				vars[i] = routerparser.PathFieldVar{
 					Fields: v.FieldPath,
 					Value:  value,
 				}
 			} else if v.EndIdx >= 0 && wildcardIndex < len(wildcardValues) {
 				// 处理普通变量
-				vars[i] = PathFieldVar{
+				vars[i] = routerparser.PathFieldVar{
 					Fields: v.FieldPath,
 					Value:  wildcardValues[wildcardIndex],
 				}

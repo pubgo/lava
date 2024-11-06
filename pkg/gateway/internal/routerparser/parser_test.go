@@ -1,4 +1,4 @@
-package routertree
+package routerparser
 
 import (
 	"testing"
@@ -182,19 +182,17 @@ func TestParser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule, err := parse(tt.path)
+			pattern, err := ParseRoutePattern(tt.path)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
 			}
-
 			assert.NoError(t, err)
-			pattern := parseToRoute(rule)
 
 			// Test String() method
-			reparsed, err := parse(pattern.String())
+			rr, err := ParseRoutePattern(pattern.String())
 			assert.NoError(t, err)
-			assert.True(t, pattern.Equal(parseToRoute(reparsed)))
+			assert.True(t, pattern.Equal(rr))
 
 			if tt.validate != nil {
 				tt.validate(t, pattern)
@@ -291,10 +289,9 @@ func TestRoutePattern_Match(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule, err := parse(tt.pattern)
+			pattern, err := ParseRoutePattern(tt.pattern)
 			assert.NoError(t, err)
 
-			pattern := parseToRoute(rule)
 			vars, err := pattern.Match(tt.urls, tt.verb)
 
 			if !tt.wantMatch {
@@ -328,8 +325,7 @@ func BenchmarkParser(b *testing.B) {
 }
 
 func BenchmarkRoutePattern_Match(b *testing.B) {
-	rule, _ := parse("/api/v1/users/{user.id}/posts/{post.id}:get")
-	pattern := parseToRoute(rule)
+	pattern, _ := ParseRoutePattern("/api/v1/users/{user.id}/posts/{post.id}:get")
 	urls := []string{"api", "v1", "users", "123", "posts", "456"}
 
 	b.ResetTimer()

@@ -1,9 +1,9 @@
 package routertree
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/pubgo/lava/pkg/gateway/internal/routerparser"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,25 +17,6 @@ func TestRoute(t *testing.T) {
 	assert.NotNil(t, opt)
 	assert.Equal(t, "get_user", opt.Operation)
 	assert.Equal(t, "get1", opt.Verb)
-}
-
-func BenchmarkRouteTree_Performance(b *testing.B) {
-	tree := NewRouteTree()
-
-	// Add test routes
-	for i := 0; i < 1000; i++ {
-		path := fmt.Sprintf("/api/v1/users/%d/posts/%d", i, i)
-		assert.NoError(b, tree.Add("GET", path, fmt.Sprintf("op_%d", i), nil))
-	}
-
-	// Benchmark matching
-	b.Run("Match", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			path := fmt.Sprintf("/api/v1/users/%d/posts/%d", i%1000, i%1000)
-			_, err := tree.Match("GET", path)
-			assert.NoError(b, err)
-		}
-	})
 }
 
 func TestRouteTree_List(t *testing.T) {
@@ -85,7 +66,7 @@ func TestRouteTree_Match(t *testing.T) {
 		url        string
 		wantOp     string
 		wantVerb   string
-		wantVars   []PathFieldVar
+		wantVars   []routerparser.PathFieldVar
 		wantError  bool
 		testMethod string
 	}{
@@ -95,7 +76,7 @@ func TestRouteTree_Match(t *testing.T) {
 			method:  "GET",
 			url:     "/users/123",
 			wantOp:  "get_user",
-			wantVars: []PathFieldVar{
+			wantVars: []routerparser.PathFieldVar{
 				{Fields: []string{"id"}, Value: "123"},
 			},
 			testMethod: "GET",
@@ -107,7 +88,7 @@ func TestRouteTree_Match(t *testing.T) {
 			url:      "/users/123:list",
 			wantOp:   "list_user",
 			wantVerb: "list",
-			wantVars: []PathFieldVar{
+			wantVars: []routerparser.PathFieldVar{
 				{Fields: []string{"id"}, Value: "123"},
 			},
 			testMethod: "GET",
@@ -118,7 +99,7 @@ func TestRouteTree_Match(t *testing.T) {
 			method:  "GET",
 			url:     "/users/a/b/c/details",
 			wantOp:  "get_details",
-			wantVars: []PathFieldVar{
+			wantVars: []routerparser.PathFieldVar{
 				{Fields: []string{"path"}, Value: "a/b/c"},
 			},
 			testMethod: "GET",

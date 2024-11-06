@@ -1,4 +1,4 @@
-package routertree
+package routerparser
 
 import (
 	"os"
@@ -15,9 +15,13 @@ import (
 	"github.com/pubgo/funk/generic"
 )
 
+type (
+	HttpRule = httpRule
+)
+
 const (
-	doubleStar = "**"
-	star       = "*"
+	DoubleStar = "**"
+	Star       = "*"
 )
 
 var (
@@ -102,7 +106,7 @@ func (r *RoutePattern) Match(urls []string, verb string) ([]PathFieldVar, error)
 			endIndex := lastSegmentIndex
 			// 查找下一个固定段的位置
 			for i := v.StartIdx + 1; i < len(r.Segments); i++ {
-				if r.Segments[i] != star && r.Segments[i] != doubleStar {
+				if r.Segments[i] != Star && r.Segments[i] != DoubleStar {
 					// 从后向前查找匹配的固定段
 					for j := lastSegmentIndex; j > v.StartIdx; j-- {
 						if urls[j] == r.Segments[i] {
@@ -135,7 +139,7 @@ func (r *RoutePattern) Match(urls []string, verb string) ([]PathFieldVar, error)
 
 	// 验证固定路径段
 	for i, segment := range r.Segments {
-		if segment == star || segment == doubleStar {
+		if segment == Star || segment == DoubleStar {
 			continue
 		}
 
@@ -216,72 +220,6 @@ func (r *RoutePattern) String() string {
 	return url
 }
 
-func handleSegments(s *segment, rr *RoutePattern) {
-	if s.Path != nil {
-		rr.Segments = append(rr.Segments, *s.Path)
-		return
-	}
-
-	fields := strings.Split(s.Variable.Field, ".")
-
-	vv := &PathVariable{
-		FieldPath: fields,
-		StartIdx:  len(rr.Segments),
-	}
-
-	if s.Variable.Segments == nil {
-		rr.Segments = append(rr.Segments, star)
-	} else {
-		for _, v := range s.Variable.Segments.Segments {
-			handleSegments(v, rr)
-		}
-	}
-
-	if len(rr.Segments) > 0 && rr.Segments[len(rr.Segments)-1] == doubleStar {
-		vv.EndIdx = -1
-	} else {
-		vv.EndIdx = len(rr.Segments) - 1
-	}
-
-	rr.Variables = append(rr.Variables, vv)
-}
-
-func parseToRoute(rule *httpRule) *RoutePattern {
-	r := new(RoutePattern)
-	r.HttpVerb = rule.Verb
-
-	if rule.Segments != nil {
-		for _, v := range rule.Segments.Segments {
-			handleSegments(v, r)
-		}
-	}
-
-	return r
-}
-
-func parse(url string) (*httpRule, error) {
-	// Try to get from cache
-	if cached, ok := ruleCache.Get(url); ok {
-		return cached, nil
-	}
-
-	var options = make([]participle.ParseOption, 0)
-	if debug {
-		options = append(options, participle.Trace(os.Stdout))
-		options = append(options, participle.AllowTrailing(true))
-	}
-
-	// Parse if not in cache
-	rule, err := parser.ParseString("", url, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add to cache
-	ruleCache.Add(url, rule)
-	return rule, nil
-}
-
 // Equal compares two RoutePatterns for equality
 func (r *RoutePattern) Equal(other *RoutePattern) bool {
 	if r == nil || other == nil {
@@ -329,4 +267,84 @@ func (r *RoutePattern) Equal(other *RoutePattern) bool {
 	}
 
 	return true
+}
+
+func handleSegments(s *segment, rr *RoutePattern) {
+	if s.Path != nil {
+		rr.Segments = append(rr.Segments, *s.Path)
+		return
+	}
+
+	fields := strings.Split(s.Variable.Field, ".")
+
+	vv := &PathVariable{
+		FieldPath: fields,
+		StartIdx:  len(rr.Segments),
+	}
+
+	if s.Variable.Segments == nil {
+		rr.Segments = append(rr.Segments, Star)
+	} else {
+		for _, v := range s.Variable.Segments.Segments {
+			handleSegments(v, rr)
+		}
+	}
+
+	if len(rr.Segments) > 0 && rr.Segments[len(rr.Segments)-1] == DoubleStar {
+		vv.EndIdx = -1
+	} else {
+		vv.EndIdx = len(rr.Segments) - 1
+	}
+
+	rr.Variables = append(rr.Variables, vv)
+}
+
+func ParseRoutePattern(url string) (*RoutePattern, error) {
+	rule, err := Parse(url)
+	if err != nil {
+		return nil, errors.WrapCaller(err)
+	}
+
+	r := new(RoutePattern)
+	r.HttpVerb = rule.Verb
+
+	if rule.Segments != nil {
+		for _, v := range rule.Segments.Segments {
+			handleSegments(v, r)
+		}
+	}
+
+	return r, nil
+}
+
+func Parse(url string) (*HttpRule, error) {
+	// Try to get from cache
+	if cached, ok := ruleCache.Get(url); ok {
+		return cached, nil
+	}
+
+	rule, err := parse(url)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add to cache
+	ruleCache.Add(url, rule)
+	return rule, nil
+}
+
+func parse(url string) (*HttpRule, error) {
+	var options = make([]participle.ParseOption, 0)
+	if debug {
+		options = append(options, participle.Trace(os.Stdout))
+		options = append(options, participle.AllowTrailing(true))
+	}
+
+	// Parse if not in cache
+	rule, err := parser.ParseString("", url, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return rule, nil
 }
