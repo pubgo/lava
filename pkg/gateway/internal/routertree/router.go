@@ -77,7 +77,7 @@ func NewRouteTree() *RouteTree {
 
 // Add adds a new route to the tree
 func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
-	pattern, err := routerparser.ParseRoutePattern(path)
+	pattern, err := routerparser.ParsePattern(path)
 	if err != nil {
 		return err
 	}

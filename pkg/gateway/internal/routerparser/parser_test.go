@@ -3,336 +3,514 @@ package routerparser
 import (
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParser(t *testing.T) {
+func TestParsePattern(t *testing.T) {
 	tests := []struct {
-		name     string
-		path     string
-		wantErr  bool
-		validate func(*testing.T, *RoutePattern)
+		name    string
+		pattern string
+		want    *Pattern
+		wantErr bool
+		errMsg  string
 	}{
+		// 基本场景
 		{
-			name: "simple path",
-			path: "/hello",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"hello"}, r.Segments)
-				assert.Nil(t, r.HttpVerb)
-				assert.Empty(t, r.Variables)
+			name:    "simple_path",
+			pattern: "/v1/messages",
+			want: &Pattern{
+				raw:      "/v1/messages",
+				Segments: []string{"v1", "messages"},
 			},
 		},
 		{
-			name: "nested path",
-			path: "/hello/world",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"hello", "world"}, r.Segments)
+			name:    "simple_variable",
+			pattern: "/v1/{message_id}",
+			want: &Pattern{
+				raw:      "/v1/{message_id}",
+				Segments: []string{"v1", "*"},
+				Variables: []*PathVariable{{
+					FieldPath: []string{"message_id"},
+					StartIdx:  1,
+					EndIdx:    1,
+				}},
+			},
+		},
+
+		// 通配符场景
+		{
+			name:    "single_wildcard",
+			pattern: "/v1/{name=messages/*}",
+			want: &Pattern{
+				raw:      "/v1/{name=messages/*}",
+				Segments: []string{"v1", "messages", "*"},
+				Variables: []*PathVariable{{
+					FieldPath: []string{"name"},
+					StartIdx:  1,
+					EndIdx:    2,
+					Pattern:   "messages/*",
+				}},
 			},
 		},
 		{
-			name: "path with hyphen",
-			path: "/hello-world",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"hello-world"}, r.Segments)
+			name:    "double_wildcard",
+			pattern: "/v1/{name=messages/**}",
+			want: &Pattern{
+				raw:      "/v1/{name=messages/**}",
+				Segments: []string{"v1", "messages", "**"},
+				Variables: []*PathVariable{{
+					FieldPath: []string{"name"},
+					StartIdx:  1,
+					EndIdx:    -1,
+					Pattern:   "messages/**",
+				}},
 			},
 		},
+
+		// 嵌套资源场景
 		{
-			name: "path with underscore",
-			path: "/hello_world",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"hello_world"}, r.Segments)
+			name:    "nested_resource",
+			pattern: "/v1/{name=projects/*/locations/*}",
+			want: &Pattern{
+				raw:      "/v1/{name=projects/*/locations/*}",
+				Segments: []string{"v1", "projects", "*", "locations", "*"},
+				Variables: []*PathVariable{{
+					FieldPath: []string{"name"},
+					StartIdx:  1,
+					EndIdx:    4,
+					Pattern:   "projects/*/locations/*",
+				}},
 			},
 		},
+
+		// 带动词的场景
 		{
-			name: "path with dot",
-			path: "/hello.world",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"hello.world"}, r.Segments)
+			name:    "verb_suffix",
+			pattern: "/v1/messages/{message_id}:cancel",
+			want: &Pattern{
+				raw:      "/v1/messages/{message_id}:cancel",
+				Segments: []string{"v1", "messages", "*"},
+				Variables: []*PathVariable{{
+					FieldPath: []string{"message_id"},
+					StartIdx:  2,
+					EndIdx:    2,
+				}},
+				HttpVerb: lo.ToPtr("cancel"),
 			},
 		},
+
+		// 错误场景
 		{
-			name: "path with verb",
-			path: "/users:get",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users"}, r.Segments)
-				assert.Equal(t, "get", *r.HttpVerb)
-			},
-		},
-		{
-			name: "path with simple variable",
-			path: "/users/{id}",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "*"}, r.Segments)
-				assert.Len(t, r.Variables, 1)
-				assert.Equal(t, []string{"id"}, r.Variables[0].FieldPath)
-			},
-		},
-		{
-			name: "path with nested variable",
-			path: "/users/{user.id}/posts",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "*", "posts"}, r.Segments)
-				assert.Len(t, r.Variables, 1)
-				assert.Equal(t, []string{"user", "id"}, r.Variables[0].FieldPath)
-				assert.Equal(t, 1, r.Variables[0].StartIdx)
-				assert.Equal(t, 1, r.Variables[0].EndIdx)
-			},
-		},
-		{
-			name: "path with wildcard",
-			path: "/users/*/posts",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "*", "posts"}, r.Segments)
-			},
-		},
-		{
-			name: "path with double wildcard",
-			path: "/users/**",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "**"}, r.Segments)
-			},
-		},
-		{
-			name: "complex path with variable and verb",
-			path: "/api/v1/users/{user.id}/posts/{post.id}:get",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"api", "v1", "users", "*", "posts", "*"}, r.Segments)
-				assert.Equal(t, "get", *r.HttpVerb)
-				assert.Len(t, r.Variables, 2)
-				assert.Equal(t, []string{"user", "id"}, r.Variables[0].FieldPath)
-				assert.Equal(t, []string{"post", "id"}, r.Variables[1].FieldPath)
-			},
-		},
-		{
-			name: "path with variable and custom matching",
-			path: "/users/{id=**}/posts",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "**", "posts"}, r.Segments)
-				assert.Len(t, r.Variables, 1)
-				assert.Equal(t, []string{"id"}, r.Variables[0].FieldPath)
-				assert.Equal(t, 1, r.Variables[0].StartIdx)
-				assert.Equal(t, -1, r.Variables[0].EndIdx)
-			},
-		},
-		{
-			name:    "invalid path - no leading slash",
-			path:    "users/{id}",
+			name:    "empty_pattern",
+			pattern: "",
 			wantErr: true,
+			errMsg:  "empty pattern",
 		},
 		{
-			name:    "invalid path - empty variable",
-			path:    "/users/{}/posts",
+			name:    "invalid_variable_format",
+			pattern: "/v1/{name",
 			wantErr: true,
+			errMsg:  "parse route failed",
 		},
 		{
-			name:    "invalid path - unclosed variable",
-			path:    "/users/{id/posts",
+			name:    "invalid_double_wildcard_position",
+			pattern: "/v1/{name=**/messages}",
 			wantErr: true,
+			errMsg:  "** must be the last part",
 		},
 		{
-			name: "multiple nested variables",
-			path: "/users/{user.id}/posts/{post.title}/comments",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "*", "posts", "*", "comments"}, r.Segments)
-				assert.Len(t, r.Variables, 2)
-				// 第一个变量
-				assert.Equal(t, []string{"user", "id"}, r.Variables[0].FieldPath)
-				assert.Equal(t, 1, r.Variables[0].StartIdx)
-				assert.Equal(t, 1, r.Variables[0].EndIdx)
-				// 第二个变量
-				assert.Equal(t, []string{"post", "title"}, r.Variables[1].FieldPath)
-				assert.Equal(t, 3, r.Variables[1].StartIdx)
-				assert.Equal(t, 3, r.Variables[1].EndIdx)
+			name:    "multiple_double_wildcards",
+			pattern: "/v1/{name=**/**}",
+			wantErr: true,
+			errMsg:  "multiple ** patterns are not allowed",
+		},
+
+		// 变量嵌套场景
+		{
+			name:    "nested_variables",
+			pattern: "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+			want: &Pattern{
+				raw:      "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+				Segments: []string{"v1", "projects", "*", "locations", "*", "datasets", "*", "tables", "*"},
+				Variables: []*PathVariable{
+					{
+						FieldPath: []string{"parent"},
+						StartIdx:  1,
+						EndIdx:    4,
+						Pattern:   "projects/*/locations/*",
+					},
+					{
+						FieldPath: []string{"dataset"},
+						StartIdx:  6,
+						EndIdx:    6,
+					},
+					{
+						FieldPath: []string{"table"},
+						StartIdx:  8,
+						EndIdx:    8,
+					},
+				},
 			},
 		},
 		{
-			name: "nested variable with double wildcard",
-			path: "/users/{user.profile=**}/details",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"users", "**", "details"}, r.Segments)
-				assert.Len(t, r.Variables, 1)
-				assert.Equal(t, []string{"user", "profile"}, r.Variables[0].FieldPath)
-				assert.Equal(t, 1, r.Variables[0].StartIdx)
-				assert.Equal(t, -1, r.Variables[0].EndIdx)
+			name:    "complex_nested_variables",
+			pattern: "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
+			want: &Pattern{
+				raw:      "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
+				Segments: []string{"v1", "projects", "*", "locations", "*", "models", "*", "evaluations", "*", "**"},
+				Variables: []*PathVariable{
+					{
+						FieldPath: []string{"parent"},
+						StartIdx:  1,
+						EndIdx:    4,
+						Pattern:   "projects/*/locations/*",
+					},
+					{
+						FieldPath: []string{"model"},
+						StartIdx:  6,
+						EndIdx:    6,
+					},
+					{
+						FieldPath: []string{"evaluation"},
+						StartIdx:  8,
+						EndIdx:    8,
+					},
+					{
+						FieldPath: []string{"slice"},
+						StartIdx:  9,
+						EndIdx:    -1,
+						Pattern:   "**",
+					},
+				},
+			},
+		},
+
+		// 点分隔变量场景
+		{
+			name:    "dotted_variable",
+			pattern: "/v1/{resource.name}",
+			want: &Pattern{
+				raw:      "/v1/{resource.name}",
+				Segments: []string{"v1", "*"},
+				Variables: []*PathVariable{
+					{
+						FieldPath: []string{"resource", "name"},
+						StartIdx:  1,
+						EndIdx:    1,
+					},
+				},
 			},
 		},
 		{
-			name: "complex nested variables",
-			path: "/api/{service.version}/users/{user.profile.id}/posts/{post.data.title}:get",
-			validate: func(t *testing.T, r *RoutePattern) {
-				assert.Equal(t, []string{"api", "*", "users", "*", "posts", "*"}, r.Segments)
-				assert.Len(t, r.Variables, 3)
-				// 服务版本变量
-				assert.Equal(t, []string{"service", "version"}, r.Variables[0].FieldPath)
-				assert.Equal(t, 1, r.Variables[0].StartIdx)
-				assert.Equal(t, 1, r.Variables[0].EndIdx)
-				// 用户配置变量
-				assert.Equal(t, []string{"user", "profile", "id"}, r.Variables[1].FieldPath)
-				assert.Equal(t, 3, r.Variables[1].StartIdx)
-				assert.Equal(t, 3, r.Variables[1].EndIdx)
-				// 文章数据变量
-				assert.Equal(t, []string{"post", "data", "title"}, r.Variables[2].FieldPath)
-				assert.Equal(t, 5, r.Variables[2].StartIdx)
-				assert.Equal(t, 5, r.Variables[2].EndIdx)
-				// 验证 HTTP 动词
-				assert.Equal(t, "get", *r.HttpVerb)
+			name:    "multiple_dotted_variable",
+			pattern: "/v1/{resource.path.name=messages/*}/items/{item.id}",
+			want: &Pattern{
+				raw:      "/v1/{resource.path.name=messages/*}/items/{item.id}",
+				Segments: []string{"v1", "messages", "*", "items", "*"},
+				Variables: []*PathVariable{
+					{
+						FieldPath: []string{"resource", "path", "name"},
+						StartIdx:  1,
+						EndIdx:    2,
+						Pattern:   "messages/*",
+					},
+					{
+						FieldPath: []string{"item", "id"},
+						StartIdx:  4,
+						EndIdx:    4,
+					},
+				},
+			},
+		},
+		{
+			name:    "nested_dotted_variable",
+			pattern: "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
+			want: &Pattern{
+				raw:      "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
+				Segments: []string{"v1", "projects", "*", "locations", "*", "datasets", "*", "tables", "*"},
+				Variables: []*PathVariable{
+					{
+						FieldPath: []string{"parent", "resource"},
+						StartIdx:  1,
+						EndIdx:    4,
+						Pattern:   "projects/*/locations/*",
+					},
+					{
+						FieldPath: []string{"dataset", "name"},
+						StartIdx:  6,
+						EndIdx:    6,
+					},
+					{
+						FieldPath: []string{"table", "id"},
+						StartIdx:  8,
+						EndIdx:    8,
+					},
+				},
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pattern, err := ParseRoutePattern(tt.path)
+			got, err := ParsePattern(tt.pattern)
 			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
 				return
 			}
-			assert.NoError(t, err)
 
-			// Test String() method
-			rr, err := ParseRoutePattern(pattern.String())
 			assert.NoError(t, err)
-			assert.True(t, pattern.Equal(rr))
-
-			if tt.validate != nil {
-				tt.validate(t, pattern)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestRoutePattern_Match(t *testing.T) {
+func TestPattern_Match(t *testing.T) {
 	tests := []struct {
-		name      string
-		pattern   string
-		urls      []string
-		verb      string
-		wantVars  []PathFieldVar
-		wantMatch bool
+		name    string
+		pattern string
+		urls    []string
+		verb    string
+		want    []PathFieldVar
+		wantErr bool
+		errMsg  string
 	}{
+		// 基本场景
 		{
-			name:      "simple match",
-			pattern:   "/users/{id}",
-			urls:      []string{"users", "123"},
-			verb:      "",
-			wantVars:  []PathFieldVar{{Fields: []string{"id"}, Value: "123"}},
-			wantMatch: true,
+			name:    "simple_variable",
+			pattern: "/v1/{message_id}",
+			urls:    []string{"v1", "123"},
+			verb:    "get",
+			want: []PathFieldVar{{
+				Fields: []string{"message_id"},
+				Value:  "123",
+			}},
+		},
+
+		// 通配符场景
+		{
+			name:    "single_wildcard",
+			pattern: "/v1/{name=messages/*}",
+			urls:    []string{"v1", "messages", "123"},
+			verb:    "get",
+			want: []PathFieldVar{{
+				Fields: []string{"name"},
+				Value:  "123",
+			}},
 		},
 		{
-			name:      "match with verb",
-			pattern:   "/users/{id}:get",
-			urls:      []string{"users", "123"},
-			verb:      "get",
-			wantVars:  []PathFieldVar{{Fields: []string{"id"}, Value: "123"}},
-			wantMatch: true,
+			name:    "double_wildcard",
+			pattern: "/v1/{name=messages/**}",
+			urls:    []string{"v1", "messages", "123", "456", "789"},
+			verb:    "get",
+			want: []PathFieldVar{{
+				Fields: []string{"name"},
+				Value:  "123/456/789",
+			}},
 		},
+
+		// 嵌套资源场景
 		{
-			name:      "no match - wrong verb",
-			pattern:   "/users/{id}:get",
-			urls:      []string{"users", "123"},
-			verb:      "post",
-			wantMatch: false,
+			name:    "nested_resource",
+			pattern: "/v1/{name=projects/*/locations/*}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us"},
+			verb:    "get",
+			want: []PathFieldVar{{
+				Fields: []string{"name"},
+				Value:  "p1/us",
+			}},
 		},
+
+		// 存储对象路径场景
 		{
-			name:      "match with wildcard",
-			pattern:   "/users/*/posts",
-			urls:      []string{"users", "anything", "posts"},
-			verb:      "",
-			wantMatch: true,
-		},
-		{
-			name:      "match with double wildcard",
-			pattern:   "/users/**",
-			urls:      []string{"users", "anything", "else", "here"},
-			verb:      "",
-			wantMatch: true,
-		},
-		{
-			name:      "no match - wrong path",
-			pattern:   "/users/{id}",
-			urls:      []string{"posts", "123"},
-			verb:      "",
-			wantMatch: false,
-		},
-		{
-			name:    "match nested variable",
-			pattern: "/users/{user.id}/posts",
-			urls:    []string{"users", "123", "posts"},
-			verb:    "",
-			wantVars: []PathFieldVar{
-				{Fields: []string{"user", "id"}, Value: "123"},
+			name:    "storage_object_path",
+			pattern: "/storage/{bucket}/objects/{object=**}",
+			urls:    []string{"storage", "mybucket", "objects", "path", "to", "file.txt"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"bucket"},
+					Value:  "mybucket",
+				},
+				{
+					Fields: []string{"object"},
+					Value:  "path/to/file.txt",
+				},
 			},
-			wantMatch: true,
+		},
+
+		// 带动词的场景
+		{
+			name:    "verb_suffix",
+			pattern: "/v1/messages/{message_id}:cancel",
+			urls:    []string{"v1", "messages", "123"},
+			verb:    "cancel",
+			want: []PathFieldVar{{
+				Fields: []string{"message_id"},
+				Value:  "123",
+			}},
 		},
 		{
-			name:    "match multiple nested variables",
-			pattern: "/users/{user.id}/posts/{post.title}",
-			urls:    []string{"users", "123", "posts", "my-post"},
-			verb:    "",
-			wantVars: []PathFieldVar{
-				{Fields: []string{"user", "id"}, Value: "123"},
-				{Fields: []string{"post", "title"}, Value: "my-post"},
-			},
-			wantMatch: true,
+			name:    "verb_not_match",
+			pattern: "/v1/messages/{message_id}:cancel",
+			urls:    []string{"v1", "messages", "123"},
+			verb:    "delete",
+			wantErr: true,
+			errMsg:  "verb not match",
+		},
+
+		// 错误场景
+		{
+			name:    "url_too_short",
+			pattern: "/v1/{name=projects/*/locations/*}",
+			urls:    []string{"v1", "projects", "p1"},
+			verb:    "get",
+			wantErr: true,
+			errMsg:  "url segments too short",
 		},
 		{
-			name:    "match nested variable with double wildcard",
-			pattern: "/users/{user.profile=**}/details",
-			urls:    []string{"users", "123", "extra", "path", "details"},
-			verb:    "",
-			wantVars: []PathFieldVar{
-				{Fields: []string{"user", "profile"}, Value: "123/extra/path"},
+			name:    "segment_not_match",
+			pattern: "/v1/{name=projects/*/locations/*}",
+			urls:    []string{"v1", "wrong", "p1", "locations", "us"},
+			verb:    "get",
+			wantErr: true,
+			errMsg:  "segment not match",
+		},
+
+		// 变量嵌套场景
+		{
+			name:    "nested_variables",
+			pattern: "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us", "datasets", "d1", "tables", "t1"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"parent"},
+					Value:  "p1/us",
+				},
+				{
+					Fields: []string{"dataset"},
+					Value:  "d1",
+				},
+				{
+					Fields: []string{"table"},
+					Value:  "t1",
+				},
 			},
-			wantMatch: true,
+		},
+		{
+			name:    "complex_nested_variables",
+			pattern: "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us", "models", "m1", "evaluations", "e1", "s1", "s2", "s3"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"parent"},
+					Value:  "p1/us",
+				},
+				{
+					Fields: []string{"model"},
+					Value:  "m1",
+				},
+				{
+					Fields: []string{"evaluation"},
+					Value:  "e1",
+				},
+				{
+					Fields: []string{"slice"},
+					Value:  "s1/s2/s3",
+				},
+			},
+		},
+		{
+			name:    "nested_variables_too_short",
+			pattern: "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us", "datasets"},
+			verb:    "get",
+			wantErr: true,
+			errMsg:  "url segments too short",
+		},
+		{
+			name:    "nested_variables_segment_not_match",
+			pattern: "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us", "wrong", "d1", "tables", "t1"},
+			verb:    "get",
+			wantErr: true,
+			errMsg:  "segment not match",
+		},
+
+		// 点分隔变量场景
+		{
+			name:    "dotted_variable",
+			pattern: "/v1/{resource.name}",
+			urls:    []string{"v1", "test"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"resource", "name"},
+					Value:  "test",
+				},
+			},
+		},
+		{
+			name:    "multiple_dotted_variable",
+			pattern: "/v1/{resource.path.name=messages/*}/items/{item.id}",
+			urls:    []string{"v1", "messages", "123", "items", "456"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"resource", "path", "name"},
+					Value:  "123",
+				},
+				{
+					Fields: []string{"item", "id"},
+					Value:  "456",
+				},
+			},
+		},
+		{
+			name:    "nested_dotted_variable",
+			pattern: "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
+			urls:    []string{"v1", "projects", "p1", "locations", "us", "datasets", "d1", "tables", "t1"},
+			verb:    "get",
+			want: []PathFieldVar{
+				{
+					Fields: []string{"parent", "resource"},
+					Value:  "p1/us",
+				},
+				{
+					Fields: []string{"dataset", "name"},
+					Value:  "d1",
+				},
+				{
+					Fields: []string{"table", "id"},
+					Value:  "t1",
+				},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pattern, err := ParseRoutePattern(tt.pattern)
-			assert.NoError(t, err)
+			pattern, err := ParsePattern(tt.pattern)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			vars, err := pattern.Match(tt.urls, tt.verb)
-
-			if !tt.wantMatch {
+			got, err := pattern.Match(tt.urls, tt.verb)
+			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
 				return
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, tt.wantVars, vars)
+			assert.Equal(t, tt.want, got)
 		})
-	}
-}
-
-func BenchmarkParser(b *testing.B) {
-	patterns := []string{
-		"/simple/path",
-		"/users/{id}",
-		"/api/v1/users/{user.id}/posts/{post.id}:get",
-		"/users/{id=**}/posts",
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		for _, pattern := range patterns {
-			_, err := parse(pattern)
-			if err != nil {
-				b.Fatal(err)
-			}
-		}
-	}
-}
-
-func BenchmarkRoutePattern_Match(b *testing.B) {
-	pattern, _ := ParseRoutePattern("/api/v1/users/{user.id}/posts/{post.id}:get")
-	urls := []string{"api", "v1", "users", "123", "posts", "456"}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := pattern.Match(urls, "get")
-		if err != nil {
-			b.Fatal(err)
-		}
 	}
 }
