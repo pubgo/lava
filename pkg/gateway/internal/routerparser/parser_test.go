@@ -20,7 +20,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "simple_path",
 			pattern: "/v1/messages",
 			want: &Pattern{
-				raw:      "/v1/messages",
+				Raw:      "/v1/messages",
 				Segments: []string{"v1", "messages"},
 			},
 		},
@@ -28,7 +28,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "simple_variable",
 			pattern: "/v1/{message_id}",
 			want: &Pattern{
-				raw:      "/v1/{message_id}",
+				Raw:      "/v1/{message_id}",
 				Segments: []string{"v1", "*"},
 				Variables: []*PathVariable{{
 					FieldPath: []string{"message_id"},
@@ -43,7 +43,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "single_wildcard",
 			pattern: "/v1/{name=messages/*}",
 			want: &Pattern{
-				raw:      "/v1/{name=messages/*}",
+				Raw:      "/v1/{name=messages/*}",
 				Segments: []string{"v1", "messages", "*"},
 				Variables: []*PathVariable{{
 					FieldPath: []string{"name"},
@@ -57,7 +57,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "double_wildcard",
 			pattern: "/v1/{name=messages/**}",
 			want: &Pattern{
-				raw:      "/v1/{name=messages/**}",
+				Raw:      "/v1/{name=messages/**}",
 				Segments: []string{"v1", "messages", "**"},
 				Variables: []*PathVariable{{
 					FieldPath: []string{"name"},
@@ -73,7 +73,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "nested_resource",
 			pattern: "/v1/{name=projects/*/locations/*}",
 			want: &Pattern{
-				raw:      "/v1/{name=projects/*/locations/*}",
+				Raw:      "/v1/{name=projects/*/locations/*}",
 				Segments: []string{"v1", "projects", "*", "locations", "*"},
 				Variables: []*PathVariable{{
 					FieldPath: []string{"name"},
@@ -89,7 +89,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "verb_suffix",
 			pattern: "/v1/messages/{message_id}:cancel",
 			want: &Pattern{
-				raw:      "/v1/messages/{message_id}:cancel",
+				Raw:      "/v1/messages/{message_id}:cancel",
 				Segments: []string{"v1", "messages", "*"},
 				Variables: []*PathVariable{{
 					FieldPath: []string{"message_id"},
@@ -131,7 +131,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "nested_variables",
 			pattern: "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
 			want: &Pattern{
-				raw:      "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
+				Raw:      "/v1/{parent=projects/*/locations/*}/datasets/{dataset}/tables/{table}",
 				Segments: []string{"v1", "projects", "*", "locations", "*", "datasets", "*", "tables", "*"},
 				Variables: []*PathVariable{
 					{
@@ -157,7 +157,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "complex_nested_variables",
 			pattern: "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
 			want: &Pattern{
-				raw:      "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
+				Raw:      "/v1/{parent=projects/*/locations/*}/models/{model}/evaluations/{evaluation}/{slice=**}",
 				Segments: []string{"v1", "projects", "*", "locations", "*", "models", "*", "evaluations", "*", "**"},
 				Variables: []*PathVariable{
 					{
@@ -191,7 +191,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "dotted_variable",
 			pattern: "/v1/{resource.name}",
 			want: &Pattern{
-				raw:      "/v1/{resource.name}",
+				Raw:      "/v1/{resource.name}",
 				Segments: []string{"v1", "*"},
 				Variables: []*PathVariable{
 					{
@@ -206,7 +206,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "multiple_dotted_variable",
 			pattern: "/v1/{resource.path.name=messages/*}/items/{item.id}",
 			want: &Pattern{
-				raw:      "/v1/{resource.path.name=messages/*}/items/{item.id}",
+				Raw:      "/v1/{resource.path.name=messages/*}/items/{item.id}",
 				Segments: []string{"v1", "messages", "*", "items", "*"},
 				Variables: []*PathVariable{
 					{
@@ -227,7 +227,7 @@ func TestParsePattern(t *testing.T) {
 			name:    "nested_dotted_variable",
 			pattern: "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
 			want: &Pattern{
-				raw:      "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
+				Raw:      "/v1/{parent.resource=projects/*/locations/*}/datasets/{dataset.name}/tables/{table.id}",
 				Segments: []string{"v1", "projects", "*", "locations", "*", "datasets", "*", "tables", "*"},
 				Variables: []*PathVariable{
 					{

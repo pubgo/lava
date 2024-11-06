@@ -14,26 +14,47 @@ import (
 )
 
 var (
-	ErrPathNodeNotFound = errors.New("path node not found")
-	ErrNotFound         = errors.New("operation not found")
+	ErrPathNodeNotFound     = errors.New("path node not found")
+	ErrNotFound             = errors.New("operation not found")
+	ErrMethodNotAllowed     = errors.New("method not allowed")
+	ErrVerbNotMatch         = errors.New("verb not match")
+	ErrInvalidInput         = errors.New("invalid input")
+	ErrRouterNotInitialized = errors.New("router not initialized")
 )
 
 // RouteTree represents a prefix tree for routing
 type RouteTree struct {
-	root        *node
-	cache       *lru.Cache[string, *MatchOperation]
-	matchCount  int64
-	cacheHits   int64
-	cacheMisses int64
+	root  *node
+	cache *lru.Cache[string, *MatchOperation]
+	stats *routeStats
+}
+
+// routeStats 统计信息
+type routeStats struct {
+	matchCount  atomic.Int64
+	cacheHits   atomic.Int64
+	cacheMisses atomic.Int64
 }
 
 // node represents a node in the routing tree
 type node struct {
 	path     string
-	children []*node
+	children nodeChildren
 	isWild   bool // whether this is a wildcard node (* or **)
 	target   *routeTarget
-	indices  string // first letters of children paths for quick lookup
+}
+
+// nodeChildren 优化子节点查找
+type nodeChildren struct {
+	static    map[string]*node
+	wildcard  *node
+	wildcard2 *node
+}
+
+func newNodeChildren() nodeChildren {
+	return nodeChildren{
+		static: make(map[string]*node),
+	}
 }
 
 // routeTarget holds the endpoint information
@@ -42,7 +63,7 @@ type routeTarget struct {
 	Path      string
 	Operation string
 	Verb      *string
-	Vars      []*routerparser.PathVariable // reuse PathVariable from parser.go
+	Vars      []*routerparser.PathVariable
 	extras    map[string]any
 }
 
@@ -70,49 +91,64 @@ type MatchOperation struct {
 func NewRouteTree() *RouteTree {
 	cache := assert.Must1(lru.New[string, *MatchOperation](1000))
 	return &RouteTree{
-		root:  &node{},
+		root: &node{
+			children: newNodeChildren(),
+		},
 		cache: cache,
+		stats: &routeStats{},
 	}
 }
 
 // Add adds a new route to the tree
 func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
+	if r == nil || r.root == nil {
+		return ErrRouterNotInitialized
+	}
+
 	pattern, err := routerparser.ParsePattern(path)
 	if err != nil {
 		return err
 	}
 
-	// 先添加 method 节点
-	methodNode := r.root.findChild(handlerMethod(method))
-	if methodNode == nil {
-		methodNode = &node{path: handlerMethod(method)}
-		r.root.children = append(r.root.children, methodNode)
-		r.root.indices += string(methodNode.path[0])
+	segments := make([]string, 0, len(pattern.Segments))
+	for _, seg := range pattern.Segments {
+		if seg != "" {
+			segments = append(segments, seg)
+		}
 	}
 
-	n := methodNode
-	// 移除空路径段
-	for _, segment := range pattern.Segments {
-		if segment == "" {
-			continue
-		}
+	return r.addRoute(method, segments, pattern, operation, extras)
+}
 
-		// 查找或创建子节点
-		child := n.findChild(segment)
+// addRoute 内部路由添加实现
+func (r *RouteTree) addRoute(method string, segments []string, pattern *routerparser.Pattern, operation string, extras map[string]any) error {
+	n := r.root
+	methodNode := n.children.findChild(handlerMethod(method))
+	if methodNode == nil {
+		methodNode = &node{
+			path:     handlerMethod(method),
+			children: newNodeChildren(),
+		}
+		n.children.addChild(methodNode.path, methodNode)
+	}
+
+	n = methodNode
+	for _, segment := range segments {
+		child := n.children.findChild(segment)
 		if child == nil {
 			child = &node{
-				path:   segment,
-				isWild: segment == routerparser.Star || segment == routerparser.DoubleStar,
+				path:     segment,
+				children: newNodeChildren(),
+				isWild:   segment == routerparser.Star || segment == routerparser.DoubleStar,
 			}
-			n.children = append(n.children, child)
-			n.indices += string(segment[0])
+			n.children.addChild(segment, child)
 		}
 		n = child
 	}
 
 	n.target = &routeTarget{
 		Method:    method,
-		Path:      path,
+		Path:      pattern.Raw,
 		Operation: operation,
 		extras:    extras,
 		Verb:      pattern.HttpVerb,
@@ -123,38 +159,114 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 }
 
 // findChild finds a child node by path
-func (n *node) findChild(path string) *node {
-	for _, child := range n.children {
-		if child.path == path {
-			return child
-		}
+func (n *nodeChildren) findChild(path string) *node {
+	// 先查找静态路径
+	if child, ok := n.static[path]; ok {
+		return child
 	}
+
+	// 检查通配符
+	if path == routerparser.Star {
+		return n.wildcard
+	}
+	if path == routerparser.DoubleStar {
+		return n.wildcard2
+	}
+
 	return nil
+}
+
+// addChild adds a child node
+func (n *nodeChildren) addChild(path string, child *node) {
+	if path == routerparser.Star {
+		n.wildcard = child
+	} else if path == routerparser.DoubleStar {
+		n.wildcard2 = child
+	} else {
+		n.static[path] = child
+	}
 }
 
 // Match finds a matching route for the given method and URL
 func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
-	atomic.AddInt64(&r.matchCount, 1)
+	if r == nil || r.root == nil {
+		return nil, ErrRouterNotInitialized
+	}
+
+	r.stats.matchCount.Add(1)
 
 	cacheKey := method + ":" + url
 	if cached, ok := r.cache.Get(cacheKey); ok {
-		atomic.AddInt64(&r.cacheHits, 1)
+		r.stats.cacheHits.Add(1)
 		return cached, nil
 	}
-	atomic.AddInt64(&r.cacheMisses, 1)
+	r.stats.cacheMisses.Add(1)
 
 	result, err := r.match(method, url)
-	if err == nil {
+	if err == nil && result != nil {
 		r.cache.Add(cacheKey, result)
 	}
 	return result, err
 }
 
-// List returns all registered routes
+// List returns all routes in the tree
 func (r *RouteTree) List() []RouteOperation {
-	ops := make([]RouteOperation, 0, 32)
-	r.walkNode(r.root, "", &ops)
-	return ops
+	if r == nil || r.root == nil {
+		return nil
+	}
+
+	var routes []RouteOperation
+	var walk func(*node)
+
+	walk = func(n *node) {
+		if n == nil {
+			return
+		}
+
+		// 如果节点有目标（即是一个路由终点），添加到结果中
+		if n.target != nil {
+			var vars []string
+			// 只有当有变量时才初始化 vars
+			if n.target.Vars != nil && len(n.target.Vars) > 0 {
+				vars = make([]string, 0, len(n.target.Vars))
+				for _, v := range n.target.Vars {
+					vars = append(vars, strings.Join(v.FieldPath, "."))
+				}
+			}
+
+			var verb string
+			if n.target.Verb != nil {
+				verb = *n.target.Verb
+			}
+
+			routes = append(routes, RouteOperation{
+				Method:    n.target.Method,
+				Path:      n.target.Path,
+				Operation: n.target.Operation,
+				Verb:      verb,
+				Vars:      vars, // 如果没有变量，将保持为 nil
+				Extras:    n.target.extras,
+			})
+		}
+
+		// 遍历所有子节点
+		for _, child := range n.children.static {
+			walk(child)
+		}
+		if n.children.wildcard != nil {
+			walk(n.children.wildcard)
+		}
+		if n.children.wildcard2 != nil {
+			walk(n.children.wildcard2)
+		}
+	}
+
+	// 遍历方法节点
+	for _, methodNode := range r.root.children.static {
+		walk(methodNode)
+	}
+
+	return routes
 }
 
 // walkNode recursively walks the route tree and collects all operations
@@ -191,7 +303,7 @@ func (r *RouteTree) walkNode(n *node, prefix string, ops *[]RouteOperation) {
 	}
 
 	// 递归遍历所有子节点
-	for _, child := range n.children {
+	for _, child := range n.children.static {
 		r.walkNode(child, path, ops)
 	}
 }
@@ -199,9 +311,9 @@ func (r *RouteTree) walkNode(n *node, prefix string, ops *[]RouteOperation) {
 // Stats returns the router's statistics
 func (r *RouteTree) Stats() map[string]interface{} {
 	return map[string]interface{}{
-		"total_matches": atomic.LoadInt64(&r.matchCount),
-		"cache_hits":    atomic.LoadInt64(&r.cacheHits),
-		"cache_misses":  atomic.LoadInt64(&r.cacheMisses),
+		"total_matches": r.stats.matchCount.Load(),
+		"cache_hits":    r.stats.cacheHits.Load(),
+		"cache_misses":  r.stats.cacheMisses.Load(),
 	}
 }
 
@@ -212,142 +324,164 @@ func handlerMethod(method string) string {
 
 // match finds a matching route
 func (r *RouteTree) match(method, url string) (*MatchOperation, error) {
-	// 先检查 method
-	methodSegment := handlerMethod(method)
+	// 解析URL
+	urlInfo := parseURL(url)
 
-	// 解析URL路径
+	// 查找方法节点
+	methodNode := r.root.children.findChild(handlerMethod(method))
+	if methodNode == nil {
+		return nil, ErrMethodNotAllowed
+	}
+
+	// 执行路径匹配
+	result, err := r.matchPath(methodNode, urlInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// 验证动词
+	if result.target.Verb != nil {
+		if urlInfo.verb == "" || *result.target.Verb != urlInfo.verb {
+			return nil, ErrVerbNotMatch
+		}
+	}
+
+	return r.buildMatchOperation(result, urlInfo)
+}
+
+type urlInfo struct {
+	segments []string
+	verb     string
+	raw      string
+}
+
+func parseURL(url string) *urlInfo {
+	info := &urlInfo{raw: url}
+
+	// 解析路径段
 	paths := strings.Split(strings.Trim(url, "/"), "/")
-
-	// 移除空路径段
-	urlPaths := make([]string, 0, len(paths))
+	info.segments = make([]string, 0, len(paths))
 	for _, p := range paths {
 		if p != "" {
-			urlPaths = append(urlPaths, p)
+			info.segments = append(info.segments, p)
 		}
 	}
 
-	// 处理最后一个路径段中的verb
-	verb := ""
-	if len(urlPaths) > 0 {
-		lastPath := urlPaths[len(urlPaths)-1]
+	// 解析动词
+	if len(info.segments) > 0 {
+		lastPath := info.segments[len(info.segments)-1]
 		if idx := strings.LastIndex(lastPath, ":"); idx >= 0 {
-			verb = lastPath[idx+1:]
-			urlPaths[len(urlPaths)-1] = lastPath[:idx]
+			info.verb = lastPath[idx+1:]
+			info.segments[len(info.segments)-1] = lastPath[:idx]
 		}
 	}
 
-	// 执行匹配
-	n := r.root
-	var wildcardValues []string
-	var doubleStarStart int = -1
-	var doubleStarEnd int = -1
+	return info
+}
 
-	// 检查是否存在对应的 method 节点
-	var methodNode *node
-	for _, child := range n.children {
-		if child.path == methodSegment {
-			methodNode = child
-			break
+// matchPath 在给定的节点下匹配路径
+func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
+	if n == nil || info == nil {
+		return nil, ErrInvalidInput
+	}
+
+	type matchState struct {
+		node     *node
+		segIndex int
+		priority int // 添加优先级字段，数字越小优先级越高
+	}
+
+	var stack []matchState
+	stack = append(stack, matchState{node: n, segIndex: 0, priority: 0})
+
+	var bestMatch *node
+	var bestPriority int = 1000 // 设置一个较大的初始值
+
+	for len(stack) > 0 {
+		current := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+
+		// 如果找到完整匹配，并且优先级更高，则更新最佳匹配
+		if current.segIndex == len(info.segments) {
+			if current.node.target != nil && current.priority < bestPriority {
+				bestMatch = current.node
+				bestPriority = current.priority
+			}
+			continue
+		}
+
+		if current.segIndex >= len(info.segments) {
+			continue
+		}
+
+		segment := info.segments[current.segIndex]
+		children := &current.node.children
+
+		// 按优先级顺序添加到栈中（后添加的先处理）
+
+		// 3. ** 通配符 (最低优先级)
+		if children.wildcard2 != nil {
+			stack = append(stack, matchState{
+				node:     children.wildcard2,
+				segIndex: len(info.segments),
+				priority: current.priority + 3,
+			})
+		}
+
+		// 2. * 通配符 (中等优先级)
+		if children.wildcard != nil {
+			stack = append(stack, matchState{
+				node:     children.wildcard,
+				segIndex: current.segIndex + 1,
+				priority: current.priority + 2,
+			})
+		}
+
+		// 1. 静态路径 (最高优先级)
+		if child, ok := children.static[segment]; ok && child != nil {
+			stack = append(stack, matchState{
+				node:     child,
+				segIndex: current.segIndex + 1,
+				priority: current.priority + 1,
+			})
 		}
 	}
 
-	// 如果找不到对应的 method 节点，直接返回错误
-	if methodNode == nil {
+	if bestMatch != nil {
+		return bestMatch, nil
+	}
+
+	return nil, ErrPathNodeNotFound
+}
+
+// buildMatchOperation 构建匹配结果
+func (r *RouteTree) buildMatchOperation(n *node, info *urlInfo) (*MatchOperation, error) {
+	if n == nil || n.target == nil || info == nil {
 		return nil, ErrNotFound
 	}
-	n = methodNode
 
-	// 匹配路径段
-	for i := 0; i < len(urlPaths); i++ {
-		path := urlPaths[i]
-		found := false
-
-		// 如果在双星号模式中
-		if doubleStarStart >= 0 && doubleStarEnd == -1 {
-			// 尝试查找下一个固定段
-			for _, child := range n.children {
-				if !child.isWild {
-					// 找到固定段，记录双星号结束位置
-					if child.path == path {
-						doubleStarEnd = i
-						n = child
-						found = true
-						break
-					}
-				}
-			}
-			if !found {
-				// 继续收集双星号段
-				continue
-			}
-		} else {
-			// 常规匹配
-			for _, child := range n.children {
-				if !child.isWild && child.path == path {
-					n = child
-					found = true
-					break
-				} else if child.isWild {
-					if child.path == routerparser.DoubleStar {
-						doubleStarStart = i
-						n = child
-						found = true
-						break
-					} else if child.path == routerparser.Star {
-						wildcardValues = append(wildcardValues, path)
-						n = child
-						found = true
-						break
-					}
-				}
-			}
-		}
-
-		if !found && doubleStarStart < 0 {
-			return nil, ErrPathNodeNotFound
-		}
+	pattern := &routerparser.Pattern{
+		Raw:       n.target.Path,
+		HttpVerb:  n.target.Verb,
+		Variables: n.target.Vars,
 	}
 
-	// 确保找到了目标节点
-	if n.target == nil {
-		return nil, ErrNotFound
-	}
-
-	// 如果双星号匹配还未结束，设置结束位置为最后一个段
-	if doubleStarStart >= 0 && doubleStarEnd == -1 {
-		doubleStarEnd = len(urlPaths)
-	}
-
-	// 构建变量列表
 	var vars []routerparser.PathFieldVar
-	if len(n.target.Vars) > 0 {
-		vars = make([]routerparser.PathFieldVar, len(n.target.Vars))
-		wildcardIndex := 0
+	var err error
 
-		for i, v := range n.target.Vars {
-			if v.EndIdx == -1 && doubleStarStart >= 0 {
-				// 处理双星号变量
-				value := strings.Join(urlPaths[doubleStarStart:doubleStarEnd], "/")
-				vars[i] = routerparser.PathFieldVar{
-					Fields: v.FieldPath,
-					Value:  value,
-				}
-			} else if v.EndIdx >= 0 && wildcardIndex < len(wildcardValues) {
-				// 处理普通变量
-				vars[i] = routerparser.PathFieldVar{
-					Fields: v.FieldPath,
-					Value:  wildcardValues[wildcardIndex],
-				}
-				wildcardIndex++
-			}
+	// 只有在有变量定义时才进行变量匹配
+	if len(pattern.Variables) > 0 {
+		vars, err = pattern.Match(info.segments, info.verb)
+		if err != nil {
+			return nil, err
 		}
 	}
 
 	return &MatchOperation{
-		Method:    method,
+		Method:    n.target.Method,
 		Path:      n.target.Path,
 		Operation: n.target.Operation,
-		Verb:      verb,
+		Verb:      info.verb,
 		Vars:      vars,
 		Extras:    n.target.extras,
 	}, nil

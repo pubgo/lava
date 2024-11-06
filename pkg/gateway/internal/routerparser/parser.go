@@ -13,7 +13,7 @@ const (
 
 // Pattern 表示解析后的路由模式
 type Pattern struct {
-	raw       string
+	Raw       string
 	HttpVerb  *string
 	Segments  []string
 	Variables []*PathVariable

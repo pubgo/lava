@@ -9,7 +9,7 @@ import (
 // buildPattern 构建路由模式
 func buildPattern(route *RoutePattern) (*Pattern, error) {
 	p := &Pattern{
-		raw:      "/" + route.String(),
+		Raw:      "/" + route.String(),
 		HttpVerb: route.Verb,
 	}
 
