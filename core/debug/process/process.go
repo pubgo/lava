@@ -3,7 +3,7 @@ package process
 import (
 	"debug/buildinfo"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	ps "github.com/keybase/go-ps"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/generic"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	debug.Get("/process", func(ctx *fiber.Ctx) error {
+	debug.Get("/process", func(ctx fiber.Ctx) error {
 		processes := assert.Must1(ps.Processes())
 		processes1 := generic.Map(processes, func(i int) map[string]any {
 			p := processes[i]

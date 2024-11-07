@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
+	adaptor "github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
@@ -42,9 +42,9 @@ type muxOptions struct {
 	maxReceiveMessageSize int
 	maxSendMessageSize    int
 	connectionTimeout     time.Duration
-	errHandler            func(err error, ctx *fiber.Ctx)
-	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	errHandler            func(err error, ctx fiber.Ctx)
+	requestInterceptors   map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error
+	responseInterceptors  map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error
 	handlers              map[string]*methodWrapper
 	customOperationNames  map[string]*methodWrapper
 }
@@ -65,8 +65,8 @@ var (
 		connectionTimeout:     defaultServerConnectionTimeout,
 		files:                 protoregistry.GlobalFiles,
 		types:                 protoregistry.GlobalTypes,
-		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		responseInterceptors:  make(map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error),
+		requestInterceptors:   make(map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error),
 		handlers:              make(map[string]*methodWrapper),
 		customOperationNames:  make(map[string]*methodWrapper),
 	}
@@ -134,11 +134,11 @@ type Mux struct {
 
 func (m *Mux) GetRouteMethods() []RouteOperation { return m.routerTree.List() }
 
-func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx fiber.Ctx, msg proto.Message) error) {
 	m.opts.responseInterceptors[name] = f
 }
 
-func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx fiber.Ctx, msg proto.Message) error) {
 	m.opts.requestInterceptors[name] = f
 }
 
@@ -169,7 +169,7 @@ func (m *Mux) GetOperation(operation string) *GrpcMethod {
 	return handleOperation(opt)
 }
 
-func (m *Mux) Handler(ctx *fiber.Ctx) error {
+func (m *Mux) Handler(ctx fiber.Ctx) error {
 	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 	if err != nil {
 		return errors.WrapCaller(err)

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors/errutil"
@@ -281,7 +281,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 	}
 }
 
-func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
+func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		reqCtx := req.(*httpRequest)
 		reqCtx.ctx.SetUserContext(ctx)
@@ -289,8 +289,8 @@ func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) err
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)
-	return func(ctx *fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
-		return err
+		return handlerHttpErr(err)
 	}
 }

@@ -5,32 +5,32 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 )
 
-type Handler[Req any, Rsp any] func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)
+type Handler[Req any, Rsp any] func(ctx fiber.Ctx, req *Req) (rsp *Rsp, err error)
 
 var validate = validator.New()
 
-func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
-	return func(ctx *fiber.Ctx) error {
+func WrapHandler[Req, Rsp any](handle func(ctx fiber.Ctx, req *Req) (rsp *Rsp, err error)) func(ctx fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		var req Req
 
-		if err := ctx.ParamsParser(&req); err != nil {
+		if err := ctx.Bind().URI(&req); err != nil {
 			return fmt.Errorf("failed to parse params, err:%w", err)
 		}
 
-		if err := ctx.QueryParser(&req); err != nil {
+		if err := ctx.Bind().Query(&req); err != nil {
 			return fmt.Errorf("failed to parse query, err:%w", err)
 		}
 
-		if err := ctx.ReqHeaderParser(&req); err != nil {
+		if err := ctx.Bind().Header(&req); err != nil {
 			return fmt.Errorf("failed to parse req header, err:%w", err)
 		}
 
 		switch ctx.Method() {
 		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-			if err := ctx.BodyParser(&req); err != nil {
+			if err := ctx.Bind().Body(&req); err != nil {
 				return fmt.Errorf("failed to parse body, err:%w", err)
 			}
 		}

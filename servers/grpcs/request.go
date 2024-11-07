@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
 )
@@ -38,7 +38,7 @@ func (r *rpcRequest) Stream() bool                { return r.stream != nil }
 var _ lava.Request = (*httpRequest)(nil)
 
 type httpRequest struct {
-	ctx *fiber.Ctx
+	ctx fiber.Ctx
 }
 
 func (r *httpRequest) Kind() string { return "http" }

@@ -14,11 +14,10 @@ type GrpcServerConfigLoader struct {
 }
 
 type Config struct {
-	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
-	BaseUrl           string               `yaml:"base_url"`
-	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
-	EnableCors        bool                 `yaml:"enable_cors"`
-	EnablePingPong    bool                 `yaml:"enable_ping_pong"`
+	BaseUrl        string               `yaml:"base_url"`
+	GrpcConfig     *grpc_builder.Config `yaml:"grpc_config"`
+	EnableCors     bool                 `yaml:"enable_cors"`
+	EnablePingPong bool                 `yaml:"enable_ping_pong"`
 
 	// unix seconds
 	PingPongTime int32 `yaml:"ping_pong_time"`
@@ -30,8 +29,7 @@ type Config struct {
 
 func defaultCfg() *Config {
 	return &Config{
-		EnablePrintRoutes: true,
-		BaseUrl:           version.Project(),
-		GrpcConfig:        grpc_builder.GetDefaultCfg(),
+		BaseUrl:    version.Project(),
+		GrpcConfig: grpc_builder.GetDefaultCfg(),
 	}
 }

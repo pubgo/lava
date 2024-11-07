@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strings"
 
-	fiber "github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
+	fiber "github.com/gofiber/fiber/v3"
+	utils "github.com/gofiber/utils/v2"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 func StripPrefix(prefix string, hh fiber.Handler) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		ctx.Request().Header.Set("Path-Prefix", prefix)
 		ctx.Request().SetRequestURI(strings.TrimPrefix(string(ctx.Request().RequestURI()), prefix))
 		return hh(ctx)
@@ -28,9 +28,9 @@ func FastHandler(h fasthttp.RequestHandler) http.Handler {
 func HTTPHandlerFunc(h http.HandlerFunc) fiber.Handler { return HTTPHandler(h) }
 
 func HTTPHandler(h http.Handler) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(ctx fiber.Ctx) error {
 		handler := NewFastHTTPHandler(h)
-		handler(c.Context())
+		handler(ctx.Context())
 		return nil
 	}
 }
