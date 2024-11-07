@@ -2,7 +2,9 @@ package routertree
 
 import (
 	"fmt"
+	"math"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -394,30 +396,49 @@ func parseURL(url string) *urlInfo {
 	return info
 }
 
+// matchState 用于路径匹配的状态
+type matchState struct {
+	node     *node
+	segIndex int
+	priority int
+}
+
+// matchStatePool 用于复用 matchState 切片
+var matchStatePool = sync.Pool{
+	New: func() interface{} {
+		return make([]matchState, 0, 16) // 预分配常见大小
+	},
+}
+
 // matchPath 在给定的节点下匹配路径
 func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
 	if n == nil || info == nil {
 		return nil, errors.WrapKV(ErrInvalidInput, "node", n == nil, "info", info == nil)
 	}
 
-	type matchState struct {
-		node     *node
-		segIndex int
-		priority int // 添加优先级字段，数字越小优先级越高
-	}
+	// 获取状态栈
+	stack := matchStatePool.Get().([]matchState)
+	defer matchStatePool.Put(stack)
+	stack = stack[:0] // 重置切片
 
-	var stack []matchState
+	// 初始状态
 	stack = append(stack, matchState{node: n, segIndex: 0, priority: 0})
 
+	// 用于记录最佳匹配
 	var bestMatch *node
-	var bestPriority int = 1000 // 设置一个较大的初始值
+	bestPriority := math.MaxInt32
+
+	// 路径段的总数
+	segCount := len(info.segments)
 
 	for len(stack) > 0 {
-		current := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
+		// 弹出栈顶状态
+		lastIdx := len(stack) - 1
+		current := stack[lastIdx]
+		stack = stack[:lastIdx]
 
-		// 如果找到完整匹配，并且优先级更高，则更新最佳匹配
-		if current.segIndex == len(info.segments) {
+		// 检查是否完全匹配
+		if current.segIndex == segCount {
 			if current.node.target != nil && current.priority < bestPriority {
 				bestMatch = current.node
 				bestPriority = current.priority
@@ -425,39 +446,44 @@ func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
 			continue
 		}
 
-		if current.segIndex >= len(info.segments) {
+		// 超出路径段范围
+		if current.segIndex > segCount {
 			continue
 		}
 
+		// 获取当前路径段
 		segment := info.segments[current.segIndex]
 		children := &current.node.children
 
-		// 按优先级顺序添加到栈中（后添加的先处理）
+		// 优化：预计算下一个索引
+		nextIdx := current.segIndex + 1
 
-		// 3. ** 通配符 (最低优先级)
-		if children.wildcard2 != nil {
+		// 优化：按优先级顺序添加匹配项（静态匹配优先）
+
+		// 1. 静态匹配（最高优先级）
+		if child, ok := children.static[segment]; ok && child != nil {
 			stack = append(stack, matchState{
-				node:     children.wildcard2,
-				segIndex: len(info.segments),
-				priority: current.priority + 3,
+				node:     child,
+				segIndex: nextIdx,
+				priority: current.priority + 1,
 			})
 		}
 
-		// 2. * 通配符 (中等优先级)
+		// 2. 单段通配符匹配
 		if children.wildcard != nil {
 			stack = append(stack, matchState{
 				node:     children.wildcard,
-				segIndex: current.segIndex + 1,
+				segIndex: nextIdx,
 				priority: current.priority + 2,
 			})
 		}
 
-		// 1. 静态路径 (最高优先级)
-		if child, ok := children.static[segment]; ok && child != nil {
+		// 3. 多段通配符匹配（最低优先级）
+		if children.wildcard2 != nil {
 			stack = append(stack, matchState{
-				node:     child,
-				segIndex: current.segIndex + 1,
-				priority: current.priority + 1,
+				node:     children.wildcard2,
+				segIndex: segCount, // 直接跳到最后
+				priority: current.priority + 3,
 			})
 		}
 	}
@@ -466,7 +492,10 @@ func (r *RouteTree) matchPath(n *node, info *urlInfo) (*node, error) {
 		return bestMatch, nil
 	}
 
-	return nil, errors.WrapKV(ErrPathNodeNotFound, "segments", info.segments)
+	return nil, errors.WrapKV(ErrPathNodeNotFound,
+		"segments", info.segments,
+		"segment_count", segCount,
+	)
 }
 
 // buildMatchOperation 构建匹配结果
