@@ -43,7 +43,7 @@ type httpRequest struct {
 
 func (r *httpRequest) Kind() string { return "http" }
 func (r *httpRequest) Operation() string {
-	return fmt.Sprintf("%s %s", strings.TrimSpace(r.ctx.Method()), strings.TrimSpace(r.ctx.Path()))
+	return fmt.Sprintf("%s %s", strings.TrimSpace(r.ctx.Method()), strings.TrimSpace(r.ctx.Route().Path))
 }
 func (r *httpRequest) Client() bool                { return false }
 func (r *httpRequest) Header() *lava.RequestHeader { return &r.ctx.Request().Header }

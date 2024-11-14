@@ -57,8 +57,8 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/prometheus/common v0.48.0
-	github.com/pubgo/dix v0.3.18
-	github.com/pubgo/funk v0.5.52
+	github.com/pubgo/dix v0.3.19
+	github.com/pubgo/funk v0.5.56
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.33.0
