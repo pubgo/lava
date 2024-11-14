@@ -2,6 +2,7 @@ package middleware_metric
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/pubgo/funk/generic"
@@ -49,6 +50,10 @@ func (m MetricMiddleware) String() string { return "metric" }
 func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 		now := time.Now()
+
+		if strings.Contains(req.Operation(), " ") {
+			return next(ctx, req)
+		}
 
 		grpcServerRpcCallTotal(m.m, req.Operation())
 
