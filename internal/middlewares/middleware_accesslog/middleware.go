@@ -48,13 +48,15 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		}
 
 		reqId := lavacontexts.GetReqID(ctx)
-		evt.Str("req_id", reqId)
-		evt.Int64("start_at", now.Unix())
+		evt.Str("request_id", reqId)
+		evt.Int64("started_at", now.Unix())
 		evt.Str("service", req.Service())
 		evt.Str("operation", req.Operation())
 		evt.Str("endpoint", req.Endpoint())
 		evt.Bool("client", req.Client())
 		evt.Str("version", version.Version())
+		evt.Str("method", string(req.Header().Method()))
+		evt.Str("query", string(req.Header().RequestURI()))
 
 		clientInfo := lavacontexts.GetClientInfo(ctx)
 		if clientInfo != nil {
@@ -143,7 +145,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		}()
 
 		// 集成logger到context
-		ctx = log.CreateEventCtx(ctx, log.NewEvent().Str("req_id", reqId).Str("operation", req.Operation()))
+		ctx = log.CreateEventCtx(ctx, log.NewEvent().Str("request_id", reqId).Str("operation", req.Operation()))
 		return next(ctx, req)
 	}
 }
