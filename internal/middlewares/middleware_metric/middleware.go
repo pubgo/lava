@@ -49,7 +49,7 @@ func (m MetricMiddleware) String() string { return "metric" }
 
 func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
-		if strings.Contains(req.Operation(), " ") {
+		if req.Kind() == "http" || strings.Contains(req.Operation(), " ") {
 			return next(ctx, req)
 		}
 
