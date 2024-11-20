@@ -3,7 +3,7 @@ package fiber_builder
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
 	"github.com/pubgo/funk/recovery"

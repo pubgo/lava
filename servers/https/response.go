@@ -1,7 +1,7 @@
 package https
 
 import (
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/lava"
 )
@@ -9,7 +9,7 @@ import (
 var _ lava.Response = (*httpResponse)(nil)
 
 type httpResponse struct {
-	ctx *fiber.Ctx
+	ctx fiber.Ctx
 }
 
 func (h *httpResponse) Header() *lava.ResponseHeader { return &h.ctx.Response().Header }

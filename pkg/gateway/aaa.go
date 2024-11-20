@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
@@ -22,12 +22,12 @@ type (
 		SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
 		SetStreamInterceptor(interceptor grpc.StreamServerInterceptor)
 
-		SetRequestDecoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
-		SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
+		SetRequestDecoder(protoreflect.FullName, func(ctx fiber.Ctx, msg proto.Message) error)
+		SetResponseEncoder(protoreflect.FullName, func(ctx fiber.Ctx, msg proto.Message) error)
 		RegisterService(sd *grpc.ServiceDesc, ss interface{})
 
 		GetOperation(operation string) *GrpcMethod
-		Handler(*fiber.Ctx) error
+		Handler(fiber.Ctx) error
 		ServeHTTP(http.ResponseWriter, *http.Request)
 		GetRouteMethods() []RouteOperation
 	}

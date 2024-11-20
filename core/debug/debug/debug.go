@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v3"
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
@@ -16,7 +16,7 @@ func init() {
 }
 
 func initDebug() {
-	debug.Get("/", func(ctx *fiber.Ctx) error {
+	debug.Get("/", func(ctx fiber.Ctx) error {
 		pathMap := make(map[string]interface{})
 		stack := debug.App().Stack()
 		for m := range stack {

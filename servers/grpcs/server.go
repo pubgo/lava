@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	fiber "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -25,6 +25,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/clients/grpcc"
@@ -124,10 +125,9 @@ func (s *serviceImpl) DixInject(
 
 	httpServer := fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		EnablePrintRoutes:  conf.EnablePrintRoutes,
 		AppName:            version.Project(),
 		BodyLimit:          100 * 1024 * 1024,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
 			}
@@ -149,7 +149,7 @@ func (s *serviceImpl) DixInject(
 			AllowOriginsFunc: func(origin string) bool {
 				return true
 			},
-			AllowMethods: strings.Join([]string{
+			AllowMethods: []string{
 				fiber.MethodGet,
 				fiber.MethodPost,
 				fiber.MethodPut,
@@ -157,7 +157,7 @@ func (s *serviceImpl) DixInject(
 				fiber.MethodPatch,
 				fiber.MethodHead,
 				fiber.MethodOptions,
-			}, ","),
+			},
 			//AllowHeaders:     "",
 			AllowCredentials: true,
 			//ExposeHeaders:    "",
@@ -218,7 +218,7 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	httpServer.Mount(conf.BaseUrl, app)
+	httpServer.Use(conf.BaseUrl, app)
 
 	grpcGateway := runtime.NewServeMux(
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
@@ -396,28 +396,32 @@ func (s *serviceImpl) DixInject(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
-	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
-	for _, m := range mux.GetRouteMethods() {
-		log.Info().
-			Str("operation", m.Operation).
-			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
-			Str("http-method", m.Method).
-			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
-			Str("verb", m.Verb).
-			Any("path-vars", m.Vars).
-			Str("extras", fmt.Sprintf("%v", m.Extras)).
-			Msg("grpc gateway router info")
-	}
+	typex.DoBlock(func() {
+		apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
+		s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
+		httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
+		for _, m := range mux.GetRouteMethods() {
+			log.Info().
+				Str("operation", m.Operation).
+				Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
+				Str("http-method", m.Method).
+				Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
+				Str("verb", m.Verb).
+				Any("path-vars", m.Vars).
+				Str("extras", fmt.Sprintf("%v", m.Extras)).
+				Msg("grpc gateway router info")
+		}
+	})
 
-	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
-		wsproxy.WithPingPong(conf.EnablePingPong),
-		wsproxy.WithTimeWait(conf.PingPongTime),
-		wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
-	))))
+	typex.DoBlock(func() {
+		apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
+		s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
+		httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
+			wsproxy.WithPingPong(conf.EnablePingPong),
+			wsproxy.WithTimeWait(conf.PingPongTime),
+			wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
+		))))
+	})
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer

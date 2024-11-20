@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	fiber "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors/errutil"
+	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
@@ -72,12 +72,6 @@ func (s *serviceImpl) DixInject(
 		cfg.BaseUrl = "/" + version.Project()
 	}
 
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
-	})
-
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -85,8 +79,7 @@ func (s *serviceImpl) DixInject(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		ETag:               true,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(ctx fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
 			}
@@ -108,8 +101,8 @@ func (s *serviceImpl) DixInject(
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-		AllowOrigins: "*",
-		AllowMethods: strings.Join([]string{
+		AllowOrigins: generic.ListOf("*"),
+		AllowMethods: generic.ListOf(
 			fiber.MethodGet,
 			fiber.MethodPost,
 			fiber.MethodPut,
@@ -117,10 +110,10 @@ func (s *serviceImpl) DixInject(
 			fiber.MethodPatch,
 			fiber.MethodHead,
 			fiber.MethodOptions,
-		}, ","),
-		AllowHeaders:     "",
+		),
+		AllowHeaders:     nil,
 		AllowCredentials: true,
-		ExposeHeaders:    "",
+		ExposeHeaders:    nil,
 		MaxAge:           0,
 	}))
 
@@ -150,8 +143,8 @@ func (s *serviceImpl) DixInject(
 		}
 	}
 
-	s.httpServer.Mount("/debug", debug.App())
-	s.httpServer.Mount(cfg.BaseUrl, app)
+	s.httpServer.Use("/debug", debug.App())
+	s.httpServer.Use(cfg.BaseUrl, app)
 
 	// 网关初始化
 	if cfg.EnablePrintRouter {
