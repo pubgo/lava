@@ -17,4 +17,6 @@ message RpcMeta {
   map<string, string> tags = 3;
 }
 
-extend google.protobuf.MethodOptions { RpcMeta options = 100004; }
+extend google.protobuf.MethodOptions {
+  RpcMeta options = 100004;
+}
