@@ -73,11 +73,16 @@ func GenerateFile(gen *protogen.Plugin, file *protogen.File) (g *protogen.Genera
 		keyPrefix := strings.ReplaceAll(srvInfo.GoName, "InnerService", "")
 		keyPrefix = strings.ReplaceAll(keyPrefix, "Inner", "") + "Service"
 
+		var pbPkg = ""
+		if file.GoImportPath != meta.mth.Input.GoIdent.GoImportPath {
+			pbPkg = string(meta.mth.Input.GoIdent.GoImportPath)
+		}
+
 		genFile.Var().Op("_").Op("=").Qual(rpcMetaPkg, "Register").Call(
 			jen.Op("&").Qual(rpcMetaPkg, "RpcMeta").Values(
 				jen.Dict{
-					jen.Id("Input"):  jen.New(jen.Id(meta.mth.Input.GoIdent.GoName)),
-					jen.Id("Output"): jen.New(jen.Id(meta.mth.Output.GoIdent.GoName)),
+					jen.Id("Input"):  jen.New(jen.Qual(pbPkg, meta.mth.Input.GoIdent.GoName)),
+					jen.Id("Output"): jen.New(jen.Qual(pbPkg, meta.mth.Output.GoIdent.GoName)),
 					jen.Id("Name"):   jen.Lit(meta.meta.Name),
 					jen.Id("Method"): jen.Lit(fmt.Sprintf("%s/%s", meta.srv.Desc.FullName(), meta.mth.GoName)),
 					jen.Id("Tags"): jen.Map(jen.String()).String().Values(
