@@ -27,8 +27,6 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/pkg/cmdutil"
-	"github.com/pubgo/lava/services/errorservice"
-	"github.com/pubgo/lava/services/metadataservice"
 
 	_ "github.com/pubgo/lava/core/debug/debug"
 	// debug
@@ -65,9 +63,6 @@ var defaultProviders = []any{
 
 	lifecycle.New,
 	scheduler.New,
-
-	metadataservice.New,
-	errorservice.New,
 }
 
 func NewBuilder(opts ...dix.Option) *dix.Dix {

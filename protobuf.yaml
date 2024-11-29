@@ -1,4 +1,4 @@
-checksum: e0510f214c57f40c401509269c3bd12647e77233
+checksum: 2cb52bc4143a48e6062590082a7310ff425eff96
 vendor: .proto
 base:
   out: ./pkg
