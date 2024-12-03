@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"io"
 	"os"
 	"time"
 
@@ -29,10 +30,10 @@ func New(cfg *Config) log.Logger {
 	}
 	zerolog.SetGlobalLevel(level)
 
-	logger := zerolog.New(os.Stdout).Level(level).With().Timestamp().Caller().Logger()
+	logger := zerolog.New(&writer{os.Stdout}).Level(level).With().Timestamp().Caller().Logger()
 	if !cfg.AsJson {
 		logger = logger.Output(&writer{
-			ConsoleWriter: zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
+			zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
 				w.Out = os.Stdout
 				w.TimeFormat = time.RFC3339
 			}),
@@ -60,11 +61,11 @@ func New(cfg *Config) log.Logger {
 }
 
 type writer struct {
-	zerolog.ConsoleWriter
+	io.Writer
 }
 
 func (w writer) Write(p []byte) (n int, err error) {
-	n, err = w.ConsoleWriter.Write(p)
+	n, err = w.Writer.Write(p)
 	if err != nil {
 		log.Err(err).Str("raw_json", string(p)).Msg("failed to decode invalid json")
 		return
