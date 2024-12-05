@@ -2,11 +2,11 @@ package internal
 
 import (
 	"fmt"
-	
+
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-const Version = "v0.0.2"
+const Version = "v0.0.3"
 
 func protocVersion(gen *protogen.Plugin) string {
 	v := gen.Request.GetCompilerVersion()
