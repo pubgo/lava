@@ -3,10 +3,12 @@ package wsproxy
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -170,16 +172,17 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		p.timeWait = timeWait
 	}
 
-	conn, err := upgrade.Upgrade(w, r, responseHeader)
+	conn1, err := upgrade.Upgrade(w, r, responseHeader)
 	if err != nil {
 		log.Warn().Err(err).Msg("error upgrading websocket")
 		return
 	}
-	defer conn.Close()
+	defer conn1.Close()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
 
+	conn := WsConn{Conn: conn1, mu: &sync.Mutex{}}
 	conn.SetReadLimit(maxMessageSize)
 	conn.SetPingHandler(func(text string) error {
 		logutil.HandlerErr(conn.SetReadDeadline(time.Now().Add(p.timeWait)))
@@ -187,7 +190,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		log.Info().Str("text", text).Msg("websocket received ping frame")
 		// 不设置 write deadline
 		err := conn.WriteControl(websocket.PongMessage, []byte(text), time.Time{})
-		if err == websocket.ErrCloseSent {
+		if errors.Is(err, websocket.ErrCloseSent) {
 			return nil
 		} else if _, ok := err.(net.Error); ok {
 			return nil
@@ -354,3 +357,32 @@ func (w *inMemoryResponseWriter) CloseNotify() <-chan bool {
 	return w.closed
 }
 func (w *inMemoryResponseWriter) Flush() {}
+
+type WsConn struct {
+	*websocket.Conn
+	mu *sync.Mutex
+}
+
+func (ws WsConn) WritePreparedMessage(pm *websocket.PreparedMessage) error {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+	return ws.Conn.WritePreparedMessage(pm)
+}
+
+func (ws WsConn) WriteJSON(v interface{}) error {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+	return ws.Conn.WriteJSON(v)
+}
+
+func (ws WsConn) WriteControl(messageType int, data []byte, deadline time.Time) error {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+	return ws.Conn.WriteControl(messageType, data, deadline)
+}
+
+func (ws WsConn) WriteMessage(messageType int, data []byte) error {
+	ws.mu.Lock()
+	defer ws.mu.Unlock()
+	return ws.Conn.WriteMessage(messageType, data)
+}
