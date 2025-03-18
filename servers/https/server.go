@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/opendoc/opendoc"
-	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava/core/debug"
@@ -51,8 +50,6 @@ func (s *serviceImpl) Run() {
 	defer s.stop()
 	s.start()
 	signal.Wait()
-
-	fasthttp.AcquireArgs()
 }
 
 func (s *serviceImpl) Start() { s.start() }
