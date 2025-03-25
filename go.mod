@@ -1,6 +1,8 @@
 module github.com/pubgo/lava
 
-go 1.22.1
+go 1.23.0
+
+toolchain go1.23.1
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.4
@@ -23,7 +25,7 @@ require (
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.29.0
-	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	google.golang.org/grpc v1.66.1
 	google.golang.org/protobuf v1.34.3-0.20240816073751-94ecbc261689
 )
@@ -56,6 +58,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
+	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.48.0
 	github.com/pubgo/dix v0.3.19
 	github.com/pubgo/funk v0.5.56
@@ -166,7 +169,7 @@ require (
 	github.com/golangci/plugin-module-register v0.1.1 // indirect
 	github.com/golangci/revgrep v0.5.3 // indirect
 	github.com/golangci/unconvert v0.0.0-20240309020433-c5143eacb3ed // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
@@ -207,7 +210,7 @@ require (
 	github.com/maratori/testableexamples v1.0.0 // indirect
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mattn/go-shellwords v1.0.12 // indirect
