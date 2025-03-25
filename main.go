@@ -9,6 +9,8 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/lava/buildtasks"
 	"github.com/pubgo/lava/core/flags"
+
+	_ "github.com/thejerf/suture/v4"
 )
 
 func main() {
