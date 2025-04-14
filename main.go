@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"net/http"
-
 	"github.com/goyek/goyek/v2"
 	"github.com/goyek/workflow"
 	"github.com/goyek/x/boot"
