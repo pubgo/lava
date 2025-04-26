@@ -86,8 +86,8 @@ func (s *Server) start() {
 	logutil.OkOrFailed(s.log, "running before service starts", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			run.Exec()
 		}
 		return nil
 	})
@@ -120,8 +120,8 @@ func (s *Server) start() {
 		for _, run := range s.lc.GetAfterStarts() {
 			logutil.LogOrErr(
 				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
+				func() error { run.Exec(); return nil },
 			)
 		}
 		return nil
@@ -135,8 +135,8 @@ func (s *Server) stop() {
 		for _, run := range s.lc.GetBeforeStops() {
 			logutil.LogOrErr(
 				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
+				func() error { run.Exec(); return nil },
 			)
 		}
 		return nil
@@ -155,8 +155,8 @@ func (s *Server) stop() {
 		for _, run := range s.lc.GetAfterStops() {
 			logutil.LogOrErr(
 				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
+				func() error { run.Exec(); return nil },
 			)
 		}
 		return nil

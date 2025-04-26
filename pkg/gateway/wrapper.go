@@ -47,7 +47,7 @@ type methodWrapper struct {
 //	if h.grpcMethodDesc != nil {
 //		ctx := stream.Context()
 //
-//		reply, err := h.grpcMethodDesc.Handler(h.srv.srv, ctx, stream.RecvMsg, h.srv.opts.unaryInterceptor)
+//		reply, err := h.grpcMethodDesc.Exec(h.srv.srv, ctx, stream.RecvMsg, h.srv.opts.unaryInterceptor)
 //		if err != nil {
 //			return errors.WrapCaller(err)
 //		}
@@ -61,9 +61,9 @@ type methodWrapper struct {
 //		}
 //
 //		if h.srv.opts.streamInterceptor != nil {
-//			return errors.WrapCaller(h.srv.opts.streamInterceptor(h.srv.srv, stream, info, h.grpcStreamDesc.Handler))
+//			return errors.WrapCaller(h.srv.opts.streamInterceptor(h.srv.srv, stream, info, h.grpcStreamDesc.Exec))
 //		} else {
-//			return errors.WrapCaller(h.grpcStreamDesc.Handler(h.srv.srv, stream))
+//			return errors.WrapCaller(h.grpcStreamDesc.Exec(h.srv.srv, stream))
 //		}
 //	} else {
 //		return errors.Format("cannot find server handler")

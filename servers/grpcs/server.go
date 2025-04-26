@@ -4,29 +4,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
+	"github.com/rs/xid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+
 	"github.com/pubgo/lava/clients/grpcc"
 	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
 	"github.com/pubgo/lava/core/debug"
@@ -42,14 +42,6 @@ import (
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway"
 	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/pkg/wsproxy"
-	"github.com/rs/xid"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func New() lava.Service { return newService() }
@@ -72,14 +64,13 @@ type serviceImpl struct {
 	conf       *Config
 }
 
-func (s *serviceImpl) Run() {
-	defer s.stop()
-	s.start()
+func (s *serviceImpl) Serve(ctx context.Context) error {
+	defer s.stop(ctx)
+	s.start(ctx)
 	signal.Wait()
+	<-ctx.Done()
+	return ctx.Err()
 }
-
-func (s *serviceImpl) Start() { s.start() }
-func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
 	grpcRouters []lava.GrpcRouter,
@@ -165,9 +156,7 @@ func (s *serviceImpl) DixInject(
 		}))
 	}
 
-	app := fiber.New()
-	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
-
+	httpApp := fiber.New()
 	//app.Use(handlerHttpMiddle(globalMiddlewares))
 	for _, h := range httpRouters {
 		//srv := doc.WithService()
@@ -180,11 +169,9 @@ func (s *serviceImpl) DixInject(
 		//	}
 		//}
 
-		if h.Prefix() == "" {
-			panic("http handler prefix is required")
-		}
+		assert.If(h.Prefix() == "", "http handler prefix required")
 
-		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
+		g := httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
 		if m, ok := h.(lava.Close); ok {
@@ -195,122 +182,6 @@ func (s *serviceImpl) DixInject(
 			s.initList = append(s.initList, m.Init)
 		}
 	}
-
-	for _, handler := range grpcRouters {
-		h, ok := handler.(lava.HttpRouter)
-		if !ok {
-			continue
-		}
-
-		if h.Prefix() == "" {
-			panic("http handler prefix is required")
-		}
-
-		g := app.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
-		h.Router(g)
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
-	}
-
-	httpServer.Mount(conf.BaseUrl, app)
-
-	grpcGateway := runtime.NewServeMux(
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
-			Marshaler: &runtime.JSONPb{
-				MarshalOptions: protojson.MarshalOptions{
-					EmitUnpopulated: true,
-				},
-				UnmarshalOptions: protojson.UnmarshalOptions{
-					DiscardUnknown: true,
-				},
-			},
-		}),
-		runtime.SetQueryParameterParser(new(DefaultQueryParser)),
-		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
-			return strings.ToLower(s), true
-		}),
-		runtime.WithOutgoingHeaderMatcher(func(s string) (string, bool) {
-			return strings.ToUpper(s), true
-		}),
-		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
-			path, ok := runtime.HTTPPathPattern(ctx)
-			if !ok {
-				return nil
-			}
-			return metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
-		}),
-		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshal runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
-			md, ok := runtime.ServerMetadataFromContext(ctx)
-			if ok && w != nil {
-				for k, v := range md.HeaderMD {
-					for i := range v {
-						w.Header().Add(k, v[i])
-					}
-				}
-
-				for k, v := range md.TrailerMD {
-					for i := range v {
-						w.Header().Add(k, v[i])
-					}
-				}
-			}
-
-			var pb *errorpb.ErrCode
-			sts, ok := status.FromError(err)
-			if !ok || sts == nil {
-				w.Header().Set("Content-Type", "application/json")
-				pb = &errorpb.ErrCode{
-					Message:    err.Error(),
-					StatusCode: errorpb.Code_Internal,
-					Code:       int32(errorpb.Code_Internal),
-					Name:       "lava.grpc.status",
-				}
-			} else {
-				w.Header().Set("Content-Type", marshal.ContentType(sts))
-				if len(sts.Details()) > 0 {
-					if code, ok := sts.Details()[0].(*errorpb.Error); ok {
-						pb = code.Code
-					}
-				} else {
-					pb = &errorpb.ErrCode{
-						Message:    sts.Message(),
-						Code:       int32(errorpb.Code(sts.Code())),
-						StatusCode: errorpb.Code(sts.Code()),
-						Name:       "lava.grpc.status",
-						Details:    sts.Proto().Details,
-					}
-				}
-			}
-
-			const fallback = `{"code":13, "name":"lava.grpc.status", "status_code": 500, "message": "failed to marshal error message"}`
-
-			// skip error
-			if pb.StatusCode == errorpb.Code_OK {
-				return
-			}
-
-			buf, mErr := marshal.Marshal(pb)
-			if mErr != nil {
-				grpclog.Infof("Failed to marshal error message %q: %v", pb, mErr)
-				w.WriteHeader(http.StatusInternalServerError)
-				if _, err := io.WriteString(w, fallback); err != nil {
-					grpclog.Infof("Failed to write response: %v", err)
-				}
-				return
-			}
-
-			w.WriteHeader(runtime.HTTPStatusFromCode(codes.Code(pb.StatusCode)))
-			if _, err := w.Write(buf); err != nil {
-				grpclog.Infof("Failed to write response: %v", err)
-			}
-		}),
-	)
 
 	mux := gateway.NewMux()
 	if len(gw) > 0 {
@@ -339,9 +210,6 @@ func (s *serviceImpl) DixInject(
 
 		mux.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
-		if m, ok := h.(lava.GrpcGatewayRouter); ok {
-			assert.Exit(m.RegisterGateway(context.Background(), grpcGateway, s.cc))
-		}
 	}
 
 	for _, h := range grpcProxy {
@@ -396,53 +264,56 @@ func (s *serviceImpl) DixInject(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
-	apiPrefix1 := assert.Must1(url.JoinPath(conf.BaseUrl, "gw"))
-	s.log.Info().Str("path", apiPrefix1).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix1, httputil.StripPrefix(apiPrefix1, mux.Handler))
+	grpcGatewayApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
+	s.log.Info().Str("path", grpcGatewayApiPrefix).Msg("service grpc gateway base path")
+
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
 			Str("operation", m.Operation).
 			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
 			Str("http-method", m.Method).
-			Str("http-path", "/"+strings.Trim(apiPrefix1, "/")+m.Path).
+			Str("http-path", "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path).
 			Str("verb", m.Verb).
 			Any("path-vars", m.Vars).
 			Str("extras", fmt.Sprintf("%v", m.Extras)).
 			Msg("grpc gateway router info")
 	}
 
-	apiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	s.log.Info().Str("path", apiPrefix).Msg("service grpc gateway base path")
-	httpServer.Group(apiPrefix, httputil.HTTPHandler(http.StripPrefix(apiPrefix, wsproxy.WebsocketProxy(grpcGateway,
-		wsproxy.WithPingPong(conf.EnablePingPong),
-		wsproxy.WithTimeWait(conf.PingPongTime),
-		wsproxy.WithReadLimit(int64(generic.FromPtr(conf.WsReadLimit))),
-	))))
+	httpServer.Mount("/debug", debug.App())
+	httpServer.Mount(conf.BaseUrl, httpApp)
+	httpServer.Group(grpcGatewayApiPrefix, httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler))
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
 	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
-	// vars.RegisterValue(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), mux.App().Stack())
+	vars.Register(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), func() interface{} {
+		return mux.GetRouteMethods()
+	})
+	vars.Register(fmt.Sprintf("%s-grpc-server-desc-%s", version.Project(), xid.New()), func() interface{} {
+		return grpcServer.GetServiceInfo()
+	})
+	vars.Register(fmt.Sprintf("%s-http-server-router-%s", version.Project(), xid.New()), func() interface{} {
+		return httpServer.Stack()
+	})
 }
 
-func (s *serviceImpl) start() {
+func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 	defer recovery.Exit()
 
 	logutil.OkOrFailed(s.log, "running before service starts", func() error {
-		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
 
 	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
 		defer recovery.Exit()
-		for _, ii := range s.initList {
-			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(ii))
-			ii()
+		for _, init := range s.initList {
+			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(init))
+			init()
 		}
 		return nil
 	})
@@ -451,21 +322,21 @@ func (s *serviceImpl) start() {
 		Int("grpc-port", *s.conf.GrpcPort).
 		Int("http-port", *s.conf.HttpPort).
 		Msg("create network listener")
-	grpcLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.GrpcPort)))
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.HttpPort)))
+	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.GrpcPort)))
+	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.HttpPort)))
 
 	logutil.OkOrFailed(s.log, "service starts", func() error {
 		// 启动grpc服务
 		async.GoDelay(func() error {
 			s.log.Info().Msg("[grpc] Server Starting")
 			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() error {
-				defer recovery.Exit()
-				if err := s.grpcServer.Serve(grpcLn); err != nil &&
-					!errors.Is(err, http.ErrServerClosed) &&
-					!errors.Is(err, net.ErrClosed) {
-					return err
+				defer recovery.DebugPrint()
+				err := s.grpcServer.Serve(grpcLn)
+				if err == nil || errors.Is(err, http.ErrServerClosed) || errors.Is(err, net.ErrClosed) {
+					return nil
 				}
-				return nil
+
+				return err
 			})
 			return nil
 		})
@@ -474,13 +345,13 @@ func (s *serviceImpl) start() {
 		async.GoDelay(func() error {
 			s.log.Info().Msg("[http] Server Starting")
 			logutil.LogOrErr(s.log, "[http] Server Stop", func() error {
-				defer recovery.Exit()
-				if err := s.httpServer.Listener(httpLn); err != nil &&
-					!errors.Is(err, http.ErrServerClosed) &&
-					!errors.Is(err, net.ErrClosed) {
-					return err
+				defer recovery.DebugPrint()
+				err := s.httpServer.Listener(httpLn)
+				if err == nil || errors.Is(err, http.ErrServerClosed) || errors.Is(err, net.ErrClosed) {
+					return nil
 				}
-				return nil
+
+				return err
 			})
 			return nil
 		})
@@ -489,25 +360,23 @@ func (s *serviceImpl) start() {
 
 	logutil.OkOrFailed(s.log, "running after service starts", func() error {
 		for _, run := range s.lc.GetAfterStarts() {
-			logutil.LogOrErr(
-				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
-			)
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
+	return nil
 }
 
-func (s *serviceImpl) stop() {
-	defer recovery.Exit()
+func (s *serviceImpl) stop(ctx context.Context) {
+	defer recovery.DebugPrint()
 
 	logutil.OkOrFailed(s.log, "running before service stops", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
 			logutil.LogOrErr(
 				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
+				func() error { return run.Exec(ctx) },
 			)
 		}
 		return nil
@@ -526,8 +395,8 @@ func (s *serviceImpl) stop() {
 		for _, run := range s.lc.GetAfterStops() {
 			logutil.LogOrErr(
 				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Handler)),
-				func() error { run.Handler(); return nil },
+				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
+				func() error { return run.Exec(ctx) },
 			)
 		}
 		return nil

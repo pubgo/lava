@@ -12,13 +12,11 @@ type Init interface {
 }
 
 type Close interface {
-	Close()
+	Close(ctx context.Context) error
 }
 
 type Service interface {
-	Start()
-	Stop()
-	Run()
+	Serve(ctx context.Context) error
 }
 
 // Server provides an interface for starting and stopping the server.

@@ -38,7 +38,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	})
 
 	// 服务注册
-	lifecycle.AfterStart(func() {
+	lifecycle.AfterStart(func(ctx context.Context) error {
 		SetDefault(reg)
 
 		register(reg)
@@ -65,10 +65,12 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 		})
 
 		// 服务撤销
-		lifecycle.BeforeStop(func() {
+		lifecycle.BeforeStop(func(ctx context.Context) error {
 			cancel()
 			deregister(reg)
+			return nil
 		})
+		return nil
 	})
 }
 

@@ -168,8 +168,8 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			run.Exec()
 		}
 		return nil
 	})
@@ -196,8 +196,8 @@ func (s *serviceImpl) start() {
 	logutil.OkOrFailed(s.log, "service after-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetAfterStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			run.Exec()
 		}
 		return nil
 	})
@@ -206,8 +206,8 @@ func (s *serviceImpl) start() {
 func (s *serviceImpl) stop() {
 	logutil.OkOrFailed(s.log, "service before-stop", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			run.Exec()
 		}
 		return nil
 	})
@@ -218,8 +218,8 @@ func (s *serviceImpl) stop() {
 
 	logutil.OkOrFailed(s.log, "service after-stop", func() error {
 		for _, run := range s.lc.GetAfterStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Handler))
-			run.Handler()
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			run.Exec()
 		}
 		return nil
 	})

@@ -16,11 +16,6 @@ type Config struct {
 
 var app = fiber.New()
 
-func Handler(ctx *fiber.Ctx) error {
-	app.Handler()(ctx.Context())
-	return nil
-}
-
 func App() *fiber.App                                    { return app }
 func WrapFunc(h http.HandlerFunc) fiber.Handler          { return adaptor.HTTPHandlerFunc(h) }
 func Wrap(h http.Handler) fiber.Handler                  { return adaptor.HTTPHandler(h) }

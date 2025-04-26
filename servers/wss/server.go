@@ -1,10 +1,10 @@
 package wss
 
 import (
-	"log"
-
+	_ "github.com/gofiber/contrib/socketio"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/websocket/v2"
+	"log"
 )
 
 func init() {
@@ -20,7 +20,7 @@ func init() {
 		return fiber.ErrUpgradeRequired
 	})
 
-	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
+	app.Get("/ws/:id", websocket.New(func(c *Conn) {
 		// c.Locals is added to the *websocket.Conn
 		log.Println(c.Locals("allowed"))  // true
 		log.Println(c.Params("id"))       // 123
@@ -33,11 +33,13 @@ func init() {
 			msg []byte
 			err error
 		)
+
 		for {
 			if mt, msg, err = c.ReadMessage(); err != nil {
 				log.Println("read:", err)
 				break
 			}
+
 			log.Printf("recv: %s", msg)
 
 			if err = c.WriteMessage(mt, msg); err != nil {
