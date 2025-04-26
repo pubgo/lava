@@ -1,9 +1,9 @@
 package pidfile
 
 import (
+	"context"
 	"path/filepath"
 
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/pathutil"
 
@@ -16,6 +16,6 @@ func New() lifecycle.Handler {
 
 		_ = pathutil.IsNotExistMkDir(pidPath)
 
-		lc.AfterStart(func() { assert.Must(SavePid()) })
+		lc.AfterStart(func(ctx context.Context) error { return SavePid() })
 	}
 }

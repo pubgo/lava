@@ -17,25 +17,25 @@ func init() {
 	env.GetIntVal(&running.GrpcPort, grpcPort)
 
 	Register(&cli.IntFlag{
-		Name:       "http-port",
-		Usage:      "service http port",
-		Persistent: true,
-		Value:      int64(running.HttpPort),
-		Sources:    cli.EnvVars(env.Key(httpPort)),
-		Action: func(ctx context.Context, command *cli.Command, i int64) error {
-			running.HttpPort = int(i)
+		Name:    "http-port",
+		Usage:   "service http port",
+		Local:   true,
+		Value:   running.HttpPort,
+		Sources: cli.EnvVars(env.Key(httpPort)),
+		Action: func(ctx context.Context, command *cli.Command, i int) error {
+			running.HttpPort = i
 			return nil
 		},
 	})
 
 	Register(&cli.IntFlag{
-		Name:       "grpc-port",
-		Usage:      "service grpc port",
-		Persistent: true,
-		Value:      int64(running.GrpcPort),
-		Sources:    cli.EnvVars(env.Key("server_grpc_port")),
-		Action: func(ctx context.Context, command *cli.Command, i int64) error {
-			running.GrpcPort = int(i)
+		Name:    "grpc-port",
+		Usage:   "service grpc port",
+		Local:   true,
+		Value:   running.GrpcPort,
+		Sources: cli.EnvVars(env.Key(grpcPort)),
+		Action: func(ctx context.Context, command *cli.Command, i int) error {
+			running.GrpcPort = i
 			return nil
 		},
 	})
@@ -43,19 +43,19 @@ func init() {
 	Register(&cli.BoolFlag{
 		Name:        "debug",
 		Usage:       "enable debug mode",
-		Persistent:  true,
+		Local:       true,
 		Value:       running.IsDebug,
 		Destination: &running.IsDebug,
 		Sources:     cli.EnvVars(env.Key("debug"), env.Key("enable_debug")),
 	})
 
 	Register(&cli.StringFlag{
-		Name:       "config",
-		Aliases:    []string{"c"},
-		Usage:      "config path",
-		Value:      config.GetConfigPath(),
-		Persistent: true,
-		Sources:    cli.EnvVars(env.Key(conf)),
+		Name:    "config",
+		Aliases: []string{"c"},
+		Usage:   "config path",
+		Value:   config.GetConfigPath(),
+		Local:   true,
+		Sources: cli.EnvVars(env.Key(conf)),
 		Action: func(ctx context.Context, command *cli.Command, s string) error {
 			config.SetConfigPath(s)
 			return nil

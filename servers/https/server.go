@@ -1,6 +1,7 @@
 package https
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -24,7 +25,6 @@ import (
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
@@ -32,13 +32,13 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
-func New() lava.Service { return newService() }
+func New() lava.Supervisor { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{}
 }
 
-var _ lava.Service = (*serviceImpl)(nil)
+var _ lava.Supervisor = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.Getter
@@ -46,14 +46,12 @@ type serviceImpl struct {
 	log        log.Logger
 }
 
-func (s *serviceImpl) Run() {
-	defer s.stop()
-	s.start()
-	signal.Wait()
+func (s *serviceImpl) Serve(ctx context.Context) error {
+	s.start(ctx)
+	<-ctx.Done()
+	s.stop(ctx)
+	return nil
 }
-
-func (s *serviceImpl) Start() { s.start() }
-func (s *serviceImpl) Stop()  { s.stop() }
 
 func (s *serviceImpl) DixInject(
 	handlers []lava.HttpRouter,
@@ -164,12 +162,13 @@ func (s *serviceImpl) DixInject(
 	}
 }
 
-func (s *serviceImpl) start() {
+func (s *serviceImpl) start(ctx context.Context) {
+	defer recovery.Exit()
 	logutil.OkOrFailed(s.log, "service before-start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			run.Exec()
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
@@ -197,17 +196,19 @@ func (s *serviceImpl) start() {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetAfterStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			run.Exec()
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
 }
 
-func (s *serviceImpl) stop() {
+func (s *serviceImpl) stop(ctx context.Context) {
+	defer recovery.DebugPrint()
 	logutil.OkOrFailed(s.log, "service before-stop", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			run.Exec()
+			logutil.LogOrErr(s.log, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
+				return run.Exec(ctx)
+			})
 		}
 		return nil
 	})
@@ -218,8 +219,9 @@ func (s *serviceImpl) stop() {
 
 	logutil.OkOrFailed(s.log, "service after-stop", func() error {
 		for _, run := range s.lc.GetAfterStops() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			run.Exec()
+			logutil.LogOrErr(s.log, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
+				return run.Exec(ctx)
+			})
 		}
 		return nil
 	})

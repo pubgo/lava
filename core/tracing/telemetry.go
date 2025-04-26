@@ -8,31 +8,28 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	otlpTraceGrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	otelmetric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-
+	"go.opentelemetry.io/otel/sdk/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
-
-	otelmetric "go.opentelemetry.io/otel/metric"
 	oteltrace "go.opentelemetry.io/otel/trace"
-
 	"google.golang.org/grpc/encoding/gzip"
 
 	"github.com/pubgo/lava/core/lifecycle"
-
-	"go.opentelemetry.io/otel/sdk/metric"
-
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 )
 
 var logs = log.GetLogger("tracing")
@@ -76,11 +73,14 @@ func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
 			propagation.Baggage{},
 		),
 	)
-	meterProvider := NewPrometheusMeterProvider(config)
+	meterProvider, err := NewPrometheusMeterProvider(config)
+	assert.Exit(err)
 
-	lc.AfterStop(func() {
+	lc.AfterStop(func(ctx context.Context) (gErr error) {
+		defer recovery.Err(&gErr)
 		assert.Must(tracerProvider.Shutdown(context.Background()))
 		assert.Must(meterProvider.Shutdown(context.Background()))
+		return nil
 	})
 
 	// name := instrumentationName + "/" + config.serviceInfo.Namespace + "/" + config.serviceInfo.Name
@@ -105,7 +105,7 @@ func mergeResource(config *Config) *resource.Resource {
 		semconv.ProcessCommandKey.String(os.Args[0]),
 	)
 
-	return assert.Must1(resource.Merge(resource.Default(), defaultResource))
+	return assert.Exit1(resource.Merge(resource.Default(), defaultResource))
 }
 
 func NewTracer(config *Config) *sdktrace.TracerProvider {
@@ -165,14 +165,18 @@ func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 	return nil, fmt.Errorf("tracer exporter endpoint is nil, no exporter is inited")
 }
 
-func NewPrometheusMeterProvider(config *Config) *sdkmetric.MeterProvider {
+func NewPrometheusMeterProvider(config *Config, opts ...otelprom.Option) (_ *sdkmetric.MeterProvider, gErr error) {
+	exporter, err := otelprom.New(opts...)
+	if errcheck.Check(&gErr, err) {
+		return
+	}
+
 	res := mergeResource(config)
-	exporter := assert.Must1(otelprom.New())
 	provider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(exporter),
 		sdkmetric.WithResource(res),
 	)
-	return provider
+	return provider, nil
 }
 
 func TraceID(span oteltrace.Span) string {

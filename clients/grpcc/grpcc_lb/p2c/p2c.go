@@ -11,7 +11,7 @@ var _ base.PickerBuilder = (*p2cBalancer)(nil)
 type p2cBalancer struct{}
 
 func (p2c *p2cBalancer) Build(info base.PickerBuildInfo) balancer.Picker {
-	if info.ReadySCs == nil || len(info.ReadySCs) == 0 {
+	if len(info.ReadySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 

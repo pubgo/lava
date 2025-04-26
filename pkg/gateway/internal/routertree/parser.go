@@ -1,4 +1,5 @@
-//nolint:all
+//nolint
+
 package routertree
 
 import (
@@ -32,21 +33,25 @@ var (
 // Variable = "{" FieldPath [ "=" Segments ] "}" ;
 // FieldPath = IDENT { "." IDENT } ;
 // Verb     = ":" LITERAL ;
+// nolint
 type httpRule struct {
 	Slash    string    `@"/"`
 	Segments *segments `@@!`
 	Verb     *string   `(":" @Ident)?`
 }
 
+// nolint
 type segments struct {
 	Segments []*segment `@@ ("/" @@)*`
 }
 
+// nolint
 type segment struct {
 	Path     *string   `@("*" "*" | "*" | Ident)`
 	Variable *variable `| @@*`
 }
 
+// nolint
 type variable struct {
 	Fields   []string  `"{" @Ident ("." @Ident)*`
 	Segments *segments `("=" @@)? "}"`

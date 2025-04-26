@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -16,13 +17,15 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"google.golang.org/grpc/codes"
+
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/lava"
-	"google.golang.org/grpc/codes"
 )
+
+var _ lava.Supervisor = (*Server)(nil)
 
 func New(srv lava.Service) *Server {
 	assert.If(srv == nil, "service is nil")
@@ -38,10 +41,11 @@ type Server struct {
 	conf       *Config
 }
 
-func (s *Server) Run() {
-	defer s.stop()
-	s.start()
-	signal.Wait()
+func (s *Server) Serve(ctx context.Context) error {
+	s.start(ctx)
+	<-ctx.Done()
+	s.stop(ctx)
+	return nil
 }
 
 func (s *Server) DixInject(
@@ -80,19 +84,19 @@ func (s *Server) DixInject(
 	s.httpServer.Mount("/debug", debug.App())
 }
 
-func (s *Server) start() {
+func (s *Server) start(ctx context.Context) {
 	defer recovery.Exit()
 
 	logutil.OkOrFailed(s.log, "running before service starts", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			run.Exec()
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
 
-	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", generic.DePtr(s.conf.HttpPort))))
+	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", generic.FromPtr(s.conf.HttpPort))))
 
 	logutil.OkOrFailed(s.log, "service starts", func() error {
 		async.GoDelay(func() error {
@@ -110,33 +114,29 @@ func (s *Server) start() {
 		})
 
 		async.GoSafe(func() error {
-			s.srv.Start()
-			return nil
+			return s.srv.Start(ctx)
 		})
 		return nil
 	})
 
 	logutil.OkOrFailed(s.log, "running after service starts", func() error {
 		for _, run := range s.lc.GetAfterStarts() {
-			logutil.LogOrErr(
-				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
-				func() error { run.Exec(); return nil },
-			)
+			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			assert.Exit(run.Exec(ctx))
 		}
 		return nil
 	})
 }
 
-func (s *Server) stop() {
-	defer recovery.Exit()
+func (s *Server) stop(ctx context.Context) {
+	defer recovery.DebugPrint()
 
 	logutil.OkOrFailed(s.log, "running before service stops", func() error {
 		for _, run := range s.lc.GetBeforeStops() {
 			logutil.LogOrErr(
 				s.log,
 				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
-				func() error { run.Exec(); return nil },
+				func() error { return run.Exec(ctx) },
 			)
 		}
 		return nil
@@ -147,8 +147,7 @@ func (s *Server) stop() {
 	})
 
 	logutil.LogOrErr(s.log, "[task] Server Stop", func() error {
-		s.srv.Stop()
-		return nil
+		return s.srv.Stop(ctx)
 	})
 
 	logutil.OkOrFailed(s.log, "running after service stops", func() error {
@@ -156,7 +155,7 @@ func (s *Server) stop() {
 			logutil.LogOrErr(
 				s.log,
 				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
-				func() error { run.Exec(); return nil },
+				func() error { return run.Exec(ctx) },
 			)
 		}
 		return nil

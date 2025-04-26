@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"context"
+
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
@@ -27,7 +29,7 @@ func New(m lifecycle.Lifecycle, cfg *Config, log log.Logger) Metric {
 	opts.Tags = Tags{"project": version.Project()}
 
 	scope, closer := tally.NewRootScope(lo.FromPtr(opts), cfg.Interval)
-	m.BeforeStop(func() { assert.Must(closer.Close()) })
+	m.BeforeStop(func(ctx context.Context) error { return closer.Close() })
 
 	registerVars(scope)
 	return scope

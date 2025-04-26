@@ -32,7 +32,6 @@ import (
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/consts"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -44,7 +43,7 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New() lava.Service { return newService() }
+func New() lava.Supervisor { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{
@@ -52,7 +51,7 @@ func newService() *serviceImpl {
 	}
 }
 
-var _ lava.Service = (*serviceImpl)(nil)
+var _ lava.Supervisor = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.Getter
@@ -66,10 +65,12 @@ type serviceImpl struct {
 
 func (s *serviceImpl) Serve(ctx context.Context) error {
 	defer s.stop(ctx)
-	s.start(ctx)
-	signal.Wait()
+	if err := s.start(ctx); err != nil {
+		return err
+	}
+
 	<-ctx.Done()
-	return ctx.Err()
+	return nil
 }
 
 func (s *serviceImpl) DixInject(

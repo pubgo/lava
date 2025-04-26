@@ -37,7 +37,10 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRo
 	}
 
 	quart.start()
-	m.BeforeStop(quart.stop)
+	m.BeforeStop(func(ctx context.Context) error {
+		quart.stop()
+		return nil
+	})
 
 	for _, r := range routers {
 		r.Crontab(quart)
