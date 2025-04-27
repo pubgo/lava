@@ -166,6 +166,11 @@ func (s *serviceImpl) DixInject(
 		}))
 	}
 
+	httpServer.Use(func(ctx *fiber.Ctx) error {
+		ctx.SetUserContext(ctx.Context())
+		return ctx.Next()
+	})
+
 	app := fiber.New()
 	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
 
