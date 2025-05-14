@@ -16,8 +16,8 @@ import (
 
 func New(di *dix.Dix, services []lava.Server) *cli.Command {
 	return &cli.Command{
-		Name:  "grpc",
-		Usage: cmdutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
+		Name:  "task",
+		Usage: cmdutil.UsageDesc("async task service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			srv := dix.Inject(di, tasks.New(services...))
 			return errors.WrapCaller(supervisor.Run(ctx, srv))

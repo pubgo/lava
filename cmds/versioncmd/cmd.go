@@ -3,12 +3,12 @@ package versioncmd
 import (
 	"context"
 	"fmt"
-	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/urfave/cli/v3"
 )
 
 func New() *cli.Command {

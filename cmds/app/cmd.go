@@ -16,6 +16,7 @@ import (
 	"github.com/pubgo/lava/cmds/grpcservercmd"
 	"github.com/pubgo/lava/cmds/healthcmd"
 	"github.com/pubgo/lava/cmds/httpservercmd"
+	"github.com/pubgo/lava/cmds/schedulercmd"
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/flags"
@@ -81,6 +82,7 @@ func Run(di *dix.Dix) {
 	di.Provide(depcmd.New)
 	di.Provide(grpcservercmd.New)
 	di.Provide(httpservercmd.New)
+	di.Provide(schedulercmd.New)
 
 	di.Inject(func(cmd []*cli.Command) {
 		app := &cli.Command{
