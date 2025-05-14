@@ -13,24 +13,20 @@ const Name = "signal"
 
 var logger = log.GetLogger(Name)
 
-func Wait() {
+func getCh() chan os.Signal {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
-	sig := <-ch
+	return ch
+}
+
+func Wait() {
+	sig := <-getCh()
 	logger.Info().Str("signal", sig.String()).Msg("signal trigger notify")
 }
 
 func Context() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
-	go func() {
-		select {
-		case <-ch:
-			cancel()
-		case <-ctx.Done():
-			cancel()
-		}
-	}()
+	ch := getCh()
+	go func() { <-ch; cancel() }()
 	return ctx
 }
