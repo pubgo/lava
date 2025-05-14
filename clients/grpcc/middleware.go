@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/strutil"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/lavacontexts"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/grpcutil"
@@ -66,7 +66,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")
 		}, func() string {
-			return grpcc_config.DefaultContentType
+			return grpccconfig.DefaultContentType
 		})
 
 		delete(md, "x-content-type")
@@ -145,7 +145,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		}, func() string {
 			return grpcutil.HeaderGet(md, "x-content-type")
 		}, func() string {
-			return grpcc_config.DefaultContentType
+			return grpccconfig.DefaultContentType
 		})
 
 		delete(md, "x-content-type")

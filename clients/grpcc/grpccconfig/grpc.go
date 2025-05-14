@@ -1,4 +1,4 @@
-package grpcc_config
+package grpccconfig
 
 import (
 	"time"

@@ -5,34 +5,34 @@ import (
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/pubgo/lava/lava"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )
 
-func buildTarget(cfg *grpcc_config.ServiceCfg) string {
+func buildTarget(cfg *grpccconfig.ServiceCfg) string {
 	addr := cfg.Addr
-	scheme := grpcc_resolver.DirectScheme
+	scheme := grpccresolver.DirectScheme
 	if cfg.Scheme != "" {
 		scheme = cfg.Scheme
 	}
 
 	switch scheme {
-	case grpcc_resolver.DiscoveryScheme:
-		return grpcc_resolver.BuildDiscoveryTarget(addr)
-	case grpcc_resolver.DirectScheme:
-		return grpcc_resolver.BuildDirectTarget(cfg.Name, addr)
-	case grpcc_resolver.K8sScheme, grpcc_resolver.DnsScheme:
+	case grpccresolver.DiscoveryScheme:
+		return grpccresolver.BuildDiscoveryTarget(addr)
+	case grpccresolver.DirectScheme:
+		return grpccresolver.BuildDirectTarget(cfg.Name, addr)
+	case grpccresolver.K8sScheme, grpccresolver.DnsScheme:
 		return fmt.Sprintf("dns:///%s", addr)
 	default:
 		return addr
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (_ grpc.ClientConnInterface, gErr error) {
+func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (_ grpc.ClientConnInterface, gErr error) {
 	addr := buildTarget(cfg.Service)
 
 	var logMsg = func(e *zerolog.Event) {

@@ -1,9 +1,9 @@
-package grpcc_config
+package grpccconfig
 
 import (
 	"time"
 
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
+	"github.com/pubgo/lava/clients/grpcc/grpccresolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
 )
@@ -45,7 +45,7 @@ type ServiceCfg struct {
 func DefaultCfg() *Cfg {
 	cfg := &Cfg{
 		Service: &ServiceCfg{
-			Scheme: grpcc_resolver.DirectScheme,
+			Scheme: grpccresolver.DirectScheme,
 		},
 		Client: &GrpcClientCfg{
 			Insecure: true,

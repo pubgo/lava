@@ -72,7 +72,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.16
-	github.com/urfave/cli/v3 v3.2.0
+	github.com/urfave/cli/v3 v3.3.3
 	github.com/valyala/fasthttp v1.58.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.26.0

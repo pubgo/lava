@@ -1,4 +1,4 @@
-package grpcc_resolver
+package grpccresolver
 
 import (
 	"context"

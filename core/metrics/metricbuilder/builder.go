@@ -1,4 +1,4 @@
-package metrics
+package metricbuilder
 
 import (
 	"context"
@@ -12,21 +12,22 @@ import (
 	"github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/metrics"
 )
 
-func New(m lifecycle.Lifecycle, cfg *Config, log log.Logger) Metric {
-	cfg = merge.Struct(generic.Ptr(DefaultCfg()), cfg).Unwrap()
+func New(m lifecycle.Lifecycle, cfg *metrics.Config, log log.Logger) metrics.Metric {
+	cfg = merge.Struct(generic.Ptr(metrics.DefaultCfg()), cfg).Unwrap()
 
-	log = log.WithName(Name)
+	log = log.WithName(metrics.Name)
 
-	factory := Get(cfg.Driver)
+	factory := metrics.Get(cfg.Driver)
 	assert.If(factory == nil, "driver factory[%s] not found", cfg.Driver)
 	opts := factory(cfg, log.WithName("driver"))
 	if opts == nil {
 		return tally.NoopScope
 	}
 
-	opts.Tags = Tags{"project": version.Project()}
+	opts.Tags = metrics.Tags{"project": version.Project()}
 
 	scope, closer := tally.NewRootScope(lo.FromPtr(opts), cfg.Interval)
 	m.BeforeStop(func(ctx context.Context) error { return closer.Close() })

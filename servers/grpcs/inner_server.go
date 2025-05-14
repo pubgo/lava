@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/lava/clients/grpcc"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
@@ -52,8 +52,8 @@ func NewInner(handlers []lava.GrpcRouter, grpcProxy []lava.GrpcProxy, dixMiddlew
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
 		cli := grpcc.New(
-			&grpcc_config.Cfg{
-				Service: &grpcc_config.ServiceCfg{
+			&grpccconfig.Cfg{
+				Service: &grpccconfig.ServiceCfg{
 					Name:   h.Proxy().Name,
 					Addr:   h.Proxy().Addr,
 					Scheme: h.Proxy().Resolver,

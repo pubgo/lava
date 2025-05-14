@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava/clients/grpcc"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
@@ -242,8 +242,8 @@ func (s *serviceImpl) DixInject(
 		}
 
 		cli := grpcc.New(
-			&grpcc_config.Cfg{
-				Service: &grpcc_config.ServiceCfg{
+			&grpccconfig.Cfg{
+				Service: &grpccconfig.ServiceCfg{
 					Name:   h.Proxy().Name,
 					Addr:   h.Proxy().Addr,
 					Scheme: h.Proxy().Resolver,

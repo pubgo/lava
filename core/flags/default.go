@@ -10,18 +10,18 @@ import (
 )
 
 func init() {
-	const httpPort = "server_http_port"
-	const grpcPort = "server_grpc_port"
+	var httpPortEnvs = []string{env.Key("server_http_port"), env.Key("service_http_port")}
+	var grpcPortEnvs = []string{env.Key("server_grpc_port"), env.Key("service_grpc_port")}
 	const conf = "config_path"
-	env.GetIntVal(&running.HttpPort, httpPort)
-	env.GetIntVal(&running.GrpcPort, grpcPort)
+	env.GetIntVal(&running.HttpPort, httpPortEnvs...)
+	env.GetIntVal(&running.GrpcPort, grpcPortEnvs...)
 
 	Register(&cli.IntFlag{
 		Name:    "http-port",
 		Usage:   "service http port",
 		Local:   true,
 		Value:   running.HttpPort,
-		Sources: cli.EnvVars(env.Key(httpPort)),
+		Sources: cli.EnvVars(httpPortEnvs...),
 		Action: func(ctx context.Context, command *cli.Command, i int) error {
 			running.HttpPort = i
 			return nil
@@ -33,7 +33,7 @@ func init() {
 		Usage:   "service grpc port",
 		Local:   true,
 		Value:   running.GrpcPort,
-		Sources: cli.EnvVars(env.Key(grpcPort)),
+		Sources: cli.EnvVars(grpcPortEnvs...),
 		Action: func(ctx context.Context, command *cli.Command, i int) error {
 			running.GrpcPort = i
 			return nil
@@ -58,6 +58,18 @@ func init() {
 		Sources: cli.EnvVars(env.Key(conf)),
 		Action: func(ctx context.Context, command *cli.Command, s string) error {
 			config.SetConfigPath(s)
+			return nil
+		},
+	})
+
+	Register(&cli.StringFlag{
+		Name:    "env",
+		Usage:   "runtime env",
+		Value:   running.Env,
+		Local:   true,
+		Sources: cli.EnvVars(env.Key("env"), env.Key("app_env")),
+		Action: func(ctx context.Context, command *cli.Command, s string) error {
+			running.Env = s
 			return nil
 		},
 	})

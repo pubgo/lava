@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/vars"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
+	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/lava"
 	"google.golang.org/grpc"
@@ -25,8 +25,8 @@ type Params struct {
 	Resolvers []resolver.Builder
 }
 
-func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	cfg = config.MergeR(grpcc_config.DefaultCfg(), cfg).Unwrap()
+func New(cfg *grpccconfig.Cfg, p Params, middlewares ...lava.Middleware) Client {
+	cfg = config.MergeR(grpccconfig.DefaultCfg(), cfg).Unwrap()
 	cfg.Resolvers = p.Resolvers
 
 	c := &clientImpl{
@@ -41,7 +41,7 @@ func New(cfg *grpcc_config.Cfg, p Params, middlewares ...lava.Middleware) Client
 
 type clientImpl struct {
 	log         log.Logger
-	cfg         *grpcc_config.Cfg
+	cfg         *grpccconfig.Cfg
 	mu          sync.Mutex
 	conn        grpc.ClientConnInterface
 	middlewares []lava.Middleware
