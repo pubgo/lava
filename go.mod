@@ -70,6 +70,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/samber/lo v1.47.0
 	github.com/stretchr/testify v1.10.0
+	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.16
 	github.com/urfave/cli/v3 v3.2.0
 	github.com/valyala/fasthttp v1.58.0

@@ -19,7 +19,7 @@ import (
 	"github.com/pubgo/lava/cmds/versioncmd"
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/flags"
-	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/pubgo/lava/core/scheduler"
@@ -61,7 +61,7 @@ var defaultProviders = []any{
 	logging.New,
 	metrics.New,
 
-	lifecycle.New,
+	lifecyclebuilder.New,
 	scheduler.New,
 }
 

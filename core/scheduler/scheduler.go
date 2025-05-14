@@ -14,7 +14,10 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/lava"
 )
+
+var _ lava.Server = (*Scheduler)(nil)
 
 type job struct {
 	key  string
@@ -31,6 +34,17 @@ type Scheduler struct {
 	cancel    context.CancelFunc
 	ctx       context.Context
 	jobs      map[string]JobFunc
+}
+
+func (s *Scheduler) String() string {
+	return Name
+}
+
+func (s *Scheduler) Serve(ctx context.Context) error {
+	defer s.stop()
+	s.start()
+	<-ctx.Done()
+	return nil
 }
 
 func (s *Scheduler) stop() {
@@ -105,13 +119,14 @@ func (t namedJob) Execute(ctx context.Context) error {
 		return t.fn(ctx, t.name)
 	})
 
-	t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("scheduler_job_cost").Update(float64(time.Since(start).Microseconds()) / 1000)
+	cost := float64(time.Since(start).Milliseconds())
+	t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("job_cost_ms").Update(cost)
 
 	logger := generic.Ternary(generic.IsNil(err), t.log.Info(), t.log.Err(err))
 	logger.
-		Float32("job-cost-ms", float32(time.Since(start).Microseconds())/1000).
-		Str("job-name", t.name).
-		Msg("scheduler job execution")
+		Float32("job_cost_ms", float32(cost)).
+		Str("job_name", t.name).
+		Msg("exec scheduler job")
 
 	return err
 }

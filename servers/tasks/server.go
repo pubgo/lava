@@ -21,31 +21,43 @@ import (
 
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/lava"
 )
 
-var _ lava.Supervisor = (*Server)(nil)
+var _ lava.Server = (*Server)(nil)
 
-func New(srv lava.Service) *Server {
-	assert.If(srv == nil, "service is nil")
+func New(services ...lava.Server) *Server {
+	assert.If(len(services) == 0, "service is nil")
 
-	return &Server{srv: srv}
+	return &Server{services: services, supervisor: supervisor.New()}
 }
 
 type Server struct {
-	srv        lava.Service
+	supervisor *supervisor.Supervisor
+	services   []lava.Server
 	log        log.Logger
 	lc         lifecycle.Getter
 	httpServer *fiber.App
 	conf       *Config
 }
 
+func (s *Server) String() string {
+	return "task"
+}
+
 func (s *Server) Serve(ctx context.Context) error {
-	s.start(ctx)
-	<-ctx.Done()
-	s.stop(ctx)
-	return nil
+	defer s.stop(ctx)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			s.start(ctx)
+		}
+	}
 }
 
 func (s *Server) DixInject(
@@ -54,7 +66,7 @@ func (s *Server) DixInject(
 	conf []*Config,
 ) {
 	s.lc = getLifecycle
-	s.log = log.WithName("task-server")
+	s.log = log.WithName("tasks")
 
 	if len(conf) > 0 {
 		s.conf = conf[0]
@@ -87,7 +99,7 @@ func (s *Server) DixInject(
 func (s *Server) start(ctx context.Context) {
 	defer recovery.Exit()
 
-	logutil.OkOrFailed(s.log, "running before service starts", func() error {
+	logutil.OkOrFailed(s.log, "running before service start", func() error {
 		defer recovery.Exit()
 		for _, run := range s.lc.GetBeforeStarts() {
 			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
@@ -114,7 +126,10 @@ func (s *Server) start(ctx context.Context) {
 		})
 
 		async.GoSafe(func() error {
-			return s.srv.Start(ctx)
+			for _, srv := range s.services {
+				s.supervisor.Add(srv)
+			}
+			return s.supervisor.Serve(ctx)
 		})
 		return nil
 	})
@@ -144,10 +159,6 @@ func (s *Server) stop(ctx context.Context) {
 
 	logutil.LogOrErr(s.log, "[http-debug-server] Shutdown", func() error {
 		return s.httpServer.ShutdownWithTimeout(time.Second * 5)
-	})
-
-	logutil.LogOrErr(s.log, "[task] Server Stop", func() error {
-		return s.srv.Stop(ctx)
 	})
 
 	logutil.OkOrFailed(s.log, "running after service stops", func() error {

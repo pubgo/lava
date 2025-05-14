@@ -13,7 +13,7 @@ import (
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter, metric metrics.Metric) *Scheduler {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Register, metric metrics.Metric) *Scheduler {
 	config := make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
 		for _, setting := range opts[0].JobSettings {
@@ -37,13 +37,10 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRo
 	}
 
 	quart.start()
-	m.BeforeStop(func(ctx context.Context) error {
-		quart.stop()
-		return nil
-	})
+	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
 
 	for _, r := range routers {
-		r.Crontab(quart)
+		r.RegisterCrontabScheduler(quart)
 	}
 
 	return quart

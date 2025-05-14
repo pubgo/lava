@@ -32,18 +32,22 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
-func New() lava.Supervisor { return newService() }
+func New() lava.Server { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{}
 }
 
-var _ lava.Supervisor = (*serviceImpl)(nil)
+var _ lava.Server = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.Getter
 	httpServer *fiber.App
 	log        log.Logger
+}
+
+func (s *serviceImpl) String() string {
+	return "http-server"
 }
 
 func (s *serviceImpl) Serve(ctx context.Context) error {

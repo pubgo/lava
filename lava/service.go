@@ -2,6 +2,7 @@ package lava
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"google.golang.org/grpc"
@@ -15,7 +16,10 @@ type Close interface {
 	Close(ctx context.Context) error
 }
 
-type Supervisor interface {
+type Server interface {
+	fmt.Stringer
+
+	// Serve starts the server, no async.
 	Serve(ctx context.Context) error
 }
 
@@ -24,9 +28,9 @@ type Service interface {
 	Stop(ctx context.Context) error
 }
 
-// Server provides an interface for starting and stopping the server.
-type Server interface {
-	Serve(context.Context, net.Listener) error
+// Listener provides an interface for starting and stopping the server.
+type Listener interface {
+	Listen(context.Context, net.Listener) error
 }
 
 type Validator interface {

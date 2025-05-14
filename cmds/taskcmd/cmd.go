@@ -9,16 +9,17 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/supervisor"
+	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/cmdutil"
-	"github.com/pubgo/lava/servers/grpcs"
+	"github.com/pubgo/lava/servers/tasks"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di *dix.Dix, services []lava.Server) *cli.Command {
 	return &cli.Command{
 		Name:  "grpc",
 		Usage: cmdutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			srv := dix.Inject(di, grpcs.New())
+			srv := dix.Inject(di, tasks.New(services...))
 			return errors.WrapCaller(supervisor.Run(ctx, srv))
 		},
 	}

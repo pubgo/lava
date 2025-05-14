@@ -43,7 +43,7 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New() lava.Supervisor { return newService() }
+func New() lava.Server { return newService() }
 
 func newService() *serviceImpl {
 	return &serviceImpl{
@@ -51,7 +51,7 @@ func newService() *serviceImpl {
 	}
 }
 
-var _ lava.Supervisor = (*serviceImpl)(nil)
+var _ lava.Server = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.Getter
@@ -63,14 +63,23 @@ type serviceImpl struct {
 	conf       *Config
 }
 
-func (s *serviceImpl) Serve(ctx context.Context) error {
-	defer s.stop(ctx)
-	if err := s.start(ctx); err != nil {
-		return err
-	}
+func (s *serviceImpl) String() string {
+	return "grpc-server"
+}
 
-	<-ctx.Done()
-	return nil
+func (s *serviceImpl) Serve(ctx context.Context) (err error) {
+	defer s.stop(ctx)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			err = s.start(ctx)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
 
 func (s *serviceImpl) DixInject(
