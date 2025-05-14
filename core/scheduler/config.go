@@ -5,6 +5,8 @@ type JobSetting struct {
 	Schedule string `yaml:"schedule"`
 	Name     string `yaml:"name"`
 	Timeout  string `yaml:"timeout"`
+
+	// quartz.JobDetailOptions
 }
 
 type Config struct {
