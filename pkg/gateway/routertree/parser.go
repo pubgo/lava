@@ -12,11 +12,8 @@ import (
 var (
 	parser = participle.MustBuild[httpRule](
 		participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
-			{"Comment", `(?:#|//)[^\n]*\n?`},
-			{"Ident", `[a-zA-Z]\w*`},
-			{"Number", `(?:\d*\.)?\d+`},
-			{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
-			{"Whitespace", `[ \t\n\r]+`},
+			{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
+			{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
 		})),
 	)
 )

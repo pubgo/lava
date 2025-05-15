@@ -1,5 +1,9 @@
 package routertree
 
+import (
+	"github.com/alecthomas/participle/v2/lexer"
+)
+
 const (
 	doubleStar = "**"
 	star       = "*"
@@ -13,6 +17,7 @@ const (
 // FieldPath = IDENT { "." IDENT } ;
 // Verb     = ":" LITERAL ;
 type httpRule struct {
+	Pos      lexer.Position
 	Slash    string    `parser:"@\"/\""`
 	Segments *segments `parser:"@@!"`
 	Verb     *string   `parser:"(\":\" @Ident)?"`
@@ -20,17 +25,20 @@ type httpRule struct {
 
 // nolint
 type segments struct {
+	Pos      lexer.Position
 	Segments []*segment `parser:"@@ (\"/\" @@)*"`
 }
 
 // nolint
 type segment struct {
+	Pos      lexer.Position
 	Path     *string   `parser:"@(\"*\" \"*\" | \"*\" | Ident)"`
 	Variable *variable `parser:"| @@*"`
 }
 
 // nolint
 type variable struct {
+	Pos      lexer.Position
 	Fields   []string  `parser:"\"{\" @Ident (\".\" @Ident)*"`
 	Segments *segments `parser:"(\"=\" @@)? \"}\""`
 }
