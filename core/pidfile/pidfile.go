@@ -14,7 +14,7 @@ import (
 
 const Name = "pidfile"
 
-var pidPath = filepath.Join(config.GetConfigDir(), Name)
+var PidPath = filepath.Join(config.GetConfigDir(), Name)
 
 const pidPerm os.FileMode = 0o666
 
@@ -34,7 +34,7 @@ func GetPid() result.Result[int] {
 
 func GetPidF() result.Result[string] {
 	filename := fmt.Sprintf("%s.pid", running.Project)
-	return result.OK(filepath.Join(pidPath, filename))
+	return result.OK(filepath.Join(PidPath, filename))
 }
 
 func SavePid() error {
