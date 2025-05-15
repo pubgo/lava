@@ -11,7 +11,7 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/gateway/routertree"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"

@@ -11,7 +11,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"

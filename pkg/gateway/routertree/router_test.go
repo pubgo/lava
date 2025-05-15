@@ -1,9 +1,9 @@
 package routertree
 
 import (
-	"github.com/pubgo/funk/pretty"
 	"testing"
 
+	"github.com/pubgo/funk/pretty"
 	"github.com/stretchr/testify/assert"
 )
 

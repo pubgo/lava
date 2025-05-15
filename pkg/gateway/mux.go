@@ -21,7 +21,7 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
+	"github.com/pubgo/lava/pkg/gateway/routertree"
 	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"

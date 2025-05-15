@@ -1,5 +1,3 @@
-//nolint
-
 package routertree
 
 import (
@@ -7,55 +5,21 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
 )
 
-const (
-	doubleStar = "**"
-	star       = "*"
-)
-
 var (
-	parser = assert.Exit1(participle.Build[httpRule](
-		participle.Lexer(assert.Exit1(lexer.NewSimple([]lexer.SimpleRule{
-			{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
-			{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
-		}))),
-	))
+	parser = participle.MustBuild[httpRule](
+		participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
+			{"Comment", `(?:#|//)[^\n]*\n?`},
+			{"Ident", `[a-zA-Z]\w*`},
+			{"Number", `(?:\d*\.)?\d+`},
+			{"Punct", `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
+			{"Whitespace", `[ \t\n\r]+`},
+		})),
+	)
 )
-
-// httpRule
-// Template = "/" Segments [ Verb ] ;
-// Segments = Segment { "/" Segment } ;
-// Segment  = "*" | "**" | LITERAL | Variable ;
-// Variable = "{" FieldPath [ "=" Segments ] "}" ;
-// FieldPath = IDENT { "." IDENT } ;
-// Verb     = ":" LITERAL ;
-// nolint
-type httpRule struct {
-	Slash    string    `@"/"`
-	Segments *segments `@@!`
-	Verb     *string   `(":" @Ident)?`
-}
-
-// nolint
-type segments struct {
-	Segments []*segment `@@ ("/" @@)*`
-}
-
-// nolint
-type segment struct {
-	Path     *string   `@("*" "*" | "*" | Ident)`
-	Variable *variable `| @@*`
-}
-
-// nolint
-type variable struct {
-	Fields   []string  `"{" @Ident ("." @Ident)*`
-	Segments *segments `("=" @@)? "}"`
-}
 
 type pathVariable struct {
 	fields     []string
@@ -184,7 +148,10 @@ func parseToRoute(rule *httpRule) *routePath {
 }
 
 func parse(url string) (*httpRule, error) {
-	return parser.ParseString("", url)
-	//participle.AllowTrailing(true),
-	//participle.Trace(os.Stdout),
+	return parser.ParseString(
+		"",
+		url,
+		//participle.AllowTrailing(true),
+		//participle.Trace(os.Stdout),
+	)
 }

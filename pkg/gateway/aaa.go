@@ -2,11 +2,11 @@ package gateway
 
 import (
 	"context"
+	routertree2 "github.com/pubgo/lava/pkg/gateway/routertree"
 	"io"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
@@ -14,9 +14,9 @@ import (
 )
 
 type (
-	MatchOperation = routertree.MatchOperation
-	PathFieldVar   = routertree.PathFieldVar
-	RouteOperation = routertree.RouteOperation
+	MatchOperation = routertree2.MatchOperation
+	PathFieldVar   = routertree2.PathFieldVar
+	RouteOperation = routertree2.RouteOperation
 	Gateway        interface {
 		grpc.ClientConnInterface
 		SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor)
