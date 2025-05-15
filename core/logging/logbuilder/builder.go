@@ -1,4 +1,4 @@
-package logging
+package logbuilder
 
 import (
 	"io"
@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/lava/core/logging"
 	"github.com/pubgo/lava/core/logging/logkey"
 	"github.com/rs/zerolog"
 )
@@ -21,7 +22,7 @@ func init() {
 }
 
 // New logger
-func New(cfg *Config) log.Logger {
+func New(cfg *logging.Config) log.Logger {
 	defer recovery.Exit()
 
 	level := zerolog.DebugLevel
@@ -54,7 +55,7 @@ func New(cfg *Config) log.Logger {
 	log.SetLogger(&logger)
 
 	gl := log.New(&logger)
-	for _, ext := range List() {
+	for _, ext := range logging.List() {
 		ext(gl)
 	}
 	return gl

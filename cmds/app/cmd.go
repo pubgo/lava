@@ -21,7 +21,7 @@ import (
 	"github.com/pubgo/lava/core/discovery"
 	"github.com/pubgo/lava/core/flags"
 	"github.com/pubgo/lava/core/lifecycle/lifecyclebuilder"
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/core/logging/logbuilder"
 	"github.com/pubgo/lava/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/core/scheduler"
 	"github.com/pubgo/lava/core/signal"
@@ -59,7 +59,7 @@ var defaultProviders = []any{
 
 	middleware_accesslog.New,
 	middleware_metric.New,
-	logging.New,
+	logbuilder.New,
 	metricbuilder.New,
 
 	lifecyclebuilder.New,
