@@ -310,7 +310,7 @@ func NewMux(opts ...MuxOption) *Mux {
 	mux := &Mux{
 		opts:        &muxOpts,
 		localClient: new(inprocgrpc.Channel),
-		routerTree:  routertree.NewRouteTree(),
+		routerTree:  routertree.New(),
 	}
 
 	return mux

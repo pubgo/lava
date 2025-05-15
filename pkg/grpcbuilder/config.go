@@ -1,4 +1,4 @@
-package grpc_builder
+package grpcbuilder
 
 import (
 	"time"

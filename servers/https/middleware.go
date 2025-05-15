@@ -2,18 +2,23 @@ package https
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/lava/lava"
 )
 
-var parserTypes []fiber.ParserType
+func init() {
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+	})
+}
 
-func RegParser(customType interface{}, converter func(string) reflect.Value) {
-	parserTypes = append(parserTypes, fiber.ParserType{
-		Customtype: customType,
-		Converter:  converter,
+func RegParser(parsers []fiber.ParserType) {
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         true,
+		ParserType:        parsers,
 	})
 }
 

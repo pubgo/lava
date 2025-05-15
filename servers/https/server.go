@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"net"
 	"net/http"
 	"strings"
@@ -71,12 +72,6 @@ func (s *serviceImpl) DixInject(
 		cfg.BaseUrl = "/" + version.Project()
 	}
 
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         true,
-		ParserType:        parserTypes,
-	})
-
 	log = log.WithName("http-server")
 
 	s.lc = getLifecycle
@@ -124,6 +119,7 @@ func (s *serviceImpl) DixInject(
 	}))
 
 	defaultMiddlewares := []lava.Middleware{
+		middleware_service_info.New(),
 		middleware_metric.New(m),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),

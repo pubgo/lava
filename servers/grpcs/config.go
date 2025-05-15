@@ -2,7 +2,7 @@ package grpcs
 
 import (
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/grpc_builder"
+	"github.com/pubgo/lava/pkg/grpcbuilder"
 )
 
 const (
@@ -14,11 +14,11 @@ type GrpcServerConfigLoader struct {
 }
 
 type Config struct {
-	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
-	BaseUrl           string               `yaml:"base_url"`
-	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
-	EnableCors        bool                 `yaml:"enable_cors"`
-	EnablePingPong    bool                 `yaml:"enable_ping_pong"`
+	EnablePrintRoutes bool                `yaml:"enable_print_routes"`
+	BaseUrl           string              `yaml:"base_url"`
+	GrpcConfig        *grpcbuilder.Config `yaml:"grpc_config"`
+	EnableCors        bool                `yaml:"enable_cors"`
+	EnablePingPong    bool                `yaml:"enable_ping_pong"`
 
 	// unix seconds
 	PingPongTime int32 `yaml:"ping_pong_time"`
@@ -32,6 +32,6 @@ func defaultCfg() *Config {
 	return &Config{
 		EnablePrintRoutes: true,
 		BaseUrl:           version.Project(),
-		GrpcConfig:        grpc_builder.GetDefaultCfg(),
+		GrpcConfig:        grpcbuilder.GetDefaultCfg(),
 	}
 }

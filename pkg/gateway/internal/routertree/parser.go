@@ -58,7 +58,7 @@ type variable struct {
 }
 
 type pathVariable struct {
-	Fields     []string
+	fields     []string
 	start, end int
 }
 
@@ -98,12 +98,12 @@ func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 			continue
 		}
 
-		return nil, errors.New("path is not match")
+		return nil, errors.Format("path(%s) not match", path)
 	}
 
 	var vv []PathFieldVar
 	for _, v := range r.Vars {
-		pathVar := PathFieldVar{Fields: v.Fields}
+		pathVar := PathFieldVar{Fields: v.fields}
 		if v.end > 0 {
 			pathVar.Value = strings.Join(urls[v.start:v.end+1], "/")
 		} else {
@@ -123,7 +123,7 @@ func (r routePath) String() string {
 	copy(paths, r.Paths)
 
 	for _, v := range r.Vars {
-		varS := "{" + strings.Join(v.Fields, ".") + "="
+		varS := "{" + strings.Join(v.fields, ".") + "="
 		end := generic.Ternary(v.end == -1, len(paths)-1, v.end)
 
 		for i := v.start; i <= end; i++ {
@@ -152,7 +152,7 @@ func handleSegments(s *segment, rr *routePath) {
 		return
 	}
 
-	vv := &pathVariable{Fields: s.Variable.Fields, start: len(rr.Paths)}
+	vv := &pathVariable{fields: s.Variable.Fields, start: len(rr.Paths)}
 	if s.Variable.Segments == nil {
 		rr.Paths = append(rr.Paths, star)
 	} else {

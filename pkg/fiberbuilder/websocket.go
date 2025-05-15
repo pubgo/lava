@@ -1,4 +1,4 @@
-package fiber_builder
+package fiberbuilder
 
 import (
 	"errors"
