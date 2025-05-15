@@ -7,8 +7,9 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
 	"github.com/valyala/fasthttp"
@@ -45,8 +46,10 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 		backoff = retry.WithMaxRetries(cfg.DefaultRetryCount, backoff)
 	}
 
+	handler := do(cfg)
+	handler = lava.Chain(middlewares...).Middleware(handler)
 	return &Client{
-		do:      lava.Chain(middlewares...).Middleware(do(cfg)),
+		do:      handler,
 		log:     p.Log,
 		cfg:     cfg,
 		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
@@ -67,7 +70,10 @@ type Client struct {
 }
 
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
-	defer recovery.Result(&r)
+	defer errcheck.RecoveryAndCheck(&r.E, func(err error) error {
+		errors.Debug(err)
+		return err
+	})
 
 	reqErr := doRequest(c, req)
 	if reqErr.IsErr() {
