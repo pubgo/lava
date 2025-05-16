@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"net/rpc"
 	"net/rpc/jsonrpc"
 	"time"
 
@@ -32,7 +33,13 @@ func client() {
 	if err != nil {
 		panic(err)
 	}
-	stream.Close()
+	ccc := jsonrpc.NewClientCodec(stream)
+	req:=&rpc.Request{}
+	ccc.WriteRequest(req, nil)
+
+	rsp:=new(rpc.Response)
+	ccc.ReadResponseHeader(rsp)
+	ccc.ReadResponseBody(nil)
 
 	// Stream implements net.Conn
 	stream.Write([]byte("ping"))
@@ -60,7 +67,9 @@ func server() {
 				panic(err)
 			}
 
-			// Accept a stream
+			session.GoAway()
+
+			// client request
 			stream, err := session.Accept()
 			if err != nil {
 				panic(err)
@@ -68,22 +77,13 @@ func server() {
 
 			sss := jsonrpc.NewServerCodec(stream)
 			for {
-				sss.ReadRequestHeader()
+				req:=new(rpc.Request)
+				sss.ReadRequestHeader(req)
+				sss.ReadRequestBody(nil)
 				sss.WriteResponse(nil, nil)
 			}
 
-			ccc := jsonrpc.NewClientCodec(stream)
-			ccc.WriteRequest()
-			ccc.ReadResponseHeader()
-
-			json.NewDecoder(stream).Decode()
-			json.NewEncoder(stream).Encode()
 			stream.Close()
-
-			// Listen for a message
-			buf := make([]byte, 4)
-			stream.Read(buf)
-			stream.Write(buf)
 		}()
 	}
 
