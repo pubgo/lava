@@ -68,6 +68,8 @@ func server() {
 			}
 
 			session.GoAway()
+			session.CloseChan()
+			session.CloseWithError()
 
 			// client request
 			stream, err := session.Accept()
