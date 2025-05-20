@@ -22,7 +22,7 @@ func init() {
 }
 
 // New logger
-func New(cfg *logging.Config) log.Logger {
+func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
 	defer recovery.Exit()
 
 	level := zerolog.DebugLevel
@@ -39,6 +39,10 @@ func New(cfg *logging.Config) log.Logger {
 				w.TimeFormat = time.RFC3339
 			}),
 		})
+	}
+
+	if len(hooks) > 0 {
+		logger = logger.Hook(hooks...)
 	}
 
 	// 全局log设置
