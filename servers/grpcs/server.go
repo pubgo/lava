@@ -69,17 +69,13 @@ func (s *serviceImpl) String() string {
 
 func (s *serviceImpl) Serve(ctx context.Context) (err error) {
 	defer s.stop(ctx)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			err = s.start(ctx)
-			if err != nil {
-				return err
-			}
-		}
+	err = s.start(ctx)
+	if err != nil {
+		return err
 	}
+
+	<-ctx.Done()
+	return nil
 }
 
 func (s *serviceImpl) DixInject(

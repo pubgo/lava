@@ -49,7 +49,10 @@ func (s *Scheduler) Serve(ctx context.Context) error {
 
 func (s *Scheduler) stop() {
 	s.cancel()
-	s.scheduler.Stop()
+
+	if s.scheduler.IsStarted() {
+		s.scheduler.Stop()
+	}
 }
 
 func (s *Scheduler) start() {

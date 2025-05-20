@@ -49,15 +49,9 @@ func (s *Server) String() string {
 
 func (s *Server) Serve(ctx context.Context) error {
 	defer s.stop(ctx)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			s.start(ctx)
-		}
-	}
+	s.start(ctx)
+	<-ctx.Done()
+	return nil
 }
 
 func (s *Server) DixInject(

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"net"
 	"net/http"
 	"strings"
@@ -30,6 +29,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
+	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
 	"github.com/pubgo/lava/lava"
 )
 
@@ -52,9 +52,9 @@ func (s *serviceImpl) String() string {
 }
 
 func (s *serviceImpl) Serve(ctx context.Context) error {
+	defer s.stop(ctx)
 	s.start(ctx)
 	<-ctx.Done()
-	s.stop(ctx)
 	return nil
 }
 
