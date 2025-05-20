@@ -54,14 +54,11 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/gofiber/adaptor/v2 v2.2.1
-	github.com/gofiber/contrib/socketio v1.1.5
-	github.com/gofiber/contrib/websocket v1.3.4
 	github.com/gofiber/utils v1.1.0
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/libp2p/go-yamux/v5 v5.0.0
 	github.com/maragudk/gomponents v0.20.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.60.1
@@ -77,11 +74,9 @@ require (
 	github.com/urfave/cli/v3 v3.3.3
 	github.com/valyala/fasthttp v1.58.0
 	github.com/valyala/fasttemplate v1.2.2
-	github.com/xtaci/smux v1.5.34
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.26.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.23.1
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.28.0
-	golang.ngrok.com/muxado/v2 v2.0.1
 	golang.org/x/tools v0.25.0
 	golang.org/x/vuln v1.1.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
@@ -204,7 +199,6 @@ require (
 	github.com/ldez/tagliatelle v0.5.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/leonklingele/grouper v1.1.2 // indirect
-	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/lufeee/execinquery v1.2.1 // indirect
 	github.com/macabu/inamedparam v0.1.3 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
