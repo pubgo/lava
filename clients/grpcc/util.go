@@ -51,15 +51,14 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (_ g
 		}
 	}()
 
-	opts := append(
-		cfg.Client.ToOpts(),
-		grpc.WithResolvers(cfg.Resolvers...),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
-		grpc.WithChainStreamInterceptor(streamInterceptor(mm)),
-	)
+	opts := cfg.Client.ToOpts()
+	opts = append(opts, grpc.WithResolvers(cfg.Resolvers...))
+	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)))
+	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptor(mm)))
+
 	conn, err := grpc.NewClient(addr, opts...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "grpc dial failed, target=>%s", addr)
+		return nil, errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
 	}
 
 	return conn, nil

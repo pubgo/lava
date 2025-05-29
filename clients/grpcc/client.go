@@ -67,7 +67,7 @@ func (t *clientImpl) Healthy(ctx context.Context) error {
 	}
 
 	_, err := grpc_health_v1.NewHealthClient(conn.Unwrap()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
-	return errors.Wrapf(err, "service %s heath check failed", t.cfg.Service)
+	return errors.Wrapf(err, "failed to check service %s heath", t.cfg.Service)
 }
 
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
