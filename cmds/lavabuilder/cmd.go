@@ -1,4 +1,4 @@
-package app
+package lavabuilder
 
 import (
 	"os"
@@ -66,7 +66,7 @@ var defaultProviders = []any{
 	scheduler.New,
 }
 
-func NewBuilder(opts ...dix.Option) *dix.Dix {
+func New(opts ...dix.Option) *dix.Dix {
 	di := dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
 		di.Provide(p)
