@@ -58,6 +58,7 @@ require (
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
+	github.com/kardianos/service v1.2.2
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.20.0
 	github.com/maruel/panicparse/v2 v2.5.0

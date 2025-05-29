@@ -3,6 +3,7 @@ package supervisor
 import (
 	"context"
 
+	_ "github.com/kardianos/service"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/running"
 	"github.com/thejerf/suture/v4"
