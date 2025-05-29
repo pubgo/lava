@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
+	"github.com/pubgo/lava/internal/middlewares/middleware_serviceinfo"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway"
 	"google.golang.org/grpc"
@@ -26,7 +26,7 @@ import (
 // NewInner grpc 服务内部通信
 func NewInner(handlers []lava.GrpcRouter, grpcProxy []lava.GrpcProxy, dixMiddlewares []lava.Middleware, metric metrics.Metric, log log.Logger) *lava.InnerServer {
 	middlewares := lava.Middlewares{
-		middleware_service_info.New(),
+		middleware_serviceinfo.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),
