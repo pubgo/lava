@@ -66,25 +66,25 @@ var defaultProviders = []any{
 	scheduler.New,
 }
 
-func New(opts ...dix.Option) *dix.Dix {
+func New(opts ...dix.Option) dix.Container {
 	di := dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
-		di.Provide(p)
+		dix.Provide(di, p)
 	}
 	return di
 }
 
-func Run(di *dix.Dix) {
+func Run(di dix.Container) {
 	defer recovery.Exit()
 
-	di.Provide(versioncmd.New)
-	di.Provide(healthcmd.New)
-	di.Provide(depcmd.New)
-	di.Provide(grpcservercmd.New)
-	di.Provide(httpservercmd.New)
-	di.Provide(schedulercmd.New)
-
-	di.Inject(func(cmd []*cli.Command) {
+	dix.Provide(di, versioncmd.New)
+	dix.Provide(di, versioncmd.New)
+	dix.Provide(di, healthcmd.New)
+	dix.Provide(di, depcmd.New)
+	dix.Provide(di, grpcservercmd.New)
+	dix.Provide(di, httpservercmd.New)
+	dix.Provide(di, schedulercmd.New)
+	dix.Provide(di, func(cmd []*cli.Command) {
 		app := &cli.Command{
 			Name:                   version.Project(),
 			Suggest:                true,
