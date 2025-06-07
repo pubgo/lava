@@ -13,12 +13,12 @@ import (
 	"github.com/pubgo/lava/servers/grpcs"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di dix.Container) *cli.Command {
 	return &cli.Command{
 		Name:  "grpc",
 		Usage: cmdutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			srv := dix.Inject(di, grpcs.New())
+			srv := dix.InjectMust(di, grpcs.New())
 			return errors.WrapCaller(supervisor.Run(ctx, srv))
 		},
 	}

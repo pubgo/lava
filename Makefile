@@ -44,3 +44,6 @@ protobuf:
 .PHONY: lint
 lint:
 	golangci-lint run --out-format=colored-line-number --timeout=10m --verbose ./...
+
+vet:
+	go vet ./...
