@@ -84,7 +84,7 @@ func Run(di dix.Container) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
-	dix.Provide(di, func(cmd []*cli.Command) {
+	dix.InjectMust(di, func(cmd []*cli.Command) {
 		app := &cli.Command{
 			Name:                   version.Project(),
 			Suggest:                true,
