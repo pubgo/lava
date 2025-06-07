@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/pubgo/funk/anyhow"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/metrics"
@@ -54,38 +54,38 @@ func (t *clientImpl) Invoke(ctx context.Context, method string, args, reply inte
 
 	conn := t.Get()
 	if conn.IsErr() {
-		return errors.Wrapf(conn.Err(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
+		return errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
 	}
 
-	return conn.Unwrap().Invoke(ctx, method, args, reply, opts...)
+	return conn.GetValue().Invoke(ctx, method, args, reply, opts...)
 }
 
 func (t *clientImpl) Healthy(ctx context.Context) error {
 	conn := t.Get()
 	if conn.IsErr() {
-		return errors.Wrapf(conn.Err(), "failed to get grpc client, service=%s, method=healthy", t.cfg.Service)
+		return errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=healthy", t.cfg.Service)
 	}
 
-	_, err := grpc_health_v1.NewHealthClient(conn.Unwrap()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	_, err := grpc_health_v1.NewHealthClient(conn.GetValue()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 	return errors.Wrapf(err, "failed to check service %s heath", t.cfg.Service)
 }
 
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 	conn := t.Get()
 	if conn.IsErr() {
-		return nil, errors.Wrapf(conn.Err(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
+		return nil, errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
 	}
 
-	c, err1 := conn.Unwrap().NewStream(ctx, desc, method, opts...)
+	c, err1 := conn.GetValue().NewStream(ctx, desc, method, opts...)
 	return c, errors.Wrap(err1, method)
 }
 
 // Get new grpc client
-func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
-	defer recovery.Result(&r)
+func (t *clientImpl) Get() (r anyhow.Result[grpc.ClientConnInterface]) {
+	defer anyhow.Recovery(&r.Err)
 
 	if t.conn != nil {
-		return r.WithVal(t.conn)
+		return r.SetWithValue(t.conn)
 	}
 
 	t.mu.Lock()
@@ -93,14 +93,14 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 
 	// 双检, 避免多次创建
 	if t.conn != nil {
-		return r.WithVal(t.conn)
+		return r.SetWithValue(t.conn)
 	}
 
 	conn, err := createConn(t.cfg, t.log, t.middlewares)
 	if err != nil {
-		return r.WithErr(err)
+		return r.SetWithErr(err)
 	}
 
 	t.conn = conn
-	return r.WithVal(t.conn)
+	return r.SetWithValue(t.conn)
 }

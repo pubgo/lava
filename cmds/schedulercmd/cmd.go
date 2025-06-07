@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/lava/servers/tasks"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di dix.Container) *cli.Command {
 	return &cli.Command{
 		Name:  "scheduler",
 		Usage: cmdutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
