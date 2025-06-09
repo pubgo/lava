@@ -37,7 +37,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
+	"github.com/pubgo/lava/internal/middlewares/middleware_serviceinfo"
 	"github.com/pubgo/lava/lava"
 	"github.com/pubgo/lava/pkg/gateway"
 	"github.com/pubgo/lava/pkg/httputil"
@@ -109,7 +109,7 @@ func (s *serviceImpl) DixInject(
 	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
 
 	globalMiddlewares := lava.Middlewares{
-		middleware_service_info.New(),
+		middleware_serviceinfo.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
 		middleware_recovery.New(),

@@ -14,12 +14,12 @@ import (
 	"github.com/pubgo/lava/servers/tasks"
 )
 
-func New(di *dix.Dix, services []lava.Server) *cli.Command {
+func New(di dix.Container, services []lava.Server) *cli.Command {
 	return &cli.Command{
 		Name:  "task",
 		Usage: cmdutil.UsageDesc("async task service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			srv := dix.Inject(di, tasks.New(services...))
+			srv := dix.InjectMust(di, tasks.New(services...))
 			return errors.WrapCaller(supervisor.Run(ctx, srv))
 		},
 	}

@@ -17,7 +17,7 @@ import (
 	"github.com/pubgo/lava/pkg/cmdutil"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di dix.Container) *cli.Command {
 	return &cli.Command{
 		Name:  "dep",
 		Usage: "Print the dependency package information",

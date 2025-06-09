@@ -18,7 +18,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
+	"github.com/pubgo/lava/internal/middlewares/middleware_serviceinfo"
 	"github.com/pubgo/lava/lava"
 )
 
@@ -30,7 +30,7 @@ type Params struct {
 func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	middlewares := lava.Middlewares{
-		middleware_service_info.New(),
+		middleware_serviceinfo.New(),
 		middleware_metric.New(p.Metric),
 		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.ServiceName})),
 		middleware_recovery.New(),

@@ -14,16 +14,16 @@ import (
 	"github.com/pubgo/lava/servers/tasks"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di dix.Container) *cli.Command {
 	return &cli.Command{
 		Name:  "scheduler",
 		Usage: cmdutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			s := dix.Inject(di, new(struct {
+			s := dix.InjectMust(di, new(struct {
 				Scheduler *scheduler.Scheduler
 			}))
 
-			srv := dix.Inject(di, tasks.New(s.Scheduler))
+			srv := dix.InjectMust(di, tasks.New(s.Scheduler))
 			return errors.WrapCaller(supervisor.Run(ctx, srv))
 		},
 	}

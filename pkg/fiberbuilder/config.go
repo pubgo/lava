@@ -4,10 +4,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/anyhow"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 )
 
 type Config struct {
@@ -40,8 +39,8 @@ type Config struct {
 	ReduceMemoryUsage         bool          `yaml:"reduce_memory_usage"`
 }
 
-func (t *Config) Build() (r result.Result[*fiber.App]) {
-	defer recovery.Result(&r)
+func (t *Config) Build() (r anyhow.Result[*fiber.App]) {
+	defer anyhow.Recovery(&r.Err)
 	fc := merge.Struct(generic.Ptr(fiber.New().Config()), &t).Unwrap()
-	return r.WithVal(fiber.New(*fc))
+	return r.SetWithValue(fiber.New(*fc))
 }

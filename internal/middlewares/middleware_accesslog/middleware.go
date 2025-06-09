@@ -67,10 +67,10 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		// 错误和panic处理
 		defer func() {
 			if !generic.IsNil(gErr) {
-				logOpts := handleLogOption(req.Header().PeekAll("X-Log-Option"))
-				if logOpts["all"] {
+				evt.Stringer("req_header", req.Header())
+				logOpts := handleLogOption(req.Header())
+				if logOpts.EnableAll() {
 					evt.Any("req_body", req.Payload())
-					evt.Bytes("req_header", req.Header().Header())
 					if rsp != nil {
 						evt.Any("rsp_body", rsp.Payload())
 						evt.Any("rsp_header", rsp.Header())
@@ -150,16 +150,24 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	}
 }
 
-func handleLogOption(data [][]byte) (val map[string]bool) {
+func handleLogOption(header *lava.RequestHeader) *logOption {
+	data := header.PeekAll("X-Log-Option")
 	if len(data) == 0 {
-		val = map[string]bool{}
-		return
+		return nil
 	}
 
-	val = make(map[string]bool, len(data))
+	val := make(map[string]bool, len(data))
 	for i := range data {
 		val[convert.B2S(data[i])] = true
 	}
 
-	return val
+	return &logOption{data: val}
+}
+
+type logOption struct {
+	data map[string]bool
+}
+
+func (opt logOption) EnableAll() bool {
+	return opt.data["all"]
 }

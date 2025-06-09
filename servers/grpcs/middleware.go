@@ -14,16 +14,15 @@ import (
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/core/lavacontexts"
+	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/pkg/httputil"
 	"github.com/pubgo/lava/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/httputil"
 )
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {

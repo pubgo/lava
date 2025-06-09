@@ -13,12 +13,12 @@ import (
 	"github.com/pubgo/lava/servers/https"
 )
 
-func New(di *dix.Dix) *cli.Command {
+func New(di dix.Container) *cli.Command {
 	return &cli.Command{
 		Name:  "http",
 		Usage: cmdutil.UsageDesc("%s http service", version.Project()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			srv := dix.Inject(di, https.New())
+			srv := dix.InjectMust(di, https.New())
 			return errors.WrapCaller(supervisor.Run(ctx, srv))
 		},
 	}

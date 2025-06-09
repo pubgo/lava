@@ -15,6 +15,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+var GlobalHook zerolog.Hook
+
 func init() {
 	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
 		return stack.Stack(pc).Short()
@@ -22,7 +24,7 @@ func init() {
 }
 
 // New logger
-func New(cfg *logging.Config) log.Logger {
+func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
 	defer recovery.Exit()
 
 	level := zerolog.DebugLevel
@@ -40,6 +42,11 @@ func New(cfg *logging.Config) log.Logger {
 			}),
 		})
 	}
+
+	if GlobalHook != nil {
+		hooks = append(hooks, GlobalHook)
+	}
+	logger = logger.Hook(hooks...)
 
 	// 全局log设置
 	ee := logger.With().
