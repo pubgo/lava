@@ -66,7 +66,7 @@ var defaultProviders = []any{
 	scheduler.New,
 }
 
-func New(opts ...dix.Option) dix.Container {
+func New(opts ...dix.Option) *dix.Dix {
 	di := dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
 		dix.Provide(di, p)
@@ -74,7 +74,7 @@ func New(opts ...dix.Option) dix.Container {
 	return di
 }
 
-func Run(di dix.Container) {
+func Run(di *dix.Dix) {
 	defer recovery.Exit()
 
 	dix.Provide(di, versioncmd.New)
@@ -84,7 +84,7 @@ func Run(di dix.Container) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
-	dix.InjectMust(di, func(cmd []*cli.Command) {
+	dix.Inject(di, func(cmd []*cli.Command) {
 		app := &cli.Command{
 			Name:                   version.Project(),
 			Suggest:                true,
