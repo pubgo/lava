@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/funk/anyhow"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/core/metrics"
@@ -81,11 +81,11 @@ func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, metho
 }
 
 // Get new grpc client
-func (t *clientImpl) Get() (r anyhow.Result[grpc.ClientConnInterface]) {
-	defer anyhow.Recovery(&r.Err)
+func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
+	defer result.RecoveryErr(&r)
 
 	if t.conn != nil {
-		return r.SetWithValue(t.conn)
+		return r.WithValue(t.conn)
 	}
 
 	t.mu.Lock()
@@ -93,14 +93,14 @@ func (t *clientImpl) Get() (r anyhow.Result[grpc.ClientConnInterface]) {
 
 	// 双检, 避免多次创建
 	if t.conn != nil {
-		return r.SetWithValue(t.conn)
+		return r.WithValue(t.conn)
 	}
 
-	conn, err := createConn(t.cfg, t.log, t.middlewares)
-	if err != nil {
-		return r.SetWithErr(err)
+	conn := createConn(t.cfg, t.log, t.middlewares).UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
 	t.conn = conn
-	return r.SetWithValue(t.conn)
+	return r.WithValue(conn)
 }

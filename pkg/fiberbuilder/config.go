@@ -1,10 +1,10 @@
 package fiberbuilder
 
 import (
+	"github.com/pubgo/funk/v2/result"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/anyhow"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
 )
@@ -39,8 +39,8 @@ type Config struct {
 	ReduceMemoryUsage         bool          `yaml:"reduce_memory_usage"`
 }
 
-func (t *Config) Build() (r anyhow.Result[*fiber.App]) {
-	defer anyhow.Recovery(&r.Err)
+func (t *Config) Build() (r result.Result[*fiber.App]) {
+	defer result.RecoveryErr(&r)
 	fc := merge.Struct(generic.Ptr(fiber.New().Config()), &t).Unwrap()
-	return r.SetWithValue(fiber.New(*fc))
+	return r.WithValue(fiber.New(*fc))
 }

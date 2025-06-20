@@ -3,7 +3,7 @@ package grpcbuilder
 import (
 	"time"
 
-	"github.com/pubgo/funk/anyhow"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -60,8 +60,8 @@ type Config struct {
 	WriteBufferSize       int64            `yaml:"write_buffer_size"`
 }
 
-func (t *Config) Build(opts ...grpc.ServerOption) (r anyhow.Result[*grpc.Server]) {
-	defer anyhow.Recovery(&r.Err)
+func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
+	defer result.RecoveryErr(&r)
 
 	if t.KeepalivePolicy != nil {
 		opts = append(opts, t.KeepalivePolicy.ToOpts())
@@ -76,7 +76,7 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r anyhow.Result[*grpc.Server]
 	grpcutil.EnableReflection(srv)
 	grpcutil.EnableHealth("", srv)
 	grpcutil.EnableDebug(srv)
-	return r.SetWithValue(srv)
+	return r.WithValue(srv)
 }
 
 func GetDefaultCfg() *Config {

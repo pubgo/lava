@@ -5,6 +5,7 @@ import (
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/core/logging/logkey"
@@ -32,7 +33,7 @@ func buildTarget(cfg *grpccconfig.ServiceCfg) string {
 	}
 }
 
-func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (_ grpc.ClientConnInterface, gErr error) {
+func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r result.Result[grpc.ClientConnInterface]) {
 	addr := buildTarget(cfg.Service)
 
 	var logMsg = func(e *zerolog.Event) {
@@ -42,11 +43,11 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (_ g
 	}
 
 	defer func() {
-		if gErr == nil {
+		if r.IsOK() {
 			log.Info().
 				Func(logMsg).Msg("succeed to create grpc client")
 		} else {
-			log.Err(gErr).
+			log.Err(r.GetErr()).
 				Func(logMsg).Msg("failed to create grpc client")
 		}
 	}()
@@ -56,10 +57,14 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (_ g
 	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)))
 	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptor(mm)))
 
-	conn, err := grpc.NewClient(addr, opts...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
+	conn := result.Wrap(grpc.NewClient(addr, opts...)).
+		MapErr(func(err error) error {
+			return errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
+		}).
+		UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
-	return conn, nil
+	return r.WithValue(conn)
 }

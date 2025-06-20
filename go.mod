@@ -64,7 +64,7 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.60.1
 	github.com/pubgo/dix v0.3.21-alpha.7
-	github.com/pubgo/funk v0.5.65-alpha.4
+	github.com/pubgo/funk v0.5.65-alpha.18
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.5.0
 	github.com/rs/zerolog v1.33.0
