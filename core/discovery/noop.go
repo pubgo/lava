@@ -3,7 +3,7 @@ package discovery
 import (
 	"context"
 
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/v2/result"
 
 	"github.com/pubgo/lava/core/service"
 )
@@ -19,8 +19,8 @@ var (
 
 type noopDiscovery struct{}
 
-func (n *noopDiscovery) Next() result.Result[*Result] {
-	return result.Err[*Result](ErrWatcherStopped)
+func (n *noopDiscovery) Next() (r result.Result[*Result]) {
+	return r.WithErr(ErrWatcherStopped)
 }
 
 func (n *noopDiscovery) Stop() error { return nil }

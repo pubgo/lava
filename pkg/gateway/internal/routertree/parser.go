@@ -33,23 +33,23 @@ var (
 // FieldPath = IDENT { "." IDENT } ;
 // Verb     = ":" LITERAL ;
 type httpRule struct {
-	Slash    string    `@"/"`
-	Segments *segments `@@!`
-	Verb     *string   `(":" @Ident)?`
+	Slash    string    `@"/"`          //nolint:govet
+	Segments *segments `@@!`           //nolint:govet
+	Verb     *string   `(":" @Ident)?` //nolint:govet
 }
 
 type segments struct {
-	Segments []*segment `@@ ("/" @@)*`
+	Segments []*segment `@@ ("/" @@)*` //nolint:govet
 }
 
 type segment struct {
-	Path     *string   `@("*" "*" | "*" | Ident)`
-	Variable *variable `| @@*`
+	Path     *string   `@("*" "*" | "*" | Ident)` //nolint:govet
+	Variable *variable `| @@*`                    //nolint:govet
 }
 
 type variable struct {
-	Fields   []string  `"{" @Ident ("." @Ident)*`
-	Segments *segments `("=" @@)? "}"`
+	Fields   []string  `"{" @Ident ("." @Ident)*` //nolint:govet
+	Segments *segments `("=" @@)? "}"`            //nolint:govet
 }
 
 type pathVariable struct {

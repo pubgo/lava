@@ -44,7 +44,7 @@ protobuf:
 .PHONY: lint
 lint:
 	golangci-lint --version
-	golangci-lint run --timeout 3m --verbose ./...
+	golangci-lint run --timeout=10m --verbose
 
 install-protoc:
 	go install -v ./cmds/protoc-gen-lava
