@@ -92,6 +92,7 @@ func (s *serviceImpl) DixInject(
 	log log.Logger,
 	conf *Config,
 	gw []*gateway.Mux,
+	metadataHandlers []lava.GrpcGatewayMetadata,
 ) {
 	s.conf = conf
 	if conf.HttpPort == nil {
@@ -164,6 +165,11 @@ func (s *serviceImpl) DixInject(
 			MaxAge: 0,
 		}))
 	}
+
+	httpServer.Use(func(ctx *fiber.Ctx) error {
+		ctx.SetUserContext(ctx.Context())
+		return ctx.Next()
+	})
 
 	app := fiber.New()
 	app.Group("/debug", httputil.StripPrefix(filepath.Join(conf.BaseUrl, "/debug"), debug.Handler))
@@ -239,11 +245,17 @@ func (s *serviceImpl) DixInject(
 			return strings.ToUpper(s), true
 		}),
 		runtime.WithMetadata(func(ctx context.Context, request *http.Request) metadata.MD {
-			path, ok := runtime.HTTPPathPattern(ctx)
-			if !ok {
-				return nil
+			rpcPath, _ := runtime.RPCMethod(ctx)
+			path, _ := runtime.HTTPPathPattern(ctx)
+
+			md := metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
+			for _, h := range metadataHandlers {
+				for k, v := range h(ctx, request, rpcPath, path) {
+					md.Append(k, v...)
+				}
 			}
-			return metadata.Pairs("http_path", path, "http_method", request.Method, "http_url", request.URL.Path)
+
+			return md
 		}),
 		runtime.WithErrorHandler(func(ctx context.Context, mux *runtime.ServeMux, marshal runtime.Marshaler, w http.ResponseWriter, request *http.Request, err error) {
 			md, ok := runtime.ServerMetadataFromContext(ctx)
