@@ -21,6 +21,12 @@ type GrpcProxy interface {
 	Proxy() ProxyCfg
 }
 
+type GrpcHttpRouter interface {
+	GrpcRouter
+	Router(router fiber.Router)
+	Prefix() string
+}
+
 type GrpcRouter interface {
 	Middlewares() []Middleware
 	ServiceDesc() *grpc.ServiceDesc

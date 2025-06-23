@@ -163,18 +163,17 @@ func (s *serviceImpl) DixInject(
 	}
 
 	httpApp := fiber.New()
-	//app.Use(handlerHttpMiddle(globalMiddlewares))
-	for _, h := range httpRouters {
-		//srv := doc.WithService()
-		//for _, an := range h.Annotation() {
-		//	switch a := an.(type) {
-		//	case *annotation.Openapi:
-		//		if a.ServiceName != "" {
-		//			srv.SetName(a.ServiceName)
-		//		}
-		//	}
-		//}
 
+	for _, h := range grpcRouters {
+		r, ok := h.(lava.HttpRouter)
+		if !ok {
+			continue
+		}
+
+		httpRouters = append(httpRouters, r)
+	}
+
+	for _, h := range httpRouters {
 		assert.If(h.Prefix() == "", "http handler prefix required")
 
 		g := httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
