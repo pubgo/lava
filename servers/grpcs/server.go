@@ -81,6 +81,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (err error) {
 func (s *serviceImpl) DixInject(
 	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
+	grpcHttpRouters []lava.GrpcHttpRouter,
 	grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,
@@ -171,6 +172,16 @@ func (s *serviceImpl) DixInject(
 		}
 
 		httpRouters = append(httpRouters, r)
+	}
+
+	for _, h := range grpcHttpRouters {
+		if r, ok := h.(lava.HttpRouter); ok {
+			httpRouters = append(httpRouters, r)
+		}
+
+		if r, ok := h.(lava.GrpcRouter); ok {
+			grpcRouters = append(grpcRouters, r)
+		}
 	}
 
 	for _, h := range httpRouters {
