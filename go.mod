@@ -2,8 +2,6 @@ module github.com/pubgo/lava
 
 go 1.23.0
 
-toolchain go1.23.1
-
 require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -17,20 +15,21 @@ require (
 	github.com/pubgo/opendoc v0.0.5
 	github.com/reugn/go-quartz v0.11.2
 	github.com/vmihailenco/msgpack/v5 v5.4.1
-	go.opentelemetry.io/otel v1.32.0
+	go.opentelemetry.io/contrib/zpages v0.61.0
+	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.26.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.26.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.54.0
-	go.opentelemetry.io/otel/metric v1.32.0
-	go.opentelemetry.io/otel/sdk v1.32.0
+	go.opentelemetry.io/otel/metric v1.36.0
+	go.opentelemetry.io/otel/sdk v1.36.0
 	go.opentelemetry.io/otel/sdk/metric v1.32.0
-	go.opentelemetry.io/otel/trace v1.32.0
+	go.opentelemetry.io/otel/trace v1.36.0
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.33.0
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	google.golang.org/grpc v1.66.1
 	google.golang.org/protobuf v1.35.1
 )
@@ -47,7 +46,6 @@ require (
 	github.com/arl/statsviz v0.6.0
 	github.com/dave/jennifer v1.7.0
 	github.com/ecordell/optgen v0.0.9
-	github.com/fasthttp/router v1.5.0
 	github.com/fasthttp/websocket v1.5.12
 	github.com/felixge/fgprof v0.9.5
 	github.com/fullstorydev/grpchan v1.1.1
@@ -279,6 +277,7 @@ require (
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	go-simpler.org/musttag v0.12.2 // indirect
 	go-simpler.org/sloglint v0.7.2 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
