@@ -43,7 +43,7 @@ jobs:
         run: gotestsum --junitfile unit-tests.xml -- -gcflags=-l ./...
 
       - name: Test report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: Test report
