@@ -8,9 +8,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/valyala/fasthttp"
@@ -71,7 +69,7 @@ type Client struct {
 }
 
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
-	defer errcheck.RecoveryAndCheck(&r.E, func(err error) error {
+	defer result.RecoveryErr(&r, func(err error) error {
 		errors.Debug(err)
 		return err
 	})

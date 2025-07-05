@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -13,7 +14,7 @@ import (
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Register, metric metrics.Metric) *Scheduler {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Register, metric metrics.Metric) (*Scheduler, error) {
 	config := make(map[string]JobSetting)
 	if len(opts) > 0 && opts[0] != nil {
 		for _, setting := range opts[0].JobSettings {
@@ -29,7 +30,7 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Regist
 	quart := &Scheduler{
 		metric:    metric,
 		config:    config,
-		scheduler: quartz.NewStdScheduler(),
+		scheduler: result.Wrap(quartz.NewStdScheduler()).Must(),
 		log:       log.WithName(Name),
 		ctx:       ctx,
 		cancel:    cancel,
@@ -43,5 +44,5 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Regist
 		r.RegisterCrontabScheduler(quart)
 	}
 
-	return quart
+	return quart, nil
 }
