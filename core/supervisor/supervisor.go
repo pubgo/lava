@@ -25,5 +25,15 @@ func Run(ctx context.Context, services ...suture.Service) error {
 	for _, service := range services {
 		manager.Add(service)
 	}
-	return errors.WrapCaller(manager.Serve(ctx))
+
+	err := manager.Serve(ctx)
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, context.Canceled) {
+		return nil
+	}
+	
+	return errors.WrapCaller(err)
 }
