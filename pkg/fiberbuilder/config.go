@@ -1,12 +1,14 @@
 package fiberbuilder
 
 import (
-	"github.com/pubgo/funk/v2/result"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/v2/result"
 )
 
 type Config struct {

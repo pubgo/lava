@@ -12,6 +12,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/core/metrics"
@@ -88,5 +89,5 @@ func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthtt
 		return r.WithErr(err)
 	}
 
-	return r.WithVal(resp.(*responseImpl).resp)
+	return r.WithValue(resp.(*responseImpl).resp)
 }

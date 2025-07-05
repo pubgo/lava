@@ -96,9 +96,10 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services := d.disco.GetService(context.Background(), srv).Unwrap(func(err error) error {
-		return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
-	})
+	services := d.disco.GetService(context.Background(), srv).
+		MapErr(func(err error) error {
+			return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
+		}).Unwrap(&gErr)
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
@@ -109,9 +110,10 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	logs.Info().Msgf("discovery builder UpdateState, address=%v", address)
 	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w := d.disco.Watch(context.Background(), srv).Unwrap(func(err error) error {
-		return errors.Wrapf(err, "target.Endpoint: %s", srv)
-	})
+	w := d.disco.Watch(context.Background(), srv).
+		MapErr(func(err error) error {
+			return errors.Wrapf(err, "target.Endpoint: %s", srv)
+		}).Unwrap(&gErr)
 
 	return &baseResolver{
 		serviceName: srv,
@@ -126,13 +128,13 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 				default:
 					res := w.Next()
 					if res.IsErr() {
-						if errors.Is(res.Err(), discovery.ErrWatcherStopped) {
+						if errors.Is(res.GetErr(), discovery.ErrWatcherStopped) {
 							return
 						}
 
-						d.log.Err(res.Err(), ctx).Msg("failed to get service watcher event")
+						d.log.Err(res.GetErr(), ctx).Msg("failed to get service watcher event")
 
-						if errors.Is(res.Err(), discovery.ErrTimeout) {
+						if errors.Is(res.GetErr(), discovery.ErrTimeout) {
 							continue
 						}
 
@@ -140,10 +142,10 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 					}
 
 					// 注册中心删除服务
-					if res.Unwrap().Action == lavapbv1.EventType_DELETE {
-						d.delService(res.Unwrap().Service)
+					if res.Must().Action == lavapbv1.EventType_DELETE {
+						d.delService(res.Must().Service)
 					} else {
-						d.updateService(res.Unwrap().Service)
+						d.updateService(res.Must().Service)
 					}
 
 					logutil.ErrRecord(logs, try.Try(func() error {

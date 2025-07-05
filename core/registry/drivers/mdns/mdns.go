@@ -79,6 +79,8 @@ func (m *mdnsRegistry) Register(ctx context.Context, service *service.Service, o
 		optList[i](&opts)
 	}
 
+	_ = opts
+
 	m.services.Set(node.Id, &serverNode{
 		srv:  server,
 		id:   node.Id,

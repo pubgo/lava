@@ -47,7 +47,7 @@ type clientImpl struct {
 	middlewares []lava.Middleware
 }
 
-func (t *clientImpl) Invoke(ctx context.Context, method string, args, reply interface{}, opts ...grpc.CallOption) (err error) {
+func (t *clientImpl) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) (err error) {
 	defer recovery.Err(&err, func(err error) error {
 		return errors.WrapTag(err, errors.T("method", method), errors.T("args", args))
 	})
@@ -57,7 +57,7 @@ func (t *clientImpl) Invoke(ctx context.Context, method string, args, reply inte
 		return errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
 	}
 
-	return conn.GetValue().Invoke(ctx, method, args, reply, opts...)
+	return conn.Must().Invoke(ctx, method, args, reply, opts...)
 }
 
 func (t *clientImpl) Healthy(ctx context.Context) error {
@@ -66,8 +66,8 @@ func (t *clientImpl) Healthy(ctx context.Context) error {
 		return errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=healthy", t.cfg.Service)
 	}
 
-	_, err := grpc_health_v1.NewHealthClient(conn.GetValue()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
-	return errors.Wrapf(err, "failed to check service %s heath", t.cfg.Service)
+	_, err := grpc_health_v1.NewHealthClient(conn.Must()).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	return errors.Wrapf(err, "service %s heath check failed", t.cfg.Service)
 }
 
 func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
@@ -76,7 +76,7 @@ func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, metho
 		return nil, errors.Wrapf(conn.GetErr(), "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
 	}
 
-	c, err1 := conn.GetValue().NewStream(ctx, desc, method, opts...)
+	c, err1 := conn.Must().NewStream(ctx, desc, method, opts...)
 	return c, errors.Wrap(err1, method)
 }
 
@@ -102,5 +102,5 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 	}
 
 	t.conn = conn
-	return r.WithValue(conn)
+	return r.WithValue(t.conn)
 }
