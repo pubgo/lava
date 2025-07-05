@@ -6,8 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/v2/result"
 )
 
 type Config struct {
@@ -41,7 +40,7 @@ type Config struct {
 }
 
 func (t *Config) Build() (r result.Result[*fiber.App]) {
-	defer recovery.Result(&r)
+	defer result.RecoveryErr(&r)
 	fc := merge.Struct(generic.Ptr(fiber.New().Config()), &t).Unwrap()
-	return r.WithVal(fiber.New(*fc))
+	return r.WithValue(fiber.New(*fc))
 }

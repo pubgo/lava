@@ -3,8 +3,7 @@ package grpc_builder
 import (
 	"time"
 
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/v2/result"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
@@ -63,7 +62,7 @@ type Config struct {
 }
 
 func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
-	defer recovery.Result(&r)
+	defer result.RecoveryErr(&r)
 
 	if t.KeepalivePolicy != nil {
 		opts = append(opts, t.KeepalivePolicy.ToOpts())
@@ -78,7 +77,7 @@ func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]
 	grpcutil.EnableReflection(srv)
 	grpcutil.EnableHealth("", srv)
 	grpcutil.EnableDebug(srv)
-	return r.WithVal(srv)
+	return r.WithValue(srv)
 }
 
 func GetDefaultCfg() *Config {

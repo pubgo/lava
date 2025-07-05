@@ -10,7 +10,7 @@ import (
 
 func TestResponse(t *testing.T) {
 	rsp := &Response{
-		Err:  testcodepb.ErrCodeDbConn,
+		Err:  testcodepb.TestErrCodeCustomCode,
 		Data: nil,
 	}
 	bytes, err1 := json.Marshal(rsp)
