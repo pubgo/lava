@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package lava.v1;
 
+import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
+
 option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
 
 message ServiceInfo {
@@ -10,4 +13,10 @@ message ServiceInfo {
   string path = 3;
   string hostname = 4;
   string ip = 5;
+}
+
+message HttpResponse {
+  string body = 1;
+  int32 status_code = 2;
+  map<string, string> headers = 3;
 }
