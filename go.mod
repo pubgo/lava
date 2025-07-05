@@ -1,11 +1,9 @@
 module github.com/pubgo/lava
 
-go 1.23.0
-
-toolchain go1.24.4
+go 1.24
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/gofiber/fiber/v2 v2.52.7
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -40,7 +38,6 @@ require (
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/arl/statsviz v0.6.0
-	github.com/dave/jennifer v1.7.0
 	github.com/ecordell/optgen v0.0.9
 	github.com/fasthttp/router v1.5.0
 	github.com/fasthttp/websocket v1.5.8
@@ -127,6 +124,7 @@ require (
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.13.5 // indirect
+	github.com/dave/jennifer v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
@@ -210,7 +208,7 @@ require (
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mattn/go-shellwords v1.0.12 // indirect
 	github.com/mgechev/revive v1.3.9 // indirect
 	github.com/miekg/dns v1.1.50 // indirect
