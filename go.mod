@@ -1,6 +1,6 @@
 module github.com/pubgo/lava
 
-go 1.24
+go 1.23.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.7
