@@ -287,12 +287,10 @@ func (s *serviceImpl) DixInject(
 		log.Info().
 			Str("operation", m.Operation).
 			Any("rpc-meta", mux.GetOperation(m.Operation).Meta).
-			Str("http-method", m.Method).
-			Str("http-path", "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path).
 			Str("verb", m.Verb).
 			Any("path-vars", m.Vars).
 			Str("extras", fmt.Sprintf("%v", m.Extras)).
-			Msg("grpc gateway router info")
+			Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
 	}
 
 	httpServer.Mount("/debug", debug.App())
