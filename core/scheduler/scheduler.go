@@ -41,8 +41,8 @@ func (s *Scheduler) String() string {
 }
 
 func (s *Scheduler) Serve(ctx context.Context) error {
-	defer s.stop()
 	s.start()
+	defer s.stop()
 	<-ctx.Done()
 	return nil
 }
