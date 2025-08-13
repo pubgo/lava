@@ -2,9 +2,7 @@ package supervisor
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"sync"
 	"time"
 
 	"github.com/pubgo/funk/errors"
@@ -87,68 +85,12 @@ func (s ExitStatus) AsInt() int {
 	return int(s)
 }
 
-type ServiceWithError interface {
-	suture.Service
-	fmt.Stringer
-	Error() error
-}
-
-// AsService wraps the given function to implement suture.Service. In addition
-// it keeps track of the returned error and allows querying that error.
-func AsService(fn func(ctx context.Context) error, creator string) ServiceWithError {
-	return &service{
-		creator: creator,
-		serve:   fn,
-	}
-}
-
-type service struct {
-	creator string
-	serve   func(ctx context.Context) error
-	err     error
-	mut     sync.Mutex
-}
-
-func (s *service) Serve(ctx context.Context) error {
-	s.mut.Lock()
-	s.err = nil
-	s.mut.Unlock()
-
-	// The error returned by serve() may well be a network timeout, which as
-	// of Go 1.19 is a context.DeadlineExceeded, which Suture interprets as
-	// a signal to stop the service instead of restarting it. This typically
-	// isn't what we want, so we make sure to remove the context specific
-	// error types unless *our* context is actually cancelled.
-	err := asNonContextError(ctx, s.serve(ctx))
-
-	s.mut.Lock()
-	s.err = err
-	s.mut.Unlock()
-
-	return err
-}
-
-func (s *service) Error() error {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-	return s.err
-}
-
-func (s *service) String() string {
-	return fmt.Sprintf("Service@%p created by %v", s, s.creator)
-}
-
 type doneService func()
 
 func (fn doneService) Serve(ctx context.Context) error {
 	<-ctx.Done()
 	fn()
 	return nil
-}
-
-// OnSupervisorDone calls fn when sup is done.
-func OnSupervisorDone(sup *suture.Supervisor, fn func()) {
-	sup.Add(doneService(fn))
 }
 
 func SpecWithDebugLogger() suture.Spec {
@@ -199,22 +141,6 @@ func infoEventHook() suture.EventHook {
 			l.Warn(e.String()) //nolint:sloglint
 		}
 	}
-}
-
-// asNonContextError returns err, except if it is context.Canceled or
-// context.DeadlineExceeded in which case the error will be a simple string
-// representation instead. The given context is checked for cancellation,
-// and if it is cancelled then that error is returned instead of err.
-func asNonContextError(ctx context.Context, err error) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return fmt.Errorf("%s (non-context)", err.Error())
-	}
-	return err
 }
 
 func CallWithContext(ctx context.Context, fn func() error) error {

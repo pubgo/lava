@@ -1,42 +1,16 @@
 package supervisor
 
 import (
-	"context"
+	"fmt"
 
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/running"
 	"github.com/thejerf/suture/v4"
 )
 
-type Service = suture.Service
+type Service interface {
+	Name() string
+	fmt.Stringer
+	suture.Service
+}
+
 type Supervisor = suture.Supervisor
 type Spec = suture.Spec
-
-func Default() *Supervisor {
-	return suture.NewSimple(running.Project)
-}
-func New(name string, spec Spec) *Supervisor {
-	return suture.New(name, spec)
-}
-
-func Run(ctx context.Context, services ...suture.Service) error {
-	if len(services) == 0 {
-		return nil
-	}
-
-	manager := suture.NewSimple(running.Project)
-	for _, service := range services {
-		manager.Add(service)
-	}
-
-	err := manager.Serve(ctx)
-	if err == nil {
-		return nil
-	}
-
-	if errors.Is(err, context.Canceled) {
-		return nil
-	}
-
-	return errors.WrapCaller(err)
-}
