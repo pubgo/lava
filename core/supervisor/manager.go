@@ -56,9 +56,11 @@ func (m *Manager) Add(srv Service) error {
 func (m *Manager) Delete(name string) error {
 	srv := m.services[name]
 	if srv == nil {
+		m.logger.Warn().Str("name", name).Msg("service not found, cannot delete")
 		return nil
 	}
 
+	defer func() { delete(m.services, name) }()
 	m.logger.Info().Str("name", name).Msg("delete service from supervisor")
 	return errors.Wrapf(m.supervisor.Remove(srv.token), "failed to remove service, name=%s", name)
 }
