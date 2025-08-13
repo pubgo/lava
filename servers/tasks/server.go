@@ -31,7 +31,7 @@ var _ lava.Server = (*Server)(nil)
 func New(services ...lava.Server) *Server {
 	assert.If(len(services) == 0, "service is nil")
 
-	return &Server{services: services, supervisor: supervisor.New()}
+	return &Server{services: services, supervisor: supervisor.Default()}
 }
 
 type Server struct {

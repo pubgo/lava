@@ -10,9 +10,13 @@ import (
 
 type Service = suture.Service
 type Supervisor = suture.Supervisor
+type Spec = suture.Spec
 
-func New() *Supervisor {
+func Default() *Supervisor {
 	return suture.NewSimple(running.Project)
+}
+func New(name string, spec Spec) *Supervisor {
+	return suture.New(name, spec)
 }
 
 func Run(ctx context.Context, services ...suture.Service) error {
