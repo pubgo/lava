@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/lava/core/signal"
 	"github.com/thejerf/suture/v4"
 )
 
@@ -65,7 +66,19 @@ func (m *Manager) Delete(name string) error {
 	return errors.Wrapf(m.supervisor.Remove(srv.token), "failed to remove service, name=%s", name)
 }
 
-func (m *Manager) RestartAll() (gErr error) {
+func (m *Manager) RemoveServices() (gErr error) {
+	for name, srv := range m.services {
+		if errcheck.Check(&gErr, m.supervisor.Remove(srv.token)) {
+			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
+		}
+		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
+	}
+
+	m.services = make(map[string]*serviceWrapper)
+	return nil
+}
+
+func (m *Manager) RestartServices() (gErr error) {
 	for name, srv := range m.services {
 		if errcheck.Check(&gErr, m.supervisor.Remove(srv.token)) {
 			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
@@ -78,7 +91,7 @@ func (m *Manager) RestartAll() (gErr error) {
 	return nil
 }
 
-func (m *Manager) Restart(name string) (gErr error) {
+func (m *Manager) RestartService(name string) (gErr error) {
 	srv := m.services[name]
 	if srv == nil {
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot restart")
@@ -101,6 +114,24 @@ func (m *Manager) Services() []Service {
 		services = append(services, srv.service)
 	}
 	return services
+}
+
+func (m *Manager) Run() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		err := m.Serve(ctx)
+		if err != nil {
+			m.logger.Err(err).Msg("supervisor failed")
+		}
+	}()
+
+	defer cancel()
+	signal.WaitRestart(m.RestartServices)
+	err := m.RemoveServices()
+	if err != nil {
+		m.logger.Err(err).Msg("failed to remove services")
+	}
 }
 
 func (m *Manager) Serve(ctx context.Context) error {
