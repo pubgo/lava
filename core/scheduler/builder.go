@@ -19,7 +19,7 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Regist
 	if len(opts) > 0 && opts[0] != nil {
 		for _, setting := range opts[0].JobSettings {
 			if _, ok := config[setting.Name]; ok {
-				panic(fmt.Sprintf("schedule job(%s) exists", setting.Name))
+				return nil, fmt.Errorf("schedule job(%s) exists", setting.Name)
 			}
 
 			config[setting.Name] = setting
