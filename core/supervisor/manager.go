@@ -16,7 +16,7 @@ type serviceWrapper struct {
 	service Service
 }
 
-func DefaultManager() *Manager {
+func Default() *Manager {
 	return NewManager(running.Project)
 }
 

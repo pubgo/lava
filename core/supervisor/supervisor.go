@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	Name() string
+	Error() error
 	fmt.Stringer
 	suture.Service
 }
