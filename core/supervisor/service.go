@@ -28,7 +28,12 @@ type serviceImpl struct {
 func (s *serviceImpl) initMetric() *serviceImpl {
 	metric := new(expvar.Map).Init()
 	metric.Set(s.name, s)
-	metric.Set(s.name+".error", vars.Value(func() interface{} { return s.err }))
+	metric.Set(s.name+".error", vars.Value(func() interface{} {
+		if s.err == nil {
+			return nil
+		}
+		return s.err.Error()
+	}))
 	s.metric = metric
 	return s
 }
