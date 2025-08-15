@@ -11,8 +11,7 @@ import (
 )
 
 func NewService(name string, fn func(ctx context.Context) error) Service {
-	srv := &serviceImpl{name: name, fn: fn}
-	return srv.initMetric()
+	return (&serviceImpl{name: name, fn: fn}).initMetric()
 }
 
 var _ Service = &serviceImpl{}
@@ -23,6 +22,10 @@ type serviceImpl struct {
 	fn   func(ctx context.Context) error
 
 	metric *expvar.Map
+}
+
+func (s *serviceImpl) Metrics() *expvar.Map {
+	return s.metric
 }
 
 func (s *serviceImpl) initMetric() *serviceImpl {

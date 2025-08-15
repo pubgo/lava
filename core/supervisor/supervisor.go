@@ -2,6 +2,7 @@ package supervisor
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 
 	"github.com/thejerf/suture/v4"
@@ -12,6 +13,7 @@ type Service interface {
 	Error() error
 	fmt.Stringer
 	suture.Service
+	Metrics() *expvar.Map
 }
 
 type Supervisor = suture.Supervisor
