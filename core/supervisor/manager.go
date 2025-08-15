@@ -40,7 +40,11 @@ func (m *Manager) Has(name string) bool {
 }
 
 func (m *Manager) OnClose(fn func()) {
-	m.supervisor.Add(doneService(fn))
+	m.supervisor.Add(serviceFn(func(ctx context.Context) error {
+		<-ctx.Done()
+		fn()
+		return nil
+	}))
 }
 
 func (m *Manager) Add(srv Service) error {
