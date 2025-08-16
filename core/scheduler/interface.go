@@ -12,7 +12,10 @@ type Register interface {
 }
 
 type Registry interface {
-	Once(name string, delay time.Duration, fn JobFunc)
-	Every(name string, dur time.Duration, fn JobFunc)
-	Cron(name, expr string, fn JobFunc)
+	Once(name string, delay time.Duration, fn JobFunc, opts ...Options)
+	Every(name string, dur time.Duration, fn JobFunc, opts ...Options)
+	Cron(name, expr string, fn JobFunc, opts ...Options)
+}
+
+type Options struct {
 }
