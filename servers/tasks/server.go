@@ -23,20 +23,34 @@ import (
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/internal/logutil"
-	"github.com/pubgo/lava/lava"
 )
 
-//var _ lava.Server = (*Server)(nil)
+type Params struct {
+	Services     []supervisor.Service
+	GetLifecycle lifecycle.Getter
+	Log          log.Logger
+	Conf         []*Config
+}
 
-func New(services ...supervisor.Service) *supervisor.Supervisor {
-	assert.If(len(services) == 0, "service is nil")
+func New(params Params) *supervisor.Manager {
+	assert.If(len(params.Services) == 0, "services is nil")
 
-	return &Server{services: services, supervisor: supervisor.Default()}
+	s := &Server{}
+	s.init(
+		params.GetLifecycle,
+		params.Log,
+		params.Conf,
+	)
+
+	manager := supervisor.Default()
+	assert.Exit(manager.Add(supervisor.NewService("task", s.Serve)))
+	for _, srv := range params.Services {
+		assert.Exit(manager.Add(srv))
+	}
+	return manager
 }
 
 type Server struct {
-	supervisor *supervisor.Supervisor
-	services   []lava.Server
 	log        log.Logger
 	lc         lifecycle.Getter
 	httpServer *fiber.App
@@ -54,7 +68,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) DixInject(
+func (s *Server) init(
 	getLifecycle lifecycle.Getter,
 	log log.Logger,
 	conf []*Config,
@@ -119,12 +133,6 @@ func (s *Server) start(ctx context.Context) {
 			return nil
 		})
 
-		async.GoSafe(func() error {
-			for _, srv := range s.services {
-				s.supervisor.Add(srv)
-			}
-			return s.supervisor.Serve(ctx)
-		})
 		return nil
 	})
 

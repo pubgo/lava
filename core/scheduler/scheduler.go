@@ -14,10 +14,7 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/lava"
 )
-
-var _ lava.Server = (*Scheduler)(nil)
 
 type job struct {
 	key  string

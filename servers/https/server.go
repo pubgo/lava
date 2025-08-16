@@ -34,13 +34,36 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
-func New(services []supervisor.Service) *supervisor.Manager { return newService(services) }
+type Params struct {
+	Services     []supervisor.Service
+	Handlers     []lava.HttpRouter
+	Middlewares  []lava.Middleware
+	GetLifecycle lifecycle.Getter
+	Lifecycle    lifecycle.Lifecycle
+	M            metrics.Metric
+	Log          log.Logger
+	Cfg          *Config
+	Docs         []*opendoc.Swagger
+}
 
-func newService(services []supervisor.Service) *supervisor.Manager {
-	srv := &serviceImpl{}
+func New(params Params) *supervisor.Manager { return newService(params) }
+
+func newService(params Params) *supervisor.Manager {
+	s := &serviceImpl{}
+	s.init(
+		params.Handlers,
+		params.Middlewares,
+		params.GetLifecycle,
+		params.Lifecycle,
+		params.M,
+		params.Log,
+		params.Cfg,
+		params.Docs,
+	)
+
 	manager := supervisor.Default()
-	assert.Exit(manager.Add(supervisor.NewService("http-server", srv.Serve)))
-	for _, srv := range services {
+	assert.Exit(manager.Add(supervisor.NewService("http-server", s.Serve)))
+	for _, srv := range params.Services {
 		assert.Exit(manager.Add(srv))
 	}
 	return manager
@@ -63,7 +86,7 @@ func (s *serviceImpl) Serve(ctx context.Context) error {
 	return nil
 }
 
-func (s *serviceImpl) DixInject(
+func (s *serviceImpl) init(
 	handlers []lava.HttpRouter,
 	middlewares []lava.Middleware,
 	getLifecycle lifecycle.Getter,

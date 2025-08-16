@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/servers/https"
 )
@@ -17,9 +16,8 @@ func New(di *dix.Dix) *cli.Command {
 		Name:  "http",
 		Usage: cmdutil.UsageDesc("%s http service", version.Project()),
 		Action: func(ctx context.Context, command *cli.Command) error {
-			srv := dix.Inject(di, https.New())
-			manager := supervisor.Default()
-			manager.Add()
+			params := dix.Inject(di, https.Params{})
+			manager := https.New(params)
 			return manager.Run()
 		},
 	}

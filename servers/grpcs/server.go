@@ -32,6 +32,7 @@ import (
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/internal/consts"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
@@ -43,15 +44,47 @@ import (
 	"github.com/pubgo/lava/pkg/httputil"
 )
 
-func New() lava.Server { return newService() }
+type Params struct {
+	Services []supervisor.Service
 
-func newService() *serviceImpl {
-	return &serviceImpl{
-		cc: new(inprocgrpc.Channel),
-	}
+	GrpcRouters     []lava.GrpcRouter
+	HttpRouters     []lava.HttpRouter
+	GrpcHttpRouters []lava.GrpcHttpRouter
+	GrpcProxy       []lava.GrpcProxy
+	DixMiddlewares  []lava.Middleware
+	GetLifecycle    lifecycle.Getter
+	Lifecycle       lifecycle.Lifecycle
+	Metric          metrics.Metric
+	Log             log.Logger
+	Conf            *Config
+	Gw              []*gateway.Mux
 }
 
-var _ lava.Server = (*serviceImpl)(nil)
+func New(params Params) *supervisor.Manager { return newService(params) }
+
+func newService(params Params) *supervisor.Manager {
+	s := &serviceImpl{cc: new(inprocgrpc.Channel)}
+	s.init(
+		params.GrpcRouters,
+		params.HttpRouters,
+		params.GrpcHttpRouters,
+		params.GrpcProxy,
+		params.DixMiddlewares,
+		params.GetLifecycle,
+		params.Lifecycle,
+		params.Metric,
+		params.Log,
+		params.Conf,
+		params.Gw,
+	)
+
+	manager := supervisor.Default()
+	assert.Exit(manager.Add(supervisor.NewService("grpc-server", s.Serve)))
+	for _, srv := range params.Services {
+		assert.Exit(manager.Add(srv))
+	}
+	return manager
+}
 
 type serviceImpl struct {
 	lc         lifecycle.Getter
@@ -78,7 +111,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (err error) {
 	return nil
 }
 
-func (s *serviceImpl) DixInject(
+func (s *serviceImpl) init(
 	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
 	grpcHttpRouters []lava.GrpcHttpRouter,
