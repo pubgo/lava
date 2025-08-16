@@ -32,20 +32,22 @@ func Context() context.Context {
 	return ctx
 }
 
-func WaitRestart(restart func() error) {
+func WaitRestart(restart func() error) error {
 	sigChan := getCh()
 	for sig := range sigChan {
 		logger.Info().Str("signal", sig.String()).Msg("signal trigger notify")
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
 			logger.Info().Str("signal", sig.String()).Msg("stop trigger")
-			return
+			return nil
 		case syscall.SIGHUP, syscall.SIGUSR1:
 			logger.Info().Str("signal", sig.String()).Msg("restart trigger")
 			err := try.Try(restart)
 			if err != nil {
 				logger.Error().Err(err).Msg("restart error")
+				return err
 			}
 		}
 	}
+	return nil
 }

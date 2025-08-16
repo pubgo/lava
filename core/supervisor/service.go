@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/vars"
 )
@@ -57,18 +58,20 @@ func (s *serviceImpl) String() string {
 
 func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 	now := time.Now()
-	defer recovery.Recovery(func(err error) {
-		s.err = err
-		gErr = err
-		s.metric.Set("error", vars.Any(err))
-	})
 	defer func() {
+		if gErr != nil {
+			s.err = gErr
+		}
+		s.metric.Set("error", vars.Any(s.err))
 		s.metric.Set("start_time", vars.Any(now.UTC().String()))
 		s.metric.Set("online_duration", vars.Any(time.Since(now).String()))
+		log.Info(ctx).Msgf("stop service %s", s.name)
 	}()
+	defer recovery.Err(&gErr)
 
 	s.err = nil
 	s.metric.Add("restart", 1)
+	log.Info(ctx).Msgf("start service %s", s.name)
 	err := s.fn(ctx)
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return fmt.Errorf("non-context error, service=%s meta=%s err=%w", s.name, s.metric.String(), err)

@@ -26,9 +26,9 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
-var _ lava.Server = (*Server)(nil)
+//var _ lava.Server = (*Server)(nil)
 
-func New(services ...lava.Server) *Server {
+func New(services ...supervisor.Service) *supervisor.Supervisor {
 	assert.If(len(services) == 0, "service is nil")
 
 	return &Server{services: services, supervisor: supervisor.Default()}

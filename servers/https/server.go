@@ -25,6 +25,7 @@ import (
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/internal/logutil"
 	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
@@ -33,13 +34,17 @@ import (
 	"github.com/pubgo/lava/lava"
 )
 
-func New() lava.Server { return newService() }
+func New(services []supervisor.Service) *supervisor.Manager { return newService(services) }
 
-func newService() *serviceImpl {
-	return &serviceImpl{}
+func newService(services []supervisor.Service) *supervisor.Manager {
+	srv := &serviceImpl{}
+	manager := supervisor.Default()
+	assert.Exit(manager.Add(supervisor.NewService("http-server", srv.Serve)))
+	for _, srv := range services {
+		assert.Exit(manager.Add(srv))
+	}
+	return manager
 }
-
-var _ lava.Server = (*serviceImpl)(nil)
 
 type serviceImpl struct {
 	lc         lifecycle.Getter

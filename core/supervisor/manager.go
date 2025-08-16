@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/try"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/thejerf/suture/v4"
 )
@@ -120,18 +121,18 @@ func (m *Manager) Services() []Service {
 	return services
 }
 
-func (m *Manager) Run() {
+func (m *Manager) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		err := m.Serve(ctx)
+		err := try.Try(func() error { return m.Serve(ctx) })
 		if err != nil {
 			m.logger.Err(err).Msg("supervisor failed")
 		}
 	}()
 
 	defer cancel()
-	signal.WaitRestart(m.RestartServices)
+	return signal.WaitRestart(m.RestartServices)
 }
 
 func (m *Manager) Serve(ctx context.Context) error {

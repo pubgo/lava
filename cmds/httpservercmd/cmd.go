@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/pubgo/dix"
-	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
@@ -19,7 +18,9 @@ func New(di *dix.Dix) *cli.Command {
 		Usage: cmdutil.UsageDesc("%s http service", version.Project()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			srv := dix.Inject(di, https.New())
-			return errors.WrapCaller(supervisor.Run(ctx, srv))
+			manager := supervisor.Default()
+			manager.Add()
+			return manager.Run()
 		},
 	}
 }
