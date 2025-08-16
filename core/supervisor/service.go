@@ -4,6 +4,7 @@ import (
 	"context"
 	"expvar"
 	"fmt"
+	"time"
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/recovery"
@@ -37,6 +38,7 @@ func (s *serviceImpl) initMetric() *serviceImpl {
 		}
 		return s.err.Error()
 	}))
+	metric.Add("restart", 0)
 	s.metric = metric
 	return s
 }
@@ -54,10 +56,16 @@ func (s *serviceImpl) String() string {
 }
 
 func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
+	now := time.Now()
 	defer recovery.Recovery(func(err error) {
 		s.err = err
 		gErr = err
+		s.metric.Set("error", vars.Any(err))
 	})
+	defer func() {
+		s.metric.Set("start_time", vars.Any(now.UTC().String()))
+		s.metric.Set("online_duration", vars.Any(time.Since(now).String()))
+	}()
 
 	s.err = nil
 	s.metric.Add("restart", 1)

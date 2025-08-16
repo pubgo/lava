@@ -132,10 +132,6 @@ func (m *Manager) Run() {
 
 	defer cancel()
 	signal.WaitRestart(m.RestartServices)
-	err := m.RemoveServices()
-	if err != nil {
-		m.logger.Err(err).Msg("failed to remove services")
-	}
 }
 
 func (m *Manager) Serve(ctx context.Context) error {
