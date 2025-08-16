@@ -2,7 +2,7 @@ package supervisor
 
 import (
 	"context"
-
+	
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
@@ -131,8 +131,19 @@ func (m *Manager) Run() error {
 		}
 	}()
 
-	defer cancel()
-	return signal.WaitRestart(m.RestartServices)
+	return signal.WaitRestart(m.RestartServices, func() error {
+		cancel()
+
+		unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
+		if len(unstoppedServices) > 0 {
+			for _, service := range unstoppedServices {
+				m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
+			}
+			return errors.New("services are still running")
+		}
+
+		return nil
+	})
 }
 
 func (m *Manager) Serve(ctx context.Context) error {

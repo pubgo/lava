@@ -8,15 +8,18 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/try"
+	"github.com/samber/lo"
 )
 
 const Name = "signal"
 
 var logger = log.GetLogger(Name)
 
+var signals = []os.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP, syscall.SIGUSR1}
+
 func getCh() chan os.Signal {
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP, syscall.SIGUSR1)
+	signal.Notify(ch, signals...)
 	return ch
 }
 
@@ -32,22 +35,23 @@ func Context() context.Context {
 	return ctx
 }
 
-func WaitRestart(restart func() error) error {
+func WaitRestart(restart func() error, close func() error) error {
 	sigChan := getCh()
 	for sig := range sigChan {
 		logger.Info().Str("signal", sig.String()).Msg("signal trigger notify")
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
 			logger.Info().Str("signal", sig.String()).Msg("stop trigger")
-			return nil
+			return try.Try(close)
 		case syscall.SIGHUP, syscall.SIGUSR1:
 			logger.Info().Str("signal", sig.String()).Msg("restart trigger")
 			err := try.Try(restart)
 			if err != nil {
-				logger.Error().Err(err).Msg("restart error")
-				return err
+				logger.Err(err).Msg("supervisor service restart failed")
 			}
+			continue
 		}
+		logger.Error().Msgf("unknown signal: %s, should in signals(%v)", sig, lo.Map(signals, func(s os.Signal, _ int) string { return s.String() }))
 	}
 	return nil
 }
