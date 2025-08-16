@@ -72,7 +72,7 @@ func (s *Scheduler) checkJobExists(name string, fn JobFunc) error {
 	return nil
 }
 
-func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc) {
+func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc, opts ...Options) {
 	assert.Must(s.checkJobExists(name, fn))
 
 	s.log.WithCallerSkip(1).Info().
@@ -82,7 +82,7 @@ func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc) {
 	do(s, job{dur: delay, key: name, once: true}, fn)
 }
 
-func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) {
+func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc, opts ...Options) {
 	assert.Must(s.checkJobExists(name, fn))
 
 	s.log.WithCallerSkip(1).Info().
@@ -92,7 +92,7 @@ func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) {
 	do(s, job{dur: dur, key: name}, fn)
 }
 
-func (s *Scheduler) Cron(name, expr string, fn JobFunc) {
+func (s *Scheduler) Cron(name, expr string, fn JobFunc, opts ...Options) {
 	assert.Must(s.checkJobExists(name, fn))
 
 	s.log.WithCallerSkip(1).Info().
