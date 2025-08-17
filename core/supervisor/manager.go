@@ -2,14 +2,22 @@ package supervisor
 
 import (
 	"context"
-	
+	"fmt"
+	"time"
+
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/try"
-	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/funk/stack"
 	"github.com/thejerf/suture/v4"
+
+	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/core/signal"
+	"github.com/pubgo/lava/internal/logutil"
 )
 
 type serviceWrapper struct {
@@ -17,12 +25,16 @@ type serviceWrapper struct {
 	service Service
 }
 
-func Default() *Manager {
-	return NewManager(running.Project)
+func Default(lc lifecycle.Getter) *Manager {
+	return NewManager(running.Project, lc)
 }
 
-func NewManager(name string) *Manager {
+func NewManager(name string, lc lifecycle.Getter) *Manager {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &Manager{
+		cancel:     cancel,
+		ctx:        ctx,
+		lc:         lc,
 		supervisor: suture.New(name, SpecWithInfoLogger()),
 		services:   make(map[string]*serviceWrapper),
 		logger:     log.GetLogger(name),
@@ -30,9 +42,12 @@ func NewManager(name string) *Manager {
 }
 
 type Manager struct {
+	lc         lifecycle.Getter
 	logger     log.Logger
 	supervisor *Supervisor
 	services   map[string]*serviceWrapper
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 func (m *Manager) Has(name string) bool {
@@ -121,29 +136,71 @@ func (m *Manager) Services() []Service {
 	return services
 }
 
-func (m *Manager) Run() error {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go func() {
-		err := try.Try(func() error { return m.Serve(ctx) })
-		if err != nil {
-			m.logger.Err(err).Msg("supervisor failed")
+func (m *Manager) start() error {
+	ctx := m.ctx
+	defer recovery.Exit()
+	logutil.OkOrFailed(m.logger, "service before-start", func() error {
+		defer recovery.Exit()
+		for _, run := range m.lc.GetBeforeStarts() {
+			m.logger.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			assert.Exit(run.Exec(ctx))
 		}
-	}()
-
-	return signal.WaitRestart(m.RestartServices, func() error {
-		cancel()
-
-		unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
-		if len(unstoppedServices) > 0 {
-			for _, service := range unstoppedServices {
-				m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
-			}
-			return errors.New("services are still running")
-		}
-
 		return nil
 	})
+
+	async.GoDelay(func() error {
+		assert.Exit(m.supervisor.Serve(ctx))
+		return nil
+	}, time.Second*2)
+
+	logutil.OkOrFailed(m.logger, "service after-start", func() error {
+		defer recovery.Exit()
+		for _, run := range m.lc.GetAfterStarts() {
+			m.logger.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
+			assert.Exit(run.Exec(ctx))
+		}
+		return nil
+	})
+
+	return nil
+}
+
+func (m *Manager) stop() error {
+	defer recovery.DebugPrint()
+
+	ctx := m.ctx
+	logutil.OkOrFailed(m.logger, "service before-stop", func() error {
+		for _, run := range m.lc.GetBeforeStops() {
+			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
+				return run.Exec(ctx)
+			})
+		}
+		return nil
+	})
+
+	m.cancel()
+
+	logutil.OkOrFailed(m.logger, "service after-stop", func() error {
+		for _, run := range m.lc.GetAfterStops() {
+			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
+				return run.Exec(ctx)
+			})
+		}
+		return nil
+	})
+
+	unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
+	if len(unstoppedServices) > 0 {
+		for _, service := range unstoppedServices {
+			m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
+		}
+		return errors.New("services are still running")
+	}
+	return nil
+}
+
+func (m *Manager) Run() error {
+	return signal.WaitRestart(m.start, m.stop, m.RestartServices)
 }
 
 func (m *Manager) Serve(ctx context.Context) error {

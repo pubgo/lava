@@ -35,7 +35,12 @@ func Context() context.Context {
 	return ctx
 }
 
-func WaitRestart(restart func() error, close func() error) error {
+func WaitRestart(start func() error, close func() error, restart func() error) error {
+	err := start()
+	if err != nil {
+		return err
+	}
+
 	sigChan := getCh()
 	for sig := range sigChan {
 		logger.Info().Str("signal", sig.String()).Msg("signal trigger notify")
