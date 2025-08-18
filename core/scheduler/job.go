@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pubgo/funk/generic"
@@ -15,6 +16,14 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/core/metrics"
+)
+
+type Status string
+
+const (
+	StatusInit    Status = "init"
+	StatusRunning Status = "running"
+	StatusStop    Status = "stop"
 )
 
 type jobWrapper struct {
@@ -151,4 +160,12 @@ func getTrigger(j jobWrapper, location *time.Location) (r result.Result[*trigger
 	}
 
 	return r.WithErrorf("please init dur or cron")
+}
+
+func parseJobKey(name string) *quartz.JobKey {
+	keys := strings.SplitN(name, quartz.Sep, 2)
+	if len(keys) == 1 {
+		return quartz.NewJobKey(keys[0])
+	}
+	return quartz.NewJobKeyWithGroup(keys[0], keys[1])
 }

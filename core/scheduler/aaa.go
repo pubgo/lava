@@ -3,11 +3,19 @@ package scheduler
 import (
 	"context"
 	"time"
-
-	"github.com/reugn/go-quartz/quartz"
 )
 
+type JobExecutor interface {
+	Exec(ctx context.Context, name string, metadata *JobMetadata) error
+}
+
+var _ JobExecutor = (JobFunc)(nil)
+
 type JobFunc func(ctx context.Context, name string, metadata *JobMetadata) error
+
+func (j JobFunc) Exec(ctx context.Context, name string, metadata *JobMetadata) error {
+	return j(ctx, name, metadata)
+}
 
 type JobRegister interface {
 	RegisterSchedulerJob(reg JobRegistry)
@@ -25,39 +33,39 @@ type JobManager interface {
 	Resume(name string)
 	Delete(name string)
 	Reload(name string)
-	List()
-	Get(name string)
+	List() []Job
+	Get(name string) Job
 }
 
 type AddJobSpec struct {
-	Name    string
-	Setting JobSetting
-	Job     JobFunc
-
-	Once  *OnceJob
-	Every *EveryJob
-	Cron  *CronJob
+	Name     string
+	Setting  JobSetting
+	Executor string
+	Once     *OnceJob
+	Ticker   *TickerJob
+	Cron     *CronJob
 }
 
 type OnceJob struct {
 	Delay time.Duration
 }
 
-type EveryJob struct {
+type TickerJob struct {
 	Dur time.Duration
 }
 
 type CronJob struct {
-	Expr string
+	Expr     string
+	Location string
 }
 
 type Job struct {
 	Name     string
-	Delay    *time.Duration
-	Dur      *time.Duration
-	CronExpr string
 	Metadata JobMetadata
 	ExecErr  error
-	JobKey   *quartz.JobKey
-	Location *time.Location
+	Executor string
+	Once     *OnceJob
+	Ticker   *TickerJob
+	Cron     *CronJob
+	Status   string
 }

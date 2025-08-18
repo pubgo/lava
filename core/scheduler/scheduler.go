@@ -14,6 +14,9 @@ import (
 	"github.com/pubgo/lava/core/metrics"
 )
 
+var _ JobManager = (*Scheduler)(nil)
+var _ JobRegistry = (*Scheduler)(nil)
+
 type Scheduler struct {
 	metric    metrics.Metric
 	configMap map[string]*JobSetting
@@ -24,13 +27,48 @@ type Scheduler struct {
 	jobs      map[string]JobFunc
 }
 
+func (s *Scheduler) Add(spec AddJobSpec) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Pause(name string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Resume(name string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Delete(name string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Reload(name string) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) List() []Job {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Get(name string) Job {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s *Scheduler) String() string {
 	return Name
 }
 
 func (s *Scheduler) Serve(ctx context.Context) error {
-	s.start()
 	defer s.stop()
+	s.start()
 
 	s.scheduler.Wait(ctx)
 	return nil
