@@ -8,21 +8,21 @@ import (
 	"github.com/samber/lo"
 )
 
-func createConfig(opts []*Config) (r result.Result[map[string]*JobSetting]) {
-	configMap := make(map[string]*JobSetting)
+func createConfig(opts []*Config) (r result.Result[map[string]*JobConfig]) {
+	configMap := make(map[string]*JobConfig)
 	if len(opts) > 0 && opts[0] != nil {
-		for _, setting := range opts[0].JobSettings {
-			if setting.Name == "" {
+		for _, config := range opts[0].JobConfigs {
+			if config.Name == "" {
 				return r.WithErrorf("schedule job name is empty")
 			}
 
-			if _, ok := configMap[setting.Name]; ok {
-				return r.WithErrorf("schedule job(%s) exists", setting.Name)
+			if _, ok := configMap[config.Name]; ok {
+				return r.WithErrorf("schedule job(%s) exists", config.Name)
 			}
 
-			configMap[setting.Name] = initConfig(setting.Name, lo.ToPtr(setting)).
+			configMap[config.Name] = initConfig(config.Name, lo.ToPtr(config)).
 				MapErr(func(err error) error {
-					return fmt.Errorf("schedule job(%s) error: %w", setting.Name, err)
+					return fmt.Errorf("schedule job(%s) error: %w", config.Name, err)
 				}).
 				UnwrapErr(&r)
 			if r.IsErr() {
@@ -33,9 +33,9 @@ func createConfig(opts []*Config) (r result.Result[map[string]*JobSetting]) {
 	return r.WithValue(configMap)
 }
 
-func initConfig(name string, cfg *JobSetting) (r result.Result[*JobSetting]) {
+func initConfig(name string, cfg *JobConfig) (r result.Result[*JobConfig]) {
 	if cfg == nil {
-		cfg = &JobSetting{Name: name}
+		cfg = &JobConfig{Name: name}
 	}
 
 	if cfg.Disabled == nil {
@@ -66,7 +66,7 @@ func initConfig(name string, cfg *JobSetting) (r result.Result[*JobSetting]) {
 	return r.WithValue(cfg)
 }
 
-type JobSetting struct {
+type JobConfig struct {
 	Disabled *bool          `yaml:"disabled"`
 	Name     string         `yaml:"name"`
 	Timeout  *time.Duration `yaml:"timeout"`
@@ -93,8 +93,8 @@ type JobSetting struct {
 }
 
 type Config struct {
-	Timeout     string       `yaml:"timeout"`
-	JobSettings []JobSetting `yaml:"jobs"`
+	Timeout    string      `yaml:"timeout"`
+	JobConfigs []JobConfig `yaml:"jobs"`
 }
 
 type JobsConfigLoader struct {

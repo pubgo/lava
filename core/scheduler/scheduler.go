@@ -19,7 +19,7 @@ var _ JobRegistry = (*Scheduler)(nil)
 
 type Scheduler struct {
 	metric    metrics.Metric
-	configMap map[string]*JobSetting
+	configMap map[string]*JobConfig
 	scheduler quartz.Scheduler
 	log       log.Logger
 	cancel    context.CancelFunc
@@ -27,7 +27,7 @@ type Scheduler struct {
 	jobs      map[string]JobFunc
 }
 
-func (s *Scheduler) Patch(name string, setting JobSetting) error {
+func (s *Scheduler) Patch(name string, config JobConfig) error {
 	//TODO implement me
 	panic("implement me")
 }

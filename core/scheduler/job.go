@@ -38,7 +38,7 @@ type namedJob struct {
 	name    string
 	fn      JobFunc
 	log     log.Logger
-	setting *JobSetting
+	config  *JobConfig
 	trigger *triggerImpl
 
 	runs atomic.Uint64
@@ -63,12 +63,12 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 
 	t.runs.Inc()
 	metadata := JobMetadata{
-		Name:          t.setting.Name,
-		Replace:       lo.FromPtr(t.setting.Replace),
-		MaxRetries:    lo.FromPtr(t.setting.MaxRetries),
-		RetryInterval: lo.FromPtr(t.setting.RetryInterval),
-		Timeout:       lo.FromPtr(t.setting.Timeout),
-		Location:      t.setting.location,
+		Name:          t.config.Name,
+		Replace:       lo.FromPtr(t.config.Replace),
+		MaxRetries:    lo.FromPtr(t.config.MaxRetries),
+		RetryInterval: lo.FromPtr(t.config.RetryInterval),
+		Timeout:       lo.FromPtr(t.config.Timeout),
+		Location:      t.config.location,
 		PreRunTime:    t.trigger.prev,
 		NextRunTime:   t.trigger.next,
 	}
@@ -78,7 +78,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	}
 
 	return try.Try(func() error {
-		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.setting.Timeout))
+		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.config.Timeout))
 		defer cancel()
 
 		return t.fn(ctx, t.name, &metadata)
@@ -91,8 +91,8 @@ func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
 		return
 	}
 
-	setting := s.configMap[job.key]
-	trigger := getTrigger(job, setting.location).UnwrapErr(&r)
+	config := s.configMap[job.key]
+	trigger := getTrigger(job, config.location).UnwrapErr(&r)
 	if r.IsErr() {
 		return
 	}
@@ -102,15 +102,15 @@ func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
 	}
 
 	jobOpt := &quartz.JobDetailOptions{
-		MaxRetries:    lo.FromPtr(setting.MaxRetries),
-		RetryInterval: lo.FromPtr(setting.RetryInterval),
-		Replace:       lo.FromPtr(setting.Replace),
+		MaxRetries:    lo.FromPtr(config.MaxRetries),
+		RetryInterval: lo.FromPtr(config.RetryInterval),
+		Replace:       lo.FromPtr(config.Replace),
 		Suspended:     false,
 	}
 
 	return result.ErrOf(s.scheduler.ScheduleJob(
 		quartz.NewJobDetailWithOptions(
-			&namedJob{s: s, name: job.key, fn: fn, log: s.log, setting: setting, trigger: trigger},
+			&namedJob{s: s, name: job.key, fn: fn, log: s.log, config: config, trigger: trigger},
 			quartz.NewJobKey(job.key),
 			jobOpt,
 		),

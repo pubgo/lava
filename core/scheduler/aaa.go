@@ -29,7 +29,7 @@ type JobRegistry interface {
 
 type JobManager interface {
 	Create(spec AddJobSpec) error
-	Patch(name string, setting JobSetting) error
+	Patch(name string, config JobConfig) error
 	Pause(name string) error
 	Resume(name string) error
 	Delete(name string) error
@@ -40,7 +40,7 @@ type JobManager interface {
 
 type AddJobSpec struct {
 	Name     string
-	Setting  JobSetting
+	Config   JobConfig
 	Executor string
 	Once     *OnceJob
 	Ticker   *TickerJob
