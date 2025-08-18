@@ -28,11 +28,12 @@ type JobRegistry interface {
 }
 
 type JobManager interface {
-	Add(spec AddJobSpec)
-	Pause(name string)
-	Resume(name string)
-	Delete(name string)
-	Reload(name string)
+	Create(spec AddJobSpec) error
+	Patch(name string, setting JobSetting) error
+	Pause(name string) error
+	Resume(name string) error
+	Delete(name string) error
+	Reload(name string) error
 	List() []Job
 	Get(name string) Job
 }

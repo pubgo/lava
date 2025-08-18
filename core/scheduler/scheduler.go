@@ -27,27 +27,32 @@ type Scheduler struct {
 	jobs      map[string]JobFunc
 }
 
-func (s *Scheduler) Add(spec AddJobSpec) {
+func (s *Scheduler) Patch(name string, setting JobSetting) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *Scheduler) Pause(name string) {
+func (s *Scheduler) Create(spec AddJobSpec) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *Scheduler) Resume(name string) {
+func (s *Scheduler) Pause(name string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *Scheduler) Delete(name string) {
+func (s *Scheduler) Resume(name string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *Scheduler) Reload(name string) {
+func (s *Scheduler) Delete(name string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Scheduler) Reload(name string) error {
 	//TODO implement me
 	panic("implement me")
 }
