@@ -20,17 +20,20 @@ type JobRegistry interface {
 }
 
 type JobManager interface {
-	Add(name string, spec JobSpec, fn JobFunc)
-	Pause(name string, spec JobSpec, fn JobFunc)
-	Resume(name string, spec JobSpec, fn JobFunc)
-	Delete(name string, spec JobSpec, fn JobFunc)
-	Start(name string, spec JobSpec, fn JobFunc)
-	Stop(name string, spec JobSpec, fn JobFunc)
-	List(name string, spec JobSpec, fn JobFunc)
-	Get(name string, spec JobSpec, fn JobFunc)
+	Add(spec AddJobSpec)
+	Pause(name string)
+	Resume(name string)
+	Delete(name string)
+	Reload(name string)
+	List()
+	Get(name string)
 }
 
-type JobSpec struct {
+type AddJobSpec struct {
+	Name    string
+	Setting JobSetting
+	Job     JobFunc
+
 	Once  *OnceJob
 	Every *EveryJob
 	Cron  *CronJob

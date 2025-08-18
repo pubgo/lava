@@ -3,7 +3,11 @@ package supervisor
 import (
 	"context"
 	"expvar"
+
+	"github.com/thejerf/suture/v4"
 )
+
+type Supervisor = suture.Supervisor
 
 type Service interface {
 	Name() string
