@@ -108,4 +108,7 @@ type JobMetadata struct {
 	RetryInterval time.Duration
 	Replace       bool
 	Location      *time.Location
+
+	PreRunTime  int64
+	NextRunTime int64
 }

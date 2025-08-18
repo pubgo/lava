@@ -14,13 +14,6 @@ import (
 	"github.com/pubgo/lava/core/metrics"
 )
 
-type jobWrapper struct {
-	key  string
-	cron string
-	dur  time.Duration
-	once bool
-}
-
 type Scheduler struct {
 	metric    metrics.Metric
 	configMap map[string]*JobSetting
@@ -38,7 +31,8 @@ func (s *Scheduler) String() string {
 func (s *Scheduler) Serve(ctx context.Context) error {
 	s.start()
 	defer s.stop()
-	<-ctx.Done()
+
+	s.scheduler.Wait(ctx)
 	return nil
 }
 

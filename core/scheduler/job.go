@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/pubgo/funk/generic"
@@ -9,10 +10,19 @@ import (
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
+	"github.com/rs/zerolog"
 	"github.com/samber/lo"
+	"go.uber.org/atomic"
 
 	"github.com/pubgo/lava/core/metrics"
 )
+
+type jobWrapper struct {
+	key  string
+	cron string
+	dur  time.Duration
+	once bool
+}
 
 type namedJob struct {
 	s       *Scheduler
@@ -20,11 +30,29 @@ type namedJob struct {
 	fn      JobFunc
 	log     log.Logger
 	setting *JobSetting
+	trigger *triggerImpl
+
+	runs atomic.Uint64
 }
 
-func (t namedJob) Description() string { return t.name }
-func (t namedJob) Execute(ctx context.Context) error {
+func (t *namedJob) Description() string { return t.name }
+func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	start := time.Now()
+
+	defer func() {
+		cost := float64(time.Since(start).Milliseconds())
+		t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("job_cost_ms").Update(cost)
+
+		logger := generic.Ternary(generic.IsNil(gErr), t.log.Info(), t.log.Err(gErr))
+		logger.Func(func(e *zerolog.Event) {
+			e.Float32("job_cost_ms", float32(cost))
+			e.Str("job_name", t.name)
+			e.Uint64("runs", t.runs.Load())
+			e.Msg("exec scheduler job")
+		})
+	}()
+
+	t.runs.Inc()
 	metadata := JobMetadata{
 		Name:          t.setting.Name,
 		Replace:       lo.FromPtr(t.setting.Replace),
@@ -32,24 +60,20 @@ func (t namedJob) Execute(ctx context.Context) error {
 		RetryInterval: lo.FromPtr(t.setting.RetryInterval),
 		Timeout:       lo.FromPtr(t.setting.Timeout),
 		Location:      t.setting.location,
+		PreRunTime:    t.trigger.prev,
+		NextRunTime:   t.trigger.next,
 	}
-	err := try.Try(func() error {
+
+	if t.trigger.err != nil {
+		return fmt.Errorf("schedule job(%s) error: %w", t.name, t.trigger.err)
+	}
+
+	return try.Try(func() error {
 		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.setting.Timeout))
 		defer cancel()
 
 		return t.fn(ctx, t.name, &metadata)
 	})
-
-	cost := float64(time.Since(start).Milliseconds())
-	t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("job_cost_ms").Update(cost)
-
-	logger := generic.Ternary(generic.IsNil(err), t.log.Info(), t.log.Err(err))
-	logger.
-		Float32("job_cost_ms", float32(cost)).
-		Str("job_name", t.name).
-		Msg("exec scheduler job")
-
-	return err
 }
 
 func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
@@ -74,9 +98,10 @@ func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
 		Replace:       lo.FromPtr(setting.Replace),
 		Suspended:     false,
 	}
+
 	return result.ErrOf(s.scheduler.ScheduleJob(
 		quartz.NewJobDetailWithOptions(
-			&namedJob{s: s, name: job.key, fn: fn, log: s.log, setting: setting},
+			&namedJob{s: s, name: job.key, fn: fn, log: s.log, setting: setting, trigger: trigger},
 			quartz.NewJobKey(job.key),
 			jobOpt,
 		),
@@ -84,9 +109,33 @@ func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
 	))
 }
 
-func getTrigger(j jobWrapper, location *time.Location) (r result.Result[quartz.Trigger]) {
+var _ quartz.Trigger = &triggerImpl{}
+
+func newTrigger(trigger quartz.Trigger) *triggerImpl {
+	return &triggerImpl{trigger: trigger}
+}
+
+type triggerImpl struct {
+	prev    int64
+	next    int64
+	err     error
+	trigger quartz.Trigger
+}
+
+func (t *triggerImpl) NextFireTime(prev int64) (next int64, err error) {
+	t.prev = prev
+
+	defer func() { t.next, t.err = next, err }()
+	return t.trigger.NextFireTime(prev)
+}
+
+func (t *triggerImpl) Description() string {
+	return t.trigger.Description()
+}
+
+func getTrigger(j jobWrapper, location *time.Location) (r result.Result[*triggerImpl]) {
 	if j.once {
-		return r.WithValue(quartz.NewRunOnceTrigger(j.dur))
+		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.dur)))
 	}
 
 	if j.cron != "" {
@@ -94,11 +143,11 @@ func getTrigger(j jobWrapper, location *time.Location) (r result.Result[quartz.T
 		if err != nil {
 			return r.WithErrorf("cron-expr:%s, err:%s", j.cron, err.Error())
 		}
-		return r.WithValue(trigger)
+		return r.WithValue(newTrigger(trigger))
 	}
 
 	if j.dur != 0 {
-		return r.WithValue(quartz.NewSimpleTrigger(j.dur))
+		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.dur)))
 	}
 
 	return r.WithErrorf("please init dur or cron")
