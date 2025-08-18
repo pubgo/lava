@@ -3,7 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	
+
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
@@ -19,7 +19,7 @@ type Params struct {
 	M       lifecycle.Lifecycle
 	Log     log.Logger
 	Configs []*Config
-	Routers []Register
+	Routers []JobRegister
 	Metric  metrics.Metric
 }
 
@@ -37,7 +37,7 @@ func NewService(params Params) (supervisor.Service, error) {
 	return supervisor.NewService(Name, s.Serve), err
 }
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Register, metric metrics.Metric) (_ *Scheduler, gErr error) {
+func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []JobRegister, metric metrics.Metric) (_ *Scheduler, gErr error) {
 	config := createConfig(opts).Unwrap(&gErr)
 	if gErr != nil {
 		return nil, fmt.Errorf("failed to create config, err:%w", gErr)
@@ -63,7 +63,7 @@ func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []Regist
 	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
 
 	for _, r := range routers {
-		r.RegisterCrontabScheduler(quart)
+		r.RegisterSchedulerJob(quart)
 	}
 
 	return quart, nil

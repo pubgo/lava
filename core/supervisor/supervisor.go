@@ -3,21 +3,15 @@ package supervisor
 import (
 	"context"
 	"expvar"
-	"fmt"
-
-	"github.com/thejerf/suture/v4"
 )
 
 type Service interface {
 	Name() string
 	Error() error
-	fmt.Stringer
-	suture.Service
+	String() string
+	Serve(ctx context.Context) error
 	Metrics() *expvar.Map
 }
-
-type Supervisor = suture.Supervisor
-type Spec = suture.Spec
 
 type serviceFn func(ctx context.Context) error
 

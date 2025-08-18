@@ -7,11 +7,11 @@ import (
 
 type JobFunc func(ctx context.Context, name string, metadata *JobMetadata) error
 
-type Register interface {
-	RegisterCrontabScheduler(reg Registry)
+type JobRegister interface {
+	RegisterSchedulerJob(reg JobRegistry)
 }
 
-type Registry interface {
+type JobRegistry interface {
 	Once(name string, delay time.Duration, fn JobFunc)
 	Every(name string, dur time.Duration, fn JobFunc)
 	Cron(name, expr string, fn JobFunc)
