@@ -1,39 +1,32 @@
 package scheduler
 
 import (
-	"fmt"
+	"github.com/reugn/go-quartz/quartz"
 	"time"
 
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
 )
 
-func createConfig(opts []*Config) (r result.Result[map[string]*JobConfig]) {
+func createConfig(configs []*Config) (r result.Result[map[string]*JobConfig]) {
 	configMap := make(map[string]*JobConfig)
-	if len(opts) > 0 && opts[0] != nil {
-		for _, config := range opts[0].JobConfigs {
-			if config.Name == "" {
-				return r.WithErrorf("schedule job name is empty")
-			}
+	if len(configs) == 0 || configs[0] == nil {
+		return r.WithValue(configMap)
+	}
 
-			if _, ok := configMap[config.Name]; ok {
-				return r.WithErrorf("schedule job(%s) exists", config.Name)
-			}
+	for _, config := range configs[0].JobConfigs {
+		if config.Name == "" {
+			return r.WithErrorf("schedule job name is empty")
+		}
 
-			configMap[config.Name] = initConfig(config.Name, lo.ToPtr(config)).
-				MapErr(func(err error) error {
-					return fmt.Errorf("schedule job(%s) error: %w", config.Name, err)
-				}).
-				UnwrapErr(&r)
-			if r.IsErr() {
-				return
-			}
+		if _, ok := configMap[config.Name]; ok {
+			return r.WithErrorf("schedule job(%s) exists", config.Name)
 		}
 	}
 	return r.WithValue(configMap)
 }
 
-func initConfig(name string, cfg *JobConfig) (r result.Result[*JobConfig]) {
+func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Result[*JobConfig]) {
 	if cfg == nil {
 		cfg = &JobConfig{Name: name}
 	}
@@ -63,6 +56,33 @@ func initConfig(name string, cfg *JobConfig) (r result.Result[*JobConfig]) {
 		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).UnwrapErr(&r)
 	}
 
+	if mergeCfg != nil {
+		if mergeCfg.Disabled != nil {
+			cfg.Disabled = mergeCfg.Disabled
+		}
+
+		if mergeCfg.Timeout != nil {
+			cfg.Timeout = mergeCfg.Timeout
+		}
+
+		if mergeCfg.RetryInterval != nil {
+			cfg.RetryInterval = mergeCfg.RetryInterval
+		}
+
+		if mergeCfg.MaxRetries != nil {
+			cfg.MaxRetries = mergeCfg.MaxRetries
+		}
+
+		if mergeCfg.Replace != nil {
+			cfg.Replace = mergeCfg.Replace
+		}
+
+		if mergeCfg.Location != nil {
+			cfg.Location = mergeCfg.Location
+			cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).UnwrapErr(&r)
+		}
+	}
+
 	return r.WithValue(cfg)
 }
 
@@ -90,6 +110,15 @@ type JobConfig struct {
 	location *time.Location
 
 	//quartz.JobDetailOptions
+}
+
+func (c JobConfig) ToJobDetailOptions() *quartz.JobDetailOptions {
+	return &quartz.JobDetailOptions{
+		MaxRetries:    lo.FromPtr(c.MaxRetries),
+		RetryInterval: lo.FromPtr(c.RetryInterval),
+		Replace:       lo.FromPtr(c.Replace),
+		Suspended:     false,
+	}
 }
 
 type Config struct {

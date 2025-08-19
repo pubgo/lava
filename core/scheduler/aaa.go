@@ -2,11 +2,15 @@ package scheduler
 
 import (
 	"context"
+	stdLog "log"
+	"os"
 	"time"
 
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/v2/result"
 )
+
+var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Lshortfile)
 
 type JobExecutor interface {
 	Name() string
@@ -36,7 +40,7 @@ type JobRegistry interface {
 }
 
 type JobManager interface {
-	Create(spec AddJobSpec) error
+	Create(spec AddJobSpec) result.Error
 	Patch(name string, config JobConfig) error
 	Pause(name string) error
 	Resume(name string) error
@@ -44,10 +48,6 @@ type JobManager interface {
 	Reload(name string) error
 	List() []Job
 	Get(name string) Job
-}
-
-type JobExecT interface {
-	string | JobFunc
 }
 
 type AddJobSpec struct {
@@ -68,8 +68,7 @@ type TickerJob struct {
 }
 
 type CronJob struct {
-	Expr     string
-	Location string
+	Expr string
 }
 
 type Job struct {
@@ -80,5 +79,13 @@ type Job struct {
 	Once     *OnceJob
 	Ticker   *TickerJob
 	Cron     *CronJob
-	Status   string
+	Status   Status
 }
+
+type Status string
+
+const (
+	StatusInit    Status = "init"
+	StatusRunning Status = "running"
+	StatusStop    Status = "stop"
+)

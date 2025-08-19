@@ -9,22 +9,54 @@ import (
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/stack"
-	"github.com/reugn/go-quartz/quartz"
-
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/core/metrics"
+	"github.com/reugn/go-quartz/quartz"
+	"go.uber.org/atomic"
 )
+
+type jobTask struct {
+	name     string
+	executor JobExecutor
+	config   *JobConfig
+
+	Once   *OnceJob
+	Ticker *TickerJob
+	Cron   *CronJob
+
+	trigger *triggerImpl
+	runs    atomic.Uint64
+}
 
 var _ JobManager = (*Scheduler)(nil)
 var _ JobRegistry = (*Scheduler)(nil)
 
 type Scheduler struct {
-	metric    metrics.Metric
-	configMap map[string]*JobConfig
-	scheduler quartz.Scheduler
-	log       log.Logger
-	cancel    context.CancelFunc
-	ctx       context.Context
-	jobs      map[string]JobFunc
+	metric       metrics.Metric
+	configMap    map[string]*JobConfig
+	scheduler    quartz.Scheduler
+	log          log.Logger
+	cancel       context.CancelFunc
+	ctx          context.Context
+	jobs         map[string]*jobTask
+	jobExecutors map[string]JobExecutor
+}
+
+func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (r result.Error) {
+	if executor == nil {
+		return result.Errorf("executor is nil")
+	}
+
+	if executor.Name() == "" {
+		return result.Errorf("executor name is empty")
+	}
+
+	if jobExecutors[executor.Name()] != nil {
+		return result.Errorf("[job executor] %s already exists", executor.Name())
+	}
+
+	jobExecutors[executor.Name()] = executor
+	return
 }
 
 func (s *Scheduler) Patch(name string, config JobConfig) error {
@@ -32,9 +64,53 @@ func (s *Scheduler) Patch(name string, config JobConfig) error {
 	panic("implement me")
 }
 
-func (s *Scheduler) Create(spec AddJobSpec) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) Create(spec AddJobSpec) (r result.Error) {
+	if spec.Name == "" {
+		return result.Errorf("job name is empty")
+	}
+
+	name := spec.Name
+	if s.jobs[name] != nil {
+		return result.Errorf("job %s already exists", name)
+	}
+
+	config := initConfig(name, s.configMap[name], &spec.Config).
+		InspectErr(func(err error) {
+			s.log.Err(err).Msgf("failed to init schedule job(%s) config", name)
+		}).
+		UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	executor := GetJobExecutor(spec.Executor)
+	if executor == nil {
+		return result.ErrorOf("schedule job(%s) error: %s", name, "executor is nil")
+	}
+
+	trigger := getTrigger(spec, config.location).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	task := &jobTask{
+		name:     name,
+		executor: executor,
+		config:   config,
+		trigger:  trigger,
+
+		Once:   spec.Once,
+		Ticker: spec.Ticker,
+		Cron:   spec.Cron,
+	}
+	s.jobs[name] = task
+
+	jobOpt := config.ToJobDetailOptions()
+	job := &namedJob{s: s, name: name, task: task, log: s.log}
+	return result.ErrOf(s.scheduler.ScheduleJob(
+		quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt),
+		trigger,
+	))
 }
 
 func (s *Scheduler) Pause(name string) error {

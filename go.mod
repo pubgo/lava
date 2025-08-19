@@ -13,12 +13,12 @@ require (
 	github.com/olekukonko/tablewriter v1.0.8
 	github.com/pkg/errors v0.9.1
 	github.com/pubgo/opendoc v0.0.5
-	github.com/reugn/go-quartz v0.14.0
+	github.com/reugn/go-quartz v0.15.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/metric v1.37.0
 	go.opentelemetry.io/otel/trace v1.37.0
-	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/mod v0.25.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.65.0
 	github.com/pubgo/dix v0.3.21
-	github.com/pubgo/funk v0.5.69-alpha.3
+	github.com/pubgo/funk v0.5.69-alpha.4
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0

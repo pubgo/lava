@@ -10,20 +10,10 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/try"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
-	"go.uber.org/atomic"
-
-	"github.com/pubgo/lava/core/metrics"
-)
-
-type Status string
-
-const (
-	StatusInit    Status = "init"
-	StatusRunning Status = "running"
-	StatusStop    Status = "stop"
 )
 
 type jobWrapper struct {
@@ -34,14 +24,11 @@ type jobWrapper struct {
 }
 
 type namedJob struct {
-	s       *Scheduler
-	name    string
-	fn      JobFunc
-	log     log.Logger
-	config  *JobConfig
-	trigger *triggerImpl
+	s    *Scheduler
+	name string
+	log  log.Logger
 
-	runs atomic.Uint64
+	task *jobTask
 }
 
 func (t *namedJob) Description() string { return t.name }
@@ -61,7 +48,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		})
 	}()
 
-	t.runs.Inc()
+	t.task.runs.Inc()
 	metadata := JobMetadata{
 		Name:          t.config.Name,
 		Replace:       lo.FromPtr(t.config.Replace),
@@ -73,7 +60,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		NextRunTime:   t.trigger.next,
 	}
 
-	if t.trigger.err != nil {
+	if t.task.trigger.err != nil {
 		return fmt.Errorf("schedule job(%s) error: %w", t.name, t.trigger.err)
 	}
 
@@ -142,21 +129,21 @@ func (t *triggerImpl) Description() string {
 	return t.trigger.Description()
 }
 
-func getTrigger(j jobWrapper, location *time.Location) (r result.Result[*triggerImpl]) {
-	if j.once {
-		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.dur)))
+func getTrigger(j AddJobSpec, location *time.Location) (r result.Result[*triggerImpl]) {
+	if j.Once != nil {
+		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.Once.Delay)))
 	}
 
-	if j.cron != "" {
-		trigger, err := quartz.NewCronTriggerWithLoc(j.cron, location)
+	if j.Cron != nil {
+		trigger, err := quartz.NewCronTriggerWithLoc(j.Cron.Expr, location)
 		if err != nil {
-			return r.WithErrorf("cron-expr:%s, err:%s", j.cron, err.Error())
+			return r.WithErrorf("cron-expr:%s, err:%s", j.Cron.Expr, err.Error())
 		}
 		return r.WithValue(newTrigger(trigger))
 	}
 
-	if j.dur != 0 {
-		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.dur)))
+	if j.Ticker != nil {
+		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.Ticker.Dur)))
 	}
 
 	return r.WithErrorf("please init dur or cron")
