@@ -34,20 +34,20 @@ type JobRegister interface {
 }
 
 type JobRegistry interface {
-	Once(name string, delay time.Duration, fn JobFunc)
-	Every(name string, dur time.Duration, fn JobFunc)
-	Cron(name, expr string, fn JobFunc)
+	Once(name string, delay time.Duration, fn JobFunc) result.Error
+	Every(name string, dur time.Duration, fn JobFunc) result.Error
+	Cron(name, expr string, fn JobFunc) result.Error
 }
 
 type JobManager interface {
-	Create(spec AddJobSpec) result.Error
-	Patch(name string, config JobConfig) error
-	Pause(name string) error
-	Resume(name string) error
-	Delete(name string) error
-	Reload(name string) error
-	List() []Job
-	Get(name string) Job
+	CreateJob(spec AddJobSpec) result.Error
+	PatchJob(name string, config *JobConfig) result.Error
+	PauseJob(name string) result.Error
+	ResumeJob(name string) result.Error
+	DeleteJob(name string) result.Error
+	ReloadJob(name string) result.Error
+	ListJobs() []Job
+	GetJob(name string) Job
 }
 
 type JobExecT interface {
