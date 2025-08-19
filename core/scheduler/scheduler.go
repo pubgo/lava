@@ -118,7 +118,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return
 	}
 
-	config := initConfig(name, s.configMap[name], &spec.Config).
+	config := initConfig(name, s.configMap[name], spec.Config).
 		InspectErr(func(err error) {
 			s.log.Err(err).Msgf("failed to init schedule job(%s) config", name)
 		}).

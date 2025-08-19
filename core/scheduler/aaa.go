@@ -56,7 +56,7 @@ type JobExecT interface {
 
 type JobSpec struct {
 	Name     string
-	Config   JobConfig
+	Config   *JobConfig
 	Executor string
 	Once     *OnceJob
 	Ticker   *TickerJob
