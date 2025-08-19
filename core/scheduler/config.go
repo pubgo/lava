@@ -1,10 +1,11 @@
 package scheduler
 
 import (
-	"github.com/reugn/go-quartz/quartz"
 	"time"
 
+	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/reugn/go-quartz/quartz"
 	"github.com/samber/lo"
 )
 
@@ -53,7 +54,14 @@ func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Resu
 
 	if cfg.Location == nil {
 		cfg.Location = lo.ToPtr(time.UTC.String())
-		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).UnwrapErr(&r)
+		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
+			InspectErr(func(err error) {
+				log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(mergeCfg.Location))
+			}).
+			UnwrapErr(&r)
+		if r.IsErr() {
+			return
+		}
 	}
 
 	if mergeCfg != nil {
@@ -79,7 +87,14 @@ func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Resu
 
 		if mergeCfg.Location != nil {
 			cfg.Location = mergeCfg.Location
-			cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).UnwrapErr(&r)
+			cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
+				InspectErr(func(err error) {
+					log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(mergeCfg.Location))
+				}).
+				UnwrapErr(&r)
+			if r.IsErr() {
+				return
+			}
 		}
 	}
 
@@ -126,16 +141,4 @@ type Config struct {
 
 type JobsConfigLoader struct {
 	Scheduler *Config `yaml:"scheduler"`
-}
-
-type JobMetadata struct {
-	Name          string
-	Timeout       time.Duration
-	MaxRetries    int
-	RetryInterval time.Duration
-	Replace       bool
-	Location      *time.Location
-
-	PreRunTime  int64
-	NextRunTime int64
 }

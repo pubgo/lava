@@ -50,6 +50,10 @@ type JobManager interface {
 	Get(name string) Job
 }
 
+type JobExecT interface {
+	string | JobFunc
+}
+
 type AddJobSpec struct {
 	Name     string
 	Config   JobConfig
@@ -89,3 +93,15 @@ const (
 	StatusRunning Status = "running"
 	StatusStop    Status = "stop"
 )
+
+type JobMetadata struct {
+	Name          string
+	Timeout       time.Duration
+	MaxRetries    int
+	RetryInterval time.Duration
+	Replace       bool
+	Location      *time.Location
+
+	PreRunTime  int64
+	NextRunTime int64
+}

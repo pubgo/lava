@@ -26,6 +26,8 @@ type jobTask struct {
 
 	trigger *triggerImpl
 	runs    atomic.Uint64
+
+	result result.Result[[]byte]
 }
 
 var _ JobManager = (*Scheduler)(nil)
@@ -83,9 +85,9 @@ func (s *Scheduler) Create(spec AddJobSpec) (r result.Error) {
 		return
 	}
 
-	executor := GetJobExecutor(spec.Executor)
+	executor := s.jobExecutors[spec.Executor]
 	if executor == nil {
-		return result.ErrorOf("schedule job(%s) error: %s", name, "executor is nil")
+		return result.Errorf("schedule job(%s) executor is nil", name)
 	}
 
 	trigger := getTrigger(spec, config.location).UnwrapErr(&r)

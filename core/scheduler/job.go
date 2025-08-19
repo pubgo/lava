@@ -43,32 +43,33 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		logger.Func(func(e *zerolog.Event) {
 			e.Float32("job_cost_ms", float32(cost))
 			e.Str("job_name", t.name)
-			e.Uint64("runs", t.runs.Load())
+			e.Uint64("runs", t.task.runs.Load())
 			e.Msg("exec scheduler job")
 		})
 	}()
 
 	t.task.runs.Inc()
 	metadata := JobMetadata{
-		Name:          t.config.Name,
-		Replace:       lo.FromPtr(t.config.Replace),
-		MaxRetries:    lo.FromPtr(t.config.MaxRetries),
-		RetryInterval: lo.FromPtr(t.config.RetryInterval),
-		Timeout:       lo.FromPtr(t.config.Timeout),
-		Location:      t.config.location,
-		PreRunTime:    t.trigger.prev,
-		NextRunTime:   t.trigger.next,
+		Name:          t.task.config.Name,
+		Replace:       lo.FromPtr(t.task.config.Replace),
+		MaxRetries:    lo.FromPtr(t.task.config.MaxRetries),
+		RetryInterval: lo.FromPtr(t.task.config.RetryInterval),
+		Timeout:       lo.FromPtr(t.task.config.Timeout),
+		Location:      t.task.config.location,
+		PreRunTime:    t.task.trigger.prev,
+		NextRunTime:   t.task.trigger.next,
 	}
 
 	if t.task.trigger.err != nil {
-		return fmt.Errorf("schedule job(%s) error: %w", t.name, t.trigger.err)
+		return fmt.Errorf("schedule job(%s) error: %w", t.name, t.task.trigger.err)
 	}
 
 	return try.Try(func() error {
-		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.config.Timeout))
+		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.task.config.Timeout))
 		defer cancel()
 
-		return t.fn(ctx, t.name, &metadata)
+		t.task.result = t.task.executor.Exec(ctx, t.name, &metadata)
+		return t.task.result.GetErr()
 	})
 }
 
@@ -85,7 +86,7 @@ func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
 	}
 
 	if fn == nil {
-		return result.ErrorOf("schedule job(%s) error: %s", job.key, "fn is nil")
+		return result.Errorf("schedule job(%s) error: %s", job.key, "fn is nil")
 	}
 
 	jobOpt := &quartz.JobDetailOptions{
@@ -146,7 +147,7 @@ func getTrigger(j AddJobSpec, location *time.Location) (r result.Result[*trigger
 		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.Ticker.Dur)))
 	}
 
-	return r.WithErrorf("please init dur or cron")
+	return r.WithErrorf("please init Once, Cron or Ticker")
 }
 
 func parseJobKey(name string) *quartz.JobKey {

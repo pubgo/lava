@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
 	qlog "github.com/reugn/go-quartz/logger"
@@ -16,20 +17,22 @@ import (
 const Name = "scheduler"
 
 type Params struct {
-	M       lifecycle.Lifecycle
-	Log     log.Logger
-	Configs []*Config
-	Routers []JobRegister
-	Metric  metrics.Metric
+	M         lifecycle.Lifecycle
+	Log       log.Logger
+	Configs   []*Config
+	Routers   []JobRegister
+	Metric    metrics.Metric
+	Executors []JobExecutor
 }
 
 func NewService(params Params) (supervisor.Service, error) {
 	s, err := New(
 		params.M,
 		params.Log,
+		params.Metric,
 		params.Configs,
 		params.Routers,
-		params.Metric,
+		params.Executors,
 	)
 	if err != nil {
 		return nil, err
@@ -65,12 +68,12 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		jobExecutors: jobExecutors,
 	}
 
-	quart.start()
-	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
-
 	for _, r := range routers {
 		r.RegisterSchedulerJob(quart)
 	}
+
+	quart.start()
+	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
 
 	return quart, nil
 }
