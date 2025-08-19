@@ -108,8 +108,6 @@ type JobConfig struct {
 	Location *string `yaml:"location"`
 
 	location *time.Location
-
-	//quartz.JobDetailOptions
 }
 
 func (c JobConfig) ToJobDetailOptions() *quartz.JobDetailOptions {
