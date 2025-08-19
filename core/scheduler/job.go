@@ -130,7 +130,7 @@ func (t *triggerImpl) Description() string {
 	return t.trigger.Description()
 }
 
-func getTrigger(j AddJobSpec, location *time.Location) (r result.Result[*triggerImpl]) {
+func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImpl]) {
 	if j.Once != nil {
 		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.Once.Delay)))
 	}

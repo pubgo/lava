@@ -40,7 +40,7 @@ type JobRegistry interface {
 }
 
 type JobManager interface {
-	CreateJob(spec AddJobSpec) result.Error
+	CreateJob(spec JobSpec) result.Error
 	PatchJob(name string, config *JobConfig) result.Error
 	PauseJob(name string) result.Error
 	ResumeJob(name string) result.Error
@@ -54,7 +54,7 @@ type JobExecT interface {
 	string | JobFunc
 }
 
-type AddJobSpec struct {
+type JobSpec struct {
 	Name     string
 	Config   JobConfig
 	Executor string

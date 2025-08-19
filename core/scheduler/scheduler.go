@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/core/metrics"
@@ -65,7 +64,7 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) result.Error {
 	panic("implement me")
 }
 
-func (s *Scheduler) createJob(spec AddJobSpec, fn JobFunc) (r result.Error) {
+func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	task := jobTask{Once: spec.Once, Ticker: spec.Ticker, Cron: spec.Cron, name: spec.Name}
 
 	defer func() {
@@ -151,7 +150,7 @@ func (s *Scheduler) createJob(spec AddJobSpec, fn JobFunc) (r result.Error) {
 	return
 }
 
-func (s *Scheduler) CreateJob(spec AddJobSpec) (r result.Error) {
+func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
 	return s.createJob(spec, nil)
 }
 
@@ -214,31 +213,13 @@ func (s *Scheduler) start() {
 }
 
 func (s *Scheduler) Once(name string, delay time.Duration, fn JobFunc) result.Error {
-	assert.Must(s.checkJobExists(name, fn))
-
-	s.log.WithCallerSkip(1).Info().
-		Str("name", name).
-		Str("delay", delay.String()).
-		Msg("register once scheduler")
-	registerJob(s, jobWrapper{dur: delay, key: name, once: true}, fn)
+	return s.createJob(JobSpec{Name: name, Once: &OnceJob{Delay: delay}}, fn)
 }
 
 func (s *Scheduler) Every(name string, dur time.Duration, fn JobFunc) result.Error {
-	assert.Must(s.checkJobExists(name, fn))
-
-	s.log.WithCallerSkip(1).Info().
-		Str("name", name).
-		Str("dur", dur.String()).
-		Msg("register periodic scheduler")
-	registerJob(s, jobWrapper{dur: dur, key: name}, fn)
+	return s.createJob(JobSpec{Name: name, Ticker: &TickerJob{Dur: dur}}, fn)
 }
 
 func (s *Scheduler) Cron(name, expr string, fn JobFunc) result.Error {
-	assert.Must(s.checkJobExists(name, fn))
-
-	s.log.WithCallerSkip(1).Info().
-		Str("name", name).
-		Str("expr", expr).
-		Msg("register cron scheduler")
-	registerJob(s, jobWrapper{cron: expr, key: name}, fn)
+	return s.createJob(JobSpec{Name: name, Cron: &CronJob{Expr: expr}}, fn)
 }
