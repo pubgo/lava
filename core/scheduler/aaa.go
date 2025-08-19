@@ -3,17 +3,25 @@ package scheduler
 import (
 	"context"
 	"time"
+
+	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/v2/result"
 )
 
 type JobExecutor interface {
-	Exec(ctx context.Context, name string, metadata *JobMetadata) error
+	Name() string
+	Exec(ctx context.Context, name string, metadata *JobMetadata) result.Result[[]byte]
 }
 
 var _ JobExecutor = (JobFunc)(nil)
 
-type JobFunc func(ctx context.Context, name string, metadata *JobMetadata) error
+type JobFunc func(ctx context.Context, name string, metadata *JobMetadata) result.Result[[]byte]
 
-func (j JobFunc) Exec(ctx context.Context, name string, metadata *JobMetadata) error {
+func (j JobFunc) Name() string {
+	return stack.CallerWithFunc(j).String()
+}
+
+func (j JobFunc) Exec(ctx context.Context, name string, metadata *JobMetadata) result.Result[[]byte] {
 	return j(ctx, name, metadata)
 }
 
@@ -36,6 +44,10 @@ type JobManager interface {
 	Reload(name string) error
 	List() []Job
 	Get(name string) Job
+}
+
+type JobExecT interface {
+	string | JobFunc
 }
 
 type AddJobSpec struct {
