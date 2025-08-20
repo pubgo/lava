@@ -76,13 +76,9 @@ type CronJob struct {
 }
 
 type Job struct {
-	Name     string
+	Spec     JobSpec
 	Metadata JobMetadata
 	ExecErr  error
-	Executor string
-	Once     *OnceJob
-	Ticker   *TickerJob
-	Cron     *CronJob
 	Status   Status
 }
 
