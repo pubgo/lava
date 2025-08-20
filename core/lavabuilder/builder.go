@@ -30,7 +30,7 @@ import (
 	"github.com/pubgo/lava/pkg/cmdutil"
 
 	_ "github.com/pubgo/lava/core/debug/debug"
-	// debug
+	_ "github.com/pubgo/lava/core/debug/gops"
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
 	_ "github.com/pubgo/lava/core/debug/statsviz"

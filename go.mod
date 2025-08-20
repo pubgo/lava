@@ -47,6 +47,7 @@ require (
 	github.com/gofiber/adaptor/v2 v2.2.1
 	github.com/gofiber/utils v1.1.0
 	github.com/golangci/golangci-lint v1.61.0
+	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
@@ -54,7 +55,7 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.65.0
 	github.com/pubgo/dix v0.3.21
-	github.com/pubgo/funk v0.5.69-alpha.4
+	github.com/pubgo/funk v0.5.69-alpha.6
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
@@ -62,7 +63,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.17
-	github.com/urfave/cli/v3 v3.3.8
+	github.com/urfave/cli/v3 v3.4.1
 	github.com/valyala/fasthttp v1.63.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/contrib/zpages v0.62.0
@@ -182,7 +183,7 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/julz/importas v0.1.0 // indirect
-	github.com/k0kubun/pp/v3 v3.4.1 // indirect
+	github.com/k0kubun/pp/v3 v3.5.0 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect

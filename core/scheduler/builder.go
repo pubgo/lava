@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
@@ -41,19 +40,31 @@ func NewService(params Params) (supervisor.Service, error) {
 }
 
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
-	configMap := createConfig(configs).Unwrap(&gErr)
+	configMap := createConfig(configs).
+		InspectErr(func(err error) {
+			log.Err(err).Any("configs", configs).Msg("failed to create config")
+		}).
+		Unwrap(&gErr)
 	if gErr != nil {
-		return nil, fmt.Errorf("failed to create config, err:%w", gErr)
+		return
 	}
 
-	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelDebug)))).Unwrap(&gErr)
+	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelDebug)))).
+		InspectErr(func(err error) {
+			log.Err(err).Msg("failed to create scheduler")
+		}).
+		Unwrap(&gErr)
 	if gErr != nil {
-		return nil, fmt.Errorf("failed to create scheduler, err:%w", gErr)
+		return
 	}
 
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
-		regJobExecutor(jobExecutors, executor)
+		regJobExecutor(jobExecutors, executor).
+			Inspect(func(err error) {
+				log.Err(err).Msg("failed to register job executor")
+			}).
+			Catch(&gErr)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
