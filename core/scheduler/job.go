@@ -57,7 +57,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		Timeout:       lo.FromPtr(t.task.config.Timeout),
 		Location:      t.task.config.location,
 		PreRunTime:    t.task.trigger.prev,
-		NextRunTime:   t.task.trigger.next,
+		ExecTime:      t.task.trigger.next,
 	}
 
 	if t.task.trigger.err != nil {
@@ -71,39 +71,6 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		t.task.result = t.task.executor.Exec(ctx, t.name, &metadata)
 		return t.task.result.GetErr()
 	})
-}
-
-func registerJob(s *Scheduler, job jobWrapper, fn JobFunc) (r result.Error) {
-	s.configMap[job.key] = initConfig(job.key, s.configMap[job.key]).UnwrapErr(&r)
-	if r.IsErr() {
-		return
-	}
-
-	config := s.configMap[job.key]
-	trigger := getTrigger(job, config.location).UnwrapErr(&r)
-	if r.IsErr() {
-		return
-	}
-
-	if fn == nil {
-		return result.Errorf("schedule job(%s) error: %s", job.key, "fn is nil")
-	}
-
-	jobOpt := &quartz.JobDetailOptions{
-		MaxRetries:    lo.FromPtr(config.MaxRetries),
-		RetryInterval: lo.FromPtr(config.RetryInterval),
-		Replace:       lo.FromPtr(config.Replace),
-		Suspended:     false,
-	}
-
-	return result.ErrOf(s.scheduler.ScheduleJob(
-		quartz.NewJobDetailWithOptions(
-			&namedJob{s: s, name: job.key, fn: fn, log: s.log, config: config, trigger: trigger},
-			quartz.NewJobKey(job.key),
-			jobOpt,
-		),
-		trigger,
-	))
 }
 
 var _ quartz.Trigger = &triggerImpl{}

@@ -54,14 +54,14 @@ func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Resu
 
 	if cfg.Location == nil {
 		cfg.Location = lo.ToPtr(time.UTC.String())
-		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-			InspectErr(func(err error) {
-				log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(mergeCfg.Location))
-			}).
-			UnwrapErr(&r)
-		if r.IsErr() {
-			return
-		}
+	}
+	cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
+		InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
+		}).
+		UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
 	if mergeCfg != nil {
@@ -87,14 +87,14 @@ func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Resu
 
 		if mergeCfg.Location != nil {
 			cfg.Location = mergeCfg.Location
-			cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-				InspectErr(func(err error) {
-					log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(mergeCfg.Location))
-				}).
-				UnwrapErr(&r)
-			if r.IsErr() {
-				return
-			}
+		}
+		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
+			InspectErr(func(err error) {
+				log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
+			}).
+			UnwrapErr(&r)
+		if r.IsErr() {
+			return
 		}
 	}
 
