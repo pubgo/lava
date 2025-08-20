@@ -131,6 +131,9 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	}
 
 	trigger := getTrigger(spec, config.location).
+		InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to get schedule job(%s) trigger", name)
+		}).
 		Inspect(func(trigger *triggerImpl) {
 			task.trigger = trigger
 		}).
