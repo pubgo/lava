@@ -10,23 +10,7 @@ import (
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
-	"go.uber.org/atomic"
 )
-
-type jobTask struct {
-	name     string
-	executor JobExecutor
-	config   *JobConfig
-
-	Once   *OnceJob
-	Ticker *TickerJob
-	Cron   *CronJob
-
-	trigger *triggerImpl
-	runs    atomic.Uint64
-
-	result result.Result[[]byte]
-}
 
 var _ JobManager = (*Scheduler)(nil)
 var _ JobRegistry = (*Scheduler)(nil)
@@ -42,45 +26,27 @@ type Scheduler struct {
 	jobExecutors map[string]JobExecutor
 }
 
-func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (r result.Error) {
-	if executor == nil {
-		return result.Errorf("executor is nil")
-	}
-
-	if executor.Name() == "" {
-		return result.Errorf("executor name is empty")
-	}
-
-	if jobExecutors[executor.Name()] != nil {
-		return result.Errorf("[job executor] %s already exists", executor.Name())
-	}
-
-	jobExecutors[executor.Name()] = executor
-	return
-}
-
-func (s *Scheduler) PatchJob(name string, config *JobConfig) result.Error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
-	task := jobTask{Once: spec.Once, Ticker: spec.Ticker, Cron: spec.Cron, name: spec.Name}
+	task := jobTask{
+		spec:   &spec,
+		jobKey: parseJobKey(spec.Name),
+		status: StatusRunning,
+	}
 
 	defer func() {
 		logFn := func(e *zerolog.Event) {
-			e.Str("name", task.name)
+			e.Str("name", task.spec.Name)
 
 			if task.executor != nil {
 				e.Str("executor", task.executor.Name())
 			}
 
-			if task.config != nil {
-				e.Any("config", task.config)
+			if task.spec.Config != nil {
+				e.Any("config", task.spec.Config)
 			}
-			e.Any("once", task.Once)
-			e.Any("ticker", task.Ticker)
-			e.Any("cron", task.Cron)
+			e.Any("once", task.spec.Once)
+			e.Any("ticker", task.spec.Ticker)
+			e.Any("cron", task.spec.Cron)
 		}
 		if r.IsErr() {
 			s.log.Err(r.GetErr()).Func(logFn).Msg("failed to register scheduler job")
@@ -118,12 +84,12 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return
 	}
 
-	config := initConfig(name, s.configMap[name], spec.Config).
+	config := initAndMergeConfig(name, s.configMap[name], spec.Config).
 		InspectErr(func(err error) {
 			s.log.Err(err).Msgf("failed to init schedule job(%s) config", name)
 		}).
 		Inspect(func(config *JobConfig) {
-			task.config = config
+			task.spec.Config = config
 		}).
 		UnwrapErr(&r)
 	if r.IsErr() {
@@ -157,34 +123,103 @@ func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
 	return s.createJob(spec, nil)
 }
 
-func (s *Scheduler) PauseJob(name string) result.Error {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
+	if s.jobs[name] == nil {
+		return r.WithErrorf("job %s not exists", name)
+	}
+	return r.WithValue(s.jobs[name])
 }
 
-func (s *Scheduler) ResumeJob(name string) result.Error {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	initAndMergeConfig(name, job.spec.Config, config).
+		InspectErr(func(err error) {
+			s.log.Err(err).Msgf("failed to patch schedule job(%s) config", name)
+		}).
+		Inspect(func(config *JobConfig) {
+			job.spec.Config = config
+		}).
+		CatchErr(&r)
+
+	return
 }
 
-func (s *Scheduler) DeleteJob(name string) result.Error {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) PauseJob(name string) (r result.Error) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	job.status = StatusStop
+	return result.ErrOf(s.scheduler.PauseJob(job.jobKey)).
+		InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to pause schedule job(%s)", name)
+		})
 }
 
-func (s *Scheduler) ReloadJob(name string) result.Error {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) ResumeJob(name string) (r result.Error) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	job.status = StatusRunning
+	return result.ErrOf(s.scheduler.ResumeJob(job.jobKey)).
+		InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to resume schedule job(%s)", name)
+		})
 }
 
-func (s *Scheduler) ListJobs() []Job {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) DeleteJob(name string) (r result.Error) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	delete(s.jobs, name)
+	return result.ErrOf(s.scheduler.DeleteJob(job.jobKey)).
+		InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to delete schedule job(%s)", name)
+		})
 }
 
-func (s *Scheduler) GetJob(name string) Job {
-	//TODO implement me
-	panic("implement me")
+func (s *Scheduler) ReloadJob(name string) (r result.Error) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	jobOpt := job.spec.Config.ToJobDetailOptions()
+	jobDetail := quartz.NewJobDetailWithOptions(
+		&namedJob{s: s, name: name, task: job, log: s.log},
+		job.jobKey,
+		jobOpt,
+	)
+	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, job.trigger)) {
+		return
+	}
+	return
+}
+
+func (s *Scheduler) ListJobs() []*Job {
+	var jobs []*Job
+	for _, job := range s.jobs {
+		jobs = append(jobs, job.ToJob())
+	}
+	return jobs
+}
+
+func (s *Scheduler) GetJob(name string) (r result.Result[*Job]) {
+	job := s.getJob(name).UnwrapErr(&r)
+	if r.IsErr() {
+		return
+	}
+
+	return r.WithValue(job.ToJob())
 }
 
 func (s *Scheduler) String() string {

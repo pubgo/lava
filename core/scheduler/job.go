@@ -3,25 +3,16 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/try"
-	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 )
-
-type jobWrapper struct {
-	key  string
-	cron string
-	dur  time.Duration
-	once bool
-}
 
 type namedJob struct {
 	s    *Scheduler
@@ -49,13 +40,14 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	}()
 
 	t.task.runs.Inc()
+	config := t.task.spec.Config
 	metadata := JobMetadata{
-		Name:          t.task.config.Name,
-		Replace:       lo.FromPtr(t.task.config.Replace),
-		MaxRetries:    lo.FromPtr(t.task.config.MaxRetries),
-		RetryInterval: lo.FromPtr(t.task.config.RetryInterval),
-		Timeout:       lo.FromPtr(t.task.config.Timeout),
-		Location:      t.task.config.location,
+		Name:          config.Name,
+		Replace:       lo.FromPtr(config.Replace),
+		MaxRetries:    lo.FromPtr(config.MaxRetries),
+		RetryInterval: lo.FromPtr(config.RetryInterval),
+		Timeout:       lo.FromPtr(config.Timeout),
+		Location:      config.location,
 		PreRunTime:    t.task.trigger.prev,
 		ExecTime:      t.task.trigger.next,
 	}
@@ -65,7 +57,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	}
 
 	return try.Try(func() error {
-		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(t.task.config.Timeout))
+		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(config.Timeout))
 		defer cancel()
 
 		t.task.result = t.task.executor.Exec(ctx, t.name, &metadata)
@@ -95,32 +87,4 @@ func (t *triggerImpl) NextFireTime(prev int64) (next int64, err error) {
 
 func (t *triggerImpl) Description() string {
 	return t.trigger.Description()
-}
-
-func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImpl]) {
-	if j.Once != nil {
-		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.Once.Delay)))
-	}
-
-	if j.Cron != nil {
-		trigger, err := quartz.NewCronTriggerWithLoc(j.Cron.Expr, location)
-		if err != nil {
-			return r.WithErrorf("cron-expr:%s, err:%s", j.Cron.Expr, err.Error())
-		}
-		return r.WithValue(newTrigger(trigger))
-	}
-
-	if j.Ticker != nil {
-		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.Ticker.Dur)))
-	}
-
-	return r.WithErrorf("please init Once, Cron or Ticker")
-}
-
-func parseJobKey(name string) *quartz.JobKey {
-	keys := strings.SplitN(name, quartz.Sep, 2)
-	if len(keys) == 1 {
-		return quartz.NewJobKey(keys[0])
-	}
-	return quartz.NewJobKeyWithGroup(keys[0], keys[1])
 }

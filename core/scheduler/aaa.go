@@ -6,8 +6,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/pubgo/funk/clone"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/reugn/go-quartz/quartz"
+	"go.uber.org/atomic"
 )
 
 var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Lshortfile)
@@ -46,12 +49,8 @@ type JobManager interface {
 	ResumeJob(name string) result.Error
 	DeleteJob(name string) result.Error
 	ReloadJob(name string) result.Error
-	ListJobs() []Job
-	GetJob(name string) Job
-}
-
-type JobExecT interface {
-	string | JobFunc
+	ListJobs() []*Job
+	GetJob(name string) result.Result[*Job]
 }
 
 type JobSpec struct {
@@ -76,16 +75,45 @@ type CronJob struct {
 }
 
 type Job struct {
-	Spec     JobSpec
+	Spec     *JobSpec
 	Metadata JobMetadata
-	ExecErr  error
 	Status   Status
+
+	PreExecTime int64
+	ExecTime    int64
+
+	Error  error
+	Result []byte
+	Runs   uint64
+}
+
+type jobTask struct {
+	spec     *JobSpec
+	executor JobExecutor
+
+	trigger *triggerImpl
+	runs    atomic.Uint64
+	jobKey  *quartz.JobKey
+	status  Status
+
+	result result.Result[[]byte]
+}
+
+func (job jobTask) ToJob() *Job {
+	return &Job{
+		Status:      job.status,
+		PreExecTime: job.trigger.prev,
+		ExecTime:    job.trigger.next,
+		Error:       job.result.GetErr(),
+		Result:      job.result.GetValue(),
+		Runs:        job.runs.Load(),
+		Spec:        clone.Clone(job.spec),
+	}
 }
 
 type Status string
 
 const (
-	StatusInit    Status = "init"
 	StatusRunning Status = "running"
 	StatusStop    Status = "stop"
 )

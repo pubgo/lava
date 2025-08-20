@@ -27,67 +27,50 @@ func createConfig(configs []*Config) (r result.Result[map[string]*JobConfig]) {
 	return r.WithValue(configMap)
 }
 
-func initConfig(name string, cfg *JobConfig, mergeCfg *JobConfig) (r result.Result[*JobConfig]) {
-	if cfg == nil {
-		cfg = &JobConfig{Name: name}
+func defaultConfig(name string) *JobConfig {
+	return &JobConfig{
+		Name:          name,
+		Disabled:      lo.ToPtr(false),
+		Timeout:       lo.ToPtr(time.Second * 10),
+		RetryInterval: lo.ToPtr(time.Second),
+		MaxRetries:    lo.ToPtr(0),
+		Replace:       lo.ToPtr(false),
+		Location:      lo.ToPtr(time.UTC.String()),
+		location:      time.UTC,
 	}
+}
 
-	if cfg.Disabled == nil {
-		cfg.Disabled = lo.ToPtr(false)
-	}
-
-	if cfg.Timeout == nil {
-		cfg.Timeout = lo.ToPtr(time.Second * 10)
-	}
-
-	if cfg.RetryInterval == nil {
-		cfg.RetryInterval = lo.ToPtr(time.Second)
-	}
-
-	if cfg.MaxRetries == nil {
-		cfg.MaxRetries = lo.ToPtr(0)
-	}
-
-	if cfg.Replace == nil {
-		cfg.Replace = lo.ToPtr(false)
-	}
-
-	if cfg.Location == nil {
-		cfg.Location = lo.ToPtr(time.UTC.String())
-	}
-	cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-		InspectErr(func(err error) {
-			log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
-		}).
-		UnwrapErr(&r)
-	if r.IsErr() {
-		return
-	}
-
-	if mergeCfg != nil {
-		if mergeCfg.Disabled != nil {
-			cfg.Disabled = mergeCfg.Disabled
+func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[*JobConfig]) {
+	cfg := defaultConfig(name)
+	for _, jobConfig := range jobConfigs {
+		if jobConfig == nil {
+			continue
 		}
 
-		if mergeCfg.Timeout != nil {
-			cfg.Timeout = mergeCfg.Timeout
+		if jobConfig.Disabled != nil {
+			cfg.Disabled = jobConfig.Disabled
 		}
 
-		if mergeCfg.RetryInterval != nil {
-			cfg.RetryInterval = mergeCfg.RetryInterval
+		if jobConfig.Timeout != nil {
+			cfg.Timeout = jobConfig.Timeout
 		}
 
-		if mergeCfg.MaxRetries != nil {
-			cfg.MaxRetries = mergeCfg.MaxRetries
+		if jobConfig.RetryInterval != nil {
+			cfg.RetryInterval = jobConfig.RetryInterval
 		}
 
-		if mergeCfg.Replace != nil {
-			cfg.Replace = mergeCfg.Replace
+		if jobConfig.MaxRetries != nil {
+			cfg.MaxRetries = jobConfig.MaxRetries
 		}
 
-		if mergeCfg.Location != nil {
-			cfg.Location = mergeCfg.Location
+		if jobConfig.Replace != nil {
+			cfg.Replace = jobConfig.Replace
 		}
+
+		if jobConfig.Location != nil {
+			cfg.Location = jobConfig.Location
+		}
+
 		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
 			InspectErr(func(err error) {
 				log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
