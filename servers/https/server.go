@@ -35,7 +35,6 @@ import (
 )
 
 type Params struct {
-	Services     []supervisor.Service
 	Handlers     []lava.HttpRouter
 	Middlewares  []lava.Middleware
 	GetLifecycle lifecycle.Getter
@@ -46,9 +45,9 @@ type Params struct {
 	Docs         []*opendoc.Swagger
 }
 
-func New(params Params) *supervisor.Manager { return newService(params) }
+func New(params Params) supervisor.Service { return newService(params) }
 
-func newService(params Params) *supervisor.Manager {
+func newService(params Params) supervisor.Service {
 	s := &serviceImpl{}
 	s.init(
 		params.Handlers,
@@ -61,12 +60,7 @@ func newService(params Params) *supervisor.Manager {
 		params.Docs,
 	)
 
-	manager := supervisor.Default()
-	assert.Exit(manager.Add(supervisor.NewService("http-server", s.Serve)))
-	for _, srv := range params.Services {
-		assert.Exit(manager.Add(srv))
-	}
-	return manager
+	return supervisor.NewService("http-server", s.Serve)
 }
 
 type serviceImpl struct {

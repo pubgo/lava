@@ -16,31 +16,20 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/internal/logutil"
 	"google.golang.org/grpc/codes"
 )
 
 type Params struct {
-	Services []supervisor.Service
-	Log      log.Logger
-	Conf     []*Config
-	LC       lifecycle.Getter
+	Log  log.Logger
+	Conf []*Config
 }
 
-func New(params Params) *supervisor.Manager {
-	assert.If(len(params.Services) == 0, "services is nil")
-
+func New(params Params) supervisor.Service {
 	s := &Server{}
 	s.init(params.Log, params.Conf)
-
-	manager := supervisor.Default(params.LC)
-	assert.Exit(manager.Add(supervisor.NewService("task", s.Serve)))
-	for _, srv := range params.Services {
-		assert.Exit(manager.Add(srv))
-	}
-	return manager
+	return supervisor.NewService("tasks", s.Serve)
 }
 
 type Server struct {

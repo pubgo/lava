@@ -45,8 +45,6 @@ import (
 )
 
 type Params struct {
-	Services []supervisor.Service
-
 	GrpcRouters     []lava.GrpcRouter
 	HttpRouters     []lava.HttpRouter
 	GrpcHttpRouters []lava.GrpcHttpRouter
@@ -60,9 +58,9 @@ type Params struct {
 	Gw              []*gateway.Mux
 }
 
-func New(params Params) *supervisor.Manager { return newService(params) }
+func New(params Params) supervisor.Service { return newService(params) }
 
-func newService(params Params) *supervisor.Manager {
+func newService(params Params) supervisor.Service {
 	s := &serviceImpl{cc: new(inprocgrpc.Channel)}
 	s.init(
 		params.GrpcRouters,
@@ -78,12 +76,7 @@ func newService(params Params) *supervisor.Manager {
 		params.Gw,
 	)
 
-	manager := supervisor.Default()
-	assert.Exit(manager.Add(supervisor.NewService("grpc-server", s.Serve)))
-	for _, srv := range params.Services {
-		assert.Exit(manager.Add(srv))
-	}
-	return manager
+	return supervisor.NewService("grpc-server", s.Serve)
 }
 
 type serviceImpl struct {

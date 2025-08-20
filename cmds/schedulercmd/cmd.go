@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
@@ -20,10 +21,16 @@ func New(di *dix.Dix) *cli.Command {
 		Action: func(ctx context.Context, command *cli.Command) error {
 			di.Provide(scheduler.NewService)
 			params := dix.Inject(di, new(struct {
-				LC lifecycle.Getter
+				LC       lifecycle.Getter
+				Services []supervisor.Service
 			}))
 
-			return supervisor.Default(params.LC).Run()
+			manager := supervisor.Default(params.LC)
+			for _, svc := range params.Services {
+				assert.Exit(manager.Add(svc))
+			}
+
+			return manager.Run()
 		},
 	}
 }
