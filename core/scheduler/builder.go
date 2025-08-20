@@ -61,10 +61,13 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
 		regJobExecutor(jobExecutors, executor).
-			Inspect(func(err error) {
+			InspectErr(func(err error) {
 				log.Err(err).Msg("failed to register job executor")
 			}).
 			Catch(&gErr)
+		if gErr != nil {
+			return
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
