@@ -180,6 +180,14 @@ func (m *Manager) stop() error {
 
 	m.cancel()
 
+	unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
+	if len(unstoppedServices) > 0 {
+		for _, service := range unstoppedServices {
+			m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
+		}
+		return errors.New("services are still running")
+	}
+
 	logutil.OkOrFailed(m.logger, "service after-stop", func() error {
 		for _, run := range m.lc.GetAfterStops() {
 			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
@@ -189,13 +197,6 @@ func (m *Manager) stop() error {
 		return nil
 	})
 
-	unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
-	if len(unstoppedServices) > 0 {
-		for _, service := range unstoppedServices {
-			m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
-		}
-		return errors.New("services are still running")
-	}
 	return nil
 }
 
