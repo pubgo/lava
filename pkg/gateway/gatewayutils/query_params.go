@@ -1,4 +1,4 @@
-package gateway
+package gatewayutils
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -32,12 +31,12 @@ var currentQueryParser QueryParameterParser = &DefaultQueryParser{}
 
 // QueryParameterParser defines interface for all query parameter parsers
 type QueryParameterParser interface {
-	Parse(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error
+	Parse(msg proto.Message, values url.Values, filter *DoubleArray) error
 }
 
 // PopulateQueryParameters parses query parameters
 // into "msg" using current query parser
-func PopulateQueryParameters(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
+func PopulateQueryParameters(msg proto.Message, values url.Values, filter *DoubleArray) error {
 	return errors.WrapCaller(currentQueryParser.Parse(msg, values, filter))
 }
 
@@ -49,7 +48,7 @@ type DefaultQueryParser struct{}
 
 // Parse populates "values" into "msg".
 // A value is ignored if its key starts with one of the elements in "filter".
-func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *utilities.DoubleArray) error {
+func (*DefaultQueryParser) Parse(msg proto.Message, values url.Values, filter *DoubleArray) error {
 	for key, v := range values {
 		if len(v) == 0 {
 			delete(values, key)

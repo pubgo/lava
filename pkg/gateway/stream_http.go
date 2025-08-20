@@ -8,9 +8,9 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/lava/pkg/gateway/gatewayutils"
 	"github.com/pubgo/lava/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -152,7 +152,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 	}
 
 	if len(s.params) > 0 {
-		if err := PopulateQueryParameters(args, s.params, utilities.NewDoubleArray(nil)); err != nil {
+		if err := gatewayutils.PopulateQueryParameters(args, s.params, gatewayutils.NewDoubleArray(nil)); err != nil {
 			return errors.Wrapf(err, "failed to set query params, params=%v", s.params)
 		}
 	}
