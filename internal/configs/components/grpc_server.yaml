@@ -1,0 +1,11 @@
+grpc_server:
+  base_url: /welogin
+  enable_print_routes: true
+  enable_cors: ${GRPC_ENABLE_CORS:-false}
+  enable_ping_pong: true
+  ping_pong_time: 40
+
+  # 256k
+  ws_read_limit: 262144
+#  grpc_port: 8000
+#  http_port: 8001

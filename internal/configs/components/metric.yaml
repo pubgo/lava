@@ -1,0 +1,3 @@
+metric:
+  driver: "prometheus"
+  interval: 5s

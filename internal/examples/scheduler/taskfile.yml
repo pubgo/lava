@@ -1,0 +1,26 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  SchedulerRelease: "v0.1.0"
+  SchedulerProject: "scheduler"
+
+tasks:
+  info:
+    cmds:
+      - echo "{{.SchedulerRelease}}" "{{.SchedulerProject}}"
+
+  default:
+    cmds:
+      - task scheduler:info
+
+  build:
+    cmds:
+#      - go build -v -x -race -ldflags="-w"  -o ./bin/scheduler ./internal/examples/scheduler/main.go
+      - go build -race -ldflags="-w"  -o ./bin/scheduler ./internal/examples/scheduler/main.go
+      - ls -alh ./bin
+  run:
+    cmds:
+      - task scheduler:build
+      - ./bin/scheduler scheduler -c ./internal/configs/scheduler.yaml

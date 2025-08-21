@@ -13,7 +13,7 @@ import (
 	"go.uber.org/atomic"
 )
 
-var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Lshortfile)
+var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Llongfile)
 
 type JobExecutor interface {
 	Name() string

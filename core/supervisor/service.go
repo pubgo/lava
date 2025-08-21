@@ -32,7 +32,7 @@ func (s *serviceImpl) Metrics() *expvar.Map {
 
 func (s *serviceImpl) initMetric() *serviceImpl {
 	metric := new(expvar.Map).Init()
-	metric.Set(s.name, s)
+	metric.Set(s.name, vars.Any(s.String()))
 	metric.Set(s.name+".error", vars.Value(func() interface{} {
 		if s.err == nil {
 			return nil
@@ -62,16 +62,23 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 		if gErr != nil {
 			s.err = gErr
 		}
-		s.metric.Set("error", vars.Any(s.err))
+
+		if s.err != nil {
+			s.metric.Set("error", vars.Any(s.err))
+		}
+
 		s.metric.Set("start_time", vars.Any(now.UTC().String()))
 		s.metric.Set("online_duration", vars.Any(time.Since(now).String()))
-		log.Info(ctx).Msgf("stop service %s", s.name)
+		log.Info(ctx).
+			Str("service", s.name).
+			RawJSON("metric", []byte(s.metric.String())).
+			Msg("stop service")
 	}()
 	defer recovery.Err(&gErr)
 
 	s.err = nil
 	s.metric.Add("restart", 1)
-	log.Info(ctx).Msgf("start service %s", s.name)
+	log.Info(ctx).Str("service", s.name).Msg("start service")
 	err := s.fn(ctx)
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return fmt.Errorf("non-context error, service=%s meta=%s err=%w", s.name, s.metric.String(), err)

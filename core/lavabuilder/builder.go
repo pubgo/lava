@@ -30,7 +30,7 @@ import (
 	"github.com/pubgo/lava/pkg/cmdutil"
 
 	_ "github.com/pubgo/lava/core/debug/debug"
-	_ "github.com/pubgo/lava/core/debug/gops"
+	//_ "github.com/pubgo/lava/core/debug/gops"
 	_ "github.com/pubgo/lava/core/debug/pprof"
 	_ "github.com/pubgo/lava/core/debug/process"
 	_ "github.com/pubgo/lava/core/debug/statsviz"
@@ -77,7 +77,6 @@ func New(opts ...dix.Option) *dix.Dix {
 func Run(di *dix.Dix) {
 	defer recovery.Exit()
 
-	dix.Provide(di, versioncmd.New)
 	dix.Provide(di, versioncmd.New)
 	dix.Provide(di, healthcmd.New)
 	dix.Provide(di, depcmd.New)

@@ -149,7 +149,11 @@ func (m *Manager) start() error {
 	})
 
 	async.GoDelay(func() error {
-		assert.Exit(m.supervisor.Serve(ctx))
+		err := m.supervisor.Serve(ctx)
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
+		assert.Exit(err)
 		return nil
 	}, time.Second*2)
 
