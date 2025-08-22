@@ -3,7 +3,6 @@ package supervisor
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
@@ -155,7 +154,7 @@ func (m *Manager) start() error {
 		}
 		assert.Exit(err)
 		return nil
-	}, time.Second*2)
+	})
 
 	logutil.OkOrFailed(m.logger, "service after-start", func() error {
 		defer recovery.Exit()
