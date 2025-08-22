@@ -126,6 +126,6 @@ type JobMetadata struct {
 	Replace       bool
 	Location      *time.Location
 
-	PreRunTime int64
-	ExecTime   int64
+	NextExecTime int64
+	ExecTime     int64
 }

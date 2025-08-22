@@ -17,7 +17,6 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc/codes"
@@ -35,14 +34,12 @@ import (
 )
 
 type Params struct {
-	Handlers     []lava.HttpRouter
-	Middlewares  []lava.Middleware
-	GetLifecycle lifecycle.Getter
-	Lifecycle    lifecycle.Lifecycle
-	M            metrics.Metric
-	Log          log.Logger
-	Cfg          *Config
-	Docs         []*opendoc.Swagger
+	Handlers    []lava.HttpRouter
+	Middlewares []lava.Middleware
+	M           metrics.Metric
+	Log         log.Logger
+	Cfg         *Config
+	Docs        []*opendoc.Swagger
 }
 
 func New(params Params) supervisor.Service { return newService(params) }
@@ -52,8 +49,6 @@ func newService(params Params) supervisor.Service {
 	s.init(
 		params.Handlers,
 		params.Middlewares,
-		params.GetLifecycle,
-		params.Lifecycle,
 		params.M,
 		params.Log,
 		params.Cfg,
@@ -83,8 +78,6 @@ func (s *serviceImpl) Serve(ctx context.Context) error {
 func (s *serviceImpl) init(
 	handlers []lava.HttpRouter,
 	middlewares []lava.Middleware,
-	getLifecycle lifecycle.Getter,
-	lifecycle lifecycle.Lifecycle,
 	m metrics.Metric,
 	log log.Logger,
 	cfg *Config,
@@ -96,12 +89,10 @@ func (s *serviceImpl) init(
 
 	log = log.WithName("http-server")
 
-	s.lc = getLifecycle
 	s.log = log
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
-		ETag:               true,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			if err == nil {
 				return nil
@@ -124,7 +115,6 @@ func (s *serviceImpl) init(
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-		AllowOrigins: "*",
 		AllowMethods: strings.Join([]string{
 			fiber.MethodGet,
 			fiber.MethodPost,
@@ -134,10 +124,10 @@ func (s *serviceImpl) init(
 			fiber.MethodHead,
 			fiber.MethodOptions,
 		}, ","),
-		AllowHeaders:     "",
+		//AllowHeaders:     "",
 		AllowCredentials: true,
-		ExposeHeaders:    "",
-		MaxAge:           0,
+		//ExposeHeaders:    "",
+		MaxAge: 0,
 	}))
 
 	defaultMiddlewares := []lava.Middleware{
@@ -161,10 +151,6 @@ func (s *serviceImpl) init(
 		//}
 
 		h.Router(g)
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
 	}
 
 	s.httpServer.Mount("/debug", debug.App())
@@ -186,17 +172,8 @@ func (s *serviceImpl) init(
 
 func (s *serviceImpl) start(ctx context.Context) {
 	defer recovery.Exit()
-	logutil.OkOrFailed(s.log, "service before-start", func() error {
-		defer recovery.Exit()
-		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			assert.Exit(run.Exec(ctx))
-		}
-		return nil
-	})
 
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
-
 	logutil.OkOrFailed(s.log, "service start", func() error {
 		async.GoDelay(func() error {
 			s.log.Info().Msg("[http-server] Server Starting")
@@ -213,38 +190,11 @@ func (s *serviceImpl) start(ctx context.Context) {
 		})
 		return nil
 	})
-
-	logutil.OkOrFailed(s.log, "service after-start", func() error {
-		defer recovery.Exit()
-		for _, run := range s.lc.GetAfterStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			assert.Exit(run.Exec(ctx))
-		}
-		return nil
-	})
 }
 
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
-	logutil.OkOrFailed(s.log, "service before-stop", func() error {
-		for _, run := range s.lc.GetBeforeStops() {
-			logutil.LogOrErr(s.log, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
-				return run.Exec(ctx)
-			})
-		}
-		return nil
-	})
-
 	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
 		return s.httpServer.ShutdownWithTimeout(time.Second * 5)
-	})
-
-	logutil.OkOrFailed(s.log, "service after-stop", func() error {
-		for _, run := range s.lc.GetAfterStops() {
-			logutil.LogOrErr(s.log, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
-				return run.Exec(ctx)
-			})
-		}
-		return nil
 	})
 }

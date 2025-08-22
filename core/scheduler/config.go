@@ -33,7 +33,7 @@ func defaultConfig(name string) *JobConfig {
 		Disabled:      lo.ToPtr(false),
 		Timeout:       lo.ToPtr(time.Second * 10),
 		RetryInterval: lo.ToPtr(time.Second),
-		MaxRetries:    lo.ToPtr(0),
+		MaxRetries:    lo.ToPtr(3),
 		Replace:       lo.ToPtr(false),
 		Location:      lo.ToPtr(time.UTC.String()),
 		location:      time.UTC,

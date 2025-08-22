@@ -152,10 +152,6 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 func handleLogOption(header *lava.RequestHeader) *logOption {
 	data := header.PeekAll("X-Log-Option")
-	if len(data) == 0 {
-		return nil
-	}
-
 	val := make(map[string]bool, len(data))
 	for i := range data {
 		val[convert.B2S(data[i])] = true

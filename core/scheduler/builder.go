@@ -5,6 +5,7 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/vars"
 	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 
@@ -49,7 +50,7 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		return
 	}
 
-	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelDebug)))).
+	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelInfo)))).
 		InspectErr(func(err error) {
 			log.Err(err).Msg("failed to create scheduler")
 		}).
@@ -88,6 +89,10 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 
 	quart.start()
 	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
+
+	vars.Register(Name, func() interface{} {
+		return quart.ListJobs()
+	})
 
 	return quart, nil
 }

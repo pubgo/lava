@@ -18,7 +18,8 @@ func init() {
 func initDebug() {
 	debug.Get("/", func(ctx *fiber.Ctx) error {
 		pathMap := make(map[string]interface{})
-		stack := debug.App().Stack()
+
+		stack := ctx.App().Stack()
 		for m := range stack {
 			for r := range stack[m] {
 				route := stack[m][r]

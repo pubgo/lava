@@ -14,9 +14,9 @@ import (
 )
 
 func init() {
-	debug.Get("/env", adaptor.HTTPHandlerFunc(envHandle))
-	debug.Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
-	debug.Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
+	debug.Get("env", adaptor.HTTPHandlerFunc(envHandle))
+	debug.Get("version", adaptor.HTTPHandlerFunc(versionHandle))
+	debug.Get("dep", adaptor.HTTPHandlerFunc(depHandle))
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

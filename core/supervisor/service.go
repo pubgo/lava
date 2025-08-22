@@ -71,7 +71,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 		s.metric.Set("online_duration", vars.Any(time.Since(now).String()))
 		log.Info(ctx).
 			Str("service", s.name).
-			RawJSON("metric", []byte(s.metric.String())).
+			Str("metric", s.metric.String()).
 			Msg("stop service")
 	}()
 	defer recovery.Err(&gErr)

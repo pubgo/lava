@@ -109,7 +109,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	}
 
 	jobOpt := config.ToJobDetailOptions()
-	job := &namedJob{s: s, name: name, task: &task, log: s.log}
+	job := &namedJob{s: s, task: &task, log: s.log}
 	jobDetail := quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt)
 	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, trigger)) {
 		return
@@ -195,7 +195,7 @@ func (s *Scheduler) ReloadJob(name string) (r result.Error) {
 
 	jobOpt := job.spec.Config.ToJobDetailOptions()
 	jobDetail := quartz.NewJobDetailWithOptions(
-		&namedJob{s: s, name: name, task: job, log: s.log},
+		&namedJob{s: s, task: job, log: s.log},
 		job.jobKey,
 		jobOpt,
 	)

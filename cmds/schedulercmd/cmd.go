@@ -6,6 +6,7 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/version"
+	"github.com/pubgo/lava/servers/https"
 	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/lifecycle"
@@ -20,6 +21,7 @@ func New(di *dix.Dix) *cli.Command {
 		Usage: cmdutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			di.Provide(scheduler.NewService)
+			di.Provide(https.New)
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Getter
 				Services []supervisor.Service

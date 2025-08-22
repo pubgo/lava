@@ -15,25 +15,25 @@ import (
 )
 
 type namedJob struct {
-	s    *Scheduler
-	name string
-	log  log.Logger
+	s   *Scheduler
+	log log.Logger
 
 	task *jobTask
 }
 
-func (t *namedJob) Description() string { return t.name }
+func (t *namedJob) Description() string { return t.task.spec.Name }
 func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	start := time.Now()
+	name := t.task.spec.Name
 
 	defer func() {
 		cost := float64(time.Since(start).Milliseconds())
-		t.s.metric.Tagged(metrics.Tags{"job_name": t.name}).Gauge("job_cost_ms").Update(cost)
+		t.s.metric.Tagged(metrics.Tags{"job_name": name}).Gauge("job_cost_ms").Update(cost)
 
 		logger := generic.Ternary(generic.IsNil(gErr), t.log.Info(), t.log.Err(gErr))
 		logger.Func(func(e *zerolog.Event) {
 			e.Float32("job_cost_ms", float32(cost))
-			e.Str("job_name", t.name)
+			e.Str("job_name", name)
 			e.Uint64("runs", t.task.runs.Load())
 			e.Msg("exec scheduler job")
 		})
@@ -48,19 +48,21 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		RetryInterval: lo.FromPtr(config.RetryInterval),
 		Timeout:       lo.FromPtr(config.Timeout),
 		Location:      config.location,
-		PreRunTime:    t.task.trigger.prev,
-		ExecTime:      t.task.trigger.next,
+		ExecTime:      t.task.trigger.prev,
+		NextExecTime:  t.task.trigger.next,
 	}
 
+	fmt.Println(name, t.task.trigger.prev, time.Now().Unix())
+
 	if t.task.trigger.err != nil {
-		return fmt.Errorf("schedule job(%s) error: %w", t.name, t.task.trigger.err)
+		return fmt.Errorf("schedule job(%s) error: %w", name, t.task.trigger.err)
 	}
 
 	return try.Try(func() error {
 		ctx, cancel := context.WithTimeout(ctx, lo.FromPtr(config.Timeout))
 		defer cancel()
 
-		t.task.result = t.task.executor.Exec(ctx, t.name, &metadata)
+		t.task.result = t.task.executor.Exec(ctx, name, &metadata)
 		return t.task.result.GetErr()
 	})
 }
@@ -79,9 +81,9 @@ type triggerImpl struct {
 }
 
 func (t *triggerImpl) NextFireTime(prev int64) (next int64, err error) {
-	t.prev = prev
+	t.prev = prev / 1000_000_000
 
-	defer func() { t.next, t.err = next, err }()
+	defer func() { t.next, t.err = next/1000_000_000, err }()
 	return t.trigger.NextFireTime(prev)
 }
 

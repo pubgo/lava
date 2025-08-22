@@ -23,3 +23,7 @@ func DefaultCfg() Config {
 		BaseUrl:           version.Project(),
 	}
 }
+
+type HttpServerConfigLoader struct {
+	HttpServer *Config `yaml:"http_server"`
+}

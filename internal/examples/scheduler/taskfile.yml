@@ -18,7 +18,7 @@ tasks:
   build:
     cmds:
 #      - go build -v -x -race -ldflags="-w"  -o ./bin/scheduler ./internal/examples/scheduler/main.go
-      - go build -race -ldflags="-w"  -o ./bin/scheduler ./internal/examples/scheduler/main.go
+      - go build -o ./bin/scheduler ./internal/examples/scheduler/main.go
       - ls -alh ./bin
   run:
     cmds:
