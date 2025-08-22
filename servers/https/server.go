@@ -4,23 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/pubgo/funk/proto/errorpb"
-	"net"
-	"net/http"
-	"strings"
-	"time"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/opendoc/opendoc"
 	"google.golang.org/grpc/codes"
+	"net"
+	"net/http"
+	"strings"
 
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -118,7 +116,7 @@ func (s *serviceImpl) init(
 			if errPb == nil || errPb.Code.Code == 0 {
 				return nil
 			}
-			
+
 			errPb.Trace.Operation = ctx.Route().Path
 			code := errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
@@ -211,6 +209,6 @@ func (s *serviceImpl) start(ctx context.Context) {
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
 	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
-		return s.httpServer.ShutdownWithTimeout(time.Second * 5)
+		return s.httpServer.ShutdownWithContext(ctx)
 	})
 }
