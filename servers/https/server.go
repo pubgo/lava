@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/pubgo/funk/proto/errorpb"
 	"net"
 	"net/http"
 	"strings"
@@ -98,11 +99,26 @@ func (s *serviceImpl) init(
 				return nil
 			}
 
-			errPb := errutil.ParseError(err)
+			var errPb *errorpb.Error
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) && fiberErr != nil {
+				errPb = &errorpb.Error{
+					Code: &errorpb.ErrCode{
+						Name:       "lava.error",
+						StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
+						Code:       int32(fiberErr.Code),
+						Message:    fiberErr.Message,
+					},
+					Trace: &errorpb.ErrTrace{},
+				}
+			} else {
+				errPb = errutil.ParseError(err)
+			}
+
 			if errPb == nil || errPb.Code.Code == 0 {
 				return nil
 			}
-
+			
 			errPb.Trace.Operation = ctx.Route().Path
 			code := errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)

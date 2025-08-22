@@ -4,7 +4,6 @@ import (
 	"context"
 	"expvar"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/pubgo/funk/errors"
@@ -33,7 +32,7 @@ func (s *serviceImpl) Metrics() *expvar.Map {
 
 func (s *serviceImpl) initMetric() *serviceImpl {
 	metric := vars.Map(fmt.Sprintf("supervisor-%s", s.name))
-	metric.Set(s.name, vars.Any(strconv.Quote(s.String())))
+	metric.Set(s.name, vars.Any(s.String()))
 	metric.Set(s.name+".error", vars.Value(func() interface{} {
 		if s.err == nil {
 			return nil

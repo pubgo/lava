@@ -14,7 +14,7 @@ import (
 	"go.uber.org/atomic"
 )
 
-var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Llongfile)
+var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Lshortfile)
 
 type JobExecutor interface {
 	Name() string
@@ -127,7 +127,7 @@ type JobMetadata struct {
 	MaxRetries    int
 	RetryInterval time.Duration
 	Replace       bool
-	Location      *time.Location
+	Location      string
 
 	NextExecTime int64
 	ExecTime     int64

@@ -33,7 +33,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		t.task.metric.Set("job_cost_ms", vars.Any(cost))
 		t.task.metric.Set("runs", vars.Any(t.task.runs.Load()))
 
-		logger := generic.Ternary(generic.IsNil(gErr), t.log.Info(), t.log.Err(gErr))
+		logger := generic.Ternary(gErr == nil, t.log.Info(), t.log.Err(gErr))
 		logger.Func(func(e *zerolog.Event) {
 			e.Float32("job_cost_ms", float32(cost))
 			e.Str("job_name", name)
@@ -50,17 +50,15 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		MaxRetries:    lo.FromPtr(config.MaxRetries),
 		RetryInterval: lo.FromPtr(config.RetryInterval),
 		Timeout:       lo.FromPtr(config.Timeout),
-		Location:      config.location,
+		Location:      config.location.String(),
 		ExecTime:      t.task.trigger.prev,
 		NextExecTime:  t.task.trigger.next,
 	}
 
 	t.task.metric.Set("metadata", vars.Any(metadata))
 
-	fmt.Println(name, t.task.trigger.prev, time.Now().Unix())
-
 	if t.task.trigger.err != nil {
-		return fmt.Errorf("schedule job(%s) error: %w", name, t.task.trigger.err)
+		return fmt.Errorf("schedule job(%s) trigger error: %w", name, t.task.trigger.err)
 	}
 
 	return try.Try(func() error {
