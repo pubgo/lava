@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/assert"
@@ -13,12 +16,11 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/opendoc/opendoc"
+	"github.com/rs/xid"
 	"google.golang.org/grpc/codes"
-	"net"
-	"net/http"
-	"strings"
 
 	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
@@ -30,6 +32,7 @@ import (
 	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/internal/middlewares/middleware_serviceinfo"
 	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/pkg/netutil"
 )
 
 type Params struct {
@@ -118,7 +121,12 @@ func (s *serviceImpl) init(
 			}
 
 			errPb.Trace.Operation = ctx.Route().Path
-			code := errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
+
+			code := int(errPb.Code.Code)
+			if errPb.Code.Code > 1000 {
+				code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
+			}
+
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 			return ctx.Status(code).JSON(errPb)
 		},
@@ -172,6 +180,10 @@ func (s *serviceImpl) init(
 
 	// 网关初始化
 	if cfg.EnablePrintRouter {
+		vars.Register(fmt.Sprintf("%s-http-server-router-%s", version.Project(), xid.New()), func() interface{} {
+			return s.httpServer.Stack()
+		})
+
 		for _, stacks := range s.httpServer.Stack() {
 			for _, route := range stacks {
 				s.log.Info().
@@ -193,12 +205,13 @@ func (s *serviceImpl) start(ctx context.Context) {
 			s.log.Info().Msg("[http-server] Server Starting")
 			logutil.LogOrErr(s.log, "[http-server] Server Stop", func() error {
 				defer recovery.Exit()
-				if err := s.httpServer.Listener(httpLn); err != nil &&
-					!errors.Is(err, http.ErrServerClosed) &&
-					!errors.Is(err, net.ErrClosed) {
-					return err
+
+				err := s.httpServer.Listener(httpLn)
+				if netutil.IsErrServerClosed(err) {
+					return nil
 				}
-				return nil
+
+				return err
 			})
 			return nil
 		})
@@ -209,6 +222,15 @@ func (s *serviceImpl) start(ctx context.Context) {
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
 	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
-		return s.httpServer.ShutdownWithContext(ctx)
+		err := s.httpServer.ShutdownWithContext(ctx)
+		if err == nil {
+			return nil
+		}
+
+		if netutil.IsErrServerClosed(err) {
+			return nil
+		}
+
+		return err
 	})
 }

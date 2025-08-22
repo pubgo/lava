@@ -37,7 +37,7 @@ require (
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.4
-	github.com/arl/statsviz v0.6.0
+	github.com/arl/statsviz v0.7.1
 	github.com/ecordell/optgen v0.0.9
 	github.com/fasthttp/websocket v1.5.12
 	github.com/felixge/fgprof v0.9.5
