@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"expvar"
 	stdLog "log"
 	"os"
 	"time"
@@ -95,6 +96,8 @@ type jobTask struct {
 	runs    atomic.Uint64
 	jobKey  *quartz.JobKey
 	status  Status
+
+	metric *expvar.Map
 
 	result result.Result[[]byte]
 }

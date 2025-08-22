@@ -31,7 +31,7 @@ func (s *serviceImpl) Metrics() *expvar.Map {
 }
 
 func (s *serviceImpl) initMetric() *serviceImpl {
-	metric := new(expvar.Map).Init()
+	metric := vars.Map(fmt.Sprintf("supervisor-%s", s.name))
 	metric.Set(s.name, vars.Any(s.String()))
 	metric.Set(s.name+".error", vars.Value(func() interface{} {
 		if s.err == nil {

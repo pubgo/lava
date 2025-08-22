@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"github.com/pubgo/funk/vars"
 	"time"
 
 	"github.com/pubgo/funk/generic"
@@ -29,6 +30,8 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	defer func() {
 		cost := float64(time.Since(start).Milliseconds())
 		t.s.metric.Tagged(metrics.Tags{"job_name": name}).Gauge("job_cost_ms").Update(cost)
+		t.task.metric.Set("job_cost_ms", vars.Any(cost))
+		t.task.metric.Set("runs", vars.Any(t.task.runs.Load()))
 
 		logger := generic.Ternary(generic.IsNil(gErr), t.log.Info(), t.log.Err(gErr))
 		logger.Func(func(e *zerolog.Event) {
@@ -51,6 +54,8 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		ExecTime:      t.task.trigger.prev,
 		NextExecTime:  t.task.trigger.next,
 	}
+
+	t.task.metric.Set("metadata", vars.Any(metadata))
 
 	fmt.Println(name, t.task.trigger.prev, time.Now().Unix())
 
