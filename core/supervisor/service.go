@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/vars"
+	"github.com/pubgo/lava/core/debug"
 )
 
 func NewService(name string, fn func(ctx context.Context) error) Service {
@@ -41,6 +43,14 @@ func (s *serviceImpl) initMetric() *serviceImpl {
 	}))
 	metric.Add("restart", 0)
 	s.metric = metric
+
+	debug.Route("/supervisor", func(router fiber.Router) {
+		router.Get("services", func(ctx *fiber.Ctx) error {
+
+			return nil
+		})
+	})
+
 	return s
 }
 
