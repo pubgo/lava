@@ -7,7 +7,6 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/lava/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
@@ -65,8 +64,6 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	if s.jobs[name] != nil {
 		return result.Errorf("job %s already exists", name)
 	}
-
-	task.metric = vars.Map(fmt.Sprintf("scheduler-%s", name))
 
 	result.WrapFn(func() (JobExecutor, error) {
 		executor := s.jobExecutors[spec.Executor]
