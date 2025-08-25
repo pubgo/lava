@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
@@ -14,6 +15,7 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/thejerf/suture/v4"
 
+	"github.com/pubgo/lava/core/debug"
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/signal"
 	"github.com/pubgo/lava/internal/logutil"
@@ -30,7 +32,7 @@ func Default(lc lifecycle.Getter) *Manager {
 
 func NewManager(name string, lc lifecycle.Getter) *Manager {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Manager{
+	m := &Manager{
 		cancel:     cancel,
 		ctx:        ctx,
 		lc:         lc,
@@ -38,6 +40,7 @@ func NewManager(name string, lc lifecycle.Getter) *Manager {
 		services:   make(map[string]*serviceWrapper),
 		logger:     log.GetLogger(name),
 	}
+	return m.init()
 }
 
 type Manager struct {
@@ -47,6 +50,20 @@ type Manager struct {
 	services   map[string]*serviceWrapper
 	ctx        context.Context
 	cancel     context.CancelFunc
+}
+
+func (m *Manager) init() *Manager {
+	debug.Route("/supervisor", func(router fiber.Router) {
+		router.Get("services", func(ctx *fiber.Ctx) error {
+			var services []*ServiceMetric
+			for _, srv := range m.services {
+				services = append(services, srv.service.Metrics())
+			}
+			return ctx.JSON(services)
+		})
+	})
+
+	return m
 }
 
 func (m *Manager) Has(name string) bool {

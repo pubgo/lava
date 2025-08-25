@@ -202,18 +202,15 @@ func (s *serviceImpl) start(ctx context.Context) {
 	httpLn := assert.Must1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort)))
 	logutil.OkOrFailed(s.log, "service start", func() error {
 		async.GoDelay(func() error {
+			defer recovery.Exit()
+
 			s.log.Info().Msg("[http-server] Server Starting")
-			logutil.LogOrErr(s.log, "[http-server] Server Stop", func() error {
-				defer recovery.Exit()
+			err := s.httpServer.Listener(httpLn)
+			if netutil.IsErrServerClosed(err) {
+				return nil
+			}
 
-				err := s.httpServer.Listener(httpLn)
-				if netutil.IsErrServerClosed(err) {
-					return nil
-				}
-
-				return err
-			})
-			return nil
+			return err
 		})
 		return nil
 	})
