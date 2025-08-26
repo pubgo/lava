@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -53,7 +54,9 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	}
 
 	if t.task.trigger.err != nil {
-		return fmt.Errorf("schedule job(%s) trigger error: %w", name, t.task.trigger.err)
+		if !(t.task.spec.Once != nil && errors.Is(t.task.trigger.err, quartz.ErrTriggerExpired)) {
+			return fmt.Errorf("schedule job(%s) trigger error: %w", name, t.task.trigger.err)
+		}
 	}
 
 	return try.Try(func() error {
@@ -79,9 +82,16 @@ type triggerImpl struct {
 }
 
 func (t *triggerImpl) NextFireTime(prev int64) (next int64, err error) {
-	t.prev = prev / 1000_000_000
+	defer func() {
+		t.err = err
+		if err != nil {
+			return
+		}
 
-	defer func() { t.next, t.err = next/1000_000_000, err }()
+		t.prev = prev / 1000_000_000
+		t.next = next / 1000_000_000
+	}()
+
 	return t.trigger.NextFireTime(prev)
 }
 
