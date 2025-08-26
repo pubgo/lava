@@ -6,13 +6,14 @@ import (
 	"github.com/pubgo/dix"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/servers/https"
 	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/core/scheduler/schedulerpages"
 	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/servers/https"
 )
 
 func New(di *dix.Dix) *cli.Command {
@@ -25,7 +26,10 @@ func New(di *dix.Dix) *cli.Command {
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Getter
 				Services []supervisor.Service
+				Manager  scheduler.JobManager
 			}))
+
+			schedulerpages.Init(params.Manager)
 
 			manager := supervisor.Default(params.LC)
 			for _, svc := range params.Services {

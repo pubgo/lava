@@ -25,7 +25,12 @@ type Params struct {
 	Executors []JobExecutor
 }
 
-func NewService(params Params) (supervisor.Service, error) {
+type ResponseParams struct {
+	Service supervisor.Service
+	Manager JobManager
+}
+
+func NewService(params Params) (ResponseParams, error) {
 	s, err := New(
 		params.M,
 		params.Log,
@@ -35,9 +40,13 @@ func NewService(params Params) (supervisor.Service, error) {
 		params.Executors,
 	)
 	if err != nil {
-		return nil, err
+		return ResponseParams{}, err
 	}
-	return supervisor.NewService(Name, s.Serve), err
+
+	return ResponseParams{
+		Service: supervisor.NewService(Name, s.Serve),
+		Manager: s,
+	}, nil
 }
 
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {

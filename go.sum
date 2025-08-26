@@ -917,6 +917,12 @@ honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.5.1 h1:4bH5o3b5ZULQ4UrBmP+63W9r7qIkqJClEA9ko5YKx+I=
 honnef.co/go/tools v0.5.1/go.mod h1:e9irvo83WDG9/irijV44wr3tbhcFeRnfpVlRqVwpzMs=
+maragu.dev/gomponents v1.2.0 h1:H7/N5htz1GCnhu0HB1GasluWeU2rJZOYztVEyN61iTc=
+maragu.dev/gomponents v1.2.0/go.mod h1:oEDahza2gZoXDoDHhw8jBNgH+3UR5ni7Ur648HORydM=
+maragu.dev/gomponents-htmx v0.6.1 h1:vXXOkvqEDKYxSwD1UwqmVp12YwFSuM6u8lsRn7Evyng=
+maragu.dev/gomponents-htmx v0.6.1/go.mod h1:51nXX+dTGff3usM7AJvbeOcQjzjpSycod+60CYeEP/M=
+maragu.dev/is v0.2.0 h1:poeuVEA5GG3vrDpGmzo2KjWtIMZmqUyvGnOB0/pemig=
+maragu.dev/is v0.2.0/go.mod h1:bviaM5S0fBshCw7wuumFGTju/izopZ/Yvq4g7Klc7y8=
 mvdan.cc/gofumpt v0.7.0 h1:bg91ttqXmi9y2xawvkuMXyvAA/1ZGJqYAEGjXuP0JXU=
 mvdan.cc/gofumpt v0.7.0/go.mod h1:txVFJy/Sc/mvaycET54pV8SW8gWxTlUuGHVEcncmNUo=
 mvdan.cc/unparam v0.0.0-20240528143540-8a5130ca722f h1:lMpcwN6GxNbWtbpI1+xzFLSW8XzX0u72NttUGVFjO3U=
