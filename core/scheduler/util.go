@@ -3,22 +3,22 @@ package scheduler
 import (
 	"strings"
 	"time"
-	
+
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 )
 
 func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (r result.Error) {
 	if executor == nil {
-		return result.Errorf("executor is nil")
+		return r.WithErrorf("executor is nil")
 	}
 
 	if executor.Name() == "" {
-		return result.Errorf("executor name is empty")
+		return r.WithErrorf("executor name is empty")
 	}
 
 	if jobExecutors[executor.Name()] != nil {
-		return result.Errorf("[job executor] %s already exists", executor.Name())
+		return r.WithErrorf("[job executor] %s already exists", executor.Name())
 	}
 
 	jobExecutors[executor.Name()] = executor
@@ -35,6 +35,7 @@ func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImp
 		if err != nil {
 			return r.WithErrorf("cron-expr:%s, err:%s", j.Cron.Expr, err.Error())
 		}
+
 		return r.WithValue(newTrigger(trigger))
 	}
 
@@ -42,7 +43,7 @@ func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImp
 		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.Ticker.Dur)))
 	}
 
-	return r.WithErrorf("please init Once, Cron or Ticker")
+	return r.WithErrorf("please init spec.Once, spec.Cron or spec.Ticker, spec:%#v", j)
 }
 
 func parseJobKey(name string) *quartz.JobKey {

@@ -71,12 +71,14 @@ func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[
 			cfg.Location = jobConfig.Location
 		}
 
-		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-			InspectErr(func(err error) {
-				log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
-			}).
-			UnwrapErr(&r)
-		if r.IsErr() {
+		locationRes := result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location)))
+		locationRes.InspectErr(func(err error) {
+			log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
+		})
+		locationRes.Inspect(func(location *time.Location) {
+			cfg.location = location
+		})
+		if locationRes.CatchErr(&r) {
 			return
 		}
 	}

@@ -57,30 +57,29 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	defer result.RecoveryErr(&r)
 
 	if spec.Name == "" {
-		return result.Errorf("job name is empty")
+		return r.WithErrorf("job name is empty")
 	}
 
 	name := spec.Name
 	if s.jobs[name] != nil {
-		return result.Errorf("job %s already exists", name)
+		return r.WithErrorf("job %s already exists", name)
 	}
 
-	result.WrapFn(func() (JobExecutor, error) {
+	executorRes := result.WrapFn(func() (JobExecutor, error) {
 		executor := s.jobExecutors[spec.Executor]
 		if executor == nil {
 			executor = fn
 		}
 
 		if executor == nil {
-			return nil, fmt.Errorf("schedule job(%s) executor is nil", name)
+			return nil, fmt.Errorf("schedule job executor is nil, name:%s", name)
 		}
 		return executor, nil
-	}).
-		Inspect(func(executor JobExecutor) {
-			task.executor = executor
-		}).
-		UnwrapErr(&r)
-	if r.IsErr() {
+	})
+	executorRes.Inspect(func(executor JobExecutor) {
+		task.executor = executor
+	})
+	if executorRes.CatchErr(&r) {
 		return
 	}
 
@@ -96,22 +95,21 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return
 	}
 
-	trigger := getTrigger(spec, config.location).
+	triggerRes := getTrigger(spec, config.location).
 		InspectErr(func(err error) {
 			log.Err(err).Msgf("failed to get schedule job(%s) trigger", name)
 		}).
 		Inspect(func(trigger *triggerImpl) {
 			task.trigger = trigger
-		}).
-		UnwrapErr(&r)
-	if r.IsErr() {
+		})
+	if triggerRes.CatchErr(&r) {
 		return
 	}
 
 	jobOpt := config.ToJobDetailOptions()
 	job := &namedJob{s: s, task: &task, log: s.log}
 	jobDetail := quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt)
-	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, trigger)) {
+	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, task.trigger)) {
 		return
 	}
 

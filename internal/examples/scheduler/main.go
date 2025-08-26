@@ -32,7 +32,7 @@ type schedulerExample struct {
 }
 
 func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
-	reg.Once("once_task", time.Second*12, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
+	reg.Once("once_task", time.Second*10, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
 		fmt.Printf("exec once task: %s: %#v\n", name, metadata)
 		time.Sleep(time.Second * 5)
 		return result.OK([]byte("once"))

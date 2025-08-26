@@ -41,32 +41,34 @@ func NewService(params Params) (supervisor.Service, error) {
 }
 
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
-	configMap := createConfig(configs).
-		InspectErr(func(err error) {
-			log.Err(err).Any("configs", configs).Msg("failed to create config")
-		}).
-		Unwrap(&gErr)
-	if gErr != nil {
+	configMap := createConfig(configs)
+	configMap.InspectErr(func(err error) {
+		log.Err(err).Any("configs", configs).Msg("failed to create config")
+	})
+	if configMap.Catch(&gErr) {
 		return
 	}
 
-	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelInfo)))).
-		InspectErr(func(err error) {
-			log.Err(err).Msg("failed to create scheduler")
-		}).
-		Unwrap(&gErr)
-	if gErr != nil {
+	scheduler := result.WrapFn(func() (quartz.Scheduler, error) {
+		return quartz.NewStdScheduler(
+			quartz.WithLogger(qlog.NewSimpleLogger(schedulerLog, qlog.LevelInfo)),
+			quartz.WithJobMetadata(),
+		)
+	})
+	scheduler.InspectErr(func(err error) {
+		log.Err(err).Msg("failed to create scheduler")
+	})
+	if scheduler.Catch(&gErr) {
 		return
 	}
 
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
-		regJobExecutor(jobExecutors, executor).
-			InspectErr(func(err error) {
-				log.Err(err).Msg("failed to register job executor")
-			}).
-			Catch(&gErr)
-		if gErr != nil {
+		regRes := regJobExecutor(jobExecutors, executor)
+		regRes.InspectErr(func(err error) {
+			log.Err(err).Msg("failed to register job executor")
+		})
+		if regRes.Catch(&gErr) {
 			return
 		}
 	}
@@ -74,8 +76,8 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 	ctx, cancel := context.WithCancel(context.Background())
 	quart := &Scheduler{
 		metric:       metric,
-		configMap:    configMap,
-		scheduler:    scheduler,
+		configMap:    configMap.Must(),
+		scheduler:    scheduler.Must(),
 		log:          logger.WithName(Name),
 		ctx:          ctx,
 		cancel:       cancel,
