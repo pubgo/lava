@@ -8,41 +8,65 @@ import (
 	"syscall"
 
 	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/pathutil"
 	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/v2/result"
 )
 
 const Name = "pidfile"
 
 var PidPath = filepath.Join(config.GetConfigDir(), Name)
 
-const pidPerm os.FileMode = 0o666
+const pidPerm os.FileMode = 0o644
 
-func GetPid() result.Result[int] {
-	f := GetPidF()
-	if f.IsErr() {
-		return result.Err[int](f.Err())
+func Get() (r result.Result[int]) {
+	pidPath := GetPath().UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
-	p, err := os.ReadFile(f.Unwrap())
+	p, err := os.ReadFile(pidPath)
 	if err != nil {
-		return result.Wrap(0, err)
+		return r.WithErrorf("failed to read pid file: %s", pidPath)
 	}
 
-	return result.Wrap(strconv.Atoi(string(p)))
+	if len(p) == 0 {
+		return r.WithErrorf("pid file is empty")
+	}
+
+	return result.Wrap(strconv.Atoi(string(p))).
+		InspectErr(func(err error) {
+			log.Err(err).Str("path", pidPath).Str("pid", string(p)).Msg("read pid file failed")
+		})
 }
 
-func GetPidF() result.Result[string] {
+func GetPath() (r result.Result[string]) {
 	filename := fmt.Sprintf("%s.pid", running.Project)
-	return result.OK(filepath.Join(PidPath, filename))
+	pidPath := filepath.Join(PidPath, filename)
+
+	if pathutil.IsNotExist(PidPath) {
+		createDirRes := result.ErrOf(os.MkdirAll(PidPath, os.ModePerm)).InspectErr(func(err error) {
+			log.Err(err).Str("dir", PidPath).Msg("create pid file dir failed")
+		})
+		if createDirRes.CatchErr(&r) {
+			return
+		}
+	}
+
+	return r.WithValue(pidPath)
 }
 
-func SavePid() error {
-	f := GetPidF()
-	if f.IsErr() {
-		return f.Err()
+func Save() (r result.Error) {
+	pidPath := GetPath().UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
 	pid := syscall.Getpid()
-	return os.WriteFile(f.Unwrap(), []byte(strconv.Itoa(pid)), pidPerm)
+
+	return result.ErrOf(os.WriteFile(pidPath, []byte(strconv.Itoa(pid)), pidPerm)).
+		InspectErr(func(err error) {
+			log.Err(err).Str("path", pidPath).Int("pid", pid).Msg("write pid file failed")
+		})
 }

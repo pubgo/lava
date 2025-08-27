@@ -17,6 +17,6 @@ func New() lifecycle.Handler {
 
 		_ = pathutil.IsNotExistMkDir(pidfile.PidPath)
 
-		lc.AfterStart(func(ctx context.Context) error { return pidfile.SavePid() })
+		lc.AfterStart(func(ctx context.Context) error { return pidfile.Save().GetErr() })
 	}
 }
