@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/try"
-	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"

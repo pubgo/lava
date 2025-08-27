@@ -14,10 +14,10 @@ import (
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/service"
-	"github.com/pubgo/lava/internal/logutil"
-	"github.com/pubgo/lava/pkg/netutil"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/service"
+	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {

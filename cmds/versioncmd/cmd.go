@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cmdutil"
 	"github.com/urfave/cli/v3"
 )
 

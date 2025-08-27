@@ -7,11 +7,11 @@ import (
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/lavacontexts"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
-	"github.com/pubgo/lava/pkg/httputil"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 )
 

@@ -12,11 +12,11 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/core/lavabuilder"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/servers/https"
+	"github.com/pubgo/lava/v2/core/lavabuilder"
+	"github.com/pubgo/lava/v2/core/logging"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/scheduler"
+	"github.com/pubgo/lava/v2/servers/https"
 	"github.com/rs/zerolog"
 )
 

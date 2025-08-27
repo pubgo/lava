@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/result"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

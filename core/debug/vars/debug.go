@@ -10,7 +10,7 @@ import (
 	h "github.com/maragudk/gomponents/html"
 	"github.com/pubgo/funk/recovery"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

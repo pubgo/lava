@@ -11,8 +11,8 @@ import (
 	lo "github.com/samber/lo"
 	"github.com/uber-go/tally/v4"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 func New(m lifecycle.Lifecycle, cfg *metrics.Config, log log.Logger) metrics.Metric {

@@ -4,7 +4,7 @@ package registry
 import (
 	"context"
 
-	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/v2/core/service"
 )
 
 // Registry The registry provides an interface for service discovery

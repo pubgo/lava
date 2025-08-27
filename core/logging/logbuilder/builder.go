@@ -10,8 +10,8 @@ import (
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
-	"github.com/pubgo/lava/core/logging"
-	"github.com/pubgo/lava/core/logging/logkey"
+	"github.com/pubgo/lava/v2/core/logging"
+	"github.com/pubgo/lava/v2/core/logging/logkey"
 	"github.com/rs/zerolog"
 )
 

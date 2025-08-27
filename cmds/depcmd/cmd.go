@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cmdutil"
 )
 
 func New(di *dix.Dix) *cli.Command {

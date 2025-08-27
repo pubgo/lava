@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/lifecycle"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"

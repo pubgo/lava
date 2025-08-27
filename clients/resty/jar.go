@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 func NewJar(log log.Logger) *Jar {

@@ -2,7 +2,7 @@ package zpags
 
 import (
 	"github.com/gofiber/adaptor/v2"
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 	"go.opentelemetry.io/contrib/zpages"
 )
 

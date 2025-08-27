@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/running"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

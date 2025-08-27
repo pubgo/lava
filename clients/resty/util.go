@@ -20,8 +20,8 @@ import (
 	"github.com/valyala/fasttemplate"
 	"golang.org/x/net/http/httpguts"
 
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 func do(cfg *Config) lava.HandlerFunc {

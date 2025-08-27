@@ -9,9 +9,9 @@ import (
 	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/core/supervisor"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/supervisor"
 )
 
 const Name = "scheduler"

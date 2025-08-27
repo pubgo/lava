@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/v2/core/scheduler"
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/components"
 	. "maragu.dev/gomponents/html"

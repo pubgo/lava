@@ -15,9 +15,9 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
-	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/supervisor"
-	"github.com/pubgo/lava/internal/logutil"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/supervisor"
+	"github.com/pubgo/lava/v2/internal/logutil"
 	"google.golang.org/grpc/codes"
 )
 

@@ -29,7 +29,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/encoding/gzip"
 
-	"github.com/pubgo/lava/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/lifecycle"
 )
 
 var logs = log.GetLogger("tracing")

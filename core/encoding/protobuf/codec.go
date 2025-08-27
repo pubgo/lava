@@ -3,7 +3,7 @@ package protobuf
 import (
 	"fmt"
 
-	"github.com/pubgo/lava/core/encoding"
+	"github.com/pubgo/lava/v2/core/encoding"
 
 	"google.golang.org/protobuf/proto"
 	pb "google.golang.org/protobuf/proto"

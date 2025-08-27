@@ -2,7 +2,7 @@ package grpcs
 
 import (
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/grpcbuilder"
+	"github.com/pubgo/lava/v2/pkg/grpcbuilder"
 )
 
 const (
