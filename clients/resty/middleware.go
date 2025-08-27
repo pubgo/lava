@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/funk/convert"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Request = (*requestImpl)(nil)

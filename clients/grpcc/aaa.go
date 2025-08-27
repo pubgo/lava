@@ -3,7 +3,7 @@ package grpcc
 import (
 	"context"
 
-	"github.com/pubgo/lava/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"google.golang.org/grpc"
 )
 

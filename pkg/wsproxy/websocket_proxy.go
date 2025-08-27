@@ -13,7 +13,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/internal/logutil"
+	"github.com/pubgo/lava/v2/internal/logutil"
 	"golang.org/x/net/context"
 )
 

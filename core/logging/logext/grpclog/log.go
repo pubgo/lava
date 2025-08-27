@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/v2/core/logging"
 )
 
 const (

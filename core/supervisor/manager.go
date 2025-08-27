@@ -15,10 +15,10 @@ import (
 	"github.com/pubgo/funk/stack"
 	"github.com/thejerf/suture/v4"
 
-	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/signal"
-	"github.com/pubgo/lava/internal/logutil"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/signal"
+	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
 type serviceWrapper struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 )

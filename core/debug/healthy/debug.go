@@ -7,8 +7,8 @@ import (
 	jjson "github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/try"
-	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/core/healthy"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/healthy"
 )
 
 func init() {

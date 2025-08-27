@@ -14,10 +14,10 @@ import (
 	"github.com/pubgo/funk/try"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/pubgo/lava/core/discovery"
-	"github.com/pubgo/lava/core/service"
-	"github.com/pubgo/lava/internal/logutil"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
+	"github.com/pubgo/lava/v2/core/discovery"
+	"github.com/pubgo/lava/v2/core/service"
+	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 func NewDiscoveryBuilder(disco discovery.Discovery) resolver.Builder {

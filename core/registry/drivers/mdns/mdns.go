@@ -12,8 +12,8 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 
-	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/v2/core/registry"
+	"github.com/pubgo/lava/v2/core/service"
 )
 
 const (

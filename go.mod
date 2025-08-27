@@ -1,4 +1,4 @@
-module github.com/pubgo/lava
+module github.com/pubgo/lava/v2
 
 go 1.24
 

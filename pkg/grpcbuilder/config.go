@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )

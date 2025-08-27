@@ -8,12 +8,12 @@ import (
 	"github.com/pubgo/funk/version"
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/core/scheduler/schedulerdebug"
-	"github.com/pubgo/lava/core/supervisor"
-	"github.com/pubgo/lava/pkg/cmdutil"
-	"github.com/pubgo/lava/servers/https"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/scheduler"
+	"github.com/pubgo/lava/v2/core/scheduler/schedulerdebug"
+	"github.com/pubgo/lava/v2/core/supervisor"
+	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/servers/https"
 )
 
 func New(di *dix.Dix) *cli.Command {

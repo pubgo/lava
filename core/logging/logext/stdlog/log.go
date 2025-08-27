@@ -7,7 +7,7 @@ import (
 
 	"github.com/pubgo/funk/convert"
 	logger "github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/v2/core/logging"
 )
 
 var evt = logger.NewEvent().Str("ext", "std")

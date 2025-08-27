@@ -2,7 +2,7 @@ package https
 
 import (
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/fiberbuilder"
+	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
 
 // DefaultMaxBodyBytes is the maximum allowed size of a request body in bytes.

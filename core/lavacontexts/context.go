@@ -3,8 +3,8 @@ package lavacontexts
 import (
 	"context"
 
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 )
 

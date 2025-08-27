@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/pubgo/lava/core/scheduler"
+	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/samber/lo"
 	. "maragu.dev/gomponents"
 	_ "maragu.dev/gomponents/components"

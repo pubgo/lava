@@ -7,8 +7,8 @@ import (
 	"github.com/pubgo/funk/config"
 	"github.com/pubgo/funk/pathutil"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/pidfile"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/pidfile"
 )
 
 func New() lifecycle.Handler {

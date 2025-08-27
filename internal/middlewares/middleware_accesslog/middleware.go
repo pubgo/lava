@@ -12,9 +12,9 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/lavacontexts"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 )

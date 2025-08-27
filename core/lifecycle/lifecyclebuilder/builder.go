@@ -1,6 +1,6 @@
 package lifecyclebuilder
 
-import "github.com/pubgo/lava/core/lifecycle"
+import "github.com/pubgo/lava/v2/core/lifecycle"
 
 type Provider struct {
 	Setter lifecycle.Lifecycle

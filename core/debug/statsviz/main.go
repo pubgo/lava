@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/lava/core/debug"
-	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 // github.com/go-echarts/statsview
