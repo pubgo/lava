@@ -1,4 +1,4 @@
-package schedulerpages
+package schedulerdebug
 
 import (
 	"time"
@@ -11,9 +11,8 @@ import (
 func Init(scheduler scheduler.JobManager) {
 	debug.Route("/scheduler", func(router fiber.Router) {
 		router.Get("list", func(ctx *fiber.Ctx) error {
-			scheduler.ListJobs()
 			ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
-			return Page(time.Now()).Render(ctx)
+			return Page(time.Now(), scheduler.ListJobs()).Render(ctx)
 		})
 	})
 }

@@ -10,7 +10,7 @@ import (
 
 	"github.com/pubgo/lava/core/lifecycle"
 	"github.com/pubgo/lava/core/scheduler"
-	"github.com/pubgo/lava/core/scheduler/schedulerpages"
+	"github.com/pubgo/lava/core/scheduler/schedulerdebug"
 	"github.com/pubgo/lava/core/supervisor"
 	"github.com/pubgo/lava/pkg/cmdutil"
 	"github.com/pubgo/lava/servers/https"
@@ -29,7 +29,7 @@ func New(di *dix.Dix) *cli.Command {
 				Manager  scheduler.JobManager
 			}))
 
-			schedulerpages.Init(params.Manager)
+			schedulerdebug.Init(params.Manager)
 
 			manager := supervisor.Default(params.LC)
 			for _, svc := range params.Services {
