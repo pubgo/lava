@@ -79,7 +79,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
 	gopkg.in/yaml.v3 v3.0.1
 	maragu.dev/gomponents v1.2.0
-	maragu.dev/gomponents-htmx v0.6.1
 )
 
 require (
