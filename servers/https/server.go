@@ -95,6 +95,8 @@ func (s *serviceImpl) init(
 
 	s.httpServer = fiber.New(fiber.Config{
 		EnableIPValidation: true,
+		AppName:            version.Project(),
+		BodyLimit:          500 * 1024 * 1024,
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			if err == nil {
 				return nil

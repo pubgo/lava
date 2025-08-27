@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/pubgo/funk/errors/errutil"
 	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
@@ -30,10 +30,8 @@ import (
 	"github.com/pubgo/lava/v2/clients/grpcc"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/core/debug"
-	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	"github.com/pubgo/lava/v2/internal/consts"
 	"github.com/pubgo/lava/v2/internal/logutil"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
@@ -42,6 +40,7 @@ import (
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 type Params struct {
@@ -50,8 +49,6 @@ type Params struct {
 	GrpcHttpRouters []lava.GrpcHttpRouter
 	GrpcProxy       []lava.GrpcProxy
 	DixMiddlewares  []lava.Middleware
-	GetLifecycle    lifecycle.Getter
-	Lifecycle       lifecycle.Lifecycle
 	Metric          metrics.Metric
 	Log             log.Logger
 	Conf            *Config
@@ -68,8 +65,6 @@ func newService(params Params) supervisor.Service {
 		params.GrpcHttpRouters,
 		params.GrpcProxy,
 		params.DixMiddlewares,
-		params.GetLifecycle,
-		params.Lifecycle,
 		params.Metric,
 		params.Log,
 		params.Conf,
@@ -80,7 +75,6 @@ func newService(params Params) supervisor.Service {
 }
 
 type serviceImpl struct {
-	lc         lifecycle.Getter
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	log        log.Logger
@@ -110,8 +104,6 @@ func (s *serviceImpl) init(
 	grpcHttpRouters []lava.GrpcHttpRouter,
 	grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
-	getLifecycle lifecycle.Getter,
-	lifecycle lifecycle.Lifecycle,
 	metric metrics.Metric,
 	log log.Logger,
 	conf *Config,
@@ -129,8 +121,6 @@ func (s *serviceImpl) init(
 	if conf.BaseUrl == "" {
 		conf.BaseUrl = "/" + version.Project()
 	}
-
-	s.lc = getLifecycle
 
 	conf = config.MergeR(defaultCfg(), conf).Unwrap()
 	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
@@ -156,15 +146,35 @@ func (s *serviceImpl) init(
 				return nil
 			}
 
-			errPb := errutil.ParseError(err)
+			var errPb *errorpb.Error
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) && fiberErr != nil {
+				errPb = &errorpb.Error{
+					Code: &errorpb.ErrCode{
+						Name:       "lava.error",
+						StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
+						Code:       int32(fiberErr.Code),
+						Message:    fiberErr.Message,
+					},
+					Trace: &errorpb.ErrTrace{},
+				}
+			} else {
+				errPb = errutil.ParseError(err)
+			}
+
 			if errPb == nil || errPb.Code.Code == 0 {
 				return nil
 			}
 
 			errPb.Trace.Operation = ctx.Route().Path
-			code := errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.StatusCode))
+
+			code := int(errPb.Code.Code)
+			if errPb.Code.Code > 1000 {
+				code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
+			}
+
 			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-			return ctx.Status(code).JSON(errPb.Code)
+			return ctx.Status(code).JSON(errPb)
 		},
 	})
 
@@ -216,10 +226,6 @@ func (s *serviceImpl) init(
 		g := httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
 
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
-
 		if m, ok := h.(lava.Init); ok {
 			s.initList = append(s.initList, m.Init)
 		}
@@ -237,10 +243,6 @@ func (s *serviceImpl) init(
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
 
 		if m, ok := h.(lava.Initializer); ok {
 			s.initList = append(s.initList, m.Initialize)
@@ -260,10 +262,6 @@ func (s *serviceImpl) init(
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Close); ok {
-			lifecycle.BeforeStop(m.Close)
-		}
 
 		if m, ok := h.(lava.Initializer); ok {
 			s.initList = append(s.initList, m.Initialize)
@@ -341,14 +339,6 @@ func (s *serviceImpl) init(
 func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 	defer recovery.Exit()
 
-	logutil.OkOrFailed(s.log, "running before service starts", func() error {
-		for _, run := range s.lc.GetBeforeStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			assert.Exit(run.Exec(ctx))
-		}
-		return nil
-	})
-
 	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
 		defer recovery.Exit()
 		for _, init := range s.initList {
@@ -365,62 +355,35 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.GrpcPort)))
 	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.HttpPort)))
 
-	logutil.OkOrFailed(s.log, "service starts", func() error {
-		// 启动grpc服务
-		async.GoDelay(func() error {
-			s.log.Info().Msg("[grpc] Server Starting")
-			logutil.LogOrErr(s.log, "[grpc] Server Stop", func() error {
-				defer recovery.DebugPrint()
-				err := s.grpcServer.Serve(grpcLn)
-				if err == nil || errors.Is(err, http.ErrServerClosed) || errors.Is(err, net.ErrClosed) {
-					return nil
-				}
-
-				return err
-			})
+	// 启动grpc服务
+	async.GoDelay(func() error {
+		s.log.Info().Msg("[grpc] Server Starting")
+		defer recovery.DebugPrint()
+		err := s.grpcServer.Serve(grpcLn)
+		if netutil.IsErrServerClosed(err) {
 			return nil
-		})
-
-		// 启动grpc网关
-		async.GoDelay(func() error {
-			s.log.Info().Msg("[http] Server Starting")
-			logutil.LogOrErr(s.log, "[http] Server Stop", func() error {
-				defer recovery.DebugPrint()
-				err := s.httpServer.Listener(httpLn)
-				if err == nil || errors.Is(err, http.ErrServerClosed) || errors.Is(err, net.ErrClosed) {
-					return nil
-				}
-
-				return err
-			})
-			return nil
-		})
-		return nil
-	})
-
-	logutil.OkOrFailed(s.log, "running after service starts", func() error {
-		for _, run := range s.lc.GetAfterStarts() {
-			s.log.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
-			assert.Exit(run.Exec(ctx))
 		}
-		return nil
+
+		return err
 	})
+
+	// 启动grpc网关
+	async.GoDelay(func() error {
+		s.log.Info().Msg("[http] Server Starting")
+		defer recovery.DebugPrint()
+		err := s.httpServer.Listener(httpLn)
+		if netutil.IsErrServerClosed(err) {
+			return nil
+		}
+
+		return err
+	})
+
 	return nil
 }
 
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
-
-	logutil.OkOrFailed(s.log, "running before service stops", func() error {
-		for _, run := range s.lc.GetBeforeStops() {
-			logutil.LogOrErr(
-				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
-				func() error { return run.Exec(ctx) },
-			)
-		}
-		return nil
-	})
 
 	logutil.LogOrErr(s.log, "[grpc] Server GracefulStop", func() error {
 		s.grpcServer.GracefulStop()
@@ -428,17 +391,10 @@ func (s *serviceImpl) stop(ctx context.Context) {
 	})
 
 	logutil.LogOrErr(s.log, "[http] Server Shutdown", func() error {
-		return s.httpServer.ShutdownWithTimeout(consts.DefaultTimeout)
-	})
-
-	logutil.OkOrFailed(s.log, "running after service stops", func() error {
-		for _, run := range s.lc.GetAfterStops() {
-			logutil.LogOrErr(
-				s.log,
-				fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)),
-				func() error { return run.Exec(ctx) },
-			)
+		err := s.httpServer.ShutdownWithContext(ctx)
+		if netutil.IsErrServerClosed(err) {
+			return nil
 		}
-		return nil
+		return err
 	})
 }
