@@ -9,7 +9,7 @@ vars:
   VERSION:
     sh: "git tag --sort=committerdate | tail -n 1"
   BUILD_TIME:
-    sh: 'date "+%F %T"'
+    sh: "date -u '+%Y-%m-%d %I:%M:%S %Z'"
   GIT_COMMIT:
     sh: "git rev-parse --short=8 HEAD"
   BRANCH_NAME:
