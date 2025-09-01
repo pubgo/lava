@@ -62,6 +62,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.17
+	github.com/ulikunitz/xz v0.5.15
 	github.com/urfave/cli/v3 v3.4.1
 	github.com/valyala/fasthttp v1.63.0
 	github.com/valyala/fasttemplate v1.2.2
