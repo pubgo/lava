@@ -13,16 +13,17 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/v2/core/lavacontexts"
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/pubgo/lava/v2/pkg/httputil"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
@@ -117,9 +118,9 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			reqMetadata.Set(httputil.HeaderXRequestID, reqId)
 			reqMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 			reqMetadata.Set(httputil.HeaderXRequestOperation, info.FullMethod)
-			rpcReq.rspHeader.VisitAll(func(key, value []byte) {
+			for key, value := range rpcReq.rspHeader.All() {
 				reqMetadata.Set(convert.BtoS(key), convert.BtoS(value))
-			})
+			}
 
 			if err := grpc.SetHeader(ctx, reqMetadata); err != nil {
 				log.Err(err, ctx).Msg("grpc send trailer failed")
@@ -273,9 +274,9 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 
 		h := rsp.Header()
 		md = make(metadata.MD)
-		h.VisitAll(func(key, value []byte) {
+		for key, value := range h.All() {
 			md.Append(convert.BtoS(key), convert.BtoS(value))
-		})
+		}
 		return grpc.SetTrailer(ctx, md)
 	}
 }
