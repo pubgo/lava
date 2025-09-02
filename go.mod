@@ -36,6 +36,7 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.2
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/arl/statsviz v0.7.1
 	github.com/ecordell/optgen v0.0.9
@@ -54,7 +55,7 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.65.0
 	github.com/pubgo/dix v0.3.21
-	github.com/pubgo/funk v0.5.69-alpha.12
+	github.com/pubgo/funk v0.5.69-alpha.14
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
@@ -85,7 +86,6 @@ require (
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
-	dario.cat/mergo v1.0.2 // indirect
 	github.com/4meepo/tagalign v1.3.4 // indirect
 	github.com/Abirdcfly/dupword v0.1.1 // indirect
 	github.com/Antonboom/errname v0.1.13 // indirect

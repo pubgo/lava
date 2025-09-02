@@ -1,7 +1,4 @@
 http_server:
   base_url: /scheduler
-  enable_cors: ${GRPC_ENABLE_CORS:-false}
-  enable_ping_pong: true
-  ping_pong_time: 40
   enable_print_router: true
 #  http_port: 8001

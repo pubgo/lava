@@ -2,7 +2,6 @@ package grpcs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -10,22 +9,16 @@ import (
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/generic"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
 	"github.com/pubgo/funk/vars"
 	"github.com/pubgo/funk/version"
 	"github.com/rs/xid"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava/v2/clients/grpcc"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
@@ -109,21 +102,17 @@ func (s *serviceImpl) init(
 	conf *Config,
 	gw []*gateway.Mux,
 ) {
-	s.conf = conf
-	if conf.HttpPort == nil {
-		conf.HttpPort = generic.Ptr(running.HttpPort)
-	}
+	cfg := httputil.DefaultCfg(&httputil.Config{
+		BaseUrl:           conf.BaseUrl,
+		EnablePrintRouter: conf.EnablePrintRouter,
+		Http:              conf.Http,
+		HttpPort:          conf.HttpPort,
+	})
+	conf.BaseUrl = cfg.BaseUrl
+	conf.HttpPort = cfg.HttpPort
+	conf.Http = cfg.Http
 
-	if conf.GrpcPort == nil {
-		conf.GrpcPort = generic.Ptr(running.GrpcPort)
-	}
-
-	if conf.BaseUrl == "" {
-		conf.BaseUrl = "/" + version.Project()
-	}
-
-	conf = config.MergeR(defaultCfg(), conf).Unwrap()
-	conf.BaseUrl = "/" + strings.Trim(conf.BaseUrl, "/")
+	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
 
 	globalMiddlewares := lava.Middlewares{
 		middleware_serviceinfo.New(),
@@ -136,68 +125,8 @@ func (s *serviceImpl) init(
 	log = log.WithName("grpc-server")
 	s.log = log
 
-	httpServer := fiber.New(fiber.Config{
-		EnableIPValidation: true,
-		EnablePrintRoutes:  conf.EnablePrintRoutes,
-		AppName:            version.Project(),
-		BodyLimit:          500 * 1024 * 1024,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			if err == nil {
-				return nil
-			}
-
-			var errPb *errorpb.Error
-			var fiberErr *fiber.Error
-			if errors.As(err, &fiberErr) && fiberErr != nil {
-				errPb = &errorpb.Error{
-					Code: &errorpb.ErrCode{
-						Name:       "lava.error",
-						StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
-						Code:       int32(fiberErr.Code),
-						Message:    fiberErr.Message,
-					},
-					Trace: &errorpb.ErrTrace{},
-				}
-			} else {
-				errPb = errutil.ParseError(err)
-			}
-
-			if errPb == nil || errPb.Code.Code == 0 {
-				return nil
-			}
-
-			errPb.Trace.Operation = ctx.Route().Path
-
-			code := int(errPb.Code.Code)
-			if errPb.Code.Code > 1000 {
-				code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
-			}
-
-			ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-			return ctx.Status(code).JSON(errPb)
-		},
-	})
-
-	if conf.EnableCors {
-		httpServer.Use(cors.New(cors.Config{
-			AllowOriginsFunc: func(origin string) bool {
-				return true
-			},
-			AllowMethods: strings.Join([]string{
-				fiber.MethodGet,
-				fiber.MethodPost,
-				fiber.MethodPut,
-				fiber.MethodDelete,
-				fiber.MethodPatch,
-				fiber.MethodHead,
-				fiber.MethodOptions,
-			}, ","),
-			//AllowHeaders:     "",
-			AllowCredentials: true,
-			//ExposeHeaders:    "",
-			MaxAge: 0,
-		}))
-	}
+	httpServer := fiber.New(conf.Http.Build().Must())
+	httpServer.Use(httputil.Cors())
 
 	httpApp := fiber.New()
 
