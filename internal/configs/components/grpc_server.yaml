@@ -1,9 +1,6 @@
 grpc_server:
   base_url: /welogin
-  enable_print_routes: true
-  enable_cors: ${GRPC_ENABLE_CORS:-false}
-  enable_ping_pong: true
-  ping_pong_time: 40
+  enable_print_router: true
 
   # 256k
   ws_read_limit: 262144
