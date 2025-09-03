@@ -8,7 +8,7 @@ import (
 )
 
 func registerVars(m metrics.Metric) {
-	vars.Register(metrics.Name+"_capabilities", func() interface{} {
+	vars.Register(vars.UniqueName(metrics.Name, "capabilities"), func() interface{} {
 		c := m.Capabilities()
 		return typex.Ctx{
 			"reporting": c.Reporting(),
@@ -16,7 +16,7 @@ func registerVars(m metrics.Metric) {
 		}
 	})
 
-	vars.Register(metrics.Name+"_snapshot", func() interface{} {
+	vars.Register(vars.UniqueName(metrics.Name, "snapshot"), func() interface{} {
 		if c, ok := m.(tally.TestScope); ok {
 			// TODO 数据序列化处理
 			return c.Snapshot()
