@@ -26,7 +26,7 @@ var (
 )
 
 func NewSink(l log.Logger) *LogSink {
-	return &LogSink{l: l}
+	return &LogSink{l: l.WithName("logr")}
 }
 
 func (ls *LogSink) Init(ri logr.RuntimeInfo) {

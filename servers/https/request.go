@@ -22,6 +22,6 @@ func (r *httpRequest) ContentType() string {
 	return string(r.ctx.Request().Header.ContentType())
 }
 
-func (r *httpRequest) Service() string  { return r.ctx.OriginalURL() }
+func (r *httpRequest) Service() string  { return r.ctx.Route().Path }
 func (r *httpRequest) Endpoint() string { return string(r.ctx.Request().RequestURI()) }
 func (r *httpRequest) Stream() bool     { return false }

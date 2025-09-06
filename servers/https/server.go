@@ -42,14 +42,7 @@ func New(params Params) supervisor.Service { return newService(params) }
 
 func newService(params Params) supervisor.Service {
 	s := &serviceImpl{}
-	s.init(
-		params.Handlers,
-		params.Middlewares,
-		params.M,
-		params.Log,
-		params.Cfg,
-		params.Docs,
-	)
+	s.init(params)
 
 	return supervisor.NewService(s.String(), s.Serve)
 }
@@ -71,31 +64,24 @@ func (s *serviceImpl) Serve(ctx context.Context) error {
 	return nil
 }
 
-func (s *serviceImpl) init(
-	handlers []lava.HttpRouter,
-	middlewares []lava.Middleware,
-	m metrics.Metric,
-	log log.Logger,
-	cfg *Config,
-	docs []*opendoc.Swagger,
-) {
-	cfg = lo.ToPtr(httputil.DefaultCfg(cfg))
+func (s *serviceImpl) init(params Params) {
+	cfg := lo.ToPtr(httputil.DefaultCfg(params.Cfg))
 
 	vars.RegisterValue(s.String()+"_config_"+xid.New().String(), cfg)
 
-	s.log = log.WithName(s.String())
+	s.log = params.Log.WithName(s.String())
 	s.httpServer = fiber.New(cfg.Http.Build().Must())
 	s.httpServer.Use(httputil.Cors())
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_serviceinfo.New(),
-		middleware_metric.New(m),
-		middleware_accesslog.New(log),
+		middleware_metric.New(params.M),
+		middleware_accesslog.New(s.log),
 		middleware_recovery.New(),
 	}
-	s.httpServer.Use(handlerHttpMiddle(append(defaultMiddlewares, middlewares...)))
+	s.httpServer.Use(handlerHttpMiddle(append(defaultMiddlewares, params.Middlewares...)))
 
-	for _, h := range handlers {
+	for _, h := range params.Handlers {
 		g := s.httpServer.Group("", handlerHttpMiddle(h.Middlewares()))
 
 		//for _, an := range h.Annotation() {

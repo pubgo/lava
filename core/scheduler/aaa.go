@@ -2,8 +2,6 @@ package scheduler
 
 import (
 	"context"
-	stdLog "log"
-	"os"
 	"time"
 
 	"github.com/pubgo/funk/clone"
@@ -12,8 +10,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/atomic"
 )
-
-var schedulerLog = stdLog.New(os.Stdout, "scheduler", stdLog.LstdFlags|stdLog.Lmsgprefix|stdLog.Lshortfile)
 
 type JobExecutor interface {
 	Name() string
@@ -95,7 +91,7 @@ type jobTask struct {
 	runs    atomic.Uint64
 	jobKey  *quartz.JobKey
 	status  Status
-	
+
 	result result.Result[[]byte]
 }
 

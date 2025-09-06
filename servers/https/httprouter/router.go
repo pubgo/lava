@@ -17,11 +17,11 @@ func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, 
 		var req Req
 
 		if err := ctx.ParamsParser(&req); err != nil {
-			return fmt.Errorf("failed to parse params, err:%w", err)
+			return fmt.Errorf("failed to parse params, params:%v err:%w", ctx.AllParams(), err)
 		}
 
 		if err := ctx.QueryParser(&req); err != nil {
-			return fmt.Errorf("failed to parse query, err:%w", err)
+			return fmt.Errorf("failed to parse query, query:%v err:%w", ctx.Queries(), err)
 		}
 
 		if err := ctx.ReqHeaderParser(&req); err != nil {

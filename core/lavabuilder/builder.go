@@ -23,10 +23,7 @@ import (
 	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
-	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/pubgo/lava/v2/core/signal"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/v2/pkg/cmdutil"
 
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
@@ -58,13 +55,10 @@ var defaultProviders = []any{
 	grpccresolver.NewDiscoveryBuilder,
 	discovery.NewNoopDiscovery,
 
-	middleware_accesslog.New,
-	middleware_metric.New,
 	logbuilder.New,
 	metricbuilder.New,
 
 	lifecyclebuilder.New,
-	scheduler.New,
 }
 
 func New(opts ...dix.Option) *dix.Dix {

@@ -33,25 +33,6 @@ type ResponseParams struct {
 	Manager JobManager
 }
 
-func NewService(params Params) (ResponseParams, error) {
-	s, err := New(
-		params.M,
-		params.Log,
-		params.Metric,
-		params.Configs,
-		params.Routers,
-		params.Executors,
-	)
-	if err != nil {
-		return ResponseParams{}, err
-	}
-
-	return ResponseParams{
-		Service: supervisor.NewService(Name, s.Serve),
-		Manager: s,
-	}, nil
-}
-
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
 	defer result.Recovery(&gErr)
 	configMap := createConfig(configs).

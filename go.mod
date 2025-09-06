@@ -40,6 +40,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/arl/statsviz v0.7.1
 	github.com/ecordell/optgen v0.0.9
+	github.com/expr-lang/expr v1.17.5
 	github.com/fasthttp/websocket v1.5.12
 	github.com/felixge/fgprof v0.9.5
 	github.com/fullstorydev/grpchan v1.1.1
@@ -55,12 +56,11 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.65.0
 	github.com/pubgo/dix v0.3.21
-	github.com/pubgo/funk v0.5.69-alpha.18
+	github.com/pubgo/funk v0.5.69-alpha.19
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.51.0
-	github.com/samber/slog-common v0.19.0
 	github.com/stretchr/testify v1.10.0
 	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.17
@@ -130,7 +130,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
-	github.com/expr-lang/expr v1.17.5 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.5 // indirect
@@ -245,6 +244,7 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/ryancurrah/gomodguard v1.3.5 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.5.1 // indirect
+	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sanposhiho/wastedassign/v2 v2.0.7 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
