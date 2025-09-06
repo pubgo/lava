@@ -6,26 +6,24 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/stack"
+	"github.com/rs/zerolog"
+
 	"github.com/pubgo/lava/v2/core/logging"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
-	"github.com/rs/zerolog"
 )
 
 var GlobalHook zerolog.Hook
 
-func init() {
-	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
-		return stack.Stack(pc).Short()
-	}
-}
-
 // New logger
 func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
-	defer recovery.Exit()
+	defer recovery.Exit(func(err error) error {
+		pretty.Println(cfg)
+		return err
+	})
 
 	level := zerolog.DebugLevel
 	if cfg.Level != "" {

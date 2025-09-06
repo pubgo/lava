@@ -55,7 +55,7 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/prometheus/common v0.65.0
 	github.com/pubgo/dix v0.3.21
-	github.com/pubgo/funk v0.5.69-alpha.15
+	github.com/pubgo/funk v0.5.69-alpha.18
 	github.com/pubgo/protobuild v0.0.21
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
@@ -231,7 +231,6 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
-	github.com/phuslu/goid v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v1.6.0 // indirect
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582 // indirect

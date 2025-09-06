@@ -10,6 +10,7 @@ import (
 	slogcommon "github.com/samber/slog-common"
 )
 
+var evt = log.NewEvent().Str("ext", "slog")
 var logLevels = map[slog.Level]zerolog.Level{
 	slog.LevelDebug: zerolog.DebugLevel,
 	slog.LevelInfo:  zerolog.InfoLevel,
@@ -22,7 +23,7 @@ func init() {
 }
 
 func SetLogger(logger log.Logger) {
-	slog.SetDefault(slog.New(&std{l: logger}))
+	slog.SetDefault(slog.New(&std{l: logger.WithEvent(evt)}))
 }
 
 var _ slog.Handler = (*std)(nil)

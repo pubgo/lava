@@ -26,7 +26,7 @@ var (
 )
 
 func init() {
-	log.Info().Str("password", running.InstanceID).Msg("debug password")
+	log.Info().Str("password", passwd).Msg("debug password")
 	debug.App().Use(func(c *fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
 			err = errors.WrapTag(err,

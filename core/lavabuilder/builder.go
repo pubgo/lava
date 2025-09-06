@@ -47,6 +47,7 @@ import (
 
 	// logging
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
+	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/stdlog"
 
 	_ "go.uber.org/automaxprocs"
