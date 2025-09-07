@@ -1,0 +1,4 @@
+app:
+  env: ${ENV:-"dev"}
+go_pool:
+  worker_size: 100

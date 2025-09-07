@@ -7,7 +7,7 @@ import (
 	"github.com/felixge/fgprof"
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

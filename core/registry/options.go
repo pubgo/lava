@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/v2/core/service"
 )
 
 func TTL(dur time.Duration) RegOpt {

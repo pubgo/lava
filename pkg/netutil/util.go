@@ -1,6 +1,7 @@
 package netutil
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -173,9 +174,18 @@ func getIP(r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	netIP = net.ParseIP(ip)
 	if netIP != nil {
 		return ip, nil
 	}
-	return "", fmt.Errorf("No valid ip found")
+
+	return "", fmt.Errorf("no valid ip found: %s", r.RemoteAddr)
+}
+
+func IsErrServerClosed(err error) bool {
+	return err == nil ||
+		errors.Is(err, http.ErrServerClosed) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, context.Canceled)
 }

@@ -21,7 +21,12 @@ type RequestConfig struct {
 }
 
 func NewRequest(cfg *RequestConfig) *Request {
-	r := &Request{cfg: cfg}
+	r := &Request{
+		cfg:    cfg,
+		header: make(http.Header),
+		query:  make(url.Values),
+		params: make(map[string]any),
+	}
 	return r
 }
 

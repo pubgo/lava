@@ -2,7 +2,7 @@ package grpcs
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
 )
 

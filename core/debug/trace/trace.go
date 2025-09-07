@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"golang.org/x/net/trace"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

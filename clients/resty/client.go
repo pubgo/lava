@@ -7,18 +7,18 @@ import (
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/retry"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/core/metrics"
-	"github.com/pubgo/lava/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/internal/middlewares/middleware_service_info"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
+	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
+	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
+	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 type Params struct {
@@ -29,7 +29,7 @@ type Params struct {
 func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	middlewares := lava.Middlewares{
-		middleware_service_info.New(),
+		middleware_serviceinfo.New(),
 		middleware_metric.New(p.Metric),
 		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.ServiceName})),
 		middleware_recovery.New(),
@@ -45,8 +45,10 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 		backoff = retry.WithMaxRetries(cfg.DefaultRetryCount, backoff)
 	}
 
+	handler := do(cfg)
+	handler = lava.Chain(middlewares...).Middleware(handler)
 	return &Client{
-		do:      lava.Chain(middlewares...).Middleware(do(cfg)),
+		do:      handler,
 		log:     p.Log,
 		cfg:     cfg,
 		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
@@ -67,7 +69,10 @@ type Client struct {
 }
 
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
-	defer recovery.Result(&r)
+	defer result.RecoveryErr(&r, func(err error) error {
+		errors.Debug(err)
+		return err
+	})
 
 	reqErr := doRequest(c, req)
 	if reqErr.IsErr() {
@@ -82,5 +87,5 @@ func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthtt
 		return r.WithErr(err)
 	}
 
-	return r.WithVal(resp.(*responseImpl).resp)
+	return r.WithValue(resp.(*responseImpl).resp)
 }

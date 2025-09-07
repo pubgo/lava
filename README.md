@@ -25,3 +25,12 @@
 11. 统一protobuf定义grpc和http服务, 便于生成swagger和sdk, 方便第三方调用
 
 12. 专注于业务开发，把额外的组件抽象成一个独立的服务
+
+
+## install
+
+```shell
+brew install go-task/tap/go-task
+brew install go-task
+eval "$(task --completion zsh)"
+```

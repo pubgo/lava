@@ -1,8 +1,11 @@
 package grpcs
 
 import (
-	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/pkg/grpc_builder"
+	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/running"
+
+	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
+	"github.com/pubgo/lava/v2/pkg/grpcbuilder"
 )
 
 const (
@@ -14,24 +17,17 @@ type GrpcServerConfigLoader struct {
 }
 
 type Config struct {
-	EnablePrintRoutes bool                 `yaml:"enable_print_routes"`
+	Http              *fiberbuilder.Config `yaml:"http"`
+	HttpPort          *int                 `yaml:"http_port"`
+	GrpcConfig        *grpcbuilder.Config  `yaml:"grpc"`
+	GrpcPort          *int                 `yaml:"grpc_port"`
+	EnablePrintRouter bool                 `yaml:"enable_print_router"`
 	BaseUrl           string               `yaml:"base_url"`
-	GrpcConfig        *grpc_builder.Config `yaml:"grpc_config"`
-	EnableCors        bool                 `yaml:"enable_cors"`
-	EnablePingPong    bool                 `yaml:"enable_ping_pong"`
-
-	// unix seconds
-	PingPongTime int32 `yaml:"ping_pong_time"`
-	GrpcPort     *int  `yaml:"grpc_port"`
-	HttpPort     *int  `yaml:"http_port"`
-
-	WsReadLimit *int `yaml:"ws_read_limit"`
 }
 
 func defaultCfg() *Config {
 	return &Config{
-		EnablePrintRoutes: true,
-		BaseUrl:           version.Project(),
-		GrpcConfig:        grpc_builder.GetDefaultCfg(),
+		GrpcConfig: grpcbuilder.GetDefaultCfg(),
+		GrpcPort:   generic.Ptr(running.GrpcPort),
 	}
 }

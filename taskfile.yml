@@ -1,0 +1,70 @@
+# https://taskfile.dev
+
+version: '3'
+
+dotenv: [ '.env' ]
+vars:
+  Project: "lava"
+  Base: "github.com/pubgo/funk"
+  VERSION:
+    sh: "git tag --sort=committerdate | tail -n 1"
+  BUILD_TIME:
+    sh: "date -u '+%Y-%m-%d %I:%M:%S %Z'"
+  GIT_COMMIT:
+    sh: "git rev-parse --short=8 HEAD"
+  BRANCH_NAME:
+    sh: "git branch ch --show-current"
+  GIT_VERSION:
+    sh: "git describe --always --abbrev=7 --dirty"
+
+includes:
+  scheduler: ./internal/examples/scheduler
+
+tasks:
+  default:
+    desc: "default task"
+    cmds:
+      - task -a
+
+  info:
+    cmds:
+      - echo "Project {{.Project}}"
+      - echo "VERSION {{.VERSION}}"
+      - echo "GIT_VERSION {{.GIT_VERSION}}"
+    silent: true
+
+  tools:
+    cmds:
+      - go install github.com/cortesi/modd/cmd/modd@latest
+      - go install mvdan.cc/sh/v3/cmd/shfmt@latest
+      - go install mvdan.cc/sh/v3/cmd/gosh@latest
+      - go install github.com/DarthSim/overmind/v2@latest
+      - go install github.com/a-h/templ/cmd/templ@latest
+      - go install golang.org/x/tools/cmd/goimports@latest
+
+  generate:
+    cmds:
+      - go generate ./internal/...
+
+  proto:fmt:
+    cmds:
+      - protobuild format
+
+  proto:gen:
+    cmds:
+      - protobuild vendor
+      - protobuild gen
+
+  proto:lint:
+    cmds:
+      - protobuild lint
+
+  vet:
+    cmds:
+      - go vet ./pkg/... ./internal/...
+  test:
+    cmds:
+      - go test -short -race -v ./... -cover
+  lint:
+    cmds:
+      - golangci-lint run --verbose ./...

@@ -1,0 +1,5 @@
+logger:
+  level: ${LOG_LEVEL:-"debug"}
+  as_json: ${LOG_AS_JSON:-false}
+  filters:
+    - level not in ["debug"]

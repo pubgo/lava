@@ -2,46 +2,83 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logfields"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/vars"
+	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
+	"github.com/rs/zerolog"
 
-	"github.com/pubgo/lava/core/lifecycle"
-	"github.com/pubgo/lava/core/metrics"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/supervisor"
 )
 
 const Name = "scheduler"
 
-func New(m lifecycle.Lifecycle, log log.Logger, opts []*Config, routers []CronRouter, metric metrics.Metric) *Scheduler {
-	config := make(map[string]JobSetting)
-	if len(opts) > 0 && opts[0] != nil {
-		for _, setting := range opts[0].JobSettings {
-			if _, ok := config[setting.Name]; ok {
-				panic(fmt.Sprintf("schedule job(%s) exists", setting.Name))
-			}
+type Params struct {
+	M         lifecycle.Lifecycle
+	Log       log.Logger
+	Configs   []*Config
+	Routers   []JobRegister
+	Metric    metrics.Metric
+	Executors []JobExecutor
+}
 
-			config[setting.Name] = setting
-		}
-	}
+type ResponseParams struct {
+	Service supervisor.Service
+	Manager JobManager
+}
+
+func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
+	defer result.Recovery(&gErr)
+	configMap := createConfig(configs).
+		Log(func(e *zerolog.Event) {
+			e.Any("configs", configs)
+			e.Any(logfields.Msg, "failed to create config")
+		}).
+		Must()
 
 	ctx, cancel := context.WithCancel(context.Background())
+
+	slogLogger := qlog.NewSlogLogger(ctx, slog.With(slog.String(logfields.Module, Name)))
+	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(slogLogger), quartz.WithJobMetadata())).
+		Log(func(e *zerolog.Event) {
+			e.Str(logfields.Msg, "failed to create scheduler")
+		}).
+		Must()
+
+	jobExecutors := make(map[string]JobExecutor)
+	for _, executor := range executors {
+		regJobExecutor(jobExecutors, executor).Log(func(e *zerolog.Event) {
+			e.Str(logfields.Msg, "failed to register job executor")
+		}).Must()
+	}
+
 	quart := &Scheduler{
-		metric:    metric,
-		config:    config,
-		scheduler: quartz.NewStdScheduler(),
-		log:       log.WithName(Name),
-		ctx:       ctx,
-		cancel:    cancel,
-		jobs:      make(map[string]JobFunc),
+		metric:       metric,
+		configMap:    configMap,
+		scheduler:    scheduler,
+		log:          logger.WithName(Name),
+		ctx:          ctx,
+		cancel:       cancel,
+		jobs:         make(map[string]*jobTask),
+		jobExecutors: jobExecutors,
+	}
+
+	for _, r := range routers {
+		r.RegisterSchedulerJob(quart)
 	}
 
 	quart.start()
-	m.BeforeStop(quart.stop)
+	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
 
-	for _, r := range routers {
-		r.Crontab(quart)
-	}
+	vars.Register(vars.UniqueName(Name), func() interface{} {
+		return quart.ListJobs()
+	})
 
-	return quart
+	return quart, nil
 }

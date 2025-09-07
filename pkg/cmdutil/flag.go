@@ -25,6 +25,3 @@ func IsHelp() bool {
 	arg := strings.TrimSpace(os.Args[len(os.Args)-1])
 	return arg == "--help" || arg == "-h"
 }
-
-//https://github.com/valyala/fasttemplate
-//"text/template"

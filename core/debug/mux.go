@@ -3,7 +3,6 @@ package debug
 import (
 	"net/http"
 
-	_ "github.com/fasthttp/router"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,11 +14,6 @@ type Config struct {
 }
 
 var app = fiber.New()
-
-func Handler(ctx *fiber.Ctx) error {
-	app.Handler()(ctx.Context())
-	return nil
-}
 
 func App() *fiber.App                                    { return app }
 func WrapFunc(h http.HandlerFunc) fiber.Handler          { return adaptor.HTTPHandlerFunc(h) }

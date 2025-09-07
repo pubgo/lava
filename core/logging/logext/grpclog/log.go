@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/v2/core/logging"
 )
 
 const (
@@ -32,16 +32,15 @@ func grpcComponentName(args interface{}) func(e *zerolog.Event) {
 	}
 }
 
-var evt = log.NewEvent().Str("ext", "grpc")
-
 func init() {
 	logging.Register("grpcLog", SetLogger)
 }
 
 func SetLogger(logger log.Logger) {
+	logger = logger.WithName("grpc").WithCallerSkip(2)
 	grpclog.SetLoggerV2(&loggerWrapper{
-		log:      logger.WithEvent(evt).WithCallerSkip(2),
-		depthLog: logger.WithEvent(evt).WithCallerSkip(2),
+		log:      logger,
+		depthLog: logger,
 	})
 }
 

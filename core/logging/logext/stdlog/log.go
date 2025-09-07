@@ -7,10 +7,8 @@ import (
 
 	"github.com/pubgo/funk/convert"
 	logger "github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/core/logging"
+	"github.com/pubgo/lava/v2/core/logging"
 )
-
-var evt = logger.NewEvent().Str("ext", "std")
 
 func init() {
 	logging.Register("stdLog", SetLogger)
@@ -21,7 +19,7 @@ func SetLogger(logger logger.Logger) {
 	stdLog := log.Default()
 
 	// 接管系统默认log
-	*stdLog = *log.New(&std{l: logger.WithEvent(evt).WithCallerSkip(3)}, "", 0)
+	*stdLog = *log.New(&std{l: logger.WithName("std").WithCallerSkip(3)}, "", 0)
 }
 
 var _ io.Writer = (*std)(nil)

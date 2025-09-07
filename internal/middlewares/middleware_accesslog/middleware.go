@@ -12,9 +12,9 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/core/lavacontexts"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 )
@@ -67,10 +67,10 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		// 错误和panic处理
 		defer func() {
 			if !generic.IsNil(gErr) {
-				logOpts := handleLogOption(req.Header().PeekAll("X-Log-Option"))
-				if logOpts["all"] {
+				evt.Stringer("req_header", req.Header())
+				logOpts := handleLogOption(req.Header())
+				if logOpts.EnableAll() {
 					evt.Any("req_body", req.Payload())
-					evt.Bytes("req_header", req.Header().Header())
 					if rsp != nil {
 						evt.Any("rsp_body", rsp.Payload())
 						evt.Any("rsp_header", rsp.Header())
@@ -150,16 +150,20 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	}
 }
 
-func handleLogOption(data [][]byte) (val map[string]bool) {
-	if len(data) == 0 {
-		val = map[string]bool{}
-		return
-	}
-
-	val = make(map[string]bool, len(data))
+func handleLogOption(header *lava.RequestHeader) *logOption {
+	data := header.PeekAll("X-Log-Option")
+	val := make(map[string]bool, len(data))
 	for i := range data {
 		val[convert.B2S(data[i])] = true
 	}
 
-	return val
+	return &logOption{data: val}
+}
+
+type logOption struct {
+	data map[string]bool
+}
+
+func (opt logOption) EnableAll() bool {
+	return opt.data["all"]
 }

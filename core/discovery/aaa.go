@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/lava/core/service"
-	"github.com/pubgo/lava/pkg/proto/lavapbv1"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/v2/core/service"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 type (

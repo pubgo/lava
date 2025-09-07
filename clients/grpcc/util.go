@@ -5,34 +5,35 @@ import (
 
 	"github.com/pubgo/funk/errors"
 	"github.com/pubgo/funk/log"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_config"
-	"github.com/pubgo/lava/clients/grpcc/grpcc_resolver"
-	"github.com/pubgo/lava/core/logging/logkey"
-	"github.com/pubgo/lava/lava"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
+	"github.com/pubgo/lava/v2/core/logging/logkey"
+	"github.com/pubgo/lava/v2/lava"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )
 
-func buildTarget(cfg *grpcc_config.ServiceCfg) string {
+func buildTarget(cfg *grpccconfig.ServiceCfg) string {
 	addr := cfg.Addr
-	scheme := grpcc_resolver.DirectScheme
+	scheme := grpccresolver.DirectScheme
 	if cfg.Scheme != "" {
 		scheme = cfg.Scheme
 	}
 
 	switch scheme {
-	case grpcc_resolver.DiscoveryScheme:
-		return grpcc_resolver.BuildDiscoveryTarget(addr)
-	case grpcc_resolver.DirectScheme:
-		return grpcc_resolver.BuildDirectTarget(cfg.Name, addr)
-	case grpcc_resolver.K8sScheme, grpcc_resolver.DnsScheme:
+	case grpccresolver.DiscoveryScheme:
+		return grpccresolver.BuildDiscoveryTarget(addr)
+	case grpccresolver.DirectScheme:
+		return grpccresolver.BuildDirectTarget(cfg.Name, addr)
+	case grpccresolver.K8sScheme, grpccresolver.DnsScheme:
 		return fmt.Sprintf("dns:///%s", addr)
 	default:
 		return addr
 	}
 }
 
-func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (_ grpc.ClientConnInterface, gErr error) {
+func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r result.Result[grpc.ClientConnInterface]) {
 	addr := buildTarget(cfg.Service)
 
 	var logMsg = func(e *zerolog.Event) {
@@ -42,25 +43,28 @@ func createConn(cfg *grpcc_config.Cfg, log log.Logger, mm []lava.Middleware) (_ 
 	}
 
 	defer func() {
-		if gErr == nil {
+		if r.IsOK() {
 			log.Info().
 				Func(logMsg).Msg("succeed to create grpc client")
 		} else {
-			log.Err(gErr).
+			log.Err(r.GetErr()).
 				Func(logMsg).Msg("failed to create grpc client")
 		}
 	}()
 
-	opts := append(
-		cfg.Client.ToOpts(),
-		grpc.WithResolvers(cfg.Resolvers...),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)),
-		grpc.WithChainStreamInterceptor(streamInterceptor(mm)),
-	)
-	conn, err := grpc.NewClient(addr, opts...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "grpc dial failed, target=>%s", addr)
+	opts := cfg.Client.ToOpts()
+	opts = append(opts, grpc.WithResolvers(cfg.Resolvers...))
+	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)))
+	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptor(mm)))
+
+	conn := result.Wrap(grpc.NewClient(addr, opts...)).
+		MapErr(func(err error) error {
+			return errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
+		}).
+		UnwrapErr(&r)
+	if r.IsErr() {
+		return
 	}
 
-	return conn, nil
+	return r.WithValue(conn)
 }

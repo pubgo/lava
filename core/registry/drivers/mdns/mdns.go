@@ -12,8 +12,8 @@ import (
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/typex"
 
-	"github.com/pubgo/lava/core/registry"
-	"github.com/pubgo/lava/core/service"
+	"github.com/pubgo/lava/v2/core/registry"
+	"github.com/pubgo/lava/v2/core/service"
 )
 
 const (
@@ -78,6 +78,8 @@ func (m *mdnsRegistry) Register(ctx context.Context, service *service.Service, o
 	for i := range optList {
 		optList[i](&opts)
 	}
+
+	_ = opts
 
 	m.services.Set(node.Id, &serverNode{
 		srv:  server,

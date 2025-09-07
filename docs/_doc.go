@@ -20,3 +20,5 @@ package docs
 // import _ "go.etcd.io/etcd/pkg/fileutil"
 // https://github.com/tideland/go-slices/blob/main/slices.go
 // https://github.com/labstack/gommon
+
+// https://github.com/ThreeDotsLabs/watermill

@@ -29,3 +29,8 @@ package tools
 
 // CPU feature identification for Go
 // https://github.com/klauspost/cpuid
+
+// Run command periodically and expose latest STDOUT as HTTP endpoint
+// https://github.com/nikolaydubina/watchhttp/tree/master
+// https://github.com/nikolaydubina/htmljson
+// https://github.com/nikolaydubina/treemap/tree/main

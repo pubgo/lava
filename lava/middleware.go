@@ -1,6 +1,13 @@
 package lava
 
-import "context"
+import (
+	"context"
+	"net/http"
+
+	"google.golang.org/grpc/metadata"
+)
+
+type GrpcGatewayMetadata func(ctx context.Context, req *http.Request, rpcPath string, httpPattern string) metadata.MD
 
 type HandlerFunc func(ctx context.Context, req Request) (Response, error)
 

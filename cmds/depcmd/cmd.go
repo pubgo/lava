@@ -14,7 +14,7 @@ import (
 	"github.com/pubgo/funk/version"
 	cli "github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cmdutil"
 )
 
 func New(di *dix.Dix) *cli.Command {
@@ -45,7 +45,7 @@ func New(di *dix.Dix) *cli.Command {
 				pretty.Println(running.GetSysInfo())
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"path", "Version", "Replace"})
+				table.Header([]string{"path", "Version", "Replace"})
 				table.Append([]string{info.Main.Path, version.Version(), replace(info.Main.Replace)})
 
 				for _, dep := range info.Deps {

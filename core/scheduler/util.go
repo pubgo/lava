@@ -1,38 +1,55 @@
 package scheduler
 
 import (
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/result"
+	"strings"
+	"time"
+
+	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 )
 
-func do(s *Scheduler, job job, fn JobFunc) {
-	trigger := getTrigger(job)
-	assert.If(job.key == "", "[name] should not be null")
-	assert.If(fn == nil, "[fn] should not be nil")
-	assert.If(trigger == nil, "please init dur or cron")
-	assert.Must(s.scheduler.ScheduleJob(
-		quartz.NewJobDetail(
-			&namedJob{s: s, name: job.key, fn: fn, log: s.log},
-			quartz.NewJobKey(job.key)), trigger))
+func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (r result.Error) {
+	if executor == nil {
+		return r.WithErrorf("executor is nil")
+	}
+
+	if executor.Name() == "" {
+		return r.WithErrorf("executor name is empty")
+	}
+
+	if jobExecutors[executor.Name()] != nil {
+		return r.WithErrorf("[job executor] %s already exists", executor.Name())
+	}
+
+	jobExecutors[executor.Name()] = executor
+	return
 }
 
-func getTrigger(j job) quartz.Trigger {
-	if j.once {
-		return quartz.NewRunOnceTrigger(j.dur)
+func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImpl]) {
+	if j.Once != nil {
+		return r.WithValue(newTrigger(quartz.NewRunOnceTrigger(j.Once.Delay)))
 	}
 
-	if j.cron != "" {
-		r := result.Wrap(quartz.NewCronTrigger(j.cron))
-		return r.Unwrap(func(err error) error {
-			return errors.WrapKV(err, "cron-expr", j.cron)
-		})
+	if j.Cron != nil {
+		trigger, err := quartz.NewCronTriggerWithLoc(j.Cron.Expr, location)
+		if err != nil {
+			return r.WithErrorf("cron-expr:%s, err:%s", j.Cron.Expr, err.Error())
+		}
+
+		return r.WithValue(newTrigger(trigger))
 	}
 
-	if j.dur != 0 {
-		return quartz.NewSimpleTrigger(j.dur)
+	if j.Ticker != nil {
+		return r.WithValue(newTrigger(quartz.NewSimpleTrigger(j.Ticker.Dur)))
 	}
 
-	return nil
+	return r.WithErrorf("please init spec.Once, spec.Cron or spec.Ticker, spec:%#v", j)
+}
+
+func parseJobKey(name string) *quartz.JobKey {
+	keys := strings.SplitN(name, quartz.Sep, 2)
+	if len(keys) == 1 {
+		return quartz.NewJobKey(keys[0])
+	}
+	return quartz.NewJobKeyWithGroup(keys[0], keys[1])
 }

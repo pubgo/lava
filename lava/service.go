@@ -12,18 +12,12 @@ type Init interface {
 }
 
 type Close interface {
-	Close()
+	Close(ctx context.Context) error
 }
 
-type Service interface {
-	Start()
-	Stop()
-	Run()
-}
-
-// Server provides an interface for starting and stopping the server.
-type Server interface {
-	Serve(context.Context, net.Listener) error
+// Listener provides an interface for starting and stopping the server.
+type Listener interface {
+	Listen(context.Context, net.Listener) error
 }
 
 type Validator interface {

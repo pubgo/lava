@@ -1,6 +1,6 @@
 package annotation
 
-import "github.com/pubgo/lava/lava"
+import "github.com/pubgo/lava/v2/lava"
 
 var _ lava.Annotation = (*Openapi)(nil)
 

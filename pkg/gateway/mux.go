@@ -20,9 +20,9 @@ import (
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/result"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/lava"
-	"github.com/pubgo/lava/pkg/gateway/internal/routertree"
-	"github.com/pubgo/lava/pkg/httputil"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -310,7 +310,7 @@ func NewMux(opts ...MuxOption) *Mux {
 	mux := &Mux{
 		opts:        &muxOpts,
 		localClient: new(inprocgrpc.Channel),
-		routerTree:  routertree.NewRouteTree(),
+		routerTree:  routertree.New(),
 	}
 
 	return mux

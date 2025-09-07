@@ -10,13 +10,13 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/running"
 
-	"github.com/pubgo/lava/core/debug"
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {
-	debug.Get("/env", adaptor.HTTPHandlerFunc(envHandle))
-	debug.Get("/version", adaptor.HTTPHandlerFunc(versionHandle))
-	debug.Get("/dep", adaptor.HTTPHandlerFunc(depHandle))
+	debug.Get("env", adaptor.HTTPHandlerFunc(envHandle))
+	debug.Get("version", adaptor.HTTPHandlerFunc(versionHandle))
+	debug.Get("dep", adaptor.HTTPHandlerFunc(depHandle))
 }
 
 func envHandle(writer http.ResponseWriter, request *http.Request) {

@@ -3,7 +3,7 @@ package bytes
 import (
 	"fmt"
 
-	"github.com/pubgo/lava/core/encoding"
+	"github.com/pubgo/lava/v2/core/encoding"
 )
 
 func init() {
