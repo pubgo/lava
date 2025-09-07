@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/dix/dixinternal"
 	"github.com/pubgo/funk/cmds/configcmd"
 	"github.com/pubgo/funk/cmds/envcmd"
 	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/core/lavabuilder"
@@ -17,7 +15,6 @@ import (
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/pubgo/lava/v2/servers/https"
-	"github.com/rs/zerolog"
 )
 
 type Config struct {
@@ -53,10 +50,6 @@ func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
 
 func main() {
 	defer recovery.Exit()
-
-	dixinternal.SetLog(func(logger log.Logger) log.Logger {
-		return logger.WithLevel(zerolog.InfoLevel)
-	})
 
 	builder := lavabuilder.New()
 	builder.Provide(config.Load[Config])

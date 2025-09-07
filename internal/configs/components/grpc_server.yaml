@@ -3,6 +3,6 @@ grpc_server:
   enable_print_router: true
 
   # 256k
-  ws_read_limit: 262144
+#  ws_read_limit: 262144
 #  grpc_port: 8000
 #  http_port: 8001
