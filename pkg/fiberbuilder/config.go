@@ -1,13 +1,13 @@
 package fiberbuilder
 
 import (
-	"github.com/samber/lo"
 	"log/slog"
 	"time"
 
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/samber/lo"
 )
 
 type Config struct {
@@ -115,7 +115,7 @@ func (t *Config) Build() (r result.Result[fiber.Config]) {
 		return r.WithValue(fiber.New().Config())
 	}
 
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 	cfg := fiber.New().Config()
 	err := mergo.Merge(&cfg, lo.ToPtr(t.ToCfg()), mergo.WithOverride, mergo.WithAppendSlice)
 	if err != nil {

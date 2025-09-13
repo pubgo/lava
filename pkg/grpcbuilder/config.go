@@ -61,7 +61,7 @@ type Config struct {
 }
 
 func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 
 	if t.KeepalivePolicy != nil {
 		opts = append(opts, t.KeepalivePolicy.ToOpts())

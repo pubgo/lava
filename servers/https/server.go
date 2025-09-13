@@ -67,7 +67,7 @@ func (s *serviceImpl) Serve(ctx context.Context) error {
 func (s *serviceImpl) init(params Params) {
 	cfg := lo.ToPtr(httputil.DefaultCfg(params.Cfg))
 
-	vars.RegisterValue(s.String()+"_config_"+xid.New().String(), cfg)
+	vars.Register(s.String()+"_config_"+xid.New().String(), func() any { return cfg })
 
 	s.log = params.Log.WithName(s.String())
 	s.httpServer = fiber.New(cfg.Http.Build().Must())

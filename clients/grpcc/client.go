@@ -35,7 +35,7 @@ func New(cfg *grpccconfig.Cfg, p Params, middlewares ...lava.Middleware) Client 
 		middlewares: middlewares,
 	}
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), cfg)
+	vars.Register(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), func() any { return cfg })
 	return c
 }
 
@@ -82,7 +82,7 @@ func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, metho
 
 // Get new grpc client
 func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 
 	if t.conn != nil {
 		return r.WithValue(t.conn)

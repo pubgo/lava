@@ -1,7 +1,6 @@
 package prometheus
 
 import (
-	"github.com/prometheus/common/model"
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	tally "github.com/uber-go/tally/v4"
@@ -28,7 +27,6 @@ func New(conf *metrics.Config, log log.Logger) *tally.ScopeOptions {
 	opts := tally.ScopeOptions{}
 	opts.Separator = prometheus.DefaultSeparator
 	//opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
-	model.NameValidationScheme = model.UTF8Validation
 
 	proCfg := &prometheus.Configuration{TimerType: "histogram"}
 

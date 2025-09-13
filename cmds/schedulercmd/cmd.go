@@ -37,7 +37,7 @@ func New(di *dix.Dix) *cli.Command {
 				assert.Exit(manager.Add(svc))
 			}
 
-			return manager.Run()
+			return manager.Run(ctx)
 		},
 	}
 }

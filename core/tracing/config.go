@@ -40,7 +40,7 @@ type Config struct {
 	prettyPrint       bool
 	bspOptions        []sdktrace.BatchSpanProcessorOption
 
-	// Metrics options
+	// Metric options
 
 	metricsEnabled bool
 	metricOptions  []metric.Option

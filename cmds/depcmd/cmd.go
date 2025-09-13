@@ -8,6 +8,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/dix"
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/pretty"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
@@ -46,12 +47,12 @@ func New(di *dix.Dix) *cli.Command {
 			case "table", "tb", "t":
 				table := tablewriter.NewWriter(os.Stdout)
 				table.Header([]string{"path", "Version", "Replace"})
-				table.Append([]string{info.Main.Path, version.Version(), replace(info.Main.Replace)})
+				assert.Must(table.Append([]string{info.Main.Path, version.Version(), replace(info.Main.Replace)}))
 
 				for _, dep := range info.Deps {
-					table.Append([]string{dep.Path, dep.Version, replace(dep.Replace)})
+					assert.Must(table.Append([]string{dep.Path, dep.Version, replace(dep.Replace)}))
 				}
-				table.Render()
+				assert.Must(table.Render())
 			case "di":
 				fmt.Println(di.Graph().Objects)
 				fmt.Println(di.Graph().Providers)

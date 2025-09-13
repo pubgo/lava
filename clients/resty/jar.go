@@ -41,14 +41,14 @@ func (j *Jar) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			return nil, err
 		}
 
-		rsp.Header().VisitAllCookie(func(key, value []byte) {
+		for _, value := range rsp.Header().All() {
 			acquireCookie := fasthttp.AcquireCookie()
 			if err := acquireCookie.ParseBytes(value); err != nil {
 				j.log.Err(err, ctx).Msg("failed to parse cookie")
 			} else {
 				j.cookies[string(acquireCookie.Key())] = acquireCookie
 			}
-		})
+		}
 
 		return rsp, err
 	}

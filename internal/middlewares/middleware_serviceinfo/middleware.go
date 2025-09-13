@@ -7,12 +7,13 @@ import (
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/strutil"
 	"github.com/pubgo/funk/version"
+	"github.com/rs/xid"
+
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
-	"github.com/rs/xid"
 )
 
 func New() lava.Middleware {

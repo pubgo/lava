@@ -54,7 +54,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 	}
 
 	if t.task.trigger.err != nil {
-		if !(t.task.spec.Once != nil && errors.Is(t.task.trigger.err, quartz.ErrTriggerExpired)) {
+		if !errors.Is(t.task.trigger.err, quartz.ErrTriggerExpired) || t.task.spec.Once == nil {
 			return fmt.Errorf("schedule job(%s) trigger error: %w", name, t.task.trigger.err)
 		}
 	}

@@ -34,28 +34,26 @@ type ResponseParams struct {
 }
 
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
-	defer result.Recovery(&gErr)
-	configMap := createConfig(configs).
-		Log(func(e *zerolog.Event) {
-			e.Any("configs", configs)
-			e.Any(logfields.Msg, "failed to create config")
-		}).
-		Must()
+	defer result.RecoveryErr(&gErr)
+
+	configMap := result.Wrap(createConfig(configs)).Must(func(e *zerolog.Event) {
+		e.Any("configs", configs)
+		e.Any(logfields.Msg, "failed to create config")
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	slogLogger := qlog.NewSlogLogger(ctx, slog.With(slog.String(logfields.Module, Name)))
 	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(slogLogger), quartz.WithJobMetadata())).
-		Log(func(e *zerolog.Event) {
+		Must(func(e *zerolog.Event) {
 			e.Str(logfields.Msg, "failed to create scheduler")
-		}).
-		Must()
+		})
 
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
-		regJobExecutor(jobExecutors, executor).Log(func(e *zerolog.Event) {
+		regJobExecutor(jobExecutors, executor).Must(func(e *zerolog.Event) {
 			e.Str(logfields.Msg, "failed to register job executor")
-		}).Must()
+		})
 	}
 
 	quart := &Scheduler{
@@ -73,12 +71,10 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		r.RegisterSchedulerJob(quart)
 	}
 
-	quart.start()
-	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
+	m.AfterStart(func(ctx context.Context) error { return lifecycle.WrapNoCtxErr(quart.start)(ctx) })
+	m.BeforeStop(func(ctx context.Context) error { return lifecycle.WrapNoCtxErr(quart.stop)(ctx) })
 
-	vars.Register(vars.UniqueName(Name), func() interface{} {
-		return quart.ListJobs()
-	})
+	vars.Register(vars.UniqueName(Name), func() any { return quart.ListJobs() })
 
 	return quart, nil
 }

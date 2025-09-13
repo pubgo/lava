@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	otelmetric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -212,7 +211,7 @@ func GetTraceId(ctx context.Context) string {
 	return oteltrace.SpanContextFromContext(ctx).TraceID().String()
 }
 
-func initMetricExporter(config *Config) (metric.Exporter, error) {
+func initMetricExporter(config *Config) (sdkmetric.Exporter, error) {
 	if config.metricExporter.ExporterEndpoint == DefaultStdout {
 		encoder := json.NewEncoder(os.Stdout)
 		return stdoutmetric.New(stdoutmetric.WithEncoder(encoder))

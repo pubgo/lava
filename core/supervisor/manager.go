@@ -17,7 +17,6 @@ import (
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
-	"github.com/pubgo/lava/v2/core/signal"
 	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
@@ -31,10 +30,7 @@ func Default(lc lifecycle.Getter) *Manager {
 }
 
 func NewManager(name string, lc lifecycle.Getter) *Manager {
-	ctx, cancel := context.WithCancel(context.Background())
 	m := &Manager{
-		cancel:     cancel,
-		ctx:        ctx,
 		lc:         lc,
 		supervisor: suture.New(name, SpecWithInfoLogger()),
 		services:   make(map[string]*serviceWrapper),
@@ -48,16 +44,14 @@ type Manager struct {
 	logger     log.Logger
 	supervisor *Supervisor
 	services   map[string]*serviceWrapper
-	ctx        context.Context
-	cancel     context.CancelFunc
 }
 
 func (m *Manager) init() *Manager {
 	debug.Route("/supervisor", func(router fiber.Router) {
 		router.Get("services", func(ctx *fiber.Ctx) error {
-			var services []*ServiceMetric
+			var services []*Metric
 			for _, srv := range m.services {
-				services = append(services, srv.service.Metrics())
+				services = append(services, srv.service.Metric())
 			}
 			return ctx.JSON(services)
 		})
@@ -152,8 +146,7 @@ func (m *Manager) Services() []Service {
 	return services
 }
 
-func (m *Manager) start() error {
-	ctx := m.ctx
+func (m *Manager) start(ctx context.Context) error {
 	defer recovery.Exit()
 	logutil.OkOrFailed(m.logger, "service before-start", func() error {
 		defer recovery.Exit()
@@ -185,10 +178,9 @@ func (m *Manager) start() error {
 	return nil
 }
 
-func (m *Manager) stop() error {
+func (m *Manager) stop(ctx context.Context) error {
 	defer recovery.DebugPrint()
 
-	ctx := m.ctx
 	logutil.OkOrFailed(m.logger, "service before-stop", func() error {
 		for _, run := range m.lc.GetBeforeStops() {
 			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
@@ -197,8 +189,6 @@ func (m *Manager) stop() error {
 		}
 		return nil
 	})
-
-	m.cancel()
 
 	unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
 	if len(unstoppedServices) > 0 {
@@ -220,8 +210,15 @@ func (m *Manager) stop() error {
 	return nil
 }
 
-func (m *Manager) Run() error {
-	return signal.WaitRestart(m.start, m.stop, m.RestartServices)
+func (m *Manager) Run(ctx context.Context) error {
+	err := m.start(ctx)
+	if err != nil {
+		return err
+	}
+
+	<-ctx.Done()
+
+	return m.stop(ctx)
 }
 
 func (m *Manager) Serve(ctx context.Context) error {

@@ -1,30 +1,33 @@
 package scheduler
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
+	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 )
 
-func createConfig(configs []*Config) (r result.Result[map[string]*JobConfig]) {
+func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 	configMap := make(map[string]*JobConfig)
 	if len(configs) == 0 || configs[0] == nil {
-		return r.WithValue(configMap)
+		return configMap, nil
 	}
 
 	for _, config := range configs[0].JobConfigs {
 		if config.Name == "" {
-			return r.WithErrorf("schedule job name is empty")
+			return nil, errors.Errorf("schedule job name is empty")
 		}
 
 		if _, ok := configMap[config.Name]; ok {
-			return r.WithErrorf("schedule job(%s) exists", config.Name)
+			return nil, errors.Errorf("schedule job(%s) exists", config.Name)
 		}
 	}
-	return r.WithValue(configMap)
+	return configMap, nil
 }
 
 func defaultConfig(name string) *JobConfig {
@@ -40,7 +43,8 @@ func defaultConfig(name string) *JobConfig {
 	}
 }
 
-func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[*JobConfig]) {
+func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (_ *JobConfig, gErr error) {
+	defer result.RecoveryErr(&gErr)
 	cfg := defaultConfig(name)
 	for _, jobConfig := range jobConfigs {
 		if jobConfig == nil {
@@ -71,19 +75,13 @@ func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[
 			cfg.Location = jobConfig.Location
 		}
 
-		locationRes := result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location)))
-		locationRes.InspectErr(func(err error) {
-			log.Err(err).Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location))
-		})
-		locationRes.Inspect(func(location *time.Location) {
-			cfg.location = location
-		})
-		if locationRes.CatchErr(&r) {
-			return
-		}
+		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
+			Must(func(e *zerolog.Event) {
+				e.Str(logfields.Msg, fmt.Sprintf("failed to parse time location:%s", lo.FromPtr(cfg.Location)))
+			})
 	}
 
-	return r.WithValue(cfg)
+	return cfg, nil
 }
 
 type JobConfig struct {

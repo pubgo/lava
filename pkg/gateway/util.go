@@ -245,7 +245,7 @@ func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) (
 	for i, part := range parts {
 		field := fields.ByName(protoreflect.Name(part))
 		if field == nil {
-			return nil, errors.Format("in field HttpPath %q: element %q does not correspond to any field of type %s",
+			return nil, errors.Errorf("in field HttpPath %q: element %q does not correspond to any field of type %s",
 				path, part, msg.FullName())
 		}
 
@@ -255,7 +255,7 @@ func resolvePathToDescriptors(msg protoreflect.MessageDescriptor, path string) (
 		}
 
 		if field.Cardinality() == protoreflect.Repeated {
-			return nil, errors.Format("in field HttpPath %q: field %q of type %s should not be a list or map", path, part, msg.FullName())
+			return nil, errors.Errorf("in field HttpPath %q: field %q of type %s should not be a list or map", path, part, msg.FullName())
 		}
 
 		msg = field.Message()

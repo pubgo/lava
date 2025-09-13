@@ -6,7 +6,6 @@ import (
 	"github.com/pubgo/lava/v2/core/encoding"
 
 	"google.golang.org/protobuf/proto"
-	pb "google.golang.org/protobuf/proto"
 )
 
 var Name = "proto"
@@ -23,8 +22,8 @@ func (c protobufCodec) Marshal(v interface{}) ([]byte, error) {
 		return proto.Marshal(m)
 	}
 
-	if m, ok := v.(pb.Message); ok {
-		return pb.Marshal(m)
+	if m, ok := v.(proto.Message); ok {
+		return proto.Marshal(m)
 	}
 
 	return nil, fmt.Errorf("%T is not a proto.Marshaler", v)
@@ -35,8 +34,8 @@ func (c protobufCodec) Unmarshal(data []byte, v interface{}) error {
 		return proto.Unmarshal(data, m)
 	}
 
-	if m, ok := v.(pb.Message); ok {
-		return pb.Unmarshal(data, m)
+	if m, ok := v.(proto.Message); ok {
+		return proto.Unmarshal(data, m)
 	}
 
 	return fmt.Errorf("%T is not a proto.Unmarshaler", v)
@@ -52,8 +51,8 @@ func (c protobufCodec) Encode(i interface{}) ([]byte, error) {
 		return proto.Marshal(m)
 	}
 
-	if m, ok := i.(pb.Message); ok {
-		return pb.Marshal(m)
+	if m, ok := i.(proto.Message); ok {
+		return proto.Marshal(m)
 	}
 
 	return nil, fmt.Errorf("%T is not a proto.Marshaler", i)
@@ -65,8 +64,8 @@ func (c protobufCodec) Decode(data []byte, i interface{}) error {
 		return proto.Unmarshal(data, m)
 	}
 
-	if m, ok := i.(pb.Message); ok {
-		return pb.Unmarshal(data, m)
+	if m, ok := i.(proto.Message); ok {
+		return proto.Unmarshal(data, m)
 	}
 
 	return fmt.Errorf("%T is not a proto.Unmarshaler", i)

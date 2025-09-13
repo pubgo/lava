@@ -2,14 +2,15 @@ package tracingbuilder
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/version"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"go.opentelemetry.io/otel"
@@ -21,7 +22,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	otelmetric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -43,6 +43,7 @@ type Params struct {
 }
 
 func New(params Params) Provider {
+	defer recovery.Exit()
 	config := &Config{
 		traceExporter:      &Exporter{},
 		metricExporter:     &Exporter{},
@@ -55,8 +56,8 @@ func New(params Params) Provider {
 		sampleRatio:        1,
 	}
 
-	tracerProvider := NewTracerProvider(config)
-	meterProvider := NewMeterProvider(config)
+	tracerProvider := NewTracerProvider(config).Must()
+	meterProvider := NewMeterProvider(config).Must()
 	propagator := propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
@@ -90,14 +91,15 @@ func New(params Params) Provider {
 }
 
 // merge config resource with default resource
-func mergeResource(config *Config) *resource.Resource {
-	res := assert.Must1(resource.New(context.Background(),
+func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
+	defer result.RecoveryErr(&r)
+	res := result.Wrap(resource.New(context.Background(),
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),
 		resource.WithOSType(),
 		resource.WithProcessCommandArgs(),
-	))
-	res = assert.Must1(resource.Merge(resource.Default(), res))
+	)).Must()
+	res = result.Wrap(resource.Merge(resource.Default(), res)).Must()
 
 	hostname, _ := os.Hostname()
 	defaultResource := resource.NewWithAttributes(
@@ -109,15 +111,16 @@ func mergeResource(config *Config) *resource.Resource {
 		semconv.ProcessPIDKey.Int(os.Getpid()),
 		semconv.ProcessCommandKey.String(os.Args[0]),
 	)
-	res = assert.Must1(resource.Merge(resource.Default(), defaultResource))
+	res = result.Wrap(resource.Merge(defaultResource, res)).Log().Must()
 
-	return res
+	return r.WithValue(res)
 }
 
-func NewTracerProvider(config *Config) *sdktrace.TracerProvider {
-	res := mergeResource(config)
+func NewTracerProvider(config *Config) (r result.Result[*sdktrace.TracerProvider]) {
+	defer result.RecoveryErr(&r)
+	res := mergeResource(config).Log().Must()
 
-	traceExporter := assert.Must1(newGrpcTracerExporter(config))
+	traceExporter := result.Wrap(newGrpcTracerExporter(config)).Log().Must()
 	sampler := sdktrace.ParentBased(sdktrace.AlwaysSample())
 	if config.sampleRatio < 1 && config.sampleRatio >= 0 {
 		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
@@ -143,7 +146,7 @@ func NewTracerProvider(config *Config) *sdktrace.TracerProvider {
 		}),
 	)
 
-	return traceProvider
+	return r.WithValue(traceProvider)
 }
 
 func newGrpcTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
@@ -168,7 +171,7 @@ func newGrpcTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 	)
 }
 
-func newGrpcMetricExporter(config *Config) (metric.Exporter, error) {
+func newGrpcMetricExporter(config *Config) (sdkmetric.Exporter, error) {
 	if config.metricExporter.ExporterEndpoint == DefaultStdout {
 		encoder := json.NewEncoder(os.Stdout)
 		return stdoutmetric.New(stdoutmetric.WithEncoder(encoder))
@@ -190,17 +193,18 @@ func newGrpcMetricExporter(config *Config) (metric.Exporter, error) {
 	return nil, fmt.Errorf("metric exporter endpoint is nil, no exporter is inited")
 }
 
-func NewMeterProvider(config *Config) *sdkmetric.MeterProvider {
-	reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
-	readerOpt := sdkmetric.WithReader(reader)
+func NewMeterProvider(config *Config) (r result.Result[*sdkmetric.MeterProvider]) {
+	defer result.RecoveryErr(&r)
+	//reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
+	//readerOpt := sdkmetric.WithReader(reader)
 
-	exporter := assert.Must1(otelprom.New())
-	readerOpt = sdkmetric.WithReader(exporter)
+	exporter := result.Wrap(otelprom.New()).Must()
+	readerOpt := sdkmetric.WithReader(exporter)
 
-	res := mergeResource(config)
+	res := mergeResource(config).Must()
 	provider := sdkmetric.NewMeterProvider(
 		readerOpt,
 		sdkmetric.WithResource(res),
 	)
-	return provider
+	return r.WithValue(provider)
 }
