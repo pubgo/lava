@@ -29,9 +29,9 @@ func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
 }
 
 func head2md(header *lava.RequestHeader, md metadata.MD) {
-	header.VisitAll(func(key, value []byte) {
+	for key, value := range header.All() {
 		md.Append(convert.BtoS(key), convert.BtoS(value))
-	})
+	}
 }
 
 func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor {

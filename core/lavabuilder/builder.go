@@ -23,7 +23,7 @@ import (
 	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
-	"github.com/pubgo/lava/v2/core/signal"
+	"github.com/pubgo/lava/v2/core/signals"
 	"github.com/pubgo/lava/v2/pkg/cmdutil"
 
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
@@ -91,6 +91,6 @@ func Run(di *dix.Dix) {
 		}
 
 		sort.Sort(cli.FlagsByName(app.Flags))
-		assert.Must(app.Run(signal.Context(), os.Args))
+		assert.Must(app.Run(signals.Context(), os.Args))
 	})
 }

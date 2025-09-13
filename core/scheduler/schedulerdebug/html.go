@@ -9,9 +9,9 @@ import (
 
 	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/samber/lo"
-	. "maragu.dev/gomponents"
+	. "maragu.dev/gomponents" //nolint
 	_ "maragu.dev/gomponents/components"
-	. "maragu.dev/gomponents/html"
+	. "maragu.dev/gomponents/html" //nolint
 )
 
 type NodeFn func() Node
@@ -54,7 +54,7 @@ func ListSchedulers(schedulers []*scheduler.Job) Node {
 						Th(Text(string(s.Result))),
 						Th(Textf("%v", s.Runs)),
 						Th(NodeFn(func() Node {
-							modeId := fmt.Sprintf(hex.EncodeToString([]byte(s.Spec.Name)))
+							modeId := hex.EncodeToString([]byte(s.Spec.Name))
 							return Group{
 								Script(Rawf(`function model%s(params) {document.getElementById('%s').showModal()}`, modeId, modeId)),
 								Button(

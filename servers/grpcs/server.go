@@ -253,7 +253,7 @@ func (s *serviceImpl) init(
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), &conf)
+	vars.Register(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), func() any { return conf })
 	vars.Register(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), func() interface{} {
 		return mux.GetRouteMethods()
 	})

@@ -73,12 +73,10 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		r.RegisterSchedulerJob(quart)
 	}
 
-	quart.start()
-	m.BeforeStop(lifecycle.WrapNoCtxErr(quart.stop))
+	m.AfterStart(func(ctx context.Context) error { return lifecycle.WrapNoCtxErr(quart.start)(ctx) })
+	m.BeforeStop(func(ctx context.Context) error { return lifecycle.WrapNoCtxErr(quart.stop)(ctx) })
 
-	vars.Register(vars.UniqueName(Name), func() interface{} {
-		return quart.ListJobs()
-	})
+	vars.Register(vars.UniqueName(Name), func() any { return quart.ListJobs() })
 
 	return quart, nil
 }

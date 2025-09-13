@@ -3,7 +3,7 @@ package httputil
 import (
 	"log/slog"
 	"strings"
-	
+
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -13,10 +13,11 @@ import (
 	"github.com/pubgo/funk/proto/errorpb"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/version"
-	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 	"github.com/samber/lo"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
+
+	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
 
 type Config struct {

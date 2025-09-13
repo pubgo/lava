@@ -51,7 +51,7 @@ type Config struct {
 	prettyPrint       bool
 	bspOptions        []sdktrace.BatchSpanProcessorOption
 
-	// Metrics options
+	// Metric options
 
 	metricsEnabled bool
 	metricOptions  []metric.Option
@@ -69,7 +69,7 @@ type ServiceInfo struct {
 	Version   string
 }
 
-// OTLP contains specific configuration used by the OpenTelemetry Metrics exporter.
+// OTLP contains specific configuration used by the OpenTelemetry Metric exporter.
 type OTLP struct {
 	GRPC *OtelGRPC `description:"gRPC configuration for the OpenTelemetry collector." json:"grpc,omitempty" toml:"grpc,omitempty" yaml:"grpc,omitempty" label:"allowEmpty" file:"allowEmpty" export:"true"`
 	HTTP *OtelHTTP `description:"HTTP configuration for the OpenTelemetry collector." json:"http,omitempty" toml:"http,omitempty" yaml:"http,omitempty" label:"allowEmpty" file:"allowEmpty" export:"true"`

@@ -1,4 +1,4 @@
-package wsutil
+package wsbuilder
 
 import (
 	"errors"

@@ -9,7 +9,7 @@ import (
 
 type Supervisor = suture.Supervisor
 
-type ServiceMetric struct {
+type Metric struct {
 	Name           string
 	Error          string
 	Restart        uint32
@@ -22,7 +22,7 @@ type Service interface {
 	Error() error
 	String() string
 	Serve(ctx context.Context) error
-	Metrics() *ServiceMetric
+	Metric() *Metric
 }
 
 type serviceFn func(ctx context.Context) error

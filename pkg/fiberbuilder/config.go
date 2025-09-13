@@ -1,13 +1,13 @@
 package fiberbuilder
 
 import (
-	"github.com/samber/lo"
 	"log/slog"
 	"time"
 
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/samber/lo"
 )
 
 type Config struct {

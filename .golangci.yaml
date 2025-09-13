@@ -2,21 +2,38 @@ version: "2"
 linters:
   default: none
   enable:
+    - errcheck
     - govet
+    - staticcheck
   exclusions:
     presets:
       - comments
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+          - gocyclo
+          - gosec
+        path: _test\.go
+      - linters:
+          - forbidigo
+        path-except: _test\.go
     paths:
-      - vendor
+      - .*_test\.go$
+      - examples/
       - third_party$
       - builtin$
       - examples$
 formatters:
+  enable:
+    - goimports
   exclusions:
     paths:
+      - .*_test\.go$
+      - examples/
       - third_party$
       - builtin$
       - examples$

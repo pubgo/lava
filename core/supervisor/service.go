@@ -32,9 +32,9 @@ type serviceImpl struct {
 	metric *serviceMetric
 }
 
-func (s *serviceImpl) Metrics() *ServiceMetric {
+func (s *serviceImpl) Metric() *Metric {
 	metric := s.metric
-	return &ServiceMetric{
+	return &Metric{
 		Name:           s.name,
 		Error:          metric.Error.Load(),
 		Restart:        metric.Restart.Load(),
@@ -68,7 +68,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 
 		log.Info(ctx).
 			Str("service", s.name).
-			Any("metrics", s.Metrics()).
+			Any("metrics", s.Metric()).
 			Msg("stop service")
 	}()
 	defer recovery.Err(&gErr)
@@ -78,7 +78,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 	log.Info(ctx).Str("service", s.name).Msg("start service")
 	err := s.fn(ctx)
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return fmt.Errorf("non-context error, service=%s meta=%v err=%w", s.name, s.Metrics(), err)
+		return fmt.Errorf("non-context error, service=%s meta=%v err=%w", s.name, s.Metric(), err)
 	}
 	return err
 }

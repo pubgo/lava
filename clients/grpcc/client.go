@@ -35,7 +35,7 @@ func New(cfg *grpccconfig.Cfg, p Params, middlewares ...lava.Middleware) Client 
 		middlewares: middlewares,
 	}
 
-	vars.RegisterValue(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), cfg)
+	vars.Register(fmt.Sprintf("%s-grpc-client-config", cfg.Service.Name), func() any { return cfg })
 	return c
 }
 

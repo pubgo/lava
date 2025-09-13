@@ -18,7 +18,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	fieldmask "google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -518,7 +517,7 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 				}
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			case "FieldMask":
-				var msg fieldmaskpb.FieldMask
+				var msg fieldmask.FieldMask
 				if err := protojson.Unmarshal(quote(raw), &msg); err != nil {
 					return param{}, errors.WrapCaller(err)
 				}

@@ -196,9 +196,9 @@ func handlerFunc(h fasthttp.RequestHandler) http.HandlerFunc {
 		h(&ctx)
 
 		// Convert fasthttp Ctx > net/http
-		ctx.Response.Header.VisitAll(func(k, v []byte) {
+		for k, v := range ctx.Response.Header.All() {
 			w.Header().Add(string(k), string(v))
-		})
+		}
 		w.WriteHeader(ctx.Response.StatusCode())
 		_, _ = w.Write(ctx.Response.Body())
 	}
