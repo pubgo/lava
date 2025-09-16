@@ -13,7 +13,7 @@ tasks:
 
   default:
     cmds:
-      - task scheduler:info
+      - task -a | grep scheduler
 
   build:
     cmds:

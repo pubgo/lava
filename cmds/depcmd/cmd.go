@@ -7,12 +7,12 @@ import (
 	"runtime/debug"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/pubgo/dix"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/pretty"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/dix/v2"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/pretty"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/version"
 	cli "github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/v2/pkg/cmdutil"

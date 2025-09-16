@@ -7,11 +7,13 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/pathutil"
-	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
+	"github.com/pubgo/funk/v2/pathutil"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/rs/zerolog"
 )
 
 const Name = "pidfile"
@@ -21,7 +23,7 @@ var PidPath = filepath.Join(config.GetConfigDir(), Name)
 const pidPerm os.FileMode = 0o644
 
 func Get() (r result.Result[int]) {
-	pidPath := GetPath().UnwrapErr(&r)
+	pidPath := GetPath().Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -46,10 +48,10 @@ func GetPath() (r result.Result[string]) {
 	pidPath := filepath.Join(PidPath, filename)
 
 	if pathutil.IsNotExist(PidPath) {
-		createDirRes := result.ErrOf(os.MkdirAll(PidPath, os.ModePerm)).InspectErr(func(err error) {
-			log.Err(err).Str("dir", PidPath).Msg("create pid file dir failed")
+		createDirRes := result.ErrOf(os.MkdirAll(PidPath, os.ModePerm)).Log(func(e *zerolog.Event) {
+			e.Str(logfields.Msg, fmt.Sprintf("create pid file dir(%s) failed", PidPath))
 		})
-		if createDirRes.CatchErr(&r) {
+		if createDirRes.Catch(&r) {
 			return
 		}
 	}
@@ -58,7 +60,7 @@ func GetPath() (r result.Result[string]) {
 }
 
 func Save() (r result.Error) {
-	pidPath := GetPath().UnwrapErr(&r)
+	pidPath := GetPath().Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -66,7 +68,9 @@ func Save() (r result.Error) {
 	pid := syscall.Getpid()
 
 	return result.ErrOf(os.WriteFile(pidPath, []byte(strconv.Itoa(pid)), pidPerm)).
-		InspectErr(func(err error) {
-			log.Err(err).Str("path", pidPath).Int("pid", pid).Msg("write pid file failed")
+		Log(func(e *zerolog.Event) {
+			e.Str("path", pidPath)
+			e.Int("pid", pid)
+			e.Str(logfields.Msg, "write pid file failed")
 		})
 }

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logfields"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
@@ -80,7 +80,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	executorRes.Inspect(func(executor JobExecutor) {
 		task.executor = executor
 	})
-	if executorRes.CatchErr(&r) {
+	if executorRes.Catch(&r) {
 		return
 	}
 
@@ -91,7 +91,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		Inspect(func(config *JobConfig) {
 			task.spec.Config = config
 		}).
-		UnwrapErr(&r)
+		Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -103,14 +103,14 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		Inspect(func(trigger *triggerImpl) {
 			task.trigger = trigger
 		})
-	if triggerRes.CatchErr(&r) {
+	if triggerRes.Catch(&r) {
 		return
 	}
 
 	jobOpt := config.ToJobDetailOptions()
 	job := &namedJob{s: s, task: &task, log: s.log}
 	jobDetail := quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt)
-	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, task.trigger)) {
+	if result.Catch(&r, s.scheduler.ScheduleJob(jobDetail, task.trigger)) {
 		return
 	}
 
@@ -130,7 +130,7 @@ func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
 }
 
 func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -142,13 +142,13 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 		Inspect(func(config *JobConfig) {
 			job.spec.Config = config
 		}).
-		CatchErr(&r)
+		Catch(&r)
 
 	return
 }
 
 func (s *Scheduler) PauseJob(name string) (r result.Error) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -161,7 +161,7 @@ func (s *Scheduler) PauseJob(name string) (r result.Error) {
 }
 
 func (s *Scheduler) ResumeJob(name string) (r result.Error) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -174,7 +174,7 @@ func (s *Scheduler) ResumeJob(name string) (r result.Error) {
 }
 
 func (s *Scheduler) DeleteJob(name string) (r result.Error) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -187,7 +187,7 @@ func (s *Scheduler) DeleteJob(name string) (r result.Error) {
 }
 
 func (s *Scheduler) ReloadJob(name string) (r result.Error) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}
@@ -198,7 +198,7 @@ func (s *Scheduler) ReloadJob(name string) (r result.Error) {
 		job.jobKey,
 		jobOpt,
 	)
-	if result.CatchErr(&r, s.scheduler.ScheduleJob(jobDetail, job.trigger)) {
+	if result.Catch(&r, s.scheduler.ScheduleJob(jobDetail, job.trigger)) {
 		return
 	}
 	return
@@ -213,7 +213,7 @@ func (s *Scheduler) ListJobs() []*Job {
 }
 
 func (s *Scheduler) GetJob(name string) (r result.Result[*Job]) {
-	job := s.getJob(name).UnwrapErr(&r)
+	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}

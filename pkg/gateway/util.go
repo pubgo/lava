@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"

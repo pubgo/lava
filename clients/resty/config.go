@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/version"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 	"golang.org/x/net/http/httpproxy"

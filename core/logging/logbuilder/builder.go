@@ -9,13 +9,13 @@ import (
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logfields"
-	"github.com/pubgo/funk/pretty"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
+	"github.com/pubgo/funk/v2/pretty"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/running"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 
@@ -34,7 +34,7 @@ func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
 
 	level := zerolog.DebugLevel
 	if cfg.Level != "" {
-		level = result.Of(zerolog.ParseLevel(cfg.Level)).Expect("log level is invalid")
+		level = result.Wrap(zerolog.ParseLevel(cfg.Level)).Expect("log level is invalid")
 	}
 	zerolog.SetGlobalLevel(level)
 

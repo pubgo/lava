@@ -3,7 +3,7 @@ package gateway
 import (
 	"net/http"
 
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/grpc/codes"
 )
 

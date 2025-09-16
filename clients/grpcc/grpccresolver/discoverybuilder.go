@@ -5,13 +5,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/pretty"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/try"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/async"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/pretty"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/try"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/pubgo/lava/v2/core/discovery"
@@ -99,7 +99,8 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	services := d.disco.GetService(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
-		}).Unwrap(&gErr)
+		}).
+		UnwrapErr(&gErr)
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
@@ -113,7 +114,7 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	w := d.disco.Watch(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "target.Endpoint: %s", srv)
-		}).Unwrap(&gErr)
+		}).UnwrapErr(&gErr)
 
 	return &baseResolver{
 		serviceName: srv,

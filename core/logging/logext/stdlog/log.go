@@ -5,8 +5,8 @@ import (
 	"io"
 	"log"
 
-	"github.com/pubgo/funk/convert"
-	logger "github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/convert"
+	logger "github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/lava/v2/core/logging"
 )
 

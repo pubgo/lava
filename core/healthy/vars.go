@@ -1,8 +1,8 @@
 package healthy
 
 import (
-	"github.com/pubgo/funk/stack"
-	"github.com/pubgo/funk/vars"
+	"github.com/pubgo/funk/v2/stack"
+	"github.com/pubgo/funk/v2/vars"
 )
 
 func init() {

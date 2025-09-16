@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/running"
 	cli "github.com/urfave/cli/v3"
 	"github.com/valyala/fasthttp"
 )

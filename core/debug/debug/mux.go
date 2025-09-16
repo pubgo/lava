@@ -7,14 +7,14 @@ import (
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/strutil"
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
@@ -53,8 +53,8 @@ func init() {
 		if host != "localhost" && host != "127.0.0.1" {
 			if token != passwd {
 				err := errors.New("token 不存在或者密码不对")
-				if ret := result.Of(c.WriteString(err.Error())); ret.IsErr() {
-					return errors.WrapCaller(ret.Err())
+				if ret := result.Wrap(c.WriteString(err.Error())); ret.IsErr() {
+					return errors.WrapCaller(ret.GetErr())
 				}
 
 				if err := c.SendStatus(http.StatusInternalServerError); err != nil {

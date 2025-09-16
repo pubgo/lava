@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/vars"
+	"github.com/pubgo/funk/v2/vars"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/lava"
@@ -26,7 +26,7 @@ type Params struct {
 }
 
 func New(cfg *grpccconfig.Cfg, p Params, middlewares ...lava.Middleware) Client {
-	cfg = config.MergeR(grpccconfig.DefaultCfg(), cfg).Unwrap()
+	cfg = config.MergeR(grpccconfig.DefaultCfg(), cfg).Must()
 	cfg.Resolvers = p.Resolvers
 
 	c := &clientImpl{
@@ -96,7 +96,7 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 		return r.WithValue(t.conn)
 	}
 
-	conn := createConn(t.cfg, t.log, t.middlewares).UnwrapErr(&r)
+	conn := createConn(t.cfg, t.log, t.middlewares).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}

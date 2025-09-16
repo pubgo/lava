@@ -3,10 +3,10 @@ package middleware_serviceinfo
 import (
 	"context"
 
-	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/strutil"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/strutil"
+	"github.com/pubgo/funk/v2/version"
 	"github.com/rs/xid"
 
 	"github.com/pubgo/lava/v2/core/lavacontexts"

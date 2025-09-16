@@ -5,12 +5,12 @@ import (
 	"context"
 
 	"github.com/grandcat/zeroconf"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/merge"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/typex"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/merge"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/typex"
 
 	"github.com/pubgo/lava/v2/core/registry"
 	"github.com/pubgo/lava/v2/core/service"

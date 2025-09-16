@@ -3,15 +3,14 @@ package https
 import (
 	"context"
 	"fmt"
-
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/vars"
-	"github.com/pubgo/funk/version"
-	"github.com/pubgo/opendoc/opendoc"
+	"github.com/pubgo/funk/v2/async"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/vars"
+	"github.com/pubgo/funk/v2/version"
+	//"github.com/pubgo/opendoc/opendoc"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
 
@@ -35,7 +34,7 @@ type Params struct {
 	M           metrics.Metric
 	Log         log.Logger
 	Cfg         *Config
-	Docs        []*opendoc.Swagger
+	//Docs        []*opendoc.Swagger
 }
 
 func New(params Params) supervisor.Service { return newService(params) }

@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"github.com/go-logr/logr"
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/rs/zerolog"
 )
 

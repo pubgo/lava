@@ -5,12 +5,11 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/retry"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/retry"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -69,10 +68,7 @@ type Client struct {
 }
 
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
-	defer result.RecoveryErr(&r, func(err error) error {
-		errors.Debug(err)
-		return err
-	})
+	defer result.Recovery(&r)
 
 	reqErr := doRequest(c, req)
 	if reqErr.IsErr() {

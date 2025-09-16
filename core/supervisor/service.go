@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
 	"go.uber.org/atomic"
 )
 

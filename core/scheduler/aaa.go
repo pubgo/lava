@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/funk/clone"
-	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/v2/clone"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/stack"
 	"github.com/reugn/go-quartz/quartz"
 	"go.uber.org/atomic"
 )

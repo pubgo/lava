@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/log/logfields"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/vars"
+	"github.com/pubgo/funk/v2/vars"
 	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
@@ -36,10 +36,11 @@ type ResponseParams struct {
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
 	defer result.RecoveryErr(&gErr)
 
-	configMap := result.Wrap(createConfig(configs)).Must(func(e *zerolog.Event) {
-		e.Any("configs", configs)
-		e.Any(logfields.Msg, "failed to create config")
-	})
+	configMap := result.Wrap(createConfig(configs)).
+		Must(func(e *zerolog.Event) {
+			e.Any("configs", configs)
+			e.Any(logfields.Msg, "failed to create config")
+		})
 
 	ctx, cancel := context.WithCancel(context.Background())
 

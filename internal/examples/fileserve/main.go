@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/lava/v2/cmds/servefilecmd"
 	"github.com/pubgo/lava/v2/core/lavabuilder"
 )

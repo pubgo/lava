@@ -7,7 +7,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/lava/v2/internal/logutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

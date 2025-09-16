@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log/logfields"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"

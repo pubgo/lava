@@ -1,9 +1,9 @@
 package encoding
 
 import (
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/typex"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/typex"
 )
 
 var data typex.Map[Codec]

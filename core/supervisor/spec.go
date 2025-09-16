@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/thejerf/suture/v4"
 )
 

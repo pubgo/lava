@@ -3,7 +3,7 @@ package routertree
 import (
 	"testing"
 
-	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/v2/assert"
 )
 
 func TestName(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/arl/statsviz"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk"
-	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/v2"
+	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )

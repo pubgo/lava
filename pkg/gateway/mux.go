@@ -14,12 +14,12 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/generic"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/version"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"github.com/pubgo/lava/v2/pkg/httputil"
@@ -148,7 +148,7 @@ func (m *Mux) MatchOperation(method string, path string) (r result.Result[*Match
 		return r.WithErr(errors.Wrapf(err, "path not found, method=%s path=%s", method, path))
 	}
 
-	return r.WithVal(restTarget)
+	return r.WithValue(restTarget)
 }
 
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {

@@ -9,14 +9,14 @@ import (
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/async"
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/stack"
-	"github.com/pubgo/funk/vars"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/async"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/stack"
+	"github.com/pubgo/funk/v2/vars"
+	"github.com/pubgo/funk/v2/version"
 	"github.com/rs/xid"
 	"google.golang.org/grpc"
 
@@ -112,7 +112,7 @@ func (s *serviceImpl) init(
 	conf.HttpPort = cfg.HttpPort
 	conf.Http = cfg.Http
 
-	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
+	s.conf = config.MergeR(defaultCfg(), conf).Must()
 
 	globalMiddlewares := lava.Middlewares{
 		middleware_serviceinfo.New(),

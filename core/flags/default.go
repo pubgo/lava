@@ -3,9 +3,9 @@ package flags
 import (
 	"context"
 
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/env"
-	"github.com/pubgo/funk/running"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/env"
+	"github.com/pubgo/funk/v2/running"
 	"github.com/urfave/cli/v3"
 )
 
@@ -13,8 +13,13 @@ func init() {
 	var httpPortEnvs = []string{env.Key("server_http_port"), env.Key("service_http_port")}
 	var grpcPortEnvs = []string{env.Key("server_grpc_port"), env.Key("service_grpc_port")}
 	const conf = "config_path"
-	env.GetIntVal(&running.HttpPort, httpPortEnvs...)
-	env.GetIntVal(&running.GrpcPort, grpcPortEnvs...)
+	if port := env.GetInt(httpPortEnvs...); port > 0 {
+		running.HttpPort = port
+	}
+
+	if port := env.GetInt(grpcPortEnvs...); port > 0 {
+		running.GrpcPort = port
+	}
 
 	Register(&cli.IntFlag{
 		Name:    "http-port",
@@ -38,15 +43,6 @@ func init() {
 			running.GrpcPort = i
 			return nil
 		},
-	})
-
-	Register(&cli.BoolFlag{
-		Name:        "debug",
-		Usage:       "enable debug mode",
-		Local:       true,
-		Value:       running.IsDebug,
-		Destination: &running.IsDebug,
-		Sources:     cli.EnvVars(env.Key("debug"), env.Key("enable_debug")),
 	})
 
 	Register(&cli.StringFlag{
