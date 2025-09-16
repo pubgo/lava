@@ -54,10 +54,8 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.22.0
 	github.com/maruel/panicparse/v2 v2.5.0
-	github.com/prometheus/common v0.65.0
-	github.com/pubgo/dix v0.3.22
-	github.com/pubgo/funk v0.5.69-alpha.25
-	github.com/pubgo/protobuild v0.0.21
+	github.com/pubgo/dix v0.3.23-alpha.2
+	github.com/pubgo/funk v0.5.69-alpha.30
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.51.0
@@ -234,6 +232,7 @@ require (
 	github.com/polyfloyd/go-errorlint v1.6.0 // indirect
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 // indirect
 	github.com/quasilyte/go-ruleguard/dsl v0.3.22 // indirect

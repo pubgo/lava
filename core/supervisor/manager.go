@@ -8,11 +8,11 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/async"
 	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/running"
 	"github.com/pubgo/funk/stack"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/thejerf/suture/v4"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -98,7 +98,7 @@ func (m *Manager) Delete(name string) error {
 
 func (m *Manager) RemoveServices() (gErr error) {
 	for name, srv := range m.services {
-		if errcheck.Check(&gErr, m.supervisor.Remove(srv.token)) {
+		if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
 			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 		}
 		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
@@ -110,7 +110,7 @@ func (m *Manager) RemoveServices() (gErr error) {
 
 func (m *Manager) RestartServices() (gErr error) {
 	for name, srv := range m.services {
-		if errcheck.Check(&gErr, m.supervisor.Remove(srv.token)) {
+		if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
 			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 		}
 
@@ -128,7 +128,7 @@ func (m *Manager) RestartService(name string) (gErr error) {
 		return nil
 	}
 
-	if errcheck.Check(&gErr, m.supervisor.Remove(srv.token)) {
+	if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
 		return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 	}
 

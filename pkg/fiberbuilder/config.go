@@ -115,7 +115,7 @@ func (t *Config) Build() (r result.Result[fiber.Config]) {
 		return r.WithValue(fiber.New().Config())
 	}
 
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 	cfg := fiber.New().Config()
 	err := mergo.Merge(&cfg, lo.ToPtr(t.ToCfg()), mergo.WithOverride, mergo.WithAppendSlice)
 	if err != nil {

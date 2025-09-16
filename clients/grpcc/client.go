@@ -82,7 +82,7 @@ func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, metho
 
 // Get new grpc client
 func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 
 	if t.conn != nil {
 		return r.WithValue(t.conn)

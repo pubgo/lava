@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
@@ -54,7 +55,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 			s.log.Info().Func(logFn).Msg("register scheduler job ok")
 		}
 	}()
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 
 	if spec.Name == "" {
 		return r.WithErrorf("job name is empty")
@@ -83,9 +84,9 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return
 	}
 
-	config := initAndMergeConfig(name, s.configMap[name], spec.Config).
-		InspectErr(func(err error) {
-			s.log.Err(err).Msgf("failed to init schedule job(%s) config", name)
+	config := result.Wrap(initAndMergeConfig(name, s.configMap[name], spec.Config)).
+		Log(func(e *zerolog.Event) {
+			e.Str(logfields.Msg, fmt.Sprintf("failed to init schedule job(%s) config", name))
 		}).
 		Inspect(func(config *JobConfig) {
 			task.spec.Config = config
@@ -134,9 +135,9 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 		return
 	}
 
-	initAndMergeConfig(name, job.spec.Config, config).
-		InspectErr(func(err error) {
-			s.log.Err(err).Msgf("failed to patch schedule job(%s) config", name)
+	result.Wrap(initAndMergeConfig(name, job.spec.Config, config)).
+		Log(func(e *zerolog.Event) {
+			e.Str(logfields.Msg, fmt.Sprintf("failed to patch schedule job(%s) config", name))
 		}).
 		Inspect(func(config *JobConfig) {
 			job.spec.Config = config

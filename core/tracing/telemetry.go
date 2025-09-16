@@ -8,7 +8,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors/errcheck"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/version"
