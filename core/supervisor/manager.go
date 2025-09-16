@@ -98,7 +98,7 @@ func (m *Manager) Delete(name string) error {
 
 func (m *Manager) RemoveServices() (gErr error) {
 	for name, srv := range m.services {
-		if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
+		if result.CatchErr(&gErr, m.supervisor.Remove(srv.token)) {
 			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 		}
 		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
@@ -110,7 +110,7 @@ func (m *Manager) RemoveServices() (gErr error) {
 
 func (m *Manager) RestartServices() (gErr error) {
 	for name, srv := range m.services {
-		if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
+		if result.CatchErr(&gErr, m.supervisor.Remove(srv.token)) {
 			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 		}
 
@@ -128,7 +128,7 @@ func (m *Manager) RestartService(name string) (gErr error) {
 		return nil
 	}
 
-	if result.Catch(&gErr, m.supervisor.Remove(srv.token)) {
+	if result.CatchErr(&gErr, m.supervisor.Remove(srv.token)) {
 		return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
 	}
 

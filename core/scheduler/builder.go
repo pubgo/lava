@@ -36,10 +36,11 @@ type ResponseParams struct {
 func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, configs []*Config, routers []JobRegister, executors []JobExecutor) (_ *Scheduler, gErr error) {
 	defer result.RecoveryErr(&gErr)
 
-	configMap := result.Wrap(createConfig(configs)).Must(func(e *zerolog.Event) {
-		e.Any("configs", configs)
-		e.Any(logfields.Msg, "failed to create config")
-	})
+	configMap := result.Wrap(createConfig(configs)).
+		Must(func(e *zerolog.Event) {
+			e.Any("configs", configs)
+			e.Any(logfields.Msg, "failed to create config")
+		})
 
 	ctx, cancel := context.WithCancel(context.Background())
 

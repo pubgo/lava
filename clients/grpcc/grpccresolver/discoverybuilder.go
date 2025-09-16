@@ -99,7 +99,8 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	services := d.disco.GetService(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
-		}).Unwrap(&gErr)
+		}).
+		UnwrapErr(&gErr)
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
@@ -113,7 +114,7 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	w := d.disco.Watch(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "target.Endpoint: %s", srv)
-		}).Unwrap(&gErr)
+		}).UnwrapErr(&gErr)
 
 	return &baseResolver{
 		serviceName: srv,

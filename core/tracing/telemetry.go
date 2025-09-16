@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/log"
 	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/version"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -165,7 +166,7 @@ func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 
 func NewPrometheusMeterProvider(config *Config, opts ...otelprom.Option) (_ *sdkmetric.MeterProvider, gErr error) {
 	exporter, err := otelprom.New(opts...)
-	if errcheck.Check(&gErr, err) {
+	if result.CatchErr(&gErr, err) {
 		return
 	}
 

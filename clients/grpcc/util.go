@@ -61,7 +61,7 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r r
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
 		}).
-		UnwrapErr(&r)
+		Unwrap(&r)
 	if r.IsErr() {
 		return
 	}

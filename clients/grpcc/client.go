@@ -96,7 +96,7 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 		return r.WithValue(t.conn)
 	}
 
-	conn := createConn(t.cfg, t.log, t.middlewares).UnwrapErr(&r)
+	conn := createConn(t.cfg, t.log, t.middlewares).Unwrap(&r)
 	if r.IsErr() {
 		return
 	}

@@ -92,7 +92,7 @@ func New(params Params) Provider {
 
 // merge config resource with default resource
 func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 	res := result.Wrap(resource.New(context.Background(),
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),
@@ -117,7 +117,7 @@ func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
 }
 
 func NewTracerProvider(config *Config) (r result.Result[*sdktrace.TracerProvider]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 	res := mergeResource(config).Log().Must()
 
 	traceExporter := result.Wrap(newGrpcTracerExporter(config)).Log().Must()
@@ -194,7 +194,7 @@ func newGrpcMetricExporter(config *Config) (sdkmetric.Exporter, error) {
 }
 
 func NewMeterProvider(config *Config) (r result.Result[*sdkmetric.MeterProvider]) {
-	defer result.RecoveryErr(&r)
+	defer result.Recovery(&r)
 	//reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
 	//readerOpt := sdkmetric.WithReader(reader)
 

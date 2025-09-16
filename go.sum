@@ -502,10 +502,10 @@ github.com/prometheus/common v0.65.0 h1:QDwzd+G1twt//Kwj/Ww6E9FQq1iVMmODnILtW1t2
 github.com/prometheus/common v0.65.0/go.mod h1:0gZns+BLRQ3V6NdaerOhMbwwRbNh9hkGINtQAsP5GS8=
 github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7DuK0=
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
-github.com/pubgo/dix v0.3.23-alpha.2 h1:wzxsB3F1EB6jeGybPH+rZi23Bq3PIb0/qQJLpeFcBhA=
-github.com/pubgo/dix v0.3.23-alpha.2/go.mod h1:PF1loTKWhqQtcMc1MbROeT+HrRiIZA7U37sKOdqNmmo=
-github.com/pubgo/funk v0.5.69-alpha.30 h1:LVxONor6BqVkeXsBOrpu6QdkaoUH09yJdglZ8VX++n4=
-github.com/pubgo/funk v0.5.69-alpha.30/go.mod h1:dBFx3ZnM6IML9tqK23ROTB9xX0Q27dLXUxAoSuh5mMI=
+github.com/pubgo/dix v0.3.23-alpha.3 h1:LcelZ4oP+HY7e5SFyH5tezDI4zNbUgM6kwA/bcCoP2g=
+github.com/pubgo/dix v0.3.23-alpha.3/go.mod h1:i5OCqZ7/VZPMDqPv3TCm3C6yf8dezdZHWwg85UwwslQ=
+github.com/pubgo/funk v0.5.69-alpha.32 h1:fcPNN+qyu3bMyOlxv/7qd3ls0eEyTOPp1ZySy8TKx7c=
+github.com/pubgo/funk v0.5.69-alpha.32/go.mod h1:dBFx3ZnM6IML9tqK23ROTB9xX0Q27dLXUxAoSuh5mMI=
 github.com/pubgo/opendoc v0.0.5 h1:aM6xkBQ0XMSq8OWytl5JhTMBUv8L+aYQFXd2z9eNkZE=
 github.com/pubgo/opendoc v0.0.5/go.mod h1:uO//pJZTJNFEKGuGWrv51/of0EoyxO1il4MuoC3Enp0=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 h1:+Wl/0aFp0hpuHM3H//KMft64WQ1yX9LdJY64Qm/gFCo=

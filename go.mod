@@ -54,8 +54,8 @@ require (
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maragudk/gomponents v0.22.0
 	github.com/maruel/panicparse/v2 v2.5.0
-	github.com/pubgo/dix v0.3.23-alpha.2
-	github.com/pubgo/funk v0.5.69-alpha.30
+	github.com/pubgo/dix v0.3.23-alpha.3
+	github.com/pubgo/funk v0.5.69-alpha.32
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.51.0
