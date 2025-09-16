@@ -1,8 +1,8 @@
 package metricbuilder
 
 import (
-	"github.com/pubgo/funk/typex"
-	"github.com/pubgo/funk/vars"
+	"github.com/pubgo/funk/v2/typex"
+	"github.com/pubgo/funk/v2/vars"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/uber-go/tally/v4"
 )

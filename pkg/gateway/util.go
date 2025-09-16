@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -190,7 +190,7 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 	case *annotations.HttpRule_Custom:
 		method, template = pattern.Custom.GetKind(), pattern.Custom.GetPath()
 	default:
-		return errors.Format("invalid type of pattern for HTTP httpRule: %T", pattern)
+		return errors.Errorf("invalid type of pattern for HTTP httpRule: %T", pattern)
 	}
 
 	if method == "" {
@@ -223,7 +223,7 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 		}
 
 		if err := handlerHttpRoute(rule, cb); err != nil {
-			return errors.Format("failed to add REST route (add binding #%d): %v", i+1, err)
+			return errors.Errorf("failed to add REST route (add binding #%d): %v", i+1, err)
 		}
 	}
 

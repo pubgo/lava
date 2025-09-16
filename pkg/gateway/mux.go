@@ -14,12 +14,12 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/generic"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"github.com/pubgo/lava/v2/pkg/httputil"
@@ -148,7 +148,7 @@ func (m *Mux) MatchOperation(method string, path string) (r result.Result[*Match
 		return r.WithErr(errors.Wrapf(err, "path not found, method=%s path=%s", method, path))
 	}
 
-	return r.WithVal(restTarget)
+	return r.WithValue(restTarget)
 }
 
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {
@@ -186,7 +186,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 	mth := m.opts.handlers[matchOperation.Operation]
 	if mth == nil {
-		return errors.Format("grpc method not found, method=%s", matchOperation.Operation)
+		return errors.Errorf("grpc method not found, method=%s", matchOperation.Operation)
 	}
 
 	md := metadata.MD{}
@@ -376,7 +376,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}, cli grpc.Cl
 
 	sd, ok := d.(protoreflect.ServiceDescriptor)
 	if !ok {
-		return errors.Format("invalid httpPathRule descriptor %T", d)
+		return errors.Errorf("invalid httpPathRule descriptor %T", d)
 	}
 
 	srv := &serviceWrapper{

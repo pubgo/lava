@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/strutil"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/strutil"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"

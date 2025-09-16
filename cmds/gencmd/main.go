@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/pubgo/funk/recovery"
+	"github.com/pubgo/funk/v2/recovery"
 )
 
 func New() *cli.Command {

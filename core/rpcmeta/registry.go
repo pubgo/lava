@@ -1,7 +1,7 @@
 package rpcmeta
 
 import (
-	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/v2/assert"
 )
 
 var rpcMetas = make(map[string]*RpcMeta)

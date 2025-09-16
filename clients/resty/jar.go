@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/v2/lava"

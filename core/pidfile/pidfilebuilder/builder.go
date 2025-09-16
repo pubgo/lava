@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/pubgo/funk/config"
-	"github.com/pubgo/funk/pathutil"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/pathutil"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/pidfile"

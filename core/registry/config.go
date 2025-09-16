@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
 )
 
 // https://github.com/go-eagle/eagle/blob/master/pkg/registry/registry.go

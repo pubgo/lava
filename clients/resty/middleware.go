@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/utils"
-	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/v2/convert"
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/v2/lava"

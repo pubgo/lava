@@ -3,7 +3,7 @@ package gateway
 import (
 	"context"
 
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"

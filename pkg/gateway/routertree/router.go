@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/generic"
 )
 
 var (
@@ -69,7 +69,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 
 	node := parseToRoute(rule)
 	if len(node.Paths) == 0 {
-		return errors.Format("node path is empty: %s", errMsg())
+		return errors.Errorf("node path is empty: %s", errMsg())
 	}
 
 	nodeMap := r.nodeMap

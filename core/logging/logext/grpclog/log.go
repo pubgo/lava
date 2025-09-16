@@ -3,7 +3,7 @@ package grpclog
 import (
 	"fmt"
 
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/grpclog"
 

@@ -3,8 +3,8 @@ package grpcc
 import (
 	"fmt"
 
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
@@ -61,7 +61,7 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r r
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
 		}).
-		UnwrapErr(&r)
+		Unwrap(&r)
 	if r.IsErr() {
 		return
 	}

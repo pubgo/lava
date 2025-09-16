@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
-	"github.com/pubgo/funk/log"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/stretchr/testify/assert"
 )
 

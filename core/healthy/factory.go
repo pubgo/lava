@@ -1,8 +1,8 @@
 package healthy
 
 import (
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/typex"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/typex"
 )
 
 const Name = "healthy"

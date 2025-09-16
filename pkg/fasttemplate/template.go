@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
 
-	"github.com/pubgo/funk/convert"
+	"github.com/pubgo/funk/v2/convert"
 	"github.com/valyala/bytebufferpool"
 )
 

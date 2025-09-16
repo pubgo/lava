@@ -2,20 +2,21 @@ package grpcs
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/strutil"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
@@ -137,30 +138,17 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
-			if pb.Trace == nil {
-				pb.Trace = new(errorpb.ErrTrace)
-			}
-			pb.Trace.Operation = rpcReq.Operation()
-			pb.Trace.Service = rpcReq.Service()
-			pb.Trace.Version = version.Version()
+			pb.Details = append(pb.Details, errors.MustTagsToAny(
+				&errorpb.Tag{Key: "reqHeader", Value: string(rpcReq.Header().Header())},
+			)...)
 
-			if pb.Msg != nil {
-				pb.Msg = new(errorpb.ErrMsg)
-			}
-			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = fmt.Sprintf("%#v", err)
-			if pb.Msg.Tags == nil {
-				pb.Msg.Tags = make(map[string]string)
-			}
-			pb.Msg.Tags["reqHeader"] = string(rpcReq.Header().Header())
-
-			if pb.Code.Message == "" {
-				pb.Code.Message = err.Error()
+			if pb.Message == "" {
+				pb.Message = err.Error()
 			}
 
-			if pb.Code.Code == 0 {
-				pb.Code.StatusCode = errorpb.Code_Internal
-				pb.Code.Code = int32(errorpb.Code_Internal)
+			if pb.Code == 0 {
+				pb.StatusCode = errorpb.Code_Internal
+				pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
 			}
 
 			return nil, errutil.ConvertErr2Status(pb).Err()
@@ -251,22 +239,13 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errutil.ParseError(err)
-			pb.Trace.Operation = rpcReq.Operation()
-			pb.Trace.Service = rpcReq.Service()
-			pb.Trace.Version = version.Version()
-			pb.Msg.Msg = err.Error()
-			pb.Msg.Detail = fmt.Sprintf("%v", err)
-			if pb.Msg.Tags == nil {
-				pb.Msg.Tags = make(map[string]string)
+			if pb.Message == "" {
+				pb.Message = err.Error()
 			}
 
-			if pb.Code.Message == "" {
-				pb.Code.Message = err.Error()
-			}
-
-			if pb.Code.Code == 0 {
-				pb.Code.Code = int32(errorpb.Code_Internal)
-				pb.Code.StatusCode = errorpb.Code_Internal
+			if pb.Code == 0 {
+				pb.StatusCode = errorpb.Code_Internal
+				pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
 			}
 
 			return errutil.ConvertErr2Status(pb).Err()

@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/gofiber/utils"
-	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
@@ -66,7 +65,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		// 错误和panic处理
 		defer func() {
-			if !generic.IsNil(gErr) {
+			if gErr != nil {
 				evt.Stringer("req_header", req.Header())
 				logOpts := handleLogOption(req.Header())
 				if logOpts.EnableAll() {
@@ -92,7 +91,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 			// 记录错误日志
 			var e *zerolog.Event
-			if generic.IsNil(gErr) {
+			if gErr == nil {
 				// Record requests with a timeout of 200 milliseconds
 				//if latency > time.Millisecond*200 && !req.Stream() {
 				//	e = l.logger.Err(errTimeout).Func(log.WithEvent(evt))
@@ -104,39 +103,17 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
 				pb := errutil.ParseError(gErr)
-				{
-					if pb.Trace == nil {
-						pb.Trace = new(errorpb.ErrTrace)
-					}
-					pb.Trace.Operation = req.Operation()
-					pb.Trace.Service = req.Service()
-					pb.Trace.Version = version.Version()
+				if pb.Message == "" {
+					pb.Message = gErr.Error()
 				}
 
-				{
-					if pb.Msg != nil {
-						pb.Msg = new(errorpb.ErrMsg)
-					}
-					pb.Msg.Msg = gErr.Error()
-					pb.Msg.Detail = fmt.Sprintf("%#v", gErr)
-					if pb.Msg.Tags == nil {
-						pb.Msg.Tags = make(map[string]string)
-					}
+				if pb.StatusCode == errorpb.Code_OK {
+					log.Warn(ctx).Any("code", pb.Code).Msg("grpc response error with status code is 0")
 				}
 
-				{
-					if pb.Code.Message == "" {
-						pb.Code.Message = gErr.Error()
-					}
-
-					if pb.Code.StatusCode == errorpb.Code_OK {
-						log.Warn(ctx).Any("code", pb.Code).Msg("grpc response error with status code is 0")
-					}
-
-					if pb.Code.Code == 0 {
-						pb.Code.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.Code.StatusCode)))
-						pb.Code.StatusCode = errorpb.Code_Internal
-					}
+				if pb.Code == 0 {
+					pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.StatusCode)))
+					pb.StatusCode = errorpb.Code_Internal
 				}
 
 				gErr = errutil.ConvertErr2Status(pb).Err()

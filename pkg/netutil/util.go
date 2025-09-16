@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/v2/assert"
 )
 
 var localIp = assert.Exit1(regexp.Compile(`\d+\.\d+\.\d+\.\d+`))

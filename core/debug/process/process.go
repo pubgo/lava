@@ -5,15 +5,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	ps "github.com/keybase/go-ps"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/generic"
-	"github.com/pubgo/funk/result"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/generic"
+	"github.com/pubgo/funk/v2/result"
 
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {
-	debug.Get("/process", func(ctx *fiber.Ctx) error {
+	debug.Get("/process", func(ctx *fiber.Ctx) (gErr error) {
+		defer result.RecoveryErr(&gErr)
 		processes := assert.Must1(ps.Processes())
 		processes1 := generic.Map(processes, func(i int) map[string]any {
 			p := processes[i]
@@ -27,7 +28,7 @@ func init() {
 				"ppid":       p.PPid(),
 				"exec":       p.Executable(),
 				"path":       result.Wrap(p.Path()),
-				"go_version": ret.Unwrap(),
+				"go_version": ret.Must(),
 			}
 		})
 		processes1 = generic.Filter(processes1, func(m map[string]any) bool { return m != nil })
@@ -41,7 +42,7 @@ func goVersion(path result.Result[string]) result.Result[string] {
 		return path
 	}
 
-	info, err := buildinfo.ReadFile(path.Unwrap())
+	info, err := buildinfo.ReadFile(path.Must())
 	if err != nil {
 		return result.Wrap("", err)
 	}

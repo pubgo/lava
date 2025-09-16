@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/lava/v2/pkg/cmdutil"
 	"github.com/urfave/cli/v3"
 )

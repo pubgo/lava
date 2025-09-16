@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/log"
-	"github.com/pubgo/funk/recovery"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/result"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -165,7 +166,7 @@ func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 
 func NewPrometheusMeterProvider(config *Config, opts ...otelprom.Option) (_ *sdkmetric.MeterProvider, gErr error) {
 	exporter, err := otelprom.New(opts...)
-	if errcheck.Check(&gErr, err) {
+	if result.CatchErr(&gErr, err) {
 		return
 	}
 

@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"github.com/pubgo/funk/config"
+	"github.com/pubgo/funk/v2/config"
 )
 
 var Name = "metric"

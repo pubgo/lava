@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/errors"
+	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -346,7 +346,7 @@ func parseMessage(msgDescriptor protoreflect.MessageDescriptor, value string) (p
 		}
 		msg = &v
 	default:
-		return protoreflect.Value{}, errors.Format("unsupported message type: %q", string(msgDescriptor.FullName()))
+		return protoreflect.Value{}, errors.Errorf("unsupported message type: %q", string(msgDescriptor.FullName()))
 	}
 
 	return protoreflect.ValueOfMessage(msg.ProtoReflect()), nil
@@ -440,7 +440,7 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 
 		enumVal := fd.Enum().Values().ByName(protoreflect.Name(s))
 		if enumVal == nil {
-			return param{}, errors.Format("unexpected enum %s", raw)
+			return param{}, errors.Errorf("unexpected enum %s", raw)
 		}
 		return param{fds: fds, val: protoreflect.ValueOfEnum(enumVal.Number())}, nil
 
@@ -524,10 +524,10 @@ func parseParam(fds []protoreflect.FieldDescriptor, raw []byte) (param, error) {
 				return param{fds: fds, val: protoreflect.ValueOfMessage(msg.ProtoReflect())}, nil
 			}
 		}
-		return param{}, errors.Format("unexpected message type %s", name)
+		return param{}, errors.Errorf("unexpected message type %s", name)
 
 	default:
-		return param{}, errors.Format("unknown param type %s", kind)
+		return param{}, errors.Errorf("unknown param type %s", kind)
 
 	}
 }

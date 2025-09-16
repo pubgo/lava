@@ -5,8 +5,8 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/generic"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/generic"
 )
 
 var (
@@ -59,7 +59,7 @@ func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 			continue
 		}
 
-		return nil, errors.Format("path(%s) not match", path)
+		return nil, errors.Errorf("path(%s) not match", path)
 	}
 
 	var vv []PathFieldVar

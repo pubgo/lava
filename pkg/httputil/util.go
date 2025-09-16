@@ -7,12 +7,12 @@ import (
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/pubgo/funk"
-	"github.com/pubgo/funk/errors"
-	"github.com/pubgo/funk/errors/errutil"
-	"github.com/pubgo/funk/proto/errorpb"
-	"github.com/pubgo/funk/running"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/funk/v2"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/pubgo/funk/v2/running"
 	"github.com/samber/lo"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
@@ -38,7 +38,7 @@ func DefaultCfg(config ...*Config) Config {
 		},
 		EnablePrintRouter: true,
 		BaseUrl:           version.Project(),
-		HttpPort:          lo.ToPtr(running.HttpPort),
+		HttpPort:          lo.ToPtr(running.HttpPort()),
 	}
 
 	for _, t := range config {
@@ -77,38 +77,29 @@ func ErrHandler(ctx *fiber.Ctx, err error) error {
 		return nil
 	}
 
-	var errPb *errorpb.Error
+	var errPb *errorpb.ErrCode
 	var fiberErr *fiber.Error
 	if errors.As(err, &fiberErr) && fiberErr != nil {
-		errPb = &errorpb.Error{
-			Code: &errorpb.ErrCode{
-				Name:       "lava.error",
-				StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
-				Code:       int32(fiberErr.Code),
-				Message:    fiberErr.Message,
-				Details: errors.MustTagsToAny(
-					&errorpb.Tag{Key: "path", Value: ctx.Route().Path},
-					&errorpb.Tag{Key: "version", Value: running.Version},
-					&errorpb.Tag{Key: "instance", Value: running.InstanceID},
-				),
-			},
-			Trace: &errorpb.ErrTrace{},
+		errPb = &errorpb.ErrCode{
+			Name:       "lava.error",
+			StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
+			Code:       int32(fiberErr.Code),
+			Message:    fiberErr.Message,
+			Details: errors.MustTagsToAny(
+				&errorpb.Tag{Key: "path", Value: ctx.Route().Path},
+				&errorpb.Tag{Key: "version", Value: running.Version()},
+				&errorpb.Tag{Key: "instance", Value: running.InstanceID},
+			),
 		}
 	} else {
 		errPb = errutil.ParseError(err)
 	}
 
-	if errPb == nil || errPb.Code.Code == 0 {
+	if errPb == nil || errPb.StatusCode == 0 {
 		return nil
 	}
 
-	errPb.Trace.Operation = ctx.Route().Path
-
-	code := int(errPb.Code.Code)
-	if errPb.Code.Code > 1000 {
-		code = errutil.GrpcCodeToHTTP(codes.Code(errPb.Code.Code))
-	}
-
+	code := errutil.GrpcCodeToHTTP(codes.Code(errPb.StatusCode))
 	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	return ctx.Status(code).JSON(errPb)
 }

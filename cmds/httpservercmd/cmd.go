@@ -3,9 +3,9 @@ package httpservercmd
 import (
 	"context"
 
-	"github.com/pubgo/dix"
-	"github.com/pubgo/funk/assert"
-	"github.com/pubgo/funk/version"
+	"github.com/pubgo/dix/v2"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/urfave/cli/v3"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"

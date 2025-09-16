@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/convert"
-	"github.com/pubgo/funk/result"
-	"github.com/pubgo/funk/retry"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/retry"
 	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"

@@ -1,4 +1,4 @@
-checksum: 2cb52bc4143a48e6062590082a7310ff425eff96
+checksum: 2289c850daf0adfce56728905ff0af84177c1c92
 vendor: .proto
 base:
   out: ./pkg
@@ -15,13 +15,17 @@ deps:
     version: v0.0.0-20220224004616-3c171936039b
   - name: google/protobuf
     url: /usr/local/include/google/protobuf
+    optional: true
+  - name: google/protobuf
+    url: /opt/homebrew/include/google/protobuf
+    optional: true
   - name: errorpb
-    url: github.com/pubgo/funk
+    url: github.com/pubgo/funk/v2
     path: /proto/errorpb
-    version: v0.5.56
+    version: v2.0.0-alpha.10
 plugins:
   - name: go
-  - name: go-errors
+  - name: go-errors2
   - name: go-grpc
     opt:
       - require_unimplemented_servers=false

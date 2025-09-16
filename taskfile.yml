@@ -5,7 +5,7 @@ version: '3'
 dotenv: [ '.env' ]
 vars:
   Project: "lava"
-  Base: "github.com/pubgo/funk"
+  Base: "github.com/pubgo/funk/v2"
   VERSION:
     sh: "git tag --sort=committerdate | tail -n 1"
   BUILD_TIME:
