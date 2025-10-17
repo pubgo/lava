@@ -15,9 +15,8 @@ import (
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/stack"
+	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/vars"
-	"github.com/rs/xid"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/v2/clients/grpcc"
@@ -72,7 +71,6 @@ type serviceImpl struct {
 	grpcServer *grpc.Server
 	log        log.Logger
 	cc         *inprocgrpc.Channel
-	initList   []func()
 	conf       *Config
 }
 
@@ -80,9 +78,9 @@ func (s *serviceImpl) String() string {
 	return "grpc-server"
 }
 
-func (s *serviceImpl) Serve(ctx context.Context) (err error) {
+func (s *serviceImpl) Serve(ctx context.Context) error {
 	defer s.stop(ctx)
-	err = s.start(ctx)
+	err := s.start(ctx)
 	if err != nil {
 		return err
 	}
@@ -106,10 +104,8 @@ func (s *serviceImpl) init(
 		BaseUrl:           conf.BaseUrl,
 		EnablePrintRouter: conf.EnablePrintRouter,
 		Http:              conf.Http,
-		HttpPort:          conf.HttpPort,
 	})
 	conf.BaseUrl = cfg.BaseUrl
-	conf.HttpPort = cfg.HttpPort
 	conf.Http = cfg.Http
 
 	s.conf = config.MergeR(defaultCfg(), conf).Must()
@@ -127,8 +123,6 @@ func (s *serviceImpl) init(
 
 	httpServer := fiber.New(conf.Http.Build().Must())
 	httpServer.Use(httputil.Cors())
-
-	httpApp := fiber.New()
 
 	for _, h := range grpcRouters {
 		r, ok := h.(lava.HttpRouter)
@@ -149,15 +143,11 @@ func (s *serviceImpl) init(
 		}
 	}
 
+	httpApp := fiber.New()
 	for _, h := range httpRouters {
-		assert.If(h.Prefix() == "", "http handler prefix required")
+		assert.If(h.Prefix() == "", "http router prefix required")
 
-		g := httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
-		h.Router(g)
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
+		h.Router(httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...))))
 	}
 
 	mux := gateway.NewMux()
@@ -168,18 +158,10 @@ func (s *serviceImpl) init(
 	srvMidMap := make(map[string][]lava.Middleware)
 	for _, h := range grpcRouters {
 		desc := h.ServiceDesc()
-		assert.If(desc == nil, "desc is nil")
+		assert.If(desc == nil, "service desc is nil")
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Initializer); ok {
-			s.initList = append(s.initList, m.Initialize)
-		}
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
 
 		mux.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
@@ -187,18 +169,10 @@ func (s *serviceImpl) init(
 
 	for _, h := range grpcProxy {
 		desc := h.ServiceDesc()
-		assert.If(desc == nil, "desc is nil")
+		assert.If(desc == nil, "service desc is nil")
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Initializer); ok {
-			s.initList = append(s.initList, m.Initialize)
-		}
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
 
 		cli := grpcc.New(
 			&grpccconfig.Cfg{
@@ -233,8 +207,16 @@ func (s *serviceImpl) init(
 		grpcServer.RegisterService(h.ServiceDesc(), h)
 	}
 
+	for _, h := range grpcHttpRouters {
+		grpcServer.RegisterService(h.ServiceDesc(), h)
+	}
+
+	for _, h := range grpcProxy {
+		grpcServer.RegisterService(h.ServiceDesc(), h)
+	}
+
 	grpcGatewayApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
-	s.log.Info().Str("path", grpcGatewayApiPrefix).Msg("service grpc gateway base path")
+	s.log.Info().Msgf("service grpc gateway base path: %s", grpcGatewayApiPrefix)
 
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
@@ -253,40 +235,28 @@ func (s *serviceImpl) init(
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
-	vars.Register(fmt.Sprintf("%s-grpc-server-config-%s", version.Project(), xid.New()), func() any { return conf })
-	vars.Register(fmt.Sprintf("%s-grpc-server-router-%s", version.Project(), xid.New()), func() interface{} {
-		return mux.GetRouteMethods()
-	})
-	vars.Register(fmt.Sprintf("%s-grpc-server-desc-%s", version.Project(), xid.New()), func() interface{} {
-		return grpcServer.GetServiceInfo()
-	})
-	vars.Register(fmt.Sprintf("%s-http-server-router-%s", version.Project(), xid.New()), func() interface{} {
-		return httpServer.Stack()
+	vars.Register(vars.UniqueName(version.Project(), "grpc-server-info"), func() any {
+		return map[string]any{
+			"config": conf,
+			"method": mux.GetRouteMethods(),
+			"desc":   grpcServer.GetServiceInfo(),
+			"router": httpServer.Stack(),
+		}
 	})
 }
 
 func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 	defer recovery.Exit()
 
-	logutil.OkOrFailed(s.log, "init handler before service starts", func() error {
-		defer recovery.Exit()
-		for _, init := range s.initList {
-			s.log.Info().Msgf("init handler %s", stack.CallerWithFunc(init))
-			init()
-		}
-		return nil
-	})
-
 	s.log.Info().
-		Int("grpc-port", *s.conf.GrpcPort).
-		Int("http-port", *s.conf.HttpPort).
+		Int("grpc-port", running.GrpcPort()).
+		Int("http-port", running.HttpPort()).
 		Msg("create network listener")
-	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.GrpcPort)))
-	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", *s.conf.HttpPort)))
+	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort())))
+	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort())))
 
-	// 启动grpc服务
 	async.GoDelay(func() error {
-		s.log.Info().Msg("[grpc] Server Starting")
+		s.log.Info().Msg("grpc server starting")
 		defer recovery.DebugPrint()
 		err := s.grpcServer.Serve(grpcLn)
 		if netutil.IsErrServerClosed(err) {
@@ -298,7 +268,7 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 
 	// 启动grpc网关
 	async.GoDelay(func() error {
-		s.log.Info().Msg("[http] Server Starting")
+		s.log.Info().Msg("http server starting")
 		defer recovery.DebugPrint()
 		err := s.httpServer.Listener(httpLn)
 		if netutil.IsErrServerClosed(err) {
@@ -314,12 +284,12 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
 
-	logutil.LogOrErr(s.log, "[grpc] Server GracefulStop", func() error {
+	logutil.LogOrErr(s.log, "grpc server graceful stop", func() error {
 		s.grpcServer.GracefulStop()
 		return nil
 	})
 
-	logutil.LogOrErr(s.log, "[http] Server Shutdown", func() error {
+	logutil.LogOrErr(s.log, "http server shutdown", func() error {
 		err := s.httpServer.ShutdownWithContext(ctx)
 		if netutil.IsErrServerClosed(err) {
 			return nil

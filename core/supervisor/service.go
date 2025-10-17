@@ -39,7 +39,7 @@ func (s *serviceImpl) Metric() *Metric {
 		Error:          metric.Error.Load(),
 		Restart:        metric.Restart.Load(),
 		StartTime:      metric.StartTime.Load(),
-		OnlineDuration: time.Since(metric.StartTime.Load()).Truncate(time.Millisecond),
+		OnlineDuration: time.Since(metric.StartTime.Load()),
 	}
 }
 

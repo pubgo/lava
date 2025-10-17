@@ -1,11 +1,11 @@
-package cmdutil
+package cliutil
 
 import (
 	"fmt"
 	"strings"
 )
 
-func ExampleFmt(data ...string) string {
+func ExampleDesc(data ...string) string {
 	str := ""
 	for i := range data {
 		str += "  " + data[i] + "\n"

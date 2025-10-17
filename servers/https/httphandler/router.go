@@ -1,4 +1,4 @@
-package httprouter
+package httphandler
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type Handler[Req any, Rsp any] func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err err
 
 var validate = validator.New()
 
-func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, err error)) func(ctx *fiber.Ctx) error {
+func WrapHandler[Req, Rsp any](handler Handler[Req, Rsp]) func(ctx *fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
 		var req Req
 
@@ -25,7 +25,7 @@ func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, 
 		}
 
 		if err := ctx.ReqHeaderParser(&req); err != nil {
-			return fmt.Errorf("failed to parse req header, err:%w", err)
+			return fmt.Errorf("failed to parse header, header:%q err:%w", ctx.GetReqHeaders(), err)
 		}
 
 		switch ctx.Method() {
@@ -39,7 +39,7 @@ func WrapHandler[Req, Rsp any](handle func(ctx *fiber.Ctx, req *Req) (rsp *Rsp, 
 			return fmt.Errorf("failed to validate request, err:%w", err)
 		}
 
-		rsp, err := handle(ctx, &req)
+		rsp, err := handler(ctx, &req)
 		if err != nil {
 			return err
 		}

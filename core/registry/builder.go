@@ -77,7 +77,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	port := running.GrpcPort
+	port := running.GrpcPort()
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -96,12 +96,12 @@ func register(reg Registry) {
 		Port:     port,
 		Version:  version.Version(),
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
+		Id:       running.Project() + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: map[string]string{"registry": reg.String()},
 	}
 
 	s := &service.Service{
-		Name:  running.Project,
+		Name:  running.Project(),
 		Nodes: []*service.Node{node},
 	}
 
@@ -121,7 +121,7 @@ func register(reg Registry) {
 
 func deregister(reg Registry) {
 	var advt, host string
-	port := running.GrpcPort
+	port := running.GrpcPort()
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -135,12 +135,12 @@ func deregister(reg Registry) {
 	node := &service.Node{
 		Port:     port,
 		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       running.Project + "-" + running.Hostname + "-" + running.InstanceID,
+		Id:       running.Project() + "-" + running.Hostname + "-" + running.InstanceID,
 		Metadata: make(map[string]string),
 	}
 
 	s := &service.Service{
-		Name:  running.Project,
+		Name:  running.Project(),
 		Nodes: []*service.Node{node},
 	}
 

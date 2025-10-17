@@ -5,20 +5,20 @@ import (
 	"google.golang.org/grpc"
 )
 
-type ProxyCfg struct {
-	// Name service name
+type GrpcProxyCfg struct {
+	// Name grpc service name
 	Name string `yaml:"name"`
 
-	// Addr service address
+	// Addr grpc service address, dns://auth:8080, auth:8080
 	Addr string `yaml:"addr"`
 
-	// Resolver service resolver, default direct
+	// Resolver service resolver[direct, k8s, dns, etc...], default direct
 	Resolver string `yaml:"resolver"`
 }
 
 type GrpcProxy interface {
 	GrpcRouter
-	Proxy() ProxyCfg
+	Proxy() GrpcProxyCfg
 }
 
 type GrpcHttpRouter interface {
@@ -35,6 +35,7 @@ type GrpcRouter interface {
 type HttpRouter interface {
 	Middlewares() []Middleware
 	Router(router fiber.Router)
+
+	// Prefix router prefix, required
 	Prefix() string
-	// Annotation() []Annotation
 }

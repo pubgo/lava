@@ -1,4 +1,4 @@
-package servefilecmd
+package fileservercmd
 
 import (
 	"context"
@@ -16,15 +16,19 @@ import (
 
 func New() *cli.Command {
 	return &cli.Command{
-		Name:  "servefile",
-		Usage: "serve `pwd` via http at *:8080",
-		Flags: []cli.Flag{},
+		Name:      "fileserver",
+		Usage:     "serve `pwd` via http at *:8080",
+		Flags:     []cli.Flag{},
+		ArgsUsage: "[dir]",
 		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 
 			wd := result.Wrap(os.Getwd()).Must()
+			if command.Args().Len() > 0 {
+				wd = command.Args().Get(0)
+			}
 
-			port := running.HttpPort
+			port := running.HttpPort()
 			log.Info().Msgf("file dir: %s", wd)
 			log.Info().Msgf("http://localhost:%v", port)
 
@@ -39,11 +43,9 @@ func New() *cli.Command {
 
 			s := &fasthttp.Server{
 				Handler: fs.NewRequestHandler(),
-				Logger:  log.NewStd(log.GetLogger("servefile")),
+				Logger:  log.NewStd(log.GetLogger("fileserver")),
 			}
-			go func() {
-				assert.Must(s.ListenAndServe(fmt.Sprintf(":%v", port)))
-			}()
+			go func() { assert.Must(s.ListenAndServe(fmt.Sprintf(":%v", port))) }()
 
 			<-ctx.Done()
 			return s.ShutdownWithContext(ctx)

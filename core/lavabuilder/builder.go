@@ -1,12 +1,15 @@
 package lavabuilder
 
 import (
+	"context"
 	"os"
 	"sort"
 
 	"github.com/pubgo/dix/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/features/featureflags"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
 	cli "github.com/urfave/cli/v3"
@@ -24,7 +27,7 @@ import (
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/v2/core/signals"
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
@@ -70,7 +73,12 @@ func New(opts ...dix.Option) *dix.Dix {
 }
 
 func Run(di *dix.Dix) {
-	defer recovery.Exit()
+	defer recovery.Exit(func(err error) error {
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
+		return err
+	})
 
 	dix.Provide(di, versioncmd.New)
 	dix.Provide(di, healthcmd.New)
@@ -83,9 +91,9 @@ func Run(di *dix.Dix) {
 			Name:                   version.Project(),
 			Suggest:                true,
 			UseShortOptionHandling: true,
-			Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
+			Usage:                  cliutil.UsageDesc("%s service", version.Project()),
 			Version:                version.Version(),
-			Flags:                  flags.GetFlags(),
+			Flags:                  append(flags.GetFlags(), featureflags.GetFlags()...),
 			Commands:               cmd,
 			ExtraInfo:              running.GetSysInfo,
 		}

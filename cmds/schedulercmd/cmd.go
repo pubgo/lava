@@ -13,14 +13,14 @@ import (
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerbuilder"
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerdebug"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )
 
 func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "scheduler",
-		Usage: cmdutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
+		Usage: cliutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			di.Provide(schedulerbuilder.NewService)
 			di.Provide(https.New)

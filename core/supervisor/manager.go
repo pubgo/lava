@@ -18,6 +18,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 type serviceWrapper struct {
@@ -148,7 +149,7 @@ func (m *Manager) Services() []Service {
 
 func (m *Manager) start(ctx context.Context) error {
 	defer recovery.Exit()
-	logutil.OkOrFailed(m.logger, "service before-start", func() error {
+	logutil.OkOrFailed(m.logger, "start lifecycle before service", func() error {
 		defer recovery.Exit()
 		for _, run := range m.lc.GetBeforeStarts() {
 			m.logger.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
@@ -159,14 +160,14 @@ func (m *Manager) start(ctx context.Context) error {
 
 	async.GoDelay(func() error {
 		err := m.supervisor.Serve(ctx)
-		if errors.Is(err, context.Canceled) {
+		if netutil.IsErrServerClosed(err) {
 			return nil
 		}
 		assert.Exit(err)
 		return nil
 	})
 
-	logutil.OkOrFailed(m.logger, "service after-start", func() error {
+	logutil.OkOrFailed(m.logger, "start lifecycle after service", func() error {
 		defer recovery.Exit()
 		for _, run := range m.lc.GetAfterStarts() {
 			m.logger.Info().Msgf("running %s", stack.CallerWithFunc(run.Exec))
@@ -181,7 +182,7 @@ func (m *Manager) start(ctx context.Context) error {
 func (m *Manager) stop(ctx context.Context) error {
 	defer recovery.DebugPrint()
 
-	logutil.OkOrFailed(m.logger, "service before-stop", func() error {
+	logutil.OkOrFailed(m.logger, "stop lifecycle before service", func() error {
 		for _, run := range m.lc.GetBeforeStops() {
 			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
 				return run.Exec(ctx)
@@ -198,7 +199,7 @@ func (m *Manager) stop(ctx context.Context) error {
 		return errors.New("services are still running")
 	}
 
-	logutil.OkOrFailed(m.logger, "service after-stop", func() error {
+	logutil.OkOrFailed(m.logger, "stop lifecycle after service", func() error {
 		for _, run := range m.lc.GetAfterStops() {
 			logutil.LogOrErr(m.logger, fmt.Sprintf("running %s", stack.CallerWithFunc(run.Exec)), func() error {
 				return run.Exec(ctx)
@@ -224,7 +225,7 @@ func (m *Manager) Run(ctx context.Context) error {
 func (m *Manager) Serve(ctx context.Context) error {
 	err := m.supervisor.Serve(ctx)
 
-	if errors.Is(err, context.Canceled) {
+	if netutil.IsErrServerClosed(err) {
 		return nil
 	}
 

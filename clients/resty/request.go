@@ -11,7 +11,7 @@ import (
 
 var regParam = regexp.MustCompile(`{.+}`)
 
-type RequestConfig struct {
+type RequestSpec struct {
 	Header      map[string]string
 	Path        string
 	Method      string
@@ -20,7 +20,9 @@ type RequestConfig struct {
 	EnableAuth  bool
 }
 
-func NewRequest(cfg *RequestConfig) *Request {
+func (r RequestSpec) CreateRequest() *Request { return NewRequest(&r) }
+
+func NewRequest(cfg *RequestSpec) *Request {
 	r := &Request{
 		cfg:    cfg,
 		header: make(http.Header),
@@ -32,7 +34,7 @@ func NewRequest(cfg *RequestConfig) *Request {
 
 type Request struct {
 	req         *fasthttp.Request
-	cfg         *RequestConfig
+	cfg         *RequestSpec
 	header      http.Header
 	query       url.Values
 	params      map[string]any

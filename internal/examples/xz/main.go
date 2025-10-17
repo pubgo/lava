@@ -28,7 +28,7 @@ func main() {
 	if err := w.Close(); err != nil {
 		log.Fatalf("w.Close error %s", err)
 	}
-	fmt.Println(buf.String())
+	fmt.Println(buf.Len(), buf.String())
 	// decompress buffer and write output to stdout
 	r, err := xz.NewReader(&buf)
 	if err != nil {

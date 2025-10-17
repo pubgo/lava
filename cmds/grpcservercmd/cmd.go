@@ -10,14 +10,14 @@ import (
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/grpcs"
 )
 
 func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "grpc",
-		Usage: cmdutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
+		Usage: cliutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			di.Provide(grpcs.New)
 			params := dix.Inject(di, new(struct {

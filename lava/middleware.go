@@ -2,25 +2,24 @@ package lava
 
 import (
 	"context"
-	"net/http"
-
-	"google.golang.org/grpc/metadata"
 )
-
-type GrpcGatewayMetadata func(ctx context.Context, req *http.Request, rpcPath string, httpPattern string) metadata.MD
 
 type HandlerFunc func(ctx context.Context, req Request) (Response, error)
 
 type Middlewares []Middleware
 
 type Middleware interface {
-	Middleware(next HandlerFunc) HandlerFunc
 	String() string
+	Middleware(next HandlerFunc) HandlerFunc
+}
+
+func WithMiddleware(name string, next func(next HandlerFunc) HandlerFunc) MiddlewareWrap {
+	return MiddlewareWrap{Name: name, Next: next}
 }
 
 type MiddlewareWrap struct {
-	Next func(next HandlerFunc) HandlerFunc
 	Name string
+	Next func(next HandlerFunc) HandlerFunc
 }
 
 func (m MiddlewareWrap) Middleware(next HandlerFunc) HandlerFunc {
@@ -31,16 +30,16 @@ func (m MiddlewareWrap) String() string {
 	return m.Name
 }
 
-func Chain(m ...Middleware) Middleware {
+func Chain(middlewares ...Middleware) Middleware {
 	return MiddlewareWrap{
 		Name: "chain",
 		Next: func(next HandlerFunc) HandlerFunc {
-			for i := len(m) - 1; i >= 0; i-- {
-				if m[i] == nil {
+			for i := len(middlewares) - 1; i >= 0; i-- {
+				if middlewares[i] == nil {
 					continue
 				}
 
-				next = m[i].Middleware(next)
+				next = middlewares[i].Middleware(next)
 			}
 			return next
 		},

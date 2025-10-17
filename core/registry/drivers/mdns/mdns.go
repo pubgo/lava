@@ -28,7 +28,7 @@ func New(conf *registry.Config, log log.Logger) registry.Registry {
 	}
 
 	var cfg Cfg
-	merge.MapStruct(&cfg, conf.DriverCfg).Unwrap()
+	merge.MapStruct(&cfg, conf.DriverCfg).Must()
 
 	resolver, err := zeroconf.NewResolver()
 	assert.MustF(err, "Failed to initialize zeroconf resolver")

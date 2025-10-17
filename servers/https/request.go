@@ -1,6 +1,8 @@
 package https
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/pubgo/lava/v2/lava"
@@ -12,16 +14,14 @@ type httpRequest struct {
 	ctx *fiber.Ctx
 }
 
-func (r *httpRequest) Kind() string                { return "http" }
-func (r *httpRequest) Operation() string           { return r.ctx.Route().Path }
+func (r *httpRequest) Kind() string { return lava.RequestKindHttp }
+func (r *httpRequest) Operation() string {
+	return fmt.Sprintf("%s %s", r.ctx.Method(), r.ctx.Route().Path)
+}
 func (r *httpRequest) Client() bool                { return false }
 func (r *httpRequest) Header() *lava.RequestHeader { return &r.ctx.Request().Header }
-func (r *httpRequest) Payload() interface{}        { return r.ctx.Body() }
-
-func (r *httpRequest) ContentType() string {
-	return string(r.ctx.Request().Header.ContentType())
-}
-
-func (r *httpRequest) Service() string  { return r.ctx.Route().Path }
-func (r *httpRequest) Endpoint() string { return string(r.ctx.Request().RequestURI()) }
-func (r *httpRequest) Stream() bool     { return false }
+func (r *httpRequest) Payload() any                { return r.ctx.Body() }
+func (r *httpRequest) ContentType() string         { return string(r.ctx.Request().Header.ContentType()) }
+func (r *httpRequest) Service() string             { return r.ctx.Route().Path }
+func (r *httpRequest) Endpoint() string            { return string(r.ctx.Request().RequestURI()) }
+func (r *httpRequest) Stream() bool                { return r.ctx.Request().IsBodyStream() }

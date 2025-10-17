@@ -34,7 +34,7 @@ func infoEventHook() suture.EventHook {
 	var prevTerminate suture.EventServiceTerminate
 	return func(ei suture.Event) {
 		m := ei.Map()
-		l := slog.Default().With("supervisor", m["supervisor_name"], "service", m["service_name"])
+		l := slog.With("supervisor", m["supervisor_name"], "service", m["service_name"])
 		switch e := ei.(type) {
 		case suture.EventStopTimeout:
 			l.Warn("Service failed to terminate in a timely manner")
@@ -55,7 +55,7 @@ func infoEventHook() suture.EventHook {
 			l.Debug("Too many service failures - entering the backoff state")
 		default:
 			l.Warn("Unknown suture supervisor event", slog.Any("type", e.Type()))
-			l.Warn(e.String()) //nolint:sloglint
+			l.Warn(e.String()) //nolint:lint
 		}
 	}
 }
