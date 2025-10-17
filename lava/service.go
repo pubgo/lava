@@ -3,13 +3,7 @@ package lava
 import (
 	"context"
 	"net"
-
-	"google.golang.org/grpc"
 )
-
-type Init interface {
-	Init()
-}
 
 type Close interface {
 	Close(ctx context.Context) error
@@ -22,13 +16,4 @@ type Listener interface {
 
 type Validator interface {
 	Validate() error
-}
-
-// Initializer ...
-type Initializer interface {
-	Initialize()
-}
-
-type InnerServer struct {
-	grpc.ClientConnInterface
 }

@@ -28,10 +28,10 @@ func Context() context.Context {
 	signal.Notify(ch, shutdownSignals...)
 	go func() {
 		sig := <-ch
-		logger.Info().Str("signal", sig.String()).Msg("cancelling context, received signal")
+		logger.Info().Msgf("cancelling context, received signal:%s", sig)
 		cancel()
 		sig = <-ch
-		logger.Info().Str("signal", sig.String()).Msg("os exit, received twice signal")
+		logger.Info().Msgf("os exit, received twice signal:%s", sig)
 		os.Exit(1)
 
 	}()

@@ -11,7 +11,6 @@ import (
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/vars"
-	"github.com/pubgo/opendoc/opendoc"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
 
@@ -35,7 +34,6 @@ type Params struct {
 	M           metrics.Metric
 	Log         log.Logger
 	Cfg         *Config
-	Docs        []*opendoc.Swagger
 }
 
 func New(params Params) supervisor.Service { return newService(params) }
@@ -106,7 +104,7 @@ func (s *serviceImpl) init(params Params) {
 func (s *serviceImpl) start(ctx context.Context) {
 	defer recovery.Exit()
 
-	addr := fmt.Sprintf(":%d", running.HttpPort)
+	addr := fmt.Sprintf(":%d", running.HttpPort())
 	async.GoDelay(func() error {
 		defer recovery.Exit()
 

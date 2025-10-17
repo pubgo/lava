@@ -15,7 +15,6 @@ import (
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/retry"
-	"github.com/valyala/bytebufferpool"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
 	"golang.org/x/net/http/httpguts"
@@ -58,16 +57,16 @@ func do(cfg *Config) lava.HandlerFunc {
 	}
 }
 
-func getBodyReader(rawBody interface{}) ([]byte, error) {
+func getBodyReader(rawBody interface{}) (r result.Result[[]byte]) {
 	switch body := rawBody.(type) {
 	case nil:
-		return nil, nil
+		return
 	case *bytes.Buffer:
-		return body.Bytes(), nil
+		return r.WithValue(body.Bytes())
 	case []byte:
-		return body, nil
+		return r.WithValue(body)
 	case string:
-		return convert.StoB(body), nil
+		return r.WithValue(convert.StoB(body))
 
 	// We prioritize *bytes.Reader here because we don't really want to
 	// deal with it seeking so want it to match here instead of the
@@ -75,46 +74,39 @@ func getBodyReader(rawBody interface{}) ([]byte, error) {
 	case *bytes.Reader:
 		buf, err := io.ReadAll(body)
 		if err != nil {
-			return nil, err
+			return r.WithErr(err)
 		}
-		return buf, nil
+		return r.WithValue(buf)
 
 	// Compat case
 	case io.ReadSeeker:
 		_, err := body.Seek(0, 0)
 		if err != nil {
-			return nil, err
+			return r.WithErr(err)
 		}
 
 		buf, err := io.ReadAll(body)
 		if err != nil {
-			return nil, err
+			return r.WithErr(err)
 		}
-		return buf, nil
+		return r.WithValue(buf)
 
 	case url.Values:
-		return convert.StoB(body.Encode()), nil
+		return r.WithValue(convert.StoB(body.Encode()))
 
 	// Read all in so we can reset
 	case io.Reader:
 		buf, err := io.ReadAll(body)
 		if err != nil {
-			return nil, err
+			return r.WithErr(err)
 		}
-		return buf, nil
+		return r.WithValue(buf)
 
 	case json.Marshaler:
-		return body.MarshalJSON()
+		return result.Wrap(body.MarshalJSON())
 
 	default:
-		bb := bytebufferpool.Get()
-		defer bytebufferpool.Put(bb)
-
-		if err := json.NewEncoder(bb).Encode(rawBody); err != nil {
-			return nil, err
-		}
-
-		return bb.Bytes(), nil
+		return result.Wrap(json.Marshal(rawBody))
 	}
 }
 
@@ -134,36 +126,30 @@ func handleHeader(c *Client, req *Request) {
 	}
 }
 
-func handlePath(c *Client, req *Request) (path string, err error) {
+func handlePath(c *Client, req *Request) (r result.Result[string]) {
 	reqConf := req.cfg
 
 	reqUrl := c.baseUrl.JoinPath(reqConf.Path)
 	req.operation = reqUrl.Path
-	path = reqUrl.Path
 
-	if v, ok := c.pathTemplates.Load(reqUrl.Path); ok {
-		if v != nil {
-			path, err = pathTemplateRun(v.(*fasttemplate.Template), req.params)
-			if err != nil {
-				return
-			}
-		}
+	if v, ok := c.pathTemplates.Load(reqUrl.Path); ok && v != nil {
+		return result.Wrap(pathTemplateRun(v.(*fasttemplate.Template), req.params))
 	} else {
 		if regParam.MatchString(reqUrl.Path) {
 			pathTemplate, err := fasttemplate.NewTemplate(reqUrl.Path, "{", "}")
 			if err != nil {
-				return "", err
+				return r.WithErr(err)
 			}
 			c.pathTemplates.Store(reqUrl.Path, pathTemplate)
 		} else {
-			c.pathTemplates.Store(reqUrl.Path, nil)
+			return r.WithValue(reqUrl.Path)
 		}
 	}
 
 	return
 }
 
-func handleContentType(c *Client, req *Request) (string, error) {
+func handleContentType(c *Client, req *Request) (r result.Result[string]) {
 	defaultConf := c.cfg
 	reqConf := req.cfg
 
@@ -181,27 +167,21 @@ func handleContentType(c *Client, req *Request) (string, error) {
 	}
 
 	if contentType == "" {
-		return "", errors.New("context-type header is empty")
+		return r.WithErr(errors.New("content-type header is empty"))
 	}
 
-	return contentType, nil
+	return r.WithValue(contentType)
 }
 
 // doRequest data:[bytes|string|map|struct]
 func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	r := fasthttp.AcquireRequest()
 
-	ct, err := handleContentType(c, req)
-	if err != nil {
-		return rsp.WithErr(err)
+	if handleContentType(c, req).Inspect(func(val string) {
+		r.Header.Set(httputil.HeaderContentType, val)
+	}).Catch(&rsp) {
+		return
 	}
-	r.Header.Set(httputil.HeaderContentType, ct)
-
-	path, err := handlePath(c, req)
-	if err != nil {
-		return rsp.WithErr(err)
-	}
-	r.SetRequestURI(path)
 
 	mth := req.cfg.Method
 	if mth == "" {
@@ -210,11 +190,11 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 
 	r.Header.SetMethod(mth)
 
-	bodyRaw, err := getBodyReader(req.body)
-	if err != nil {
-		return rsp.WithErr(err)
+	if getBodyReader(req.body).Inspect(func(val []byte) {
+		r.SetBodyRaw(val)
+	}).Catch(&rsp) {
+		return
 	}
-	r.SetBodyRaw(bodyRaw)
 
 	handleHeader(c, req)
 
@@ -227,11 +207,11 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	// enable auth
 	if c.cfg.EnableAuth || req.cfg.EnableAuth {
 		if c.cfg.BasicToken != "" {
-			r.Header.Set("Authentication", "Basic "+c.cfg.BasicToken)
+			r.Header.Set(httputil.HeaderAuthorization, "Basic "+c.cfg.BasicToken)
 		}
 
 		if c.cfg.JwtToken != "" {
-			r.Header.Set("Authentication", "Bearer "+c.cfg.JwtToken)
+			r.Header.Set(httputil.HeaderAuthorization, "Bearer "+c.cfg.JwtToken)
 		}
 	}
 
@@ -239,7 +219,12 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	defer fasthttp.ReleaseURI(uri)
 	uri.SetScheme(c.baseUrl.Scheme)
 	uri.SetHost(c.baseUrl.Host)
-	uri.SetPath(path)
+	if handlePath(c, req).Inspect(func(val string) {
+		uri.SetPath(val)
+	}).Catch(&rsp) {
+		return
+	}
+
 	if req.query != nil {
 		uri.SetQueryString(req.query.Encode())
 	}
@@ -255,7 +240,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 		}
 	}
 
-	return rsp.WithVal(r)
+	return rsp.WithValue(r)
 }
 
 func filterFlags(content string) string {

@@ -44,7 +44,7 @@ func Get() (r result.Result[int]) {
 }
 
 func GetPath() (r result.Result[string]) {
-	filename := fmt.Sprintf("%s.pid", running.Project)
+	filename := fmt.Sprintf("%s.pid", running.Project())
 	pidPath := filepath.Join(PidPath, filename)
 
 	if pathutil.IsNotExist(PidPath) {

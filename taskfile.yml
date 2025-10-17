@@ -61,7 +61,7 @@ tasks:
 
   vet:
     cmds:
-      - go vet ./pkg/... ./internal/...
+      - go vet ./...
   test:
     cmds:
       - go test -short -race -v ./... -cover

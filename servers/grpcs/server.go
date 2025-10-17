@@ -154,10 +154,6 @@ func (s *serviceImpl) init(
 
 		g := httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...)))
 		h.Router(g)
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
 	}
 
 	mux := gateway.NewMux()
@@ -173,14 +169,6 @@ func (s *serviceImpl) init(
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
 
-		if m, ok := h.(lava.Initializer); ok {
-			s.initList = append(s.initList, m.Initialize)
-		}
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
-
 		mux.RegisterService(desc, h)
 		s.cc.RegisterService(desc, h)
 	}
@@ -191,14 +179,6 @@ func (s *serviceImpl) init(
 
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], globalMiddlewares...)
 		srvMidMap[desc.ServiceName] = append(srvMidMap[desc.ServiceName], h.Middlewares()...)
-
-		if m, ok := h.(lava.Initializer); ok {
-			s.initList = append(s.initList, m.Initialize)
-		}
-
-		if m, ok := h.(lava.Init); ok {
-			s.initList = append(s.initList, m.Init)
-		}
 
 		cli := grpcc.New(
 			&grpccconfig.Cfg{
