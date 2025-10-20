@@ -5,67 +5,52 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"syscall"
+	"sync"
 
 	"github.com/pubgo/funk/v2/config"
-	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/log/logfields"
-	"github.com/pubgo/funk/v2/pathutil"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/rs/zerolog"
 )
 
-const Name = "pidfile"
-
-var PidPath = filepath.Join(config.GetConfigDir(), Name)
+var getPidPath = sync.OnceValue(func() string {
+	return filepath.Join(config.GetConfigDir(), "."+running.Project()+".pid")
+})
 
 const pidPerm os.FileMode = 0o644
 
 func Get() (r result.Result[int]) {
-	pidPath := GetPath().Unwrap(&r)
+	pidPath := GetPath()
+	p := result.Wrap(os.ReadFile(pidPath)).
+		Validate(func(val []byte) error {
+			if len(val) == 0 {
+				return fmt.Errorf("pid file is empty")
+			}
+			return nil
+		}).
+		Log(func(e *zerolog.Event) {
+			e.Str("path", pidPath)
+			e.Str(logfields.Msg, "read pid file failed")
+		}).
+		Unwrap(&r)
 	if r.IsErr() {
-		return
-	}
-
-	p, err := os.ReadFile(pidPath)
-	if err != nil {
-		return r.WithErrorf("failed to read pid file: %s", pidPath)
-	}
-
-	if len(p) == 0 {
-		return r.WithErrorf("pid file is empty")
+		return r
 	}
 
 	return result.Wrap(strconv.Atoi(string(p))).
-		InspectErr(func(err error) {
-			log.Err(err).Str("path", pidPath).Str("pid", string(p)).Msg("read pid file failed")
+		Log(func(e *zerolog.Event) {
+			e.Str("path", pidPath)
+			e.Str("pid", string(p))
+			e.Str(logfields.Msg, "convert pid to int failed")
 		})
 }
 
-func GetPath() (r result.Result[string]) {
-	filename := fmt.Sprintf("%s.pid", running.Project())
-	pidPath := filepath.Join(PidPath, filename)
-
-	if pathutil.IsNotExist(PidPath) {
-		createDirRes := result.ErrOf(os.MkdirAll(PidPath, os.ModePerm)).Log(func(e *zerolog.Event) {
-			e.Str(logfields.Msg, fmt.Sprintf("create pid file dir(%s) failed", PidPath))
-		})
-		if createDirRes.Catch(&r) {
-			return
-		}
-	}
-
-	return r.WithValue(pidPath)
-}
+func GetPath() string { return getPidPath() }
 
 func Save() (r result.Error) {
-	pidPath := GetPath().Unwrap(&r)
-	if r.IsErr() {
-		return
-	}
-
-	pid := syscall.Getpid()
+	pidPath := GetPath()
+	pid := os.Getpid()
 
 	return result.ErrOf(os.WriteFile(pidPath, []byte(strconv.Itoa(pid)), pidPerm)).
 		Log(func(e *zerolog.Event) {

@@ -37,7 +37,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		return &rpcResponse{header: req.(*rpcRequest).rspHeader, dt: dt}, nil
 	}
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		reqMetadata, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			reqMetadata = make(metadata.MD)
@@ -66,6 +66,11 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			clientInfo.Name = p
 		}
 
+		// get peer from context
+		if p, ok := peer.FromContext(ctx); ok {
+			reqMetadata.Set("remote", p.Addr.String())
+		}
+
 		// timeout for server deadline
 		to := reqMetadata.Get("timeout")
 		delete(reqMetadata, "timeout")
@@ -75,7 +80,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			if dur, err := time.ParseDuration(to[0]); err == nil {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
-				_ = cancel
+				defer cancel()
 			}
 		}
 
@@ -123,14 +128,11 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 				reqMetadata.Set(convert.BtoS(key), convert.BtoS(value))
 			}
 
-			if err := grpc.SetHeader(ctx, reqMetadata); err != nil {
-				log.Err(err, ctx).Msg("grpc send trailer failed")
-			}
-
 			if err := grpc.SendHeader(ctx, reqMetadata); err != nil {
-				log.Err(err, ctx).Msg("grpc send trailer failed")
+				log.Err(err, ctx).
+					Str("grpc-method", info.FullMethod).
+					Msg("grpc send trailer header failed")
 			}
-
 		}()
 
 		ctx = lavacontexts.CreateReqHeader(ctx, reqHeader)
@@ -161,10 +163,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamServerInterceptor {
 	streamWrapper := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		reqCtx := req.(*rpcRequest)
-		wrap := &grpcMiddle.WrappedServerStream{
-			WrappedContext: ctx,
-			ServerStream:   reqCtx.stream,
-		}
+		wrap := &grpcMiddle.WrappedServerStream{WrappedContext: ctx, ServerStream: reqCtx.stream}
 		if err := reqCtx.handlerStream(reqCtx.srv, wrap); err != nil {
 			return nil, err
 		}
@@ -172,7 +171,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		return &rpcResponse{stream: reqCtx.stream, header: new(lava.ResponseHeader)}, nil
 	}
 
-	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -232,8 +231,8 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			func() string { return xid.New().String() },
 		)
 		rpcReq.Header().Set(httputil.HeaderXRequestID, reqId)
-		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 
+		ctx = lavacontexts.CreateCtxWithReqID(ctx, reqId)
 		ctx = lavacontexts.CreateReqHeader(ctx, header)
 		ctx = lavacontexts.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
@@ -256,15 +255,15 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		for key, value := range h.All() {
 			md.Append(convert.BtoS(key), convert.BtoS(value))
 		}
-		return grpc.SetTrailer(ctx, md)
+		return grpc.SendHeader(ctx, md)
 	}
 }
 
 func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		reqCtx := req.(*httpRequest)
-		reqCtx.ctx.SetUserContext(ctx)
-		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
+		reqCtx := req.(*httpRequest).ctx
+		reqCtx.SetUserContext(ctx)
+		return &httpResponse{ctx: reqCtx}, reqCtx.Next()
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)

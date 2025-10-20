@@ -9,13 +9,11 @@ import (
 	"github.com/pubgo/funk/v2/generic"
 )
 
-var (
-	parser = participle.MustBuild[httpRule](
-		participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
-			{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
-			{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
-		})),
-	)
+var parser = participle.MustBuild[httpRule](
+	participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
+		{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
+		{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
+	})),
 )
 
 type pathVariable struct {
@@ -148,7 +146,7 @@ func parse(url string) (*httpRule, error) {
 	return parser.ParseString(
 		"",
 		url,
-		//participle.AllowTrailing(true),
-		//participle.Trace(os.Stdout),
+		// participle.AllowTrailing(true),
+		// participle.Trace(os.Stdout),
 	)
 }

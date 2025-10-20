@@ -11,11 +11,12 @@ import (
 	"github.com/pubgo/funk/v2/errors/errutil"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
+
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc/codes"
 )
 
 const Name = "accesslog"
@@ -99,7 +100,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				//errors.Debug(gErr)
+				// errors.Debug(gErr)
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
 				pb := errutil.ParseError(gErr)

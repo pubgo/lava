@@ -57,10 +57,10 @@ func do(cfg *Config) lava.HandlerFunc {
 	}
 }
 
-func getBodyReader(rawBody interface{}) (r result.Result[[]byte]) {
+func getBodyReader(rawBody any) (r result.Result[[]byte]) {
 	switch body := rawBody.(type) {
 	case nil:
-		return
+		return r
 	case *bytes.Buffer:
 		return r.WithValue(body.Bytes())
 	case []byte:
@@ -146,7 +146,7 @@ func handlePath(c *Client, req *Request) (r result.Result[string]) {
 		}
 	}
 
-	return
+	return r
 }
 
 func handleContentType(c *Client, req *Request) (r result.Result[string]) {
@@ -180,7 +180,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	if handleContentType(c, req).Inspect(func(val string) {
 		r.Header.Set(httputil.HeaderContentType, val)
 	}).Catch(&rsp) {
-		return
+		return rsp
 	}
 
 	mth := req.cfg.Method
@@ -193,7 +193,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	if getBodyReader(req.body).Inspect(func(val []byte) {
 		r.SetBodyRaw(val)
 	}).Catch(&rsp) {
-		return
+		return rsp
 	}
 
 	handleHeader(c, req)
@@ -222,7 +222,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 	if handlePath(c, req).Inspect(func(val string) {
 		uri.SetPath(val)
 	}).Catch(&rsp) {
-		return
+		return rsp
 	}
 
 	if req.query != nil {

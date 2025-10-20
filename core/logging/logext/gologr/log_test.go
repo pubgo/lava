@@ -15,7 +15,7 @@ func TestName(t *testing.T) {
 	ll := logr.New(NewSink(log.Output(&buf)))
 	ll.Info("test", "hello", 123456)
 
-	var data = make(map[string]any)
+	data := make(map[string]any)
 	assert.NoError(t, json.Unmarshal(buf.Bytes(), &data))
 	assert.Equal(t, data["hello"], float64(123456))
 	assert.Equal(t, data["level"], "info")

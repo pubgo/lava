@@ -6,9 +6,9 @@ import (
 )
 
 func init() {
-	vars.Register(Name, func() interface{} {
+	vars.Register(Name, func() any {
 		data := make(map[string]any)
-		healthList.Range(func(key, value interface{}) bool {
+		healthList.Range(func(key, value any) bool {
 			data[key.(string)] = stack.CallerWithFunc(value)
 			return true
 		})

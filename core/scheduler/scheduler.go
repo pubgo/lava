@@ -8,13 +8,16 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
+
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
-var _ JobManager = (*Scheduler)(nil)
-var _ JobRegistry = (*Scheduler)(nil)
+var (
+	_ JobManager  = (*Scheduler)(nil)
+	_ JobRegistry = (*Scheduler)(nil)
+)
 
 type Scheduler struct {
 	metric       metrics.Metric
@@ -81,7 +84,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		task.executor = executor
 	})
 	if executorRes.Catch(&r) {
-		return
+		return r
 	}
 
 	config := result.Wrap(initAndMergeConfig(name, s.configMap[name], spec.Config)).
@@ -93,7 +96,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		}).
 		Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	triggerRes := getTrigger(spec, config.location).
@@ -104,18 +107,18 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 			task.trigger = trigger
 		})
 	if triggerRes.Catch(&r) {
-		return
+		return r
 	}
 
 	jobOpt := config.ToJobDetailOptions()
 	job := &namedJob{s: s, task: &task, log: s.log}
 	jobDetail := quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt)
 	if result.Catch(&r, s.scheduler.ScheduleJob(jobDetail, task.trigger)) {
-		return
+		return r
 	}
 
 	s.jobs[name] = &task
-	return
+	return r
 }
 
 func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
@@ -132,7 +135,7 @@ func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
 func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	result.Wrap(initAndMergeConfig(name, job.spec.Config, config)).
@@ -144,13 +147,13 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 		}).
 		Catch(&r)
 
-	return
+	return r
 }
 
 func (s *Scheduler) PauseJob(name string) (r result.Error) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	job.status = StatusStop
@@ -163,7 +166,7 @@ func (s *Scheduler) PauseJob(name string) (r result.Error) {
 func (s *Scheduler) ResumeJob(name string) (r result.Error) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	job.status = StatusRunning
@@ -176,7 +179,7 @@ func (s *Scheduler) ResumeJob(name string) (r result.Error) {
 func (s *Scheduler) DeleteJob(name string) (r result.Error) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	delete(s.jobs, name)
@@ -189,7 +192,7 @@ func (s *Scheduler) DeleteJob(name string) (r result.Error) {
 func (s *Scheduler) ReloadJob(name string) (r result.Error) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	jobOpt := job.spec.Config.ToJobDetailOptions()
@@ -199,9 +202,9 @@ func (s *Scheduler) ReloadJob(name string) (r result.Error) {
 		jobOpt,
 	)
 	if result.Catch(&r, s.scheduler.ScheduleJob(jobDetail, job.trigger)) {
-		return
+		return r
 	}
-	return
+	return r
 }
 
 func (s *Scheduler) ListJobs() []*Job {
@@ -215,7 +218,7 @@ func (s *Scheduler) ListJobs() []*Job {
 func (s *Scheduler) GetJob(name string) (r result.Result[*Job]) {
 	job := s.getJob(name).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	return r.WithValue(job.ToJob())

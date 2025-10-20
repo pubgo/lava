@@ -27,7 +27,7 @@ import (
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/v2/core/signals"
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
@@ -91,7 +91,7 @@ func Run(di *dix.Dix) {
 			Name:                   version.Project(),
 			Suggest:                true,
 			UseShortOptionHandling: true,
-			Usage:                  cmdutil.UsageDesc("%s service", version.Project()),
+			Usage:                  cliutil.UsageDesc("%s service", version.Project()),
 			Version:                version.Version(),
 			Flags:                  append(flags.GetFlags(), featureflags.GetFlags()...),
 			Commands:               cmd,

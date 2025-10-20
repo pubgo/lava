@@ -1,39 +1,53 @@
 version: "2"
+issues:
+  fix: true
 linters:
   default: none
   enable:
-    - errcheck
     - govet
-    - staticcheck
   exclusions:
     presets:
       - comments
       - common-false-positives
       - legacy
       - std-error-handling
-    rules:
-      - linters:
-          - dupl
-          - errcheck
-          - gocyclo
-          - gosec
-        path: _test\.go
-      - linters:
-          - forbidigo
-        path-except: _test\.go
     paths:
-      - .*_test\.go$
-      - examples/
+      - internal/example
+      - cmds
+      - vendor
       - third_party$
       - builtin$
       - examples$
 formatters:
   enable:
     - goimports
+    - gofmt
+    - gofumpt
+  settings:
+    gofumpt:
+      extra-rules: true
+    goimports:
+      # A list of prefixes, which, if set, checks import paths
+      # with the given prefixes are grouped after 3rd-party packages.
+      # Default: []
+      local-prefixes:
+        - github.com/pubgo/lava/v2
+    gofmt:
+      # Simplify code: gofmt with `-s` option.
+      # Default: true
+      simplify: false
+      # Apply the rewrite rules to the source before reformatting.
+      # https://pkg.go.dev/cmd/gofmt
+      # Default: []
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+        - pattern: 'a[b:len(a)]'
+          replacement: 'a[b:]'
+
   exclusions:
     paths:
-      - .*_test\.go$
-      - examples/
-      - third_party$
-      - builtin$
+      - internal/example
+      - vendor
       - examples$
+      - proto

@@ -10,14 +10,14 @@ import (
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )
 
 func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "http",
-		Usage: cmdutil.UsageDesc("%s http service", version.Project()),
+		Usage: cliutil.UsageDesc("%s http service", version.Project()),
 		Action: func(ctx context.Context, command *cli.Command) error {
 			di.Provide(https.New)
 			params := dix.Inject(di, new(struct {

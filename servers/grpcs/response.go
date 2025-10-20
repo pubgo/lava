@@ -2,8 +2,9 @@ package grpcs
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Response = (*rpcResponse)(nil)
@@ -11,11 +12,11 @@ var _ lava.Response = (*rpcResponse)(nil)
 type rpcResponse struct {
 	stream grpc.ServerStream
 	header *lava.ResponseHeader
-	dt     interface{}
+	dt     any
 }
 
 func (h *rpcResponse) Header() *lava.ResponseHeader { return h.header }
-func (h *rpcResponse) Payload() interface{}         { return h.dt }
+func (h *rpcResponse) Payload() any                 { return h.dt }
 func (h *rpcResponse) Stream() bool                 { return h.stream != nil }
 
 var _ lava.Response = (*httpResponse)(nil)
@@ -25,5 +26,5 @@ type httpResponse struct {
 }
 
 func (h *httpResponse) Header() *lava.ResponseHeader { return &h.ctx.Response().Header }
-func (h *httpResponse) Payload() interface{}         { return h.ctx.Response().Body() }
-func (h *httpResponse) Stream() bool                 { return false }
+func (h *httpResponse) Payload() any                 { return h.ctx.Response().Body() }
+func (h *httpResponse) Stream() bool                 { return h.ctx.Response().IsBodyStream() }

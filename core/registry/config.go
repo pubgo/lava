@@ -33,9 +33,9 @@ const (
 )
 
 type Config struct {
-	RegisterInterval time.Duration          `yaml:"registerInterval"`
-	Driver           string                 `json:"driver" yaml:"driver"`
-	DriverCfg        map[string]interface{} `json:"driver_config" yaml:"driver_config"`
+	RegisterInterval time.Duration  `yaml:"registerInterval"`
+	Driver           string         `json:"driver" yaml:"driver"`
+	DriverCfg        map[string]any `json:"driver_config" yaml:"driver_config"`
 }
 
 func (cfg *Config) Check() *Config {

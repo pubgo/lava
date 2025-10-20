@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-type Close interface {
+type Closer interface {
 	Close(ctx context.Context) error
 }
 

@@ -5,8 +5,8 @@ var Name = "encoding"
 // Codec defines the interface.
 type Codec interface {
 	Name() string
-	Encode(v interface{}) ([]byte, error)
-	Decode(data []byte, v interface{}) error
-	Marshal(v interface{}) ([]byte, error)
-	Unmarshal(data []byte, v interface{}) error
+	Encode(v any) ([]byte, error)
+	Decode(data []byte, v any) error
+	Marshal(v any) ([]byte, error)
+	Unmarshal(data []byte, v any) error
 }

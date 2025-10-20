@@ -73,7 +73,7 @@ func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthtt
 	if doRequest(c, req).Inspect(func(val *fasthttp.Request) {
 		req.req = val
 	}).Catch(&r) {
-		return
+		return r
 	}
 
 	request := &requestImpl{service: c.cfg.ServiceName, req: req}

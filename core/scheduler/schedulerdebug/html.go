@@ -7,11 +7,12 @@ import (
 	"io"
 	"time"
 
-	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/samber/lo"
 	. "maragu.dev/gomponents" //nolint
 	_ "maragu.dev/gomponents/components"
 	. "maragu.dev/gomponents/html" //nolint
+
+	"github.com/pubgo/lava/v2/core/scheduler"
 )
 
 type NodeFn func() Node
@@ -104,7 +105,7 @@ func Page(now time.Time, schedulers []*scheduler.Job) Node {
 			Head(
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-				//Meta(Attr("http-equiv", "refresh"), Attr("content", "5")),
+				// Meta(Attr("http-equiv", "refresh"), Attr("content", "5")),
 				TitleEl(Text("scheduler")),
 				Group{
 					Link(Href("https://cdn.jsdelivr.net/npm/daisyui@5"), Rel("stylesheet"), Type("text/css")),

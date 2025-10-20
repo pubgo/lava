@@ -10,12 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/generic"
-	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
 
 type streamHTTP struct {
@@ -62,7 +63,7 @@ func (s *streamHTTP) Context() context.Context {
 	return NewContextWithServerTransportStream(s.ctx, s, s.method.grpcFullMethod)
 }
 
-func (s *streamHTTP) SendMsg(m interface{}) error {
+func (s *streamHTTP) SendMsg(m any) error {
 	if generic.IsNil(m) {
 		return errors.New("stream http send msg got nil")
 	}
@@ -97,7 +98,7 @@ func (s *streamHTTP) SendMsg(m interface{}) error {
 	return errors.WrapCaller(err)
 }
 
-func (s *streamHTTP) RecvMsg(m interface{}) error {
+func (s *streamHTTP) RecvMsg(m any) error {
 	if generic.IsNil(m) {
 		return errors.New("stream http recv msg got nil")
 	}
@@ -107,7 +108,7 @@ func (s *streamHTTP) RecvMsg(m interface{}) error {
 		return errors.New("stream http recv proto msg got unknown type message")
 	}
 
-	var method = s.handler.Method()
+	method := s.handler.Method()
 
 	if method == http.MethodPut ||
 		method == http.MethodPost ||

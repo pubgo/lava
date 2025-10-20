@@ -57,7 +57,7 @@ func (r *RouteTree) List() []RouteOperation {
 	return getOpt(r.nodeMap)
 }
 
-func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
+func (r *RouteTree) Add(method, path, operation string, extras map[string]any) error {
 	errMsg := func() string {
 		return fmt.Sprintf("method: %s, path: %s, operation: %s", method, path, operation)
 	}
@@ -76,7 +76,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 	method = handlerMethod(method)
 	paths := node.Paths
 	for i, n := range paths {
-		var lastNode = nodeMap[n]
+		lastNode := nodeMap[n]
 		if lastNode == nil {
 			lastNode = &nodeTree{nodeMap: make(map[string]*nodeTree), verbMap: make(map[string]*routeTarget)}
 			nodeMap[n] = lastNode
@@ -99,12 +99,12 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 }
 
 func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
-	var pathNodes = strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
-	var lastPath = strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
-	var errMsg = func(tags ...errors.Tag) errors.Tags {
+	pathNodes := strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
+	lastPath := strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
+	errMsg := func(tags ...errors.Tag) errors.Tags {
 		return append(tags, errors.T("method", method), errors.T("url", url))
 	}
-	var verb = ""
+	verb := ""
 
 	pathNodes[len(pathNodes)-1] = lastPath[0]
 	if len(lastPath) > 1 {
@@ -114,8 +114,8 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	method = handlerMethod(method)
 	verbKey := fmt.Sprintf("%s:%s", method, verb)
 
-	var getVars = func(vars []*pathVariable, paths []string) []PathFieldVar {
-		var vv = make([]PathFieldVar, 0, len(vars))
+	getVars := func(vars []*pathVariable, paths []string) []PathFieldVar {
+		vv := make([]PathFieldVar, 0, len(vars))
 		for _, v := range vars {
 			pathVar := PathFieldVar{Fields: v.fields}
 			if v.end > 0 {
@@ -129,7 +129,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 		return vv
 	}
 
-	var getPath = func(nodeMap map[string]*nodeTree, names ...string) (string, *nodeTree) {
+	getPath := func(nodeMap map[string]*nodeTree, names ...string) (string, *nodeTree) {
 		for _, name := range names {
 			path := nodeMap[name]
 			if path != nil {

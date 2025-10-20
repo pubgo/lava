@@ -13,5 +13,5 @@ type httpResponse struct {
 }
 
 func (h *httpResponse) Header() *lava.ResponseHeader { return &h.ctx.Response().Header }
-func (h *httpResponse) Payload() interface{}         { return h.ctx.Response().Body() }
+func (h *httpResponse) Payload() any                 { return h.ctx.Response().Body() }
 func (h *httpResponse) Stream() bool                 { return false }

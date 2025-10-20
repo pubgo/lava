@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
 
 type (
@@ -24,7 +25,7 @@ type (
 
 		SetRequestDecoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
 		SetResponseEncoder(protoreflect.FullName, func(ctx *fiber.Ctx, msg proto.Message) error)
-		RegisterService(sd *grpc.ServiceDesc, ss interface{})
+		RegisterService(sd *grpc.ServiceDesc, ss any)
 
 		GetOperation(operation string) *GrpcMethod
 		Handler(*fiber.Ctx) error
@@ -37,7 +38,7 @@ type (
 type Codec interface {
 	encoding.Codec
 	// MarshalAppend appends the marshaled form of v to b and returns the result.
-	MarshalAppend([]byte, interface{}) ([]byte, error)
+	MarshalAppend([]byte, any) ([]byte, error)
 }
 
 // StreamCodec is used in streaming RPCs where the message boundaries are
@@ -62,6 +63,8 @@ type Compressor interface {
 	encoding.Compressor
 }
 
-type GrpcMethodHandler = func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error)
-type GrpcStreamHandler = grpc.StreamHandler
-type StreamDirector func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error)
+type (
+	GrpcMethodHandler = func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error)
+	GrpcStreamHandler = grpc.StreamHandler
+	StreamDirector    func(ctx context.Context, fullMethodName string) (context.Context, grpc.ClientConnInterface, error)
+)

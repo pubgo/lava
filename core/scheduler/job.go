@@ -9,10 +9,11 @@ import (
 	"github.com/pubgo/funk/v2/generic"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/try"
-	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
+
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 type namedJob struct {
