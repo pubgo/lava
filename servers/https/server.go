@@ -6,12 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/async"
-	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/vars"
-	"github.com/rs/xid"
 	"github.com/samber/lo"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -51,10 +49,7 @@ type serviceImpl struct {
 	log        log.Logger
 }
 
-func (s *serviceImpl) String() string {
-	return "http-server"
-}
-
+func (s *serviceImpl) String() string { return "http-server" }
 func (s *serviceImpl) Serve(ctx context.Context) error {
 	defer s.stop(ctx)
 	s.start(ctx)
@@ -65,11 +60,10 @@ func (s *serviceImpl) Serve(ctx context.Context) error {
 func (s *serviceImpl) init(params Params) {
 	cfg := lo.ToPtr(httputil.DefaultCfg(params.Cfg))
 
-	vars.Register(s.String()+"_config_"+xid.New().String(), func() any { return cfg })
-
 	s.log = params.Log.WithName(s.String())
 	s.httpServer = fiber.New(cfg.Http.Build().Must())
 	s.httpServer.Use(httputil.Cors())
+	s.httpServer.Mount("/debug", debug.App())
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_serviceinfo.New(),
@@ -77,27 +71,17 @@ func (s *serviceImpl) init(params Params) {
 		middleware_accesslog.New(s.log),
 		middleware_recovery.New(),
 	}
-	s.httpServer.Use(handlerHttpMiddle(append(defaultMiddlewares, params.Middlewares...)))
+	middlewares := append(defaultMiddlewares, params.Middlewares...)
 
 	for _, h := range params.Handlers {
-		g := s.httpServer.Group("", handlerHttpMiddle(h.Middlewares()))
-
-		//for _, an := range h.Annotation() {
-		//	switch a := an.(type) {
-		//	case *annotation.Openapi:
-		//		if a.ServiceName != "" {
-		//			srv.SetName(a.ServiceName)
-		//		}
-		//	}
-		//}
-
-		h.Router(g)
+		h.Router(s.httpServer.Group(h.Prefix(), handlerHttpMiddle(append(middlewares, h.Middlewares()...))))
 	}
 
-	s.httpServer.Mount("/debug", debug.App())
-
-	vars.Register(fmt.Sprintf("%s-http-server-router-%s", version.Project(), xid.New()), func() interface{} {
-		return s.httpServer.Stack()
+	vars.Register(vars.UniqueName(running.Project(), "http_server_info"), func() any {
+		return map[string]any{
+			"config": cfg,
+			"router": s.httpServer.Stack(),
+		}
 	})
 }
 
@@ -108,7 +92,7 @@ func (s *serviceImpl) start(ctx context.Context) {
 	async.GoDelay(func() error {
 		defer recovery.Exit()
 
-		s.log.Info().Msg("[http-server] Server Starting")
+		s.log.Info().Msg("http server starting")
 		err := s.httpServer.Listen(addr)
 		if netutil.IsErrServerClosed(err) {
 			return nil
@@ -120,12 +104,8 @@ func (s *serviceImpl) start(ctx context.Context) {
 
 func (s *serviceImpl) stop(ctx context.Context) {
 	defer recovery.DebugPrint()
-	logutil.LogOrErr(s.log, "[http-server] Shutdown", func() error {
+	logutil.LogOrErr(s.log, "http server shutdown", func() error {
 		err := s.httpServer.ShutdownWithContext(ctx)
-		if err == nil {
-			return nil
-		}
-
 		if netutil.IsErrServerClosed(err) {
 			return nil
 		}

@@ -3,9 +3,9 @@ package metricbuilder
 import (
 	"context"
 
+	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/generic"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/merge"
 	lo "github.com/samber/lo"

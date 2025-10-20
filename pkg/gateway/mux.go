@@ -14,15 +14,18 @@ import (
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/generic"
 	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/gateway/internal"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -79,7 +82,7 @@ var (
 	}
 
 	defaultCompressors = map[string]Compressor{
-		"gzip":     &CompressorGzip{},
+		"gzip":     &internal.CompressorGzip{},
 		"identity": nil,
 	}
 )
@@ -143,12 +146,12 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 }
 
 func (m *Mux) MatchOperation(method string, path string) (r result.Result[*MatchOperation]) {
-	restTarget, err := m.routerTree.Match(method, path)
-	if err != nil {
-		return r.WithErr(errors.Wrapf(err, "path not found, method=%s path=%s", method, path))
-	}
-
-	return r.WithValue(restTarget)
+	return result.Wrap(m.routerTree.Match(method, path)).
+		Log(func(e *zerolog.Event) {
+			e.Str("method", method)
+			e.Str("path", path)
+			e.Str(logfields.Msg, "match operation failed")
+		})
 }
 
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {

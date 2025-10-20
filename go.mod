@@ -54,7 +54,7 @@ require (
 	github.com/maragudk/gomponents v0.22.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-alpha.3
-	github.com/pubgo/funk/v2 v2.0.0-alpha.12
+	github.com/pubgo/funk/v2 v2.0.0-alpha.13
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.51.0
@@ -282,7 +282,6 @@ require (
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/telemetry v0.0.0-20250710130107-8d8967aff50b // indirect
 	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

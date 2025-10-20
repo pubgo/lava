@@ -15,14 +15,14 @@ import (
 	"github.com/pubgo/funk/v2/running"
 	cli "github.com/urfave/cli/v3"
 
-	"github.com/pubgo/lava/v2/pkg/cmdutil"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
 func New(di *dix.Dix) *cli.Command {
 	return &cli.Command{
 		Name:  "dep",
 		Usage: "Print the dependency package information",
-		Description: cmdutil.ExampleFmt(
+		Description: cliutil.ExampleDesc(
 			"lava dep",
 			"lava dep json",
 			"lava dep t"),

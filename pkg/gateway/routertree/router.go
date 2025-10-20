@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/generic"
 )
 
 var (

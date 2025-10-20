@@ -8,8 +8,8 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/generic"
 	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"google.golang.org/grpc"

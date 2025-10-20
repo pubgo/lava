@@ -13,6 +13,10 @@ type Middleware interface {
 	Middleware(next HandlerFunc) HandlerFunc
 }
 
+func WithMiddleware(name string, next func(next HandlerFunc) HandlerFunc) MiddlewareWrap {
+	return MiddlewareWrap{Name: name, Next: next}
+}
+
 type MiddlewareWrap struct {
 	Name string
 	Next func(next HandlerFunc) HandlerFunc

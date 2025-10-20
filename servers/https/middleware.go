@@ -24,9 +24,9 @@ func RegParser(parsers []fiber.ParserType) {
 
 func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		reqCtx := req.(*httpRequest)
-		reqCtx.ctx.SetUserContext(ctx)
-		return &httpResponse{ctx: reqCtx.ctx}, reqCtx.ctx.Next()
+		reqCtx := req.(*httpRequest).ctx
+		reqCtx.SetUserContext(ctx)
+		return &httpResponse{ctx: reqCtx}, reqCtx.Next()
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)
