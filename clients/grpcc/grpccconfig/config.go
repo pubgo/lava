@@ -3,9 +3,10 @@ package grpccconfig
 import (
 	"time"
 
-	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 )
 
 const (

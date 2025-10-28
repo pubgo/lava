@@ -71,7 +71,7 @@ func ExecuteFunc(template, startTag, endTag string, w io.Writer, f TagFunc) (int
 //
 // This function is optimized for constantly changing templates.
 // Use Template.Execute for frozen templates.
-func Execute(template, startTag, endTag string, w io.Writer, m map[string]interface{}) (int64, error) {
+func Execute(template, startTag, endTag string, w io.Writer, m map[string]any) (int64, error) {
 	return ExecuteFunc(template, startTag, endTag, w, func(w io.Writer, tag string) (int, error) { return stdTagFunc(w, tag, m) })
 }
 
@@ -87,7 +87,7 @@ func Execute(template, startTag, endTag string, w io.Writer, m map[string]interf
 //
 // This function is optimized for constantly changing templates.
 // Use Template.ExecuteStd for frozen templates.
-func ExecuteStd(template, startTag, endTag string, w io.Writer, m map[string]interface{}) (int64, error) {
+func ExecuteStd(template, startTag, endTag string, w io.Writer, m map[string]any) (int64, error) {
 	return ExecuteFunc(template, startTag, endTag, w, func(w io.Writer, tag string) (int, error) { return keepUnknownTagFunc(w, startTag, endTag, tag, m) })
 }
 
@@ -138,7 +138,7 @@ var byteBufferPool bytebufferpool.Pool
 //
 // This function is optimized for constantly changing templates.
 // Use Template.ExecuteString for frozen templates.
-func ExecuteString(template, startTag, endTag string, m map[string]interface{}) string {
+func ExecuteString(template, startTag, endTag string, m map[string]any) string {
 	return ExecuteFuncString(template, startTag, endTag, func(w io.Writer, tag string) (int, error) { return stdTagFunc(w, tag, m) })
 }
 
@@ -152,7 +152,7 @@ func ExecuteString(template, startTag, endTag string, m map[string]interface{}) 
 //
 // This function is optimized for constantly changing templates.
 // Use Template.ExecuteStringStd for frozen templates.
-func ExecuteStringStd(template, startTag, endTag string, m map[string]interface{}) string {
+func ExecuteStringStd(template, startTag, endTag string, m map[string]any) string {
 	return ExecuteFuncString(template, startTag, endTag, func(w io.Writer, tag string) (int, error) { return keepUnknownTagFunc(w, startTag, endTag, tag, m) })
 }
 
@@ -302,7 +302,7 @@ func (t *Template) ExecuteFunc(w io.Writer, f TagFunc) (int64, error) {
 //   - TagFunc - flexible value type
 //
 // Returns the number of bytes written to w.
-func (t *Template) Execute(w io.Writer, m map[string]interface{}) (int64, error) {
+func (t *Template) Execute(w io.Writer, m map[string]any) (int64, error) {
 	return t.ExecuteFunc(w, func(w io.Writer, tag string) (int, error) { return stdTagFunc(w, tag, m) })
 }
 
@@ -315,7 +315,7 @@ func (t *Template) Execute(w io.Writer, m map[string]interface{}) (int64, error)
 //   - TagFunc - flexible value type
 //
 // Returns the number of bytes written to w.
-func (t *Template) ExecuteStd(w io.Writer, m map[string]interface{}) (int64, error) {
+func (t *Template) ExecuteStd(w io.Writer, m map[string]any) (int64, error) {
 	return t.ExecuteFunc(w, func(w io.Writer, tag string) (int, error) { return keepUnknownTagFunc(w, t.startTag, t.endTag, tag, m) })
 }
 
@@ -364,7 +364,7 @@ func (t *Template) ExecuteFuncStringWithErr(f TagFunc) (string, error) {
 //
 // This function is optimized for frozen templates.
 // Use ExecuteString for constantly changing templates.
-func (t *Template) ExecuteString(m map[string]interface{}) string {
+func (t *Template) ExecuteString(m map[string]any) string {
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) { return stdTagFunc(w, tag, m) })
 }
 
@@ -378,11 +378,11 @@ func (t *Template) ExecuteString(m map[string]interface{}) string {
 //
 // This function is optimized for frozen templates.
 // Use ExecuteStringStd for constantly changing templates.
-func (t *Template) ExecuteStringStd(m map[string]interface{}) string {
+func (t *Template) ExecuteStringStd(m map[string]any) string {
 	return t.ExecuteFuncString(func(w io.Writer, tag string) (int, error) { return keepUnknownTagFunc(w, t.startTag, t.endTag, tag, m) })
 }
 
-func stdTagFunc(w io.Writer, tag string, m map[string]interface{}) (int, error) {
+func stdTagFunc(w io.Writer, tag string, m map[string]any) (int, error) {
 	v := m[tag]
 	if v == nil {
 		return 0, nil
@@ -400,7 +400,7 @@ func stdTagFunc(w io.Writer, tag string, m map[string]interface{}) (int, error) 
 	}
 }
 
-func keepUnknownTagFunc(w io.Writer, startTag, endTag, tag string, m map[string]interface{}) (int, error) {
+func keepUnknownTagFunc(w io.Writer, startTag, endTag, tag string, m map[string]any) (int, error) {
 	v, ok := m[tag]
 	if !ok {
 		if _, err := w.Write(convert.S2B(startTag)); err != nil {

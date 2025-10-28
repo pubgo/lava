@@ -42,7 +42,7 @@ type CodecProto struct {
 	proto.MarshalOptions
 }
 
-func (c CodecProto) Marshal(v interface{}) ([]byte, error) {
+func (c CodecProto) Marshal(v any) ([]byte, error) {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return nil, errInvalidType(v)
@@ -50,7 +50,7 @@ func (c CodecProto) Marshal(v interface{}) ([]byte, error) {
 	return c.MarshalOptions.Marshal(m)
 }
 
-func (c CodecProto) MarshalAppend(b []byte, v interface{}) ([]byte, error) {
+func (c CodecProto) MarshalAppend(b []byte, v any) ([]byte, error) {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return nil, errInvalidType(v)
@@ -58,7 +58,7 @@ func (c CodecProto) MarshalAppend(b []byte, v interface{}) ([]byte, error) {
 	return c.MarshalOptions.MarshalAppend(b, m)
 }
 
-func (CodecProto) Unmarshal(data []byte, v interface{}) error {
+func (CodecProto) Unmarshal(data []byte, v any) error {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return errInvalidType(v)
@@ -132,7 +132,7 @@ type CodecJSON struct {
 	protojson.UnmarshalOptions
 }
 
-func (c CodecJSON) Marshal(v interface{}) ([]byte, error) {
+func (c CodecJSON) Marshal(v any) ([]byte, error) {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return nil, errInvalidType(v)
@@ -140,7 +140,7 @@ func (c CodecJSON) Marshal(v interface{}) ([]byte, error) {
 	return c.MarshalOptions.Marshal(m)
 }
 
-func (c CodecJSON) MarshalAppend(b []byte, v interface{}) ([]byte, error) {
+func (c CodecJSON) MarshalAppend(b []byte, v any) ([]byte, error) {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return nil, errInvalidType(v)
@@ -148,7 +148,7 @@ func (c CodecJSON) MarshalAppend(b []byte, v interface{}) ([]byte, error) {
 	return c.MarshalOptions.MarshalAppend(b, m)
 }
 
-func (c CodecJSON) Unmarshal(data []byte, v interface{}) error {
+func (c CodecJSON) Unmarshal(data []byte, v any) error {
 	m, ok := v.(proto.Message)
 	if !ok {
 		return errInvalidType(v)
@@ -217,15 +217,15 @@ func (CodecJSON) Name() string { return "json" }
 
 type codecHTTPBody struct{}
 
-func (codecHTTPBody) Marshal(v interface{}) ([]byte, error) {
+func (codecHTTPBody) Marshal(v any) ([]byte, error) {
 	panic("not implemented")
 }
 
-func (codecHTTPBody) MarshalAppend(b []byte, v interface{}) ([]byte, error) {
+func (codecHTTPBody) MarshalAppend(b []byte, v any) ([]byte, error) {
 	panic("not implemented")
 }
 
-func (codecHTTPBody) Unmarshal(data []byte, v interface{}) error {
+func (codecHTTPBody) Unmarshal(data []byte, v any) error {
 	panic("not implemented")
 }
 

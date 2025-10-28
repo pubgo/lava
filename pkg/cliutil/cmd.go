@@ -13,7 +13,7 @@ func ExampleDesc(data ...string) string {
 	return "  " + strings.TrimSpace(str)
 }
 
-func UsageDesc(format string, args ...interface{}) string {
+func UsageDesc(format string, args ...any) string {
 	s := fmt.Sprintf(format, args...)
 	return strings.ToUpper(s[0:1]) + s[1:]
 }

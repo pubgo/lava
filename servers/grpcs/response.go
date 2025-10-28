@@ -2,8 +2,9 @@ package grpcs
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Response = (*rpcResponse)(nil)

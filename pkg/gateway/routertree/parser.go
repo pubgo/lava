@@ -7,15 +7,14 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/samber/lo"
 )
 
-var (
-	parser = participle.MustBuild[httpRule](
-		participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
-			{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
-			{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
-		})),
-	)
+var parser = participle.MustBuild[httpRule](
+	participle.Lexer(lexer.MustSimple([]lexer.SimpleRule{
+		{Name: "Ident", Pattern: `[a-zA-Z][\w\_\-\.]*`},
+		{Name: "Punct", Pattern: `[-[!@#$%^&*()+_={}\|:;"'<,>.?/]|]`},
+	})),
 )
 
 type pathVariable struct {
@@ -40,7 +39,7 @@ func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 	}
 
 	if r.Verb != nil {
-		if generic.FromPtr(r.Verb) != verb {
+		if lo.FromPtr(r.Verb) != verb {
 			return nil, errors.New("verb not match")
 		}
 	}
@@ -85,10 +84,10 @@ func (r routePath) String() string {
 
 	for _, v := range r.Vars {
 		varS := "{" + strings.Join(v.fields, ".") + "="
-		end := generic.Ternary(v.end == -1, len(paths)-1, v.end)
+		end := funk.Ternary(v.end == -1, len(paths)-1, v.end)
 
 		for i := v.start; i <= end; i++ {
-			varS += generic.Ternary(i == v.start, paths[i], "/"+paths[i])
+			varS += funk.Ternary(i == v.start, paths[i], "/"+paths[i])
 			if i > v.start {
 				paths[i] = ""
 			}
@@ -98,10 +97,10 @@ func (r routePath) String() string {
 		paths[v.start] = varS
 	}
 
-	url += strings.Join(generic.Filter(paths, func(s string) bool { return s != "" }), "/")
+	url += strings.Join(funk.Filter(paths, func(s string) bool { return s != "" }), "/")
 
 	if r.Verb != nil {
-		url += ":" + generic.FromPtr(r.Verb)
+		url += ":" + lo.FromPtr(r.Verb)
 	}
 
 	return url
@@ -148,7 +147,7 @@ func parse(url string) (*httpRule, error) {
 	return parser.ParseString(
 		"",
 		url,
-		//participle.AllowTrailing(true),
-		//participle.Trace(os.Stdout),
+		// participle.AllowTrailing(true),
+		// participle.Trace(os.Stdout),
 	)
 }

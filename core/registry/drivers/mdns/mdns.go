@@ -68,7 +68,7 @@ func (m *mdnsRegistry) Register(ctx context.Context, service *service.Service, o
 
 	// 已经存在
 	if m.services.Has(node.Id) {
-		return
+		return gErr
 	}
 
 	server, err := zeroconf.Register(node.Id, service.Name, zeroconfDomain, node.GetPort(), []string{node.Id}, nil)
@@ -86,7 +86,7 @@ func (m *mdnsRegistry) Register(ctx context.Context, service *service.Service, o
 		id:   node.Id,
 		name: service.Name,
 	})
-	return
+	return gErr
 }
 
 func (m *mdnsRegistry) Deregister(ctx context.Context, service *service.Service, opt ...registry.DeregOpt) (gErr error) {
@@ -100,11 +100,11 @@ func (m *mdnsRegistry) Deregister(ctx context.Context, service *service.Service,
 	node := service.Nodes[0]
 	val, ok := m.services.LoadAndDelete(node.Id)
 	if !ok || val == nil {
-		return
+		return gErr
 	}
 
 	val.(*serverNode).srv.Shutdown()
-	return
+	return gErr
 }
 
 func (m *mdnsRegistry) String() string { return Name }

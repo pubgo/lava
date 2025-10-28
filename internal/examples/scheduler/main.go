@@ -55,9 +55,7 @@ func main() {
 	builder.Provide(config.Load[Config])
 	builder.Provide(envcmd.New)
 	builder.Provide(configcmd.New[Config])
-	builder.Provide(func() scheduler.JobRegister {
-		return &schedulerExample{}
-	})
+	builder.Provide(func() scheduler.JobRegister { return new(schedulerExample) })
 
 	lavabuilder.Run(builder)
 }

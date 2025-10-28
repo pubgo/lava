@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/v2/core/lifecycle"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -28,6 +27,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/encoding/gzip"
+
+	"github.com/pubgo/lava/v2/core/lifecycle"
 )
 
 type Provider struct {
@@ -154,7 +155,7 @@ func newGrpcTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
 
-	//opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewTLS(tlsConfig)))
+	// opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewTLS(tlsConfig)))
 	traceSecureOption := otlptracegrpc.WithTLSCredentials(config.traceExporter.Creds)
 	if config.traceExporter.Insecure {
 		traceSecureOption = otlptracegrpc.WithInsecure()
@@ -195,8 +196,8 @@ func newGrpcMetricExporter(config *Config) (sdkmetric.Exporter, error) {
 
 func NewMeterProvider(config *Config) (r result.Result[*sdkmetric.MeterProvider]) {
 	defer result.Recovery(&r)
-	//reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
-	//readerOpt := sdkmetric.WithReader(reader)
+	// reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
+	// readerOpt := sdkmetric.WithReader(reader)
 
 	exporter := result.Wrap(otelprom.New()).Must()
 	readerOpt := sdkmetric.WithReader(exporter)

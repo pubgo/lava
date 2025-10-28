@@ -118,9 +118,9 @@ func Cors() fiber.Handler {
 			fiber.MethodHead,
 			fiber.MethodOptions,
 		}, ","),
-		//AllowHeaders:     "",
+		// AllowHeaders:     "",
 		AllowCredentials: true,
-		//ExposeHeaders:    "",
+		// ExposeHeaders:    "",
 		MaxAge: 0,
 	})
 }

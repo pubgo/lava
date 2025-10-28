@@ -37,7 +37,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		return &rpcResponse{header: req.(*rpcRequest).rspHeader, dt: dt}, nil
 	}
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		reqMetadata, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			reqMetadata = make(metadata.MD)
@@ -171,7 +171,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		return &rpcResponse{stream: reqCtx.stream, header: new(lava.ResponseHeader)}, nil
 	}
 
-	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {

@@ -7,8 +7,9 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/urfave/cli/v3"
+
+	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
 func New() *cli.Command {

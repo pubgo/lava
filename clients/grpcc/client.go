@@ -11,12 +11,13 @@ import (
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/vars"
-	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
-	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 type Params struct {
@@ -98,7 +99,7 @@ func (t *clientImpl) Get() (r result.Result[grpc.ClientConnInterface]) {
 
 	conn := createConn(t.cfg, t.log, t.middlewares).Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	t.conn = conn

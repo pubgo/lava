@@ -77,7 +77,7 @@ func NewWs(handler func(*fiber.Ctx, *Conn), config ...WsCfg) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		conn := acquireConn()
 		// locals
-		c.Context().VisitUserValues(func(key []byte, value interface{}) {
+		c.Context().VisitUserValues(func(key []byte, value any) {
 			conn.locals[string(key)] = value
 		})
 
@@ -112,7 +112,7 @@ func NewWs(handler func(*fiber.Ctx, *Conn), config ...WsCfg) fiber.Handler {
 // Conn https://godoc.org/github.com/gorilla/websocket#pkg-index
 type Conn struct {
 	*websocket.Conn
-	locals  map[string]interface{}
+	locals  map[string]any
 	params  map[string]string
 	cookies map[string]string
 	queries map[string]string
@@ -120,7 +120,7 @@ type Conn struct {
 
 // Conn pool
 var poolConn = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return new(Conn)
 	},
 }
@@ -128,7 +128,7 @@ var poolConn = sync.Pool{
 // Acquire Conn from pool
 func acquireConn() *Conn {
 	conn := poolConn.Get().(*Conn)
-	conn.locals = make(map[string]interface{})
+	conn.locals = make(map[string]any)
 	conn.params = make(map[string]string)
 	conn.queries = make(map[string]string)
 	conn.cookies = make(map[string]string)
@@ -143,7 +143,7 @@ func releaseConn(conn *Conn) {
 
 // Locals makes it possible to pass interface{} values under string keys scoped to the request
 // and therefore available to all following routes that match the request.
-func (conn *Conn) Locals(key string) interface{} {
+func (conn *Conn) Locals(key string) any {
 	return conn.locals[key]
 }
 

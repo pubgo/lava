@@ -23,11 +23,15 @@ const MetadataPrefix = "grpcgateway-"
 // HTTP headers in a response handled by grpc-gateway
 const MetadataTrailerPrefix = "Grpc-Trailer-"
 
-const metadataGrpcTimeout = "Grpc-Timeout"
-const metadataHeaderBinarySuffix = "-Bin"
+const (
+	metadataGrpcTimeout        = "Grpc-Timeout"
+	metadataHeaderBinarySuffix = "-Bin"
+)
 
-const xForwardedFor = "X-Forwarded-For"
-const xForwardedHost = "X-Forwarded-Host"
+const (
+	xForwardedFor  = "X-Forwarded-For"
+	xForwardedHost = "X-Forwarded-Host"
+)
 
 // DefaultContextTimeout is used for gRPC call context.WithTimeout whenever a Grpc-Timeout inbound
 // header isn't present. If the value is 0 the sent `context` will not have a timeout.
@@ -179,7 +183,7 @@ func ServerMetadataFromContext(ctx context.Context) (md ServerMetadata, ok bool)
 		return md, false
 	}
 	md, ok = ctx.Value(serverMetadataKey{}).(ServerMetadata)
-	return
+	return md, ok
 }
 
 // ServerTransportStream implements grpc.ServerTransportStream.
@@ -270,7 +274,7 @@ func timeoutUnitToDuration(u uint8) (d time.Duration, ok bool) {
 	case 'n':
 		return time.Nanosecond, true
 	default:
-		return
+		return d, ok
 	}
 }
 

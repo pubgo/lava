@@ -60,6 +60,7 @@ tasks:
       - protobuild lint
 
   vet:
+    desc: "go vet"
     cmds:
       - go vet ./...
   test:

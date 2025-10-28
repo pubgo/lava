@@ -6,12 +6,13 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
+
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
 	"github.com/pubgo/lava/v2/lava"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
 )
 
 func buildTarget(cfg *grpccconfig.ServiceCfg) string {
@@ -36,7 +37,7 @@ func buildTarget(cfg *grpccconfig.ServiceCfg) string {
 func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r result.Result[grpc.ClientConnInterface]) {
 	addr := buildTarget(cfg.Service)
 
-	var logMsg = func(e *zerolog.Event) {
+	logMsg := func(e *zerolog.Event) {
 		e.Any(logkey.Service, cfg.Service)
 		e.Any("config", cfg.Client)
 		e.Str("addr", addr)
@@ -63,7 +64,7 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r r
 		}).
 		Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	return r.WithValue(conn)
