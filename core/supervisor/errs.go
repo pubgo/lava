@@ -14,7 +14,7 @@ type FatalErr struct {
 // already is of type FatalErr, it is not wrapped again.
 func AsFatalErr(err error, status ExitStatus) (gErr *FatalErr) {
 	if errors.As(err, &gErr) {
-		return
+		return gErr
 	}
 
 	return &FatalErr{

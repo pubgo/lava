@@ -21,7 +21,7 @@ func AuthorityAddr(scheme, authority string) (addr string) {
 		return host + ":" + port
 	}
 	addr = net.JoinHostPort(host, port)
-	return
+	return addr
 }
 
 func AuthorityHostPort(scheme, authority string) (host, port string) {
@@ -36,5 +36,5 @@ func AuthorityHostPort(scheme, authority string) (host, port string) {
 	if a, err := idna.ToASCII(host); err == nil {
 		host = a
 	}
-	return
+	return host, port
 }

@@ -26,7 +26,7 @@ func New(conf *metrics.Config, log log.Logger) *tally.ScopeOptions {
 
 	opts := tally.ScopeOptions{}
 	opts.Separator = prometheus.DefaultSeparator
-	//opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
+	// opts.SanitizeOptions = &prometheus.DefaultSanitizerOpts
 
 	proCfg := &prometheus.Configuration{TimerType: "histogram"}
 

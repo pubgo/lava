@@ -16,8 +16,7 @@ func init() {
 	debug.Get("/process", func(ctx *fiber.Ctx) (gErr error) {
 		defer result.RecoveryErr(&gErr)
 		processes := assert.Must1(ps.Processes())
-		processes1 := generic.Map(processes, func(i int) map[string]any {
-			p := processes[i]
+		processes1 := funk.Map(processes, func(p ps.Process) map[string]any {
 			ret := goVersion(result.Wrap(p.Path()))
 			if ret.IsErr() {
 				return nil
@@ -31,7 +30,7 @@ func init() {
 				"go_version": ret.Must(),
 			}
 		})
-		processes1 = generic.Filter(processes1, func(m map[string]any) bool { return m != nil })
+		processes1 = funk.Filter(processes1, func(m map[string]any) bool { return m != nil })
 
 		return ctx.JSON(processes1)
 	})

@@ -33,7 +33,6 @@ func Context() context.Context {
 		sig = <-ch
 		logger.Info().Msgf("os exit, received twice signal:%s", sig)
 		os.Exit(1)
-
 	}()
 
 	return ctx

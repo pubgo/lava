@@ -8,19 +8,18 @@ import (
 	"io"
 
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/lava/v2/internal/logutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
-var (
-	clientStreamDescForProxying = &grpc.StreamDesc{
-		ServerStreams: true,
-		ClientStreams: true,
-	}
-)
+var clientStreamDescForProxying = &grpc.StreamDesc{
+	ServerStreams: true,
+	ClientStreams: true,
+}
 
 func TransparentHandler(cli grpc.ClientConnInterface, inType, outType protoreflect.MessageType, opts ...grpc.CallOption) grpc.StreamHandler {
 	streamer := &handler{cli: cli, opts: opts, inType: inType, outType: outType}
@@ -36,7 +35,7 @@ type handler struct {
 // handler is where the real magic of proxying happens.
 // It is invoked like any gRPC server stream and uses the emptypb.Empty type server
 // to proxy calls between the input and output streams.
-func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error {
+func (s *handler) handler(srv any, serverStream grpc.ServerStream) error {
 	// little bit of gRPC internals never hurt anyone
 	fullMethodName, ok := grpc.MethodFromServerStream(serverStream)
 	if !ok {

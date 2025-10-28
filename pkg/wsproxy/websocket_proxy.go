@@ -13,8 +13,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/lava/v2/internal/logutil"
 	"golang.org/x/net/context"
+
+	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
 const (
@@ -369,7 +370,7 @@ func (ws WsConn) WritePreparedMessage(pm *websocket.PreparedMessage) error {
 	return ws.Conn.WritePreparedMessage(pm)
 }
 
-func (ws WsConn) WriteJSON(v interface{}) error {
+func (ws WsConn) WriteJSON(v any) error {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
 	return ws.Conn.WriteJSON(v)

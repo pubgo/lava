@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 type serviceWrapper struct {
@@ -70,15 +71,15 @@ type methodWrapper struct {
 //	}
 //}
 
-func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) GrpcMethodHandler {
+func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) MethodHandler {
 	return func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
-		var in = mth.inputType.New().Interface()
+		in := mth.inputType.New().Interface()
 		if err := dec(in); err != nil {
 			return nil, errors.WrapCaller(err)
 		}
 
-		var h = func(ctx context.Context, req any) (any, error) {
-			var out = mth.outputType.New().Interface()
+		h := func(ctx context.Context, req any) (any, error) {
+			out := mth.outputType.New().Interface()
 			err := mth.srv.remoteProxyCli.Invoke(ctx, mth.grpcFullMethod, req, out, opts...)
 			if err != nil {
 				return nil, err

@@ -71,7 +71,7 @@ func (d *discoveryBuilder) updateService(services ...*service.Service) {
 // 获取服务地址
 func (d *discoveryBuilder) getAddrList(name string) []resolver.Address {
 	var addrList []resolver.Address
-	d.services.Range(func(_, value interface{}) bool {
+	d.services.Range(func(_, value any) bool {
 		addr := *value.(*resolver.Address)
 		if addr.ServerName == name {
 			addrList = append(addrList, *value.(*resolver.Address))
@@ -125,12 +125,12 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			for {
 				select {
 				case <-ctx.Done():
-					return
+					return gErr
 				default:
 					res := w.Next()
 					if res.IsErr() {
 						if errors.Is(res.GetErr(), discovery.ErrWatcherStopped) {
-							return
+							return gErr
 						}
 
 						d.log.Err(res.GetErr(), ctx).Msg("failed to get service watcher event")

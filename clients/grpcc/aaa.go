@@ -3,8 +3,9 @@ package grpcc
 import (
 	"context"
 
-	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 )
 
 const Name = "grpcc"

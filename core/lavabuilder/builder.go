@@ -86,7 +86,7 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
-	dix.Inject(di, func(cmd []*cli.Command) {
+	dix.Inject(di, func(commands []*cli.Command) {
 		app := &cli.Command{
 			Name:                   version.Project(),
 			Suggest:                true,
@@ -94,7 +94,7 @@ func Run(di *dix.Dix) {
 			Usage:                  cliutil.UsageDesc("%s service", version.Project()),
 			Version:                version.Version(),
 			Flags:                  append(flags.GetFlags(), featureflags.GetFlags()...),
-			Commands:               cmd,
+			Commands:               commands,
 			ExtraInfo:              running.GetSysInfo,
 		}
 

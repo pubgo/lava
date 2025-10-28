@@ -64,7 +64,6 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		log:          logger.WithName(Name),
 		ctx:          ctx,
 		cancel:       cancel,
-		jobs:         make(map[string]*jobTask),
 		jobExecutors: jobExecutors,
 	}
 

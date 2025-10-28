@@ -35,7 +35,7 @@ func Get() (r result.Result[int]) {
 		}).
 		Unwrap(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	return result.Wrap(strconv.Atoi(string(p))).

@@ -18,7 +18,7 @@ func (c *Codec) Name() string {
 	return "bytes"
 }
 
-func (c *Codec) Encode(v interface{}) ([]byte, error) {
+func (c *Codec) Encode(v any) ([]byte, error) {
 	switch ve := v.(type) {
 	case *[]byte:
 		return *ve, nil
@@ -28,7 +28,7 @@ func (c *Codec) Encode(v interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-func (c *Codec) Decode(data []byte, ve interface{}) error {
+func (c *Codec) Decode(data []byte, ve any) error {
 	switch ve := ve.(type) {
 	case *[]byte:
 		*ve = data
@@ -36,7 +36,7 @@ func (c *Codec) Decode(data []byte, ve interface{}) error {
 	return nil
 }
 
-func (c *Codec) Marshal(v interface{}) ([]byte, error) {
+func (c *Codec) Marshal(v any) ([]byte, error) {
 	switch ve := v.(type) {
 	case *[]byte:
 		return *ve, nil
@@ -46,7 +46,7 @@ func (c *Codec) Marshal(v interface{}) ([]byte, error) {
 	return nil, nil
 }
 
-func (c *Codec) Unmarshal(data []byte, ve interface{}) error {
+func (c *Codec) Unmarshal(data []byte, ve any) error {
 	fmt.Println(string(data))
 	switch ve := ve.(type) {
 	case *[]byte:

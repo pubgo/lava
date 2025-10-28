@@ -10,7 +10,7 @@ import (
 )
 
 type node struct {
-	item      interface{}
+	item      any
 	loadCount int64
 }
 
@@ -28,11 +28,11 @@ func newP2cAgl() *loadAggregate {
 	}
 }
 
-func (la *loadAggregate) Add(n interface{}) {
+func (la *loadAggregate) Add(n any) {
 	la.items = append(la.items, &node{item: n})
 }
 
-func (la *loadAggregate) Next(info balancer.PickInfo) (interface{}, func(info balancer.DoneInfo)) {
+func (la *loadAggregate) Next(info balancer.PickInfo) (any, func(info balancer.DoneInfo)) {
 	var election, alternative *node
 	switch len(la.items) {
 	case 0:

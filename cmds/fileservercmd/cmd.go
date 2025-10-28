@@ -38,7 +38,7 @@ func New() *cli.Command {
 				GenerateIndexPages: true,
 				Compress:           false,
 				AcceptByteRange:    true,
-				//PathRewrite:     fasthttp.NewVHostPathRewriter(0),
+				// PathRewrite:     fasthttp.NewVHostPathRewriter(0),
 			}
 
 			s := &fasthttp.Server{

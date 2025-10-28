@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/scheduler"
 )
@@ -16,7 +17,7 @@ func Init(scheduler scheduler.JobManager) {
 		})
 
 		router.Get("/get", func(ctx *fiber.Ctx) error {
-			var dd = `
+			dd := `
 <!DOCTYPE html>
 <html>
 <head>

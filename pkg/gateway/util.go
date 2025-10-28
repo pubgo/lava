@@ -11,12 +11,13 @@ import (
 
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 func getReqBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
@@ -170,7 +171,7 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 	return metadata.NewIncomingContext(ctx, md), md
 }
 
-func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path string, reqBody, rspBody string) error) error {
+func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth, path, reqBody, rspBody string) error) error {
 	if httpRule == nil {
 		return nil
 	}
@@ -201,13 +202,13 @@ func handlerHttpRoute(httpRule *annotations.HttpRule, cb func(mth string, path s
 		return errors.New("invalid HTTP httpRule: HttpPath template is blank")
 	}
 
-	var reqBody = httpRule.GetBody()
+	reqBody := httpRule.GetBody()
 	switch reqBody {
 	case "", "*":
 		reqBody = "*"
 	}
 
-	var rspBody = httpRule.GetResponseBody()
+	rspBody := httpRule.GetResponseBody()
 	switch rspBody {
 	case "", "*":
 		rspBody = "*"

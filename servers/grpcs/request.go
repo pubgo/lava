@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Request = (*rpcRequest)(nil)
@@ -14,14 +15,14 @@ type rpcRequest struct {
 	handler       grpc.UnaryHandler
 	handlerStream grpc.StreamHandler
 	stream        grpc.ServerStream
-	srv           interface{}
+	srv           any
 	service       string
 	method        string
 	url           string
 	contentType   string
 	header        *lava.RequestHeader
 	rspHeader     *lava.ResponseHeader
-	payload       interface{}
+	payload       any
 }
 
 func (r *rpcRequest) Kind() string                { return lava.RequestKindGrpc }

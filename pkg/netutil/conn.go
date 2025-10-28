@@ -110,12 +110,12 @@ func WithChmod(mask os.FileMode) SockOpt {
 	}
 }
 
-func MustGetPort(addrOrNet interface{}) int {
+func MustGetPort(addrOrNet any) int {
 	return assert.Must1(GetPort(addrOrNet))
 }
 
 // GetPort returns the port of an endpoint address.
-func GetPort(addrOrNet interface{}) (int, error) {
+func GetPort(addrOrNet any) (int, error) {
 	var addr string
 	switch addrNet := addrOrNet.(type) {
 	case net.Addr:

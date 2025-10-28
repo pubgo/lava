@@ -97,14 +97,14 @@ func (w writer) Write(p []byte) (n int, err error) {
 	n, err = w.Writer.Write(p)
 	if err != nil {
 		log.Err(err).Str("raw_json", string(p)).Msg("failed to decode invalid json")
-		return
+		return n, err
 	}
 
-	return
+	return n, err
 }
 
 func exprFilter(code string) *vm.Program {
-	env := map[string]interface{}{"level": "", "name": "", "msg": "", "fields": log.Map{}}
+	env := map[string]any{"level": "", "name": "", "msg": "", "fields": log.Map{}}
 
 	program, err := expr.Compile(code, expr.Env(env))
 	if err != nil {
