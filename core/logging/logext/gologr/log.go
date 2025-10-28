@@ -35,15 +35,15 @@ func (ls *LogSink) Init(ri logr.RuntimeInfo) {
 
 func (ls *LogSink) Enabled(level int) bool { return true }
 
-func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
+func (ls *LogSink) Info(level int, msg string, keysAndValues ...any) {
 	ls.msg(ls.l.Info(), msg, keysAndValues)
 }
 
-func (ls *LogSink) Error(err error, msg string, keysAndValues ...interface{}) {
+func (ls *LogSink) Error(err error, msg string, keysAndValues ...any) {
 	ls.msg(ls.l.Err(err), msg, keysAndValues)
 }
 
-func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}) {
+func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []any) {
 	if e == nil {
 		return
 	}
@@ -63,7 +63,7 @@ func (ls *LogSink) copy() *LogSink {
 	}
 }
 
-func (ls *LogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
+func (ls *LogSink) WithValues(keysAndValues ...any) logr.LogSink {
 	if len(keysAndValues) == 0 {
 		return ls
 	}
@@ -90,7 +90,7 @@ func (ls *LogSink) WithCallDepth(depth int) logr.LogSink {
 	return ll
 }
 
-func defaultRender(keysAndValues []interface{}) []interface{} {
+func defaultRender(keysAndValues []any) []any {
 	for i, n := 1, len(keysAndValues); i < n; i += 2 {
 		value := keysAndValues[i]
 		switch v := value.(type) {

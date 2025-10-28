@@ -21,10 +21,6 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/gateway/internal"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
-	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
@@ -32,6 +28,11 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/gateway/internal"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 type muxOptions struct {
@@ -145,7 +146,7 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 	m.opts.requestInterceptors[name] = f
 }
 
-func (m *Mux) MatchOperation(method string, path string) (r result.Result[*MatchOperation]) {
+func (m *Mux) MatchOperation(method, path string) (r result.Result[*MatchOperation]) {
 	return result.Wrap(m.routerTree.Match(method, path)).
 		Log(func(e *zerolog.Event) {
 			e.Str("method", method)
@@ -164,7 +165,7 @@ func (m *Mux) GetOperationByName(name string) *GrpcMethod {
 }
 
 func (m *Mux) GetOperation(operation string) *GrpcMethod {
-	var opt = m.opts.handlers[operation]
+	opt := m.opts.handlers[operation]
 	if opt == nil {
 		return nil
 	}
@@ -205,13 +206,13 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		path:    matchOperation,
 	}
 
-	var in = mth.inputType.New().Interface()
+	in := mth.inputType.New().Interface()
 	err = stream.RecvMsg(in)
 	if err != nil {
 		return errors.WrapCaller(err)
 	}
 
-	var out = mth.outputType.New().Interface()
+	out := mth.outputType.New().Interface()
 	var header metadata.MD
 	var trailer metadata.MD
 	err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
@@ -219,7 +220,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		return errors.WrapCaller(err)
 	}
 
-	var hh = make(metadata.MD)
+	hh := make(metadata.MD)
 	for k, v := range header {
 		hh.Set(k, v...)
 	}
@@ -337,8 +338,8 @@ func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcRouter, cli grp
 }
 
 // RegisterService satisfies grpc.ServiceRegistrar for generated service code hooks.
-func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
-	assert.If(generic.IsNil(ss), "ss params is nil")
+func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss any) {
+	assert.If(funk.IsNil(ss), "ss params is nil")
 
 	m.localClient.RegisterService(sd, ss)
 
@@ -371,7 +372,7 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 	)
 }
 
-func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}, cli grpc.ClientConnInterface) error {
+func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss any, cli grpc.ClientConnInterface) error {
 	d, err := m.opts.files.FindDescriptorByName(protoreflect.FullName(gsd.ServiceName))
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -411,7 +412,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}, cli grpc.Cl
 			meta:                getExtensionRpc(methodDesc),
 		})
 
-		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth, path, reqBody, rspBody string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}
@@ -431,7 +432,7 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss interface{}, cli grpc.Cl
 			meta:                getExtensionRpc(methodDesc),
 		})
 
-		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth string, path string, reqBody, rspBody string) error {
+		assert.Exit(handlerHttpRoute(getExtensionHTTP(methodDesc), func(mth, path, reqBody, rspBody string) error {
 			return errors.WrapCaller(m.routerTree.Add(mth, path, grpcMethod, resolveBodyDesc(methodDesc, reqBody, rspBody)))
 		}))
 	}

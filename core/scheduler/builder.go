@@ -37,7 +37,7 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 	defer result.RecoveryErr(&gErr)
 
 	configMap := result.Wrap(createConfig(configs)).
-		Must(func(e *zerolog.Event) {
+		UnwrapOrLog(func(e *zerolog.Event) {
 			e.Any("configs", configs)
 			e.Any(logfields.Msg, "failed to create config")
 		})
@@ -46,15 +46,16 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 
 	slogLogger := qlog.NewSlogLogger(ctx, slog.With(slog.String(logfields.Module, Name)))
 	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(slogLogger), quartz.WithJobMetadata())).
-		Must(func(e *zerolog.Event) {
+		UnwrapOrLog(func(e *zerolog.Event) {
 			e.Str(logfields.Msg, "failed to create scheduler")
 		})
 
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
-		regJobExecutor(jobExecutors, executor).Must(func(e *zerolog.Event) {
-			e.Str(logfields.Msg, "failed to register job executor")
-		})
+		regJobExecutor(jobExecutors, executor).
+			MustWithLog(func(e *zerolog.Event) {
+				e.Str(logfields.Msg, "failed to register job executor")
+			})
 	}
 
 	quart := &Scheduler{
@@ -64,7 +65,6 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 		log:          logger.WithName(Name),
 		ctx:          ctx,
 		cancel:       cancel,
-		jobs:         make(map[string]*jobTask),
 		jobExecutors: jobExecutors,
 	}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/samber/lo"
 )
 
 var (
@@ -57,7 +58,7 @@ func (r *RouteTree) List() []RouteOperation {
 	return getOpt(r.nodeMap)
 }
 
-func (r *RouteTree) Add(method string, path string, operation string, extras map[string]any) error {
+func (r *RouteTree) Add(method, path, operation string, extras map[string]any) error {
 	errMsg := func() string {
 		return fmt.Sprintf("method: %s, path: %s, operation: %s", method, path, operation)
 	}
@@ -76,7 +77,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 	method = handlerMethod(method)
 	paths := node.Paths
 	for i, n := range paths {
-		var lastNode = nodeMap[n]
+		lastNode := nodeMap[n]
 		if lastNode == nil {
 			lastNode = &nodeTree{nodeMap: make(map[string]*nodeTree), verbMap: make(map[string]*routeTarget)}
 			nodeMap[n] = lastNode
@@ -84,7 +85,7 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 		nodeMap = lastNode.nodeMap
 
 		if i == len(paths)-1 {
-			verbKey := fmt.Sprintf("%s:%s", method, generic.FromPtr(node.Verb))
+			verbKey := fmt.Sprintf("%s:%s", method, lo.FromPtr(node.Verb))
 			lastNode.verbMap[verbKey] = &routeTarget{
 				Method:    method,
 				Path:      path,
@@ -99,12 +100,19 @@ func (r *RouteTree) Add(method string, path string, operation string, extras map
 }
 
 func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
-	var pathNodes = strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
-	var lastPath = strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
-	var errMsg = func(tags ...errors.Tag) errors.Tags {
-		return append(tags, errors.T("method", method), errors.T("url", url))
+	pathNodes := strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
+	lastPath := strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
+	errMsg := func(key string, value any) errors.Tags {
+		tt := errors.Tags{
+			"method": method,
+			"url":    url,
+		}
+		if key != "" {
+			tt[key] = value
+		}
+		return tt
 	}
-	var verb = ""
+	verb := ""
 
 	pathNodes[len(pathNodes)-1] = lastPath[0]
 	if len(lastPath) > 1 {
@@ -114,8 +122,8 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	method = handlerMethod(method)
 	verbKey := fmt.Sprintf("%s:%s", method, verb)
 
-	var getVars = func(vars []*pathVariable, paths []string) []PathFieldVar {
-		var vv = make([]PathFieldVar, 0, len(vars))
+	getVars := func(vars []*pathVariable, paths []string) []PathFieldVar {
+		vv := make([]PathFieldVar, 0, len(vars))
 		for _, v := range vars {
 			pathVar := PathFieldVar{Fields: v.fields}
 			if v.end > 0 {
@@ -129,7 +137,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 		return vv
 	}
 
-	var getPath = func(nodeMap map[string]*nodeTree, names ...string) (string, *nodeTree) {
+	getPath := func(nodeMap map[string]*nodeTree, names ...string) (string, *nodeTree) {
 		for _, name := range names {
 			path := nodeMap[name]
 			if path != nil {
@@ -144,9 +152,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 	for index, node := range pathNodes {
 		nodeName, path := getPath(nodeMap, node, star, doubleStar)
 		if path == nil {
-			return nil, errors.WrapFn(ErrPathNodeNotFound, func() errors.Tags {
-				return errMsg(errors.T("node", node))
-			})
+			return nil, errors.WrapTags(ErrPathNodeNotFound, errMsg("node", node))
 		}
 
 		nodeMap = path.nodeMap
@@ -167,7 +173,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 
 		vv := path.verbMap[verbKey]
 		if vv == nil {
-			return nil, errors.WrapTag(ErrOperationNotFound, errMsg(errors.T("node", node))...)
+			return nil, errors.WrapTags(ErrOperationNotFound, errMsg("node", node))
 		}
 
 		return &MatchOperation{
@@ -180,7 +186,7 @@ func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
 		}, nil
 	}
 
-	return nil, errors.WrapTag(ErrOperationNotFound, errMsg()...)
+	return nil, errors.WrapTags(ErrOperationNotFound, errMsg("", nil))
 }
 
 func getOpt(nodes map[string]*nodeTree) []RouteOperation {
@@ -191,8 +197,8 @@ func getOpt(nodes map[string]*nodeTree) []RouteOperation {
 				Method:    v.Method,
 				Path:      v.Path,
 				Operation: v.Operation,
-				Verb:      generic.FromPtr(v.Verb),
-				Vars:      generic.Map(v.Vars, func(i int) string { return strings.Join(v.Vars[i].fields, ".") }),
+				Verb:      lo.FromPtr(v.Verb),
+				Vars:      funk.Map(v.Vars, func(v *pathVariable) string { return strings.Join(v.fields, ".") }),
 				Extras:    v.extras,
 			})
 		}

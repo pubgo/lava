@@ -8,14 +8,15 @@ import (
 	"github.com/gofiber/utils"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
-	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
+
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc/codes"
 )
 
 const Name = "accesslog"
@@ -99,10 +100,10 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				e = l.logger.Info().Func(log.WithEvent(evt))
 				//}
 			} else {
-				//errors.Debug(gErr)
+				// errors.Debug(gErr)
 				e = l.logger.Err(gErr).Func(log.WithEvent(evt))
 
-				pb := errutil.ParseError(gErr)
+				pb := errcode.ParseError(gErr)
 				if pb.Message == "" {
 					pb.Message = gErr.Error()
 				}
@@ -112,17 +113,17 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 				}
 
 				if pb.Code == 0 {
-					pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(pb.StatusCode)))
+					pb.Code = int32(errcode.GrpcCodeToHTTP(codes.Code(pb.StatusCode)))
 					pb.StatusCode = errorpb.Code_Internal
 				}
 
-				gErr = errutil.ConvertErr2Status(pb).Err()
+				gErr = errcode.ConvertErr2Status(pb).Err()
 			}
 			e.Msg("record request")
 		}()
 
 		// 集成logger到context
-		ctx = log.CreateEventCtx(ctx, log.NewEvent().Str("request_id", reqId).Str("operation", req.Operation()))
+		ctx = log.CreateFieldsCtx(ctx, log.Fields{"request_id": reqId, "operation": req.Operation()})
 		return next(ctx, req)
 	}
 }

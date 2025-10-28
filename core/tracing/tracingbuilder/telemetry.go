@@ -12,7 +12,6 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/lava/v2/core/lifecycle"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -28,6 +27,8 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/encoding/gzip"
+
+	"github.com/pubgo/lava/v2/core/lifecycle"
 )
 
 type Provider struct {
@@ -56,8 +57,8 @@ func New(params Params) Provider {
 		sampleRatio:        1,
 	}
 
-	tracerProvider := NewTracerProvider(config).Must()
-	meterProvider := NewMeterProvider(config).Must()
+	tracerProvider := NewTracerProvider(config).Unwrap()
+	meterProvider := NewMeterProvider(config).Unwrap()
 	propagator := propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
@@ -98,8 +99,8 @@ func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
 		resource.WithTelemetrySDK(),
 		resource.WithOSType(),
 		resource.WithProcessCommandArgs(),
-	)).Must()
-	res = result.Wrap(resource.Merge(resource.Default(), res)).Must()
+	)).Unwrap()
+	res = result.Wrap(resource.Merge(resource.Default(), res)).Unwrap()
 
 	hostname, _ := os.Hostname()
 	defaultResource := resource.NewWithAttributes(
@@ -111,16 +112,16 @@ func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
 		semconv.ProcessPIDKey.Int(os.Getpid()),
 		semconv.ProcessCommandKey.String(os.Args[0]),
 	)
-	res = result.Wrap(resource.Merge(defaultResource, res)).Log().Must()
+	res = result.Wrap(resource.Merge(defaultResource, res)).Log().Unwrap()
 
 	return r.WithValue(res)
 }
 
 func NewTracerProvider(config *Config) (r result.Result[*sdktrace.TracerProvider]) {
 	defer result.Recovery(&r)
-	res := mergeResource(config).Log().Must()
+	res := mergeResource(config).Unwrap()
 
-	traceExporter := result.Wrap(newGrpcTracerExporter(config)).Log().Must()
+	traceExporter := result.Wrap(newGrpcTracerExporter(config)).Unwrap()
 	sampler := sdktrace.ParentBased(sdktrace.AlwaysSample())
 	if config.sampleRatio < 1 && config.sampleRatio >= 0 {
 		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
@@ -154,7 +155,7 @@ func newGrpcTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
 
-	//opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewTLS(tlsConfig)))
+	// opts = append(opts, otlptracegrpc.WithTLSCredentials(credentials.NewTLS(tlsConfig)))
 	traceSecureOption := otlptracegrpc.WithTLSCredentials(config.traceExporter.Creds)
 	if config.traceExporter.Insecure {
 		traceSecureOption = otlptracegrpc.WithInsecure()
@@ -195,13 +196,13 @@ func newGrpcMetricExporter(config *Config) (sdkmetric.Exporter, error) {
 
 func NewMeterProvider(config *Config) (r result.Result[*sdkmetric.MeterProvider]) {
 	defer result.Recovery(&r)
-	//reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
-	//readerOpt := sdkmetric.WithReader(reader)
+	// reader := metric.NewPeriodicReader(assert.Must1(newGrpcMetricExporter(config)))
+	// readerOpt := sdkmetric.WithReader(reader)
 
-	exporter := result.Wrap(otelprom.New()).Must()
+	exporter := result.Wrap(otelprom.New()).Unwrap()
 	readerOpt := sdkmetric.WithReader(exporter)
 
-	res := mergeResource(config).Must()
+	res := mergeResource(config).Unwrap()
 	provider := sdkmetric.NewMeterProvider(
 		readerOpt,
 		sdkmetric.WithResource(res),

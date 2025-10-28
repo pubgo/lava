@@ -24,7 +24,7 @@ func getFieldByName(fields protoreflect.FieldDescriptors, name string) protorefl
 // FieldMaskFromRequestBody creates a FieldMask printing all complete paths from the JSON body.
 func FieldMaskFromRequestBody(r io.Reader, msg proto.Message) (*fieldmask.FieldMask, error) {
 	fm := &fieldmask.FieldMask{}
-	var root interface{}
+	var root any
 
 	if err := json.NewDecoder(r).Decode(&root); err != nil {
 		if errors.Is(err, io.EOF) {
@@ -39,7 +39,7 @@ func FieldMaskFromRequestBody(r io.Reader, msg proto.Message) (*fieldmask.FieldM
 		item := queue[0]
 		queue = queue[1:]
 
-		m, ok := item.node.(map[string]interface{})
+		m, ok := item.node.(map[string]any)
 		switch {
 		case ok:
 			// if the item is an object, then enqueue all of its children
@@ -65,7 +65,7 @@ func FieldMaskFromRequestBody(r io.Reader, msg proto.Message) (*fieldmask.FieldM
 				}
 
 				if isProtobufAnyMessage(fd.Message()) && !fd.IsList() {
-					_, hasTypeField := v.(map[string]interface{})["@type"]
+					_, hasTypeField := v.(map[string]any)["@type"]
 					if hasTypeField {
 						queue = append(queue, fieldMaskPathItem{path: k})
 						continue
@@ -122,8 +122,8 @@ func isDynamicProtoMessage(md protoreflect.MessageDescriptor) bool {
 // the unmarshalled json contained within in.
 // Returns a slice containing all subpaths with the root at the
 // passed in name and json value.
-func buildPathsBlindly(name string, in interface{}) []string {
-	m, ok := in.(map[string]interface{})
+func buildPathsBlindly(name string, in any) []string {
+	m, ok := in.(map[string]any)
 	if !ok {
 		return []string{name}
 	}
@@ -134,14 +134,14 @@ func buildPathsBlindly(name string, in interface{}) []string {
 		cur := queue[0]
 		queue = queue[1:]
 
-		m, ok := cur.node.(map[string]interface{})
+		m, ok := cur.node.(map[string]any)
 		if !ok {
 			// This should never happen since we should always check that we only add
 			// nodes of type map[string]interface{} to the queue.
 			continue
 		}
 		for k, v := range m {
-			if mi, ok := v.(map[string]interface{}); ok {
+			if mi, ok := v.(map[string]any); ok {
 				queue = append(queue, fieldMaskPathItem{path: cur.path + "." + k, node: mi})
 			} else {
 				// This is not a struct, so there are no more levels to descend.
@@ -159,7 +159,7 @@ type fieldMaskPathItem struct {
 	path string
 
 	// a generic decoded json object the current item to inspect for further path extraction
-	node interface{}
+	node any
 
 	// parent message
 	msg protoreflect.Message

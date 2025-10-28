@@ -19,11 +19,11 @@ func Get(name string) Handler {
 }
 
 func List() (names []string) {
-	healthList.Range(func(name, _ interface{}) bool {
+	healthList.Range(func(name, _ any) bool {
 		names = append(names, name.(string))
 		return true
 	})
-	return
+	return names
 }
 
 func Register(name string, r Handler) {

@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/samber/lo"
@@ -82,24 +82,24 @@ func ErrHandler(ctx *fiber.Ctx, err error) error {
 	if errors.As(err, &fiberErr) && fiberErr != nil {
 		errPb = &errorpb.ErrCode{
 			Name:       "lava.error",
-			StatusCode: errorpb.Code(errutil.Http2GrpcCode(int32(fiberErr.Code))),
+			StatusCode: errorpb.Code(errcode.Http2GrpcCode(int32(fiberErr.Code))),
 			Code:       int32(fiberErr.Code),
 			Message:    fiberErr.Message,
-			Details: errors.MustTagsToAny(
-				&errorpb.Tag{Key: "path", Value: ctx.Route().Path},
-				&errorpb.Tag{Key: "version", Value: running.Version()},
-				&errorpb.Tag{Key: "instance", Value: running.InstanceID},
-			),
+			Details: errcode.MustTagsToAny(errors.Tags{
+				"path":     ctx.Route().Path,
+				"version":  running.Version(),
+				"instance": running.InstanceID,
+			}),
 		}
 	} else {
-		errPb = errutil.ParseError(err)
+		errPb = errcode.ParseError(err)
 	}
 
 	if errPb == nil || errPb.StatusCode == 0 {
 		return nil
 	}
 
-	code := errutil.GrpcCodeToHTTP(codes.Code(errPb.StatusCode))
+	code := errcode.GrpcCodeToHTTP(codes.Code(errPb.StatusCode))
 	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	return ctx.Status(code).JSON(errPb)
 }
@@ -118,9 +118,9 @@ func Cors() fiber.Handler {
 			fiber.MethodHead,
 			fiber.MethodOptions,
 		}, ","),
-		//AllowHeaders:     "",
+		// AllowHeaders:     "",
 		AllowCredentials: true,
-		//ExposeHeaders:    "",
+		// ExposeHeaders:    "",
 		MaxAge: 0,
 	})
 }

@@ -6,12 +6,13 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
+
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
 	"github.com/pubgo/lava/v2/lava"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
 )
 
 func buildTarget(cfg *grpccconfig.ServiceCfg) string {
@@ -36,7 +37,7 @@ func buildTarget(cfg *grpccconfig.ServiceCfg) string {
 func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r result.Result[grpc.ClientConnInterface]) {
 	addr := buildTarget(cfg.Service)
 
-	var logMsg = func(e *zerolog.Event) {
+	logMsg := func(e *zerolog.Event) {
 		e.Any(logkey.Service, cfg.Service)
 		e.Any("config", cfg.Client)
 		e.Str("addr", addr)
@@ -57,13 +58,9 @@ func createConn(cfg *grpccconfig.Cfg, log log.Logger, mm []lava.Middleware) (r r
 	opts = append(opts, grpc.WithChainUnaryInterceptor(unaryInterceptor(mm)))
 	opts = append(opts, grpc.WithChainStreamInterceptor(streamInterceptor(mm)))
 
-	conn := result.Wrap(grpc.NewClient(addr, opts...)).
-		MapErr(func(err error) error {
-			return errors.Wrapf(err, "failed to dial grpc server, target=%s", addr)
-		}).
-		Unwrap(&r)
-	if r.IsErr() {
-		return
+	conn, err := grpc.NewClient(addr, opts...)
+	if err != nil {
+		return r.WithErr(errors.Wrapf(err, "failed to dial grpc server, target=%s", addr))
 	}
 
 	return r.WithValue(conn)

@@ -33,9 +33,9 @@ func Get() (r result.Result[int]) {
 			e.Str("path", pidPath)
 			e.Str(logfields.Msg, "read pid file failed")
 		}).
-		Unwrap(&r)
+		UnwrapOrThrow(&r)
 	if r.IsErr() {
-		return
+		return r
 	}
 
 	return result.Wrap(strconv.Atoi(string(p))).

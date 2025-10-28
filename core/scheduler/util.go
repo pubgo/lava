@@ -22,7 +22,7 @@ func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (
 	}
 
 	jobExecutors[executor.Name()] = executor
-	return
+	return r
 }
 
 func getTrigger(j JobSpec, location *time.Location) (r result.Result[*triggerImpl]) {

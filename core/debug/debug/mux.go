@@ -15,10 +15,11 @@ import (
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/strutil"
-	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/samber/lo"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
+
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 var (
@@ -27,13 +28,13 @@ var (
 )
 
 func init() {
-	//log.Info().Str("password", passwd).Msg("debug password")
+	// log.Info().Str("password", passwd).Msg("debug password")
 	debug.App().Use(func(c *fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
-			err = errors.WrapTag(err,
-				errors.T("headers", c.GetReqHeaders()),
-				errors.T("url", c.Request().URI().String()),
-			)
+			err = errors.WrapTags(err, errors.Tags{
+				"headers": c.GetReqHeaders(),
+				"url":     c.Request().URI().String(),
+			})
 			gErr = c.JSON(err)
 		})
 
@@ -54,8 +55,8 @@ func init() {
 		if host != "localhost" && host != "127.0.0.1" {
 			if token != passwd {
 				err := errors.New("token 不存在或者密码不对")
-				if result.CatchErr(&gErr, lo.T2(c.WriteString(err.Error())).B) {
-					return
+				if result.ThrowErr(&gErr, lo.T2(c.WriteString(err.Error())).B) {
+					return gErr
 				}
 
 				if err := c.SendStatus(http.StatusInternalServerError); err != nil {

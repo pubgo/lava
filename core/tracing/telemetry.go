@@ -166,7 +166,7 @@ func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
 
 func NewPrometheusMeterProvider(config *Config, opts ...otelprom.Option) (_ *sdkmetric.MeterProvider, gErr error) {
 	exporter, err := otelprom.New(opts...)
-	if result.CatchErr(&gErr, err) {
+	if result.ThrowErr(&gErr, err) {
 		return
 	}
 

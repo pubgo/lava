@@ -8,6 +8,7 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
+
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
@@ -17,7 +18,7 @@ func init() {
 
 func initDebug() {
 	debug.Get("/", func(ctx *fiber.Ctx) error {
-		pathMap := make(map[string]interface{})
+		pathMap := make(map[string]any)
 
 		stack := ctx.App().Stack()
 		for m := range stack {

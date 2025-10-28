@@ -16,7 +16,7 @@ func main() {
 	defer recovery.Exit()
 
 	slog.SetLogger(log.GetLogger())
-	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Map) bool {
+	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Fields) bool {
 		if running.Debug() {
 			return true
 		}

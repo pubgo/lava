@@ -69,7 +69,7 @@ func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
 		log.Info().Str(logfields.Msg, "log filter expr").Msg(expCode)
 
 		exp := exprFilter(expCode)
-		log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Map) bool {
+		log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Fields) bool {
 			envData := map[string]any{"level": lvl.String(), "msg": message, "name": name, "fields": fields}
 			output, err := expr.Run(exp, envData)
 			if err != nil {
@@ -97,14 +97,14 @@ func (w writer) Write(p []byte) (n int, err error) {
 	n, err = w.Writer.Write(p)
 	if err != nil {
 		log.Err(err).Str("raw_json", string(p)).Msg("failed to decode invalid json")
-		return
+		return n, err
 	}
 
-	return
+	return n, err
 }
 
 func exprFilter(code string) *vm.Program {
-	env := map[string]interface{}{"level": "", "name": "", "msg": "", "fields": log.Map{}}
+	env := map[string]any{"level": "", "name": "", "msg": "", "fields": log.Fields{}}
 
 	program, err := expr.Compile(code, expr.Env(env))
 	if err != nil {

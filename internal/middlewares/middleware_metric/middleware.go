@@ -57,7 +57,7 @@ func (m MetricMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 		grpcServerRpcCallTotal(m.m, req.Operation())
 
 		defer func() {
-			if !generic.IsNil(gErr) {
+			if !funk.IsNil(gErr) {
 				grpcServerRpcErrTotal(m.m, req.Operation())
 			}
 

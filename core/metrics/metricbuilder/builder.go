@@ -3,7 +3,6 @@ package metricbuilder
 import (
 	"context"
 
-	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
@@ -16,7 +15,7 @@ import (
 )
 
 func New(m lifecycle.Lifecycle, cfg *metrics.Config, log log.Logger) metrics.Metric {
-	cfg = merge.Struct(generic.Ptr(metrics.DefaultCfg()), cfg).Must()
+	cfg = merge.Struct(lo.ToPtr(metrics.DefaultCfg()), cfg).Unwrap()
 
 	log = log.WithName(metrics.Name)
 

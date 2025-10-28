@@ -7,6 +7,7 @@ import (
 	jjson "github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/try"
+
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/healthy"
 )

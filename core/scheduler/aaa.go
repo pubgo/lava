@@ -101,7 +101,7 @@ func (job jobTask) ToJob() *Job {
 		PreExecTime: job.trigger.prev,
 		ExecTime:    job.trigger.next,
 		Error:       job.result.GetErr(),
-		Result:      job.result.GetValue(),
+		Result:      job.result.UnwrapOrEmpty(),
 		Runs:        job.runs.Load(),
 		Spec:        clone.Clone(job.spec),
 	}

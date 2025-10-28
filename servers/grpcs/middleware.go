@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/errors/errutil"
+	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/strutil"
@@ -37,7 +37,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		return &rpcResponse{header: req.(*rpcRequest).rspHeader, dt: dt}, nil
 	}
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		reqMetadata, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			reqMetadata = make(metadata.MD)
@@ -139,10 +139,8 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		ctx = lavacontexts.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
-			pb := errutil.ParseError(err)
-			pb.Details = append(pb.Details, errors.MustTagsToAny(
-				&errorpb.Tag{Key: "reqHeader", Value: string(rpcReq.Header().Header())},
-			)...)
+			pb := errcode.ParseError(err)
+			pb.Details = append(pb.Details, errcode.MustTagsToAny(errors.Tags{"reqHeader": string(rpcReq.Header().Header())})...)
 
 			if pb.Message == "" {
 				pb.Message = err.Error()
@@ -150,10 +148,10 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 
 			if pb.Code == 0 {
 				pb.StatusCode = errorpb.Code_Internal
-				pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
+				pb.Code = int32(errcode.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
 			}
 
-			return nil, errutil.ConvertErr2Status(pb).Err()
+			return nil, errcode.ConvertErr2Status(pb).Err()
 		}
 
 		return rsp.(*rpcResponse).dt, nil
@@ -171,7 +169,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		return &rpcResponse{stream: reqCtx.stream, header: new(lava.ResponseHeader)}, nil
 	}
 
-	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -237,17 +235,17 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		ctx = lavacontexts.CreateRspHeader(ctx, rpcReq.rspHeader)
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(streamWrapper)(ctx, rpcReq)
 		if err != nil {
-			pb := errutil.ParseError(err)
+			pb := errcode.ParseError(err)
 			if pb.Message == "" {
 				pb.Message = err.Error()
 			}
 
 			if pb.Code == 0 {
 				pb.StatusCode = errorpb.Code_Internal
-				pb.Code = int32(errutil.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
+				pb.Code = int32(errcode.GrpcCodeToHTTP(codes.Code(errorpb.Code_Internal)))
 			}
 
-			return errutil.ConvertErr2Status(pb).Err()
+			return errcode.ConvertErr2Status(pb).Err()
 		}
 
 		h := rsp.Header()

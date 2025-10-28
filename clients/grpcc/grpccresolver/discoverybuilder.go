@@ -71,7 +71,7 @@ func (d *discoveryBuilder) updateService(services ...*service.Service) {
 // 获取服务地址
 func (d *discoveryBuilder) getAddrList(name string) []resolver.Address {
 	var addrList []resolver.Address
-	d.services.Range(func(_, value interface{}) bool {
+	d.services.Range(func(_, value any) bool {
 		addr := *value.(*resolver.Address)
 		if addr.ServerName == name {
 			addrList = append(addrList, *value.(*resolver.Address))
@@ -96,11 +96,14 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 	// target.Endpoint是服务的名字, 是项目启动的时候注册中心中注册的项目名字
 	// GetService根据服务名字获取注册中心该项目所有服务
-	services := d.disco.GetService(context.Background(), srv).
+	services, gErr := d.disco.GetService(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "failed to GetService, srv=%s", srv)
 		}).
-		UnwrapErr(&gErr)
+		UnwrapErr()
+	if gErr != nil {
+		return nil, gErr
+	}
 
 	// 启动后，更新服务地址
 	d.updateService(services...)
@@ -111,10 +114,13 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	logs.Info().Msgf("discovery builder UpdateState, address=%v", address)
 	assert.MustF(cc.UpdateState(newState(address)), "update resolver address: %v", address)
 
-	w := d.disco.Watch(context.Background(), srv).
+	w, gErr := d.disco.Watch(context.Background(), srv).
 		MapErr(func(err error) error {
 			return errors.Wrapf(err, "target.Endpoint: %s", srv)
-		}).UnwrapErr(&gErr)
+		}).UnwrapErr()
+	if gErr != nil {
+		return nil, gErr
+	}
 
 	return &baseResolver{
 		serviceName: srv,
@@ -125,12 +131,12 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			for {
 				select {
 				case <-ctx.Done():
-					return
+					return gErr
 				default:
 					res := w.Next()
 					if res.IsErr() {
 						if errors.Is(res.GetErr(), discovery.ErrWatcherStopped) {
-							return
+							return gErr
 						}
 
 						d.log.Err(res.GetErr(), ctx).Msg("failed to get service watcher event")
@@ -143,10 +149,10 @@ func (d *discoveryBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 					}
 
 					// 注册中心删除服务
-					if res.Must().Action == lavapbv1.EventType_DELETE {
-						d.delService(res.Must().Service)
+					if res.Unwrap().Action == lavapbv1.EventType_DELETE {
+						d.delService(res.Unwrap().Service)
 					} else {
-						d.updateService(res.Must().Service)
+						d.updateService(res.Unwrap().Service)
 					}
 
 					logutil.ErrRecord(logs, try.Try(func() error {

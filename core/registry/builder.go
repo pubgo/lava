@@ -31,8 +31,8 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 		return &errors.Err{
 			Msg: "registry driver is null",
 			Tags: errors.Tags{
-				errors.T("driver", cfg.Driver),
-				errors.T("regs", regs),
+				"driver": cfg.Driver,
+				"regs":   regs,
 			},
 		}
 	})
@@ -110,11 +110,11 @@ func register(reg Registry) {
 		"register service node",
 		func() error {
 			err := reg.Register(context.Background(), s)
-			return errors.WrapTag(err,
-				errors.T("instance_id", node.Id),
-				errors.T("service", running.Project),
-				errors.T("registry", Default().String()),
-			)
+			return errors.WrapTags(err, errors.Tags{
+				"instance_id": node.Id,
+				"service":     running.Project,
+				"registry":    Default().String(),
+			})
 		},
 	)
 }
@@ -149,10 +149,10 @@ func deregister(reg Registry) {
 		"deregister service node",
 		func() error {
 			err := reg.Deregister(context.Background(), s)
-			return errors.WrapTag(err,
-				errors.T("id", node.Id),
-				errors.T("name", running.Project),
-			)
+			return errors.WrapTags(err, errors.Tags{
+				"id":   node.Id,
+				"name": running.Project,
+			})
 		},
 	)
 }

@@ -61,7 +61,7 @@ func (s *serviceImpl) init(params Params) {
 	cfg := lo.ToPtr(httputil.DefaultCfg(params.Cfg))
 
 	s.log = params.Log.WithName(s.String())
-	s.httpServer = fiber.New(cfg.Http.Build().Must())
+	s.httpServer = fiber.New(cfg.Http.Build().Unwrap())
 	s.httpServer.Use(httputil.Cors())
 	s.httpServer.Mount("/debug", debug.App())
 

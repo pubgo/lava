@@ -26,11 +26,11 @@ type Params struct {
 }
 
 func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
-	cfg = config.MergeR(DefaultCfg(), cfg).Must()
+	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	middlewares := lava.Middlewares{
 		middleware_serviceinfo.New(),
 		middleware_metric.New(p.Metric),
-		middleware_accesslog.New(p.Log.WithFields(log.Map{"service": cfg.ServiceName})),
+		middleware_accesslog.New(p.Log.WithFields(log.Fields{"service": cfg.ServiceName})),
 		middleware_recovery.New(),
 	}
 	middlewares = append(middlewares, mm...)
@@ -70,10 +70,8 @@ type Client struct {
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
 	defer result.Recovery(&r)
 
-	if doRequest(c, req).Inspect(func(val *fasthttp.Request) {
-		req.req = val
-	}).Catch(&r) {
-		return
+	if doRequest(c, req).ValueTo(&req.req).ThrowErr(&r) {
+		return r
 	}
 
 	request := &requestImpl{service: c.cfg.ServiceName, req: req}

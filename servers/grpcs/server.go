@@ -108,7 +108,7 @@ func (s *serviceImpl) init(
 	conf.BaseUrl = cfg.BaseUrl
 	conf.Http = cfg.Http
 
-	s.conf = config.MergeR(defaultCfg(), conf).Must()
+	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
 
 	globalMiddlewares := lava.Middlewares{
 		middleware_serviceinfo.New(),
@@ -121,7 +121,7 @@ func (s *serviceImpl) init(
 	log = log.WithName("grpc-server")
 	s.log = log
 
-	httpServer := fiber.New(conf.Http.Build().Must())
+	httpServer := fiber.New(conf.Http.Build().Unwrap())
 	httpServer.Use(httputil.Cors())
 
 	for _, h := range grpcRouters {

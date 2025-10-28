@@ -9,10 +9,11 @@ import (
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/try"
-	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
+
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 type namedJob struct {
@@ -31,7 +32,7 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		cost := float64(time.Since(start).Milliseconds())
 		t.s.metric.Tagged(metrics.Tags{"job_name": name}).Gauge("job_cost_ms").Update(cost)
 
-		logger := generic.Ternary(gErr == nil, t.log.Info(), t.log.Err(gErr))
+		logger := funk.Ternary(gErr == nil, t.log.Info(), t.log.Err(gErr))
 		logger.Func(func(e *zerolog.Event) {
 			e.Float32("job_cost_ms", float32(cost))
 			e.Str("job_name", name)

@@ -23,7 +23,7 @@ func New() *cli.Command {
 		Action: func(ctx context.Context, command *cli.Command) error {
 			defer recovery.Exit()
 
-			wd := result.Wrap(os.Getwd()).Must()
+			wd := result.Wrap(os.Getwd()).Unwrap()
 			if command.Args().Len() > 0 {
 				wd = command.Args().Get(0)
 			}
@@ -38,7 +38,7 @@ func New() *cli.Command {
 				GenerateIndexPages: true,
 				Compress:           false,
 				AcceptByteRange:    true,
-				//PathRewrite:     fasthttp.NewVHostPathRewriter(0),
+				// PathRewrite:     fasthttp.NewVHostPathRewriter(0),
 			}
 
 			s := &fasthttp.Server{

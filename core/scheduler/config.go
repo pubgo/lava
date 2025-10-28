@@ -43,8 +43,9 @@ func defaultConfig(name string) *JobConfig {
 	}
 }
 
-func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (_ *JobConfig, gErr error) {
-	defer result.RecoveryErr(&gErr)
+func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[*JobConfig]) {
+	defer result.Recovery(&r)
+
 	cfg := defaultConfig(name)
 	for _, jobConfig := range jobConfigs {
 		if jobConfig == nil {
@@ -76,12 +77,12 @@ func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (_ *JobConfig, gE
 		}
 
 		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-			Must(func(e *zerolog.Event) {
+			UnwrapOrLog(func(e *zerolog.Event) {
 				e.Str(logfields.Msg, fmt.Sprintf("failed to parse time location:%s", lo.FromPtr(cfg.Location)))
 			})
 	}
 
-	return cfg, nil
+	return r.WithValue(cfg)
 }
 
 type JobConfig struct {

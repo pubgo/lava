@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/errors/errparser"
+
 	"github.com/pubgo/lava/v2/lava"
 )
 
@@ -13,7 +15,7 @@ func New() lava.Middleware {
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 				defer func() {
-					gErr = errors.WrapStack(errors.Parse(recover()))
+					gErr = errors.WrapStack(errparser.Parse(recover()))
 				}()
 
 				return next(ctx, req)
