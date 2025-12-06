@@ -53,9 +53,6 @@ func New(di *dix.Dix) *cli.Command {
 					assert.Must(table.Append([]string{dep.Path, dep.Version, replace(dep.Replace)}))
 				}
 				assert.Must(table.Render())
-			case "di":
-				fmt.Println(di.Graph().Objects)
-				fmt.Println(di.Graph().Providers)
 			}
 			return nil
 		},

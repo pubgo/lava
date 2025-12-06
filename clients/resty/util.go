@@ -181,7 +181,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 		IfOK(func(val string) {
 			r.Header.Set(httputil.HeaderContentType, val)
 		}).
-		ThrowErr(&rsp) {
+		Throw(&rsp) {
 		return rsp
 	}
 
@@ -196,7 +196,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 		IfOK(func(val []byte) {
 			r.SetBodyRaw(val)
 		}).
-		ThrowErr(&rsp) {
+		Throw(&rsp) {
 		return rsp
 	}
 
@@ -227,7 +227,7 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 		IfOK(func(val string) {
 			uri.SetPath(val)
 		}).
-		ThrowErr(&rsp) {
+		Throw(&rsp) {
 		return rsp
 	}
 

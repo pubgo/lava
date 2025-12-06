@@ -85,7 +85,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return executor, nil
 	})
 	executorRes.IfOK(func(executor JobExecutor) { task.executor = executor })
-	if executorRes.ThrowErr(&r) {
+	if executorRes.Throw(&r) {
 		return r
 	}
 
@@ -108,7 +108,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		IfOK(func(trigger *triggerImpl) {
 			task.trigger = trigger
 		})
-	if triggerRes.ThrowErr(&r) {
+	if triggerRes.Throw(&r) {
 		return r
 	}
 
@@ -154,7 +154,7 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 		IfOK(func(config *JobConfig) {
 			job.spec.Config = config
 		}).
-		ThrowErr(&r)
+		Throw(&r)
 
 	return r
 }

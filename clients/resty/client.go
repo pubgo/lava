@@ -70,7 +70,7 @@ type Client struct {
 func (c *Client) Do(ctx context.Context, req *Request) (r result.Result[*fasthttp.Response]) {
 	defer result.Recovery(&r)
 
-	if doRequest(c, req).ValueTo(&req.req).ThrowErr(&r) {
+	if doRequest(c, req).ValueTo(&req.req).Throw(&r) {
 		return r
 	}
 
