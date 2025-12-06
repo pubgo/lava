@@ -3,6 +3,7 @@ package grpcbuilder
 import (
 	"time"
 
+	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/result"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -64,18 +65,23 @@ type Config struct {
 func (t *Config) Build(opts ...grpc.ServerOption) (r result.Result[*grpc.Server]) {
 	defer result.Recovery(&r)
 
-	if t.KeepalivePolicy != nil {
-		opts = append(opts, t.KeepalivePolicy.ToOpts())
+	cfg := t
+	if cfg == nil {
+		cfg = GetDefaultCfg()
 	}
 
-	if t.KeepaliveParams != nil {
-		opts = append(opts, t.KeepaliveParams.ToOpts())
+	if cfg.KeepalivePolicy != nil {
+		opts = append(opts, cfg.KeepalivePolicy.ToOpts())
+	}
+
+	if cfg.KeepaliveParams != nil {
+		opts = append(opts, cfg.KeepaliveParams.ToOpts())
 	}
 
 	srv := grpc.NewServer(opts...)
 
 	grpcutil.EnableReflection(srv)
-	grpcutil.EnableHealth("", srv)
+	grpcutil.EnableHealth(version.Project(), srv)
 	grpcutil.EnableDebug(srv)
 	return r.WithValue(srv)
 }
