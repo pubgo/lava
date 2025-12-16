@@ -54,7 +54,7 @@ require (
 	github.com/maragudk/gomponents v0.22.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-beta.2
-	github.com/pubgo/funk/v2 v2.0.0-beta.2
+	github.com/pubgo/funk/v2 v2.0.0-beta.3
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.52.0

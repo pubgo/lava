@@ -482,8 +482,8 @@ github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7D
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
 github.com/pubgo/dix/v2 v2.0.0-beta.2 h1:vLPl7/ftL2qCgm6iNZM62jqtfsdvXA6Gqt48Gjnc+Ew=
 github.com/pubgo/dix/v2 v2.0.0-beta.2/go.mod h1:jV/9KWf+YxtoQATuZLyUraACduxHvfaum5EZDSCK5gE=
-github.com/pubgo/funk/v2 v2.0.0-beta.2 h1:Y9tiaq8YLbvJ6JBZtbzypiA55Go8DXrjLJd+71dj6ec=
-github.com/pubgo/funk/v2 v2.0.0-beta.2/go.mod h1:E2QfiKP4IKOM0iVbwK+VBBtQcgeNwyeRbEDXVK97nPY=
+github.com/pubgo/funk/v2 v2.0.0-beta.3 h1:gQSuxQ3nkNeAzEiOQBZ3qexSnYUgG8KfoZxsY+1mSEw=
+github.com/pubgo/funk/v2 v2.0.0-beta.3/go.mod h1:E2QfiKP4IKOM0iVbwK+VBBtQcgeNwyeRbEDXVK97nPY=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 h1:+Wl/0aFp0hpuHM3H//KMft64WQ1yX9LdJY64Qm/gFCo=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1/go.mod h1:GJLgqsLeo4qgavUoL8JeGFNS7qcisx3awV/w9eWTmNI=
 github.com/quasilyte/go-ruleguard/dsl v0.3.22 h1:wd8zkOhSNr+I+8Qeciml08ivDt1pSXe60+5DqOpCjPE=
