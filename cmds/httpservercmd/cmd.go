@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/dix/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
@@ -14,11 +14,11 @@ import (
 	"github.com/pubgo/lava/v2/servers/https"
 )
 
-func New(di *dix.Dix) *cli.Command {
-	return &cli.Command{
-		Name:  "http",
-		Usage: cliutil.UsageDesc("%s http service", version.Project()),
-		Action: func(ctx context.Context, command *cli.Command) error {
+func New(di *dix.Dix) *redant.Command {
+	return &redant.Command{
+		Use:   "http",
+		Short: cliutil.UsageDesc("%s http service", version.Project()),
+		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			di.Provide(https.New)
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Getter

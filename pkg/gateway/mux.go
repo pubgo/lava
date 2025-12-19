@@ -190,7 +190,7 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 	mth := m.opts.handlers[matchOperation.Operation]
 	if mth == nil {
-		return errors.Errorf("grpc method not found, method=%s", matchOperation.Operation)
+		return errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
 	}
 
 	md := metadata.MD{}

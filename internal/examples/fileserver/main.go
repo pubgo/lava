@@ -17,7 +17,7 @@ func main() {
 
 	slog.SetLogger(log.GetLogger())
 	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Fields) bool {
-		if running.Debug() {
+		if running.Debug.Value() {
 			return true
 		}
 

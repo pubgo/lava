@@ -27,3 +27,4 @@ logs
 bin
 /example/bin
 .proto
+proto-vendor

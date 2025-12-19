@@ -2,8 +2,6 @@ package lavabuilder
 
 import (
 	"context"
-	"os"
-	"sort"
 
 	"github.com/pubgo/dix/v2"
 	"github.com/pubgo/funk/v2/assert"
@@ -11,8 +9,9 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/features/featureflags"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
-	cli "github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
+
+	"github.com/pubgo/lava/v2/core/debug/dixdebug"
 
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/cmds/depcmd"
@@ -69,6 +68,8 @@ func New(opts ...dix.Option) *dix.Dix {
 	for _, p := range defaultProviders {
 		dix.Provide(di, p)
 	}
+
+	dixdebug.Init(di)
 	return di
 }
 
@@ -86,19 +87,14 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
-	dix.Inject(di, func(commands []*cli.Command) {
-		app := &cli.Command{
-			Name:                   version.Project(),
-			Suggest:                true,
-			UseShortOptionHandling: true,
-			Usage:                  cliutil.UsageDesc("%s service", version.Project()),
-			Version:                version.Version(),
-			Flags:                  append(flags.GetFlags(), featureflags.GetFlags()...),
-			Commands:               commands,
-			ExtraInfo:              running.GetSysInfo,
+	dix.Inject(di, func(commands []*redant.Command) {
+		app := &redant.Command{
+			Use:      version.Project(),
+			Short:    cliutil.UsageDesc("%s service", version.Project()),
+			Options:  append(flags.GetFlags(), featureflags.GetFlags()...),
+			Children: commands,
 		}
 
-		sort.Sort(cli.FlagsByName(app.Flags))
-		assert.Must(app.Run(signals.Context(), os.Args))
+		assert.Must(app.Run(signals.Context()))
 	})
 }

@@ -5,9 +5,9 @@ import (
 )
 
 func init() {
-	Register(&running.DebugFlag)
-	Register(&running.EnvFlag)
-	Register(&running.ConfFlag)
-	Register(&running.GrpcPortFlag)
-	Register(&running.HttpPortFlag)
+	Register(running.DebugFlag)
+	Register(running.EnvFlag)
+	Register(running.ConfFlag)
+	Register(running.GrpcPortFlag)
+	Register(running.HttpPortFlag)
 }

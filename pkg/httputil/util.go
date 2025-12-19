@@ -7,8 +7,6 @@ import (
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/pubgo/funk/v2"
-	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/proto/errorpb"
@@ -17,13 +15,14 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
+
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
 
 type Config struct {
 	Http              *fiberbuilder.Config `yaml:"http"`
 	EnablePrintRouter bool                 `yaml:"enable_print_router"`
-	BaseUrl           string               `yaml:"base_url"`
 	HttpPort          *int                 `yaml:"http_port"`
 }
 
@@ -37,8 +36,7 @@ func DefaultCfg(config ...*Config) Config {
 			BodyLimit:          1024 * 1024 * 500,
 		},
 		EnablePrintRouter: true,
-		BaseUrl:           version.Project(),
-		HttpPort:          lo.ToPtr(running.HttpPort()),
+		HttpPort:          lo.ToPtr(int(running.HttpPort.Value())),
 	}
 
 	for _, t := range config {
@@ -54,13 +52,6 @@ func DefaultCfg(config ...*Config) Config {
 	}
 
 	cfg.Http.EnablePrintRoutes = cfg.EnablePrintRouter
-	cfg.BaseUrl = funk.DoFunc(func() string {
-		baseUrl := cfg.BaseUrl
-		if baseUrl == "" {
-			baseUrl = "/" + version.Project()
-		}
-		return "/" + strings.Trim(baseUrl, "/")
-	})
 	return cfg
 }
 
@@ -101,7 +92,12 @@ func ErrHandler(ctx *fiber.Ctx, err error) error {
 
 	code := errcode.GrpcCodeToHTTP(codes.Code(errPb.StatusCode))
 	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	return ctx.Status(code).JSON(errPb)
+	data, err := protojson.Default.Marshal(errPb)
+	if err != nil {
+		slog.Error("failed to marshal errorpb.ErrCode error", "err", err)
+		return err
+	}
+	return ctx.Status(code).Send(data)
 }
 
 func Cors() fiber.Handler {
