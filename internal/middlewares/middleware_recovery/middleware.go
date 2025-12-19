@@ -15,7 +15,10 @@ func New() lava.Middleware {
 		Next: func(next lava.HandlerFunc) lava.HandlerFunc {
 			return func(ctx context.Context, req lava.Request) (rsp lava.Response, gErr error) {
 				defer func() {
-					gErr = errors.WrapStack(errparser.Parse(recover()))
+					panicErr := errors.WrapStack(errparser.Parse(recover()))
+					if panicErr != nil {
+						gErr = panicErr
+					}
 				}()
 
 				return next(ctx, req)

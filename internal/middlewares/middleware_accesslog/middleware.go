@@ -64,7 +64,6 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 			evt.Str(grpcutil.ClientPathKey, clientInfo.GetPath())
 		}
 
-		// 错误和panic处理
 		defer func() {
 			if gErr != nil {
 				evt.Stringer("req_header", req.Header())
