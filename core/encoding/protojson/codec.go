@@ -13,7 +13,7 @@ import (
 const Name = "jsonpb"
 
 func init() {
-	encoding.Register(Name, &jsonCodec{})
+	encoding.Register(Name, &Codec{})
 }
 
 var useNumber bool
@@ -25,14 +25,16 @@ func UseNumber() {
 
 var (
 	jsonMarshaller = &protojson.MarshalOptions{EmitUnpopulated: true}
-	jsonUnmarshal  = &protojson.UnmarshalOptions{AllowPartial: true}
+	jsonUnmarshal  = &protojson.UnmarshalOptions{RecursionLimit: 20, DiscardUnknown: true}
 )
 
-type jsonCodec struct{}
+var Default = &Codec{}
 
-func (j *jsonCodec) Name() string { return Name }
+type Codec struct{}
 
-func (j *jsonCodec) Encode(v interface{}) ([]byte, error) {
+func (j *Codec) Name() string { return Name }
+
+func (j *Codec) Encode(v any) ([]byte, error) {
 	if m, ok := v.(json.Marshaler); ok {
 		return m.MarshalJSON()
 	}
@@ -44,7 +46,7 @@ func (j *jsonCodec) Encode(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (j *jsonCodec) Decode(data []byte, v interface{}) error {
+func (j *Codec) Decode(data []byte, v any) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -65,10 +67,10 @@ func (j *jsonCodec) Decode(data []byte, v interface{}) error {
 	return dec.Decode(v)
 }
 
-func (j *jsonCodec) Marshal(v interface{}) ([]byte, error) {
+func (j *Codec) Marshal(v any) ([]byte, error) {
 	return j.Encode(v)
 }
 
-func (j *jsonCodec) Unmarshal(data []byte, v interface{}) error {
+func (j *Codec) Unmarshal(data []byte, v any) error {
 	return j.Decode(data, v)
 }
