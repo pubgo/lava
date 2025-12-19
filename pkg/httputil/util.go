@@ -17,6 +17,8 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
+
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
 
@@ -101,7 +103,12 @@ func ErrHandler(ctx *fiber.Ctx, err error) error {
 
 	code := errcode.GrpcCodeToHTTP(codes.Code(errPb.StatusCode))
 	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	return ctx.Status(code).JSON(errPb)
+	data, err := protojson.Default.Marshal(errPb)
+	if err != nil {
+		slog.Error("failed to marshal errorpb.ErrCode error", "err", err)
+		return err
+	}
+	return ctx.Status(code).Send(data)
 }
 
 func Cors() fiber.Handler {
