@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
+
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
 )
 
 type Config struct {
@@ -107,6 +109,7 @@ func (t *Config) ToCfg() fiber.Config {
 		CompressedFileSuffix:         t.CompressedFileSuffix,
 		DisableHeaderNormalizing:     t.DisableHeaderNormalizing,
 		DisableStartupMessage:        t.DisableStartupMessage,
+		JSONEncoder:                  protojson.Default.Marshal,
 	}
 }
 

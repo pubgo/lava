@@ -37,12 +37,12 @@ require (
 require (
 	dario.cat/mergo v1.0.2
 	github.com/alecthomas/participle/v2 v2.1.4
-	github.com/arl/statsviz v0.7.1
+	github.com/arl/statsviz v0.8.0
 	github.com/ecordell/optgen v0.0.9
-	github.com/expr-lang/expr v1.17.5
+	github.com/expr-lang/expr v1.17.7
 	github.com/fasthttp/websocket v1.5.12
 	github.com/felixge/fgprof v0.9.5
-	github.com/fullstorydev/grpchan v1.1.1
+	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-logr/logr v1.4.3
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/adaptor/v2 v2.2.1
