@@ -59,6 +59,14 @@ func (r *RouteTree) List() []RouteOperation {
 }
 
 func (r *RouteTree) Add(method, path, operation string, extras map[string]any) error {
+	// 验证输入
+	if path == "" {
+		return errors.New("path cannot be empty")
+	}
+	if operation == "" {
+		return errors.New("operation cannot be empty")
+	}
+
 	errMsg := func() string {
 		return fmt.Sprintf("method: %s, path: %s, operation: %s", method, path, operation)
 	}
@@ -69,124 +77,132 @@ func (r *RouteTree) Add(method, path, operation string, extras map[string]any) e
 	}
 
 	node := parseToRoute(rule)
+	method = handlerMethod(method)
+
+	// 特殊处理根路径 "/"（空路径）
 	if len(node.Paths) == 0 {
-		return errors.Errorf("node path is empty: %s", errMsg())
+		rootNode := r.nodeMap[rootPathKey]
+		if rootNode == nil {
+			rootNode = &nodeTree{
+				nodeMap: make(map[string]*nodeTree),
+				verbMap: make(map[string]*routeTarget),
+			}
+			r.nodeMap[rootPathKey] = rootNode
+		}
+		return r.registerRoute(rootNode, method, path, operation, node.Verb, node.Vars, extras)
 	}
 
+	// 普通路径：遍历路径段，构建路由树
 	nodeMap := r.nodeMap
-	method = handlerMethod(method)
-	paths := node.Paths
-	for i, n := range paths {
-		lastNode := nodeMap[n]
+	for i, pathSegment := range node.Paths {
+		lastNode := nodeMap[pathSegment]
 		if lastNode == nil {
-			lastNode = &nodeTree{nodeMap: make(map[string]*nodeTree), verbMap: make(map[string]*routeTarget)}
-			nodeMap[n] = lastNode
+			lastNode = &nodeTree{
+				nodeMap: make(map[string]*nodeTree),
+				verbMap: make(map[string]*routeTarget),
+			}
+			nodeMap[pathSegment] = lastNode
 		}
-		nodeMap = lastNode.nodeMap
 
-		if i == len(paths)-1 {
-			verbKey := fmt.Sprintf("%s:%s", method, lo.FromPtr(node.Verb))
-			lastNode.verbMap[verbKey] = &routeTarget{
-				Method:    method,
-				Path:      path,
-				Operation: operation,
-				extras:    extras,
-				Verb:      node.Verb,
-				Vars:      node.Vars,
+		// 如果是最后一个路径段，注册路由
+		if i == len(node.Paths)-1 {
+			if err := r.registerRoute(lastNode, method, path, operation, node.Verb, node.Vars, extras); err != nil {
+				return err
 			}
 		}
+
+		nodeMap = lastNode.nodeMap
 	}
 	return nil
 }
 
-func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
-	pathNodes := strings.Split(strings.Trim(strings.TrimSpace(url), "/"), "/")
-	lastPath := strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
-	errMsg := func(key string, value any) errors.Tags {
-		tt := errors.Tags{
-			"method": method,
-			"url":    url,
-		}
-		if key != "" {
-			tt[key] = value
-		}
-		return tt
+// matchNode 在指定节点上查找匹配的路由目标
+// 返回匹配到的路由目标，如果匹配失败返回 nil
+func (r *RouteTree) matchNode(node *nodeTree, verbKey string) *routeTarget {
+	if node == nil {
+		return nil
 	}
-	verb := ""
+	return node.verbMap[verbKey]
+}
 
-	pathNodes[len(pathNodes)-1] = lastPath[0]
-	if len(lastPath) > 1 {
-		verb = lastPath[1]
+func (r *RouteTree) Match(method, url string) (*MatchOperation, error) {
+	// 解析 URL
+	pathNodes, verb, err := parseURL(url)
+	if err != nil {
+		return nil, errors.WrapTags(err, errors.Tags{"method": method, "url": url})
 	}
 
 	method = handlerMethod(method)
 	verbKey := fmt.Sprintf("%s:%s", method, verb)
 
-	getVars := func(vars []*pathVariable, paths []string) []PathFieldVar {
-		vv := make([]PathFieldVar, 0, len(vars))
-		for _, v := range vars {
-			pathVar := PathFieldVar{Fields: v.fields}
-			if v.end > 0 {
-				pathVar.Value = strings.Join(paths[v.start:v.end+1], "/")
+	errMsg := func(key string, value any) errors.Tags {
+		tt := errors.Tags{"method": method, "url": url}
+		if key != "" {
+			tt[key] = value
+		}
+		return tt
+	}
+
+	// 特殊处理根路径 "/"
+	if len(pathNodes) == 0 {
+		if rootNode := r.nodeMap[rootPathKey]; rootNode != nil {
+			if target := r.matchNode(rootNode, verbKey); target != nil {
+				return buildMatchOperation(target, verb, pathNodes), nil
+			}
+		}
+		return nil, errors.WrapTags(ErrOperationNotFound, errMsg("", nil))
+	}
+
+	// 递归匹配函数：匹配策略优先级为 精确匹配 > * 通配符 > ** 通配符
+	var matchPath func(nodeMap map[string]*nodeTree, pathIndex int) (*MatchOperation, error)
+	matchPath = func(nodeMap map[string]*nodeTree, pathIndex int) (*MatchOperation, error) {
+		if pathIndex >= len(pathNodes) {
+			return nil, errors.WrapTags(ErrOperationNotFound, errMsg("", nil))
+		}
+
+		pathSegment := pathNodes[pathIndex]
+		isLast := pathIndex == len(pathNodes)-1
+
+		// 1. 尝试精确匹配
+		if exactNode := nodeMap[pathSegment]; exactNode != nil {
+			if isLast {
+				if target := r.matchNode(exactNode, verbKey); target != nil {
+					return buildMatchOperation(target, verb, pathNodes), nil
+				}
 			} else {
-				pathVar.Value = strings.Join(paths[v.start:], "/")
-			}
-
-			vv = append(vv, pathVar)
-		}
-		return vv
-	}
-
-	getPath := func(nodeMap map[string]*nodeTree, names ...string) (string, *nodeTree) {
-		for _, name := range names {
-			path := nodeMap[name]
-			if path != nil {
-				return name, path
+				// 递归继续匹配下一个路径段
+				if result, err := matchPath(exactNode.nodeMap, pathIndex+1); err == nil {
+					return result, nil
+				}
+				// 精确匹配失败，继续尝试通配符
 			}
 		}
-		return "", nil
-	}
 
-	nodeMap := r.nodeMap
-	lastIndex := len(pathNodes) - 1
-	for index, node := range pathNodes {
-		nodeName, path := getPath(nodeMap, node, star, doubleStar)
-		if path == nil {
-			return nil, errors.WrapTags(ErrPathNodeNotFound, errMsg("node", node))
-		}
-
-		nodeMap = path.nodeMap
-		switch nodeName {
-		case node:
-			if index != lastIndex {
-				continue
-			}
-		case star:
-			if index != lastIndex && len(path.nodeMap) != 0 {
-				nextPath := path.nodeMap[pathNodes[index+1]]
-				if nextPath != nil {
-					continue
+		// 2. 尝试 * 通配符（匹配单个路径段）
+		if wildcardNode := nodeMap[star]; wildcardNode != nil {
+			if isLast {
+				if target := r.matchNode(wildcardNode, verbKey); target != nil {
+					return buildMatchOperation(target, verb, pathNodes), nil
+				}
+			} else {
+				// 递归继续匹配下一个路径段
+				if result, err := matchPath(wildcardNode.nodeMap, pathIndex+1); err == nil {
+					return result, nil
 				}
 			}
-		case doubleStar:
 		}
 
-		vv := path.verbMap[verbKey]
-		if vv == nil {
-			return nil, errors.WrapTags(ErrOperationNotFound, errMsg("node", node))
+		// 3. 尝试 ** 通配符（贪婪匹配所有剩余路径段）
+		if doubleWildcardNode := nodeMap[doubleStar]; doubleWildcardNode != nil {
+			if target := r.matchNode(doubleWildcardNode, verbKey); target != nil {
+				return buildMatchOperation(target, verb, pathNodes), nil
+			}
 		}
 
-		return &MatchOperation{
-			Extras:    vv.extras,
-			Method:    vv.Method,
-			Path:      vv.Path,
-			Operation: vv.Operation,
-			Verb:      verb,
-			Vars:      getVars(vv.Vars, pathNodes),
-		}, nil
+		return nil, errors.WrapTags(ErrPathNodeNotFound, errMsg("node", pathSegment))
 	}
 
-	return nil, errors.WrapTags(ErrOperationNotFound, errMsg("", nil))
+	return matchPath(r.nodeMap, 0)
 }
 
 func getOpt(nodes map[string]*nodeTree) []RouteOperation {
@@ -207,6 +223,95 @@ func getOpt(nodes map[string]*nodeTree) []RouteOperation {
 	return sets
 }
 
+const (
+	methodPrefix = "__"
+	methodSuffix = "__"
+	rootPathKey  = "" // 根路径 "/" 在 nodeMap 中使用空字符串作为键
+)
+
 func handlerMethod(method string) string {
-	return fmt.Sprintf("__%s__", strings.ToUpper(method))
+	return methodPrefix + strings.ToUpper(method) + methodSuffix
+}
+
+// parseURL 解析 URL，返回路径节点列表和动词
+// 区分空路径 "" 和根路径 "/"，空路径返回错误
+func parseURL(url string) (pathNodes []string, verb string, err error) {
+	originalURL := url
+	url = strings.TrimSpace(url)
+	trimmedURL := strings.Trim(url, "/")
+
+	if trimmedURL == "" {
+		// 区分空路径 "" 和根路径 "/"
+		if originalURL == "" || strings.TrimSpace(originalURL) == "" {
+			return nil, "", errors.WrapTags(ErrPathNodeNotFound, errors.Tags{
+				"url": originalURL,
+			})
+		}
+		// 根路径 "/"
+		return []string{}, "", nil
+	}
+
+	pathNodes = strings.Split(trimmedURL, "/")
+
+	// 分离动词和路径（格式：path:verb）
+	if len(pathNodes) > 0 {
+		lastPath := strings.SplitN(pathNodes[len(pathNodes)-1], ":", 2)
+		if len(lastPath) > 1 {
+			verb = lastPath[1]
+		}
+		pathNodes[len(pathNodes)-1] = lastPath[0]
+	}
+
+	return pathNodes, verb, nil
+}
+
+// extractPathVars 从路径变量中提取值
+func extractPathVars(vars []*pathVariable, paths []string) []PathFieldVar {
+	vv := make([]PathFieldVar, 0, len(vars))
+	for _, v := range vars {
+		pathVar := PathFieldVar{Fields: v.fields}
+		// 边界检查
+		if v.end > 0 && v.end < len(paths) {
+			pathVar.Value = strings.Join(paths[v.start:v.end+1], "/")
+		} else if v.start < len(paths) {
+			pathVar.Value = strings.Join(paths[v.start:], "/")
+		} else {
+			pathVar.Value = ""
+		}
+		vv = append(vv, pathVar)
+	}
+	return vv
+}
+
+// buildMatchOperation 构建匹配结果
+func buildMatchOperation(target *routeTarget, verb string, pathNodes []string) *MatchOperation {
+	return &MatchOperation{
+		Extras:    target.extras,
+		Method:    target.Method,
+		Path:      target.Path,
+		Operation: target.Operation,
+		Verb:      verb,
+		Vars:      extractPathVars(target.Vars, pathNodes),
+	}
+}
+
+// registerRoute 注册路由到指定节点的 verbMap
+func (r *RouteTree) registerRoute(node *nodeTree, method, path, operation string, verb *string, vars []*pathVariable, extras map[string]any) error {
+	verbKey := fmt.Sprintf("%s:%s", method, lo.FromPtr(verb))
+
+	// 检查路由是否已存在
+	if existing, exists := node.verbMap[verbKey]; exists {
+		return errors.Errorf("route already exists: method=%s path=%s operation=%s (existing operation: %s)",
+			method, path, operation, existing.Operation)
+	}
+
+	node.verbMap[verbKey] = &routeTarget{
+		Method:    method,
+		Path:      path,
+		Operation: operation,
+		extras:    extras,
+		Verb:      verb,
+		Vars:      vars,
+	}
+	return nil
 }

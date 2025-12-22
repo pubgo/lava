@@ -26,6 +26,7 @@ type streamHTTP struct {
 	handler    *fiber.Ctx
 	ctx        context.Context
 	header     metadata.MD
+	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
 }
@@ -48,16 +49,21 @@ func (s *streamHTTP) SendHeader(md metadata.MD) error {
 	s.sentHeader = true
 
 	for k, v := range s.header {
-		for i := range v {
-			s.handler.Response().Header.Set(k, v[i])
+		if len(v) == 0 {
+			continue
 		}
+		// HTTP header 通常只支持单个值，取第一个值
+		s.handler.Response().Header.Set(k, v[0])
 	}
 
 	return nil
 }
 
 func (s *streamHTTP) SetTrailer(md metadata.MD) {
-	s.header = metadata.Join(s.header, md)
+	if s.trailer == nil {
+		s.trailer = make(metadata.MD)
+	}
+	s.trailer = metadata.Join(s.trailer, md)
 }
 
 func (s *streamHTTP) Context() context.Context {
@@ -79,7 +85,7 @@ func (s *streamHTTP) SendMsg(m any) error {
 	}
 
 	cur := reply.ProtoReflect()
-	for _, fd := range getReqBodyDesc(s.path) {
+	for _, fd := range getRspBodyDesc(s.path) {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
@@ -116,7 +122,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		method == http.MethodDelete ||
 		method == http.MethodPatch {
 		cur := args.ProtoReflect()
-		for _, fd := range getRspBodyDesc(s.path) {
+		for _, fd := range getReqBodyDesc(s.path) {
 			cur = cur.Mutable(fd).Message()
 		}
 		msg := cur.Interface()

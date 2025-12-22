@@ -112,6 +112,11 @@ func handleSegments(s *segment, rr *routePath) {
 		return
 	}
 
+	// 检查 Variable 是否为 nil（可能发生在某些边界情况）
+	if s.Variable == nil {
+		return
+	}
+
 	vv := &pathVariable{fields: s.Variable.Fields, start: len(rr.Paths)}
 	if s.Variable.Segments == nil {
 		rr.Paths = append(rr.Paths, star)
