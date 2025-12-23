@@ -12,8 +12,9 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
 
 	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
@@ -25,6 +26,7 @@ type streamHTTP struct {
 	handler    *fiber.Ctx
 	ctx        context.Context
 	header     metadata.MD
+	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
 }
@@ -47,16 +49,21 @@ func (s *streamHTTP) SendHeader(md metadata.MD) error {
 	s.sentHeader = true
 
 	for k, v := range s.header {
-		for i := range v {
-			s.handler.Response().Header.Set(k, v[i])
+		if len(v) == 0 {
+			continue
 		}
+		// HTTP header 通常只支持单个值，取第一个值
+		s.handler.Response().Header.Set(k, v[0])
 	}
 
 	return nil
 }
 
 func (s *streamHTTP) SetTrailer(md metadata.MD) {
-	s.header = metadata.Join(s.header, md)
+	if s.trailer == nil {
+		s.trailer = make(metadata.MD)
+	}
+	s.trailer = metadata.Join(s.trailer, md)
 }
 
 func (s *streamHTTP) Context() context.Context {
@@ -78,7 +85,7 @@ func (s *streamHTTP) SendMsg(m any) error {
 	}
 
 	cur := reply.ProtoReflect()
-	for _, fd := range getReqBodyDesc(s.path) {
+	for _, fd := range getRspBodyDesc(s.path) {
 		cur = cur.Mutable(fd).Message()
 	}
 	msg := cur.Interface()
@@ -89,9 +96,9 @@ func (s *streamHTTP) SendMsg(m any) error {
 		return errors.Wrapf(rspInterceptor(s.handler, msg), "failed to do rsp interceptor response data by %s", reqName)
 	}
 
-	b, err := protojson.Marshal(msg)
+	b, err := protojson.Default.Marshal(msg)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal response by proto-json")
+		return errors.Wrap(err, "failed to marshal response by protojson")
 	}
 
 	_, err = s.handler.Write(b)
@@ -115,7 +122,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		method == http.MethodDelete ||
 		method == http.MethodPatch {
 		cur := args.ProtoReflect()
-		for _, fd := range getRspBodyDesc(s.path) {
+		for _, fd := range getReqBodyDesc(s.path) {
 			cur = cur.Mutable(fd).Message()
 		}
 		msg := cur.Interface()
@@ -140,12 +147,12 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				return errors.WrapCaller(err)
 			}
 
-			if err := protojson.Unmarshal(b, msg); err != nil {
+			if err := protojson.Default.Unmarshal(b, msg); err != nil {
 				return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
 			}
 		} else {
 			if body := s.handler.Body(); len(body) > 0 {
-				if err := protojson.Unmarshal(body, msg); err != nil {
+				if err := protojson.Default.Unmarshal(body, msg); err != nil {
 					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
 				}
 			}
