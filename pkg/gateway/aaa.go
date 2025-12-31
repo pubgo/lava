@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"context"
-	"io"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,22 +38,6 @@ type Codec interface {
 	encoding.Codec
 	// MarshalAppend appends the marshaled form of v to b and returns the result.
 	MarshalAppend([]byte, any) ([]byte, error)
-}
-
-// StreamCodec is used in streaming RPCs where the message boundaries are
-// determined by the codec.
-type StreamCodec interface {
-	Codec
-
-	// ReadNext returns the size of the next message appended to buf.
-	// ReadNext reads from r until either it has read a complete message or
-	// encountered an error and returns all the data read from r.
-	// The message is contained in dst[:n].
-	// Excess data read from r is stored in dst[n:].
-	ReadNext(buf []byte, r io.Reader, limit int) (dst []byte, n int, err error)
-	// WriteNext writes the message to w with a size aware encoding
-	// returning the number of bytes written.
-	WriteNext(w io.Writer, src []byte) (n int, err error)
 }
 
 // Compressor is used to compress and decompress messages.
