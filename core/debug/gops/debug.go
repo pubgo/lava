@@ -2,7 +2,6 @@ package gops
 
 import (
 	"github.com/google/gops/agent"
-
 	"github.com/pubgo/funk/v2/log"
 )
 

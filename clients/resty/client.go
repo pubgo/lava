@@ -5,19 +5,19 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/retry"
+	"github.com/valyala/fasthttp"
+
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
-	"github.com/valyala/fasthttp"
-
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/config"
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/retry"
 )
 
 type Params struct {

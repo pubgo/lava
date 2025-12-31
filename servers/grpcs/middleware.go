@@ -6,18 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/pubgo/lava/v2/core/lavacontexts"
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/pubgo/lava/v2/pkg/httputil"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
-	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
-
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors"
@@ -25,6 +13,18 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/strutil"
+	"github.com/rs/xid"
+	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
+
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {

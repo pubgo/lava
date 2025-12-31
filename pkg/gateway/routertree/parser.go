@@ -5,10 +5,9 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/samber/lo"
-
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/samber/lo"
 )
 
 var parser = participle.MustBuild[httpRule](
@@ -110,6 +109,11 @@ func (r routePath) String() string {
 func handleSegments(s *segment, rr *routePath) {
 	if s.Path != nil {
 		rr.Paths = append(rr.Paths, *s.Path)
+		return
+	}
+
+	// 检查 Variable 是否为 nil（可能发生在某些边界情况）
+	if s.Variable == nil {
 		return
 	}
 

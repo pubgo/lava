@@ -8,7 +8,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/result"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -25,10 +28,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/encoding/gzip"
 
-	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/v2/core/lifecycle"
 )
 
 type Provider struct {

@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pubgo/lava/v2/core/lavabuilder"
-	"github.com/pubgo/lava/v2/core/logging"
-	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/core/scheduler"
-	"github.com/pubgo/lava/v2/servers/https"
-
 	"github.com/pubgo/funk/v2/cmds/configcmd"
 	"github.com/pubgo/funk/v2/cmds/envcmd"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
+
+	"github.com/pubgo/lava/v2/core/lavabuilder"
+	"github.com/pubgo/lava/v2/core/logging"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/scheduler"
+	"github.com/pubgo/lava/v2/servers/https"
 )
 
 type Config struct {

@@ -2,8 +2,9 @@ package trace
 
 import (
 	"github.com/gofiber/adaptor/v2"
-	"github.com/pubgo/lava/v2/core/debug"
 	"golang.org/x/net/trace"
+
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/valyala/bytebufferpool"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/valyala/bytebufferpool"
 )
 
 // ExecuteFunc calls f on each template tag (placeholder) occurrence.

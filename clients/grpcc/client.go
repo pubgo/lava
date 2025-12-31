@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
-	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/lava"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/resolver"
-
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/vars"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/resolver"
+
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 type Params struct {

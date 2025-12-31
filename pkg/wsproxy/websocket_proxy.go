@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/pubgo/lava/v2/internal/logutil"
-	"golang.org/x/net/context"
-
 	"github.com/pubgo/funk/v2/closer"
 	"github.com/pubgo/funk/v2/log"
+	"golang.org/x/net/context"
+
+	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
 const (

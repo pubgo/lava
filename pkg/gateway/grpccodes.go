@@ -3,9 +3,8 @@ package gateway
 import (
 	"net/http"
 
-	"google.golang.org/grpc/codes"
-
 	"github.com/pubgo/funk/v2/log"
+	"google.golang.org/grpc/codes"
 )
 
 // https://github.com/dapr/kit/tree/main/grpccodes

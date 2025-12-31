@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/v2/core/lavacontexts"
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc/codes"
-
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
+
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 )
 
 const Name = "accesslog"

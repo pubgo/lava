@@ -5,11 +5,10 @@ import (
 	"net"
 	"time"
 
+	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 	"golang.org/x/net/http/httpproxy"
-
-	"github.com/pubgo/funk/v2/buildinfo/version"
 )
 
 type Config struct {

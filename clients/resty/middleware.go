@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/gofiber/utils"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/funk/v2/convert"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Request = (*requestImpl)(nil)

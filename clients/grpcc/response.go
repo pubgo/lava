@@ -1,8 +1,9 @@
 package grpcc
 
 import (
-	"github.com/pubgo/lava/v2/lava"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/lava"
 )
 
 var _ lava.Response = (*response)(nil)

@@ -8,15 +8,15 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
-	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/funk/v2"
+	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/pubgo/funk/v2"
-	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
 
 type streamHTTP struct {
@@ -25,6 +25,7 @@ type streamHTTP struct {
 	handler    *fiber.Ctx
 	ctx        context.Context
 	header     metadata.MD
+	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
 }
@@ -47,16 +48,21 @@ func (s *streamHTTP) SendHeader(md metadata.MD) error {
 	s.sentHeader = true
 
 	for k, v := range s.header {
-		for i := range v {
-			s.handler.Response().Header.Set(k, v[i])
+		if len(v) == 0 {
+			continue
 		}
+		// HTTP header 通常只支持单个值，取第一个值
+		s.handler.Response().Header.Set(k, v[0])
 	}
 
 	return nil
 }
 
 func (s *streamHTTP) SetTrailer(md metadata.MD) {
-	s.header = metadata.Join(s.header, md)
+	if s.trailer == nil {
+		s.trailer = make(metadata.MD)
+	}
+	s.trailer = metadata.Join(s.trailer, md)
 }
 
 func (s *streamHTTP) Context() context.Context {

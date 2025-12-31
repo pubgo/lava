@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/redant"
-	"github.com/valyala/fasthttp"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/redant"
+	"github.com/valyala/fasthttp"
 )
 
 func New() *redant.Command {

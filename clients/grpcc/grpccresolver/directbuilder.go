@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/grpc/resolver"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
+	"google.golang.org/grpc/resolver"
 )
 
 func NewDirectBuilder() resolver.Builder {

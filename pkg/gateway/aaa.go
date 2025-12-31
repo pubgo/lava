@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
 
 type (

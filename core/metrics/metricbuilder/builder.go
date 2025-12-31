@@ -3,15 +3,15 @@ package metricbuilder
 import (
 	"context"
 
-	"github.com/pubgo/lava/v2/core/lifecycle"
-	"github.com/pubgo/lava/v2/core/metrics"
-	lo "github.com/samber/lo"
-	"github.com/uber-go/tally/v4"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/merge"
+	lo "github.com/samber/lo"
+	"github.com/uber-go/tally/v4"
+
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 func New(m lifecycle.Lifecycle, cfg *metrics.Config, log log.Logger) metrics.Metric {

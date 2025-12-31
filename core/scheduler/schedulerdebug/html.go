@@ -7,11 +7,12 @@ import (
 	"io"
 	"time"
 
-	"github.com/pubgo/lava/v2/core/scheduler"
 	"github.com/samber/lo"
 	. "maragu.dev/gomponents" //nolint
 	_ "maragu.dev/gomponents/components"
 	. "maragu.dev/gomponents/html" //nolint
+
+	"github.com/pubgo/lava/v2/core/scheduler"
 )
 
 type NodeFn func() Node

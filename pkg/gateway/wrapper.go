@@ -3,11 +3,11 @@ package gateway
 import (
 	"context"
 
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
+	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 type serviceWrapper struct {

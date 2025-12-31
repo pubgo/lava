@@ -3,9 +3,8 @@ package grpccresolver
 import (
 	"context"
 
-	"google.golang.org/grpc/resolver"
-
 	"github.com/pubgo/funk/v2/log"
+	"google.golang.org/grpc/resolver"
 )
 
 const (

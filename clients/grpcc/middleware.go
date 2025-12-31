@@ -5,20 +5,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
-	"github.com/pubgo/lava/v2/core/lavacontexts"
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/grpcutil"
-	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/funk/v2/convert"
-	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/strutil"
+	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
+	"github.com/pubgo/lava/v2/core/lavacontexts"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {

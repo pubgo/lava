@@ -4,9 +4,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/thejerf/suture/v4"
-
 	"github.com/pubgo/funk/v2/log"
+	"github.com/thejerf/suture/v4"
 )
 
 const ServiceTimeout = 10 * time.Second

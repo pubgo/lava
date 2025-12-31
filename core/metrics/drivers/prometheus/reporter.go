@@ -1,13 +1,13 @@
 package prometheus
 
 import (
-	"github.com/pubgo/lava/v2/core/debug"
-	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/log"
 	tally "github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
 
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 const (

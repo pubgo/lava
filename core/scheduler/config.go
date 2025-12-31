@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/reugn/go-quartz/quartz"
-	"github.com/rs/zerolog"
-	"github.com/samber/lo"
-
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/reugn/go-quartz/quartz"
+	"github.com/rs/zerolog"
+	"github.com/samber/lo"
 )
 
 func createConfig(configs []*Config) (map[string]*JobConfig, error) {

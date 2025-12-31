@@ -5,12 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/lava/v2/core/debug"
-	"github.com/pubgo/lava/v2/core/lifecycle"
-	"github.com/pubgo/lava/v2/internal/logutil"
-	"github.com/pubgo/lava/v2/pkg/netutil"
-	"github.com/thejerf/suture/v4"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/errors"
@@ -19,6 +13,12 @@ import (
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/stack"
+	"github.com/thejerf/suture/v4"
+
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 type serviceWrapper struct {

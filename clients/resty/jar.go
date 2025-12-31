@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/lava/v2/lava"
 )
 
 func NewJar(log log.Logger) *Jar {

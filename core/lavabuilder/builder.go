@@ -4,6 +4,15 @@ import (
 	"context"
 
 	"github.com/pubgo/dix/v2"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/features/featureflags"
+	"github.com/pubgo/funk/v2/recovery"
+	// metric
+	"github.com/pubgo/redant"
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/cmds/depcmd"
 	"github.com/pubgo/lava/v2/cmds/grpcservercmd"
@@ -31,19 +40,10 @@ import (
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/stdlog"
-	// metric
 	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/v2/core/signals"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
-	"github.com/pubgo/redant"
-	_ "go.uber.org/automaxprocs"
-
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/features/featureflags"
-	"github.com/pubgo/funk/v2/recovery"
 )
 
 var defaultProviders = []any{

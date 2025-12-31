@@ -7,6 +7,17 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/async"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/vars"
+	"github.com/samber/lo"
+	"google.golang.org/grpc"
+
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/supervisor"
@@ -19,17 +30,6 @@ import (
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
-	"github.com/samber/lo"
-	"google.golang.org/grpc"
-
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/async"
-	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/config"
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
-	"github.com/pubgo/funk/v2/vars"
 )
 
 type Params struct {

@@ -3,16 +3,16 @@ package grpcc
 import (
 	"fmt"
 
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
+
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
 	"github.com/pubgo/lava/v2/lava"
-	"github.com/rs/zerolog"
-	"google.golang.org/grpc"
-
-	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/result"
 )
 
 func buildTarget(cfg *grpccconfig.ServiceCfg) string {

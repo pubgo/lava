@@ -3,9 +3,9 @@ package discovery
 import (
 	"context"
 
-	"github.com/pubgo/lava/v2/core/service"
-
 	"github.com/pubgo/funk/v2/result"
+
+	"github.com/pubgo/lava/v2/core/service"
 )
 
 func NewNoopDiscovery() Discovery {

@@ -3,6 +3,7 @@ package dixdebug
 import (
 	"github.com/pubgo/dix/v2"
 	"github.com/pubgo/dix/v2/dixhttp"
+
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )

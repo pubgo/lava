@@ -8,9 +8,9 @@ import (
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
-	"github.com/pubgo/lava/v2/core/debug"
-
 	"github.com/pubgo/funk/v2/recovery"
+
+	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

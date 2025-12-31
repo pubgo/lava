@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pubgo/funk/v2/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/admin"
 	"google.golang.org/grpc/channelz/service"
@@ -14,8 +15,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	srvProfile "google.golang.org/grpc/profiling/service"
 	"google.golang.org/grpc/reflection"
-
-	"github.com/pubgo/funk/v2/assert"
 )
 
 const (

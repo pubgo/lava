@@ -7,13 +7,13 @@ import (
 	"context"
 	"io"
 
-	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/lava/v2/internal/logutil"
 )
 
 var clientStreamDescForProxying = &grpc.StreamDesc{
