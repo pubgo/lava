@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/pubgo/funk/v2/result"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/funk/v2/result"
 )
 
 const (

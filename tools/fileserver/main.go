@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/funk/v2/log"
 	"github.com/samber/lo"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/funk/v2/log"
 )
 
 var port = flag.Int("port", 8080, "http port")

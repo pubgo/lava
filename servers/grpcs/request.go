@@ -4,9 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
-
 	"github.com/pubgo/lava/v2/lava"
+	"google.golang.org/grpc"
 )
 
 var _ lava.Request = (*rpcRequest)(nil)

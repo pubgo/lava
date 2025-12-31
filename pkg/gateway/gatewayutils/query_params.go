@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -22,6 +21,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+
+	"github.com/pubgo/funk/v2/errors"
 )
 
 var valuesKeyRegexp = regexp.MustCompile(`^(.*)\[(.*)]$`)

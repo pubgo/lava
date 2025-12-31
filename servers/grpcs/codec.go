@@ -1,9 +1,8 @@
 package grpcs
 
 import (
-	"google.golang.org/grpc/encoding"
-
 	codec "github.com/pubgo/lava/v2/core/encoding"
+	"google.golang.org/grpc/encoding"
 )
 
 func init() {

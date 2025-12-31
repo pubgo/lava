@@ -1,44 +1,61 @@
 version: "2"
+
 issues:
   fix: true
+
 linters:
   default: none
   enable:
     - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - unconvert
+    - prealloc
+    - misspell
+
+    #    - gosec
+    #    - unused
+    #    - revive
+    #    - godox
+
   exclusions:
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
     paths:
-      - internal/examples
       - vendor
       - third_party$
       - builtin$
-      - examples$
+      - proto
+
 formatters:
   enable:
     - goimports
     - gofmt
+    - gci
     - gofumpt
   settings:
     gofumpt:
       extra-rules: true
     goimports:
       local-prefixes:
-        - github.com/pubgo/lava/v2
+        - github.com/pubgo/funk/v2
     gofmt:
-      simplify: false
+      simplify: true
       rewrite-rules:
         - pattern: 'interface{}'
           replacement: 'any'
-        - pattern: 'a[b:len(a)]'
-          replacement: 'a[b:]'
+        - pattern: 'α[β:len(α)]'
+          replacement: 'α[β:]'
+        - pattern: 'α[:len(α)]'
+          replacement: 'α'
+        - pattern: 'make(map[α]β, 0)'
+          replacement: 'make(map[α]β)'
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/pubgo/funk/v2)
 
   exclusions:
     paths:
-      - internal/examples
       - vendor
-      - examples$
       - proto

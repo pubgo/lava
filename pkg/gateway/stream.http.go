@@ -8,16 +8,15 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/v2"
-	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
-
-	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/funk/v2"
+	"github.com/pubgo/funk/v2/errors"
 )
 
 type streamHTTP struct {

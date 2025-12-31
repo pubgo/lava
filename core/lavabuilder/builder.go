@@ -4,15 +4,6 @@ import (
 	"context"
 
 	"github.com/pubgo/dix/v2"
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/features/featureflags"
-	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/redant"
-
-	"github.com/pubgo/lava/v2/core/debug/dixdebug"
-
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/cmds/depcmd"
 	"github.com/pubgo/lava/v2/cmds/grpcservercmd"
@@ -20,15 +11,8 @@ import (
 	"github.com/pubgo/lava/v2/cmds/httpservercmd"
 	"github.com/pubgo/lava/v2/cmds/schedulercmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
-	"github.com/pubgo/lava/v2/core/discovery"
-	"github.com/pubgo/lava/v2/core/flags"
-	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
-	"github.com/pubgo/lava/v2/core/logging/logbuilder"
-	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
-	"github.com/pubgo/lava/v2/core/signals"
-	"github.com/pubgo/lava/v2/pkg/cliutil"
-
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
+	"github.com/pubgo/lava/v2/core/debug/dixdebug"
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
 	_ "github.com/pubgo/lava/v2/core/debug/pprof"
 	_ "github.com/pubgo/lava/v2/core/debug/process"
@@ -36,20 +20,30 @@ import (
 	_ "github.com/pubgo/lava/v2/core/debug/trace"
 	_ "github.com/pubgo/lava/v2/core/debug/vars"
 	_ "github.com/pubgo/lava/v2/core/debug/version"
-
-	// metric
-	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
-
+	"github.com/pubgo/lava/v2/core/discovery"
 	// encoding
 	_ "github.com/pubgo/lava/v2/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/v2/core/encoding/protojson"
-
+	"github.com/pubgo/lava/v2/core/flags"
+	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
+	"github.com/pubgo/lava/v2/core/logging/logbuilder"
 	// logging
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/stdlog"
-
+	// metric
+	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
+	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
+	"github.com/pubgo/lava/v2/core/signals"
+	"github.com/pubgo/lava/v2/pkg/cliutil"
+	"github.com/pubgo/redant"
 	_ "go.uber.org/automaxprocs"
+
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/features/featureflags"
+	"github.com/pubgo/funk/v2/recovery"
 )
 
 var defaultProviders = []any{

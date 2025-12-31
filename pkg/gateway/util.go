@@ -9,15 +9,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/errors"
 )
 
 func getReqBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {

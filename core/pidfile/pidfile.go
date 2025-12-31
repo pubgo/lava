@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/rs/zerolog"
+
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/rs/zerolog"
 )
 
 var getPidPath = sync.OnceValue(func() string {

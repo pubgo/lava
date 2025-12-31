@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/errors"
-
-	"github.com/pubgo/funk/v2/convert"
 	"github.com/valyala/bytebufferpool"
+
+	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/errors"
 )
 
 // ExecuteFunc calls f on each template tag (placeholder) occurrence.

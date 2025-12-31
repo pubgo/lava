@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/v2"
-	"github.com/uber-go/tally/v4"
-
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/uber-go/tally/v4"
+
+	"github.com/pubgo/funk/v2"
 )
 
 // grpc metric

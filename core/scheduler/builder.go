@@ -4,17 +4,17 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/log/logfields"
-	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/vars"
+	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/supervisor"
 	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
 
-	"github.com/pubgo/lava/v2/core/lifecycle"
-	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/core/supervisor"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/log/logfields"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/vars"
 )
 
 const Name = "scheduler"

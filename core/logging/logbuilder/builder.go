@@ -9,6 +9,11 @@ import (
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
+	"github.com/pubgo/lava/v2/core/logging"
+	"github.com/pubgo/lava/v2/core/logging/logkey"
+	"github.com/rs/zerolog"
+	"github.com/samber/lo"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/log/logfields"
@@ -16,11 +21,6 @@ import (
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/rs/zerolog"
-	"github.com/samber/lo"
-
-	"github.com/pubgo/lava/v2/core/logging"
-	"github.com/pubgo/lava/v2/core/logging/logkey"
 )
 
 var GlobalHook zerolog.Hook

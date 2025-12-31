@@ -3,12 +3,12 @@ package grpcbuilder
 import (
 	"time"
 
-	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 
-	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/result"
 )
 
 // default config: google.golang.org/grpc/internal/transport/defaults.go

@@ -8,13 +8,14 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/pubgo/dix/v2"
+	"github.com/pubgo/redant"
+	"github.com/samber/lo"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/pubgo/redant"
-	"github.com/samber/lo"
 )
 
 func New(di *dix.Dix) *redant.Command {

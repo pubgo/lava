@@ -5,13 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/v2/async"
-	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
-	"github.com/pubgo/funk/v2/vars"
-	"github.com/samber/lo"
-
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -24,6 +17,13 @@ import (
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
+	"github.com/samber/lo"
+
+	"github.com/pubgo/funk/v2/async"
+	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/funk/v2/vars"
 )
 
 type Params struct {

@@ -3,8 +3,9 @@ package grpclog
 import (
 	"testing"
 
-	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/grpc/grpclog"
+
+	"github.com/pubgo/funk/v2/log"
 )
 
 func TestName(t *testing.T) {

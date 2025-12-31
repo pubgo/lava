@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/reugn/go-quartz/quartz"
+	"go.uber.org/atomic"
+
 	"github.com/pubgo/funk/v2/clone"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/stack"
-	"github.com/reugn/go-quartz/quartz"
-	"go.uber.org/atomic"
 )
 
 type JobExecutor interface {

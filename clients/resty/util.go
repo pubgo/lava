@@ -12,15 +12,15 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/v2/convert"
-	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/retry"
+	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasttemplate"
 	"golang.org/x/net/http/httpguts"
 
-	"github.com/pubgo/lava/v2/lava"
-	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/funk/v2/convert"
+	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/retry"
 )
 
 func do(cfg *Config) lava.HandlerFunc {

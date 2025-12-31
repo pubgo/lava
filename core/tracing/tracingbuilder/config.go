@@ -4,17 +4,16 @@ import (
 	"crypto/tls"
 	"time"
 
-	"github.com/pubgo/funk/v2/buildinfo/version"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/protobuf/types/known/durationpb"
 
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	//"google.golang.org/grpc/credentials"
+	"github.com/pubgo/funk/v2/buildinfo/version"
 )
 
 const (

@@ -6,10 +6,10 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
 	"github.com/samber/lo"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/funk/v2/result"
 )
 
 type Config struct {

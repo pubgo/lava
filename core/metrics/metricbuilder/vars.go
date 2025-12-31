@@ -1,11 +1,11 @@
 package metricbuilder
 
 import (
-	"github.com/pubgo/funk/v2/typex"
-	"github.com/pubgo/funk/v2/vars"
+	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/uber-go/tally/v4"
 
-	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/funk/v2/typex"
+	"github.com/pubgo/funk/v2/vars"
 )
 
 func registerVars(m metrics.Metric) {

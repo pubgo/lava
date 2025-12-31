@@ -1,8 +1,9 @@
 package supervisor
 
 import (
-	"github.com/pubgo/funk/v2/errors"
 	"github.com/thejerf/suture/v4"
+
+	"github.com/pubgo/funk/v2/errors"
 )
 
 type FatalErr struct {

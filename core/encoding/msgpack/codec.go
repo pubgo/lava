@@ -1,9 +1,8 @@
 package msgpack
 
 import (
-	msgpack "github.com/vmihailenco/msgpack/v5"
-
 	"github.com/pubgo/lava/v2/core/encoding"
+	msgpack "github.com/vmihailenco/msgpack/v5"
 )
 
 var Name = "msgpack"

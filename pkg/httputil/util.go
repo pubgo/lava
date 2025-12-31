@@ -7,17 +7,16 @@ import (
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/errors/errcode"
-	"github.com/pubgo/funk/v2/proto/errorpb"
-	"github.com/pubgo/funk/v2/running"
+	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 	"github.com/samber/lo"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
-
-	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
+	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/errors/errcode"
+	"github.com/pubgo/funk/v2/proto/errorpb"
+	"github.com/pubgo/funk/v2/running"
 )
 
 type Config struct {

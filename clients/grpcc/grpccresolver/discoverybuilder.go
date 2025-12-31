@@ -5,6 +5,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pubgo/lava/v2/core/discovery"
+	"github.com/pubgo/lava/v2/core/service"
+	"github.com/pubgo/lava/v2/internal/logutil"
+	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
+	"google.golang.org/grpc/resolver"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/errors"
@@ -12,12 +18,6 @@ import (
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/try"
-	"google.golang.org/grpc/resolver"
-
-	"github.com/pubgo/lava/v2/core/discovery"
-	"github.com/pubgo/lava/v2/core/service"
-	"github.com/pubgo/lava/v2/internal/logutil"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 func NewDiscoveryBuilder(disco discovery.Discovery) resolver.Builder {

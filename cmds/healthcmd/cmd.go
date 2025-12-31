@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/pubgo/lava/v2/pkg/cliutil"
+	"github.com/pubgo/lava/v2/pkg/netutil"
+	"github.com/pubgo/redant"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/redant"
-
-	"github.com/pubgo/lava/v2/pkg/cliutil"
-	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 func New() *redant.Command {

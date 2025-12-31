@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/assert"
+	"github.com/pubgo/funk/v2/closer"
 )
 
 var localIp = assert.Exit1(regexp.Compile(`\d+\.\d+\.\d+\.\d+`))
@@ -46,7 +47,7 @@ func IsPortUsed(protocol, addr string) bool {
 	if err != nil {
 		return false
 	}
-	defer conn.Close()
+	defer closer.SafeClose(conn)
 	return true
 }
 

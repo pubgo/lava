@@ -5,8 +5,9 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/pubgo/funk/v2/retry"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/funk/v2/retry"
 )
 
 var regParam = regexp.MustCompile(`{.+}`)

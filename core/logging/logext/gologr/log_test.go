@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
-	"github.com/pubgo/funk/v2/log"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/pubgo/funk/v2/log"
 )
 
 func TestName(t *testing.T) {

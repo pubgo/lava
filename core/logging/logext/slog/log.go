@@ -3,9 +3,9 @@ package slog
 import (
 	"log/slog"
 
-	"github.com/pubgo/funk/v2/log"
-
 	"github.com/pubgo/lava/v2/core/logging"
+
+	"github.com/pubgo/funk/v2/log"
 )
 
 func init() {

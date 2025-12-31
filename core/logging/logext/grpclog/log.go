@@ -3,11 +3,11 @@ package grpclog
 import (
 	"fmt"
 
-	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/lava/v2/core/logging"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/pubgo/lava/v2/core/logging"
+	"github.com/pubgo/funk/v2/log"
 )
 
 const (

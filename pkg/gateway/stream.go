@@ -3,9 +3,10 @@ package gateway
 import (
 	"context"
 
-	"github.com/pubgo/funk/v2/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/pubgo/funk/v2/assert"
 )
 
 var _ grpc.ServerTransportStream = (*serverTransportStream)(nil)

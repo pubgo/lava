@@ -1,8 +1,9 @@
 package metrics
 
 import (
-	"github.com/pubgo/funk/v2/log"
 	tally "github.com/uber-go/tally/v4"
+
+	"github.com/pubgo/funk/v2/log"
 )
 
 type (

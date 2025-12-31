@@ -5,12 +5,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	ps "github.com/keybase/go-ps"
+	"github.com/pubgo/lava/v2/core/debug"
+
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
-
-	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

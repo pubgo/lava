@@ -7,6 +7,11 @@ import (
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/samber/lo"
+	"github.com/valyala/fasthttp"
+	"gopkg.in/yaml.v3"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/errors"
@@ -15,11 +20,6 @@ import (
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/strutil"
-	"github.com/samber/lo"
-	"github.com/valyala/fasthttp"
-	"gopkg.in/yaml.v3"
-
-	"github.com/pubgo/lava/v2/core/debug"
 )
 
 var (

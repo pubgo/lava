@@ -3,8 +3,9 @@ package routertree
 import (
 	"testing"
 
-	"github.com/pubgo/funk/v2/pretty"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/pubgo/funk/v2/pretty"
 )
 
 func TestRoute(t *testing.T) {

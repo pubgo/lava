@@ -7,10 +7,10 @@ import (
 
 	json "github.com/goccy/go-json"
 	"github.com/gofiber/adaptor/v2"
+	"github.com/pubgo/lava/v2/core/debug"
+
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/running"
-
-	"github.com/pubgo/lava/v2/core/debug"
 )
 
 func init() {

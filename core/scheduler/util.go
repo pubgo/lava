@@ -4,8 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
+
+	"github.com/pubgo/funk/v2/result"
 )
 
 func regJobExecutor(jobExecutors map[string]JobExecutor, executor JobExecutor) (r result.Error) {

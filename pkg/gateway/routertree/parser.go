@@ -5,9 +5,10 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"github.com/samber/lo"
+
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/samber/lo"
 )
 
 var parser = participle.MustBuild[httpRule](
@@ -61,7 +62,7 @@ func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 		return nil, errors.Errorf("path(%s) not match", path)
 	}
 
-	var vv []PathFieldVar
+	vv := make([]PathFieldVar, 0, len(r.Vars))
 	for _, v := range r.Vars {
 		pathVar := PathFieldVar{Fields: v.fields}
 		if v.end > 0 {
