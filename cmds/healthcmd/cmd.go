@@ -10,26 +10,22 @@ import (
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
-func New() *cli.Command {
-	return &cli.Command{
-		Name:  "health",
-		Usage: cliutil.UsageDesc("%s health check", version.Project()),
-		Description: cliutil.ExampleDesc(
-			"lava health",
-			"lava health localhost:8080",
-		),
-		Action: func(ctx context.Context, command *cli.Command) error {
+func New() *redant.Command {
+	return &redant.Command{
+		Use:   "health",
+		Short: cliutil.UsageDesc("%s health check", version.Project()),
+		Handler: func(ctx context.Context, command *redant.Invocation) error {
 			defer recovery.Exit()
 
 			addr := ":8080"
-			if command.NArg() > 0 {
-				addr = command.Args().First()
+			if len(command.Args) > 0 {
+				addr = command.Args[0]
 			}
 
 			resp := assert.Must1(http.Get(fmt.Sprintf("http://%s:%d/health", netutil.GetLocalIP(), netutil.MustGetPort(addr))))

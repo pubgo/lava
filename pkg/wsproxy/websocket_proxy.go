@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/pubgo/funk/v2/closer"
 	"github.com/pubgo/funk/v2/log"
 	"golang.org/x/net/context"
 
@@ -178,7 +179,7 @@ func (p *Proxy) proxy(w http.ResponseWriter, r *http.Request) {
 		log.Warn().Err(err).Msg("error upgrading websocket")
 		return
 	}
-	defer conn1.Close()
+	defer closer.SafeClose(conn1)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()

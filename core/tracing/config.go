@@ -8,10 +8,8 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"google.golang.org/grpc/credentials"
-
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	//"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials"
 )
 
 type Config struct {

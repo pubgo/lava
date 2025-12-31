@@ -88,7 +88,7 @@ func (s *serviceImpl) init(params Params) {
 func (s *serviceImpl) start(ctx context.Context) {
 	defer recovery.Exit()
 
-	addr := fmt.Sprintf(":%d", running.HttpPort())
+	addr := fmt.Sprintf(":%d", running.HttpPort.Value())
 	async.GoDelay(func() error {
 		defer recovery.Exit()
 

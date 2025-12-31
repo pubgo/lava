@@ -1,13 +1,13 @@
 package flags
 
 import (
-	"github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
 )
 
-var flags []cli.Flag
+var flags []redant.Option
 
-func Register(flag cli.Flag) {
+func Register(flag redant.Option) {
 	flags = append(flags, flag)
 }
 
-func GetFlags() []cli.Flag { return flags }
+func GetFlags() []redant.Option { return flags }

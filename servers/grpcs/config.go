@@ -17,7 +17,6 @@ type Config struct {
 	Http              *fiberbuilder.Config `yaml:"http"`
 	GrpcConfig        *grpcbuilder.Config  `yaml:"grpc"`
 	EnablePrintRouter bool                 `yaml:"enable_print_router"`
-	BaseUrl           string               `yaml:"base_url"`
 }
 
 func defaultCfg() *Config {

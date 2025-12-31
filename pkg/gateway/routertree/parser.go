@@ -61,7 +61,7 @@ func (r routePath) Match(urls []string, verb string) ([]PathFieldVar, error) {
 		return nil, errors.Errorf("path(%s) not match", path)
 	}
 
-	var vv []PathFieldVar
+	vv := make([]PathFieldVar, 0, len(r.Vars))
 	for _, v := range r.Vars {
 		pathVar := PathFieldVar{Fields: v.fields}
 		if v.end > 0 {

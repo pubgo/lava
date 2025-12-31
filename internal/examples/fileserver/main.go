@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
+
 	"github.com/pubgo/lava/v2/cmds/fileservercmd"
 	"github.com/pubgo/lava/v2/core/lavabuilder"
 	"github.com/pubgo/lava/v2/core/logging/logext/slog"
@@ -17,7 +18,7 @@ func main() {
 
 	slog.SetLogger(log.GetLogger())
 	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Fields) bool {
-		if running.Debug() {
+		if running.Debug.Value() {
 			return true
 		}
 

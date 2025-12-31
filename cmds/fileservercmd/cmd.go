@@ -10,25 +10,23 @@ import (
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
-	cli "github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
 	"github.com/valyala/fasthttp"
 )
 
-func New() *cli.Command {
-	return &cli.Command{
-		Name:      "fileserver",
-		Usage:     "serve `pwd` via http at *:8080",
-		Flags:     []cli.Flag{},
-		ArgsUsage: "[dir]",
-		Action: func(ctx context.Context, command *cli.Command) error {
+func New() *redant.Command {
+	return &redant.Command{
+		Use:   "fileserver <dir>",
+		Short: "serve `pwd` via http at *:8080",
+		Handler: func(ctx context.Context, command *redant.Invocation) error {
 			defer recovery.Exit()
 
 			wd := result.Wrap(os.Getwd()).Unwrap()
-			if command.Args().Len() > 0 {
-				wd = command.Args().Get(0)
+			if len(command.Args) > 0 {
+				wd = command.Args[0]
 			}
 
-			port := running.HttpPort()
+			port := running.HttpPort.Value()
 			log.Info().Msgf("file dir: %s", wd)
 			log.Info().Msgf("http://localhost:%v", port)
 

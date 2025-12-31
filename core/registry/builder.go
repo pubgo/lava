@@ -77,7 +77,7 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 func register(reg Registry) {
 	// parse address for host, port
 	var advt, host string
-	port := running.GrpcPort()
+	port := int(running.GrpcPort.Value())
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {
@@ -121,7 +121,7 @@ func register(reg Registry) {
 
 func deregister(reg Registry) {
 	var advt, host string
-	port := running.GrpcPort()
+	port := int(running.GrpcPort.Value())
 
 	parts := strings.Split(advt, ":")
 	if len(parts) > 1 {

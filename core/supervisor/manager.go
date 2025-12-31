@@ -140,7 +140,7 @@ func (m *Manager) RestartService(name string) (gErr error) {
 }
 
 func (m *Manager) Services() []Service {
-	var services []Service
+	services := make([]Service, 0, len(m.services))
 	for _, srv := range m.services {
 		services = append(services, srv.service)
 	}

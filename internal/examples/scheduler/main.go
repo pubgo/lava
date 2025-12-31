@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
+
 	"github.com/pubgo/lava/v2/core/lavabuilder"
 	"github.com/pubgo/lava/v2/core/logging"
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -25,8 +26,7 @@ type Config struct {
 
 var _ scheduler.JobRegister = (*schedulerExample)(nil)
 
-type schedulerExample struct {
-}
+type schedulerExample struct{}
 
 func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
 	reg.Once("once_task", time.Second*10, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/url"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -98,11 +97,9 @@ func (s *serviceImpl) init(
 	gw []*gateway.Mux,
 ) {
 	cfg := httputil.DefaultCfg(&httputil.Config{
-		BaseUrl:           conf.BaseUrl,
 		EnablePrintRouter: conf.EnablePrintRouter,
 		Http:              conf.Http,
 	})
-	conf.BaseUrl = cfg.BaseUrl
 	conf.Http = cfg.Http
 
 	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
@@ -209,7 +206,7 @@ func (s *serviceImpl) init(
 	//	grpcServer.RegisterService(h.ServiceDesc(), h)
 	//}
 
-	grpcGatewayApiPrefix := assert.Must1(url.JoinPath(conf.BaseUrl, "api"))
+	grpcGatewayApiPrefix := "api"
 	s.log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
 
 	for _, m := range mux.GetRouteMethods() {
@@ -223,7 +220,7 @@ func (s *serviceImpl) init(
 	}
 
 	httpServer.Mount("/debug", debug.App())
-	httpServer.Mount(conf.BaseUrl, httpApp)
+	httpServer.Mount("/", httpApp)
 	httpServer.Group(grpcGatewayApiPrefix, httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler))
 
 	s.httpServer = httpServer
@@ -243,11 +240,11 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 	defer recovery.Exit()
 
 	s.log.Info().
-		Int("grpc-port", running.GrpcPort()).
-		Int("http-port", running.HttpPort()).
+		Int64("grpc-port", running.GrpcPort.Value()).
+		Int64("http-port", running.HttpPort.Value()).
 		Msg("create network listener")
-	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort())))
-	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort())))
+	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort.Value())))
+	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort.Value())))
 
 	async.GoDelay(func() error {
 		s.log.Info().Msg("grpc server starting")

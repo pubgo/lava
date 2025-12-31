@@ -37,9 +37,9 @@ func NewDoubleArray(seqs [][]string) *DoubleArray {
 	return da
 }
 
-func registerTokens(da *DoubleArray, seqs [][]string) [][]int {
-	var result [][]int
-	for _, seq := range seqs {
+func registerTokens(da *DoubleArray, tokenList [][]string) [][]int {
+	result := make([][]int, 0, len(tokenList))
+	for _, seq := range tokenList {
 		encoded := make([]int, 0, len(seq))
 		for _, token := range seq {
 			if _, ok := da.Encoding[token]; !ok {

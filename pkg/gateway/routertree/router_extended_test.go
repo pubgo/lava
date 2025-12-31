@@ -515,6 +515,7 @@ func TestEmptyAndWhitespacePaths(t *testing.T) {
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
+				assert.NoError(t, err)
 				// 对于不应该报错的情况，我们只检查不 panic
 				// 不检查具体结果，因为可能取决于实现细节
 			}

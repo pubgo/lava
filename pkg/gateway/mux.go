@@ -3,13 +3,10 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"reflect"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
 	"github.com/gofiber/adaptor/v2"
@@ -36,43 +33,28 @@ import (
 )
 
 type muxOptions struct {
-	types                 protoregistry.MessageTypeResolver
-	files                 *protoregistry.Files
-	codecs                map[string]Codec
-	codecsByName          map[string]Codec
-	compressors           map[string]Compressor
-	contentTypeOffers     []string
-	encodingTypeOffers    []string
-	maxReceiveMessageSize int
-	maxSendMessageSize    int
-	connectionTimeout     time.Duration
-	errHandler            func(err error, ctx *fiber.Ctx)
-	requestInterceptors   map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	responseInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	handlers              map[string]*methodWrapper
-	customOperationNames  map[string]*methodWrapper
+	types                protoregistry.MessageTypeResolver
+	files                *protoregistry.Files
+	codecs               map[string]Codec
+	codecsByName         map[string]Codec
+	compressors          map[string]Compressor
+	requestInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	responseInterceptors map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	handlers             map[string]*methodWrapper
+	customOperationNames map[string]*methodWrapper
 }
 
 // MuxOption is an option for a mux.
 type MuxOption func(*muxOptions)
 
-const (
-	defaultServerMaxReceiveMessageSize = 1024 * 1024 * 4
-	defaultServerMaxSendMessageSize    = math.MaxInt32
-	defaultServerConnectionTimeout     = 120 * time.Second
-)
-
 var (
 	defaultMuxOptions = muxOptions{
-		maxReceiveMessageSize: defaultServerMaxReceiveMessageSize,
-		maxSendMessageSize:    defaultServerMaxSendMessageSize,
-		connectionTimeout:     defaultServerConnectionTimeout,
-		files:                 protoregistry.GlobalFiles,
-		types:                 protoregistry.GlobalTypes,
-		responseInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		requestInterceptors:   make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		handlers:              make(map[string]*methodWrapper),
-		customOperationNames:  make(map[string]*methodWrapper),
+		files:                protoregistry.GlobalFiles,
+		types:                protoregistry.GlobalTypes,
+		responseInterceptors: make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		requestInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		handlers:             make(map[string]*methodWrapper),
+		customOperationNames: make(map[string]*methodWrapper),
 	}
 
 	defaultCodecs = map[string]Codec{
@@ -87,46 +69,6 @@ var (
 		"identity": nil,
 	}
 )
-
-func MaxReceiveMessageSizeOption(s int) MuxOption {
-	return func(opts *muxOptions) { opts.maxReceiveMessageSize = s }
-}
-
-func MaxSendMessageSizeOption(s int) MuxOption {
-	return func(opts *muxOptions) { opts.maxSendMessageSize = s }
-}
-
-func ConnectionTimeoutOption(d time.Duration) MuxOption {
-	return func(opts *muxOptions) { opts.connectionTimeout = d }
-}
-
-func TypesOption(t protoregistry.MessageTypeResolver) MuxOption {
-	return func(opts *muxOptions) { opts.types = t }
-}
-
-func FilesOption(f *protoregistry.Files) MuxOption {
-	return func(opts *muxOptions) { opts.files = f }
-}
-
-// CodecOption registers a codec for the given content type.
-func CodecOption(contentType string, c Codec) MuxOption {
-	return func(opts *muxOptions) {
-		if opts.codecs == nil {
-			opts.codecs = make(map[string]Codec)
-		}
-		opts.codecs[contentType] = c
-	}
-}
-
-// CompressorOption registers a compressor for the given content encoding.
-func CompressorOption(contentEncoding string, c Compressor) MuxOption {
-	return func(opts *muxOptions) {
-		if opts.compressors == nil {
-			opts.compressors = make(map[string]Compressor)
-		}
-		opts.compressors[contentEncoding] = c
-	}
-}
 
 var _ Gateway = (*Mux)(nil)
 
@@ -290,11 +232,6 @@ func NewMux(opts ...MuxOption) *Mux {
 		muxOpts.codecsByName[v.Name()] = v
 	}
 
-	for k := range muxOpts.codecs {
-		muxOpts.contentTypeOffers = append(muxOpts.contentTypeOffers, k)
-	}
-	sort.Strings(muxOpts.contentTypeOffers)
-
 	// Ensure compressors are set.
 	if muxOpts.compressors == nil {
 		muxOpts.compressors = make(map[string]Compressor)
@@ -305,11 +242,6 @@ func NewMux(opts ...MuxOption) *Mux {
 			muxOpts.compressors[k] = v
 		}
 	}
-
-	for k := range muxOpts.codecs {
-		muxOpts.encodingTypeOffers = append(muxOpts.encodingTypeOffers, k)
-	}
-	sort.Strings(muxOpts.encodingTypeOffers)
 
 	mux := &Mux{
 		opts:        &muxOpts,

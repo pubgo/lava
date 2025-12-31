@@ -13,20 +13,15 @@ import (
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
-	cli "github.com/urfave/cli/v3"
-
-	"github.com/pubgo/lava/v2/pkg/cliutil"
+	"github.com/pubgo/redant"
+	"github.com/samber/lo"
 )
 
-func New(di *dix.Dix) *cli.Command {
-	return &cli.Command{
-		Name:  "dep",
-		Usage: "Print the dependency package information",
-		Description: cliutil.ExampleDesc(
-			"lava dep",
-			"lava dep json",
-			"lava dep t"),
-		Action: func(ctx context.Context, command *cli.Command) error {
+func New(di *dix.Dix) *redant.Command {
+	return &redant.Command{
+		Use:   "dep",
+		Short: "Print the dependency package information",
+		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			defer recovery.Exit()
 
 			info, ok := debug.ReadBuildInfo()
@@ -34,11 +29,7 @@ func New(di *dix.Dix) *cli.Command {
 				return nil
 			}
 
-			var typ string
-			if command.NArg() > 0 {
-				typ = command.Args().First()
-			}
-
+			typ := lo.FirstOrEmpty(i.Args)
 			switch typ {
 			case "":
 				pretty.Println(info)

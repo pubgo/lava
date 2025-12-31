@@ -38,10 +38,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 	}
 
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		reqMetadata, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			reqMetadata = make(metadata.MD)
-		}
+		reqMetadata := getIncomingMetadata(ctx)
 
 		// get content type
 		ct := defaultContentType
@@ -171,10 +168,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			md = make(metadata.MD)
-		}
+		md := getIncomingMetadata(stream.Context())
 
 		ct := defaultContentType
 		if c := md.Get("x-content-type"); len(c) != 0 && c[0] != "" {

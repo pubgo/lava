@@ -7,17 +7,17 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/urfave/cli/v3"
+	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
-func New() *cli.Command {
-	return &cli.Command{
-		Name:    "version",
+func New() *redant.Command {
+	return &redant.Command{
+		Use:     "version",
 		Aliases: []string{"v"},
-		Usage:   cliutil.UsageDesc("%s version info", version.Project()),
-		Action: func(ctx context.Context, command *cli.Command) error {
+		Short:   cliutil.UsageDesc("%s version info", version.Project()),
+		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			defer recovery.Exit()
 			fmt.Println("project:", version.Project())
 			fmt.Println("version:", version.Version())

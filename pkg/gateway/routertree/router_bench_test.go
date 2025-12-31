@@ -3,6 +3,8 @@ package routertree
 import (
 	"fmt"
 	"testing"
+
+	"github.com/samber/lo"
 )
 
 // BenchmarkAdd 测试路由注册性能
@@ -50,10 +52,10 @@ func BenchmarkAddMany(b *testing.B) {
 func BenchmarkMatchExact(b *testing.B) {
 	tree := New()
 	// 注册一些路由
-	tree.Add("get", "/api/v1/users", "list_users", nil)
-	tree.Add("get", "/api/v1/users/{id}", "get_user", nil)
-	tree.Add("get", "/api/v1/posts", "list_posts", nil)
-	tree.Add("get", "/api/v1/posts/{id}", "get_post", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users", "list_users", nil))
+	lo.Must0(tree.Add("get", "/api/v1/users/{id}", "get_user", nil))
+	lo.Must0(tree.Add("get", "/api/v1/posts", "list_posts", nil))
+	lo.Must0(tree.Add("get", "/api/v1/posts/{id}", "get_post", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -64,8 +66,8 @@ func BenchmarkMatchExact(b *testing.B) {
 // BenchmarkMatchVariable 测试变量匹配性能
 func BenchmarkMatchVariable(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users/{id}", "get_user", nil)
-	tree.Add("get", "/api/v1/posts/{id}/comments/{comment_id}", "get_comment", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{id}", "get_user", nil))
+	lo.Must0(tree.Add("get", "/api/v1/posts/{id}/comments/{comment_id}", "get_comment", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -76,8 +78,8 @@ func BenchmarkMatchVariable(b *testing.B) {
 // BenchmarkMatchWildcard 测试通配符匹配性能
 func BenchmarkMatchWildcard(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/*/search", "search", nil)
-	tree.Add("get", "/files/{path=**}", "get_file", nil)
+	lo.Must0(tree.Add("get", "/api/v1/*/search", "search", nil))
+	lo.Must0(tree.Add("get", "/files/{path=**}", "get_file", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -88,7 +90,7 @@ func BenchmarkMatchWildcard(b *testing.B) {
 // BenchmarkMatchDoubleWildcard 测试双通配符匹配性能
 func BenchmarkMatchDoubleWildcard(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/files/{path=**}", "get_file", nil)
+	lo.Must0(tree.Add("get", "/files/{path=**}", "get_file", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -99,7 +101,7 @@ func BenchmarkMatchDoubleWildcard(b *testing.B) {
 // BenchmarkMatchDeepPath 测试深层路径匹配性能
 func BenchmarkMatchDeepPath(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments/{comment_id}", "get_comment", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments/{comment_id}", "get_comment", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -110,8 +112,8 @@ func BenchmarkMatchDeepPath(b *testing.B) {
 // BenchmarkMatchWithVerb 测试带动词的匹配性能
 func BenchmarkMatchWithVerb(b *testing.B) {
 	tree := New()
-	tree.Add("post", "/users/{id}:get", "get_user", nil)
-	tree.Add("post", "/users/{id}:delete", "delete_user", nil)
+	lo.Must0(tree.Add("post", "/users/{id}:get", "get_user", nil))
+	lo.Must0(tree.Add("post", "/users/{id}:delete", "delete_user", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -122,7 +124,7 @@ func BenchmarkMatchWithVerb(b *testing.B) {
 // BenchmarkMatchRootPath 测试根路径匹配性能
 func BenchmarkMatchRootPath(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/", "root", nil)
+	lo.Must0(tree.Add("get", "/", "root", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -134,10 +136,10 @@ func BenchmarkMatchRootPath(b *testing.B) {
 func BenchmarkMatchComplex(b *testing.B) {
 	tree := New()
 	// 注册多种类型的路由
-	tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments", "list_comments", nil)
-	tree.Add("post", "/api/v1/users/{user_id}/posts/{post_id}/comments", "create_comment", nil)
-	tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments/{comment_id}", "get_comment", nil)
-	tree.Add("get", "/api/v1/*/search", "search", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments", "list_comments", nil))
+	lo.Must0(tree.Add("post", "/api/v1/users/{user_id}/posts/{post_id}/comments", "create_comment", nil))
+	lo.Must0(tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments/{comment_id}", "get_comment", nil))
+	lo.Must0(tree.Add("get", "/api/v1/*/search", "search", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -151,9 +153,9 @@ func BenchmarkMatchComplex(b *testing.B) {
 // BenchmarkMatchPrecedence 测试匹配优先级性能（精确匹配 vs 通配符）
 func BenchmarkMatchPrecedence(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/users/special", "get_special_user", nil)
-	tree.Add("get", "/api/users/*", "get_user_wildcard", nil)
-	tree.Add("get", "/api/users/**", "get_users_double_wildcard", nil)
+	lo.Must0(tree.Add("get", "/api/users/special", "get_special_user", nil))
+	lo.Must0(tree.Add("get", "/api/users/*", "get_user_wildcard", nil))
+	lo.Must0(tree.Add("get", "/api/users/**", "get_users_double_wildcard", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -168,11 +170,11 @@ func BenchmarkMatchManyRoutes(b *testing.B) {
 	// 注册大量路由
 	for i := 0; i < 1000; i++ {
 		path := fmt.Sprintf("/api/v1/resource/%d", i)
-		tree.Add("get", path, fmt.Sprintf("op_%d", i), nil)
+		lo.Must0(tree.Add("get", path, fmt.Sprintf("op_%d", i), nil))
 	}
 	// 添加一些通配符路由
-	tree.Add("get", "/api/v1/*/search", "search", nil)
-	tree.Add("get", "/api/v1/**", "catch_all", nil)
+	lo.Must0(tree.Add("get", "/api/v1/*/search", "search", nil))
+	lo.Must0(tree.Add("get", "/api/v1/**", "catch_all", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -186,8 +188,8 @@ func BenchmarkMatchManyRoutes(b *testing.B) {
 // BenchmarkMatchNotFound 测试匹配失败的性能
 func BenchmarkMatchNotFound(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users", "list_users", nil)
-	tree.Add("get", "/api/v1/posts", "list_posts", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users", "list_users", nil))
+	lo.Must0(tree.Add("get", "/api/v1/posts", "list_posts", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -204,7 +206,7 @@ func BenchmarkAddAndMatch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// 注册路由
 		path := fmt.Sprintf("/api/v1/resource/%d", i%100)
-		tree.Add("get", path, fmt.Sprintf("op_%d", i), nil)
+		lo.Must0(tree.Add("get", path, fmt.Sprintf("op_%d", i), nil))
 
 		// 匹配路由
 		_, _ = tree.Match("get", path)
@@ -214,7 +216,7 @@ func BenchmarkAddAndMatch(b *testing.B) {
 // BenchmarkMatchPathDepth1 测试1层路径深度匹配性能
 func BenchmarkMatchPathDepth1(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/users", "list_users", nil)
+	lo.Must0(tree.Add("get", "/users", "list_users", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -225,7 +227,7 @@ func BenchmarkMatchPathDepth1(b *testing.B) {
 // BenchmarkMatchPathDepth3 测试3层路径深度匹配性能
 func BenchmarkMatchPathDepth3(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users", "list_users", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users", "list_users", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -236,7 +238,7 @@ func BenchmarkMatchPathDepth3(b *testing.B) {
 // BenchmarkMatchPathDepth5 测试5层路径深度匹配性能
 func BenchmarkMatchPathDepth5(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users/{id}/posts", "list_posts", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{id}/posts", "list_posts", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -247,7 +249,7 @@ func BenchmarkMatchPathDepth5(b *testing.B) {
 // BenchmarkMatchPathDepth7 测试7层路径深度匹配性能
 func BenchmarkMatchPathDepth7(b *testing.B) {
 	tree := New()
-	tree.Add("get", "/api/v1/users/{id}/posts/{pid}/comments", "list_comments", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{id}/posts/{pid}/comments", "list_comments", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -259,8 +261,8 @@ func BenchmarkMatchPathDepth7(b *testing.B) {
 func BenchmarkMatchWithFallback(b *testing.B) {
 	tree := New()
 	// 注册精确路由和通配符路由
-	tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments", "list_comments", nil)
-	tree.Add("get", "/api/v1/*/search", "search", nil)
+	lo.Must0(tree.Add("get", "/api/v1/users/{user_id}/posts/{post_id}/comments", "list_comments", nil))
+	lo.Must0(tree.Add("get", "/api/v1/*/search", "search", nil))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
