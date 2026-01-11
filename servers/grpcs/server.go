@@ -206,7 +206,7 @@ func (s *serviceImpl) init(
 	//	grpcServer.RegisterService(h.ServiceDesc(), h)
 	//}
 
-	grpcGatewayApiPrefix := "api"
+	grpcGatewayApiPrefix := "/api"
 	s.log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
 
 	for _, m := range mux.GetRouteMethods() {
