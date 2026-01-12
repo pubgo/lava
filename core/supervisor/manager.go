@@ -50,7 +50,7 @@ type Manager struct {
 func (m *Manager) init() *Manager {
 	debug.Route("/supervisor", func(router fiber.Router) {
 		router.Get("services", func(ctx *fiber.Ctx) error {
-			var services []*Metric
+			services := make([]*Metric, 0, len(m.services))
 			for _, srv := range m.services {
 				services = append(services, srv.service.Metric())
 			}

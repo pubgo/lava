@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/rs/zerolog"
@@ -89,19 +88,8 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return r
 	}
 
-	config := initAndMergeConfig(name, s.configMap[name], spec.Config).
-		Log(func(e *zerolog.Event) {
-			e.Str(logfields.Msg, fmt.Sprintf("failed to init schedule job(%s) config", name))
-		}).
-		IfOK(func(config *JobConfig) {
-			task.spec.Config = config
-		}).
-		UnwrapOrThrow(&r)
-	if r.IsErr() {
-		return r
-	}
-
-	triggerRes := getTrigger(spec, config.location).
+	task.spec.Config = initAndMergeConfig(name, s.configMap[name], spec.Config)
+	triggerRes := getTrigger(spec, task.spec.Config.location).
 		IfErr(func(err error) {
 			log.Err(err).Msgf("failed to get schedule job(%s) trigger", name)
 		}).
@@ -112,7 +100,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return r
 	}
 
-	jobOpt := config.ToJobDetailOptions()
+	jobOpt := task.spec.Config.ToJobDetailOptions()
 	job := &namedJob{s: s, task: &task, log: s.log}
 	jobDetail := quartz.NewJobDetailWithOptions(job, parseJobKey(name), jobOpt)
 
@@ -147,15 +135,7 @@ func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
 		return r
 	}
 
-	initAndMergeConfig(name, job.spec.Config, config).
-		Log(func(e *zerolog.Event) {
-			e.Str(logfields.Msg, fmt.Sprintf("failed to patch schedule job(%s) config", name))
-		}).
-		IfOK(func(config *JobConfig) {
-			job.spec.Config = config
-		}).
-		Throw(&r)
-
+	job.spec.Config = initAndMergeConfig(name, job.spec.Config, config)
 	return r
 }
 

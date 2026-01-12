@@ -16,9 +16,7 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -90,10 +88,10 @@ func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ct
 
 func (m *Mux) MatchOperation(method, path string) (r result.Result[*MatchOperation]) {
 	return result.Wrap(m.routerTree.Match(method, path)).
-		Log(func(e *zerolog.Event) {
+		Log(func(e result.Event) {
 			e.Str("method", method)
 			e.Str("path", path)
-			e.Str(logfields.Msg, "match operation failed")
+			e.Msg("match operation failed")
 		})
 }
 

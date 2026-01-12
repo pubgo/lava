@@ -31,13 +31,13 @@ func initDebug() {
 			}
 		}
 
-		var pathList []string
+		pathList := make([]string, 0, len(pathMap))
 		for k := range pathMap {
 			pathList = append(pathList, k)
 		}
 		sort.Strings(pathList)
 
-		var nodes []g.Node
+		nodes := make([]g.Node, 0, len(pathList))
 		nodes = append(nodes, h.H1(g.Text("routes")))
 		for i := range pathList {
 			path := pathList[i]

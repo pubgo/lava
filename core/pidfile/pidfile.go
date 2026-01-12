@@ -8,10 +8,8 @@ import (
 	"sync"
 
 	"github.com/pubgo/funk/v2/config"
-	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
-	"github.com/rs/zerolog"
 )
 
 var getPidPath = sync.OnceValue(func() string {
@@ -29,9 +27,9 @@ func Get() (r result.Result[int]) {
 			}
 			return nil
 		}).
-		Log(func(e *zerolog.Event) {
+		Log(func(e result.Event) {
 			e.Str("path", pidPath)
-			e.Str(logfields.Msg, "read pid file failed")
+			e.Msg("read pid file failed")
 		}).
 		UnwrapOrThrow(&r)
 	if r.IsErr() {
@@ -39,10 +37,10 @@ func Get() (r result.Result[int]) {
 	}
 
 	return result.Wrap(strconv.Atoi(string(p))).
-		Log(func(e *zerolog.Event) {
+		Log(func(e result.Event) {
 			e.Str("path", pidPath)
 			e.Str("pid", string(p))
-			e.Str(logfields.Msg, "convert pid to int failed")
+			e.Msg("convert pid to int failed")
 		})
 }
 
@@ -53,9 +51,9 @@ func Save() (r result.Error) {
 	pid := os.Getpid()
 
 	return result.ErrOf(os.WriteFile(pidPath, []byte(strconv.Itoa(pid)), pidPerm)).
-		Log(func(e *zerolog.Event) {
+		Log(func(e result.Event) {
 			e.Str("path", pidPath)
 			e.Int("pid", pid)
-			e.Str(logfields.Msg, "write pid file failed")
+			e.Msg("write pid file failed")
 		})
 }

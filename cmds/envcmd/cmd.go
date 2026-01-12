@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/redant"
-
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/env"
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/redant"
 )
 
 func New() *redant.Command {

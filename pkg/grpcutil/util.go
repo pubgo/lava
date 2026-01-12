@@ -73,7 +73,7 @@ func IsGRPCRequest(r *http.Request) bool {
 //
 // This makes it easy to register all the relevant routes in your HTTP router of choice.
 func ListGRPCResources(server *grpc.Server) []string {
-	var ret []string
+	ret := make([]string, 0, len(server.GetServiceInfo()))
 	for serviceName, serviceInfo := range server.GetServiceInfo() {
 		for _, methodInfo := range serviceInfo.Methods {
 			ret = append(ret, fmt.Sprintf("/%s/%s", serviceName, methodInfo.Name))

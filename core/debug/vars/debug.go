@@ -16,7 +16,7 @@ import (
 func init() {
 	defer recovery.Exit()
 	index := func(keys []string) g.Node {
-		var nodes []g.Node
+		nodes := make([]g.Node, 0, len(keys))
 		nodes = append(nodes, h.H1(g.Text("/expvar")))
 		nodes = append(nodes, h.A(g.Text("/debug"), g.Attr("href", "/debug")), h.Br())
 		for i := range keys {

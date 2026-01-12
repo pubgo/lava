@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pubgo/redant"
-	yaml "gopkg.in/yaml.v3"
-
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/recovery"
+	"github.com/pubgo/redant"
+	yaml "gopkg.in/yaml.v3"
 )
 
 func New[Cfg any]() *redant.Command {
