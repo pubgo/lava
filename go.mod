@@ -64,7 +64,7 @@ require (
 	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.17
 	github.com/ulikunitz/xz v0.5.15
-	github.com/valyala/fasthttp v1.63.0
+	github.com/valyala/fasthttp v1.69.0
 	github.com/valyala/fasttemplate v1.2.2
 	go.opentelemetry.io/contrib/zpages v0.62.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
@@ -154,7 +154,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofiber/contrib/websocket v1.3.4 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
