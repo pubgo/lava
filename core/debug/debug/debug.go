@@ -66,7 +66,8 @@ func initDebug() {
 		}
 		sort.Strings(groupNames)
 
-		var routesHTML template.HTML
+		// 构建折叠面板的路由列表
+		var routeItems string
 		for _, group := range groupNames {
 			routes := groups[group]
 			var rows template.HTML
@@ -79,8 +80,41 @@ func initDebug() {
 				rows += ui.TR(methodBadges, fmt.Sprintf(`<a href="%s" class="text-blue-400 hover:underline">%s</a>`, r.Path, r.Path))
 			}
 			tableHTML := ui.Table([]string{"方法", "路径"}) + rows + ui.TableEnd()
-			routesHTML += ui.Card(fmt.Sprintf("📁 %s (%d)", group, len(routes)), tableHTML)
+
+			routeItems += fmt.Sprintf(`
+                <details class="group border-b border-gray-700 last:border-b-0">
+                    <summary class="flex items-center justify-between cursor-pointer px-4 py-3 hover:bg-gray-700/50 transition-colors">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-gray-400">📁</span>
+                            <span class="font-medium text-white">%s</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs bg-gray-700 text-gray-300">%d</span>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </summary>
+                    <div class="px-4 pb-4 bg-gray-800/50">%s</div>
+                </details>`, group, len(routes), tableHTML)
 		}
+
+		totalRoutes := len(pathList)
+		routesHTML := template.HTML(fmt.Sprintf(`
+<div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden mb-4">
+    <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <h3 class="font-semibold text-white">🛣️ API 路由</h3>
+            <span class="px-2 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">%d 个路由</span>
+            <span class="px-2 py-0.5 rounded-full text-xs bg-gray-700 text-gray-300">%d 个分组</span>
+        </div>
+        <div x-data="{ expanded: false }">
+            <button @click="expanded = !expanded; document.querySelectorAll('.routes-panel details').forEach(d => d.open = expanded)"
+                class="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700">
+                <span x-text="expanded ? '全部收起' : '全部展开'">全部展开</span>
+            </button>
+        </div>
+    </div>
+    <div class="routes-panel max-h-[500px] overflow-y-auto">%s</div>
+</div>`, totalRoutes, len(groupNames), routeItems))
 
 		// 快捷操作
 		actionsHTML := template.HTML(`
@@ -104,6 +138,16 @@ func initDebug() {
         <div class="text-2xl mb-2">🎛️</div>
         <div class="font-medium">Supervisor</div>
         <div class="text-sm text-gray-400">服务监控与管理</div>
+    </a>
+    <a href="/debug/scheduler/" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
+        <div class="text-2xl mb-2">⏰</div>
+        <div class="font-medium">Scheduler</div>
+        <div class="text-sm text-gray-400">任务调度管理</div>
+    </a>
+    <a href="/debug/logs/" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
+        <div class="text-2xl mb-2">📋</div>
+        <div class="font-medium">日志查看器</div>
+        <div class="text-sm text-gray-400">查询和分析日志</div>
     </a>
     <a href="/debug/health" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
         <div class="text-2xl mb-2">❤️</div>
@@ -129,6 +173,11 @@ func initDebug() {
         <div class="text-2xl mb-2">⚙️</div>
         <div class="font-medium">配置</div>
         <div class="text-sm text-gray-400">查看配置</div>
+    </a>
+    <a href="/debug/vars/" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
+        <div class="text-2xl mb-2">📊</div>
+        <div class="font-medium">Expvar</div>
+        <div class="text-sm text-gray-400">运行时变量</div>
     </a>
     <a href="/debug/features" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
         <div class="text-2xl mb-2">🚩</div>

@@ -1,11 +1,11 @@
 package version
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	rd "runtime/debug"
 
-	json "github.com/goccy/go-json"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/running"

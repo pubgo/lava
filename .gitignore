@@ -28,3 +28,4 @@ bin
 /example/bin
 .proto
 proto-vendor
+.local

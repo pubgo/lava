@@ -294,11 +294,37 @@ func buildConfigTree(data map[string]any, indent string) template.HTML {
 		value := data[key]
 		switch v := value.(type) {
 		case map[string]any:
-			result += fmt.Sprintf(`<div class="%s"><span class="text-blue-400 font-medium">%s:</span>`, indent, key)
-			result += string(buildConfigTree(v, indent+"ml-4"))
-			result += `</div>`
+			if len(v) == 0 {
+				result += fmt.Sprintf(`<div class="%s"><span class="text-blue-400 font-medium">%s:</span> <span class="text-gray-500">{}</span></div>`, indent, key)
+			} else {
+				result += fmt.Sprintf(`
+<details class="%s group" open>
+    <summary class="cursor-pointer list-none flex items-center">
+        <svg class="w-4 h-4 mr-1 text-gray-500 transform group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+        <span class="text-blue-400 font-medium">%s</span>
+        <span class="text-gray-500 text-xs ml-2">(%d)</span>
+    </summary>
+    <div class="ml-5 mt-1 pl-3 border-l border-gray-700">%s</div>
+</details>`, indent, key, len(v), buildConfigTree(v, ""))
+			}
 		case []any:
-			result += fmt.Sprintf(`<div class="%s"><span class="text-purple-400 font-medium">%s:</span> <span class="text-gray-400">[%d items]</span></div>`, indent, key, len(v))
+			if len(v) == 0 {
+				result += fmt.Sprintf(`<div class="%s"><span class="text-purple-400 font-medium">%s:</span> <span class="text-gray-500">[]</span></div>`, indent, key)
+			} else {
+				result += fmt.Sprintf(`
+<details class="%s group">
+    <summary class="cursor-pointer list-none flex items-center">
+        <svg class="w-4 h-4 mr-1 text-gray-500 transform group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+        <span class="text-purple-400 font-medium">%s</span>
+        <span class="text-gray-500 text-xs ml-2">[%d items]</span>
+    </summary>
+    <div class="ml-5 mt-1 pl-3 border-l border-gray-700">%s</div>
+</details>`, indent, key, len(v), buildArrayTree(v, key))
+			}
 		default:
 			valueStr := fmt.Sprintf("%v", v)
 			valueClass := "text-green-400"
@@ -306,6 +332,40 @@ func buildConfigTree(data map[string]any, indent string) template.HTML {
 				valueClass = "text-yellow-400"
 			}
 			result += fmt.Sprintf(`<div class="%s"><span class="text-gray-300">%s:</span> <span class="%s">%s</span></div>`, indent, key, valueClass, template.HTMLEscapeString(valueStr))
+		}
+	}
+	return template.HTML(result)
+}
+
+func buildArrayTree(arr []any, parentKey string) template.HTML {
+	result := ""
+	for i, item := range arr {
+		switch v := item.(type) {
+		case map[string]any:
+			if len(v) == 0 {
+				result += fmt.Sprintf(`<div><span class="text-gray-500">[%d]:</span> <span class="text-gray-500">{}</span></div>`, i)
+			} else {
+				result += fmt.Sprintf(`
+<details class="group">
+    <summary class="cursor-pointer list-none flex items-center">
+        <svg class="w-4 h-4 mr-1 text-gray-500 transform group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+        <span class="text-gray-400">[%d]</span>
+    </summary>
+    <div class="ml-5 mt-1 pl-3 border-l border-gray-700">%s</div>
+</details>`, i, buildConfigTree(v, ""))
+			}
+		case []any:
+			result += fmt.Sprintf(`<div><span class="text-gray-500">[%d]:</span> <span class="text-gray-400">[%d items]</span></div>`, i, len(v))
+		default:
+			valueStr := fmt.Sprintf("%v", v)
+			valueClass := "text-green-400"
+			if isSensitiveKey(parentKey) {
+				valueClass = "text-yellow-400"
+				valueStr = maskString(valueStr)
+			}
+			result += fmt.Sprintf(`<div><span class="text-gray-500">[%d]:</span> <span class="%s">%s</span></div>`, i, valueClass, template.HTMLEscapeString(valueStr))
 		}
 	}
 	return template.HTML(result)

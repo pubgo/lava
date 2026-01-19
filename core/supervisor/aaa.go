@@ -9,32 +9,32 @@ import (
 type ServiceStatus string
 
 const (
-	StatusIdle     ServiceStatus = "idle"      // 空闲，未启动
-	StatusRunning  ServiceStatus = "running"   // 运行中
-	StatusStopped  ServiceStatus = "stopped"   // 已停止（手动）
-	StatusError    ServiceStatus = "error"     // 错误状态
-	StatusCrashing ServiceStatus = "crashing"  // 崩溃循环中
-	StatusFailed   ServiceStatus = "failed"    // 已失败（达到重启上限）
+	StatusIdle     ServiceStatus = "idle"     // 空闲，未启动
+	StatusRunning  ServiceStatus = "running"  // 运行中
+	StatusStopped  ServiceStatus = "stopped"  // 已停止（手动）
+	StatusError    ServiceStatus = "error"    // 错误状态
+	StatusCrashing ServiceStatus = "crashing" // 崩溃循环中
+	StatusFailed   ServiceStatus = "failed"   // 已失败（达到重启上限）
 )
 
 // Metric 服务指标
 type Metric struct {
-	Name            string        `json:"name"`              // 服务名称
-	Status          ServiceStatus `json:"status"`            // 当前状态
-	StartCount      uint32        `json:"start_count"`       // 启动次数
-	ErrorCount      uint32        `json:"error_count"`       // 错误次数
-	SuccessCount    uint32        `json:"success_count"`     // 成功退出次数
-	ConsecFailures  uint32        `json:"consec_failures"`   // 连续失败次数
-	LastError       string        `json:"last_error"`        // 最后一次错误信息
-	LastErrorTime   time.Time     `json:"last_error_time"`   // 最后一次错误时间
-	LastStartTime   time.Time     `json:"last_start_time"`   // 最后一次启动时间
-	LastStopTime    time.Time     `json:"last_stop_time"`    // 最后一次停止时间
-	CurrentUptime   time.Duration `json:"current_uptime"`    // 当前运行时长
-	TotalUptime     time.Duration `json:"total_uptime"`      // 总运行时长
-	AverageUptime   time.Duration `json:"average_uptime"`    // 平均运行时长
-	CreatedAt       time.Time     `json:"created_at"`        // 服务创建时间
-	CurrentDelay    time.Duration `json:"current_delay"`     // 当前重启延迟
-	RestartsInWindow uint32       `json:"restarts_in_window"` // 窗口期内重启次数
+	Name             string        `json:"name"`               // 服务名称
+	Status           ServiceStatus `json:"status"`             // 当前状态
+	StartCount       uint32        `json:"start_count"`        // 启动次数
+	ErrorCount       uint32        `json:"error_count"`        // 错误次数
+	SuccessCount     uint32        `json:"success_count"`      // 成功退出次数
+	ConsecFailures   uint32        `json:"consec_failures"`    // 连续失败次数
+	LastError        string        `json:"last_error"`         // 最后一次错误信息
+	LastErrorTime    time.Time     `json:"last_error_time"`    // 最后一次错误时间
+	LastStartTime    time.Time     `json:"last_start_time"`    // 最后一次启动时间
+	LastStopTime     time.Time     `json:"last_stop_time"`     // 最后一次停止时间
+	CurrentUptime    time.Duration `json:"current_uptime"`     // 当前运行时长
+	TotalUptime      time.Duration `json:"total_uptime"`       // 总运行时长
+	AverageUptime    time.Duration `json:"average_uptime"`     // 平均运行时长
+	CreatedAt        time.Time     `json:"created_at"`         // 服务创建时间
+	CurrentDelay     time.Duration `json:"current_delay"`      // 当前重启延迟
+	RestartsInWindow uint32        `json:"restarts_in_window"` // 窗口期内重启次数
 }
 
 // Service 服务接口
@@ -88,11 +88,11 @@ type ServiceConfig struct {
 func DefaultServiceConfig() ServiceConfig {
 	return ServiceConfig{
 		RestartPolicy:       RestartAlways,
-		MaxRestarts:         0,              // 无限制
-		RestartDelay:        time.Second,    // 初始 1 秒
-		MaxRestartDelay:     time.Minute,    // 最大 1 分钟
+		MaxRestarts:         0,               // 无限制
+		RestartDelay:        time.Second,     // 初始 1 秒
+		MaxRestartDelay:     time.Minute,     // 最大 1 分钟
 		RestartWindow:       5 * time.Minute, // 5 分钟窗口
-		MaxRestartsInWindow: 5,              // 窗口内最多 5 次
-		BackoffMultiplier:   2.0,            // 每次翻倍
+		MaxRestartsInWindow: 5,               // 窗口内最多 5 次
+		BackoffMultiplier:   2.0,             // 每次翻倍
 	}
 }

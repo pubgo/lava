@@ -15,7 +15,8 @@ func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 		return configMap, nil
 	}
 
-	for _, config := range configs[0].JobConfigs {
+	for i := range configs[0].JobConfigs {
+		config := &configs[0].JobConfigs[i]
 		if config.Name == "" {
 			return nil, errors.Errorf("schedule job name is empty")
 		}
@@ -23,6 +24,7 @@ func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 		if _, ok := configMap[config.Name]; ok {
 			return nil, errors.Errorf("schedule job(%s) exists", config.Name)
 		}
+		configMap[config.Name] = config
 	}
 	return configMap, nil
 }

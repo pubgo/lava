@@ -28,12 +28,15 @@ type Scheduler struct {
 	ctx          context.Context
 	jobExecutors map[string]JobExecutor
 
-	mu sync.Mutex
-
-	jobs sync.Map
+	mu   sync.RWMutex
+	jobs map[string]*jobTask
 }
 
 func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
+	if s.jobs == nil {
+		s.jobs = make(map[string]*jobTask)
+	}
+
 	task := jobTask{
 		spec:   &spec,
 		jobKey: parseJobKey(spec.Name),
@@ -68,7 +71,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	}
 
 	name := spec.Name
-	if _, ok := s.jobs.Load(name); ok {
+	if _, ok := s.jobs[name]; ok {
 		return r.WithErrorf("job %s already exists", name)
 	}
 
@@ -108,7 +111,7 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 		return r
 	}
 
-	s.jobs.Store(name, &task)
+	s.jobs[name] = &task
 	return r
 }
 
@@ -119,16 +122,16 @@ func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
 }
 
 func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
-	if val, ok := s.jobs.Load(name); !ok {
+	if val, ok := s.jobs[name]; !ok {
 		return r.WithErrorf("job %s not exists", name)
 	} else {
-		return r.WithValue(val.(*jobTask))
+		return r.WithValue(val)
 	}
 }
 
 func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	job := s.getJob(name).UnwrapOrThrow(&r)
 	if r.IsErr() {
@@ -179,7 +182,7 @@ func (s *Scheduler) DeleteJob(name string) (r result.Error) {
 		return r
 	}
 
-	s.jobs.Delete(name)
+	delete(s.jobs, name)
 	return result.ErrOf(s.scheduler.DeleteJob(job.jobKey)).
 		IfErr(func(err error) {
 			log.Err(err).Msgf("failed to delete schedule job(%s)", name)
@@ -216,20 +219,19 @@ func (s *Scheduler) ReloadJob(name string) (r result.Error) {
 }
 
 func (s *Scheduler) ListJobs() []*Job {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-	var jobs []*Job
-	s.jobs.Range(func(key, value any) bool {
-		jobs = append(jobs, value.(*jobTask).ToJob())
-		return true
-	})
+	jobs := make([]*Job, 0, len(s.jobs))
+	for _, task := range s.jobs {
+		jobs = append(jobs, task.ToJob())
+	}
 	return jobs
 }
 
 func (s *Scheduler) GetJob(name string) (r result.Result[*Job]) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	job := s.getJob(name).UnwrapOrThrow(&r)
 	if r.IsErr() {

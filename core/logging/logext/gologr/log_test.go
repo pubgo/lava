@@ -20,5 +20,5 @@ func TestName(t *testing.T) {
 	assert.Equal(t, data["hello"], float64(123456))
 	assert.Equal(t, data["level"], "info")
 	assert.Equal(t, data["message"], "test")
-	assert.Contains(t, data["caller"], "otellogger/log_test.go")
+	assert.Contains(t, data["caller"], "gologr/log_test.go")
 }

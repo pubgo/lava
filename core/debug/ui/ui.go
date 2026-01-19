@@ -33,8 +33,10 @@ const BaseTemplate = `<!DOCTYPE html>
                     <a href="/debug/sys" class="text-gray-300 hover:text-white text-sm">系统</a>
                     <a href="/debug/runtime" class="text-gray-300 hover:text-white text-sm">运行时</a>
                     <a href="/debug/goroutine" class="text-gray-300 hover:text-white text-sm">Goroutine</a>
+                    <a href="/debug/scheduler/" class="text-gray-300 hover:text-white text-sm">调度器</a>
+                    <a href="/debug/logs/" class="text-gray-300 hover:text-white text-sm">日志</a>
                     <a href="/debug/health" class="text-gray-300 hover:text-white text-sm">健康</a>
-                    <a href="/debug/log/level" class="text-gray-300 hover:text-white text-sm">日志</a>
+                    <a href="/debug/log/level" class="text-gray-300 hover:text-white text-sm">日志级别</a>
                     <a href="/debug/config" class="text-gray-300 hover:text-white text-sm">配置</a>
                     <a href="/debug/pprof/" class="text-gray-300 hover:text-white text-sm">PProf</a>
                 </div>

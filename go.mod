@@ -51,7 +51,6 @@ require (
 	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
-	github.com/maragudk/gomponents v0.22.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-beta.10
 	github.com/pubgo/funk/v2 v2.0.0-beta.10
@@ -77,6 +76,7 @@ require (
 	golang.org/x/tools v0.40.0
 	golang.org/x/vuln v1.1.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20251222181119-0a764e51fe1b
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 	maragu.dev/gomponents v1.2.0
 )
