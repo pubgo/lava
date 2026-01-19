@@ -244,11 +244,15 @@ func (s *Scheduler) String() string {
 }
 
 func (s *Scheduler) Serve(ctx context.Context) error {
+	// 每次 Serve 调用时重新创建内部 context，支持服务重启
+	s.ctx, s.cancel = context.WithCancel(ctx)
 	defer s.stop()
 	s.start()
 
-	s.scheduler.Wait(ctx)
-	return nil
+	s.scheduler.Wait(s.ctx)
+
+	// 返回 context 的错误，这样 supervisor 能正确判断是正常停止还是需要重启
+	return ctx.Err()
 }
 
 func (s *Scheduler) stop() {

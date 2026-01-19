@@ -3,27 +3,37 @@ package supervisor
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/async"
-	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/result"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/stack"
-	"github.com/thejerf/suture/v4"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/internal/logutil"
-	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
-type serviceWrapper struct {
-	token   suture.ServiceToken
+// serviceRunner 管理单个服务的运行
+type serviceRunner struct {
 	service Service
+	config  ServiceConfig
+	cancel  context.CancelFunc
+	stopped bool // 是否被手动停止
+	failed  bool // 是否已失败（达到重启上限）
+	done    chan struct{}
+
+	// 重启状态跟踪
+	restartCount     int           // 总重启次数
+	consecFailures   int           // 连续失败次数
+	windowRestarts   int           // 窗口期内重启次数
+	windowStart      time.Time     // 窗口开始时间
+	currentDelay     time.Duration // 当前重启延迟
+	lastServiceStart time.Time     // 上次服务启动时间
 }
 
 func Default(lc lifecycle.Getter) *Manager {
@@ -32,114 +42,871 @@ func Default(lc lifecycle.Getter) *Manager {
 
 func NewManager(name string, lc lifecycle.Getter) *Manager {
 	m := &Manager{
-		lc:         lc,
-		supervisor: suture.New(name, SpecWithInfoLogger()),
-		services:   make(map[string]*serviceWrapper),
-		logger:     log.GetLogger(name),
+		name:     name,
+		lc:       lc,
+		services: make(map[string]*serviceRunner),
+		logger:   log.GetLogger(name),
 	}
 	return m.init()
 }
 
 type Manager struct {
-	lc         lifecycle.Getter
-	logger     log.Logger
-	supervisor *Supervisor
-	services   map[string]*serviceWrapper
+	name     string
+	lc       lifecycle.Getter
+	logger   log.Logger
+	mu       sync.RWMutex
+	services map[string]*serviceRunner
+
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func (m *Manager) init() *Manager {
 	debug.Route("/supervisor", func(router fiber.Router) {
-		router.Get("services", func(ctx *fiber.Ctx) error {
-			services := make([]*Metric, 0, len(m.services))
-			for _, srv := range m.services {
-				services = append(services, srv.service.Metric())
-			}
-			return ctx.JSON(services)
-		})
+		// 主页面 - UI 界面
+		router.Get("/", m.handleDebugPage)
+
+		// API 端点
+		router.Get("/api/services", m.handleAPIServices)
+		router.Get("/api/service/:name", m.handleAPIServiceDetail)
+		router.Post("/api/service/:name/restart", m.handleAPIRestartService)
+		router.Post("/api/service/:name/stop", m.handleAPIStopService)
+		router.Post("/api/service/:name/start", m.handleAPIStartService)
+		router.Post("/api/service/:name/reset", m.handleAPIResetService)
+		router.Post("/api/services/restart", m.handleAPIRestartAll)
+
+		// 兼容旧端点
+		router.Get("services", m.handleAPIServices)
 	})
 
 	return m
 }
 
+// ServiceInfo 包含服务指标和运行时状态
+type ServiceInfo struct {
+	*Metric
+	Stopped          bool          `json:"stopped"`
+	Failed           bool          `json:"failed"`
+	RestartCount     int           `json:"restart_count"`
+	ConsecFailures   int           `json:"consec_failures"`
+	WindowRestarts   int           `json:"window_restarts"`
+	CurrentDelay     time.Duration `json:"current_delay_ns"`
+	CurrentDelayStr  string        `json:"current_delay"`
+	WindowStart      time.Time     `json:"window_start"`
+	LastServiceStart time.Time     `json:"last_service_start"`
+}
+
+func (m *Manager) handleAPIServices(ctx *fiber.Ctx) error {
+	m.mu.RLock()
+	services := make([]*ServiceInfo, 0, len(m.services))
+	for _, srv := range m.services {
+		metric := srv.service.Metric()
+		// 覆盖状态
+		if srv.failed {
+			metric.Status = StatusFailed
+		} else if srv.stopped {
+			metric.Status = StatusStopped
+		} else if srv.consecFailures > 0 {
+			metric.Status = StatusCrashing
+		}
+		services = append(services, &ServiceInfo{
+			Metric:           metric,
+			Stopped:          srv.stopped,
+			Failed:           srv.failed,
+			RestartCount:     srv.restartCount,
+			ConsecFailures:   srv.consecFailures,
+			WindowRestarts:   srv.windowRestarts,
+			CurrentDelay:     srv.currentDelay,
+			CurrentDelayStr:  srv.currentDelay.String(),
+			WindowStart:      srv.windowStart,
+			LastServiceStart: srv.lastServiceStart,
+		})
+	}
+	m.mu.RUnlock()
+	return ctx.JSON(services)
+}
+
+func (m *Manager) handleAPIServiceDetail(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	m.mu.RLock()
+	srv, ok := m.services[name]
+	if !ok {
+		m.mu.RUnlock()
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "service not found",
+			"name":  name,
+		})
+	}
+	metric := srv.service.Metric()
+	if srv.failed {
+		metric.Status = StatusFailed
+	} else if srv.stopped {
+		metric.Status = StatusStopped
+	} else if srv.consecFailures > 0 {
+		metric.Status = StatusCrashing
+	}
+	info := &ServiceInfo{
+		Metric:           metric,
+		Stopped:          srv.stopped,
+		Failed:           srv.failed,
+		RestartCount:     srv.restartCount,
+		ConsecFailures:   srv.consecFailures,
+		WindowRestarts:   srv.windowRestarts,
+		CurrentDelay:     srv.currentDelay,
+		CurrentDelayStr:  srv.currentDelay.String(),
+		WindowStart:      srv.windowStart,
+		LastServiceStart: srv.lastServiceStart,
+	}
+	m.mu.RUnlock()
+	return ctx.JSON(info)
+}
+
+func (m *Manager) handleAPIRestartService(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	if err := m.RestartService(name); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+			"name":  name,
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "service restarted",
+		"name":    name,
+	})
+}
+
+func (m *Manager) handleAPIStopService(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	if err := m.StopService(name); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+			"name":  name,
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "service stopped",
+		"name":    name,
+	})
+}
+
+func (m *Manager) handleAPIStartService(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	if err := m.StartService(name); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+			"name":  name,
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "service started",
+		"name":    name,
+	})
+}
+
+func (m *Manager) handleAPIResetService(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	if err := m.ResetService(name); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+			"name":  name,
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "service reset",
+		"name":    name,
+	})
+}
+
+func (m *Manager) handleAPIRestartAll(ctx *fiber.Ctx) error {
+	if err := m.RestartServices(); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "all services restarted",
+	})
+}
+
+func (m *Manager) handleDebugPage(ctx *fiber.Ctx) error {
+	html := supervisorDebugPageHTML
+	ctx.Set("Content-Type", "text/html; charset=utf-8")
+	return ctx.SendString(html)
+}
+
+const supervisorDebugPageHTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervisor - Debug Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .loading { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <nav class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center space-x-4">
+                    <a href="/debug/" class="text-xl font-bold text-blue-400 hover:text-blue-300">🔧 Debug</a>
+                    <span class="text-gray-500">|</span>
+                    <span class="text-white font-medium">Supervisor</span>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-gray-500" x-data="{ time: '' }" x-init="setInterval(() => time = new Date().toLocaleString('zh-CN'), 1000)">
+                    <span x-text="time"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-6" x-data="supervisorApp()" x-init="init()">
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">服务总数</div>
+                <div class="text-2xl font-bold text-white mt-1" x-text="services.length">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">运行中</div>
+                <div class="text-2xl font-bold text-green-400 mt-1" x-text="runningCount">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">错误状态</div>
+                <div class="text-2xl font-bold text-red-400 mt-1" x-text="errorCount">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">总启动次数</div>
+                <div class="text-2xl font-bold text-yellow-400 mt-1" x-text="totalStarts">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">总错误次数</div>
+                <div class="text-2xl font-bold text-red-400 mt-1" x-text="totalErrors">0</div>
+            </div>
+        </div>
+
+        <!-- 操作栏 -->
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-4 mb-6 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-lg font-semibold text-white">服务列表</h2>
+                <span class="text-gray-500 text-sm">自动刷新: 每 <span x-text="refreshInterval/1000"></span> 秒</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button @click="refresh()" class="px-3 py-1.5 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center space-x-1" :disabled="loading">
+                    <span x-show="loading" class="animate-spin">⟳</span>
+                    <span>刷新</span>
+                </button>
+                <button @click="restartAll()" class="px-3 py-1.5 rounded text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 transition-colors" :disabled="loading">
+                    全部重启
+                </button>
+            </div>
+        </div>
+
+        <!-- 服务表格 -->
+        <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-700/50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">服务名</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">状态</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">启动次数</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">错误次数</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">重启次数</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">运行时长</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">重启延迟</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">最后错误</th>
+                            <th class="px-4 py-3 text-left text-gray-300 font-medium">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        <template x-if="services.length === 0">
+                            <tr>
+                                <td colspan="10" class="px-4 py-8 text-center text-gray-500">
+                                    <span x-show="loading">加载中...</span>
+                                    <span x-show="!loading">暂无服务</span>
+                                </td>
+                            </tr>
+                        </template>
+                        <template x-for="svc in services" :key="svc.name">
+                            <tr class="hover:bg-gray-700/30">
+                                <td class="px-4 py-3">
+                                    <span class="font-medium text-white" x-text="svc.name"></span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 rounded text-xs font-medium"
+                                        :class="{
+                                            'bg-green-500/20 text-green-400': svc.status === 'running',
+                                            'bg-red-500/20 text-red-400': svc.status === 'error' || svc.status === 'failed',
+                                            'bg-gray-500/20 text-gray-400': svc.status === 'stopped' || svc.status === 'idle',
+                                            'bg-orange-500/20 text-orange-400': svc.status === 'crashing'
+                                        }"
+                                        x-text="statusText(svc.status)">
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-yellow-400" x-text="svc.start_count"></td>
+                                <td class="px-4 py-3 text-red-400">
+                                    <span x-text="svc.error_count"></span>
+                                    <span x-show="svc.consec_failures > 0" class="text-orange-400 text-xs ml-1">(连续:<span x-text="svc.consec_failures"></span>)</span>
+                                </td>
+                                <td class="px-4 py-3 text-blue-400">
+                                    <span x-text="svc.restart_count || 0"></span>
+                                    <span x-show="svc.window_restarts > 0" class="text-orange-400 text-xs ml-1">(窗口:<span x-text="svc.window_restarts"></span>)</span>
+                                </td>
+                                <td class="px-4 py-3 text-gray-300" x-text="formatDuration(svc.current_uptime)"></td>
+                                <td class="px-4 py-3 text-gray-300">
+                                    <span x-text="svc.current_delay || '-'"></span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span x-show="svc.last_error" class="text-red-400 text-xs truncate block max-w-xs" :title="svc.last_error" x-text="truncate(svc.last_error, 30)"></span>
+                                    <span x-show="!svc.last_error" class="text-gray-500">-</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-1 flex-wrap gap-1">
+                                        <button x-show="svc.status === 'running'" @click="stopService(svc.name)" class="px-2 py-1 rounded text-xs font-medium text-white bg-orange-600 hover:bg-orange-700 transition-colors" :disabled="loading">
+                                            暂停
+                                        </button>
+                                        <button x-show="svc.status !== 'running'" @click="startService(svc.name)" class="px-2 py-1 rounded text-xs font-medium text-white bg-green-600 hover:bg-green-700 transition-colors" :disabled="loading">
+                                            启动
+                                        </button>
+                                        <button x-show="svc.status === 'running'" @click="restartService(svc.name)" class="px-2 py-1 rounded text-xs font-medium text-white bg-yellow-600 hover:bg-yellow-700 transition-colors" :disabled="loading">
+                                            重启
+                                        </button>
+                                        <button x-show="svc.failed || svc.consec_failures > 0" @click="resetService(svc.name)" class="px-2 py-1 rounded text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors" :disabled="loading">
+                                            重置
+                                        </button>
+                                        <button @click="showDetail(svc)" class="px-2 py-1 rounded text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                                            详情
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 详情模态框 -->
+        <div x-show="detailModal" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="detailModal = false">
+            <div class="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-2xl max-h-[80vh] overflow-auto">
+                <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800">
+                    <h3 class="font-semibold text-white">服务详情: <span x-text="selectedService?.name"></span></h3>
+                    <button @click="detailModal = false" class="text-gray-400 hover:text-white">&times;</button>
+                </div>
+                <div class="p-4">
+                    <pre class="bg-gray-900 rounded p-4 text-sm text-gray-300 overflow-auto" x-text="JSON.stringify(selectedService, null, 2)"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast 通知 -->
+        <div x-show="toast.show" x-cloak 
+            class="fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            :class="{
+                'bg-green-600': toast.type === 'success',
+                'bg-red-600': toast.type === 'error',
+                'bg-yellow-600': toast.type === 'warning'
+            }"
+            x-transition>
+            <span x-text="toast.message"></span>
+        </div>
+    </main>
+
+    <script>
+    function supervisorApp() {
+        return {
+            services: [],
+            loading: false,
+            refreshInterval: 5000,
+            intervalId: null,
+            detailModal: false,
+            selectedService: null,
+            toast: { show: false, message: '', type: 'success' },
+
+            get runningCount() {
+                return this.services.filter(s => s.status === 'running').length;
+            },
+            get errorCount() {
+                return this.services.filter(s => s.status === 'error').length;
+            },
+            get totalStarts() {
+                return this.services.reduce((sum, s) => sum + (s.start_count || 0), 0);
+            },
+            get totalErrors() {
+                return this.services.reduce((sum, s) => sum + (s.error_count || 0), 0);
+            },
+
+            init() {
+                this.refresh();
+                this.intervalId = setInterval(() => this.refresh(), this.refreshInterval);
+            },
+
+            async refresh() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/services');
+                    this.services = await res.json();
+                } catch (e) {
+                    this.showToast('获取服务列表失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async restartService(name) {
+                if (!confirm('确定要重启服务 "' + name + '" 吗？')) return;
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/service/' + encodeURIComponent(name) + '/restart', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.showToast('服务 "' + name + '" 已重启', 'success');
+                        await this.refresh();
+                    } else {
+                        this.showToast(data.error || '重启失败', 'error');
+                    }
+                } catch (e) {
+                    this.showToast('重启失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async stopService(name) {
+                if (!confirm('确定要暂停服务 "' + name + '" 吗？')) return;
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/service/' + encodeURIComponent(name) + '/stop', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.showToast('服务 "' + name + '" 已暂停', 'success');
+                        await this.refresh();
+                    } else {
+                        this.showToast(data.error || '暂停失败', 'error');
+                    }
+                } catch (e) {
+                    this.showToast('暂停失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async startService(name) {
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/service/' + encodeURIComponent(name) + '/start', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.showToast('服务 "' + name + '" 已启动', 'success');
+                        await this.refresh();
+                    } else {
+                        this.showToast(data.error || '启动失败', 'error');
+                    }
+                } catch (e) {
+                    this.showToast('启动失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async resetService(name) {
+                if (!confirm('确定要重置服务 "' + name + '" 的重启计数吗？')) return;
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/service/' + encodeURIComponent(name) + '/reset', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.showToast('服务 "' + name + '" 已重置', 'success');
+                        await this.refresh();
+                    } else {
+                        this.showToast(data.error || '重置失败', 'error');
+                    }
+                } catch (e) {
+                    this.showToast('重置失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async restartAll() {
+                if (!confirm('确定要重启所有服务吗？')) return;
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/supervisor/api/services/restart', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        this.showToast('所有服务已重启', 'success');
+                        await this.refresh();
+                    } else {
+                        this.showToast(data.error || '重启失败', 'error');
+                    }
+                } catch (e) {
+                    this.showToast('重启失败: ' + e.message, 'error');
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            showDetail(svc) {
+                this.selectedService = svc;
+                this.detailModal = true;
+            },
+
+            showToast(message, type = 'success') {
+                this.toast = { show: true, message, type };
+                setTimeout(() => this.toast.show = false, 3000);
+            },
+
+            statusText(status) {
+                const map = { 
+                    'running': '运行中', 
+                    'stopped': '已停止', 
+                    'error': '错误', 
+                    'idle': '空闲',
+                    'crashing': '崩溃循环',
+                    'failed': '已失败'
+                };
+                return map[status] || status;
+            },
+
+            statusColor(status) {
+                const map = {
+                    'running': 'bg-green-100 text-green-800',
+                    'stopped': 'bg-gray-100 text-gray-800',
+                    'error': 'bg-red-100 text-red-800',
+                    'idle': 'bg-blue-100 text-blue-800',
+                    'crashing': 'bg-orange-100 text-orange-800',
+                    'failed': 'bg-red-200 text-red-900'
+                };
+                return map[status] || 'bg-gray-100 text-gray-800';
+            },
+
+            formatDuration(ns) {
+                if (!ns || ns === 0) return '-';
+                const ms = ns / 1000000;
+                if (ms < 1000) return Math.round(ms) + 'ms';
+                const s = ms / 1000;
+                if (s < 60) return s.toFixed(1) + 's';
+                const m = s / 60;
+                if (m < 60) return m.toFixed(1) + 'm';
+                const h = m / 60;
+                if (h < 24) return h.toFixed(1) + 'h';
+                const d = h / 24;
+                return d.toFixed(1) + 'd';
+            },
+
+            truncate(str, len) {
+                if (!str) return '';
+                return str.length > len ? str.substring(0, len) + '...' : str;
+            }
+        }
+    }
+    </script>
+</body>
+</html>`
+
 func (m *Manager) Has(name string) bool {
+	m.mu.RLock()
 	_, ok := m.services[name]
+	m.mu.RUnlock()
 	return ok
 }
 
 func (m *Manager) OnClose(fn func()) {
-	m.supervisor.Add(serviceFn(func(ctx context.Context) error {
-		<-ctx.Done()
-		fn()
-		return nil
-	}))
+	_ = m.Add(&onCloseService{fn: fn})
+}
+
+type onCloseService struct {
+	fn func()
+}
+
+func (s *onCloseService) Name() string    { return "on-close-" + fmt.Sprintf("%p", s.fn) }
+func (s *onCloseService) Error() error    { return nil }
+func (s *onCloseService) String() string  { return s.Name() }
+func (s *onCloseService) Metric() *Metric { return &Metric{Name: s.Name()} }
+func (s *onCloseService) Serve(ctx context.Context) error {
+	<-ctx.Done()
+	s.fn()
+	return NoRestartErr(nil)
 }
 
 func (m *Manager) Add(srv Service) error {
 	name := srv.Name()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if _, ok := m.services[name]; ok {
-		return errors.Errorf("service already exists, name=%s", name)
+		return fmt.Errorf("service already exists, name=%s", name)
 	}
 
 	m.logger.Info().Str("name", name).Msg("add service to supervisor")
-	m.services[name] = &serviceWrapper{service: srv, token: m.supervisor.Add(srv)}
+	runner := &serviceRunner{
+		service: srv,
+		config:  DefaultServiceConfig(),
+		stopped: false,
+	}
+	m.services[name] = runner
+
+	// 如果 manager 已经启动，立即启动这个服务
+	if m.ctx != nil {
+		m.startRunner(runner)
+	}
+
+	return nil
+}
+
+// AddWithConfig 添加服务并指定配置
+func (m *Manager) AddWithConfig(srv Service, config ServiceConfig) error {
+	name := srv.Name()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.services[name]; ok {
+		return fmt.Errorf("service already exists, name=%s", name)
+	}
+
+	m.logger.Info().Str("name", name).Msg("add service to supervisor with config")
+	runner := &serviceRunner{
+		service: srv,
+		config:  config,
+		stopped: false,
+	}
+	m.services[name] = runner
+
+	// 如果 manager 已经启动，立即启动这个服务
+	if m.ctx != nil {
+		m.startRunner(runner)
+	}
+
 	return nil
 }
 
 func (m *Manager) Delete(name string) error {
+	m.mu.Lock()
 	srv := m.services[name]
 	if srv == nil {
+		m.mu.Unlock()
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot delete")
-		return nil
+		return fmt.Errorf("service not found, name=%s", name)
 	}
 
-	defer func() { delete(m.services, name) }()
+	// 停止服务
+	cancel := srv.cancel
+	done := srv.done
+	delete(m.services, name)
+	m.mu.Unlock()
+
+	if cancel != nil {
+		cancel()
+		if done != nil {
+			<-done
+		}
+	}
+
 	m.logger.Info().Str("name", name).Msg("delete service from supervisor")
-	return errors.Wrapf(m.supervisor.Remove(srv.token), "failed to remove service, name=%s", name)
+	return nil
 }
 
-func (m *Manager) RemoveServices() (gErr error) {
+func (m *Manager) RemoveServices() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	for name, srv := range m.services {
-		if result.ThrowErr(&gErr, m.supervisor.Remove(srv.token)) {
-			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
+		if srv.cancel != nil {
+			srv.cancel()
 		}
 		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
 	}
 
-	m.services = make(map[string]*serviceWrapper)
+	m.services = make(map[string]*serviceRunner)
 	return nil
 }
 
-func (m *Manager) RestartServices() (gErr error) {
-	for name, srv := range m.services {
-		if result.ThrowErr(&gErr, m.supervisor.Remove(srv.token)) {
-			return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
-		}
+func (m *Manager) RestartServices() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-		m.services[name] = &serviceWrapper{service: srv.service, token: m.supervisor.Add(srv.service)}
+	for name, srv := range m.services {
+		m.restartRunnerLocked(srv)
 		m.logger.Info().Str("name", name).Msg("restarting service in supervisor")
 	}
 
 	return nil
 }
 
-func (m *Manager) RestartService(name string) (gErr error) {
+func (m *Manager) RestartService(name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	srv := m.services[name]
 	if srv == nil {
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot restart")
+		return fmt.Errorf("service not found, name=%s", name)
+	}
+
+	// 如果服务已暂停，直接启动
+	if srv.stopped {
+		srv.stopped = false
+		m.startRunner(srv)
+		m.logger.Info().Str("name", name).Msg("starting stopped service in supervisor")
 		return nil
 	}
 
-	if result.ThrowErr(&gErr, m.supervisor.Remove(srv.token)) {
-		return errors.Wrapf(gErr, "failed to remove service, name=%s", name)
-	}
-
-	m.services[name] = &serviceWrapper{service: srv.service, token: m.supervisor.Add(srv.service)}
+	m.restartRunnerLocked(srv)
 	m.logger.Info().Str("name", name).Msg("restarting service in supervisor")
 
 	return nil
 }
 
+// restartRunnerLocked 重启服务，必须在持有锁的情况下调用
+func (m *Manager) restartRunnerLocked(runner *serviceRunner) {
+	// 停止旧的
+	if runner.cancel != nil {
+		runner.cancel()
+		// 等待旧的 goroutine 退出
+		if runner.done != nil {
+			<-runner.done
+		}
+	}
+	runner.stopped = false
+	// 启动新的
+	m.startRunner(runner)
+}
+
+// StopService 暂停服务，但保留在 services map 中
+func (m *Manager) StopService(name string) error {
+	m.mu.Lock()
+	srv := m.services[name]
+	if srv == nil {
+		m.mu.Unlock()
+		m.logger.Warn().Str("name", name).Msg("service not found, cannot stop")
+		return fmt.Errorf("service not found, name=%s", name)
+	}
+
+	if srv.stopped {
+		m.mu.Unlock()
+		m.logger.Warn().Str("name", name).Msg("service already stopped")
+		return nil
+	}
+
+	cancel := srv.cancel
+	done := srv.done
+	srv.stopped = true
+	m.mu.Unlock()
+
+	if cancel != nil {
+		cancel()
+		if done != nil {
+			<-done
+		}
+	}
+
+	m.logger.Info().Str("name", name).Msg("stopped service in supervisor")
+	return nil
+}
+
+// StartService 启动已暂停的服务
+func (m *Manager) StartService(name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	srv := m.services[name]
+	if srv == nil {
+		m.logger.Warn().Str("name", name).Msg("service not found, cannot start")
+		return fmt.Errorf("service not found, name=%s", name)
+	}
+
+	if !srv.stopped && !srv.failed {
+		m.logger.Warn().Str("name", name).Msg("service already running")
+		return nil
+	}
+
+	// 重置状态
+	srv.stopped = false
+	srv.failed = false
+	srv.consecFailures = 0
+	srv.windowRestarts = 0
+	srv.windowStart = time.Now()
+	srv.currentDelay = srv.config.RestartDelay
+
+	m.startRunner(srv)
+	m.logger.Info().Str("name", name).Msg("started service in supervisor")
+	return nil
+}
+
+// ResetService 重置失败的服务，清除所有重启计数
+func (m *Manager) ResetService(name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	srv := m.services[name]
+	if srv == nil {
+		return fmt.Errorf("service not found, name=%s", name)
+	}
+
+	// 重置所有重启相关状态
+	srv.failed = false
+	srv.restartCount = 0
+	srv.consecFailures = 0
+	srv.windowRestarts = 0
+	srv.windowStart = time.Now()
+	srv.currentDelay = srv.config.RestartDelay
+
+	m.logger.Info().Str("name", name).Msg("reset service restart counters")
+	return nil
+}
+
+// GetServiceStatus 获取服务运行状态
+func (m *Manager) GetServiceStatus(name string) (status ServiceStatus, info map[string]any, err error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	srv := m.services[name]
+	if srv == nil {
+		return "", nil, fmt.Errorf("service not found, name=%s", name)
+	}
+
+	info = map[string]any{
+		"stopped":            srv.stopped,
+		"failed":             srv.failed,
+		"restart_count":      srv.restartCount,
+		"consec_failures":    srv.consecFailures,
+		"window_restarts":    srv.windowRestarts,
+		"current_delay":      srv.currentDelay.String(),
+		"window_start":       srv.windowStart,
+		"last_service_start": srv.lastServiceStart,
+	}
+
+	if srv.failed {
+		return StatusFailed, info, nil
+	}
+	if srv.stopped {
+		return StatusStopped, info, nil
+	}
+	if srv.consecFailures > 0 {
+		return StatusCrashing, info, nil
+	}
+	if srv.cancel != nil {
+		return StatusRunning, info, nil
+	}
+	return StatusIdle, info, nil
+}
+
 func (m *Manager) Services() []Service {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	services := make([]Service, 0, len(m.services))
 	for _, srv := range m.services {
 		services = append(services, srv.service)
@@ -147,8 +914,163 @@ func (m *Manager) Services() []Service {
 	return services
 }
 
+// startRunner 启动一个服务 runner
+func (m *Manager) startRunner(runner *serviceRunner) {
+	if m.ctx == nil {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(m.ctx)
+	runner.cancel = cancel
+	runner.done = make(chan struct{})
+
+	m.wg.Add(1)
+	go func() {
+		defer m.wg.Done()
+		defer close(runner.done)
+		m.runService(ctx, runner)
+	}()
+}
+
+// runService 运行服务的主循环，包含自动重启逻辑
+func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
+	srv := runner.service
+	name := srv.Name()
+	config := runner.config
+
+	// 初始化重启状态
+	if runner.currentDelay == 0 {
+		runner.currentDelay = config.RestartDelay
+	}
+	if runner.windowStart.IsZero() {
+		runner.windowStart = time.Now()
+	}
+
+	for {
+		// 先检查 context 是否已取消
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// 记录服务启动时间
+		runner.lastServiceStart = time.Now()
+
+		err := srv.Serve(ctx)
+
+		// Serve 返回后立即检查 context
+		// 如果 context 已取消，无论错误是什么都应该退出
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// 计算运行时长
+		runDuration := time.Since(runner.lastServiceStart)
+
+		// 处理错误
+		if err != nil {
+			// context 相关错误视为正常停止，不重启
+			if err == context.Canceled || err == context.DeadlineExceeded {
+				return
+			}
+
+			// 检查是否是不重启的错误
+			if IsNoRestartErr(err) || IsFatalErr(err) {
+				runner.failed = true
+				m.logger.Error().Err(err).Str("name", name).Msg("service exited with fatal error, not restarting")
+				return
+			}
+
+			// 根据重启策略决定是否重启
+			if config.RestartPolicy == RestartNever {
+				runner.failed = true
+				m.logger.Error().Err(err).Str("name", name).Msg("service exited with error, restart policy is Never")
+				return
+			}
+
+			runner.consecFailures++
+			m.logger.Warn().Err(err).Str("name", name).
+				Int("consec_failures", runner.consecFailures).
+				Msg("service exited with error")
+		} else {
+			// 正常退出
+			if config.RestartPolicy == RestartOnFailure || config.RestartPolicy == RestartNever {
+				m.logger.Info().Str("name", name).Msg("service exited normally, not restarting per policy")
+				return
+			}
+
+			// RestartAlways 策略下正常退出也会重启
+			// 如果运行了足够长的时间，重置连续失败计数
+			if runDuration > config.RestartWindow {
+				runner.consecFailures = 0
+				runner.currentDelay = config.RestartDelay
+			}
+
+			m.logger.Info().Str("name", name).Msg("service exited normally, will restart")
+		}
+
+		// 更新窗口内重启计数
+		now := time.Now()
+		if now.Sub(runner.windowStart) > config.RestartWindow {
+			// 窗口已过期，重置
+			runner.windowStart = now
+			runner.windowRestarts = 0
+			runner.currentDelay = config.RestartDelay // 重置延迟
+		}
+		runner.windowRestarts++
+		runner.restartCount++
+
+		// 检查是否超过最大重启次数
+		if config.MaxRestarts > 0 && runner.restartCount >= config.MaxRestarts {
+			runner.failed = true
+			m.logger.Error().Str("name", name).
+				Int("restarts", runner.restartCount).
+				Int("max_restarts", config.MaxRestarts).
+				Msg("service exceeded max restart limit, marking as failed")
+			return
+		}
+
+		// 检查窗口期内重启次数
+		if config.MaxRestartsInWindow > 0 && runner.windowRestarts > config.MaxRestartsInWindow {
+			runner.failed = true
+			m.logger.Error().Str("name", name).
+				Int("window_restarts", runner.windowRestarts).
+				Int("max_in_window", config.MaxRestartsInWindow).
+				Dur("window", config.RestartWindow).
+				Msg("service restart rate too high, marking as failed")
+			return
+		}
+
+		// 计算并应用退避延迟
+		delay := runner.currentDelay
+		m.logger.Info().Str("name", name).
+			Dur("delay", delay).
+			Int("window_restarts", runner.windowRestarts).
+			Int("total_restarts", runner.restartCount).
+			Msg("waiting before restart")
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(delay):
+			// 应用指数退避
+			runner.currentDelay = time.Duration(float64(runner.currentDelay) * config.BackoffMultiplier)
+			if runner.currentDelay > config.MaxRestartDelay {
+				runner.currentDelay = config.MaxRestartDelay
+			}
+		}
+	}
+}
+
 func (m *Manager) start(ctx context.Context) error {
 	defer recovery.Exit()
+
+	// 保存 context
+	m.ctx, m.cancel = context.WithCancel(ctx)
+
 	logutil.OkOrFailed(m.logger, "start lifecycle before service", func() error {
 		defer recovery.Exit()
 		for _, run := range m.lc.GetBeforeStarts() {
@@ -158,14 +1080,14 @@ func (m *Manager) start(ctx context.Context) error {
 		return nil
 	})
 
-	async.GoDelay(func() error {
-		err := m.supervisor.Serve(ctx)
-		if netutil.IsErrServerClosed(err) {
-			return nil
+	// 启动所有服务
+	m.mu.RLock()
+	for _, runner := range m.services {
+		if !runner.stopped {
+			m.startRunner(runner)
 		}
-		assert.Exit(err)
-		return nil
-	})
+	}
+	m.mu.RUnlock()
 
 	logutil.OkOrFailed(m.logger, "start lifecycle after service", func() error {
 		defer recovery.Exit()
@@ -191,12 +1113,23 @@ func (m *Manager) stop(ctx context.Context) error {
 		return nil
 	})
 
-	unstoppedServices, _ := m.supervisor.UnstoppedServiceReport()
-	if len(unstoppedServices) > 0 {
-		for _, service := range unstoppedServices {
-			m.logger.Error().Any("service", service).Msgf("service:%s is still running", service.Name)
-		}
-		return errors.New("services are still running")
+	// 取消所有服务
+	if m.cancel != nil {
+		m.cancel()
+	}
+
+	// 等待所有服务停止，带超时
+	done := make(chan struct{})
+	go func() {
+		m.wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		m.logger.Info().Msg("all services stopped")
+	case <-time.After(30 * time.Second):
+		m.logger.Warn().Msg("timeout waiting for services to stop")
 	}
 
 	logutil.OkOrFailed(m.logger, "stop lifecycle after service", func() error {
@@ -223,15 +1156,27 @@ func (m *Manager) Run(ctx context.Context) error {
 }
 
 func (m *Manager) Serve(ctx context.Context) error {
-	err := m.supervisor.Serve(ctx)
-
-	if netutil.IsErrServerClosed(err) {
-		return nil
+	err := m.start(ctx)
+	if err != nil {
+		return err
 	}
 
-	return err
+	// 等待 context 取消
+	<-ctx.Done()
+
+	// 停止所有服务
+	if m.cancel != nil {
+		m.cancel()
+	}
+	m.wg.Wait()
+
+	return nil
 }
 
 func (m *Manager) ServeBackground(ctx context.Context) <-chan error {
-	return m.supervisor.ServeBackground(ctx)
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- m.Serve(ctx)
+	}()
+	return errCh
 }

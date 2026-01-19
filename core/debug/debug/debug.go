@@ -100,6 +100,11 @@ func initDebug() {
         <div class="font-medium">Goroutine</div>
         <div class="text-sm text-gray-400">协程监控</div>
     </a>
+    <a href="/debug/supervisor/" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
+        <div class="text-2xl mb-2">🎛️</div>
+        <div class="font-medium">Supervisor</div>
+        <div class="text-sm text-gray-400">服务监控与管理</div>
+    </a>
     <a href="/debug/health" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
         <div class="text-2xl mb-2">❤️</div>
         <div class="font-medium">健康检查</div>

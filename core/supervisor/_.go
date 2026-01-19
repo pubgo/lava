@@ -1,4 +1,3 @@
 package supervisor
 
-// "github.com/kardianos/service"
-// github.com/thejerf/suture
+// Service supervision and lifecycle management for lava services

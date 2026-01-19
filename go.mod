@@ -61,7 +61,6 @@ require (
 	github.com/samber/lo v1.52.0
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/stretchr/testify v1.11.1
-	github.com/thejerf/suture/v4 v4.0.6
 	github.com/uber-go/tally/v4 v4.1.17
 	github.com/ulikunitz/xz v0.5.15
 	github.com/valyala/fasthttp v1.69.0
