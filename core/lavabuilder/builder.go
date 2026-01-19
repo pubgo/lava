@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/features/featureflags"
 	"github.com/pubgo/funk/v2/recovery"
+
 	// metric
 	"github.com/pubgo/redant"
 	_ "go.uber.org/automaxprocs"
@@ -24,6 +25,7 @@ import (
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	"github.com/pubgo/lava/v2/core/debug/dixdebug"
 	_ "github.com/pubgo/lava/v2/core/debug/featurehttp"
+
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
 	_ "github.com/pubgo/lava/v2/core/debug/goroutine"
 	_ "github.com/pubgo/lava/v2/core/debug/healthy"
@@ -38,12 +40,14 @@ import (
 	_ "github.com/pubgo/lava/v2/core/debug/vars"
 	_ "github.com/pubgo/lava/v2/core/debug/version"
 	"github.com/pubgo/lava/v2/core/discovery"
+
 	// encoding
 	_ "github.com/pubgo/lava/v2/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/v2/core/encoding/protojson"
 	"github.com/pubgo/lava/v2/core/flags"
 	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
+
 	// logging
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
