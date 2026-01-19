@@ -125,6 +125,11 @@ func initDebug() {
         <div class="font-medium">配置</div>
         <div class="text-sm text-gray-400">查看配置</div>
     </a>
+    <a href="/debug/features" class="bg-gray-800 rounded-lg border border-gray-700 p-4 hover:bg-gray-700 transition-colors">
+        <div class="text-2xl mb-2">🚩</div>
+        <div class="font-medium">Feature Flags</div>
+        <div class="text-sm text-gray-400">功能开关</div>
+    </a>
 </div>`)
 
 		content := statsHTML + `<div class="my-6"></div>` + actionsHTML + routesHTML

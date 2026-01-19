@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/config"
+	"github.com/pubgo/funk/v2/debugs"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 
@@ -37,6 +38,7 @@ func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
 
 	reg.Every("every_task", time.Second*5, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
 		fmt.Printf("exec every task: %s: %#v\n", name, metadata)
+		fmt.Println(debugs.Enabled.String())
 		time.Sleep(time.Second * 1)
 		return result.OK([]byte("every"))
 	})
