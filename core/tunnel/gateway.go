@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -17,6 +19,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/log"
 )
+
+// linkRewritePatterns 用于重写 HTML 响应中的链接
+var linkRewritePatterns = []*regexp.Regexp{
+	// href="/debug/..." or href='/debug/...'
+	regexp.MustCompile(`(href=["'])/debug/`),
+	// src="/debug/..." or src='/debug/...'
+	regexp.MustCompile(`(src=["'])/debug/`),
+	// action="/debug/..."
+	regexp.MustCompile(`(action=["'])/debug/`),
+	// fetch("/debug/..." or fetch('/debug/...'
+	regexp.MustCompile(`(fetch\(["'])/debug/`),
+	// url: "/debug/..." (for JavaScript)
+	regexp.MustCompile(`(url:\s*["'])/debug/`),
+	// "/debug/ in JSON responses
+	regexp.MustCompile(`(")/debug/`),
+}
 
 var _ Gateway = (*tunnelGateway)(nil)
 
@@ -203,12 +221,17 @@ func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request
 // proxyToAgent 将 HTTP 请求代理到 Agent
 func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc *registeredService, endpointType EndpointType, subPath string) {
 	ctx := r.Context()
+	serviceName := svc.info.Name
+
+	// 检查是否为 WebSocket 升级请求
+	isWebSocket := strings.EqualFold(r.Header.Get("Upgrade"), "websocket")
 
 	log.Debug().
-		Str("service", svc.info.Name).
+		Str("service", serviceName).
 		Str("endpointType", string(endpointType)).
 		Str("subPath", subPath).
 		Str("method", r.Method).
+		Bool("isWebSocket", isWebSocket).
 		Bool("sessionClosed", svc.session.IsClosed()).
 		Int("numStreams", svc.session.NumStreams()).
 		Msg("Gateway: Proxying request to agent")
@@ -216,13 +239,12 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	// 打开到 Agent 的 stream
 	stream, err := svc.session.Open(ctx)
 	if err != nil {
-		log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: Failed to open stream to agent")
+		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: Failed to open stream to agent")
 		http.Error(w, fmt.Sprintf("failed to open stream: %v", err), http.StatusInternalServerError)
 		return
 	}
-	defer stream.Close()
 
-	log.Debug().Str("service", svc.info.Name).Msg("Gateway: Stream opened to agent")
+	log.Debug().Str("service", serviceName).Msg("Gateway: Stream opened to agent")
 
 	// 发送请求消息给 Agent
 	msg := &Message{
@@ -231,12 +253,13 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	}
 
 	if err := g.sendMessage(stream, msg); err != nil {
-		log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: Failed to send message to agent")
+		stream.Close()
+		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: Failed to send message to agent")
 		http.Error(w, fmt.Sprintf("failed to send message: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	log.Debug().Str("service", svc.info.Name).Str("msgType", string(msg.Type)).Msg("Gateway: Message sent to agent, starting proxy")
+	log.Debug().Str("service", serviceName).Str("msgType", string(msg.Type)).Msg("Gateway: Message sent to agent, starting proxy")
 
 	// 修改请求路径为子路径
 	r.URL.Path = subPath
@@ -245,20 +268,108 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 		r.RequestURI = subPath + "?" + r.URL.RawQuery
 	}
 
-	// 使用 httputil 进行双向代理
-	// 创建一个虚拟的后端连接
+	// WebSocket 请求使用双向 TCP 代理
+	if isWebSocket {
+		g.proxyWebSocket(w, r, stream, serviceName)
+		return
+	}
+
+	// 普通 HTTP 请求使用 httputil 代理
+	defer stream.Close()
+
 	proxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
 			// 保持原始请求
 		},
 		Transport: &streamRoundTripper{stream: stream, request: r},
+		ModifyResponse: func(resp *http.Response) error {
+			// 只对 HTML 和 JSON 响应重写链接
+			contentType := resp.Header.Get("Content-Type")
+			if !strings.Contains(contentType, "text/html") && !strings.Contains(contentType, "application/json") {
+				return nil
+			}
+
+			// 读取响应体
+			body, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil {
+				return err
+			}
+
+			// 重写链接: /debug/ -> /{serviceName}/debug/
+			replacement := "${1}/" + serviceName + "/debug/"
+			for _, pattern := range linkRewritePatterns {
+				body = pattern.ReplaceAll(body, []byte(replacement))
+			}
+
+			// 更新响应体和 Content-Length
+			resp.Body = io.NopCloser(bytes.NewReader(body))
+			resp.ContentLength = int64(len(body))
+			resp.Header.Set("Content-Length", fmt.Sprintf("%d", len(body)))
+			// 移除 Content-Encoding，因为我们已经解压了
+			resp.Header.Del("Content-Encoding")
+
+			return nil
+		},
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-			log.Warn().Err(err).Str("service", svc.info.Name).Msg("Proxy error")
+			log.Warn().Err(err).Str("service", serviceName).Msg("Proxy error")
 			w.WriteHeader(http.StatusBadGateway)
 		},
 	}
 
 	proxy.ServeHTTP(w, r)
+}
+
+// proxyWebSocket 处理 WebSocket 代理
+func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, stream Stream, serviceName string) {
+	log.Debug().Str("service", serviceName).Str("path", r.URL.Path).Msg("Gateway: Starting WebSocket proxy")
+
+	// 获取底层 TCP 连接
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		stream.Close()
+		http.Error(w, "WebSocket not supported", http.StatusInternalServerError)
+		return
+	}
+
+	clientConn, _, err := hijacker.Hijack()
+	if err != nil {
+		stream.Close()
+		log.Warn().Err(err).Str("service", serviceName).Msg("Failed to hijack connection")
+		http.Error(w, "Failed to hijack connection", http.StatusInternalServerError)
+		return
+	}
+
+	// 将原始 HTTP 请求写入 stream，让 Agent 处理 WebSocket 升级
+	if err := r.Write(stream); err != nil {
+		clientConn.Close()
+		stream.Close()
+		log.Warn().Err(err).Str("service", serviceName).Msg("Failed to write WebSocket request to stream")
+		return
+	}
+
+	log.Debug().Str("service", serviceName).Msg("Gateway: WebSocket request forwarded, starting bidirectional copy")
+
+	// 双向复制数据
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Client -> Agent
+	go func() {
+		defer wg.Done()
+		io.Copy(stream, clientConn)
+		stream.Close()
+	}()
+
+	// Agent -> Client
+	go func() {
+		defer wg.Done()
+		io.Copy(clientConn, stream)
+		clientConn.Close()
+	}()
+
+	wg.Wait()
+	log.Debug().Str("service", serviceName).Msg("Gateway: WebSocket proxy finished")
 }
 
 // streamRoundTripper 实现 http.RoundTripper，通过 stream 转发请求
