@@ -115,11 +115,10 @@ func (s *streamHTTP) RecvMsg(m any) error {
 	}
 
 	method := s.handler.Method()
+	hasBody := method == http.MethodPut || method == http.MethodPost || method == http.MethodPatch
+	allowBody := hasBody || method == http.MethodDelete
 
-	if method == http.MethodPut ||
-		method == http.MethodPost ||
-		method == http.MethodDelete ||
-		method == http.MethodPatch {
+	if allowBody {
 		cur := args.ProtoReflect()
 		for _, fd := range getReqBodyDesc(s.path) {
 			cur = cur.Mutable(fd).Message()
@@ -132,12 +131,9 @@ func (s *streamHTTP) RecvMsg(m any) error {
 			return errors.Wrapf(reqInterceptor(s.handler, msg), "failed to go req interceptor request data by %s", reqName)
 		}
 
-		if method == http.MethodPut ||
-			method == http.MethodPost ||
-			method == http.MethodPatch {
-			if len(s.handler.Body()) == 0 {
-				return errors.WrapCaller(fmt.Errorf("request body is nil, operation=%s", reqName))
-			}
+		// PUT/POST/PATCH 必须有 body
+		if hasBody && len(s.handler.Body()) == 0 {
+			return errors.WrapCaller(fmt.Errorf("request body is nil, operation=%s", reqName))
 		}
 
 		if s.handler.Request().IsBodyStream() {

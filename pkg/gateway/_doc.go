@@ -1,7 +1,25 @@
+// Package gateway 提供 gRPC Gateway 功能，实现 HTTP/JSON 到 gRPC 的协议转换。
+//
+// Gateway 基于 Google API HTTP Annotation 规范，支持：
+//   - HTTP Rule 解析：支持 google.api.http 注解，自动解析 RESTful 路径模板
+//   - 协议转换：HTTP/JSON ↔ gRPC/Protobuf 双向自动转换
+//   - 路由匹配：支持精确匹配、* 单段通配符、** 多段通配符、动词 (:verb)
+//   - 服务注册：支持本地服务 (RegisterService) 和代理服务 (RegisterProxy)
+//   - 中间件：Unary 和 Stream 拦截器
+//   - 多种流类型：HTTP、WebSocket、进程内、代理
+//
+// 基本用法:
+//
+//	mux := gateway.NewMux()
+//	mux.RegisterService(&pb.MyService_ServiceDesc, &myServiceImpl{})
+//	app.Use("/api", mux.Handler)
+//
+// 参考资料:
+//   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api
+//   - https://google.aip.dev/123
 package gateway
 
-// https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api#google.api.DocumentationRule.FIELDS.string.google.api.DocumentationRule.selector
-// https://google.aip.dev/123
+// 相关项目参考:
 // https://github.com/dgrr/http2
 // https://github.com/r3labs/sse
 // https://github.com/googollee/go-socket.io
