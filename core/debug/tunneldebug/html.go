@@ -1,870 +1,644 @@
 package tunneldebug
 
-// getGatewayDashboardHTML 返回 Gateway 仪表盘 HTML
+// getGatewayDashboardHTML 返回 Gateway 仪表盘 HTML (使用 Tailwind CSS + Alpine.js)
 func getGatewayDashboardHTML() string {
 	return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tunnel Gateway 管理界面</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Tunnel Gateway - Debug Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --success-color: #22c55e;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --bg-dark: #1e1e2e;
-            --bg-card: #282a36;
-            --text-primary: #f8f8f2;
-            --text-secondary: #6272a4;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        .navbar {
-            background: rgba(30, 30, 46, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .navbar-brand { font-weight: 700; font-size: 1.5rem; }
-        
-        .card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-        
-        .card-header {
-            background: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.3);
-        }
-        
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        
-        .status-running { background: rgba(34, 197, 94, 0.2); color: var(--success-color); }
-        .status-stopped { background: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-running .status-dot { background: var(--success-color); }
-        .status-stopped .status-dot { background: var(--danger-color); }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .table { color: var(--text-primary); }
-        
-        .table thead th {
-            background: rgba(99, 102, 241, 0.1);
-            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-        
-        .table tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
-        }
-        
-        .table tbody tr:hover { background: rgba(99, 102, 241, 0.1); }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border: none;
-        }
-        
-        .btn-primary:hover { background: linear-gradient(135deg, #5558e3, #7c4fe8); }
-        
-        .endpoint-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            margin: 2px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .endpoint-http { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .endpoint-grpc { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
-        .endpoint-debug { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        
-        .refresh-btn { transition: transform 0.3s; }
-        .refresh-btn.spinning { animation: spin 1s linear infinite; }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .modal-header { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .modal-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); }
-        
-        pre {
-            background: var(--bg-dark);
-            border-radius: 8px;
-            padding: 16px;
-            color: #f8f8f2;
-            font-size: 0.875rem;
-        }
-        
-        .arch-diagram {
-            background: var(--bg-dark);
-            border-radius: 12px;
-            padding: 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.75rem;
-            line-height: 1.4;
-            overflow-x: auto;
-        }
-        
-        .text-muted { color: var(--text-secondary) !important; }
-        .last-update { font-size: 0.75rem; color: var(--text-secondary); }
+        [x-cloak] { display: none !important; }
+        .loading { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-hdd-network me-2"></i>Tunnel Gateway
-            </a>
-            <div class="d-flex align-items-center">
-                <span class="last-update me-3">最后更新: <span id="lastUpdate">-</span></span>
-                <button class="btn btn-outline-light btn-sm" onclick="refreshData()">
-                    <i class="bi bi-arrow-clockwise refresh-btn" id="refreshIcon"></i> 刷新
-                </button>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center space-x-4">
+                    <a href="/debug/" class="text-xl font-bold text-blue-400 hover:text-blue-300">🔧 Debug</a>
+                    <span class="text-gray-500">|</span>
+                    <span class="text-white font-semibold">🌐 Tunnel Gateway</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/debug/sys" class="text-gray-300 hover:text-white text-sm">系统</a>
+                    <a href="/debug/runtime" class="text-gray-300 hover:text-white text-sm">运行时</a>
+                    <a href="/debug/pprof/" class="text-gray-300 hover:text-white text-sm">PProf</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid py-4">
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="serviceCount">0</div>
-                        <div class="stat-label">注册服务</div>
+    <!-- 主内容 -->
+    <main class="max-w-7xl mx-auto px-4 py-6" x-data="tunnelDashboard()" x-init="init()">
+        <!-- 页面标题 -->
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Tunnel Gateway</h1>
+                <p class="text-gray-400 mt-1">服务注册与代理管理</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-gray-500 text-sm">更新于 <span x-text="lastUpdate"></span></span>
+                <button @click="refresh()" 
+                    class="px-3 py-1.5 rounded text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                    :class="{ 'opacity-50': loading }">
+                    <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>刷新</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">注册服务</div>
+                <div class="text-2xl font-bold text-white mt-1" x-text="stats.serviceCount">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">HTTP 端点</div>
+                <div class="text-2xl font-bold text-green-400 mt-1" x-text="stats.httpEndpoints">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">gRPC 端点</div>
+                <div class="text-2xl font-bold text-purple-400 mt-1" x-text="stats.grpcEndpoints">0</div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">Debug 端点</div>
+                <div class="text-2xl font-bold text-yellow-400 mt-1" x-text="stats.debugEndpoints">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- 左侧：Gateway 状态 -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+                        <h3 class="font-semibold text-white">Gateway 状态</h3>
+                        <span class="px-2 py-1 rounded text-xs font-medium"
+                            :class="gatewayStatus === 'running' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'">
+                            <span class="inline-block w-2 h-2 rounded-full mr-1" 
+                                :class="gatewayStatus === 'running' ? 'bg-green-400' : 'bg-red-400'"></span>
+                            <span x-text="gatewayStatus === 'running' ? '运行中' : '已停止'"></span>
+                        </span>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-blue-400">🔗</span>
+                                <span class="text-sm text-gray-300">Tunnel</span>
+                            </div>
+                            <code class="text-sm text-gray-400">:7007</code>
+                        </div>
+                        <div class="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-green-400">🌐</span>
+                                <span class="text-sm text-gray-300">HTTP Proxy</span>
+                            </div>
+                            <code class="text-sm text-gray-400">:8888</code>
+                        </div>
+                        <div class="flex items-center justify-between py-2 px-3 bg-gray-700/50 rounded">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-yellow-400">🔧</span>
+                                <span class="text-sm text-gray-300">Debug Proxy</span>
+                            </div>
+                            <code class="text-sm text-gray-400">:6066</code>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="httpEndpoints">0</div>
-                        <div class="stat-label">HTTP 端点</div>
+
+            <!-- 右侧：服务列表 -->
+            <div class="lg:col-span-3">
+                <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+                        <h3 class="font-semibold text-white">已注册服务</h3>
+                        <span class="px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-400" x-text="services.length + ' 个服务'"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-700/50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium">服务</th>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium">版本</th>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium">状态</th>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium">端点</th>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium">注册时间</th>
+                                    <th class="px-4 py-2 text-left text-gray-300 font-medium"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <template x-if="services.length === 0">
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                            <div class="text-4xl mb-2">📭</div>
+                                            <div>暂无服务注册</div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="svc in services" :key="svc.id">
+                                    <tr class="hover:bg-gray-700/30 cursor-pointer" @click="showDetail(svc)">
+                                        <td class="px-4 py-3">
+                                            <div class="font-medium text-white" x-text="svc.name || '-'"></div>
+                                            <div class="text-xs text-gray-500 font-mono" x-text="svc.id ? svc.id.substring(0, 12) : '-'"></div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <code class="text-gray-400 text-xs" x-text="svc.version || '-'"></code>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-1 rounded text-xs font-medium"
+                                                :class="{
+                                                    'bg-green-500/20 text-green-400': svc.status === 'online',
+                                                    'bg-red-500/20 text-red-400': svc.status === 'offline',
+                                                    'bg-yellow-500/20 text-yellow-400': svc.status === 'unhealthy'
+                                                }">
+                                                <span class="inline-block w-1.5 h-1.5 rounded-full mr-1"
+                                                    :class="{
+                                                        'bg-green-400': svc.status === 'online',
+                                                        'bg-red-400': svc.status === 'offline',
+                                                        'bg-yellow-400': svc.status === 'unhealthy'
+                                                    }"></span>
+                                                <span x-text="getStatusText(svc.status)"></span>
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                <template x-for="ep in (svc.endpoints || [])" :key="ep.type + ep.port">
+                                                    <span class="px-1.5 py-0.5 rounded text-xs font-medium"
+                                                        :class="{
+                                                            'bg-green-500/20 text-green-400': ep.type === 'http',
+                                                            'bg-purple-500/20 text-purple-400': ep.type === 'grpc',
+                                                            'bg-yellow-500/20 text-yellow-400': ep.type === 'debug'
+                                                        }"
+                                                        x-text="ep.type.toUpperCase()"></span>
+                                                </template>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-500 text-xs" x-text="formatTime(svc.register_time)"></td>
+                                        <td class="px-4 py-3">
+                                            <button class="text-gray-400 hover:text-blue-400" @click.stop="showDetail(svc)">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="grpcEndpoints">0</div>
-                        <div class="stat-label">gRPC 端点</div>
+
+                <!-- 快速访问 -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden mt-4">
+                    <div class="px-4 py-3 border-b border-gray-700">
+                        <h3 class="font-semibold text-white">快速访问</h3>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="debugEndpoints">0</div>
-                        <div class="stat-label">Debug 端点</div>
+                    <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-700/50 rounded p-3">
+                            <div class="text-sm text-gray-300 mb-2">HTTP 服务访问</div>
+                            <code class="text-xs text-green-400 break-all">curl http://localhost:8888/{服务名}/api/...</code>
+                        </div>
+                        <div class="bg-gray-700/50 rounded p-3">
+                            <div class="text-sm text-gray-300 mb-2">Debug 接口代理</div>
+                            <code class="text-xs text-yellow-400 break-all">curl http://localhost:6066/{服务名}/debug/pprof/</code>
+                        </div>
+                        <div class="bg-gray-700/50 rounded p-3">
+                            <div class="text-sm text-gray-300 mb-2">管理界面 API</div>
+                            <code class="text-xs text-blue-400 break-all">curl http://localhost:6067/debug/tunnel/api/services</code>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-server me-2"></i>Gateway 状态</span>
-                        <span class="status-badge status-running" id="gatewayStatus">
-                            <span class="status-dot"></span>
-                            <span id="gatewayStatusText">检测中...</span>
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="text-muted small">监听端口</label>
-                            <div class="d-flex flex-wrap gap-2 mt-1">
-                                <span class="badge bg-primary">:7007 Tunnel</span>
-                                <span class="badge bg-success">:8888 HTTP</span>
-                                <span class="badge bg-warning text-dark">:6066 Debug</span>
+        <!-- 服务详情模态框 -->
+        <div x-show="detailModal" x-cloak
+            class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            @click.self="detailModal = false" @keydown.escape.window="detailModal = false">
+            <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                @click.stop>
+                <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+                        <span>📦</span>
+                        <span x-text="selectedService?.name || '服务详情'"></span>
+                    </h3>
+                    <button @click="detailModal = false" class="text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto space-y-6" x-show="selectedService">
+                    <!-- 基本信息 -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-400 mb-3 flex items-center space-x-2">
+                            <span>ℹ️</span><span>基本信息</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">服务名称</div>
+                                <div class="text-white mt-1" x-text="selectedService?.name || '-'"></div>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">版本</div>
+                                <code class="text-gray-300 text-sm" x-text="selectedService?.version || '-'"></code>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">服务 ID</div>
+                                <code class="text-gray-400 text-xs break-all" x-text="selectedService?.id || '-'"></code>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">状态</div>
+                                <span class="px-2 py-1 rounded text-xs font-medium mt-1 inline-block"
+                                    :class="{
+                                        'bg-green-500/20 text-green-400': selectedService?.status === 'online',
+                                        'bg-red-500/20 text-red-400': selectedService?.status === 'offline',
+                                        'bg-yellow-500/20 text-yellow-400': selectedService?.status === 'unhealthy'
+                                    }"
+                                    x-text="getStatusText(selectedService?.status)"></span>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">注册时间</div>
+                                <div class="text-gray-300 text-sm mt-1" x-text="formatDateTime(selectedService?.register_time)"></div>
+                            </div>
+                            <div class="bg-gray-700/50 rounded p-3">
+                                <div class="text-xs text-gray-500">最后心跳</div>
+                                <div class="text-gray-300 text-sm mt-1" x-text="formatDateTime(selectedService?.last_heartbeat)"></div>
                             </div>
                         </div>
-                        <div class="arch-diagram">
-                            <pre class="mb-0" style="background: transparent; padding: 0;">
-      外部请求
-          │
-          ▼
-┌─────────────────────┐
-│   Gateway :7007     │
-│ ┌─────┐┌─────┐┌───┐ │
-│ │HTTP ││gRPC ││DBG│ │
-│ │8888 ││9999 ││6066│ │
-│ └──┬──┘└──┬──┘└─┬─┘ │
-└────┼──────┼─────┼───┘
-     └──────┼─────┘
-            ▼
-      Agent 连接</pre>
+                    </div>
+
+                    <!-- 端点列表 -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-400 mb-3 flex items-center space-x-2">
+                            <span>🔌</span>
+                            <span>端点列表 (<span x-text="(selectedService?.endpoints || []).length"></span>)</span>
+                        </h4>
+                        <div class="space-y-2">
+                            <template x-for="ep in (selectedService?.endpoints || [])" :key="ep.type + ep.port">
+                                <div class="flex items-center justify-between bg-gray-700/50 rounded p-3">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="w-8 h-8 rounded flex items-center justify-center text-sm"
+                                            :class="{
+                                                'bg-green-500/20 text-green-400': ep.type === 'http',
+                                                'bg-purple-500/20 text-purple-400': ep.type === 'grpc',
+                                                'bg-yellow-500/20 text-yellow-400': ep.type === 'debug'
+                                            }"
+                                            x-text="ep.type === 'http' ? '🌐' : ep.type === 'grpc' ? '⚡' : '🔧'"></span>
+                                        <div>
+                                            <div class="text-xs font-medium text-gray-300 uppercase" x-text="ep.type"></div>
+                                            <code class="text-xs text-gray-500" x-text="(ep.address || 'localhost:' + ep.port) + (ep.path ? ' → ' + ep.path : '')"></code>
+                                        </div>
+                                    </div>
+                                    <button class="text-gray-400 hover:text-blue-400 p-1" @click="copyUrl(selectedService?.name, ep)" title="复制访问地址">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                            <template x-if="!selectedService?.endpoints || selectedService.endpoints.length === 0">
+                                <div class="text-center text-gray-500 py-4">暂无端点</div>
+                            </template>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="col-lg-8">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-boxes me-2"></i>已注册服务</span>
-                        <span class="badge bg-primary" id="serviceBadge">0 个服务</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>服务名称</th>
-                                        <th>版本</th>
-                                        <th>状态</th>
-                                        <th>端点</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="servicesTable">
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="bi bi-hourglass-split me-2"></i>加载中...
-                                        </td>
-                                    </tr>
+                    <!-- 元数据 -->
+                    <div x-show="selectedService?.metadata && Object.keys(selectedService.metadata).length > 0">
+                        <h4 class="text-sm font-medium text-gray-400 mb-3 flex items-center space-x-2">
+                            <span>🏷️</span><span>元数据</span>
+                        </h4>
+                        <div class="bg-gray-700/50 rounded overflow-hidden">
+                            <table class="w-full text-sm">
+                                <tbody class="divide-y divide-gray-600">
+                                    <template x-for="(v, k) in (selectedService?.metadata || {})" :key="k">
+                                        <tr>
+                                            <td class="px-3 py-2 text-gray-500 w-1/3" x-text="k"></td>
+                                            <td class="px-3 py-2 text-gray-300" x-text="v"></td>
+                                        </tr>
+                                    </template>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="row g-4 mt-2">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header"><i class="bi bi-link-45deg me-2"></i>访问指南</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">HTTP 服务访问</h6>
-                                <pre class="mb-0">curl http://localhost:8888/{服务名}/path</pre>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">Debug 接口访问</h6>
-                                <pre class="mb-0">curl http://localhost:6066/{服务名}/debug/pprof/</pre>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">服务列表 API</h6>
-                                <pre class="mb-0">curl http://localhost:8888/</pre>
-                            </div>
+                    <!-- 访问示例 -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-400 mb-3 flex items-center space-x-2">
+                            <span>💻</span><span>访问示例</span>
+                        </h4>
+                        <div class="bg-gray-900 rounded p-4 font-mono text-sm space-y-2">
+                            <div class="text-gray-500"># HTTP 服务访问</div>
+                            <div class="text-green-400">curl http://localhost:8888/<span x-text="selectedService?.name"></span>/</div>
+                            <div class="text-gray-500 mt-3"># Debug 接口访问</div>
+                            <div class="text-yellow-400">curl http://localhost:6066/<span x-text="selectedService?.name"></span>/debug/pprof/</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="modal fade" id="serviceModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-box me-2"></i>服务详情</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="serviceDetail">
-                        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let refreshInterval;
+    function tunnelDashboard() {
+        return {
+            loading: false,
+            lastUpdate: '-',
+            gatewayStatus: 'running',
+            stats: { serviceCount: 0, httpEndpoints: 0, grpcEndpoints: 0, debugEndpoints: 0 },
+            services: [],
+            detailModal: false,
+            selectedService: null,
 
-        document.addEventListener('DOMContentLoaded', () => {
-            refreshData();
-            refreshInterval = setInterval(refreshData, 5000);
-        });
+            init() {
+                this.refresh();
+                setInterval(() => this.refresh(), 5000);
+            },
 
-        async function refreshData() {
-            const icon = document.getElementById('refreshIcon');
-            icon.classList.add('spinning');
-            try {
-                await Promise.all([fetchStatus(), fetchServices(), fetchStats()]);
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-            } catch (err) {
-                console.error('Failed to refresh:', err);
-            } finally {
-                setTimeout(() => icon.classList.remove('spinning'), 500);
-            }
-        }
+            async refresh() {
+                this.loading = true;
+                try {
+                    await Promise.all([this.fetchStatus(), this.fetchServices(), this.fetchStats()]);
+                    this.lastUpdate = new Date().toLocaleTimeString('zh-CN');
+                } catch (e) {
+                    console.error('Refresh failed:', e);
+                } finally {
+                    setTimeout(() => this.loading = false, 300);
+                }
+            },
 
-        async function fetchStatus() {
-            try {
+            async fetchStatus() {
                 const res = await fetch('/debug/tunnel/api/status');
                 const data = await res.json();
-                const statusEl = document.getElementById('gatewayStatus');
-                const textEl = document.getElementById('gatewayStatusText');
                 if (data.gateway) {
-                    textEl.textContent = data.gateway.status;
-                    statusEl.className = 'status-badge status-' + data.gateway.status;
-                } else {
-                    textEl.textContent = '未配置';
-                    statusEl.className = 'status-badge status-stopped';
+                    this.gatewayStatus = data.gateway.status || 'running';
                 }
-            } catch (err) { console.error(err); }
-        }
+            },
 
-        async function fetchServices() {
-            try {
+            async fetchServices() {
                 const res = await fetch('/debug/tunnel/api/services');
                 const data = await res.json();
-                document.getElementById('serviceCount').textContent = data.total || 0;
-                document.getElementById('serviceBadge').textContent = (data.total || 0) + ' 个服务';
-                const tbody = document.getElementById('servicesTable');
-                if (!data.services || data.services.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>暂无服务注册</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = data.services.map(svc => {
-                    const endpoints = (svc.endpoints || []).map(ep => 
-                        '<span class="endpoint-badge endpoint-' + ep.type + '">' + ep.type + '</span>'
-                    ).join('');
-                    return '<tr>' +
-                        '<td><strong>' + svc.name + '</strong></td>' +
-                        '<td><code>' + (svc.version || '-') + '</code></td>' +
-                        '<td><span class="status-badge status-running"><span class="status-dot"></span>' + (svc.status || 'active') + '</span></td>' +
-                        '<td>' + (endpoints || '-') + '</td>' +
-                        '<td><button class="btn btn-sm btn-outline-primary" onclick="viewService(\'' + svc.name + '\')"><i class="bi bi-eye"></i></button></td>' +
-                        '</tr>';
-                }).join('');
-            } catch (err) { console.error(err); }
-        }
+                this.services = data.services || [];
+                this.stats.serviceCount = data.total || 0;
+            },
 
-        async function fetchStats() {
-            try {
+            async fetchStats() {
                 const res = await fetch('/debug/tunnel/api/stats');
                 const data = await res.json();
                 if (data.services && data.services.endpoints) {
-                    document.getElementById('httpEndpoints').textContent = data.services.endpoints.http || 0;
-                    document.getElementById('grpcEndpoints').textContent = data.services.endpoints.grpc || 0;
-                    document.getElementById('debugEndpoints').textContent = data.services.endpoints.debug || 0;
+                    this.stats.httpEndpoints = data.services.endpoints.http || 0;
+                    this.stats.grpcEndpoints = data.services.endpoints.grpc || 0;
+                    this.stats.debugEndpoints = data.services.endpoints.debug || 0;
                 }
-            } catch (err) { console.error(err); }
-        }
+            },
 
-        async function viewService(name) {
-            const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-            const detail = document.getElementById('serviceDetail');
-            detail.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
-            modal.show();
-            try {
-                const res = await fetch('/debug/tunnel/api/services/' + name);
-                const svc = await res.json();
-                if (svc.error) {
-                    detail.innerHTML = '<div class="alert alert-danger">' + svc.error + '</div>';
-                    return;
-                }
-                const endpoints = (svc.endpoints || []).map(ep =>
-                    '<tr><td><span class="endpoint-badge endpoint-' + ep.type + '">' + ep.type + '</span></td><td><code>' + ep.address + '</code></td><td>' + (ep.path || '/') + '</td></tr>'
-                ).join('');
-                const metadata = svc.metadata ? Object.entries(svc.metadata).map(([k, v]) => '<tr><td>' + k + '</td><td>' + v + '</td></tr>').join('') : '<tr><td colspan="2" class="text-muted">无</td></tr>';
-                detail.innerHTML = 
-                    '<div class="row"><div class="col-md-6"><h6 class="text-muted">基本信息</h6><table class="table table-sm">' +
-                    '<tr><td>服务名</td><td><strong>' + svc.name + '</strong></td></tr>' +
-                    '<tr><td>版本</td><td><code>' + (svc.version || '-') + '</code></td></tr>' +
-                    '<tr><td>ID</td><td><code class="small">' + (svc.id || '-') + '</code></td></tr>' +
-                    '<tr><td>状态</td><td><span class="status-badge status-running"><span class="status-dot"></span>' + (svc.status || 'active') + '</span></td></tr></table></div>' +
-                    '<div class="col-md-6"><h6 class="text-muted">元数据</h6><table class="table table-sm">' + metadata + '</table></div></div>' +
-                    '<h6 class="text-muted mt-3">端点列表</h6><table class="table table-sm"><thead><tr><th>类型</th><th>地址</th><th>路径</th></tr></thead><tbody>' + (endpoints || '<tr><td colspan="3" class="text-muted">无端点</td></tr>') + '</tbody></table>' +
-                    '<h6 class="text-muted mt-3">访问示例</h6><pre>curl http://localhost:8888/' + svc.name + '/\ncurl http://localhost:6066/' + svc.name + '/debug/pprof/</pre>';
-            } catch (err) {
-                detail.innerHTML = '<div class="alert alert-danger">加载失败: ' + err.message + '</div>';
+            showDetail(svc) {
+                this.selectedService = svc;
+                this.detailModal = true;
+            },
+
+            getStatusText(status) {
+                const map = { online: '在线', offline: '离线', unhealthy: '异常' };
+                return map[status] || '在线';
+            },
+
+            formatTime(iso) {
+                if (!iso) return '-';
+                try { return new Date(iso).toLocaleTimeString('zh-CN'); }
+                catch { return '-'; }
+            },
+
+            formatDateTime(iso) {
+                if (!iso) return '-';
+                try { return new Date(iso).toLocaleString('zh-CN'); }
+                catch { return '-'; }
+            },
+
+            copyUrl(serviceName, ep) {
+                const url = ep.type === 'debug' 
+                    ? 'http://localhost:6066/' + serviceName + '/debug/'
+                    : 'http://localhost:8888/' + serviceName + '/';
+                navigator.clipboard.writeText(url);
             }
         }
+    }
     </script>
 </body>
 </html>`
 }
 
-// getAgentDashboardHTML 返回 Agent 仪表盘 HTML
+// getAgentDashboardHTML 返回 Agent 仪表盘 HTML (使用 Tailwind CSS + Alpine.js)
 func getAgentDashboardHTML() string {
 	return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tunnel Agent 状态</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Tunnel Agent - Debug Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        :root {
-            --primary-color: #6366f1;
-            --success-color: #22c55e;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --bg-dark: #1e1e2e;
-            --bg-card: #282a36;
-            --text-primary: #f8f8f2;
-            --text-secondary: #6272a4;
-        }
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        .navbar {
-            background: rgba(30, 30, 46, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .navbar-brand { font-weight: 700; font-size: 1.5rem; }
-        .card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-        .card-header {
-            background: transparent;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.3);
-        }
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #22c55e, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .stat-value.disconnected {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        .status-connected { background: rgba(34, 197, 94, 0.2); color: var(--success-color); }
-        .status-disconnected { background: rgba(239, 68, 68, 0.2); color: var(--danger-color); }
-        .status-connecting { background: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
-        .status-reconnecting { background: rgba(245, 158, 11, 0.2); color: var(--warning-color); }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        .status-connected .status-dot { background: var(--success-color); }
-        .status-disconnected .status-dot { background: var(--danger-color); }
-        .status-connecting .status-dot { background: var(--warning-color); }
-        .status-reconnecting .status-dot { background: var(--warning-color); }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .endpoint-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            margin: 2px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        .endpoint-http { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .endpoint-grpc { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
-        .endpoint-debug { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .refresh-btn { transition: transform 0.3s; }
-        .refresh-btn.spinning { animation: spin 1s linear infinite; }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        pre {
-            background: var(--bg-dark);
-            border-radius: 8px;
-            padding: 16px;
-            color: #f8f8f2;
-            font-size: 0.875rem;
-        }
-        .table { color: var(--text-primary); }
-        .table thead th {
-            background: rgba(99, 102, 241, 0.1);
-            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
-        }
-        .table tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .text-muted { color: var(--text-secondary) !important; }
-        .last-update { font-size: 0.75rem; color: var(--text-secondary); }
-        .arch-diagram {
-            background: var(--bg-dark);
-            border-radius: 12px;
-            padding: 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.75rem;
-            line-height: 1.4;
-        }
+        [x-cloak] { display: none !important; }
+        .loading { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-arrow-left-right me-2"></i>Tunnel Agent
-            </a>
-            <div class="d-flex align-items-center">
-                <span class="last-update me-3">最后更新: <span id="lastUpdate">-</span></span>
-                <button class="btn btn-outline-light btn-sm" onclick="refreshData()">
-                    <i class="bi bi-arrow-clockwise refresh-btn" id="refreshIcon"></i> 刷新
-                </button>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center space-x-4">
+                    <a href="/debug/" class="text-xl font-bold text-blue-400 hover:text-blue-300">🔧 Debug</a>
+                    <span class="text-gray-500">|</span>
+                    <span class="text-white font-semibold">🔗 Tunnel Agent</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/debug/sys" class="text-gray-300 hover:text-white text-sm">系统</a>
+                    <a href="/debug/runtime" class="text-gray-300 hover:text-white text-sm">运行时</a>
+                    <a href="/debug/pprof/" class="text-gray-300 hover:text-white text-sm">PProf</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid py-4">
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="connectionStatus">检测中</div>
-                        <div class="stat-label">连接状态</div>
-                    </div>
-                </div>
+    <!-- 主内容 -->
+    <main class="max-w-3xl mx-auto px-4 py-6" x-data="agentDashboard()" x-init="init()">
+        <!-- 页面标题 -->
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Tunnel Agent</h1>
+                <p class="text-gray-400 mt-1">Gateway 连接状态</p>
             </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-value" id="endpointCount" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
-                        <div class="stat-label">暴露端点</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body text-center">
-                        <span class="status-badge status-connected" id="agentStatusBadge">
-                            <span class="status-dot"></span>
-                            <span id="agentStatusText">检测中...</span>
-                        </span>
-                        <div class="stat-label mt-2">Agent 状态</div>
-                    </div>
-                </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-gray-500 text-sm">更新于 <span x-text="lastUpdate"></span></span>
+                <button @click="refresh()" 
+                    class="px-3 py-1.5 rounded text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                    :class="{ 'opacity-50': loading }">
+                    <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>刷新</span>
+                </button>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="card h-100">
-                    <div class="card-header"><i class="bi bi-diagram-3 me-2"></i>连接架构</div>
-                    <div class="card-body">
-                        <div class="arch-diagram">
-                            <pre class="mb-0" style="background: transparent; padding: 0;">
-┌─────────────────────────┐
-│     本服务 (Agent)       │
-│  ┌─────┐ ┌─────┐ ┌────┐ │
-│  │HTTP │ │gRPC │ │DBG │ │
-│  └──┬──┘ └──┬──┘ └─┬──┘ │
-└─────┼───────┼──────┼────┘
-      └───────┼──────┘
-              │ 主动连接 ↓
-              ▼
-┌─────────────────────────┐
-│   Gateway (远端)        │
-│      :7007 Tunnel       │
-│  ┌─────┐┌─────┐┌─────┐  │
-│  │HTTP ││gRPC ││Debug│  │
-│  │8888 ││9999 ││6066 │  │
-│  └─────┘└─────┘└─────┘  │
-└─────────────────────────┘
-              │
-              ▼
-         外部访问</pre>
-                        </div>
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Agent 主动连接 Gateway，建立反向隧道，外部通过 Gateway 访问本服务
-                            </small>
-                        </div>
-                    </div>
-                </div>
+        <!-- 连接状态卡片 -->
+        <div class="bg-gray-800 rounded-lg border border-gray-700 p-8 text-center mb-6">
+            <div class="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"
+                :class="{
+                    'bg-green-500/20': status === 'connected',
+                    'bg-red-500/20': status === 'disconnected',
+                    'bg-yellow-500/20 loading': status === 'connecting' || status === 'reconnecting'
+                }">
+                <span x-text="status === 'connected' ? '✓' : status === 'disconnected' ? '✗' : '⟳'"></span>
             </div>
+            <div class="text-2xl font-bold text-white mb-1" x-text="getStatusText()"></div>
+            <div class="text-gray-400" x-text="getStatusDesc()"></div>
+        </div>
 
-            <div class="col-lg-7">
-                <div class="card h-100">
-                    <div class="card-header"><i class="bi bi-hdd-network me-2"></i>暴露的端点</div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>类型</th>
-                                        <th>本地地址</th>
-                                        <th>路径前缀</th>
-                                        <th>Gateway 访问</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="endpointsTable">
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted py-4">
-                                            <i class="bi bi-hourglass-split me-2"></i>加载中...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <!-- 连接信息 -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">Gateway 地址</div>
+                <code class="text-white mt-1 block" x-text="gatewayAddr || '-'"></code>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">服务名称</div>
+                <div class="text-white mt-1" x-text="serviceName || '-'"></div>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">服务版本</div>
+                <code class="text-white mt-1 block" x-text="serviceVersion || '-'"></code>
+            </div>
+            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
+                <div class="text-gray-400 text-sm">端点数量</div>
+                <div class="text-white mt-1" x-text="endpoints.length"></div>
             </div>
         </div>
 
-        <div class="row g-4 mt-2">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header"><i class="bi bi-info-circle me-2"></i>连接信息</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">Gateway 地址</h6>
-                                <pre class="mb-0" id="gatewayAddr">-</pre>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">服务名称</h6>
-                                <pre class="mb-0" id="serviceName">-</pre>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-2">服务版本</h6>
-                                <pre class="mb-0" id="serviceVersion">-</pre>
-                            </div>
+        <!-- 本地端点 -->
+        <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div class="px-4 py-3 border-b border-gray-700">
+                <h3 class="font-semibold text-white">本地端点</h3>
+            </div>
+            <div class="p-4 space-y-2">
+                <template x-for="ep in endpoints" :key="ep.type + ep.port">
+                    <div class="flex items-center space-x-3 bg-gray-700/50 rounded p-3">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center"
+                            :class="{
+                                'bg-green-500/20 text-green-400': ep.type === 'http',
+                                'bg-purple-500/20 text-purple-400': ep.type === 'grpc',
+                                'bg-yellow-500/20 text-yellow-400': ep.type === 'debug'
+                            }"
+                            x-text="ep.type === 'http' ? '🌐' : ep.type === 'grpc' ? '⚡' : '🔧'"></span>
+                        <div>
+                            <div class="text-sm font-medium text-gray-300 uppercase" x-text="ep.type"></div>
+                            <code class="text-xs text-gray-500" x-text="ep.address || 'localhost:' + ep.port"></code>
                         </div>
                     </div>
-                </div>
+                </template>
+                <template x-if="endpoints.length === 0">
+                    <div class="text-center text-gray-500 py-4">暂无端点</div>
+                </template>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let refreshInterval;
+    function agentDashboard() {
+        return {
+            loading: false,
+            lastUpdate: '-',
+            status: 'disconnected',
+            gatewayAddr: '',
+            serviceName: '',
+            serviceVersion: '',
+            endpoints: [],
 
-        document.addEventListener('DOMContentLoaded', () => {
-            refreshData();
-            refreshInterval = setInterval(refreshData, 5000);
-        });
+            init() {
+                this.refresh();
+                setInterval(() => this.refresh(), 5000);
+            },
 
-        async function refreshData() {
-            const icon = document.getElementById('refreshIcon');
-            icon.classList.add('spinning');
-            try {
-                await fetchStatus();
-                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-            } catch (err) {
-                console.error('Failed to refresh:', err);
-            } finally {
-                setTimeout(() => icon.classList.remove('spinning'), 500);
-            }
-        }
-
-        async function fetchStatus() {
-            try {
-                const res = await fetch('/debug/tunnel/api/status');
-                const data = await res.json();
-                
-                if (data.agent) {
-                    const status = data.agent.status || 'disconnected';
-                    const statusEl = document.getElementById('agentStatusBadge');
-                    const textEl = document.getElementById('agentStatusText');
-                    const connEl = document.getElementById('connectionStatus');
-                    
-                    textEl.textContent = status;
-                    statusEl.className = 'status-badge status-' + status;
-                    
-                    if (status === 'connected') {
-                        connEl.textContent = '已连接';
-                        connEl.classList.remove('disconnected');
-                    } else {
-                        connEl.textContent = status === 'connecting' ? '连接中' : 
-                                            status === 'reconnecting' ? '重连中' : '未连接';
-                        connEl.classList.add('disconnected');
+            async refresh() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/debug/tunnel/api/status');
+                    const data = await res.json();
+                    if (data.agent) {
+                        this.status = data.agent.status || 'disconnected';
+                        this.gatewayAddr = data.agent.gateway_addr || '';
+                        this.serviceName = data.agent.service_name || '';
+                        this.serviceVersion = data.agent.service_version || '';
+                        this.endpoints = data.agent.endpoints || [];
                     }
-                    
-                    // 更新连接信息
-                    if (data.agent.gateway_addr) {
-                        document.getElementById('gatewayAddr').textContent = data.agent.gateway_addr;
-                    }
-                    if (data.agent.service_name) {
-                        document.getElementById('serviceName').textContent = data.agent.service_name;
-                    }
-                    if (data.agent.service_version) {
-                        document.getElementById('serviceVersion').textContent = data.agent.service_version;
-                    }
-                    
-                    // 更新端点列表
-                    const endpoints = data.agent.endpoints || [];
-                    document.getElementById('endpointCount').textContent = endpoints.length;
-                    
-                    const tbody = document.getElementById('endpointsTable');
-                    if (endpoints.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>暂无端点</td></tr>';
-                    } else {
-                        tbody.innerHTML = endpoints.map(ep => {
-                            const gwPort = ep.type === 'http' ? '8888' : ep.type === 'grpc' ? '9999' : '6066';
-                            const svcName = data.agent.service_name || 'service';
-                            return '<tr>' +
-                                '<td><span class="endpoint-badge endpoint-' + ep.type + '">' + ep.type + '</span></td>' +
-                                '<td><code>' + ep.address + '</code></td>' +
-                                '<td>' + (ep.path || '/') + '</td>' +
-                                '<td><code>localhost:' + gwPort + '/' + svcName + ep.path + '</code></td>' +
-                                '</tr>';
-                        }).join('');
-                    }
+                    this.lastUpdate = new Date().toLocaleTimeString('zh-CN');
+                } catch (e) {
+                    console.error('Refresh failed:', e);
+                } finally {
+                    setTimeout(() => this.loading = false, 300);
                 }
-            } catch (err) { 
-                console.error(err); 
+            },
+
+            getStatusText() {
+                const map = {
+                    connected: '已连接',
+                    connecting: '连接中...',
+                    reconnecting: '重连中...',
+                    disconnected: '未连接'
+                };
+                return map[this.status] || '未连接';
+            },
+
+            getStatusDesc() {
+                const map = {
+                    connected: '与 Gateway 连接正常',
+                    connecting: '正在连接到 Gateway',
+                    reconnecting: '正在尝试重新连接',
+                    disconnected: '与 Gateway 断开连接'
+                };
+                return map[this.status] || '与 Gateway 断开连接';
             }
         }
+    }
     </script>
 </body>
 </html>`
 }
 
-// getEmptyDashboardHTML 返回空状态 HTML（既没有 Gateway 也没有 Agent）
+// getEmptyDashboardHTML 返回空状态页面
 func getEmptyDashboardHTML() string {
 	return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tunnel Debug</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #f8f8f2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-        }
-        .empty-state i {
-            font-size: 5rem;
-            color: #6272a4;
-            margin-bottom: 20px;
-        }
-        .empty-state h2 {
-            color: #f8f8f2;
-            margin-bottom: 10px;
-        }
-        .empty-state p {
-            color: #6272a4;
-        }
-    </style>
+    <title>Tunnel - 未配置</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="empty-state">
-        <i class="bi bi-hdd-network"></i>
-        <h2>Tunnel 未配置</h2>
-        <p>当前服务未配置 Gateway 或 Agent</p>
-        <p class="mt-3"><small>请在代码中调用 <code>tunneldebug.SetGateway()</code> 或 <code>tunneldebug.SetAgent()</code></small></p>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center">
+    <div class="text-center max-w-md px-4">
+        <div class="w-20 h-20 rounded-full bg-gray-700/50 mx-auto flex items-center justify-center text-4xl mb-6">
+            🌐
+        </div>
+        <h1 class="text-2xl font-bold text-white mb-2">Tunnel 未配置</h1>
+        <p class="text-gray-400">请先配置 Gateway 或 Agent 后再访问此页面</p>
+        <a href="/debug/" class="inline-block mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm transition-colors">
+            返回 Debug 首页
+        </a>
     </div>
 </body>
 </html>`

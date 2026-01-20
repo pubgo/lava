@@ -311,9 +311,12 @@ func (a *tunnelAgent) sendHeartbeat() error {
 func (a *tunnelAgent) acceptLoop() {
 	defer a.wg.Done()
 
+	log.Debug().Msg("Agent: acceptLoop started, waiting for streams from gateway")
+
 	for {
 		select {
 		case <-a.stopCh:
+			log.Debug().Msg("Agent: acceptLoop stopped by stopCh")
 			return
 		default:
 		}
@@ -326,51 +329,68 @@ func (a *tunnelAgent) acceptLoop() {
 		stream, err := a.session.Accept()
 		if err != nil {
 			if a.session.IsClosed() {
+				log.Debug().Msg("Agent: acceptLoop stopped, session closed")
 				return
 			}
-			log.Warn().Err(err).Msg("Failed to accept stream")
+			log.Warn().Err(err).Msg("Agent: Failed to accept stream from gateway")
 			continue
 		}
 
+		log.Debug().Msg("Agent: Accepted stream from gateway, handling...")
 		go a.handleStream(stream)
 	}
 }
 
 func (a *tunnelAgent) handleStream(stream Stream) {
-	defer stream.Close()
+	log.Debug().Msg("Agent: Accepted new stream from gateway")
 
 	// Read message header
 	header := make([]byte, 4)
 	if _, err := io.ReadFull(stream, header); err != nil {
-		log.Warn().Err(err).Msg("Failed to read message header")
+		log.Warn().Err(err).Msg("Agent: Failed to read message header")
+		stream.Close()
 		return
 	}
 
 	length := uint32(header[0])<<24 | uint32(header[1])<<16 | uint32(header[2])<<8 | uint32(header[3])
+	log.Debug().Uint32("length", length).Msg("Agent: Read message header")
+
 	data := make([]byte, length)
 	if _, err := io.ReadFull(stream, data); err != nil {
-		log.Warn().Err(err).Msg("Failed to read message data")
+		log.Warn().Err(err).Msg("Agent: Failed to read message data")
+		stream.Close()
 		return
 	}
 
 	var msg Message
 	if err := json.Unmarshal(data, &msg); err != nil {
-		log.Warn().Err(err).Msg("Failed to unmarshal message")
+		log.Warn().Err(err).Str("data", string(data)).Msg("Agent: Failed to unmarshal message")
+		stream.Close()
 		return
 	}
 
+	log.Debug().Str("type", string(msg.Type)).Msg("Received message from gateway")
+
 	switch msg.Type {
 	case MessageTypeHTTPRequest:
+		// handleHTTPRequest will manage stream lifecycle
 		a.handleHTTPRequest(stream, &msg)
 	case MessageTypeGRPCRequest:
+		// handleGRPCRequest will manage stream lifecycle
 		a.handleGRPCRequest(stream, &msg)
 	case MessageTypeDebugRequest:
+		// handleDebugRequest will manage stream lifecycle
 		a.handleDebugRequest(stream, &msg)
+	default:
+		stream.Close()
 	}
 }
 
 func (a *tunnelAgent) handleHTTPRequest(stream Stream, msg *Message) {
+	defer stream.Close()
+
 	if msg.Service == nil {
+		log.Warn().Msg("HTTP request: service info is nil")
 		return
 	}
 
@@ -384,24 +404,55 @@ func (a *tunnelAgent) handleHTTPRequest(stream Stream, msg *Message) {
 	}
 
 	if httpEndpoint == nil {
+		log.Warn().Str("service", msg.Service.Name).Msg("HTTP request: no HTTP endpoint found")
 		return
 	}
 
+	// Normalize address: add localhost if address starts with ':'
+	address := httpEndpoint.Address
+	if len(address) > 0 && address[0] == ':' {
+		address = "127.0.0.1" + address
+	}
+
+	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying HTTP request to local service")
+
 	// Forward request to local HTTP service
-	conn, err := net.Dial("tcp", httpEndpoint.Address)
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Warn().Err(err).Msg("Failed to connect to local HTTP service")
+		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local HTTP service")
 		return
 	}
 	defer conn.Close()
 
-	// Bidirectional copy
-	go io.Copy(conn, stream)
-	io.Copy(stream, conn)
+	// Bidirectional copy - wait for both directions to complete
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// stream -> conn (request from gateway to local service)
+	go func() {
+		defer wg.Done()
+		io.Copy(conn, stream)
+		// Close write side to signal end of request
+		if tcpConn, ok := conn.(*net.TCPConn); ok {
+			tcpConn.CloseWrite()
+		}
+	}()
+
+	// conn -> stream (response from local service to gateway)
+	go func() {
+		defer wg.Done()
+		io.Copy(stream, conn)
+	}()
+
+	wg.Wait()
+	log.Debug().Str("service", msg.Service.Name).Msg("HTTP request completed")
 }
 
 func (a *tunnelAgent) handleGRPCRequest(stream Stream, msg *Message) {
+	defer stream.Close()
+
 	if msg.Service == nil {
+		log.Warn().Msg("gRPC request: service info is nil")
 		return
 	}
 
@@ -415,24 +466,49 @@ func (a *tunnelAgent) handleGRPCRequest(stream Stream, msg *Message) {
 	}
 
 	if grpcEndpoint == nil {
+		log.Warn().Str("service", msg.Service.Name).Msg("gRPC request: no gRPC endpoint found")
 		return
 	}
 
+	// Normalize address: add localhost if address starts with ':'
+	address := grpcEndpoint.Address
+	if len(address) > 0 && address[0] == ':' {
+		address = "127.0.0.1" + address
+	}
+
+	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying gRPC request to local service")
+
 	// Forward request to local gRPC service
-	conn, err := net.Dial("tcp", grpcEndpoint.Address)
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Warn().Err(err).Msg("Failed to connect to local gRPC service")
+		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local gRPC service")
 		return
 	}
 	defer conn.Close()
 
-	// Bidirectional copy
-	go io.Copy(conn, stream)
-	io.Copy(stream, conn)
+	// Bidirectional copy - wait for both directions to complete
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		io.Copy(conn, stream)
+	}()
+
+	go func() {
+		defer wg.Done()
+		io.Copy(stream, conn)
+	}()
+
+	wg.Wait()
+	log.Debug().Str("service", msg.Service.Name).Msg("gRPC request completed")
 }
 
 func (a *tunnelAgent) handleDebugRequest(stream Stream, msg *Message) {
+	defer stream.Close()
+
 	if msg.Service == nil {
+		log.Warn().Msg("Debug request: service info is nil")
 		return
 	}
 
@@ -446,20 +522,42 @@ func (a *tunnelAgent) handleDebugRequest(stream Stream, msg *Message) {
 	}
 
 	if debugEndpoint == nil {
+		log.Warn().Str("service", msg.Service.Name).Msg("Debug request: no debug endpoint found")
 		return
 	}
 
+	// Normalize address: add localhost if address starts with ':'
+	address := debugEndpoint.Address
+	if len(address) > 0 && address[0] == ':' {
+		address = "127.0.0.1" + address
+	}
+
+	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying debug request to local service")
+
 	// Forward request to local debug service
-	conn, err := net.Dial("tcp", debugEndpoint.Address)
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Warn().Err(err).Msg("Failed to connect to local debug service")
+		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local debug service")
 		return
 	}
 	defer conn.Close()
 
-	// Bidirectional copy
-	go io.Copy(conn, stream)
-	io.Copy(stream, conn)
+	// Bidirectional copy - wait for both directions to complete
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		io.Copy(conn, stream)
+	}()
+
+	go func() {
+		defer wg.Done()
+		io.Copy(stream, conn)
+	}()
+
+	wg.Wait()
+	log.Debug().Str("service", msg.Service.Name).Msg("Debug request completed")
 }
 
 func (a *tunnelAgent) reconnectLoop(ctx context.Context) {

@@ -25,13 +25,13 @@ tasks:
     cmds:
       - task tunnel:build
       - kill -9 $(ps -ef | grep tunnel-gateway | grep -v grep | awk '{print $2}') || true
-      - ./bin/tunnel-gateway scheduler -c ./internal/configs/tunnel.yaml
+      - ./bin/tunnel-gateway tunnel -c ./internal/configs/tunnel.yaml
 
   run-foreground:
     desc: "仅启动 Gateway（前台运行）"
     cmds:
       - task tunnel:build
-      - ./bin/tunnel-gateway scheduler -c ./internal/configs/tunnel.yaml
+      - ./bin/tunnel-gateway tunnel -c ./internal/configs/tunnel.yaml
 
   test:
     desc: "运行 tunnel 模块测试"

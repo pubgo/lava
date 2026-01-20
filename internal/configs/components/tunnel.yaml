@@ -17,3 +17,9 @@ tunnel:
   # 外部可通过此端口访问已注册服务的 debug 接口
   # URL 格式: http://gateway:6066/{service_name}/debug/pprof
   debug_port: 6066
+
+# Tunnel Agent 配置 (用于服务端连接到 Gateway)
+tunnel_agent:
+  enabled: true
+  gateway_addr: "localhost:7007"
+  service_addr: ":8082"

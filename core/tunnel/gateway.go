@@ -204,13 +204,25 @@ func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request
 func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc *registeredService, endpointType EndpointType, subPath string) {
 	ctx := r.Context()
 
+	log.Debug().
+		Str("service", svc.info.Name).
+		Str("endpointType", string(endpointType)).
+		Str("subPath", subPath).
+		Str("method", r.Method).
+		Bool("sessionClosed", svc.session.IsClosed()).
+		Int("numStreams", svc.session.NumStreams()).
+		Msg("Gateway: Proxying request to agent")
+
 	// 打开到 Agent 的 stream
 	stream, err := svc.session.Open(ctx)
 	if err != nil {
+		log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: Failed to open stream to agent")
 		http.Error(w, fmt.Sprintf("failed to open stream: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer stream.Close()
+
+	log.Debug().Str("service", svc.info.Name).Msg("Gateway: Stream opened to agent")
 
 	// 发送请求消息给 Agent
 	msg := &Message{
@@ -219,9 +231,12 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	}
 
 	if err := g.sendMessage(stream, msg); err != nil {
+		log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: Failed to send message to agent")
 		http.Error(w, fmt.Sprintf("failed to send message: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	log.Debug().Str("service", svc.info.Name).Str("msgType", string(msg.Type)).Msg("Gateway: Message sent to agent, starting proxy")
 
 	// 修改请求路径为子路径
 	r.URL.Path = subPath
@@ -237,6 +252,10 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 			// 保持原始请求
 		},
 		Transport: &streamRoundTripper{stream: stream, request: r},
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			log.Warn().Err(err).Str("service", svc.info.Name).Msg("Proxy error")
+			w.WriteHeader(http.StatusBadGateway)
+		},
 	}
 
 	proxy.ServeHTTP(w, r)

@@ -9,6 +9,7 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/features/featureflags"
 	"github.com/pubgo/funk/v2/recovery"
+
 	// metric
 	"github.com/pubgo/redant"
 	_ "go.uber.org/automaxprocs"
@@ -19,11 +20,13 @@ import (
 	"github.com/pubgo/lava/v2/cmds/healthcmd"
 	"github.com/pubgo/lava/v2/cmds/httpservercmd"
 	"github.com/pubgo/lava/v2/cmds/schedulercmd"
+	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
 	_ "github.com/pubgo/lava/v2/core/debug/configview"
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	"github.com/pubgo/lava/v2/core/debug/dixdebug"
 	_ "github.com/pubgo/lava/v2/core/debug/featurehttp"
+
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
 	_ "github.com/pubgo/lava/v2/core/debug/goroutine"
 	_ "github.com/pubgo/lava/v2/core/debug/healthy"
@@ -38,16 +41,19 @@ import (
 	_ "github.com/pubgo/lava/v2/core/debug/vars"
 	_ "github.com/pubgo/lava/v2/core/debug/version"
 	"github.com/pubgo/lava/v2/core/discovery"
+
 	// encoding
 	_ "github.com/pubgo/lava/v2/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/v2/core/encoding/protojson"
 	"github.com/pubgo/lava/v2/core/flags"
 	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/v2/core/logging/logbuilder"
+
 	// logging
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/stdlog"
+
 	// loggerdebug
 	_ "github.com/pubgo/lava/v2/core/logging/loggerdebug"
 	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
@@ -91,6 +97,7 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
+	dix.Provide(di, tunnelcmd.New)
 	dix.Inject(di, func(commands []*redant.Command) {
 		app := &redant.Command{
 			Use:      version.Project(),

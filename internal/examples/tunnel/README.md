@@ -16,7 +16,8 @@
 │  └──────┬──────┘  └──────┬──────┘  └─────┬─────┘ │
 │         └────────────────┼───────────────┘       │
 │                          │                       │
-│            Tunnel Listener :7000                 │
+│            Tunnel Listener :7007                 │
+│            Admin UI :6067                        │
 └──────────────────────────┬───────────────────────┘
                            │
             ┌──────────────┼──────────────┐
@@ -24,7 +25,6 @@
      ┌──────┴──────┐ ┌─────┴─────┐ ┌──────┴──────┐
      │ Scheduler   │ │ Service B │ │ Service C   │
      │ (Agent)     │ │ (Agent)   │ │ (Agent)     │
-     │ :8080/:6060 │ │           │ │             │
      └─────────────┘ └───────────┘ └─────────────┘
             内网服务节点（主动连接 Gateway）
 ```
@@ -34,40 +34,48 @@
 ### 1. 启动 Gateway
 
 ```bash
-cd internal/examples/tunnel
-go run . scheduler -c ../../configs/tunnel.yaml
+# 使用 task
+task tunnel:run
+
+# 或手动运行
+go build -o ./bin/tunnel-gateway ./internal/examples/tunnel/main.go
+./bin/tunnel-gateway tunnel -c ./internal/configs/tunnel.yaml
 ```
 
 Gateway 将监听以下端口：
 - `:7007` - 接受 Agent 连接
 - `:8888` - HTTP 代理（对外暴露服务）
 - `:9999` - gRPC 代理
-- `:6066` - Debug 代理
+- `:6066` - Debug 代理（代理到各服务的 debug 接口）
+- `:6067` - 管理界面（Gateway 自身的管理 UI）
 
-### 2. 启动带 Agent 的 Scheduler 服务
+### 2. 访问管理界面
+
+打开浏览器访问 `http://localhost:6067/debug/tunnel` 查看：
+- 已注册的服务列表
+- 各服务的端点信息
+- 服务状态和元数据
+
+### 3. 启动带 Agent 的 Scheduler 服务
 
 ```bash
 # 在另一个终端
-cd internal/examples/scheduler
-TUNNEL_GATEWAY_ADDR=localhost:7007 go run . scheduler -c ../../configs/scheduler.yaml
+TUNNEL_GATEWAY_ADDR=localhost:7007 ./bin/scheduler scheduler -c ./internal/configs/scheduler.yaml
 ```
 
-Scheduler 服务会：
-1. 启动本地 HTTP 服务（`:8080`）
-2. 启动本地 Debug 服务（`:6060`）
-3. 通过 Agent 连接到 Gateway，注册自己
+Scheduler 服务会通过 Agent 连接到 Gateway，注册自己。
 
-### 3. 通过 Gateway 访问服务
+### 4. 通过 Gateway 访问服务
 
 ```bash
-# 查看已注册的服务列表
-curl http://localhost:8888/
-
 # 访问 scheduler 服务的接口
 curl http://localhost:8888/scheduler/api/v1/jobs
 
 # 访问 scheduler 服务的 debug 接口
 curl http://localhost:6066/scheduler/debug/pprof/
+
+# 获取服务列表 API
+curl http://localhost:6067/debug/tunnel/api/services
 ```
 
 ## 配置
