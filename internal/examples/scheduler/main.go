@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/debugs"
+	"github.com/pubgo/funk/v2/env"
+	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
+	"github.com/pubgo/funk/v2/result/resultchecker"
 
 	"github.com/pubgo/lava/v2/cmds/configcmd"
 	"github.com/pubgo/lava/v2/cmds/envcmd"
@@ -52,6 +56,19 @@ func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
 
 func main() {
 	defer recovery.Exit()
+
+	version.SetVersion("v1.0.0")
+	version.SetProject("scheduler")
+	config.SetConfigPath("internal/configs/scheduler.yaml")
+	resultchecker.RegisterErrCheck(log.RecordErr())
+	log.SetEnableChecker(func(ctx context.Context, lvl log.Level, name, message string, fields log.Fields) bool {
+		//if lvl == zerolog.DebugLevel {
+		//	return false
+		//}
+		return true
+	})
+	//debugs.SetEnabled()
+	env.LoadFiles(".env").Must()
 
 	builder := lavabuilder.New()
 	builder.Provide(config.Load[Config])

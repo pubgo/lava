@@ -1,0 +1,49 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  TunnelRelease: "v0.1.0"
+  TunnelProject: "tunnel-gateway"
+
+tasks:
+  info:
+    cmds:
+      - echo "{{.TunnelRelease}}" "{{.TunnelProject}}"
+
+  default:
+    cmds:
+      - task tunnel:info
+
+  build:
+    cmds:
+      - go build -o ./bin/tunnel-gateway ./internal/examples/tunnel/main.go
+      - ls -alh ./bin
+
+  run:
+    desc: "启动 Tunnel Gateway"
+    cmds:
+      - task tunnel:build
+      - kill -9 $(ps -ef | grep tunnel-gateway | grep -v grep | awk '{print $2}') || true
+      - ./bin/tunnel-gateway scheduler -c ./internal/configs/tunnel.yaml
+
+  run-foreground:
+    desc: "仅启动 Gateway（前台运行）"
+    cmds:
+      - task tunnel:build
+      - ./bin/tunnel-gateway scheduler -c ./internal/configs/tunnel.yaml
+
+  test:
+    desc: "运行 tunnel 模块测试"
+    cmds:
+      - go test -v ./core/tunnel/... -timeout 30s
+
+  test-integration:
+    desc: "运行集成测试"
+    cmds:
+      - go test -v ./cmds/schedulercmd/... -run TestTunnelIntegration -timeout 30s
+
+  clean:
+    desc: "清理构建产物"
+    cmds:
+      - rm -f ./bin/tunnel-gateway

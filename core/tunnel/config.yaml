@@ -1,0 +1,99 @@
+# Tunnel 配置示例
+# 服务注册监控网关配置
+#
+# 架构说明：
+#   - Gateway: 部署在公网，被动接受 Agent 连接
+#   - Agent: 部署在服务节点（可以是内网），主动连接 Gateway
+#
+# 连接方向：Agent -> Gateway (反向代理)
+# 请求流向：外部请求 -> Gateway -> Agent -> 本地服务
+
+tunnel:
+  # ============================================
+  # Gateway 配置 - 部署在公网/DMZ 服务器上
+  # ============================================
+  gateway:
+    # 是否启用网关
+    enabled: false
+    # 监听地址 - Agent 主动连接此端口
+    listen_addr: ":7000"
+    # 传输协议: yamux, quic, http, kcp
+    transport: yamux
+    # 传输层选项
+    transport_options:
+      max_streams: 256
+      keep_alive_interval: 30
+      connection_write_timeout: 10
+      stream_open_timeout: 30
+    # 对外暴露的端口 - 外部请求通过这些端口访问内网服务
+    http_port: 8080    # 外部 HTTP 请求入口
+    grpc_port: 9090    # 外部 gRPC 请求入口
+    debug_port: 6060   # 外部 Debug 请求入口
+    # 心跳间隔（秒）
+    heartbeat_interval: 30
+    # 心跳超时（秒）- 超过此时间未收到心跳认为 Agent 离线
+    heartbeat_timeout: 90
+    # 健康检查间隔（秒）
+    health_check_interval: 30
+    # TLS 配置
+    tls:
+      enabled: false
+      cert_file: ""
+      key_file: ""
+      ca_file: ""
+      insecure: false
+
+  # ============================================
+  # Agent 配置 - 部署在服务所在的节点上
+  # ============================================
+  agent:
+    # 是否启用代理客户端
+    enabled: false
+    # Gateway 地址 - Agent 主动连接此地址
+    gateway_addr: "gateway.example.com:7000"
+    # 传输协议
+    transport: yamux
+    # 传输层选项
+    transport_options:
+      max_streams: 256
+      keep_alive_interval: 30
+    # 服务ID（可选，为空则自动生成）
+    service_id: ""
+    # 服务名称 - 用于在 Gateway 上标识此服务
+    service_name: my-service
+    # 服务版本
+    service_version: "1.0.0"
+    # 服务元数据
+    metadata:
+      env: production
+      region: cn-north-1
+    # 要暴露的本地端点 - Gateway 会代理这些端点
+    endpoints:
+      - type: http
+        local_addr: "localhost:8080"   # 本地 HTTP 服务地址
+        path: /api
+        metadata:
+          doc: "HTTP API 接口"
+      - type: grpc
+        local_addr: "localhost:9090"   # 本地 gRPC 服务地址
+        path: ""
+        metadata:
+          doc: "gRPC 服务接口"
+      - type: debug
+        local_addr: "localhost:6060"   # 本地 Debug 服务地址
+        path: /debug
+        metadata:
+          doc: "pprof/metrics 调试接口"
+    # 心跳间隔（秒）
+    heartbeat_interval: 30
+    # 重连间隔（秒）- 与 Gateway 断开后的重连间隔
+    reconnect_interval: 5
+    # 最大重连次数，0 表示无限重试
+    max_reconnect_attempts: 0
+    # TLS 配置
+    tls:
+      enabled: false
+      cert_file: ""
+      key_file: ""
+      ca_file: ""
+      insecure: false

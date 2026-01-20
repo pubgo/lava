@@ -1,0 +1,449 @@
+# Tunnel - 服务注册监控网关
+
+服务注册监控网关模块，采用**反向连接**架构（类似 ngrok/frp）。
+服务节点上的 Agent **主动连接**到 Gateway，注册自己的服务，Gateway 被动接受连接并对外暴露这些服务。
+
+## 核心特点
+
+- **反向连接**：服务主动连接网关，无需开放服务端口
+- **内网穿透**：服务可以在内网/防火墙后，只要能出站连接 Gateway
+- **服务聚合**：多个服务通过同一个 Gateway 对外暴露
+- **远程调试**：通过 Gateway 访问服务的 debug 接口进行远程监控
+
+## 目录结构
+
+```
+core/tunnel/
+├── doc.go          # 包文档（详细 API 说明）
+├── types.go        # 核心类型和接口定义
+├── config.go       # 配置结构定义
+├── config.yaml     # 配置示例文件
+├── errors.go       # 错误定义
+├── transport.go    # 传输层注册表和工厂
+├── agent.go        # Agent 实现（运行在服务节点，主动连接）
+├── gateway.go      # Gateway 实现（运行在公网，被动接受连接）
+├── builder.go      # 构建器模式 API
+├── debug.go        # 调试接口
+├── README.md       # 本文档
+└── yamux/
+    └── yamux.go    # yamux 传输协议实现
+```
+
+## 架构图
+
+```
+                        外部请求
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   Gateway (公网/DMZ)                             │
+│                                                                  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐               │
+│  │ HTTP :8080  │ │ gRPC :9090  │ │ Debug :6060 │  <- 对外端口  │
+│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘               │
+│         │               │               │                       │
+│  ┌──────┴───────────────┴───────────────┴──────┐               │
+│  │         Service Router (按服务名路由)        │               │
+│  └──────────────────────┬──────────────────────┘               │
+│                         │                                       │
+│  ┌──────────────────────┴──────────────────────┐               │
+│  │         Session Manager (管理连接)           │               │
+│  │    service-a ──> Session1                    │               │
+│  │    service-b ──> Session2                    │               │
+│  └──────────────────────────────────────────────┘               │
+│                         │                                       │
+│              Listener :7000  <- 接受 Agent 连接                 │
+└─────────────────────────────────────────────────────────────────┘
+                           ▲
+            ┌──────────────┼──────────────┐
+            │              │              │
+      ┌─────┴─────┐  ┌─────┴─────┐  ┌─────┴─────┐
+      │  Tunnel   │  │  Tunnel   │  │  Tunnel   │   <- 主动出站连接
+      │ Session 1 │  │ Session 2 │  │ Session 3 │      (yamux 多路复用)
+      └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
+            │              │              │
+┌───────────┴──┐  ┌────────┴───┐  ┌───────┴────┐
+│ Service A    │  │ Service B  │  │ Service C  │   <- 内网服务节点
+│ (内网)       │  │ (内网)     │  │ (内网)     │
+│              │  │            │  │            │
+│ ┌──────────┐ │  │ ┌────────┐ │  │ ┌────────┐ │
+│ │Agent     │─┼──┼─│Agent   │─┼──┼─│Agent   │ │   <- 主动连接 Gateway
+│ └────┬─────┘ │  │ └───┬────┘ │  │ └───┬────┘ │
+│      │       │  │     │      │  │     │      │
+│ ┌────┴─────┐ │  │ ┌───┴────┐ │  │ ┌───┴────┐ │
+│ │本地服务  │ │  │ │本地服务│ │  │ │本地服务│ │
+│ │HTTP/gRPC │ │  │ │HTTP    │ │  │ │Debug   │ │
+│ │Debug     │ │  │ └────────┘ │  │ └────────┘ │
+│ └──────────┘ │  └────────────┘  └────────────┘
+└──────────────┘
+```
+
+## 工作流程
+
+```
+1. Agent 启动，主动连接 Gateway
+   Agent ─────────────────────────────────────> Gateway:7000
+                    TCP + yamux
+
+2. Agent 注册服务信息
+   Agent ──── [Register] {name, endpoints} ───> Gateway
+   Agent <─── [Ack] ──────────────────────────── Gateway
+
+3. Agent 保持心跳
+   Agent ──── [Heartbeat] ────────────────────> Gateway (每30秒)
+
+4. 外部请求到达 Gateway
+   Client ──── HTTP Request ──────────────────> Gateway:8080
+
+5. Gateway 通过已建立的 tunnel 转发请求
+   Gateway ──── [HTTPRequest] ────────────────> Agent
+                  (通过 yamux stream)
+
+6. Agent 转发到本地服务
+   Agent ──────────────────────────────────────> localhost:8080
+
+7. 响应原路返回
+   localhost:8080 ──> Agent ──> Gateway ──> Client
+```
+
+## 快速开始
+
+### 1. 部署 Gateway（公网服务器）
+
+Gateway 部署在公网可访问的服务器上，被动等待服务连接。
+
+```go
+import (
+    "context"
+    "github.com/pubgo/lava/v2/core/tunnel"
+    _ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
+)
+
+func main() {
+    ctx := context.Background()
+    
+    // 启动 Gateway，监听 :7000 接受 Agent 连接
+    gw, err := tunnel.NewGatewayBuilder().
+        WithListenAddr(":7000").      // Agent 连接端口
+        WithTransport("yamux").
+        WithHTTPPort(8080).            // 对外暴露的 HTTP 端口
+        WithGRPCPort(9090).            // 对外暴露的 gRPC 端口
+        WithDebugPort(6060).           // 对外暴露的 Debug 端口
+        Build()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    if err := gw.Start(ctx); err != nil {
+        log.Fatal(err)
+    }
+    
+    // Gateway 现在等待 Agent 连接...
+    // 当 Agent 连接并注册服务后，可以通过 Services() 查看
+    for _, svc := range gw.Services() {
+        fmt.Printf("已注册服务: %s v%s\n", svc.Name, svc.Version)
+    }
+}
+```
+
+### 2. 部署 Agent（内网服务节点）
+
+Agent 部署在服务所在的机器上（可以是内网），主动连接到 Gateway。
+
+```go
+import (
+    "context"
+    "github.com/pubgo/lava/v2/core/tunnel"
+    _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
+)
+
+func main() {
+    ctx := context.Background()
+    
+    // Agent 主动连接到 Gateway，注册本地服务
+    agent, err := tunnel.NewAgentBuilder().
+        WithGatewayAddr("gateway.example.com:7000").  // Gateway 地址
+        WithServiceName("my-service").
+        WithServiceVersion("1.0.0").
+        // 声明本地服务端点，Gateway 会代理这些端点
+        AddEndpoint("http", "localhost:8080", "/api").    // 本地 HTTP 服务
+        AddEndpoint("grpc", "localhost:9090", "").        // 本地 gRPC 服务
+        AddEndpoint("debug", "localhost:6060", "/debug"). // 本地 Debug 端口
+        WithReconnectInterval(5).  // 断线后 5 秒重连
+        Build()
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // 启动 Agent，会自动：
+    // 1. 连接到 Gateway
+    // 2. 注册服务
+    // 3. 保持心跳
+    // 4. 断线自动重连
+    if err := agent.Start(ctx); err != nil {
+        log.Fatal(err)
+    }
+    
+    // 之后外部可以通过 Gateway 访问本地服务：
+    // http://gateway.example.com:8080/my-service/api  -> localhost:8080
+    // gateway.example.com:9090 (gRPC)                 -> localhost:9090  
+    // http://gateway.example.com:6060/my-service/debug -> localhost:6060
+}
+```
+
+### 3. 集成调试接口
+
+```go
+// 创建调试处理器
+debugHandler := tunnel.NewDebugHandler()
+debugHandler.SetGateway(gw)
+debugHandler.SetAgent(agent)
+
+// Fiber 集成
+app := fiber.New()
+debugHandler.FiberRoutes(app.Group("/debug"))
+
+// 标准 HTTP 集成
+mux := http.NewServeMux()
+debugHandler.HTTPRoutes(mux)
+```
+
+## 使用场景
+
+### 典型场景：内网服务暴露
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    开发者电脑    │     │   公网 Gateway   │     │   内网服务器    │
+│                 │     │                 │     │                 │
+│  浏览器/curl    │────>│  :8080 (HTTP)   │<────│  Agent          │
+│                 │     │  :9090 (gRPC)   │     │  └─ 主动连接    │
+│                 │     │  :6060 (Debug)  │     │                 │
+│                 │     │                 │     │  本地服务       │
+│                 │     │  :7000 (Agent)  │     │  └─ :8080       │
+│                 │     │       ↑ 被动    │     │  └─ :9090       │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### 应用场景
+
+1. **远程调试**：通过 Gateway 访问内网服务的 pprof、metrics 等调试接口
+2. **服务聚合**：多个内网服务通过同一个 Gateway 对外暴露
+3. **安全访问**：内网服务无需开放端口，只需能出站连接 Gateway
+4. **临时暴露**：开发测试时临时将本地服务暴露到公网
+
+## 配置说明
+
+### 网关配置
+
+```yaml
+tunnel:
+  gateway:
+    enabled: true
+    listen_addr: ":7000"          # Agent 连接地址
+    transport: yamux              # 传输协议
+    http_port: 8080               # HTTP 代理端口
+    grpc_port: 9090               # gRPC 代理端口
+    debug_port: 6060              # Debug 代理端口
+    heartbeat_interval: 30        # 心跳间隔(秒)
+    heartbeat_timeout: 90         # 心跳超时(秒)
+    health_check_interval: 30     # 健康检查间隔(秒)
+    tls:
+      enabled: false
+      cert_file: ""
+      key_file: ""
+```
+
+### 代理客户端配置
+
+```yaml
+tunnel:
+  agent:
+    enabled: true
+    gateway_addr: "gateway.example.com:7000"
+    transport: yamux
+    service_name: my-service
+    service_version: "1.0.0"
+    metadata:
+      env: production
+    endpoints:
+      - type: http
+        local_addr: "localhost:8080"
+        path: /api
+      - type: grpc
+        local_addr: "localhost:9090"
+      - type: debug
+        local_addr: "localhost:6060"
+        path: /debug
+    heartbeat_interval: 30        # 心跳间隔(秒)
+    reconnect_interval: 5         # 重连间隔(秒)
+    max_reconnect_attempts: 0     # 0=无限重试
+```
+
+## 核心接口
+
+### Transport - 传输层接口
+
+```go
+type Transport interface {
+    Name() string
+    Dial(ctx context.Context, addr string) (Session, error)
+    Listen(ctx context.Context, addr string) (Listener, error)
+}
+```
+
+### Session - 会话接口
+
+```go
+type Session interface {
+    io.Closer
+    Open(ctx context.Context) (Stream, error)
+    Accept() (Stream, error)
+    IsClosed() bool
+    NumStreams() int
+    LocalAddr() net.Addr
+    RemoteAddr() net.Addr
+}
+```
+
+### Agent - 代理客户端接口
+
+```go
+type Agent interface {
+    Start(ctx context.Context) error
+    Stop(ctx context.Context) error
+    Register(ctx context.Context, service *ServiceInfo) error
+    Deregister(ctx context.Context, serviceName string) error
+    Status() AgentStatus
+}
+```
+
+### Gateway - 网关接口
+
+```go
+type Gateway interface {
+    Start(ctx context.Context) error
+    Stop(ctx context.Context) error
+    Services() []*ServiceInfo
+    GetService(name string) (*ServiceInfo, error)
+    Status() GatewayStatus
+    Forward(ctx context.Context, serviceName string, endpointType EndpointType, conn net.Conn) error
+}
+```
+
+## 调试端点
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/tunnel/` | GET | 概览 HTML 页面 |
+| `/tunnel/gateway` | GET | 网关状态 (JSON) |
+| `/tunnel/gateway/services` | GET | 所有注册服务列表 |
+| `/tunnel/gateway/services/:name` | GET | 指定服务详情 |
+| `/tunnel/agent` | GET | 代理客户端状态 |
+
+## 状态说明
+
+### AgentStatus
+
+| 值 | 说明 |
+|----|------|
+| `StatusDisconnected` | 未连接 |
+| `StatusConnecting` | 连接中 |
+| `StatusConnected` | 已连接 |
+| `StatusReconnecting` | 重连中 |
+
+### GatewayStatus
+
+| 值 | 说明 |
+|----|------|
+| `GatewayStatusStopped` | 已停止 |
+| `GatewayStatusStarting` | 启动中 |
+| `GatewayStatusRunning` | 运行中 |
+| `GatewayStatusStopping` | 停止中 |
+
+## 传输协议
+
+| 协议 | 常量 | 状态 | 说明 |
+|------|------|------|------|
+| yamux | `TransportYamux` | ✅ 已实现 | 基于 TCP 的多路复用 |
+| QUIC | `TransportQUIC` | ⏳ 待实现 | 基于 UDP 的多路复用 |
+| HTTP | `TransportHTTP` | ⏳ 待实现 | HTTP CONNECT 隧道 |
+| KCP | `TransportKCP` | ⏳ 待实现 | 基于 UDP 的可靠传输 |
+
+### 自定义传输协议
+
+```go
+func init() {
+    tunnel.RegisterTransport("custom", func(opts *tunnel.TransportOptions) (tunnel.Transport, error) {
+        return &customTransport{opts: opts}, nil
+    })
+}
+
+type customTransport struct {
+    opts *tunnel.TransportOptions
+}
+
+func (t *customTransport) Name() string { return "custom" }
+func (t *customTransport) Dial(ctx context.Context, addr string) (tunnel.Session, error) { ... }
+func (t *customTransport) Listen(ctx context.Context, addr string) (tunnel.Listener, error) { ... }
+```
+
+## 通信协议
+
+Agent 和 Gateway 使用长度前缀的 JSON 消息通信：
+
+```
+┌────────────┬─────────────────────────────┐
+│ Length (4B)│     JSON Message            │
+│  uint32 BE │  { "type": 1, "service":... │
+└────────────┴─────────────────────────────┘
+```
+
+### 消息类型
+
+| 类型 | 值 | 说明 |
+|------|-----|------|
+| `MessageTypeRegister` | 1 | 服务注册 |
+| `MessageTypeDeregister` | 2 | 服务注销 |
+| `MessageTypeHeartbeat` | 3 | 心跳 |
+| `MessageTypeHTTPRequest` | 9 | HTTP 请求转发 |
+| `MessageTypeGRPCRequest` | 10 | gRPC 请求转发 |
+| `MessageTypeDebugRequest` | 11 | Debug 请求转发 |
+
+## 错误类型
+
+```go
+ErrSessionClosed         // 会话已关闭
+ErrStreamClosed          // 流已关闭
+ErrConnectionFailed      // 连接失败
+ErrServiceNotFound       // 服务未找到
+ErrServiceAlreadyExists  // 服务已存在
+ErrInvalidMessage        // 无效消息
+ErrTimeout               // 超时
+ErrTransportNotSupported // 不支持的传输协议
+ErrGatewayNotConnected   // 未连接到网关
+ErrAgentNotRunning       // 代理客户端未运行
+ErrAgentAlreadyRunning   // 代理客户端已运行
+ErrGatewayAlreadyRunning // 网关已运行
+```
+
+## 注意事项
+
+1. **必须导入传输协议**：使用前需要导入对应的传输协议实现包
+   ```go
+   import _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
+   ```
+
+2. **自动重连**：Agent 断线后会自动重连，可通过 `ReconnectInterval` 配置重连间隔
+
+3. **端点地址格式**：`Endpoint.Address` 应为完整的 `host:port` 格式
+
+4. **心跳机制**：超过 `HeartbeatTimeout` 未收到心跳，服务会被标记为离线
+
+5. **多服务支持**：单个 Agent 可以注册多个服务
+
+## 依赖
+
+- `github.com/hashicorp/yamux` - yamux 多路复用实现
+- `github.com/gofiber/fiber/v2` - Fiber Web 框架（调试接口）
+- `github.com/pubgo/funk/v2/log` - 日志库

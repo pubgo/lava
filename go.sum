@@ -300,6 +300,8 @@ github.com/hashicorp/go-version v1.8.0 h1:KAkNb1HAiZd1ukkxDFGmokVZe1Xy9HG6NUp+bP
 github.com/hashicorp/go-version v1.8.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
+github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8=
+github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUqJM=
 github.com/hexops/gotextdiff v1.0.3/go.mod h1:pSWU5MAI3yDq+fZBTazCSJysOMbxWL1BSow5/V2vxeg=
 github.com/huandu/go-assert v1.1.5 h1:fjemmA7sSfYHJD7CUqs9qTwwfdNAx7/j2/ZlHXzNB3c=
@@ -485,8 +487,8 @@ github.com/pubgo/dix/v2 v2.0.0-beta.10 h1:HE1gqY8vzNPPdz4FwN91hWVZpeWkfvuIRAT7dG
 github.com/pubgo/dix/v2 v2.0.0-beta.10/go.mod h1:jV/9KWf+YxtoQATuZLyUraACduxHvfaum5EZDSCK5gE=
 github.com/pubgo/funk/v2 v2.0.0-beta.10 h1:K8QomGlsoMFLWpx8KcAfHDKifQDLA4dcUL0YLL2a8cU=
 github.com/pubgo/funk/v2 v2.0.0-beta.10/go.mod h1:YTWjAG9bJ//P3fFc1cyzD95L7lTO0H27gv9VRQ18o1c=
-github.com/pubgo/redant v0.0.4 h1:Yweyxj33Y+j4eE9b36QAn9FcOWPymUE0CxaqOrJgTvs=
-github.com/pubgo/redant v0.0.4/go.mod h1:FOBNjL8pPLOBcZS3SL2R5GusFz/bNBwDJzSinGuKs7A=
+github.com/pubgo/redant v0.0.5 h1:iDq0cQJNtST8pu9bFSgxZ78JoQ0aVW+svZyOMouWjfM=
+github.com/pubgo/redant v0.0.5/go.mod h1:FOBNjL8pPLOBcZS3SL2R5GusFz/bNBwDJzSinGuKs7A=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 h1:+Wl/0aFp0hpuHM3H//KMft64WQ1yX9LdJY64Qm/gFCo=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1/go.mod h1:GJLgqsLeo4qgavUoL8JeGFNS7qcisx3awV/w9eWTmNI=
 github.com/quasilyte/go-ruleguard/dsl v0.3.22 h1:wd8zkOhSNr+I+8Qeciml08ivDt1pSXe60+5DqOpCjPE=

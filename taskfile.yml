@@ -19,6 +19,7 @@ vars:
 
 includes:
   scheduler: ./internal/examples/scheduler
+  tunnel: ./internal/examples/tunnel
 
 tasks:
   default:

@@ -50,11 +50,12 @@ require (
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
+	github.com/hashicorp/yamux v0.1.2
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-beta.10
 	github.com/pubgo/funk/v2 v2.0.0-beta.10
-	github.com/pubgo/redant v0.0.4
+	github.com/pubgo/redant v0.0.5
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.52.0
