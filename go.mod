@@ -50,10 +50,10 @@ require (
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
-	github.com/hashicorp/yamux v0.1.2
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19
+	github.com/libp2p/go-yamux/v5 v5.1.0
 	github.com/maruel/panicparse/v2 v2.5.0
-	github.com/pubgo/dix/v2 v2.0.0-beta.10
+	github.com/pubgo/dix/v2 v2.0.0-beta.12
 	github.com/pubgo/funk/v2 v2.0.0-beta.10
 	github.com/pubgo/redant v0.0.5
 	github.com/rs/xid v1.6.0
@@ -198,6 +198,7 @@ require (
 	github.com/ldez/tagliatelle v0.5.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/leonklingele/grouper v1.1.2 // indirect
+	github.com/libp2p/go-buffer-pool v0.0.2 // indirect
 	github.com/lmittmann/tint v1.1.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/lufeee/execinquery v1.2.1 // indirect

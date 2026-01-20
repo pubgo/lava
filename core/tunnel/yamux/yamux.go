@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hashicorp/yamux"
+	"github.com/libp2p/go-yamux/v5"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
 )
@@ -41,7 +41,7 @@ func (t *yamuxTransport) Dial(ctx context.Context, addr string) (tunnel.Session,
 		conn = tls.Client(conn, tlsConfig)
 	}
 
-	session, err := yamux.Client(conn, t.buildConfig())
+	session, err := yamux.Client(conn, t.buildConfig(), nil)
 	if err != nil {
 		conn.Close()
 		return nil, err
@@ -73,15 +73,13 @@ func (t *yamuxTransport) buildConfig() *yamux.Config {
 	if t.opts != nil {
 		if t.opts.MaxStreams > 0 {
 			cfg.AcceptBacklog = t.opts.MaxStreams
+			cfg.MaxIncomingStreams = uint32(t.opts.MaxStreams)
 		}
 		if t.opts.KeepAliveInterval > 0 {
 			cfg.KeepAliveInterval = time.Duration(t.opts.KeepAliveInterval) * time.Second
 		}
 		if t.opts.ConnectionWriteTimeout > 0 {
 			cfg.ConnectionWriteTimeout = time.Duration(t.opts.ConnectionWriteTimeout) * time.Second
-		}
-		if t.opts.StreamOpenTimeout > 0 {
-			cfg.StreamOpenTimeout = time.Duration(t.opts.StreamOpenTimeout) * time.Second
 		}
 	}
 	return cfg
@@ -97,7 +95,7 @@ func (l *yamuxListener) Accept() (tunnel.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	session, err := yamux.Server(conn, l.transport.buildConfig())
+	session, err := yamux.Server(conn, l.transport.buildConfig(), nil)
 	if err != nil {
 		conn.Close()
 		return nil, err
@@ -115,7 +113,7 @@ type yamuxSession struct {
 }
 
 func (s *yamuxSession) Open(ctx context.Context) (tunnel.Stream, error) {
-	stream, err := s.session.OpenStream()
+	stream, err := s.session.OpenStream(ctx)
 	if err != nil {
 		return nil, err
 	}

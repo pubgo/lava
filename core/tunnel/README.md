@@ -444,6 +444,6 @@ ErrGatewayAlreadyRunning // 网关已运行
 
 ## 依赖
 
-- `github.com/hashicorp/yamux` - yamux 多路复用实现
+- `github.com/libp2p/go-yamux/v5` - yamux 多路复用实现
 - `github.com/gofiber/fiber/v2` - Fiber Web 框架（调试接口）
 - `github.com/pubgo/funk/v2/log` - 日志库
