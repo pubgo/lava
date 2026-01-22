@@ -1,31 +1,34 @@
-checksum: fa21280019dfe6b5b2d6fe40a3a1408324da91d2
+checksum: 16ad54b3ecda7cc47fae434f660042d3d539cd68
 vendor: proto-vendor
 base:
-  out: ./pkg
-  paths: import
-  module: github.com/pubgo/lava/pkg
+    out: ./pkg
+    paths: import
+    module: github.com/pubgo/lava/pkg
 root:
-  - proto
+    - proto
 includes:
-  - proto
+    - proto
 deps:
-  - name: google
-    url: github.com/googleapis/googleapis
-    path: /google
-    version: v0.0.0-20220224004616-3c171936039b
-  - name: google/protobuf
-    url: /usr/local/include/google/protobuf
-    optional: true
-  - name: google/protobuf
-    url: /opt/homebrew/include/google/protobuf
-    optional: true
-  - name: errorpb
-    url: github.com/pubgo/funk/v2
-    path: /proto/errorpb
-    version: v2.0.0-beta.8
+    - name: google
+      url: github.com/googleapis/googleapis
+      path: /google
+      version: v0.0.0-20220224004616-3c171936039b
+    - name: google/protobuf
+      url: /usr/local/include/google/protobuf
+      optional: true
+    - name: google/protobuf
+      url: /opt/homebrew/include/google/protobuf
+      optional: true
+    - name: errorpb
+      url: github.com/pubgo/funk/v2
+      path: /proto/errorpb
+      version: v2.0.0-beta.10
 plugins:
-  - name: go
-  - name: go-errors2
-  - name: go-grpc
-    opt:
-      - require_unimplemented_servers=false
+    - name: go
+    - name: go-errors2
+    - name: go-grpc
+      opt:
+        - require_unimplemented_servers=false
+linter:
+    rules: {}
+    format_type: github_actions
