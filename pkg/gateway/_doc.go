@@ -7,12 +7,26 @@
 //   - 服务注册：支持本地服务 (RegisterService) 和代理服务 (RegisterProxy)
 //   - 中间件：Unary 和 Stream 拦截器
 //   - 多种流类型：HTTP、WebSocket、进程内、代理
+//   - gRPC Web 支持：支持 application/grpc-web 和 application/grpc-web-text 内容类型
 //
 // 基本用法:
 //
 //	mux := gateway.NewMux()
 //	mux.RegisterService(&pb.MyService_ServiceDesc, &myServiceImpl{})
 //	app.Use("/api", mux.Handler)
+//
+// gRPC Web 用法:
+//
+//	mux := gateway.NewMux()
+//	mux.RegisterService(&pb.MyService_ServiceDesc, &myServiceImpl{})
+//	http.ListenAndServe(":8080", mux)
+//
+// 浏览器可以通过 gRPC Web 协议调用 gRPC 服务。
+//
+// 参考资料:
+//   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api
+//   - https://google.aip.dev/123
+//   - https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-WEB.md
 //
 // 参考资料:
 //   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api

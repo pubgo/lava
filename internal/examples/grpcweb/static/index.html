@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gRPC Web 测试 - protobuf-ts</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #444;
+            font-size: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-json {
+            background: #007bff;
+            color: white;
+        }
+        .btn-json:hover {
+            background: #0056b3;
+        }
+        .btn-grpcweb {
+            background: #28a745;
+            color: white;
+            margin-top: 10px;
+        }
+        .btn-grpcweb:hover {
+            background: #1e7e34;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-height: 100px;
+            border: 1px solid #e9ecef;
+        }
+        .result.error {
+            background: #fee;
+            border-color: #fcc;
+            color: #c00;
+        }
+        .result.success {
+            background: #efe;
+            border-color: #cfc;
+        }
+        .log-section {
+            grid-column: 1 / -1;
+        }
+        .log-section .result {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .info {
+            background: #e7f3ff;
+            border: 1px solid #b6d4fe;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .info code {
+            background: #d1ecf1;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-ts {
+            background: #3178c6;
+            color: white;
+        }
+    </style>
+  <script type="module" crossorigin src="/assets/index-4ouSPqqH.js"></script>
+</head>
+<body>
+    <h1>🌐 gRPC Web 测试工具 <span class="badge badge-ts">protobuf-ts</span></h1>
+    
+    <div class="info">
+        <strong>说明：</strong> 本页面使用 <code>@protobuf-ts/grpcweb-transport</code> 实现 gRPC Web 调用。
+        <br><br>
+        <strong>HTTP/JSON 模式：</strong> 使用 <code>application/json</code> Content-Type，通过 REST API 调用
+        <br>
+        <strong>gRPC Web 模式：</strong> 使用 <code>application/grpc-web+proto</code> Content-Type，通过 protobuf-ts 客户端调用
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>👋 SayHello 测试</h2>
+            <label for="helloName">名称:</label>
+            <input type="text" id="helloName" placeholder="输入名称" value="World">
+            <button class="btn-json" id="helloJsonBtn">发送 HTTP/JSON 请求</button>
+            <button class="btn-grpcweb" id="helloGrpcBtn">发送 gRPC Web 请求 (protobuf-ts)</button>
+            <div id="helloResult" class="result">等待测试...</div>
+        </div>
+        
+        <div class="card">
+            <h2>👋 SayGoodbye 测试</h2>
+            <label for="goodbyeName">名称:</label>
+            <input type="text" id="goodbyeName" placeholder="输入名称" value="Friend">
+            <button class="btn-json" id="goodbyeJsonBtn">发送 HTTP/JSON 请求</button>
+            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 gRPC Web 请求 (protobuf-ts)</button>
+            <div id="goodbyeResult" class="result">等待测试...</div>
+        </div>
+
+        <div class="card log-section">
+            <h2>📋 请求日志</h2>
+            <div id="logResult" class="result"></div>
+        </div>
+    </div>
+
+</body>
+</html>

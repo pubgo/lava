@@ -2,10 +2,13 @@ package gateway
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2"
@@ -28,6 +31,7 @@ type streamHTTP struct {
 	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
+	writer     io.Writer // optional custom writer
 }
 
 var _ grpc.ServerStream = (*streamHTTP)(nil)
@@ -95,12 +99,33 @@ func (s *streamHTTP) SendMsg(m any) error {
 		return errors.Wrapf(rspInterceptor(s.handler, msg), "failed to do rsp interceptor response data by %s", reqName)
 	}
 
-	b, err := protojson.Default.Marshal(msg)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal response by protojson")
+	ct := string(s.handler.Request().Header.ContentType())
+	isGRPC := strings.HasPrefix(ct, "application/grpc")
+
+	var b []byte
+	var err error
+	if isGRPC {
+		b, err = proto.Marshal(msg)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal response by protobuf")
+		}
+		// Add gRPC frame header: compression(0) + message type(0) + length
+		frame := make([]byte, 5+len(b))
+		binary.BigEndian.PutUint32(frame[1:5], uint32(len(b)))
+		copy(frame[5:], b)
+		b = frame
+	} else {
+		b, err = protojson.Default.Marshal(msg)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal response by protojson")
+		}
 	}
 
-	_, err = s.handler.Write(b)
+	if s.writer != nil {
+		_, err = s.writer.Write(b)
+	} else {
+		_, err = s.handler.Write(b)
+	}
 	return errors.WrapCaller(err)
 }
 
@@ -131,22 +156,55 @@ func (s *streamHTTP) RecvMsg(m any) error {
 			return errors.Wrapf(reqInterceptor(s.handler, msg), "failed to go req interceptor request data by %s", reqName)
 		}
 
-		// PUT/POST/PATCH 必须有 body
-		if hasBody && len(s.handler.Body()) == 0 {
+		ct := string(s.handler.Request().Header.ContentType())
+		isGRPC := strings.HasPrefix(ct, "application/grpc")
+
+		// PUT/POST/PATCH 必须有 body (gRPC 请求除外，因为需要先解析帧)
+		if hasBody && !isGRPC && len(s.handler.Body()) == 0 {
 			return errors.WrapCaller(fmt.Errorf("request body is nil, operation=%s", reqName))
 		}
 
 		if s.handler.Request().IsBodyStream() {
-			var b json.RawMessage
-			if err := json.NewDecoder(s.handler.Request().BodyStream()).Decode(&b); err != nil {
-				return errors.WrapCaller(err)
-			}
+			if isGRPC {
+				// Read gRPC frame header: 1 byte flags + 4 bytes length
+				header := make([]byte, 5)
+				if _, err := io.ReadFull(s.handler.Request().BodyStream(), header); err != nil {
+					return errors.WrapCaller(err)
+				}
+				length := binary.BigEndian.Uint32(header[1:5])
+				data := make([]byte, length)
+				if _, err := io.ReadFull(s.handler.Request().BodyStream(), data); err != nil {
+					return errors.WrapCaller(err)
+				}
+				if err := proto.Unmarshal(data, msg); err != nil {
+					return errors.Wrapf(err, "failed to unmarshal body by protobuf, msg=%#v", msg)
+				}
+			} else {
+				var b json.RawMessage
+				if err := json.NewDecoder(s.handler.Request().BodyStream()).Decode(&b); err != nil {
+					return errors.WrapCaller(err)
+				}
 
-			if err := protojson.Default.Unmarshal(b, msg); err != nil {
-				return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+				if err := protojson.Default.Unmarshal(b, msg); err != nil {
+					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+				}
 			}
 		} else {
-			if body := s.handler.Body(); len(body) > 0 {
+			body := s.handler.Body()
+			if isGRPC {
+				// gRPC frame: 1 byte flags + 4 bytes length + message
+				if len(body) < 5 {
+					return errors.New("invalid gRPC frame: too short")
+				}
+				length := binary.BigEndian.Uint32(body[1:5])
+				if len(body) < int(5+length) {
+					return errors.Errorf("invalid gRPC frame: expected %d bytes, got %d", 5+length, len(body))
+				}
+				data := body[5 : 5+length]
+				if err := proto.Unmarshal(data, msg); err != nil {
+					return errors.Wrapf(err, "failed to unmarshal body by protobuf, msg=%#v", msg)
+				}
+			} else if len(body) > 0 {
 				if err := protojson.Default.Unmarshal(body, msg); err != nil {
 					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
 				}

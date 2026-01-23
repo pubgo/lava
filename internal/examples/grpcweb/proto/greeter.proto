@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package grpcweb.example.v1;
+
+option go_package = "github.com/pubgo/lava/v2/internal/examples/grpcweb/proto;greeterpb";
+
+import "google/api/annotations.proto";
+
+// GreeterService 提供简单的问候服务，用于测试 gRPC Web 实现
+service GreeterService {
+  // SayHello 返回问候语
+  rpc SayHello(HelloRequest) returns (HelloResponse) {
+    option (google.api.http) = {
+      post: "/v1/greeter/hello"
+      body: "*"
+    };
+  }
+
+  // SayGoodbye 返回告别语
+  rpc SayGoodbye(GoodbyeRequest) returns (GoodbyeResponse) {
+    option (google.api.http) = {
+      post: "/v1/greeter/goodbye"
+      body: "*"
+    };
+  }
+}
+
+// HelloRequest 是 SayHello 的请求消息
+message HelloRequest {
+  // 用户名称
+  string name = 1;
+}
+
+// HelloResponse 是 SayHello 的响应消息
+message HelloResponse {
+  // 问候消息
+  string message = 1;
+  // 服务器时间戳
+  int64 timestamp = 2;
+}
+
+// GoodbyeRequest 是 SayGoodbye 的请求消息
+message GoodbyeRequest {
+  // 用户名称
+  string name = 1;
+}
+
+// GoodbyeResponse 是 SayGoodbye 的响应消息
+message GoodbyeResponse {
+  // 告别消息
+  string message = 1;
+  // 服务器时间戳
+  int64 timestamp = 2;
+}

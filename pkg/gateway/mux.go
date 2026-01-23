@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -114,6 +115,96 @@ func (m *Mux) GetOperation(operation string) *GrpcMethod {
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
+	// Check if this is a gRPC Web request
+	ct := string(ctx.Request().Header.ContentType())
+	if typ, enc, ok := isWebRequestFromContentType(ct, ctx.Method()); ok {
+		// TODO: Check for websocket request and upgrade.
+		if strings.EqualFold(ctx.Get("Upgrade"), "websocket") {
+			return fiber.NewError(fiber.StatusInternalServerError, "unimplemented websocket support")
+		}
+
+		// Modify request for gRPC Web
+		ctx.Request().Header.SetContentType(grpcBase + "+" + enc)
+		if typ == grpcWebText {
+			body := base64.NewDecoder(base64.StdEncoding, ctx.Request().BodyStream())
+			ctx.Request().SetBodyStream(body, -1)
+		}
+
+		// Create Fiber-specific web writer
+		ww := newFiberWebWriter(ctx, typ, enc)
+
+		// Continue with normal processing but capture the response
+		matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		values := make(url.Values)
+		for _, v := range matchOperation.Vars {
+			values.Set(strings.Join(v.Fields, "."), v.Value)
+		}
+
+		for k, v := range ctx.Queries() {
+			values.Set(k, v)
+		}
+
+		mth := m.opts.handlers[matchOperation.Operation]
+		if mth == nil {
+			return errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
+		}
+
+		md := metadata.MD{}
+		for k, v := range ctx.GetReqHeaders() {
+			md.Append(k, v...)
+		}
+
+		stream := &streamHTTP{
+			handler: ctx,
+			ctx:     metadata.NewIncomingContext(ctx.Context(), md),
+			method:  mth,
+			params:  values,
+			path:    matchOperation,
+			writer:  ww,
+		}
+
+		in := mth.inputType.New().Interface()
+		err = stream.RecvMsg(in)
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		out := mth.outputType.New().Interface()
+		var header metadata.MD
+		var trailer metadata.MD
+		err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		// Set headers
+		for k, v := range header {
+			if len(v) > 0 && v[0] != "" {
+				ctx.Set(k, v[0])
+			}
+		}
+		for k, v := range trailer {
+			if len(v) > 0 && v[0] != "" {
+				ctx.Set(k, v[0])
+			}
+		}
+
+		ctx.Set(httputil.HeaderXRequestVersion, version.Version())
+		ctx.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+
+		// Send response and flush with trailer
+		err = stream.SendMsg(out)
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+		ww.flushWithTrailer()
+		return nil
+	}
+
 	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -205,6 +296,13 @@ func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method strin
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	// Check if this is a gRPC Web request
+	if _, _, ok := isWebRequest(request); ok {
+		serveGRPCWeb(m, writer, request)
+		return
+	}
+	// For non-gRPC Web requests, we need to adapt to Fiber
+	// Since Handler now handles gRPC Web internally, we can just use adaptor
 	adaptor.FiberHandler(m.Handler).ServeHTTP(writer, request)
 }
 

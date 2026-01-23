@@ -71,7 +71,7 @@ func main() {
 		//}
 		return true
 	})
-	//debugs.SetEnabled()
+	// debugs.SetEnabled()
 	env.LoadFiles(".env").Must()
 
 	builder := lavabuilder.New()

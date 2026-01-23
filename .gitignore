@@ -29,3 +29,4 @@ bin
 .proto
 proto-vendor
 .local
+/internal/examples/grpcweb/frontend/node_modules
