@@ -80,7 +80,7 @@ func (t *clientImpl) NewStream(ctx context.Context, desc *grpc.StreamDesc, metho
 	conn := t.Get().MapErr(func(err error) error {
 		return errors.Wrapf(err, "failed to get grpc client, service=%s, method=%s", t.cfg.Service, method)
 	})
-	return result.FlatMapTo(conn, func(val grpc.ClientConnInterface) (r result.Result[grpc.ClientStream]) {
+	return result.MapValTo(conn, func(val grpc.ClientConnInterface) (r result.Result[grpc.ClientStream]) {
 		return result.Wrap(val.NewStream(ctx, desc, method, opts...)).
 			MapErr(func(err error) error {
 				return errors.Wrapf(err, "service %s:%s new stream failed", t.cfg.Service, method)

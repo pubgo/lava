@@ -1,6 +1,6 @@
 module github.com/pubgo/lava/v2
 
-go 1.24.0
+go 1.25
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
@@ -54,7 +54,7 @@ require (
 	github.com/libp2p/go-yamux/v5 v5.1.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-beta.12
-	github.com/pubgo/funk/v2 v2.0.0-beta.10
+	github.com/pubgo/funk/v2 v2.0.0-beta.16
 	github.com/pubgo/redant v0.0.5
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
@@ -72,8 +72,8 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.59.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.37.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0
-	go.opentelemetry.io/otel/sdk v1.38.0
-	go.opentelemetry.io/otel/sdk/metric v1.38.0
+	go.opentelemetry.io/otel/sdk v1.39.0
+	go.opentelemetry.io/otel/sdk/metric v1.39.0
 	golang.org/x/tools v0.40.0
 	golang.org/x/vuln v1.1.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20251222181119-0a764e51fe1b
@@ -124,6 +124,8 @@ require (
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/ckaznocha/intrange v0.2.0 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/coder/pretty v0.0.0-20230908205945-e89ba86370e0 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
@@ -210,7 +212,7 @@ require (
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mgechev/revive v1.3.9 // indirect
 	github.com/miekg/dns v1.1.66 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
