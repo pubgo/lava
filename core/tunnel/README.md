@@ -25,8 +25,20 @@ core/tunnel/
 ├── builder.go      # 构建器模式 API
 ├── debug.go        # 调试接口
 ├── README.md       # 本文档
-└── yamux/
-    └── yamux.go    # yamux 传输协议实现
+├── tunnelagent/    # Agent 便捷封装包
+│   ├── agent.go    # Agent 封装实现
+│   └── doc.go      # 包文档
+├── tunnelgateway/  # Gateway 便捷封装包
+│   ├── gateway.go  # Gateway 封装实现
+│   └── doc.go      # 包文档
+├── yamux/
+│   └── yamux.go    # yamux 传输协议实现（基于 TCP）
+├── quic/
+│   └── quic.go     # QUIC 传输协议实现（基于 UDP）
+├── http/
+│   └── http.go     # HTTP CONNECT 传输协议实现
+└── kcp/
+    └── kcp.go      # KCP 传输协议实现（基于 UDP）
 ```
 
 ## 架构图
@@ -191,7 +203,75 @@ func main() {
 }
 ```
 
-### 3. 集成调试接口
+### 3. 使用便捷封装包
+
+除了直接使用 `tunnel` 包，还可以使用 `tunnelagent` 和 `tunnelgateway` 子包获得更简洁的 API：
+
+**使用 tunnelagent 包:**
+
+```go
+import (
+    "context"
+    "github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
+    _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
+)
+
+func main() {
+    agent := tunnelagent.New(&tunnelagent.Config{
+        GatewayAddr:    "gateway.example.com:7000",
+        Transport:      "yamux",
+        ServiceName:    "my-service",
+        ServiceVersion: "1.0.0",
+        Endpoints: []tunnelagent.EndpointConfig{
+            {Type: "http", LocalAddr: ":8080"},
+            {Type: "debug", LocalAddr: ":6060"},
+        },
+    })
+    
+    ctx := context.Background()
+    if err := agent.Start(ctx); err != nil {
+        log.Fatal(err)
+    }
+    defer agent.Stop(ctx)
+    
+    // 检查状态
+    if agent.Status() == tunnelagent.StatusConnected {
+        fmt.Println("已连接到 Gateway")
+    }
+}
+```
+
+**使用 tunnelgateway 包:**
+
+```go
+import (
+    "context"
+    "github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
+    _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
+)
+
+func main() {
+    gw := tunnelgateway.New(&tunnelgateway.Config{
+        ListenAddr: ":7000",
+        Transport:  "yamux",
+        HTTPPort:   8080,
+        DebugPort:  6060,
+    })
+    
+    ctx := context.Background()
+    if err := gw.Start(ctx); err != nil {
+        log.Fatal(err)
+    }
+    defer gw.Stop(ctx)
+    
+    // 查看已注册服务
+    for _, svc := range gw.Services() {
+        fmt.Printf("服务: %s v%s\n", svc.Name, svc.Version)
+    }
+}
+```
+
+### 4. 集成调试接口
 
 ```go
 // 创建调试处理器
@@ -366,9 +446,32 @@ type Gateway interface {
 | 协议 | 常量 | 状态 | 说明 |
 |------|------|------|------|
 | yamux | `TransportYamux` | ✅ 已实现 | 基于 TCP 的多路复用 |
-| QUIC | `TransportQUIC` | ⏳ 待实现 | 基于 UDP 的多路复用 |
-| HTTP | `TransportHTTP` | ⏳ 待实现 | HTTP CONNECT 隧道 |
-| KCP | `TransportKCP` | ⏳ 待实现 | 基于 UDP 的可靠传输 |
+| QUIC | `TransportQUIC` | ✅ 已实现 | 基于 UDP 的多路复用，低延迟、0-RTT |
+| HTTP | `TransportHTTP` | ✅ 已实现 | HTTP CONNECT 隧道，适用于代理穿透 |
+| KCP | `TransportKCP` | ✅ 已实现 | 基于 UDP 的可靠传输，弱网优化 |
+
+### 协议选择指南
+
+| 场景 | 推荐协议 | 原因 |
+|------|----------|------|
+| 通用场景 | yamux | 稳定可靠，兼容性好 |
+| 高延迟网络 | QUIC/KCP | 0-RTT 连接，快速恢复 |
+| 弱网环境 | KCP | 激进重传策略，抗丢包 |
+| 企业代理穿透 | HTTP | 兼容 HTTP 代理服务器 |
+| 需要 TLS 1.3 | QUIC | 内置加密，更安全 |
+
+### 协议特性对比
+
+| 特性 | yamux | QUIC | HTTP | KCP |
+|------|-------|------|------|-----|
+| 传输层 | TCP | UDP | TCP | UDP |
+| 多路复用 | ✅ | ✅ | ❌ | ✅ (smux) |
+| 连接迁移 | ❌ | ✅ | ❌ | ❌ |
+| 0-RTT | ❌ | ✅ | ❌ | ❌ |
+| 内置加密 | ❌ | ✅ | ❌ | ❌ |
+| 代理穿透 | ❌ | ❌ | ✅ | ❌ |
+| 抗丢包 | 一般 | 好 | 一般 | 优秀 |
+| CPU 占用 | 低 | 中 | 低 | 中 |
 
 ### 自定义传输协议
 
@@ -431,7 +534,11 @@ ErrGatewayAlreadyRunning // 网关已运行
 
 1. **必须导入传输协议**：使用前需要导入对应的传输协议实现包
    ```go
-   import _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
+   // 根据需要导入一个或多个传输协议
+   import _ "github.com/pubgo/lava/v2/core/tunnel/yamux" // TCP + 多路复用（推荐）
+   import _ "github.com/pubgo/lava/v2/core/tunnel/quic"  // UDP + 低延迟
+   import _ "github.com/pubgo/lava/v2/core/tunnel/http"  // HTTP CONNECT 穿透
+   import _ "github.com/pubgo/lava/v2/core/tunnel/kcp"   // UDP + 弱网优化
    ```
 
 2. **自动重连**：Agent 断线后会自动重连，可通过 `ReconnectInterval` 配置重连间隔
@@ -444,6 +551,12 @@ ErrGatewayAlreadyRunning // 网关已运行
 
 ## 依赖
 
-- `github.com/libp2p/go-yamux/v5` - yamux 多路复用实现
+### 核心依赖
 - `github.com/gofiber/fiber/v2` - Fiber Web 框架（调试接口）
 - `github.com/pubgo/funk/v2/log` - 日志库
+
+### 传输层依赖
+- `github.com/libp2p/go-yamux/v5` - yamux 多路复用实现
+- `github.com/quic-go/quic-go` - QUIC 协议实现
+- `github.com/xtaci/kcp-go/v5` - KCP 协议实现
+- `github.com/xtaci/smux` - smux 多路复用（KCP 使用）
