@@ -17,6 +17,8 @@ import (
 	_ "github.com/pubgo/lava/v2/core/tunnel/http"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 )
 
@@ -42,7 +44,7 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	defer backendSrv.Shutdown(ctx)
 	time.Sleep(100 * time.Millisecond)
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{
+	gw := tunnelgateway.New(&tunnelgateway.Config{
 		ListenAddr: gatewayAddr,
 		Transport:  transport,
 		HTTPPort:   basePort + 80,
@@ -52,7 +54,7 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	}
 	defer gw.Stop(ctx)
 
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: gatewayAddr,
 		Transport:   transport,
 		ServiceName: transport + "-svc",
@@ -98,7 +100,7 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 	}
 	time.Sleep(100 * time.Millisecond)
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{
+	gw := tunnelgateway.New(&tunnelgateway.Config{
 		ListenAddr: "127.0.0.1:21000",
 		Transport:  "yamux",
 		HTTPPort:   21080,
@@ -108,9 +110,9 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 	}
 	defer gw.Stop(ctx)
 
-	var agents []tunnel.Agent
+	var agents []*tunnelagent.Agent
 	for i := 1; i <= 3; i++ {
-		agent := tunnel.NewAgent(&tunnel.AgentConfig{
+		agent := tunnelagent.New(&tunnelagent.Config{
 			GatewayAddr: "127.0.0.1:21000",
 			Transport:   "yamux",
 			ServiceName: fmt.Sprintf("svc-%d", i),
@@ -155,13 +157,13 @@ func TestAgentProxy_POST(t *testing.T) {
 	defer srv.Shutdown(ctx)
 	time.Sleep(100 * time.Millisecond)
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{ListenAddr: "127.0.0.1:22000", Transport: "yamux", HTTPPort: 22080})
+	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:22000", Transport: "yamux", HTTPPort: 22080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
 	defer gw.Stop(ctx)
 
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:22000",
 		Transport:   "yamux",
 		ServiceName: "post-svc",
@@ -200,13 +202,13 @@ func TestAgentProxy_LargeBody(t *testing.T) {
 	defer srv.Shutdown(ctx)
 	time.Sleep(100 * time.Millisecond)
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{ListenAddr: "127.0.0.1:23000", Transport: "yamux", HTTPPort: 23080})
+	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:23000", Transport: "yamux", HTTPPort: 23080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
 	defer gw.Stop(ctx)
 
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:23000",
 		Transport:   "yamux",
 		ServiceName: "upload-svc",
@@ -256,13 +258,13 @@ func TestAgentProxy_Concurrent(t *testing.T) {
 	defer srv.Shutdown(ctx)
 	time.Sleep(100 * time.Millisecond)
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{ListenAddr: "127.0.0.1:24000", Transport: "yamux", HTTPPort: 24080})
+	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:24000", Transport: "yamux", HTTPPort: 24080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
 	defer gw.Stop(ctx)
 
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:24000",
 		Transport:   "yamux",
 		ServiceName: "concurrent-svc",
@@ -322,13 +324,13 @@ func TestAgentProxy_TCP(t *testing.T) {
 		}
 	}()
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{ListenAddr: "127.0.0.1:26000", Transport: "yamux", HTTPPort: 26080})
+	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:26000", Transport: "yamux", HTTPPort: 26080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
 	defer gw.Stop(ctx)
 
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:26000",
 		Transport:   "yamux",
 		ServiceName: "tcp-svc",
@@ -350,14 +352,14 @@ func TestMultipleAgents(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{ListenAddr: "127.0.0.1:27000", Transport: "yamux", HTTPPort: 27080})
+	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:27000", Transport: "yamux", HTTPPort: 27080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
 	defer gw.Stop(ctx)
 
 	n := 5
-	var agents []tunnel.Agent
+	var agents []*tunnelagent.Agent
 	var servers []*http.Server
 
 	for i := 0; i < n; i++ {
@@ -371,7 +373,7 @@ func TestMultipleAgents(t *testing.T) {
 		go srv.ListenAndServe()
 		servers = append(servers, srv)
 
-		agent := tunnel.NewAgent(&tunnel.AgentConfig{
+		agent := tunnelagent.New(&tunnelagent.Config{
 			GatewayAddr: "127.0.0.1:27000",
 			Transport:   "yamux",
 			ServiceName: name,

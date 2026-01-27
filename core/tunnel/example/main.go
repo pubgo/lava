@@ -37,6 +37,8 @@ import (
 	_ "github.com/pubgo/lava/v2/core/tunnel/http"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 )
 
@@ -77,7 +79,7 @@ func main() {
 }
 
 func runGateway(ctx context.Context) {
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{
+	gw := tunnelgateway.New(&tunnelgateway.Config{
 		ListenAddr: *gatewayAddr,
 		Transport:  *transport,
 		HTTPPort:   *httpPort,
@@ -95,7 +97,7 @@ func runGateway(ctx context.Context) {
 }
 
 func runAgent(ctx context.Context) {
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: *gatewayAddr,
 		Transport:   *transport,
 		ServiceName: *serviceName,
@@ -153,7 +155,7 @@ func runAll(ctx context.Context) {
 	time.Sleep(100 * time.Millisecond)
 
 	fmt.Println("Starting gateway...")
-	gw := tunnel.NewGateway(&tunnel.GatewayConfig{
+	gw := tunnelgateway.New(&tunnelgateway.Config{
 		ListenAddr: *gatewayAddr,
 		Transport:  *transport,
 		HTTPPort:   *httpPort,
@@ -164,7 +166,7 @@ func runAll(ctx context.Context) {
 	defer gw.Stop(ctx)
 
 	fmt.Println("Starting agent...")
-	agent := tunnel.NewAgent(&tunnel.AgentConfig{
+	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: *gatewayAddr,
 		Transport:   *transport,
 		ServiceName: *serviceName,

@@ -1,4 +1,4 @@
-package tunnel
+package tunnelgateway
 
 import (
 	"bufio"
@@ -18,6 +18,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/lava/v2/core/tunnel"
 )
 
 // linkRewritePatterns 用于重写 HTML 响应中的链接
@@ -36,29 +37,29 @@ var linkRewritePatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(")/debug/`),
 }
 
-var _ Gateway = (*tunnelGateway)(nil)
+var _ tunnel.Gateway = (*tunnelGateway)(nil)
 
 // NewGateway creates a new tunnel gateway
-func NewGateway(cfg *GatewayConfig) Gateway {
+func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
 	return &tunnelGateway{
 		cfg:      cfg,
 		services: make(map[string]*registeredService),
-		status:   GatewayStatusStopped,
+		status:   tunnel.GatewayStatusStopped,
 	}
 }
 
 type registeredService struct {
-	info    *ServiceInfo
-	session Session
+	info    *tunnel.ServiceInfo
+	session tunnel.Session
 	agent   string // agent identifier
 }
 
 type tunnelGateway struct {
-	cfg       *GatewayConfig
-	transport Transport
-	listener  Listener
+	cfg       *tunnel.GatewayConfig
+	transport tunnel.Transport
+	listener  tunnel.Listener
 	services  map[string]*registeredService
-	status    GatewayStatus
+	status    tunnel.GatewayStatus
 
 	// 对外代理服务器
 	httpServer  *http.Server
@@ -73,11 +74,11 @@ type tunnelGateway struct {
 
 func (g *tunnelGateway) Start(ctx context.Context) error {
 	if g.running.Load() {
-		return ErrGatewayAlreadyRunning
+		return tunnel.ErrGatewayAlreadyRunning
 	}
 
 	// Create transport
-	transport, err := NewTransport(g.cfg.Transport, g.cfg.TransportOptions)
+	transport, err := tunnel.NewTransport(g.cfg.Transport, g.cfg.TransportOptions)
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (g *tunnelGateway) Start(ctx context.Context) error {
 
 	g.stopCh = make(chan struct{})
 	g.running.Store(true)
-	g.status = GatewayStatusRunning
+	g.status = tunnel.GatewayStatusRunning
 
 	// Start accepting agent connections
 	g.wg.Add(1)
@@ -131,7 +132,7 @@ func (g *tunnelGateway) startHTTPProxy() {
 	addr := fmt.Sprintf(":%d", g.cfg.HTTPPort)
 	g.httpServer = &http.Server{
 		Addr:    addr,
-		Handler: g.createProxyHandler(EndpointTypeHTTP),
+		Handler: g.createProxyHandler(tunnel.EndpointTypeHTTP),
 	}
 
 	log.Info().Str("addr", addr).Msg("HTTP proxy server started")
@@ -148,7 +149,7 @@ func (g *tunnelGateway) startDebugProxy() {
 	addr := fmt.Sprintf(":%d", g.cfg.DebugPort)
 	g.debugServer = &http.Server{
 		Addr:    addr,
-		Handler: g.createProxyHandler(EndpointTypeDebug),
+		Handler: g.createProxyHandler(tunnel.EndpointTypeDebug),
 	}
 
 	log.Info().Str("addr", addr).Msg("Debug proxy server started")
@@ -160,7 +161,7 @@ func (g *tunnelGateway) startDebugProxy() {
 
 // createProxyHandler 创建 HTTP 代理处理器
 // URL 格式: /{service_name}/path... -> 转发到对应 Agent 的本地服务
-func (g *tunnelGateway) createProxyHandler(endpointType EndpointType) http.Handler {
+func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 解析 URL: /{service_name}/path...
 		path := r.URL.Path
@@ -205,7 +206,7 @@ func (g *tunnelGateway) createProxyHandler(endpointType EndpointType) http.Handl
 // handleServiceList 返回已注册的服务列表
 func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request) {
 	g.mu.RLock()
-	services := make([]*ServiceInfo, 0, len(g.services))
+	services := make([]*tunnel.ServiceInfo, 0, len(g.services))
 	for _, svc := range g.services {
 		services = append(services, svc.info)
 	}
@@ -219,7 +220,7 @@ func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request
 }
 
 // proxyToAgent 将 HTTP 请求代理到 Agent
-func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc *registeredService, endpointType EndpointType, subPath string) {
+func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc *registeredService, endpointType tunnel.EndpointType, subPath string) {
 	ctx := r.Context()
 	serviceName := svc.info.Name
 
@@ -247,7 +248,7 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	log.Debug().Str("service", serviceName).Msg("Gateway: Stream opened to agent")
 
 	// 发送请求消息给 Agent
-	msg := &Message{
+	msg := &tunnel.Message{
 		Type:    g.endpointTypeToMessageType(endpointType),
 		Service: svc.info,
 	}
@@ -321,7 +322,7 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 }
 
 // proxyWebSocket 处理 WebSocket 代理
-func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, stream Stream, serviceName string) {
+func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, stream tunnel.Stream, serviceName string) {
 	log.Debug().Str("service", serviceName).Str("path", r.URL.Path).Msg("Gateway: Starting WebSocket proxy")
 
 	// 获取底层 TCP 连接
@@ -374,7 +375,7 @@ func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, s
 
 // streamRoundTripper 实现 http.RoundTripper，通过 stream 转发请求
 type streamRoundTripper struct {
-	stream  Stream
+	stream  tunnel.Stream
 	request *http.Request
 }
 
@@ -439,47 +440,47 @@ func (g *tunnelGateway) Stop(ctx context.Context) error {
 	}
 
 	g.running.Store(false)
-	g.status = GatewayStatusStopped
+	g.status = tunnel.GatewayStatusStopped
 	return nil
 }
 
-func (g *tunnelGateway) Services() []*ServiceInfo {
+func (g *tunnelGateway) Services() []*tunnel.ServiceInfo {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	services := make([]*ServiceInfo, 0, len(g.services))
+	services := make([]*tunnel.ServiceInfo, 0, len(g.services))
 	for _, svc := range g.services {
 		services = append(services, svc.info)
 	}
 	return services
 }
 
-func (g *tunnelGateway) GetService(name string) (*ServiceInfo, error) {
+func (g *tunnelGateway) GetService(name string) (*tunnel.ServiceInfo, error) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	svc, ok := g.services[name]
 	if !ok {
-		return nil, ErrServiceNotFound
+		return nil, tunnel.ErrServiceNotFound
 	}
 	return svc.info, nil
 }
 
-func (g *tunnelGateway) Status() GatewayStatus {
+func (g *tunnelGateway) Status() tunnel.GatewayStatus {
 	return g.status
 }
 
-func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpointType EndpointType, conn net.Conn) error {
+func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpointType tunnel.EndpointType, conn net.Conn) error {
 	g.mu.RLock()
 	svc, ok := g.services[serviceName]
 	g.mu.RUnlock()
 
 	if !ok {
-		return ErrServiceNotFound
+		return tunnel.ErrServiceNotFound
 	}
 
 	if svc.session == nil || svc.session.IsClosed() {
-		return ErrSessionClosed
+		return tunnel.ErrSessionClosed
 	}
 
 	// Open a stream to the agent
@@ -490,7 +491,7 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 	defer stream.Close()
 
 	// Send forward request
-	msg := &Message{
+	msg := &tunnel.Message{
 		Type:    g.endpointTypeToMessageType(endpointType),
 		Service: svc.info,
 	}
@@ -515,20 +516,20 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 	return nil
 }
 
-func (g *tunnelGateway) endpointTypeToMessageType(et EndpointType) MessageType {
+func (g *tunnelGateway) endpointTypeToMessageType(et tunnel.EndpointType) tunnel.MessageType {
 	switch et {
-	case EndpointTypeHTTP:
-		return MessageTypeHTTPRequest
-	case EndpointTypeGRPC:
-		return MessageTypeGRPCRequest
-	case EndpointTypeDebug:
-		return MessageTypeDebugRequest
+	case tunnel.EndpointTypeHTTP:
+		return tunnel.MessageTypeHTTPRequest
+	case tunnel.EndpointTypeGRPC:
+		return tunnel.MessageTypeGRPCRequest
+	case tunnel.EndpointTypeDebug:
+		return tunnel.MessageTypeDebugRequest
 	default:
-		return MessageTypeHTTPRequest
+		return tunnel.MessageTypeHTTPRequest
 	}
 }
 
-func (g *tunnelGateway) sendMessage(stream Stream, msg *Message) error {
+func (g *tunnelGateway) sendMessage(stream tunnel.Stream, msg *tunnel.Message) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -577,7 +578,7 @@ func (g *tunnelGateway) acceptLoop() {
 	}
 }
 
-func (g *tunnelGateway) handleSession(session Session) {
+func (g *tunnelGateway) handleSession(session tunnel.Session) {
 	agentID := session.RemoteAddr().String()
 	log.Info().Str("agent", agentID).Msg("Agent connected")
 
@@ -607,7 +608,7 @@ func (g *tunnelGateway) handleSession(session Session) {
 	}
 }
 
-func (g *tunnelGateway) handleStream(agentID string, session Session, stream Stream) {
+func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, stream tunnel.Stream) {
 	defer stream.Close()
 
 	// Read message header
@@ -624,23 +625,23 @@ func (g *tunnelGateway) handleStream(agentID string, session Session, stream Str
 		return
 	}
 
-	var msg Message
+	var msg tunnel.Message
 	if err := json.Unmarshal(data, &msg); err != nil {
 		log.Warn().Err(err).Msg("Failed to unmarshal message")
 		return
 	}
 
 	switch msg.Type {
-	case MessageTypeRegister:
+	case tunnel.MessageTypeRegister:
 		g.handleRegister(agentID, session, &msg)
-	case MessageTypeDeregister:
+	case tunnel.MessageTypeDeregister:
 		g.handleDeregister(&msg)
-	case MessageTypeHeartbeat:
+	case tunnel.MessageTypeHeartbeat:
 		g.handleHeartbeat(agentID)
 	}
 }
 
-func (g *tunnelGateway) handleRegister(agentID string, session Session, msg *Message) {
+func (g *tunnelGateway) handleRegister(agentID string, session tunnel.Session, msg *tunnel.Message) {
 	if msg.Service == nil {
 		return
 	}
@@ -656,7 +657,7 @@ func (g *tunnelGateway) handleRegister(agentID string, session Session, msg *Mes
 	log.Info().Str("service", msg.Service.Name).Str("agent", agentID).Msg("Service registered")
 }
 
-func (g *tunnelGateway) handleDeregister(msg *Message) {
+func (g *tunnelGateway) handleDeregister(msg *tunnel.Message) {
 	if msg.Service == nil {
 		return
 	}
@@ -755,8 +756,8 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 		defer stream.Close()
 
 		// Send HTTP request message
-		msg := &Message{
-			Type:    MessageTypeHTTPRequest,
+		msg := &tunnel.Message{
+			Type:    tunnel.MessageTypeHTTPRequest,
 			Service: svc.info,
 		}
 

@@ -1,4 +1,4 @@
-package tunnel
+package tunnelagent
 
 import (
 	"context"
@@ -12,22 +12,23 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/log"
+	"github.com/pubgo/lava/v2/core/tunnel"
 	"google.golang.org/grpc"
 )
 
-var _ Agent = (*tunnelAgent)(nil)
+var _ tunnel.Agent = (*tunnelAgent)(nil)
 
 // NewAgent creates a new tunnel agent
-func NewAgent(cfg *AgentConfig) Agent {
+func NewAgent(cfg *tunnel.AgentConfig) tunnel.Agent {
 	a := &tunnelAgent{
 		cfg:      cfg,
-		services: make(map[string]*ServiceInfo),
-		status:   StatusDisconnected,
+		services: make(map[string]*tunnel.ServiceInfo),
+		status:   tunnel.StatusDisconnected,
 	}
 
 	// 从配置中构建初始服务信息
 	if cfg.ServiceName != "" {
-		svc := &ServiceInfo{
+		svc := &tunnel.ServiceInfo{
 			ID:       cfg.ServiceID,
 			Name:     cfg.ServiceName,
 			Version:  cfg.ServiceVersion,
@@ -36,8 +37,8 @@ func NewAgent(cfg *AgentConfig) Agent {
 
 		// 转换 Endpoints 配置到 ServiceInfo.Endpoints
 		for _, ep := range cfg.Endpoints {
-			svc.Endpoints = append(svc.Endpoints, Endpoint{
-				Type:     EndpointType(ep.Type),
+			svc.Endpoints = append(svc.Endpoints, tunnel.Endpoint{
+				Type:     tunnel.EndpointType(ep.Type),
 				Address:  ep.LocalAddr,
 				Path:     ep.Path,
 				Metadata: ep.Metadata,
@@ -51,11 +52,11 @@ func NewAgent(cfg *AgentConfig) Agent {
 }
 
 type tunnelAgent struct {
-	cfg       *AgentConfig
-	transport Transport
-	session   Session
-	services  map[string]*ServiceInfo
-	status    AgentStatus
+	cfg       *tunnel.AgentConfig
+	transport tunnel.Transport
+	session   tunnel.Session
+	services  map[string]*tunnel.ServiceInfo
+	status    tunnel.AgentStatus
 
 	mu       sync.RWMutex
 	stopCh   chan struct{}
@@ -70,11 +71,11 @@ type tunnelAgent struct {
 
 func (a *tunnelAgent) Start(ctx context.Context) error {
 	if a.running.Load() {
-		return ErrAgentAlreadyRunning
+		return tunnel.ErrAgentAlreadyRunning
 	}
 
 	// Create transport
-	transport, err := NewTransport(a.cfg.Transport, a.cfg.TransportOptions)
+	transport, err := tunnel.NewTransport(a.cfg.Transport, a.cfg.TransportOptions)
 	if err != nil {
 		return err
 	}
@@ -87,7 +88,7 @@ func (a *tunnelAgent) Start(ctx context.Context) error {
 
 	a.stopCh = make(chan struct{})
 	a.running.Store(true)
-	a.status = StatusConnected
+	a.status = tunnel.StatusConnected
 
 	// Start heartbeat
 	a.wg.Add(1)
@@ -135,12 +136,12 @@ func (a *tunnelAgent) Stop(ctx context.Context) error {
 	}
 
 	a.running.Store(false)
-	a.status = StatusDisconnected
+	a.status = tunnel.StatusDisconnected
 
 	return nil
 }
 
-func (a *tunnelAgent) Register(ctx context.Context, service *ServiceInfo) error {
+func (a *tunnelAgent) Register(ctx context.Context, service *tunnel.ServiceInfo) error {
 	a.mu.Lock()
 	a.services[service.Name] = service
 	a.mu.Unlock()
@@ -164,15 +165,15 @@ func (a *tunnelAgent) Deregister(ctx context.Context, serviceName string) error 
 	return a.sendDeregister(ctx, serviceName)
 }
 
-func (a *tunnelAgent) Status() AgentStatus {
+func (a *tunnelAgent) Status() tunnel.AgentStatus {
 	return a.status
 }
 
-func (a *tunnelAgent) Info() *AgentInfo {
+func (a *tunnelAgent) Info() *tunnel.AgentInfo {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	info := &AgentInfo{
+	info := &tunnel.AgentInfo{
 		GatewayAddr:    a.cfg.GatewayAddr,
 		ServiceName:    a.cfg.ServiceName,
 		ServiceVersion: a.cfg.ServiceVersion,
@@ -190,15 +191,15 @@ func (a *tunnelAgent) Info() *AgentInfo {
 func (a *tunnelAgent) connect(ctx context.Context) error {
 	session, err := a.transport.Dial(ctx, a.cfg.GatewayAddr)
 	if err != nil {
-		a.status = StatusDisconnected
+		a.status = tunnel.StatusDisconnected
 		return err
 	}
 	a.session = session
-	a.status = StatusConnected
+	a.status = tunnel.StatusConnected
 
 	// Register all services
 	a.mu.RLock()
-	services := make([]*ServiceInfo, 0, len(a.services))
+	services := make([]*tunnel.ServiceInfo, 0, len(a.services))
 	for _, svc := range a.services {
 		services = append(services, svc)
 	}
@@ -213,15 +214,15 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 	return nil
 }
 
-func (a *tunnelAgent) sendRegister(ctx context.Context, service *ServiceInfo) error {
+func (a *tunnelAgent) sendRegister(ctx context.Context, service *tunnel.ServiceInfo) error {
 	stream, err := a.session.Open(ctx)
 	if err != nil {
 		return err
 	}
 	defer stream.Close()
 
-	msg := &Message{
-		Type:    MessageTypeRegister,
+	msg := &tunnel.Message{
+		Type:    tunnel.MessageTypeRegister,
 		Service: service,
 	}
 	return a.sendMessage(stream, msg)
@@ -234,16 +235,16 @@ func (a *tunnelAgent) sendDeregister(ctx context.Context, serviceName string) er
 	}
 	defer stream.Close()
 
-	msg := &Message{
-		Type: MessageTypeDeregister,
-		Service: &ServiceInfo{
+	msg := &tunnel.Message{
+		Type: tunnel.MessageTypeDeregister,
+		Service: &tunnel.ServiceInfo{
 			Name: serviceName,
 		},
 	}
 	return a.sendMessage(stream, msg)
 }
 
-func (a *tunnelAgent) sendMessage(stream Stream, msg *Message) error {
+func (a *tunnelAgent) sendMessage(stream tunnel.Stream, msg *tunnel.Message) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -292,7 +293,7 @@ func (a *tunnelAgent) heartbeatLoop() {
 
 func (a *tunnelAgent) sendHeartbeat() error {
 	if a.session == nil || a.session.IsClosed() {
-		return ErrSessionClosed
+		return tunnel.ErrSessionClosed
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -304,7 +305,7 @@ func (a *tunnelAgent) sendHeartbeat() error {
 	}
 	defer stream.Close()
 
-	msg := &Message{Type: MessageTypeHeartbeat}
+	msg := &tunnel.Message{Type: tunnel.MessageTypeHeartbeat}
 	return a.sendMessage(stream, msg)
 }
 
@@ -341,7 +342,7 @@ func (a *tunnelAgent) acceptLoop() {
 	}
 }
 
-func (a *tunnelAgent) handleStream(stream Stream) {
+func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	log.Debug().Msg("Agent: Accepted new stream from gateway")
 
 	// Read message header
@@ -362,7 +363,7 @@ func (a *tunnelAgent) handleStream(stream Stream) {
 		return
 	}
 
-	var msg Message
+	var msg tunnel.Message
 	if err := json.Unmarshal(data, &msg); err != nil {
 		log.Warn().Err(err).Str("data", string(data)).Msg("Agent: Failed to unmarshal message")
 		stream.Close()
@@ -372,21 +373,18 @@ func (a *tunnelAgent) handleStream(stream Stream) {
 	log.Debug().Str("type", string(msg.Type)).Msg("Received message from gateway")
 
 	switch msg.Type {
-	case MessageTypeHTTPRequest:
-		// handleHTTPRequest will manage stream lifecycle
+	case tunnel.MessageTypeHTTPRequest:
 		a.handleHTTPRequest(stream, &msg)
-	case MessageTypeGRPCRequest:
-		// handleGRPCRequest will manage stream lifecycle
+	case tunnel.MessageTypeGRPCRequest:
 		a.handleGRPCRequest(stream, &msg)
-	case MessageTypeDebugRequest:
-		// handleDebugRequest will manage stream lifecycle
+	case tunnel.MessageTypeDebugRequest:
 		a.handleDebugRequest(stream, &msg)
 	default:
 		stream.Close()
 	}
 }
 
-func (a *tunnelAgent) handleHTTPRequest(stream Stream, msg *Message) {
+func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
 	if msg.Service == nil {
@@ -395,9 +393,9 @@ func (a *tunnelAgent) handleHTTPRequest(stream Stream, msg *Message) {
 	}
 
 	// Find the HTTP endpoint
-	var httpEndpoint *Endpoint
+	var httpEndpoint *tunnel.Endpoint
 	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == EndpointTypeHTTP {
+		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeHTTP {
 			httpEndpoint = &msg.Service.Endpoints[i]
 			break
 		}
@@ -448,7 +446,7 @@ func (a *tunnelAgent) handleHTTPRequest(stream Stream, msg *Message) {
 	log.Debug().Str("service", msg.Service.Name).Msg("HTTP request completed")
 }
 
-func (a *tunnelAgent) handleGRPCRequest(stream Stream, msg *Message) {
+func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
 	if msg.Service == nil {
@@ -457,9 +455,9 @@ func (a *tunnelAgent) handleGRPCRequest(stream Stream, msg *Message) {
 	}
 
 	// Find the gRPC endpoint
-	var grpcEndpoint *Endpoint
+	var grpcEndpoint *tunnel.Endpoint
 	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == EndpointTypeGRPC {
+		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeGRPC {
 			grpcEndpoint = &msg.Service.Endpoints[i]
 			break
 		}
@@ -504,7 +502,7 @@ func (a *tunnelAgent) handleGRPCRequest(stream Stream, msg *Message) {
 	log.Debug().Str("service", msg.Service.Name).Msg("gRPC request completed")
 }
 
-func (a *tunnelAgent) handleDebugRequest(stream Stream, msg *Message) {
+func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
 	if msg.Service == nil {
@@ -513,9 +511,9 @@ func (a *tunnelAgent) handleDebugRequest(stream Stream, msg *Message) {
 	}
 
 	// Find the debug endpoint
-	var debugEndpoint *Endpoint
+	var debugEndpoint *tunnel.Endpoint
 	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == EndpointTypeDebug {
+		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeDebug {
 			debugEndpoint = &msg.Service.Endpoints[i]
 			break
 		}
@@ -574,7 +572,7 @@ func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
 			return
 		case <-time.After(interval):
 			if a.session == nil || a.session.IsClosed() {
-				a.status = StatusReconnecting
+				a.status = tunnel.StatusReconnecting
 				if err := a.connect(ctx); err != nil {
 					log.Warn().Err(err).Msg("Failed to reconnect to gateway")
 				}
@@ -586,7 +584,7 @@ func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
 // ServeHTTP implements http.Handler for the agent status
 func (a *tunnelAgent) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.mu.RLock()
-	services := make([]*ServiceInfo, 0, len(a.services))
+	services := make([]*tunnel.ServiceInfo, 0, len(a.services))
 	for _, svc := range a.services {
 		services = append(services, svc)
 	}

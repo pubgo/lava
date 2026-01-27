@@ -1,6 +1,6 @@
-// Package tunnelgateway 提供隧道代理网关的便捷封装
+// Package tunnelgateway 提供隧道代理网关实现
 //
-// 这个包是 tunnel.Gateway 的包装器，提供更简洁的 API 和使用体验。
+// 这个包实现了 tunnel.Gateway 接口，负责接收服务注册并暴露服务。
 //
 // 示例用法:
 //
@@ -16,10 +16,19 @@
 //		log.Fatal(err)
 //	}
 //	defer gw.Stop(ctx)
+//
+// 或使用 Builder 模式:
+//
+//	gw, err := tunnelgateway.NewBuilder().
+//		WithListenAddr(":9000").
+//		WithHTTPPort(8080).
+//		WithDebugPort(6060).
+//		Build()
 package tunnelgateway
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
@@ -30,6 +39,9 @@ type Config = tunnel.GatewayConfig
 
 // TransportOptions 传输层选项
 type TransportOptions = tunnel.TransportOptions
+
+// TLSConfig TLS 配置
+type TLSConfig = tunnel.TLSConfig
 
 // ServiceInfo 服务信息
 type ServiceInfo = tunnel.ServiceInfo
@@ -56,8 +68,17 @@ const (
 // 状态常量
 const (
 	StatusStopped  = tunnel.GatewayStatusStopped
+	StatusStarting = tunnel.GatewayStatusStarting
 	StatusRunning  = tunnel.GatewayStatusRunning
 	StatusStopping = tunnel.GatewayStatusStopping
+)
+
+// 传输协议常量
+const (
+	TransportYamux = tunnel.TransportYamux
+	TransportQUIC  = tunnel.TransportQUIC
+	TransportHTTP  = tunnel.TransportHTTP
+	TransportKCP   = tunnel.TransportKCP
 )
 
 // Gateway 是隧道代理网关的封装
@@ -69,7 +90,7 @@ type Gateway struct {
 // New 创建一个新的 Gateway 实例
 func New(cfg *Config) *Gateway {
 	return &Gateway{
-		inner: tunnel.NewGateway(cfg),
+		inner: NewGateway(cfg),
 		cfg:   cfg,
 	}
 }
@@ -112,4 +133,101 @@ func (g *Gateway) Config() *Config {
 // Inner 获取底层的 tunnel.Gateway 实现
 func (g *Gateway) Inner() tunnel.Gateway {
 	return g.inner
+}
+
+// Builder Gateway 构建器
+type Builder struct {
+	cfg *Config
+}
+
+// NewBuilder 创建 Gateway 构建器
+func NewBuilder() *Builder {
+	cfg := tunnel.DefaultGatewayConfig()
+	return &Builder{cfg: &cfg}
+}
+
+// WithListenAddr 设置监听地址
+func (b *Builder) WithListenAddr(addr string) *Builder {
+	b.cfg.ListenAddr = addr
+	return b
+}
+
+// WithTransport 设置传输协议
+func (b *Builder) WithTransport(transport string) *Builder {
+	b.cfg.Transport = transport
+	return b
+}
+
+// WithTransportOptions 设置传输层选项
+func (b *Builder) WithTransportOptions(opts *TransportOptions) *Builder {
+	b.cfg.TransportOptions = opts
+	return b
+}
+
+// WithHTTPPort 设置 HTTP 端口
+func (b *Builder) WithHTTPPort(port int) *Builder {
+	b.cfg.HTTPPort = port
+	return b
+}
+
+// WithGRPCPort 设置 gRPC 端口
+func (b *Builder) WithGRPCPort(port int) *Builder {
+	b.cfg.GRPCPort = port
+	return b
+}
+
+// WithDebugPort 设置 Debug 端口
+func (b *Builder) WithDebugPort(port int) *Builder {
+	b.cfg.DebugPort = port
+	return b
+}
+
+// WithHeartbeatInterval 设置心跳间隔（秒）
+func (b *Builder) WithHeartbeatInterval(interval int) *Builder {
+	b.cfg.HeartbeatInterval = interval
+	return b
+}
+
+// WithHeartbeatTimeout 设置心跳超时（秒）
+func (b *Builder) WithHeartbeatTimeout(timeout int) *Builder {
+	b.cfg.HeartbeatTimeout = timeout
+	return b
+}
+
+// WithHealthCheckInterval 设置健康检查间隔（秒）
+func (b *Builder) WithHealthCheckInterval(interval int) *Builder {
+	b.cfg.HealthCheckInterval = interval
+	return b
+}
+
+// WithTLS 设置 TLS 配置
+func (b *Builder) WithTLS(tls TLSConfig) *Builder {
+	b.cfg.TLS = tls
+	return b
+}
+
+// WithConfig 使用完整配置
+func (b *Builder) WithConfig(cfg *Config) *Builder {
+	b.cfg = cfg
+	return b
+}
+
+// Build 构建 Gateway
+func (b *Builder) Build() (*Gateway, error) {
+	if b.cfg.ListenAddr == "" {
+		return nil, fmt.Errorf("tunnelgateway: listen address is required")
+	}
+	if b.cfg.Transport == "" {
+		b.cfg.Transport = TransportYamux
+	}
+	return New(b.cfg), nil
+}
+
+// MustBuild 构建 Gateway，失败时 panic
+func (b *Builder) MustBuild() *Gateway {
+	gw, err := b.Build()
+	if err != nil {
+		panic(err)
+	}
+	return gw
 }
