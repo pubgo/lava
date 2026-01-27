@@ -94,6 +94,8 @@ const (
 	EndpointTypeHTTP  EndpointType = "http"
 	EndpointTypeGRPC  EndpointType = "grpc"
 	EndpointTypeDebug EndpointType = "debug"
+	EndpointTypeTCP   EndpointType = "tcp"
+	EndpointTypeUDP   EndpointType = "udp"
 )
 
 // ServiceStatus 服务状态
@@ -294,15 +296,13 @@ type GatewayStatusInfo struct {
 	StartedAt time.Time `json:"started_at,omitempty"`
 }
 
-// Message 通信消息
+// Message 通信消息（类似 JSON-RPC）
 type Message struct {
-	// Type 消息类型
+	// Type 消息类型/方法
 	Type MessageType `json:"type"`
-	// ID 消息ID
+	// ID 消息ID，用于请求-响应匹配
 	ID string `json:"id,omitempty"`
-	// Service 服务信息（用于注册/注销）
-	Service *ServiceInfo `json:"service,omitempty"`
-	// Payload 消息负载
+	// Payload 消息负载（JSON 编码的具体数据）
 	Payload []byte `json:"payload,omitempty"`
 	// Error 错误信息
 	Error string `json:"error,omitempty"`

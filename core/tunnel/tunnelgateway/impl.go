@@ -248,10 +248,19 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 
 	log.Debug().Str("service", serviceName).Msg("Gateway: Stream opened to agent")
 
+	// Build request meta
+	meta := tunnel.RequestMeta{
+		ServiceID:    svc.info.ID,
+		EndpointType: endpointType,
+		Path:         subPath,
+		Method:       r.Method,
+	}
+	payload, _ := json.Marshal(meta)
+
 	// 发送请求消息给 Agent
 	msg := &tunnel.Message{
 		Type:    g.endpointTypeToMessageType(endpointType),
-		Service: svc.info,
+		Payload: payload,
 	}
 
 	if err := g.sendMessage(stream, msg); err != nil {
@@ -491,10 +500,17 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 	}
 	defer stream.Close()
 
+	// Build request meta
+	meta := tunnel.RequestMeta{
+		ServiceID:    svc.info.ID,
+		EndpointType: endpointType,
+	}
+	payload, _ := json.Marshal(meta)
+
 	// Send forward request
 	msg := &tunnel.Message{
 		Type:    g.endpointTypeToMessageType(endpointType),
-		Service: svc.info,
+		Payload: payload,
 	}
 
 	if err := g.sendMessage(stream, msg); err != nil {
@@ -643,31 +659,40 @@ func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, str
 }
 
 func (g *tunnelGateway) handleRegister(agentID string, session tunnel.Session, msg *tunnel.Message) {
-	if msg.Service == nil {
+	if len(msg.Payload) == 0 {
+		log.Warn().Str("agent", agentID).Msg("Register: empty payload")
+		return
+	}
+
+	var service tunnel.ServiceInfo
+	if err := json.Unmarshal(msg.Payload, &service); err != nil {
+		log.Warn().Err(err).Str("agent", agentID).Msg("Register: failed to parse service info")
 		return
 	}
 
 	g.mu.Lock()
-	g.services[msg.Service.Name] = &registeredService{
-		info:    msg.Service,
+	g.services[service.Name] = &registeredService{
+		info:    &service,
 		session: session,
 		agent:   agentID,
 	}
 	g.mu.Unlock()
 
-	log.Info().Str("service", msg.Service.Name).Str("agent", agentID).Msg("Service registered")
+	log.Info().Str("service", service.Name).Str("agent", agentID).Msg("Service registered")
 }
 
 func (g *tunnelGateway) handleDeregister(msg *tunnel.Message) {
-	if msg.Service == nil {
+	if len(msg.Payload) == 0 {
 		return
 	}
 
+	serviceName := string(msg.Payload)
+
 	g.mu.Lock()
-	delete(g.services, msg.Service.Name)
+	delete(g.services, serviceName)
 	g.mu.Unlock()
 
-	log.Info().Str("service", msg.Service.Name).Msg("Service deregistered")
+	log.Info().Str("service", serviceName).Msg("Service deregistered")
 }
 
 func (g *tunnelGateway) handleHeartbeat(agentID string) {
@@ -730,6 +755,13 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 			})
 		}
 
+		// Extract sub path after service name
+		fullPath := c.Path()
+		subPath := ""
+		if idx := strings.Index(fullPath, serviceName); idx >= 0 {
+			subPath = fullPath[idx+len(serviceName):]
+		}
+
 		g.mu.RLock()
 		svc, ok := g.services[serviceName]
 		g.mu.RUnlock()
@@ -756,10 +788,19 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 		}
 		defer stream.Close()
 
+		// Build request meta
+		meta := tunnel.RequestMeta{
+			ServiceID:    svc.info.ID,
+			EndpointType: tunnel.EndpointTypeHTTP,
+			Path:         subPath,
+			Method:       c.Method(),
+		}
+		payload, _ := json.Marshal(meta)
+
 		// Send HTTP request message
 		msg := &tunnel.Message{
 			Type:    tunnel.MessageTypeHTTPRequest,
-			Service: svc.info,
+			Payload: payload,
 		}
 
 		if err := g.sendMessage(stream, msg); err != nil {

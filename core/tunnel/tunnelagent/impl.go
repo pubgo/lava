@@ -222,9 +222,14 @@ func (a *tunnelAgent) sendRegister(ctx context.Context, service *tunnel.ServiceI
 	}
 	defer stream.Close()
 
+	payload, err := json.Marshal(service)
+	if err != nil {
+		return err
+	}
+
 	msg := &tunnel.Message{
 		Type:    tunnel.MessageTypeRegister,
-		Service: service,
+		Payload: payload,
 	}
 	return a.sendMessage(stream, msg)
 }
@@ -237,10 +242,8 @@ func (a *tunnelAgent) sendDeregister(ctx context.Context, serviceName string) er
 	defer stream.Close()
 
 	msg := &tunnel.Message{
-		Type: tunnel.MessageTypeDeregister,
-		Service: &tunnel.ServiceInfo{
-			Name: serviceName,
-		},
+		Type:    tunnel.MessageTypeDeregister,
+		Payload: []byte(serviceName),
 	}
 	return a.sendMessage(stream, msg)
 }
@@ -388,22 +391,33 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
-	if msg.Service == nil {
-		log.Warn().Msg("HTTP request: service info is nil")
-		return
-	}
-
-	// Find the HTTP endpoint
-	var httpEndpoint *tunnel.Endpoint
-	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeHTTP {
-			httpEndpoint = &msg.Service.Endpoints[i]
-			break
+	// Parse request meta from payload
+	var meta tunnel.RequestMeta
+	if len(msg.Payload) > 0 {
+		if err := json.Unmarshal(msg.Payload, &meta); err != nil {
+			log.Warn().Err(err).Msg("HTTP request: failed to parse request meta")
+			return
 		}
 	}
 
+	// Find the HTTP endpoint from local services
+	var httpEndpoint *tunnel.Endpoint
+	a.mu.RLock()
+	for _, svc := range a.services {
+		for i := range svc.Endpoints {
+			if svc.Endpoints[i].Type == tunnel.EndpointTypeHTTP {
+				httpEndpoint = &svc.Endpoints[i]
+				break
+			}
+		}
+		if httpEndpoint != nil {
+			break
+		}
+	}
+	a.mu.RUnlock()
+
 	if httpEndpoint == nil {
-		log.Warn().Str("service", msg.Service.Name).Msg("HTTP request: no HTTP endpoint found")
+		log.Warn().Msg("HTTP request: no HTTP endpoint found")
 		return
 	}
 
@@ -413,7 +427,7 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 		address = "127.0.0.1" + address
 	}
 
-	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying HTTP request to local service")
+	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying HTTP request to local service")
 
 	// Forward request to local HTTP service
 	conn, err := net.Dial("tcp", address)
@@ -444,28 +458,39 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 	}()
 
 	wg.Wait()
-	log.Debug().Str("service", msg.Service.Name).Msg("HTTP request completed")
+	log.Debug().Str("address", address).Msg("HTTP request completed")
 }
 
 func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
-	if msg.Service == nil {
-		log.Warn().Msg("gRPC request: service info is nil")
-		return
-	}
-
-	// Find the gRPC endpoint
-	var grpcEndpoint *tunnel.Endpoint
-	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeGRPC {
-			grpcEndpoint = &msg.Service.Endpoints[i]
-			break
+	// Parse request meta from payload
+	var meta tunnel.RequestMeta
+	if len(msg.Payload) > 0 {
+		if err := json.Unmarshal(msg.Payload, &meta); err != nil {
+			log.Warn().Err(err).Msg("gRPC request: failed to parse request meta")
+			return
 		}
 	}
 
+	// Find the gRPC endpoint from local services
+	var grpcEndpoint *tunnel.Endpoint
+	a.mu.RLock()
+	for _, svc := range a.services {
+		for i := range svc.Endpoints {
+			if svc.Endpoints[i].Type == tunnel.EndpointTypeGRPC {
+				grpcEndpoint = &svc.Endpoints[i]
+				break
+			}
+		}
+		if grpcEndpoint != nil {
+			break
+		}
+	}
+	a.mu.RUnlock()
+
 	if grpcEndpoint == nil {
-		log.Warn().Str("service", msg.Service.Name).Msg("gRPC request: no gRPC endpoint found")
+		log.Warn().Msg("gRPC request: no gRPC endpoint found")
 		return
 	}
 
@@ -475,7 +500,7 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 		address = "127.0.0.1" + address
 	}
 
-	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying gRPC request to local service")
+	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying gRPC request to local service")
 
 	// Forward request to local gRPC service
 	conn, err := net.Dial("tcp", address)
@@ -500,28 +525,39 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 	}()
 
 	wg.Wait()
-	log.Debug().Str("service", msg.Service.Name).Msg("gRPC request completed")
+	log.Debug().Str("address", address).Msg("gRPC request completed")
 }
 
 func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Message) {
 	defer stream.Close()
 
-	if msg.Service == nil {
-		log.Warn().Msg("Debug request: service info is nil")
-		return
-	}
-
-	// Find the debug endpoint
-	var debugEndpoint *tunnel.Endpoint
-	for i := range msg.Service.Endpoints {
-		if msg.Service.Endpoints[i].Type == tunnel.EndpointTypeDebug {
-			debugEndpoint = &msg.Service.Endpoints[i]
-			break
+	// Parse request meta from payload
+	var meta tunnel.RequestMeta
+	if len(msg.Payload) > 0 {
+		if err := json.Unmarshal(msg.Payload, &meta); err != nil {
+			log.Warn().Err(err).Msg("Debug request: failed to parse request meta")
+			return
 		}
 	}
 
+	// Find the debug endpoint from local services
+	var debugEndpoint *tunnel.Endpoint
+	a.mu.RLock()
+	for _, svc := range a.services {
+		for i := range svc.Endpoints {
+			if svc.Endpoints[i].Type == tunnel.EndpointTypeDebug {
+				debugEndpoint = &svc.Endpoints[i]
+				break
+			}
+		}
+		if debugEndpoint != nil {
+			break
+		}
+	}
+	a.mu.RUnlock()
+
 	if debugEndpoint == nil {
-		log.Warn().Str("service", msg.Service.Name).Msg("Debug request: no debug endpoint found")
+		log.Warn().Msg("Debug request: no debug endpoint found")
 		return
 	}
 
@@ -531,7 +567,7 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 		address = "127.0.0.1" + address
 	}
 
-	log.Debug().Str("service", msg.Service.Name).Str("address", address).Msg("Proxying debug request to local service")
+	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying debug request to local service")
 
 	// Forward request to local debug service
 	conn, err := net.Dial("tcp", address)
@@ -556,7 +592,7 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 	}()
 
 	wg.Wait()
-	log.Debug().Str("service", msg.Service.Name).Msg("Debug request completed")
+	log.Debug().Str("address", address).Msg("Debug request completed")
 }
 
 func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
