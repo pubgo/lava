@@ -14,31 +14,26 @@
 
 ```
 core/tunnel/
-├── doc.go          # 包文档（详细 API 说明）
-├── types.go        # 核心类型和接口定义
-├── config.go       # 配置结构定义
-├── config.yaml     # 配置示例文件
-├── errors.go       # 错误定义
-├── transport.go    # 传输层注册表和工厂
-├── agent.go        # Agent 实现（运行在服务节点，主动连接）
-├── gateway.go      # Gateway 实现（运行在公网，被动接受连接）
-├── builder.go      # 构建器模式 API
-├── debug.go        # 调试接口
-├── README.md       # 本文档
-├── tunnelagent/    # Agent 便捷封装包
-│   ├── agent.go    # Agent 封装实现
-│   └── doc.go      # 包文档
-├── tunnelgateway/  # Gateway 便捷封装包
-│   ├── gateway.go  # Gateway 封装实现
-│   └── doc.go      # 包文档
-├── yamux/
-│   └── yamux.go    # yamux 传输协议实现（基于 TCP）
-├── quic/
-│   └── quic.go     # QUIC 传输协议实现（基于 UDP）
-├── http/
-│   └── http.go     # HTTP CONNECT 传输协议实现
-└── kcp/
-    └── kcp.go      # KCP 传输协议实现（基于 UDP）
+├── doc.go              # 包文档（详细 API 说明）
+├── types.go            # 核心类型和接口定义
+├── config.go           # 配置结构定义
+├── config.yaml         # 配置示例文件
+├── errors.go           # 错误定义
+├── transport.go        # 传输层注册表和工厂
+├── README.md           # 本文档
+├── tunnelagent/        # Agent 实现包
+│   ├── agent.go        # Agent 封装和 Builder
+│   ├── impl.go         # Agent 实现
+│   └── doc.go          # 包文档
+├── tunnelgateway/      # Gateway 实现包
+│   ├── gateway.go      # Gateway 封装和 Builder
+│   ├── impl.go         # Gateway 实现
+│   └── doc.go          # 包文档
+├── yamux/              # yamux 传输协议实现（基于 TCP）
+├── quic/               # QUIC 传输协议实现（基于 UDP）
+├── http/               # HTTP CONNECT 传输协议实现
+├── kcp/                # KCP 传输协议实现（基于 UDP）
+└── example/            # 使用示例
 ```
 
 ## 架构图
@@ -127,20 +122,28 @@ Gateway 部署在公网可访问的服务器上，被动等待服务连接。
 ```go
 import (
     "context"
-    "github.com/pubgo/lava/v2/core/tunnel"
+    "github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
     _ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 )
 
 func main() {
     ctx := context.Background()
     
-    // 启动 Gateway，监听 :7000 接受 Agent 连接
-    gw, err := tunnel.NewGatewayBuilder().
-        WithListenAddr(":7000").      // Agent 连接端口
+    // 方式一：直接创建
+    gw := tunnelgateway.New(&tunnelgateway.Config{
+        ListenAddr: ":7000",      // Agent 连接端口
+        Transport:  "yamux",
+        HTTPPort:   8080,          // 对外暴露的 HTTP 端口
+        GRPCPort:   9090,          // 对外暴露的 gRPC 端口
+        DebugPort:  6060,          // 对外暴露的 Debug 端口
+    })
+    
+    // 方式二：使用 Builder 模式
+    gw, err := tunnelgateway.NewBuilder().
+        WithListenAddr(":7000").
         WithTransport("yamux").
-        WithHTTPPort(8080).            // 对外暴露的 HTTP 端口
-        WithGRPCPort(9090).            // 对外暴露的 gRPC 端口
-        WithDebugPort(6060).           // 对外暴露的 Debug 端口
+        WithHTTPPort(8080).
+        WithDebugPort(6060).
         Build()
     if err != nil {
         log.Fatal(err)
@@ -149,6 +152,7 @@ func main() {
     if err := gw.Start(ctx); err != nil {
         log.Fatal(err)
     }
+    defer gw.Stop(ctx)
     
     // Gateway 现在等待 Agent 连接...
     // 当 Agent 连接并注册服务后，可以通过 Services() 查看
@@ -166,22 +170,33 @@ Agent 部署在服务所在的机器上（可以是内网），主动连接到 G
 import (
     "context"
     "github.com/pubgo/lava/v2/core/tunnel"
+    "github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
     _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 )
 
 func main() {
     ctx := context.Background()
     
-    // Agent 主动连接到 Gateway，注册本地服务
-    agent, err := tunnel.NewAgentBuilder().
-        WithGatewayAddr("gateway.example.com:7000").  // Gateway 地址
+    // 方式一：直接创建
+    agent := tunnelagent.New(&tunnelagent.Config{
+        GatewayAddr: "gateway.example.com:7000",
+        Transport:   "yamux",
+        ServiceName: "my-service",
+        ServiceVersion: "1.0.0",
+        Endpoints: []tunnel.EndpointConfig{
+            {Type: "http", LocalAddr: "localhost:8080"},
+            {Type: "debug", LocalAddr: "localhost:6060"},
+        },
+    })
+    
+    // 方式二：使用 Builder 模式
+    agent, err := tunnelagent.NewBuilder().
+        WithGatewayAddr("gateway.example.com:7000").
         WithServiceName("my-service").
         WithServiceVersion("1.0.0").
-        // 声明本地服务端点，Gateway 会代理这些端点
-        AddEndpoint("http", "localhost:8080", "/api").    // 本地 HTTP 服务
-        AddEndpoint("grpc", "localhost:9090", "").        // 本地 gRPC 服务
-        AddEndpoint("debug", "localhost:6060", "/debug"). // 本地 Debug 端口
-        WithReconnectInterval(5).  // 断线后 5 秒重连
+        AddEndpoint("http", "localhost:8080", "/api").
+        AddEndpoint("debug", "localhost:6060", "/debug").
+        WithReconnectInterval(5).
         Build()
     if err != nil {
         log.Fatal(err)
@@ -195,44 +210,12 @@ func main() {
     if err := agent.Start(ctx); err != nil {
         log.Fatal(err)
     }
+    defer agent.Stop(ctx)
     
     // 之后外部可以通过 Gateway 访问本地服务：
     // http://gateway.example.com:8080/my-service/api  -> localhost:8080
     // gateway.example.com:9090 (gRPC)                 -> localhost:9090  
     // http://gateway.example.com:6060/my-service/debug -> localhost:6060
-}
-```
-
-### 3. 使用便捷封装包
-
-除了直接使用 `tunnel` 包，还可以使用 `tunnelagent` 和 `tunnelgateway` 子包获得更简洁的 API：
-
-**使用 tunnelagent 包:**
-
-```go
-import (
-    "context"
-    "github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
-    _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
-)
-
-func main() {
-    agent := tunnelagent.New(&tunnelagent.Config{
-        GatewayAddr:    "gateway.example.com:7000",
-        Transport:      "yamux",
-        ServiceName:    "my-service",
-        ServiceVersion: "1.0.0",
-        Endpoints: []tunnelagent.EndpointConfig{
-            {Type: "http", LocalAddr: ":8080"},
-            {Type: "debug", LocalAddr: ":6060"},
-        },
-    })
-    
-    ctx := context.Background()
-    if err := agent.Start(ctx); err != nil {
-        log.Fatal(err)
-    }
-    defer agent.Stop(ctx)
     
     // 检查状态
     if agent.Status() == tunnelagent.StatusConnected {
@@ -241,51 +224,30 @@ func main() {
 }
 ```
 
-**使用 tunnelgateway 包:**
+### 3. 运行示例
 
-```go
-import (
-    "context"
-    "github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
-    _ "github.com/pubgo/lava/v2/core/tunnel/yamux"
-)
+```bash
+# 运行完整示例（Gateway + Agent + Backend）
+go run ./core/tunnel/example/main.go
 
-func main() {
-    gw := tunnelgateway.New(&tunnelgateway.Config{
-        ListenAddr: ":7000",
-        Transport:  "yamux",
-        HTTPPort:   8080,
-        DebugPort:  6060,
-    })
-    
-    ctx := context.Background()
-    if err := gw.Start(ctx); err != nil {
-        log.Fatal(err)
-    }
-    defer gw.Stop(ctx)
-    
-    // 查看已注册服务
-    for _, svc := range gw.Services() {
-        fmt.Printf("服务: %s v%s\n", svc.Name, svc.Version)
-    }
-}
+# 使用不同传输协议
+go run ./core/tunnel/example/main.go -transport=quic
+go run ./core/tunnel/example/main.go -transport=http
+go run ./core/tunnel/example/main.go -transport=kcp
 ```
 
 ### 4. 集成调试接口
 
+调试接口由 `core/debug/tunneldebug` 包提供，可以集成到服务的调试端点：
+
 ```go
-// 创建调试处理器
-debugHandler := tunnel.NewDebugHandler()
-debugHandler.SetGateway(gw)
-debugHandler.SetAgent(agent)
+import "github.com/pubgo/lava/v2/core/debug/tunneldebug"
 
-// Fiber 集成
-app := fiber.New()
-debugHandler.FiberRoutes(app.Group("/debug"))
+// 设置 Gateway 实例
+tunneldebug.SetGateway(gw.Inner())
 
-// 标准 HTTP 集成
-mux := http.NewServeMux()
-debugHandler.HTTPRoutes(mux)
+// 设置 Agent 实例  
+tunneldebug.SetAgent(agent.Inner())
 ```
 
 ## 使用场景
