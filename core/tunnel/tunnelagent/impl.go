@@ -12,8 +12,9 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/lava/v2/core/tunnel"
 	"google.golang.org/grpc"
+
+	"github.com/pubgo/lava/v2/core/tunnel"
 )
 
 var _ tunnel.Agent = (*tunnelAgent)(nil)

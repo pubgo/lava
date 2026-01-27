@@ -217,7 +217,7 @@ func (s *httpSession) IsClosed() bool {
 
 func (s *httpSession) NumStreams() int {
 	count := 0
-	s.streams.Range(func(key, value interface{}) bool {
+	s.streams.Range(func(key, value any) bool {
 		count++
 		return true
 	})

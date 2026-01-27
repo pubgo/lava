@@ -150,7 +150,7 @@ func TestAgentProxy_POST(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
-		json.NewEncoder(w).Encode(map[string]interface{}{"method": r.Method, "body": string(body)})
+		json.NewEncoder(w).Encode(map[string]any{"method": r.Method, "body": string(body)})
 	})
 	srv := &http.Server{Addr: "127.0.0.1:22081", Handler: mux}
 	go srv.ListenAndServe()
@@ -181,7 +181,7 @@ func TestAgentProxy_POST(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	var result map[string]interface{}
+	var result map[string]any
 	json.NewDecoder(resp.Body).Decode(&result)
 	if result["method"] != "POST" {
 		t.Errorf("method=%v", result["method"])

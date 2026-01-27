@@ -17,6 +17,7 @@ import (
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/core/tunnel"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
@@ -164,13 +165,16 @@ func New(di *dix.Dix) *redant.Command {
 			}
 
 			// 创建 Gateway
-			gateway, err := tunnel.NewGatewayBuilder().
-				WithListenAddr(tunnelCfg.ListenAddr).
-				WithHTTPPort(tunnelCfg.HTTPPort).
-				WithGRPCPort(tunnelCfg.GRPCPort).
-				WithDebugPort(tunnelCfg.DebugPort).
-				Build()
+			gateway := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
+				ListenAddr: tunnelCfg.ListenAddr,
+				HTTPPort:   tunnelCfg.HTTPPort,
+				GRPCPort:   tunnelCfg.GRPCPort,
+				DebugPort:  tunnelCfg.DebugPort,
+			})
+
+			err := gateway.Start(ctx)
 			if err != nil {
+				log.Error().Err(err).Msg("Gateway start failed")
 				return err
 			}
 

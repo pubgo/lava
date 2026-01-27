@@ -18,6 +18,7 @@ import (
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerdebug"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/core/tunnel"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
@@ -74,16 +75,21 @@ func New(di *dix.Dix) *redant.Command {
 				serviceVersion = "dev"
 			}
 
-			agent, err := tunnel.NewAgentBuilder().
-				WithGatewayAddr(gatewayAddr).
-				WithServiceName(serviceName).
-				WithServiceVersion(serviceVersion).
-				WithMetadata(map[string]string{
+			agent := tunnelagent.NewAgent(&tunnel.AgentConfig{
+				GatewayAddr:    gatewayAddr,
+				ServiceName:    serviceName,
+				ServiceVersion: serviceVersion,
+				Metadata: map[string]string{
 					"instance": os.Getenv("HOSTNAME"),
-				}).
-				AddEndpoint("http", httpAddr, "/").
-				AddEndpoint("debug", debugAddr, "/debug").
-				Build()
+				},
+
+				Endpoints: []tunnel.EndpointConfig{
+					{Type: "http", LocalAddr: httpAddr, Path: "/"},
+					{Type: "debug", LocalAddr: debugAddr, Path: "/debug"},
+				},
+			})
+
+			err := agent.Start(ctx)
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to build tunnel agent")
 			} else {

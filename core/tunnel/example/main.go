@@ -119,7 +119,7 @@ func runAgent(ctx context.Context) {
 func runBackend(ctx context.Context) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"path":    r.URL.Path,
 			"method":  r.Method,
 			"headers": r.Header,
@@ -143,7 +143,7 @@ func runAll(ctx context.Context) {
 	fmt.Println("Starting backend server...")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"message": "Hello from backend!",
 			"path":    r.URL.Path,
 			"time":    time.Now().Format(time.RFC3339),
