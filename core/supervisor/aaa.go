@@ -1,3 +1,4 @@
+// Service supervision and lifecycle management for lava services
 package supervisor
 
 import (
