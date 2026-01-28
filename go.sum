@@ -504,8 +504,8 @@ github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7D
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
 github.com/pubgo/dix/v2 v2.0.0-beta.12 h1:i5uF9isYxTqXN8ybHltHvNkg5lZjcVNUT2wxx6s8ONI=
 github.com/pubgo/dix/v2 v2.0.0-beta.12/go.mod h1:rAJWKUI4cgRAr8Mb3+H0kjsl3VgR54RU/2Fzbe60Ag0=
-github.com/pubgo/funk/v2 v2.0.0-beta.16 h1:YYjIN+BkKUkzQbmlaRqqfth05wDYjOp66XertEe46Ek=
-github.com/pubgo/funk/v2 v2.0.0-beta.16/go.mod h1:UQEBkZpMH6L2Vl0huy7vMrPV0pMWN+GKh+1Y6w++n/U=
+github.com/pubgo/funk/v2 v2.0.0-beta.17 h1:t2/tDPD4c+53X9MesBuaZ+11ZbbvZLEUyFaxvvn5nPI=
+github.com/pubgo/funk/v2 v2.0.0-beta.17/go.mod h1:UQEBkZpMH6L2Vl0huy7vMrPV0pMWN+GKh+1Y6w++n/U=
 github.com/pubgo/redant v0.0.5 h1:iDq0cQJNtST8pu9bFSgxZ78JoQ0aVW+svZyOMouWjfM=
 github.com/pubgo/redant v0.0.5/go.mod h1:FOBNjL8pPLOBcZS3SL2R5GusFz/bNBwDJzSinGuKs7A=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 h1:+Wl/0aFp0hpuHM3H//KMft64WQ1yX9LdJY64Qm/gFCo=
@@ -663,6 +663,8 @@ github.com/xen0n/gosmopolitan v1.2.2 h1:/p2KTnMzwRexIW8GlKawsTWOxn7UHA+jCMF/V8HH
 github.com/xen0n/gosmopolitan v1.2.2/go.mod h1:7XX7Mj61uLYrj0qmeN0zi7XDon9JRAEhYQqAPLVNTeg=
 github.com/xtaci/kcp-go/v5 v5.6.64 h1:IerWqYNk2pyen8FBsLoeY4buQGXPRFmdxR1838FMt/Y=
 github.com/xtaci/kcp-go/v5 v5.6.64/go.mod h1:9O3D8WR+cyyUjGiTILYfg17vn72otWuXK2AFfqIe6CM=
+github.com/xtaci/lossyconn v0.0.0-20190602105132-8df528c0c9ae h1:J0GxkO96kL4WF+AIT3M4mfUVinOCPgf2uUWYFUzN0sM=
+github.com/xtaci/lossyconn v0.0.0-20190602105132-8df528c0c9ae/go.mod h1:gXtu8J62kEgmN++bm9BVICuT/e8yiLI2KFobd/TRFsE=
 github.com/xtaci/smux v1.5.53 h1:M4ultpvpEtbJ4kq6RXHwVTW+vZsY66Xca4TOlryIXy0=
 github.com/xtaci/smux v1.5.53/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
@@ -726,6 +728,8 @@ go.uber.org/automaxprocs v1.6.0/go.mod h1:ifeIMSnPZuznNm6jmdzmU3/bfk01Fe2fotchwE
 go.uber.org/goleak v1.1.10/go.mod h1:8a7PlsEVH3e/a/GLqe5IIrQx6GzcnRmZEufDUTk4A7A=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
+go.uber.org/mock v0.5.2 h1:LbtPTcP8A5k9WPXj54PPPbjcI4Y6lhyOZXn+VS7wNko=
+go.uber.org/mock v0.5.2/go.mod h1:wLlUxC2vVTPTaE3UD51E0BGOAElKrILxhVSDYQLld5o=
 go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9iU=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=

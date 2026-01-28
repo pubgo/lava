@@ -46,11 +46,14 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 
 	handler := do(cfg)
 	handler = lava.Chain(middlewares...).Middleware(handler)
+
+	baseUrl := assert.Must1(url.Parse(cfg.BaseUrl))
+
 	return &Client{
 		do:      handler,
 		log:     p.Log,
 		cfg:     cfg,
-		baseUrl: assert.Must1(url.Parse(cfg.BaseUrl)),
+		baseUrl: baseUrl,
 		backoff: backoff,
 	}
 }

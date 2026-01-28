@@ -54,8 +54,9 @@ require (
 	github.com/libp2p/go-yamux/v5 v5.1.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/pubgo/dix/v2 v2.0.0-beta.12
-	github.com/pubgo/funk/v2 v2.0.0-beta.16
+	github.com/pubgo/funk/v2 v2.0.0-beta.17
 	github.com/pubgo/redant v0.0.5
+	github.com/quic-go/quic-go v0.59.0
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.52.0
@@ -65,6 +66,8 @@ require (
 	github.com/ulikunitz/xz v0.5.15
 	github.com/valyala/fasthttp v1.69.0
 	github.com/valyala/fasttemplate v1.2.2
+	github.com/xtaci/kcp-go/v5 v5.6.64
+	github.com/xtaci/smux v1.5.53
 	go.opentelemetry.io/contrib/zpages v0.62.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0
@@ -244,7 +247,6 @@ require (
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
-	github.com/quic-go/quic-go v0.59.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/ryancurrah/gomodguard v1.3.5 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.5.1 // indirect
@@ -288,8 +290,6 @@ require (
 	github.com/uudashr/gocognit v1.1.3 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
-	github.com/xtaci/kcp-go/v5 v5.6.64 // indirect
-	github.com/xtaci/smux v1.5.53 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.3.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.5 // indirect

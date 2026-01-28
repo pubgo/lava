@@ -60,6 +60,18 @@ func (req *Request) SetQuery(query map[string]string) *Request {
 	}
 
 	for k, v := range query {
+		req.query.Set(k, v)
+	}
+
+	return req
+}
+
+func (req *Request) AddQuery(query map[string]string) *Request {
+	if len(query) == 0 {
+		return req
+	}
+
+	for k, v := range query {
 		req.query.Add(k, v)
 	}
 
@@ -89,6 +101,6 @@ func (req *Request) SetParams(params map[string]string) *Request {
 }
 
 func (req *Request) SetContentType(contentType string) *Request {
-	req.contentType = filterFlags(contentType)
+	req.contentType = FilterFlags(contentType)
 	return req
 }
