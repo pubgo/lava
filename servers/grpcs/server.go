@@ -117,6 +117,14 @@ func (s *serviceImpl) init(
 
 	httpServer := fiber.New(conf.Http.Build().Unwrap())
 	httpServer.Use(httputil.Cors())
+	httpServer.Use(func(ctx *fiber.Ctx) error {
+		log.Debug().
+			Str("path", ctx.Path()).
+			Str("method", ctx.Method()).
+			Str("header", ctx.Request().Header.String()).
+			Msg("grpc gateway router")
+		return ctx.Next()
+	})
 
 	for _, h := range grpcRouters {
 		r, ok := h.(lava.HttpRouter)
@@ -222,11 +230,6 @@ func (s *serviceImpl) init(
 	httpServer.Mount("/debug", debug.App())
 	httpServer.Mount("/", httpApp)
 	httpServer.Group(grpcGatewayApiPrefix, func(ctx *fiber.Ctx) error {
-		log.Debug().
-			Str("path", ctx.Path()).
-			Str("method", ctx.Method()).
-			Str("header", ctx.Request().Header.String()).
-			Msg("grpc gateway router")
 		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
 	})
 
