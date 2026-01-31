@@ -116,12 +116,6 @@ func (m *Mux) GetOperation(operation string) *GrpcMethod {
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
-	log.Debug().
-		Str("method", ctx.Method()).
-		Str("path", string(ctx.Request().URI().Path())).
-		Str("header", ctx.Request().Header.String()).
-		Msg("handler")
-
 	// Check if this is a gRPC Web request
 	ct := string(ctx.Request().Header.ContentType())
 	if typ, enc, ok := isWebRequestFromContentType(ct, ctx.Method()); ok {
