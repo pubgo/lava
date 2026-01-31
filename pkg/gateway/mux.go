@@ -116,6 +116,12 @@ func (m *Mux) GetOperation(operation string) *GrpcMethod {
 }
 
 func (m *Mux) Handler(ctx *fiber.Ctx) error {
+	log.Debug().
+		Str("method", ctx.Method()).
+		Str("path", string(ctx.Request().URI().Path())).
+		Str("header", ctx.Request().Header.String()).
+		Msg("handler")
+
 	// Check if this is a gRPC Web request
 	ct := string(ctx.Request().Header.ContentType())
 	if typ, enc, ok := isWebRequestFromContentType(ct, ctx.Method()); ok {
@@ -154,7 +160,12 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 					} else {
 						// 如果解码失败，这里暂时无法中止 Handler，只能留给后续 Protobuf Unmarshal 报错
 						// 但至少不能 Panic
-						return errors.WrapCaller(err)
+						log.Err(err).
+							Stack().
+							Str("method", ctx.Method()).
+							Str("path", string(ctx.Request().URI().Path())).
+							Msg("base64 decode failed")
+						return errors.Errorf("base64 decode failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
 					}
 				}
 			}
@@ -166,7 +177,11 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		// Continue with normal processing but capture the response
 		matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 		if err != nil {
-			return errors.WrapCaller(err)
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("match operation failed")
+			return errors.Errorf("match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
 		}
 
 		values := make(url.Values)
@@ -180,7 +195,11 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 		mth := m.opts.handlers[matchOperation.Operation]
 		if mth == nil {
-			return errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("method operation not found")
+			return errors.Errorf("method operation not found, method=%s path=%s", matchOperation.Operation, ctx.Request().URI().Path())
 		}
 
 		md := metadata.MD{}
@@ -200,7 +219,11 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		in := mth.inputType.New().Interface()
 		err = stream.RecvMsg(in)
 		if err != nil {
-			return errors.WrapCaller(err)
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("unmarshal request failed")
+			return errors.Errorf("unmarshal request failed, method=%s", matchOperation.Operation)
 		}
 
 		out := mth.outputType.New().Interface()
@@ -208,7 +231,11 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		var trailer metadata.MD
 		err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
 		if err != nil {
-			return errors.WrapCaller(err)
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("invoke failed")
+			return errors.Errorf("invoke failed, method=%s", matchOperation.Operation)
 		}
 
 		// Set headers
@@ -229,7 +256,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		// Send response and flush with trailer
 		err = stream.SendMsg(out)
 		if err != nil {
-			return errors.WrapCaller(err)
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("marshal response failed")
 		}
 		ww.flushWithTrailer()
 		return nil
@@ -237,7 +267,11 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 	if err != nil {
-		return errors.WrapCaller(err)
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("match operation failed")
+		return errors.Errorf("match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
 	}
 
 	values := make(url.Values)
@@ -251,6 +285,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 	mth := m.opts.handlers[matchOperation.Operation]
 	if mth == nil {
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("method operation not found")
 		return errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
 	}
 
@@ -270,7 +308,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	in := mth.inputType.New().Interface()
 	err = stream.RecvMsg(in)
 	if err != nil {
-		return errors.WrapCaller(err)
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("unmarshal request failed")
 	}
 
 	out := mth.outputType.New().Interface()
@@ -278,6 +319,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	var trailer metadata.MD
 	err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
 	if err != nil {
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("invoke failed")
 		return errors.WrapCaller(err)
 	}
 
@@ -302,7 +347,14 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
 	ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
 	ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
-	return errors.WrapCaller(stream.SendMsg(out))
+	err = stream.SendMsg(out)
+	if err != nil {
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("marshal response failed")
+	}
+	return nil
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
