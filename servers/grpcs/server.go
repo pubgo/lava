@@ -89,7 +89,7 @@ func (s *serviceImpl) init(
 	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
 	grpcHttpRouters []lava.GrpcHttpRouter,
-	// grpcProxy []lava.GrpcProxy,
+// grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	metric metrics.Metric,
 	log log.Logger,
@@ -221,7 +221,14 @@ func (s *serviceImpl) init(
 
 	httpServer.Mount("/debug", debug.App())
 	httpServer.Mount("/", httpApp)
-	httpServer.Group(grpcGatewayApiPrefix, httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler))
+	httpServer.Group(grpcGatewayApiPrefix, func(ctx *fiber.Ctx) error {
+		log.Debug().
+			Str("path", ctx.Path()).
+			Str("method", ctx.Method()).
+			Str("header", ctx.Request().Header.String()).
+			Msg("grpc gateway router")
+		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
+	})
 
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
