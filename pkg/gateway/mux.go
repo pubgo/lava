@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -126,8 +127,37 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 		// Modify request for gRPC Web
 		ctx.Request().Header.SetContentType(grpcBase + "+" + enc)
 		if typ == grpcWebText {
-			body := base64.NewDecoder(base64.StdEncoding, ctx.Request().BodyStream())
-			ctx.Request().SetBodyStream(body, -1)
+			// gRPC-Web-Text (Base64) 解码处理
+			// 策略：
+			// 1. 如果是 Stream 模式 (Fasthttp BodyStream != nil)，则包裹 Stream 进行流式解码。
+			// 2. 如果是 Buffer 模式 (Body 已经在内存中)，则直接对 Body 进行解码并回写。
+
+			inputStream := ctx.Request().BodyStream()
+			if inputStream != nil {
+				// 流式处理
+				body := base64.NewDecoder(base64.StdEncoding, inputStream)
+				rc := &readCloser{
+					Reader: body,
+					Closer: io.NopCloser(nil),
+				}
+				ctx.Request().SetBodyStream(rc, -1)
+			} else {
+				// 非流式处理，直接操作 Body 字节
+				originBody := ctx.Body()
+				if len(originBody) > 0 {
+					// Base64 解码需要分配新内存，这在普通请求中是可接受的
+					// 计算解码后长度
+					dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(originBody)))
+					n, err := base64.StdEncoding.Decode(dbuf, originBody)
+					if err == nil {
+						ctx.Request().SetBody(dbuf[:n])
+					} else {
+						// 如果解码失败，这里暂时无法中止 Handler，只能留给后续 Protobuf Unmarshal 报错
+						// 但至少不能 Panic
+						return errors.WrapCaller(err)
+					}
+				}
+			}
 		}
 
 		// Create Fiber-specific web writer

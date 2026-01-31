@@ -244,6 +244,22 @@ type readCloser struct {
 	io.Closer
 }
 
+func (rc *readCloser) Read(p []byte) (n int, err error) {
+	if rc.Reader == nil {
+		return 0, io.EOF
+	}
+
+	return rc.Reader.Read(p)
+}
+
+func (rc *readCloser) Close() error {
+	if rc.Closer == nil {
+		return nil
+	}
+	
+	return rc.Closer.Close()
+}
+
 func serveGRPCWeb(m *Mux, w http.ResponseWriter, r *http.Request) {
 	typ, enc, ok := isWebRequest(r)
 	if !ok {
@@ -265,7 +281,7 @@ func serveGRPCWeb(m *Mux, w http.ResponseWriter, r *http.Request) {
 	hdr.Set("Content-Type", grpcBase+"+"+enc)
 	if typ == grpcWebText {
 		body := base64.NewDecoder(base64.StdEncoding, r.Body)
-		r.Body = readCloser{body, r.Body}
+		r.Body = &readCloser{body, r.Body}
 	}
 	ww := newWebWriter(w, typ, enc)
 	adaptor.FiberHandler(m.Handler).ServeHTTP(ww, r)

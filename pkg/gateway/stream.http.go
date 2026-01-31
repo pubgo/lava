@@ -165,15 +165,16 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		}
 
 		if s.handler.Request().IsBodyStream() {
+			reader := s.handler.Request().BodyStream()
 			if isGRPC {
 				// Read gRPC frame header: 1 byte flags + 4 bytes length
 				header := make([]byte, 5)
-				if _, err := io.ReadFull(s.handler.Request().BodyStream(), header); err != nil {
+				if _, err := io.ReadFull(reader, header); err != nil {
 					return errors.WrapCaller(err)
 				}
 				length := binary.BigEndian.Uint32(header[1:5])
 				data := make([]byte, length)
-				if _, err := io.ReadFull(s.handler.Request().BodyStream(), data); err != nil {
+				if _, err := io.ReadFull(reader, data); err != nil {
 					return errors.WrapCaller(err)
 				}
 				if err := proto.Unmarshal(data, msg); err != nil {
@@ -181,7 +182,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				}
 			} else {
 				var b json.RawMessage
-				if err := json.NewDecoder(s.handler.Request().BodyStream()).Decode(&b); err != nil {
+				if err := json.NewDecoder(reader).Decode(&b); err != nil {
 					return errors.WrapCaller(err)
 				}
 
