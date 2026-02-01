@@ -105,12 +105,9 @@ func (s *serviceImpl) init(
 	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
 
 	globalMiddlewares := lava.Middlewares{
-		middleware_serviceinfo.New(),
-		middleware_metric.New(metric),
-		middleware_accesslog.New(log),
-		middleware_recovery.New(),
-	}
+		middleware_serviceinfo.New(), middleware_metric.New(metric), middleware_accesslog.New(log)}
 	globalMiddlewares = append(globalMiddlewares, dixMiddlewares...)
+	globalMiddlewares = append(globalMiddlewares, middleware_recovery.New())
 
 	log = log.WithName("grpc-server")
 	s.log = log
