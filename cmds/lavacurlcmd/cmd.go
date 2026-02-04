@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -116,7 +117,7 @@ func New() *redant.Command {
 		params  = &kvFlag{}
 	)
 
-	return &redant.Command{
+	cmd := &redant.Command{
 		Use:   "lavacurl [flags] <operation|path>",
 		Short: cliutil.UsageDesc("%s gateway curl helper", version.Project()),
 		Options: redant.OptionSet{
@@ -236,6 +237,13 @@ func New() *redant.Command {
 				}
 			}
 
+			// auto inject token if present and Authorization not set
+			if req.Header.Get("Authorization") == "" {
+				if token, _ := loadToken(); token != "" {
+					req.Header.Set("Authorization", "Bearer "+token)
+				}
+			}
+
 			if req.Body != nil && req.Header.Get("Content-Type") == "" {
 				req.Header.Set("Content-Type", "application/json")
 			}
@@ -280,6 +288,10 @@ func New() *redant.Command {
 			return nil
 		},
 	}
+
+	cmd.Children = append(cmd.Children, newLoginCommand())
+
+	return cmd
 }
 
 func printHeaders(w io.Writer, header http.Header) {
@@ -447,4 +459,85 @@ func normalizeMethod(method string) string {
 		method = strings.TrimSuffix(strings.TrimPrefix(method, "__"), "__")
 	}
 	return strings.ToUpper(method)
+}
+
+// token helpers
+func tokenFilePath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".lava", "lavacurl", "token")
+}
+
+func loadToken() (string, error) {
+	path := tokenFilePath()
+	if path == "" {
+		return "", errors.New("cannot resolve home dir for token")
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", errors.Wrap(err, "read token")
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
+func saveToken(tok string) error {
+	path := tokenFilePath()
+	if path == "" {
+		return errors.New("cannot resolve home dir for token")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return errors.Wrap(err, "mkdir token dir")
+	}
+	return errors.Wrap(os.WriteFile(path, []byte(strings.TrimSpace(tok)), 0o600), "write token")
+}
+
+func newLoginCommand() *redant.Command {
+	var (
+		token   string
+		stdin   bool
+		fromEnv bool
+	)
+
+	return &redant.Command{
+		Use:   "login",
+		Short: "Save authorization token for subsequent requests",
+		Options: redant.OptionSet{
+			{Flag: "token", Shorthand: "t", Description: "token string (fallback to stdin)", Value: redant.StringOf(&token)},
+			{Flag: "stdin", Description: "read token from stdin", Value: redant.BoolOf(&stdin)},
+			{Flag: "env", Description: "read token from LAVACURL_TOKEN env", Value: redant.BoolOf(&fromEnv)},
+		},
+		Handler: func(ctx context.Context, inv *redant.Invocation) error {
+			defer recovery.Exit()
+
+			if fromEnv && token == "" {
+				token = os.Getenv("LAVACURL_TOKEN")
+			}
+			if token == "" && stdin {
+				b, err := io.ReadAll(inv.Stdin)
+				if err != nil {
+					return errors.Wrap(err, "read stdin token")
+				}
+				token = string(b)
+			}
+			if token == "" && len(inv.Args) > 0 {
+				token = inv.Args[0]
+			}
+			token = strings.TrimSpace(token)
+			if token == "" {
+				return errors.New("token is required")
+			}
+
+			if err := saveToken(token); err != nil {
+				return err
+			}
+
+			fmt.Fprintln(inv.Stdout, "token saved")
+			return nil
+		},
+	}
 }

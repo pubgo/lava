@@ -15,6 +15,13 @@ go install ./cmds/lavacurl
   lavacurl --list
   ```
 
+- 登录保存 Token（自动加到后续请求的 Authorization）：
+  ```bash
+  lavacurl login -t "YOUR_TOKEN"
+  # 或从 stdin
+  echo -n "YOUR_TOKEN" | lavacurl login --stdin
+  ```
+
 - 按 operation 调用（自动匹配 method/path）：
   ```bash
   lavacurl Greeter/SayHello -d '{"name":"world"}'
@@ -53,6 +60,16 @@ go install ./cmds/lavacurl
 | `--raw` | 不做 JSON pretty-print | `false` |
 | `--list` | 仅列出路由，不发请求 | `false` |
 | `--vars-name` | gateway 路由信息的 expvar 名称 | `grpc-server-info` |
+
+### 登录子命令
+
+| 参数 | 说明 |
+| ---- | ---- |
+| `-t, --token` | 直接提供 token（可选，若为空且 `--stdin` 则从 stdin 读） |
+| `--stdin` | 从标准输入读取 token |
+| `--env` | 从 `LAVACURL_TOKEN` 环境变量读取 token |
+
+Token 将保存在 `~/.lava/lavacurl/token`（`0600` 权限），后续请求若未显式设置 `Authorization`，会自动注入 `Bearer <token>`。
 
 ## 路由发现说明
 
