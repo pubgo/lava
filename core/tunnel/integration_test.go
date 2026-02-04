@@ -31,6 +31,12 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// QUIC 使用自签证书，客户端需要跳过验证
+	var transOpts *tunnel.TransportOptions
+	if transport == tunnel.TransportQUIC {
+		transOpts = &tunnel.TransportOptions{Insecure: true}
+	}
+
 	backendAddr := fmt.Sprintf("127.0.0.1:%d", basePort+81)
 	gatewayAddr := fmt.Sprintf("127.0.0.1:%d", basePort)
 	proxyAddr := fmt.Sprintf("http://127.0.0.1:%d", basePort+80)
@@ -45,9 +51,10 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.New(&tunnelgateway.Config{
-		ListenAddr: gatewayAddr,
-		Transport:  transport,
-		HTTPPort:   basePort + 80,
+		ListenAddr:       gatewayAddr,
+		Transport:        transport,
+		TransportOptions: transOpts,
+		HTTPPort:         basePort + 80,
 	})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatalf("[%s] Gateway: %v", transport, err)
@@ -55,10 +62,11 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	defer gw.Stop(ctx)
 
 	agent := tunnelagent.New(&tunnelagent.Config{
-		GatewayAddr: gatewayAddr,
-		Transport:   transport,
-		ServiceName: transport + "-svc",
-		Endpoints:   []tunnel.EndpointConfig{{Type: "http", LocalAddr: backendAddr}},
+		GatewayAddr:      gatewayAddr,
+		Transport:        transport,
+		TransportOptions: transOpts,
+		ServiceName:      transport + "-svc",
+		Endpoints:        []tunnel.EndpointConfig{{Type: "http", LocalAddr: backendAddr}},
 	})
 	if err := agent.Start(ctx); err != nil {
 		t.Fatalf("[%s] Agent: %v", transport, err)
