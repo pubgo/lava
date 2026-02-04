@@ -256,7 +256,7 @@ func (rc *readCloser) Close() error {
 	if rc.Closer == nil {
 		return nil
 	}
-	
+
 	return rc.Closer.Close()
 }
 

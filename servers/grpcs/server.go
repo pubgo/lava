@@ -89,7 +89,7 @@ func (s *serviceImpl) init(
 	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
 	grpcHttpRouters []lava.GrpcHttpRouter,
-// grpcProxy []lava.GrpcProxy,
+	// grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	metric metrics.Metric,
 	log log.Logger,
@@ -105,12 +105,14 @@ func (s *serviceImpl) init(
 	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
 
 	globalMiddlewares := lava.Middlewares{
-		middleware_serviceinfo.New(), middleware_metric.New(metric), middleware_accesslog.New(log)}
+		middleware_serviceinfo.New(),
+		middleware_metric.New(metric),
+		middleware_accesslog.New(log),
+	}
 	globalMiddlewares = append(globalMiddlewares, dixMiddlewares...)
 	globalMiddlewares = append(globalMiddlewares, middleware_recovery.New())
 
 	log = log.WithName("grpc-server")
-	s.log = log
 
 	httpServer := fiber.New(conf.Http.Build().Unwrap())
 	httpServer.Use(httputil.Cors())
@@ -212,7 +214,7 @@ func (s *serviceImpl) init(
 	//}
 
 	grpcGatewayApiPrefix := "/api"
-	s.log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
+	log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
 
 	for _, m := range mux.GetRouteMethods() {
 		log.Info().
@@ -230,6 +232,7 @@ func (s *serviceImpl) init(
 		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
 	})
 
+	s.log = log
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
