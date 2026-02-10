@@ -534,17 +534,14 @@ go run main.go config show
 go run main.go env show
 ```
 
-### 6.5 使用 lavacurl 调用 API
+### 6.5 使用 curl 调用 API
 
 ```bash
-# 安装 lavacurl
-go install ./cmds/lavacurl
-
 # 调用 HTTP API
-lavacurl --path /api/users
+lava curl --path /api/users
 
 # 调用 gRPC API（通过 Gateway）
-lavacurl UserService/GetUsers
+lava curl UserService/GetUsers
 ```
 
 ## 7. 添加中间件

@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/redant"
 
-	"github.com/pubgo/lava/v2/cmds/lavacurlcmd"
+	"github.com/pubgo/lava/v2/cmds/curlcmd"
 	"github.com/pubgo/lava/v2/cmds/watchcmd"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
@@ -31,13 +31,13 @@ func main() {
 			fmt.Println("Usage: lava [command] [arguments]")
 			fmt.Println("Available commands:")
 			fmt.Println("  watch     Watch files for changes and run commands automatically")
-			fmt.Println("  lavacurl  Make HTTP requests to gRPC services")
+			fmt.Println("  curl      Make HTTP requests to gRPC services")
 			return nil
 		},
 		// 添加子命令
 		Children: []*redant.Command{
 			watchcmd.New(),
-			lavacurlcmd.New(),
+			curlcmd.New(),
 		},
 	}
 

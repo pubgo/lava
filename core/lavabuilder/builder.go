@@ -19,7 +19,6 @@ import (
 	"github.com/pubgo/lava/v2/cmds/grpcservercmd"
 	"github.com/pubgo/lava/v2/cmds/healthcmd"
 	"github.com/pubgo/lava/v2/cmds/httpservercmd"
-	"github.com/pubgo/lava/v2/cmds/lavacurlcmd"
 	"github.com/pubgo/lava/v2/cmds/schedulercmd"
 	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
@@ -95,7 +94,6 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, versioncmd.New)
 	dix.Provide(di, healthcmd.New)
 	dix.Provide(di, depcmd.New)
-	dix.Provide(di, lavacurlcmd.New)
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)

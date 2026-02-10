@@ -169,15 +169,122 @@ echo '{"name":"world"}' | lava curl Greeter/SayHello --stdin
 
 ## 配置
 
+### 配置文件位置
+
+`lava` 命令支持配置文件，配置文件可以放在以下位置（按优先级从高到低）：
+
+1. `.lava/lava.yaml`：优先级最高
+2. `.lava.yaml`：优先级次之
+3. `lava.yaml`：优先级最低
+
+当多个配置文件存在时，优先级高的配置文件会覆盖优先级低的配置文件。
+
+### 配置文件格式
+
+配置文件使用 YAML 格式，包含 `watch` 和 `curl` 两个主要配置部分。
+
+**示例配置文件**：
+
+```yaml
+# watch 命令配置
+watch:
+  # 要监控的目录，默认为当前目录
+  directory: "."
+
+  # 忽略的目录列表
+  ignore:
+    - ".git"
+    - "node_modules"
+    - "vendor"
+    - "dist"
+    - "build"
+
+  # 忽略的文件模式
+  ignore_patterns:
+    - "*.tmp"
+    - "*~"
+    - ".DS_Store"
+
+  # 文件变更后执行的命令
+  commands:
+    # proto 文件变更时执行的命令
+    proto:
+      - "protobuild gen"
+    
+    # go 文件变更时执行的命令
+    go:
+      - "go build ./..."
+    
+    # 其他文件类型变更时执行的命令
+    # 可以根据需要添加更多文件类型
+
+  # 是否在启动时执行一次构建命令
+  run_on_startup: false
+
+  # 命令执行的超时时间（秒）
+  timeout: 30
+
+# curl 命令配置
+curl:
+  # 网关地址
+  addr: "http://127.0.0.1:8080"
+  
+  # 网关前缀
+  prefix: "/api"
+  
+  # 请求超时时间
+  timeout: "15s"
+  
+  # 是否跳过 TLS 校验
+  insecure: false
+  
+  # 是否对 JSON 响应进行格式化
+  pretty: true
+  
+  # gateway 路由信息的 expvar 名称
+  vars_name: "grpc-server-info"
+  
+  # 默认的请求头
+  headers:
+    - "Content-Type: application/json"
+  
+  # 默认的查询参数
+  queries: {}
+```
+
 ### 环境变量
 
 | 环境变量 | 说明 | 默认值 |
 |----------|------|--------|
-| `curl_TOKEN` | `curl login --env` 时使用的 token | - |
+| `LAVA_TOKEN` | `lava curl login --env` 时使用的 token | - |
 
-### 配置文件
+### 配置文件与命令行参数的优先级
 
-`curl` 命令的 token 会保存在 `~/.lava/curl/token` 文件中，权限为 `0600`。
+配置文件中的设置可以被命令行参数覆盖，优先级如下：
+
+1. 命令行参数（优先级最高）
+2. 配置文件
+3. 默认值（优先级最低）
+
+**示例**：
+
+```bash
+# 配置文件中设置了 addr 为 http://127.0.0.1:8080
+# 但命令行参数会覆盖配置文件的设置
+lava curl --addr http://localhost:9090 Greeter/SayHello
+```
+
+### 配置文件示例
+
+项目根目录中提供了一个示例配置文件 `.lava.yaml.example`，可以参考该文件创建自己的配置文件：
+
+```bash
+# 复制示例配置文件
+cp .lava.yaml.example .lava.yaml
+
+# 根据需要修改配置文件
+vim .lava.yaml
+```
 
 ## 常见问题
 

@@ -1,4 +1,4 @@
-package lavacurlcmd
+package curlcmd
 
 import (
 	"bytes"
@@ -93,7 +93,7 @@ type gatewayInfo struct {
 	Method []routeOperation `json:"method"`
 }
 
-// New returns lavacurl command which provides a lightweight HTTP client for gateway APIs.
+// New returns curl command which provides a lightweight HTTP client for gateway APIs.
 func New() *redant.Command {
 	defaultAddr := fmt.Sprintf("http://127.0.0.1:%d", running.HttpPort.Value())
 

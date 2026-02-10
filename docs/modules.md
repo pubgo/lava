@@ -1228,7 +1228,7 @@ lava health dependencies
 lava health report
 ```
 
-### 5.5 HTTP 客户端工具 (lavacurl)
+### 5.5 HTTP 客户端工具 (curl)
 
 #### 模块概述
 提供 HTTP 客户端工具，支持按 operation 或路径调用 API。
@@ -1244,19 +1244,19 @@ lava health report
 
 ```bash
 # 列出路由
-lavacurl --list
+lava curl --list
 
 # 登录
-lavacurl login -t "YOUR_TOKEN"
+lava curl login -t "YOUR_TOKEN"
 
 # 按 operation 调用
-lavacurl UserService/GetUser -d '{"userId":"123"}'
+lava curl UserService/GetUser -d '{"userId":"123"}'
 
 # 按路径调用
-lavacurl --path /api/users/123
+lava curl --path /api/users/123
 
 # 携带参数
-lavacurl UserService/GetUser -H "X-Req-Id=abc" -Q verbose=true -P id=123
+lava curl UserService/GetUser -H "X-Req-Id=abc" -Q verbose=true -P id=123
 ```
 
 ### 5.6 调度器命令 (schedulercmd)
