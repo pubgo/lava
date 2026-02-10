@@ -1,0 +1,13 @@
+# 测试配置文件
+watch:
+  watchers:
+    - name: "test"
+      directory: "."
+      patterns:
+        - "*.txt"
+      commands:
+        - "echo 'File changed'"
+      ignore:
+        - ".git"
+      run_on_startup: false
+      timeout: 10

@@ -6,41 +6,55 @@
 
 # watch 命令配置
 watch:
-  # 要监控的目录，默认为当前目录
-  directory: "."
+  # watcher 列表，可以配置多个 watcher
+  watchers:
+    # watcher 1：监控 proto 文件
+    - name: "proto"
+      directory: "./proto"
+      patterns:
+        - "*.proto"
+      commands:
+        - "protobuild gen"
+      ignore:
+        - ".git"
+        - "vendor"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+      run_on_startup: false
+      timeout: 30
 
-  # 忽略的目录列表
-  ignore:
-    - ".git"
-    - "node_modules"
-    - "vendor"
-    - "dist"
-    - "build"
+    # watcher 2：监控 go 文件
+    - name: "go"
+      directory: "."
+      patterns:
+        - "*.go"
+      commands:
+        - "go build ./..."
+      ignore:
+        - ".git"
+        - "node_modules"
+        - "vendor"
+        - "dist"
+        - "build"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+        - ".DS_Store"
+      run_on_startup: false
+      timeout: 30
 
-  # 忽略的文件模式
-  ignore_patterns:
-    - "*.tmp"
-    - "*~"
-    - ".DS_Store"
-
-  # 文件变更后执行的命令
-  commands:
-    # proto 文件变更时执行的命令
-    proto:
-      - "protobuild gen"
-    
-    # go 文件变更时执行的命令
-    go:
-      - "go build ./..."
-    
-    # 其他文件类型变更时执行的命令
-    # 可以根据需要添加更多文件类型
-
-  # 是否在启动时执行一次构建命令
-  run_on_startup: false
-
-  # 命令执行的超时时间（秒）
-  timeout: 30
+    # watcher 3：监控配置文件
+    - name: "config"
+      directory: "./internal/configs"
+      patterns:
+        - "*.yaml"
+      commands:
+        - "echo 'Config changed, reloading...'"
+      ignore:
+        - ".git"
+      run_on_startup: false
+      timeout: 10
 
 # curl 命令配置
 curl:

@@ -40,34 +40,90 @@ lava
 
 ### 1. watch 命令
 
-**功能**：监控文件变更并自动执行相应的构建命令。
+**功能**：监控文件变更并自动执行相应的构建命令。支持配置多个 watcher，每个 watcher 可以监控不同的目录和执行不同的命令。
 
 **用法**：
 ```bash
-lava watch [directory]
+lava watch
 ```
 
-**参数**：
-- `directory`：可选，指定要监控的目录，默认为当前目录
+**配置文件**：
+`watch` 命令通过配置文件来定义多个 watcher，配置文件支持以下位置（按优先级从高到低）：
+1. `.lava/lava.yaml`
+2. `.lava.yaml`
+3. `lava.yaml`
+
+**配置格式**：
+```yaml
+watch:
+  watchers:
+    # watcher 1：监控 proto 文件
+    - name: "proto"
+      directory: "./proto"
+      patterns:
+        - "*.proto"
+      commands:
+        - "protobuild gen"
+      ignore:
+        - ".git"
+        - "vendor"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+      run_on_startup: false
+      timeout: 30
+
+    # watcher 2：监控 go 文件
+    - name: "go"
+      directory: "."
+      patterns:
+        - "*.go"
+      commands:
+        - "go build ./..."
+      ignore:
+        - ".git"
+        - "node_modules"
+        - "vendor"
+        - "dist"
+        - "build"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+        - ".DS_Store"
+      run_on_startup: false
+      timeout: 30
+```
+
+**配置参数说明**：
+
+| 参数 | 说明 | 必填 | 默认值 |
+|------|------|------|--------|
+| `name` | watcher 名称 | 是 | - |
+| `directory` | 要监控的目录 | 是 | - |
+| `patterns` | 文件匹配模式列表 | 否 | `["*"]` |
+| `commands` | 文件变更后执行的命令列表 | 是 | - |
+| `ignore` | 忽略的目录列表 | 否 | - |
+| `ignore_patterns` | 忽略的文件模式列表 | 否 | - |
+| `run_on_startup` | 是否在启动时执行一次命令 | 否 | `false` |
+| `timeout` | 命令执行的超时时间（秒） | 否 | `30` |
 
 **示例**：
 ```bash
-# 监控当前目录
+# 使用默认配置运行（监控当前目录下的 .proto 和 .go 文件）
 lava watch
 
-# 监控指定目录
-lava watch ./core
+# 使用自定义配置文件运行
+# 创建 .lava.yaml 文件并配置多个 watcher
+lava watch
 ```
 
-**自动执行的命令**：
-- 当 `.proto` 文件变更时：运行 `protobuild gen`
-- 当 `.go` 文件变更时：运行 `go build ./...`
-
 **工作原理**：
-1. 递归监控指定目录下的所有文件和子目录
-2. 当文件发生变更时，根据文件类型执行相应的构建命令
-3. 自动忽略 `.git`、`node_modules`、`vendor` 等不需要监控的目录
-4. 当创建新目录时，自动将其添加到监控列表中
+1. 加载配置文件，支持配置多个 watcher
+2. 每个 watcher 在独立的 goroutine 中运行，可以同时监控不同的目录
+3. 当文件发生变更时，根据文件类型执行相应的构建命令
+4. 自动忽略 `.git`、`node_modules`、`vendor` 等不需要监控的目录
+5. 当创建新目录时，自动将其添加到监控列表中
+6. 支持命令执行超时，超时后会自动终止命令进程
 
 ### 2. curl 命令
 
@@ -188,41 +244,43 @@ echo '{"name":"world"}' | lava curl Greeter/SayHello --stdin
 ```yaml
 # watch 命令配置
 watch:
-  # 要监控的目录，默认为当前目录
-  directory: "."
+  # watcher 列表，可以配置多个 watcher
+  watchers:
+    # watcher 1：监控 proto 文件
+    - name: "proto"
+      directory: "./proto"
+      patterns:
+        - "*.proto"
+      commands:
+        - "protobuild gen"
+      ignore:
+        - ".git"
+        - "vendor"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+      run_on_startup: false
+      timeout: 30
 
-  # 忽略的目录列表
-  ignore:
-    - ".git"
-    - "node_modules"
-    - "vendor"
-    - "dist"
-    - "build"
-
-  # 忽略的文件模式
-  ignore_patterns:
-    - "*.tmp"
-    - "*~"
-    - ".DS_Store"
-
-  # 文件变更后执行的命令
-  commands:
-    # proto 文件变更时执行的命令
-    proto:
-      - "protobuild gen"
-    
-    # go 文件变更时执行的命令
-    go:
-      - "go build ./..."
-    
-    # 其他文件类型变更时执行的命令
-    # 可以根据需要添加更多文件类型
-
-  # 是否在启动时执行一次构建命令
-  run_on_startup: false
-
-  # 命令执行的超时时间（秒）
-  timeout: 30
+    # watcher 2：监控 go 文件
+    - name: "go"
+      directory: "."
+      patterns:
+        - "*.go"
+      commands:
+        - "go build ./..."
+      ignore:
+        - ".git"
+        - "node_modules"
+        - "vendor"
+        - "dist"
+        - "build"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+        - ".DS_Store"
+      run_on_startup: false
+      timeout: 30
 
 # curl 命令配置
 curl:
