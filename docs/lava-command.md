@@ -59,17 +59,15 @@ watch:
   watchers:
     # watcher 1：监控 proto 文件
     - name: "proto"
-      directory: "./proto"
+      directory: "."
       patterns:
-        - "*.proto"
+        - "**/*.proto"
+        - "!**/vendor"
+        - "!**/.git"
+        - "!*.tmp"
+        - "!*~"
       commands:
         - "protobuild gen"
-      ignore:
-        - ".git"
-        - "vendor"
-      ignore_patterns:
-        - "*.tmp"
-        - "*~"
       run_on_startup: false
       timeout: 30
 
@@ -77,19 +75,17 @@ watch:
     - name: "go"
       directory: "."
       patterns:
-        - "*.go"
+        - "**/*.go"
+        - "!**/dist"
+        - "!**/build"
+        - "!**/vendor"
+        - "!**/node_modules"
+        - "!**/.git"
+        - "!*.tmp"
+        - "!*~"
+        - "!.DS_Store"
       commands:
         - "go build ./..."
-      ignore:
-        - ".git"
-        - "node_modules"
-        - "vendor"
-        - "dist"
-        - "build"
-      ignore_patterns:
-        - "*.tmp"
-        - "*~"
-        - ".DS_Store"
       run_on_startup: false
       timeout: 30
 ```
@@ -100,10 +96,8 @@ watch:
 |------|------|------|--------|
 | `name` | watcher 名称 | 是 | - |
 | `directory` | 要监控的目录 | 是 | - |
-| `patterns` | 文件匹配模式列表 | 否 | `["*"]` |
+| `patterns` | 文件匹配模式列表 (包含：`**/*.go`，排除：`!**/vendor`) | 否 | `["*"]` |
 | `commands` | 文件变更后执行的命令列表 | 是 | - |
-| `ignore` | 忽略的目录列表 | 否 | - |
-| `ignore_patterns` | 忽略的文件模式列表 | 否 | - |
 | `run_on_startup` | 是否在启动时执行一次命令 | 否 | `false` |
 | `timeout` | 命令执行的超时时间（秒） | 否 | `30` |
 
@@ -248,17 +242,15 @@ watch:
   watchers:
     # watcher 1：监控 proto 文件
     - name: "proto"
-      directory: "./proto"
+      directory: "."
       patterns:
-        - "*.proto"
+        - "**/*.proto"
+        - "!**/vendor"
+        - "!**/.git"
+        - "!*.tmp"
+        - "!*~"
       commands:
         - "protobuild gen"
-      ignore:
-        - ".git"
-        - "vendor"
-      ignore_patterns:
-        - "*.tmp"
-        - "*~"
       run_on_startup: false
       timeout: 30
 
@@ -266,19 +258,17 @@ watch:
     - name: "go"
       directory: "."
       patterns:
-        - "*.go"
+        - "**/*.go"
+        - "!**/dist"
+        - "!**/build"
+        - "!**/vendor"
+        - "!**/node_modules"
+        - "!**/.git"
+        - "!*.tmp"
+        - "!*~"
+        - "!.DS_Store"
       commands:
         - "go build ./..."
-      ignore:
-        - ".git"
-        - "node_modules"
-        - "vendor"
-        - "dist"
-        - "build"
-      ignore_patterns:
-        - "*.tmp"
-        - "*~"
-        - ".DS_Store"
       run_on_startup: false
       timeout: 30
 

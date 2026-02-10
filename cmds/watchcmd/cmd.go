@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pubgo/redant"
 	"gopkg.in/yaml.v3"
@@ -55,15 +56,24 @@ func New() *redant.Command {
 							{
 								Name:      "default",
 								Directory: ".",
-								Patterns:  []string{"*.proto", "*.go"},
+								Patterns: []string{
+									"*.proto",
+									"*.go",
+									"!**/dist",
+									"!**/build",
+									"!**/vendor",
+									"!**/node_modules",
+									"!**/.git",
+									"!*.tmp",
+									"!*~",
+									"!.DS_Store",
+								},
 								Commands: []string{
 									"protobuild gen",
 									"go build ./...",
 								},
-								Ignore:         []string{".git", "node_modules", "vendor", "dist", "build"},
-								IgnorePatterns: []string{"*.tmp", "*~", ".DS_Store"},
-								RunOnStartup:   false,
-								Timeout:        30,
+								RunOnStartup: false,
+								Timeout:      30,
 							},
 						},
 					},
@@ -76,15 +86,24 @@ func New() *redant.Command {
 					{
 						Name:      "default",
 						Directory: ".",
-						Patterns:  []string{"*.proto", "*.go"},
+						Patterns: []string{
+							"*.proto",
+							"*.go",
+							"!**/dist",
+							"!**/build",
+							"!**/vendor",
+							"!**/node_modules",
+							"!**/.git",
+							"!*.tmp",
+							"!*~",
+							"!.DS_Store",
+						},
 						Commands: []string{
 							"protobuild gen",
 							"go build ./...",
 						},
-						Ignore:         []string{".git", "node_modules", "vendor", "dist", "build"},
-						IgnorePatterns: []string{"*.tmp", "*~", ".DS_Store"},
-						RunOnStartup:   false,
-						Timeout:        30,
+						RunOnStartup: false,
+						Timeout:      30,
 					},
 				}
 			}
@@ -167,6 +186,24 @@ func runWatchers(watchers []WatcherConfig) error {
 }
 
 func runWatcher(cfg WatcherConfig) error {
+	// 合并 pattern
+	// 1. patterns
+	// 2. !ignore (转换为排除模式)
+	// 3. !ignore_patterns (转换为排除模式)
+	var finalPatterns []string
+	finalPatterns = append(finalPatterns, cfg.Patterns...)
+
+	// 处理 legacy ignore 配置
+	for _, ign := range cfg.Ignore {
+		finalPatterns = append(finalPatterns, "!"+ign)
+	}
+	for _, ign := range cfg.IgnorePatterns {
+		finalPatterns = append(finalPatterns, "!"+ign)
+	}
+
+	// 提取包含和排除列表以便后续使用
+	includes, excludes := parsePatterns(finalPatterns)
+
 	// 创建文件系统监控器
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -175,7 +212,7 @@ func runWatcher(cfg WatcherConfig) error {
 	defer watcher.Close()
 
 	// 添加监控目录
-	err = addWatchDir(watcher, cfg.Directory, cfg.Ignore, true)
+	err = addWatchDir(watcher, cfg.Directory, excludes, true)
 	if err != nil {
 		return fmt.Errorf("failed to add watch directory %s: %w", cfg.Directory, err)
 	}
@@ -197,13 +234,9 @@ func runWatcher(cfg WatcherConfig) error {
 				return nil
 			}
 
-			// 检查文件是否匹配 patterns
-			if !matchPatterns(event.Name, cfg.Patterns) {
-				continue
-			}
-
-			// 检查是否应该忽略
-			if shouldIgnore(event.Name, cfg.Ignore, cfg.IgnorePatterns) {
+			// 检查文件是否匹配
+			// 必须匹配某个 include 模式，且不匹配任何 exclude 模式
+			if !matchConfig(event.Name, includes, excludes) {
 				continue
 			}
 
@@ -221,7 +254,7 @@ func runWatcher(cfg WatcherConfig) error {
 			if event.Op&fsnotify.Create != 0 {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
 					log.Printf("[%s] New directory created: %s, adding to watch list", cfg.Name, event.Name)
-					addWatchDir(watcher, event.Name, cfg.Ignore, true)
+					addWatchDir(watcher, event.Name, excludes, true)
 				}
 			}
 
@@ -234,7 +267,50 @@ func runWatcher(cfg WatcherConfig) error {
 	}
 }
 
-func addWatchDir(watcher *fsnotify.Watcher, dir string, ignoreDirs []string, verbose bool) error {
+func parsePatterns(patterns []string) (includes []string, excludes []string) {
+	for _, p := range patterns {
+		if strings.HasPrefix(p, "!") {
+			excludes = append(excludes, strings.TrimPrefix(p, "!"))
+		} else {
+			includes = append(includes, p)
+		}
+	}
+	// 如果没有 include 模式，默认为匹配所有 (虽然通常会提供 *.go 等)
+	// 但如果只提供了排除模式，我们假设用户想要 backup 行为 - (暂不处理，假设必有include)
+	return
+}
+
+func matchConfig(filename string, includes []string, excludes []string) bool {
+	// 1. 检查排除
+	if matchAny(filename, excludes) {
+		return false
+	}
+
+	// 2. 检查包含 (如果是空，默认不匹配任何东西? 或者匹配所有? usually includes required)
+	if len(includes) == 0 {
+		return true
+	}
+	return matchAny(filename, includes)
+}
+
+func matchAny(filename string, patterns []string) bool {
+	for _, pattern := range patterns {
+		// 如果模式包含路径分隔符，则尝试匹配完整路径
+		if strings.ContainsAny(pattern, "/\\") {
+			if matched, _ := doublestar.Match(pattern, filename); matched {
+				return true
+			}
+		} else {
+			// 否则仅匹配文件名
+			if matched, _ := doublestar.Match(pattern, filepath.Base(filename)); matched {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func addWatchDir(watcher *fsnotify.Watcher, dir string, excludes []string, verbose bool) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -242,11 +318,21 @@ func addWatchDir(watcher *fsnotify.Watcher, dir string, ignoreDirs []string, ver
 
 		// 忽略某些目录
 		if info.IsDir() {
-			name := filepath.Base(path)
-			for _, ignoreDir := range ignoreDirs {
-				if name == ignoreDir {
-					return filepath.SkipDir
+			// 如果是根目录，不忽略
+			if path == dir {
+				// 添加目录到监控
+				if err := watcher.Add(path); err != nil {
+					return err
 				}
+				if verbose {
+					log.Printf("Watching directory: %s", path)
+				}
+				return nil
+			}
+
+			// 检查是否应该排除该目录
+			if matchAny(path, excludes) {
+				return filepath.SkipDir
 			}
 
 			// 添加目录到监控
@@ -262,48 +348,6 @@ func addWatchDir(watcher *fsnotify.Watcher, dir string, ignoreDirs []string, ver
 
 		return nil
 	})
-}
-
-func matchPatterns(filename string, patterns []string) bool {
-	if len(patterns) == 0 {
-		return true
-	}
-
-	base := filepath.Base(filename)
-	for _, pattern := range patterns {
-		matched, err := filepath.Match(pattern, base)
-		if err != nil {
-			continue
-		}
-		if matched {
-			return true
-		}
-	}
-
-	return false
-}
-
-func shouldIgnore(filename string, ignoreDirs []string, ignorePatterns []string) bool {
-	// 检查是否在忽略的目录中
-	for _, dir := range ignoreDirs {
-		if strings.Contains(filename, "/"+dir+"/") || strings.HasPrefix(filename, dir+"/") {
-			return true
-		}
-	}
-
-	// 检查是否匹配忽略的文件模式
-	base := filepath.Base(filename)
-	for _, pattern := range ignorePatterns {
-		matched, err := filepath.Match(pattern, base)
-		if err != nil {
-			continue
-		}
-		if matched {
-			return true
-		}
-	}
-
-	return false
 }
 
 func runCommand(watcherName string, cmdStr string, timeout int) {

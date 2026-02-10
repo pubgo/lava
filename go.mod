@@ -38,6 +38,7 @@ require (
 	dario.cat/mergo v1.0.2
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/arl/statsviz v0.8.0
+	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/ecordell/optgen v0.0.9
 	github.com/expr-lang/expr v1.17.7
 	github.com/fasthttp/websocket v1.5.12
