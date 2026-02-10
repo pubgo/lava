@@ -893,6 +893,83 @@ zip -r lava-1.2.3-windows-amd64.zip ./bin/lava-windows-amd64.exe
 | `task clean` | 清理构建产物 | `task clean` |
 | `task fmt` | 格式化代码 | `task fmt` |
 | `task proto` | 生成 Protobuf 代码 | `task proto` |
+| `lava watch` | 监控文件变更并自动执行构建命令 | `lava watch` |
+| `lava lavacurl` | 向 gRPC 服务发送 HTTP 请求 | `lava lavacurl Greeter/SayHello -d '{"name":"world"}'` |
+
+### 11.2 lava 命令行工具
+
+`lava` 命令是 Lava 框架的统一命令行入口，提供了以下子命令：
+
+#### 11.2.1 watch 命令
+
+监控文件变更并自动执行相应的构建命令：
+
+- **功能**：监控指定目录下的文件变更，当文件发生变化时自动执行构建命令
+- **用法**：`lava watch [directory]`
+- **示例**：
+  ```bash
+  # 监控当前目录
+  lava watch
+  
+  # 监控指定目录
+  lava watch ./core
+  ```
+- **自动执行的命令**：
+  - 当 `.proto` 文件变更时：运行 `protobuild gen`
+  - 当 `.go` 文件变更时：运行 `go build ./...`
+
+#### 11.2.2 lavacurl 命令
+
+一个针对 Lava gateway 的轻量 HTTP 客户端，支持按 operation（gRPC 全方法名或自定义名称）或显式路径发起请求，并自动发现网关已注册的路由：
+
+- **功能**：向 gRPC 服务发送 HTTP 请求，自动发现网关路由
+- **用法**：`lava lavacurl [options] [operation/path]`
+- **常用参数**：
+  | 参数 | 说明 | 默认 |
+  | ---- | ---- | ---- |
+  | `--addr` | 网关地址 | `http://127.0.0.1:<HttpPort>` |
+  | `--prefix` | 网关前缀 | `/api` |
+  | `--operation` | operation 名（gRPC 全方法或自定义名） | - |
+  | `--path` | 显式路径（与 operation 二选一） | - |
+  | `-X, --method` | 覆盖 HTTP 方法 | GET/路由默认 |
+  | `-d, --data` | 请求体字符串 | - |
+  | `--data-file` | 从文件读取请求体 | - |
+  | `--stdin` | 从标准输入读取请求体 | - |
+  | `-H, --header key=value` | 追加 Header，可重复 | - |
+  | `-Q, --query key=value` | 追加 Query，可重复 | - |
+  | `-P, --param key=value` | 路径占位符填充，可重复 | - |
+  | `--timeout` | 请求超时 | `15s` |
+  | `-k, --insecure` | 跳过 TLS 校验 | `false` |
+  | `--raw` | 不做 JSON pretty-print | `false` |
+  | `--list` | 仅列出路由，不发请求 | `false` |
+
+- **示例**：
+  ```bash
+  # 列出网关路由
+  lava lavacurl --list
+  
+  # 按 operation 调用
+  lava lavacurl Greeter/SayHello -d '{"name":"world"}'
+  
+  # 按显式路径并指定方法
+  lava lavacurl --path /api/hello -X POST -d '{"name":"world"}'
+  
+  # 携带 Header / Query / Path 参数
+  lava lavacurl Greeter/SayHello \
+    -H "X-Req-Id=abc" \
+    -Q verbose=true \
+    -P id=42
+  ```
+
+- **登录子命令**：
+  ```bash
+  # 登录保存 Token
+  lava lavacurl login -t "YOUR_TOKEN"
+  
+  # 或从 stdin
+  echo -n "YOUR_TOKEN" | lava lavacurl login --stdin
+  ```
+  Token 将保存在 `~/.lava/lavacurl/token`（`0600` 权限），后续请求若未显式设置 `Authorization`，会自动注入 `Bearer <token>`。
 
 ### 11.2 开发脚本
 

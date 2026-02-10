@@ -118,7 +118,7 @@ func New() *redant.Command {
 	)
 
 	cmd := &redant.Command{
-		Use:   "lavacurl [flags] <operation|path>",
+		Use:   "curl [flags] <operation|path>",
 		Short: cliutil.UsageDesc("%s gateway curl helper", version.Project()),
 		Options: redant.OptionSet{
 			{Flag: "addr", Description: "gateway http address, e.g. http://127.0.0.1:8080", Default: addr, Value: redant.StringOf(&addr)},
@@ -467,7 +467,7 @@ func tokenFilePath() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(home, ".lava", "lavacurl", "token")
+	return filepath.Join(home, ".lava", "token")
 }
 
 func loadToken() (string, error) {
@@ -509,13 +509,13 @@ func newLoginCommand() *redant.Command {
 		Options: redant.OptionSet{
 			{Flag: "token", Shorthand: "t", Description: "token string (fallback to stdin)", Value: redant.StringOf(&token)},
 			{Flag: "stdin", Description: "read token from stdin", Value: redant.BoolOf(&stdin)},
-			{Flag: "env", Description: "read token from LAVACURL_TOKEN env", Value: redant.BoolOf(&fromEnv)},
+			{Flag: "env", Description: "read token from LAVA_TOKEN env", Value: redant.BoolOf(&fromEnv)},
 		},
 		Handler: func(ctx context.Context, inv *redant.Invocation) error {
 			defer recovery.Exit()
 
 			if fromEnv && token == "" {
-				token = os.Getenv("LAVACURL_TOKEN")
+				token = os.Getenv("LAVA_TOKEN")
 			}
 			if token == "" && stdin {
 				b, err := io.ReadAll(inv.Stdin)
