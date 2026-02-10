@@ -3,6 +3,7 @@ package tunnelagent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -25,6 +26,10 @@ func NewAgent(cfg *tunnel.AgentConfig) tunnel.Agent {
 		cfg:      cfg,
 		services: make(map[string]*tunnel.ServiceInfo),
 		status:   tunnel.StatusDisconnected,
+		stats: &Stats{
+			ServiceStats: make(map[string]*ServiceStats),
+			LastActivity: time.Now(),
+		},
 	}
 
 	// 从配置中构建初始服务信息
@@ -47,9 +52,33 @@ func NewAgent(cfg *tunnel.AgentConfig) tunnel.Agent {
 		}
 
 		a.services[cfg.ServiceName] = svc
+		a.stats.ServiceStats[cfg.ServiceName] = &ServiceStats{}
 	}
 
 	return a
+}
+
+// Stats 统计信息
+type Stats struct {
+	Connections   int64                    `json:"connections"`
+	Streams       int64                    `json:"streams"`
+	BytesIn       int64                    `json:"bytes_in"`
+	BytesOut      int64                    `json:"bytes_out"`
+	Requests      int64                    `json:"requests"`
+	Errors        int64                    `json:"errors"`
+	ResponseTimes []time.Duration          `json:"response_times"`
+	ServiceStats  map[string]*ServiceStats `json:"service_stats"`
+	LastActivity  time.Time                `json:"last_activity"`
+}
+
+// ServiceStats 服务统计信息
+type ServiceStats struct {
+	Requests      int64           `json:"requests"`
+	Errors        int64           `json:"errors"`
+	BytesIn       int64           `json:"bytes_in"`
+	BytesOut      int64           `json:"bytes_out"`
+	ResponseTimes []time.Duration `json:"response_times"`
+	LastRequest   time.Time       `json:"last_request"`
 }
 
 type tunnelAgent struct {
@@ -58,6 +87,7 @@ type tunnelAgent struct {
 	session   tunnel.Session
 	services  map[string]*tunnel.ServiceInfo
 	status    tunnel.AgentStatus
+	stats     *Stats
 
 	mu       sync.RWMutex
 	stopCh   chan struct{}
@@ -193,22 +223,33 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 	session, err := a.transport.Dial(ctx, a.cfg.GatewayAddr)
 	if err != nil {
 		a.status = tunnel.StatusDisconnected
+		atomic.AddInt64(&a.stats.Errors, 1)
+		a.stats.LastActivity = time.Now()
 		return err
 	}
 	a.session = session
 	a.status = tunnel.StatusConnected
+
+	// 更新统计信息
+	atomic.AddInt64(&a.stats.Connections, 1)
+	a.stats.LastActivity = time.Now()
 
 	// Register all services
 	a.mu.RLock()
 	services := make([]*tunnel.ServiceInfo, 0, len(a.services))
 	for _, svc := range a.services {
 		services = append(services, svc)
+		// 确保服务统计信息存在
+		if _, ok := a.stats.ServiceStats[svc.Name]; !ok {
+			a.stats.ServiceStats[svc.Name] = &ServiceStats{}
+		}
 	}
 	a.mu.RUnlock()
 
 	for _, svc := range services {
 		if err := a.sendRegister(ctx, svc); err != nil {
 			log.Warn().Err(err).Str("service", svc.Name).Msg("Failed to register service")
+			atomic.AddInt64(&a.stats.ServiceStats[svc.Name].Errors, 1)
 		}
 	}
 
@@ -216,9 +257,15 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 }
 
 func (a *tunnelAgent) sendRegister(ctx context.Context, service *tunnel.ServiceInfo) error {
-	stream, err := a.session.Open(ctx)
+	// 服务注册使用高优先级
+	stream, err := a.session.OpenWithPriority(ctx, 2)
 	if err != nil {
-		return err
+		// 降级到普通优先级
+		stream, err = a.session.Open(ctx)
+		if err != nil {
+			a.handleError(err)
+			return err
+		}
 	}
 	defer stream.Close()
 
@@ -231,13 +278,23 @@ func (a *tunnelAgent) sendRegister(ctx context.Context, service *tunnel.ServiceI
 		Type:    tunnel.MessageTypeRegister,
 		Payload: payload,
 	}
-	return a.sendMessage(stream, msg)
+	if err := a.sendMessage(stream, msg); err != nil {
+		a.handleError(err)
+		return err
+	}
+	return nil
 }
 
 func (a *tunnelAgent) sendDeregister(ctx context.Context, serviceName string) error {
-	stream, err := a.session.Open(ctx)
+	// 服务注销使用高优先级
+	stream, err := a.session.OpenWithPriority(ctx, 2)
 	if err != nil {
-		return err
+		// 降级到普通优先级
+		stream, err = a.session.Open(ctx)
+		if err != nil {
+			a.handleError(err)
+			return err
+		}
 	}
 	defer stream.Close()
 
@@ -245,12 +302,18 @@ func (a *tunnelAgent) sendDeregister(ctx context.Context, serviceName string) er
 		Type:    tunnel.MessageTypeDeregister,
 		Payload: []byte(serviceName),
 	}
-	return a.sendMessage(stream, msg)
+	if err := a.sendMessage(stream, msg); err != nil {
+		a.handleError(err)
+		return err
+	}
+	return nil
 }
 
 func (a *tunnelAgent) sendMessage(stream tunnel.Stream, msg *tunnel.Message) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
+		atomic.AddInt64(&a.stats.Errors, 1)
+		a.stats.LastActivity = time.Now()
 		return err
 	}
 
@@ -264,11 +327,19 @@ func (a *tunnelAgent) sendMessage(stream tunnel.Stream, msg *tunnel.Message) err
 	}
 
 	if _, err := stream.Write(header); err != nil {
+		atomic.AddInt64(&a.stats.Errors, 1)
+		a.stats.LastActivity = time.Now()
 		return err
 	}
 	if _, err := stream.Write(data); err != nil {
+		atomic.AddInt64(&a.stats.Errors, 1)
+		a.stats.LastActivity = time.Now()
 		return err
 	}
+
+	// 更新统计信息
+	atomic.AddInt64(&a.stats.BytesOut, int64(len(header)+len(data)))
+	a.stats.LastActivity = time.Now()
 	return nil
 }
 
@@ -295,6 +366,37 @@ func (a *tunnelAgent) heartbeatLoop() {
 	}
 }
 
+func (a *tunnelAgent) handleError(err error) {
+	switch {
+	case errors.Is(err, tunnel.ErrSessionClosed):
+		// 会话关闭，需要重连
+		log.Warn().Err(err).Msg("Session closed, will reconnect")
+		go a.reconnectImmediately()
+	case errors.Is(err, tunnel.ErrConnectionFailed):
+		// 连接失败，需要重连
+		log.Warn().Err(err).Msg("Connection failed, will reconnect")
+		go a.reconnectImmediately()
+	case errors.Is(err, tunnel.ErrTimeout):
+		// 超时错误，可能是网络问题，需要重连
+		log.Warn().Err(err).Msg("Timeout error, will reconnect")
+		go a.reconnectImmediately()
+	default:
+		// 其他错误，记录但不需要重连
+		log.Warn().Err(err).Msg("Unexpected error")
+	}
+}
+
+func (a *tunnelAgent) reconnectImmediately() {
+	// 立即尝试重连，而不是等待重连计时器
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	a.status = tunnel.StatusReconnecting
+	if err := a.connect(ctx); err != nil {
+		log.Warn().Err(err).Msg("Immediate reconnect failed")
+	}
+}
+
 func (a *tunnelAgent) sendHeartbeat() error {
 	if a.session == nil || a.session.IsClosed() {
 		return tunnel.ErrSessionClosed
@@ -303,14 +405,24 @@ func (a *tunnelAgent) sendHeartbeat() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	stream, err := a.session.Open(ctx)
+	// 心跳使用中优先级
+	stream, err := a.session.OpenWithPriority(ctx, 5)
 	if err != nil {
-		return err
+		// 降级到普通优先级
+		stream, err = a.session.Open(ctx)
+		if err != nil {
+			a.handleError(err)
+			return err
+		}
 	}
 	defer stream.Close()
 
 	msg := &tunnel.Message{Type: tunnel.MessageTypeHeartbeat}
-	return a.sendMessage(stream, msg)
+	if err := a.sendMessage(stream, msg); err != nil {
+		a.handleError(err)
+		return err
+	}
+	return nil
 }
 
 func (a *tunnelAgent) acceptLoop() {
@@ -347,12 +459,18 @@ func (a *tunnelAgent) acceptLoop() {
 }
 
 func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
+	startTime := time.Now()
 	log.Debug().Msg("Agent: Accepted new stream from gateway")
+
+	// 更新流统计信息
+	atomic.AddInt64(&a.stats.Streams, 1)
+	a.stats.LastActivity = time.Now()
 
 	// Read message header
 	header := make([]byte, 4)
 	if _, err := io.ReadFull(stream, header); err != nil {
 		log.Warn().Err(err).Msg("Agent: Failed to read message header")
+		atomic.AddInt64(&a.stats.Errors, 1)
 		stream.Close()
 		return
 	}
@@ -363,19 +481,25 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	data := make([]byte, length)
 	if _, err := io.ReadFull(stream, data); err != nil {
 		log.Warn().Err(err).Msg("Agent: Failed to read message data")
+		atomic.AddInt64(&a.stats.Errors, 1)
 		stream.Close()
 		return
 	}
 
+	// 更新入站流量统计
+	atomic.AddInt64(&a.stats.BytesIn, int64(len(header)+len(data)))
+
 	var msg tunnel.Message
 	if err := json.Unmarshal(data, &msg); err != nil {
 		log.Warn().Err(err).Str("data", string(data)).Msg("Agent: Failed to unmarshal message")
+		atomic.AddInt64(&a.stats.Errors, 1)
 		stream.Close()
 		return
 	}
 
 	log.Debug().Str("type", string(msg.Type)).Msg("Received message from gateway")
 
+	// 处理请求
 	switch msg.Type {
 	case tunnel.MessageTypeHTTPRequest:
 		a.handleHTTPRequest(stream, &msg)
@@ -386,6 +510,16 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	default:
 		stream.Close()
 	}
+
+	// 计算响应时间并更新统计信息
+	responseTime := time.Since(startTime)
+	atomic.AddInt64(&a.stats.Requests, 1)
+	a.stats.ResponseTimes = append(a.stats.ResponseTimes, responseTime)
+	// 限制响应时间记录数量
+	if len(a.stats.ResponseTimes) > 1000 {
+		a.stats.ResponseTimes = a.stats.ResponseTimes[1:]
+	}
+	a.stats.LastActivity = time.Now()
 }
 
 func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Message) {
@@ -598,20 +732,41 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
 	defer a.wg.Done()
 
-	interval := time.Duration(a.cfg.ReconnectInterval) * time.Second
-	if interval <= 0 {
-		interval = 5 * time.Second
+	baseInterval := time.Duration(a.cfg.ReconnectInterval) * time.Second
+	if baseInterval <= 0 {
+		baseInterval = 5 * time.Second
 	}
+	maxInterval := 60 * time.Second // 最大重连间隔
+	currentInterval := baseInterval
+	attempt := 0
 
 	for {
 		select {
 		case <-a.stopCh:
 			return
-		case <-time.After(interval):
+		case <-time.After(currentInterval):
 			if a.session == nil || a.session.IsClosed() {
 				a.status = tunnel.StatusReconnecting
+				attempt++
+				log.Info().Int("attempt", attempt).Dur("interval", currentInterval).Msg("Attempting to reconnect to gateway")
 				if err := a.connect(ctx); err != nil {
-					log.Warn().Err(err).Msg("Failed to reconnect to gateway")
+					log.Warn().Err(err).Int("attempt", attempt).Dur("interval", currentInterval).Msg("Failed to reconnect to gateway")
+					// 指数退避：每次失败后间隔翻倍
+					currentInterval *= 2
+					if currentInterval > maxInterval {
+						currentInterval = maxInterval
+					}
+				} else {
+					// 重连成功，重置退避计时器和尝试次数
+					log.Info().Int("attempt", attempt).Msg("Successfully reconnected to gateway")
+					currentInterval = baseInterval
+					attempt = 0
+				}
+			} else {
+				// 会话正常，重置退避计时器
+				if attempt > 0 {
+					currentInterval = baseInterval
+					attempt = 0
 				}
 			}
 		}
@@ -633,6 +788,7 @@ func (a *tunnelAgent) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"transport":   a.cfg.Transport,
 		"services":    services,
 		"num_streams": 0,
+		"stats":       a.stats,
 	}
 
 	if a.session != nil && !a.session.IsClosed() {

@@ -192,6 +192,12 @@ func (s *httpSession) Open(ctx context.Context) (tunnel.Stream, error) {
 	return stream, nil
 }
 
+// OpenWithPriority 打开指定优先级的流（1-10，1最高）
+func (s *httpSession) OpenWithPriority(ctx context.Context, priority int) (tunnel.Stream, error) {
+	// HTTP 不支持优先级，直接调用 Open
+	return s.Open(ctx)
+}
+
 func (s *httpSession) Accept() (tunnel.Stream, error) {
 	// 对于简单的 HTTP CONNECT，只返回一个基于底层连接的流
 	if s.closed.Load() {
@@ -267,6 +273,12 @@ func (s *httpStream) SetDeadline(t time.Time) error      { return s.session.conn
 func (s *httpStream) SetReadDeadline(t time.Time) error  { return s.session.conn.SetReadDeadline(t) }
 func (s *httpStream) SetWriteDeadline(t time.Time) error { return s.session.conn.SetWriteDeadline(t) }
 
+// Priority 获取流优先级
+func (s *httpStream) Priority() int {
+	// HTTP 不支持优先级，返回默认值
+	return 5
+}
+
 // httpDirectStream 直接使用底层连接的流
 type httpDirectStream struct {
 	conn    net.Conn
@@ -281,6 +293,12 @@ func (s *httpDirectStream) RemoteAddr() net.Addr               { return s.conn.R
 func (s *httpDirectStream) SetDeadline(t time.Time) error      { return s.conn.SetDeadline(t) }
 func (s *httpDirectStream) SetReadDeadline(t time.Time) error  { return s.conn.SetReadDeadline(t) }
 func (s *httpDirectStream) SetWriteDeadline(t time.Time) error { return s.conn.SetWriteDeadline(t) }
+
+// Priority 获取流优先级
+func (s *httpDirectStream) Priority() int {
+	// HTTP 不支持优先级，返回默认值
+	return 5
+}
 
 // BasicAuth 生成 Basic Auth 头
 func BasicAuth(username, password string) string {

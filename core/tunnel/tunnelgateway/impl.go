@@ -43,9 +43,10 @@ var _ tunnel.Gateway = (*tunnelGateway)(nil)
 // NewGateway creates a new tunnel gateway
 func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
 	return &tunnelGateway{
-		cfg:      cfg,
-		services: make(map[string]*registeredService),
-		status:   tunnel.GatewayStatusStopped,
+		cfg:         cfg,
+		services:    make(map[string]*registeredService),
+		status:      tunnel.GatewayStatusStopped,
+		rateLimiter: NewRateLimiter(100), // 默认每秒100个请求
 	}
 }
 
@@ -55,12 +56,110 @@ type registeredService struct {
 	agent   string // agent identifier
 }
 
+// RateLimiter 速率限制器
+type RateLimiter struct {
+	limits       map[string]int          // 服务名 -> 每秒最大请求数
+	buckets      map[string]*TokenBucket // 服务名 -> 令牌桶
+	mu           sync.RWMutex
+	defaultLimit int // 默认速率限制
+}
+
+// TokenBucket 令牌桶
+type TokenBucket struct {
+	capacity   int       // 令牌桶容量
+	rate       int       // 每秒生成令牌数
+	tokens     float64   // 当前令牌数
+	lastRefill time.Time // 上次填充时间
+	mu         sync.Mutex
+}
+
+// NewRateLimiter 创建速率限制器
+func NewRateLimiter(defaultLimit int) *RateLimiter {
+	return &RateLimiter{
+		limits:       make(map[string]int),
+		buckets:      make(map[string]*TokenBucket),
+		defaultLimit: defaultLimit,
+	}
+}
+
+// SetLimit 设置服务的速率限制
+func (rl *RateLimiter) SetLimit(serviceName string, limit int) {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+	rl.limits[serviceName] = limit
+	// 重新创建令牌桶
+	rl.buckets[serviceName] = NewTokenBucket(limit, limit)
+}
+
+// GetLimit 获取服务的速率限制
+func (rl *RateLimiter) GetLimit(serviceName string) int {
+	rl.mu.RLock()
+	defer rl.mu.RUnlock()
+	if limit, ok := rl.limits[serviceName]; ok {
+		return limit
+	}
+	return rl.defaultLimit
+}
+
+// Allow 检查是否允许请求
+func (rl *RateLimiter) Allow(serviceName string) bool {
+	rl.mu.RLock()
+	bucket, ok := rl.buckets[serviceName]
+	if !ok {
+		limit := rl.defaultLimit
+		if l, ok := rl.limits[serviceName]; ok {
+			limit = l
+		}
+		bucket = NewTokenBucket(limit, limit)
+		rl.buckets[serviceName] = bucket
+	}
+	rl.mu.RUnlock()
+	return bucket.Allow()
+}
+
+// NewTokenBucket 创建令牌桶
+func NewTokenBucket(capacity, rate int) *TokenBucket {
+	return &TokenBucket{
+		capacity:   capacity,
+		rate:       rate,
+		tokens:     float64(capacity),
+		lastRefill: time.Now(),
+	}
+}
+
+// Allow 检查是否允许请求
+func (tb *TokenBucket) Allow() bool {
+	tb.mu.Lock()
+	defer tb.mu.Unlock()
+
+	// 计算从上次填充到现在应该生成的令牌数
+	now := time.Now()
+	timeElapsed := now.Sub(tb.lastRefill).Seconds()
+	tokensToAdd := timeElapsed * float64(tb.rate)
+
+	// 填充令牌
+	tb.tokens += tokensToAdd
+	if tb.tokens > float64(tb.capacity) {
+		tb.tokens = float64(tb.capacity)
+	}
+	tb.lastRefill = now
+
+	// 检查是否有足够的令牌
+	if tb.tokens >= 1.0 {
+		tb.tokens -= 1.0
+		return true
+	}
+	return false
+}
+
 type tunnelGateway struct {
-	cfg       *tunnel.GatewayConfig
-	transport tunnel.Transport
-	listener  tunnel.Listener
-	services  map[string]*registeredService
-	status    tunnel.GatewayStatus
+	cfg          *tunnel.GatewayConfig
+	transport    tunnel.Transport
+	listener     tunnel.Listener
+	services     map[string]*registeredService
+	status       tunnel.GatewayStatus
+	authProvider tunnel.AuthProvider
+	rateLimiter  *RateLimiter
 
 	// 对外代理服务器
 	httpServer  *http.Server
@@ -71,6 +170,11 @@ type tunnelGateway struct {
 	stopOnce sync.Once
 	wg       sync.WaitGroup
 	running  atomic.Bool
+}
+
+// SetAuthProvider 设置认证提供者
+func (g *tunnelGateway) SetAuthProvider(auth tunnel.AuthProvider) {
+	g.authProvider = auth
 }
 
 func (g *tunnelGateway) Start(ctx context.Context) error {
@@ -228,6 +332,13 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	// 检查是否为 WebSocket 升级请求
 	isWebSocket := strings.EqualFold(r.Header.Get("Upgrade"), "websocket")
 
+	// 检查速率限制
+	if !g.rateLimiter.Allow(serviceName) {
+		log.Warn().Str("service", serviceName).Msg("Rate limit exceeded")
+		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		return
+	}
+
 	log.Debug().
 		Str("service", serviceName).
 		Str("endpointType", string(endpointType)).
@@ -238,15 +349,28 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 		Int("numStreams", svc.session.NumStreams()).
 		Msg("Gateway: Proxying request to agent")
 
-	// 打开到 Agent 的 stream
-	stream, err := svc.session.Open(ctx)
-	if err != nil {
-		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: Failed to open stream to agent")
-		http.Error(w, fmt.Sprintf("failed to open stream: %v", err), http.StatusInternalServerError)
-		return
+	// 确定流优先级
+	priority := 5 // 默认中优先级
+	switch endpointType {
+	case tunnel.EndpointTypeDebug:
+		priority = 3 // 调试请求使用较高优先级
+	case tunnel.EndpointTypeGRPC:
+		priority = 4 // gRPC 请求使用中等优先级
 	}
 
-	log.Debug().Str("service", serviceName).Msg("Gateway: Stream opened to agent")
+	// 打开到 Agent 的 stream
+	stream, err := svc.session.OpenWithPriority(ctx, priority)
+	if err != nil {
+		// 降级到普通优先级
+		stream, err = svc.session.Open(ctx)
+		if err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: Failed to open stream to agent")
+			http.Error(w, fmt.Sprintf("failed to open stream: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	log.Debug().Str("service", serviceName).Int("priority", priority).Msg("Gateway: Stream opened to agent")
 
 	// Build request meta
 	meta := tunnel.RequestMeta{
@@ -655,6 +779,8 @@ func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, str
 		g.handleDeregister(&msg)
 	case tunnel.MessageTypeHeartbeat:
 		g.handleHeartbeat(agentID)
+	default:
+		log.Warn().Uint8("type", uint8(msg.Type)).Msg("Unknown message type")
 	}
 }
 
@@ -668,6 +794,14 @@ func (g *tunnelGateway) handleRegister(agentID string, session tunnel.Session, m
 	if err := json.Unmarshal(msg.Payload, &service); err != nil {
 		log.Warn().Err(err).Str("agent", agentID).Msg("Register: failed to parse service info")
 		return
+	}
+
+	// 使用认证提供者验证服务
+	if g.authProvider != nil {
+		if err := g.authProvider.Authenticate(&service); err != nil {
+			log.Warn().Err(err).Str("agent", agentID).Str("service", service.Name).Msg("Register: authentication failed")
+			return
+		}
 	}
 
 	g.mu.Lock()
@@ -741,8 +875,125 @@ func (g *tunnelGateway) checkServices() {
 		if svc.session == nil || svc.session.IsClosed() {
 			delete(g.services, name)
 			log.Info().Str("service", name).Msg("Service removed (session closed)")
+			continue
+		}
+
+		// 检查服务健康状态
+		status := g.checkServiceHealth(svc)
+		if status != tunnel.ServiceStatusOnline {
+			log.Warn().Str("service", name).Str("status", string(status)).Msg("Service health check failed")
 		}
 	}
+}
+
+func (g *tunnelGateway) checkServiceHealth(svc *registeredService) tunnel.ServiceStatus {
+	// 检查会话状态
+	if svc.session == nil || svc.session.IsClosed() {
+		return tunnel.ServiceStatusOffline
+	}
+
+	// 检查每个端点的健康状态
+	allHealthy := true
+	for i, endpoint := range svc.info.Endpoints {
+		if !g.checkEndpointHealth(svc, &endpoint) {
+			allHealthy = false
+			log.Warn().Str("service", svc.info.Name).Str("endpoint", string(endpoint.Type)).Str("address", endpoint.Address).Msg("Endpoint health check failed")
+			// 更新端点健康状态
+			svc.info.Endpoints[i].Metadata["health_status"] = "unhealthy"
+		} else {
+			svc.info.Endpoints[i].Metadata["health_status"] = "healthy"
+		}
+	}
+
+	if allHealthy {
+		svc.info.Status = tunnel.ServiceStatusOnline
+		return tunnel.ServiceStatusOnline
+	} else {
+		svc.info.Status = tunnel.ServiceStatusUnhealthy
+		return tunnel.ServiceStatusUnhealthy
+	}
+}
+
+func (g *tunnelGateway) checkEndpointHealth(svc *registeredService, endpoint *tunnel.Endpoint) bool {
+	// 创建健康检查上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// 根据端点类型进行不同的健康检查
+	switch endpoint.Type {
+	case tunnel.EndpointTypeHTTP:
+		return g.checkHTTPEndpointHealth(ctx, svc, endpoint)
+	case tunnel.EndpointTypeGRPC:
+		return g.checkGRPCEndpointHealth(ctx, svc, endpoint)
+	case tunnel.EndpointTypeDebug:
+		return g.checkDebugEndpointHealth(ctx, svc, endpoint)
+	default:
+		// 其他类型端点默认认为健康
+		return true
+	}
+}
+
+func (g *tunnelGateway) checkHTTPEndpointHealth(ctx context.Context, svc *registeredService, endpoint *tunnel.Endpoint) bool {
+	// 打开到 Agent 的 stream
+	stream, err := svc.session.Open(ctx)
+	if err != nil {
+		return false
+	}
+	defer stream.Close()
+
+	// 构建健康检查请求
+	meta := tunnel.RequestMeta{
+		ServiceID:    svc.info.ID,
+		EndpointType: tunnel.EndpointTypeHTTP,
+		Path:         endpoint.Path + "/health", // 假设健康检查路径为 /health
+		Method:       "GET",
+	}
+	payload, _ := json.Marshal(meta)
+
+	// 发送健康检查请求
+	msg := &tunnel.Message{
+		Type:    tunnel.MessageTypeHTTPRequest,
+		Payload: payload,
+	}
+	if err := g.sendMessage(stream, msg); err != nil {
+		return false
+	}
+
+	// 发送 HTTP 请求
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint.Address+"/health", nil)
+	if err != nil {
+		return false
+	}
+	if err := req.Write(stream); err != nil {
+		return false
+	}
+
+	// 读取响应
+	resp, err := http.ReadResponse(bufio.NewReader(stream), req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	// 检查响应状态码
+	return resp.StatusCode == http.StatusOK
+}
+
+func (g *tunnelGateway) checkGRPCEndpointHealth(ctx context.Context, svc *registeredService, endpoint *tunnel.Endpoint) bool {
+	// gRPC 健康检查实现
+	// 这里简化处理，实际应该实现 gRPC 健康检查协议
+	return true
+}
+
+func (g *tunnelGateway) checkDebugEndpointHealth(ctx context.Context, svc *registeredService, endpoint *tunnel.Endpoint) bool {
+	// Debug 端点健康检查
+	// 简化处理，检查是否能打开流
+	stream, err := svc.session.Open(ctx)
+	if err != nil {
+		return false
+	}
+	stream.Close()
+	return true
 }
 
 // FiberHandler returns a Fiber handler for the gateway HTTP proxy

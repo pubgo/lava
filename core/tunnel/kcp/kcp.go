@@ -173,6 +173,12 @@ func (s *kcpSession) Open(ctx context.Context) (tunnel.Stream, error) {
 	return &kcpStream{stream: stream, session: s}, nil
 }
 
+// OpenWithPriority 打开指定优先级的流（1-10，1最高）
+func (s *kcpSession) OpenWithPriority(ctx context.Context, priority int) (tunnel.Stream, error) {
+	// kcp 不支持优先级，直接调用 Open
+	return s.Open(ctx)
+}
+
 func (s *kcpSession) Accept() (tunnel.Stream, error) {
 	stream, err := s.session.AcceptStream()
 	if err != nil {
@@ -220,3 +226,9 @@ func (s *kcpStream) SetDeadline(t time.Time) error {
 
 func (s *kcpStream) SetReadDeadline(t time.Time) error  { return s.stream.SetReadDeadline(t) }
 func (s *kcpStream) SetWriteDeadline(t time.Time) error { return s.stream.SetWriteDeadline(t) }
+
+// Priority 获取流优先级
+func (s *kcpStream) Priority() int {
+	// kcp 不支持优先级，返回默认值
+	return 5
+}

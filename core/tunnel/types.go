@@ -107,22 +107,6 @@ const (
 	ServiceStatusUnhealthy ServiceStatus = "unhealthy"
 )
 
-// Stream 代表一个多路复用的流连接
-type Stream interface {
-	io.ReadWriteCloser
-
-	// LocalAddr 本地地址
-	LocalAddr() net.Addr
-	// RemoteAddr 远程地址
-	RemoteAddr() net.Addr
-	// SetDeadline 设置读写超时
-	SetDeadline(t time.Time) error
-	// SetReadDeadline 设置读超时
-	SetReadDeadline(t time.Time) error
-	// SetWriteDeadline 设置写超时
-	SetWriteDeadline(t time.Time) error
-}
-
 // Transport 传输层接口，支持多种传输协议
 // 实现者需要提供底层连接的多路复用能力
 type Transport interface {
@@ -140,6 +124,8 @@ type Session interface {
 
 	// Open 打开一个新的流
 	Open(ctx context.Context) (Stream, error)
+	// OpenWithPriority 打开指定优先级的流（1-10，1最高）
+	OpenWithPriority(ctx context.Context, priority int) (Stream, error)
 	// Accept 接受一个新的流
 	Accept() (Stream, error)
 	// IsClosed 会话是否已关闭
@@ -150,6 +136,24 @@ type Session interface {
 	LocalAddr() net.Addr
 	// RemoteAddr 远程地址
 	RemoteAddr() net.Addr
+}
+
+// Stream 代表一个多路复用的流连接
+type Stream interface {
+	io.ReadWriteCloser
+
+	// LocalAddr 本地地址
+	LocalAddr() net.Addr
+	// RemoteAddr 远程地址
+	RemoteAddr() net.Addr
+	// SetDeadline 设置读写超时
+	SetDeadline(t time.Time) error
+	// SetReadDeadline 设置读超时
+	SetReadDeadline(t time.Time) error
+	// SetWriteDeadline 设置写超时
+	SetWriteDeadline(t time.Time) error
+	// Priority 获取流优先级
+	Priority() int
 }
 
 // Listener 监听器接口
@@ -233,6 +237,18 @@ type AgentStatusInfo struct {
 	ConnectedAt time.Time `json:"connected_at,omitempty"`
 }
 
+// AuthProvider 认证提供者接口
+type AuthProvider interface {
+	// Authenticate 验证服务是否可以注册
+	Authenticate(service *ServiceInfo) error
+	// Authorize 验证客户端是否可以访问服务
+	Authorize(serviceID, clientID string) error
+	// GenerateToken 生成认证令牌
+	GenerateToken(service *ServiceInfo) (string, error)
+	// ValidateToken 验证认证令牌
+	ValidateToken(token string) (*ServiceInfo, error)
+}
+
 // Gateway 代理网关服务端接口
 // 运行在代理网关上，负责接收服务注册并暴露服务
 type Gateway interface {
@@ -248,6 +264,8 @@ type Gateway interface {
 	Status() GatewayStatus
 	// Forward 转发请求到指定服务
 	Forward(ctx context.Context, serviceName string, endpointType EndpointType, conn net.Conn) error
+	// SetAuthProvider 设置认证提供者
+	SetAuthProvider(auth AuthProvider)
 }
 
 // GatewayStatus 网关状态

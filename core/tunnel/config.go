@@ -88,6 +88,16 @@ type TLSConfig struct {
 	CAFile string `yaml:"ca_file"`
 	// Insecure 是否跳过证书验证
 	Insecure bool `yaml:"insecure"`
+	// MinVersion 最小 TLS 版本 (e.g. "TLS12", "TLS13")
+	MinVersion string `yaml:"min_version"`
+	// CipherSuites 密码套件列表 (e.g. ["TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"])
+	CipherSuites []string `yaml:"cipher_suites"`
+	// ClientAuth 客户端认证模式 ("NoClientCert", "RequestClientCert", "RequireAnyClientCert", "VerifyClientCertIfGiven", "RequireAndVerifyClientCert")
+	ClientAuth string `yaml:"client_auth"`
+	// SessionCacheSize 会话缓存大小
+	SessionCacheSize int `yaml:"session_cache_size"`
+	// SessionTimeout 会话超时时间（秒）
+	SessionTimeout int `yaml:"session_timeout"`
 }
 
 // TransportOptions 传输层选项

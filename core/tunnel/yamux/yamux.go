@@ -112,12 +112,20 @@ type yamuxSession struct {
 	mu      sync.Mutex
 }
 
+// Open 打开一个新的流
 func (s *yamuxSession) Open(ctx context.Context) (tunnel.Stream, error) {
-	stream, err := s.session.OpenStream(ctx)
+	stream, err := s.session.Open(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	return &yamuxStream{stream: stream}, nil
+}
+
+// OpenWithPriority 打开指定优先级的流（1-10，1最高）
+func (s *yamuxSession) OpenWithPriority(ctx context.Context, priority int) (tunnel.Stream, error) {
+	// yamux 不支持优先级，直接调用 Open
+	return s.Open(ctx)
 }
 
 func (s *yamuxSession) Accept() (tunnel.Stream, error) {
@@ -135,7 +143,7 @@ func (s *yamuxSession) LocalAddr() net.Addr  { return s.conn.LocalAddr() }
 func (s *yamuxSession) RemoteAddr() net.Addr { return s.conn.RemoteAddr() }
 
 type yamuxStream struct {
-	stream *yamux.Stream
+	stream net.Conn
 }
 
 func (s *yamuxStream) Read(p []byte) (int, error)         { return s.stream.Read(p) }
@@ -146,3 +154,9 @@ func (s *yamuxStream) RemoteAddr() net.Addr               { return s.stream.Remo
 func (s *yamuxStream) SetDeadline(t time.Time) error      { return s.stream.SetDeadline(t) }
 func (s *yamuxStream) SetReadDeadline(t time.Time) error  { return s.stream.SetReadDeadline(t) }
 func (s *yamuxStream) SetWriteDeadline(t time.Time) error { return s.stream.SetWriteDeadline(t) }
+
+// Priority 获取流优先级
+func (s *yamuxStream) Priority() int {
+	// yamux 不支持优先级，返回默认值
+	return 5
+}

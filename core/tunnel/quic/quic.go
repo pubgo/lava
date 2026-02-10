@@ -178,6 +178,12 @@ func (s *quicSession) Open(ctx context.Context) (tunnel.Stream, error) {
 	return &quicStream{stream: stream, conn: s.conn}, nil
 }
 
+// OpenWithPriority 打开指定优先级的流（1-10，1最高）
+func (s *quicSession) OpenWithPriority(ctx context.Context, priority int) (tunnel.Stream, error) {
+	// QUIC 不支持优先级，直接调用 Open
+	return s.Open(ctx)
+}
+
 func (s *quicSession) Accept() (tunnel.Stream, error) {
 	stream, err := s.conn.AcceptStream(context.Background())
 	if err != nil {
@@ -227,3 +233,9 @@ func (s *quicStream) SetDeadline(t time.Time) error {
 
 func (s *quicStream) SetReadDeadline(t time.Time) error  { return s.stream.SetReadDeadline(t) }
 func (s *quicStream) SetWriteDeadline(t time.Time) error { return s.stream.SetWriteDeadline(t) }
+
+// Priority 获取流优先级
+func (s *quicStream) Priority() int {
+	// QUIC 不支持优先级，返回默认值
+	return 5
+}
