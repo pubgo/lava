@@ -6,9 +6,9 @@
 
 - **统一入口**：所有命令通过 `lava` 命令作为统一入口，使用更加方便
 - **文件监控**：通过 `watch` 子命令监控文件变更并自动执行构建命令
-- **gRPC 客户端**：通过 `lavacurl` 子命令向 gRPC 服务发送 HTTP 请求
+- **gRPC 客户端**：通过 `curl` 子命令向 gRPC 服务发送 HTTP 请求
 - **自动构建**：当文件变更时自动执行相应的构建命令
-- **路由发现**：`lavacurl` 命令支持自动发现网关已注册的路由
+- **路由发现**：`curl` 命令支持自动发现网关已注册的路由
 
 ## 安装
 
@@ -69,13 +69,13 @@ lava watch ./core
 3. 自动忽略 `.git`、`node_modules`、`vendor` 等不需要监控的目录
 4. 当创建新目录时，自动将其添加到监控列表中
 
-### 2. lavacurl 命令
+### 2. curl 命令
 
 **功能**：一个针对 Lava gateway 的轻量 HTTP 客户端，支持按 operation（gRPC 全方法名或自定义名称）或显式路径发起请求，并自动发现网关已注册的路由。
 
 **用法**：
 ```bash
-lava lavacurl [options] [operation/path]
+lava curl [options] [operation/path]
 ```
 
 **常用参数**：
@@ -104,22 +104,22 @@ lava lavacurl [options] [operation/path]
 #### 列出网关路由
 
 ```bash
-lava lavacurl --list
+lava curl --list
 ```
 
 #### 登录保存 Token
 
-Token 将保存在 `~/.lava/lavacurl/token`（`0600` 权限），后续请求若未显式设置 `Authorization`，会自动注入 `Bearer <token>`。
+Token 将保存在 `~/.lava/curl/token`（`0600` 权限），后续请求若未显式设置 `Authorization`，会自动注入 `Bearer <token>`。
 
 ```bash
 # 直接提供 token
-lava lavacurl login -t "YOUR_TOKEN"
+lava curl login -t "YOUR_TOKEN"
 
 # 从 stdin 读取 token
-echo -n "YOUR_TOKEN" | lava lavacurl login --stdin
+echo -n "YOUR_TOKEN" | lava curl login --stdin
 
 # 从环境变量读取 token
-LAVACURL_TOKEN="YOUR_TOKEN" lava lavacurl login --env
+curl_TOKEN="YOUR_TOKEN" lava curl login --env
 ```
 
 #### 按 operation 调用
@@ -127,19 +127,19 @@ LAVACURL_TOKEN="YOUR_TOKEN" lava lavacurl login --env
 自动匹配 method/path：
 
 ```bash
-lava lavacurl Greeter/SayHello -d '{"name":"world"}'
+lava curl Greeter/SayHello -d '{"name":"world"}'
 ```
 
 #### 按显式路径并指定方法
 
 ```bash
-lava lavacurl --path /api/hello -X POST -d '{"name":"world"}'
+lava curl --path /api/hello -X POST -d '{"name":"world"}'
 ```
 
 #### 携带 Header / Query / Path 参数
 
 ```bash
-lava lavacurl Greeter/SayHello \
+lava curl Greeter/SayHello \
   -H "X-Req-Id=abc" \
   -Q verbose=true \
   -P id=42
@@ -148,18 +148,18 @@ lava lavacurl Greeter/SayHello \
 #### 从文件读取请求体
 
 ```bash
-lava lavacurl Greeter/SayHello --data-file ./request.json
+lava curl Greeter/SayHello --data-file ./request.json
 ```
 
 #### 从标准输入读取请求体
 
 ```bash
-echo '{"name":"world"}' | lava lavacurl Greeter/SayHello --stdin
+echo '{"name":"world"}' | lava curl Greeter/SayHello --stdin
 ```
 
 **路由发现说明**：
 
-`lavacurl` 默认向 `--addr` 的 `/debug/vars/api/list` 和 `/debug/vars/api/get/<vars-name>` 获取网关路由信息；若自定义了 expvar 名，可通过 `--vars-name` 指定。
+`curl` 默认向 `--addr` 的 `/debug/vars/api/list` 和 `/debug/vars/api/get/<vars-name>` 获取网关路由信息；若自定义了 expvar 名，可通过 `--vars-name` 指定。
 
 **返回输出**：
 
@@ -173,11 +173,11 @@ echo '{"name":"world"}' | lava lavacurl Greeter/SayHello --stdin
 
 | 环境变量 | 说明 | 默认值 |
 |----------|------|--------|
-| `LAVACURL_TOKEN` | `lavacurl login --env` 时使用的 token | - |
+| `curl_TOKEN` | `curl login --env` 时使用的 token | - |
 
 ### 配置文件
 
-`lavacurl` 命令的 token 会保存在 `~/.lava/lavacurl/token` 文件中，权限为 `0600`。
+`curl` 命令的 token 会保存在 `~/.lava/curl/token` 文件中，权限为 `0600`。
 
 ## 常见问题
 
@@ -202,7 +202,7 @@ echo '{"name":"world"}' | lava lavacurl Greeter/SayHello --stdin
   sudo sysctl -p
   ```
 
-### 2. lavacurl 无法发现路由
+### 2. curl 无法发现路由
 
 **可能原因**：
 - 网关地址不正确
@@ -210,9 +210,9 @@ echo '{"name":"world"}' | lava lavacurl Greeter/SayHello --stdin
 - 路由信息的 expvar 名称不正确
 
 **解决方案**：
-- 确认网关地址正确：`lava lavacurl --addr http://localhost:8080 --list`
+- 确认网关地址正确：`lava curl --addr http://localhost:8080 --list`
 - 确认网关已启用调试接口
-- 尝试指定正确的 expvar 名称：`lava lavacurl --vars-name custom-vars-name --list`
+- 尝试指定正确的 expvar 名称：`lava curl --vars-name custom-vars-name --list`
 
 ### 3. 构建命令执行失败
 
@@ -240,16 +240,16 @@ lava watch
 # 当文件变更时，watch 命令会自动执行构建命令
 ```
 
-### 2. 使用 lavacurl 测试 gRPC 服务
+### 2. 使用 curl 测试 gRPC 服务
 
-在开发和测试 gRPC 服务时，使用 `lavacurl` 命令可以更方便地向服务发送请求：
+在开发和测试 gRPC 服务时，使用 `curl` 命令可以更方便地向服务发送请求：
 
 ```bash
 # 列出所有可用的路由
-lava lavacurl --list
+lava curl --list
 
 # 测试特定的接口
-lava lavacurl Greeter/SayHello -d '{"name":"test"}'
+lava curl Greeter/SayHello -d '{"name":"test"}'
 ```
 
 ### 3. 结合 CI/CD 使用
@@ -261,7 +261,7 @@ lava lavacurl Greeter/SayHello -d '{"name":"test"}'
 lava watch --once # 只执行一次构建命令
 
 # 测试服务
-lava lavacurl Health/Check
+lava curl Health/Check
 ```
 
 ## 示例
@@ -282,10 +282,10 @@ lava watch ./proto
 # ...
 
 # 列出所有可用的路由
-lava lavacurl --addr http://localhost:8080 --list
+lava curl --addr http://localhost:8080 --list
 
 # 测试 SayHello 接口
-lava lavacurl --addr http://localhost:8080 Greeter/SayHello -d '{"name":"world"}'
+lava curl --addr http://localhost:8080 Greeter/SayHello -d '{"name":"world"}'
 ```
 
 ## 总结
