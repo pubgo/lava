@@ -10,6 +10,7 @@ import (
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
+	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )
@@ -26,6 +27,7 @@ func New(di *dix.Dix) *redant.Command {
 			}))
 
 			manager := supervisor.Default(params.LC)
+			supervisordebug.Register(manager)
 			for _, svc := range params.Services {
 				assert.Exit(manager.Add(svc))
 			}

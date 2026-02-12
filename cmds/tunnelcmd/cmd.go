@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/pubgo/dix/v2"
+	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/redant"
@@ -16,6 +17,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug/tunneldebug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
+	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
@@ -186,6 +188,10 @@ func New(di *dix.Dix) *redant.Command {
 			}))
 
 			manager := supervisor.Default(params.LC)
+			supervisordebug.Register(manager)
+			for _, svc := range params.Services {
+				assert.Exit(manager.Add(svc))
+			}
 
 			// 添加 Gateway 服务
 			if err := manager.Add(&tunnelGatewayService{gateway: gateway}); err != nil {

@@ -97,3 +97,17 @@ func DefaultServiceConfig() ServiceConfig {
 		BackoffMultiplier:   2.0,             // 每次翻倍
 	}
 }
+
+// ServiceInfo 包含服务指标和运行时状态
+type ServiceInfo struct {
+	*Metric
+	Stopped          bool          `json:"stopped"`
+	Failed           bool          `json:"failed"`
+	RestartCount     int           `json:"restart_count"`
+	ConsecFailures   int           `json:"consec_failures"`
+	WindowRestarts   int           `json:"window_restarts"`
+	CurrentDelay     time.Duration `json:"current_delay_ns"`
+	CurrentDelayStr  string        `json:"current_delay"`
+	WindowStart      time.Time     `json:"window_start"`
+	LastServiceStart time.Time     `json:"last_service_start"`
+}
