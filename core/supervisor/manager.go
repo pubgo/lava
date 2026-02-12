@@ -150,7 +150,7 @@ func (s *onCloseService) Serve(ctx context.Context) error {
 	return NoRestartErr(nil)
 }
 
-func (m *Manager) Add(srv Service) error {
+func (m *Manager) Add(srv Service, opts ...Option) error {
 	name := srv.Name()
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -160,15 +160,21 @@ func (m *Manager) Add(srv Service) error {
 	}
 
 	m.logger.Info().Str("name", name).Msg("add service to supervisor")
+
+	config := DefaultServiceConfig()
+	for _, opt := range opts {
+		opt(&config)
+	}
+
 	runner := &serviceRunner{
 		service: srv,
-		config:  DefaultServiceConfig(),
-		stopped: false,
+		config:  config,
+		stopped: !config.AutoStart,
 	}
 	m.services[name] = runner
 
 	// 如果 manager 已经启动，立即启动这个服务
-	if m.ctx != nil {
+	if m.ctx != nil && !runner.stopped {
 		m.startRunner(runner)
 	}
 
@@ -189,12 +195,12 @@ func (m *Manager) AddWithConfig(srv Service, config ServiceConfig) error {
 	runner := &serviceRunner{
 		service: srv,
 		config:  config,
-		stopped: false,
+		stopped: !config.AutoStart,
 	}
 	m.services[name] = runner
 
 	// 如果 manager 已经启动，立即启动这个服务
-	if m.ctx != nil {
+	if m.ctx != nil && !runner.stopped {
 		m.startRunner(runner)
 	}
 

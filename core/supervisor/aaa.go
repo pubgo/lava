@@ -83,11 +83,14 @@ type ServiceConfig struct {
 	MaxRestartsInWindow int
 	// BackoffMultiplier 退避乘数，默认 2.0
 	BackoffMultiplier float64
+	// AutoStart 是否自动启动，默认 true
+	AutoStart bool
 }
 
 // DefaultServiceConfig 默认服务配置
 func DefaultServiceConfig() ServiceConfig {
 	return ServiceConfig{
+		AutoStart:           true,
 		RestartPolicy:       RestartAlways,
 		MaxRestarts:         0,               // 无限制
 		RestartDelay:        time.Second,     // 初始 1 秒
@@ -95,6 +98,53 @@ func DefaultServiceConfig() ServiceConfig {
 		RestartWindow:       5 * time.Minute, // 5 分钟窗口
 		MaxRestartsInWindow: 5,               // 窗口内最多 5 次
 		BackoffMultiplier:   2.0,             // 每次翻倍
+	}
+}
+
+// Option 配置选项
+type Option func(*ServiceConfig)
+
+// WithAutoStart 设置是否自动启动
+func WithAutoStart(autoStart bool) Option {
+	return func(c *ServiceConfig) {
+		c.AutoStart = autoStart
+	}
+}
+
+// WithRestartPolicy 设置重启策略
+func WithRestartPolicy(policy RestartPolicy) Option {
+	return func(c *ServiceConfig) {
+		c.RestartPolicy = policy
+	}
+}
+
+// WithMaxRestarts 设置最大重启次数
+func WithMaxRestarts(n int) Option {
+	return func(c *ServiceConfig) {
+		c.MaxRestarts = n
+	}
+}
+
+// WithRestartDelay 设置重启延迟
+func WithRestartDelay(d time.Duration) Option {
+	return func(c *ServiceConfig) {
+		c.RestartDelay = d
+	}
+}
+
+// WithBackoff 设置退避策略
+func WithBackoff(maxDelay time.Duration, multiplier float64) Option {
+	return func(c *ServiceConfig) {
+		c.MaxRestartDelay = maxDelay
+		c.BackoffMultiplier = multiplier
+	}
+}
+
+// WithRestartWindow 设置重启窗口
+func WithRestartWindow(window time.Duration, maxRestarts int) Option {
+	return func(c *ServiceConfig) {
+		c.RestartWindow = window
+		c.MaxRestartsInWindow = maxRestarts
 	}
 }
 
