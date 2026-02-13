@@ -184,7 +184,8 @@ func New(di *dix.Dix) *redant.Command {
 			tunneldebug.SetGateway(gateway)
 
 			params := dix.Inject(di, new(struct {
-				LC lifecycle.Getter
+				LC       lifecycle.Getter
+				Services []supervisor.Service
 			}))
 
 			manager := supervisor.Default(params.LC)
