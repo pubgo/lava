@@ -238,10 +238,10 @@ go run ./core/tunnel/example/main.go -transport=kcp
 
 ### 4. 集成调试接口
 
-调试接口由 `core/debug/tunneldebug` 包提供，可以集成到服务的调试端点：
+调试接口由 `core/tunnel/tunneldebug` 包提供，可以集成到服务的调试端点：
 
 ```go
-import "github.com/pubgo/lava/v2/core/debug/tunneldebug"
+import "github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
 
 // 设置 Gateway 实例
 tunneldebug.SetGateway(gw.Inner())

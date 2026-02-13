@@ -357,9 +357,9 @@
 //
 // ## 3. 集成调试接口
 //
-// 调试接口由 core/debug/tunneldebug 包提供：
+// 调试接口由 core/tunnel/tunneldebug 包提供：
 //
-//	import "github.com/pubgo/lava/v2/core/debug/tunneldebug"
+//	import "github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
 //
 //	// 设置 Gateway 实例
 //	tunneldebug.SetGateway(gw.Inner())

@@ -14,12 +14,12 @@ import (
 	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/core/debug"
-	"github.com/pubgo/lava/v2/core/debug/tunneldebug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
+	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
@@ -136,6 +136,22 @@ func newDebugServer(addr string) *debugServerService {
 func New(di *dix.Dix) *redant.Command {
 	return &redant.Command{
 		Use:   "tunnel",
+		Short: cliutil.UsageDesc("tunnel service %s(%s)", version.Project(), version.Version()),
+		Handler: func(ctx context.Context, i *redant.Invocation) error {
+			fmt.Println("Usage: lava tunnel [command] [arguments]")
+			fmt.Println("Available commands:")
+			fmt.Println("  gateway   Run tunnel gateway")
+			return nil
+		},
+		Children: []*redant.Command{
+			newGatewayCommand(di),
+		},
+	}
+}
+
+func newGatewayCommand(di *dix.Dix) *redant.Command {
+	return &redant.Command{
+		Use:   "gateway",
 		Short: cliutil.UsageDesc("tunnel gateway service %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			// 设置默认值（直接从环境变量读取，不依赖配置文件）

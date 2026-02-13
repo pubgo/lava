@@ -11,13 +11,13 @@ import (
 	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/redant"
 
-	"github.com/pubgo/lava/v2/core/debug/tunneldebug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerbuilder"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
+	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )

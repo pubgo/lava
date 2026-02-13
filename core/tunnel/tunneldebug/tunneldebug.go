@@ -1,7 +1,3 @@
-//go:build ignore
-// +build ignore
-
-// Deprecated: moved to core/tunnel/tunneldebug
 // Package tunneldebug 提供 Tunnel Gateway 的 Web 管理界面
 package tunneldebug
 

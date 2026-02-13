@@ -10,7 +10,9 @@ import (
 	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/cmds/curlcmd"
+	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/watchcmd"
+	"github.com/pubgo/lava/v2/core/lavabuilder"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
@@ -23,6 +25,7 @@ func main() {
 	})
 
 	// 创建主命令
+	di := lavabuilder.New()
 	app := &redant.Command{
 		Use:   "lava",
 		Short: cliutil.UsageDesc("%s service", version.Project()),
@@ -32,12 +35,14 @@ func main() {
 			fmt.Println("Available commands:")
 			fmt.Println("  watch     Watch files for changes and run commands automatically")
 			fmt.Println("  curl      Make HTTP requests to gRPC services")
+			fmt.Println("  tunnel    Tunnel gateway commands")
 			return nil
 		},
 		// 添加子命令
 		Children: []*redant.Command{
 			watchcmd.New(),
 			curlcmd.New(),
+			tunnelcmd.New(di),
 		},
 	}
 
