@@ -68,14 +68,7 @@ func (m *Manager) GetServicesInfo() []*ServiceInfo {
 	services := make([]*ServiceInfo, 0, len(m.services))
 	for _, srv := range m.services {
 		metric := srv.service.Metric()
-		// 覆盖状态
-		if srv.failed {
-			metric.Status = StatusFailed
-		} else if srv.stopped {
-			metric.Status = StatusStopped
-		} else if srv.consecFailures > 0 {
-			metric.Status = StatusCrashing
-		}
+		metric.Status = m.statusFromRunner(srv)
 		services = append(services, &ServiceInfo{
 			Metric:           metric,
 			Stopped:          srv.stopped,
@@ -103,13 +96,7 @@ func (m *Manager) GetServiceInfo(name string) (*ServiceInfo, error) {
 	}
 
 	metric := srv.service.Metric()
-	if srv.failed {
-		metric.Status = StatusFailed
-	} else if srv.stopped {
-		metric.Status = StatusStopped
-	} else if srv.consecFailures > 0 {
-		metric.Status = StatusCrashing
-	}
+	metric.Status = m.statusFromRunner(srv)
 	info := &ServiceInfo{
 		Metric:           metric,
 		Stopped:          srv.stopped,
@@ -123,6 +110,22 @@ func (m *Manager) GetServiceInfo(name string) (*ServiceInfo, error) {
 		LastServiceStart: srv.lastServiceStart,
 	}
 	return info, nil
+}
+
+func (m *Manager) statusFromRunner(runner *serviceRunner) ServiceStatus {
+	if runner.failed {
+		return StatusFailed
+	}
+	if runner.stopped {
+		return StatusStopped
+	}
+	if runner.consecFailures > 0 {
+		return StatusCrashing
+	}
+	if runner.cancel != nil {
+		return StatusRunning
+	}
+	return StatusIdle
 }
 
 func (m *Manager) Has(name string) bool {
@@ -151,34 +154,11 @@ func (s *onCloseService) Serve(ctx context.Context) error {
 }
 
 func (m *Manager) Add(srv Service, opts ...Option) error {
-	name := srv.Name()
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if _, ok := m.services[name]; ok {
-		return fmt.Errorf("service already exists, name=%s", name)
-	}
-
-	m.logger.Info().Str("name", name).Msg("add service to supervisor")
-
 	config := DefaultServiceConfig()
 	for _, opt := range opts {
 		opt(&config)
 	}
-
-	runner := &serviceRunner{
-		service: srv,
-		config:  config,
-		stopped: !config.AutoStart,
-	}
-	m.services[name] = runner
-
-	// 如果 manager 已经启动，立即启动这个服务
-	if m.ctx != nil && !runner.stopped {
-		m.startRunner(runner)
-	}
-
-	return nil
+	return m.AddWithConfig(srv, config)
 }
 
 // AddWithConfig 添加服务并指定配置
@@ -191,7 +171,7 @@ func (m *Manager) AddWithConfig(srv Service, config ServiceConfig) error {
 		return fmt.Errorf("service already exists, name=%s", name)
 	}
 
-	m.logger.Info().Str("name", name).Msg("add service to supervisor with config")
+	m.logger.Info().Str("name", name).Msg("add service to supervisor")
 	runner := &serviceRunner{
 		service: srv,
 		config:  config,
@@ -249,54 +229,31 @@ func (m *Manager) RemoveServices() error {
 }
 
 func (m *Manager) RestartServices() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	names := make([]string, 0, len(m.services))
+	for name := range m.services {
+		names = append(names, name)
+	}
+	m.mu.RUnlock()
 
-	for name, srv := range m.services {
-		m.restartRunnerLocked(srv)
-		m.logger.Info().Str("name", name).Msg("restarting service in supervisor")
+	for _, name := range names {
+		// restart each service individually to avoid holding lock for too long
+		if err := m.RestartService(name); err != nil {
+			m.logger.Warn().Err(err).Str("name", name).Msg("failed to restart service")
+		}
 	}
 
 	return nil
 }
 
 func (m *Manager) RestartService(name string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	srv := m.services[name]
-	if srv == nil {
-		m.logger.Warn().Str("name", name).Msg("service not found, cannot restart")
-		return fmt.Errorf("service not found, name=%s", name)
-	}
-
-	// 如果服务已暂停，直接启动
-	if srv.stopped {
-		srv.stopped = false
-		m.startRunner(srv)
-		m.logger.Info().Str("name", name).Msg("starting stopped service in supervisor")
-		return nil
-	}
-
-	m.restartRunnerLocked(srv)
 	m.logger.Info().Str("name", name).Msg("restarting service in supervisor")
 
-	return nil
-}
-
-// restartRunnerLocked 重启服务，必须在持有锁的情况下调用
-func (m *Manager) restartRunnerLocked(runner *serviceRunner) {
-	// 停止旧的
-	if runner.cancel != nil {
-		runner.cancel()
-		// 等待旧的 goroutine 退出
-		if runner.done != nil {
-			<-runner.done
-		}
+	if err := m.StopService(name); err != nil {
+		return err
 	}
-	runner.stopped = false
-	// 启动新的
-	m.startRunner(runner)
+
+	return m.StartService(name)
 }
 
 // StopService 暂停服务，但保留在 services map 中
@@ -380,42 +337,6 @@ func (m *Manager) ResetService(name string) error {
 
 	m.logger.Info().Str("name", name).Msg("reset service restart counters")
 	return nil
-}
-
-// GetServiceStatus 获取服务运行状态
-func (m *Manager) GetServiceStatus(name string) (status ServiceStatus, info map[string]any, err error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	srv := m.services[name]
-	if srv == nil {
-		return "", nil, fmt.Errorf("service not found, name=%s", name)
-	}
-
-	info = map[string]any{
-		"stopped":            srv.stopped,
-		"failed":             srv.failed,
-		"restart_count":      srv.restartCount,
-		"consec_failures":    srv.consecFailures,
-		"window_restarts":    srv.windowRestarts,
-		"current_delay":      srv.currentDelay.String(),
-		"window_start":       srv.windowStart,
-		"last_service_start": srv.lastServiceStart,
-	}
-
-	if srv.failed {
-		return StatusFailed, info, nil
-	}
-	if srv.stopped {
-		return StatusStopped, info, nil
-	}
-	if srv.consecFailures > 0 {
-		return StatusCrashing, info, nil
-	}
-	if srv.cancel != nil {
-		return StatusRunning, info, nil
-	}
-	return StatusIdle, info, nil
 }
 
 func (m *Manager) Services() []Service {

@@ -1,4 +1,5 @@
 // Service supervision and lifecycle management for lava services
+
 package supervisor
 
 import (
@@ -45,13 +46,6 @@ type Service interface {
 	String() string
 	Serve(ctx context.Context) error
 	Metric() *Metric
-}
-
-// serviceFn 函数类型服务
-type serviceFn func(ctx context.Context) error
-
-func (fn serviceFn) Serve(ctx context.Context) error {
-	return fn(ctx)
 }
 
 // RestartPolicy 重启策略
