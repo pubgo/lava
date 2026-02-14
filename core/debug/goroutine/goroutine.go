@@ -398,22 +398,21 @@ func monitorGoroutines() {
 	defer ticker.Stop()
 
 	for monitoring.Load() {
-		select {
-		case <-ticker.C:
-			stat := goroutineStat{
-				Timestamp: time.Now(),
-				Count:     runtime.NumGoroutine(),
-			}
-
-			monitorMu.Lock()
-			goroutineStats = append(goroutineStats, stat)
-			if len(goroutineStats) > maxStats {
-				goroutineStats = goroutineStats[len(goroutineStats)-maxStats:]
-			}
-			monitorMu.Unlock()
-
-			log.Debug().Int("count", stat.Count).Msg("goroutine count")
+		<-ticker.C
+		stat := goroutineStat{
+			Timestamp: time.Now(),
+			Count:     runtime.NumGoroutine(),
 		}
+
+		monitorMu.Lock()
+		goroutineStats = append(goroutineStats, stat)
+		if len(goroutineStats) > maxStats {
+			goroutineStats = goroutineStats[len(goroutineStats)-maxStats:]
+		}
+		monitorMu.Unlock()
+
+		log.Debug().Int("count", stat.Count).Msg("goroutine count")
+
 	}
 }
 
