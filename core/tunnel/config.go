@@ -1,13 +1,5 @@
 package tunnel
 
-// Config 代理网关配置
-type Config struct {
-	// Gateway 网关配置
-	Gateway GatewayConfig `yaml:"gateway"`
-	// Agent 代理客户端配置
-	Agent AgentConfig `yaml:"agent"`
-}
-
 // GatewayConfig 网关配置
 type GatewayConfig struct {
 	// ListenAddr 监听地址
