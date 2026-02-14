@@ -24,8 +24,8 @@ import (
     "log"
     "time"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/fiber/v2/middleware/cors"
+    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/fiber/v3/middleware/cors"
     "github.com/pubgo/lava/v2/pkg/gateway"
     
     pb "your/proto/package"
@@ -55,10 +55,10 @@ func main() {
 
     // 添加 CORS 中间件 (gRPC Web 必需)
     app.Use(cors.New(cors.Config{
-        AllowOrigins:  "*",
-        AllowMethods:  "GET,POST,OPTIONS",
-        AllowHeaders:  "Content-Type,X-Grpc-Web,X-User-Agent,Grpc-Timeout",
-        ExposeHeaders: "Grpc-Status,Grpc-Message,Grpc-Status-Details-Bin",
+        AllowOrigins:  []string{"*"},
+        AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+        AllowHeaders:  []string{"Content-Type", "X-Grpc-Web", "X-User-Agent", "Grpc-Timeout"},
+        ExposeHeaders: []string{"Grpc-Status", "Grpc-Message", "Grpc-Status-Details-Bin"},
     }))
 
     // 注册 HTTP/JSON 路由 (REST API)
@@ -161,10 +161,10 @@ gRPC Web 是跨域请求，必须配置 CORS：
 
 ```go
 app.Use(cors.New(cors.Config{
-    AllowOrigins:  "*",  // 生产环境应该限制具体域名
-    AllowMethods:  "GET,POST,OPTIONS",
-    AllowHeaders:  "Content-Type,X-Grpc-Web,X-User-Agent,Grpc-Timeout,Authorization",
-    ExposeHeaders: "Grpc-Status,Grpc-Message,Grpc-Status-Details-Bin",
+    AllowOrigins:  []string{"*"},  // 生产环境应该限制具体域名
+    AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+    AllowHeaders:  []string{"Content-Type", "X-Grpc-Web", "X-User-Agent", "Grpc-Timeout", "Authorization"},
+    ExposeHeaders: []string{"Grpc-Status", "Grpc-Message", "Grpc-Status-Details-Bin"},
 }))
 ```
 

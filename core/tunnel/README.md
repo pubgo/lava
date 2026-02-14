@@ -514,7 +514,7 @@ ErrGatewayAlreadyRunning // 网关已运行
 ## 依赖
 
 ### 核心依赖
-- `github.com/gofiber/fiber/v2` - Fiber Web 框架（调试接口）
+- `github.com/gofiber/fiber/v3` - Fiber Web 框架（调试接口）
 - `github.com/pubgo/funk/v2/log` - 日志库
 
 ### 传输层依赖

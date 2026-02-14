@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 )
 
 const (
@@ -61,38 +61,11 @@ func newWebWriter(w http.ResponseWriter, typ, enc string) *webWriter {
 	}
 }
 
-type fiberResponseWriter struct {
-	w *fiber.Response
-}
-
-func (f *fiberResponseWriter) Header() http.Header {
-	// Convert fiber headers to http.Header
-	h := make(http.Header)
-	f.w.Header.VisitAll(func(key, value []byte) {
-		h[string(key)] = []string{string(value)}
-	})
-	return h
-}
-
-func (f *fiberResponseWriter) Write(data []byte) (int, error) {
-	return f.w.BodyWriter().Write(data)
-}
-
-func (f *fiberResponseWriter) WriteHeader(statusCode int) {
-	f.w.SetStatusCode(statusCode)
-}
-
-func (f *fiberResponseWriter) Flush() {
-	if flusher, ok := f.w.BodyWriter().(http.Flusher); ok {
-		flusher.Flush()
-	}
-}
-
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
 // Unlike webWriter which writes headers to body (for standard http.ResponseWriter),
 // this writes headers directly to Fiber response headers.
 type fiberWebWriter struct {
-	ctx         *fiber.Ctx
+	ctx         fiber.Ctx
 	resp        io.Writer
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
@@ -100,7 +73,7 @@ type fiberWebWriter struct {
 	wroteResp   bool
 }
 
-func newFiberWebWriter(ctx *fiber.Ctx, typ, enc string) *fiberWebWriter {
+func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
 	resp := ctx.Response().BodyWriter()
 	if typ == grpcWebText {
 		resp = base64.NewEncoder(base64.StdEncoding, resp)

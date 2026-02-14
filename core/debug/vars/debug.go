@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"sort"
 
-	"github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/recovery"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -24,7 +24,7 @@ func init() {
 	})
 }
 
-func handleVarsPage(ctx *fiber.Ctx) error {
+func handleVarsPage(ctx fiber.Ctx) error {
 	var vars []varInfo
 	expvar.Do(func(kv expvar.KeyValue) {
 		vars = append(vars, varInfo{
@@ -57,7 +57,7 @@ type varInfo struct {
 	Value string `json:"value"`
 }
 
-func handleVarsList(ctx *fiber.Ctx) error {
+func handleVarsList(ctx fiber.Ctx) error {
 	var vars []varInfo
 	expvar.Do(func(kv expvar.KeyValue) {
 		vars = append(vars, varInfo{
@@ -68,7 +68,7 @@ func handleVarsList(ctx *fiber.Ctx) error {
 	return ctx.JSON(vars)
 }
 
-func handleVarGet(ctx *fiber.Ctx) error {
+func handleVarGet(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	v := expvar.Get(name)
 	if v == nil {
@@ -78,7 +78,7 @@ func handleVarGet(ctx *fiber.Ctx) error {
 	return ctx.SendString(v.String())
 }
 
-func handleVarDetail(ctx *fiber.Ctx) error {
+func handleVarDetail(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	v := expvar.Get(name)
 	if v == nil {

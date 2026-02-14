@@ -7,7 +7,7 @@ import (
 	"time"
 
 	jjson "github.com/goccy/go-json"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/try"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	debug.Get("/health", func(ctx *fiber.Ctx) error {
+	debug.Get("/health", func(ctx fiber.Ctx) error {
 		dt := make(map[string]*health)
 		allHealthy := true
 		healthyCount := 0
@@ -166,12 +166,12 @@ func init() {
 	})
 
 	// 简单的存活检查
-	debug.Get("/healthz", func(ctx *fiber.Ctx) error {
+	debug.Get("/healthz", func(ctx fiber.Ctx) error {
 		return ctx.SendString("ok")
 	})
 
 	// 就绪检查
-	debug.Get("/readyz", func(ctx *fiber.Ctx) error {
+	debug.Get("/readyz", func(ctx fiber.Ctx) error {
 		for _, name := range healthy.List() {
 			if err := healthy.Get(name)(ctx); err != nil {
 				ctx.Status(http.StatusServiceUnavailable)

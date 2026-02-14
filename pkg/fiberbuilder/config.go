@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"dario.cat/mergo"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
 
@@ -13,7 +13,6 @@ import (
 )
 
 type Config struct {
-	Prefork                   bool               `yaml:"-"`
 	ServerHeader              string             `yaml:"-"`
 	CaseSensitive             bool               `yaml:"-"`
 	Immutable                 bool               `yaml:"-"`
@@ -75,13 +74,19 @@ type Config struct {
 	ReadBufferSize           int           `yaml:"read_buffer_size"`
 	WriteBufferSize          int           `yaml:"write_buffer_size"`
 	CompressedFileSuffix     string        `yaml:"compressed_file_suffix"`
+	CompressedFileSuffixes   map[string]string `yaml:"compressed_file_suffixes"`
 	DisableHeaderNormalizing bool          `yaml:"disable_header_normalizing"`
-	DisableStartupMessage    bool          `yaml:"disable_startup_message"`
 }
 
 func (t *Config) ToCfg() fiber.Config {
+	compressed := t.CompressedFileSuffixes
+	if compressed == nil && t.CompressedFileSuffix != "" {
+		compressed = map[string]string{
+			"gzip": t.CompressedFileSuffix,
+		}
+	}
+
 	return fiber.Config{
-		Prefork:                      t.Prefork,
 		ServerHeader:                 t.ServerHeader,
 		CaseSensitive:                t.CaseSensitive,
 		Immutable:                    t.Immutable,
@@ -98,17 +103,14 @@ func (t *Config) ToCfg() fiber.Config {
 		DisablePreParseMultipartForm: t.DisablePreParseMultipartForm,
 		ReduceMemoryUsage:            t.ReduceMemoryUsage,
 		EnableIPValidation:           t.EnableIPValidation,
-		EnablePrintRoutes:            t.EnablePrintRoutes,
 		EnableSplittingOnParsers:     t.EnableSplittingOnParsers,
-		ETag:                         t.ETag,
 		ReadTimeout:                  t.ReadTimeout,
 		WriteTimeout:                 t.WriteTimeout,
 		IdleTimeout:                  t.IdleTimeout,
 		ReadBufferSize:               t.ReadBufferSize,
 		WriteBufferSize:              t.WriteBufferSize,
-		CompressedFileSuffix:         t.CompressedFileSuffix,
+		CompressedFileSuffixes:       compressed,
 		DisableHeaderNormalizing:     t.DisableHeaderNormalizing,
-		DisableStartupMessage:        t.DisableStartupMessage,
 		JSONEncoder:                  protojson.Default.Marshal,
 	}
 }

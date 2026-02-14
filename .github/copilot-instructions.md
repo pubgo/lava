@@ -204,7 +204,7 @@ grpcs.New(grpcs.Params{
 ## Common Dependencies
 
 ### Core Dependencies
-- `github.com/gofiber/fiber/v2`: HTTP server framework
+- `github.com/gofiber/fiber/v3`: HTTP server framework
 - `google.golang.org/grpc`: gRPC framework
 - `github.com/pubgo/dix`: Dependency injection framework
 - `github.com/pubgo/redant`: Command-line framework
@@ -261,7 +261,7 @@ import (
     "github.com/pubgo/lava/v2/core/lavabuilder"
     "github.com/pubgo/lava/v2/servers/https"
     "github.com/pubgo/lava/v2/lava"
-    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
 )
 
 // UserRouter handles user-related routes

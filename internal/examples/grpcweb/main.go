@@ -24,13 +24,12 @@ import (
 	"embed"
 	"io/fs"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/static"
 
 	greeterpb "github.com/pubgo/lava/v2/internal/examples/grpcweb/proto"
 	"github.com/pubgo/lava/v2/pkg/gateway"
@@ -83,10 +82,10 @@ func main() {
 	// 添加中间件
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:  "*",
-		AllowMethods:  "GET,POST,OPTIONS",
-		AllowHeaders:  "Content-Type,X-Grpc-Web,X-User-Agent",
-		ExposeHeaders: "Grpc-Status,Grpc-Message",
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:  []string{"Content-Type", "X-Grpc-Web", "X-User-Agent"},
+		ExposeHeaders: []string{"Grpc-Status", "Grpc-Message"},
 	}))
 
 	// 静态文件服务
@@ -94,8 +93,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.Use("/", filesystem.New(filesystem.Config{
-		Root:   http.FS(staticFS),
+	app.Use("/", static.New("", static.Config{
+		FS:     staticFS,
 		Browse: true,
 	}))
 

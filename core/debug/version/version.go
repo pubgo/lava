@@ -6,7 +6,7 @@ import (
 	"os"
 	rd "runtime/debug"
 
-	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/running"
 

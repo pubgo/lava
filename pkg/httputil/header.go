@@ -1,6 +1,6 @@
 package httputil
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gofiber/fiber/v3"
 
 // HTTP Headers were copied from net/http.
 const (

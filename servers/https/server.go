@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
@@ -63,7 +63,7 @@ func (s *serviceImpl) init(params Params) {
 	s.log = params.Log.WithName(s.String())
 	s.httpServer = fiber.New(cfg.Http.Build().Unwrap())
 	s.httpServer.Use(httputil.Cors())
-	s.httpServer.Mount("/debug", debug.App())
+	s.httpServer.Use("/debug", debug.App())
 
 	defaultMiddlewares := []lava.Middleware{
 		middleware_serviceinfo.New(),

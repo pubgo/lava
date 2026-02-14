@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/log"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
@@ -998,7 +998,7 @@ func (g *tunnelGateway) checkDebugEndpointHealth(ctx context.Context, svc *regis
 
 // FiberHandler returns a Fiber handler for the gateway HTTP proxy
 func (g *tunnelGateway) FiberHandler() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		serviceName := c.Params("service")
 		if serviceName == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -1030,7 +1030,7 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 		}
 
 		// Open a stream to the agent
-		ctx := c.UserContext()
+		ctx := c.Context()
 		stream, err := svc.session.Open(ctx)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

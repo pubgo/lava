@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"dario.cat/mergo"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/proto/errorpb"
@@ -62,7 +62,7 @@ func IsWebsocket(h *fasthttp.RequestHeader) bool {
 	return false
 }
 
-func ErrHandler(ctx *fiber.Ctx, err error) error {
+func ErrHandler(ctx fiber.Ctx, err error) error {
 	if err == nil {
 		return nil
 	}
@@ -104,7 +104,7 @@ func Cors() fiber.Handler {
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-		AllowMethods: strings.Join([]string{
+		AllowMethods: []string{
 			fiber.MethodGet,
 			fiber.MethodPost,
 			fiber.MethodPut,
@@ -112,7 +112,7 @@ func Cors() fiber.Handler {
 			fiber.MethodPatch,
 			fiber.MethodHead,
 			fiber.MethodOptions,
-		}, ","),
+		},
 		// AllowHeaders:     "",
 		AllowCredentials: true,
 		// ExposeHeaders:    "",

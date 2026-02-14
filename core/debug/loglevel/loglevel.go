@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/rs/zerolog"
 
@@ -19,7 +19,7 @@ var currentLevel atomic.Value
 func init() {
 	currentLevel.Store(zerolog.GlobalLevel().String())
 
-	debug.Get("/log/level", func(ctx *fiber.Ctx) error {
+	debug.Get("/log/level", func(ctx fiber.Ctx) error {
 		// JSON 格式响应
 		if ctx.Get("Accept") == "application/json" || ctx.Query("format") == "json" {
 			return ctx.JSON(fiber.Map{
@@ -121,22 +121,22 @@ async function setLevel(level) {
 		return ctx.SendString(html)
 	})
 
-	debug.Put("/log/level", func(ctx *fiber.Ctx) error {
+	debug.Put("/log/level", func(ctx fiber.Ctx) error {
 		return setLogLevel(ctx)
 	})
 
-	debug.Post("/log/level", func(ctx *fiber.Ctx) error {
+	debug.Post("/log/level", func(ctx fiber.Ctx) error {
 		return setLogLevel(ctx)
 	})
 }
 
-func setLogLevel(ctx *fiber.Ctx) error {
+func setLogLevel(ctx fiber.Ctx) error {
 	type request struct {
 		Level string `json:"level" form:"level" query:"level"`
 	}
 
 	var req request
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		req.Level = ctx.Query("level")
 	}
 

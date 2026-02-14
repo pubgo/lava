@@ -758,7 +758,7 @@ type Params struct {
 
 ```go
 import (
-    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
     "github.com/pubgo/lava/v2/lava"
     "github.com/pubgo/lava/v2/servers/https"
 )
@@ -924,7 +924,7 @@ func (m *Mux) Handler(c *fiber.Ctx) error
 
 ```go
 import (
-    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
     "github.com/pubgo/lava/v2/pkg/gateway"
     pb "your/proto/package"
 )
@@ -1038,7 +1038,7 @@ func (c *Config) Build() result.Result[fiber.Config]
 
 ```go
 import (
-    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
     "github.com/pubgo/lava/v2/pkg/httputil"
 )
 

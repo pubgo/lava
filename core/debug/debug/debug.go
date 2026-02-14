@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/debug/ui"
@@ -22,7 +22,7 @@ func init() {
 
 func initDebug() {
 	// 主页 - 仪表盘
-	debug.Get("/", func(ctx *fiber.Ctx) error {
+	debug.Get("/", func(ctx fiber.Ctx) error {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 

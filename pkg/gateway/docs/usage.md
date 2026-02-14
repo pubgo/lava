@@ -69,7 +69,7 @@ func (s *userService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 package main
 
 import (
-    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v3"
     "github.com/pubgo/lava/v2/pkg/gateway"
     pb "your/proto/package"
 )

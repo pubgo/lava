@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/dix/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
@@ -114,16 +114,14 @@ func (s *debugServerService) Metric() *supervisor.Metric {
 
 // newDebugServer 创建 debug 服务器
 func newDebugServer(addr string) *debugServerService {
-	app := fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-	})
+	app := fiber.New()
 
 	// 挂载 debug 路由
-	app.Mount("/debug", debug.App())
+	app.Use("/debug", debug.App())
 
 	// 根路由重定向到 tunnel dashboard
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Redirect("/debug/tunnel")
+	app.Get("/", func(c fiber.Ctx) error {
+		return c.Redirect().To("/debug/tunnel")
 	})
 
 	return &debugServerService{

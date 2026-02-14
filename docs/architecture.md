@@ -350,7 +350,7 @@ type Gateway interface {
 
 | 依赖 | 版本 | 用途 |
 |------|------|------|
-| github.com/gofiber/fiber/v2 | v2.52.9 | HTTP 服务器框架 |
+| github.com/gofiber/fiber/v3 | v3.0.0 | HTTP 服务器框架 |
 | google.golang.org/grpc | v1.78.0 | gRPC 框架 |
 | go.opentelemetry.io/otel | v1.39.0 | 链路追踪 |
 | github.com/prometheus/client_golang | v1.22.0 | 指标收集 |

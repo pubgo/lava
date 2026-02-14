@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
@@ -76,7 +76,7 @@ func loadConfig() {
 }
 
 func init() {
-	debug.App().Use(func(c *fiber.Ctx) (gErr error) {
+	debug.App().Use(func(c fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
 			err = errors.WrapTags(err, errors.Tags{
 				"headers": c.GetReqHeaders(),

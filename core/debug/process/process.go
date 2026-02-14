@@ -3,7 +3,7 @@ package process
 import (
 	"debug/buildinfo"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	ps "github.com/keybase/go-ps"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	debug.Get("/process", func(ctx *fiber.Ctx) (gErr error) {
+	debug.Get("/process", func(ctx fiber.Ctx) (gErr error) {
 		defer result.RecoveryErr(&gErr)
 		processes := assert.Must1(ps.Processes())
 		processes1 := funk.Map(processes, func(p ps.Process) map[string]any {

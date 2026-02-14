@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/core/debug"
 )
@@ -26,7 +26,7 @@ type requestCounter struct {
 func init() {
 	debug.App().Use(rateLimitMiddleware)
 
-	debug.Get("/ratelimit", func(ctx *fiber.Ctx) error {
+	debug.Get("/ratelimit", func(ctx fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"enabled":        enabled,
 			"limit":          limit,
@@ -35,7 +35,7 @@ func init() {
 		})
 	})
 
-	debug.Post("/ratelimit/enable", func(ctx *fiber.Ctx) error {
+	debug.Post("/ratelimit/enable", func(ctx fiber.Ctx) error {
 		enabled = true
 		return ctx.JSON(fiber.Map{
 			"success": true,
@@ -43,7 +43,7 @@ func init() {
 		})
 	})
 
-	debug.Post("/ratelimit/disable", func(ctx *fiber.Ctx) error {
+	debug.Post("/ratelimit/disable", func(ctx fiber.Ctx) error {
 		enabled = false
 		return ctx.JSON(fiber.Map{
 			"success": true,
@@ -51,18 +51,18 @@ func init() {
 		})
 	})
 
-	debug.Put("/ratelimit/config", func(ctx *fiber.Ctx) error {
+	debug.Put("/ratelimit/config", func(ctx fiber.Ctx) error {
 		type request struct {
 			Limit  int `json:"limit" form:"limit" query:"limit"`
 			Window int `json:"window" form:"window" query:"window"`
 		}
 
 		var req request
-		if err := ctx.BodyParser(&req); err != nil {
-			if l := ctx.QueryInt("limit", 0); l > 0 {
+		if err := ctx.Bind().Body(&req); err != nil {
+			if l, err := strconv.Atoi(ctx.Query("limit")); err == nil && l > 0 {
 				req.Limit = l
 			}
-			if w := ctx.QueryInt("window", 0); w > 0 {
+			if w, err := strconv.Atoi(ctx.Query("window")); err == nil && w > 0 {
 				req.Window = w
 			}
 		}
@@ -82,7 +82,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/ratelimit/stats", func(ctx *fiber.Ctx) error {
+	debug.Get("/ratelimit/stats", func(ctx fiber.Ctx) error {
 		requestsMu.RLock()
 		stats := make(map[string]fiber.Map)
 		for ip, counter := range requests {
@@ -103,7 +103,7 @@ func init() {
 		})
 	})
 
-	debug.Post("/ratelimit/reset", func(ctx *fiber.Ctx) error {
+	debug.Post("/ratelimit/reset", func(ctx fiber.Ctx) error {
 		requestsMu.Lock()
 		requests = make(map[string]*requestCounter)
 		requestsMu.Unlock()
@@ -115,7 +115,7 @@ func init() {
 	})
 }
 
-func rateLimitMiddleware(ctx *fiber.Ctx) error {
+func rateLimitMiddleware(ctx fiber.Ctx) error {
 	if !enabled {
 		return ctx.Next()
 	}

@@ -199,6 +199,6 @@ type StreamCodec interface {
 
 - `google.golang.org/grpc`：gRPC 核心库
 - `google.golang.org/protobuf`：Protobuf 运行时
-- `github.com/gofiber/fiber/v2`：HTTP 框架
+- `github.com/gofiber/fiber/v3`：HTTP 框架
 - `github.com/fullstorydev/grpchan/inprocgrpc`：进程内 gRPC 通道
 - `github.com/alecthomas/participle/v2`：路径模板解析器

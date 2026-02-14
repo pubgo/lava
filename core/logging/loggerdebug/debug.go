@@ -9,12 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/closer"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -73,7 +74,7 @@ func init() {
 }
 
 // handlePage 渲染日志查看页面
-func handlePage(c *fiber.Ctx) error {
+func handlePage(c fiber.Ctx) error {
 	logPath := logging.GetLogFilePath()
 
 	html, err := ui.Render(ui.PageData{
@@ -484,7 +485,28 @@ func buildPageContent(logPath string) string {
 }
 
 // handleQuery 处理日志查询
-func handleQuery(c *fiber.Ctx) error {
+func handleQuery(c fiber.Ctx) error {
+	limit := 100
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil {
+		limit = v
+	}
+	if limit <= 0 {
+		limit = 100
+	}
+	offset := 0
+	if v, err := strconv.Atoi(c.Query("offset")); err == nil {
+		offset = v
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	tail := true
+	if v := strings.TrimSpace(c.Query("tail")); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			tail = b
+		}
+	}
+
 	req := QueryRequest{
 		Filter:   c.Query("filter"),
 		Level:    c.Query("level"),
@@ -492,9 +514,9 @@ func handleQuery(c *fiber.Ctx) error {
 		Keyword:  c.Query("keyword"),
 		Start:    c.Query("start"),
 		End:      c.Query("end"),
-		Limit:    c.QueryInt("limit", 100),
-		Offset:   c.QueryInt("offset", 0),
-		Tail:     c.QueryBool("tail", true),
+		Limit:    limit,
+		Offset:   offset,
+		Tail:     tail,
 		FileName: c.Query("fileName"),
 	}
 
@@ -527,7 +549,7 @@ func handleQuery(c *fiber.Ctx) error {
 }
 
 // handleListFiles 列出日志文件
-func handleListFiles(c *fiber.Ctx) error {
+func handleListFiles(c fiber.Ctx) error {
 	logPath := logging.GetLogFilePath()
 	if logPath == "" {
 		return c.JSON(fiber.Map{"files": []FileInfo{}})
@@ -569,7 +591,7 @@ func handleListFiles(c *fiber.Ctx) error {
 }
 
 // handleStats 获取日志统计
-func handleStats(c *fiber.Ctx) error {
+func handleStats(c fiber.Ctx) error {
 	logPath := logging.GetLogFilePath()
 	if logPath == "" {
 		return c.JSON(fiber.Map{})

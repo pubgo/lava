@@ -147,7 +147,7 @@ metrics:
 package routes
 
 import (
-    "github.com/gofiber/fiber/v2"
+  "github.com/gofiber/fiber/v3"
     "github.com/pubgo/lava/v2/lava"
 )
 
@@ -194,7 +194,7 @@ func (r *UserRouter) GetUser(c *fiber.Ctx) error {
 // CreateUser 创建用户
 func (r *UserRouter) CreateUser(c *fiber.Ctx) error {
     var req map[string]interface{}
-    if err := c.BodyParser(&req); err != nil {
+    if err := c.Bind().Body(&req); err != nil {
         return c.Status(400).JSON(map[string]interface{}{
             "error": "Invalid request",
         })
@@ -211,7 +211,7 @@ func (r *UserRouter) CreateUser(c *fiber.Ctx) error {
 func (r *UserRouter) UpdateUser(c *fiber.Ctx) error {
     id := c.Params("id")
     var req map[string]interface{}
-    if err := c.BodyParser(&req); err != nil {
+    if err := c.Bind().Body(&req); err != nil {
         return c.Status(400).JSON(map[string]interface{}{
             "error": "Invalid request",
         })

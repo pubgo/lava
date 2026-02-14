@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/debug/ui"
@@ -19,7 +19,7 @@ var runtimeStartTime = time.Now()
 
 func init() {
 	// Runtime 仪表板 HTML 页面
-	debug.Get("/runtime", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime", func(ctx fiber.Ctx) error {
 		// 如果请求 JSON 格式
 		if ctx.Get("Accept") == "application/json" || ctx.Query("format") == "json" {
 			var m runtime.MemStats
@@ -179,7 +179,7 @@ function formatBytes(b) {
 	})
 
 	// 获取所有 runtime/metrics 指标
-	debug.Get("/runtime/metrics", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime/metrics", func(ctx fiber.Ctx) error {
 		descs := metrics.All()
 		samples := make([]metrics.Sample, len(descs))
 		for i := range descs {
@@ -199,7 +199,7 @@ function formatBytes(b) {
 	})
 
 	// 内存统计
-	debug.Get("/runtime/memory", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime/memory", func(ctx fiber.Ctx) error {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 
@@ -228,7 +228,7 @@ function formatBytes(b) {
 	})
 
 	// 运行时信息
-	debug.Get("/runtime/info", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime/info", func(ctx fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"timestamp":      time.Now().Format(time.RFC3339),
 			"go_version":     runtime.Version(),
@@ -244,7 +244,7 @@ function formatBytes(b) {
 	})
 
 	// GC 统计
-	debug.Get("/runtime/gc", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime/gc", func(ctx fiber.Ctx) error {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 
@@ -264,7 +264,7 @@ function formatBytes(b) {
 	})
 
 	// 手动触发 GC
-	debug.Post("/runtime/gc/trigger", func(ctx *fiber.Ctx) error {
+	debug.Post("/runtime/gc/trigger", func(ctx fiber.Ctx) error {
 		before := runtime.NumGoroutine()
 		var mBefore runtime.MemStats
 		runtime.ReadMemStats(&mBefore)
@@ -293,7 +293,7 @@ function formatBytes(b) {
 	})
 
 	// 释放内存给操作系统
-	debug.Post("/runtime/freemem", func(ctx *fiber.Ctx) error {
+	debug.Post("/runtime/freemem", func(ctx fiber.Ctx) error {
 		var mBefore runtime.MemStats
 		runtime.ReadMemStats(&mBefore)
 
@@ -318,7 +318,7 @@ function formatBytes(b) {
 	})
 
 	// 可用的 metrics 描述
-	debug.Get("/runtime/metrics/desc", func(ctx *fiber.Ctx) error {
+	debug.Get("/runtime/metrics/desc", func(ctx fiber.Ctx) error {
 		descs := metrics.All()
 		result := make([]fiber.Map, 0, len(descs))
 

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/config"
 	"gopkg.in/yaml.v3"
 
@@ -29,7 +29,7 @@ var sensitivePatterns = []*regexp.Regexp{
 }
 
 func init() {
-	debug.Get("/config", func(ctx *fiber.Ctx) error {
+	debug.Get("/config", func(ctx fiber.Ctx) error {
 		configPath := config.GetConfigPath()
 
 		// JSON 响应
@@ -165,13 +165,13 @@ function copyConfig() {
 		return ctx.SendString(html)
 	})
 
-	debug.Get("/config/path", func(ctx *fiber.Ctx) error {
+	debug.Get("/config/path", func(ctx fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"config_path": config.GetConfigPath(),
 		})
 	})
 
-	debug.Get("/config/raw", func(ctx *fiber.Ctx) error {
+	debug.Get("/config/raw", func(ctx fiber.Ctx) error {
 		if ctx.Query("confirm") != "yes" {
 			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error":   "raw config access requires confirm=yes parameter",
@@ -197,7 +197,7 @@ function copyConfig() {
 		return ctx.Send(data)
 	})
 
-	debug.Get("/config/env", func(ctx *fiber.Ctx) error {
+	debug.Get("/config/env", func(ctx fiber.Ctx) error {
 		envs := make(map[string]string)
 		for _, env := range os.Environ() {
 			parts := strings.SplitN(env, "=", 2)

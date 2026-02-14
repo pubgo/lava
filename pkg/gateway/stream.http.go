@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
@@ -25,7 +25,7 @@ import (
 type streamHTTP struct {
 	method     *methodWrapper
 	path       *routertree.MatchOperation
-	handler    *fiber.Ctx
+	handler    fiber.Ctx
 	ctx        context.Context
 	header     metadata.MD
 	trailer    metadata.MD

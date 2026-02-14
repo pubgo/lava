@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/utils"
+	"github.com/gofiber/utils/v2"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors/errcode"

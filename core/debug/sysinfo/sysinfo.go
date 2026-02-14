@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/running"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -25,7 +25,7 @@ var sysStartTime = time.Now()
 
 func init() {
 	// 系统信息仪表板 HTML 页面
-	debug.Get("/sys", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys", func(ctx fiber.Ctx) error {
 		vmem, _ := mem.VirtualMemory()
 		cpuPercent, _ := cpu.Percent(0, false)
 		loadAvg, _ := load.Avg()
@@ -249,7 +249,7 @@ func init() {
 		return ctx.SendString(html)
 	})
 
-	debug.Get("/sys/info", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/info", func(ctx fiber.Ctx) error {
 		hostInfo, _ := host.Info()
 		return ctx.JSON(fiber.Map{
 			"timestamp": time.Now().Format(time.RFC3339),
@@ -272,7 +272,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/cpu", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/cpu", func(ctx fiber.Ctx) error {
 		cpuInfo, _ := cpu.Info()
 		cpuPercent, _ := cpu.Percent(time.Second, false)
 		cpuTimes, _ := cpu.Times(false)
@@ -289,7 +289,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/memory", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/memory", func(ctx fiber.Ctx) error {
 		vmem, _ := mem.VirtualMemory()
 		swap, _ := mem.SwapMemory()
 
@@ -310,7 +310,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/disk", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/disk", func(ctx fiber.Ctx) error {
 		partitions, _ := disk.Partitions(false)
 		var diskUsages []fiber.Map
 		for _, p := range partitions {
@@ -334,7 +334,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/network", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/network", func(ctx fiber.Ctx) error {
 		interfaces, _ := net.Interfaces()
 		ioCounters, _ := net.IOCounters(true)
 		connections, _ := net.Connections("all")
@@ -347,7 +347,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/process", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/process", func(ctx fiber.Ctx) error {
 		pid := int32(os.Getpid())
 		proc, err := psprocess.NewProcess(pid)
 		if err != nil {
@@ -382,7 +382,7 @@ func init() {
 		})
 	})
 
-	debug.Get("/sys/summary", func(ctx *fiber.Ctx) error {
+	debug.Get("/sys/summary", func(ctx fiber.Ctx) error {
 		vmem, _ := mem.VirtualMemory()
 		cpuPercent, _ := cpu.Percent(0, false)
 		loadAvg, _ := load.Avg()

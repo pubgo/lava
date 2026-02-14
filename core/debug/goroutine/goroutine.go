@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/log"
 
 	"github.com/pubgo/lava/v2/core/debug"
@@ -30,7 +30,7 @@ type goroutineStat struct {
 
 func init() {
 	// Goroutine 仪表板 HTML 页面
-	debug.Get("/goroutine", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine", func(ctx fiber.Ctx) error {
 		if ctx.Get("Accept") == "application/json" || ctx.Query("format") == "json" {
 			return ctx.JSON(fiber.Map{
 				"timestamp": time.Now().Format(time.RFC3339),
@@ -234,21 +234,21 @@ async function checkLeak() {
 		return ctx.SendString(html)
 	})
 
-	debug.Get("/goroutine/count", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine/count", func(ctx fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"timestamp": time.Now().Format(time.RFC3339),
 			"count":     runtime.NumGoroutine(),
 		})
 	})
 
-	debug.Get("/goroutine/stack", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine/stack", func(ctx fiber.Ctx) error {
 		buf := make([]byte, 1024*1024)
 		n := runtime.Stack(buf, true)
 		ctx.Set("Content-Type", "text/plain; charset=utf-8")
 		return ctx.Send(buf[:n])
 	})
 
-	debug.Get("/goroutine/stats", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine/stats", func(ctx fiber.Ctx) error {
 		monitorMu.Lock()
 		stats := make([]goroutineStat, len(goroutineStats))
 		copy(stats, goroutineStats)
@@ -261,7 +261,7 @@ async function checkLeak() {
 		})
 	})
 
-	debug.Post("/goroutine/monitor/start", func(ctx *fiber.Ctx) error {
+	debug.Post("/goroutine/monitor/start", func(ctx fiber.Ctx) error {
 		if monitoring.Load() {
 			return ctx.JSON(fiber.Map{
 				"success": false,
@@ -278,7 +278,7 @@ async function checkLeak() {
 		})
 	})
 
-	debug.Post("/goroutine/monitor/stop", func(ctx *fiber.Ctx) error {
+	debug.Post("/goroutine/monitor/stop", func(ctx fiber.Ctx) error {
 		if !monitoring.Load() {
 			return ctx.JSON(fiber.Map{
 				"success": false,
@@ -294,7 +294,7 @@ async function checkLeak() {
 		})
 	})
 
-	debug.Post("/goroutine/monitor/clear", func(ctx *fiber.Ctx) error {
+	debug.Post("/goroutine/monitor/clear", func(ctx fiber.Ctx) error {
 		monitorMu.Lock()
 		goroutineStats = nil
 		monitorMu.Unlock()
@@ -305,7 +305,7 @@ async function checkLeak() {
 		})
 	})
 
-	debug.Get("/goroutine/profile", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine/profile", func(ctx fiber.Ctx) error {
 		profiles := make([]fiber.Map, 0)
 		profileMap := make(map[string]int)
 
@@ -358,7 +358,7 @@ async function checkLeak() {
 		})
 	})
 
-	debug.Get("/goroutine/leak/check", func(ctx *fiber.Ctx) error {
+	debug.Get("/goroutine/leak/check", func(ctx fiber.Ctx) error {
 		monitorMu.Lock()
 		stats := make([]goroutineStat, len(goroutineStats))
 		copy(stats, goroutineStats)

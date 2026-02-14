@@ -3,7 +3,7 @@ package debug
 import (
 	_ "embed"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/supervisor"
 )
@@ -33,12 +33,12 @@ type handler struct {
 	mgr *supervisor.Manager
 }
 
-func (h *handler) handleAPIServices(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIServices(ctx fiber.Ctx) error {
 	services := h.mgr.GetServicesInfo()
 	return ctx.JSON(services)
 }
 
-func (h *handler) handleAPIServiceDetail(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIServiceDetail(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	info, err := h.mgr.GetServiceInfo(name)
 	if err != nil {
@@ -50,7 +50,7 @@ func (h *handler) handleAPIServiceDetail(ctx *fiber.Ctx) error {
 	return ctx.JSON(info)
 }
 
-func (h *handler) handleAPIRestartService(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIRestartService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.RestartService(name); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -65,7 +65,7 @@ func (h *handler) handleAPIRestartService(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handler) handleAPIStopService(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIStopService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.StopService(name); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -80,7 +80,7 @@ func (h *handler) handleAPIStopService(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handler) handleAPIStartService(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIStartService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.StartService(name); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -95,7 +95,7 @@ func (h *handler) handleAPIStartService(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handler) handleAPIResetService(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIResetService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.ResetService(name); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -110,7 +110,7 @@ func (h *handler) handleAPIResetService(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handler) handleAPIRestartAll(ctx *fiber.Ctx) error {
+func (h *handler) handleAPIRestartAll(ctx fiber.Ctx) error {
 	if err := h.mgr.RestartServices(); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -122,7 +122,7 @@ func (h *handler) handleAPIRestartAll(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handler) handleDebugPage(ctx *fiber.Ctx) error {
+func (h *handler) handleDebugPage(ctx fiber.Ctx) error {
 	html := supervisorDebugPageHTML
 	ctx.Set("Content-Type", "text/html; charset=utf-8")
 	return ctx.SendString(html)

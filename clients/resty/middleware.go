@@ -3,7 +3,7 @@ package resty
 import (
 	"fmt"
 
-	"github.com/gofiber/utils"
+	"github.com/gofiber/utils/v2"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/valyala/fasthttp"
 

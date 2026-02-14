@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/buildinfo/version"
@@ -116,7 +116,7 @@ func (s *serviceImpl) init(
 
 	httpServer := fiber.New(conf.Http.Build().Unwrap())
 	httpServer.Use(httputil.Cors())
-	httpServer.Use(func(ctx *fiber.Ctx) error {
+	httpServer.Use(func(ctx fiber.Ctx) error {
 		log.Debug().
 			Str("path", ctx.Path()).
 			Str("method", ctx.Method()).
@@ -226,9 +226,9 @@ func (s *serviceImpl) init(
 			Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
 	}
 
-	httpServer.Mount("/debug", debug.App())
-	httpServer.Mount("/", httpApp)
-	httpServer.Group(grpcGatewayApiPrefix, func(ctx *fiber.Ctx) error {
+	httpServer.Use("/debug", debug.App())
+	httpServer.Use("/", httpApp)
+	httpServer.Use(grpcGatewayApiPrefix, func(ctx fiber.Ctx) error {
 		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
 	})
 

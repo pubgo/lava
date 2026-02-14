@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
@@ -170,15 +171,18 @@ type httpSession struct {
 	mu       sync.Mutex
 	closed   atomic.Bool
 	streams  sync.Map // streamID -> *httpStream
+	acceptCh chan *httpStream
+	startOnce sync.Once
+	closeCh  chan struct{}
+	writeMu  sync.Mutex
 }
 
 func (s *httpSession) Open(ctx context.Context) (tunnel.Stream, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	if s.closed.Load() {
 		return nil, fmt.Errorf("session is closed")
 	}
+
+	s.startReadLoop()
 
 	id := atomic.AddUint32(&s.streamID, 1)
 	stream := &httpStream{
@@ -188,7 +192,6 @@ func (s *httpSession) Open(ctx context.Context) (tunnel.Stream, error) {
 		done:     make(chan struct{}),
 	}
 	s.streams.Store(id, stream)
-
 	return stream, nil
 }
 
@@ -199,21 +202,35 @@ func (s *httpSession) OpenWithPriority(ctx context.Context, priority int) (tunne
 }
 
 func (s *httpSession) Accept() (tunnel.Stream, error) {
-	// 对于简单的 HTTP CONNECT，只返回一个基于底层连接的流
 	if s.closed.Load() {
 		return nil, fmt.Errorf("session is closed")
 	}
 
-	return &httpDirectStream{
-		conn:    s.conn,
-		session: s,
-	}, nil
+	s.startReadLoop()
+
+	select {
+	case <-s.closeCh:
+		return nil, fmt.Errorf("session is closed")
+	case stream, ok := <-s.acceptCh:
+		if !ok {
+			return nil, fmt.Errorf("session is closed")
+		}
+		return stream, nil
+	}
 }
 
 func (s *httpSession) Close() error {
 	if s.closed.Swap(true) {
 		return nil
 	}
+	close(s.closeCh)
+	close(s.acceptCh)
+	s.streams.Range(func(key, value any) bool {
+		if stream, ok := value.(*httpStream); ok {
+			stream.Close()
+		}
+		return true
+	})
 	return s.conn.Close()
 }
 
@@ -233,6 +250,81 @@ func (s *httpSession) NumStreams() int {
 func (s *httpSession) LocalAddr() net.Addr  { return s.conn.LocalAddr() }
 func (s *httpSession) RemoteAddr() net.Addr { return s.conn.RemoteAddr() }
 
+func (s *httpSession) startReadLoop() {
+	s.startOnce.Do(func() {
+		s.acceptCh = make(chan *httpStream, 32)
+		s.closeCh = make(chan struct{})
+		go s.readLoop()
+	})
+}
+
+func (s *httpSession) readLoop() {
+	for {
+		select {
+		case <-s.closeCh:
+			return
+		default:
+		}
+
+		header := make([]byte, 8)
+		if _, err := io.ReadFull(s.conn, header); err != nil {
+			s.Close()
+			return
+		}
+
+		streamID := binary.BigEndian.Uint32(header[:4])
+		length := binary.BigEndian.Uint32(header[4:])
+		payload := make([]byte, length)
+		if _, err := io.ReadFull(s.conn, payload); err != nil {
+			s.Close()
+			return
+		}
+
+		value, ok := s.streams.Load(streamID)
+		var stream *httpStream
+		if ok {
+			stream, _ = value.(*httpStream)
+		} else {
+			stream = &httpStream{
+				session:  s,
+				streamID: streamID,
+				readBuf:  make(chan []byte, 16),
+				done:     make(chan struct{}),
+			}
+			s.streams.Store(streamID, stream)
+			select {
+			case s.acceptCh <- stream:
+			case <-s.closeCh:
+				return
+			}
+		}
+
+		select {
+		case stream.readBuf <- payload:
+		case <-stream.done:
+		}
+	}
+}
+
+func (s *httpSession) writeFrame(streamID uint32, payload []byte) (int, error) {
+	if s.closed.Load() {
+		return 0, fmt.Errorf("session is closed")
+	}
+
+	frame := make([]byte, 8+len(payload))
+	binary.BigEndian.PutUint32(frame[:4], streamID)
+	binary.BigEndian.PutUint32(frame[4:8], uint32(len(payload)))
+	copy(frame[8:], payload)
+
+	s.writeMu.Lock()
+	defer s.writeMu.Unlock()
+
+	if _, err := s.conn.Write(frame); err != nil {
+		return 0, err
+	}
+	return len(payload), nil
+}
+
 // httpStream 多路复用流（基于帧协议）
 type httpStream struct {
 	session  *httpSession
@@ -240,22 +332,33 @@ type httpStream struct {
 	readBuf  chan []byte
 	done     chan struct{}
 	closed   atomic.Bool
+	readMu   sync.Mutex
+	pending  []byte
 }
 
 func (s *httpStream) Read(p []byte) (int, error) {
-	select {
-	case data := <-s.readBuf:
-		return copy(p, data), nil
-	case <-s.done:
-		return 0, io.EOF
+	s.readMu.Lock()
+	defer s.readMu.Unlock()
+
+	for len(s.pending) == 0 {
+		select {
+		case data := <-s.readBuf:
+			s.pending = data
+		case <-s.done:
+			return 0, io.EOF
+		}
 	}
+
+	n := copy(p, s.pending)
+	s.pending = s.pending[n:]
+	return n, nil
 }
 
 func (s *httpStream) Write(p []byte) (int, error) {
 	if s.closed.Load() {
 		return 0, fmt.Errorf("stream closed")
 	}
-	return s.session.conn.Write(p)
+	return s.session.writeFrame(s.streamID, p)
 }
 
 func (s *httpStream) Close() error {
@@ -278,7 +381,6 @@ func (s *httpStream) Priority() int {
 	// HTTP 不支持优先级，返回默认值
 	return 5
 }
-
 // httpDirectStream 直接使用底层连接的流
 type httpDirectStream struct {
 	conn    net.Conn

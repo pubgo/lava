@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"

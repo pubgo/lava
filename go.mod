@@ -1,9 +1,9 @@
 module github.com/pubgo/lava/v2
 
-go 1.25
+go 1.25.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v3 v3.0.0
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -19,9 +19,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.48.0
+	golang.org/x/net v0.49.0
 	golang.org/x/sys v0.40.0 // indirect
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
@@ -47,8 +47,7 @@ require (
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-logr/logr v1.4.3
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/gofiber/adaptor/v2 v2.2.1
-	github.com/gofiber/utils v1.1.0
+	github.com/gofiber/utils/v2 v2.0.0
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
@@ -160,6 +159,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gofiber/schema v1.6.0 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
@@ -195,7 +195,7 @@ require (
 	github.com/karamaru-alpha/copyloopvar v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
@@ -236,6 +236,7 @@ require (
 	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/polyfloyd/go-errorlint v1.6.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
@@ -280,6 +281,7 @@ require (
 	github.com/tetafro/godot v1.4.17 // indirect
 	github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 // indirect
 	github.com/timonwong/loggercheck v0.9.4 // indirect
+	github.com/tinylib/msgp v1.6.3 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
 	github.com/tklauser/numcpus v0.11.0 // indirect
