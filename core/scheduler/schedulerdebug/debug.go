@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 
-    "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/debug/ui"
@@ -15,17 +15,17 @@ import (
 func Init(manager scheduler.JobManager) {
 	debug.Route("/scheduler", func(router fiber.Router) {
 		// 任务列表页面
-        router.Get("/", func(ctx fiber.Ctx) error {
+		router.Get("/", func(ctx fiber.Ctx) error {
 			return renderPage(ctx, manager)
 		})
 
 		// API: 获取所有任务
-        router.Get("/api/jobs", func(ctx fiber.Ctx) error {
+		router.Get("/api/jobs", func(ctx fiber.Ctx) error {
 			return ctx.JSON(manager.ListJobs())
 		})
 
 		// API: 获取指定任务详情
-        router.Get("/api/jobs/:name", func(ctx fiber.Ctx) error {
+		router.Get("/api/jobs/:name", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			job := manager.GetJob(name)
 			if job.IsErr() {
@@ -37,7 +37,7 @@ func Init(manager scheduler.JobManager) {
 		})
 
 		// API: 暂停任务
-        router.Post("/api/jobs/:name/pause", func(ctx fiber.Ctx) error {
+		router.Post("/api/jobs/:name/pause", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.PauseJob(name); err.IsErr() {
 				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -48,7 +48,7 @@ func Init(manager scheduler.JobManager) {
 		})
 
 		// API: 恢复任务
-        router.Post("/api/jobs/:name/resume", func(ctx fiber.Ctx) error {
+		router.Post("/api/jobs/:name/resume", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.ResumeJob(name); err.IsErr() {
 				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -59,7 +59,7 @@ func Init(manager scheduler.JobManager) {
 		})
 
 		// API: 删除任务
-        router.Delete("/api/jobs/:name", func(ctx fiber.Ctx) error {
+		router.Delete("/api/jobs/:name", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.DeleteJob(name); err.IsErr() {
 				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -70,7 +70,7 @@ func Init(manager scheduler.JobManager) {
 		})
 
 		// API: 重载任务
-        router.Post("/api/jobs/:name/reload", func(ctx fiber.Ctx) error {
+		router.Post("/api/jobs/:name/reload", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.ReloadJob(name); err.IsErr() {
 				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{

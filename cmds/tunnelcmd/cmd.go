@@ -18,8 +18,8 @@ import (
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"
-	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
+	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )

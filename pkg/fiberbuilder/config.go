@@ -67,15 +67,15 @@ type Config struct {
 	// Optional. Default: false
 	EnableSplittingOnParsers bool `yaml:"enable_splitting_on_parsers"`
 
-	ETag                     bool          `yaml:"etag"`
-	ReadTimeout              time.Duration `yaml:"read_timeout"`
-	WriteTimeout             time.Duration `yaml:"write_timeout"`
-	IdleTimeout              time.Duration `yaml:"idle_timeout"`
-	ReadBufferSize           int           `yaml:"read_buffer_size"`
-	WriteBufferSize          int           `yaml:"write_buffer_size"`
-	CompressedFileSuffix     string        `yaml:"compressed_file_suffix"`
+	ETag                     bool              `yaml:"etag"`
+	ReadTimeout              time.Duration     `yaml:"read_timeout"`
+	WriteTimeout             time.Duration     `yaml:"write_timeout"`
+	IdleTimeout              time.Duration     `yaml:"idle_timeout"`
+	ReadBufferSize           int               `yaml:"read_buffer_size"`
+	WriteBufferSize          int               `yaml:"write_buffer_size"`
+	CompressedFileSuffix     string            `yaml:"compressed_file_suffix"`
 	CompressedFileSuffixes   map[string]string `yaml:"compressed_file_suffixes"`
-	DisableHeaderNormalizing bool          `yaml:"disable_header_normalizing"`
+	DisableHeaderNormalizing bool              `yaml:"disable_header_normalizing"`
 }
 
 func (t *Config) ToCfg() fiber.Config {

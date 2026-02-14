@@ -165,16 +165,16 @@ func (l *httpListener) Addr() net.Addr { return l.listener.Addr() }
 // httpSession HTTP 隧道会话
 // 注意：HTTP CONNECT 本身不支持多路复用，这里通过简单的帧协议模拟
 type httpSession struct {
-	conn     net.Conn
-	isServer bool
-	streamID uint32
-	mu       sync.Mutex
-	closed   atomic.Bool
-	streams  sync.Map // streamID -> *httpStream
-	acceptCh chan *httpStream
+	conn      net.Conn
+	isServer  bool
+	streamID  uint32
+	mu        sync.Mutex
+	closed    atomic.Bool
+	streams   sync.Map // streamID -> *httpStream
+	acceptCh  chan *httpStream
 	startOnce sync.Once
-	closeCh  chan struct{}
-	writeMu  sync.Mutex
+	closeCh   chan struct{}
+	writeMu   sync.Mutex
 }
 
 func (s *httpSession) Open(ctx context.Context) (tunnel.Stream, error) {
@@ -381,6 +381,7 @@ func (s *httpStream) Priority() int {
 	// HTTP 不支持优先级，返回默认值
 	return 5
 }
+
 // httpDirectStream 直接使用底层连接的流
 type httpDirectStream struct {
 	conn    net.Conn

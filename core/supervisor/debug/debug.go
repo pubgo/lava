@@ -128,6 +128,5 @@ func (h *handler) handleDebugPage(ctx fiber.Ctx) error {
 	return ctx.SendString(html)
 }
 
-
 //go:embed index.html
 var supervisorDebugPageHTML string

@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
+	"github.com/gofiber/fiber/v3/middleware/static"
 )
 
 type Config struct {
@@ -27,9 +27,9 @@ func handlersToAny(handlers ...fiber.Handler) []any {
 	return args
 }
 
-func App() *fiber.App                                    { return app }
-func WrapFunc(h http.HandlerFunc) fiber.Handler          { return adaptor.HTTPHandlerFunc(h) }
-func Wrap(h http.Handler) fiber.Handler                  { return adaptor.HTTPHandler(h) }
+func App() *fiber.App                           { return app }
+func WrapFunc(h http.HandlerFunc) fiber.Handler { return adaptor.HTTPHandlerFunc(h) }
+func Wrap(h http.Handler) fiber.Handler         { return adaptor.HTTPHandler(h) }
 func Get(path string, handler fiber.Handler, handlers ...fiber.Handler) {
 	app.Get(path, handler, handlersToAny(handlers...)...)
 }

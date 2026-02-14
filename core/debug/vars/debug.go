@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"sort"
 
-    "github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/recovery"
 
 	"github.com/pubgo/lava/v2/core/debug"
