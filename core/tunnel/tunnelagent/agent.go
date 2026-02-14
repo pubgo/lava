@@ -72,7 +72,6 @@ const (
 const (
 	TransportYamux = tunnel.TransportYamux
 	TransportQUIC  = tunnel.TransportQUIC
-	TransportHTTP  = tunnel.TransportHTTP
 	TransportKCP   = tunnel.TransportKCP
 )
 

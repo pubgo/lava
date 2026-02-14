@@ -14,7 +14,7 @@ type GatewayConfig struct {
 	Enabled bool `yaml:"enabled"`
 	// ListenAddr 监听地址
 	ListenAddr string `yaml:"listen_addr"`
-	// Transport 传输协议: yamux, quic, http
+	// Transport 传输协议: yamux, quic, kcp
 	Transport string `yaml:"transport"`
 	// TransportOptions 传输层选项
 	TransportOptions *TransportOptions `yaml:"transport_options"`

@@ -31,7 +31,6 @@ core/tunnel/
 │   └── doc.go          # 包文档
 ├── yamux/              # yamux 传输协议实现（基于 TCP）
 ├── quic/               # QUIC 传输协议实现（基于 UDP）
-├── http/               # HTTP CONNECT 传输协议实现
 ├── kcp/                # KCP 传输协议实现（基于 UDP）
 └── example/            # 使用示例
 ```
@@ -232,7 +231,6 @@ go run ./core/tunnel/example/main.go
 
 # 使用不同传输协议
 go run ./core/tunnel/example/main.go -transport=quic
-go run ./core/tunnel/example/main.go -transport=http
 go run ./core/tunnel/example/main.go -transport=kcp
 ```
 
@@ -409,7 +407,6 @@ type Gateway interface {
 |------|------|------|------|
 | yamux | `TransportYamux` | ✅ 已实现 | 基于 TCP 的多路复用 |
 | QUIC | `TransportQUIC` | ✅ 已实现 | 基于 UDP 的多路复用，低延迟、0-RTT |
-| HTTP | `TransportHTTP` | ✅ 已实现 | HTTP CONNECT 隧道，适用于代理穿透 |
 | KCP | `TransportKCP` | ✅ 已实现 | 基于 UDP 的可靠传输，弱网优化 |
 
 ### 协议选择指南
@@ -419,21 +416,20 @@ type Gateway interface {
 | 通用场景 | yamux | 稳定可靠，兼容性好 |
 | 高延迟网络 | QUIC/KCP | 0-RTT 连接，快速恢复 |
 | 弱网环境 | KCP | 激进重传策略，抗丢包 |
-| 企业代理穿透 | HTTP | 兼容 HTTP 代理服务器 |
 | 需要 TLS 1.3 | QUIC | 内置加密，更安全 |
 
 ### 协议特性对比
 
-| 特性 | yamux | QUIC | HTTP | KCP |
-|------|-------|------|------|-----|
-| 传输层 | TCP | UDP | TCP | UDP |
-| 多路复用 | ✅ | ✅ | ❌ | ✅ (smux) |
-| 连接迁移 | ❌ | ✅ | ❌ | ❌ |
-| 0-RTT | ❌ | ✅ | ❌ | ❌ |
-| 内置加密 | ❌ | ✅ | ❌ | ❌ |
-| 代理穿透 | ❌ | ❌ | ✅ | ❌ |
-| 抗丢包 | 一般 | 好 | 一般 | 优秀 |
-| CPU 占用 | 低 | 中 | 低 | 中 |
+| 特性 | yamux | QUIC | KCP |
+|------|-------|------|-----|
+| 传输层 | TCP | UDP | UDP |
+| 多路复用 | ✅ | ✅ | ✅ (smux) |
+| 连接迁移 | ❌ | ✅ | ❌ |
+| 0-RTT | ❌ | ✅ | ❌ |
+| 内置加密 | ❌ | ✅ | ❌ |
+| 代理穿透 | ❌ | ❌ | ❌ |
+| 抗丢包 | 一般 | 好 | 优秀 |
+| CPU 占用 | 低 | 中 | 中 |
 
 ### 自定义传输协议
 
@@ -499,7 +495,6 @@ ErrGatewayAlreadyRunning // 网关已运行
    // 根据需要导入一个或多个传输协议
    import _ "github.com/pubgo/lava/v2/core/tunnel/yamux" // TCP + 多路复用（推荐）
    import _ "github.com/pubgo/lava/v2/core/tunnel/quic"  // UDP + 低延迟
-   import _ "github.com/pubgo/lava/v2/core/tunnel/http"  // HTTP CONNECT 穿透
    import _ "github.com/pubgo/lava/v2/core/tunnel/kcp"   // UDP + 弱网优化
    ```
 

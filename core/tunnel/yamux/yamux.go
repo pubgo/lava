@@ -3,6 +3,7 @@ package yamux
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -43,7 +44,9 @@ func (t *yamuxTransport) Dial(ctx context.Context, addr string) (tunnel.Session,
 
 	session, err := yamux.Client(conn, t.buildConfig(), nil)
 	if err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			return nil, fmt.Errorf("close conn failed: %w (original: %v)", closeErr, err)
+		}
 		return nil, err
 	}
 
@@ -59,7 +62,9 @@ func (t *yamuxTransport) Listen(ctx context.Context, addr string) (tunnel.Listen
 	if t.opts != nil && t.opts.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(t.opts.CertFile, t.opts.KeyFile)
 		if err != nil {
-			ln.Close()
+			if closeErr := ln.Close(); closeErr != nil {
+				return nil, fmt.Errorf("close listener failed: %w (original: %v)", closeErr, err)
+			}
 			return nil, err
 		}
 		ln = tls.NewListener(ln, &tls.Config{Certificates: []tls.Certificate{cert}})
@@ -97,7 +102,9 @@ func (l *yamuxListener) Accept() (tunnel.Session, error) {
 	}
 	session, err := yamux.Server(conn, l.transport.buildConfig(), nil)
 	if err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			return nil, fmt.Errorf("close conn failed: %w (original: %v)", closeErr, err)
+		}
 		return nil, err
 	}
 	return &yamuxSession{session: session, conn: conn}, nil

@@ -189,7 +189,7 @@ func runWatcher(cfg WatcherConfig) error {
 	// 1. patterns
 	// 2. !ignore (转换为排除模式)
 	// 3. !ignore_patterns (转换为排除模式)
-	var finalPatterns []string
+	finalPatterns := make([]string, 0, len(cfg.Patterns)+len(cfg.Ignore)+len(cfg.IgnorePatterns))
 	finalPatterns = append(finalPatterns, cfg.Patterns...)
 
 	// 处理 legacy ignore 配置
@@ -208,7 +208,11 @@ func runWatcher(cfg WatcherConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to create watcher: %w", err)
 	}
-	defer watcher.Close()
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			log.Printf("failed to close watcher: %v", err)
+		}
+	}()
 
 	// 添加监控目录
 	err = addWatchDir(watcher, cfg.Directory, excludes, true)
@@ -253,7 +257,9 @@ func runWatcher(cfg WatcherConfig) error {
 			if event.Op&fsnotify.Create != 0 {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
 					log.Printf("[%s] New directory created: %s, adding to watch list", cfg.Name, event.Name)
-					addWatchDir(watcher, event.Name, excludes, true)
+					if err := addWatchDir(watcher, event.Name, excludes, true); err != nil {
+						log.Printf("[%s] failed to add watch directory %s: %v", cfg.Name, event.Name, err)
+					}
 				}
 			}
 
@@ -306,7 +312,7 @@ func addWatchDir(watcher *fsnotify.Watcher, dir string, excludes []string, verbo
 	})
 }
 
-func runCommand(watcherName string, cmdStr string, timeout int) {
+func runCommand(watcherName, cmdStr string, timeout int) {
 	log.Printf("[%s] Running command: %s", watcherName, cmdStr)
 
 	// 解析命令
@@ -349,7 +355,9 @@ func runCommand(watcherName string, cmdStr string, timeout int) {
 		}
 	case <-ctx.Done():
 		log.Printf("[%s] Command timeout, killing process", watcherName)
-		cmd.Process.Kill()
+		if err := cmd.Process.Kill(); err != nil {
+			log.Printf("[%s] Failed to kill process: %v", watcherName, err)
+		}
 		<-done
 		log.Printf("[%s] Command killed", watcherName)
 	}

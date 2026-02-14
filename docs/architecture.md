@@ -153,8 +153,7 @@ flowchart TD
     subgraph 传输层
         Transport1[Yamux] --> Gateway
         Transport2[QUIC] --> Gateway
-        Transport3[HTTP] --> Gateway
-        Transport4[KCP] --> Gateway
+        Transport3[KCP] --> Gateway
     end
 ```
 
@@ -163,7 +162,7 @@ flowchart TD
 - 内网穿透
 - 服务聚合
 - 远程调试
-- 多种传输协议支持（Yamux、QUIC、HTTP、KCP）
+- 多种传输协议支持（Yamux、QUIC、KCP）
 
 ### 3.6 中间件系统 (Middleware)
 

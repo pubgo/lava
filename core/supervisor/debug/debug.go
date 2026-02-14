@@ -4,6 +4,7 @@ import (
 	_ "embed"
 
 	"github.com/gofiber/fiber/v3"
+
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/supervisor"
 )

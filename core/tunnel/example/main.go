@@ -12,7 +12,6 @@
 //
 //	# Run with different transport protocols
 //	go run ./core/tunnel/example/main.go -transport=quic
-//	go run ./core/tunnel/example/main.go -transport=http
 //	go run ./core/tunnel/example/main.go -transport=kcp
 //
 //	# Run components separately (in different terminals)
@@ -34,7 +33,6 @@ import (
 	"time"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
-	_ "github.com/pubgo/lava/v2/core/tunnel/http"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
@@ -44,7 +42,7 @@ import (
 
 var (
 	mode        = flag.String("mode", "all", "Run mode: gateway, agent, backend, or all")
-	transport   = flag.String("transport", "yamux", "Transport protocol: yamux, quic, http, kcp")
+	transport   = flag.String("transport", "yamux", "Transport protocol: yamux, quic, kcp")
 	gatewayAddr = flag.String("gateway-addr", "127.0.0.1:17000", "Gateway listen address")
 	httpPort    = flag.Int("http-port", 18080, "HTTP proxy port")
 	backendAddr = flag.String("backend-addr", "127.0.0.1:18081", "Backend service address")
@@ -88,7 +86,11 @@ func runGateway(ctx context.Context) {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("Gateway start failed: %v", err)
 	}
-	defer gw.Stop(ctx)
+	defer func() {
+		if err := gw.Stop(ctx); err != nil {
+			log.Printf("Gateway stop failed: %v", err)
+		}
+	}()
 
 	fmt.Printf("Gateway started on %s (transport: %s)\n", *gatewayAddr, *transport)
 	fmt.Printf("HTTP proxy available at http://127.0.0.1:%d/<service-name>/<path>\n", *httpPort)
@@ -109,7 +111,11 @@ func runAgent(ctx context.Context) {
 	if err := agent.Start(ctx); err != nil {
 		log.Fatalf("Agent start failed: %v", err)
 	}
-	defer agent.Stop(ctx)
+	defer func() {
+		if err := agent.Stop(ctx); err != nil {
+			log.Printf("Agent stop failed: %v", err)
+		}
+	}()
 
 	fmt.Printf("Agent connected to %s (service: %s, backend: %s)\n", *gatewayAddr, *serviceName, *backendAddr)
 
@@ -119,18 +125,22 @@ func runAgent(ctx context.Context) {
 func runBackend(ctx context.Context) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{
+		if err := json.NewEncoder(w).Encode(map[string]any{
 			"path":    r.URL.Path,
 			"method":  r.Method,
 			"headers": r.Header,
 			"time":    time.Now().Format(time.RFC3339),
-		})
+		}); err != nil {
+			log.Printf("encode response failed: %v", err)
+		}
 	})
 
 	srv := &http.Server{Addr: *backendAddr, Handler: mux}
 	go func() {
 		<-ctx.Done()
-		srv.Shutdown(context.Background())
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Printf("backend shutdown failed: %v", err)
+		}
 	}()
 
 	fmt.Printf("Backend server started on %s\n", *backendAddr)
@@ -143,15 +153,25 @@ func runAll(ctx context.Context) {
 	fmt.Println("Starting backend server...")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{
+		if err := json.NewEncoder(w).Encode(map[string]any{
 			"message": "Hello from backend!",
 			"path":    r.URL.Path,
 			"time":    time.Now().Format(time.RFC3339),
-		})
+		}); err != nil {
+			log.Printf("encode response failed: %v", err)
+		}
 	})
 	backendSrv := &http.Server{Addr: *backendAddr, Handler: mux}
-	go backendSrv.ListenAndServe()
-	defer backendSrv.Shutdown(ctx)
+	go func() {
+		if err := backendSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("backend server error: %v", err)
+		}
+	}()
+	defer func() {
+		if err := backendSrv.Shutdown(ctx); err != nil {
+			log.Printf("backend shutdown failed: %v", err)
+		}
+	}()
 	time.Sleep(100 * time.Millisecond)
 
 	fmt.Println("Starting gateway...")
@@ -163,7 +183,11 @@ func runAll(ctx context.Context) {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("Gateway start failed: %v", err)
 	}
-	defer gw.Stop(ctx)
+	defer func() {
+		if err := gw.Stop(ctx); err != nil {
+			log.Printf("Gateway stop failed: %v", err)
+		}
+	}()
 
 	fmt.Println("Starting agent...")
 	agent := tunnelagent.New(&tunnelagent.Config{
@@ -177,7 +201,11 @@ func runAll(ctx context.Context) {
 	if err := agent.Start(ctx); err != nil {
 		log.Fatalf("Agent start failed: %v", err)
 	}
-	defer agent.Stop(ctx)
+	defer func() {
+		if err := agent.Stop(ctx); err != nil {
+			log.Printf("Agent stop failed: %v", err)
+		}
+	}()
 
 	time.Sleep(500 * time.Millisecond)
 

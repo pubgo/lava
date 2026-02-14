@@ -103,6 +103,7 @@ func (w *fiberWebWriter) writeTrailer() error {
 	}
 	tr := make(http.Header)
 	// Collect grpc-* headers for trailer
+	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
 	w.ctx.Response().Header.VisitAll(func(key, value []byte) {
 		k := string(key)
 		if strings.HasPrefix(strings.ToLower(k), "grpc-") {
@@ -154,13 +155,14 @@ func (w *webWriter) Write(data []byte) (int, error) {
 				continue
 			}
 			for _, val := range v {
-				w.resp.Write([]byte(k))
-				w.resp.Write([]byte(": "))
-				w.resp.Write([]byte(val))
-				w.resp.Write([]byte("\r\n"))
+				if err := writeAll(w.resp, []byte(k), []byte(": "), []byte(val), []byte("\r\n")); err != nil {
+					return 0, err
+				}
 			}
 		}
-		w.resp.Write([]byte("\r\n"))
+		if err := writeAll(w.resp, []byte("\r\n")); err != nil {
+			return 0, err
+		}
 	}
 	w.wroteResp = true
 	return w.resp.Write(data)
@@ -210,6 +212,15 @@ func (w *webWriter) flushWithTrailer() {
 		}
 	}
 	w.Flush()
+}
+
+func writeAll(w io.Writer, parts ...[]byte) error {
+	for _, part := range parts {
+		if _, err := w.Write(part); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type readCloser struct {

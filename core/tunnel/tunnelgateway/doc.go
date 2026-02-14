@@ -8,7 +8,7 @@
 //
 //	gw := tunnelgateway.New(&tunnelgateway.Config{
 //		ListenAddr: ":9000",
-//		Transport:  "yamux",  // 或 "quic", "http", "kcp"
+//		Transport:  "yamux",  // 或 "quic", "kcp"
 //		HTTPPort:   8080,     // 对外暴露的 HTTP 端口
 //		GRPCPort:   9090,     // 对外暴露的 gRPC 端口
 //		DebugPort:  6060,     // 对外暴露的 Debug 端口
@@ -60,7 +60,6 @@
 //
 //   - yamux: 基于 TCP 的多路复用（默认）
 //   - quic: 基于 UDP 的 QUIC 协议
-//   - http: HTTP CONNECT 隧道
 //   - kcp: 基于 UDP 的 KCP 协议
 //
 // # TLS 配置

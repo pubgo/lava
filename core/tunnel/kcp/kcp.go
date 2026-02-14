@@ -51,7 +51,9 @@ func (t *kcpTransport) Dial(ctx context.Context, addr string) (tunnel.Session, e
 	smuxConfig := t.buildSmuxConfig()
 	session, err := smux.Client(netConn, smuxConfig)
 	if err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			return nil, closeErr
+		}
 		return nil, err
 	}
 
@@ -88,8 +90,12 @@ func (t *kcpTransport) configureKCPConn(conn *kcp.UDPSession) {
 	conn.SetWindowSize(256, 256)
 
 	// 设置读写缓冲区
-	conn.SetReadBuffer(4 * 1024 * 1024)
-	conn.SetWriteBuffer(4 * 1024 * 1024)
+	if err := conn.SetReadBuffer(4 * 1024 * 1024); err != nil {
+		_ = err // ignore non-fatal buffer errors
+	}
+	if err := conn.SetWriteBuffer(4 * 1024 * 1024); err != nil {
+		_ = err // ignore non-fatal buffer errors
+	}
 
 	// 设置 MTU
 	conn.SetMtu(1350)
@@ -131,7 +137,9 @@ func (l *kcpListener) Accept() (tunnel.Session, error) {
 	if l.transport.opts != nil && l.transport.opts.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(l.transport.opts.CertFile, l.transport.opts.KeyFile)
 		if err != nil {
-			conn.Close()
+			if closeErr := conn.Close(); closeErr != nil {
+				return nil, closeErr
+			}
 			return nil, err
 		}
 		netConn = tls.Server(conn, &tls.Config{Certificates: []tls.Certificate{cert}})
@@ -141,7 +149,9 @@ func (l *kcpListener) Accept() (tunnel.Session, error) {
 	smuxConfig := l.transport.buildSmuxConfig()
 	session, err := smux.Server(netConn, smuxConfig)
 	if err != nil {
-		conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			return nil, closeErr
+		}
 		return nil, err
 	}
 
@@ -191,7 +201,9 @@ func (s *kcpSession) Close() error {
 	if s.closed.Swap(true) {
 		return nil
 	}
-	s.session.Close()
+	if err := s.session.Close(); err != nil {
+		return err
+	}
 	return s.conn.Close()
 }
 

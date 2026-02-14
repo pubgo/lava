@@ -8,7 +8,7 @@
 //
 //	agent := tunnelagent.New(&tunnelagent.Config{
 //		GatewayAddr: "gateway.example.com:9000",
-//		Transport:   "yamux",  // 或 "quic", "http", "kcp"
+//		Transport:   "yamux",  // 或 "quic", "kcp"
 //		ServiceName: "my-service",
 //		ServiceVersion: "v1.0.0",
 //		Endpoints: []tunnelagent.EndpointConfig{
@@ -46,14 +46,12 @@
 //
 //   - yamux: 基于 TCP 的多路复用（默认）
 //   - quic: 基于 UDP 的 QUIC 协议
-//   - http: HTTP CONNECT 隧道
 //   - kcp: 基于 UDP 的 KCP 协议
 //
 // 选择传输协议时需要考虑:
 //
 //   - yamux: 适合大多数场景，稳定可靠
 //   - quic: 适合高延迟或丢包网络，支持 0-RTT
-//   - http: 适合需要穿越 HTTP 代理的场景
 //   - kcp: 适合对延迟敏感但可接受较高带宽的场景
 //
 // # TLS 配置

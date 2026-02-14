@@ -38,7 +38,7 @@ func SplitPatterns(patterns []string) (includes, excludes []string) {
 			includes = append(includes, p)
 		}
 	}
-	return
+	return includes, excludes
 }
 
 // MatchAny checks if path matches any of the provided patterns.

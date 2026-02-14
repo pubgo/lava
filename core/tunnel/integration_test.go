@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
-	_ "github.com/pubgo/lava/v2/core/tunnel/http"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
@@ -24,7 +23,6 @@ import (
 
 func TestTransport_Yamux(t *testing.T) { runTransportTest(t, "yamux", 20000) }
 func TestTransport_QUIC(t *testing.T)  { runTransportTest(t, "quic", 20100) }
-func TestTransport_HTTP(t *testing.T)  { runTransportTest(t, "http", 20200) }
 func TestTransport_KCP(t *testing.T)   { runTransportTest(t, "kcp", 20300) }
 
 func runTransportTest(t *testing.T, transport string, basePort int) {
@@ -43,11 +41,21 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{"transport": transport})
+		if err := json.NewEncoder(w).Encode(map[string]string{"transport": transport}); err != nil {
+			t.Logf("encode response failed: %v", err)
+		}
 	})
 	backendSrv := &http.Server{Addr: backendAddr, Handler: mux}
-	go backendSrv.ListenAndServe()
-	defer backendSrv.Shutdown(ctx)
+	go func() {
+		if err := backendSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			t.Logf("backend server error: %v", err)
+		}
+	}()
+	t.Cleanup(func() {
+		if err := backendSrv.Shutdown(ctx); err != nil {
+			t.Logf("backend shutdown failed: %v", err)
+		}
+	})
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.New(&tunnelgateway.Config{
@@ -59,7 +67,11 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatalf("[%s] Gateway: %v", transport, err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("[%s] Gateway stop failed: %v", transport, err)
+		}
+	})
 
 	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr:      gatewayAddr,
@@ -71,7 +83,11 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatalf("[%s] Agent: %v", transport, err)
 	}
-	defer agent.Stop(ctx)
+	t.Cleanup(func() {
+		if err := agent.Stop(ctx); err != nil {
+			t.Logf("[%s] Agent stop failed: %v", transport, err)
+		}
+	})
 	time.Sleep(500 * time.Millisecond)
 
 	if len(gw.Services()) == 0 {
@@ -82,8 +98,15 @@ func runTransportTest(t *testing.T, transport string, basePort int) {
 	if err != nil {
 		t.Fatalf("[%s] Request: %v", transport, err)
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	t.Cleanup(func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Logf("[%s] response close failed: %v", transport, err)
+		}
+	})
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("[%s] read response failed: %v", transport, err)
+	}
 	t.Logf("[%s] %s", transport, body)
 
 	if resp.StatusCode != 200 {
@@ -100,11 +123,21 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 		name := fmt.Sprintf("b%d", i)
 		mux := http.NewServeMux()
 		mux.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(map[string]string{"backend": name})
+			if err := json.NewEncoder(w).Encode(map[string]string{"backend": name}); err != nil {
+				t.Logf("encode response failed: %v", err)
+			}
 		})
 		srv := &http.Server{Addr: fmt.Sprintf("127.0.0.1:%d", port), Handler: mux}
-		go srv.ListenAndServe()
-		defer srv.Shutdown(ctx)
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				t.Logf("backend server error: %v", err)
+			}
+		}()
+		t.Cleanup(func() {
+			if err := srv.Shutdown(ctx); err != nil {
+				t.Logf("backend shutdown failed: %v", err)
+			}
+		})
 	}
 	time.Sleep(100 * time.Millisecond)
 
@@ -116,7 +149,11 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	var agents []*tunnelagent.Agent
 	for i := 1; i <= 3; i++ {
@@ -133,7 +170,9 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 	}
 	defer func() {
 		for _, a := range agents {
-			a.Stop(ctx)
+			if err := a.Stop(ctx); err != nil {
+				t.Logf("agent stop failed: %v", err)
+			}
 		}
 	}()
 	time.Sleep(500 * time.Millisecond)
@@ -144,7 +183,9 @@ func TestAgentProxy_MultiBackends(t *testing.T) {
 			t.Errorf("svc-%d: %v", i, err)
 			continue
 		}
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			t.Errorf("svc-%d: close failed: %v", i, err)
+		}
 		if resp.StatusCode != 200 {
 			t.Errorf("svc-%d: status %d", i, resp.StatusCode)
 		}
@@ -157,19 +198,37 @@ func TestAgentProxy_POST(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		json.NewEncoder(w).Encode(map[string]any{"method": r.Method, "body": string(body)})
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Logf("read request failed: %v", err)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(map[string]any{"method": r.Method, "body": string(body)}); err != nil {
+			t.Logf("encode response failed: %v", err)
+		}
 	})
 	srv := &http.Server{Addr: "127.0.0.1:22081", Handler: mux}
-	go srv.ListenAndServe()
-	defer srv.Shutdown(ctx)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			t.Logf("backend server error: %v", err)
+		}
+	}()
+	t.Cleanup(func() {
+		if err := srv.Shutdown(ctx); err != nil {
+			t.Logf("backend shutdown failed: %v", err)
+		}
+	})
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:22000", Transport: "yamux", HTTPPort: 22080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:22000",
@@ -180,17 +239,27 @@ func TestAgentProxy_POST(t *testing.T) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(ctx)
+	t.Cleanup(func() {
+		if err := agent.Stop(ctx); err != nil {
+			t.Logf("agent stop failed: %v", err)
+		}
+	})
 	time.Sleep(500 * time.Millisecond)
 
 	resp, err := http.Post("http://127.0.0.1:22080/post-svc/echo", "application/json", strings.NewReader(`{"test":"data"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	t.Cleanup(func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Logf("response close failed: %v", err)
+		}
+	})
 
 	var result map[string]any
-	json.NewDecoder(resp.Body).Decode(&result)
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("decode response failed: %v", err)
+	}
 	if result["method"] != "POST" {
 		t.Errorf("method=%v", result["method"])
 	}
@@ -202,19 +271,37 @@ func TestAgentProxy_LargeBody(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		w.Write(body)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Logf("read request failed: %v", err)
+			return
+		}
+		if _, err := w.Write(body); err != nil {
+			t.Logf("write response failed: %v", err)
+		}
 	})
 	srv := &http.Server{Addr: "127.0.0.1:23081", Handler: mux}
-	go srv.ListenAndServe()
-	defer srv.Shutdown(ctx)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			t.Logf("backend server error: %v", err)
+		}
+	}()
+	t.Cleanup(func() {
+		if err := srv.Shutdown(ctx); err != nil {
+			t.Logf("backend shutdown failed: %v", err)
+		}
+	})
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:23000", Transport: "yamux", HTTPPort: 23080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:23000",
@@ -225,7 +312,11 @@ func TestAgentProxy_LargeBody(t *testing.T) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(ctx)
+	t.Cleanup(func() {
+		if err := agent.Stop(ctx); err != nil {
+			t.Logf("agent stop failed: %v", err)
+		}
+	})
 	time.Sleep(500 * time.Millisecond)
 
 	for _, size := range []int{1024, 10 * 1024, 100 * 1024} {
@@ -238,8 +329,15 @@ func TestAgentProxy_LargeBody(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer resp.Body.Close()
-			body, _ := io.ReadAll(resp.Body)
+			t.Cleanup(func() {
+				if err := resp.Body.Close(); err != nil {
+					t.Logf("response close failed: %v", err)
+				}
+			})
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatalf("read response failed: %v", err)
+			}
 			if !bytes.Equal(data, body) {
 				t.Error("body mismatch")
 			}
@@ -259,18 +357,32 @@ func TestAgentProxy_Concurrent(t *testing.T) {
 		count++
 		mu.Unlock()
 		time.Sleep(10 * time.Millisecond)
-		w.Write([]byte("ok"))
+		if _, err := w.Write([]byte("ok")); err != nil {
+			t.Logf("write response failed: %v", err)
+		}
 	})
 	srv := &http.Server{Addr: "127.0.0.1:24081", Handler: mux}
-	go srv.ListenAndServe()
-	defer srv.Shutdown(ctx)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			t.Logf("backend server error: %v", err)
+		}
+	}()
+	t.Cleanup(func() {
+		if err := srv.Shutdown(ctx); err != nil {
+			t.Logf("backend shutdown failed: %v", err)
+		}
+	})
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.New(&tunnelgateway.Config{ListenAddr: "127.0.0.1:24000", Transport: "yamux", HTTPPort: 24080})
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:24000",
@@ -281,7 +393,11 @@ func TestAgentProxy_Concurrent(t *testing.T) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(ctx)
+	t.Cleanup(func() {
+		if err := agent.Stop(ctx); err != nil {
+			t.Logf("agent stop failed: %v", err)
+		}
+	})
 	time.Sleep(500 * time.Millisecond)
 
 	n := 50
@@ -296,7 +412,9 @@ func TestAgentProxy_Concurrent(t *testing.T) {
 				errs <- err
 				return
 			}
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				errs <- err
+			}
 		}()
 	}
 	wg.Wait()
@@ -318,7 +436,11 @@ func TestAgentProxy_TCP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer ln.Close()
+	t.Cleanup(func() {
+		if err := ln.Close(); err != nil {
+			t.Logf("listener close failed: %v", err)
+		}
+	})
 	go func() {
 		for {
 			conn, err := ln.Accept()
@@ -326,8 +448,14 @@ func TestAgentProxy_TCP(t *testing.T) {
 				return
 			}
 			go func(c net.Conn) {
-				defer c.Close()
-				io.Copy(c, c)
+				defer func() {
+					if err := c.Close(); err != nil {
+						t.Logf("conn close failed: %v", err)
+					}
+				}()
+				if _, err := io.Copy(c, c); err != nil {
+					t.Logf("echo copy failed: %v", err)
+				}
 			}(conn)
 		}
 	}()
@@ -336,7 +464,11 @@ func TestAgentProxy_TCP(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	agent := tunnelagent.New(&tunnelagent.Config{
 		GatewayAddr: "127.0.0.1:26000",
@@ -347,7 +479,11 @@ func TestAgentProxy_TCP(t *testing.T) {
 	if err := agent.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(ctx)
+	t.Cleanup(func() {
+		if err := agent.Stop(ctx); err != nil {
+			t.Logf("agent stop failed: %v", err)
+		}
+	})
 	time.Sleep(500 * time.Millisecond)
 
 	if len(gw.Services()) == 0 {
@@ -364,7 +500,11 @@ func TestMultipleAgents(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(ctx)
+	t.Cleanup(func() {
+		if err := gw.Stop(ctx); err != nil {
+			t.Logf("gateway stop failed: %v", err)
+		}
+	})
 
 	n := 5
 	var agents []*tunnelagent.Agent
@@ -375,10 +515,16 @@ func TestMultipleAgents(t *testing.T) {
 		name := fmt.Sprintf("multi-svc-%d", i)
 		mux := http.NewServeMux()
 		mux.HandleFunc("/info", func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(map[string]string{"svc": name})
+			if err := json.NewEncoder(w).Encode(map[string]string{"svc": name}); err != nil {
+				t.Logf("encode response failed: %v", err)
+			}
 		})
 		srv := &http.Server{Addr: fmt.Sprintf("127.0.0.1:%d", port), Handler: mux}
-		go srv.ListenAndServe()
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				t.Logf("backend server error: %v", err)
+			}
+		}()
 		servers = append(servers, srv)
 
 		agent := tunnelagent.New(&tunnelagent.Config{
@@ -394,10 +540,14 @@ func TestMultipleAgents(t *testing.T) {
 	}
 	defer func() {
 		for _, a := range agents {
-			a.Stop(ctx)
+			if err := a.Stop(ctx); err != nil {
+				t.Logf("agent stop failed: %v", err)
+			}
 		}
 		for _, s := range servers {
-			s.Shutdown(ctx)
+			if err := s.Shutdown(ctx); err != nil {
+				t.Logf("server shutdown failed: %v", err)
+			}
 		}
 	}()
 	time.Sleep(1 * time.Second)
@@ -408,9 +558,15 @@ func TestMultipleAgents(t *testing.T) {
 	t.Logf("services: %d", len(gw.Services()))
 
 	for i := 0; i < n; i++ {
-		resp, _ := http.Get(fmt.Sprintf("http://127.0.0.1:27080/multi-svc-%d/info", i))
+		resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:27080/multi-svc-%d/info", i))
+		if err != nil {
+			t.Errorf("svc %d: %v", i, err)
+			continue
+		}
 		if resp != nil {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				t.Errorf("svc %d: close failed: %v", i, err)
+			}
 			if resp.StatusCode != 200 {
 				t.Errorf("svc %d: %d", i, resp.StatusCode)
 			}

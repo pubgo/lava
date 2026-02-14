@@ -88,6 +88,7 @@ type tunnelAgent struct {
 	services  map[string]*tunnel.ServiceInfo
 	status    tunnel.AgentStatus
 	stats     *Stats
+	statsMu   sync.Mutex
 
 	mu       sync.RWMutex
 	stopCh   chan struct{}
@@ -147,7 +148,9 @@ func (a *tunnelAgent) Stop(ctx context.Context) error {
 
 	// 先关闭 session，让所有等待的 goroutine 退出
 	if a.session != nil {
-		a.session.Close()
+		if err := a.session.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close session")
+		}
 	}
 
 	// Wait for goroutines to finish with timeout
@@ -224,7 +227,7 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 	if err != nil {
 		a.status = tunnel.StatusDisconnected
 		atomic.AddInt64(&a.stats.Errors, 1)
-		a.stats.LastActivity = time.Now()
+		a.updateLastActivity()
 		return err
 	}
 	a.session = session
@@ -232,7 +235,7 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 
 	// 更新统计信息
 	atomic.AddInt64(&a.stats.Connections, 1)
-	a.stats.LastActivity = time.Now()
+	a.updateLastActivity()
 
 	// Register all services
 	a.mu.RLock()
@@ -240,16 +243,15 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 	for _, svc := range a.services {
 		services = append(services, svc)
 		// 确保服务统计信息存在
-		if _, ok := a.stats.ServiceStats[svc.Name]; !ok {
-			a.stats.ServiceStats[svc.Name] = &ServiceStats{}
-		}
+		a.getOrCreateServiceStats(svc.Name)
 	}
 	a.mu.RUnlock()
 
 	for _, svc := range services {
 		if err := a.sendRegister(ctx, svc); err != nil {
 			log.Warn().Err(err).Str("service", svc.Name).Msg("Failed to register service")
-			atomic.AddInt64(&a.stats.ServiceStats[svc.Name].Errors, 1)
+			stats := a.getOrCreateServiceStats(svc.Name)
+			atomic.AddInt64(&stats.Errors, 1)
 		}
 	}
 
@@ -267,7 +269,11 @@ func (a *tunnelAgent) sendRegister(ctx context.Context, service *tunnel.ServiceI
 			return err
 		}
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close register stream")
+		}
+	}()
 
 	payload, err := json.Marshal(service)
 	if err != nil {
@@ -296,7 +302,11 @@ func (a *tunnelAgent) sendDeregister(ctx context.Context, serviceName string) er
 			return err
 		}
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close deregister stream")
+		}
+	}()
 
 	msg := &tunnel.Message{
 		Type:    tunnel.MessageTypeDeregister,
@@ -313,7 +323,7 @@ func (a *tunnelAgent) sendMessage(stream tunnel.Stream, msg *tunnel.Message) err
 	data, err := json.Marshal(msg)
 	if err != nil {
 		atomic.AddInt64(&a.stats.Errors, 1)
-		a.stats.LastActivity = time.Now()
+		a.updateLastActivity()
 		return err
 	}
 
@@ -328,18 +338,18 @@ func (a *tunnelAgent) sendMessage(stream tunnel.Stream, msg *tunnel.Message) err
 
 	if _, err := stream.Write(header); err != nil {
 		atomic.AddInt64(&a.stats.Errors, 1)
-		a.stats.LastActivity = time.Now()
+		a.updateLastActivity()
 		return err
 	}
 	if _, err := stream.Write(data); err != nil {
 		atomic.AddInt64(&a.stats.Errors, 1)
-		a.stats.LastActivity = time.Now()
+		a.updateLastActivity()
 		return err
 	}
 
 	// 更新统计信息
 	atomic.AddInt64(&a.stats.BytesOut, int64(len(header)+len(data)))
-	a.stats.LastActivity = time.Now()
+	a.updateLastActivity()
 	return nil
 }
 
@@ -415,7 +425,11 @@ func (a *tunnelAgent) sendHeartbeat() error {
 			return err
 		}
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close heartbeat stream")
+		}
+	}()
 
 	msg := &tunnel.Message{Type: tunnel.MessageTypeHeartbeat}
 	if err := a.sendMessage(stream, msg); err != nil {
@@ -464,14 +478,16 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 
 	// 更新流统计信息
 	atomic.AddInt64(&a.stats.Streams, 1)
-	a.stats.LastActivity = time.Now()
+	a.updateLastActivity()
 
 	// Read message header
 	header := make([]byte, 4)
 	if _, err := io.ReadFull(stream, header); err != nil {
 		log.Warn().Err(err).Msg("Agent: Failed to read message header")
 		atomic.AddInt64(&a.stats.Errors, 1)
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close stream after header read error")
+		}
 		return
 	}
 
@@ -482,7 +498,9 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	if _, err := io.ReadFull(stream, data); err != nil {
 		log.Warn().Err(err).Msg("Agent: Failed to read message data")
 		atomic.AddInt64(&a.stats.Errors, 1)
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close stream after data read error")
+		}
 		return
 	}
 
@@ -493,7 +511,9 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	if err := json.Unmarshal(data, &msg); err != nil {
 		log.Warn().Err(err).Str("data", string(data)).Msg("Agent: Failed to unmarshal message")
 		atomic.AddInt64(&a.stats.Errors, 1)
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close stream after unmarshal error")
+		}
 		return
 	}
 
@@ -508,22 +528,23 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	case tunnel.MessageTypeDebugRequest:
 		a.handleDebugRequest(stream, &msg)
 	default:
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close stream for unknown message")
+		}
 	}
 
 	// 计算响应时间并更新统计信息
 	responseTime := time.Since(startTime)
 	atomic.AddInt64(&a.stats.Requests, 1)
-	a.stats.ResponseTimes = append(a.stats.ResponseTimes, responseTime)
-	// 限制响应时间记录数量
-	if len(a.stats.ResponseTimes) > 1000 {
-		a.stats.ResponseTimes = a.stats.ResponseTimes[1:]
-	}
-	a.stats.LastActivity = time.Now()
+	a.recordResponseTime(responseTime)
 }
 
 func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Message) {
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close HTTP stream")
+		}
+	}()
 
 	// Parse request meta from payload
 	var meta tunnel.RequestMeta
@@ -569,7 +590,11 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local HTTP service")
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to close HTTP connection")
+		}
+	}()
 
 	// Bidirectional copy - wait for both directions to complete
 	var wg sync.WaitGroup
@@ -578,17 +603,23 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 	// stream -> conn (request from gateway to local service)
 	go func() {
 		defer wg.Done()
-		io.Copy(conn, stream)
+		if _, err := io.Copy(conn, stream); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy request to local HTTP service")
+		}
 		// Close write side to signal end of request
 		if tcpConn, ok := conn.(*net.TCPConn); ok {
-			tcpConn.CloseWrite()
+			if err := tcpConn.CloseWrite(); err != nil {
+				log.Warn().Err(err).Str("address", address).Msg("Failed to close write side")
+			}
 		}
 	}()
 
 	// conn -> stream (response from local service to gateway)
 	go func() {
 		defer wg.Done()
-		io.Copy(stream, conn)
+		if _, err := io.Copy(stream, conn); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy response from local HTTP service")
+		}
 	}()
 
 	wg.Wait()
@@ -596,7 +627,11 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 }
 
 func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Message) {
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close gRPC stream")
+		}
+	}()
 
 	// Parse request meta from payload
 	var meta tunnel.RequestMeta
@@ -642,7 +677,11 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local gRPC service")
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to close gRPC connection")
+		}
+	}()
 
 	// Bidirectional copy - wait for both directions to complete
 	var wg sync.WaitGroup
@@ -650,12 +689,16 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 
 	go func() {
 		defer wg.Done()
-		io.Copy(conn, stream)
+		if _, err := io.Copy(conn, stream); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy gRPC request to local service")
+		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		io.Copy(stream, conn)
+		if _, err := io.Copy(stream, conn); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy gRPC response from local service")
+		}
 	}()
 
 	wg.Wait()
@@ -663,7 +706,11 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 }
 
 func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Message) {
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close debug stream")
+		}
+	}()
 
 	// Parse request meta from payload
 	var meta tunnel.RequestMeta
@@ -709,7 +756,11 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local debug service")
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to close debug connection")
+		}
+	}()
 
 	// Bidirectional copy - wait for both directions to complete
 	var wg sync.WaitGroup
@@ -717,12 +768,16 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 
 	go func() {
 		defer wg.Done()
-		io.Copy(conn, stream)
+		if _, err := io.Copy(conn, stream); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy debug request to local service")
+		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		io.Copy(stream, conn)
+		if _, err := io.Copy(stream, conn); err != nil {
+			log.Warn().Err(err).Str("address", address).Msg("Failed to copy debug response from local service")
+		}
 	}()
 
 	wg.Wait()
@@ -788,13 +843,83 @@ func (a *tunnelAgent) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"transport":   a.cfg.Transport,
 		"services":    services,
 		"num_streams": 0,
-		"stats":       a.stats,
 	}
 
 	if a.session != nil && !a.session.IsClosed() {
 		status["num_streams"] = a.session.NumStreams()
 	}
+	statsSnapshot := a.snapshotStats()
+	status["stats"] = statsSnapshot
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(status)
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		log.Warn().Err(err).Msg("Agent: failed to encode status")
+	}
+}
+
+func (a *tunnelAgent) updateLastActivity() {
+	a.statsMu.Lock()
+	a.stats.LastActivity = time.Now()
+	a.statsMu.Unlock()
+}
+
+func (a *tunnelAgent) recordResponseTime(d time.Duration) {
+	a.statsMu.Lock()
+	a.stats.ResponseTimes = append(a.stats.ResponseTimes, d)
+	if len(a.stats.ResponseTimes) > 1000 {
+		a.stats.ResponseTimes = a.stats.ResponseTimes[1:]
+	}
+	a.stats.LastActivity = time.Now()
+	a.statsMu.Unlock()
+}
+
+func (a *tunnelAgent) getOrCreateServiceStats(name string) *ServiceStats {
+	a.statsMu.Lock()
+	defer a.statsMu.Unlock()
+	if s, ok := a.stats.ServiceStats[name]; ok {
+		return s
+	}
+	s := &ServiceStats{}
+	a.stats.ServiceStats[name] = s
+	return s
+}
+
+func (a *tunnelAgent) snapshotStats() *Stats {
+	a.statsMu.Lock()
+	defer a.statsMu.Unlock()
+
+	snapshot := &Stats{
+		Connections:  atomic.LoadInt64(&a.stats.Connections),
+		Streams:      atomic.LoadInt64(&a.stats.Streams),
+		BytesIn:      atomic.LoadInt64(&a.stats.BytesIn),
+		BytesOut:     atomic.LoadInt64(&a.stats.BytesOut),
+		Requests:     atomic.LoadInt64(&a.stats.Requests),
+		Errors:       atomic.LoadInt64(&a.stats.Errors),
+		LastActivity: a.stats.LastActivity,
+	}
+
+	if len(a.stats.ResponseTimes) > 0 {
+		snapshot.ResponseTimes = append([]time.Duration(nil), a.stats.ResponseTimes...)
+	}
+
+	if len(a.stats.ServiceStats) > 0 {
+		snapshot.ServiceStats = make(map[string]*ServiceStats, len(a.stats.ServiceStats))
+		for name, s := range a.stats.ServiceStats {
+			snapshot.ServiceStats[name] = &ServiceStats{
+				Requests:    atomic.LoadInt64(&s.Requests),
+				Errors:      atomic.LoadInt64(&s.Errors),
+				BytesIn:     atomic.LoadInt64(&s.BytesIn),
+				BytesOut:    atomic.LoadInt64(&s.BytesOut),
+				LastRequest: s.LastRequest,
+				ResponseTimes: func() []time.Duration {
+					if len(s.ResponseTimes) == 0 {
+						return nil
+					}
+					return append([]time.Duration(nil), s.ResponseTimes...)
+				}(),
+			}
+		}
+	}
+
+	return snapshot
 }

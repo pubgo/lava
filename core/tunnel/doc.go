@@ -31,7 +31,6 @@
 //	│   └── doc.go          - 包文档
 //	└── yamux/              - yamux 传输协议实现
 //	└── quic/               - QUIC 传输协议实现
-//	└── http/               - HTTP CONNECT 传输协议实现
 //	└── kcp/                - KCP 传输协议实现
 //
 // # 架构设计
@@ -209,7 +208,6 @@
 //
 //	TransportYamux = "yamux"  - 基于 TCP 的多路复用 (已实现)
 //	TransportQUIC  = "quic"   - 基于 UDP 的多路复用 (已实现)
-//	TransportHTTP  = "http"   - HTTP CONNECT 隧道 (已实现)
 //	TransportKCP   = "kcp"    - 基于 UDP 的可靠传输 (已实现)
 //
 // 注册自定义传输协议:

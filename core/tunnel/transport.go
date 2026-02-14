@@ -12,8 +12,6 @@ const (
 	TransportYamux = "yamux"
 	// TransportQUIC QUIC 传输协议
 	TransportQUIC = "quic"
-	// TransportHTTP HTTP CONNECT 传输协议
-	TransportHTTP = "http"
 	// TransportKCP KCP 传输协议
 	TransportKCP = "kcp"
 )

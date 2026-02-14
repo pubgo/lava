@@ -306,7 +306,7 @@ async function checkLeak() {
 	})
 
 	debug.Get("/goroutine/profile", func(ctx fiber.Ctx) error {
-		profiles := make([]fiber.Map, 0)
+		var profiles []fiber.Map
 		profileMap := make(map[string]int)
 
 		buf := make([]byte, 1024*1024)
@@ -335,7 +335,7 @@ async function checkLeak() {
 			Key   string
 			Value int
 		}
-		var sorted []kv
+		sorted := make([]kv, 0, len(profileMap))
 		for k, v := range profileMap {
 			sorted = append(sorted, kv{k, v})
 		}
@@ -343,6 +343,7 @@ async function checkLeak() {
 			return sorted[i].Value > sorted[j].Value
 		})
 
+		profiles = make([]fiber.Map, 0, len(sorted))
 		for _, item := range sorted {
 			profiles = append(profiles, fiber.Map{
 				"state": item.Key,

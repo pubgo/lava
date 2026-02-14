@@ -105,15 +105,20 @@ func (rl *RateLimiter) GetLimit(serviceName string) int {
 func (rl *RateLimiter) Allow(serviceName string) bool {
 	rl.mu.RLock()
 	bucket, ok := rl.buckets[serviceName]
-	if !ok {
-		limit := rl.defaultLimit
-		if l, ok := rl.limits[serviceName]; ok {
-			limit = l
-		}
-		bucket = NewTokenBucket(limit, limit)
-		rl.buckets[serviceName] = bucket
-	}
 	rl.mu.RUnlock()
+	if !ok {
+		rl.mu.Lock()
+		bucket, ok = rl.buckets[serviceName]
+		if !ok {
+			limit := rl.defaultLimit
+			if l, ok := rl.limits[serviceName]; ok {
+				limit = l
+			}
+			bucket = NewTokenBucket(limit, limit)
+			rl.buckets[serviceName] = bucket
+		}
+		rl.mu.Unlock()
+	}
 	return bucket.Allow()
 }
 
@@ -318,10 +323,12 @@ func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request
 	g.mu.RUnlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	if err := json.NewEncoder(w).Encode(map[string]any{
 		"services": services,
 		"count":    len(services),
-	})
+	}); err != nil {
+		log.Warn().Err(err).Msg("Gateway: failed to encode service list")
+	}
 }
 
 // proxyToAgent 将 HTTP 请求代理到 Agent
@@ -379,7 +386,12 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 		Path:         subPath,
 		Method:       r.Method,
 	}
-	payload, _ := json.Marshal(meta)
+	payload, err := json.Marshal(meta)
+	if err != nil {
+		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to marshal request meta")
+		http.Error(w, fmt.Sprintf("failed to build request meta: %v", err), http.StatusInternalServerError)
+		return
+	}
 
 	// 发送请求消息给 Agent
 	msg := &tunnel.Message{
@@ -388,7 +400,9 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	}
 
 	if err := g.sendMessage(stream, msg); err != nil {
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
 		log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: Failed to send message to agent")
 		http.Error(w, fmt.Sprintf("failed to send message: %v", err), http.StatusInternalServerError)
 		return
@@ -410,7 +424,11 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	}
 
 	// 普通 HTTP 请求使用 httputil 代理
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
+	}()
 
 	proxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -426,7 +444,9 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 
 			// 读取响应体
 			body, err := io.ReadAll(resp.Body)
-			resp.Body.Close()
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				log.Warn().Err(closeErr).Str("service", serviceName).Msg("Gateway: failed to close response body")
+			}
 			if err != nil {
 				return err
 			}
@@ -462,14 +482,18 @@ func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, s
 	// 获取底层 TCP 连接
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
 		http.Error(w, "WebSocket not supported", http.StatusInternalServerError)
 		return
 	}
 
 	clientConn, _, err := hijacker.Hijack()
 	if err != nil {
-		stream.Close()
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
 		log.Warn().Err(err).Str("service", serviceName).Msg("Failed to hijack connection")
 		http.Error(w, "Failed to hijack connection", http.StatusInternalServerError)
 		return
@@ -477,8 +501,12 @@ func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, s
 
 	// 将原始 HTTP 请求写入 stream，让 Agent 处理 WebSocket 升级
 	if err := r.Write(stream); err != nil {
-		clientConn.Close()
-		stream.Close()
+		if err := clientConn.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close client connection")
+		}
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
 		log.Warn().Err(err).Str("service", serviceName).Msg("Failed to write WebSocket request to stream")
 		return
 	}
@@ -492,15 +520,23 @@ func (g *tunnelGateway) proxyWebSocket(w http.ResponseWriter, r *http.Request, s
 	// Client -> Agent
 	go func() {
 		defer wg.Done()
-		io.Copy(stream, clientConn)
-		stream.Close()
+		if _, err := io.Copy(stream, clientConn); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: websocket copy client->agent failed")
+		}
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
 	}()
 
 	// Agent -> Client
 	go func() {
 		defer wg.Done()
-		io.Copy(clientConn, stream)
-		clientConn.Close()
+		if _, err := io.Copy(clientConn, stream); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: websocket copy agent->client failed")
+		}
+		if err := clientConn.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close client connection")
+		}
 	}()
 
 	wg.Wait()
@@ -537,22 +573,30 @@ func (g *tunnelGateway) Stop(ctx context.Context) error {
 	defer cancel()
 
 	if g.httpServer != nil {
-		g.httpServer.Shutdown(shutdownCtx)
+		if err := g.httpServer.Shutdown(shutdownCtx); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to shutdown HTTP server")
+		}
 	}
 	if g.debugServer != nil {
-		g.debugServer.Shutdown(shutdownCtx)
+		if err := g.debugServer.Shutdown(shutdownCtx); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to shutdown debug server")
+		}
 	}
 
 	// Close listener
 	if g.listener != nil {
-		g.listener.Close()
+		if err := g.listener.Close(); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to close listener")
+		}
 	}
 
 	// Close all sessions
 	g.mu.Lock()
 	for _, svc := range g.services {
 		if svc.session != nil {
-			svc.session.Close()
+			if err := svc.session.Close(); err != nil {
+				log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: failed to close session")
+			}
 		}
 	}
 	g.services = make(map[string]*registeredService)
@@ -622,14 +666,21 @@ func (g *tunnelGateway) Forward(ctx context.Context, serviceName string, endpoin
 	if err != nil {
 		return err
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+		}
+	}()
 
 	// Build request meta
 	meta := tunnel.RequestMeta{
 		ServiceID:    svc.info.ID,
 		EndpointType: endpointType,
 	}
-	payload, _ := json.Marshal(meta)
+	payload, err := json.Marshal(meta)
+	if err != nil {
+		return err
+	}
 
 	// Send forward request
 	msg := &tunnel.Message{
@@ -750,7 +801,11 @@ func (g *tunnelGateway) handleSession(session tunnel.Session) {
 }
 
 func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, stream tunnel.Stream) {
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("agent", agentID).Msg("Gateway: failed to close stream")
+		}
+	}()
 
 	// Read message header
 	header := make([]byte, 4)
@@ -939,7 +994,11 @@ func (g *tunnelGateway) checkHTTPEndpointHealth(ctx context.Context, svc *regist
 	if err != nil {
 		return false
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to close health check stream")
+		}
+	}()
 
 	// 构建健康检查请求
 	meta := tunnel.RequestMeta{
@@ -948,7 +1007,11 @@ func (g *tunnelGateway) checkHTTPEndpointHealth(ctx context.Context, svc *regist
 		Path:         endpoint.Path + "/health", // 假设健康检查路径为 /health
 		Method:       "GET",
 	}
-	payload, _ := json.Marshal(meta)
+	payload, err := json.Marshal(meta)
+	if err != nil {
+		log.Warn().Err(err).Str("service", svc.info.Name).Msg("Gateway: failed to marshal health check meta")
+		return false
+	}
 
 	// 发送健康检查请求
 	msg := &tunnel.Message{
@@ -973,7 +1036,11 @@ func (g *tunnelGateway) checkHTTPEndpointHealth(ctx context.Context, svc *regist
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to close health check response body")
+		}
+	}()
 
 	// 检查响应状态码
 	return resp.StatusCode == http.StatusOK
@@ -992,7 +1059,10 @@ func (g *tunnelGateway) checkDebugEndpointHealth(ctx context.Context, svc *regis
 	if err != nil {
 		return false
 	}
-	stream.Close()
+	if err := stream.Close(); err != nil {
+		log.Warn().Err(err).Msg("Gateway: failed to close debug health check stream")
+		return false
+	}
 	return true
 }
 
@@ -1037,7 +1107,11 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 				"error": fmt.Sprintf("failed to open stream: %v", err),
 			})
 		}
-		defer stream.Close()
+		defer func() {
+			if err := stream.Close(); err != nil {
+				log.Warn().Err(err).Str("service", serviceName).Msg("Gateway: failed to close stream")
+			}
+		}()
 
 		// Build request meta
 		meta := tunnel.RequestMeta{
@@ -1046,7 +1120,12 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 			Path:         subPath,
 			Method:       c.Method(),
 		}
-		payload, _ := json.Marshal(meta)
+		payload, err := json.Marshal(meta)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("failed to build request meta: %v", err),
+			})
+		}
 
 		// Send HTTP request message
 		msg := &tunnel.Message{
@@ -1074,7 +1153,9 @@ func (g *tunnelGateway) FiberHandler() fiber.Handler {
 		for {
 			n, err := stream.Read(buf)
 			if n > 0 {
-				c.Response().BodyWriter().Write(buf[:n])
+				if _, writeErr := c.Response().BodyWriter().Write(buf[:n]); writeErr != nil {
+					return writeErr
+				}
 			}
 			if err != nil {
 				if err == io.EOF {
@@ -1101,5 +1182,7 @@ func (g *tunnelGateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(status)
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		log.Warn().Err(err).Msg("Gateway: failed to encode status")
+	}
 }

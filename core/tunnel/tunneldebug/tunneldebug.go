@@ -56,11 +56,17 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	// 根据是 Gateway 还是 Agent 选择不同的 HTML
 	if gw != nil {
-		w.Write([]byte(getGatewayDashboardHTML()))
+		if _, err := w.Write([]byte(getGatewayDashboardHTML())); err != nil {
+			return
+		}
 	} else if agent != nil {
-		w.Write([]byte(getAgentDashboardHTML()))
+		if _, err := w.Write([]byte(getAgentDashboardHTML())); err != nil {
+			return
+		}
 	} else {
-		w.Write([]byte(getEmptyDashboardHTML()))
+		if _, err := w.Write([]byte(getEmptyDashboardHTML())); err != nil {
+			return
+		}
 	}
 }
 
@@ -97,7 +103,9 @@ func handleAPIStatus(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	json.NewEncoder(w).Encode(status)
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleAPIServices 返回服务列表
@@ -109,10 +117,12 @@ func handleAPIServices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if gw == nil {
-		json.NewEncoder(w).Encode(map[string]any{
+		if err := json.NewEncoder(w).Encode(map[string]any{
 			"services": []any{},
 			"total":    0,
-		})
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -123,10 +133,12 @@ func handleAPIServices(w http.ResponseWriter, r *http.Request) {
 		return services[i].Name < services[j].Name
 	})
 
-	json.NewEncoder(w).Encode(map[string]any{
+	if err := json.NewEncoder(w).Encode(map[string]any{
 		"services": services,
 		"total":    len(services),
-	})
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleAPIServiceDetail 返回服务详情
@@ -139,7 +151,9 @@ func handleAPIServiceDetail(w http.ResponseWriter, r *http.Request) {
 
 	if gw == nil {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "gateway not configured"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "gateway not configured"}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -147,18 +161,24 @@ func handleAPIServiceDetail(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimPrefix(r.URL.Path, "/debug/tunnel/api/services/")
 	if name == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": "service name required"})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": "service name required"}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
 	svc, err := gw.GetService(name)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		if err := json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
-	json.NewEncoder(w).Encode(svc)
+	if err := json.NewEncoder(w).Encode(svc); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleAPIStats 返回统计信息
@@ -195,5 +215,7 @@ func handleAPIStats(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	json.NewEncoder(w).Encode(stats)
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

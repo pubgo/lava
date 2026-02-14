@@ -191,7 +191,7 @@ func initDebug() {
 		html, _ := ui.Render(ui.PageData{
 			Title:       "Debug 控制台",
 			Description: "应用调试与监控中心",
-			Content:     template.HTML(content),
+			Content:     content,
 		})
 		ctx.Response().Header.SetContentType(fiber.MIMETextHTMLCharsetUTF8)
 		return ctx.SendString(html)

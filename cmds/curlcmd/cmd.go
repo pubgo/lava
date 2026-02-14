@@ -174,7 +174,9 @@ func New() *redant.Command {
 			}
 
 			if listOnly {
-				printRoutes(os.Stdout, routes, prefix)
+				if err := printRoutes(os.Stdout, routes, prefix); err != nil {
+					return errors.Wrap(err, "failed to print routes")
+				}
 				return nil
 			}
 
@@ -256,32 +258,49 @@ func New() *redant.Command {
 			if err != nil {
 				return errors.Wrap(err, "request failed")
 			}
-			defer resp.Body.Close()
 
 			elapsed := time.Since(start)
 			bodyBytes, err := io.ReadAll(resp.Body)
+			closeErr := resp.Body.Close()
 			if err != nil {
 				return errors.Wrap(err, "failed to read response body")
 			}
+			if closeErr != nil {
+				return errors.Wrap(closeErr, "failed to close response body")
+			}
 
-			fmt.Fprintf(os.Stdout, "=> %s %s\n", method, req.URL.String())
-			fmt.Fprintf(os.Stdout, "<= %d %s (%s)\n", resp.StatusCode, http.StatusText(resp.StatusCode), elapsed)
-			printHeaders(os.Stdout, resp.Header)
+			if _, err := fmt.Fprintf(os.Stdout, "=> %s %s\n", method, req.URL.String()); err != nil {
+				return errors.Wrap(err, "failed to write request line")
+			}
+			if _, err := fmt.Fprintf(os.Stdout, "<= %d %s (%s)\n", resp.StatusCode, http.StatusText(resp.StatusCode), elapsed); err != nil {
+				return errors.Wrap(err, "failed to write response line")
+			}
+			if err := printHeaders(os.Stdout, resp.Header); err != nil {
+				return errors.Wrap(err, "failed to write headers")
+			}
 			if len(bodyBytes) > 0 {
-				fmt.Fprintln(os.Stdout)
+				if _, err := fmt.Fprintln(os.Stdout); err != nil {
+					return errors.Wrap(err, "failed to write newline")
+				}
 				if !noPretty && strings.Contains(strings.ToLower(resp.Header.Get("Content-Type")), "json") {
 					var buf bytes.Buffer
 					if err := json.Indent(&buf, bodyBytes, "", "  "); err == nil {
 						_, _ = buf.WriteTo(os.Stdout)
 						if buf.Len() == 0 || bodyBytes[len(bodyBytes)-1] != '\n' {
-							fmt.Fprintln(os.Stdout)
+							if _, err := fmt.Fprintln(os.Stdout); err != nil {
+								return errors.Wrap(err, "failed to write newline")
+							}
 						}
 						return nil
 					}
 				}
-				_, _ = os.Stdout.Write(bodyBytes)
+				if _, err := os.Stdout.Write(bodyBytes); err != nil {
+					return errors.Wrap(err, "failed to write body")
+				}
 				if bodyBytes[len(bodyBytes)-1] != '\n' {
-					fmt.Fprintln(os.Stdout)
+					if _, err := fmt.Fprintln(os.Stdout); err != nil {
+						return errors.Wrap(err, "failed to write newline")
+					}
 				}
 			}
 
@@ -294,9 +313,9 @@ func New() *redant.Command {
 	return cmd
 }
 
-func printHeaders(w io.Writer, header http.Header) {
+func printHeaders(w io.Writer, header http.Header) error {
 	if len(header) == 0 {
-		return
+		return nil
 	}
 
 	keys := make([]string, 0, len(header))
@@ -306,8 +325,11 @@ func printHeaders(w io.Writer, header http.Header) {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		fmt.Fprintf(w, "%s: %s\n", k, strings.Join(header[k], ", "))
+		if _, err := fmt.Fprintf(w, "%s: %s\n", k, strings.Join(header[k], ", ")); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func buildRequestBody(body, file string, readStdin bool) (io.ReadCloser, error) {
@@ -342,11 +364,17 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to request vars list")
 	}
-	defer resp.Body.Close()
 
 	var varsResp []gatewayVarInfo
 	if err := json.NewDecoder(resp.Body).Decode(&varsResp); err != nil {
+		closeErr := resp.Body.Close()
+		if closeErr != nil {
+			return nil, errors.Wrap(closeErr, "failed to close vars list response body")
+		}
 		return nil, errors.Wrap(err, "failed to decode vars list")
+	}
+	if err := resp.Body.Close(); err != nil {
+		return nil, errors.Wrap(err, "failed to close vars list response body")
 	}
 
 	varName := ""
@@ -393,27 +421,42 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to request gateway info")
 	}
-	defer resp.Body.Close()
 
 	var info gatewayInfo
 	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		closeErr := resp.Body.Close()
+		if closeErr != nil {
+			return nil, errors.Wrap(closeErr, "failed to close gateway info response body")
+		}
 		return nil, errors.Wrap(err, "failed to decode gateway info")
+	}
+	if err := resp.Body.Close(); err != nil {
+		return nil, errors.Wrap(err, "failed to close gateway info response body")
 	}
 
 	return info.Method, nil
 }
 
-func printRoutes(w io.Writer, routes []routeOperation, prefix string) {
+func printRoutes(w io.Writer, routes []routeOperation, prefix string) error {
 	if len(routes) == 0 {
-		fmt.Fprintln(w, "no gateway routes found")
-		return
+		if _, err := fmt.Fprintln(w, "no gateway routes found"); err != nil {
+			return err
+		}
+		return nil
 	}
 
-	fmt.Fprintf(w, "Registered gateway routes (%d):\n", len(routes))
-	fmt.Fprintf(w, "METHOD\tPATH\tOPERATION\tVERB\n")
-	for _, r := range routes {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", normalizeMethod(r.Method), joinPath(prefix, r.Path), r.Operation, r.Verb)
+	if _, err := fmt.Fprintf(w, "Registered gateway routes (%d):\n", len(routes)); err != nil {
+		return err
 	}
+	if _, err := fmt.Fprintf(w, "METHOD\tPATH\tOPERATION\tVERB\n"); err != nil {
+		return err
+	}
+	for _, r := range routes {
+		if _, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", normalizeMethod(r.Method), joinPath(prefix, r.Path), r.Operation, r.Verb); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var pathPlaceholderRe = regexp.MustCompile(`\{[^}]+\}`)
@@ -536,7 +579,9 @@ func newLoginCommand() *redant.Command {
 				return err
 			}
 
-			fmt.Fprintln(inv.Stdout, "token saved")
+			if _, err := fmt.Fprintln(inv.Stdout, "token saved"); err != nil {
+				return errors.Wrap(err, "failed to write token saved message")
+			}
 			return nil
 		},
 	}
