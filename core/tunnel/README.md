@@ -232,6 +232,14 @@ go run ./core/tunnel/example/main.go
 # 使用不同传输协议
 go run ./core/tunnel/example/main.go -transport=quic
 go run ./core/tunnel/example/main.go -transport=kcp
+
+# 分别启动（不同终端）
+go run ./core/tunnel/example/main.go -mode=backend
+go run ./core/tunnel/example/main.go -mode=gateway
+go run ./core/tunnel/example/main.go -mode=agent
+
+# 验证请求路由（默认 service=demo-svc）
+curl http://127.0.0.1:18080/demo-svc/hello
 ```
 
 ### 4. 集成调试接口

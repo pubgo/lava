@@ -19,6 +19,28 @@
 //		log.Fatal(err)
 //	}
 //	defer gw.Stop(ctx)
+
+// # 启动与验证
+//
+// 1) 启动 Gateway（监听 Agent 连接端口 + 对外 HTTP 代理端口）：
+//
+//	gw := tunnelgateway.New(&tunnelgateway.Config{
+//		ListenAddr: ":7000", // Agent 连接端口
+//		Transport:  "yamux",
+//		HTTPPort:   8080,    // 对外 HTTP 代理端口
+//	})
+//
+// 2) 启动 Agent 并注册服务后，访问路由：
+//
+//	GET http://gateway:8080/{service_name}/{path}
+//
+// 例如服务名为 demo-svc，后端路由 /hello：
+//
+//	curl http://gateway:8080/demo-svc/hello
+//
+// 3) 查询服务列表：
+//
+//	curl http://gateway:8080/
 //
 // # 服务路由
 //

@@ -18,6 +18,9 @@
 //	go run ./core/tunnel/example/main.go -mode=backend
 //	go run ./core/tunnel/example/main.go -mode=gateway
 //	go run ./core/tunnel/example/main.go -mode=agent
+//
+//	# Verify request routing
+//	curl http://127.0.0.1:18080/demo-svc/hello
 package main
 
 import (
