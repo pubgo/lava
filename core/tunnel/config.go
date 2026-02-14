@@ -10,8 +10,6 @@ type Config struct {
 
 // GatewayConfig 网关配置
 type GatewayConfig struct {
-	// Enabled 是否启用
-	Enabled bool `yaml:"enabled"`
 	// ListenAddr 监听地址
 	ListenAddr string `yaml:"listen_addr"`
 	// Transport 传输协议: yamux, quic, kcp
@@ -36,8 +34,6 @@ type GatewayConfig struct {
 
 // AgentConfig 代理客户端配置
 type AgentConfig struct {
-	// Enabled 是否启用
-	Enabled bool `yaml:"enabled"`
 	// GatewayAddr 网关地址
 	GatewayAddr string `yaml:"gateway_addr"`
 	// Transport 传输协议
@@ -135,7 +131,6 @@ func DefaultTransportOptions() *TransportOptions {
 // DefaultGatewayConfig 默认网关配置
 func DefaultGatewayConfig() GatewayConfig {
 	return GatewayConfig{
-		Enabled:             false,
 		ListenAddr:          ":7007",
 		Transport:           "yamux",
 		HTTPPort:            8080,
@@ -150,7 +145,6 @@ func DefaultGatewayConfig() GatewayConfig {
 // DefaultAgentConfig 默认代理客户端配置
 func DefaultAgentConfig() AgentConfig {
 	return AgentConfig{
-		Enabled:              false,
 		Transport:            "yamux",
 		HeartbeatInterval:    30,
 		ReconnectInterval:    5,
