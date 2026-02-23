@@ -104,12 +104,12 @@ func (w *fiberWebWriter) writeTrailer() error {
 	tr := make(http.Header)
 	// Collect grpc-* headers for trailer
 	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
-	w.ctx.Response().Header.VisitAll(func(key, value []byte) {
+	for key, value := range w.ctx.Response().Header.All() {
 		k := string(key)
 		if strings.HasPrefix(strings.ToLower(k), "grpc-") {
 			tr[strings.ToLower(k)] = []string{string(value)}
 		}
-	})
+	}
 	// Add default grpc-status if not present
 	if tr.Get("grpc-status") == "" {
 		tr.Set("grpc-status", "0")
