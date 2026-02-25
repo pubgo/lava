@@ -10,6 +10,7 @@ import (
 	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/cmds/curlcmd"
+	"github.com/pubgo/lava/v2/cmds/fileservercmd"
 	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/watchcmd"
 	"github.com/pubgo/lava/v2/core/lavabuilder"
@@ -43,6 +44,7 @@ func main() {
 			watchcmd.New(),
 			curlcmd.New(),
 			tunnelcmd.New(di),
+			fileservercmd.New(),
 		},
 	}
 
