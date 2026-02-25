@@ -30,39 +30,27 @@ func handlersToAny(handlers ...fiber.Handler) []any {
 func App() *fiber.App                           { return app }
 func WrapFunc(h http.HandlerFunc) fiber.Handler { return adaptor.HTTPHandlerFunc(h) }
 func Wrap(h http.Handler) fiber.Handler         { return adaptor.HTTPHandler(h) }
-func Get(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Get(path string, handler any, handlers ...fiber.Handler) {
 	app.Get(path, handler, handlersToAny(handlers...)...)
 }
 
-func Head(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Head(path string, handler any, handlers ...fiber.Handler) {
 	app.Head(path, handler, handlersToAny(handlers...)...)
 }
 
-func Post(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Post(path string, handler any, handlers ...fiber.Handler) {
 	app.Post(path, handler, handlersToAny(handlers...)...)
 }
 
-func Put(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Put(path string, handler any, handlers ...fiber.Handler) {
 	app.Put(path, handler, handlersToAny(handlers...)...)
 }
 
-func Delete(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Delete(path string, handler any, handlers ...fiber.Handler) {
 	app.Delete(path, handler, handlersToAny(handlers...)...)
 }
 
-func Connect(path string, handler fiber.Handler, handlers ...fiber.Handler) {
-	app.Connect(path, handler, handlersToAny(handlers...)...)
-}
-
-func Options(path string, handler fiber.Handler, handlers ...fiber.Handler) {
-	app.Options(path, handler, handlersToAny(handlers...)...)
-}
-
-func Trace(path string, handler fiber.Handler, handlers ...fiber.Handler) {
-	app.Trace(path, handler, handlersToAny(handlers...)...)
-}
-
-func Patch(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func Patch(path string, handler any, handlers ...fiber.Handler) {
 	app.Patch(path, handler, handlersToAny(handlers...)...)
 }
 
@@ -70,7 +58,7 @@ func Static(prefix, root string, config ...static.Config) {
 	app.Use(prefix, static.New(root, config...))
 }
 
-func All(path string, handler fiber.Handler, handlers ...fiber.Handler) {
+func All(path string, handler any, handlers ...fiber.Handler) {
 	app.All(path, handler, handlersToAny(handlers...)...)
 }
 

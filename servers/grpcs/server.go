@@ -216,14 +216,16 @@ func (s *serviceImpl) init(
 	grpcGatewayApiPrefix := "/api"
 	log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
 
-	for _, m := range mux.GetRouteMethods() {
-		log.Info().
-			Str("operation", m.Operation).
-			Any("rpc-meta", lo.FromPtr(mux.GetOperation(m.Operation)).Meta).
-			Str("verb", m.Verb).
-			Any("path-vars", m.Vars).
-			Str("extras", fmt.Sprintf("%v", m.Extras)).
-			Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
+	if conf.EnablePrintRouter {
+		for _, m := range mux.GetRouteMethods() {
+			log.Info().
+				Str("operation", m.Operation).
+				Any("rpc-meta", lo.FromPtr(mux.GetOperation(m.Operation)).Meta).
+				Str("verb", m.Verb).
+				Any("path-vars", m.Vars).
+				Str("extras", fmt.Sprintf("%v", m.Extras)).
+				Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
+		}
 	}
 
 	httpServer.Use("/debug", debug.App())
