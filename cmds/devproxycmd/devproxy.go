@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber/v3"
 	"github.com/miekg/dns"
-	"github.com/pubgo/funk/v2/closer"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
 )
 
@@ -149,12 +147,14 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 // startHTTPServer 启动HTTP代理服务器
 func startHTTPServer() error {
-	// 创建Fiber应用
-	app := fiber.New()
+	// 创建路由器
+	mux := http.NewServeMux()
 
 	// 健康检查端点
-	app.Get("/health", func(c fiber.Ctx) error {
-		return c.JSON(fiber.Map{
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{
 			"status":  "ok",
 			"version": "1.0.0",
 			"time":    time.Now().Format(time.RFC3339),
@@ -162,18 +162,23 @@ func startHTTPServer() error {
 	})
 
 	// 代理处理
-	app.All("/*", handleHTTPRequest)
+	mux.HandleFunc("/", handleHTTPRequest)
+
+	// 创建HTTP服务器
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.HTTP.Port),
+		Handler: mux,
+	}
 
 	// 启动服务器
-	addr := fmt.Sprintf(":%d", config.HTTP.Port)
-	log.Info().Msgf("Starting HTTP proxy on %s", addr)
-	return app.Listen(addr)
+	log.Info().Msgf("Starting HTTP proxy on %s", server.Addr)
+	return server.ListenAndServe()
 }
 
 // handleHTTPRequest 处理HTTP请求
-func handleHTTPRequest(c fiber.Ctx) error {
+func handleHTTPRequest(w http.ResponseWriter, r *http.Request) {
 	// 获取主机名
-	host := c.Hostname()
+	host := r.Host
 	log.Debug().Str("host", host).Msg("Received request")
 
 	// 移除.lava后缀
@@ -182,23 +187,16 @@ func handleHTTPRequest(c fiber.Ctx) error {
 	// 查找匹配的路由
 	route, wildcard := matchRoute(subdomain)
 	if route == nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "No route found",
-			"host":  host,
-		})
+		http.Error(w, "No route found", http.StatusNotFound)
+		return
 	}
 
 	// 构建目标URL
-	targetURL := buildTargetURL(route, wildcard, c.Path(), c.Request().URI().QueryArgs().String())
+	targetURL := buildTargetURL(route, wildcard, r.URL.Path, r.URL.RawQuery)
 	log.Debug().Str("target", targetURL).Msg("Forwarding request")
 
-	// 检测是否为websocket连接
-	if c.Get("Upgrade") == "websocket" {
-		return forwardWebSocket(c, targetURL)
-	}
-
-	// 转发普通HTTP请求
-	return forwardRequest(c, targetURL)
+	// 转发所有请求（包括WebSocket）
+	forwardRequest(w, r, targetURL)
 }
 
 // matchRoute 匹配路由
@@ -278,120 +276,26 @@ func buildTargetURL(route *Route, wildcard, path, query string) string {
 }
 
 // forwardRequest 转发普通HTTP请求
-func forwardRequest(c fiber.Ctx, targetURL string) error {
-	// 创建fasthttp客户端
-	client := &fasthttp.Client{
-		MaxConnsPerHost: 100,
-		ReadTimeout:     30 * time.Second,
-		WriteTimeout:    30 * time.Second,
-	}
-
-	// 创建目标请求
-	var req fasthttp.Request
-	req.SetRequestURI(targetURL)
-	req.Header.SetMethod(c.Method())
-
-	// 复制请求头
-	for key, value := range c.Request().Header.All() {
-		req.Header.SetBytesKV(key, value)
-	}
-
-	// 复制请求体
-	req.SetBody(c.Request().Body())
-
-	// 发送请求并获取响应
-	var resp fasthttp.Response
-	if err := client.Do(&req, &resp); err != nil {
-		log.Error().Err(err).Str("target", targetURL).Msg("Failed to forward request")
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
-			"error":   "Failed to forward request",
-			"message": err.Error(),
-			"target":  targetURL,
-		})
-	}
-
-	// 复制响应状态码
-	c.Status(resp.StatusCode())
-
-	// 复制响应头
-
-	for key, value := range resp.Header.All() {
-		c.Set(string(key), string(value))
-	}
-
-	// 复制响应体
-	return c.Send(resp.Body())
-}
-
-// forwardWebSocket 处理websocket连接
-func forwardWebSocket(c fiber.Ctx, targetURL string) error {
+func forwardRequest(w http.ResponseWriter, r *http.Request, targetURL string) {
 	// 解析目标URL
-	u, err := url.Parse(targetURL)
+	target, err := url.Parse(targetURL)
 	if err != nil {
-		return err
+		log.Error().Err(err).Str("target", targetURL).Msg("Failed to parse target URL")
+		http.Error(w, "Failed to parse target URL", http.StatusBadGateway)
+		return
 	}
 
-	// 将http://或https://转换为ws://或wss://
-	wsScheme := "ws"
-	if u.Scheme == "https" {
-		wsScheme = "wss"
-	}
-	wsURL := wsScheme + "://" + u.Host + u.Path
-	if u.RawQuery != "" {
-		wsURL += "?" + u.RawQuery
-	}
+	// 创建反向代理
+	proxy := httputil.NewSingleHostReverseProxy(target)
 
-	// 升级当前连接为WebSocket
-	upgrader := websocket.FastHTTPUpgrader{
-		CheckOrigin: func(ctx *fasthttp.RequestCtx) bool {
-			return true // 允许所有来源的连接
-		},
+	// 自定义错误处理
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		log.Error().Err(err).Str("target", targetURL).Msg("Failed to forward request")
+		http.Error(w, "Failed to forward request", http.StatusBadGateway)
 	}
 
-	return upgrader.Upgrade(c.RequestCtx(), func(conn *websocket.Conn) {
-		defer closer.SafeClose(conn)
-
-		// 连接到目标WebSocket服务器
-		targetConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-		if err != nil {
-			log.Error().Err(err).Str("url", wsURL).Str("target", targetURL).Msg("Failed to connect to target WebSocket server")
-			return
-		}
-		defer closer.SafeClose(targetConn)
-
-		// 双向数据转发
-		done := make(chan struct{})
-
-		// 从客户端读取数据并发送到目标服务器
-		go func() {
-			defer close(done)
-			for {
-				messageType, message, err := conn.ReadMessage()
-				if err != nil {
-					break
-				}
-				if err := targetConn.WriteMessage(messageType, message); err != nil {
-					break
-				}
-			}
-		}()
-
-		// 从目标服务器读取数据并发送到客户端
-		go func() {
-			defer close(done)
-			for {
-				messageType, message, err := targetConn.ReadMessage()
-				if err != nil {
-					break
-				}
-				if err := conn.WriteMessage(messageType, message); err != nil {
-					break
-				}
-			}
-		}()
-
-		<-done
-	})
+	// 执行代理
+	proxy.ServeHTTP(w, r)
 }
 
 // loadConfig 加载配置
