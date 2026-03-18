@@ -32,19 +32,25 @@ type Jar struct {
 
 func (j *Jar) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
+		j.mu.Lock()
+		j.cleanExpired()
 		for _, c := range j.cookies {
 			req.Header().SetCookieBytesKV(c.Key(), c.Value())
 		}
+		j.mu.Unlock()
 
 		rsp, err := next(ctx, req)
 		if err != nil {
 			return nil, err
 		}
 
+		j.mu.Lock()
+		defer j.mu.Unlock()
 		for _, value := range rsp.Header().All() {
 			acquireCookie := fasthttp.AcquireCookie()
 			if err := acquireCookie.ParseBytes(value); err != nil {
 				j.log.Err(err, ctx).Msg("failed to parse cookie")
+				fasthttp.ReleaseCookie(acquireCookie)
 			} else {
 				j.cookies[string(acquireCookie.Key())] = acquireCookie
 			}
@@ -70,7 +76,26 @@ func (j *Jar) PeekValue(key string) []byte {
 func (j *Jar) Peek(key string) *fasthttp.Cookie {
 	j.mu.Lock()
 	defer j.mu.Unlock()
+	j.cleanExpired()
 	return j.cookies[key]
+}
+
+// CleanExpired 清理过期的 cookie
+func (j *Jar) CleanExpired() {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.cleanExpired()
+}
+
+// cleanExpired 内部方法，清理过期的 cookie
+func (j *Jar) cleanExpired() {
+	now := time.Now()
+	for key, cookie := range j.cookies {
+		if cookie.Expire().Before(now) {
+			fasthttp.ReleaseCookie(cookie)
+			delete(j.cookies, key)
+		}
+	}
 }
 
 func (j *Jar) ReleaseCookie(key string) {
@@ -103,7 +128,9 @@ func (j *Jar) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	return err
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	return j.decode(cooks)
 }
 
 func (j *Jar) EncodeGOB() ([]byte, error) {

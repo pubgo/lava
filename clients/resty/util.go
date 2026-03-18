@@ -69,14 +69,13 @@ func handlePath(c *Client, req *Request) (r result.Result[string]) {
 	if IsPathTemplate(reqUrl.Path) {
 		pathTemplate, err := CreatePathTemplate(reqUrl.Path)
 		if err != nil {
-			return r.WithErr(err)
+			return r.WithErr(fmt.Errorf("create path template error: %w", err))
 		}
 		c.pathTemplates.Store(reqUrl.Path, pathTemplate)
+		return result.Wrap(PathTemplateRun(pathTemplate, req.params))
 	} else {
 		return r.WithValue(reqUrl.Path)
 	}
-
-	return r
 }
 
 // handleContentType 处理内容类型
@@ -129,12 +128,10 @@ func doRequest(c *Client, req *Request) (rsp result.Result[*fasthttp.Request]) {
 
 	// enable auth
 	if c.cfg.EnableAuth || req.cfg.EnableAuth {
-		if c.cfg.BasicToken != "" {
-			r.Header.Set(httputil.HeaderAuthorization, "Basic "+c.cfg.BasicToken)
-		}
-
 		if c.cfg.JwtToken != "" {
 			r.Header.Set(httputil.HeaderAuthorization, "Bearer "+c.cfg.JwtToken)
+		} else if c.cfg.BasicToken != "" {
+			r.Header.Set(httputil.HeaderAuthorization, "Basic "+c.cfg.BasicToken)
 		}
 	}
 
