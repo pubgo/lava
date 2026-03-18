@@ -1,243 +1,150 @@
-# lava 命令行工具
+# Lava 命令行文档（当前入口）
 
-`lava` 命令是 Lava 框架的统一命令行入口，提供了多种子命令来帮助开发者更高效地使用和开发基于 Lava 框架的应用。
+> 本文档以仓库根入口 `main.go` 为准。
 
-## 功能特性
+## 命令总览
 
-- **统一入口**：所有命令通过 `lava` 命令作为统一入口，使用更加方便
-- **文件监控**：通过 `watch` 子命令监控文件变更并自动执行构建命令
-- **gRPC 客户端**：通过 `curl` 子命令向 gRPC 服务发送 HTTP 请求
-- **自动构建**：当文件变更时自动执行相应的构建命令
-- **路由发现**：`curl` 命令支持自动发现网关已注册的路由
+| 命令                    | 说明                       |
+| ----------------------- | -------------------------- |
+| `lava watch`            | 文件监听与自动执行命令     |
+| `lava curl`             | Gateway 调试客户端         |
+| `lava tunnel gateway`   | 启动 Tunnel Gateway        |
+| `lava fileserver <dir>` | 本地目录静态文件服务       |
+| `lava devproxy`         | 本地开发代理（DNS + HTTP） |
 
-## 安装
+---
 
-### 从源码构建
+## 1. `lava watch`
 
-```bash
-# 克隆代码库
-git clone https://github.com/pubgo/lava.git
-cd lava
+文件变化监听器。读取配置文件（按优先级）：
 
-# 构建二进制文件
-go build -o lava .
-
-# 将二进制文件添加到 PATH（可选）
-cp lava /usr/local/bin/
-```
-
-## 基本使用
-
-### 查看帮助信息
-
-```bash
-lava
-```
-
-这将显示 `lava` 命令的基本信息和可用的子命令。
-
-## 子命令
-
-### 1. watch 命令
-
-**功能**：监控文件变更并自动执行相应的构建命令。支持配置多个 watcher，每个 watcher 可以监控不同的目录和执行不同的命令。
-
-**用法**：
-```bash
-lava watch
-```
-
-**配置文件**：
-`watch` 命令通过配置文件来定义多个 watcher，配置文件支持以下位置（按优先级从高到低）：
 1. `.lava/lava.yaml`
 2. `.lava.yaml`
 3. `lava.yaml`
 
-**配置格式**：
+若未找到配置，将使用内置默认 watcher。
+
+### 核心字段
+
+| 字段              | 说明                       |
+| ----------------- | -------------------------- |
+| `name`            | watcher 名称               |
+| `directory`       | 监听目录                   |
+| `patterns`        | 匹配模式（支持 `!` 排除）  |
+| `commands`        | 文件变更后执行命令列表     |
+| `ignore`          | 兼容字段，内部转为排除模式 |
+| `ignore_patterns` | 兼容字段，内部转为排除模式 |
+| `run_on_startup`  | 启动即执行一次             |
+| `timeout`         | 单条命令超时（秒）         |
+
+### 示例
+
 ```yaml
 watch:
   watchers:
-    # watcher 1：监控 proto 文件
-    - name: "proto"
-      directory: "."
+    - name: proto
+      directory: .
       patterns:
         - "**/*.proto"
         - "!**/vendor"
-        - "!**/.git"
-        - "!*.tmp"
-        - "!*~"
       commands:
         - "protobuild gen"
-      run_on_startup: false
-      timeout: 30
-
-    # watcher 2：监控 go 文件
-    - name: "go"
-      directory: "."
-      patterns:
-        - "**/*.go"
-        - "!**/dist"
-        - "!**/build"
-        - "!**/vendor"
-        - "!**/node_modules"
-        - "!**/.git"
-        - "!*.tmp"
-        - "!*~"
-        - "!.DS_Store"
-      commands:
-        - "go build ./..."
-      run_on_startup: false
       timeout: 30
 ```
 
-**配置参数说明**：
+---
 
-| 参数 | 说明 | 必填 | 默认值 |
-|------|------|------|--------|
-| `name` | watcher 名称 | 是 | - |
-| `directory` | 要监控的目录 | 是 | - |
-| `patterns` | 文件匹配模式列表 (包含：`**/*.go`，排除：`!**/vendor`) | 否 | `["*"]` |
-| `commands` | 文件变更后执行的命令列表 | 是 | - |
-| `run_on_startup` | 是否在启动时执行一次命令 | 否 | `false` |
-| `timeout` | 命令执行的超时时间（秒） | 否 | `30` |
+## 2. `lava curl`
 
-**示例**：
-```bash
-# 使用默认配置运行（监控当前目录下的 .proto 和 .go 文件）
-lava watch
+面向 Gateway 的轻量客户端，支持：
 
-# 使用自定义配置文件运行
-# 创建 .lava.yaml 文件并配置多个 watcher
-lava watch
-```
+- operation 调用（如 `Service/Method`）
+- 显式路径调用
+- Header/Query/Path 参数注入
+- `login` 子命令保存 token
 
-**工作原理**：
-1. 加载配置文件，支持配置多个 watcher
-2. 每个 watcher 在独立的 goroutine 中运行，可以同时监控不同的目录
-3. 当文件发生变更时，根据文件类型执行相应的构建命令
-4. 自动忽略 `.git`、`node_modules`、`vendor` 等不需要监控的目录
-5. 当创建新目录时，自动将其添加到监控列表中
-6. 支持命令执行超时，超时后会自动终止命令进程
+### 常用参数
 
-### 2. curl 命令
+| 参数                     | 说明                      |
+| ------------------------ | ------------------------- |
+| `--addr`                 | 网关地址                  |
+| `--prefix`               | 网关前缀（默认 `/api`）   |
+| `--operation`            | 指定 operation            |
+| `--path`                 | 显式路径                  |
+| `-X, --method`           | 覆盖 HTTP 方法            |
+| `-d, --data`             | 请求体字符串              |
+| `--data-file`            | 从文件读取请求体          |
+| `--stdin`                | 从标准输入读取请求体      |
+| `-H, --header key=value` | 追加请求头                |
+| `-Q, --query key=value`  | 追加 query                |
+| `-P, --param key=value`  | 填充路径参数              |
+| `--list`                 | 仅列出路由                |
+| `--vars-name`            | debug vars 中网关信息名称 |
+| `--timeout`              | 请求超时                  |
+| `-k, --insecure`         | 跳过 TLS 校验             |
+| `--raw`                  | 原样输出响应体            |
 
-**功能**：一个针对 Lava gateway 的轻量 HTTP 客户端，支持按 operation（gRPC 全方法名或自定义名称）或显式路径发起请求，并自动发现网关已注册的路由。
+### 登录子命令
 
-**用法**：
-```bash
-lava curl [options] [operation/path]
-```
+- `lava curl login -t <token>`
+- `lava curl login --stdin`
+- `lava curl login --env`（读取 `LAVA_TOKEN`）
 
-**常用参数**：
+Token 文件路径：`~/.lava/token`。
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--addr` | 网关地址 | `http://127.0.0.1:<HttpPort>` |
-| `--prefix` | 网关前缀 | `/api` |
-| `--operation` | operation 名（gRPC 全方法或自定义名） | - |
-| `--path` | 显式路径（与 operation 二选一，也可用位置参数） | - |
-| `-X, --method` | 覆盖 HTTP 方法 | GET/路由默认 |
-| `-d, --data` | 请求体字符串 | - |
-| `--data-file` | 从文件读取请求体 | - |
-| `--stdin` | 从标准输入读取请求体 | - |
-| `-H, --header key=value` | 追加 Header，可重复 | - |
-| `-Q, --query key=value` | 追加 Query，可重复 | - |
-| `-P, --param key=value` | 路径占位符填充，可重复 | - |
-| `--timeout` | 请求超时 | `15s` |
-| `-k, --insecure` | 跳过 TLS 校验 | `false` |
-| `--raw` | 不做 JSON pretty-print | `false` |
-| `--list` | 仅列出路由，不发请求 | `false` |
-| `--vars-name` | gateway 路由信息的 expvar 名称 | `grpc-server-info` |
+---
 
-**示例**：
+## 3. `lava tunnel gateway`
 
-#### 列出网关路由
+启动 Tunnel Gateway。
 
-```bash
-lava curl --list
-```
+### 默认配置
 
-#### 登录保存 Token
+| 配置项         | 默认值  | 对应环境变量         |
+| -------------- | ------- | -------------------- |
+| 监听地址       | `:7007` | `TUNNEL_LISTEN_ADDR` |
+| HTTP 代理端口  | `8888`  | `TUNNEL_HTTP_PORT`   |
+| gRPC 代理端口  | `9999`  | `TUNNEL_GRPC_PORT`   |
+| Debug 代理端口 | `6066`  | `TUNNEL_DEBUG_PORT`  |
+| 管理界面端口   | `:6067` | `TUNNEL_ADMIN_ADDR`  |
 
-Token 将保存在 `~/.lava/curl/token`（`0600` 权限），后续请求若未显式设置 `Authorization`，会自动注入 `Bearer <token>`。
+命令会同时启动：
 
-```bash
-# 直接提供 token
-lava curl login -t "YOUR_TOKEN"
+- Gateway 服务
+- Supervisor 管理与 debug
+- 独立 debug 管理页面（默认 `:6067`）
 
-# 从 stdin 读取 token
-echo -n "YOUR_TOKEN" | lava curl login --stdin
+---
 
-# 从环境变量读取 token
-curl_TOKEN="YOUR_TOKEN" lava curl login --env
-```
+## 4. `lava fileserver <dir>`
 
-#### 按 operation 调用
+将指定目录作为静态文件服务对外暴露。
 
-自动匹配 method/path：
+- 若未传 `<dir>`，默认使用当前工作目录。
+- 端口使用运行时 HTTP 端口（通常为 `running.HttpPort`）。
 
-```bash
-lava curl Greeter/SayHello -d '{"name":"world"}'
-```
+常见用途：快速预览构建产物、临时共享静态目录。
 
-#### 按显式路径并指定方法
+---
 
-```bash
-lava curl --path /api/hello -X POST -d '{"name":"world"}'
-```
+## 5. `lava devproxy`
 
-#### 携带 Header / Query / Path 参数
+本地开发代理，提供：
 
-```bash
-lava curl Greeter/SayHello \
-  -H "X-Req-Id=abc" \
-  -Q verbose=true \
-  -P id=42
-```
+- DNS 解析（`*.lava` -> `127.0.0.1`）
+- HTTP 反向代理（按子域名匹配路由）
 
-#### 从文件读取请求体
+### 子命令
 
-```bash
-lava curl Greeter/SayHello --data-file ./request.json
-```
+| 子命令      | 说明                  |
+| ----------- | --------------------- |
+| `start`     | 启动 devproxy         |
+| `install`   | 安装系统集成（macOS） |
+| `uninstall` | 卸载系统集成（macOS） |
+| `routes`    | 输出当前路由          |
 
-#### 从标准输入读取请求体
+### 配置文件查找顺序
 
-```bash
-echo '{"name":"world"}' | lava curl Greeter/SayHello --stdin
-```
-
-**路由发现说明**：
-
-`curl` 默认向 `--addr` 的 `/debug/vars/api/list` 和 `/debug/vars/api/get/<vars-name>` 获取网关路由信息；若自定义了 expvar 名，可通过 `--vars-name` 指定。
-
-**返回输出**：
-
-- 首行打印请求行，次行打印响应状态与耗时
-- 自动输出响应 Header
-- 若 `Content-Type` 含 `json` 且未指定 `--raw`，响应体将进行缩进格式化
-
-### 3. devproxy 命令
-
-**功能**：本地开发代理工具，提供 DNS 服务和 HTTP 代理，支持子域名路由和路径重写，解决本地服务访问不便的问题。
-
-**用法**：
-```bash
-lava devproxy [command]
-```
-
-**子命令**：
-
-| 子命令 | 说明 |
-|--------|------|
-| `start` | 启动开发代理服务 |
-| `install` | 安装系统集成（仅 macOS） |
-| `uninstall` | 卸载系统集成（仅 macOS） |
-| `routes` | 查看当前路由配置 |
-
-**配置文件**：
-
-`devproxy` 命令支持配置文件，配置文件支持以下位置（按优先级从高到低）：
 1. `.devproxy.json`
 2. `.devproxy.yaml`
 3. `.devproxy.yml`
@@ -245,382 +152,15 @@ lava devproxy [command]
 5. `~/.devproxy.yaml`
 6. `~/.devproxy.yml`
 
-**配置文件格式**：
+### 默认端口
 
-```json
-{
-  "dns": {
-    "port": 1053
-  },
-  "http": {
-    "port": 8080
-  },
-  "routes": [
-    {
-      "pattern": "app",
-      "target": "localhost:3000"
-    },
-    {
-      "pattern": "debug.*",
-      "target": "localhost:8080",
-      "path": "/debug"
-    },
-    {
-      "pattern": "api.*",
-      "target": "localhost:8080",
-      "path": "/{wildcard}"
-    }
-  ]
-}
-```
+- DNS：`5353`
+- HTTP：`8080`
 
-**配置参数说明**：
+---
 
-| 参数 | 说明 | 必填 | 默认值 |
-|------|------|------|--------|
-| `dns.port` | DNS 服务监听端口 | 否 | `1053` |
-| `http.port` | HTTP 代理监听端口 | 否 | `8080` |
-| `routes` | 路由配置列表 | 否 | 默认路由 |
-| `routes[*].pattern` | 子域名匹配模式 | 是 | - |
-| `routes[*].target` | 目标服务地址 | 是 | - |
-| `routes[*].path` | 路径重写规则 | 否 | 原始路径 |
+## 6. 说明：为何有些命令在代码里但跑不出来？
 
-**示例**：
+仓库中还存在一些命令包（如 `config/health/http/grpc/cron/version`），但它们并未注册到根入口 `main.go`。如果你从 `main.go` 构建的二进制执行，这些命令不会出现。
 
-#### 启动开发代理服务
-
-```bash
-lava devproxy start
-```
-
-#### 安装系统集成（仅 macOS）
-
-```bash
-# 需要管理员权限
-lava devproxy install
-```
-
-这将创建 `/etc/resolver/lava` 配置文件，将所有 `*.lava` 域名的 DNS 查询路由到本地 DNS 服务器。
-
-#### 卸载系统集成（仅 macOS）
-
-```bash
-# 需要管理员权限
-lava devproxy uninstall
-```
-
-#### 查看当前路由配置
-
-```bash
-lava devproxy routes
-```
-
-**工作原理**：
-
-1. **DNS 分流**：通过创建 `/etc/resolver/lava` 配置文件，将所有 `*.lava` 域名的 DNS 查询路由到本地 DNS 服务器，不影响其他域名的解析。
-
-2. **DNS 服务**：监听本地端口 1053，所有 `*.lava` 域名的 DNS 查询都返回 `127.0.0.1`。
-
-3. **HTTP 代理**：监听本地端口 8080，根据子域名路由到不同的本地服务，支持路径重写。
-
-4. **路由匹配算法**：
-   - 精确匹配：`app.lava` → `app` 路由
-   - 通配符匹配：从最长到最短尝试，`debug.xxx.lava` → `debug.*` 路由
-   - 默认路由：匹配 `*` 模式的路由
-
-5. **路径重写**：支持 `{wildcard}` 占位符，自动处理斜杠边界情况，保留原始查询参数。
-
-**使用场景**：
-
-1. **多服务开发**：同时运行多个本地服务，通过不同的子域名访问，无需记住端口号。
-
-2. **微服务架构**：模拟生产环境的域名结构，方便本地开发和测试。
-
-3. **路径映射**：通过路径重写，将不同的子域名映射到同一服务的不同路径。
-
-4. **与 Tailscale 共存**：不修改系统全局 DNS 设置，与 Tailscale MagicDNS 完美兼容。
-
-**常见问题**：
-
-1. **权限问题**：
-   - 安装系统集成时需要管理员权限，因为需要修改 `/etc/resolver` 目录。
-   - 解决方案：使用 `sudo` 命令或在终端中提供管理员密码。
-
-2. **端口冲突**：
-   - 如果端口 1053 或 8080 已被占用，服务将无法启动。
-   - 解决方案：在配置文件中修改端口号。
-
-3. **DNS 解析失败**：
-   - 如果 `*.lava` 域名无法解析，可能是系统集成未正确安装。
-   - 解决方案：运行 `lava devproxy install` 安装系统集成。
-
-4. **路由不匹配**：
-   - 如果请求无法路由到正确的服务，可能是路由配置不正确。
-   - 解决方案：运行 `lava devproxy routes` 查看当前路由配置，检查路由模式是否正确。
-
-**健康检查**：
-
-`devproxy` 服务提供了健康检查端点，可通过以下 URL 访问：
-
-```bash
-curl http://localhost:8080/health
-```
-
-**返回示例**：
-
-```json
-{
-  "status": "ok",
-  "version": "1.0.0",
-  "time": "2026-02-26T12:00:00Z"
-}
-```
-
-**最佳实践**：
-
-1. **启动服务**：在开发开始时启动 `devproxy` 服务，保持运行状态。
-
-2. **安装系统集成**：首次使用时安装系统集成，后续无需重复安装。
-
-3. **配置路由**：根据项目需求，在配置文件中添加自定义路由。
-
-4. **访问服务**：使用 `app.lava`、`api.lava` 等域名访问本地服务。
-
-5. **测试健康检查**：定期检查服务状态，确保代理服务正常运行。
-
-## 配置
-
-### 配置文件位置
-
-`lava` 命令支持配置文件，配置文件可以放在以下位置（按优先级从高到低）：
-
-1. `.lava/lava.yaml`：优先级最高
-2. `.lava.yaml`：优先级次之
-3. `lava.yaml`：优先级最低
-
-当多个配置文件存在时，优先级高的配置文件会覆盖优先级低的配置文件。
-
-### 配置文件格式
-
-配置文件使用 YAML 格式，包含 `watch` 和 `curl` 两个主要配置部分。
-
-**示例配置文件**：
-
-```yaml
-# watch 命令配置
-watch:
-  # watcher 列表，可以配置多个 watcher
-  watchers:
-    # watcher 1：监控 proto 文件
-    - name: "proto"
-      directory: "."
-      patterns:
-        - "**/*.proto"
-        - "!**/vendor"
-        - "!**/.git"
-        - "!*.tmp"
-        - "!*~"
-      commands:
-        - "protobuild gen"
-      run_on_startup: false
-      timeout: 30
-
-    # watcher 2：监控 go 文件
-    - name: "go"
-      directory: "."
-      patterns:
-        - "**/*.go"
-        - "!**/dist"
-        - "!**/build"
-        - "!**/vendor"
-        - "!**/node_modules"
-        - "!**/.git"
-        - "!*.tmp"
-        - "!*~"
-        - "!.DS_Store"
-      commands:
-        - "go build ./..."
-      run_on_startup: false
-      timeout: 30
-
-# curl 命令配置
-curl:
-  # 网关地址
-  addr: "http://127.0.0.1:8080"
-  
-  # 网关前缀
-  prefix: "/api"
-  
-  # 请求超时时间
-  timeout: "15s"
-  
-  # 是否跳过 TLS 校验
-  insecure: false
-  
-  # 是否对 JSON 响应进行格式化
-  pretty: true
-  
-  # gateway 路由信息的 expvar 名称
-  vars_name: "grpc-server-info"
-  
-  # 默认的请求头
-  headers:
-    - "Content-Type: application/json"
-  
-  # 默认的查询参数
-  queries: {}
-```
-
-### 环境变量
-
-| 环境变量 | 说明 | 默认值 |
-|----------|------|--------|
-| `LAVA_TOKEN` | `lava curl login --env` 时使用的 token | - |
-
-### 配置文件与命令行参数的优先级
-
-配置文件中的设置可以被命令行参数覆盖，优先级如下：
-
-1. 命令行参数（优先级最高）
-2. 配置文件
-3. 默认值（优先级最低）
-
-**示例**：
-
-```bash
-# 配置文件中设置了 addr 为 http://127.0.0.1:8080
-# 但命令行参数会覆盖配置文件的设置
-lava curl --addr http://localhost:9090 Greeter/SayHello
-```
-
-### 配置文件示例
-
-项目根目录中提供了一个示例配置文件 `.lava.yaml.example`，可以参考该文件创建自己的配置文件：
-
-```bash
-# 复制示例配置文件
-cp .lava.yaml.example .lava.yaml
-
-# 根据需要修改配置文件
-vim .lava.yaml
-```
-
-## 常见问题
-
-### 1. watch 命令不工作
-
-**可能原因**：
-- 文件系统不支持 inotify（如某些网络文件系统）
-- 监控的文件数量超过了系统限制
-
-**解决方案**：
-- 尝试监控更小的目录范围
-- 检查系统 inotify 限制并调整：
-  ```bash
-  # 查看当前限制
-  cat /proc/sys/fs/inotify/max_user_watches
-  
-  # 临时调整限制
-  sudo sysctl fs.inotify.max_user_watches=524288
-  
-  # 永久调整限制
-  echo "fs.inotify.max_user_watches=524288" | sudo tee -a /etc/sysctl.conf
-  sudo sysctl -p
-  ```
-
-### 2. curl 无法发现路由
-
-**可能原因**：
-- 网关地址不正确
-- 网关未启用调试接口
-- 路由信息的 expvar 名称不正确
-
-**解决方案**：
-- 确认网关地址正确：`lava curl --addr http://localhost:8080 --list`
-- 确认网关已启用调试接口
-- 尝试指定正确的 expvar 名称：`lava curl --vars-name custom-vars-name --list`
-
-### 3. 构建命令执行失败
-
-**可能原因**：
-- 构建环境配置不正确
-- 代码存在错误
-- 依赖缺失
-
-**解决方案**：
-- 手动执行构建命令查看详细错误信息
-- 检查代码是否存在语法错误或逻辑错误
-- 运行 `go mod tidy` 确保依赖正确
-
-## 最佳实践
-
-### 1. 开发时使用 watch 命令
-
-在开发过程中，使用 `watch` 命令监控文件变更并自动执行构建命令，可以大大提高开发效率：
-
-```bash
-# 在一个终端中运行 watch 命令
-lava watch
-
-# 在另一个终端中进行开发
-# 当文件变更时，watch 命令会自动执行构建命令
-```
-
-### 2. 使用 curl 测试 gRPC 服务
-
-在开发和测试 gRPC 服务时，使用 `curl` 命令可以更方便地向服务发送请求：
-
-```bash
-# 列出所有可用的路由
-lava curl --list
-
-# 测试特定的接口
-lava curl Greeter/SayHello -d '{"name":"test"}'
-```
-
-### 3. 结合 CI/CD 使用
-
-在 CI/CD 流程中，可以使用 `lava` 命令来执行构建和测试：
-
-```bash
-# 构建项目
-lava watch --once # 只执行一次构建命令
-
-# 测试服务
-lava curl Health/Check
-```
-
-## 示例
-
-### 示例 1：监控 proto 文件变更
-
-```bash
-# 监控 proto 目录下的文件变更
-lava watch ./proto
-
-# 当 proto 文件变更时，会自动执行 protobuild gen 命令
-```
-
-### 示例 2：测试 gRPC 服务
-
-```bash
-# 启动 gRPC 服务（假设服务运行在 localhost:8080）
-# ...
-
-# 列出所有可用的路由
-lava curl --addr http://localhost:8080 --list
-
-# 测试 SayHello 接口
-lava curl --addr http://localhost:8080 Greeter/SayHello -d '{"name":"world"}'
-```
-
-## 总结
-
-`lava` 命令是 Lava 框架的强大命令行工具，通过提供统一的命令入口和多种实用的子命令，大大简化了开发者的工作流程。无论是监控文件变更、自动构建，还是测试 gRPC 服务，`lava` 命令都能提供便捷的解决方案。
-
-通过合理使用 `lava` 命令，开发者可以：
-- 提高开发效率，减少手动执行构建命令的次数
-- 更方便地测试和调试 gRPC 服务
-- 简化 CI/CD 流程中的构建和测试步骤
-
-`lava` 命令是 Lava 框架生态系统中的重要组成部分，为开发者提供了一站式的开发工具解决方案。
+详见：`docs/modules/cmds.md`。
