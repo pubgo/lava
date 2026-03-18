@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package lava.v1;
 
-option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
+option go_package = "github.com/pubgo/lava/v2/pkg/proto/lavapbv1;lavapbv1";
 
 message FormFile {
   string name = 1;

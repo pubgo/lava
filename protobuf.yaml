@@ -1,9 +1,9 @@
-checksum: fa21280019dfe6b5b2d6fe40a3a1408324da91d2
+checksum: 16ad54b3ecda7cc47fae434f660042d3d539cd68
 vendor: proto-vendor
 base:
   out: ./pkg
   paths: import
-  module: github.com/pubgo/lava/pkg
+  module: github.com/pubgo/lava/v2/pkg
 root:
   - proto
 includes:
