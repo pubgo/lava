@@ -349,11 +349,7 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 		return errors.WrapCaller(err)
 	}
 
-	if header, headerErr := clientStream.Header(); headerErr == nil {
-		if sendErr := stream.SendHeader(header); sendErr != nil {
-			return errors.WrapCaller(sendErr)
-		}
-	}
+	headerSent := false
 
 	for {
 		out := mth.outputType.New().Interface()
@@ -365,8 +361,25 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 			return errors.WrapCaller(err)
 		}
 
+		if !headerSent {
+			if header, headerErr := clientStream.Header(); headerErr == nil {
+				if sendErr := stream.SendHeader(header); sendErr != nil {
+					return errors.WrapCaller(sendErr)
+				}
+			}
+			headerSent = true
+		}
+
 		if err = stream.SendMsg(out); err != nil {
 			return errors.WrapCaller(err)
+		}
+	}
+
+	if !headerSent {
+		if header, headerErr := clientStream.Header(); headerErr == nil {
+			if sendErr := stream.SendHeader(header); sendErr != nil {
+				return errors.WrapCaller(sendErr)
+			}
 		}
 	}
 

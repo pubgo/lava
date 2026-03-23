@@ -35,9 +35,16 @@ type fakeClientStream struct {
 	readIdx  int
 	closed   bool
 	sentReqs []proto.Message
+	headerCalled     bool
+	earlyHeaderFetch bool
+	failOnEarlyHead  bool
 }
 
 func (f *fakeClientStream) Header() (metadata.MD, error) {
+	f.headerCalled = true
+	if f.readIdx == 0 {
+		f.earlyHeaderFetch = true
+	}
 	return f.header, nil
 }
 
@@ -62,6 +69,10 @@ func (f *fakeClientStream) SendMsg(m any) error {
 }
 
 func (f *fakeClientStream) RecvMsg(m any) error {
+	if f.failOnEarlyHead && f.earlyHeaderFetch {
+		return io.ErrUnexpectedEOF
+	}
+
 	if f.readIdx >= len(f.frames) {
 		return io.EOF
 	}
@@ -76,6 +87,61 @@ func (f *fakeClientStream) RecvMsg(m any) error {
 		return err
 	}
 	return proto.Unmarshal(b, pm)
+}
+
+func TestInvokeResponseStream_DoesNotPrefetchHeaderBeforeFirstFrame(t *testing.T) {
+	mux := NewMux()
+
+	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
+	if err != nil {
+		t.Fatalf("find input type: %v", err)
+	}
+	outType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Struct")
+	if err != nil {
+		t.Fatalf("find output type: %v", err)
+	}
+
+	fakeStream := &fakeClientStream{
+		header: metadata.Pairs("x-stream", "header"),
+		frames: []proto.Message{
+			&structpb.Struct{Fields: map[string]*structpb.Value{"msg": structpb.NewStringValue("hello")}},
+		},
+		failOnEarlyHead: true,
+	}
+
+	method := &methodWrapper{
+		srv:            &serviceWrapper{opts: mux.opts, remoteProxyCli: &fakeClientConn{stream: fakeStream}},
+		grpcStreamDesc: &grpc.StreamDesc{ServerStreams: true, ClientStreams: false},
+		grpcFullMethod: "/test.v1.StreamService/Watch",
+		inputType:      inType,
+		outputType:     outType,
+	}
+	mux.opts.handlers[method.grpcFullMethod] = method
+
+	app := fiber.New()
+	fctx := &fasthttp.RequestCtx{}
+	ctx := app.AcquireCtx(fctx)
+	defer app.ReleaseCtx(ctx)
+	ctx.Request().Header.SetMethod("POST")
+	ctx.Request().Header.SetContentType("application/json")
+
+	stream := &streamHTTP{handler: ctx, ctx: context.Background(), method: method}
+
+	if err = mux.invokeResponseStream(stream, &emptypb.Empty{}); err != nil {
+		t.Fatalf("invokeResponseStream failed: %v", err)
+	}
+
+	if !fakeStream.headerCalled {
+		t.Fatal("expected header to be fetched eventually")
+	}
+	if fakeStream.earlyHeaderFetch {
+		t.Fatal("header was prefetched before first frame")
+	}
+
+	body := string(ctx.Response().Body())
+	if !strings.Contains(body, "\"msg\":\"hello\"") {
+		t.Fatalf("unexpected response body: %q", body)
+	}
 }
 
 func TestInvokeResponseStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
