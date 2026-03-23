@@ -4,7 +4,7 @@ package lava.rpc;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/pubgo/lava/pkg/proto/lavapbv1;lavapbv1";
+option go_package = "github.com/pubgo/lava/v2/pkg/proto/lavapbv1;lavapbv1";
 
 message RpcMeta {
   // rpc custom name, e.g. people.say.hello

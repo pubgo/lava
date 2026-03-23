@@ -1,0 +1,129 @@
+# Lava 设计文档（v2）
+
+## 1. 设计目标
+
+Lava 在设计上聚焦三件事：
+
+1. **统一抽象**：命令、服务、路由、中间件使用统一接口语义。
+2. **可运维**：默认带调试、日志、指标、生命周期管理能力。
+3. **可扩展**：通过 `core/*` 与 `pkg/*` 的分层，把业务与基础设施解耦。
+
+## 2. 核心抽象
+
+### 2.1 中间件抽象（`lava/middleware.go`）
+
+```go
+type HandlerFunc func(ctx context.Context, req Request) (Response, error)
+
+type Middleware interface {
+    String() string
+    Middleware(next HandlerFunc) HandlerFunc
+}
+```
+
+这是一种“函数包裹函数”的链式模型，支持同一语义在 HTTP/gRPC/Client 场景复用。
+
+### 2.2 路由抽象（`lava/router.go`）
+
+```go
+type HttpRouter interface {
+    Middlewares() []Middleware
+    Router(router fiber.Router)
+    Prefix() string
+}
+
+type GrpcRouter interface {
+    Middlewares() []Middleware
+    ServiceDesc() *grpc.ServiceDesc
+}
+```
+
+设计价值：HTTP 与 gRPC 路由都具备“挂载 + 中间件 + 前缀/描述”统一风格。
+
+### 2.3 服务抽象（`core/supervisor/types.go`）
+
+```go
+type Service interface {
+    Name() string
+    Error() error
+    String() string
+    Serve(ctx context.Context) error
+    Metric() *Metric
+}
+```
+
+`supervisor.Manager` 基于该接口实现生命周期托管、重启策略和状态观测。
+
+## 3. 关键设计决策
+
+### 3.1 Supervisor 负责“稳态运行”
+
+- 支持重启策略：`RestartAlways` / `RestartOnFailure` / `RestartNever`
+- 支持窗口限流：`RestartWindow` + `MaxRestartsInWindow`
+- 支持退避：`RestartDelay` -> `MaxRestartDelay`（按倍率增长）
+
+可用近似表达：
+
+$$
+delay_{n+1}=\min(delay_n\times backoff,\ maxDelay)
+$$
+
+### 3.2 Gateway 与 gRPC 服务同源注册
+
+`servers/grpcs` 同时：
+
+- 向 `grpc.Server` 注册 `ServiceDesc`
+- 向 `pkg/gateway.Mux` 注册 `ServiceDesc`
+
+这使 HTTP/JSON 与 gRPC 共享同一套服务定义，减少重复维护。
+
+### 3.3 Debug 能力内建
+
+- `servers/https` 与 `servers/grpcs` 默认挂载 `/debug`
+- `vars.Register(...)` 暴露配置、路由、服务信息
+
+## 4. 中间件执行流程
+
+```mermaid
+sequenceDiagram
+    participant Caller as 调用方
+    participant Chain as lava.Chain
+    participant M1 as Middleware A
+    participant M2 as Middleware B
+    participant H as Handler
+
+    Caller->>Chain: Handle(req)
+    Chain->>M1: Middleware(next)
+    M1->>M2: Middleware(next)
+    M2->>H: 执行 handler
+    H-->>M2: response
+    M2-->>M1: response
+    M1-->>Caller: response
+```
+
+## 5. 服务重启状态机（简化）
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> running: StartService / AutoStart
+    running --> stopped: StopService
+    running --> crashing: error + 可重启
+    crashing --> running: backoff 后重启
+    crashing --> failed: 超过阈值
+    failed --> running: ResetService + StartService
+    stopped --> running: StartService
+```
+
+## 6. CLI 设计要点
+
+- 根入口 `main.go` 偏开发工具集（watch/curl/tunnel/fileserver/devproxy）
+- `core/lavabuilder.Run` 偏 DI 装配入口（更多服务型命令）
+
+因此文档需要明确“入口上下文”，避免命令清单混淆。
+
+## 7. 文档与实现的一致性建议
+
+1. 命令文档以 `main.go` 作为根入口真值。
+2. 接口文档优先引用 `lava/*.go` 与 `core/supervisor/types.go`。
+3. 流程图更新时，必须同步标注对应实现路径。
