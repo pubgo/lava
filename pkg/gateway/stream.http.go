@@ -34,7 +34,7 @@ type streamHTTP struct {
 	// responseStream indicates this stream writes multiple response messages.
 	// For JSON transport we emit NDJSON (one JSON object per line).
 	responseStream bool
-	writer     io.Writer // optional custom writer
+	writer         io.Writer // optional custom writer
 }
 
 var _ grpc.ServerStream = (*streamHTTP)(nil)

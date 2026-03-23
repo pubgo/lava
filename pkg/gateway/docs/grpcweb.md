@@ -125,12 +125,12 @@ sayHello('World');
 
 Gateway 通过 `Content-Type` 头判断请求类型：
 
-| Content-Type | 描述 |
-|--------------|------|
-| `application/grpc-web+proto` | gRPC Web 二进制格式 (推荐) |
-| `application/grpc-web-text+proto` | gRPC Web Base64 文本格式 |
-| `application/grpc-web+json` | gRPC Web JSON 格式 |
-| `application/json` | 普通 HTTP/JSON (REST API) |
+| Content-Type                      | 描述                       |
+| --------------------------------- | -------------------------- |
+| `application/grpc-web+proto`      | gRPC Web 二进制格式 (推荐) |
+| `application/grpc-web-text+proto` | gRPC Web Base64 文本格式   |
+| `application/grpc-web+json`       | gRPC Web JSON 格式         |
+| `application/json`                | 普通 HTTP/JSON (REST API)  |
 
 ## gRPC Web 协议格式
 
