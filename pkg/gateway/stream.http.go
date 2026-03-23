@@ -40,18 +40,29 @@ type streamHTTP struct {
 var _ grpc.ServerStream = (*streamHTTP)(nil)
 
 func (s *streamHTTP) SetHeader(md metadata.MD) error {
-	if s.sentHeader {
-		return errors.WrapStack(fmt.Errorf("already sent headers"))
-	}
 	s.header = metadata.Join(s.header, md)
+	if s.sentHeader {
+		for k, v := range md {
+			if len(v) == 0 {
+				continue
+			}
+			s.handler.Response().Header.Set(k, v[0])
+		}
+	}
 	return nil
 }
 
 func (s *streamHTTP) SendHeader(md metadata.MD) error {
-	if s.sentHeader {
-		return errors.WrapCaller(fmt.Errorf("already sent headers"))
-	}
 	s.header = metadata.Join(s.header, md)
+	if s.sentHeader {
+		for k, v := range md {
+			if len(v) == 0 {
+				continue
+			}
+			s.handler.Response().Header.Set(k, v[0])
+		}
+		return nil
+	}
 	s.sentHeader = true
 
 	for k, v := range s.header {
