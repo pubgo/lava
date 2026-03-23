@@ -220,40 +220,16 @@ func (m *Mux) Handler(ctx fiber.Ctx) error {
 			return errors.Errorf("unmarshal request failed, method=%s", matchOperation.Operation)
 		}
 
-		out := mth.outputType.New().Interface()
-		var header metadata.MD
-		var trailer metadata.MD
-		err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
+		ctx.Set(httputil.HeaderXRequestVersion, version.Version())
+		ctx.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+
+		err = m.invokeWithStream(stream, in)
 		if err != nil {
 			log.Error().
 				Str("method", ctx.Method()).
 				Str("path", string(ctx.Request().URI().Path())).
 				Msg("invoke failed")
 			return errors.Errorf("invoke failed, method=%s", matchOperation.Operation)
-		}
-
-		// Set headers
-		for k, v := range header {
-			if len(v) > 0 && v[0] != "" {
-				ctx.Set(k, v[0])
-			}
-		}
-		for k, v := range trailer {
-			if len(v) > 0 && v[0] != "" {
-				ctx.Set(k, v[0])
-			}
-		}
-
-		ctx.Set(httputil.HeaderXRequestVersion, version.Version())
-		ctx.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
-
-		// Send response and flush with trailer
-		err = stream.SendMsg(out)
-		if err != nil {
-			log.Error().
-				Str("method", ctx.Method()).
-				Str("path", string(ctx.Request().URI().Path())).
-				Msg("marshal response failed")
 		}
 		ww.flushWithTrailer()
 		return nil
@@ -306,12 +282,9 @@ func (m *Mux) Handler(ctx fiber.Ctx) error {
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("unmarshal request failed")
+		return errors.Errorf("unmarshal request failed, method=%s", matchOperation.Operation)
 	}
-
-	out := mth.outputType.New().Interface()
-	var header metadata.MD
-	var trailer metadata.MD
-	err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
+	err = m.invokeWithStream(stream, in)
 	if err != nil {
 		log.Error().
 			Str("method", ctx.Method()).
@@ -320,35 +293,97 @@ func (m *Mux) Handler(ctx fiber.Ctx) error {
 		return errors.WrapCaller(err)
 	}
 
-	hh := make(metadata.MD)
-	for k, v := range header {
-		hh.Set(k, v...)
+	ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
+	ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+	ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
+	return nil
+}
+
+func (m *Mux) invokeWithStream(stream *streamHTTP, in any) error {
+	mth := stream.method
+	if mth == nil {
+		return errors.New("method wrapper is nil")
 	}
 
-	for k, v := range trailer {
-		hh.Set(k, v...)
+	if mth.grpcStreamDesc != nil {
+		return m.invokeResponseStream(stream, in)
 	}
 
-	for k, v := range hh {
+	out := mth.outputType.New().Interface()
+	var header metadata.MD
+	var trailer metadata.MD
+	if err := m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer)); err != nil {
+		return err
+	}
+
+	applyResponseMetadata(stream.handler, header)
+	applyResponseMetadata(stream.handler, trailer)
+
+	return stream.SendMsg(out)
+}
+
+func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
+	mth := stream.method
+	if mth == nil || mth.grpcStreamDesc == nil {
+		return errors.New("stream method descriptor is nil")
+	}
+
+	if !mth.grpcStreamDesc.ServerStreams {
+		return errors.Errorf("unsupported stream mode: %s is not server-streaming", mth.grpcFullMethod)
+	}
+	if mth.grpcStreamDesc.ClientStreams {
+		return errors.Errorf("unsupported stream mode: %s has client-streaming", mth.grpcFullMethod)
+	}
+
+	stream.responseStream = true
+
+	clientStream, err := m.NewStream(stream.ctx, mth.grpcStreamDesc, mth.grpcFullMethod)
+	if err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	if err = clientStream.SendMsg(in); err != nil {
+		return errors.WrapCaller(err)
+	}
+	if err = clientStream.CloseSend(); err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	if header, headerErr := clientStream.Header(); headerErr == nil {
+		if sendErr := stream.SendHeader(header); sendErr != nil {
+			return errors.WrapCaller(sendErr)
+		}
+	}
+
+	for {
+		out := mth.outputType.New().Interface()
+		err = clientStream.RecvMsg(out)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		if err = stream.SendMsg(out); err != nil {
+			return errors.WrapCaller(err)
+		}
+	}
+
+	stream.SetTrailer(clientStream.Trailer())
+	applyResponseMetadata(stream.handler, stream.trailer)
+
+	return nil
+}
+
+func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
+	for k, v := range md {
 		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
 		if len(v) == 0 {
 			continue
 		}
-
 		ctx.Response().Header.Set(k, v[0])
 	}
-
-	ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
-	ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
-	ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
-	err = stream.SendMsg(out)
-	if err != nil {
-		log.Error().
-			Str("method", ctx.Method()).
-			Str("path", string(ctx.Request().URI().Path())).
-			Msg("marshal response failed")
-	}
-	return nil
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {

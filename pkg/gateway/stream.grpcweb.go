@@ -41,6 +41,7 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 type webWriter struct {
 	w           http.ResponseWriter
 	resp        io.Writer
+	flushWriter http.Flusher
 	seenHeaders map[string]bool
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
@@ -51,13 +52,18 @@ type webWriter struct {
 func newWebWriter(w http.ResponseWriter, typ, enc string) *webWriter {
 	var resp io.Writer = w
 	if typ == grpcWebText {
-		resp = base64.NewEncoder(base64.StdEncoding, resp)
+		resp = &base64ChunkWriter{w: resp}
+	}
+	var flusher http.Flusher
+	if f, ok := w.(http.Flusher); ok {
+		flusher = f
 	}
 	return &webWriter{
-		w:    w,
-		typ:  typ,
-		enc:  enc,
-		resp: resp,
+		w:           w,
+		typ:         typ,
+		enc:         enc,
+		resp:        resp,
+		flushWriter: flusher,
 	}
 }
 
@@ -67,6 +73,7 @@ func newWebWriter(w http.ResponseWriter, typ, enc string) *webWriter {
 type fiberWebWriter struct {
 	ctx         fiber.Ctx
 	resp        io.Writer
+	flushWriter http.Flusher
 	typ         string // grpcWeb or grpcWebText
 	enc         string // proto or json
 	wroteHeader bool
@@ -74,15 +81,21 @@ type fiberWebWriter struct {
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
-	resp := ctx.Response().BodyWriter()
+	raw := ctx.Response().BodyWriter()
+	resp := raw
 	if typ == grpcWebText {
-		resp = base64.NewEncoder(base64.StdEncoding, resp)
+		resp = &base64ChunkWriter{w: resp}
+	}
+	var flusher http.Flusher
+	if f, ok := raw.(http.Flusher); ok {
+		flusher = f
 	}
 	return &fiberWebWriter{
-		ctx:  ctx,
-		typ:  typ,
-		enc:  enc,
-		resp: resp,
+		ctx:         ctx,
+		typ:         typ,
+		enc:         enc,
+		resp:        resp,
+		flushWriter: flusher,
 	}
 }
 
@@ -136,8 +149,12 @@ func (w *fiberWebWriter) flushWithTrailer() {
 			return // nothing
 		}
 	}
-	if flusher, ok := w.resp.(http.Flusher); ok {
-		flusher.Flush()
+	w.Flush()
+}
+
+func (w *fiberWebWriter) Flush() {
+	if w.flushWriter != nil {
+		w.flushWriter.Flush()
 	}
 }
 
@@ -173,8 +190,8 @@ func (w *webWriter) WriteHeader(statusCode int) {
 }
 
 func (w *webWriter) Flush() {
-	if flusher, ok := w.resp.(http.Flusher); ok {
-		flusher.Flush()
+	if w.flushWriter != nil {
+		w.flushWriter.Flush()
 	}
 }
 
@@ -221,6 +238,22 @@ func writeAll(w io.Writer, parts ...[]byte) error {
 		}
 	}
 	return nil
+}
+
+type base64ChunkWriter struct {
+	w io.Writer
+}
+
+func (b *base64ChunkWriter) Write(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	out := make([]byte, base64.StdEncoding.EncodedLen(len(p)))
+	base64.StdEncoding.Encode(out, p)
+	if _, err := b.w.Write(out); err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 type readCloser struct {

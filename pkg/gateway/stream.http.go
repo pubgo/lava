@@ -31,6 +31,9 @@ type streamHTTP struct {
 	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
+	// responseStream indicates this stream writes multiple response messages.
+	// For JSON transport we emit NDJSON (one JSON object per line).
+	responseStream bool
 	writer     io.Writer // optional custom writer
 }
 
@@ -126,7 +129,28 @@ func (s *streamHTTP) SendMsg(m any) error {
 	} else {
 		_, err = s.handler.Write(b)
 	}
-	return errors.WrapCaller(err)
+	if err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	if !isGRPC && s.responseStream {
+		if s.writer != nil {
+			_, err = s.writer.Write([]byte("\n"))
+		} else {
+			_, err = s.handler.Write([]byte("\n"))
+		}
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+	}
+
+	if s.writer != nil {
+		if flusher, ok := s.writer.(interface{ Flush() }); ok {
+			flusher.Flush()
+		}
+	}
+
+	return nil
 }
 
 func (s *streamHTTP) RecvMsg(m any) error {

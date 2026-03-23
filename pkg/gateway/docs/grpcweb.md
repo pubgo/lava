@@ -261,6 +261,6 @@ open http://localhost:8080/
 
 ## 当前限制
 
-- 仅支持 Unary RPC（一元调用）
-- 不支持客户端流、服务端流、双向流
-- 不支持 WebSocket 升级
+- ✅ 已支持 Unary 与 **服务端响应流（Server Streaming）**
+- ⏳ 暂不支持客户端流（Client Streaming）与双向流（Bidi Streaming）
+- ⏳ 暂不支持 WebSocket 升级
