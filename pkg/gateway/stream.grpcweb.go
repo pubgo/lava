@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/adaptor"
 )
 
 const (
@@ -38,38 +36,8 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 	return typ, enc, ok
 }
 
-type webWriter struct {
-	w           http.ResponseWriter
-	resp        io.Writer
-	flushWriter http.Flusher
-	seenHeaders map[string]bool
-	typ         string // grpcWeb or grpcWebText
-	enc         string // proto or json
-	wroteHeader bool
-	wroteResp   bool
-}
-
-func newWebWriter(w http.ResponseWriter, typ, enc string) *webWriter {
-	var resp io.Writer = w
-	if typ == grpcWebText {
-		resp = &base64ChunkWriter{w: resp}
-	}
-	var flusher http.Flusher
-	if f, ok := w.(http.Flusher); ok {
-		flusher = f
-	}
-	return &webWriter{
-		w:           w,
-		typ:         typ,
-		enc:         enc,
-		resp:        resp,
-		flushWriter: flusher,
-	}
-}
-
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
-// Unlike webWriter which writes headers to body (for standard http.ResponseWriter),
-// this writes headers directly to Fiber response headers.
+// It writes headers directly to Fiber response headers.
 type fiberWebWriter struct {
 	ctx         fiber.Ctx
 	resp        io.Writer
@@ -158,88 +126,6 @@ func (w *fiberWebWriter) Flush() {
 	}
 }
 
-func (w *webWriter) Header() http.Header {
-	return w.w.Header()
-}
-
-func (w *webWriter) Write(data []byte) (int, error) {
-	if !w.wroteHeader {
-		w.wroteHeader = true
-		hdr := w.Header()
-		hdr.Set("Content-Type", w.typ+"+"+w.enc) // override content-type
-		for k, v := range hdr {
-			if strings.HasPrefix(strings.ToLower(k), "grpc-") {
-				continue
-			}
-			for _, val := range v {
-				if err := writeAll(w.resp, []byte(k), []byte(": "), []byte(val), []byte("\r\n")); err != nil {
-					return 0, err
-				}
-			}
-		}
-		if err := writeAll(w.resp, []byte("\r\n")); err != nil {
-			return 0, err
-		}
-	}
-	w.wroteResp = true
-	return w.resp.Write(data)
-}
-
-func (w *webWriter) WriteHeader(statusCode int) {
-	w.w.WriteHeader(statusCode)
-}
-
-func (w *webWriter) Flush() {
-	if w.flushWriter != nil {
-		w.flushWriter.Flush()
-	}
-}
-
-func (w *webWriter) writeTrailer() error {
-	// Write trailers only if message has been sent.
-	if !w.wroteResp {
-		return nil
-	}
-	tr := make(http.Header)
-	for k, v := range w.Header() {
-		if strings.HasPrefix(strings.ToLower(k), "grpc-") {
-			tr[strings.ToLower(k)] = v
-		}
-	}
-	var buf bytes.Buffer
-	if err := tr.Write(&buf); err != nil {
-		return err
-	}
-	head := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 indicates this is a trailer data frame.
-	binary.BigEndian.PutUint32(head[1:5], uint32(buf.Len()))
-	if _, err := w.Write(head); err != nil {
-		return err
-	}
-	if _, err := w.Write(buf.Bytes()); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (w *webWriter) flushWithTrailer() {
-	// Write trailers only if message has been sent.
-	if w.wroteHeader || w.wroteResp {
-		if err := w.writeTrailer(); err != nil {
-			return // nothing
-		}
-	}
-	w.Flush()
-}
-
-func writeAll(w io.Writer, parts ...[]byte) error {
-	for _, part := range parts {
-		if _, err := w.Write(part); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 type base64ChunkWriter struct {
 	w io.Writer
 }
@@ -275,32 +161,4 @@ func (rc *readCloser) Close() error {
 	}
 
 	return rc.Closer.Close()
-}
-
-func serveGRPCWeb(m *Mux, w http.ResponseWriter, r *http.Request) {
-	typ, enc, ok := isWebRequest(r)
-	if !ok {
-		msg := fmt.Sprintf("invalid gRPC-Web content type: %v", r.Header.Get("Content-Type"))
-		http.Error(w, msg, http.StatusBadRequest)
-		return
-	}
-
-	// TODO: Check for websocket request and upgrade.
-	if strings.EqualFold(r.Header.Get("Upgrade"), "websocket") {
-		http.Error(w, "unimplemented websocket support", http.StatusInternalServerError)
-		return
-	}
-
-	r.ProtoMajor = 2
-	r.ProtoMinor = 0
-	hdr := r.Header
-	hdr.Del("Content-Length")
-	hdr.Set("Content-Type", grpcBase+"+"+enc)
-	if typ == grpcWebText {
-		body := base64.NewDecoder(base64.StdEncoding, r.Body)
-		r.Body = &readCloser{body, r.Body}
-	}
-	ww := newWebWriter(w, typ, enc)
-	adaptor.FiberHandler(m.Handler).ServeHTTP(ww, r)
-	ww.flushWithTrailer()
 }

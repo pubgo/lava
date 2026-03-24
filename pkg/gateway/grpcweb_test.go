@@ -30,15 +30,3 @@ func TestIsWebRequest(t *testing.T) {
 		})
 	}
 }
-
-func TestServeGRPCWebInvalidContentType(t *testing.T) {
-	mux := NewMux()
-	req := httptest.NewRequest("POST", "/", nil)
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	serveGRPCWeb(mux, w, req)
-
-	assert.Equal(t, 400, w.Code)
-	assert.Contains(t, w.Body.String(), "invalid gRPC-Web content type")
-}

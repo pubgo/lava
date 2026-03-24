@@ -441,13 +441,8 @@ func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method strin
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	// Check if this is a gRPC Web request
-	if _, _, ok := isWebRequest(request); ok {
-		serveGRPCWeb(m, writer, request)
-		return
-	}
-	// For non-gRPC Web requests, we need to adapt to Fiber
-	// Since Handler now handles gRPC Web internally, we can just use adaptor
+	// ServeHTTP acts as a thin wrapper only.
+	// All protocol/business handling is centralized in Handler.
 	adaptor.FiberHandler(m.Handler).ServeHTTP(writer, request)
 }
 
