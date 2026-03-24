@@ -247,7 +247,17 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		for key, value := range h.All() {
 			md.Append(convert.BtoS(key), convert.BtoS(value))
 		}
-		return grpc.SendHeader(ctx, md)
+		if len(md) == 0 {
+			return nil
+		}
+
+		if err = grpc.SetTrailer(ctx, md); err != nil {
+			log.Err(err, ctx).
+				Str("grpc-method", info.FullMethod).
+				Msg("grpc set stream trailer failed")
+		}
+
+		return nil
 	}
 }
 

@@ -29,12 +29,12 @@ func (f *fakeClientConn) NewStream(context.Context, *grpc.StreamDesc, string, ..
 }
 
 type fakeClientStream struct {
-	header   metadata.MD
-	trailer  metadata.MD
-	frames   []proto.Message
-	readIdx  int
-	closed   bool
-	sentReqs []proto.Message
+	header           metadata.MD
+	trailer          metadata.MD
+	frames           []proto.Message
+	readIdx          int
+	closed           bool
+	sentReqs         []proto.Message
 	headerCalled     bool
 	earlyHeaderFetch bool
 	failOnEarlyHead  bool

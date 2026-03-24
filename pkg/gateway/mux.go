@@ -364,7 +364,12 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 		if !headerSent {
 			if header, headerErr := clientStream.Header(); headerErr == nil {
 				if sendErr := stream.SendHeader(header); sendErr != nil {
-					return errors.WrapCaller(sendErr)
+					if !isDuplicateHeaderError(sendErr) {
+						return errors.WrapCaller(sendErr)
+					}
+					log.Err(sendErr).
+						Str("method", mth.grpcFullMethod).
+						Msg("ignore duplicate response-stream header send error")
 				}
 			}
 			headerSent = true
@@ -378,7 +383,12 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 	if !headerSent {
 		if header, headerErr := clientStream.Header(); headerErr == nil {
 			if sendErr := stream.SendHeader(header); sendErr != nil {
-				return errors.WrapCaller(sendErr)
+				if !isDuplicateHeaderError(sendErr) {
+					return errors.WrapCaller(sendErr)
+				}
+				log.Err(sendErr).
+					Str("method", mth.grpcFullMethod).
+					Msg("ignore duplicate response-stream header send error")
 			}
 		}
 	}
@@ -397,6 +407,17 @@ func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
 		}
 		ctx.Response().Header.Set(k, v[0])
 	}
+}
+
+func isDuplicateHeaderError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "headers already sent") ||
+		strings.Contains(msg, "sendheader called multiple times") ||
+		strings.Contains(msg, "header already sent")
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
