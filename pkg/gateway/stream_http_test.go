@@ -8,6 +8,20 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+func TestIsGRPCContentType_GrpcWebJSONAlias(t *testing.T) {
+	if got := isGRPCContentType("application/grpc-web-json"); got {
+		t.Fatal("grpc-web-json alias should be treated as JSON transport")
+	}
+
+	if got := isGRPCContentType("application/grpc-web-json; charset=utf-8"); got {
+		t.Fatal("grpc-web-json alias with charset should be treated as JSON transport")
+	}
+
+	if got := isGRPCContentType("application/grpc+proto"); !got {
+		t.Fatal("application/grpc+proto should be treated as gRPC transport")
+	}
+}
+
 func TestStreamHTTP_SendHeader_Idempotent(t *testing.T) {
 	app := fiber.New()
 	fctx := &fasthttp.RequestCtx{}

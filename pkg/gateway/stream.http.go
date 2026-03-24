@@ -87,6 +87,16 @@ func (s *streamHTTP) Context() context.Context {
 	return NewContextWithServerTransportStream(s.ctx, s, s.method.grpcFullMethod)
 }
 
+func isGRPCContentType(ct string) bool {
+	ct = strings.ToLower(strings.TrimSpace(ct))
+	// Treat grpc-web-json alias as plain JSON transport for compatibility.
+	if strings.HasPrefix(ct, "application/grpc-web-json") {
+		return false
+	}
+
+	return strings.HasPrefix(ct, "application/grpc")
+}
+
 func (s *streamHTTP) SendMsg(m any) error {
 	if funk.IsNil(m) {
 		return errors.New("stream http send msg got nil")
@@ -114,7 +124,7 @@ func (s *streamHTTP) SendMsg(m any) error {
 	}
 
 	ct := string(s.handler.Request().Header.ContentType())
-	isGRPC := strings.HasPrefix(ct, "application/grpc")
+	isGRPC := isGRPCContentType(ct)
 
 	var b []byte
 	var err error
@@ -192,7 +202,7 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		}
 
 		ct := string(s.handler.Request().Header.ContentType())
-		isGRPC := strings.HasPrefix(ct, "application/grpc")
+		isGRPC := isGRPCContentType(ct)
 
 		// PUT/POST/PATCH 必须有 body (gRPC 请求除外，因为需要先解析帧)
 		if hasBody && !isGRPC && len(s.handler.Body()) == 0 {

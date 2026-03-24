@@ -79,40 +79,41 @@ curl -X POST http://localhost:8080/v1/users \
 
 ## 文档
 
-| 文档 | 说明 |
-|------|------|
-| [使用指南](docs/usage.md) | 服务注册、路由配置、中间件、错误处理等 |
-| [gRPC Web](docs/grpcweb.md) | 浏览器端 gRPC Web 集成 |
-| [架构设计](docs/architecture.md) | 核心组件、数据结构、处理流程 |
-| [实现细节](docs/internals.md) | 路径解析、元数据转换、流式处理等 |
+| 文档                             | 说明                                   |
+| -------------------------------- | -------------------------------------- |
+| [使用指南](docs/usage.md)        | 服务注册、路由配置、中间件、错误处理等 |
+| [gRPC Web](docs/grpcweb.md)      | 浏览器端 gRPC Web 集成                 |
+| [架构设计](docs/architecture.md) | 核心组件、数据结构、处理流程           |
+| [实现细节](docs/internals.md)    | 路径解析、元数据转换、流式处理等       |
 
 ## 支持的协议
 
-| 协议 | Content-Type | 说明 |
-|------|--------------|------|
-| HTTP/JSON | `application/json` | RESTful API |
-| gRPC Web | `application/grpc-web+proto` | 浏览器 gRPC (二进制) |
-| gRPC Web Text | `application/grpc-web-text+proto` | 浏览器 gRPC (Base64) |
+| 协议             | Content-Type                      | 说明                         |
+| ---------------- | --------------------------------- | ---------------------------- |
+| HTTP/JSON        | `application/json`                | RESTful API                  |
+| HTTP/JSON (别名) | `application/grpc-web-json`       | 前端命名兼容（按 JSON 处理） |
+| gRPC Web         | `application/grpc-web+proto`      | 浏览器 gRPC (二进制)         |
+| gRPC Web Text    | `application/grpc-web-text+proto` | 浏览器 gRPC (Base64)         |
 
 ## 路径匹配
 
-| 模式 | 示例 | 说明 |
-|------|------|------|
-| `{field}` | `/users/{id}` | 路径变量 |
-| `*` | `/files/*` | 单段通配符 |
-| `**` | `/files/**` | 多段通配符 |
-| `:verb` | `/users/{id}:get` | 动词后缀 |
+| 模式      | 示例              | 说明       |
+| --------- | ----------------- | ---------- |
+| `{field}` | `/users/{id}`     | 路径变量   |
+| `*`       | `/files/*`        | 单段通配符 |
+| `**`      | `/files/**`       | 多段通配符 |
+| `:verb`   | `/users/{id}:get` | 动词后缀   |
 
 ## 错误码映射
 
-| gRPC Code | HTTP Status |
-|-----------|-------------|
-| OK | 200 |
-| InvalidArgument | 400 |
-| Unauthenticated | 401 |
-| PermissionDenied | 403 |
-| NotFound | 404 |
-| Internal | 500 |
+| gRPC Code        | HTTP Status |
+| ---------------- | ----------- |
+| OK               | 200         |
+| InvalidArgument  | 400         |
+| Unauthenticated  | 401         |
+| PermissionDenied | 403         |
+| NotFound         | 404         |
+| Internal         | 500         |
 
 完整映射表见 [实现细节](docs/internals.md#错误码映射)。
 
