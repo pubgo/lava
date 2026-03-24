@@ -322,8 +322,8 @@ func (m *Mux) invokeWithStream(stream *streamHTTP, in any) error {
 	return stream.SendMsg(out)
 }
 
-func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
-	mth := stream.method
+func (m *Mux) invokeResponseStream(remoteStream *streamHTTP, in any) error {
+	mth := remoteStream.method
 	if mth == nil || mth.grpcStreamDesc == nil {
 		return errors.New("stream method descriptor is nil")
 	}
@@ -335,17 +335,17 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 		return errors.Errorf("unsupported stream mode: %s has client-streaming", mth.grpcFullMethod)
 	}
 
-	stream.responseStream = true
+	remoteStream.responseStream = true
 
-	clientStream, err := m.NewStream(stream.ctx, mth.grpcStreamDesc, mth.grpcFullMethod)
+	localStream, err := m.NewStream(remoteStream.ctx, mth.grpcStreamDesc, mth.grpcFullMethod)
 	if err != nil {
 		return errors.WrapCaller(err)
 	}
 
-	if err = clientStream.SendMsg(in); err != nil {
+	if err = localStream.SendMsg(in); err != nil {
 		return errors.WrapCaller(err)
 	}
-	if err = clientStream.CloseSend(); err != nil {
+	if err = localStream.CloseSend(); err != nil {
 		return errors.WrapCaller(err)
 	}
 
@@ -353,7 +353,7 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 
 	for {
 		out := mth.outputType.New().Interface()
-		err = clientStream.RecvMsg(out)
+		err = localStream.RecvMsg(out)
 		if err == io.EOF {
 			break
 		}
@@ -362,8 +362,8 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 		}
 
 		if !headerSent {
-			if header, headerErr := clientStream.Header(); headerErr == nil {
-				if sendErr := stream.SendHeader(header); sendErr != nil {
+			if header, headerErr := localStream.Header(); headerErr == nil {
+				if sendErr := remoteStream.SendHeader(header); sendErr != nil {
 					if !isDuplicateHeaderError(sendErr) {
 						return errors.WrapCaller(sendErr)
 					}
@@ -375,14 +375,14 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 			headerSent = true
 		}
 
-		if err = stream.SendMsg(out); err != nil {
+		if err = remoteStream.SendMsg(out); err != nil {
 			return errors.WrapCaller(err)
 		}
 	}
 
 	if !headerSent {
-		if header, headerErr := clientStream.Header(); headerErr == nil {
-			if sendErr := stream.SendHeader(header); sendErr != nil {
+		if header, headerErr := localStream.Header(); headerErr == nil {
+			if sendErr := remoteStream.SendHeader(header); sendErr != nil {
 				if !isDuplicateHeaderError(sendErr) {
 					return errors.WrapCaller(sendErr)
 				}
@@ -393,8 +393,8 @@ func (m *Mux) invokeResponseStream(stream *streamHTTP, in any) error {
 		}
 	}
 
-	stream.SetTrailer(clientStream.Trailer())
-	applyResponseMetadata(stream.handler, stream.trailer)
+	remoteStream.SetTrailer(localStream.Trailer())
+	applyResponseMetadata(remoteStream.handler, remoteStream.trailer)
 
 	return nil
 }
