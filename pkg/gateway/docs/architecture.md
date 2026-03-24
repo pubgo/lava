@@ -40,27 +40,70 @@ pkg/gateway/
 
 ## 核心组件
 
+```mermaid
+C4Container
+title Gateway 核心组件（C4 Container）
+
+Person(client, "HTTP/gRPC-Web Client", "调用 Gateway API")
+
+System_Boundary(gateway, "pkg/gateway") {
+    Container(mux, "Gateway (Mux)", "Go", "核心路由器，管理请求生命周期与调度")
+    Container(routerTree, "RouterTree", "Go", "路径解析、变量提取、路由匹配")
+    Container(codec, "Codec", "Go", "JSON/Protobuf 编解码与扩展")
+    Container(stream, "Stream", "Go", "HTTP、gRPC-Web、Proxy 等流处理")
+    Container(ctxmeta, "Context", "Go", "HTTP↔gRPC metadata 转换")
+    Container(fieldmask, "FieldMask", "Go", "字段掩码与局部更新支持")
+    Container(wrapper, "Wrapper", "Go", "服务/方法包装，本地与代理调用抽象")
+}
+
+Rel(client, mux, "HTTP / gRPC-Web")
+Rel(mux, routerTree, "Match(method, path)")
+Rel(mux, ctxmeta, "构建/透传 metadata")
+Rel(mux, stream, "RecvMsg / SendMsg / Stream invoke")
+Rel(stream, codec, "Marshal / Unmarshal")
+Rel(stream, fieldmask, "请求字段映射")
+Rel(mux, wrapper, "方法查找与调用分发")
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      Gateway (Mux)                       │
-│             核心路由器，管理整个请求生命周期              │
-├─────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │ RouterTree   │  │   Codec      │  │  Stream      │ │
-│  │ (路径匹配)    │  │  (编解码)    │  │  (流处理)    │ │
-│  │              │  │              │  │              │ │
-│  │ - 路径解析    │  │ - JSON       │  │ - HTTP       │ │
-│  │ - 变量提取    │  │ - Protobuf   │  │ - gRPC Web   │ │
-│  │ - 路由匹配    │  │ - 自定义     │  │ - WebSocket  │ │
-│  └──────────────┘  └──────────────┘  └──────────────┘ │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │  Context     │  │  FieldMask   │  │  Wrapper     │ │
-│  │ (元数据管理)  │  │  (字段掩码)  │  │  (服务包装)  │ │
-│  │              │  │              │  │              │ │
-│  │ - HTTP↔gRPC  │  │ - 字段过滤   │  │ - 本地服务   │ │
-│  │ - Metadata   │  │ - 路径解析   │  │ - 代理服务   │ │
-│  └──────────────┘  └──────────────┘  └──────────────┘ │
-└─────────────────────────────────────────────────────────┘
+
+### 核心组件分层（美化版）
+
+```mermaid
+flowchart TB
+        client([HTTP / gRPC-Web Client])
+
+        subgraph L0[接入层]
+            mux[Gateway Mux\n请求编排与分发]
+        end
+
+        subgraph L1[核心处理层]
+            router[RouterTree\n路径匹配/变量提取]
+            stream[Stream\nRecvMsg/SendMsg/流式处理]
+            codec[Codec\nJSON/Protobuf 编解码]
+        end
+
+        subgraph L2[支撑能力层]
+            ctx[Context\nMetadata 转换]
+            mask[FieldMask\n字段掩码映射]
+            wrapper[Wrapper\n本地/代理调用包装]
+        end
+
+        client --> mux
+        mux --> router
+        mux --> stream
+        mux --> ctx
+        mux --> wrapper
+        stream --> codec
+        stream --> mask
+
+        classDef client fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+        classDef entry fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+        classDef core fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
+        classDef support fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
+
+        class client client;
+        class mux entry;
+        class router,stream,codec core;
+        class ctx,mask,wrapper support;
 ```
 
 ## 请求处理流程
@@ -70,11 +113,11 @@ HTTP Request (JSON / gRPC Web)
     │
     ├─> [1. Handler] 接收 Fiber Context
     │
-    ├─> [2. 协议检测] 
+    ├─> [2. 协议检测]
     │      ├─ HTTP/JSON → 普通流程
     │      └─ gRPC Web → gRPC Web 流程
     │
-    ├─> [3. RouterTree.Match] 
+    ├─> [3. RouterTree.Match]
     │      ├─ 解析 HTTP 方法和路径
     │      ├─ 匹配路由规则（支持通配符、变量、动词）
     │      └─ 提取路径变量和查询参数
@@ -105,6 +148,168 @@ HTTP Request (JSON / gRPC Web)
     │      └─ 编码并写入响应
     │
     └─> [10. Response] 返回响应
+```
+
+### Handler 详细流程图
+
+```mermaid
+flowchart TD
+    A["Handler(ctx)"] --> B{"isWebRequestFromContentType?"}
+    B -- Yes --> C["gRPC-Web 预处理"]
+    B -- No --> D["普通分支"]
+
+    C --> C1{"Upgrade=websocket?"}
+    C1 -- Yes --> Cx["返回 500: unimplemented"]
+    C1 -- No --> C2["改写 Content-Type 为 application/grpc+enc"]
+    C2 --> C3{"typ == grpc-web-text?"}
+    C3 -- Yes --> C4["Base64 解码 body/stream"]
+    C3 -- No --> C5["跳过"]
+    C4 --> C6["创建 fiberWebWriter"]
+    C5 --> C6
+    C6 --> E["routerTree.Match(method,path)"]
+
+    D --> E
+
+    E --> F{"匹配成功?"}
+    F -- No --> Fx["返回 match operation failed"]
+    F -- Yes --> G["提取 path vars + 合并 query"]
+
+    G --> H["handlers operation 查找 methodWrapper"]
+    H --> I{"methodWrapper 存在?"}
+    I -- No --> Ix["返回 method operation not found"]
+    I -- Yes --> J["构建 metadata.MD"]
+    J --> K["构建 streamHTTP"]
+
+    K --> L["stream.RecvMsg(in)"]
+    L --> M{"反序列化成功?"}
+    M -- No --> Mx["返回 unmarshal request failed"]
+    M -- Yes --> N["invokeWithStream"]
+
+    N --> O{"grpcStreamDesc != nil?"}
+    O -- No --> P["Unary: Invoke + SendMsg"]
+    O -- Yes --> Q["Server Stream: NewStream/Recv loop/SendHeader/SendMsg/Trailer"]
+
+    P --> R["写响应头 version/operation"]
+    Q --> R
+    R --> S{"gRPC-Web 分支?"}
+    S -- Yes --> T["flushWithTrailer"]
+    S -- No --> U["结束"]
+    T --> U
+
+    classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+    classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
+    classDef process fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
+    classDef success fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+    classDef error fill:#FFECEC,stroke:#D14343,stroke-width:1.2px,color:#7D1F1F;
+
+    class A entry;
+    class B,C1,C3,F,I,M,O,S decision;
+    class C,D,C2,C4,C5,C6,E,G,H,J,K,L,N,P,Q,R,T process;
+    class U success;
+    class Cx,Fx,Ix,Mx error;
+```
+
+### RouterTree.Match 路由匹配流程图
+
+```mermaid
+flowchart TD
+    A["Match(method,url)"] --> B["parseURL to pathNodes, verb"]
+    B --> C["verbKey = METHOD:verb"]
+    C --> D{"根路径?"}
+    D -- Yes --> E["查 root 节点 verbMap"]
+    D -- No --> F["递归匹配 pathNodes"]
+
+    F --> G{"精确节点命中?"}
+    G -- Yes --> H{"最后一段?"}
+    H -- Yes --> I["查 verbMap 命中返回"]
+    H -- No --> F
+
+    G -- No --> J{"star 节点命中?"}
+    J -- Yes --> K{"最后一段?"}
+    K -- Yes --> I
+    K -- No --> F
+
+    J -- No --> L{"double star 节点命中?"}
+    L -- Yes --> I
+    L -- No --> M["ErrPathNodeNotFound or ErrOperationNotFound"]
+
+    classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+    classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
+    classDef process fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
+    classDef success fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+    classDef error fill:#FFECEC,stroke:#D14343,stroke-width:1.2px,color:#7D1F1F;
+
+    class A entry;
+    class D,G,H,J,K,L decision;
+    class B,C,E,F process;
+    class I success;
+    class M error;
+```
+
+### gRPC-Web-JSON 专项流程图
+
+`application/grpc-web-json` 在当前实现中会走 **gRPC-Web 入口**，但在编解码阶段按 **JSON 传输** 处理（不走 gRPC frame）。
+
+```mermaid
+flowchart TD
+    A["请求 Content-Type = application/grpc-web-json"] --> B["Handler 命中 gRPC-Web 分支"]
+    B --> C["改写请求头为 application/grpc+json"]
+    C --> D["创建 fiberWebWriter"]
+    D --> E["routerTree.Match"]
+    E --> F["构建 streamHTTP 并 RecvMsg"]
+    F --> G["isGRPCContentType(application/grpc-web-json) = false"]
+    G --> H["按 JSON 反序列化请求体"]
+    H --> I["invokeWithStream 调用后端 gRPC"]
+    I --> J["SendMsg 时按 JSON 序列化响应"]
+    J --> K["fiberWebWriter 写出 grpc-web 响应并 flush trailer"]
+
+    classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+    classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
+    classDef process fill:#FFF7E8,stroke:#C87B00,stroke-width:1.2px,color:#7A4A00;
+
+    class A entry;
+    class G decision;
+    class B,C,D,E,F,H,I,J,K process;
+```
+
+> 说明：`stream.http.go` 中 `isGRPCContentType` 对 `application/grpc-web-json` 做了显式兼容，返回 `false`；相关行为由 `stream_http_test.go` 的 `TestIsGRPCContentType_GrpcWebJSONAlias` 覆盖。
+
+### grpc-web+proto vs grpc-web-json 差异对比
+
+| 维度                | grpc-web+proto                                   | grpc-web-json                      |
+| ------------------- | ------------------------------------------------ | ---------------------------------- |
+| 入口判定            | `isWebRequestFromContentType` 命中               | `isWebRequestFromContentType` 命中 |
+| 请求头改写          | `application/grpc+proto`                         | `application/grpc+json`            |
+| `isGRPCContentType` | `true`                                           | `false`（别名按 JSON 处理）        |
+| 请求解码            | gRPC frame + protobuf                            | JSON 反序列化                      |
+| 响应编码            | protobuf + gRPC frame                            | JSON 序列化                        |
+| 输出封装            | 由 `fiberWebWriter` 负责 grpc-web 响应与 trailer | 同左                               |
+
+```mermaid
+flowchart LR
+    subgraph P["grpc-web+proto"]
+        P1["Content-Type: application/grpc-web+proto"] --> P2["Handler gRPC-Web 分支"]
+        P2 --> P3["改写为 application/grpc+proto"]
+        P3 --> P4["isGRPCContentType = true"]
+        P4 --> P5["RecvMsg: 解析 gRPC frame + protobuf"]
+        P5 --> P6["SendMsg: protobuf + gRPC frame"]
+        P6 --> P7["fiberWebWriter flush trailer"]
+    end
+
+    subgraph J["grpc-web-json"]
+        J1["Content-Type: application/grpc-web-json"] --> J2["Handler gRPC-Web 分支"]
+        J2 --> J3["改写为 application/grpc+json"]
+        J3 --> J4["isGRPCContentType = false"]
+        J4 --> J5["RecvMsg: JSON 反序列化"]
+        J5 --> J6["SendMsg: JSON 序列化"]
+        J6 --> J7["fiberWebWriter flush trailer"]
+    end
+
+    classDef proto fill:#EAFBF1,stroke:#2E8B57,stroke-width:1.2px,color:#165B33;
+    classDef json fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
+
+    class P1,P2,P3,P4,P5,P6,P7 proto;
+    class J1,J2,J3,J4,J5,J6,J7 json;
 ```
 
 ## 关键数据结构
