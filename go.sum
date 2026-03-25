@@ -508,8 +508,8 @@ github.com/prometheus/common v0.65.0 h1:QDwzd+G1twt//Kwj/Ww6E9FQq1iVMmODnILtW1t2
 github.com/prometheus/common v0.65.0/go.mod h1:0gZns+BLRQ3V6NdaerOhMbwwRbNh9hkGINtQAsP5GS8=
 github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7DuK0=
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
-github.com/pubgo/dix/v2 v2.0.0-beta.16 h1:v7cqQgWCIYlmlHKstZK/nEh1J6ho5o2Of4jInAXSXxQ=
-github.com/pubgo/dix/v2 v2.0.0-beta.16/go.mod h1:rAJWKUI4cgRAr8Mb3+H0kjsl3VgR54RU/2Fzbe60Ag0=
+github.com/pubgo/dix/v2 v2.0.0 h1:cNotBsdQ4epD+XGfaMdaN/ZRNafrqQJEVuitj0gTg/0=
+github.com/pubgo/dix/v2 v2.0.0/go.mod h1:rAJWKUI4cgRAr8Mb3+H0kjsl3VgR54RU/2Fzbe60Ag0=
 github.com/pubgo/funk/v2 v2.0.0-beta.20 h1:apOc0j6PzIoHqgBeknGvdzdjB8/Fqz+jIfUo1No8NGU=
 github.com/pubgo/funk/v2 v2.0.0-beta.20/go.mod h1:UQEBkZpMH6L2Vl0huy7vMrPV0pMWN+GKh+1Y6w++n/U=
 github.com/pubgo/redant v0.0.5 h1:iDq0cQJNtST8pu9bFSgxZ78JoQ0aVW+svZyOMouWjfM=

@@ -16,54 +16,43 @@ type Config struct {
 
 var app = fiber.New()
 
-func handlersToAny(handlers ...fiber.Handler) []any {
-	if len(handlers) == 0 {
-		return nil
-	}
-	args := make([]any, len(handlers))
-	for i, h := range handlers {
-		args[i] = h
-	}
-	return args
-}
-
 func App() *fiber.App                           { return app }
 func WrapFunc(h http.HandlerFunc) fiber.Handler { return adaptor.HTTPHandlerFunc(h) }
 func Wrap(h http.Handler) fiber.Handler         { return adaptor.HTTPHandler(h) }
-func Get(path string, handler any, handlers ...fiber.Handler) {
-	app.Get(path, handler, handlersToAny(handlers...)...)
+func Get(path string, handler any, handlers ...any) {
+	app.Get(path, handler, handlers...)
 }
 
-func Head(path string, handler any, handlers ...fiber.Handler) {
-	app.Head(path, handler, handlersToAny(handlers...)...)
+func Head(path string, handler any, handlers ...any) {
+	app.Head(path, handler, handlers...)
 }
 
-func Post(path string, handler any, handlers ...fiber.Handler) {
-	app.Post(path, handler, handlersToAny(handlers...)...)
+func Post(path string, handler any, handlers ...any) {
+	app.Post(path, handler, handlers...)
 }
 
-func Put(path string, handler any, handlers ...fiber.Handler) {
-	app.Put(path, handler, handlersToAny(handlers...)...)
+func Put(path string, handler any, handlers ...any) {
+	app.Put(path, handler, handlers...)
 }
 
-func Delete(path string, handler any, handlers ...fiber.Handler) {
-	app.Delete(path, handler, handlersToAny(handlers...)...)
+func Delete(path string, handler any, handlers ...any) {
+	app.Delete(path, handler, handlers...)
 }
 
-func Patch(path string, handler any, handlers ...fiber.Handler) {
-	app.Patch(path, handler, handlersToAny(handlers...)...)
+func Patch(path string, handler any, handlers ...any) {
+	app.Patch(path, handler, handlers...)
 }
 
 func Static(prefix, root string, config ...static.Config) {
 	app.Use(prefix, static.New(root, config...))
 }
 
-func All(path string, handler any, handlers ...fiber.Handler) {
-	app.All(path, handler, handlersToAny(handlers...)...)
+func All(path string, handler any, handlers ...any) {
+	app.All(path, handler, handlers...)
 }
 
-func Group(prefix string, handlers ...fiber.Handler) {
-	app.Group(prefix, handlersToAny(handlers...)...)
+func Group(prefix string, handlers ...any) {
+	app.Group(prefix, handlers...)
 }
 
 func Route(prefix string, fn func(router fiber.Router), name ...string) {

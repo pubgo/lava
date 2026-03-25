@@ -55,7 +55,7 @@ require (
 	github.com/libp2p/go-yamux/v5 v5.1.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/miekg/dns v1.1.66
-	github.com/pubgo/dix/v2 v2.0.0-beta.16
+	github.com/pubgo/dix/v2 v2.0.0
 	github.com/pubgo/funk/v2 v2.0.0-beta.20
 	github.com/pubgo/redant v0.0.5
 	github.com/quic-go/quic-go v0.59.0
