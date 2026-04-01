@@ -89,7 +89,7 @@ func (s *serviceImpl) init(
 	grpcRouters []lava.GrpcRouter,
 	httpRouters []lava.HttpRouter,
 	grpcHttpRouters []lava.GrpcHttpRouter,
-// grpcProxy []lava.GrpcProxy,
+	// grpcProxy []lava.GrpcProxy,
 	dixMiddlewares []lava.Middleware,
 	metric metrics.Metric,
 	log log.Logger,
