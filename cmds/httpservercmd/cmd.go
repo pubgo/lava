@@ -8,7 +8,6 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/redant"
 
-	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
@@ -21,18 +20,18 @@ func New(di *dix.Dix) *redant.Command {
 		Short: cliutil.UsageDesc("%s http service", version.Project()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			di.Provide(https.New)
+			di.Provide(supervisor.Default)
 			params := dix.Inject(di, new(struct {
-				LC       lifecycle.Getter
-				Services []supervisor.Service
+				Services   []supervisor.Service
+				Supervisor *supervisor.Manager
 			}))
 
-			manager := supervisor.Default(params.LC)
-			supervisordebug.Register(manager)
+			supervisordebug.Register(params.Supervisor)
 			for _, svc := range params.Services {
-				assert.Exit(manager.Add(svc))
+				assert.Exit(params.Supervisor.Add(svc))
 			}
 
-			return manager.Run(ctx)
+			return params.Supervisor.Run(ctx)
 		},
 	}
 }
