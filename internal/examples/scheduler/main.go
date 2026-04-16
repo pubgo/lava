@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/pubgo/funk/v2/buildinfo/version"
@@ -36,20 +36,20 @@ type schedulerExample struct{}
 
 func (s schedulerExample) RegisterSchedulerJob(reg scheduler.JobRegistry) {
 	reg.Once("once_task", time.Second*10, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
-		fmt.Printf("exec once task: %s: %#v\n", name, metadata)
+		slog.Info("register once task", "name", name, "metadata", metadata)
 		time.Sleep(time.Second * 5)
 		return result.OK([]byte("once"))
 	})
 
 	reg.Every("every_task", time.Second*5, func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
-		fmt.Printf("exec every task: %s: %#v\n", name, metadata)
-		fmt.Println(debugs.Enabled.String())
+		slog.Info("register every task", "name", name, "metadata", metadata)
+		slog.Info("debugs enabled", "enabled", debugs.Enabled.String())
 		time.Sleep(time.Second * 1)
 		return result.OK([]byte("every"))
 	})
 
 	reg.Cron("cron_task", "*/7 * * * * *", func(ctx context.Context, name string, metadata *scheduler.JobMetadata) result.Result[[]byte] {
-		fmt.Printf("exec cron task: %s: %#v\n", name, metadata)
+		slog.Info("exec cron task", "name", name, "metadata", metadata)
 		time.Sleep(time.Second * 2)
 		return result.OK([]byte("cron"))
 	})
