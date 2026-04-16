@@ -136,7 +136,8 @@ func New(cfg *logging.Config, hooks []zerolog.Hook) log.Logger {
 
 	// 初始化扩展 loggers
 	gl := log.GetLogger("ext")
-	for _, ext := range logging.List() {
+	for name, ext := range logging.List() {
+		log.Info().Str("logger", name).Msg("initializing log extension")
 		ext(gl)
 	}
 
