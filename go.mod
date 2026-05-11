@@ -56,8 +56,8 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/miekg/dns v1.1.66
 	github.com/pubgo/dix/v2 v2.0.0
-	github.com/pubgo/funk/v2 v2.0.0-beta.21
-	github.com/pubgo/redant v0.2.0
+	github.com/pubgo/funk/v2 v2.0.0
+	github.com/pubgo/redant v0.4.0
 	github.com/quic-go/quic-go v0.59.0
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
