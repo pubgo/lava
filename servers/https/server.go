@@ -8,13 +8,13 @@ import (
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/vars"
 	"github.com/samber/lo"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/internal/logutil"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
@@ -65,12 +65,13 @@ func (s *serviceImpl) init(params Params) {
 	s.httpServer.Use(httputil.Cors())
 	s.httpServer.Use("/debug", debug.App())
 
-	defaultMiddlewares := []lava.Middleware{
+	defaultMiddlewares := make([]lava.Middleware, 0, 4+len(params.Middlewares))
+	defaultMiddlewares = append(defaultMiddlewares,
 		middleware_serviceinfo.New(),
 		middleware_metric.New(params.M),
 		middleware_accesslog.New(s.log),
 		middleware_recovery.New(),
-	}
+	)
 	middlewares := append(defaultMiddlewares, params.Middlewares...)
 
 	for _, h := range params.Handlers {

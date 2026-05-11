@@ -9,10 +9,10 @@ import (
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/stack"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/internal/logutil"
 )
 

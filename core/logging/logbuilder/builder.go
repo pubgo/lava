@@ -18,13 +18,13 @@ import (
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/pubgo/lava/v2/core/logging"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 var GlobalHook zerolog.Hook

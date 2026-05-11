@@ -8,9 +8,9 @@ import (
 
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pubgo/funk/v2/assert"
-	"github.com/pubgo/funk/v2/running"
 
 	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 func init() {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/debug/ui"
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 var sysStartTime = time.Now()

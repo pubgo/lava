@@ -12,9 +12,10 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/pretty"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/redant"
 	"github.com/samber/lo"
+
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 func New(di *dix.Dix) *redant.Command {

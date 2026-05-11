@@ -9,7 +9,8 @@ import (
 
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/running"
+
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 var getPidPath = sync.OnceValue(func() string {

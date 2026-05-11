@@ -8,10 +8,10 @@ import (
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerbuilder"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
@@ -87,7 +87,7 @@ func New(di *dix.Dix) *redant.Command {
 
 			err := agent.Start(ctx)
 			if err != nil {
-				log.Error().Err(err).Msg("Failed to build tunnel agent")
+				log.Error().Err(err).Msg("Failed to start tunnel agent")
 			} else {
 				// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
 				tunneldebug.SetAgent(agent)

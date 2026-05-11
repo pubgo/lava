@@ -130,8 +130,8 @@ func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
 }
 
 func (s *Scheduler) PatchJob(name string, config *JobConfig) (r result.Error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	job := s.getJob(name).UnwrapOrThrow(&r)
 	if r.IsErr() {

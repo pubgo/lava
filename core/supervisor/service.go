@@ -130,7 +130,7 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 	log.Info(ctx).Str("service", s.name).Msg("start service")
 	err := s.fn(ctx)
 	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-		return fmt.Errorf("service error, service=%s meta=%v err=%w", s.name, s.Metric(), err)
+		return fmt.Errorf("service %s exited with error: %w", s.name, err)
 	}
 	return err
 }

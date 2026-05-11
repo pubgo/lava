@@ -13,12 +13,12 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/valyala/fasthttp"
 	"gopkg.in/yaml.v3"
 
 	"github.com/pubgo/lava/v2/core/debug"
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 var (

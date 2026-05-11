@@ -64,9 +64,9 @@ func (req *Request) SetBody(body any) *Request {
 	return req
 }
 
-// SetQuery 设置查询参数
-// query: 查询参数
-// 返回: 请求对象本身（链式调用）
+// SetQuery 设置查询参数，会覆盖相同键已存在的值。
+// query: 查询参数映射。
+// 返回: 请求对象本身（链式调用）。
 func (req *Request) SetQuery(query map[string]string) *Request {
 	if len(query) == 0 {
 		return req
@@ -79,9 +79,9 @@ func (req *Request) SetQuery(query map[string]string) *Request {
 	return req
 }
 
-// AddQuery 添加查询参数
-// query: 查询参数
-// 返回: 请求对象本身（链式调用）
+// AddQuery 添加查询参数，会在相同键下追加值而不是覆盖。
+// query: 要追加的查询参数映射。
+// 返回: 请求对象本身（链式调用）。
 func (req *Request) AddQuery(query map[string]string) *Request {
 	if len(query) == 0 {
 		return req

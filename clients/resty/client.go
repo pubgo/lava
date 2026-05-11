@@ -34,12 +34,13 @@ type Params struct {
 // 返回: 初始化后的客户端实例
 func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
-	middlewares := lava.Middlewares{
+	middlewares := make(lava.Middlewares, 0, 4+len(mm))
+	middlewares = append(middlewares,
 		middleware_serviceinfo.New(),
 		middleware_metric.New(p.Metric),
 		middleware_accesslog.New(p.Log.WithFields(log.Fields{"service": cfg.ServiceName})),
 		middleware_recovery.New(),
-	}
+	)
 	middlewares = append(middlewares, mm...)
 
 	var backoff retry.Backoff

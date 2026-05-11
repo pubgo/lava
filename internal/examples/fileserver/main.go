@@ -6,11 +6,11 @@ import (
 	"github.com/pubgo/funk/v2/env"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 
 	"github.com/pubgo/lava/v2/cmds/fileservercmd"
 	"github.com/pubgo/lava/v2/core/lavabuilder"
 	"github.com/pubgo/lava/v2/core/logging/logext/slog"
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 func main() {

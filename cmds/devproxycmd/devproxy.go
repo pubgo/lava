@@ -154,11 +154,13 @@ func startHTTPServer() error {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"status":  "ok",
 			"version": "1.0.0",
 			"time":    time.Now().Format(time.RFC3339),
-		})
+		}); err != nil {
+			log.Error().Err(err).Msg("Failed to encode health response")
+		}
 	})
 
 	// 代理处理

@@ -2,7 +2,8 @@ package flags
 
 import (
 	"github.com/pubgo/funk/v2/config/configflags"
-	"github.com/pubgo/funk/v2/running"
+
+	"github.com/pubgo/lava/v2/core/running"
 )
 
 func init() {

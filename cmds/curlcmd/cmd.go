@@ -19,9 +19,9 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/redant"
 
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
@@ -364,17 +364,11 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to request vars list")
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	var varsResp []gatewayVarInfo
 	if err := json.NewDecoder(resp.Body).Decode(&varsResp); err != nil {
-		closeErr := resp.Body.Close()
-		if closeErr != nil {
-			return nil, errors.Wrap(closeErr, "failed to close vars list response body")
-		}
 		return nil, errors.Wrap(err, "failed to decode vars list")
-	}
-	if err := resp.Body.Close(); err != nil {
-		return nil, errors.Wrap(err, "failed to close vars list response body")
 	}
 
 	varName := ""
@@ -421,17 +415,11 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to request gateway info")
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	var info gatewayInfo
 	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		closeErr := resp.Body.Close()
-		if closeErr != nil {
-			return nil, errors.Wrap(closeErr, "failed to close gateway info response body")
-		}
 		return nil, errors.Wrap(err, "failed to decode gateway info")
-	}
-	if err := resp.Body.Close(); err != nil {
-		return nil, errors.Wrap(err, "failed to close gateway info response body")
 	}
 
 	return info.Method, nil
