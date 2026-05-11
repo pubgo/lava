@@ -16,21 +16,22 @@ func WrapHandler[Req, Rsp any](handler Handler[Req, Rsp]) func(ctx fiber.Ctx) er
 	return func(ctx fiber.Ctx) error {
 		var req Req
 
-		if err := ctx.Bind().URI(&req); err != nil {
+		bind := ctx.Bind()
+		if err := bind.URI(&req); err != nil {
 			return fmt.Errorf("failed to parse params, params:%v err:%w", ctx.Route().Params, err)
 		}
 
-		if err := ctx.Bind().Query(&req); err != nil {
+		if err := bind.Query(&req); err != nil {
 			return fmt.Errorf("failed to parse query, query:%v err:%w", ctx.Queries(), err)
 		}
 
-		if err := ctx.Bind().Header(&req); err != nil {
+		if err := bind.Header(&req); err != nil {
 			return fmt.Errorf("failed to parse header, header:%q err:%w", ctx.GetReqHeaders(), err)
 		}
 
 		switch ctx.Method() {
 		case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-			if err := ctx.Bind().Body(&req); err != nil {
+			if err := bind.Body(&req); err != nil {
 				return fmt.Errorf("failed to parse body, err:%w", err)
 			}
 		}
