@@ -217,16 +217,18 @@ func (CodecJSON) Name() string { return "json" }
 
 type codecHTTPBody struct{}
 
+var errHTTPBodyNotImplemented = fmt.Errorf("codecHTTPBody: method not implemented, use raw body directly")
+
 func (codecHTTPBody) Marshal(v any) ([]byte, error) {
-	panic("not implemented")
+	return nil, errHTTPBodyNotImplemented
 }
 
 func (codecHTTPBody) MarshalAppend(b []byte, v any) ([]byte, error) {
-	panic("not implemented")
+	return nil, errHTTPBodyNotImplemented
 }
 
 func (codecHTTPBody) Unmarshal(data []byte, v any) error {
-	panic("not implemented")
+	return errHTTPBodyNotImplemented
 }
 
 func (codecHTTPBody) Name() string { return "body" }

@@ -5,4 +5,5 @@ patch_resources:
   - .local.yaml
 
 patch_envs:
-  - envs/envs.yaml
+  - envs
+

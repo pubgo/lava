@@ -190,3 +190,10 @@ func IsErrServerClosed(err error) bool {
 		errors.Is(err, net.ErrClosed) ||
 		errors.Is(err, context.Canceled)
 }
+
+func SkipServerClosedError(err error) error {
+	if IsErrServerClosed(err) {
+		return nil
+	}
+	return err
+}

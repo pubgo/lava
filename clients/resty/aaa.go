@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/result"
-	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -13,11 +12,10 @@ const (
 	defaultRetryInterval = 10 * time.Millisecond
 	defaultHTTPTimeout   = 2 * time.Second
 	defaultContentType   = "application/json"
-	maxRedirectsCount    = 16
 	defaultTimeout       = 10 * time.Second
 	Name                 = "resty"
 )
 
 type IClient interface {
-	Do(ctx context.Context, req *Request) result.Result[*fasthttp.Response]
+	Do(ctx context.Context, req *Request) result.Result[*Response]
 }

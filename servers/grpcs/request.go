@@ -3,7 +3,7 @@ package grpcs
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/v2/lava"
@@ -38,7 +38,7 @@ func (r *rpcRequest) Stream() bool                { return r.stream != nil }
 var _ lava.Request = (*httpRequest)(nil)
 
 type httpRequest struct {
-	ctx *fiber.Ctx
+	ctx fiber.Ctx
 }
 
 func (r *httpRequest) Kind() string { return lava.RequestKindHttp }

@@ -54,8 +54,10 @@ func (t *namedJob) Execute(ctx context.Context) (gErr error) {
 		NextExecTime:  t.task.trigger.next,
 	}
 
+	// 检查 trigger 错误，但对于一次性任务的 ErrTriggerExpired 忽略
 	if t.task.trigger.err != nil {
-		if !errors.Is(t.task.trigger.err, quartz.ErrTriggerExpired) || t.task.spec.Once == nil {
+		isOnceJobExpired := errors.Is(t.task.trigger.err, quartz.ErrTriggerExpired) && t.task.spec.Once != nil
+		if !isOnceJobExpired {
 			return fmt.Errorf("schedule job(%s) trigger error: %w", name, t.task.trigger.err)
 		}
 	}
@@ -89,8 +91,9 @@ func (t *triggerImpl) NextFireTime(prev int64) (next int64, err error) {
 			return
 		}
 
-		t.prev = prev / 1000_000_000
-		t.next = next / 1000_000_000
+		// 保留毫秒精度
+		t.prev = prev / 1_000_000
+		t.next = next / 1_000_000
 	}()
 
 	return t.trigger.NextFireTime(prev)

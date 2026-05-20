@@ -2,23 +2,23 @@ package gateway
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 
 	"github.com/fullstorydev/grpchan/inprocgrpc"
-	"github.com/gofiber/adaptor/v2"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -38,8 +38,8 @@ type muxOptions struct {
 	codecs               map[string]Codec
 	codecsByName         map[string]Codec
 	compressors          map[string]Compressor
-	requestInterceptors  map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
-	responseInterceptors map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error
+	requestInterceptors  map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error
+	responseInterceptors map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error
 	handlers             map[string]*methodWrapper
 	customOperationNames map[string]*methodWrapper
 }
@@ -51,8 +51,8 @@ var (
 	defaultMuxOptions = muxOptions{
 		files:                protoregistry.GlobalFiles,
 		types:                protoregistry.GlobalTypes,
-		responseInterceptors: make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
-		requestInterceptors:  make(map[protoreflect.FullName]func(ctx *fiber.Ctx, msg proto.Message) error),
+		responseInterceptors: make(map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error),
+		requestInterceptors:  make(map[protoreflect.FullName]func(ctx fiber.Ctx, msg proto.Message) error),
 		handlers:             make(map[string]*methodWrapper),
 		customOperationNames: make(map[string]*methodWrapper),
 	}
@@ -80,20 +80,20 @@ type Mux struct {
 
 func (m *Mux) GetRouteMethods() []RouteOperation { return m.routerTree.List() }
 
-func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetResponseEncoder(name protoreflect.FullName, f func(ctx fiber.Ctx, msg proto.Message) error) {
 	m.opts.responseInterceptors[name] = f
 }
 
-func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx *fiber.Ctx, msg proto.Message) error) {
+func (m *Mux) SetRequestDecoder(name protoreflect.FullName, f func(ctx fiber.Ctx, msg proto.Message) error) {
 	m.opts.requestInterceptors[name] = f
 }
 
 func (m *Mux) MatchOperation(method, path string) (r result.Result[*MatchOperation]) {
 	return result.Wrap(m.routerTree.Match(method, path)).
-		Log(func(e *zerolog.Event) {
+		Log(func(e result.Event) {
 			e.Str("method", method)
 			e.Str("path", path)
-			e.Str(logfields.Msg, "match operation failed")
+			e.Msg("match operation failed")
 		})
 }
 
@@ -115,10 +115,133 @@ func (m *Mux) GetOperation(operation string) *GrpcMethod {
 	return handleOperation(opt)
 }
 
-func (m *Mux) Handler(ctx *fiber.Ctx) error {
+func (m *Mux) Handler(ctx fiber.Ctx) error {
+	// Check if this is a gRPC Web request
+	ct := string(ctx.Request().Header.ContentType())
+	if typ, enc, ok := isWebRequestFromContentType(ct, ctx.Method()); ok {
+		// TODO: Check for websocket request and upgrade.
+		if strings.EqualFold(ctx.Get("Upgrade"), "websocket") {
+			return fiber.NewError(fiber.StatusInternalServerError, "unimplemented websocket support")
+		}
+
+		// Modify request for gRPC Web
+		ctx.Request().Header.SetContentType(grpcBase + "+" + enc)
+		if typ == grpcWebText {
+			// gRPC-Web-Text (Base64) 解码处理
+			// 策略：
+			// 1. 如果是 Stream 模式 (Fasthttp BodyStream != nil)，则包裹 Stream 进行流式解码。
+			// 2. 如果是 Buffer 模式 (Body 已经在内存中)，则直接对 Body 进行解码并回写。
+
+			inputStream := ctx.Request().BodyStream()
+			if inputStream != nil {
+				// 流式处理
+				body := base64.NewDecoder(base64.StdEncoding, inputStream)
+				rc := &readCloser{
+					Reader: body,
+					Closer: io.NopCloser(nil),
+				}
+				ctx.Request().SetBodyStream(rc, -1)
+			} else {
+				// 非流式处理，直接操作 Body 字节
+				originBody := ctx.Body()
+				if len(originBody) > 0 {
+					// Base64 解码需要分配新内存，这在普通请求中是可接受的
+					// 计算解码后长度
+					dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(originBody)))
+					n, err := base64.StdEncoding.Decode(dbuf, originBody)
+					if err == nil {
+						ctx.Request().SetBody(dbuf[:n])
+					} else {
+						// 如果解码失败，这里暂时无法中止 Handler，只能留给后续 Protobuf Unmarshal 报错
+						// 但至少不能 Panic
+						log.Err(err).
+							Stack().
+							Str("method", ctx.Method()).
+							Str("path", string(ctx.Request().URI().Path())).
+							Msg("base64 decode failed")
+						return errors.Errorf("base64 decode failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
+					}
+				}
+			}
+		}
+
+		// Create Fiber-specific web writer
+		ww := newFiberWebWriter(ctx, typ, enc)
+
+		// Continue with normal processing but capture the response
+		matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
+		if err != nil {
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("match operation failed")
+			return errors.Errorf("match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
+		}
+
+		values := make(url.Values)
+		for _, v := range matchOperation.Vars {
+			values.Set(strings.Join(v.Fields, "."), v.Value)
+		}
+
+		for k, v := range ctx.Queries() {
+			values.Set(k, v)
+		}
+
+		mth := m.opts.handlers[matchOperation.Operation]
+		if mth == nil {
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("method operation not found")
+			return errors.Errorf("method operation not found, method=%s path=%s", matchOperation.Operation, ctx.Request().URI().Path())
+		}
+
+		md := metadata.MD{}
+		for k, v := range ctx.GetReqHeaders() {
+			md.Append(k, v...)
+		}
+
+		stream := &streamHTTP{
+			handler: ctx,
+			ctx:     metadata.NewIncomingContext(ctx.Context(), md),
+			method:  mth,
+			params:  values,
+			path:    matchOperation,
+			writer:  ww,
+		}
+
+		in := mth.inputType.New().Interface()
+		err = stream.RecvMsg(in)
+		if err != nil {
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("unmarshal request failed")
+			return errors.Errorf("unmarshal request failed, method=%s", matchOperation.Operation)
+		}
+
+		ctx.Set(httputil.HeaderXRequestVersion, version.Version())
+		ctx.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
+
+		err = m.invokeWithStream(stream, in)
+		if err != nil {
+			log.Error().
+				Str("method", ctx.Method()).
+				Str("path", string(ctx.Request().URI().Path())).
+				Msg("invoke failed")
+			return errors.Errorf("invoke failed, method=%s", matchOperation.Operation)
+		}
+		ww.flushWithTrailer()
+		return nil
+	}
+
 	matchOperation, err := m.routerTree.Match(ctx.Method(), string(ctx.Request().URI().Path()))
 	if err != nil {
-		return errors.WrapCaller(err)
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("match operation failed")
+		return errors.Errorf("match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
 	}
 
 	values := make(url.Values)
@@ -132,6 +255,10 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 
 	mth := m.opts.handlers[matchOperation.Operation]
 	if mth == nil {
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("method operation not found")
 		return errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
 	}
 
@@ -151,39 +278,146 @@ func (m *Mux) Handler(ctx *fiber.Ctx) error {
 	in := mth.inputType.New().Interface()
 	err = stream.RecvMsg(in)
 	if err != nil {
-		return errors.WrapCaller(err)
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("unmarshal request failed")
+		return errors.Errorf("unmarshal request failed, method=%s", matchOperation.Operation)
 	}
-
-	out := mth.outputType.New().Interface()
-	var header metadata.MD
-	var trailer metadata.MD
-	err = m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer))
+	err = m.invokeWithStream(stream, in)
 	if err != nil {
+		log.Error().
+			Str("method", ctx.Method()).
+			Str("path", string(ctx.Request().URI().Path())).
+			Msg("invoke failed")
 		return errors.WrapCaller(err)
-	}
-
-	hh := make(metadata.MD)
-	for k, v := range header {
-		hh.Set(k, v...)
-	}
-
-	for k, v := range trailer {
-		hh.Set(k, v...)
-	}
-
-	for k, v := range hh {
-		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
-		if len(v) == 0 {
-			continue
-		}
-
-		ctx.Response().Header.Set(k, v[0])
 	}
 
 	ctx.Response().Header.Set(httputil.HeaderXRequestVersion, version.Version())
 	ctx.Response().Header.Set(httputil.HeaderXRequestOperation, matchOperation.Operation)
 	ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
-	return errors.WrapCaller(stream.SendMsg(out))
+	return nil
+}
+
+func (m *Mux) invokeWithStream(stream *streamHTTP, in any) error {
+	mth := stream.method
+	if mth == nil {
+		return errors.New("method wrapper is nil")
+	}
+
+	if mth.grpcStreamDesc != nil {
+		return m.invokeResponseStream(stream, in)
+	}
+
+	out := mth.outputType.New().Interface()
+	var header metadata.MD
+	var trailer metadata.MD
+	if err := m.Invoke(stream.ctx, mth.grpcFullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer)); err != nil {
+		return err
+	}
+
+	applyResponseMetadata(stream.handler, header)
+	applyResponseMetadata(stream.handler, trailer)
+
+	return stream.SendMsg(out)
+}
+
+func (m *Mux) invokeResponseStream(remoteStream *streamHTTP, in any) error {
+	mth := remoteStream.method
+	if mth == nil || mth.grpcStreamDesc == nil {
+		return errors.New("stream method descriptor is nil")
+	}
+
+	if !mth.grpcStreamDesc.ServerStreams {
+		return errors.Errorf("unsupported stream mode: %s is not server-streaming", mth.grpcFullMethod)
+	}
+	if mth.grpcStreamDesc.ClientStreams {
+		return errors.Errorf("unsupported stream mode: %s has client-streaming", mth.grpcFullMethod)
+	}
+
+	remoteStream.responseStream = true
+
+	localStream, err := m.NewStream(remoteStream.ctx, mth.grpcStreamDesc, mth.grpcFullMethod)
+	if err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	if err = localStream.SendMsg(in); err != nil {
+		return errors.WrapCaller(err)
+	}
+	if err = localStream.CloseSend(); err != nil {
+		return errors.WrapCaller(err)
+	}
+
+	headerSent := false
+
+	for {
+		out := mth.outputType.New().Interface()
+		err = localStream.RecvMsg(out)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return errors.WrapCaller(err)
+		}
+
+		if !headerSent {
+			if header, headerErr := localStream.Header(); headerErr == nil {
+				if sendErr := remoteStream.SendHeader(header); sendErr != nil {
+					if !isDuplicateHeaderError(sendErr) {
+						return errors.WrapCaller(sendErr)
+					}
+					log.Err(sendErr).
+						Str("method", mth.grpcFullMethod).
+						Msg("ignore duplicate response-stream header send error")
+				}
+			}
+			headerSent = true
+		}
+
+		if err = remoteStream.SendMsg(out); err != nil {
+			return errors.WrapCaller(err)
+		}
+	}
+
+	if !headerSent {
+		if header, headerErr := localStream.Header(); headerErr == nil {
+			if sendErr := remoteStream.SendHeader(header); sendErr != nil {
+				if !isDuplicateHeaderError(sendErr) {
+					return errors.WrapCaller(sendErr)
+				}
+				log.Err(sendErr).
+					Str("method", mth.grpcFullMethod).
+					Msg("ignore duplicate response-stream header send error")
+			}
+		}
+	}
+
+	remoteStream.SetTrailer(localStream.Trailer())
+	applyResponseMetadata(remoteStream.handler, remoteStream.trailer)
+
+	return nil
+}
+
+func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
+	for k, v := range md {
+		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
+		if len(v) == 0 {
+			continue
+		}
+		ctx.Response().Header.Set(k, v[0])
+	}
+}
+
+func isDuplicateHeaderError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "headers already sent") ||
+		strings.Contains(msg, "sendheader called multiple times") ||
+		strings.Contains(msg, "header already sent")
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
@@ -207,6 +441,8 @@ func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method strin
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	// ServeHTTP acts as a thin wrapper only.
+	// All protocol/business handling is centralized in Handler.
 	adaptor.FiberHandler(m.Handler).ServeHTTP(writer, request)
 }
 

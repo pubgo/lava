@@ -1,0 +1,8 @@
+resources:
+  - components
+
+patch_resources:
+  - .local.yaml
+
+patch_envs:
+  - envs

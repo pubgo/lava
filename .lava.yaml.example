@@ -1,0 +1,84 @@
+# lava 配置文件示例
+# 配置文件可以放在以下位置（按优先级从高到低）：
+# 1. .lava/lava.yaml
+# 2. .lava.yaml
+# 3. lava.yaml
+
+# watch 命令配置
+watch:
+  # watcher 列表，可以配置多个 watcher
+  watchers:
+    # watcher 1：监控 proto 文件
+    - name: "proto"
+      directory: "./proto"
+      patterns:
+        - "*.proto"
+      commands:
+        - "protobuild gen"
+      ignore:
+        - ".git"
+        - "vendor"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+      run_on_startup: false
+      timeout: 30
+
+    # watcher 2：监控 go 文件
+    - name: "go"
+      directory: "."
+      patterns:
+        - "*.go"
+      commands:
+        - "go build ./..."
+      ignore:
+        - ".git"
+        - "node_modules"
+        - "vendor"
+        - "dist"
+        - "build"
+      ignore_patterns:
+        - "*.tmp"
+        - "*~"
+        - ".DS_Store"
+      run_on_startup: false
+      timeout: 30
+
+    # watcher 3：监控配置文件
+    - name: "config"
+      directory: "./internal/configs"
+      patterns:
+        - "*.yaml"
+      commands:
+        - "echo 'Config changed, reloading...'"
+      ignore:
+        - ".git"
+      run_on_startup: false
+      timeout: 10
+
+# curl 命令配置
+curl:
+  # 网关地址
+  addr: "http://127.0.0.1:8080"
+  
+  # 网关前缀
+  prefix: "/api"
+  
+  # 请求超时时间
+  timeout: "15s"
+  
+  # 是否跳过 TLS 校验
+  insecure: false
+  
+  # 是否对 JSON 响应进行格式化
+  pretty: true
+  
+  # gateway 路由信息的 expvar 名称
+  vars_name: "grpc-server-info"
+  
+  # 默认的请求头
+  headers:
+    - "Content-Type: application/json"
+  
+  # 默认的查询参数
+  queries: {}

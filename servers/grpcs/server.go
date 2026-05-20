@@ -6,20 +6,20 @@ import (
 	"net"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/config"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/funk/v2/vars"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/internal/logutil"
 	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
@@ -108,15 +108,22 @@ func (s *serviceImpl) init(
 		middleware_serviceinfo.New(),
 		middleware_metric.New(metric),
 		middleware_accesslog.New(log),
-		middleware_recovery.New(),
 	}
 	globalMiddlewares = append(globalMiddlewares, dixMiddlewares...)
+	globalMiddlewares = append(globalMiddlewares, middleware_recovery.New())
 
 	log = log.WithName("grpc-server")
-	s.log = log
 
 	httpServer := fiber.New(conf.Http.Build().Unwrap())
 	httpServer.Use(httputil.Cors())
+	httpServer.Use(func(ctx fiber.Ctx) error {
+		log.Debug().
+			Str("path", ctx.Path()).
+			Str("method", ctx.Method()).
+			Str("header", ctx.Request().Header.String()).
+			Msg("grpc gateway router")
+		return ctx.Next()
+	})
 
 	for _, h := range grpcRouters {
 		r, ok := h.(lava.HttpRouter)
@@ -206,23 +213,28 @@ func (s *serviceImpl) init(
 	//	grpcServer.RegisterService(h.ServiceDesc(), h)
 	//}
 
-	grpcGatewayApiPrefix := "api"
-	s.log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
+	grpcGatewayApiPrefix := "/api"
+	log.Info().Msgf("service gateway base path: %s", grpcGatewayApiPrefix)
 
-	for _, m := range mux.GetRouteMethods() {
-		log.Info().
-			Str("operation", m.Operation).
-			Any("rpc-meta", lo.FromPtr(mux.GetOperation(m.Operation)).Meta).
-			Str("verb", m.Verb).
-			Any("path-vars", m.Vars).
-			Str("extras", fmt.Sprintf("%v", m.Extras)).
-			Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
+	if conf.EnablePrintRouter {
+		for _, m := range mux.GetRouteMethods() {
+			log.Info().
+				Str("operation", m.Operation).
+				Any("rpc-meta", lo.FromPtr(mux.GetOperation(m.Operation)).Meta).
+				Str("verb", m.Verb).
+				Any("path-vars", m.Vars).
+				Str("extras", fmt.Sprintf("%v", m.Extras)).
+				Msgf("grpc gateway router info: %s %s", m.Method, "/"+strings.Trim(grpcGatewayApiPrefix, "/")+m.Path)
+		}
 	}
 
-	httpServer.Mount("/debug", debug.App())
-	httpServer.Mount("/", httpApp)
-	httpServer.Group(grpcGatewayApiPrefix, httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler))
+	httpServer.Use("/debug", debug.App())
+	httpServer.Use("/", httpApp)
+	httpServer.Use(grpcGatewayApiPrefix, func(ctx fiber.Ctx) error {
+		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
+	})
 
+	s.log = log
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 

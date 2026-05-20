@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/arl/statsviz"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 
@@ -17,7 +17,7 @@ import (
 func init() {
 	srv := assert.Exit1(statsviz.NewServer(statsviz.Root("/debug/statsviz")))
 	debug.Route("/statsviz", func(router fiber.Router) {
-		router.Use(func(ctx *fiber.Ctx) error {
+		router.Use(func(ctx fiber.Ctx) error {
 			path := string(ctx.Request().URI().Path())
 			lastPath := strings.TrimSpace(funk.Last(strings.Split(strings.Trim(path, "/"), "/")))
 
@@ -32,13 +32,13 @@ func init() {
 			return ctx.Next()
 		})
 
-		router.Get("", func(ctx *fiber.Ctx) error {
+		router.Get("", func(ctx fiber.Ctx) error {
 			return httputil.HTTPHandler(srv.Index())(ctx)
 		})
-		router.Get("/", func(ctx *fiber.Ctx) error {
+		router.Get("/", func(ctx fiber.Ctx) error {
 			return httputil.HTTPHandler(srv.Index())(ctx)
 		})
-		router.Get("/*", func(ctx *fiber.Ctx) error {
+		router.Get("/*", func(ctx fiber.Ctx) error {
 			return httputil.HTTPHandler(srv.Index())(ctx)
 		})
 	})

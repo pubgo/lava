@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
@@ -247,20 +247,29 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		for key, value := range h.All() {
 			md.Append(convert.BtoS(key), convert.BtoS(value))
 		}
-		return grpc.SendHeader(ctx, md)
+		if len(md) == 0 {
+			return nil
+		}
+
+		if err = grpc.SetTrailer(ctx, md); err != nil {
+			log.Err(err, ctx).
+				Str("grpc-method", info.FullMethod).
+				Msg("grpc set stream trailer failed")
+		}
+
+		return nil
 	}
 }
 
-func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx *fiber.Ctx) error {
+func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		reqCtx := req.(*httpRequest).ctx
-		reqCtx.SetUserContext(ctx)
 		return &httpResponse{ctx: reqCtx}, reqCtx.Next()
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)
-	return func(ctx *fiber.Ctx) error {
-		_, err := h(ctx.Context(), &httpRequest{ctx: ctx})
+	return func(ctx fiber.Ctx) error {
+		_, err := h(ctx, &httpRequest{ctx: ctx})
 		return err
 	}
 }

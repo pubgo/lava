@@ -103,8 +103,10 @@ func forwardClientToServer(out protoreflect.MessageType, src grpc.ClientStream, 
 					break
 				}
 				if err := dst.SendHeader(md); err != nil {
-					ret <- err
-					break
+					if !isDuplicateHeaderError(err) {
+						ret <- err
+						break
+					}
 				}
 			}
 			if err := dst.SendMsg(f); err != nil {

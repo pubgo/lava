@@ -44,33 +44,6 @@ type methodWrapper struct {
 	meta           *lavapbv1.RpcMeta
 }
 
-//func (h methodWrapper) Handle(stream grpc.ServerStream) error {
-//	if h.grpcMethodDesc != nil {
-//		ctx := stream.Context()
-//
-//		reply, err := h.grpcMethodDesc.Exec(h.srv.srv, ctx, stream.RecvMsg, h.srv.opts.unaryInterceptor)
-//		if err != nil {
-//			return errors.WrapCaller(err)
-//		}
-//
-//		return errors.WrapCaller(stream.SendMsg(reply))
-//	} else if h.grpcStreamDesc != nil {
-//		info := &grpc.StreamServerInfo{
-//			FullMethod:     h.grpcFullMethod,
-//			IsClientStream: h.grpcStreamDesc.ClientStreams,
-//			IsServerStream: h.grpcStreamDesc.ServerStreams,
-//		}
-//
-//		if h.srv.opts.streamInterceptor != nil {
-//			return errors.WrapCaller(h.srv.opts.streamInterceptor(h.srv.srv, stream, info, h.grpcStreamDesc.Exec))
-//		} else {
-//			return errors.WrapCaller(h.grpcStreamDesc.Exec(h.srv.srv, stream))
-//		}
-//	} else {
-//		return errors.Format("cannot find server handler")
-//	}
-//}
-
 func grpcMethodHandlerWrapper(mth *methodWrapper, opts ...grpc.CallOption) MethodHandler {
 	return func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 		in := mth.inputType.New().Interface()

@@ -7,7 +7,6 @@ import (
 	"github.com/pubgo/funk/v2/result"
 
 	"github.com/pubgo/lava/v2/core/service"
-	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
 type (
@@ -32,7 +31,7 @@ type Watcher interface {
 // Result is returned by a call to Next on
 // the watcher. Actions can be create, update, delete
 type Result struct {
-	Action  lavapbv1.EventType
+	Action  EventType
 	Service *service.Service
 }
 
@@ -43,3 +42,12 @@ type WatchOpts struct {
 type GetOpts struct {
 	Timeout time.Duration
 }
+
+type EventType int32
+
+const (
+	EventType_UNKNOWN EventType = 0
+	EventType_CREATE  EventType = 1
+	EventType_UPDATE  EventType = 2
+	EventType_DELETE  EventType = 3
+)

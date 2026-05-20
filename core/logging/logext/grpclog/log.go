@@ -37,9 +37,9 @@ func init() {
 }
 
 func SetLogger(logger log.Logger) {
-	logger = logger.WithName("grpc").WithCallerSkip(2)
+	logger = logger.WithName("grpc")
 	grpclog.SetLoggerV2(&loggerWrapper{
-		log:      logger,
+		log:      logger.WithCallerSkip(2),
 		depthLog: logger,
 	})
 }
@@ -57,21 +57,25 @@ type loggerWrapper struct {
 	printlnFilter func(args ...any) bool
 }
 
+// DepthLoggerV2 实现
+
 func (l *loggerWrapper) InfoDepth(depth int, args ...any) {
-	l.depthLog.WithCallerSkip(depth).Info().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
+	l.depthLog.WithCallerSkip(depth + 2).Info().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
 }
 
 func (l *loggerWrapper) WarningDepth(depth int, args ...any) {
-	l.depthLog.WithCallerSkip(depth).Warn().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
+	l.depthLog.WithCallerSkip(depth + 2).Warn().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
 }
 
 func (l *loggerWrapper) ErrorDepth(depth int, args ...any) {
-	l.depthLog.WithCallerSkip(depth).Error().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
+	l.depthLog.WithCallerSkip(depth + 2).Error().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
 }
 
 func (l *loggerWrapper) FatalDepth(depth int, args ...any) {
-	l.depthLog.WithCallerSkip(depth).Fatal().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
+	l.depthLog.WithCallerSkip(depth + 2).Fatal().Func(grpcComponentName(args[0])).Msg(fmt.Sprint(args[1:]...))
 }
+
+// Filter 设置
 
 func (l *loggerWrapper) SetPrintFilter(filter func(args ...any) bool) {
 	l.printFilter = filter
@@ -97,11 +101,12 @@ func (l *loggerWrapper) filterln(args ...any) bool {
 	return l.printlnFilter != nil && l.printlnFilter(args...)
 }
 
+// LoggerV2 实现 - Info
+
 func (l *loggerWrapper) Info(args ...any) {
 	if l.filter(args) {
 		return
 	}
-
 	l.log.Info().Msg(fmt.Sprint(args...))
 }
 
@@ -109,7 +114,6 @@ func (l *loggerWrapper) Infoln(args ...any) {
 	if l.filterln(args) {
 		return
 	}
-
 	l.log.Info().Msg(fmt.Sprint(args...))
 }
 
@@ -117,15 +121,15 @@ func (l *loggerWrapper) Infof(format string, args ...any) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.Info().Msg(fmt.Sprintf(format, args...))
+	l.log.Info().Msgf(format, args...)
 }
+
+// LoggerV2 实现 - Warning
 
 func (l *loggerWrapper) Warning(args ...any) {
 	if l.filter(args...) {
 		return
 	}
-
 	l.log.Warn().Msg(fmt.Sprint(args...))
 }
 
@@ -133,7 +137,6 @@ func (l *loggerWrapper) Warningln(args ...any) {
 	if l.filterln(args) {
 		return
 	}
-
 	l.log.Warn().Msg(fmt.Sprint(args...))
 }
 
@@ -141,15 +144,15 @@ func (l *loggerWrapper) Warningf(format string, args ...any) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.Warn().Msg(fmt.Sprintf(format, args...))
+	l.log.Warn().Msgf(format, args...)
 }
+
+// LoggerV2 实现 - Error
 
 func (l *loggerWrapper) Error(args ...any) {
 	if l.filter(args...) {
 		return
 	}
-
 	l.log.Error().Msg(fmt.Sprint(args...))
 }
 
@@ -157,7 +160,6 @@ func (l *loggerWrapper) Errorln(args ...any) {
 	if l.filterln(args) {
 		return
 	}
-
 	l.log.Error().Msg(fmt.Sprint(args...))
 }
 
@@ -165,15 +167,15 @@ func (l *loggerWrapper) Errorf(format string, args ...any) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.Error().Msg(fmt.Sprintf(format, args...))
+	l.log.Error().Msgf(format, args...)
 }
+
+// LoggerV2 实现 - Fatal
 
 func (l *loggerWrapper) Fatal(args ...any) {
 	if l.filter(args...) {
 		return
 	}
-
 	l.log.Fatal().Msg(fmt.Sprint(args...))
 }
 
@@ -181,7 +183,6 @@ func (l *loggerWrapper) Fatalln(args ...any) {
 	if l.filterln(args) {
 		return
 	}
-
 	l.log.Fatal().Msg(fmt.Sprint(args...))
 }
 
@@ -189,9 +190,10 @@ func (l *loggerWrapper) Fatalf(format string, args ...any) {
 	if l.filterf(format, args...) {
 		return
 	}
-
-	l.log.Fatal().Msg(fmt.Sprintf(format, args...))
+	l.log.Fatal().Msgf(format, args...)
 }
+
+// V 实现日志级别检查
 
 func (l *loggerWrapper) V(level int) bool {
 	return _grpcToZapLevel[level] >= zerolog.GlobalLevel()

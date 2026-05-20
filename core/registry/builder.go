@@ -12,9 +12,9 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/funk/v2/running"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/service"
 	"github.com/pubgo/lava/v2/internal/logutil"
 	"github.com/pubgo/lava/v2/pkg/netutil"

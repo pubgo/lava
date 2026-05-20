@@ -43,8 +43,8 @@ func ListSchedulers(schedulers []*scheduler.Job) Node {
 					return Tr(
 						Th(Text(s.Spec.Name)),
 						Th(Text(string(s.Status))),
-						Th(Textf("%v", s.PreExecTime)),
-						Th(Textf("%v", s.ExecTime)),
+						Th(Text(formatTime(s.PreExecTime))),
+						Th(Text(formatTime(s.ExecTime))),
 						Th(NodeFn(func() Node {
 							if s.Error != nil {
 								return Text(s.Error.Error())
@@ -97,7 +97,17 @@ func ListSchedulers(schedulers []*scheduler.Job) Node {
 	)
 }
 
-const timeOnly = "15:04:05"
+const (
+	timeOnly   = "15:04:05"
+	timeFormat = "2006-01-02 15:04:05"
+)
+
+func formatTime(ms int64) string {
+	if ms == 0 {
+		return "-"
+	}
+	return time.UnixMilli(ms).Format(timeFormat)
+}
 
 func Page(now time.Time, schedulers []*scheduler.Job) Node {
 	return Doctype(

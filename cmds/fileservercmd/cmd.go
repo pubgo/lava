@@ -9,15 +9,17 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
-	"github.com/pubgo/funk/v2/running"
 	"github.com/pubgo/redant"
 	"github.com/valyala/fasthttp"
+
+	"github.com/pubgo/lava/v2/core/running"
+	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
 func New() *redant.Command {
 	return &redant.Command{
 		Use:   "fileserver <dir>",
-		Short: "serve `pwd` via http at *:8080",
+		Short: "serve `pwd` via http at *:8080 or <http-port>",
 		Handler: func(ctx context.Context, command *redant.Invocation) error {
 			defer recovery.Exit()
 
@@ -43,7 +45,9 @@ func New() *redant.Command {
 				Handler: fs.NewRequestHandler(),
 				Logger:  log.NewStd(log.GetLogger("fileserver")),
 			}
-			go func() { assert.Must(s.ListenAndServe(fmt.Sprintf(":%v", port))) }()
+			go func() {
+				assert.Exit(netutil.SkipServerClosedError(s.ListenAndServe(fmt.Sprintf(":%v", port))))
+			}()
 
 			<-ctx.Done()
 			return s.ShutdownWithContext(ctx)

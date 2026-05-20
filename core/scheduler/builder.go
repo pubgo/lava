@@ -10,7 +10,6 @@ import (
 	"github.com/pubgo/funk/v2/vars"
 	qlog "github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
-	"github.com/rs/zerolog"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/metrics"
@@ -37,24 +36,24 @@ func New(m lifecycle.Lifecycle, logger log.Logger, metric metrics.Metric, config
 	defer result.RecoveryErr(&gErr)
 
 	configMap := result.Wrap(createConfig(configs)).
-		UnwrapOrLog(func(e *zerolog.Event) {
+		UnwrapOrLog(func(e result.Event) {
 			e.Any("configs", configs)
-			e.Any(logfields.Msg, "failed to create config")
+			e.Msg("failed to create config")
 		})
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	slogLogger := qlog.NewSlogLogger(ctx, slog.With(slog.String(logfields.Module, Name)))
 	scheduler := result.Wrap(quartz.NewStdScheduler(quartz.WithLogger(slogLogger), quartz.WithJobMetadata())).
-		UnwrapOrLog(func(e *zerolog.Event) {
-			e.Str(logfields.Msg, "failed to create scheduler")
+		UnwrapOrLog(func(e result.Event) {
+			e.Msg("failed to create scheduler")
 		})
 
 	jobExecutors := make(map[string]JobExecutor)
 	for _, executor := range executors {
 		regJobExecutor(jobExecutors, executor).
-			MustWithLog(func(e *zerolog.Event) {
-				e.Str(logfields.Msg, "failed to register job executor")
+			MustWithLog(func(e result.Event) {
+				e.Msg("failed to register job executor")
 			})
 	}
 

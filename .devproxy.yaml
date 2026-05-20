@@ -1,0 +1,9 @@
+dns:
+  port: 1053
+http:
+  port: 80
+
+routes:
+  - pattern: "debug"
+    target: "localhost:8082"
+    path: "/debug"

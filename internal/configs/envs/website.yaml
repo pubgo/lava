@@ -1,0 +1,11 @@
+WEB_BASE_URL:
+  desc: "website base url"
+
+WEB_CHANGE_PWD_PATH:
+  desc: "website change password uri path"
+
+WEB_USER_ACTIVATE_PATH:
+  desc: "website user activate uri path"
+
+BACKEND_URL:
+  desc: "backend base url"

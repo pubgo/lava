@@ -1,0 +1,364 @@
+package watchcmd
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/pubgo/redant"
+	"gopkg.in/yaml.v3"
+
+	"github.com/pubgo/lava/v2/pkg/cliutil"
+)
+
+type WatcherConfig struct {
+	Name           string   `yaml:"name"`
+	Directory      string   `yaml:"directory"`
+	Patterns       []string `yaml:"patterns"`
+	Commands       []string `yaml:"commands"`
+	Ignore         []string `yaml:"ignore"`
+	IgnorePatterns []string `yaml:"ignore_patterns"`
+	RunOnStartup   bool     `yaml:"run_on_startup"`
+	Timeout        int      `yaml:"timeout"`
+}
+
+type WatchConfig struct {
+	Watchers []WatcherConfig `yaml:"watchers"`
+}
+
+type Config struct {
+	Watch WatchConfig `yaml:"watch"`
+}
+
+func New() *redant.Command {
+	return &redant.Command{
+		Use:     "watch",
+		Aliases: []string{"w"},
+		Short:   cliutil.UsageDesc("Watch files for changes and run commands"),
+		Long:    "Watch files for changes and run commands automatically",
+		Handler: func(ctx context.Context, i *redant.Invocation) error {
+			// 加载配置文件
+			cfg, err := loadConfig()
+			if err != nil {
+				log.Printf("Warning: failed to load config: %v, using default config", err)
+				// 使用默认配置
+				cfg = &Config{
+					Watch: WatchConfig{
+						Watchers: []WatcherConfig{
+							{
+								Name:      "default",
+								Directory: ".",
+								Patterns: []string{
+									"*.proto",
+									"*.go",
+									"!**/dist",
+									"!**/build",
+									"!**/vendor",
+									"!**/node_modules",
+									"!**/.git",
+									"!*.tmp",
+									"!*~",
+									"!.DS_Store",
+								},
+								Commands: []string{
+									"protobuild gen",
+									"go build ./...",
+								},
+								RunOnStartup: false,
+								Timeout:      30,
+							},
+						},
+					},
+				}
+			}
+
+			// 如果没有配置 watcher，使用默认配置
+			if len(cfg.Watch.Watchers) == 0 {
+				cfg.Watch.Watchers = []WatcherConfig{
+					{
+						Name:      "default",
+						Directory: ".",
+						Patterns: []string{
+							"*.proto",
+							"*.go",
+							"!**/dist",
+							"!**/build",
+							"!**/vendor",
+							"!**/node_modules",
+							"!**/.git",
+							"!*.tmp",
+							"!*~",
+							"!.DS_Store",
+						},
+						Commands: []string{
+							"protobuild gen",
+							"go build ./...",
+						},
+						RunOnStartup: false,
+						Timeout:      30,
+					},
+				}
+			}
+
+			// 运行所有 watcher
+			return runWatchers(cfg.Watch.Watchers)
+		},
+	}
+}
+
+func loadConfig() (*Config, error) {
+	// 按优先级查找配置文件
+	configPaths := []string{
+		".lava/lava.yaml",
+		".lava.yaml",
+		"lava.yaml",
+	}
+
+	var configPath string
+	for _, path := range configPaths {
+		if _, err := os.Stat(path); err == nil {
+			configPath = path
+			break
+		}
+	}
+
+	if configPath == "" {
+		return nil, fmt.Errorf("no config file found")
+	}
+
+	// 读取配置文件
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
+	}
+
+	// 解析 YAML
+	var cfg Config
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
+	}
+
+	return &cfg, nil
+}
+
+func runWatchers(watchers []WatcherConfig) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(watchers))
+
+	// 为每个 watcher 启动一个 goroutine
+	for _, watcherCfg := range watchers {
+		wg.Add(1)
+		go func(cfg WatcherConfig) {
+			defer wg.Done()
+			if err := runWatcher(cfg); err != nil {
+				errChan <- fmt.Errorf("watcher %s: %w", cfg.Name, err)
+			}
+		}(watcherCfg)
+	}
+
+	// 等待所有 watcher 完成
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	// 收集错误
+	var errors []error
+	for err := range errChan {
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("watcher errors: %v", errors)
+	}
+
+	return nil
+}
+
+func runWatcher(cfg WatcherConfig) error {
+	// 合并 pattern
+	// 1. patterns
+	// 2. !ignore (转换为排除模式)
+	// 3. !ignore_patterns (转换为排除模式)
+	finalPatterns := make([]string, 0, len(cfg.Patterns)+len(cfg.Ignore)+len(cfg.IgnorePatterns))
+	finalPatterns = append(finalPatterns, cfg.Patterns...)
+
+	// 处理 legacy ignore 配置
+	for _, ign := range cfg.Ignore {
+		finalPatterns = append(finalPatterns, "!"+ign)
+	}
+	for _, ign := range cfg.IgnorePatterns {
+		finalPatterns = append(finalPatterns, "!"+ign)
+	}
+
+	// 提取包含和排除列表以便后续使用
+	_, excludes := SplitPatterns(finalPatterns)
+
+	// 创建文件系统监控器
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("failed to create watcher: %w", err)
+	}
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			log.Printf("failed to close watcher: %v", err)
+		}
+	}()
+
+	// 添加监控目录
+	err = addWatchDir(watcher, cfg.Directory, excludes, true)
+	if err != nil {
+		return fmt.Errorf("failed to add watch directory %s: %w", cfg.Directory, err)
+	}
+
+	// 如果配置了启动时执行命令
+	if cfg.RunOnStartup {
+		log.Printf("[%s] Running commands on startup...", cfg.Name)
+		for _, cmdStr := range cfg.Commands {
+			runCommand(cfg.Name, cmdStr, cfg.Timeout)
+		}
+	}
+
+	// 监控文件变更
+	log.Printf("[%s] Watching directory: %s", cfg.Name, cfg.Directory)
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return nil
+			}
+
+			// 检查文件是否匹配
+			// 必须匹配某个 include 模式，且不匹配任何 exclude 模式
+			if !Match(event.Name, finalPatterns) {
+				continue
+			}
+
+			// 处理文件变更
+			if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Remove|fsnotify.Rename) != 0 {
+				log.Printf("[%s] File changed: %s", cfg.Name, event.Name)
+
+				// 运行配置的命令
+				for _, cmdStr := range cfg.Commands {
+					runCommand(cfg.Name, cmdStr, cfg.Timeout)
+				}
+			}
+
+			// 处理目录创建，添加新目录到监控
+			if event.Op&fsnotify.Create != 0 {
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					log.Printf("[%s] New directory created: %s, adding to watch list", cfg.Name, event.Name)
+					if err := addWatchDir(watcher, event.Name, excludes, true); err != nil {
+						log.Printf("[%s] failed to add watch directory %s: %v", cfg.Name, event.Name, err)
+					}
+				}
+			}
+
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return nil
+			}
+			log.Printf("[%s] Watcher error: %v", cfg.Name, err)
+		}
+	}
+}
+
+func addWatchDir(watcher *fsnotify.Watcher, dir string, excludes []string, verbose bool) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 忽略某些目录
+		if info.IsDir() {
+			// 如果是根目录，不忽略
+			if path == dir {
+				// 添加目录到监控
+				if err := watcher.Add(path); err != nil {
+					return err
+				}
+				if verbose {
+					log.Printf("Watching directory: %s", path)
+				}
+				return nil
+			}
+
+			// 检查是否应该排除该目录
+			if MatchAny(path, excludes) {
+				return filepath.SkipDir
+			}
+
+			// 添加目录到监控
+			err := watcher.Add(path)
+			if err != nil {
+				return err
+			}
+
+			if verbose {
+				log.Printf("Watching directory: %s", path)
+			}
+		}
+
+		return nil
+	})
+}
+
+func runCommand(watcherName, cmdStr string, timeout int) {
+	log.Printf("[%s] Running command: %s", watcherName, cmdStr)
+
+	// 解析命令
+	var cmd *exec.Cmd
+	if strings.Contains(cmdStr, " ") {
+		parts := strings.Split(cmdStr, " ")
+		cmd = exec.Command(parts[0], parts[1:]...)
+	} else {
+		cmd = exec.Command(cmdStr)
+	}
+
+	// 设置命令环境
+	cmd.Env = os.Environ()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// 创建带超时的上下文
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+
+	// 运行命令
+	err := cmd.Start()
+	if err != nil {
+		log.Printf("[%s] Command failed to start: %v", watcherName, err)
+		return
+	}
+
+	// 等待命令完成或超时
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			log.Printf("[%s] Command failed: %v", watcherName, err)
+		} else {
+			log.Printf("[%s] Command completed successfully", watcherName)
+		}
+	case <-ctx.Done():
+		log.Printf("[%s] Command timeout, killing process", watcherName)
+		if err := cmd.Process.Kill(); err != nil {
+			log.Printf("[%s] Failed to kill process: %v", watcherName, err)
+		}
+		<-done
+		log.Printf("[%s] Command killed", watcherName)
+	}
+}

@@ -21,11 +21,23 @@ import (
 )
 
 func getReqBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
-	return path.Extras["req_body_desc"].([]protoreflect.FieldDescriptor)
+	if path == nil || path.Extras == nil {
+		return nil
+	}
+	if desc, ok := path.Extras["req_body_desc"].([]protoreflect.FieldDescriptor); ok {
+		return desc
+	}
+	return nil
 }
 
 func getRspBodyDesc(path *routertree.MatchOperation) []protoreflect.FieldDescriptor {
-	return path.Extras["rsp_body_desc"].([]protoreflect.FieldDescriptor)
+	if path == nil || path.Extras == nil {
+		return nil
+	}
+	if desc, ok := path.Extras["rsp_body_desc"].([]protoreflect.FieldDescriptor); ok {
+		return desc
+	}
+	return nil
 }
 
 func resolveBodyDesc(methodDesc protoreflect.MethodDescriptor, reqBody, rspBody string) map[string]any {
@@ -137,12 +149,10 @@ func encodeBinHeader(b []byte) string {
 	return base64.RawStdEncoding.EncodeToString(b)
 }
 
-func decodeBinHeader(v string) (s string, err error) {
-	var b []byte
-	if len(v)%4 == 0 {
-		// Input was padded, or padding was not necessary.
-		b, err = base64.RawStdEncoding.DecodeString(v)
-	} else {
+func decodeBinHeader(v string) (string, error) {
+	// 尝试使用标准 base64（带填充）解码，如果失败则使用 RawStdEncoding（无填充）
+	b, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
 		b, err = base64.RawStdEncoding.DecodeString(v)
 	}
 	return string(b), err

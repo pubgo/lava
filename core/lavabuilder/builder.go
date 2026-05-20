@@ -19,13 +19,22 @@ import (
 	"github.com/pubgo/lava/v2/cmds/healthcmd"
 	"github.com/pubgo/lava/v2/cmds/httpservercmd"
 	"github.com/pubgo/lava/v2/cmds/schedulercmd"
+	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
+	_ "github.com/pubgo/lava/v2/core/debug/configview"
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	"github.com/pubgo/lava/v2/core/debug/dixdebug"
+	_ "github.com/pubgo/lava/v2/core/debug/featurehttp"
 	//_ "github.com/pubgo/lava/v2/core/debug/gops"
+	_ "github.com/pubgo/lava/v2/core/debug/goroutine"
+	_ "github.com/pubgo/lava/v2/core/debug/healthy"
+	_ "github.com/pubgo/lava/v2/core/debug/loglevel"
 	_ "github.com/pubgo/lava/v2/core/debug/pprof"
 	_ "github.com/pubgo/lava/v2/core/debug/process"
+	_ "github.com/pubgo/lava/v2/core/debug/ratelimit"
+	_ "github.com/pubgo/lava/v2/core/debug/runtime"
 	_ "github.com/pubgo/lava/v2/core/debug/statsviz"
+	_ "github.com/pubgo/lava/v2/core/debug/sysinfo"
 	_ "github.com/pubgo/lava/v2/core/debug/trace"
 	_ "github.com/pubgo/lava/v2/core/debug/vars"
 	_ "github.com/pubgo/lava/v2/core/debug/version"
@@ -40,6 +49,8 @@ import (
 	_ "github.com/pubgo/lava/v2/core/logging/logext/grpclog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/stdlog"
+	// loggerdebug
+	_ "github.com/pubgo/lava/v2/core/logging/loggerdebug"
 	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/v2/core/signals"
@@ -81,6 +92,7 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, grpcservercmd.New)
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
+	dix.Provide(di, tunnelcmd.New)
 	dix.Inject(di, func(commands []*redant.Command) {
 		app := &redant.Command{
 			Use:      version.Project(),

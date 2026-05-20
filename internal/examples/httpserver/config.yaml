@@ -1,0 +1,15 @@
+app:
+  env: "dev"
+
+logger:
+  level: "info"
+  as_json: false
+
+metric:
+  driver: "prometheus"
+  interval: 5s
+
+http_server:
+  base_url: /api
+  enable_print_router: true
+  # http_port: 8080

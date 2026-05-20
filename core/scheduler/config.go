@@ -1,14 +1,11 @@
 package scheduler
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/log/logfields"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
-	"github.com/rs/zerolog"
 	"github.com/samber/lo"
 )
 
@@ -18,7 +15,8 @@ func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 		return configMap, nil
 	}
 
-	for _, config := range configs[0].JobConfigs {
+	for i := range configs[0].JobConfigs {
+		config := &configs[0].JobConfigs[i]
 		if config.Name == "" {
 			return nil, errors.Errorf("schedule job name is empty")
 		}
@@ -26,6 +24,7 @@ func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 		if _, ok := configMap[config.Name]; ok {
 			return nil, errors.Errorf("schedule job(%s) exists", config.Name)
 		}
+		configMap[config.Name] = config
 	}
 	return configMap, nil
 }
@@ -43,9 +42,7 @@ func defaultConfig(name string) *JobConfig {
 	}
 }
 
-func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[*JobConfig]) {
-	defer result.Recovery(&r)
-
+func initAndMergeConfig(name string, jobConfigs ...*JobConfig) *JobConfig {
 	cfg := defaultConfig(name)
 	for _, jobConfig := range jobConfigs {
 		if jobConfig == nil {
@@ -76,13 +73,14 @@ func initAndMergeConfig(name string, jobConfigs ...*JobConfig) (r result.Result[
 			cfg.Location = jobConfig.Location
 		}
 
-		cfg.location = result.Wrap(time.LoadLocation(lo.FromPtr(cfg.Location))).
-			UnwrapOrLog(func(e *zerolog.Event) {
-				e.Str(logfields.Msg, fmt.Sprintf("failed to parse time location:%s", lo.FromPtr(cfg.Location)))
-			})
+		if cfg.Location != nil {
+			location, err := result.WrapErr(time.LoadLocation(lo.FromPtr(cfg.Location)))
+			err.MustWithLog(func(e result.Event) { e.Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location)) })
+			cfg.location = location
+		}
 	}
 
-	return r.WithValue(cfg)
+	return cfg
 }
 
 type JobConfig struct {

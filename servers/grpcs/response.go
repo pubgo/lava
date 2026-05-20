@@ -1,7 +1,7 @@
 package grpcs
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"google.golang.org/grpc"
 
 	"github.com/pubgo/lava/v2/lava"
@@ -22,7 +22,7 @@ func (h *rpcResponse) Stream() bool                 { return h.stream != nil }
 var _ lava.Response = (*httpResponse)(nil)
 
 type httpResponse struct {
-	ctx *fiber.Ctx
+	ctx fiber.Ctx
 }
 
 func (h *httpResponse) Header() *lava.ResponseHeader { return &h.ctx.Response().Header }

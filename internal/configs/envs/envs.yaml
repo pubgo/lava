@@ -1,0 +1,50 @@
+OPENAI_API_KEY:
+  desc: "OpenAI API Key"
+  validate: "required"
+OPENAI_BASE_URL:
+  desc: "OpenAI Base URL"
+  default: "https://api.deepseek.com/v1"
+OPENAI_MODEL:
+  desc: "OpenAI Model"
+  default: "deepseek-chat"
+ENABLE_DEBUG:
+  desc: "enable debug"
+  default: "false"
+DB_DSN:
+  desc: "db dsn"
+  default: "host=ec2-3-114-17-139.ap-northeast-1.compute.amazonaws.com dbname=welogin port=15432 user=postgres password=QMDifpRFo3zbN01ySrJg sslmode=disable"
+ENV:
+  desc: app env
+  default: dev
+CATDOGS_BASIC_AUTH_PASSWD:
+  desc: basic auth password
+  default: "123456"
+GOOGLE_CALLBACK_URL:
+  desc: "google callback url"
+  default: "https://travel.chameleontravel.club/chameleon/auth/authorize/google/callback"
+LOG_LEVEL:
+  desc: "log level"
+  default: "debug"
+
+LOG_AS_JSON:
+  desc: "log as json"
+  default: "false"
+NATS_URL:
+  desc: nats url
+NATS_POOL_WORKER_SIZE:
+  desc: nats pool worker size
+  default: "1000"
+NATS_POOL_QUEUE_SIZE:
+  desc: nats pool queue size
+  default: 1000
+NATS_ENABLE_IGNORE:
+  desc: nats enable ignore
+  default: true
+
+REDIS_ADDR:
+  desc: redis address
+  default: "localhost:6379"
+
+REDIS_PWD:
+  desc: redis password
+  default: "123456"

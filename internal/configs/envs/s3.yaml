@@ -1,0 +1,17 @@
+S3_AK:
+  desc: "S3 access key"
+  value: ""
+
+S3_SK:
+  desc: "S3 secret key"
+
+S3_BUCKET:
+  desc: "S3 bucket name"
+
+S3_REGION:
+  desc: "S3 region"
+  value: "us-west-1"
+
+S3_FORCE_BUCKET:
+  desc: "S3 force bucket"
+  value: false
