@@ -1,8 +1,8 @@
 # https://taskfile.dev
 
-version: '3'
+version: "3"
 
-dotenv: [ '.env' ]
+dotenv: [".env"]
 vars:
   Project: "lava"
   Base: "github.com/pubgo/funk/v2"
@@ -53,6 +53,7 @@ tasks:
 
   proto:gen:
     cmds:
+      - go install ./tools/protoc-gen-zrpc-go
       - protobuild vendor
       - protobuild gen
 
