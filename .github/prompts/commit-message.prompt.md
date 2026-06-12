@@ -67,9 +67,9 @@ agent: agent
 生成提交信息时，按以下优先级判断：
 
 1. **用户可见新能力** 优先于内部重构细节。
-   - 例如：新增命令、子命令、交互入口、脚手架、repo prompt、工作流能力，优先考虑 `feat`。
+  - 例如：新增命令、子命令、交互入口、脚手架、repo prompt、工作流能力，优先考虑 `feat`。
 2. **真实行为修复** 优先于实现细节调整。
-   - 例如：修复发布流程、修复输出错误、修复空发布，优先考虑 `fix`。
+  - 例如：修复发布流程、修复输出错误、修复空发布，优先考虑 `fix`。
 3. **纯结构调整且无新增用户能力** 才优先考虑 `refactor`。
 4. **纯文档更新** 才优先考虑 `docs`。
 
@@ -79,18 +79,18 @@ agent: agent
 
 1. 只基于可见改动生成提交信息，不杜撰。
 2. 使用 **Conventional Commits** 规范：
-   - `feat`
-   - `fix`
-   - `docs`
-   - `refactor`
-   - `test`
-   - `chore`
-   - `perf`
-   - `build`
-   - `ci`
+  - `feat`
+  - `fix`
+  - `docs`
+  - `refactor`
+  - `test`
+  - `chore`
+  - `perf`
+  - `build`
+  - `ci`
 3. 标题格式：
-   - `<type>(<scope>): <summary>`
-   - 如果 scope 不明确，可省略 scope，使用 `<type>: <summary>`。
+  - `<type>(<scope>): <summary>`
+  - 如果 scope 不明确，可省略 scope，使用 `<type>: <summary>`。
 4. `summary` 使用英文，简洁明确，尽量不超过 50 个字符。
 5. 优先描述本次改动的**核心行为变化**，不要机械罗列所有文件。
 6. 如果主要是新增能力，优先用 `feat`。
@@ -112,8 +112,8 @@ agent: agent
 - `ssh`
 - `skills`
 - `push`
-- %!s(MISSING)commit%!s(MISSING)
-- %!s(MISSING)docs%!s(MISSING)
+- `commit`
+- `docs`
 
 如果这些都不合适，再根据实际改动模块自行推断。
 
@@ -121,49 +121,49 @@ agent: agent
 
 如果成功提交并推送，请输出：
 
-- %!s(MISSING)mode:%!s(MISSING) 说明本次基于 %!s(MISSING)staged%!s(MISSING) 还是 %!s(MISSING)unstaged-auto-stage%!s(MISSING)
-- %!s(MISSING)commit:%!s(MISSING) 实际执行的 commit message
-- %!s(MISSING)hash:%!s(MISSING) 实际生成的 commit hash（短 hash 即可）
-- %!s(MISSING)push:%!s(MISSING) 推送目标或推送结果摘要
-- %!s(MISSING)reason:%!s(MISSING) 用中文简短说明为什么这条提交信息最合适（1~2 句）
+- `mode:` 说明本次基于 `staged` 还是 `unstaged-auto-stage`
+- `commit:` 实际执行的 commit message
+- `hash:` 实际生成的 commit hash（短 hash 即可）
+- `push:` 推送目标或推送结果摘要
+- `reason:` 用中文简短说明为什么这条提交信息最合适（1~2 句）
 
 输出时必须遵守：
 
 1. 只输出最终结果，不要展示分析过程。
 2. 不要加标题，不要加 Markdown 段落说明，不要加“已完成 X 个步骤”。
 3. 顶层字段固定使用：
-   - %!s(MISSING)mode:%!s(MISSING)
-   - %!s(MISSING)commit:%!s(MISSING)
-   - %!s(MISSING)hash:%!s(MISSING)
-   - %!s(MISSING)push:%!s(MISSING)
-   - %!s(MISSING)reason:%!s(MISSING)
-4. %!s(MISSING)commit:%!s(MISSING) 必须是**单行** commit message。
-5. %!s(MISSING)hash:%!s(MISSING) 必须来自真实 %!s(MISSING)git commit%!s(MISSING) 结果。
-6. %!s(MISSING)push:%!s(MISSING) 必须来自真实 %!s(MISSING)git push%!s(MISSING) 结果摘要。
-7. %!s(MISSING)reason:%!s(MISSING) 只写 1~2 句中文，简洁即可。
+  - `mode:`
+  - `commit:`
+  - `hash:`
+  - `push:`
+  - `reason:`
+4. `commit:` 必须是**单行** commit message。
+5. `hash:` 必须来自真实 `git commit` 结果。
+6. `push:` 必须来自真实 `git push` 结果摘要。
+7. `reason:` 只写 1~2 句中文，简洁即可。
 
 如果当前没有任何可用改动，请只输出一段简短提示，说明：
 
 - 当前没有 staged diff
 - 当前也没有 unstaged diff（如果确实为空）
-- 请先修改代码或执行 %!s(MISSING)git add%!s(MISSING)
+- 请先修改代码或执行 `git add`
 
 如果提交失败，请输出简短失败结果，包含：
 
-- %!s(MISSING)mode:%!s(MISSING)
-- %!s(MISSING)commit:%!s(MISSING)
-- %!s(MISSING)error:%!s(MISSING)
+- `mode:`
+- `commit:`
+- `error:`
 
-其中 %!s(MISSING)error:%!s(MISSING) 必须是真实报错摘要。
+其中 `error:` 必须是真实报错摘要。
 
 如果提交成功但推送失败，请输出简短失败结果，包含：
 
-- %!s(MISSING)mode:%!s(MISSING)
-- %!s(MISSING)commit:%!s(MISSING)
-- %!s(MISSING)hash:%!s(MISSING)
-- %!s(MISSING)error:%!s(MISSING)
+- `mode:`
+- `commit:`
+- `hash:`
+- `error:`
 
-其中 %!s(MISSING)error:%!s(MISSING) 必须是真实 push 报错摘要。
+其中 `error:` 必须是真实 push 报错摘要。
 
 输出格式示例：
 
