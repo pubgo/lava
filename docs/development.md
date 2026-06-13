@@ -47,6 +47,12 @@ task proto:lint
 task proto:gen
 ```
 
+说明：`task proto:gen` 现在会自动安装本地 `zrpc` 插件：
+
+- `go install ./tools/protoc-gen-zrpc-go`
+
+如果你新增了 `zrpc` 相关 `.proto`，无需手动处理插件路径，直接执行任务即可。
+
 ## 5. 命令入口说明
 
 仓库当前存在两种入口：
@@ -78,5 +84,6 @@ task proto:gen
 
 1. `docs/architecture-v2.md`
 2. `docs/design-v2.md`
-3. `docs/modules/README.md`
-4. `docs/lava-command.md`
+3. `docs/zrpc.md`（如果你在看 zrpc/NATS RPC）
+4. `docs/modules/README.md`
+5. `docs/lava-command.md`

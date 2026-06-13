@@ -3,6 +3,7 @@ package zrpc_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
@@ -85,5 +86,37 @@ func TestHandleUnaryStatusError(t *testing.T) {
 
 	if got := msg.Header.Get(zrpc.HeaderStatusCode); got != "3" {
 		t.Fatalf("unexpected code: %s", got)
+	}
+}
+
+func TestClientCallUnary(t *testing.T) {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		t.Skip("nats not available:", err)
+	}
+	defer nc.Close()
+
+	srv := zrpc.NewServer(nc)
+	defer srv.Close()
+
+	subject := "svc.test.Runtime/Client"
+	queue := "test.runtime"
+	if err := zrpc.RegisterUnary(srv, subject, queue,
+		func() *wrapperspb.StringValue { return &wrapperspb.StringValue{} },
+		func(_ context.Context, req *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
+			return &wrapperspb.StringValue{Value: "resp:" + req.Value}, nil
+		},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	cli := zrpc.NewClient(nc)
+	var resp wrapperspb.StringValue
+	if err := cli.CallUnary(context.Background(), subject, time.Second, &wrapperspb.StringValue{Value: "ok"}, &resp); err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.Value != "resp:ok" {
+		t.Fatalf("unexpected response: %q", resp.Value)
 	}
 }

@@ -13,11 +13,13 @@
 2. `design-v2.md`：理解抽象与设计取舍
 3. `modules/README.md`：按目录快速定位模块
 4. `lava-command.md`：查命令参数与示例
+5. `zrpc.md`：查看 NATS + protobuf unary RPC 用法
 
 ## 文档地图
 
 - 架构：`architecture-v2.md`
 - 设计：`design-v2.md`
+- zrpc：`zrpc.md`
 - 命令：`lava-command.md`
 - 模块：`modules/README.md`
   - `modules/core.md`

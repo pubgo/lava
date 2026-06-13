@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package zrpcdemo.v1;
+
+option go_package = "github.com/pubgo/lava/v2/pkg/proto/zrpcdemov1;zrpcdemov1";
+
+import "zrpc/v1/options.proto";
+
+// EchoService 演示 zrpc unary 调用。
+service EchoService {
+  // Echo 原样返回输入消息。
+  rpc Echo(EchoRequest) returns (EchoResponse) {
+    option (zrpc.v1.method) = {
+      subject: "svc.zrpcdemo.EchoService/Echo"
+      queue: "zrpcdemo.echo"
+      timeout_ms: 1500
+    };
+  }
+
+  // Reverse 返回倒序结果，演示默认 subject / queue 规则。
+  rpc Reverse(EchoRequest) returns (EchoResponse);
+}
+
+// EchoRequest 是演示请求。
+message EchoRequest {
+  string message = 1;
+}
+
+// EchoResponse 是演示响应。
+message EchoResponse {
+  string message = 1;
+}

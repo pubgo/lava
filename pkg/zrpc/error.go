@@ -42,11 +42,16 @@ func Errorf(code Code, format string, args ...any) error {
 
 // ReplyError sends a zrpc error reply on NATS.
 func ReplyError(msg *nats.Msg, code Code, text string) {
+	ReplyErrorWithHeader(msg, nil, code, text)
+}
+
+// ReplyErrorWithHeader sends a zrpc error reply on NATS and preserves custom headers.
+func ReplyErrorWithHeader(msg *nats.Msg, header nats.Header, code Code, text string) {
 	if msg == nil || msg.Reply == "" {
 		return
 	}
 
-	h := nats.Header{}
+	h := cloneHeader(header)
 	h.Set(HeaderStatusCode, strconv.Itoa(int(code)))
 	h.Set(HeaderStatusMessage, text)
 	_ = msg.RespondMsg(&nats.Msg{Header: h, Data: []byte(text)})
@@ -63,4 +68,37 @@ func StatusFromError(err error) (Code, string) {
 	}
 
 	return CodeInternal, err.Error()
+}
+
+// StatusFromMessage maps a zrpc reply message to its embedded status code.
+func StatusFromMessage(msg *nats.Msg) (Code, string) {
+	if msg == nil {
+		return CodeInternal, "nil message"
+	}
+
+	if msg.Header == nil {
+		return CodeOK, ""
+	}
+
+	codeStr := msg.Header.Get(HeaderStatusCode)
+	if codeStr == "" || codeStr == "0" {
+		return CodeOK, ""
+	}
+
+	codeInt, err := strconv.Atoi(codeStr)
+	if err != nil {
+		return CodeInternal, fmt.Sprintf("invalid zrpc status code: %s", codeStr)
+	}
+
+	return Code(codeInt), msg.Header.Get(HeaderStatusMessage)
+}
+
+// ErrorFromMessage converts a zrpc reply message to a typed error when needed.
+func ErrorFromMessage(msg *nats.Msg) error {
+	code, text := StatusFromMessage(msg)
+	if code == CodeOK {
+		return nil
+	}
+
+	return &Status{Code: code, Message: text}
 }

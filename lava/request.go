@@ -9,6 +9,7 @@ type RequestKind = string
 const (
 	RequestKindHttp RequestKind = "http"
 	RequestKindGrpc RequestKind = "grpc"
+	RequestKindZrpc RequestKind = "zrpc"
 )
 
 type RequestHeader = fasthttp.RequestHeader

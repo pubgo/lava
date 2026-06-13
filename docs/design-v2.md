@@ -8,6 +8,12 @@ Lava 在设计上聚焦三件事：
 2. **可运维**：默认带调试、日志、指标、生命周期管理能力。
 3. **可扩展**：通过 `core/*` 与 `pkg/*` 的分层，把业务与基础设施解耦。
 
+当前在传输层上，Lava 已覆盖：
+
+- HTTP（`servers/https` / `clients/resty`）
+- gRPC（`servers/grpcs` / `clients/grpcc`）
+- zrpc（`servers/zrpcs` / `clients/zrpcc`，protobuf unary over NATS）
+
 ## 2. 核心抽象
 
 ### 2.1 中间件抽象（`lava/middleware.go`）
@@ -54,6 +60,22 @@ type Service interface {
 
 `supervisor.Manager` 基于该接口实现生命周期托管、重启策略和状态观测。
 
+### 2.4 统一请求抽象（`lava/request.go` / `lava/response.go`）
+
+当前 `lava.RequestKind` 已覆盖：
+
+- `http`
+- `grpc`
+- `zrpc`
+
+这意味着同一套 `lava.Middleware` 可以同时复用在：
+
+- HTTP server / client
+- gRPC server / client
+- zrpc server / client
+
+这也是 `zrpc` 能快速接入现有 accesslog / metric / recovery 能力的关键。
+
 ## 3. 关键设计决策
 
 ### 3.1 Supervisor 负责“稳态运行”
@@ -81,6 +103,27 @@ $$
 
 - `servers/https` 与 `servers/grpcs` 默认挂载 `/debug`
 - `vars.Register(...)` 暴露配置、路由、服务信息
+
+### 3.4 zrpc 作为内部 RPC 通道
+
+`zrpc` 的设计定位是：
+
+- 使用 protobuf 作为消息编码
+- 使用 NATS request-reply 作为传输
+- 复用 `lava.Middleware` 和 `supervisor.Service`
+
+其价值不在于替代 gRPC，而在于提供一条更轻量的内部 RPC 通道，适合：
+
+- 服务间内部调用
+- 事件总线旁路 RPC
+- 不需要 HTTP/2 / Gateway 的场景
+
+对应实现路径：
+
+- runtime：`pkg/zrpc`
+- server host：`servers/zrpcs`
+- client：`clients/zrpcc`
+- proto codegen：`tools/protoc-gen-zrpc-go` + `internal/zrpcgen`
 
 ## 4. 中间件执行流程
 
