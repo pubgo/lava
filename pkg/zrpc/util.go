@@ -16,6 +16,15 @@ const (
 	DefaultContentType = "application/protobuf"
 	HeaderTimeout      = "Timeout"
 	MethodNATS         = "NATS"
+	HeaderStream       = "Zrpc-Stream"
+	HeaderStreamFrame  = "Zrpc-Stream-Frame"
+	HeaderStreamReqSub = "Zrpc-Stream-Req-Subject"
+
+	streamFrameOpen  = "open"
+	streamFrameAck   = "ack"
+	streamFrameData  = "data"
+	streamFrameEnd   = "end"
+	streamFrameError = "error"
 )
 
 func newRequestID() string {

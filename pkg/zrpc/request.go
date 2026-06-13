@@ -6,6 +6,7 @@ var _ lava.Request = (*request)(nil)
 
 type request struct {
 	client      bool
+	stream      bool
 	subject     string
 	service     string
 	contentType string
@@ -15,7 +16,7 @@ type request struct {
 
 func (r *request) Client() bool                { return r.client }
 func (r *request) Kind() string                { return lava.RequestKindZrpc }
-func (r *request) Stream() bool                { return false }
+func (r *request) Stream() bool                { return r.stream }
 func (r *request) Service() string             { return r.service }
 func (r *request) Operation() string           { return r.subject }
 func (r *request) Endpoint() string            { return r.subject }

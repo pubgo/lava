@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -36,6 +37,50 @@ func (echoService) Reverse(_ context.Context, req *zrpcdemov1.EchoRequest) (*zrp
 	}
 
 	return &zrpcdemov1.EchoResponse{Message: string(runes)}, nil
+}
+
+func (echoService) EchoStream(_ context.Context, req *zrpcdemov1.EchoRequest, stream zrpcdemov1.EchoService_EchoStreamZrpcServerStream) error {
+	base := req.GetMessage()
+	for _, val := range []string{base, strings.ToUpper(base), strings.ToLower(base)} {
+		if err := stream.Send(&zrpcdemov1.EchoResponse{Message: val}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (echoService) Collect(_ context.Context, stream zrpcdemov1.EchoService_CollectZrpcServerStream) (*zrpcdemov1.EchoResponse, error) {
+	parts := make([]string, 0, 4)
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		parts = append(parts, req.GetMessage())
+	}
+
+	return &zrpcdemov1.EchoResponse{Message: strings.Join(parts, ",")}, nil
+}
+
+func (echoService) Chat(_ context.Context, stream zrpcdemov1.EchoService_ChatZrpcServerStream) error {
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		if err = stream.Send(&zrpcdemov1.EchoResponse{Message: "chat:" + req.GetMessage()}); err != nil {
+			return err
+		}
+	}
 }
 
 func main() {

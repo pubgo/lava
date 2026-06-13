@@ -19,8 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EchoService_Echo_FullMethodName    = "/zrpcdemo.v1.EchoService/Echo"
-	EchoService_Reverse_FullMethodName = "/zrpcdemo.v1.EchoService/Reverse"
+	EchoService_Echo_FullMethodName       = "/zrpcdemo.v1.EchoService/Echo"
+	EchoService_Reverse_FullMethodName    = "/zrpcdemo.v1.EchoService/Reverse"
+	EchoService_EchoStream_FullMethodName = "/zrpcdemo.v1.EchoService/EchoStream"
+	EchoService_Collect_FullMethodName    = "/zrpcdemo.v1.EchoService/Collect"
+	EchoService_Chat_FullMethodName       = "/zrpcdemo.v1.EchoService/Chat"
 )
 
 // EchoServiceClient is the client API for EchoService service.
@@ -33,6 +36,12 @@ type EchoServiceClient interface {
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 	// Reverse 返回倒序结果，演示默认 subject / queue 规则。
 	Reverse(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
+	// EchoStream 演示服务端响应流。
+	EchoStream(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EchoResponse], error)
+	// Collect 演示客户端请求流。
+	Collect(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EchoRequest, EchoResponse], error)
+	// Chat 演示双向请求/响应流。
+	Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[EchoRequest, EchoResponse], error)
 }
 
 type echoServiceClient struct {
@@ -63,6 +72,51 @@ func (c *echoServiceClient) Reverse(ctx context.Context, in *EchoRequest, opts .
 	return out, nil
 }
 
+func (c *echoServiceClient) EchoStream(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[EchoResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EchoService_ServiceDesc.Streams[0], EchoService_EchoStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[EchoRequest, EchoResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_EchoStreamClient = grpc.ServerStreamingClient[EchoResponse]
+
+func (c *echoServiceClient) Collect(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[EchoRequest, EchoResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EchoService_ServiceDesc.Streams[1], EchoService_Collect_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[EchoRequest, EchoResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_CollectClient = grpc.ClientStreamingClient[EchoRequest, EchoResponse]
+
+func (c *echoServiceClient) Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[EchoRequest, EchoResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EchoService_ServiceDesc.Streams[2], EchoService_Chat_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[EchoRequest, EchoResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_ChatClient = grpc.BidiStreamingClient[EchoRequest, EchoResponse]
+
 // EchoServiceServer is the server API for EchoService service.
 // All implementations should embed UnimplementedEchoServiceServer
 // for forward compatibility.
@@ -73,6 +127,12 @@ type EchoServiceServer interface {
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
 	// Reverse 返回倒序结果，演示默认 subject / queue 规则。
 	Reverse(context.Context, *EchoRequest) (*EchoResponse, error)
+	// EchoStream 演示服务端响应流。
+	EchoStream(*EchoRequest, grpc.ServerStreamingServer[EchoResponse]) error
+	// Collect 演示客户端请求流。
+	Collect(grpc.ClientStreamingServer[EchoRequest, EchoResponse]) error
+	// Chat 演示双向请求/响应流。
+	Chat(grpc.BidiStreamingServer[EchoRequest, EchoResponse]) error
 }
 
 // UnimplementedEchoServiceServer should be embedded to have
@@ -87,6 +147,15 @@ func (UnimplementedEchoServiceServer) Echo(context.Context, *EchoRequest) (*Echo
 }
 func (UnimplementedEchoServiceServer) Reverse(context.Context, *EchoRequest) (*EchoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Reverse not implemented")
+}
+func (UnimplementedEchoServiceServer) EchoStream(*EchoRequest, grpc.ServerStreamingServer[EchoResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method EchoStream not implemented")
+}
+func (UnimplementedEchoServiceServer) Collect(grpc.ClientStreamingServer[EchoRequest, EchoResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method Collect not implemented")
+}
+func (UnimplementedEchoServiceServer) Chat(grpc.BidiStreamingServer[EchoRequest, EchoResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method Chat not implemented")
 }
 func (UnimplementedEchoServiceServer) testEmbeddedByValue() {}
 
@@ -144,6 +213,31 @@ func _EchoService_Reverse_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EchoService_EchoStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EchoRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EchoServiceServer).EchoStream(m, &grpc.GenericServerStream[EchoRequest, EchoResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_EchoStreamServer = grpc.ServerStreamingServer[EchoResponse]
+
+func _EchoService_Collect_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EchoServiceServer).Collect(&grpc.GenericServerStream[EchoRequest, EchoResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_CollectServer = grpc.ClientStreamingServer[EchoRequest, EchoResponse]
+
+func _EchoService_Chat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EchoServiceServer).Chat(&grpc.GenericServerStream[EchoRequest, EchoResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EchoService_ChatServer = grpc.BidiStreamingServer[EchoRequest, EchoResponse]
+
 // EchoService_ServiceDesc is the grpc.ServiceDesc for EchoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +254,23 @@ var EchoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EchoService_Reverse_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "EchoStream",
+			Handler:       _EchoService_EchoStream_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Collect",
+			Handler:       _EchoService_Collect_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Chat",
+			Handler:       _EchoService_Chat_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "zrpcdemo/v1/echo.proto",
 }

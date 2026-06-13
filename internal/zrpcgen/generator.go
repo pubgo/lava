@@ -77,11 +77,13 @@ func emitService(g *protogen.GeneratedFile, file *protogen.File, service *protog
 	g.P(")")
 	g.P()
 
+	for _, method := range service.Methods {
+		emitMethodStreamTypes(g, service, method, zrpc)
+	}
+
 	g.P("type ", service.GoName, "ZrpcServer interface {")
 	for _, method := range service.Methods {
-		in := g.QualifiedGoIdent(method.Input.GoIdent)
-		out := g.QualifiedGoIdent(method.Output.GoIdent)
-		g.P("	", method.GoName, "(ctx context.Context, req *", in, ") (*", out, ", error)")
+		emitServerInterfaceMethod(g, service, method)
 	}
 	g.P("}")
 	g.P()
@@ -91,7 +93,7 @@ func emitService(g *protogen.GeneratedFile, file *protogen.File, service *protog
 	g.P("		queue = ", service.GoName, "DefaultQueue")
 	g.P("	}")
 	for _, method := range service.Methods {
-		emitRegisterUnary(g, service, method, zrpc)
+		emitRegisterMethod(g, service, method, zrpc)
 	}
 	g.P("	return nil")
 	g.P("}")
@@ -138,17 +140,202 @@ func emitService(g *protogen.GeneratedFile, file *protogen.File, service *protog
 	}
 }
 
-func emitRegisterUnary(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method, zrpc protogen.GoImportPath) {
+func emitMethodStreamTypes(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method, zrpc protogen.GoImportPath) {
+	if !method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer() {
+		return
+	}
+
 	in := g.QualifiedGoIdent(method.Input.GoIdent)
 	out := g.QualifiedGoIdent(method.Output.GoIdent)
+	serverIface := fmt.Sprintf("%s_%sZrpcServerStream", service.GoName, method.GoName)
+	clientIface := fmt.Sprintf("%s_%sZrpcClientStream", service.GoName, method.GoName)
+	serverAdapter := fmt.Sprintf("%s_%sZrpcServerAdapter", service.GoName, method.GoName)
+	clientAdapter := fmt.Sprintf("%s_%sZrpcClientAdapter", service.GoName, method.GoName)
+
+	switch {
+	case method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient():
+		g.P("type ", serverIface, " interface {")
+		g.P("	Send(resp *", out, ") error")
+		g.P("}")
+		g.P()
+		g.P("type ", serverAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), " }")
+		g.P("func (s *", serverAdapter, ") Send(resp *", out, ") error {")
+		g.P("	return s.stream.Send(resp)")
+		g.P("}")
+		g.P()
+
+		g.P("type ", clientIface, " interface {")
+		g.P("	Recv() (*", out, ", error)")
+		g.P("	Close() error")
+		g.P("}")
+		g.P()
+		g.P("type ", clientAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ClientStream")), " }")
+		g.P("func (s *", clientAdapter, ") Recv() (*", out, ", error) {")
+		g.P("	var resp ", out)
+		g.P("	if err := s.stream.Recv(&resp); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &resp, nil")
+		g.P("}")
+		g.P("func (s *", clientAdapter, ") Close() error { return s.stream.Close() }")
+		g.P()
+
+	case method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("type ", serverIface, " interface {")
+		g.P("	Recv() (*", in, ", error)")
+		g.P("}")
+		g.P()
+		g.P("type ", serverAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), " }")
+		g.P("func (s *", serverAdapter, ") Recv() (*", in, ", error) {")
+		g.P("	var req ", in)
+		g.P("	if err := s.stream.Recv(&req); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &req, nil")
+		g.P("}")
+		g.P()
+
+		g.P("type ", clientIface, " interface {")
+		g.P("	Send(req *", in, ") error")
+		g.P("	CloseAndRecv() (*", out, ", error)")
+		g.P("	Close() error")
+		g.P("}")
+		g.P()
+		g.P("type ", clientAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ClientStream")), " }")
+		g.P("func (s *", clientAdapter, ") Send(req *", in, ") error { return s.stream.Send(req) }")
+		g.P("func (s *", clientAdapter, ") CloseAndRecv() (*", out, ", error) {")
+		g.P("	if err := s.stream.CloseSend(); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	var resp ", out)
+		g.P("	if err := s.stream.Recv(&resp); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &resp, nil")
+		g.P("}")
+		g.P("func (s *", clientAdapter, ") Close() error { return s.stream.Close() }")
+		g.P()
+
+	case method.Desc.IsStreamingClient() && method.Desc.IsStreamingServer():
+		g.P("type ", serverIface, " interface {")
+		g.P("	Send(resp *", out, ") error")
+		g.P("	Recv() (*", in, ", error)")
+		g.P("	CloseSend() error")
+		g.P("}")
+		g.P()
+		g.P("type ", serverAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), " }")
+		g.P("func (s *", serverAdapter, ") Send(resp *", out, ") error { return s.stream.Send(resp) }")
+		g.P("func (s *", serverAdapter, ") Recv() (*", in, ", error) {")
+		g.P("	var req ", in)
+		g.P("	if err := s.stream.Recv(&req); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &req, nil")
+		g.P("}")
+		g.P("func (s *", serverAdapter, ") CloseSend() error { return s.stream.CloseSend() }")
+		g.P()
+
+		g.P("type ", clientIface, " interface {")
+		g.P("	Send(req *", in, ") error")
+		g.P("	Recv() (*", out, ", error)")
+		g.P("	CloseSend() error")
+		g.P("	Close() error")
+		g.P("}")
+		g.P()
+		g.P("type ", clientAdapter, " struct { stream *", g.QualifiedGoIdent(zrpc.Ident("ClientStream")), " }")
+		g.P("func (s *", clientAdapter, ") Send(req *", in, ") error { return s.stream.Send(req) }")
+		g.P("func (s *", clientAdapter, ") Recv() (*", out, ", error) {")
+		g.P("	var resp ", out)
+		g.P("	if err := s.stream.Recv(&resp); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &resp, nil")
+		g.P("}")
+		g.P("func (s *", clientAdapter, ") CloseSend() error { return s.stream.CloseSend() }")
+		g.P("func (s *", clientAdapter, ") Close() error { return s.stream.Close() }")
+		g.P()
+	}
+}
+
+func emitServerInterfaceMethod(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method) {
+	in := g.QualifiedGoIdent(method.Input.GoIdent)
+	out := g.QualifiedGoIdent(method.Output.GoIdent)
+	serverIface := fmt.Sprintf("%s_%sZrpcServerStream", service.GoName, method.GoName)
+
+	switch {
+	case !method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("	", method.GoName, "(ctx context.Context, req *", in, ") (*", out, ", error)")
+	case method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient():
+		g.P("	", method.GoName, "(ctx context.Context, req *", in, ", stream ", serverIface, ") error")
+	case method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("	", method.GoName, "(ctx context.Context, stream ", serverIface, ") (*", out, ", error)")
+	case method.Desc.IsStreamingClient() && method.Desc.IsStreamingServer():
+		g.P("	", method.GoName, "(ctx context.Context, stream ", serverIface, ") error")
+	}
+}
+
+func emitRegisterMethod(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method, zrpc protogen.GoImportPath) {
+	in := g.QualifiedGoIdent(method.Input.GoIdent)
 	subject := fmt.Sprintf("%s_%sSubject", service.GoName, method.GoName)
 	defaultQueue := fmt.Sprintf("%s_%sQueue", service.GoName, method.GoName)
 	queueVar := fmt.Sprintf("methodQueue%s", method.GoName)
+	serverAdapter := fmt.Sprintf("%s_%sZrpcServerAdapter", service.GoName, method.GoName)
 
 	g.P("	", queueVar, " := queue")
 	g.P("	if ", queueVar, " == \"\" {")
 	g.P("		", queueVar, " = ", defaultQueue)
 	g.P("	}")
+
+	switch {
+	case !method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		emitRegisterUnary(g, service, method, zrpc)
+	case method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient():
+		g.P("	if err := ", g.QualifiedGoIdent(zrpc.Ident("RegisterStream")), "(srv, ", subject, ", ", queueVar, ",")
+		g.P("		func(ctx context.Context, stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), ") error {")
+		g.P("			req := &", in, "{}")
+		g.P("			if err := stream.Recv(req); err != nil {")
+		g.P("				return err")
+		g.P("			}")
+		g.P("			return impl.", method.GoName, "(ctx, req, &", serverAdapter, "{stream: stream})")
+		g.P("		},")
+		g.P("	); err != nil {")
+		g.P("		srv.Close()")
+		g.P("		return err")
+		g.P("	}")
+	case method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("	if err := ", g.QualifiedGoIdent(zrpc.Ident("RegisterStream")), "(srv, ", subject, ", ", queueVar, ",")
+		g.P("		func(ctx context.Context, stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), ") error {")
+		g.P("			resp, err := impl.", method.GoName, "(ctx, &", serverAdapter, "{stream: stream})")
+		g.P("			if err != nil {")
+		g.P("				return err")
+		g.P("			}")
+		g.P("			if resp == nil {")
+		g.P("				return ", g.QualifiedGoIdent(zrpc.Ident("Errorf")), "(", g.QualifiedGoIdent(zrpc.Ident("CodeInternal")), ", \"nil stream response\")")
+		g.P("			}")
+		g.P("			return stream.Send(resp)")
+		g.P("		},")
+		g.P("	); err != nil {")
+		g.P("		srv.Close()")
+		g.P("		return err")
+		g.P("	}")
+	case method.Desc.IsStreamingClient() && method.Desc.IsStreamingServer():
+		g.P("	if err := ", g.QualifiedGoIdent(zrpc.Ident("RegisterStream")), "(srv, ", subject, ", ", queueVar, ",")
+		g.P("		func(ctx context.Context, stream *", g.QualifiedGoIdent(zrpc.Ident("ServerStream")), ") error {")
+		g.P("			return impl.", method.GoName, "(ctx, &", serverAdapter, "{stream: stream})")
+		g.P("		},")
+		g.P("	); err != nil {")
+		g.P("		srv.Close()")
+		g.P("		return err")
+		g.P("	}")
+	}
+}
+
+func emitRegisterUnary(g *protogen.GeneratedFile, service *protogen.Service, method *protogen.Method, zrpc protogen.GoImportPath) {
+	in := g.QualifiedGoIdent(method.Input.GoIdent)
+	out := g.QualifiedGoIdent(method.Output.GoIdent)
+	subject := fmt.Sprintf("%s_%sSubject", service.GoName, method.GoName)
+	queueVar := fmt.Sprintf("methodQueue%s", method.GoName)
+
 	g.P("	if err := ", g.QualifiedGoIdent(zrpc.Ident("RegisterUnary")), "(srv, ", subject, ", ", queueVar, ",")
 	g.P("		func() *", in, " { return &", in, "{} },")
 	g.P("		func(ctx context.Context, req *", in, ") (*", out, ", error) {")
@@ -165,19 +352,71 @@ func emitClientMethod(g *protogen.GeneratedFile, service *protogen.Service, meth
 	out := g.QualifiedGoIdent(method.Output.GoIdent)
 	subject := fmt.Sprintf("%s_%sSubject", service.GoName, method.GoName)
 	methodTimeout := fmt.Sprintf("%s_%sTimeout", service.GoName, method.GoName)
+	clientIface := fmt.Sprintf("%s_%sZrpcClientStream", service.GoName, method.GoName)
+	clientAdapter := fmt.Sprintf("%s_%sZrpcClientAdapter", service.GoName, method.GoName)
 
-	g.P("func (c *", service.GoName, "ZrpcClient) ", method.GoName, "(ctx context.Context, req *", in, ") (*", out, ", error) {")
-	g.P("	var resp ", out)
-	g.P("	timeout := c.timeout")
-	g.P("	if timeout == 0 {")
-	g.P("		timeout = ", methodTimeout)
-	g.P("	}")
-	g.P("	if err := c.rt.CallUnary(ctx, ", subject, ", timeout, req, &resp); err != nil {")
-	g.P("		return nil, err")
-	g.P("	}")
-	g.P("	return &resp, nil")
-	g.P("}")
-	g.P()
+	switch {
+	case !method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("func (c *", service.GoName, "ZrpcClient) ", method.GoName, "(ctx context.Context, req *", in, ") (*", out, ", error) {")
+		g.P("	var resp ", out)
+		g.P("	timeout := c.timeout")
+		g.P("	if timeout == 0 {")
+		g.P("		timeout = ", methodTimeout)
+		g.P("	}")
+		g.P("	if err := c.rt.CallUnary(ctx, ", subject, ", timeout, req, &resp); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &resp, nil")
+		g.P("}")
+		g.P()
+	case method.Desc.IsStreamingServer() && !method.Desc.IsStreamingClient():
+		g.P("func (c *", service.GoName, "ZrpcClient) ", method.GoName, "(ctx context.Context, req *", in, ") (", clientIface, ", error) {")
+		g.P("	timeout := c.timeout")
+		g.P("	if timeout == 0 {")
+		g.P("		timeout = ", methodTimeout)
+		g.P("	}")
+		g.P("	st, err := c.rt.OpenStream(ctx, ", subject, ", timeout)")
+		g.P("	if err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	if err = st.Send(req); err != nil {")
+		g.P("		_ = st.Close()")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	if err = st.CloseSend(); err != nil {")
+		g.P("		_ = st.Close()")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &", clientAdapter, "{stream: st}, nil")
+		g.P("}")
+		g.P()
+	case method.Desc.IsStreamingClient() && !method.Desc.IsStreamingServer():
+		g.P("func (c *", service.GoName, "ZrpcClient) ", method.GoName, "(ctx context.Context) (", clientIface, ", error) {")
+		g.P("	timeout := c.timeout")
+		g.P("	if timeout == 0 {")
+		g.P("		timeout = ", methodTimeout)
+		g.P("	}")
+		g.P("	st, err := c.rt.OpenStream(ctx, ", subject, ", timeout)")
+		g.P("	if err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &", clientAdapter, "{stream: st}, nil")
+		g.P("}")
+		g.P()
+	case method.Desc.IsStreamingClient() && method.Desc.IsStreamingServer():
+		g.P("func (c *", service.GoName, "ZrpcClient) ", method.GoName, "(ctx context.Context) (", clientIface, ", error) {")
+		g.P("	timeout := c.timeout")
+		g.P("	if timeout == 0 {")
+		g.P("		timeout = ", methodTimeout)
+		g.P("	}")
+		g.P("	st, err := c.rt.OpenStream(ctx, ", subject, ", timeout)")
+		g.P("	if err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &", clientAdapter, "{stream: st}, nil")
+		g.P("}")
+		g.P()
+	}
 }
 
 func methodOptions(file *protogen.File, service *protogen.Service, method *protogen.Method) *methodBinding {

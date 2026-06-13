@@ -16,19 +16,134 @@ import (
 
 // EchoService zrpc subjects and queue defaults.
 const (
-	EchoServiceServicePath     = "zrpcdemo.v1.EchoService"
-	EchoServiceDefaultQueue    = "zrpcdemo.echo"
-	EchoService_EchoSubject    = "svc.zrpcdemo.EchoService/Echo"
-	EchoService_EchoQueue      = "zrpcdemo.echo"
-	EchoService_EchoTimeout    = 1500 * time.Millisecond
-	EchoService_ReverseSubject = "svc.zrpcdemo.v1.EchoService/Reverse"
-	EchoService_ReverseQueue   = "zrpcdemo.v1.echoservice"
-	EchoService_ReverseTimeout = 3000 * time.Millisecond
+	EchoServiceServicePath        = "zrpcdemo.v1.EchoService"
+	EchoServiceDefaultQueue       = "zrpcdemo.echo"
+	EchoService_EchoSubject       = "svc.zrpcdemo.EchoService/Echo"
+	EchoService_EchoQueue         = "zrpcdemo.echo"
+	EchoService_EchoTimeout       = 1500 * time.Millisecond
+	EchoService_ReverseSubject    = "svc.zrpcdemo.v1.EchoService/Reverse"
+	EchoService_ReverseQueue      = "zrpcdemo.v1.echoservice"
+	EchoService_ReverseTimeout    = 3000 * time.Millisecond
+	EchoService_EchoStreamSubject = "svc.zrpcdemo.v1.EchoService/EchoStream"
+	EchoService_EchoStreamQueue   = "zrpcdemo.v1.echoservice"
+	EchoService_EchoStreamTimeout = 3000 * time.Millisecond
+	EchoService_CollectSubject    = "svc.zrpcdemo.v1.EchoService/Collect"
+	EchoService_CollectQueue      = "zrpcdemo.v1.echoservice"
+	EchoService_CollectTimeout    = 3000 * time.Millisecond
+	EchoService_ChatSubject       = "svc.zrpcdemo.v1.EchoService/Chat"
+	EchoService_ChatQueue         = "zrpcdemo.v1.echoservice"
+	EchoService_ChatTimeout       = 3000 * time.Millisecond
 )
+
+type EchoService_EchoStreamZrpcServerStream interface {
+	Send(resp *EchoResponse) error
+}
+
+type EchoService_EchoStreamZrpcServerAdapter struct{ stream *zrpc.ServerStream }
+
+func (s *EchoService_EchoStreamZrpcServerAdapter) Send(resp *EchoResponse) error {
+	return s.stream.Send(resp)
+}
+
+type EchoService_EchoStreamZrpcClientStream interface {
+	Recv() (*EchoResponse, error)
+	Close() error
+}
+
+type EchoService_EchoStreamZrpcClientAdapter struct{ stream *zrpc.ClientStream }
+
+func (s *EchoService_EchoStreamZrpcClientAdapter) Recv() (*EchoResponse, error) {
+	var resp EchoResponse
+	if err := s.stream.Recv(&resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+func (s *EchoService_EchoStreamZrpcClientAdapter) Close() error { return s.stream.Close() }
+
+type EchoService_CollectZrpcServerStream interface {
+	Recv() (*EchoRequest, error)
+}
+
+type EchoService_CollectZrpcServerAdapter struct{ stream *zrpc.ServerStream }
+
+func (s *EchoService_CollectZrpcServerAdapter) Recv() (*EchoRequest, error) {
+	var req EchoRequest
+	if err := s.stream.Recv(&req); err != nil {
+		return nil, err
+	}
+	return &req, nil
+}
+
+type EchoService_CollectZrpcClientStream interface {
+	Send(req *EchoRequest) error
+	CloseAndRecv() (*EchoResponse, error)
+	Close() error
+}
+
+type EchoService_CollectZrpcClientAdapter struct{ stream *zrpc.ClientStream }
+
+func (s *EchoService_CollectZrpcClientAdapter) Send(req *EchoRequest) error {
+	return s.stream.Send(req)
+}
+func (s *EchoService_CollectZrpcClientAdapter) CloseAndRecv() (*EchoResponse, error) {
+	if err := s.stream.CloseSend(); err != nil {
+		return nil, err
+	}
+	var resp EchoResponse
+	if err := s.stream.Recv(&resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+func (s *EchoService_CollectZrpcClientAdapter) Close() error { return s.stream.Close() }
+
+type EchoService_ChatZrpcServerStream interface {
+	Send(resp *EchoResponse) error
+	Recv() (*EchoRequest, error)
+	CloseSend() error
+}
+
+type EchoService_ChatZrpcServerAdapter struct{ stream *zrpc.ServerStream }
+
+func (s *EchoService_ChatZrpcServerAdapter) Send(resp *EchoResponse) error {
+	return s.stream.Send(resp)
+}
+func (s *EchoService_ChatZrpcServerAdapter) Recv() (*EchoRequest, error) {
+	var req EchoRequest
+	if err := s.stream.Recv(&req); err != nil {
+		return nil, err
+	}
+	return &req, nil
+}
+func (s *EchoService_ChatZrpcServerAdapter) CloseSend() error { return s.stream.CloseSend() }
+
+type EchoService_ChatZrpcClientStream interface {
+	Send(req *EchoRequest) error
+	Recv() (*EchoResponse, error)
+	CloseSend() error
+	Close() error
+}
+
+type EchoService_ChatZrpcClientAdapter struct{ stream *zrpc.ClientStream }
+
+func (s *EchoService_ChatZrpcClientAdapter) Send(req *EchoRequest) error { return s.stream.Send(req) }
+func (s *EchoService_ChatZrpcClientAdapter) Recv() (*EchoResponse, error) {
+	var resp EchoResponse
+	if err := s.stream.Recv(&resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+func (s *EchoService_ChatZrpcClientAdapter) CloseSend() error { return s.stream.CloseSend() }
+func (s *EchoService_ChatZrpcClientAdapter) Close() error     { return s.stream.Close() }
 
 type EchoServiceZrpcServer interface {
 	Echo(ctx context.Context, req *EchoRequest) (*EchoResponse, error)
 	Reverse(ctx context.Context, req *EchoRequest) (*EchoResponse, error)
+	EchoStream(ctx context.Context, req *EchoRequest, stream EchoService_EchoStreamZrpcServerStream) error
+	Collect(ctx context.Context, stream EchoService_CollectZrpcServerStream) (*EchoResponse, error)
+	Chat(ctx context.Context, stream EchoService_ChatZrpcServerStream) error
 }
 
 func RegisterEchoServiceZrpcRoutes(srv *zrpc.Server, impl EchoServiceZrpcServer, queue string) error {
@@ -56,6 +171,53 @@ func RegisterEchoServiceZrpcRoutes(srv *zrpc.Server, impl EchoServiceZrpcServer,
 		func() *EchoRequest { return &EchoRequest{} },
 		func(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
 			return impl.Reverse(ctx, req)
+		},
+	); err != nil {
+		srv.Close()
+		return err
+	}
+	methodQueueEchoStream := queue
+	if methodQueueEchoStream == "" {
+		methodQueueEchoStream = EchoService_EchoStreamQueue
+	}
+	if err := zrpc.RegisterStream(srv, EchoService_EchoStreamSubject, methodQueueEchoStream,
+		func(ctx context.Context, stream *zrpc.ServerStream) error {
+			req := &EchoRequest{}
+			if err := stream.Recv(req); err != nil {
+				return err
+			}
+			return impl.EchoStream(ctx, req, &EchoService_EchoStreamZrpcServerAdapter{stream: stream})
+		},
+	); err != nil {
+		srv.Close()
+		return err
+	}
+	methodQueueCollect := queue
+	if methodQueueCollect == "" {
+		methodQueueCollect = EchoService_CollectQueue
+	}
+	if err := zrpc.RegisterStream(srv, EchoService_CollectSubject, methodQueueCollect,
+		func(ctx context.Context, stream *zrpc.ServerStream) error {
+			resp, err := impl.Collect(ctx, &EchoService_CollectZrpcServerAdapter{stream: stream})
+			if err != nil {
+				return err
+			}
+			if resp == nil {
+				return zrpc.Errorf(zrpc.CodeInternal, "nil stream response")
+			}
+			return stream.Send(resp)
+		},
+	); err != nil {
+		srv.Close()
+		return err
+	}
+	methodQueueChat := queue
+	if methodQueueChat == "" {
+		methodQueueChat = EchoService_ChatQueue
+	}
+	if err := zrpc.RegisterStream(srv, EchoService_ChatSubject, methodQueueChat,
+		func(ctx context.Context, stream *zrpc.ServerStream) error {
+			return impl.Chat(ctx, &EchoService_ChatZrpcServerAdapter{stream: stream})
 		},
 	); err != nil {
 		srv.Close()
@@ -120,4 +282,48 @@ func (c *EchoServiceZrpcClient) Reverse(ctx context.Context, req *EchoRequest) (
 		return nil, err
 	}
 	return &resp, nil
+}
+
+func (c *EchoServiceZrpcClient) EchoStream(ctx context.Context, req *EchoRequest) (EchoService_EchoStreamZrpcClientStream, error) {
+	timeout := c.timeout
+	if timeout == 0 {
+		timeout = EchoService_EchoStreamTimeout
+	}
+	st, err := c.rt.OpenStream(ctx, EchoService_EchoStreamSubject, timeout)
+	if err != nil {
+		return nil, err
+	}
+	if err = st.Send(req); err != nil {
+		_ = st.Close()
+		return nil, err
+	}
+	if err = st.CloseSend(); err != nil {
+		_ = st.Close()
+		return nil, err
+	}
+	return &EchoService_EchoStreamZrpcClientAdapter{stream: st}, nil
+}
+
+func (c *EchoServiceZrpcClient) Collect(ctx context.Context) (EchoService_CollectZrpcClientStream, error) {
+	timeout := c.timeout
+	if timeout == 0 {
+		timeout = EchoService_CollectTimeout
+	}
+	st, err := c.rt.OpenStream(ctx, EchoService_CollectSubject, timeout)
+	if err != nil {
+		return nil, err
+	}
+	return &EchoService_CollectZrpcClientAdapter{stream: st}, nil
+}
+
+func (c *EchoServiceZrpcClient) Chat(ctx context.Context) (EchoService_ChatZrpcClientStream, error) {
+	timeout := c.timeout
+	if timeout == 0 {
+		timeout = EchoService_ChatTimeout
+	}
+	st, err := c.rt.OpenStream(ctx, EchoService_ChatSubject, timeout)
+	if err != nil {
+		return nil, err
+	}
+	return &EchoService_ChatZrpcClientAdapter{stream: st}, nil
 }

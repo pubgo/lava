@@ -19,6 +19,15 @@ service EchoService {
 
   // Reverse 返回倒序结果，演示默认 subject / queue 规则。
   rpc Reverse(EchoRequest) returns (EchoResponse);
+
+  // EchoStream 演示服务端响应流。
+  rpc EchoStream(EchoRequest) returns (stream EchoResponse);
+
+  // Collect 演示客户端请求流。
+  rpc Collect(stream EchoRequest) returns (EchoResponse);
+
+  // Chat 演示双向请求/响应流。
+  rpc Chat(stream EchoRequest) returns (stream EchoResponse);
 }
 
 // EchoRequest 是演示请求。

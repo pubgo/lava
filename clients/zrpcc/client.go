@@ -82,6 +82,14 @@ func (c *clientImpl) CallUnary(ctx context.Context, subject string, req, resp pr
 	return c.rt.CallUnary(ctx, subject, c.cfg.Timeout, req, resp)
 }
 
+func (c *clientImpl) OpenStream(ctx context.Context, subject string) (*zrpc.ClientStream, error) {
+	if _, err := c.Conn(); err != nil {
+		return nil, err
+	}
+
+	return c.rt.OpenStream(ctx, subject, c.cfg.Timeout)
+}
+
 func (c *clientImpl) Healthy(ctx context.Context) error {
 	nc, err := c.Conn()
 	if err != nil {

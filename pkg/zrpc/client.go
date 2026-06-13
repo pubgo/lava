@@ -2,6 +2,8 @@ package zrpc
 
 import (
 	"context"
+	"io"
+	"sync"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -101,4 +103,220 @@ func (c *Client) CallUnary(ctx context.Context, subject string, timeout time.Dur
 
 	_, err := lava.Chain(c.middlewares...).Middleware(handler)(ctx, wrappedReq)
 	return err
+}
+
+// ClientStream is a bidirectional zrpc message stream.
+type ClientStream struct {
+	nc       *nats.Conn
+	reqSubj  string
+	respSubj string
+	respSub  *nats.Subscription
+	header   nats.Header
+	ctx      context.Context
+	cancel   context.CancelFunc
+
+	mu        sync.Mutex
+	sendClose bool
+	closed    bool
+}
+
+// OpenStream opens a bidirectional stream bound to a zrpc subject.
+func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Duration) (*ClientStream, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if _, ok := ctx.Deadline(); !ok && timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+
+	header := requestHeaderFromContext(ctx)
+	if len(header.ContentType()) == 0 {
+		header.SetContentType(DefaultContentType)
+	}
+	header.SetMethod(MethodNATS)
+	header.SetRequestURI(subject)
+	header.Set(httputil.HeaderXRequestOperation, subject)
+
+	reqID := firstNotEmpty(
+		lavacontexts.GetReqID(ctx),
+		string(header.Peek(httputil.HeaderXRequestID)),
+		newRequestID(),
+	)
+	header.Set(httputil.HeaderXRequestID, reqID)
+
+	if deadline, ok := ctx.Deadline(); ok {
+		header.Set(HeaderTimeout, time.Until(deadline).String())
+	}
+
+	ctx = lavacontexts.CreateCtxWithReqID(ctx, reqID)
+	ctx = lavacontexts.CreateReqHeader(ctx, header)
+
+	reqSubj := nats.NewInbox()
+	respSubj := nats.NewInbox()
+
+	respSub, err := c.nc.SubscribeSync(respSubj)
+	if err != nil {
+		return nil, err
+	}
+
+	msg := nats.NewMsg(subject)
+	msg.Reply = respSubj
+	msg.Header = requestHeaderToNATS(header)
+	msg.Header.Set(HeaderStream, "1")
+	msg.Header.Set(HeaderStreamFrame, streamFrameOpen)
+	msg.Header.Set(HeaderStreamReqSub, reqSubj)
+
+	if err = c.nc.PublishMsg(msg); err != nil {
+		_ = respSub.Unsubscribe()
+		return nil, err
+	}
+
+	if err = c.nc.Flush(); err != nil {
+		_ = respSub.Unsubscribe()
+		return nil, err
+	}
+
+	for {
+		ack, ackErr := respSub.NextMsgWithContext(ctx)
+		if ackErr != nil {
+			_ = respSub.Unsubscribe()
+			return nil, ackErr
+		}
+
+		if !isStreamMessage(ack) {
+			continue
+		}
+
+		switch ack.Header.Get(HeaderStreamFrame) {
+		case streamFrameAck:
+			streamCtx, cancel := context.WithCancel(ctx)
+			return &ClientStream{
+				nc:       c.nc,
+				reqSubj:  reqSubj,
+				respSubj: respSubj,
+				respSub:  respSub,
+				header:   requestHeaderToNATS(header),
+				ctx:      streamCtx,
+				cancel:   cancel,
+			}, nil
+		case streamFrameError:
+			_ = respSub.Unsubscribe()
+			if err = ErrorFromMessage(ack); err != nil {
+				return nil, err
+			}
+			return nil, io.EOF
+		}
+	}
+}
+
+// Send sends one protobuf message into the request stream.
+func (s *ClientStream) Send(msg proto.Message) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.closed {
+		return io.EOF
+	}
+
+	if s.sendClose {
+		return io.EOF
+	}
+
+	data, err := proto.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	frame := nats.NewMsg(s.reqSubj)
+	frame.Header = cloneHeader(s.header)
+	frame.Header.Set(HeaderStream, "1")
+	frame.Header.Set(HeaderStreamFrame, streamFrameData)
+	frame.Data = data
+
+	return s.nc.PublishMsg(frame)
+}
+
+// Recv receives one protobuf message from the response stream.
+func (s *ClientStream) Recv(resp proto.Message) error {
+	for {
+		msg, err := s.respSub.NextMsgWithContext(s.ctx)
+		if err != nil {
+			return err
+		}
+
+		if !isStreamMessage(msg) {
+			continue
+		}
+
+		switch msg.Header.Get(HeaderStreamFrame) {
+		case streamFrameAck:
+			continue
+		case streamFrameData:
+			return proto.Unmarshal(msg.Data, resp)
+		case streamFrameEnd:
+			return io.EOF
+		case streamFrameError:
+			if streamErr := ErrorFromMessage(msg); streamErr != nil {
+				return streamErr
+			}
+			return io.EOF
+		}
+	}
+}
+
+// CloseSend closes the request side of the stream.
+func (s *ClientStream) CloseSend() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.closed || s.sendClose {
+		return nil
+	}
+
+	frame := nats.NewMsg(s.reqSubj)
+	frame.Header = cloneHeader(s.header)
+	frame.Header.Set(HeaderStream, "1")
+	frame.Header.Set(HeaderStreamFrame, streamFrameEnd)
+	if err := s.nc.PublishMsg(frame); err != nil {
+		return err
+	}
+
+	s.sendClose = true
+	return nil
+}
+
+// Close closes the stream and releases subscriptions.
+func (s *ClientStream) Close() error {
+	s.mu.Lock()
+	if s.closed {
+		s.mu.Unlock()
+		return nil
+	}
+	s.mu.Unlock()
+
+	_ = s.CloseSend()
+
+	s.mu.Lock()
+	s.closed = true
+	s.mu.Unlock()
+
+	if s.cancel != nil {
+		s.cancel()
+	}
+	if s.respSub != nil {
+		_ = s.respSub.Unsubscribe()
+	}
+
+	return nil
+}
+
+func isStreamMessage(msg *nats.Msg) bool {
+	if msg == nil || msg.Header == nil {
+		return false
+	}
+
+	return msg.Header.Get(HeaderStream) == "1"
 }
