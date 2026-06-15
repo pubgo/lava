@@ -27,6 +27,9 @@ go mod tidy
 | `task vet`        | `go vet ./...`                         |
 | `task test`       | `go test -short -race -v ./... -cover` |
 | `task lint`       | `golangci-lint run --verbose ./...`    |
+| `task release:snapshot` | 本地构建 `protoc-gen-zrpc-go` 发布产物 |
+| `task changelog`  | git-cliff 生成 `.version/changelog/CHANGELOG.md` |
+| `task changelog:unreleased` | 预览未发布 changelog |
 
 ## 4. 推荐开发流程
 
@@ -53,7 +56,22 @@ task proto:gen
 
 如果你新增了 `zrpc` 相关 `.proto`，无需手动处理插件路径，直接执行任务即可。
 
-## 5. 命令入口说明
+## 5. 发布
+
+推送 `v*.*.*` tag 会触发 `.github/workflows/release.yml`：
+
+1. `git-cliff` 按 `cliff.toml` 生成 release notes
+2. `GoReleaser` 交叉编译并发布 `protoc-gen-zrpc-go`
+
+本地可先验证：
+
+```bash
+brew install goreleaser git-cliff   # 首次需要
+task release:snapshot
+task changelog:unreleased
+```
+
+## 6. 命令入口说明
 
 仓库当前存在两种入口：
 
@@ -62,13 +80,13 @@ task proto:gen
 
 开发文档中的命令示例默认以根入口为准。
 
-## 6. 文档维护规范
+## 7. 文档维护规范
 
 - 命令文档必须对齐 `main.go` 实际注册命令。
 - 接口文档必须对齐 `lava/*.go` 与 `core/supervisor/types.go`。
 - 涉及流程图更新时，需同步标注对应实现路径。
 
-## 7. 常见问题
+## 8. 常见问题
 
 ### Q1: `task build` / `task clean` 为什么不存在？
 

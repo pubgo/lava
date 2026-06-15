@@ -25,6 +25,7 @@ sqlite.db
 pkg/example/services/logs
 logs
 bin
+dist
 /example/bin
 .proto
 proto-vendor

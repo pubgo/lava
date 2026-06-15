@@ -1,0 +1,29 @@
+version: 2
+
+project_name: lava
+
+changelog:
+  disable: true
+
+builds:
+  - main: ./tools/protoc-gen-zrpc-go/main.go
+    id: protoc-gen-zrpc-go
+    binary: protoc-gen-zrpc-go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - name_template: "{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}"
+    formats: [binary]
+
+checksum:
+  name_template: "{{ .Tag }}_checksums.txt"
+
+report_sizes: true

@@ -71,3 +71,18 @@ tasks:
   lint:
     cmds:
       - golangci-lint run --verbose ./...
+
+  release:snapshot:
+    desc: "build protoc-gen-zrpc-go release artifacts locally"
+    cmds:
+      - goreleaser release --snapshot --clean
+
+  changelog:
+    desc: "generate changelog with git-cliff"
+    cmds:
+      - git cliff -o .version/changelog/CHANGELOG.md
+
+  changelog:unreleased:
+    desc: "preview unreleased changelog"
+    cmds:
+      - git cliff --unreleased
