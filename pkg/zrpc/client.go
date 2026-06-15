@@ -126,12 +126,6 @@ func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Du
 		ctx = context.Background()
 	}
 
-	if _, ok := ctx.Deadline(); !ok && timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
-	}
-
 	header := requestHeaderFromContext(ctx)
 	if len(header.ContentType()) == 0 {
 		header.SetContentType(DefaultContentType)
@@ -149,10 +143,19 @@ func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Du
 
 	if deadline, ok := ctx.Deadline(); ok {
 		header.Set(HeaderTimeout, time.Until(deadline).String())
+	} else if timeout > 0 {
+		header.Set(HeaderTimeout, timeout.String())
 	}
 
 	ctx = lavacontexts.CreateCtxWithReqID(ctx, reqID)
 	ctx = lavacontexts.CreateReqHeader(ctx, header)
+
+	handshakeCtx := ctx
+	if _, ok := ctx.Deadline(); !ok && timeout > 0 {
+		var cancel context.CancelFunc
+		handshakeCtx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
 
 	reqSubj := nats.NewInbox()
 	respSubj := nats.NewInbox()
@@ -180,7 +183,7 @@ func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Du
 	}
 
 	for {
-		ack, ackErr := respSub.NextMsgWithContext(ctx)
+		ack, ackErr := respSub.NextMsgWithContext(handshakeCtx)
 		if ackErr != nil {
 			_ = respSub.Unsubscribe()
 			return nil, ackErr
@@ -272,6 +275,10 @@ func (s *ClientStream) CloseSend() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	return s.closeSendLocked()
+}
+
+func (s *ClientStream) closeSendLocked() error {
 	if s.closed || s.sendClose {
 		return nil
 	}
@@ -291,17 +298,14 @@ func (s *ClientStream) CloseSend() error {
 // Close closes the stream and releases subscriptions.
 func (s *ClientStream) Close() error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.closed {
-		s.mu.Unlock()
 		return nil
 	}
-	s.mu.Unlock()
 
-	_ = s.CloseSend()
-
-	s.mu.Lock()
+	_ = s.closeSendLocked()
 	s.closed = true
-	s.mu.Unlock()
 
 	if s.cancel != nil {
 		s.cancel()

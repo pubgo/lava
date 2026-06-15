@@ -128,3 +128,57 @@ func TestStreamServerError(t *testing.T) {
 		t.Fatalf("unexpected status code: %v", stErr.Code)
 	}
 }
+
+func TestStreamBidiWithTimeout(t *testing.T) {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		t.Skip("nats not available:", err)
+	}
+	defer nc.Close()
+
+	srv := zrpc.NewServer(nc)
+	defer srv.Close()
+
+	subject := "svc.test.Runtime/StreamBidiTimeout"
+	queue := "test.runtime"
+	if err = zrpc.RegisterStream(srv, subject, queue, func(ctx context.Context, stream *zrpc.ServerStream) error {
+		for {
+			var req wrapperspb.StringValue
+			recvErr := stream.Recv(&req)
+			if recvErr == io.EOF {
+				return nil
+			}
+			if recvErr != nil {
+				return recvErr
+			}
+
+			if sendErr := stream.Send(&wrapperspb.StringValue{Value: "echo:" + req.GetValue()}); sendErr != nil {
+				return sendErr
+			}
+		}
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	cli := zrpc.NewClient(nc)
+	st, err := cli.OpenStream(context.Background(), subject, 3*time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = st.Close() }()
+
+	if err = st.Send(&wrapperspb.StringValue{Value: "a"}); err != nil {
+		t.Fatal(err)
+	}
+	if err = st.CloseSend(); err != nil {
+		t.Fatal(err)
+	}
+
+	var r1 wrapperspb.StringValue
+	if err = st.Recv(&r1); err != nil {
+		t.Fatalf("Recv after OpenStream with timeout failed: %v", err)
+	}
+	if r1.GetValue() != "echo:a" {
+		t.Fatalf("unexpected response: %q", r1.GetValue())
+	}
+}

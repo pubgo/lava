@@ -112,6 +112,11 @@ func HandleUnary[Req, Resp proto.Message](
 		return
 	}
 
+	if wrappedResp == nil {
+		ReplyErrorWithHeader(msg, responseHeaderToNATS(rspHeader), CodeInternal, "nil response from middleware chain")
+		return
+	}
+
 	typedResp, ok := wrappedResp.Payload().(proto.Message)
 	if !ok || typedResp == nil {
 		ReplyErrorWithHeader(msg, responseHeaderToNATS(wrappedResp.Header()), CodeInternal, "invalid response payload")
@@ -241,7 +246,7 @@ func HandleStream(
 			return nil, err
 		}
 
-		return &response{header: rspHeader, payload: nil, stream: true}, stream.CloseSend()
+		return &response{header: rspHeader, payload: nil, stream: true}, nil
 	}
 
 	_, err = lava.Chain(middlewares...).Middleware(inner)(ctx, wrappedReq)
@@ -250,6 +255,8 @@ func HandleStream(
 		stream.replyError(code, text)
 		return
 	}
+
+	_ = stream.CloseSend()
 }
 
 // Recv receives one protobuf message from request stream.
@@ -306,6 +313,10 @@ func (s *ServerStream) CloseSend() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	return s.closeSendLocked()
+}
+
+func (s *ServerStream) closeSendLocked() error {
 	if s.closed || s.sendClose {
 		return nil
 	}
@@ -325,17 +336,14 @@ func (s *ServerStream) CloseSend() error {
 // Close closes stream resources.
 func (s *ServerStream) Close() error {
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.closed {
-		s.mu.Unlock()
 		return nil
 	}
-	s.mu.Unlock()
 
-	_ = s.CloseSend()
-
-	s.mu.Lock()
+	_ = s.closeSendLocked()
 	s.closed = true
-	s.mu.Unlock()
 
 	if s.reqSub != nil {
 		_ = s.reqSub.Unsubscribe()
