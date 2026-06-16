@@ -74,13 +74,18 @@ func (c *Client) CallUnary(ctx context.Context, subject string, timeout time.Dur
 	}
 
 	handler := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		payload, err := proto.Marshal(req.Payload().(proto.Message))
+		payload, ok := req.Payload().(proto.Message)
+		if !ok || payload == nil {
+			return nil, Errorf(CodeInternal, "invalid request payload")
+		}
+
+		data, err := proto.Marshal(payload)
 		if err != nil {
 			return nil, err
 		}
 
 		msg := nats.NewMsg(subject)
-		msg.Data = payload
+		msg.Data = data
 		msg.Header = requestHeaderToNATS(req.Header())
 
 		rspMsg, err := c.nc.RequestMsgWithContext(ctx, msg)
@@ -195,7 +200,13 @@ func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Du
 
 		switch ack.Header.Get(HeaderStreamFrame) {
 		case streamFrameAck:
-			streamCtx, cancel := context.WithCancel(ctx)
+			streamCtx := ctx
+			var cancel context.CancelFunc
+			if _, ok := ctx.Deadline(); !ok && timeout > 0 {
+				streamCtx, cancel = context.WithTimeout(ctx, timeout)
+			} else {
+				streamCtx, cancel = context.WithCancel(ctx)
+			}
 			return &ClientStream{
 				nc:       c.nc,
 				reqSubj:  reqSubj,

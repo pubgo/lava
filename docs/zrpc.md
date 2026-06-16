@@ -1,12 +1,12 @@
 # zrpc 使用说明
 
-`zrpc` 是 Lava 中新增的 **protobuf unary RPC over NATS request-reply** 能力。
+`zrpc` 是 Lava 中新增的 **protobuf RPC over NATS request-reply** 能力，支持 unary 与 streaming。
 
 它的定位不是替代 gRPC，而是补齐一条更轻量的内部 RPC 通道：
 
 - 消息体使用 protobuf 二进制编码
-- 传输层使用 NATS request-reply
-- 当前版本聚焦 unary 调用
+- 传输层使用 NATS request-reply / inbox streaming
+- 支持 unary、server streaming、client streaming、bidi streaming
 - 服务端/客户端都可复用 `lava.Middleware`
 
 ## 组件位置

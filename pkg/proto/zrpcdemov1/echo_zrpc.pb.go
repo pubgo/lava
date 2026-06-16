@@ -252,8 +252,9 @@ func NewEchoServiceZrpcClientWithRuntime(rt *zrpc.Client) *EchoServiceZrpcClient
 }
 
 func (c *EchoServiceZrpcClient) WithTimeout(d time.Duration) *EchoServiceZrpcClient {
-	c.timeout = d
-	return c
+	cp := *c
+	cp.timeout = d
+	return &cp
 }
 
 func (c *EchoServiceZrpcClient) Runtime() *zrpc.Client {

@@ -58,6 +58,10 @@ func HandleUnary[Req, Resp proto.Message](
 	newReq func() Req,
 	handler func(context.Context, Req) (Resp, error),
 ) {
+	if msg == nil {
+		return
+	}
+
 	ctx := context.Background()
 	if timeout := msg.Header.Get(HeaderTimeout); timeout != "" {
 		if dur, err := time.ParseDuration(timeout); err == nil {
@@ -228,6 +232,7 @@ func HandleStream(
 	ack.Header.Set(HeaderStream, "1")
 	ack.Header.Set(HeaderStreamFrame, streamFrameAck)
 	if err = nc.PublishMsg(ack); err != nil {
+		stream.replyError(CodeInternal, "failed to publish stream ack")
 		return
 	}
 
@@ -256,7 +261,9 @@ func HandleStream(
 		return
 	}
 
-	_ = stream.CloseSend()
+	if err = stream.CloseSend(); err != nil {
+		stream.replyError(CodeInternal, "failed to close response stream")
+	}
 }
 
 // Recv receives one protobuf message from request stream.

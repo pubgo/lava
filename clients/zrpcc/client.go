@@ -48,12 +48,12 @@ type clientImpl struct {
 	cfg         *Config
 	log         log.Logger
 	middlewares []lava.Middleware
-	mu          sync.Mutex
+	mu          sync.RWMutex
 	nc          *nats.Conn
 	rt          *zrpc.Client
 }
 
-func (c *clientImpl) connLocked() (*nats.Conn, *zrpc.Client, error) {
+func (c *clientImpl) connectLocked() (*nats.Conn, *zrpc.Client, error) {
 	if c.rt == nil && c.nc != nil {
 		return nil, nil, errors.New("client is closed")
 	}
@@ -72,69 +72,111 @@ func (c *clientImpl) connLocked() (*nats.Conn, *zrpc.Client, error) {
 	return c.nc, c.rt, nil
 }
 
+func (c *clientImpl) withRuntime(fn func(*zrpc.Client, time.Duration) error) error {
+	c.mu.RLock()
+	if c.rt != nil {
+		defer c.mu.RUnlock()
+		return fn(c.rt, c.cfg.Timeout)
+	}
+	c.mu.RUnlock()
+
+	c.mu.Lock()
+	_, rt, err := c.connectLocked()
+	timeout := c.cfg.Timeout
+	if err != nil {
+		c.mu.Unlock()
+		return err
+	}
+	c.mu.Unlock()
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.rt == nil || c.rt != rt {
+		return errors.New("client is closed")
+	}
+
+	return fn(rt, timeout)
+}
+
+func (c *clientImpl) withConn(fn func(*nats.Conn) error) error {
+	c.mu.RLock()
+	if c.nc != nil {
+		defer c.mu.RUnlock()
+		return fn(c.nc)
+	}
+	c.mu.RUnlock()
+
+	c.mu.Lock()
+	nc, _, err := c.connectLocked()
+	if err != nil {
+		c.mu.Unlock()
+		return err
+	}
+	c.mu.Unlock()
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.nc == nil || c.nc != nc {
+		return errors.New("client is closed")
+	}
+
+	return fn(nc)
+}
+
 func (c *clientImpl) Conn() (*nats.Conn, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	nc, _, err := c.connLocked()
+	nc, _, err := c.connectLocked()
 	return nc, err
 }
 
 func (c *clientImpl) CallUnary(ctx context.Context, subject string, req, resp proto.Message) error {
-	c.mu.Lock()
-	_, rt, err := c.connLocked()
-	timeout := c.cfg.Timeout
-	c.mu.Unlock()
-	if err != nil {
-		return err
-	}
-
-	return rt.CallUnary(ctx, subject, timeout, req, resp)
+	return c.withRuntime(func(rt *zrpc.Client, timeout time.Duration) error {
+		return rt.CallUnary(ctx, subject, timeout, req, resp)
+	})
 }
 
 func (c *clientImpl) OpenStream(ctx context.Context, subject string) (*zrpc.ClientStream, error) {
-	c.mu.Lock()
-	_, rt, err := c.connLocked()
-	timeout := c.cfg.Timeout
-	c.mu.Unlock()
+	var stream *zrpc.ClientStream
+	err := c.withRuntime(func(rt *zrpc.Client, timeout time.Duration) error {
+		var openErr error
+		stream, openErr = rt.OpenStream(ctx, subject, timeout)
+		return openErr
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return rt.OpenStream(ctx, subject, timeout)
+	return stream, nil
 }
 
 func (c *clientImpl) Healthy(ctx context.Context) error {
-	c.mu.Lock()
-	nc, _, err := c.connLocked()
-	c.mu.Unlock()
-	if err != nil {
-		return err
-	}
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	flushTimeout := 5 * time.Second
-	if deadline, ok := ctx.Deadline(); ok {
-		flushTimeout = time.Until(deadline)
-		if flushTimeout <= 0 {
-			return context.DeadlineExceeded
+	return c.withConn(func(nc *nats.Conn) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
 		}
-	}
 
-	if err = nc.FlushTimeout(flushTimeout); err != nil {
-		return errors.Wrap(err, "failed to flush nats connection")
-	}
+		flushTimeout := 5 * time.Second
+		if deadline, ok := ctx.Deadline(); ok {
+			flushTimeout = time.Until(deadline)
+			if flushTimeout <= 0 {
+				return context.DeadlineExceeded
+			}
+		}
 
-	if err = nc.LastError(); err != nil {
-		return errors.Wrap(err, "nats connection unhealthy")
-	}
+		if err := nc.FlushTimeout(flushTimeout); err != nil {
+			return errors.Wrap(err, "failed to flush nats connection")
+		}
 
-	return nil
+		if err := nc.LastError(); err != nil {
+			return errors.Wrap(err, "nats connection unhealthy")
+		}
+
+		return nil
+	})
 }
 
 func (c *clientImpl) Close() error {
