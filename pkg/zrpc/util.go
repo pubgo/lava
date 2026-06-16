@@ -14,7 +14,7 @@ import (
 const (
 	Name               = "zrpc"
 	DefaultContentType = "application/protobuf"
-	HeaderTimeout      = "Timeout"
+	HeaderTimeout      = "Timeout" // propagated to server; also used for stream session deadline
 	MethodNATS         = "NATS"
 	HeaderStream       = "Zrpc-Stream"
 	HeaderStreamFrame  = "Zrpc-Stream-Frame"

@@ -96,7 +96,7 @@ func (s *serviceImpl) start() error {
 		return err
 	}
 
-	s.log.Info().Str("url", s.conf.URL).Msg("zrpc server started")
+	s.log.Info().Str("url", s.conf.URL).Int("registers", len(s.registers)).Msg("zrpc server started")
 	return nil
 }
 
@@ -107,6 +107,7 @@ func (s *serviceImpl) stop() {
 	}
 
 	if s.nc != nil {
+		s.log.Info().Str("url", s.conf.URL).Msg("zrpc server stopped")
 		s.nc.Close()
 		s.nc = nil
 	}

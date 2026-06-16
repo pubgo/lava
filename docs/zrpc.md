@@ -176,6 +176,34 @@ typedCli := zrpcdemov1.NewEchoServiceZrpcClient(nc)
 resp, err := typedCli.Reverse(ctx, &zrpcdemov1.EchoRequest{Message: "hello"})
 ```
 
+### Streaming 调用示例
+
+```go
+// server streaming：发送一个请求，持续 Recv
+ss, err := cli.EchoStream(ctx, &zrpcdemov1.EchoRequest{Message: "Hi"})
+if err != nil {
+    return err
+}
+for {
+    msg, err := ss.Recv()
+    if err == io.EOF {
+        break
+    }
+    if err != nil {
+        return err
+    }
+    fmt.Println(msg.GetMessage())
+}
+
+// client streaming：持续 Send，最后 CloseAndRecv
+cs, err := cli.Collect(ctx)
+if err != nil {
+    return err
+}
+_ = cs.Send(&zrpcdemov1.EchoRequest{Message: "a"})
+resp, err := cs.CloseAndRecv()
+```
+
 `zrpcc` 同样默认挂上：
 
 - `serviceinfo`
@@ -216,18 +244,104 @@ go test ./internal/examples/zrpcdemo
 当前 `zrpc` 已支持：
 
 - protobuf unary request / response
+- server / client / bidi streaming
 - method 级 subject / queue / timeout 配置
 - 统一 Go runtime
 - `zrpcs` / `zrpcc` 框架接入
 - generated typed client / server
-- `lava.Middleware` 复用
+- `lava.Middleware` 复用（accesslog / metric / recovery）
 
 当前仍未覆盖：
 
-- streaming RPC
 - HTTP -> zrpc bridge
 - gRPC -> zrpc proxy
 - 更高层的 `lava.ZrpcRouter` 抽象
+
+## Streaming 协议
+
+streaming 基于 NATS inbox，帧类型通过 header `Zrpc-Stream-Frame` 区分：
+
+| 帧 | 方向 | 说明 |
+| --- | --- | --- |
+| `open` | client → server | 携带 `Zrpc-Stream-Req-Subject`（请求侧 inbox） |
+| `ack` | server → client | 握手成功 |
+| `data` | 双向 | protobuf 消息体 |
+| `end` | 双向 | 半关闭（CloseSend） |
+| `error` | 双向 | `Zrpc-Status-Code` / `Zrpc-Status-Message` |
+
+超时通过 header `Timeout` 传递（如 `3s`），服务端用于整个 stream session；客户端在 `OpenStream` 时也会为 stream 设置相同 deadline。
+
+## 日志与可观测性
+
+`pkg/zrpc` **不直接打业务日志**，而是通过 `lava.Middleware` 记录每次 RPC：
+
+| 层级 | 日志来源 | 典型字段 |
+| --- | --- | --- |
+| `pkg/zrpc` | 无直接日志 | 由 middleware 包装 request/response |
+| `servers/zrpcs` | 启动/停止 | `url`、`registers` |
+| `clients/zrpcc` | 连接/关闭 | `url` |
+| middleware | accesslog | `request_id`、`operation`（subject）、`service`、`latency`、`error` |
+
+### 默认中间件
+
+`zrpcs` / `zrpcc` 默认挂载：
+
+- `serviceinfo`：注入客户端/服务信息
+- `metric`：请求耗时与结果指标
+- `accesslog`：成功 debug、失败 info，含 subject 与 request_id
+- `recovery`：panic 转错误
+
+### 日志示例
+
+服务启动：
+
+```text
+level=info service=zrpc-server url=nats://127.0.0.1:4222 registers=1 msg="zrpc server started"
+```
+
+客户端连接：
+
+```text
+level=info service=zrpcc url=nats://127.0.0.1:4222 msg="zrpc client connected"
+```
+
+RPC 访问（由 accesslog 输出，字段因配置而异）：
+
+```text
+level=debug request_id=... operation=svc.zrpcdemo.EchoService/Echo service=zrpcdemo.EchoService latency=12 client=true
+```
+
+### 排障建议
+
+1. 确认 NATS 可达：`clients/zrpcc.Healthy` 或 `nats-server` 日志
+2. 用 `request_id` 串联客户端 accesslog 与服务端 accesslog
+3. streaming 卡住时检查是否收到 `end` / `error` 帧，以及 `Timeout` header 是否过短
+4. subject / queue 不匹配时客户端通常表现为超时，而非明确错误码
+
+## 客户端生命周期
+
+`zrpcc` 懒连接 NATS，`Close()` 后会标记为 closed，**不会**在后续调用中自动重连。关闭后应新建客户端实例。
+
+```go
+cli := zrpcc.New(cfg, params)
+defer cli.Close()
+
+// Close 之后 CallUnary / OpenStream 返回 "client is closed"
+```
+
+## CI 与测试
+
+GitHub Actions `lint-test.yml` 在 `v2` 分支会：
+
+- 启动 `nats:2.10` service container
+- 运行全量 `go test`（含 `pkg/zrpc`、`clients/zrpcc`、`internal/examples/zrpcdemo`）
+
+本地等价命令：
+
+```bash
+task test
+go test ./pkg/zrpc/... ./clients/zrpcc/... ./internal/examples/zrpcdemo/...
+```
 
 ## 推荐开发顺序
 

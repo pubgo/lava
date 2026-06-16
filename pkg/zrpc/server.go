@@ -15,7 +15,8 @@ import (
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
-// Server registers zrpc unary handlers on NATS queue subscriptions.
+// Server registers zrpc unary and streaming handlers on NATS queue subscriptions.
+// Request logging is handled by lava.Middleware attached at construction time.
 type Server struct {
 	nc   *nats.Conn
 	subs []*nats.Subscription

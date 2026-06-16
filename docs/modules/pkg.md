@@ -36,12 +36,14 @@ flowchart LR
 
 ## zrpc 位置说明
 
-`pkg/zrpc` 是 protobuf unary over NATS 的核心 runtime：
+`pkg/zrpc` 是 protobuf over NATS 的核心 runtime：
 
-- 服务端：`Server` / `RegisterUnary`
-- 客户端：`Client` / `CallUnary`
+- 服务端：`Server` / `RegisterUnary` / `RegisterStream`
+- 客户端：`Client` / `CallUnary` / `OpenStream`
 - 错误：`Status` / `ReplyErrorWithHeader`
-- 统一请求响应：`request` / `response`
+- 统一请求响应：`request` / `response`（适配 `lava.Middleware`）
+
+日志不直接在 runtime 输出，而是由 `lava.Middleware`（accesslog/metric）记录。
 
 它被以下模块直接消费：
 

@@ -1,3 +1,8 @@
+// Package zrpcc provides a Lava-style zrpc client with lazy NATS connection,
+// default middlewares (serviceinfo/metric/accesslog/recovery), and lifecycle APIs.
+//
+// Access logs are written by middleware_accesslog using fields such as
+// request_id, operation (NATS subject), service, latency, and error details.
 package zrpcc
 
 import (

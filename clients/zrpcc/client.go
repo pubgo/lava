@@ -74,6 +74,7 @@ func (c *clientImpl) connectLocked() (*nats.Conn, *zrpc.Client, error) {
 
 	c.nc = nc
 	c.rt = zrpc.NewClient(nc, c.middlewares...)
+	c.log.Info().Str("url", c.cfg.URL).Msg("zrpc client connected")
 	return c.nc, c.rt, nil
 }
 
@@ -193,6 +194,7 @@ func (c *clientImpl) Close() error {
 		return nil
 	}
 
+	c.log.Info().Str("url", c.cfg.URL).Msg("zrpc client closed")
 	c.nc.Close()
 	c.nc = nil
 	c.rt = nil

@@ -14,7 +14,8 @@ import (
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
-// Client sends zrpc unary requests through NATS.
+// Client sends zrpc unary and streaming requests through NATS.
+// Request logging is handled by lava.Middleware attached at construction time.
 type Client struct {
 	nc          *nats.Conn
 	middlewares []lava.Middleware

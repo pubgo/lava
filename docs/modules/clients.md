@@ -8,7 +8,7 @@
 | --------------- | -------------------------------------------------- | ------------------------------ |
 | `clients/grpcc` | gRPC 客户端封装（懒连接、健康检查、Invoke/Stream） | `clients/grpcc/client.go::New` |
 | `clients/resty` | HTTP 客户端封装（中间件、重试、配置化）            | `clients/resty/client.go::New` |
-| `clients/zrpcc` | zrpc 客户端封装（NATS + protobuf unary）           | `clients/zrpcc/client.go::New` |
+| `clients/zrpcc` | zrpc 客户端封装（NATS + protobuf unary/streaming） | `clients/zrpcc/client.go::New` |
 
 ## `grpcc` 要点
 
@@ -24,9 +24,11 @@
 
 ## `zrpcc` 要点
 
-- 基于 `pkg/zrpc.Client` 封装 NATS request-reply 调用
+- 基于 `pkg/zrpc.Client` 封装 NATS unary / streaming 调用
 - 默认挂载 serviceinfo/metric/accesslog/recovery 中间件
-- 提供 `Conn` / `CallUnary` / `Healthy` / `Close`
+- 提供 `Conn` / `CallUnary` / `OpenStream` / `Healthy` / `Close`
+- 懒连接 NATS；`Close()` 后不会自动重连
+- 连接/关闭会输出 info 日志（`url` 字段）
 - 可与生成的 `*ZrpcClient` 组合使用
 
 ## 统一抽象关系

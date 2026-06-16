@@ -41,6 +41,7 @@ func Errorf(code Code, format string, args ...any) error {
 }
 
 // ReplyError sends a zrpc error reply on NATS.
+// Used by server handlers when decode/validation fails before middleware runs.
 func ReplyError(msg *nats.Msg, code Code, text string) {
 	ReplyErrorWithHeader(msg, nil, code, text)
 }
