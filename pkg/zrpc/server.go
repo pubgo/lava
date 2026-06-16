@@ -215,7 +215,7 @@ func HandleStream(
 		ReplyError(msg, CodeInternal, "failed to subscribe stream request")
 		return
 	}
-	defer reqSub.Unsubscribe()
+	defer func() { _ = reqSub.Unsubscribe() }()
 
 	stream := &ServerStream{
 		nc:          nc,

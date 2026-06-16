@@ -49,11 +49,16 @@ type clientImpl struct {
 	log         log.Logger
 	middlewares []lava.Middleware
 	mu          sync.RWMutex
+	closed      bool
 	nc          *nats.Conn
 	rt          *zrpc.Client
 }
 
 func (c *clientImpl) connectLocked() (*nats.Conn, *zrpc.Client, error) {
+	if c.closed {
+		return nil, nil, errors.New("client is closed")
+	}
+
 	if c.rt == nil && c.nc != nil {
 		return nil, nil, errors.New("client is closed")
 	}
@@ -183,6 +188,7 @@ func (c *clientImpl) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	c.closed = true
 	if c.nc == nil {
 		return nil
 	}

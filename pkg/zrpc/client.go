@@ -200,7 +200,7 @@ func (c *Client) OpenStream(ctx context.Context, subject string, timeout time.Du
 
 		switch ack.Header.Get(HeaderStreamFrame) {
 		case streamFrameAck:
-			streamCtx := ctx
+			var streamCtx context.Context
 			var cancel context.CancelFunc
 			if _, ok := ctx.Deadline(); !ok && timeout > 0 {
 				streamCtx, cancel = context.WithTimeout(ctx, timeout)
