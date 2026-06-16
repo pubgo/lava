@@ -510,10 +510,10 @@ github.com/prometheus/common v0.65.0 h1:QDwzd+G1twt//Kwj/Ww6E9FQq1iVMmODnILtW1t2
 github.com/prometheus/common v0.65.0/go.mod h1:0gZns+BLRQ3V6NdaerOhMbwwRbNh9hkGINtQAsP5GS8=
 github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7DuK0=
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
-github.com/pubgo/dix/v2 v2.0.0 h1:cNotBsdQ4epD+XGfaMdaN/ZRNafrqQJEVuitj0gTg/0=
-github.com/pubgo/dix/v2 v2.0.0/go.mod h1:rAJWKUI4cgRAr8Mb3+H0kjsl3VgR54RU/2Fzbe60Ag0=
-github.com/pubgo/funk/v2 v2.0.1 h1:X/7DUwSh7TKcKL3RZfFgcx88ZtLvE14RHvEPwWLU96g=
-github.com/pubgo/funk/v2 v2.0.1/go.mod h1:SZMBocKxdV1EY0iKbK+mdw4jUzIp/i3SDWMPFNU8pv0=
+github.com/pubgo/dix/v2 v2.0.1 h1:RejQby0mkgQ/U4eQ3ddY2vwKcLSa3I1JakpPrX0odsk=
+github.com/pubgo/dix/v2 v2.0.1/go.mod h1:rAJWKUI4cgRAr8Mb3+H0kjsl3VgR54RU/2Fzbe60Ag0=
+github.com/pubgo/funk/v2 v2.0.3 h1:vO35cr509OkJbOJ0NM2q9raNqWv4F40KKdcJ5uFvbS4=
+github.com/pubgo/funk/v2 v2.0.3/go.mod h1:SZMBocKxdV1EY0iKbK+mdw4jUzIp/i3SDWMPFNU8pv0=
 github.com/pubgo/redant v0.4.0 h1:HLKANgeXG7SOhiLxUvZNVNGjNPCJPWvZQtYyKZEgSqw=
 github.com/pubgo/redant v0.4.0/go.mod h1:pJXH/Im4+1yrUO7AmmQ5lspYzjfKWyW4bCiLg6B41pk=
 github.com/quasilyte/go-ruleguard v0.4.3-0.20240823090925-0fe6f58b47b1 h1:+Wl/0aFp0hpuHM3H//KMft64WQ1yX9LdJY64Qm/gFCo=
