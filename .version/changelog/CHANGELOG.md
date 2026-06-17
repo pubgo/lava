@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-17
+
 ### Added
 
 - **zrpc**: protobuf RPC over NATS，支持 unary、server/client/bidi streaming
@@ -30,5 +32,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - 新增 `docs/zrpc.md`，更新 modules 文档与可观测性/排障说明
-
-<!-- 发版时将 [Unreleased] 区块改为版本号与日期，并清空 Unreleased.md。可用 `task changelog` 辅助生成 release notes。 -->
