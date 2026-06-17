@@ -26,6 +26,9 @@ type Params struct {
 	Metric      metrics.Metric
 	Log         log.Logger
 	Conf        *Config
+	// Started is closed after NATS subscriptions are registered and flushed.
+	// Optional; useful in tests and startup orchestration.
+	Started chan struct{}
 }
 
 func New(params Params) supervisor.Service { return newService(params) }
@@ -41,6 +44,7 @@ type serviceImpl struct {
 	conf      *Config
 	registers []RegisterFunc
 	mw        []lava.Middleware
+	started   chan struct{}
 	nc        *nats.Conn
 	srv       *zrpc.Server
 }
@@ -51,6 +55,7 @@ func (s *serviceImpl) init(params Params) {
 	s.conf = config.MergeR(defaultCfg(), params.Conf).Unwrap()
 	s.log = params.Log.WithName(s.String())
 	s.registers = params.Registers
+	s.started = params.Started
 
 	s.mw = make(lava.Middlewares, 0, 4+len(params.Middlewares))
 	s.mw = append(s.mw,
@@ -97,6 +102,10 @@ func (s *serviceImpl) start() error {
 	}
 
 	s.log.Info().Str("url", s.conf.URL).Int("registers", len(s.registers)).Msg("zrpc server started")
+	if s.started != nil {
+		close(s.started)
+		s.started = nil
+	}
 	return nil
 }
 

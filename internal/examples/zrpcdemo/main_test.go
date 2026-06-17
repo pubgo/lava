@@ -29,10 +29,12 @@ func TestGeneratedZrpcDemo(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	started := make(chan struct{})
 	svc := zrpcs.New(zrpcs.Params{
-		Log:    logger,
-		Metric: metric,
-		Conf:   &zrpcs.Config{URL: "nats://127.0.0.1:4222"},
+		Log:     logger,
+		Metric:  metric,
+		Conf:    &zrpcs.Config{URL: "nats://127.0.0.1:4222"},
+		Started: started,
 		Registers: []zrpcs.RegisterFunc{
 			func(srv *zrpc.Server) error {
 				return zrpcdemov1.RegisterEchoServiceZrpcRoutes(srv, echoService{}, "")
@@ -42,6 +44,12 @@ func TestGeneratedZrpcDemo(t *testing.T) {
 
 	errCh := make(chan error, 1)
 	go func() { errCh <- svc.Serve(ctx) }()
+
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("timeout waiting for zrpc server to start")
+	}
 	defer func() {
 		cancel()
 		select {
