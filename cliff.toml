@@ -24,6 +24,9 @@ footer = ""
 conventional_commits = true
 filter_unconventional = false
 commit_parsers = [
+  { message = "^chore: quick update", skip = true },
+  { message = "^fix: barry quick fix", skip = true },
+  { message = "^fix\\(commit\\)", skip = true },
   { message = "^feat", group = "🚀 Features" },
   { message = "^fix", group = "🐛 Bug Fixes" },
   { message = "^perf", group = "⚡ Performance" },

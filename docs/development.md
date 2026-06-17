@@ -30,6 +30,9 @@ go mod tidy
 | `task release:snapshot` | 本地构建 `protoc-gen-zrpc-go` 发布产物 |
 | `task changelog`  | git-cliff 生成 `.version/changelog/CHANGELOG.md` |
 | `task changelog:unreleased` | 预览未发布 changelog |
+| `task changelog:sync` | 用 git-cliff 刷新 `Unreleased.md` 草稿 |
+
+行为变更请同步 `.version/changelog/Unreleased.md` 与 `CHANGELOG.md` 的 `[Unreleased]` 区块。
 
 ## 4. 推荐开发流程
 

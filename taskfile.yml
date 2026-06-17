@@ -86,3 +86,8 @@ tasks:
     desc: "preview unreleased changelog"
     cmds:
       - git cliff --unreleased
+
+  changelog:sync:
+    desc: "refresh Unreleased.md from git-cliff (review before commit)"
+    cmds:
+      - git cliff --unreleased --strip header -o .version/changelog/Unreleased.md

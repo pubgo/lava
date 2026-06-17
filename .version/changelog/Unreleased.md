@@ -1,10 +1,3 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
 ### Added
@@ -30,5 +23,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - 新增 `docs/zrpc.md`，更新 modules 文档与可观测性/排障说明
-
-<!-- 发版时将 [Unreleased] 区块改为版本号与日期，并清空 Unreleased.md。可用 `task changelog` 辅助生成 release notes。 -->
