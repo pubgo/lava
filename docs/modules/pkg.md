@@ -17,6 +17,7 @@
 | `pkg/wsbuilder`    | WebSocket 构建辅助        | `pkg/wsbuilder/ws.go`            |
 | `pkg/k8sutil`      | K8s 环境探测工具          | `pkg/k8sutil/util.go`            |
 | `pkg/proto`        | protobuf 生成代码产物     | `pkg/proto/lavapbv1/*.pb.go`     |
+| `pkg/zrpc`         | zrpc Go runtime           | `pkg/zrpc/*.go`                  |
 
 ## Gateway 位置说明
 
@@ -32,3 +33,20 @@ flowchart LR
     GW --> GRPC[gRPC ServiceDesc]
     GRPC --> BIZ[Service Impl]
 ```
+
+## zrpc 位置说明
+
+`pkg/zrpc` 是 protobuf over NATS 的核心 runtime：
+
+- 服务端：`Server` / `RegisterUnary` / `RegisterStream`
+- 客户端：`Client` / `CallUnary` / `OpenStream`
+- 错误：`Status` / `ReplyErrorWithHeader`
+- 统一请求响应：`request` / `response`（适配 `lava.Middleware`）
+
+日志不直接在 runtime 输出，而是由 `lava.Middleware`（accesslog/metric）记录。
+
+它被以下模块直接消费：
+
+- `servers/zrpcs`
+- `clients/zrpcc`
+- `protoc-gen-zrpc-go` 生成代码

@@ -18,6 +18,7 @@ flowchart TD
     subgraph Service[服务层]
         HTTPS[servers/https]
         GRPCS[servers/grpcs]
+        ZRPCS[servers/zrpcs]
         TUNNEL[core/tunnel]
     end
 
@@ -35,6 +36,7 @@ flowchart TD
         GW[pkg/gateway]
         HTTPU[pkg/httputil]
         GRPCU[pkg/grpcutil]
+        ZRPC[pkg/zrpc]
         NETU[pkg/netutil]
     end
 
@@ -42,9 +44,11 @@ flowchart TD
     BUILDER --> CMDS
     CMDS --> HTTPS
     CMDS --> GRPCS
+    CMDS --> ZRPCS
     CMDS --> TUNNEL
     HTTPS --> SUP
     GRPCS --> SUP
+    ZRPCS --> SUP
     TUNNEL --> SUP
     HTTPS --> DBG
     GRPCS --> DBG
@@ -54,9 +58,12 @@ flowchart TD
     GRPCS --> MET
     HTTPS --> TRC
     GRPCS --> TRC
+    ZRPCS --> LOG
+    ZRPCS --> MET
     GRPCS --> GW
     HTTPS --> HTTPU
     GRPCS --> GRPCU
+    ZRPCS --> ZRPC
     TUNNEL --> NETU
     SCHED --> SUP
     DISC --> SUP
@@ -86,6 +93,25 @@ sequenceDiagram
 ```
 
 ## 3. HTTP / gRPC 请求路径
+
+### 3.0 zrpc 请求路径（`servers/zrpcs` + `clients/zrpcc`）
+
+```mermaid
+sequenceDiagram
+    participant Client as zrpcc / generated client
+    participant NATS as NATS
+    participant ZRPCS as servers/zrpcs
+    participant Mid as lava.Middleware
+    participant Handler as Zrpc Service Impl
+
+    Client->>NATS: Request(subject, protobuf)
+    NATS->>ZRPCS: QueueSubscribe(subject, queue)
+    ZRPCS->>Mid: serviceinfo/metric/accesslog/recovery
+    Mid->>Handler: 调用业务实现
+    Handler-->>Mid: protobuf response
+    Mid-->>NATS: Respond(headers + protobuf)
+    NATS-->>Client: reply
+```
 
 ### 3.1 HTTP 服务器（`servers/https`）
 

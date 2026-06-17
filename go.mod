@@ -57,8 +57,8 @@ require (
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/miekg/dns v1.1.66
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582
-	github.com/pubgo/dix/v2 v2.0.0
-	github.com/pubgo/funk/v2 v2.0.1
+	github.com/pubgo/dix/v2 v2.0.1
+	github.com/pubgo/funk/v2 v2.0.4
 	github.com/pubgo/redant v0.4.0
 	github.com/quic-go/quic-go v0.59.0
 	github.com/rs/xid v1.6.0
@@ -88,6 +88,11 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 	maragu.dev/gomponents v1.2.0
+)
+
+require (
+	github.com/nats-io/nkeys v0.4.12 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 )
 
 require (
@@ -196,7 +201,7 @@ require (
 	github.com/karamaru-alpha/copyloopvar v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect
-	github.com/klauspost/compress v1.18.4 // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
@@ -229,6 +234,7 @@ require (
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
+	github.com/nats-io/nats.go v1.48.0
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.16.2 // indirect

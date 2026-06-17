@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package zrpc.v1;
+
+option go_package = "github.com/pubgo/lava/v2/pkg/proto/zrpcv1;zrpcv1";
+
+import "google/protobuf/descriptor.proto";
+
+// Per-RPC NATS binding. Omit to use defaults from the zrpc runtime.
+message MethodOptions {
+  // NATS subject. Default: svc.{package}.{Service}/{Method}
+  string subject = 1;
+  // Queue group for load balancing. Default: {package}.{service} (lowercase).
+  string queue = 2;
+  // Client request timeout in milliseconds. Default: 3000.
+  uint32 timeout_ms = 3;
+}
+
+extend google.protobuf.MethodOptions {
+  MethodOptions method = 50001;
+}

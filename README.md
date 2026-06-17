@@ -79,6 +79,7 @@ flowchart TD
 - 文档总览：`docs/README.md`
 - 架构文档（含流程图）：`docs/architecture-v2.md`
 - 设计文档（含关键抽象）：`docs/design-v2.md`
+- zrpc 文档：`docs/zrpc.md`
 - 命令文档：`docs/lava-command.md`
 - 模块总览：`docs/modules/README.md`
 	- Core：`docs/modules/core.md`
@@ -96,6 +97,17 @@ task proto:gen
 ```
 
 配置位于 `protobuf.yaml`，生成代码输出到 `pkg/proto`。
+
+## zrpc 快速入口
+
+仓库已经内置一条基于 NATS 的 protobuf unary RPC 能力：
+
+- runtime：`pkg/zrpc`
+- server host：`servers/zrpcs`
+- client：`clients/zrpcc`
+- demo：`internal/examples/zrpcdemo`
+
+相关使用方式见：`docs/zrpc.md`
 
 ## 许可证
 
