@@ -28,12 +28,12 @@ jobs:
           config: cliff.toml
           args: --latest --strip header
         env:
-          OUTPUT: CHANGES.md
+          OUTPUT: /tmp/CHANGES.md
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --clean --release-notes=CHANGES.md
+          args: release --clean --release-notes=/tmp/CHANGES.md
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASER_TOKEN }}
