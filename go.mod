@@ -58,7 +58,7 @@ require (
 	github.com/miekg/dns v1.1.66
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582
 	github.com/pubgo/dix/v2 v2.0.1
-	github.com/pubgo/funk/v2 v2.0.3
+	github.com/pubgo/funk/v2 v2.0.4
 	github.com/pubgo/redant v0.4.0
 	github.com/quic-go/quic-go v0.59.0
 	github.com/rs/xid v1.6.0
@@ -201,7 +201,7 @@ require (
 	github.com/karamaru-alpha/copyloopvar v1.1.0 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect
-	github.com/klauspost/compress v1.18.4 // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect
 	github.com/kulti/thelper v0.6.3 // indirect
