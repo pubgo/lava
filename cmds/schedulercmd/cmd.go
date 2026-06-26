@@ -18,6 +18,7 @@ import (
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
+	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )
@@ -73,6 +74,7 @@ func New(di *dix.Dix) *redant.Command {
 
 			agent := tunnelagent.NewAgent(&tunnel.AgentConfig{
 				GatewayAddr:    gatewayAddr,
+				Transport:      tunnel.TransportYamux,
 				ServiceName:    serviceName,
 				ServiceVersion: serviceVersion,
 				Metadata: map[string]string{
@@ -85,18 +87,14 @@ func New(di *dix.Dix) *redant.Command {
 				},
 			})
 
-			err := agent.Start(ctx)
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to start tunnel agent")
-			} else {
-				// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
-				tunneldebug.SetAgent(agent)
-				assert.Exit(manager.Add(&tunnelAgentService{agent: agent}))
-				log.Info().
-					Str("gateway", gatewayAddr).
-					Str("service", version.Project()).
-					Msg("Tunnel Agent integrated")
-			}
+			// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
+			// 实际启动交由 supervisor 生命周期统一管理，避免重复 Start
+			tunneldebug.SetAgent(agent)
+			assert.Exit(manager.Add(&tunnelAgentService{agent: agent}))
+			log.Info().
+				Str("gateway", gatewayAddr).
+				Str("service", serviceName).
+				Msg("Tunnel Agent integrated")
 
 			return manager.Run(ctx)
 		},

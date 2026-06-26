@@ -180,19 +180,14 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 				}
 			}
 
-			// 创建 Gateway
+			// 创建 Gateway（实际启动交由 supervisor 生命周期统一管理，避免重复 Start）
 			gateway := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
 				ListenAddr: tunnelCfg.ListenAddr,
+				Transport:  tunnel.TransportYamux,
 				HTTPPort:   tunnelCfg.HTTPPort,
 				GRPCPort:   tunnelCfg.GRPCPort,
 				DebugPort:  tunnelCfg.DebugPort,
 			})
-
-			err := gateway.Start(ctx)
-			if err != nil {
-				log.Error().Err(err).Msg("Gateway start failed")
-				return err
-			}
 
 			// 注册到 debug 界面
 			tunneldebug.SetGateway(gateway)
