@@ -2,6 +2,7 @@ package debug
 
 import (
 	_ "embed"
+	"errors"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -43,7 +44,7 @@ func (h *handler) handleAPIServiceDetail(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	info, err := h.mgr.GetServiceInfo(name)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		return ctx.Status(statusCodeFromErr(err)).JSON(fiber.Map{
 			"error": "service not found",
 			"name":  name,
 		})
@@ -54,7 +55,7 @@ func (h *handler) handleAPIServiceDetail(ctx fiber.Ctx) error {
 func (h *handler) handleAPIRestartService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.RestartService(name); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return ctx.Status(statusCodeFromErr(err)).JSON(fiber.Map{
 			"error": err.Error(),
 			"name":  name,
 		})
@@ -69,7 +70,7 @@ func (h *handler) handleAPIRestartService(ctx fiber.Ctx) error {
 func (h *handler) handleAPIStopService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.StopService(name); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return ctx.Status(statusCodeFromErr(err)).JSON(fiber.Map{
 			"error": err.Error(),
 			"name":  name,
 		})
@@ -84,7 +85,7 @@ func (h *handler) handleAPIStopService(ctx fiber.Ctx) error {
 func (h *handler) handleAPIStartService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.StartService(name); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return ctx.Status(statusCodeFromErr(err)).JSON(fiber.Map{
 			"error": err.Error(),
 			"name":  name,
 		})
@@ -99,7 +100,7 @@ func (h *handler) handleAPIStartService(ctx fiber.Ctx) error {
 func (h *handler) handleAPIResetService(ctx fiber.Ctx) error {
 	name := ctx.Params("name")
 	if err := h.mgr.ResetService(name); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+		return ctx.Status(statusCodeFromErr(err)).JSON(fiber.Map{
 			"error": err.Error(),
 			"name":  name,
 		})
@@ -131,3 +132,15 @@ func (h *handler) handleDebugPage(ctx fiber.Ctx) error {
 
 //go:embed index.html
 var supervisorDebugPageHTML string
+
+func statusCodeFromErr(err error) int {
+	if errors.Is(err, supervisor.ErrServiceNotFound) {
+		return fiber.StatusNotFound
+	}
+
+	if errors.Is(err, supervisor.ErrServiceAlreadyExists) {
+		return fiber.StatusConflict
+	}
+
+	return fiber.StatusInternalServerError
+}
