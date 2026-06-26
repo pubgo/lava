@@ -66,6 +66,36 @@ func TestInitAndMergeConfigInvalidLocationFallbackUTC(t *testing.T) {
 	}
 }
 
+func TestJobConfigToJobDetailOptionsSuspendedFromDisabled(t *testing.T) {
+	t.Run("disabled true", func(t *testing.T) {
+		cfg := JobConfig{
+			Disabled:      lo.ToPtr(true),
+			MaxRetries:    lo.ToPtr(2),
+			RetryInterval: lo.ToPtr(time.Second),
+			Replace:       lo.ToPtr(false),
+		}
+
+		opts := cfg.ToJobDetailOptions()
+		if !opts.Suspended {
+			t.Fatalf("expected Suspended=true when Disabled=true")
+		}
+	})
+
+	t.Run("disabled false", func(t *testing.T) {
+		cfg := JobConfig{
+			Disabled:      lo.ToPtr(false),
+			MaxRetries:    lo.ToPtr(2),
+			RetryInterval: lo.ToPtr(time.Second),
+			Replace:       lo.ToPtr(false),
+		}
+
+		opts := cfg.ToJobDetailOptions()
+		if opts.Suspended {
+			t.Fatalf("expected Suspended=false when Disabled=false")
+		}
+	})
+}
+
 func TestTriggerSnapshotConcurrentAccess(t *testing.T) {
 	tr := newTrigger(quartz.NewSimpleTrigger(time.Millisecond))
 

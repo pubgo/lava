@@ -122,7 +122,7 @@ func (c JobConfig) ToJobDetailOptions() *quartz.JobDetailOptions {
 		MaxRetries:    lo.FromPtr(c.MaxRetries),
 		RetryInterval: lo.FromPtr(c.RetryInterval),
 		Replace:       lo.FromPtr(c.Replace),
-		Suspended:     false,
+		Suspended:     lo.FromPtr(c.Disabled),
 	}
 }
 
