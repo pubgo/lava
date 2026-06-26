@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/pubgo/funk/v2/clone"
@@ -92,19 +93,39 @@ type jobTask struct {
 	jobKey  *quartz.JobKey
 	status  Status
 
-	result result.Result[[]byte]
+	resultMu sync.RWMutex
+	result   result.Result[[]byte]
 }
 
-func (job jobTask) ToJob() *Job {
+func (job *jobTask) ToJob() *Job {
+	preExecTime, execTime, _ := job.trigger.Snapshot()
+	res := job.getResult()
+	resultData := res.UnwrapOrEmpty()
+	if resultData != nil {
+		resultData = append([]byte(nil), resultData...)
+	}
+
 	return &Job{
 		Status:      job.status,
-		PreExecTime: job.trigger.prev,
-		ExecTime:    job.trigger.next,
-		Error:       job.result.GetErr(),
-		Result:      job.result.UnwrapOrEmpty(),
+		PreExecTime: preExecTime,
+		ExecTime:    execTime,
+		Error:       res.GetErr(),
+		Result:      resultData,
 		Runs:        job.runs.Load(),
 		Spec:        clone.Clone(job.spec),
 	}
+}
+
+func (job *jobTask) setResult(res result.Result[[]byte]) {
+	job.resultMu.Lock()
+	job.result = res
+	job.resultMu.Unlock()
+}
+
+func (job *jobTask) getResult() result.Result[[]byte] {
+	job.resultMu.RLock()
+	defer job.resultMu.RUnlock()
+	return job.result
 }
 
 type Status string
