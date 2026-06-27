@@ -51,6 +51,8 @@ type AgentConfig struct {
 	MaxReconnectAttempts int `yaml:"max_reconnect_attempts"`
 	// TLS TLS 配置
 	TLS TLSConfig `yaml:"tls"`
+	// P2PSignalHandler 收到 gateway 转发的 P2P 信令时回调（JSON 为 signaling.Message）。
+	P2PSignalHandler func(payload []byte)
 }
 
 // EndpointConfig 端点配置

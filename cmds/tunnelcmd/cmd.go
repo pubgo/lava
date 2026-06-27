@@ -166,10 +166,12 @@ func New(di *dix.Dix) *redant.Command {
 			fmt.Println("Usage: lava tunnel [command] [arguments]")
 			fmt.Println("Available commands:")
 			fmt.Println("  gateway   Run tunnel gateway")
+			fmt.Println("  agent     Run tunnel agent (set P2P_PEER_ID to enable P2P)")
 			return nil
 		},
 		Children: []*redant.Command{
 			newGatewayCommand(di),
+			newAgentCommand(di),
 		},
 	}
 }

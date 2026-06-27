@@ -20,6 +20,7 @@ import (
 	"github.com/pubgo/funk/v2/log"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
+	"github.com/pubgo/lava/v2/core/p2p/signaling"
 )
 
 // linkRewritePatterns 用于重写 HTML 响应中的链接
@@ -48,6 +49,8 @@ func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
 	return &tunnelGateway{
 		cfg:         cfg,
 		services:    make(map[string]*registeredService),
+		peers:       make(map[string]*registeredPeer),
+		peerByAgent: make(map[string]string),
 		status:      tunnel.GatewayStatusStopped,
 		rateLimiter: NewRateLimiter(100), // 默认每秒100个请求
 	}
@@ -57,6 +60,12 @@ type registeredService struct {
 	info    *tunnel.ServiceInfo
 	session tunnel.Session
 	agent   string // agent identifier
+}
+
+type registeredPeer struct {
+	peerID  string
+	session tunnel.Session
+	agentID string
 }
 
 // RateLimiter 速率限制器
@@ -165,6 +174,8 @@ type tunnelGateway struct {
 	transport    tunnel.Transport
 	listener     tunnel.Listener
 	services     map[string]*registeredService
+	peers        map[string]*registeredPeer
+	peerByAgent  map[string]string
 	status       tunnel.GatewayStatus
 	authProvider tunnel.AuthProvider
 	rateLimiter  *RateLimiter
@@ -816,6 +827,10 @@ func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, str
 		g.handleDeregister(msg)
 	case tunnel.MessageTypeHeartbeat:
 		g.handleHeartbeat(agentID)
+	case tunnel.MessageTypeP2PRegister:
+		g.handleP2PRegister(agentID, session, msg)
+	case tunnel.MessageTypeP2PSignal:
+		g.handleP2PSignal(agentID, session, msg)
 	default:
 		log.Warn().Uint8("type", uint8(msg.Type)).Msg("Unknown message type")
 	}
@@ -895,6 +910,127 @@ func (g *tunnelGateway) removeAgentServices(agentID string) {
 			log.Info().Str("service", name).Str("agent", agentID).Msg("Service removed (agent disconnected)")
 		}
 	}
+	g.removePeerLocked(agentID)
+}
+
+func (g *tunnelGateway) handleP2PRegister(agentID string, session tunnel.Session, msg *tunnel.Message) {
+	payload, err := tunnel.DecodeP2PRegisterPayload(msg.Payload)
+	if err != nil {
+		log.Warn().Err(err).Str("agent", agentID).Msg("P2P register: invalid payload")
+		return
+	}
+	if payload.PeerID == "" {
+		log.Warn().Str("agent", agentID).Msg("P2P register: empty peer_id")
+		return
+	}
+	if g.authProvider != nil {
+		if payload.AuthToken == "" {
+			log.Warn().Str("peer", payload.PeerID).Msg("P2P register: missing auth_token")
+			return
+		}
+		if _, err := g.authProvider.ValidateToken(payload.AuthToken); err != nil {
+			log.Warn().Err(err).Str("peer", payload.PeerID).Msg("P2P register: auth failed")
+			return
+		}
+	}
+
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if oldAgent, ok := g.peerByAgent[agentID]; ok && oldAgent != payload.PeerID {
+		delete(g.peers, oldAgent)
+	}
+	if existing, ok := g.peers[payload.PeerID]; ok && existing.agentID != agentID {
+		log.Warn().Str("peer", payload.PeerID).Str("agent", agentID).Msg("P2P register: peer_id already taken")
+		return
+	}
+
+	g.peers[payload.PeerID] = &registeredPeer{
+		peerID:  payload.PeerID,
+		session: session,
+		agentID: agentID,
+	}
+	g.peerByAgent[agentID] = payload.PeerID
+	log.Info().Str("peer", payload.PeerID).Str("agent", agentID).Msg("P2P peer registered")
+}
+
+func (g *tunnelGateway) handleP2PSignal(agentID string, session tunnel.Session, msg *tunnel.Message) {
+	var sig signaling.Message
+	if err := json.Unmarshal(msg.Payload, &sig); err != nil {
+		log.Warn().Err(err).Str("agent", agentID).Msg("P2P signal: invalid payload")
+		return
+	}
+	if sig.To == "" {
+		log.Warn().Str("agent", agentID).Msg("P2P signal: missing recipient")
+		return
+	}
+
+	g.mu.RLock()
+	senderPeer, senderOK := g.peerByAgent[agentID]
+	if !senderOK {
+		g.mu.RUnlock()
+		log.Warn().Str("agent", agentID).Msg("P2P signal: sender not registered")
+		return
+	}
+	if sig.From != "" && sig.From != senderPeer {
+		g.mu.RUnlock()
+		log.Warn().Str("agent", agentID).Str("from", sig.From).Str("registered", senderPeer).Msg("P2P signal: from mismatch")
+		return
+	}
+	sig.From = senderPeer
+	target, ok := g.peers[sig.To]
+	g.mu.RUnlock()
+
+	if !ok {
+		log.Warn().Str("to", sig.To).Msg("P2P signal: peer not found")
+		return
+	}
+	if g.authProvider != nil && sig.AuthToken != "" {
+		if _, err := g.authProvider.ValidateToken(sig.AuthToken); err != nil {
+			log.Warn().Err(err).Str("from", sig.From).Msg("P2P signal: auth failed")
+			return
+		}
+	}
+
+	payload, err := json.Marshal(sig)
+	if err != nil {
+		log.Warn().Err(err).Msg("P2P signal: marshal failed")
+		return
+	}
+	g.deliverP2PSignal(target, payload)
+}
+
+func (g *tunnelGateway) deliverP2PSignal(target *registeredPeer, payload []byte) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	stream, err := target.session.Open(ctx)
+	if err != nil {
+		log.Warn().Err(err).Str("peer", target.peerID).Msg("P2P signal: open stream to peer failed")
+		return
+	}
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Str("peer", target.peerID).Msg("P2P signal: close stream failed")
+		}
+	}()
+
+	if err := tunnel.WriteMessage(stream, &tunnel.Message{
+		Type:    tunnel.MessageTypeP2PSignal,
+		Payload: payload,
+	}); err != nil {
+		log.Warn().Err(err).Str("peer", target.peerID).Msg("P2P signal: write failed")
+	}
+}
+
+func (g *tunnelGateway) removePeerLocked(agentID string) {
+	peerID, ok := g.peerByAgent[agentID]
+	if !ok {
+		return
+	}
+	delete(g.peerByAgent, agentID)
+	delete(g.peers, peerID)
+	log.Info().Str("peer", peerID).Str("agent", agentID).Msg("P2P peer removed (agent disconnected)")
 }
 
 func (g *tunnelGateway) healthCheckLoop() {

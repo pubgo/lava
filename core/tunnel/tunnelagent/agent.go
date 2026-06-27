@@ -129,6 +129,17 @@ func (a *Agent) Inner() tunnel.Agent {
 	return a.inner
 }
 
+// Session 返回当前与 gateway 的隧道连接（已连接时非 nil）。
+func (a *Agent) Session() tunnel.Session {
+	type sessionProvider interface {
+		Session() tunnel.Session
+	}
+	if sp, ok := a.inner.(sessionProvider); ok {
+		return sp.Session()
+	}
+	return nil
+}
+
 // Builder Agent 构建器
 type Builder struct {
 	cfg *Config
