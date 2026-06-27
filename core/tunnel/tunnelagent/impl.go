@@ -21,6 +21,9 @@ var _ tunnel.Agent = (*tunnelAgent)(nil)
 
 // NewAgent creates a new tunnel agent
 func NewAgent(cfg *tunnel.AgentConfig) tunnel.Agent {
+	if cfg != nil {
+		cfg.Normalize()
+	}
 	a := &tunnelAgent{
 		cfg:      cfg,
 		services: make(map[string]*tunnel.ServiceInfo),

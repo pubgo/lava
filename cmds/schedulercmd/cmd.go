@@ -71,20 +71,21 @@ func New(di *dix.Dix) *redant.Command {
 				serviceVersion = "dev"
 			}
 
-			agent := tunnelagent.NewAgent(&tunnel.AgentConfig{
+			agentCfg := &tunnel.AgentConfig{
 				GatewayAddr:    gatewayAddr,
 				Transport:      tunnel.TransportYamux,
 				ServiceName:    serviceName,
 				ServiceVersion: serviceVersion,
-				Metadata: map[string]string{
+				Metadata: tunnel.ApplyAuthTokenMetadata(map[string]string{
 					"instance": os.Getenv("HOSTNAME"),
-				},
-
+				}, os.Getenv("TUNNEL_AUTH_TOKEN")),
 				Endpoints: []tunnel.EndpointConfig{
 					{Type: "http", LocalAddr: httpAddr, Path: "/"},
 					{Type: "debug", LocalAddr: debugAddr, Path: "/debug"},
 				},
-			})
+			}
+			agentCfg.TLS.ApplyEnv()
+			agent := tunnelagent.NewAgent(agentCfg)
 
 			// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
 			// 实际启动交由 supervisor 生命周期统一管理，避免重复 Start

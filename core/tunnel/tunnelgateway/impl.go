@@ -42,6 +42,9 @@ var _ tunnel.Gateway = (*tunnelGateway)(nil)
 
 // NewGateway creates a new tunnel gateway
 func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
+	if cfg != nil {
+		cfg.Normalize()
+	}
 	return &tunnelGateway{
 		cfg:         cfg,
 		services:    make(map[string]*registeredService),

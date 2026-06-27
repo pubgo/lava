@@ -208,13 +208,19 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 			}
 
 			// 创建 Gateway（实际启动交由 supervisor 生命周期统一管理，避免重复 Start）
-			gateway := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
+			gwCfg := &tunnel.GatewayConfig{
 				ListenAddr: tunnelCfg.ListenAddr,
 				Transport:  tunnel.TransportYamux,
 				HTTPPort:   tunnelCfg.HTTPPort,
 				GRPCPort:   tunnelCfg.GRPCPort,
 				DebugPort:  tunnelCfg.DebugPort,
-			})
+			}
+			gwCfg.TLS.ApplyEnv()
+
+			gateway := tunnelgateway.NewGateway(gwCfg)
+			if err := tunnel.ConfigureGatewayAuth(gateway, os.Getenv("TUNNEL_AUTH_TOKEN")); err != nil {
+				return err
+			}
 
 			// 注册到 debug 界面
 			tunneldebug.SetGateway(gateway)
@@ -250,6 +256,8 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 				Int("grpc_port", tunnelCfg.GRPCPort).
 				Int("debug_port", tunnelCfg.DebugPort).
 				Str("admin_addr", debugAddr).
+				Bool("auth_enabled", os.Getenv("TUNNEL_AUTH_TOKEN") != "").
+				Bool("tls_enabled", gwCfg.TransportOptions != nil && gwCfg.TransportOptions.EnableTLS).
 				Msg("Starting Tunnel Gateway")
 
 			return manager.Run(ctx)
