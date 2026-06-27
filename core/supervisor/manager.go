@@ -221,17 +221,31 @@ func (m *Manager) Delete(name string) error {
 }
 
 func (m *Manager) RemoveServices() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	for name, srv := range m.services {
-		if srv.cancel != nil {
-			srv.cancel()
-		}
-		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
+	// 先在锁内摘出所有 runner 的 cancel/done，并清空 map，
+	// 再在锁外取消并等待 goroutine 退出，避免与 runner 收尾时获取的同一把锁产生死锁。
+	type pendingStop struct {
+		cancel context.CancelFunc
+		done   chan struct{}
 	}
 
+	m.mu.Lock()
+	pendings := make([]pendingStop, 0, len(m.services))
+	for name, srv := range m.services {
+		pendings = append(pendings, pendingStop{cancel: srv.cancel, done: srv.done})
+		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
+	}
 	m.services = make(map[string]*serviceRunner)
+	m.mu.Unlock()
+
+	for _, p := range pendings {
+		if p.cancel != nil {
+			p.cancel()
+			if p.done != nil {
+				<-p.done
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -649,13 +663,8 @@ func (m *Manager) Serve(ctx context.Context) error {
 	// 等待 context 取消
 	<-ctx.Done()
 
-	// 停止所有服务
-	if m.cancel != nil {
-		m.cancel()
-	}
-	m.wg.Wait()
-
-	return nil
+	// 与 Run 保持一致：执行 lifecycle stop 钩子，并带超时地优雅停止所有服务
+	return m.stop(ctx)
 }
 
 func (m *Manager) ServeBackground(ctx context.Context) <-chan error {

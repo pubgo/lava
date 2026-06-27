@@ -2,6 +2,7 @@ package schedulerdebug
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 
@@ -29,7 +30,7 @@ func Init(manager scheduler.JobManager) {
 			name := ctx.Params("name")
 			job := manager.GetJob(name)
 			if job.IsErr() {
-				return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				return ctx.Status(statusCodeFromErr(job.GetErr())).JSON(fiber.Map{
 					"error": job.GetErr().Error(),
 				})
 			}
@@ -40,7 +41,7 @@ func Init(manager scheduler.JobManager) {
 		router.Post("/api/jobs/:name/pause", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.PauseJob(name); err.IsErr() {
-				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				return ctx.Status(statusCodeFromErr(err.GetErr())).JSON(fiber.Map{
 					"error": err.GetErr().Error(),
 				})
 			}
@@ -51,7 +52,7 @@ func Init(manager scheduler.JobManager) {
 		router.Post("/api/jobs/:name/resume", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.ResumeJob(name); err.IsErr() {
-				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				return ctx.Status(statusCodeFromErr(err.GetErr())).JSON(fiber.Map{
 					"error": err.GetErr().Error(),
 				})
 			}
@@ -62,7 +63,7 @@ func Init(manager scheduler.JobManager) {
 		router.Delete("/api/jobs/:name", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.DeleteJob(name); err.IsErr() {
-				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				return ctx.Status(statusCodeFromErr(err.GetErr())).JSON(fiber.Map{
 					"error": err.GetErr().Error(),
 				})
 			}
@@ -73,13 +74,29 @@ func Init(manager scheduler.JobManager) {
 		router.Post("/api/jobs/:name/reload", func(ctx fiber.Ctx) error {
 			name := ctx.Params("name")
 			if err := manager.ReloadJob(name); err.IsErr() {
-				return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				return ctx.Status(statusCodeFromErr(err.GetErr())).JSON(fiber.Map{
 					"error": err.GetErr().Error(),
 				})
 			}
 			return ctx.JSON(fiber.Map{"status": "reloaded", "name": name})
 		})
 	})
+}
+
+func statusCodeFromErr(err error) int {
+	if errors.Is(err, scheduler.ErrJobNotFound) {
+		return fiber.StatusNotFound
+	}
+
+	if errors.Is(err, scheduler.ErrJobAlreadyExists) {
+		return fiber.StatusConflict
+	}
+
+	if errors.Is(err, scheduler.ErrJobNameEmpty) {
+		return fiber.StatusBadRequest
+	}
+
+	return fiber.StatusInternalServerError
 }
 
 func renderPage(ctx fiber.Ctx, manager scheduler.JobManager) error {

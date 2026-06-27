@@ -67,12 +67,12 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	defer result.Recovery(&r)
 
 	if spec.Name == "" {
-		return r.WithErrorf("job name is empty")
+		return r.WithErr(fmt.Errorf("%w", ErrJobNameEmpty))
 	}
 
 	name := spec.Name
 	if _, ok := s.jobs[name]; ok {
-		return r.WithErrorf("job %s already exists", name)
+		return r.WithErr(fmt.Errorf("%w: %s", ErrJobAlreadyExists, name))
 	}
 
 	executorRes := result.WrapFn(func() (JobExecutor, error) {
@@ -123,7 +123,7 @@ func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
 
 func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
 	if val, ok := s.jobs[name]; !ok {
-		return r.WithErrorf("job %s not exists", name)
+		return r.WithErr(fmt.Errorf("%w: %s", ErrJobNotFound, name))
 	} else {
 		return r.WithValue(val)
 	}

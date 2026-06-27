@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync/atomic"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/dix/v2"
@@ -72,17 +73,32 @@ func (s *tunnelGatewayService) Serve(ctx context.Context) error {
 }
 
 func (s *tunnelGatewayService) Metric() *supervisor.Metric {
-	return &supervisor.Metric{
-		Name:   s.Name(),
-		Status: supervisor.StatusRunning,
+	m := &supervisor.Metric{Name: s.Name()}
+	if s.err != nil {
+		m.Status = supervisor.StatusError
+		m.LastError = s.err.Error()
+		return m
 	}
+
+	switch s.gateway.Status() {
+	case tunnel.GatewayStatusRunning:
+		m.Status = supervisor.StatusRunning
+	case tunnel.GatewayStatusStarting:
+		m.Status = supervisor.StatusIdle
+	case tunnel.GatewayStatusStopping:
+		m.Status = supervisor.StatusStopped
+	default:
+		m.Status = supervisor.StatusStopped
+	}
+	return m
 }
 
 // debugServerService 内嵌的 debug 服务器
 type debugServerService struct {
-	app  *fiber.App
-	addr string
-	err  error
+	app     *fiber.App
+	addr    string
+	err     error
+	running atomic.Bool
 }
 
 func (s *debugServerService) Name() string { return "debug-server" }
@@ -98,6 +114,9 @@ func (s *debugServerService) Serve(ctx context.Context) error {
 	}()
 
 	log.Info().Str("addr", s.addr).Msg("Debug server started")
+	s.running.Store(true)
+	defer s.running.Store(false)
+
 	if err := s.app.Listen(s.addr); err != nil && err != http.ErrServerClosed {
 		s.err = err
 		return err
@@ -106,10 +125,18 @@ func (s *debugServerService) Serve(ctx context.Context) error {
 }
 
 func (s *debugServerService) Metric() *supervisor.Metric {
-	return &supervisor.Metric{
-		Name:   s.Name(),
-		Status: supervisor.StatusRunning,
+	m := &supervisor.Metric{Name: s.Name()}
+	if s.err != nil {
+		m.Status = supervisor.StatusError
+		m.LastError = s.err.Error()
+		return m
 	}
+	if s.running.Load() {
+		m.Status = supervisor.StatusRunning
+	} else {
+		m.Status = supervisor.StatusStopped
+	}
+	return m
 }
 
 // newDebugServer 创建 debug 服务器

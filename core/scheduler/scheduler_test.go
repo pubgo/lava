@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/samber/lo"
@@ -144,4 +145,57 @@ func TestJobTaskResultSnapshotConcurrent(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func TestSchedulerSentinelErrors(t *testing.T) {
+	t.Run("create job with empty name", func(t *testing.T) {
+		s := &Scheduler{
+			log:  log.GetLogger("scheduler-test"),
+			jobs: map[string]*jobTask{},
+		}
+
+		err := s.createJob(JobSpec{}, nil)
+		if !err.IsErr() {
+			t.Fatalf("expected create job error")
+		}
+
+		if !errors.Is(err.GetErr(), ErrJobNameEmpty) {
+			t.Fatalf("expected ErrJobNameEmpty, got: %v", err.GetErr())
+		}
+	})
+
+	t.Run("create duplicated job", func(t *testing.T) {
+		s := &Scheduler{
+			log: log.GetLogger("scheduler-test"),
+			jobs: map[string]*jobTask{
+				"dup-job": {
+					spec:   &JobSpec{Name: "dup-job"},
+					jobKey: parseJobKey("dup-job"),
+					status: StatusRunning,
+				},
+			},
+		}
+
+		err := s.createJob(JobSpec{Name: "dup-job"}, nil)
+		if !err.IsErr() {
+			t.Fatalf("expected create duplicated job error")
+		}
+
+		if !errors.Is(err.GetErr(), ErrJobAlreadyExists) {
+			t.Fatalf("expected ErrJobAlreadyExists, got: %v", err.GetErr())
+		}
+	})
+
+	t.Run("get missing job", func(t *testing.T) {
+		s := &Scheduler{jobs: map[string]*jobTask{}}
+
+		res := s.getJob("missing-job")
+		if !res.IsErr() {
+			t.Fatalf("expected get missing job error")
+		}
+
+		if !errors.Is(res.GetErr(), ErrJobNotFound) {
+			t.Fatalf("expected ErrJobNotFound, got: %v", res.GetErr())
+		}
+	})
 }

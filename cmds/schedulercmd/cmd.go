@@ -29,17 +29,16 @@ func New(di *dix.Dix) *redant.Command {
 		Short: cliutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			di.Provide(schedulerbuilder.NewService)
-			di.Provide(https.New)
 			params := dix.Inject(di, new(struct {
-				LC       lifecycle.Getter
-				Services []supervisor.Service `dix:"scheduler"`
+				LC         lifecycle.Getter
+				Scheduler  schedulerbuilder.ResponseParams
+				HTTPParams https.Params
 			}))
 
 			manager := supervisor.Default(params.LC)
 			supervisordebug.Register(manager)
-			for _, svc := range params.Services {
-				assert.Exit(manager.Add(svc))
-			}
+			assert.Exit(manager.Add(params.Scheduler.Service))
+			assert.Exit(manager.Add(https.New(params.HTTPParams)))
 
 			// 集成 Tunnel Agent
 			// Agent 主动连接 Gateway，将本服务的 HTTP 和 Debug 端点暴露出去
@@ -134,8 +133,20 @@ func (s *tunnelAgentService) Serve(ctx context.Context) error {
 }
 
 func (s *tunnelAgentService) Metric() *supervisor.Metric {
-	return &supervisor.Metric{
-		Name:   s.Name(),
-		Status: supervisor.StatusRunning,
+	m := &supervisor.Metric{Name: s.Name()}
+	if s.err != nil {
+		m.Status = supervisor.StatusError
+		m.LastError = s.err.Error()
+		return m
 	}
+
+	switch s.agent.Status() {
+	case tunnel.StatusConnected:
+		m.Status = supervisor.StatusRunning
+	case tunnel.StatusConnecting, tunnel.StatusReconnecting:
+		m.Status = supervisor.StatusCrashing
+	default:
+		m.Status = supervisor.StatusStopped
+	}
+	return m
 }

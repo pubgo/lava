@@ -92,6 +92,53 @@ func TestMaxRestartsAllowsConfiguredAttempts(t *testing.T) {
 	}
 }
 
+func TestRemoveServicesWaitsForGoroutines(t *testing.T) {
+	mgr := NewManager("test-supervisor", lifecyclebuilder.New(nil).Getter)
+
+	started := make(chan struct{}, 1)
+	exited := make(chan struct{})
+	err := mgr.Add(NewService("blocking-service", func(ctx context.Context) error {
+		select {
+		case started <- struct{}{}:
+		default:
+		}
+		<-ctx.Done()
+		close(exited)
+		return ctx.Err()
+	}))
+	if err != nil {
+		t.Fatalf("add service: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := mgr.ServeBackground(ctx)
+	t.Cleanup(func() {
+		cancel()
+		waitManagerDone(t, errCh, 2*time.Second)
+	})
+
+	select {
+	case <-started:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("service did not start")
+	}
+
+	if err = mgr.RemoveServices(); err != nil {
+		t.Fatalf("remove services: %v", err)
+	}
+
+	// RemoveServices 返回后，服务 goroutine 必须已经退出
+	select {
+	case <-exited:
+	default:
+		t.Fatalf("RemoveServices returned before service goroutine exited")
+	}
+
+	if mgr.Has("blocking-service") {
+		t.Fatalf("service should have been removed")
+	}
+}
+
 func TestNormalizeServiceConfig(t *testing.T) {
 	cfg := normalizeServiceConfig(ServiceConfig{
 		RestartDelay:      0,
