@@ -10,7 +10,8 @@ type GatewayConfig struct {
 	TransportOptions *TransportOptions `yaml:"transport_options"`
 	// HTTPPort HTTP 服务端口
 	HTTPPort int `yaml:"http_port"`
-	// GRPCPort gRPC 服务端口
+	// GRPCPort 是对外暴露的 gRPC 代理端口。
+	// 客户端连接后须先发送路由行 "TUNNEL <service-name>\n"，再发送 gRPC/HTTP2 流量。
 	GRPCPort int `yaml:"grpc_port"`
 	// DebugPort Debug 服务端口
 	DebugPort int `yaml:"debug_port"`

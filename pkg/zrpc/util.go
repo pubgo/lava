@@ -145,22 +145,14 @@ func cloneHeader(header nats.Header) nats.Header {
 	return cloned
 }
 
-func contextRequestHeader(ctx context.Context) (header *lava.RequestHeader) {
-	defer func() {
-		if recover() != nil {
-			header = nil
-		}
-	}()
-
+// contextRequestHeader 返回 context 中的请求 Header，不存在时返回 nil。
+// lavacontexts.ReqHeader 已保证不会 panic，这里直接透传。
+func contextRequestHeader(ctx context.Context) *lava.RequestHeader {
 	return lavacontexts.ReqHeader(ctx)
 }
 
-func contextResponseHeader(ctx context.Context) (header *lava.ResponseHeader) {
-	defer func() {
-		if recover() != nil {
-			header = nil
-		}
-	}()
-
+// contextResponseHeader 返回 context 中的响应 Header，不存在时返回 nil。
+// lavacontexts.RspHeader 已保证不会 panic，这里直接透传。
+func contextResponseHeader(ctx context.Context) *lava.ResponseHeader {
 	return lavacontexts.RspHeader(ctx)
 }

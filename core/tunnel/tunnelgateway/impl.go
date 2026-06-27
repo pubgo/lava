@@ -169,6 +169,7 @@ type tunnelGateway struct {
 	// 对外代理服务器
 	httpServer  *http.Server
 	debugServer *http.Server
+	grpcListener net.Listener
 
 	mu       sync.RWMutex
 	stopCh   chan struct{}
@@ -223,6 +224,12 @@ func (g *tunnelGateway) Start(ctx context.Context) error {
 	if g.cfg.DebugPort > 0 {
 		g.wg.Add(1)
 		go g.startDebugProxy()
+	}
+
+	// Start gRPC proxy server (对外暴露 gRPC 端口)
+	if g.cfg.GRPCPort > 0 {
+		g.wg.Add(1)
+		go g.startGRPCProxy()
 	}
 
 	log.Info().
@@ -580,6 +587,11 @@ func (g *tunnelGateway) Stop(ctx context.Context) error {
 	if g.debugServer != nil {
 		if err := g.debugServer.Shutdown(shutdownCtx); err != nil {
 			log.Warn().Err(err).Msg("Gateway: failed to shutdown debug server")
+		}
+	}
+	if g.grpcListener != nil {
+		if err := g.grpcListener.Close(); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to close GRPC listener")
 		}
 	}
 

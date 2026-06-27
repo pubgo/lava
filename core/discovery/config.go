@@ -18,9 +18,10 @@ type Config struct {
 	DriverCfg *config.Node  `yaml:"driver_config"`
 }
 
+// Check 校验配置必填字段，Driver 为空时 panic。
 func (cfg *Config) Check() *Config {
 	assert.Fn(cfg.Driver == "", func() error {
-		err := fmt.Errorf("registry driver is null")
+		err := fmt.Errorf("discovery driver is null")
 		return errors.WrapKV(err, "cfg", cfg)
 	})
 	return cfg

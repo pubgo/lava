@@ -1,3 +1,9 @@
+// Package discovery 提供服务发现的抽象接口，供 gRPC resolver 等客户端组件使用。
+//
+// Discovery 与 registry 互补：registry 负责「注册自身」，
+// discovery 负责「发现其他服务实例」。
+//
+// 默认提供 noop 实现（不返回任何服务），适用于无需服务发现的场景。
 package discovery
 
 import (
@@ -14,22 +20,20 @@ type (
 	GetOpt   func(*GetOpts)
 )
 
+// Discovery 是服务发现接口。
 type Discovery interface {
 	String() string
 	Watch(ctx context.Context, srv string, opts ...WatchOpt) result.Result[Watcher]
 	GetService(ctx context.Context, srv string, opts ...GetOpt) result.Result[[]*service.Service]
 }
 
-// Watcher is an interface that returns updates
-// about services within the registry.
+// Watcher 监听服务实例变更，Next 为阻塞调用。
 type Watcher interface {
-	// Next is a blocking call
 	Next() result.Result[*Result]
 	Stop() error
 }
 
-// Result is returned by a call to Next on
-// the watcher. Actions can be create, update, delete
+// Result 是 Watcher.Next 返回的单次变更事件。
 type Result struct {
 	Action  EventType
 	Service *service.Service
@@ -43,6 +47,7 @@ type GetOpts struct {
 	Timeout time.Duration
 }
 
+// EventType 表示服务变更类型。
 type EventType int32
 
 const (

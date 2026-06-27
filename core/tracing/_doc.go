@@ -1,3 +1,7 @@
+// Package tracing 提供 OpenTelemetry 链路追踪的配置与工具函数。
+//
+// 通过 tracingbuilder 在 DI 启动时初始化 TracerProvider，
+// 支持 baggage 传播与 HTTP/gRPC 中间件集成。
 package tracing
 
 // https://github.com/opentracing-contrib/go-stdlib
