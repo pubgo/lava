@@ -2,15 +2,27 @@ package p2p
 
 import "github.com/pubgo/lava/v2/core/p2p/ice"
 
-func toICEConfig(c Config) ice.Config {
+func toICEConfig(c Config, peerID string) (ice.Config, error) {
+	turnURL := c.TURN.URL
+	if c.TURN.Disabled {
+		turnURL = ""
+	}
+	user, pass := c.TURN.Username, c.TURN.Password
+	if turnURL != "" {
+		var err error
+		user, pass, err = c.TURN.Resolved(peerID)
+		if err != nil {
+			return ice.Config{}, err
+		}
+	}
 	return ice.Config{
 		STUNURLs:   c.STUNURLs,
-		TURNURL:    c.TURN.URL,
-		TURNUser:   c.TURN.Username,
-		TURNPass:   c.TURN.Password,
+		TURNURL:    turnURL,
+		TURNUser:   user,
+		TURNPass:   pass,
 		ICETimeout: c.ICETimeout,
 		AuthToken:  c.AuthToken,
-	}
+	}, nil
 }
 
 func toCandidatePair(p ice.CandidatePairInfo) CandidatePairInfo {

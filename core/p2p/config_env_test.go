@@ -32,6 +32,27 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestConfigFromEnvTLS(t *testing.T) {
+	t.Setenv("P2P_CERT_FILE", "/etc/p2p/cert.pem")
+	t.Setenv("P2P_KEY_FILE", "/etc/p2p/key.pem")
+	cfg := p2p.ConfigFromEnv()
+	opts := cfg.TransportOptions()
+	if !opts.EnableTLS || opts.CertFile != "/etc/p2p/cert.pem" {
+		t.Fatalf("tls opts: %+v", opts)
+	}
+}
+
+func TestConfigFromEnvTURNDisabled(t *testing.T) {
+	t.Setenv("P2P_TURN_DISABLED", "true")
+	cfg := p2p.ConfigFromEnv()
+	if !cfg.TURN.Disabled {
+		t.Fatalf("turn disabled: %+v", cfg.TURN)
+	}
+	if len(cfg.ICEURLs()) != len(cfg.STUNURLs) {
+		t.Fatalf("ICEURLs should exclude TURN: %v", cfg.ICEURLs())
+	}
+}
+
 func TestAuthTokenFromEnvFallback(t *testing.T) {
 	os.Unsetenv("P2P_AUTH_TOKEN")
 	t.Setenv("TUNNEL_AUTH_TOKEN", "tunnel-tok")

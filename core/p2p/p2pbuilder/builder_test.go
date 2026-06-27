@@ -99,7 +99,7 @@ func TestP2PEndToEndViaTunnel(t *testing.T) {
 
 	lcA := lifecyclebuilder.New(nil)
 	lcB := lifecyclebuilder.New(nil)
-	coordA := startP2PNode(t, ctx, lcA, agentA, "node-a", false)
+	coordA := startP2PNode(t, ctx, lcA, agentA, "node-a", true)
 	coordB := startP2PNode(t, ctx, lcB, agentB, "node-b", true)
 	time.Sleep(100 * time.Millisecond)
 

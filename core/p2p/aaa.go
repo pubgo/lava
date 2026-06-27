@@ -10,6 +10,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"time"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
 )
@@ -22,10 +23,12 @@ const (
 	RoleListener
 )
 
-// Coordinator 管理本节点的 P2P 连接（Listen / Dial）。
+// Coordinator 管理本节点的 P2P 连接（Listen / Dial / Reconnect）。
 type Coordinator interface {
 	Listen(ctx context.Context, selfID string) (Listener, error)
 	Dial(ctx context.Context, peerID string) (PeerConn, error)
+	// Reconnect 关闭与 peer 的现有连接并重新 ICE+QUIC 协商（带退避重试）。
+	Reconnect(ctx context.Context, peerID string) (PeerConn, error)
 	Close() error
 	Stats() Stats
 }
@@ -55,15 +58,22 @@ type CandidatePairInfo struct {
 
 // Stats P2P 节点摘要。
 type Stats struct {
-	SelfID      string            `json:"self_id"`
-	Listening   bool              `json:"listening"`
-	Connections []ConnectionStats `json:"connections"`
+	SelfID            string            `json:"self_id"`
+	Listening         bool              `json:"listening"`
+	ActiveConnections int               `json:"active_connections"`
+	RelayConnections  int               `json:"relay_connections"`
+	Connections       []ConnectionStats `json:"connections"`
 }
 
 // ConnectionStats 单条 P2P 连接的 ICE 选路摘要。
 type ConnectionStats struct {
-	RemotePeerID string            `json:"remote_peer_id"`
-	Pair         CandidatePairInfo `json:"pair"`
+	RemotePeerID      string            `json:"remote_peer_id"`
+	Pair              CandidatePairInfo `json:"pair"`
+	ConnectedAt       time.Time         `json:"connected_at"`
+	ConnectDurationMs int64             `json:"connect_duration_ms"`
+	RTTMs             float64           `json:"rtt_ms,omitempty"`
+	PairState         string            `json:"pair_state,omitempty"`
+	Nominated         bool              `json:"nominated,omitempty"`
 }
 
 // PacketConn 是 ICE 打通后可用于 QUIC 的 UDP 数据报连接。

@@ -192,3 +192,58 @@ func TestCoordinatorP2PQUIC(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+// TestCoordinatorDialWhileListening 同一节点同时 Listen 与 Dial（信令多路复用）。
+func TestCoordinatorDialWhileListening(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	brokerA, brokerB := signaling.Pair()
+	cfg := p2p.Config{ICETimeout: 15 * time.Second, Insecure: true}
+
+	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
+	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
+	t.Cleanup(func() {
+		_ = coordA.Close()
+		_ = coordB.Close()
+	})
+
+	lnA, err := coordA.Listen(ctx, "node-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	lnB, err := coordB.Listen(ctx, "node-b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	type dialResult struct {
+		pc  p2p.PeerConn
+		err error
+	}
+	dialCh := make(chan dialResult, 1)
+	go func() {
+		pc, err := coordA.Dial(ctx, "node-b")
+		dialCh <- dialResult{pc: pc, err: err}
+	}()
+
+	acceptCtx, acceptCancel := context.WithTimeout(ctx, 20*time.Second)
+	defer acceptCancel()
+	peerB, err := lnB.Accept(acceptCtx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr := <-dialCh
+	if dr.err != nil {
+		t.Fatal(dr.err)
+	}
+	defer dr.pc.Close()
+	defer peerB.Close()
+
+	// node-a 在 Dial 后仍可保持 Listen 状态
+	if st := coordA.Stats(); !st.Listening {
+		t.Fatalf("node-a should still be listening: %+v", st)
+	}
+	_ = lnA
+}

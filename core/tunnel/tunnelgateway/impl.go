@@ -21,6 +21,7 @@ import (
 
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/p2p/signaling"
+	"github.com/pubgo/lava/v2/core/tunnel/ratelimit"
 )
 
 // linkRewritePatterns 用于重写 HTML 响应中的链接
@@ -47,13 +48,31 @@ func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
 		cfg.Normalize()
 	}
 	return &tunnelGateway{
-		cfg:         cfg,
-		services:    make(map[string]*registeredService),
-		peers:       make(map[string]*registeredPeer),
-		peerByAgent: make(map[string]string),
-		status:      tunnel.GatewayStatusStopped,
-		rateLimiter: NewRateLimiter(100), // 默认每秒100个请求
+		cfg:                cfg,
+		services:           make(map[string]*registeredService),
+		peers:              make(map[string]*registeredPeer),
+		peerByAgent:        make(map[string]string),
+		status:             tunnel.GatewayStatusStopped,
+		rateLimiter:        ratelimit.New(100),
+		p2pSignalLimiter:   ratelimit.New(p2pSignalRateLimit(cfg)),
+		p2pRegisterLimiter: ratelimit.New(p2pRegisterRateLimit(cfg)),
 	}
+}
+
+func p2pSignalRateLimit(cfg *tunnel.GatewayConfig) int {
+	const defaultLimit = 60
+	if cfg == nil || cfg.P2PSignalRateLimit <= 0 {
+		return defaultLimit
+	}
+	return cfg.P2PSignalRateLimit
+}
+
+func p2pRegisterRateLimit(cfg *tunnel.GatewayConfig) int {
+	const defaultLimit = 10
+	if cfg == nil || cfg.P2PRegisterRateLimit <= 0 {
+		return defaultLimit
+	}
+	return cfg.P2PRegisterRateLimit
 }
 
 type registeredService struct {
@@ -63,110 +82,10 @@ type registeredService struct {
 }
 
 type registeredPeer struct {
-	peerID  string
-	session tunnel.Session
-	agentID string
-}
-
-// RateLimiter 速率限制器
-type RateLimiter struct {
-	limits       map[string]int          // 服务名 -> 每秒最大请求数
-	buckets      map[string]*TokenBucket // 服务名 -> 令牌桶
-	mu           sync.RWMutex
-	defaultLimit int // 默认速率限制
-}
-
-// TokenBucket 令牌桶
-type TokenBucket struct {
-	capacity   int       // 令牌桶容量
-	rate       int       // 每秒生成令牌数
-	tokens     float64   // 当前令牌数
-	lastRefill time.Time // 上次填充时间
-	mu         sync.Mutex
-}
-
-// NewRateLimiter 创建速率限制器
-func NewRateLimiter(defaultLimit int) *RateLimiter {
-	return &RateLimiter{
-		limits:       make(map[string]int),
-		buckets:      make(map[string]*TokenBucket),
-		defaultLimit: defaultLimit,
-	}
-}
-
-// SetLimit 设置服务的速率限制
-func (rl *RateLimiter) SetLimit(serviceName string, limit int) {
-	rl.mu.Lock()
-	defer rl.mu.Unlock()
-	rl.limits[serviceName] = limit
-	// 重新创建令牌桶
-	rl.buckets[serviceName] = NewTokenBucket(limit, limit)
-}
-
-// GetLimit 获取服务的速率限制
-func (rl *RateLimiter) GetLimit(serviceName string) int {
-	rl.mu.RLock()
-	defer rl.mu.RUnlock()
-	if limit, ok := rl.limits[serviceName]; ok {
-		return limit
-	}
-	return rl.defaultLimit
-}
-
-// Allow 检查是否允许请求
-func (rl *RateLimiter) Allow(serviceName string) bool {
-	rl.mu.RLock()
-	bucket, ok := rl.buckets[serviceName]
-	rl.mu.RUnlock()
-	if !ok {
-		rl.mu.Lock()
-		bucket, ok = rl.buckets[serviceName]
-		if !ok {
-			limit := rl.defaultLimit
-			if l, ok := rl.limits[serviceName]; ok {
-				limit = l
-			}
-			bucket = NewTokenBucket(limit, limit)
-			rl.buckets[serviceName] = bucket
-		}
-		rl.mu.Unlock()
-	}
-	return bucket.Allow()
-}
-
-// NewTokenBucket 创建令牌桶
-func NewTokenBucket(capacity, rate int) *TokenBucket {
-	return &TokenBucket{
-		capacity:   capacity,
-		rate:       rate,
-		tokens:     float64(capacity),
-		lastRefill: time.Now(),
-	}
-}
-
-// Allow 检查是否允许请求
-func (tb *TokenBucket) Allow() bool {
-	tb.mu.Lock()
-	defer tb.mu.Unlock()
-
-	// 计算从上次填充到现在应该生成的令牌数
-	now := time.Now()
-	timeElapsed := now.Sub(tb.lastRefill).Seconds()
-	tokensToAdd := timeElapsed * float64(tb.rate)
-
-	// 填充令牌
-	tb.tokens += tokensToAdd
-	if tb.tokens > float64(tb.capacity) {
-		tb.tokens = float64(tb.capacity)
-	}
-	tb.lastRefill = now
-
-	// 检查是否有足够的令牌
-	if tb.tokens >= 1.0 {
-		tb.tokens -= 1.0
-		return true
-	}
-	return false
+	peerID       string
+	session      tunnel.Session
+	agentID      string
+	registeredAt time.Time
 }
 
 type tunnelGateway struct {
@@ -178,7 +97,9 @@ type tunnelGateway struct {
 	peerByAgent  map[string]string
 	status       tunnel.GatewayStatus
 	authProvider tunnel.AuthProvider
-	rateLimiter  *RateLimiter
+	rateLimiter  *ratelimit.Limiter
+	p2pSignalLimiter   *ratelimit.Limiter
+	p2pRegisterLimiter *ratelimit.Limiter
 
 	// 对外代理服务器
 	httpServer  *http.Server
@@ -300,6 +221,11 @@ func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) htt
 			http.Error(w, "invalid path", http.StatusBadRequest)
 			return
 		}
+		switch strings.TrimSuffix(path, "/") {
+		case "/p2p/peers":
+			g.handlePeerList(w, r)
+			return
+		}
 
 		parts := strings.SplitN(path[1:], "/", 2)
 		if len(parts) == 0 || parts[0] == "" {
@@ -349,6 +275,34 @@ func (g *tunnelGateway) handleServiceList(w http.ResponseWriter, r *http.Request
 		"count":    len(services),
 	}); err != nil {
 		log.Warn().Err(err).Msg("Gateway: failed to encode service list")
+	}
+}
+
+type peerListEntry struct {
+	PeerID       string    `json:"peer_id"`
+	AgentID      string    `json:"agent_id"`
+	RegisteredAt time.Time `json:"registered_at"`
+}
+
+// handlePeerList 返回已注册 P2P peer 列表（gateway 侧 debug）。
+func (g *tunnelGateway) handlePeerList(w http.ResponseWriter, r *http.Request) {
+	g.mu.RLock()
+	peers := make([]peerListEntry, 0, len(g.peers))
+	for _, p := range g.peers {
+		peers = append(peers, peerListEntry{
+			PeerID:       p.peerID,
+			AgentID:      p.agentID,
+			RegisteredAt: p.registeredAt,
+		})
+	}
+	g.mu.RUnlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]any{
+		"peers": peers,
+		"count": len(peers),
+	}); err != nil {
+		log.Warn().Err(err).Msg("Gateway: failed to encode peer list")
 	}
 }
 
@@ -914,6 +868,10 @@ func (g *tunnelGateway) removeAgentServices(agentID string) {
 }
 
 func (g *tunnelGateway) handleP2PRegister(agentID string, session tunnel.Session, msg *tunnel.Message) {
+	if !g.p2pRegisterLimiter.Allow(agentID) {
+		log.Warn().Str("agent", agentID).Msg("P2P register: rate limit exceeded")
+		return
+	}
 	payload, err := tunnel.DecodeP2PRegisterPayload(msg.Payload)
 	if err != nil {
 		log.Warn().Err(err).Str("agent", agentID).Msg("P2P register: invalid payload")
@@ -946,9 +904,10 @@ func (g *tunnelGateway) handleP2PRegister(agentID string, session tunnel.Session
 	}
 
 	g.peers[payload.PeerID] = &registeredPeer{
-		peerID:  payload.PeerID,
-		session: session,
-		agentID: agentID,
+		peerID:       payload.PeerID,
+		session:      session,
+		agentID:      agentID,
+		registeredAt: time.Now().UTC(),
 	}
 	g.peerByAgent[agentID] = payload.PeerID
 	log.Info().Str("peer", payload.PeerID).Str("agent", agentID).Msg("P2P peer registered")
@@ -978,6 +937,10 @@ func (g *tunnelGateway) handleP2PSignal(agentID string, session tunnel.Session, 
 		return
 	}
 	sig.From = senderPeer
+	if !g.p2pSignalLimiter.Allow(senderPeer) {
+		log.Warn().Str("from", senderPeer).Msg("P2P signal: rate limit exceeded")
+		return
+	}
 	target, ok := g.peers[sig.To]
 	g.mu.RUnlock()
 

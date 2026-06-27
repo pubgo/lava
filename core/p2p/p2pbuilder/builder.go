@@ -11,6 +11,7 @@ import (
 	lo "github.com/samber/lo"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/p2p"
 	"github.com/pubgo/lava/v2/core/p2p/p2pdebug"
 	"github.com/pubgo/lava/v2/core/p2p/signaling/tunnelsig"
@@ -26,6 +27,8 @@ type Params struct {
 	Config *p2p.Config
 	Agent  *tunnelagent.Agent
 	PeerID string
+	// Metric 可选；非 nil 时上报 P2P 建连指标。
+	Metric metrics.Metric
 	// ListenOnStart 为 true 时在 AfterStart 自动 Listen（agent 入站 P2P）。
 	ListenOnStart bool
 }
@@ -73,7 +76,7 @@ func (n *node) start(ctx context.Context) error {
 		return err
 	}
 
-	coord := p2p.NewCoordinator(n.cfg, broker, n.params.PeerID)
+	coord := p2p.NewCoordinatorWithMetrics(n.cfg, broker, n.params.PeerID, p2p.NewMetricsRecorder(n.params.Metric))
 
 	n.mu.Lock()
 	n.coord = coord
@@ -135,6 +138,14 @@ func (n *node) Dial(ctx context.Context, peerID string) (p2p.PeerConn, error) {
 		return nil, err
 	}
 	return c.Dial(ctx, peerID)
+}
+
+func (n *node) Reconnect(ctx context.Context, peerID string) (p2p.PeerConn, error) {
+	c, err := n.coordOrErr()
+	if err != nil {
+		return nil, err
+	}
+	return c.Reconnect(ctx, peerID)
 }
 
 func (n *node) Close() error {

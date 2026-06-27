@@ -21,6 +21,10 @@ type GatewayConfig struct {
 	HeartbeatTimeout int `yaml:"heartbeat_timeout"`
 	// HealthCheckInterval 健康检查间隔（秒）
 	HealthCheckInterval int `yaml:"health_check_interval"`
+	// P2PSignalRateLimit 每 peer 每秒最大 P2P 信令条数（0 表示默认 60）
+	P2PSignalRateLimit int `yaml:"p2p_signal_rate_limit"`
+	// P2PRegisterRateLimit 每 agent 每秒最大 P2P 注册次数（0 表示默认 10）
+	P2PRegisterRateLimit int `yaml:"p2p_register_rate_limit"`
 	// TLS TLS 配置
 	TLS TLSConfig `yaml:"tls"`
 }

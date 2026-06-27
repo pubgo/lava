@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 
 	pionice "github.com/pion/ice/v4"
 
@@ -17,31 +18,45 @@ import (
 type coordinator struct {
 	cfg      Config
 	broker   signaling.Broker
+	sigMux   *signaling.Multiplex
 	selfID   string
 	transOpt *tunnel.TransportOptions
+	metrics  *MetricsRecorder
 
-	mu        sync.Mutex
-	closed    bool
-	inbound   chan *peerConn
-	stopCh    chan struct{}
-	listener  *tunnelListener
-	connMu    sync.Mutex
-	active    map[string]ConnectionStats
+	mu       sync.Mutex
+	closed   bool
+	inbound  chan *peerConn
+	stopCh   chan struct{}
+	listener *tunnelListener
+	connMu   sync.Mutex
+	active   map[string]*trackedPeerConn
+}
+
+type trackedPeerConn struct {
+	stats ConnectionStats
+	pc    *peerConn
 }
 
 // NewCoordinator 创建 P2P 协调器。
 func NewCoordinator(cfg Config, broker signaling.Broker, selfID string) Coordinator {
+	return NewCoordinatorWithMetrics(cfg, broker, selfID, nil)
+}
+
+// NewCoordinatorWithMetrics 创建 P2P 协调器并绑定可选 metrics。
+func NewCoordinatorWithMetrics(cfg Config, broker signaling.Broker, selfID string, met *MetricsRecorder) Coordinator {
 	if cfg.ICETimeout <= 0 {
 		cfg.ICETimeout = DefaultConfig().ICETimeout
 	}
 	return &coordinator{
 		cfg:      cfg,
 		broker:   broker,
+		sigMux:   signaling.NewMultiplex(broker, selfID),
 		selfID:   selfID,
 		transOpt: cfg.TransportOptions(),
+		metrics:  met,
 		inbound:  make(chan *peerConn),
 		stopCh:   make(chan struct{}),
-		active:   make(map[string]ConnectionStats),
+		active:   make(map[string]*trackedPeerConn),
 	}
 }
 
@@ -70,15 +85,82 @@ func (c *coordinator) Dial(ctx context.Context, peerID string) (PeerConn, error)
 	if peerID == "" {
 		return nil, ErrPeerNotFound
 	}
+	pc, err := c.dialOnce(ctx, peerID)
+	if err != nil {
+		if c.metrics != nil {
+			c.metrics.ObserveDialFailure()
+		}
+		return nil, err
+	}
+	return c.attachConn(pc, nil)
+}
+
+func (c *coordinator) Reconnect(ctx context.Context, peerID string) (PeerConn, error) {
+	if peerID == "" {
+		return nil, ErrPeerNotFound
+	}
+	c.closeActivePeer(peerID)
+	return c.dialWithRetry(ctx, peerID)
+}
+
+func (c *coordinator) dialOnce(ctx context.Context, peerID string) (*peerConn, error) {
 	iceCtx, cancel := context.WithTimeout(ctx, c.cfg.ICETimeout)
 	defer cancel()
 
-	iceRes, err := ice.Connect(iceCtx, toICEConfig(c.cfg), c.broker, c.selfID, peerID, ice.RoleDialer)
+	iceRes, err := c.iceConnect(iceCtx, peerID, ice.RoleDialer)
 	if err != nil {
 		return nil, err
 	}
-	pc, err := c.quicDial(iceCtx, iceRes)
-	return c.attachConn(pc, err)
+	return c.quicDial(iceCtx, iceRes)
+}
+
+func (c *coordinator) dialWithRetry(ctx context.Context, peerID string) (PeerConn, error) {
+	max := c.cfg.Reconnect.MaxAttempts
+	if max <= 0 {
+		max = 3
+	}
+	backoff := c.cfg.Reconnect.Backoff
+	if backoff <= 0 {
+		backoff = time.Second
+	}
+
+	var lastErr error
+	for attempt := 1; attempt <= max; attempt++ {
+		if attempt > 1 {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(backoff):
+			}
+		}
+		pc, err := c.dialOnce(ctx, peerID)
+		if err == nil {
+			return c.attachConn(pc, nil)
+		}
+		lastErr = err
+		if c.metrics != nil {
+			c.metrics.ObserveDialFailure()
+		}
+	}
+	if lastErr == nil {
+		lastErr = ErrICEFailed
+	}
+	return nil, lastErr
+}
+
+func (c *coordinator) closeActivePeer(peerID string) {
+	c.connMu.Lock()
+	tracked, ok := c.active[peerID]
+	if ok {
+		delete(c.active, peerID)
+	}
+	c.connMu.Unlock()
+	if ok && tracked.pc != nil {
+		_ = tracked.pc.Close()
+	}
+	if c.metrics != nil {
+		c.updateMetricsGauges()
+	}
 }
 
 func (c *coordinator) attachConn(pc *peerConn, err error) (PeerConn, error) {
@@ -90,18 +172,60 @@ func (c *coordinator) attachConn(pc *peerConn, err error) (PeerConn, error) {
 }
 
 func (c *coordinator) trackConn(pc *peerConn) {
+	st := ConnectionStats{
+		RemotePeerID:      pc.remotePeerID,
+		Pair:              pc.pair,
+		ConnectedAt:       time.Now().UTC(),
+		ConnectDurationMs: pc.connectDuration.Milliseconds(),
+	}
+	c.enrichLiveStats(&st, pc.iceAgent)
+
 	c.connMu.Lock()
-	defer c.connMu.Unlock()
-	c.active[pc.remotePeerID] = ConnectionStats{
-		RemotePeerID: pc.remotePeerID,
-		Pair:         pc.pair,
+	c.active[pc.remotePeerID] = &trackedPeerConn{stats: st, pc: pc}
+	c.connMu.Unlock()
+
+	if c.metrics != nil {
+		c.metrics.ObserveConnect(st.Pair, pc.connectDuration)
+		c.updateMetricsGauges()
 	}
 }
 
 func (c *coordinator) untrackConn(remotePeerID string) {
 	c.connMu.Lock()
-	defer c.connMu.Unlock()
 	delete(c.active, remotePeerID)
+	c.connMu.Unlock()
+	if c.metrics != nil {
+		c.updateMetricsGauges()
+	}
+}
+
+func (c *coordinator) enrichLiveStats(st *ConnectionStats, agent *pionice.Agent) {
+	if live, ok := ice.LivePairStatsFromAgent(agent); ok {
+		st.Pair = toCandidatePair(live.Pair)
+		st.RTTMs = live.RTTMs
+		st.PairState = live.PairState
+		st.Nominated = live.Nominated
+	}
+}
+
+func (c *coordinator) updateMetricsGauges() {
+	if c.metrics == nil {
+		return
+	}
+	c.connMu.Lock()
+	active := len(c.active)
+	relay := 0
+	for _, t := range c.active {
+		if isRelayPair(t.stats.Pair) {
+			relay++
+		}
+	}
+	c.connMu.Unlock()
+	c.metrics.SetActiveConnections(active, relay)
+}
+
+func isRelayPair(pair CandidatePairInfo) bool {
+	return pair.LocalType == "relay" || pair.RemoteType == "relay"
 }
 
 func (c *coordinator) Close() error {
@@ -112,7 +236,20 @@ func (c *coordinator) Close() error {
 	}
 	c.closed = true
 	close(c.stopCh)
+	if c.sigMux != nil {
+		_ = c.sigMux.Close()
+	}
 	return nil
+}
+
+func (c *coordinator) iceConnect(ctx context.Context, peerID string, role ice.Role) (*ice.Connection, error) {
+	sess := c.sigMux.Session()
+	defer sess.Close()
+	iceCfg, err := toICEConfig(c.cfg, c.selfID)
+	if err != nil {
+		return nil, err
+	}
+	return ice.Connect(ctx, iceCfg, sess, c.selfID, peerID, role)
 }
 
 func (c *coordinator) acceptLoop(ctx context.Context) {
@@ -126,7 +263,7 @@ func (c *coordinator) acceptLoop(ctx context.Context) {
 		}
 
 		iceCtx, cancel := context.WithTimeout(ctx, c.cfg.ICETimeout)
-		iceRes, err := ice.Connect(iceCtx, toICEConfig(c.cfg), c.broker, c.selfID, "", ice.RoleListener)
+		iceRes, err := c.iceConnect(iceCtx, "", ice.RoleListener)
 		cancel()
 		if err != nil {
 			select {
@@ -205,13 +342,14 @@ func (c *coordinator) quicDial(ctx context.Context, iceRes *ice.Connection) (*pe
 
 	pair, _ := ice.SelectedPairInfo(iceRes.Agent)
 	return &peerConn{
-		session:      sess,
-		localPeerID:  c.selfID,
-		remotePeerID: iceRes.RemotePeerID,
-		pair:         toCandidatePair(pair),
-		iceAgent:     iceRes.Agent,
-		iceConn:      iceRes.ICE,
-		packetConn:   pc,
+		session:         sess,
+		localPeerID:     c.selfID,
+		remotePeerID:    iceRes.RemotePeerID,
+		pair:            toCandidatePair(pair),
+		connectDuration: iceRes.ConnectDuration,
+		iceAgent:        iceRes.Agent,
+		iceConn:         iceRes.ICE,
+		packetConn:      pc,
 	}, nil
 }
 
@@ -229,13 +367,14 @@ func (c *coordinator) quicAccept(ctx context.Context, iceRes *ice.Connection) (*
 
 	pair, _ := ice.SelectedPairInfo(iceRes.Agent)
 	return &peerConn{
-		session:      sess,
-		localPeerID:  c.selfID,
-		remotePeerID: iceRes.RemotePeerID,
-		pair:         toCandidatePair(pair),
-		iceAgent:     iceRes.Agent,
-		iceConn:      iceRes.ICE,
-		packetConn:   pkt,
+		session:         sess,
+		localPeerID:     c.selfID,
+		remotePeerID:    iceRes.RemotePeerID,
+		pair:            toCandidatePair(pair),
+		connectDuration: iceRes.ConnectDuration,
+		iceAgent:        iceRes.Agent,
+		iceConn:         iceRes.ICE,
+		packetConn:      pkt,
 	}, nil
 }
 
@@ -248,15 +387,24 @@ func (c *coordinator) Stats() Stats {
 
 	c.connMu.Lock()
 	conns := make([]ConnectionStats, 0, len(c.active))
-	for _, st := range c.active {
+	relay := 0
+	for _, t := range c.active {
+		st := t.stats
+		c.enrichLiveStats(&st, t.pc.iceAgent)
 		conns = append(conns, st)
+		if isRelayPair(st.Pair) {
+			relay++
+		}
 	}
+	active := len(conns)
 	c.connMu.Unlock()
 
 	return Stats{
-		SelfID:      selfID,
-		Listening:   listening,
-		Connections: conns,
+		SelfID:            selfID,
+		Listening:         listening,
+		ActiveConnections: active,
+		RelayConnections:  relay,
+		Connections:       conns,
 	}
 }
 
@@ -284,13 +432,14 @@ func (l *tunnelListener) Close() error {
 }
 
 type peerConn struct {
-	session      tunnel.Session
-	localPeerID  string
-	remotePeerID string
-	pair         CandidatePairInfo
-	iceAgent     *pionice.Agent
-	iceConn      *pionice.Conn
-	packetConn   net.PacketConn
+	session         tunnel.Session
+	localPeerID     string
+	remotePeerID    string
+	pair            CandidatePairInfo
+	connectDuration time.Duration
+	iceAgent        *pionice.Agent
+	iceConn         *pionice.Conn
+	packetConn      net.PacketConn
 }
 
 func (p *peerConn) Open(ctx context.Context) (tunnel.Stream, error) { return p.session.Open(ctx) }

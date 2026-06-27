@@ -3,9 +3,12 @@ package ice
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
+	"time"
 
 	pionice "github.com/pion/ice/v4"
+	"github.com/pion/logging"
 	"github.com/pion/stun/v3"
 
 	"github.com/pubgo/lava/v2/core/p2p/signaling"
@@ -13,9 +16,10 @@ import (
 
 // Connection ICE 协商结果（保留 Agent 以便读取选路与关闭资源）。
 type Connection struct {
-	ICE          *pionice.Conn
-	Agent        *pionice.Agent
-	RemotePeerID string
+	ICE             *pionice.Conn
+	Agent           *pionice.Agent
+	RemotePeerID    string
+	ConnectDuration time.Duration
 }
 
 // Connect 通过信令 Broker 与对端完成 ICE 协商，返回已建立的 ICE 连接。
@@ -26,15 +30,22 @@ func Connect(
 	selfID, peerID string,
 	role Role,
 ) (*Connection, error) {
+	start := time.Now()
 	urls, err := parseURLs(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	agent, err := pionice.NewAgent(&pionice.AgentConfig{
+	agentCfg := &pionice.AgentConfig{
 		Urls:         urls,
 		NetworkTypes: []pionice.NetworkType{pionice.NetworkTypeUDP4},
-	})
+	}
+	if lvl := os.Getenv("P2P_ICE_DEBUG"); lvl != "" {
+		lf := logging.NewDefaultLoggerFactory()
+		lf.DefaultLogLevel = logging.LogLevelTrace
+		agentCfg.LoggerFactory = lf
+	}
+	agent, err := pionice.NewAgent(agentCfg)
 	if err != nil {
 		return nil, fmt.Errorf("ice agent: %w", err)
 	}
@@ -230,7 +241,12 @@ func Connect(
 		return nil, fmt.Errorf("ice connect: %w", err)
 	}
 	recvCancel()
-	return &Connection{ICE: iceConn, Agent: agent, RemotePeerID: remotePeerID}, nil
+	return &Connection{
+		ICE:             iceConn,
+		Agent:           agent,
+		RemotePeerID:    remotePeerID,
+		ConnectDuration: time.Since(start),
+	}, nil
 }
 
 // SelectedPairInfo 从 agent 读取选路摘要。

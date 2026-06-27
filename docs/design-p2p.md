@@ -4,7 +4,7 @@
 > 并复用现有 `core/tunnel` 的多路复用、鉴权与可观测能力。
 >
 > 状态：**P1–P6 已实现并通过测试**（信令 / ICE / STUN / TURN 客户端 / QUIC over ICE / tunnel transport / DI 装配 / CLI）。
-> 对称 NAT 实网穿透率仍需多环境实测验证。
+> **2026-06-28 实网验证**：两台跨网 Mac（不同公网出口）经 dev gateway + coturn 完成 ICE→QUIC 全链路；srflx 直连失败时 TURN relay 兜底成功。
 
 ## 0.1 基础设施（dev）
 
@@ -126,6 +126,7 @@ core/p2p/
   signaling/
     signaling.go      # Broker 抽象 + Message 类型（Offer/Answer/Candidate）
     memory.go         # 内存 Broker（单测/PoC）
+    multiplex.go      # 单 Recv fan-out，支持 Dial+Listen 并发 ICE
     tunnelsig/        # 经 tunnel gateway 控制流的 Broker 实现
   ice/
     connect.go        # pion/ice 封装：trickle 协商，返回 *Connection
@@ -248,7 +249,7 @@ sequenceDiagram
 | P1 信令 | 定义 `SignalMessage`，基于 tunnel 控制流跑通双向交换 + 鉴权 | 两节点能互发 Offer/Answer/Candidate | ✅ |
 | P2 STUN+打洞 | 仅 host/srflx 候选，对简单 NAT 直连 | Full Cone/Restricted NAT 下直连成功 | ✅ |
 | P3 ICE | 用 `pion/ice` 状态机替换手写打洞 | 打通稳定 UDP 链路，含连通性检查 | ✅ |
-| P4 TURN | 接入外部 coturn + relay 候选 | 对称 NAT 下经中继可通 | ✅（dev STUN/TURN 集成测试） |
+| P4 TURN | 接入外部 coturn + relay 候选 | 对称 NAT 下经中继可通 | ✅（dev + 跨网实网 relay 验证） |
 | P5 集成 | 在 ICE 链路上铺 QUIC，注册为 tunnel transport，接入 `/debug/p2p` | P2P 链路可承载多路 stream，debug 可见选路 | ✅ |
 | P6 装配 | DI（`p2pbuilder`）+ `lava tunnel agent` CLI + 环境变量配置 | agent 启动即注册信令、Listen，debug 可见 | ✅ |
 
@@ -268,7 +269,68 @@ P2P_INSECURE=true \
 lava tunnel agent
 ```
 
-管理界面默认 `:6067`，P2P 状态见 `http://localhost:6067/debug/p2p`。
+管理界面默认 `:6067`，P2P 状态见 `http://localhost:6067/debug/p2p`（含选路、建连耗时、RTT）。
+Gateway 已注册 peer 列表：`http://gateway:6060/p2p/peers`（Debug 端口）。
+
+Gateway P2P 信令限流（`GatewayConfig`）：
+
+| 字段 | 默认 | 说明 |
+| --- | --- | --- |
+| `p2p_signal_rate_limit` | 60 | 每 peer 每秒最大信令条数 |
+| `p2p_register_rate_limit` | 10 | 每 agent 每秒最大注册次数 |
+
+### Example（可运行）
+
+```bash
+# 本地快速验证（内存信令，无需 gateway）
+go run ./core/p2p/example/main.go -mode=local
+
+# 单进程全链路（gateway + 双 agent + P2P stream）
+go run ./core/p2p/example/main.go -mode=all
+
+# 分终端（模拟两台机器）
+go run ./core/p2p/example/main.go -mode=gateway
+go run ./core/p2p/example/main.go -mode=peer -peer-id=node-b
+go run ./core/p2p/example/main.go -mode=peer -peer-id=node-a -dial-to=node-b
+
+# dev coturn STUN/TURN 验证（需外网）
+go run ./core/p2p/example/main.go -mode=dev
+```
+
+### 跨网实网验证（两台机器 + dev gateway）
+
+前提：dev 上 gateway（`:27000`）与 coturn（UDP/TCP `:3478`，relay `10000-20000`）已部署；
+阿里云 ECS 安全组放行上述端口；coturn 使用 `external-ip=公网/私网` + `relay-ip=私网`（见 `deploy/coturn/README.md`）。
+
+```bash
+# dev 上启动 gateway
+/tmp/p2pex -mode=gateway -gateway-addr=0.0.0.0:27000 -auth-token=YOUR_TOKEN
+
+# 机器 B（监听）
+P2P_ICE_DEBUG=trace ./p2pex -mode=peer -peer-id=node-b \
+  -gateway-addr=118.178.168.253:27000 -auth-token=YOUR_TOKEN
+
+# 机器 A（拨号；仅 Dial 不 Listen，避免 Multiplex 串台）
+P2P_ICE_DEBUG=trace ./p2pex -mode=peer -peer-id=node-a -dial-to=node-b \
+  -gateway-addr=118.178.168.253:27000 -auth-token=YOUR_TOKEN
+```
+
+**2026-06-28 实测结果**（本地 Mac ↔ office Mac，公网 `18.x` ↔ `3.x`）：
+
+| 阶段 | 结果 |
+| --- | --- |
+| tunnel 信令 | offer/answer/candidate 跨网交换正常 |
+| STUN srflx | 两端均拿到公网映射候选 |
+| srflx ↔ srflx 直连 | 失败（对称 NAT / 防火墙，符合预期） |
+| TURN relay | 成功 Allocate，选路 `host ↔ relay (118.178.168.253)` |
+| QUIC stream | Connected，业务消息收发一致 |
+
+集成测试（dev coturn，需外网）：
+
+```bash
+go test ./core/p2p/ -run TestDevSTUNCoordinatorQUIC -v
+go test ./core/p2p/example/ -run TestExampleAll -v
+```
 
 ### 环境变量
 
@@ -276,9 +338,16 @@ lava tunnel agent
 | --- | --- |
 | `P2P_PEER_ID` | 节点 ID；**设置后才启用 P2P** |
 | `P2P_STUN_URLS` | 逗号分隔 STUN URL（默认 dev coturn） |
-| `P2P_TURN_URL` / `P2P_TURN_USER` / `P2P_TURN_PASS` | TURN 客户端配置 |
+| `P2P_TURN_URL` / `P2P_TURN_USER` / `P2P_TURN_PASS` | TURN 客户端配置（静态凭证） |
+| `P2P_TURN_SECRET` | coturn `static-auth-secret`，启用 HMAC 临时凭证 |
+| `P2P_TURN_CRED_TTL` | 临时凭证有效期，如 `24h`（默认 24h） |
+| `P2P_TURN_DISABLED` | `true`/`1` 禁用 TURN（测试 srflx 直连时用） |
 | `P2P_ICE_TIMEOUT` | ICE 超时，如 `30s` |
+| `P2P_ICE_DEBUG` | 非空时开启 pion ICE trace 日志（排障用） |
+| `P2P_RECONNECT_MAX_ATTEMPTS` | Reconnect 最大尝试次数（默认 3） |
+| `P2P_RECONNECT_BACKOFF` | Reconnect 重试间隔，如 `1s` |
 | `P2P_INSECURE` | `true`/`1` 跳过 QUIC TLS 校验（**仅开发**） |
+| `P2P_CERT_FILE` / `P2P_KEY_FILE` / `P2P_CA_FILE` | QUIC TLS 证书（生产） |
 | `P2P_AUTH_TOKEN` | 信令鉴权 token（缺省回落到 `TUNNEL_AUTH_TOKEN`） |
 
 ### 代码装配（DI）
@@ -290,15 +359,15 @@ coord, err := p2pbuilder.New(p2pbuilder.Params{
     PeerID:        "node-a",
     ListenOnStart: true,          // AfterStart 自动 Listen 接受入站
     Config:        &p2p.Config{AuthToken: token, Insecure: true},
+    Metric:        metricsScope,  // 可选：上报 p2p.* 指标
 })
 // AfterStart 后：
 peer, _ := coord.Dial(ctx, "node-b") // peer 实现 tunnel.Session
 stream, _ := peer.Open(ctx)
 ```
 
-> 说明：同一 `Coordinator` 当前不应同时主动 `Dial` 又自动 `Listen`，
-> 否则两个 ICE 接收循环会争抢同一 broker 的信令。
-> 主动拨号节点请置 `ListenOnStart: false`；纯被动接受节点置 `true`。
+> 说明：自 `signaling.Multiplex` 起，同一 `Coordinator` 可在 `Listen` 的同时 `Dial`。
+> agent 默认 `ListenOnStart: true` 即可同时接受入站并主动拨号。
 
 ## 12. 风险与注意事项
 
@@ -319,13 +388,16 @@ stream, _ := peer.Open(ctx)
 ### 实现期已确认的细节
 - **ICE → QUIC 接法**：`pion/ice` 的 `*ice.Conn` 不能直接作 `net.PacketConn`，
   已在 `ice/packetconn.go` 包一层适配（固定对端地址的数据报通道），再交给 `quic-go` 的 `Transport`。
-- **coturn 凭证**：当前为静态配置（环境变量 / `Config`）。动态临时凭证（HMAC）留待后续。
+- **coturn 凭证**：支持静态配置（dev）与 **HMAC 临时凭证**（`TURN.AuthSecret` / `P2P_TURN_SECRET`，见 `core/p2p/turncred`）。
+- **coturn 阿里云 ECS**：公网 IP 不在网卡上，`relay-ip` 必须设为私网 IP，`external-ip` 用 `公网/私网` 映射，否则 TURN Allocate 返回 `508 Cannot create socket`。
 
 ## 14. 待办（已知缺口）
 
-- [ ] 同一 `Coordinator` 同时支持主动 Dial 与被动 Listen（共享单个 broker recv 或暂停 acceptLoop）。
-- [ ] `/debug/p2p` 展示候选收集耗时、ICE 状态机状态、RTT；gateway 侧展示已注册 peer 列表。
-- [ ] Metrics：选路类型（host/srflx/relay）、建连耗时、TURN 中继连接数接入 `core/metrics`。
-- [ ] 信令限流：复用 tunnel `RateLimiter` 对注册/信令做限流。
-- [ ] coturn 动态临时凭证（基于时间的 HMAC）。
-- [ ] 多运营商 / 多 NAT 类型实网穿透率实测。
+- [x] 同一 `Coordinator` 同时支持主动 Dial 与被动 Listen（`signaling.Multiplex` 单 Recv fan-out）。
+- [x] `/debug/p2p` 展示 ICE 选路、建连耗时、RTT（`ConnectionStats.connect_duration_ms` / `rtt_ms` / `pair_state`）。
+- [x] Gateway `GET /p2p/peers` 展示已注册 peer 列表（含 `registered_at`）。
+- [x] Metrics：`p2p.connect_total`、`p2p.connect_duration`、`p2p.relay_connect_total`、活跃连接 gauge（经 `p2pbuilder.Params.Metric` 注入）。
+- [x] 信令限流：gateway 复用 `core/tunnel/ratelimit` 对 P2P 注册（默认 10/s/agent）与信令（默认 60/s/peer）限流；可经 `GatewayConfig.p2p_*_rate_limit` 配置。
+- [x] coturn 动态临时凭证（TURN REST API / HMAC-SHA1，`turncred` + `P2P_TURN_SECRET`）。
+- [x] 实网穿透验证（2026-06-28：跨网双 Mac + dev coturn，srflx 失败 / relay 成功）；更多运营商/NAT 类型待扩展。
+- [x] ICE restart / 断线重连：`Coordinator.Reconnect` 关闭旧连接并重新 ICE+QUIC（带退避重试）。
