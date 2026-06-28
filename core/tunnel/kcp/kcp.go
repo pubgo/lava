@@ -43,7 +43,7 @@ func (t *kcpTransport) Dial(ctx context.Context, addr string) (tunnel.Session, e
 
 	var netConn net.Conn = conn
 	if t.opts != nil && t.opts.EnableTLS {
-		tlsConfig := &tls.Config{InsecureSkipVerify: t.opts.Insecure}
+		tlsConfig := tunnel.BuildClientTLSConfig(t.opts)
 		netConn = tls.Client(conn, tlsConfig)
 	}
 
@@ -135,14 +135,14 @@ func (l *kcpListener) Accept() (tunnel.Session, error) {
 
 	var netConn net.Conn = conn
 	if l.transport.opts != nil && l.transport.opts.EnableTLS {
-		cert, err := tls.LoadX509KeyPair(l.transport.opts.CertFile, l.transport.opts.KeyFile)
+		tlsConfig, err := tunnel.BuildServerTLSConfig(l.transport.opts)
 		if err != nil {
 			if closeErr := conn.Close(); closeErr != nil {
 				return nil, closeErr
 			}
 			return nil, err
 		}
-		netConn = tls.Server(conn, &tls.Config{Certificates: []tls.Certificate{cert}})
+		netConn = tls.Server(conn, tlsConfig)
 	}
 
 	// 使用 smux 进行多路复用

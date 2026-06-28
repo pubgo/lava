@@ -115,6 +115,14 @@ type TransportOptions struct {
 	ConnectionWriteTimeout int
 	// StreamOpenTimeout 流打开超时（秒）
 	StreamOpenTimeout int
+	// MinVersion 最小 TLS 版本 (TLS12, TLS13)
+	MinVersion string
+	// CipherSuites TLS 密码套件名列表
+	CipherSuites []string
+	// ClientAuth 服务端 mTLS 模式（见 TLSConfig.ClientAuth）
+	ClientAuth string
+	// SessionCacheSize TLS 会话缓存大小
+	SessionCacheSize int
 }
 
 // DefaultTransportOptions 默认传输层选项

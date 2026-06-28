@@ -3,10 +3,8 @@ package yamux
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"net"
-	"os"
 	"sync"
 	"time"
 
@@ -40,24 +38,7 @@ func (t *yamuxTransport) Dial(ctx context.Context, addr string) (tunnel.Session,
 	}
 
 	if t.opts != nil && t.opts.EnableTLS {
-		tlsConfig := &tls.Config{InsecureSkipVerify: t.opts.Insecure}
-		if t.opts.CAFile != "" && !t.opts.Insecure {
-			caPEM, err := os.ReadFile(t.opts.CAFile)
-			if err != nil {
-				if closeErr := conn.Close(); closeErr != nil {
-					return nil, fmt.Errorf("close conn failed: %w (read ca: %v)", closeErr, err)
-				}
-				return nil, fmt.Errorf("read ca file: %w", err)
-			}
-			pool := x509.NewCertPool()
-			if !pool.AppendCertsFromPEM(caPEM) {
-				if closeErr := conn.Close(); closeErr != nil {
-					return nil, fmt.Errorf("close conn failed: %w (invalid ca pem)", closeErr)
-				}
-				return nil, fmt.Errorf("invalid ca pem in %s", t.opts.CAFile)
-			}
-			tlsConfig.RootCAs = pool
-		}
+		tlsConfig := tunnel.BuildClientTLSConfig(t.opts)
 		conn = tls.Client(conn, tlsConfig)
 	}
 
@@ -79,14 +60,14 @@ func (t *yamuxTransport) Listen(ctx context.Context, addr string) (tunnel.Listen
 	}
 
 	if t.opts != nil && t.opts.EnableTLS {
-		cert, err := tls.LoadX509KeyPair(t.opts.CertFile, t.opts.KeyFile)
+		tlsConfig, err := tunnel.BuildServerTLSConfig(t.opts)
 		if err != nil {
 			if closeErr := ln.Close(); closeErr != nil {
 				return nil, fmt.Errorf("close listener failed: %w (original: %v)", closeErr, err)
 			}
 			return nil, err
 		}
-		ln = tls.NewListener(ln, &tls.Config{Certificates: []tls.Certificate{cert}})
+		ln = tls.NewListener(ln, tlsConfig)
 	}
 
 	return &yamuxListener{listener: ln, transport: t}, nil

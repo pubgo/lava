@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/health/grpc_health_v1"
+
 	"github.com/pubgo/lava/v2/core/tunnel"
 	_ "github.com/pubgo/lava/v2/core/tunnel/kcp"
 	_ "github.com/pubgo/lava/v2/core/tunnel/quic"
@@ -573,3 +575,121 @@ func TestMultipleAgents(t *testing.T) {
 		}
 	}
 }
+
+func TestProxyAuth_HTTP(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	backendAddr := "127.0.0.1:27481"
+	gatewayAddr := "127.0.0.1:27480"
+	proxyPort := 27482
+	token := "proxy-secret"
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ok", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("authed"))
+	})
+	backend := &http.Server{Addr: backendAddr, Handler: mux}
+	go func() { _ = backend.ListenAndServe() }()
+	defer backend.Close()
+	time.Sleep(100 * time.Millisecond)
+
+	gw := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
+		ListenAddr: gatewayAddr,
+		Transport:  tunnel.TransportYamux,
+		HTTPPort:   proxyPort,
+	})
+	if err := tunnel.ConfigureGatewayAuth(gw, token); err != nil {
+		t.Fatal(err)
+	}
+	if err := gw.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+	defer gw.Stop(context.Background())
+
+	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
+		GatewayAddr: gatewayAddr,
+		ServiceName: "auth-svc",
+		AuthToken:   token,
+		Endpoints:   []tunnel.EndpointConfig{{Type: "http", LocalAddr: backendAddr}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer agent.Stop(context.Background())
+	time.Sleep(500 * time.Millisecond)
+
+	proxyBase := fmt.Sprintf("http://127.0.0.1:%d", proxyPort)
+	resp, err := http.Get(proxyBase + "/auth-svc/ok")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("no token: status=%d want 401", resp.StatusCode)
+	}
+
+	resp, err = tunnel.GetService(nil, proxyBase, "auth-svc", "/ok", token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK || string(body) != "authed" {
+		t.Fatalf("status=%d body=%q", resp.StatusCode, body)
+	}
+}
+
+func TestGRPCProxy_HealthCheck(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+
+	token := "grpc-secret"
+	grpcBackend := "127.0.0.1:27591"
+	gatewayTunnel := "127.0.0.1:27590"
+	grpcProxyPort := 27592
+
+	srv, stopBackend := startGRPCHealthServer(t, grpcBackend)
+	defer stopBackend()
+	defer srv.Stop()
+
+	gw := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
+		ListenAddr: gatewayTunnel,
+		Transport:  tunnel.TransportYamux,
+		GRPCPort:   grpcProxyPort,
+	})
+	if err := tunnel.ConfigureGatewayAuth(gw, token); err != nil {
+		t.Fatal(err)
+	}
+	if err := gw.Start(ctx); err != nil {
+		t.Fatal(err)
+	}
+	defer gw.Stop(context.Background())
+
+	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
+		GatewayAddr: gatewayTunnel,
+		ServiceName: "grpc-health",
+		AuthToken:   token,
+		Endpoints:   []tunnel.EndpointConfig{{Type: "grpc", LocalAddr: grpcBackend}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer agent.Stop(context.Background())
+	time.Sleep(500 * time.Millisecond)
+
+	cc, client, err := grpcHealthDial(ctx, fmt.Sprintf("127.0.0.1:%d", grpcProxyPort), "grpc-health", token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cc.Close()
+
+	resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
+		t.Fatalf("status=%v", resp.GetStatus())
+	}
+}
+

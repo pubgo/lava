@@ -4,10 +4,18 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 )
 
 // ErrAuthFailed 表示认证或授权失败。
 var ErrAuthFailed = errors.New("tunnel: authentication failed")
+
+// HeaderTunnelToken 是 HTTP 代理可选的 token 头（与 Authorization: Bearer 二选一）。
+const HeaderTunnelToken = "X-Tunnel-Token"
+
+// GRPCAuthPrefix 是 gRPC 代理在路由行之后可选的鉴权行前缀。
+const GRPCAuthPrefix = "Authorization: Bearer "
 
 // TokenAuthProvider 基于预共享 token 的 AuthProvider 实现。
 //
@@ -78,4 +86,28 @@ func (p *TokenAuthProvider) validToken(token string) bool {
 		}
 	}
 	return false
+}
+
+// ClientTokenFromRequest 从 HTTP 请求提取客户端 token。
+// 优先 X-Tunnel-Token，其次 Authorization: Bearer。
+func ClientTokenFromRequest(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	if t := strings.TrimSpace(r.Header.Get(HeaderTunnelToken)); t != "" {
+		return t
+	}
+	auth := strings.TrimSpace(r.Header.Get("Authorization"))
+	if strings.HasPrefix(strings.ToLower(auth), "bearer ") {
+		return strings.TrimSpace(auth[7:])
+	}
+	return ""
+}
+
+// SetClientTokenHeader 为出站 HTTP 请求设置 token。
+func SetClientTokenHeader(r *http.Request, token string) {
+	if r == nil || token == "" {
+		return
+	}
+	r.Header.Set("Authorization", "Bearer "+token)
 }

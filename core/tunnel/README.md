@@ -58,7 +58,7 @@ core/tunnel/
 │  │    service-b ──> Session2                    │               │
 │  └──────────────────────────────────────────────┘               │
 │                         │                                       │
-│              Listener :7000  <- 接受 Agent 连接                 │
+│              Listener :7007  <- 接受 Agent 连接                 │
 └─────────────────────────────────────────────────────────────────┘
                            ▲
             ┌──────────────┼──────────────┐
@@ -88,7 +88,7 @@ core/tunnel/
 
 ```
 1. Agent 启动，主动连接 Gateway
-   Agent ─────────────────────────────────────> Gateway:7000
+   Agent ─────────────────────────────────────> Gateway:7007
                     TCP + yamux
 
 2. Agent 注册服务信息
@@ -130,7 +130,7 @@ func main() {
     
     // 方式一：直接创建
     gw := tunnelgateway.New(&tunnelgateway.Config{
-        ListenAddr: ":7000",      // Agent 连接端口
+        ListenAddr: ":7007",      // Agent 连接端口
         Transport:  "yamux",
         HTTPPort:   8080,          // 对外暴露的 HTTP 端口
         GRPCPort:   9090,          // 对外暴露的 gRPC 端口
@@ -139,7 +139,7 @@ func main() {
     
     // 方式二：使用 Builder 模式
     gw, err := tunnelgateway.NewBuilder().
-        WithListenAddr(":7000").
+        WithListenAddr(":7007").
         WithTransport("yamux").
         WithHTTPPort(8080).
         WithDebugPort(6060).
@@ -178,7 +178,7 @@ func main() {
     
     // 方式一：直接创建
     agent := tunnelagent.New(&tunnelagent.Config{
-        GatewayAddr: "gateway.example.com:7000",
+        GatewayAddr: "gateway.example.com:7007",
         Transport:   "yamux",
         ServiceName: "my-service",
         ServiceVersion: "1.0.0",
@@ -190,7 +190,7 @@ func main() {
     
     // 方式二：使用 Builder 模式
     agent, err := tunnelagent.NewBuilder().
-        WithGatewayAddr("gateway.example.com:7000").
+        WithGatewayAddr("gateway.example.com:7007").
         WithServiceName("my-service").
         WithServiceVersion("1.0.0").
         AddEndpoint("http", "localhost:8080", "/api").
@@ -268,7 +268,7 @@ tunneldebug.SetAgent(agent.Inner())
 │                 │     │  :9090 (gRPC)   │     │  └─ 主动连接    │
 │                 │     │  :6060 (Debug)  │     │                 │
 │                 │     │                 │     │  本地服务       │
-│                 │     │  :7000 (Agent)  │     │  └─ :8080       │
+│                 │     │  :7007 (Agent)  │     │  └─ :8080       │
 │                 │     │       ↑ 被动    │     │  └─ :9090       │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
@@ -288,7 +288,7 @@ tunneldebug.SetAgent(agent.Inner())
 tunnel:
   gateway:
     enabled: true
-    listen_addr: ":7000"          # Agent 连接地址
+    listen_addr: ":7007"          # Agent 连接地址
     transport: yamux              # 传输协议
     http_port: 8080               # HTTP 代理端口
     grpc_port: 9090               # gRPC 代理端口
@@ -308,7 +308,7 @@ tunnel:
 tunnel:
   agent:
     enabled: true
-    gateway_addr: "gateway.example.com:7000"
+    gateway_addr: "gateway.example.com:7007"
     transport: yamux
     service_name: my-service
     service_version: "1.0.0"
@@ -478,6 +478,81 @@ Agent 和 Gateway 使用长度前缀的 JSON 消息通信：
 | `MessageTypeHTTPRequest` | 9 | HTTP 请求转发 |
 | `MessageTypeGRPCRequest` | 10 | gRPC 请求转发 |
 | `MessageTypeDebugRequest` | 11 | Debug 请求转发 |
+| `MessageTypeP2PRegister` | 12 | P2P peer 注册 |
+| `MessageTypeP2PSignal` | 13 | P2P ICE 信令转发 |
+
+## CLI 快速开始
+
+```bash
+# Gateway（公网/DMZ）
+TUNNEL_AUTH_TOKEN=secret lava tunnel gateway
+
+# Agent（内网，主动连 gateway）
+TUNNEL_GATEWAY_ADDR=gateway:7007 \
+TUNNEL_AUTH_TOKEN=secret \
+SERVICE_NAME=my-api \
+lava tunnel agent
+
+# 可选：同 agent 启用 P2P
+P2P_PEER_ID=node-a lava tunnel agent
+```
+
+管理界面：`http://localhost:6067/debug/tunnel`（`TUNNEL_ADMIN_ADDR`）
+
+## 环境变量
+
+| 变量 | 说明 |
+| --- | --- |
+| `TUNNEL_LISTEN_ADDR` | Gateway Agent 监听（默认 `:7007`） |
+| `TUNNEL_GATEWAY_ADDR` | Agent 连接的 Gateway 地址 |
+| `TUNNEL_HTTP_PORT` / `GRPC_PORT` / `DEBUG_PORT` | 对外代理端口 |
+| `TUNNEL_AUTH_TOKEN` | Agent 注册 token（**生产必设**）；启用后代理面也需同 token |
+| `TUNNEL_ADMIN_TOKEN` | Admin UI 鉴权（`TUNNEL_ADMIN_ADDR`） |
+| `TUNNEL_ADMIN_ADDR` | Admin UI（默认 `:6067`） |
+| `TUNNEL_TLS_*` | Agent/Gateway 传输 TLS |
+| `TUNNEL_P2P_*_RATE_LIMIT` | P2P 信令/注册限流 |
+
+完整列表见 `config_env.go` 与 `SECURITY.md`。
+
+## 客户端访问
+
+### HTTP
+
+```go
+// URL 格式: http://gateway:8080/{service_name}/path
+resp, err := tunnel.GetService(nil, "http://gateway:8080", "my-api", "/v1/health", "secret")
+```
+
+### gRPC
+
+```go
+cc, _ := grpc.NewClient("passthrough:///my-grpc-svc",
+    grpc.WithContextDialer(tunnel.GRPCContextDialer(tunnel.GRPCDialOptions{
+        GatewayAddr: "gateway:9090",
+        Token:       "secret",
+    })),
+    grpc.WithTransportCredentials(insecure.NewCredentials()),
+)
+```
+
+### 一行启动 Agent（脚本/测试）
+
+```go
+agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
+    GatewayAddr: "gateway:7007",
+    ServiceName: "my-api",
+    Endpoints:   []tunnel.EndpointConfig{{Type: "http", LocalAddr: "127.0.0.1:8080"}},
+})
+defer agent.Stop(ctx)
+```
+
+## 安全
+
+生产部署前请阅读 **[SECURITY.md](./SECURITY.md)**。要点：代理面默认无鉴权，务必设置 `TUNNEL_AUTH_TOKEN` 并限制 Debug/Admin 暴露面。
+
+## P2P 集成
+
+P2P 控制面复用 tunnel gateway 信令；数据面 ICE+QUIC 直连。详见 `docs/design-p2p.md` 与 `core/p2p/`。
 
 ## 错误类型
 

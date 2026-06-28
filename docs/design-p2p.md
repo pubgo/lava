@@ -369,6 +369,75 @@ stream, _ := peer.Open(ctx)
 > 说明：自 `signaling.Multiplex` 起，同一 `Coordinator` 可在 `Listen` 的同时 `Dial`。
 > agent 默认 `ListenOnStart: true` 即可同时接受入站并主动拨号。
 
+### 一行式装配（Standalone）
+
+适合脚本、测试、独立进程；无需手动接 lifecycle：
+
+```go
+node, err := p2pbuilder.Standalone(ctx, p2pbuilder.StandaloneOptions{
+    GatewayAddr:   "118.178.168.253:27000",
+    PeerID:        "node-a",
+    AuthToken:     "secret",
+    ListenOnStart: true, // 接受入站 P2P
+    Config:        &p2p.ConfigFromEnv(),
+})
+defer node.Close()
+
+// node.Coordinator — 底层 Dial/Listen/Reconnect
+// node.Client       — 池化 + 自动重连的高层客户端
+conn, _ := node.Client.OpenStream(ctx, "node-b") // net.Conn
+```
+
+### Client 池化与协议适配
+
+`p2p.Client` 在 `Coordinator` 之上按 peerID **复用连接**；连接失效时 **自动 Reconnect**。
+多次 `OpenStream("node-b")` 共用同一条 ICE+QUIC，每条 stream 独立 `net.Conn`。
+
+```go
+client := p2p.NewClient(coord)
+defer client.Close()
+
+// 1) 裸 stream（自定义协议）
+conn, _ := client.OpenStream(ctx, "node-b")
+conn.Write([]byte("hello"))
+
+// 2) gRPC over P2P（addr 即 peerID）
+import "google.golang.org/grpc"
+import "google.golang.org/grpc/credentials/insecure"
+
+cc, _ := grpc.NewClient("passthrough:///node-b",
+    grpc.WithContextDialer(client.NetDialer()),
+    grpc.WithTransportCredentials(insecure.NewCredentials()),
+)
+// cc 上正常 stub 调用即可
+
+// 3) HTTP over P2P（URL host 即 peerID）
+resp, _ := client.HTTPClient().Get("http://node-b/internal/healthz")
+```
+
+**入站侧**（Listener）仍用 `Coordinator.Listen` + `PeerConn.Accept()` 接受 stream，
+每条 stream 即 `net.Conn`，可挂 `http.Server` 或 gRPC server：
+
+```go
+ln, _ := coord.Listen(ctx, selfID)
+for {
+    pc, _ := ln.Accept(ctx)
+    go servePeer(pc) // pc.Accept() 循环接受 stream，每条 stream 当 net.Conn
+}
+```
+
+### 与 tunnel 的关系
+
+| 场景 | 推荐方式 |
+| --- | --- |
+| 已知 peerID，点对点直连 | `p2p.Client.OpenStream(peerID)` |
+| 经 gateway 代理 HTTP/gRPC 服务 | 现有 `tunnel` agent 注册 + gateway 转发 |
+| P2P 失败 / 未启用时的回退 | 业务层：`Client.OpenStream` 失败 → gateway `Forward` |
+| 生产 agent 常驻 | `lava tunnel agent` + `P2P_PEER_ID`（DI 装配） |
+
+P2P 与 tunnel gateway **互补**：gateway 负责发现与信令；P2P 负责数据面直连（低延迟、不经中继带宽）。
+业务可在 gateway 查 peer 是否在线（`GET /p2p/peers`），再决定是否 `Dial`。
+
 ## 12. 风险与注意事项
 
 - **信令可靠性**：需支持 ICE restart 与 trickle，否则建连慢且脆。
@@ -401,3 +470,10 @@ stream, _ := peer.Open(ctx)
 - [x] coturn 动态临时凭证（TURN REST API / HMAC-SHA1，`turncred` + `P2P_TURN_SECRET`）。
 - [x] 实网穿透验证（2026-06-28：跨网双 Mac + dev coturn，srflx 失败 / relay 成功）；更多运营商/NAT 类型待扩展。
 - [x] ICE restart / 断线重连：`Coordinator.Reconnect` 关闭旧连接并重新 ICE+QUIC（带退避重试）。
+- [x] 易用性：`p2p.Client`（池化 + 自动重连）、`NetDialer`/`HTTPClient` 适配、`p2pbuilder.Standalone` 一行装配。
+
+## 15. 后续可选
+
+- [ ] 连接保活后台 watcher（PeerConn 断线主动通知业务）
+- [ ] Gateway 侧 P2P 直连代理（gateway 收到请求时尝试 P2P 转发，失败回落 tunnel）
+- [ ] 多 peer 连接池上限与 idle 超时

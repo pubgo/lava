@@ -27,29 +27,39 @@ func newAgentCommand(di *dix.Dix) *redant.Command {
 		Use:   "agent",
 		Short: cliutil.UsageDesc("tunnel agent with optional P2P %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
-			gatewayAddr := envOr("TUNNEL_GATEWAY_ADDR", "localhost:7007")
-			authToken := p2p.AuthTokenFromEnv()
-			serviceName := envOr("SERVICE_NAME", version.Project())
+			agentCfg := tunnel.AgentConfigFromEnv()
+			if agentCfg.GatewayAddr == "" {
+				agentCfg.GatewayAddr = envOr("TUNNEL_GATEWAY_ADDR", "localhost:7007")
+			}
+			authToken := tunnel.AuthTokenFromEnv()
+			if authToken != "" {
+				agentCfg.Metadata = tunnel.ApplyAuthTokenMetadata(agentCfg.Metadata, authToken)
+			}
+
+			serviceName := agentCfg.ServiceName
+			if serviceName == "" {
+				serviceName = envOr("SERVICE_NAME", version.Project())
+			}
 			if serviceName == "" {
 				serviceName = "tunnel-agent"
 			}
+			agentCfg.ServiceName = serviceName
 
 			serviceVersion := version.Version()
 			if serviceVersion == "" {
 				serviceVersion = "dev"
 			}
+			agentCfg.ServiceVersion = serviceVersion
 
-			agentCfg := &tunnel.AgentConfig{
-				GatewayAddr:    gatewayAddr,
-				Transport:      tunnel.TransportYamux,
-				ServiceName:    serviceName,
-				ServiceVersion: serviceVersion,
-				Metadata: tunnel.ApplyAuthTokenMetadata(map[string]string{
-					"instance": os.Getenv("HOSTNAME"),
-				}, authToken),
+			if agentCfg.Metadata == nil {
+				agentCfg.Metadata = map[string]string{}
 			}
-			agentCfg.TLS.ApplyEnv()
-			agent := tunnelagent.New(agentCfg)
+			if agentCfg.Metadata["instance"] == "" {
+				agentCfg.Metadata["instance"] = os.Getenv("HOSTNAME")
+			}
+			agentCfg.Normalize()
+
+			agent := tunnelagent.New(&agentCfg)
 
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Lifecycle
@@ -85,11 +95,15 @@ func newAgentCommand(di *dix.Dix) *redant.Command {
 				log.Info().Str("peer_id", peerID).Msg("P2P enabled on tunnel agent")
 			}
 
+			if authToken == "" {
+				log.Warn().Msg("TUNNEL_AUTH_TOKEN not set: agent registration may be rejected when gateway requires auth")
+			}
+
 			debugAddr := envOr("TUNNEL_ADMIN_ADDR", ":6067")
 			assert.Exit(manager.Add(newDebugServer(debugAddr)))
 
 			log.Info().
-				Str("gateway", gatewayAddr).
+				Str("gateway", agentCfg.GatewayAddr).
 				Str("service", serviceName).
 				Str("peer_id", peerID).
 				Str("admin_addr", debugAddr).

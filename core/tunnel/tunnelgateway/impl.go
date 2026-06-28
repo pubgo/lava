@@ -97,6 +97,7 @@ type tunnelGateway struct {
 	peerByAgent  map[string]string
 	status       tunnel.GatewayStatus
 	authProvider tunnel.AuthProvider
+	metrics      *tunnel.MetricsRecorder
 	rateLimiter  *ratelimit.Limiter
 	p2pSignalLimiter   *ratelimit.Limiter
 	p2pRegisterLimiter *ratelimit.Limiter
@@ -116,6 +117,11 @@ type tunnelGateway struct {
 // SetAuthProvider 设置认证提供者
 func (g *tunnelGateway) SetAuthProvider(auth tunnel.AuthProvider) {
 	g.authProvider = auth
+}
+
+// SetMetricsRecorder 绑定可选 metrics 记录器。
+func (g *tunnelGateway) SetMetricsRecorder(m *tunnel.MetricsRecorder) {
+	g.metrics = m
 }
 
 func (g *tunnelGateway) Start(ctx context.Context) error {
@@ -223,13 +229,20 @@ func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) htt
 		}
 		switch strings.TrimSuffix(path, "/") {
 		case "/p2p/peers":
+			if err := g.authorizeClient("", tunnel.ClientTokenFromRequest(r)); err != nil {
+				writeAuthError(w)
+				return
+			}
 			g.handlePeerList(w, r)
 			return
 		}
 
 		parts := strings.SplitN(path[1:], "/", 2)
 		if len(parts) == 0 || parts[0] == "" {
-			// 没有指定服务名，返回服务列表
+			if err := g.authorizeClient("", tunnel.ClientTokenFromRequest(r)); err != nil {
+				writeAuthError(w)
+				return
+			}
 			g.handleServiceList(w, r)
 			return
 		}
@@ -252,6 +265,11 @@ func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) htt
 
 		if svc.session == nil || svc.session.IsClosed() {
 			http.Error(w, fmt.Sprintf("service unavailable: %s", serviceName), http.StatusServiceUnavailable)
+			return
+		}
+
+		if err := g.authorizeClient(serviceName, tunnel.ClientTokenFromRequest(r)); err != nil {
+			writeAuthError(w)
 			return
 		}
 
@@ -317,8 +335,15 @@ func (g *tunnelGateway) proxyToAgent(w http.ResponseWriter, r *http.Request, svc
 	// 检查速率限制
 	if !g.rateLimiter.Allow(serviceName) {
 		log.Warn().Str("service", serviceName).Msg("Rate limit exceeded")
+		if g.metrics != nil {
+			g.metrics.ObserveRateLimited(serviceName)
+		}
 		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		return
+	}
+
+	if g.metrics != nil {
+		g.metrics.ObserveProxyRequest(serviceName, string(endpointType))
 	}
 
 	log.Debug().
@@ -778,7 +803,7 @@ func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, str
 	case tunnel.MessageTypeRegister:
 		g.handleRegister(agentID, session, msg)
 	case tunnel.MessageTypeDeregister:
-		g.handleDeregister(msg)
+		g.handleDeregister(agentID, msg)
 	case tunnel.MessageTypeHeartbeat:
 		g.handleHeartbeat(agentID)
 	case tunnel.MessageTypeP2PRegister:
@@ -821,12 +846,18 @@ func (g *tunnelGateway) handleRegister(agentID string, session tunnel.Session, m
 		session: session,
 		agent:   agentID,
 	}
+	registered := len(g.services)
 	g.mu.Unlock()
+
+	if g.metrics != nil {
+		g.metrics.ObserveRegister(service.Name)
+		g.metrics.SetRegisteredServices(registered)
+	}
 
 	log.Info().Str("service", service.Name).Str("agent", agentID).Msg("Service registered")
 }
 
-func (g *tunnelGateway) handleDeregister(msg *tunnel.Message) {
+func (g *tunnelGateway) handleDeregister(agentID string, msg *tunnel.Message) {
 	if len(msg.Payload) == 0 {
 		return
 	}
@@ -834,10 +865,23 @@ func (g *tunnelGateway) handleDeregister(msg *tunnel.Message) {
 	serviceName := string(msg.Payload)
 
 	g.mu.Lock()
-	delete(g.services, serviceName)
-	g.mu.Unlock()
+	defer g.mu.Unlock()
 
-	log.Info().Str("service", serviceName).Msg("Service deregistered")
+	svc, ok := g.services[serviceName]
+	if !ok {
+		return
+	}
+	if svc.agent != agentID {
+		log.Warn().
+			Str("service", serviceName).
+			Str("agent", agentID).
+			Str("owner", svc.agent).
+			Msg("Deregister: rejected (agent mismatch)")
+		return
+	}
+	delete(g.services, serviceName)
+
+	log.Info().Str("service", serviceName).Str("agent", agentID).Msg("Service deregistered")
 }
 
 func (g *tunnelGateway) handleHeartbeat(agentID string) {

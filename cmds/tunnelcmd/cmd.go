@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"sync/atomic"
 
 	"github.com/gofiber/fiber/v3"
@@ -143,6 +144,13 @@ func (s *debugServerService) Metric() *supervisor.Metric {
 func newDebugServer(addr string) *debugServerService {
 	app := fiber.New()
 
+	adminToken := tunnel.AdminTokenFromEnv()
+	if adminToken != "" {
+		app.Use(adminAuthMiddleware(adminToken))
+	} else if !strings.HasPrefix(addr, "127.0.0.1:") && !strings.HasPrefix(addr, "localhost:") {
+		log.Warn().Str("addr", addr).Msg("TUNNEL_ADMIN_TOKEN not set: admin UI is unauthenticated")
+	}
+
 	// 挂载 debug 路由
 	app.Use("/debug", debug.App())
 
@@ -181,46 +189,28 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 		Use:   "gateway",
 		Short: cliutil.UsageDesc("tunnel gateway service %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
-			// 设置默认值（直接从环境变量读取，不依赖配置文件）
-			tunnelCfg := &TunnelConfig{
-				ListenAddr: ":7007",
-				HTTPPort:   8888,
-				GRPCPort:   9999,
-				DebugPort:  6066,
+			gwCfg := tunnel.GatewayConfigFromEnv()
+			// CLI 历史默认与 DefaultGatewayConfig 不同，保持兼容
+			if os.Getenv("TUNNEL_HTTP_PORT") == "" {
+				gwCfg.HTTPPort = 8888
 			}
+			if os.Getenv("TUNNEL_GRPC_PORT") == "" {
+				gwCfg.GRPCPort = 9999
+			}
+			if os.Getenv("TUNNEL_DEBUG_PORT") == "" {
+				gwCfg.DebugPort = 6066
+			}
+			gwCfg.Transport = tunnel.TransportYamux
+			gwCfg.Normalize()
 
-			// 环境变量覆盖
-			if addr := os.Getenv("TUNNEL_LISTEN_ADDR"); addr != "" {
-				tunnelCfg.ListenAddr = addr
+			gateway := tunnelgateway.NewGateway(&gwCfg)
+			authToken := tunnel.AuthTokenFromEnv()
+			if authToken == "" {
+				log.Warn().Msg("TUNNEL_AUTH_TOKEN not set: any agent may register; HTTP/gRPC/debug proxies remain unauthenticated")
+			} else {
+				log.Info().Msg("Proxy authentication enabled: clients must send Authorization: Bearer or X-Tunnel-Token")
 			}
-			if port := os.Getenv("TUNNEL_HTTP_PORT"); port != "" {
-				if p, err := parsePort(port); err == nil {
-					tunnelCfg.HTTPPort = p
-				}
-			}
-			if port := os.Getenv("TUNNEL_GRPC_PORT"); port != "" {
-				if p, err := parsePort(port); err == nil {
-					tunnelCfg.GRPCPort = p
-				}
-			}
-			if port := os.Getenv("TUNNEL_DEBUG_PORT"); port != "" {
-				if p, err := parsePort(port); err == nil {
-					tunnelCfg.DebugPort = p
-				}
-			}
-
-			// 创建 Gateway（实际启动交由 supervisor 生命周期统一管理，避免重复 Start）
-			gwCfg := &tunnel.GatewayConfig{
-				ListenAddr: tunnelCfg.ListenAddr,
-				Transport:  tunnel.TransportYamux,
-				HTTPPort:   tunnelCfg.HTTPPort,
-				GRPCPort:   tunnelCfg.GRPCPort,
-				DebugPort:  tunnelCfg.DebugPort,
-			}
-			gwCfg.TLS.ApplyEnv()
-
-			gateway := tunnelgateway.NewGateway(gwCfg)
-			if err := tunnel.ConfigureGatewayAuth(gateway, os.Getenv("TUNNEL_AUTH_TOKEN")); err != nil {
+			if err := tunnel.ConfigureGatewayAuth(gateway, authToken); err != nil {
 				return err
 			}
 
@@ -253,12 +243,12 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 			}
 
 			log.Info().
-				Str("listen_addr", tunnelCfg.ListenAddr).
-				Int("http_port", tunnelCfg.HTTPPort).
-				Int("grpc_port", tunnelCfg.GRPCPort).
-				Int("debug_port", tunnelCfg.DebugPort).
+				Str("listen_addr", gwCfg.ListenAddr).
+				Int("http_port", gwCfg.HTTPPort).
+				Int("grpc_port", gwCfg.GRPCPort).
+				Int("debug_port", gwCfg.DebugPort).
 				Str("admin_addr", debugAddr).
-				Bool("auth_enabled", os.Getenv("TUNNEL_AUTH_TOKEN") != "").
+				Bool("auth_enabled", authToken != "").
 				Bool("tls_enabled", gwCfg.TransportOptions != nil && gwCfg.TransportOptions.EnableTLS).
 				Msg("Starting Tunnel Gateway")
 

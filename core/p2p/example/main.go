@@ -28,12 +28,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pubgo/lava/v2/core/lifecycle/lifecyclebuilder"
 	"github.com/pubgo/lava/v2/core/p2p"
 	"github.com/pubgo/lava/v2/core/p2p/p2pbuilder"
 	"github.com/pubgo/lava/v2/core/p2p/signaling"
 	"github.com/pubgo/lava/v2/core/tunnel"
-	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 )
@@ -325,43 +323,18 @@ func runPeer(ctx context.Context, id, remote string) {
 }
 
 func startPeerStack(ctx context.Context, gwAddr, id string, listen bool) (p2p.Coordinator, func(), error) {
-	agent := tunnelagent.New(&tunnel.AgentConfig{
-		GatewayAddr: gwAddr,
-		Transport:   tunnel.TransportYamux,
-		ServiceName: "p2p-" + id,
-		Metadata:    tunnel.ApplyAuthTokenMetadata(nil, *authToken),
-	})
-	if err := agent.Start(ctx); err != nil {
-		return nil, nil, err
-	}
-
-	lc := lifecyclebuilder.New(nil)
 	cfg := p2pCfg()
-	coord, err := p2pbuilder.New(p2pbuilder.Params{
-		LC:            lc.Setter,
-		Agent:         agent,
+	node, err := p2pbuilder.Standalone(ctx, p2pbuilder.StandaloneOptions{
+		GatewayAddr:   gwAddr,
 		PeerID:        id,
+		AuthToken:     *authToken,
 		ListenOnStart: listen,
 		Config:        &cfg,
 	})
 	if err != nil {
-		_ = agent.Stop(ctx)
 		return nil, nil, err
 	}
-	for _, hook := range lc.Getter.GetAfterStarts() {
-		if err := hook.Exec(ctx); err != nil {
-			_ = agent.Stop(ctx)
-			return nil, nil, err
-		}
-	}
-
-	stop := func() {
-		for _, hook := range lc.Getter.GetBeforeStops() {
-			_ = hook.Exec(ctx)
-		}
-		_ = agent.Stop(context.Background())
-	}
-	return coord, stop, nil
+	return node.Coordinator, func() { _ = node.Close() }, nil
 }
 
 func exchangeStream(ctx context.Context, a, b p2p.PeerConn, payload []byte) (string, error) {

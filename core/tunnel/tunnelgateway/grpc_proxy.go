@@ -15,9 +15,8 @@ import (
 )
 
 const (
-	// grpcRoutePrefix 是 gRPC 代理连接的路由前缀，格式为 "TUNNEL <service-name>\n"。
-	// 客户端在发送 gRPC/HTTP2 流量前须先写入该行以指定目标服务。
-	grpcRoutePrefix = "TUNNEL "
+	// grpcRoutePrefix 保留别名，实际逻辑见 tunnel.GRPCRoutePrefix。
+	grpcRoutePrefix = tunnel.GRPCRoutePrefix
 )
 
 // startGRPCProxy 在 GRPCPort 上监听 TCP 连接，按路由前缀转发到对应 Agent 的 gRPC 端点。
@@ -81,14 +80,29 @@ func (g *tunnelGateway) handleGRPCConnection(conn net.Conn) {
 	}
 
 	line = strings.TrimSpace(line)
-	if !strings.HasPrefix(line, grpcRoutePrefix) {
+	serviceName, ok := tunnel.ParseGRPCRouteLine(line)
+	if !ok {
 		log.Warn().Str("line", line).Msg("GRPC proxy: invalid routing line, expected TUNNEL <service>")
 		return
 	}
 
-	serviceName := strings.TrimSpace(strings.TrimPrefix(line, grpcRoutePrefix))
-	if serviceName == "" {
-		log.Warn().Msg("GRPC proxy: empty service name in routing line")
+	token := ""
+	if g.authProvider != nil {
+		authLine, err := reader.ReadString('\n')
+		if err != nil {
+			log.Warn().Err(err).Str("service", serviceName).Msg("GRPC proxy: failed to read auth line")
+			return
+		}
+		var authOK bool
+		token, authOK = tunnel.ParseGRPCAuthLine(authLine)
+		if !authOK {
+			log.Warn().Str("service", serviceName).Msg("GRPC proxy: missing or invalid auth line")
+			return
+		}
+	}
+
+	if err := g.authorizeClient(serviceName, token); err != nil {
+		log.Warn().Err(err).Str("service", serviceName).Msg("GRPC proxy: unauthorized")
 		return
 	}
 
