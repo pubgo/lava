@@ -1,36 +1,50 @@
-// Package gateway 提供 gRPC Gateway 功能，实现 HTTP/JSON 到 gRPC 的协议转换。
+// Package gateway 提供多协议 gRPC Gateway 功能，实现 HTTP/JSON、gRPC-Web、
+// WebSocket 等上层协议到底层 gRPC handler 的统一调度。
 //
-// Gateway 基于 Google API HTTP Annotation 规范，支持：
+// # 分层架构
+//
+// Gateway 借鉴 connectrpc/vanguard-go 的思想，将请求处理分为三层：
+//
+//   - 前端协议层 Frontend：httpFrontend（HTTP/REST + gRPC-Web，基于 Fiber）、
+//     wsFrontend（WebSocket，基于 coder/websocket + net/http）。每个前端把请求
+//     归一化为 grpc.ServerStream。
+//   - 核心调度层 Dispatcher：统一处理 unary / server-stream / client-stream /
+//     bidi 四种流模式，对接前端流与后端连接。
+//   - 后端 gRPC 层 Backend：Mux 实现 grpc.ClientConnInterface，通过 inprocgrpc
+//     进程内通道调用本地 handler，或经 remoteProxyCli 转发到远程服务。
+//
+// 底层 gRPC handler 注册一次（RegisterService / RegisterProxy），即可被多种
+// 上层协议前端复用。
+//
+// # 能力
+//
 //   - HTTP Rule 解析：支持 google.api.http 注解，自动解析 RESTful 路径模板
 //   - 协议转换：HTTP/JSON ↔ gRPC/Protobuf 双向自动转换
 //   - 路由匹配：支持精确匹配、* 单段通配符、** 多段通配符、动词 (:verb)
 //   - 服务注册：支持本地服务 (RegisterService) 和代理服务 (RegisterProxy)
 //   - 中间件：Unary 和 Stream 拦截器
-//   - 多种流类型：HTTP、WebSocket、进程内、代理
+//   - 多协议前端：HTTP/REST、gRPC-Web、WebSocket
 //   - gRPC Web 支持：支持 application/grpc-web 和 application/grpc-web-text 内容类型
 //
-// 基本用法:
+// # 基本用法
 //
 //	mux := gateway.NewMux()
 //	mux.RegisterService(&pb.MyService_ServiceDesc, &myServiceImpl{})
-//	app.Use("/api", mux.Handler)
+//	app.Use("/api", mux.Handler) // Fiber：HTTP/REST + gRPC-Web
 //
-// gRPC Web 用法:
+// # WebSocket 用法
 //
-//	mux := gateway.NewMux()
-//	mux.RegisterService(&pb.MyService_ServiceDesc, &myServiceImpl{})
-//	http.ListenAndServe(":8080", mux)
+// WebSocket 前端基于 coder/websocket，必须运行在标准 net/http 栈上：
 //
-// 浏览器可以通过 gRPC Web 协议调用 gRPC 服务。
+//	wsHandler := mux.WebSocketHandler(gateway.WithWSOriginPatterns("example.com"))
+//	http.ListenAndServe(":8081", wsHandler)
 //
-// 参考资料:
+// # 参考资料
+//
+//   - https://github.com/connectrpc/vanguard-go
 //   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api
 //   - https://google.aip.dev/123
 //   - https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-WEB.md
-//
-// 参考资料:
-//   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api
-//   - https://google.aip.dev/123
 package gateway
 
 // 相关项目参考:

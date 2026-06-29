@@ -259,8 +259,12 @@ go run ./internal/examples/grpcweb/
 open http://localhost:8080/
 ```
 
-## 当前限制
+## 流式支持
 
-- ✅ 已支持 Unary 与 **服务端响应流（Server Streaming）**
-- ⏳ 暂不支持客户端流（Client Streaming）与双向流（Bidi Streaming）
-- ⏳ 暂不支持 WebSocket 升级
+gRPC-Web 前端复用统一的 `Dispatcher`：
+
+- ✅ Unary
+- ✅ 服务端响应流（Server Streaming）
+- ⚠️ 客户端流 / 双向流（Client / Bidi Streaming）：受 gRPC-Web 协议本身限制，浏览器侧难以原生支持上行流。若需要完整双向流能力，请改用 [WebSocket 前端](websocket.md)（基于同一套后端 handler）。
+
+> 注意：`Dispatcher` 在调度层已实现四种流模式，gRPC-Web 的客户端流/双向流限制来自浏览器与 gRPC-Web 协议，而非 Gateway 调度能力。

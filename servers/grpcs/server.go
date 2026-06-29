@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/assert"
@@ -66,6 +68,7 @@ func newService(params Params) supervisor.Service {
 type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
+	wsServer   *http.Server
 	log        log.Logger
 	conf       *Config
 }
@@ -195,18 +198,26 @@ func (s *serviceImpl) init(
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
-	// grpc server初始化
-	grpcServer := conf.GrpcConfig.Build(
+	grpcServerOpts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 		grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
-	).Expect("failed to build grpc server")
-
-	for _, h := range grpcRouters {
-		grpcServer.RegisterService(h.ServiceDesc(), h)
+	}
+	if conf.GRPCPassthrough {
+		grpcServerOpts = mux.GRPCServerOptions(grpcServerOpts...)
+		log.Info().Msg("gateway grpc passthrough enabled: register services on Mux only")
 	}
 
-	for _, h := range grpcHttpRouters {
-		grpcServer.RegisterService(h.ServiceDesc(), h)
+	// grpc server初始化
+	grpcServer := conf.GrpcConfig.Build(grpcServerOpts...).Expect("failed to build grpc server")
+
+	if !conf.GRPCPassthrough {
+		for _, h := range grpcRouters {
+			grpcServer.RegisterService(h.ServiceDesc(), h)
+		}
+
+		for _, h := range grpcHttpRouters {
+			grpcServer.RegisterService(h.ServiceDesc(), h)
+		}
 	}
 
 	//for _, h := range grpcProxy {
@@ -233,6 +244,20 @@ func (s *serviceImpl) init(
 	httpServer.Use(grpcGatewayApiPrefix, func(ctx fiber.Ctx) error {
 		return httputil.StripPrefix(grpcGatewayApiPrefix, mux.Handler)(ctx)
 	})
+
+	if conf.WebSocketPort > 0 {
+		wsOpts := gateway.WSOptionsFromConfig(gateway.WSConfig{
+			OriginPatterns:     conf.WebSocketOriginPatterns,
+			InsecureSkipVerify: conf.WebSocketInsecureSkipVerify || len(conf.WebSocketOriginPatterns) == 0,
+		})
+		wsHandler := mux.WebSocketHandler(wsOpts...)
+		s.wsServer = &http.Server{
+			Addr:              fmt.Sprintf(":%d", conf.WebSocketPort),
+			Handler:           wsHandler,
+			ReadHeaderTimeout: 10 * time.Second,
+		}
+		log.Info().Int64("port", conf.WebSocketPort).Msg("gateway websocket server enabled")
+	}
 
 	s.log = log
 	s.httpServer = httpServer
@@ -281,6 +306,19 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 		return err
 	})
 
+	if s.wsServer != nil {
+		wsLn := assert.Exit1(net.Listen("tcp", s.wsServer.Addr))
+		async.GoDelay(func() error {
+			s.log.Info().Str("addr", s.wsServer.Addr).Msg("websocket server starting")
+			defer recovery.DebugPrint()
+			err := s.wsServer.Serve(wsLn)
+			if netutil.IsErrServerClosed(err) {
+				return nil
+			}
+			return err
+		})
+	}
+
 	return nil
 }
 
@@ -299,4 +337,14 @@ func (s *serviceImpl) stop(ctx context.Context) {
 		}
 		return err
 	})
+
+	if s.wsServer != nil {
+		logutil.LogOrErr(s.log, "websocket server shutdown", func() error {
+			err := s.wsServer.Shutdown(ctx)
+			if netutil.IsErrServerClosed(err) {
+				return nil
+			}
+			return err
+		})
+	}
 }

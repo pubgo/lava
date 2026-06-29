@@ -101,6 +101,28 @@ curl -X POST http://localhost:8080/v1/users \
   -d '{"user": {"name": "Jane", "email": "jane@example.com"}}'
 ```
 
+## 多协议前端
+
+底层 gRPC handler 注册一次后，可同时挂载多种协议前端（详见[架构设计](architecture.md)）：
+
+```go
+mux := gateway.NewMux()
+mux.RegisterService(&pb.UserService_ServiceDesc, &userServiceImpl{})
+
+// 前端 1：HTTP/REST + gRPC-Web（Fiber/fasthttp）
+app := fiber.New()
+app.All("/api/*", mux.Handler)
+
+// 前端 2：WebSocket（coder/websocket，必须用 net/http）
+go http.ListenAndServe(":8081", mux.WebSocketHandler())
+```
+
+| 前端 | 入口 | 运行栈 | 说明 |
+| --- | --- | --- | --- |
+| HTTP/REST | `mux.Handler` | Fiber/fasthttp | RESTful + 普通 JSON |
+| gRPC-Web | `mux.Handler` | Fiber/fasthttp | 浏览器 gRPC，详见 [gRPC Web](grpcweb.md) |
+| WebSocket | `mux.WebSocketHandler()` | net/http | 双向流，详见 [WebSocket](websocket.md) |
+
 ## 服务注册
 
 ### 本地服务

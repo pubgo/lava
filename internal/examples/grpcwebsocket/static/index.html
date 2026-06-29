@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gateway WebSocket Example</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, -apple-system, sans-serif; }
+    body { max-width: 760px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    label { display: block; margin: 0.5rem 0 0.25rem; font-weight: 600; }
+    input, select, button { font: inherit; padding: 0.4rem 0.6rem; }
+    input, select { width: 100%; box-sizing: border-box; }
+    .row { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+    button { cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    pre {
+      background: #111; color: #eee; padding: 1rem; border-radius: 8px;
+      overflow: auto; min-height: 10rem; white-space: pre-wrap; word-break: break-word;
+    }
+    .hint { color: #666; font-size: 0.9rem; }
+    .chat-box { display: none; margin-top: 1rem; }
+    .chat-box.active { display: block; }
+  </style>
+</head>
+<body>
+  <h1>Gateway WebSocket Example</h1>
+  <p class="hint">Unary / Server-Stream / Bidi 三种流模式演示。Chat 为双向流：可连续发送多条消息。</p>
+
+  <label for="method">Method</label>
+  <select id="method">
+    <option value="/grpcweb.example.v1.GreeterService/SayHello">SayHello (unary)</option>
+    <option value="/grpcweb.example.v1.GreeterService/SayGoodbye">SayGoodbye (unary)</option>
+    <option value="/grpcweb.example.v1.GreeterService/WatchHello">WatchHello (server-stream)</option>
+    <option value="/grpcweb.example.v1.GreeterService/Chat">Chat (bidi)</option>
+  </select>
+
+  <label for="name">Name / payload</label>
+  <input id="name" value="World" />
+
+  <label for="count">Stream count (WatchHello)</label>
+  <input id="count" type="number" min="1" max="20" value="5" />
+
+  <label for="wsUrl">WebSocket URL</label>
+  <input id="wsUrl" value="ws://localhost:8081/grpcweb.example.v1.GreeterService/SayHello" />
+
+  <div class="row">
+    <button id="callBtn">Call (unary / stream)</button>
+    <button id="clearBtn" type="button">Clear log</button>
+  </div>
+
+  <div id="chatBox" class="chat-box">
+    <label for="chatInput">Chat message (send "bye" to end)</label>
+    <div class="row">
+      <input id="chatInput" placeholder="type a message..." />
+      <button id="sendBtn" disabled>Send</button>
+      <button id="closeChatBtn" disabled>Close chat</button>
+    </div>
+  </div>
+
+  <h2>Log</h2>
+  <pre id="log"></pre>
+
+  <script>
+    const logEl = document.getElementById("log");
+    const methodEl = document.getElementById("method");
+    const nameEl = document.getElementById("name");
+    const countEl = document.getElementById("count");
+    const wsUrlEl = document.getElementById("wsUrl");
+    const chatBox = document.getElementById("chatBox");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const closeChatBtn = document.getElementById("closeChatBtn");
+
+    let ws = null;
+    let frameCount = 0;
+
+    function mode() {
+      const m = methodEl.value;
+      if (m.endsWith("/Chat")) return "bidi";
+      if (m.endsWith("/WatchHello")) return "server-stream";
+      return "unary";
+    }
+
+    function appendLog(msg) {
+      logEl.textContent += msg + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function resetChatUI(active) {
+      chatBox.classList.toggle("active", active);
+      sendBtn.disabled = !active;
+      closeChatBtn.disabled = !active;
+      document.getElementById("callBtn").disabled = active;
+    }
+
+    methodEl.addEventListener("change", () => {
+      wsUrlEl.value = "ws://localhost:8081" + methodEl.value;
+      resetChatUI(false);
+      if (ws) { ws.close(); ws = null; }
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      logEl.textContent = "";
+    });
+
+    function connectWS(url) {
+      frameCount = 0;
+      ws = new WebSocket(url, ["grpc-ws-json"]);
+      ws.onopen = () => appendLog("--- open");
+      ws.onmessage = (ev) => {
+        frameCount++;
+        appendLog("<<< frame #" + frameCount + " " + ev.data);
+        if (mode() === "unary") ws.close();
+      };
+      ws.onerror = () => appendLog("!!! error");
+      ws.onclose = (ev) => {
+        appendLog("--- close code=" + ev.code + " reason=" + (ev.reason || "") + " frames=" + frameCount);
+        resetChatUI(false);
+        ws = null;
+      };
+      return ws;
+    }
+
+    document.getElementById("callBtn").addEventListener("click", () => {
+      const url = wsUrlEl.value.trim();
+      const m = mode();
+      if (m === "bidi") {
+        appendLog(">>> use Chat panel below for bidi");
+        return;
+      }
+      const name = nameEl.value.trim() || "World";
+      const payload = m === "server-stream"
+        ? JSON.stringify({ name, count: Number(countEl.value) || 5 })
+        : JSON.stringify({ name });
+
+      appendLog(">>> connecting " + url);
+      appendLog(">>> send " + payload);
+      const conn = connectWS(url);
+      conn.addEventListener("open", () => conn.send(payload), { once: true });
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        const url = wsUrlEl.value.trim();
+        appendLog(">>> connecting chat " + url);
+        ws = connectWS(url);
+        ws.addEventListener("open", () => {
+          appendLog(">>> send " + JSON.stringify({ text }));
+          ws.send(JSON.stringify({ text }));
+          chatInput.value = "";
+        }, { once: true });
+        resetChatUI(true);
+        return;
+      }
+      appendLog(">>> send " + JSON.stringify({ text }));
+      ws.send(JSON.stringify({ text }));
+      chatInput.value = "";
+    });
+
+    closeChatBtn.addEventListener("click", () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        appendLog(">>> send bye");
+        ws.send(JSON.stringify({ text: "bye" }));
+        setTimeout(() => ws.close(), 300);
+      }
+    });
+
+    methodEl.dispatchEvent(new Event("change"));
+  </script>
+</body>
+</html>
