@@ -1,0 +1,67 @@
+# Traefik 动态配置（dynamic.yml）
+#
+# lava gateway 暴露三类性质不同的入站协议，必须分别路由：
+#
+#   | 后端                | scheme | 说明                         |
+#   | ------------------- | ------ | ---------------------------- |
+#   | HTTP/REST + gRPC-Web| http   | 普通 HTTP/1.1（gRPC-Web 是 POST）|
+#   | WebSocket           | http   | HTTP/1.1 Upgrade，Traefik 自动转发 |
+#   | 原生 gRPC           | h2c    | 明文 HTTP/2，必须用 h2c        |
+#
+# 把下面的 gateway 主机名/端口换成你的实际后端地址。
+
+http:
+  routers:
+    # ---- HTTP/REST + gRPC-Web ----
+    # grpcs 默认把 REST 挂在 /api 前缀（StripPrefix("/api", mux.Handler)）；
+    # gRPC-Web 走 /<package>.<service>/<method> 形式的路径。
+    gw-http:
+      rule: "Host(`api.example.com`)"
+      entryPoints: [websecure]
+      service: gw-http
+      tls:
+        certResolver: le
+
+    # ---- WebSocket ----
+    # Traefik 自动透传 Upgrade/Connection 头，无需额外中间件。
+    gw-ws:
+      rule: "Host(`ws.example.com`)"
+      entryPoints: [websecure]
+      service: gw-ws
+      tls:
+        certResolver: le
+
+    # ---- 原生 gRPC ----
+    gw-grpc:
+      rule: "Host(`grpc.example.com`)"
+      entryPoints: [websecure]
+      service: gw-grpc
+      tls:
+        certResolver: le
+
+  services:
+    gw-http:
+      loadBalancer:
+        servers:
+          - url: "http://gateway:8080"
+        passHostHeader: true
+
+    gw-ws:
+      loadBalancer:
+        servers:
+          - url: "http://gateway:8081"
+        passHostHeader: true
+
+    gw-grpc:
+      loadBalancer:
+        servers:
+          # h2c = 明文 HTTP/2，gRPC 回源必须用它，否则会降级到 HTTP/1.1 而失败
+          - url: "h2c://gateway:50051"
+
+  # 可选中间件示例：如果后端 REST 不想要 /api 前缀，可在边缘 strip。
+  # 注意：不要和 grpcs 里的 StripPrefix("/api") 重复 strip，二选一。
+  middlewares:
+    strip-api:
+      stripPrefix:
+        prefixes:
+          - "/api"
