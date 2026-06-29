@@ -99,7 +99,7 @@ type Operation struct {
 pkg/gateway/
 ├── mux.go              # 核心路由器 Mux，实现 Gateway 接口与 Backend
 ├── core.go             # 核心抽象：Backend / FrontendStream / Operation / Dispatcher
-├── dispatcher.go       # 统一调度泵：unary/server/client/bidi 四种流模式
+├── dispatcher.go       # 统一调度泵：DispatchFrontend 入口 + unary/server/client/bidi 四种流模式 + bidi 双向泵
 ├── frontend_http.go    # HTTP/REST + gRPC-Web 前端（Fiber/fasthttp）
 ├── frontend_ws.go      # WebSocket 前端（coder/websocket, net/http）
 ├── frontend_grpc.go    # Native gRPC 透传（UnknownServiceHandler）
@@ -114,7 +114,7 @@ pkg/gateway/
 ├── stream.http.go      # HTTP / gRPC-Web 流实现（streamHTTP）
 ├── stream.grpcweb.go   # gRPC Web 帧写入器（fiberWebWriter）
 ├── stream.websocket.go # WebSocket 流实现（streamWS，实现 grpc.ServerStream）
-├── stream.proxy.go     # 双向代理泵（forwardServerToClient/ClientToServer）
+├── stream.proxy.go     # 透明代理泵 TransparentHandler（独立代理场景；bidi 调度已改用 dispatcher.go 的 pump）
 ├── context.go          # 上下文和元数据管理
 ├── util.go             # 工具函数（HTTP Rule 解析、元数据转换等）
 ├── fieldmask.go        # FieldMask 支持
