@@ -67,6 +67,12 @@ ws.onclose = (event) => {
 
 请求路径被解释为 gRPC 全方法名 `/<package>.<service>/<method>`，直接在已注册 handler 中查找。若直查未命中，会回退到 `routerTree` 的 REST 风格路由匹配（此时路径变量与查询参数会合并进首个请求消息）。
 
+WebSocket 握手使用 **GET**，而 `google.api.http` 路由常为 **POST**。回退匹配时会依次尝试 GET、POST、PUT、PATCH、DELETE；也可显式指定：
+
+```
+ws://localhost:8081/v1/greeter/hello?http_method=POST
+```
+
 ### 编码格式
 
 | 选择方式 | 值 | 编码 | WebSocket 帧类型 |
@@ -151,13 +157,32 @@ mux.WebSocketHandler(gateway.WSOptionsFromConfig(gateway.WSConfig{
 
 服务端会使用同一个 `gateway.Mux` 实例，已注册的 gRPC handler 自动可被 WebSocket 客户端调用。
 
+### Origin 校验（生产环境）
+
+| 配置 | 行为 |
+| --- | --- |
+| 未配置 `websocket_origin_patterns` 且 `websocket_insecure_skip_verify: false` | **开发默认**：跳过 Origin 校验，启动时输出 WARN 日志 |
+| 配置 `websocket_origin_patterns` | 仅允许匹配的 Origin（推荐生产环境） |
+| `websocket_insecure_skip_verify: true` | 显式关闭校验，仅用于本地调试 |
+
+生产环境务必配置 `websocket_origin_patterns`，例如：
+
+```yaml
+grpc_server:
+  websocket_port: 8081
+  websocket_origin_patterns:
+    - "example.com"
+    - "*.example.com"
+```
+
 ## 完整示例
 
 参见 `internal/examples/grpcwebsocket/` 目录：
 
 ```
 internal/examples/grpcwebsocket/
-├── main.go           # Go 服务端：Fiber(8080) + WebSocket net/http(8081)
+├── main.go           # Go 服务端：Fiber(8080) + WebSocket net/http(8081) + gRPC(50051)
+├── verify/main.go    # 自动化验证（需先启动 main）
 └── static/
     └── index.html    # 浏览器测试页
 ```
@@ -167,6 +192,9 @@ internal/examples/grpcwebsocket/
 ```bash
 go run ./internal/examples/grpcwebsocket/
 open http://localhost:8080/
+
+# 另开终端，自动化验证全部前端
+go run ./internal/examples/grpcwebsocket/verify/
 ```
 
 WebSocket 端点示例：

@@ -44,6 +44,8 @@ grpc_server:
 
 开启后，`servers/grpcs` 仅在 `Mux` 上注册服务，gRPC 端口上的原生客户端与 HTTP/WS 前端共享同一套 handler。
 
+> **默认值**：`grpc_passthrough` 默认为 `false`，保持与现有部署兼容（服务同时注册在 Mux 与外层 `grpc.Server`）。新部署若希望「RegisterService 一次、多协议复用」，建议显式设为 `true`。
+
 ## 与其他前端的关系
 
 | 前端 | 入口 | 注册方式 |

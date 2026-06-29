@@ -28,6 +28,8 @@ type Config struct {
 	// GRPCPassthrough enables native gRPC passthrough via Mux.UnknownServiceHandler.
 	// When true, register services only on gateway.Mux; the outer grpc.Server
 	// forwards all RPCs to the same backend used by HTTP/WebSocket frontends.
+	// Default is false for backward compatibility with existing deployments that
+	// register services on both Mux and grpc.Server.
 	GRPCPassthrough bool `yaml:"grpc_passthrough"`
 	// ZrpcURL enables the gateway NATS/zrpc frontend when non-empty (requires ZrpcQueue).
 	// Example: nats://127.0.0.1:4222

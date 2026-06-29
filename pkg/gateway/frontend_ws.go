@@ -156,22 +156,56 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	}
 
 	// Fall back to REST-style routing so HTTP-annotated paths also work over WS.
-	if match, err := f.mux.routerTree.Match(r.Method, path); err == nil {
+	// WebSocket handshakes use GET, but google.api.http routes are often POST;
+	// try the request method first, then common HTTP verbs.
+	if match, values, ok := f.matchRESTPath(r); ok {
 		if mth := f.mux.opts.handlers[match.Operation]; mth != nil {
-			values := make(url.Values)
-			for _, v := range match.Vars {
-				values.Set(strings.Join(v.Fields, "."), v.Value)
-			}
-			for k, vs := range r.URL.Query() {
-				for _, v := range vs {
-					values.Set(k, v)
-				}
-			}
 			return operationFromMethod(mth), mth, match, values
 		}
 	}
 
 	return nil, nil, nil, nil
+}
+
+func (f *wsFrontend) matchRESTPath(r *http.Request) (*MatchOperation, url.Values, bool) {
+	path := r.URL.Path
+	methods := []string{r.Method}
+	if override := strings.ToUpper(r.URL.Query().Get("http_method")); override != "" {
+		methods = []string{override}
+	} else if r.Method == http.MethodGet {
+		methods = append(methods, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete)
+	}
+
+	seen := make(map[string]struct{}, len(methods))
+	for _, method := range methods {
+		if _, dup := seen[method]; dup {
+			continue
+		}
+		seen[method] = struct{}{}
+
+		match, err := f.mux.routerTree.Match(method, path)
+		if err != nil {
+			continue
+		}
+		if f.mux.opts.handlers[match.Operation] == nil {
+			continue
+		}
+
+		values := make(url.Values)
+		for _, v := range match.Vars {
+			values.Set(strings.Join(v.Fields, "."), v.Value)
+		}
+		for k, vs := range r.URL.Query() {
+			if k == "http_method" || k == "encoding" {
+				continue
+			}
+			for _, v := range vs {
+				values.Set(k, v)
+			}
+		}
+		return match, values, true
+	}
+	return nil, nil, false
 }
 
 func resolveWSEncoding(r *http.Request, subprotocol string) wsEncoding {

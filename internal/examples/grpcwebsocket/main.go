@@ -14,6 +14,10 @@
 //  3. curl 无法直接测试 WS，请使用浏览器或 wscat
 //
 //  4. 原生 gRPC 客户端连接 localhost:50051（与 HTTP/WS 共享同一套 handler）
+//
+//  5. 自动化验证（需先启动本服务）:
+//
+//	go run ./internal/examples/grpcwebsocket/verify/
 package main
 
 import (

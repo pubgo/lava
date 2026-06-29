@@ -211,6 +211,8 @@ func (s *serviceImpl) init(
 	if conf.GRPCPassthrough {
 		grpcServerOpts = mux.GRPCServerOptions(grpcServerOpts...)
 		log.Info().Msg("gateway grpc passthrough enabled: register services on Mux only")
+	} else {
+		log.Debug().Msg("gateway grpc passthrough disabled: services registered on both Mux and grpc.Server (legacy mode)")
 	}
 
 	// grpc server初始化
@@ -256,6 +258,11 @@ func (s *serviceImpl) init(
 			OriginPatterns:     conf.WebSocketOriginPatterns,
 			InsecureSkipVerify: conf.WebSocketInsecureSkipVerify || len(conf.WebSocketOriginPatterns) == 0,
 		})
+		if len(conf.WebSocketOriginPatterns) == 0 && !conf.WebSocketInsecureSkipVerify {
+			log.Warn().
+				Int64("port", conf.WebSocketPort).
+				Msg("gateway websocket: no origin_patterns configured, skipping origin verification (development default; set websocket_origin_patterns in production)")
+		}
 		wsHandler := mux.WebSocketHandler(wsOpts...)
 		s.wsServer = &http.Server{
 			Addr:              fmt.Sprintf(":%d", conf.WebSocketPort),
