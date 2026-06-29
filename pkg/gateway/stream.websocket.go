@@ -34,6 +34,7 @@ type streamWS struct {
 	method   *methodWrapper
 	encoding wsEncoding
 
+	path    *MatchOperation
 	params  url.Values
 	header  metadata.MD
 	trailer metadata.MD
@@ -155,6 +156,7 @@ func (s *streamWS) RecvMsg(m any) error {
 	return nil
 }
 
-// pathOperation is currently nil for websocket streams (no REST body rules), but
-// kept as a hook so request/response body field descriptors can be wired later.
-func (s *streamWS) pathOperation() *MatchOperation { return nil }
+// pathOperation returns the matched REST operation, enabling request/response
+// body field mapping (body:"field" rules). It is nil for direct gRPC full-method
+// lookups, where the whole message is the request/response body.
+func (s *streamWS) pathOperation() *MatchOperation { return s.path }

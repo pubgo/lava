@@ -1,13 +1,16 @@
 package gateway
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/coder/websocket"
 	"github.com/pubgo/funk/v2/log"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 // WSOption configures the websocket frontend.
@@ -61,7 +64,7 @@ func (m *Mux) WebSocketHandler(opts ...WSOption) http.Handler {
 }
 
 func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	op, mth, params := f.resolveOperation(r)
+	op, mth, match, params := f.resolveOperation(r)
 	if op == nil {
 		http.Error(w, "method operation not found: "+r.URL.Path, http.StatusNotFound)
 		return
@@ -90,16 +93,53 @@ func (f *wsFrontend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx:      metadata.NewIncomingContext(r.Context(), md),
 		method:   mth,
 		encoding: enc,
+		path:     match,
 		params:   params,
 	}
 
 	if err = f.dispatch(stream, op); err != nil {
 		log.Err(err).Str("method", op.FullMethod).Msg("websocket dispatch failed")
-		_ = conn.Close(websocket.StatusInternalError, "dispatch failed")
+		closeWithStatus(conn, err)
 		return
 	}
 
-	_ = conn.Close(websocket.StatusNormalClosure, "")
+	closeWithStatus(conn, nil)
+}
+
+// closeWithStatus closes the websocket with a structured gRPC status carried in
+// the close frame: the close code is mapped from the gRPC code, and the reason
+// is a JSON object {"grpcStatus":N,"grpcMessage":"..."} so clients can recover
+// the gRPC status/message instead of relying on the close code alone.
+func closeWithStatus(conn *websocket.Conn, err error) {
+	st := status.Convert(err)
+	payload := struct {
+		GRPCStatus  uint32 `json:"grpcStatus"`
+		GRPCMessage string `json:"grpcMessage"`
+	}{
+		GRPCStatus:  uint32(st.Code()),
+		GRPCMessage: st.Message(),
+	}
+
+	reason := ""
+	if b, mErr := json.Marshal(payload); mErr == nil {
+		reason = string(b)
+	}
+	// WebSocket close reason is limited to 123 bytes.
+	if len(reason) > 123 {
+		reason = reason[:123]
+	}
+
+	_ = conn.Close(wsCloseCode(st.Code()), reason)
+}
+
+// wsCloseCode maps a gRPC code to a WebSocket close code. OK uses the normal
+// closure; all error codes use the internal-error code so existing clients that
+// only inspect the close code still observe a non-normal closure.
+func wsCloseCode(code codes.Code) websocket.StatusCode {
+	if code == codes.OK {
+		return websocket.StatusNormalClosure
+	}
+	return websocket.StatusInternalError
 }
 
 func (f *wsFrontend) dispatch(stream *streamWS, op *Operation) error {
@@ -121,12 +161,12 @@ func (f *wsFrontend) dispatch(stream *streamWS, op *Operation) error {
 	return err
 }
 
-func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapper, url.Values) {
+func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapper, *MatchOperation, url.Values) {
 	path := r.URL.Path
 
 	// Direct gRPC full-method lookup: /pkg.Service/Method
 	if mth := f.mux.opts.handlers[path]; mth != nil {
-		return operationFromMethod(mth), mth, nil
+		return operationFromMethod(mth), mth, nil, nil
 	}
 
 	// Fall back to REST-style routing so HTTP-annotated paths also work over WS.
@@ -141,11 +181,11 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 					values.Set(k, v)
 				}
 			}
-			return operationFromMethod(mth), mth, values
+			return operationFromMethod(mth), mth, match, values
 		}
 	}
 
-	return nil, nil, nil
+	return nil, nil, nil, nil
 }
 
 func resolveWSEncoding(r *http.Request, subprotocol string) wsEncoding {

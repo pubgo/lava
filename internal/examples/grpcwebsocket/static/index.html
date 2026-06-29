@@ -115,7 +115,15 @@
       };
       ws.onerror = () => appendLog("!!! error");
       ws.onclose = (ev) => {
-        appendLog("--- close code=" + ev.code + " reason=" + (ev.reason || "") + " frames=" + frameCount);
+        let status = "";
+        try {
+          const r = JSON.parse(ev.reason || "{}");
+          if (r.grpcStatus !== undefined) {
+            status = " grpc-status=" + r.grpcStatus +
+              (r.grpcMessage ? " grpc-message=\"" + r.grpcMessage + "\"" : "");
+          }
+        } catch (_) { /* non-JSON reason */ }
+        appendLog("--- close code=" + ev.code + status + " frames=" + frameCount);
         resetChatUI(false);
         ws = null;
       };
