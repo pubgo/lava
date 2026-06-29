@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/nats-io/nats.go"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/async"
 	"github.com/pubgo/funk/v2/buildinfo/version"
@@ -32,6 +33,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
+	"github.com/pubgo/lava/v2/pkg/zrpc"
 )
 
 type Params struct {
@@ -69,6 +71,10 @@ type serviceImpl struct {
 	httpServer *fiber.App
 	grpcServer *grpc.Server
 	wsServer   *http.Server
+	mux        *gateway.Mux
+	zrpcServer *zrpc.Server
+	natsConn   *nats.Conn
+	zrpcMW     []lava.Middleware
 	log        log.Logger
 	conf       *Config
 }
@@ -259,7 +265,18 @@ func (s *serviceImpl) init(
 		log.Info().Int64("port", conf.WebSocketPort).Msg("gateway websocket server enabled")
 	}
 
+	if conf.ZrpcURL != "" {
+		assert.If(conf.ZrpcQueue == "", "grpc_server.zrpc_queue is required when zrpc_url is set")
+		s.zrpcMW = globalMiddlewares
+		log.Info().
+			Str("url", conf.ZrpcURL).
+			Str("queue", conf.ZrpcQueue).
+			Str("subject_prefix", lo.Ternary(conf.ZrpcSubjectPrefix != "", conf.ZrpcSubjectPrefix, "svc.")).
+			Msg("gateway zrpc frontend enabled")
+	}
+
 	s.log = log
+	s.mux = mux
 	s.httpServer = httpServer
 	s.grpcServer = grpcServer
 
@@ -319,6 +336,27 @@ func (s *serviceImpl) start(ctx context.Context) (gErr error) {
 		})
 	}
 
+	if s.conf.ZrpcURL != "" {
+		nc, err := nats.Connect(s.conf.ZrpcURL)
+		if err != nil {
+			return fmt.Errorf("connect nats for gateway zrpc: %w", err)
+		}
+		s.natsConn = nc
+		s.zrpcServer = zrpc.NewServer(nc, s.zrpcMW...)
+		if err = s.mux.RegisterZrpc(s.zrpcServer, gateway.ZrpcConfig{
+			Queue:         s.conf.ZrpcQueue,
+			SubjectPrefix: s.conf.ZrpcSubjectPrefix,
+		}); err != nil {
+			s.stopZrpc()
+			return fmt.Errorf("register gateway zrpc: %w", err)
+		}
+		if err = nc.Flush(); err != nil {
+			s.stopZrpc()
+			return fmt.Errorf("flush nats for gateway zrpc: %w", err)
+		}
+		s.log.Info().Str("url", s.conf.ZrpcURL).Msg("gateway zrpc server started")
+	}
+
 	return nil
 }
 
@@ -346,5 +384,19 @@ func (s *serviceImpl) stop(ctx context.Context) {
 			}
 			return err
 		})
+	}
+
+	s.stopZrpc()
+}
+
+func (s *serviceImpl) stopZrpc() {
+	if s.zrpcServer != nil {
+		s.zrpcServer.Close()
+		s.zrpcServer = nil
+	}
+	if s.natsConn != nil {
+		s.log.Info().Str("url", s.conf.ZrpcURL).Msg("gateway zrpc server stopped")
+		s.natsConn.Close()
+		s.natsConn = nil
 	}
 }

@@ -6,7 +6,7 @@ Gateway 是一个 gRPC Gateway 实现，提供 HTTP/JSON 到 gRPC 的协议转�
 
 - **分层架构**：前端协议层（Frontend）/ 统一调度层（Dispatcher）/ 后端 gRPC 层（Backend）三层解耦，底层 gRPC handler 注册一次，多种协议前端复用
 - **统一调度**：`Dispatcher` 统一处理 Unary / Server-Stream / Client-Stream / Bidi 四种流模式
-- **多协议前端**：HTTP/REST、gRPC-Web、WebSocket（基于 coder/websocket）共享同一套后端 handler
+- **多协议前端**：HTTP/REST、gRPC-Web、WebSocket、Native gRPC、NATS/zrpc 共享同一套后端 handler
 - **HTTP Rule 解析**：支持 `google.api.http` 注解，自动解析 RESTful 路径模板
 - **协议转换**：自动处理 HTTP/JSON 与 gRPC/Protobuf 之间的双向转换
 - **gRPC Web 支持**：允许浏览器直接调用 gRPC 服务
@@ -22,7 +22,8 @@ Gateway 是一个 gRPC Gateway 实现，提供 HTTP/JSON 到 gRPC 的协议转�
   HTTP/REST                                                   inprocgrpc.Channel
   gRPC-Web          ──►   归一化为 grpc.ServerStream    ──►   （本地 handler）
   WebSocket                统一泵：unary/server/             remoteProxyCli
-  (NATS-RPC ...)           client/bidi 四种流模式             （远程代理）
+  Native gRPC              client/bidi 四种流模式             （远程代理）
+  NATS/zrpc
 ```
 
 设计灵感来自 [connectrpc/vanguard-go](https://github.com/connectrpc/vanguard-go)：所有前端协议最终归一化为 gRPC 语义的 `ServerStream`，由统一的 `Dispatcher` 对接后端，从而让「底层注册一次的 gRPC handler」服务于多种上层协议。详见 [架构设计](docs/architecture.md)。
@@ -100,6 +101,7 @@ curl -X POST http://localhost:8080/v1/users \
 | [gRPC Web](docs/grpcweb.md)      | 浏览器端 gRPC Web 集成                 |
 | [WebSocket](docs/websocket.md)   | 基于 coder/websocket 的 WebSocket 前端 |
 | [Native gRPC](docs/grpcnative.md) | 原生 gRPC 透传，RegisterService 一次多协议复用 |
+| [NATS/zrpc](docs/grpcnats.md)     | NATS 队列订阅前端，protobuf 帧               |
 | [架构设计](docs/architecture.md) | 分层架构、核心组件、调度流程           |
 | [实现细节](docs/internals.md)    | 路径解析、调度器、元数据转换、流式处理 |
 
@@ -113,6 +115,7 @@ curl -X POST http://localhost:8080/v1/users \
 | gRPC Web Text    | `application/grpc-web-text+proto` | 浏览器 gRPC (Base64)         |
 | WebSocket        | `Mux.WebSocketHandler()`          | net/http 监听，支持双向流    |
 | Native gRPC      | `Mux.GRPCServerOptions()`         | 标准 grpc.Server 透传        |
+| NATS/zrpc        | `Mux.RegisterZrpc()`              | NATS 队列订阅，protobuf 帧   |
 
 > 说明：HTTP/REST 与 gRPC-Web 前端运行在 Fiber/fasthttp 栈上（`Mux.Handler`）；WebSocket 前端基于 coder/websocket，必须运行在标准 `net/http` 栈上（`Mux.WebSocketHandler()`），详见 [WebSocket 文档](docs/websocket.md)。
 

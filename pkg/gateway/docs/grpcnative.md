@@ -38,6 +38,8 @@ grpcServer := grpc.NewServer(grpc.UnknownServiceHandler(handler))
 grpc_server:
   grpc_passthrough: true
   websocket_port: 8081
+  zrpc_url: nats://127.0.0.1:4222
+  zrpc_queue: my-service
 ```
 
 开启后，`servers/grpcs` 仅在 `Mux` 上注册服务，gRPC 端口上的原生客户端与 HTTP/WS 前端共享同一套 handler。

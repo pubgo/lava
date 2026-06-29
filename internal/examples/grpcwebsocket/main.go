@@ -12,6 +12,8 @@
 //  1. 浏览器打开 http://localhost:8080/
 //  2. 点击 SayHello / SayGoodbye 按钮，WebSocket 连接 ws://localhost:8081/...
 //  3. curl 无法直接测试 WS，请使用浏览器或 wscat
+//
+//  4. 原生 gRPC 客户端连接 localhost:50051（与 HTTP/WS 共享同一套 handler）
 package main
 
 import (
@@ -21,11 +23,13 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"google.golang.org/grpc"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
@@ -107,6 +111,19 @@ func main() {
 	mux := gateway.NewMux()
 	mux.RegisterService(&greeterpb.GreeterService_ServiceDesc, &greeterService{})
 
+	// Native gRPC 前端：透传到 Mux（RegisterService 一次，多协议复用）
+	grpcLis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatal(err)
+	}
+	grpcServer := grpc.NewServer(mux.GRPCServerOptions()...)
+	go func() {
+		log.Println("Native gRPC server listening on :50051")
+		if err := grpcServer.Serve(grpcLis); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	// WebSocket 前端：独立 net/http 端口
 	wsHandler := mux.WebSocketHandler(gateway.WSOptionsFromConfig(gateway.WSConfig{
 		InsecureSkipVerify: true,
@@ -145,6 +162,7 @@ func main() {
 	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/SayHello")
 	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/WatchHello  (server-stream)")
 	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/Chat       (bidi)")
+	log.Println("Native gRPC endpoint: localhost:50051")
 
 	if err := app.Listen(":8080"); err != nil {
 		log.Fatal(err)
