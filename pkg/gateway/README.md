@@ -104,6 +104,7 @@ curl -X POST http://localhost:8080/v1/users \
 | [NATS/zrpc](docs/grpcnats.md)     | NATS 队列订阅前端，protobuf 帧               |
 | [架构设计](docs/architecture.md) | 分层架构、核心组件、调度流程           |
 | [实现细节](docs/internals.md)    | 路径解析、调度器、元数据转换、流式处理 |
+| [部署/TLS](docs/deploy.md)       | 边缘 TLS 终止与 Traefik 多协议路由     |
 
 ## 支持的协议
 
@@ -146,6 +147,19 @@ curl -X POST http://localhost:8080/v1/users \
 - [gRPC Web 示例](../../internal/examples/grpcweb/) - HTTP/gRPC-Web 前后端示例
 - [多协议示例](../../internal/examples/grpcwebsocket/) - 同一套 handler 同时暴露 HTTP/gRPC-Web(:8080)、WebSocket(:8081)、原生 gRPC(:50051)
   - `internal/examples/grpcwebsocket/verify/` 提供自动化验证（先启动 main，再运行 verify）
+
+## 部署与 TLS
+
+Gateway **不内置 HTTPS/TLS**，全程明文（`http` / `h2c`），TLS 在边缘代理（如 Traefik）终止。
+三类协议需分别路由，其中原生 gRPC 回源必须用 `h2c`：
+
+| 协议 | 默认端口 | 回源 scheme |
+| --- | --- | --- |
+| HTTP/REST + gRPC-Web | `http_port`(8080) | `http` |
+| WebSocket | `websocket_port`(8081) | `http` |
+| 原生 gRPC | `grpc_port`(50051) | `h2c` |
+
+开箱即用的 Traefik 配置见 [`deploy/traefik/`](../../deploy/traefik/)，说明见 [部署/TLS 文档](docs/deploy.md)。
 
 ## 参考
 
