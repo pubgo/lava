@@ -25,11 +25,15 @@ func (d *Dispatcher) Dispatch(
 | Unary | `nil` | `backend.Invoke` → `frontend.SendMsg`，回传 header/trailer |
 | Server-Stream | `ServerStreams && !ClientStreams` | `NewStream` → `SendMsg(in)` + `CloseSend` → 循环 `RecvMsg`/`SendMsg`，首帧前发送 header |
 | Client-Stream | `ClientStreams && !ServerStreams` | 循环 `frontend.RecvMsg` → `localStream.SendMsg`，`CloseSend` 后取单次响应 |
-| Bidi | `ClientStreams && ServerStreams` | 启动 `forwardServerToClient` 与 `forwardClientToServer` 双向泵（来自 `stream.proxy.go`），`select` 等待任一方向结束 |
+| Bidi | `ClientStreams && ServerStreams` | 启动 `pumpFrontendToBackend` 与 `pumpBackendToFrontend` 双向泵（`dispatcher.go`），`select` 等待任一方向结束 |
 
-### 请求预读约定
+> Bidi 泵刻意**不调用** `ClientStream.Header()`：inprocgrpc 后端可能不发送显式 header 帧，此时 `Header()` 会阻塞等待一个永不到来的帧。各前端在首次 `SendMsg` 时会自行发送响应 header，因此无需在泵内转发后端 header。`stream.proxy.go` 中的 `TransparentHandler` / `forwardClientToServer` 仍保留给独立的透明代理场景与单测使用。
 
-- **Unary / Server-Stream**：前端先 `RecvMsg` 读入请求消息，作为 `in` 传给 `Dispatch`。
+### 入口与请求预读约定
+
+`Dispatcher.DispatchFrontend` 是各前端的统一入口（native gRPC / WebSocket / zrpc 均使用）：它根据流模式自动决定是否预读请求，再委托给 `Dispatch`。
+
+- **Unary / Server-Stream**：先 `RecvMsg` 读入请求消息，作为 `in` 传给 `Dispatch`。
 - **Client-Stream / Bidi**：`in` 传 `nil`，由泵内部通过 `frontend.RecvMsg` 持续读取，直到返回 `io.EOF`。
 
 各前端只需实现 `grpc.ServerStream`（编解码/帧处理），即可复用以上全部流模式，这是「底层 handler 注册一次、多协议复用」的关键。

@@ -89,7 +89,7 @@ type Operation struct {
 | Unary | `StreamDesc == nil` | `Invoke` → `SendMsg` |
 | Server-Stream | `ServerStreams && !ClientStreams` | `NewStream` → 循环 `RecvMsg`/`SendMsg` |
 | Client-Stream | `ClientStreams && !ServerStreams` | 循环 `RecvMsg`/`SendMsg` → 单次响应 |
-| Bidi | `ClientStreams && ServerStreams` | 双向泵（复用 `stream.proxy.go` 的 forward 逻辑） |
+| Bidi | `ClientStreams && ServerStreams` | 双向泵 `pumpFrontendToBackend` / `pumpBackendToFrontend`（`dispatcher.go`） |
 
 > 对于 Unary 与 Server-Stream，请求消息由前端预先 `RecvMsg` 读入后传给 `Dispatch`；Client-Stream 与 Bidi 则在泵内部读取。
 

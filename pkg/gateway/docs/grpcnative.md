@@ -9,8 +9,8 @@ gRPC Client → grpc.Server (UnknownServiceHandler) → Mux (Backend) → inproc
 ```
 
 - 服务**只注册在** `gateway.Mux`（`RegisterService` / `RegisterProxy`）
-- 外层 `grpc.Server` 通过 `grpc.UnknownServiceHandler` 将所有 RPC 透明转发到 `Mux`
-- 内部使用 `TransparentHandler`（`stream.proxy.go`）双向泵，支持 unary / 全部流模式
+- 外层 `grpc.Server` 通过 `grpc.UnknownServiceHandler` 将所有 RPC 转发到 `Mux`
+- 透传 handler 复用统一 `Dispatcher.DispatchFrontend`：原生 `grpc.ServerStream` 直接作为前端流，unary 走 `Invoke`、流式走 `NewStream`，四种流模式均支持
 
 ## 用法
 

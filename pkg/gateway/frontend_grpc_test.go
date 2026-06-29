@@ -104,8 +104,11 @@ type fakeBackendConn struct {
 	response proto.Message
 }
 
-func (f *fakeBackendConn) Invoke(context.Context, string, any, any, ...grpc.CallOption) error {
-	return status.Error(codes.Unimplemented, "use stream")
+func (f *fakeBackendConn) Invoke(_ context.Context, _ string, _ any, reply any, _ ...grpc.CallOption) error {
+	if pm, ok := reply.(proto.Message); ok {
+		proto.Merge(pm, f.response)
+	}
+	return nil
 }
 
 func (f *fakeBackendConn) NewStream(context.Context, *grpc.StreamDesc, string, ...grpc.CallOption) (grpc.ClientStream, error) {

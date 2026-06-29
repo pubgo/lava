@@ -8,8 +8,9 @@ import (
 
 // GRPCPassthroughStreamHandler returns a stream handler suitable for
 // grpc.UnknownServiceHandler. Native gRPC clients connect to a *grpc.Server
-// configured with this handler; each RPC is transparently forwarded to the
-// Mux backend (inprocgrpc local handlers or remote proxies).
+// configured with this handler; each RPC is forwarded to the Mux backend
+// (inprocgrpc local handlers or remote proxies) through the unified Dispatcher,
+// so unary, server-stream, client-stream, and bidi all behave correctly.
 //
 // Register services only on the Mux (RegisterService / RegisterProxy); do not
 // register the same implementations again on the outer grpc.Server.
@@ -25,7 +26,15 @@ func (m *Mux) GRPCPassthroughStreamHandler() grpc.StreamHandler {
 			return status.Errorf(codes.Unimplemented, "unknown method: %s", fullMethod)
 		}
 
-		return TransparentHandler(m, mth.inputType, mth.outputType)(nil, stream)
+		op := operationFromMethod(mth)
+		header, trailer, err := m.dispatcher.DispatchFrontend(stream.Context(), m, stream, op)
+		if len(header) > 0 {
+			_ = stream.SetHeader(header)
+		}
+		if len(trailer) > 0 {
+			stream.SetTrailer(trailer)
+		}
+		return err
 	}
 }
 

@@ -70,7 +70,7 @@ func registerZrpcUnary(m *Mux, srv *zrpc.Server, subject, queue string, mth *met
 		srv,
 		subject,
 		queue,
-		func() proto.Message { return mth.inputType.New().Interface().(proto.Message) },
+		func() proto.Message { return mth.inputType.New().Interface() },
 		func(ctx context.Context, req proto.Message) (proto.Message, error) {
 			frontend := &streamZrpcUnary{ctx: ctx, method: mth}
 			_, _, err := m.dispatcher.Dispatch(frontend.Context(), m, frontend, op, req)
@@ -85,23 +85,7 @@ func registerZrpcUnary(m *Mux, srv *zrpc.Server, subject, queue string, mth *met
 func registerZrpcStream(m *Mux, srv *zrpc.Server, subject, queue string, mth *methodWrapper, op *Operation) error {
 	return zrpc.RegisterStream(srv, subject, queue, func(ctx context.Context, zstream *zrpc.ServerStream) error {
 		stream := &streamZrpc{zstream: zstream, ctx: ctx, method: mth}
-		return dispatchZrpcStream(m, stream, op)
+		_, _, err := m.dispatcher.DispatchFrontend(stream.Context(), m, stream, op)
+		return err
 	})
-}
-
-func dispatchZrpcStream(m *Mux, stream *streamZrpc, op *Operation) error {
-	preReadRequest := op.StreamDesc == nil ||
-		(op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
-
-	var in any
-	if preReadRequest {
-		req := op.InputType.New().Interface()
-		if err := stream.RecvMsg(req); err != nil {
-			return err
-		}
-		in = req
-	}
-
-	_, _, err := m.dispatcher.Dispatch(stream.Context(), m, stream, op, in)
-	return err
 }

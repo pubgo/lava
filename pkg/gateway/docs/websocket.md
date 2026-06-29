@@ -120,8 +120,9 @@ HTTP 握手请求头会被转换为 gRPC 的 incoming metadata，供服务端通
 ## 实现说明
 
 - `streamWS`（`stream.websocket.go`）实现 `grpc.ServerStream`，负责 WebSocket 帧的编解码与读写。
-- `wsFrontend`（`frontend_ws.go`）实现 `http.Handler`，负责握手、解析 Operation、构建 `streamWS` 并调用 `Dispatcher.Dispatch`。
-- 目前 WebSocket 流不做 REST body 字段映射（`body` / `response_body` 规则），整条消息即请求/响应体；如需支持可在 `streamWS.pathOperation()` 处扩展。
+- `wsFrontend`（`frontend_ws.go`）实现 `http.Handler`，负责握手、解析 Operation、构建 `streamWS` 并调用 `Dispatcher.DispatchFrontend`。
+- 通过 REST 注解路径访问时，`streamWS` 会带上匹配到的 `MatchOperation`，因此 `body:"field"` / `response_body` 字段映射对 WebSocket 同样生效；直查 gRPC 全方法名时整条消息即请求/响应体。
+- 结束时通过 WebSocket Close 帧回传结构化 gRPC 状态：close code 由 gRPC code 映射，reason 为 JSON `{"grpcStatus":N,"grpcMessage":"..."}`，客户端可解析 `event.reason` 获取状态。
 
 ## 在 grpc-server 中启用
 
@@ -179,5 +180,5 @@ ws://localhost:8081/grpcweb.example.v1.GreeterService/SayHello
 ## 当前限制
 
 - ⏳ 没有内置心跳/超时管理，需结合业务在 handler 内处理
-- ⏳ `grpc-status` 暂以关闭码表达，未提供结构化 status 控制帧
-- ⏳ REST body 字段映射（`body:"field"`）暂未在 WebSocket 流启用
+- ✅ `grpc-status` / `grpc-message` 通过 Close 帧 reason 以结构化 JSON 回传
+- ✅ REST body 字段映射（`body:"field"`）在 WebSocket 流已启用（需经 REST 注解路径访问）

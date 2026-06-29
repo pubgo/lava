@@ -143,21 +143,7 @@ func wsCloseCode(code codes.Code) websocket.StatusCode {
 }
 
 func (f *wsFrontend) dispatch(stream *streamWS, op *Operation) error {
-	// For unary and server-streaming RPCs the dispatcher expects the request
-	// message to be pre-read. Client-streaming and bidi read inside the pump.
-	preReadRequest := op.StreamDesc == nil ||
-		(op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
-
-	var in any
-	if preReadRequest {
-		req := op.InputType.New().Interface()
-		if err := stream.RecvMsg(req); err != nil {
-			return err
-		}
-		in = req
-	}
-
-	_, _, err := f.dispatcher.Dispatch(stream.Context(), f.mux, stream, op, in)
+	_, _, err := f.dispatcher.DispatchFrontend(stream.Context(), f.mux, stream, op)
 	return err
 }
 
