@@ -42,6 +42,9 @@ var _ tunnel.Gateway = (*tunnelGateway)(nil)
 
 // NewGateway creates a new tunnel gateway
 func NewGateway(cfg *tunnel.GatewayConfig) tunnel.Gateway {
+	if cfg != nil {
+		cfg.Normalize()
+	}
 	return &tunnelGateway{
 		cfg:         cfg,
 		services:    make(map[string]*registeredService),
@@ -169,6 +172,7 @@ type tunnelGateway struct {
 	// 对外代理服务器
 	httpServer  *http.Server
 	debugServer *http.Server
+	grpcListener net.Listener
 
 	mu       sync.RWMutex
 	stopCh   chan struct{}
@@ -223,6 +227,12 @@ func (g *tunnelGateway) Start(ctx context.Context) error {
 	if g.cfg.DebugPort > 0 {
 		g.wg.Add(1)
 		go g.startDebugProxy()
+	}
+
+	// Start gRPC proxy server (对外暴露 gRPC 端口)
+	if g.cfg.GRPCPort > 0 {
+		g.wg.Add(1)
+		go g.startGRPCProxy()
 	}
 
 	log.Info().
@@ -582,6 +592,11 @@ func (g *tunnelGateway) Stop(ctx context.Context) error {
 			log.Warn().Err(err).Msg("Gateway: failed to shutdown debug server")
 		}
 	}
+	if g.grpcListener != nil {
+		if err := g.grpcListener.Close(); err != nil {
+			log.Warn().Err(err).Msg("Gateway: failed to close GRPC listener")
+		}
+	}
 
 	// Close listener
 	if g.listener != nil {
@@ -722,27 +737,7 @@ func (g *tunnelGateway) endpointTypeToMessageType(et tunnel.EndpointType) tunnel
 }
 
 func (g *tunnelGateway) sendMessage(stream tunnel.Stream, msg *tunnel.Message) error {
-	data, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-
-	// Write length prefix (4 bytes) + data
-	length := uint32(len(data))
-	header := []byte{
-		byte(length >> 24),
-		byte(length >> 16),
-		byte(length >> 8),
-		byte(length),
-	}
-
-	if _, err := stream.Write(header); err != nil {
-		return err
-	}
-	if _, err := stream.Write(data); err != nil {
-		return err
-	}
-	return nil
+	return tunnel.WriteMessage(stream, msg)
 }
 
 func (g *tunnelGateway) acceptLoop() {
@@ -807,31 +802,18 @@ func (g *tunnelGateway) handleStream(agentID string, session tunnel.Session, str
 		}
 	}()
 
-	// Read message header
-	header := make([]byte, 4)
-	if _, err := io.ReadFull(stream, header); err != nil {
-		log.Warn().Err(err).Msg("Failed to read message header")
-		return
-	}
-
-	length := uint32(header[0])<<24 | uint32(header[1])<<16 | uint32(header[2])<<8 | uint32(header[3])
-	data := make([]byte, length)
-	if _, err := io.ReadFull(stream, data); err != nil {
-		log.Warn().Err(err).Msg("Failed to read message data")
-		return
-	}
-
-	var msg tunnel.Message
-	if err := json.Unmarshal(data, &msg); err != nil {
-		log.Warn().Err(err).Msg("Failed to unmarshal message")
+	// Read message (length-prefixed JSON, size-limited to avoid OOM)
+	msg, err := tunnel.ReadMessage(stream)
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to read message")
 		return
 	}
 
 	switch msg.Type {
 	case tunnel.MessageTypeRegister:
-		g.handleRegister(agentID, session, &msg)
+		g.handleRegister(agentID, session, msg)
 	case tunnel.MessageTypeDeregister:
-		g.handleDeregister(&msg)
+		g.handleDeregister(msg)
 	case tunnel.MessageTypeHeartbeat:
 		g.handleHeartbeat(agentID)
 	default:
@@ -859,6 +841,11 @@ func (g *tunnelGateway) handleRegister(agentID string, session tunnel.Session, m
 		}
 	}
 
+	now := time.Now()
+	service.RegisterTime = now
+	service.LastHeartbeat = now
+	service.Status = tunnel.ServiceStatusOnline
+
 	g.mu.Lock()
 	g.services[service.Name] = &registeredService{
 		info:    &service,
@@ -885,7 +872,16 @@ func (g *tunnelGateway) handleDeregister(msg *tunnel.Message) {
 }
 
 func (g *tunnelGateway) handleHeartbeat(agentID string) {
-	// Update last heartbeat time (could be used for health checking)
+	// 更新该 agent 名下所有服务的最后心跳时间，用于心跳超时检测
+	now := time.Now()
+	g.mu.Lock()
+	for _, svc := range g.services {
+		if svc.agent == agentID {
+			svc.info.LastHeartbeat = now
+		}
+	}
+	g.mu.Unlock()
+
 	log.Debug().Str("agent", agentID).Msg("Heartbeat received")
 }
 
@@ -923,6 +919,13 @@ func (g *tunnelGateway) healthCheckLoop() {
 }
 
 func (g *tunnelGateway) checkServices() {
+	// 心跳超时阈值
+	heartbeatTimeout := time.Duration(g.cfg.HeartbeatTimeout) * time.Second
+	if heartbeatTimeout <= 0 {
+		heartbeatTimeout = 90 * time.Second
+	}
+	now := time.Now()
+
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -930,6 +933,17 @@ func (g *tunnelGateway) checkServices() {
 		if svc.session == nil || svc.session.IsClosed() {
 			delete(g.services, name)
 			log.Info().Str("service", name).Msg("Service removed (session closed)")
+			continue
+		}
+
+		// 心跳超时检测：超过阈值未收到心跳则移除服务
+		if !svc.info.LastHeartbeat.IsZero() && now.Sub(svc.info.LastHeartbeat) > heartbeatTimeout {
+			svc.info.Status = tunnel.ServiceStatusOffline
+			delete(g.services, name)
+			log.Warn().
+				Str("service", name).
+				Dur("since_last_heartbeat", now.Sub(svc.info.LastHeartbeat)).
+				Msg("Service removed (heartbeat timeout)")
 			continue
 		}
 
@@ -950,6 +964,10 @@ func (g *tunnelGateway) checkServiceHealth(svc *registeredService) tunnel.Servic
 	// 检查每个端点的健康状态
 	allHealthy := true
 	for i, endpoint := range svc.info.Endpoints {
+		// 确保 Metadata 已初始化，避免对 nil map 写入导致 panic
+		if svc.info.Endpoints[i].Metadata == nil {
+			svc.info.Endpoints[i].Metadata = make(map[string]string)
+		}
 		if !g.checkEndpointHealth(svc, &endpoint) {
 			allHealthy = false
 			log.Warn().Str("service", svc.info.Name).Str("endpoint", string(endpoint.Type)).Str("address", endpoint.Address).Msg("Endpoint health check failed")

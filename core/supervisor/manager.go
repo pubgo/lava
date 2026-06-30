@@ -2,6 +2,7 @@ package supervisor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -21,6 +22,7 @@ type serviceRunner struct {
 	service Service
 	config  ServiceConfig
 	cancel  context.CancelFunc
+	running bool // 是否正在运行
 	stopped bool // 是否被手动停止
 	failed  bool // 是否已失败（达到重启上限）
 	done    chan struct{}
@@ -92,7 +94,7 @@ func (m *Manager) GetServiceInfo(name string) (*ServiceInfo, error) {
 
 	srv, ok := m.services[name]
 	if !ok {
-		return nil, fmt.Errorf("service not found: %s", name)
+		return nil, fmt.Errorf("%w: %s", ErrServiceNotFound, name)
 	}
 
 	metric := srv.service.Metric()
@@ -119,11 +121,14 @@ func (m *Manager) statusFromRunner(runner *serviceRunner) ServiceStatus {
 	if runner.stopped {
 		return StatusStopped
 	}
-	if runner.consecFailures > 0 {
+	if runner.running && runner.consecFailures > 0 {
 		return StatusCrashing
 	}
-	if runner.cancel != nil {
+	if runner.running {
 		return StatusRunning
+	}
+	if runner.consecFailures > 0 {
+		return StatusError
 	}
 	return StatusIdle
 }
@@ -163,12 +168,14 @@ func (m *Manager) Add(srv Service, opts ...Option) error {
 
 // AddWithConfig 添加服务并指定配置
 func (m *Manager) AddWithConfig(srv Service, config ServiceConfig) error {
+	config = normalizeServiceConfig(config)
+
 	name := srv.Name()
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if _, ok := m.services[name]; ok {
-		return fmt.Errorf("service already exists, name=%s", name)
+		return fmt.Errorf("%w, name=%s", ErrServiceAlreadyExists, name)
 	}
 
 	m.logger.Info().Str("name", name).Msg("add service to supervisor")
@@ -193,7 +200,7 @@ func (m *Manager) Delete(name string) error {
 	if srv == nil {
 		m.mu.Unlock()
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot delete")
-		return fmt.Errorf("service not found, name=%s", name)
+		return fmt.Errorf("%w, name=%s", ErrServiceNotFound, name)
 	}
 
 	// 停止服务
@@ -214,17 +221,31 @@ func (m *Manager) Delete(name string) error {
 }
 
 func (m *Manager) RemoveServices() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	for name, srv := range m.services {
-		if srv.cancel != nil {
-			srv.cancel()
-		}
-		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
+	// 先在锁内摘出所有 runner 的 cancel/done，并清空 map，
+	// 再在锁外取消并等待 goroutine 退出，避免与 runner 收尾时获取的同一把锁产生死锁。
+	type pendingStop struct {
+		cancel context.CancelFunc
+		done   chan struct{}
 	}
 
+	m.mu.Lock()
+	pendings := make([]pendingStop, 0, len(m.services))
+	for name, srv := range m.services {
+		pendings = append(pendings, pendingStop{cancel: srv.cancel, done: srv.done})
+		m.logger.Info().Str("name", name).Msg("removing service from supervisor")
+	}
 	m.services = make(map[string]*serviceRunner)
+	m.mu.Unlock()
+
+	for _, p := range pendings {
+		if p.cancel != nil {
+			p.cancel()
+			if p.done != nil {
+				<-p.done
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -263,7 +284,7 @@ func (m *Manager) StopService(name string) error {
 	if srv == nil {
 		m.mu.Unlock()
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot stop")
-		return fmt.Errorf("service not found, name=%s", name)
+		return fmt.Errorf("%w, name=%s", ErrServiceNotFound, name)
 	}
 
 	if srv.stopped {
@@ -296,10 +317,10 @@ func (m *Manager) StartService(name string) error {
 	srv := m.services[name]
 	if srv == nil {
 		m.logger.Warn().Str("name", name).Msg("service not found, cannot start")
-		return fmt.Errorf("service not found, name=%s", name)
+		return fmt.Errorf("%w, name=%s", ErrServiceNotFound, name)
 	}
 
-	if !srv.stopped && !srv.failed {
+	if srv.running {
 		m.logger.Warn().Str("name", name).Msg("service already running")
 		return nil
 	}
@@ -324,7 +345,7 @@ func (m *Manager) ResetService(name string) error {
 
 	srv := m.services[name]
 	if srv == nil {
-		return fmt.Errorf("service not found, name=%s", name)
+		return fmt.Errorf("%w, name=%s", ErrServiceNotFound, name)
 	}
 
 	// 重置所有重启相关状态
@@ -357,15 +378,27 @@ func (m *Manager) startRunner(runner *serviceRunner) {
 	}
 
 	ctx, cancel := context.WithCancel(m.ctx)
+	done := make(chan struct{})
+
 	runner.cancel = cancel
-	runner.done = make(chan struct{})
+	runner.done = done
+	runner.running = true
 
 	m.wg.Add(1)
-	go func() {
+	go func(done chan struct{}) {
 		defer m.wg.Done()
-		defer close(runner.done)
+		defer close(done)
+		defer func() {
+			m.mu.Lock()
+			if runner.done == done {
+				runner.running = false
+				runner.cancel = nil
+				runner.done = nil
+			}
+			m.mu.Unlock()
+		}()
 		m.runService(ctx, runner)
-	}()
+	}(done)
 }
 
 // runService 运行服务的主循环，包含自动重启逻辑
@@ -375,12 +408,14 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 	config := runner.config
 
 	// 初始化重启状态
+	m.mu.Lock()
 	if runner.currentDelay == 0 {
 		runner.currentDelay = config.RestartDelay
 	}
 	if runner.windowStart.IsZero() {
 		runner.windowStart = time.Now()
 	}
+	m.mu.Unlock()
 
 	for {
 		// 先检查 context 是否已取消
@@ -391,7 +426,10 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 		}
 
 		// 记录服务启动时间
-		runner.lastServiceStart = time.Now()
+		startAt := time.Now()
+		m.mu.Lock()
+		runner.lastServiceStart = startAt
+		m.mu.Unlock()
 
 		err := srv.Serve(ctx)
 
@@ -404,32 +442,40 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 		}
 
 		// 计算运行时长
-		runDuration := time.Since(runner.lastServiceStart)
+		runDuration := time.Since(startAt)
 
 		// 处理错误
 		if err != nil {
 			// context 相关错误视为正常停止，不重启
-			if err == context.Canceled || err == context.DeadlineExceeded {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return
 			}
 
 			// 检查是否是不重启的错误
 			if IsNoRestartErr(err) || IsFatalErr(err) {
+				m.mu.Lock()
 				runner.failed = true
+				m.mu.Unlock()
 				m.logger.Error().Err(err).Str("name", name).Msg("service exited with fatal error, not restarting")
 				return
 			}
 
 			// 根据重启策略决定是否重启
 			if config.RestartPolicy == RestartNever {
+				m.mu.Lock()
 				runner.failed = true
+				m.mu.Unlock()
 				m.logger.Error().Err(err).Str("name", name).Msg("service exited with error, restart policy is Never")
 				return
 			}
 
+			var consecFailures int
+			m.mu.Lock()
 			runner.consecFailures++
+			consecFailures = runner.consecFailures
+			m.mu.Unlock()
 			m.logger.Warn().Err(err).Str("name", name).
-				Int("consec_failures", runner.consecFailures).
+				Int("consec_failures", consecFailures).
 				Msg("service exited with error")
 		} else {
 			// 正常退出
@@ -441,15 +487,24 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 			// RestartAlways 策略下正常退出也会重启
 			// 如果运行了足够长的时间，重置连续失败计数
 			if runDuration > config.RestartWindow {
+				m.mu.Lock()
 				runner.consecFailures = 0
 				runner.currentDelay = config.RestartDelay
+				m.mu.Unlock()
 			}
 
 			m.logger.Info().Str("name", name).Msg("service exited normally, will restart")
 		}
 
 		// 更新窗口内重启计数
-		now := time.Now()
+		var (
+			now            = time.Now()
+			windowRestarts int
+			restartCount   int
+			delay          time.Duration
+		)
+
+		m.mu.Lock()
 		if now.Sub(runner.windowStart) > config.RestartWindow {
 			// 窗口已过期，重置
 			runner.windowStart = now
@@ -458,22 +513,30 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 		}
 		runner.windowRestarts++
 		runner.restartCount++
+		windowRestarts = runner.windowRestarts
+		restartCount = runner.restartCount
+		delay = runner.currentDelay
+		m.mu.Unlock()
 
 		// 检查是否超过最大重启次数
-		if config.MaxRestarts > 0 && runner.restartCount >= config.MaxRestarts {
+		if config.MaxRestarts > 0 && restartCount > config.MaxRestarts {
+			m.mu.Lock()
 			runner.failed = true
+			m.mu.Unlock()
 			m.logger.Error().Str("name", name).
-				Int("restarts", runner.restartCount).
+				Int("restarts", restartCount).
 				Int("max_restarts", config.MaxRestarts).
 				Msg("service exceeded max restart limit, marking as failed")
 			return
 		}
 
 		// 检查窗口期内重启次数
-		if config.MaxRestartsInWindow > 0 && runner.windowRestarts > config.MaxRestartsInWindow {
+		if config.MaxRestartsInWindow > 0 && windowRestarts > config.MaxRestartsInWindow {
+			m.mu.Lock()
 			runner.failed = true
+			m.mu.Unlock()
 			m.logger.Error().Str("name", name).
-				Int("window_restarts", runner.windowRestarts).
+				Int("window_restarts", windowRestarts).
 				Int("max_in_window", config.MaxRestartsInWindow).
 				Dur("window", config.RestartWindow).
 				Msg("service restart rate too high, marking as failed")
@@ -481,23 +544,23 @@ func (m *Manager) runService(ctx context.Context, runner *serviceRunner) {
 		}
 
 		// 计算并应用退避延迟
-		delay := runner.currentDelay
 		m.logger.Info().Str("name", name).
 			Dur("delay", delay).
-			Int("window_restarts", runner.windowRestarts).
-			Int("total_restarts", runner.restartCount).
+			Int("window_restarts", windowRestarts).
+			Int("total_restarts", restartCount).
 			Msg("waiting before restart")
 
-		select {
-		case <-ctx.Done():
+		if !waitDelay(ctx, delay) {
 			return
-		case <-time.After(delay):
-			// 应用指数退避
-			runner.currentDelay = time.Duration(float64(runner.currentDelay) * config.BackoffMultiplier)
-			if runner.currentDelay > config.MaxRestartDelay {
-				runner.currentDelay = config.MaxRestartDelay
-			}
 		}
+
+		// 应用指数退避
+		m.mu.Lock()
+		runner.currentDelay = time.Duration(float64(runner.currentDelay) * config.BackoffMultiplier)
+		if runner.currentDelay > config.MaxRestartDelay {
+			runner.currentDelay = config.MaxRestartDelay
+		}
+		m.mu.Unlock()
 	}
 }
 
@@ -517,13 +580,13 @@ func (m *Manager) start(ctx context.Context) error {
 	})
 
 	// 启动所有服务
-	m.mu.RLock()
+	m.mu.Lock()
 	for _, runner := range m.services {
 		if !runner.stopped {
 			m.startRunner(runner)
 		}
 	}
-	m.mu.RUnlock()
+	m.mu.Unlock()
 
 	logutil.OkOrFailed(m.logger, "start lifecycle after service", func() error {
 		defer recovery.Exit()
@@ -600,13 +663,8 @@ func (m *Manager) Serve(ctx context.Context) error {
 	// 等待 context 取消
 	<-ctx.Done()
 
-	// 停止所有服务
-	if m.cancel != nil {
-		m.cancel()
-	}
-	m.wg.Wait()
-
-	return nil
+	// 与 Run 保持一致：执行 lifecycle stop 钩子，并带超时地优雅停止所有服务
+	return m.stop(ctx)
 }
 
 func (m *Manager) ServeBackground(ctx context.Context) <-chan error {
@@ -615,4 +673,64 @@ func (m *Manager) ServeBackground(ctx context.Context) <-chan error {
 		errCh <- m.Serve(ctx)
 	}()
 	return errCh
+}
+
+func normalizeServiceConfig(config ServiceConfig) ServiceConfig {
+	if config.RestartPolicy < RestartAlways || config.RestartPolicy > RestartNever {
+		config.RestartPolicy = RestartAlways
+	}
+
+	if config.MaxRestarts < 0 {
+		config.MaxRestarts = 0
+	}
+
+	if config.MaxRestartsInWindow < 0 {
+		config.MaxRestartsInWindow = 0
+	}
+
+	if config.RestartDelay <= 0 {
+		config.RestartDelay = time.Second
+	}
+
+	if config.MaxRestartDelay <= 0 || config.MaxRestartDelay < config.RestartDelay {
+		config.MaxRestartDelay = config.RestartDelay
+	}
+
+	if config.RestartWindow <= 0 {
+		config.RestartWindow = 5 * time.Minute
+	}
+
+	if config.BackoffMultiplier < 1 {
+		config.BackoffMultiplier = 1
+	}
+
+	return config
+}
+
+func waitDelay(ctx context.Context, delay time.Duration) bool {
+	if delay <= 0 {
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+			return true
+		}
+	}
+
+	timer := time.NewTimer(delay)
+	defer func() {
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return false
+	case <-timer.C:
+		return true
+	}
 }

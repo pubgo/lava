@@ -4,27 +4,32 @@ import (
 	"time"
 
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/result"
 	"github.com/reugn/go-quartz/quartz"
 	"github.com/samber/lo"
 )
 
 func createConfig(configs []*Config) (map[string]*JobConfig, error) {
 	configMap := make(map[string]*JobConfig)
-	if len(configs) == 0 || configs[0] == nil {
+	if len(configs) == 0 {
 		return configMap, nil
 	}
 
-	for i := range configs[0].JobConfigs {
-		config := &configs[0].JobConfigs[i]
-		if config.Name == "" {
-			return nil, errors.Errorf("schedule job name is empty")
+	for _, cfg := range configs {
+		if cfg == nil {
+			continue
 		}
 
-		if _, ok := configMap[config.Name]; ok {
-			return nil, errors.Errorf("schedule job(%s) exists", config.Name)
+		for i := range cfg.JobConfigs {
+			config := &cfg.JobConfigs[i]
+			if config.Name == "" {
+				return nil, errors.Errorf("schedule job name is empty")
+			}
+
+			if _, ok := configMap[config.Name]; ok {
+				return nil, errors.Errorf("schedule job(%s) exists", config.Name)
+			}
+			configMap[config.Name] = config
 		}
-		configMap[config.Name] = config
 	}
 	return configMap, nil
 }
@@ -74,8 +79,13 @@ func initAndMergeConfig(name string, jobConfigs ...*JobConfig) *JobConfig {
 		}
 
 		if cfg.Location != nil {
-			location, err := result.WrapErr(time.LoadLocation(lo.FromPtr(cfg.Location)))
-			err.MustWithLog(func(e result.Event) { e.Msgf("failed to parse time location:%s", lo.FromPtr(cfg.Location)) })
+			locationName := lo.FromPtr(cfg.Location)
+			location, err := time.LoadLocation(locationName)
+			if err != nil {
+				cfg.location = time.UTC
+				continue
+			}
+
 			cfg.location = location
 		}
 	}
@@ -112,7 +122,7 @@ func (c JobConfig) ToJobDetailOptions() *quartz.JobDetailOptions {
 		MaxRetries:    lo.FromPtr(c.MaxRetries),
 		RetryInterval: lo.FromPtr(c.RetryInterval),
 		Replace:       lo.FromPtr(c.Replace),
-		Suspended:     false,
+		Suspended:     lo.FromPtr(c.Disabled),
 	}
 }
 

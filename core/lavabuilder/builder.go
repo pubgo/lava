@@ -1,3 +1,15 @@
+// Package lavabuilder 是 lava 应用的 DI 装配与 CLI 启动入口。
+//
+// 它负责：
+//   - 创建 dix 容器并注册默认 Provider（日志、指标、生命周期、服务发现等）
+//   - 通过 blank import 加载编解码器、debug 端点、日志扩展等 side-effect 模块
+//   - 注册所有子命令（grpc/http/scheduler/tunnel 等）并挂载全局 CLI flag
+//   - 绑定 signals.Context() 作为根 context，实现优雅关停
+//
+// 典型用法：
+//
+//	di := lavabuilder.New()
+//	lavabuilder.Run(di)
 package lavabuilder
 
 import (
@@ -57,6 +69,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
+// defaultProviders 是各命令共享的基础 DI Provider。
 var defaultProviders = []any{
 	grpccresolver.NewDirectBuilder,
 	grpccresolver.NewDiscoveryBuilder,
@@ -68,6 +81,7 @@ var defaultProviders = []any{
 	lifecyclebuilder.New,
 }
 
+// New 创建并初始化 dix 容器，注册 defaultProviders 并挂载 dix debug 端点。
 func New(opts ...dix.Option) *dix.Dix {
 	di := dix.New(append(opts, dix.WithValuesNull())...)
 	for _, p := range defaultProviders {
@@ -78,6 +92,7 @@ func New(opts ...dix.Option) *dix.Dix {
 	return di
 }
 
+// Run 注册所有 CLI 子命令并以 signals.Context() 作为根 context 启动应用。
 func Run(di *dix.Dix) {
 	defer recovery.Exit(func(err error) error {
 		if errors.Is(err, context.Canceled) {

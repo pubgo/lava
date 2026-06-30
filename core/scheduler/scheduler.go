@@ -67,12 +67,12 @@ func (s *Scheduler) createJob(spec JobSpec, fn JobFunc) (r result.Error) {
 	defer result.Recovery(&r)
 
 	if spec.Name == "" {
-		return r.WithErrorf("job name is empty")
+		return r.WithErr(fmt.Errorf("%w", ErrJobNameEmpty))
 	}
 
 	name := spec.Name
 	if _, ok := s.jobs[name]; ok {
-		return r.WithErrorf("job %s already exists", name)
+		return r.WithErr(fmt.Errorf("%w: %s", ErrJobAlreadyExists, name))
 	}
 
 	executorRes := result.WrapFn(func() (JobExecutor, error) {
@@ -123,7 +123,7 @@ func (s *Scheduler) CreateJob(spec JobSpec) (r result.Error) {
 
 func (s *Scheduler) getJob(name string) (r result.Result[*jobTask]) {
 	if val, ok := s.jobs[name]; !ok {
-		return r.WithErrorf("job %s not exists", name)
+		return r.WithErr(fmt.Errorf("%w: %s", ErrJobNotFound, name))
 	} else {
 		return r.WithValue(val)
 	}
@@ -253,12 +253,19 @@ func (s *Scheduler) Serve(ctx context.Context) error {
 
 	s.scheduler.Wait(s.ctx)
 
-	// 返回 context 的错误，这样 supervisor 能正确判断是正常停止还是需要重启
+	// 优先返回内部 context 的状态，确保内部 stop/cancel 也能被识别为正常停止
+	if err := s.ctx.Err(); err != nil {
+		return err
+	}
+
+	// 回退到外部 context
 	return ctx.Err()
 }
 
 func (s *Scheduler) stop() {
-	s.cancel()
+	if s.cancel != nil {
+		s.cancel()
+	}
 
 	if s.scheduler.IsStarted() {
 		s.scheduler.Stop()

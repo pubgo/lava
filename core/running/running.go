@@ -1,3 +1,7 @@
+// Package running 提供进程级运行态信息与全局 CLI flag 定义。
+//
+// 包含环境名（dev/test/stage/prod）、debug 开关、HTTP/gRPC 端口、
+// 实例 ID、主机名、K8s namespace 等，供日志、debug 端点和各命令共享。
 package running
 
 import (
@@ -23,18 +27,26 @@ import (
 )
 
 var (
-	Env      = redant.StringOf(lo.ToPtr("dev"))
-	Debug    = redant.BoolOf(lo.ToPtr(false))
+	// Env 是当前运行环境，默认 "dev"。
+	Env = redant.StringOf(lo.ToPtr("dev"))
+	// Debug 是否启用 debug 模式。
+	Debug = redant.BoolOf(lo.ToPtr(false))
+	// HttpPort 是默认 HTTP 监听端口。
 	HttpPort = redant.Int64Of(lo.ToPtr(int64(8080)))
+	// GrpcPort 是默认 gRPC 监听端口。
 	GrpcPort = redant.Int64Of(lo.ToPtr(int64(50051)))
-	Project  = version.Project
+	// Project 返回项目名称（来自 buildinfo）。
+	Project = version.Project
 
+	// InstanceID 是当前进程实例的唯一 ID，进程启动时生成。
 	InstanceID = xid.New().String()
-	DeviceID   = InstanceID
+	// DeviceID 是设备级唯一标识，优先使用 machineid，失败时回退为 InstanceID。
+	DeviceID = InstanceID
 
 	Version  = version.Version
 	CommitID = version.CommitID
 
+	// Pwd 是进程启动时的工作目录。
 	Pwd = assert.Exit1(os.Getwd())
 
 	LocalIP = netutil.GetLocalIP()
@@ -44,6 +56,7 @@ var (
 		func() string { return assert.Exit1(os.Hostname()) },
 	)
 
+	// Namespace 是 K8s 命名空间，依次从环境变量或 serviceaccount 文件读取。
 	Namespace = strutil.FirstFnNotEmpty(
 		func() string { return env.Get("NAMESPACE") },
 		func() string { return env.Get("POD_NAMESPACE") },
@@ -117,6 +130,7 @@ func init() {
 	}
 }
 
+// GetSysInfo 返回当前进程的系统与构建信息快照，供 debug/version 命令使用。
 func GetSysInfo() map[string]string {
 	return map[string]string{
 		"main_path":     version.MainPath(),
@@ -143,6 +157,7 @@ func GetSysInfo() map[string]string {
 	}
 }
 
+// CheckVersion 校验 buildinfo 中的项目名、版本号等必填字段，不合法时 panic。
 func CheckVersion() {
 	defer recovery.Exit()
 	assert.If(version.Project() == "", "project is null")

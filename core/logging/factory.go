@@ -1,3 +1,7 @@
+// Package logging 提供日志工厂注册表与配置结构。
+//
+// 各日志后端（slog、stdlog、grpclog 等）在 init() 中通过 Register 注册 Factory，
+// logbuilder 在启动时根据配置实例化对应的 Logger。
 package logging
 
 import (

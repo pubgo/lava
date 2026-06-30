@@ -3,6 +3,7 @@ package supervisor
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/pubgo/funk/v2/errors"
@@ -37,6 +38,8 @@ type serviceImpl struct {
 	name string
 	err  error
 	fn   func(ctx context.Context) error
+
+	errMu sync.RWMutex
 
 	metric *serviceMetric
 }
@@ -78,6 +81,8 @@ func (s *serviceImpl) Metric() *Metric {
 }
 
 func (s *serviceImpl) Error() error {
+	s.errMu.RLock()
+	defer s.errMu.RUnlock()
 	return s.err
 }
 
@@ -112,7 +117,9 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 			s.metric.Status.Store(string(StatusStopped))
 			s.metric.SuccessCount.Add(1)
 		} else {
+			s.errMu.Lock()
 			s.err = gErr
+			s.errMu.Unlock()
 			s.metric.Status.Store(string(StatusError))
 			s.metric.ErrorCount.Add(1)
 			s.metric.LastError.Store(gErr.Error())
@@ -126,7 +133,9 @@ func (s *serviceImpl) Serve(ctx context.Context) (gErr error) {
 	}()
 	defer recovery.Err(&gErr)
 
+	s.errMu.Lock()
 	s.err = nil
+	s.errMu.Unlock()
 	log.Info(ctx).Str("service", s.name).Msg("start service")
 	err := s.fn(ctx)
 	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {

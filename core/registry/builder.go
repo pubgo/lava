@@ -3,8 +3,6 @@ package registry
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pubgo/funk/v2/assert"
@@ -20,10 +18,10 @@ import (
 	"github.com/pubgo/lava/v2/pkg/netutil"
 )
 
+// New 注册 lifecycle 钩子：启动后向注册中心注册服务并定期续约，停止前撤销注册。
 func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 	cfg := DefaultCfg()
 
-	// 配置解析
 	cfg.Check()
 
 	reg := regs[cfg.Driver]
@@ -37,16 +35,14 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 		}
 	})
 
-	// 服务注册
 	lifecycle.AfterStart(func(ctx context.Context) error {
 		SetDefault(reg)
 
-		register(reg)
+		register(ctx, reg)
 
-		cancel := async.GoCtx(func(ctx context.Context) error {
+		cancel := async.GoCtx(func(loopCtx context.Context) error {
 			interval := DefaultRegisterInterval
-
-			if cfg.RegisterInterval > time.Duration(0) {
+			if cfg.RegisterInterval > 0 {
 				interval = cfg.RegisterInterval
 			}
 
@@ -56,102 +52,79 @@ func New(c *Config, lifecycle lifecycle.Lifecycle, regs map[string]Registry) {
 			for {
 				select {
 				case <-tick.C:
-					register(reg)
-				case <-ctx.Done():
+					register(loopCtx, reg)
+				case <-loopCtx.Done():
 					log.Info().Msg("service register cancelled")
 					return nil
 				}
 			}
 		})
 
-		// 服务撤销
-		lifecycle.BeforeStop(func(ctx context.Context) error {
+		lifecycle.BeforeStop(func(stopCtx context.Context) error {
 			cancel()
-			deregister(reg)
+			deregister(stopCtx, reg)
 			return nil
 		})
 		return nil
 	})
 }
 
-func register(reg Registry) {
-	// parse address for host, port
-	var advt, host string
+// buildNode 构造当前进程对应的注册节点信息。
+func buildNode() *service.Node {
+	host := netutil.GetLocalIP()
 	port := int(running.GrpcPort.Value())
+	return &service.Node{
+		Port:    port,
+		Version: version.Version(),
+		Address: fmt.Sprintf("%s:%d", host, port),
+		Id:      running.Project() + "-" + running.Hostname + "-" + running.InstanceID,
+	}
+}
 
-	parts := strings.Split(advt, ":")
-	if len(parts) > 1 {
-		host = strings.Join(parts[:len(parts)-1], ":")
-		port, _ = strconv.Atoi(parts[len(parts)-1])
+// buildService 构造注册/撤销用的 Service 对象。
+func buildService(reg Registry, includeRegistryMeta bool) *service.Service {
+	node := buildNode()
+	if includeRegistryMeta {
+		node.Metadata = map[string]string{"registry": reg.String()}
 	} else {
-		host = parts[0]
+		node.Metadata = make(map[string]string)
 	}
-
-	if host == "" {
-		host = netutil.GetLocalIP()
-	}
-
-	// register service
-	node := &service.Node{
-		Port:     port,
-		Version:  version.Version(),
-		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       running.Project() + "-" + running.Hostname + "-" + running.InstanceID,
-		Metadata: map[string]string{"registry": reg.String()},
-	}
-
-	s := &service.Service{
+	return &service.Service{
 		Name:  running.Project(),
 		Nodes: []*service.Node{node},
 	}
+}
+
+func register(ctx context.Context, reg Registry) {
+	s := buildService(reg, true)
+	node := s.Nodes[0]
 
 	logutil.OkOrFailed(
 		log.GetLogger("service-registry"),
 		"register service node",
 		func() error {
-			err := reg.Register(context.Background(), s)
+			err := reg.Register(ctx, s)
 			return errors.WrapTags(err, errors.Tags{
 				"instance_id": node.Id,
-				"service":     running.Project,
-				"registry":    Default().String(),
+				"service":     running.Project(),
+				"registry":    reg.String(),
 			})
 		},
 	)
 }
 
-func deregister(reg Registry) {
-	var advt, host string
-	port := int(running.GrpcPort.Value())
-
-	parts := strings.Split(advt, ":")
-	if len(parts) > 1 {
-		host = strings.Join(parts[:len(parts)-1], ":")
-		port, _ = strconv.Atoi(parts[len(parts)-1])
-	} else {
-		host = parts[0]
-	}
-
-	// register service
-	node := &service.Node{
-		Port:     port,
-		Address:  fmt.Sprintf("%s:%d", host, port),
-		Id:       running.Project() + "-" + running.Hostname + "-" + running.InstanceID,
-		Metadata: make(map[string]string),
-	}
-
-	s := &service.Service{
-		Name:  running.Project(),
-		Nodes: []*service.Node{node},
-	}
+func deregister(ctx context.Context, reg Registry) {
+	s := buildService(reg, false)
+	node := s.Nodes[0]
 
 	logutil.OkOrFailed(
 		log.GetLogger("service-registry"),
 		"deregister service node",
 		func() error {
-			err := reg.Deregister(context.Background(), s)
+			err := reg.Deregister(ctx, s)
 			return errors.WrapTags(err, errors.Tags{
 				"id":   node.Id,
-				"name": running.Project,
+				"name": running.Project(),
 			})
 		},
 	)

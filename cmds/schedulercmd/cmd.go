@@ -18,6 +18,7 @@ import (
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
+	_ "github.com/pubgo/lava/v2/core/tunnel/yamux" // 注册 yamux 传输
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/https"
 )
@@ -28,17 +29,16 @@ func New(di *dix.Dix) *redant.Command {
 		Short: cliutil.UsageDesc("crontab scheduler service %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			di.Provide(schedulerbuilder.NewService)
-			di.Provide(https.New)
 			params := dix.Inject(di, new(struct {
-				LC       lifecycle.Getter
-				Services []supervisor.Service `dix:"scheduler"`
+				LC         lifecycle.Getter
+				Scheduler  schedulerbuilder.ResponseParams
+				HTTPParams https.Params
 			}))
 
 			manager := supervisor.Default(params.LC)
 			supervisordebug.Register(manager)
-			for _, svc := range params.Services {
-				assert.Exit(manager.Add(svc))
-			}
+			assert.Exit(manager.Add(params.Scheduler.Service))
+			assert.Exit(manager.Add(https.New(params.HTTPParams)))
 
 			// 集成 Tunnel Agent
 			// Agent 主动连接 Gateway，将本服务的 HTTP 和 Debug 端点暴露出去
@@ -71,32 +71,30 @@ func New(di *dix.Dix) *redant.Command {
 				serviceVersion = "dev"
 			}
 
-			agent := tunnelagent.NewAgent(&tunnel.AgentConfig{
+			agentCfg := &tunnel.AgentConfig{
 				GatewayAddr:    gatewayAddr,
+				Transport:      tunnel.TransportYamux,
 				ServiceName:    serviceName,
 				ServiceVersion: serviceVersion,
-				Metadata: map[string]string{
+				Metadata: tunnel.ApplyAuthTokenMetadata(map[string]string{
 					"instance": os.Getenv("HOSTNAME"),
-				},
-
+				}, os.Getenv("TUNNEL_AUTH_TOKEN")),
 				Endpoints: []tunnel.EndpointConfig{
 					{Type: "http", LocalAddr: httpAddr, Path: "/"},
 					{Type: "debug", LocalAddr: debugAddr, Path: "/debug"},
 				},
-			})
-
-			err := agent.Start(ctx)
-			if err != nil {
-				log.Error().Err(err).Msg("Failed to start tunnel agent")
-			} else {
-				// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
-				tunneldebug.SetAgent(agent)
-				assert.Exit(manager.Add(&tunnelAgentService{agent: agent}))
-				log.Info().
-					Str("gateway", gatewayAddr).
-					Str("service", version.Project()).
-					Msg("Tunnel Agent integrated")
 			}
+			agentCfg.TLS.ApplyEnv()
+			agent := tunnelagent.NewAgent(agentCfg)
+
+			// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
+			// 实际启动交由 supervisor 生命周期统一管理，避免重复 Start
+			tunneldebug.SetAgent(agent)
+			assert.Exit(manager.Add(&tunnelAgentService{agent: agent}))
+			log.Info().
+				Str("gateway", gatewayAddr).
+				Str("service", serviceName).
+				Msg("Tunnel Agent integrated")
 
 			return manager.Run(ctx)
 		},
@@ -136,8 +134,20 @@ func (s *tunnelAgentService) Serve(ctx context.Context) error {
 }
 
 func (s *tunnelAgentService) Metric() *supervisor.Metric {
-	return &supervisor.Metric{
-		Name:   s.Name(),
-		Status: supervisor.StatusRunning,
+	m := &supervisor.Metric{Name: s.Name()}
+	if s.err != nil {
+		m.Status = supervisor.StatusError
+		m.LastError = s.err.Error()
+		return m
 	}
+
+	switch s.agent.Status() {
+	case tunnel.StatusConnected:
+		m.Status = supervisor.StatusRunning
+	case tunnel.StatusConnecting, tunnel.StatusReconnecting:
+		m.Status = supervisor.StatusCrashing
+	default:
+		m.Status = supervisor.StatusStopped
+	}
+	return m
 }

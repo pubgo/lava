@@ -1,3 +1,9 @@
+// Package debug 注册 debug 控制台主页与全局鉴权中间件。
+//
+// 鉴权策略：
+//   - 来自 localhost / 127.0.0.1 / ::1 的请求免 token
+//   - 其他来源须通过 query ?token=、Header token/Authorization 或 Cookie 携带有效 token
+//   - 默认 token 为 running.InstanceID，可通过配置文件 debug.password 覆盖
 package debug
 
 import (

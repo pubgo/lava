@@ -219,6 +219,7 @@ func (b *Builder) Build() (*Gateway, error) {
 	if b.cfg.Transport == "" {
 		b.cfg.Transport = TransportYamux
 	}
+	b.cfg.Normalize()
 	return New(b.cfg), nil
 }
 

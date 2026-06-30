@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"sync"
@@ -22,6 +21,9 @@ var _ tunnel.Agent = (*tunnelAgent)(nil)
 
 // NewAgent creates a new tunnel agent
 func NewAgent(cfg *tunnel.AgentConfig) tunnel.Agent {
+	if cfg != nil {
+		cfg.Normalize()
+	}
 	a := &tunnelAgent{
 		cfg:      cfg,
 		services: make(map[string]*tunnel.ServiceInfo),
@@ -90,11 +92,13 @@ type tunnelAgent struct {
 	stats     *Stats
 	statsMu   sync.Mutex
 
-	mu       sync.RWMutex
-	stopCh   chan struct{}
-	stopOnce sync.Once
-	wg       sync.WaitGroup
-	running  atomic.Bool
+	mu           sync.RWMutex
+	connectMu    sync.Mutex   // 串行化重连，避免并发 connect 产生多个 session
+	reconnecting atomic.Bool  // 防止立即重连 goroutine 堆积
+	stopCh       chan struct{}
+	stopOnce     sync.Once
+	wg           sync.WaitGroup
+	running      atomic.Bool
 
 	// Reverse proxies for forwarding requests to local services
 	httpProxy *httputil.ReverseProxy
@@ -230,7 +234,9 @@ func (a *tunnelAgent) connect(ctx context.Context) error {
 		a.updateLastActivity()
 		return err
 	}
+	a.mu.Lock()
 	a.session = session
+	a.mu.Unlock()
 	a.status = tunnel.StatusConnected
 
 	// 更新统计信息
@@ -397,14 +403,35 @@ func (a *tunnelAgent) handleError(err error) {
 }
 
 func (a *tunnelAgent) reconnectImmediately() {
+	// 防止多个 goroutine 同时触发立即重连导致堆积
+	if !a.reconnecting.CompareAndSwap(false, true) {
+		return
+	}
+	defer a.reconnecting.Store(false)
+
 	// 立即尝试重连，而不是等待重连计时器
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	a.status = tunnel.StatusReconnecting
-	if err := a.connect(ctx); err != nil {
+	if err := a.reconnect(ctx); err != nil {
 		log.Warn().Err(err).Msg("Immediate reconnect failed")
 	}
+}
+
+// reconnect 串行化的重连入口：若已有健康会话则直接返回，否则重新建立连接。
+func (a *tunnelAgent) reconnect(ctx context.Context) error {
+	a.connectMu.Lock()
+	defer a.connectMu.Unlock()
+
+	a.mu.RLock()
+	sess := a.session
+	a.mu.RUnlock()
+	if sess != nil && !sess.IsClosed() {
+		return nil
+	}
+
+	a.status = tunnel.StatusReconnecting
+	return a.connect(ctx)
 }
 
 func (a *tunnelAgent) sendHeartbeat() error {
@@ -494,6 +521,16 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 	length := uint32(header[0])<<24 | uint32(header[1])<<16 | uint32(header[2])<<8 | uint32(header[3])
 	log.Debug().Uint32("length", length).Msg("Agent: Read message header")
 
+	// 防止超大长度前缀导致 OOM
+	if length > tunnel.MaxMessageSize {
+		log.Warn().Uint32("length", length).Int("limit", tunnel.MaxMessageSize).Msg("Agent: message size exceeds limit")
+		atomic.AddInt64(&a.stats.Errors, 1)
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close stream after oversize message")
+		}
+		return
+	}
+
 	data := make([]byte, length)
 	if _, err := io.ReadFull(stream, data); err != nil {
 		log.Warn().Err(err).Msg("Agent: Failed to read message data")
@@ -556,74 +593,19 @@ func (a *tunnelAgent) handleHTTPRequest(stream tunnel.Stream, msg *tunnel.Messag
 	}
 
 	// Find the HTTP endpoint from local services
-	var httpEndpoint *tunnel.Endpoint
 	a.mu.RLock()
-	for _, svc := range a.services {
-		for i := range svc.Endpoints {
-			if svc.Endpoints[i].Type == tunnel.EndpointTypeHTTP {
-				httpEndpoint = &svc.Endpoints[i]
-				break
-			}
-		}
-		if httpEndpoint != nil {
-			break
-		}
-	}
+	httpEndpoint := findEndpoint(a.services, meta, tunnel.EndpointTypeHTTP)
 	a.mu.RUnlock()
 
 	if httpEndpoint == nil {
-		log.Warn().Msg("HTTP request: no HTTP endpoint found")
+		log.Warn().Str("service_id", meta.ServiceID).Msg("HTTP request: no HTTP endpoint found")
 		return
 	}
 
-	// Normalize address: add localhost if address starts with ':'
-	address := httpEndpoint.Address
-	if len(address) > 0 && address[0] == ':' {
-		address = "127.0.0.1" + address
-	}
+	address := normalizeAddress(httpEndpoint.Address)
 
 	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying HTTP request to local service")
-
-	// Forward request to local HTTP service
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local HTTP service")
-		return
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to close HTTP connection")
-		}
-	}()
-
-	// Bidirectional copy - wait for both directions to complete
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	// stream -> conn (request from gateway to local service)
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(conn, stream); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy request to local HTTP service")
-		}
-		// Close write side to signal end of request
-		if tcpConn, ok := conn.(*net.TCPConn); ok {
-			if err := tcpConn.CloseWrite(); err != nil {
-				log.Warn().Err(err).Str("address", address).Msg("Failed to close write side")
-			}
-		}
-	}()
-
-	// conn -> stream (response from local service to gateway)
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(stream, conn); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy response from local HTTP service")
-		}
-	}()
-
-	wg.Wait()
-	log.Debug().Str("address", address).Msg("HTTP request completed")
+	proxyStreamToTCP(stream, address)
 }
 
 func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Message) {
@@ -633,7 +615,6 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 		}
 	}()
 
-	// Parse request meta from payload
 	var meta tunnel.RequestMeta
 	if len(msg.Payload) > 0 {
 		if err := json.Unmarshal(msg.Payload, &meta); err != nil {
@@ -642,67 +623,18 @@ func (a *tunnelAgent) handleGRPCRequest(stream tunnel.Stream, msg *tunnel.Messag
 		}
 	}
 
-	// Find the gRPC endpoint from local services
-	var grpcEndpoint *tunnel.Endpoint
 	a.mu.RLock()
-	for _, svc := range a.services {
-		for i := range svc.Endpoints {
-			if svc.Endpoints[i].Type == tunnel.EndpointTypeGRPC {
-				grpcEndpoint = &svc.Endpoints[i]
-				break
-			}
-		}
-		if grpcEndpoint != nil {
-			break
-		}
-	}
+	grpcEndpoint := findEndpoint(a.services, meta, tunnel.EndpointTypeGRPC)
 	a.mu.RUnlock()
 
 	if grpcEndpoint == nil {
-		log.Warn().Msg("gRPC request: no gRPC endpoint found")
+		log.Warn().Str("service_id", meta.ServiceID).Msg("gRPC request: no gRPC endpoint found")
 		return
 	}
 
-	// Normalize address: add localhost if address starts with ':'
-	address := grpcEndpoint.Address
-	if len(address) > 0 && address[0] == ':' {
-		address = "127.0.0.1" + address
-	}
-
+	address := normalizeAddress(grpcEndpoint.Address)
 	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying gRPC request to local service")
-
-	// Forward request to local gRPC service
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local gRPC service")
-		return
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to close gRPC connection")
-		}
-	}()
-
-	// Bidirectional copy - wait for both directions to complete
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(conn, stream); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy gRPC request to local service")
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(stream, conn); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy gRPC response from local service")
-		}
-	}()
-
-	wg.Wait()
-	log.Debug().Str("address", address).Msg("gRPC request completed")
+	proxyStreamToTCP(stream, address)
 }
 
 func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Message) {
@@ -712,7 +644,6 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 		}
 	}()
 
-	// Parse request meta from payload
 	var meta tunnel.RequestMeta
 	if len(msg.Payload) > 0 {
 		if err := json.Unmarshal(msg.Payload, &meta); err != nil {
@@ -721,67 +652,18 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 		}
 	}
 
-	// Find the debug endpoint from local services
-	var debugEndpoint *tunnel.Endpoint
 	a.mu.RLock()
-	for _, svc := range a.services {
-		for i := range svc.Endpoints {
-			if svc.Endpoints[i].Type == tunnel.EndpointTypeDebug {
-				debugEndpoint = &svc.Endpoints[i]
-				break
-			}
-		}
-		if debugEndpoint != nil {
-			break
-		}
-	}
+	debugEndpoint := findEndpoint(a.services, meta, tunnel.EndpointTypeDebug)
 	a.mu.RUnlock()
 
 	if debugEndpoint == nil {
-		log.Warn().Msg("Debug request: no debug endpoint found")
+		log.Warn().Str("service_id", meta.ServiceID).Msg("Debug request: no debug endpoint found")
 		return
 	}
 
-	// Normalize address: add localhost if address starts with ':'
-	address := debugEndpoint.Address
-	if len(address) > 0 && address[0] == ':' {
-		address = "127.0.0.1" + address
-	}
-
+	address := normalizeAddress(debugEndpoint.Address)
 	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying debug request to local service")
-
-	// Forward request to local debug service
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		log.Warn().Err(err).Str("address", address).Msg("Failed to connect to local debug service")
-		return
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to close debug connection")
-		}
-	}()
-
-	// Bidirectional copy - wait for both directions to complete
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(conn, stream); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy debug request to local service")
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		if _, err := io.Copy(stream, conn); err != nil {
-			log.Warn().Err(err).Str("address", address).Msg("Failed to copy debug response from local service")
-		}
-	}()
-
-	wg.Wait()
-	log.Debug().Str("address", address).Msg("Debug request completed")
+	proxyStreamToTCP(stream, address)
 }
 
 func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
@@ -795,34 +677,48 @@ func (a *tunnelAgent) reconnectLoop(ctx context.Context) {
 	currentInterval := baseInterval
 	attempt := 0
 
+	maxAttempts := a.cfg.MaxReconnectAttempts // 0 表示无限重试
+
 	for {
 		select {
 		case <-a.stopCh:
 			return
 		case <-time.After(currentInterval):
-			if a.session == nil || a.session.IsClosed() {
-				a.status = tunnel.StatusReconnecting
-				attempt++
-				log.Info().Int("attempt", attempt).Dur("interval", currentInterval).Msg("Attempting to reconnect to gateway")
-				if err := a.connect(ctx); err != nil {
-					log.Warn().Err(err).Int("attempt", attempt).Dur("interval", currentInterval).Msg("Failed to reconnect to gateway")
-					// 指数退避：每次失败后间隔翻倍
-					currentInterval *= 2
-					if currentInterval > maxInterval {
-						currentInterval = maxInterval
-					}
-				} else {
-					// 重连成功，重置退避计时器和尝试次数
-					log.Info().Int("attempt", attempt).Msg("Successfully reconnected to gateway")
-					currentInterval = baseInterval
-					attempt = 0
-				}
-			} else {
+			a.mu.RLock()
+			sess := a.session
+			a.mu.RUnlock()
+
+			if sess != nil && !sess.IsClosed() {
 				// 会话正常，重置退避计时器
 				if attempt > 0 {
 					currentInterval = baseInterval
 					attempt = 0
 				}
+				continue
+			}
+
+			attempt++
+			log.Info().Int("attempt", attempt).Dur("interval", currentInterval).Msg("Attempting to reconnect to gateway")
+			if err := a.reconnect(ctx); err != nil {
+				log.Warn().Err(err).Int("attempt", attempt).Dur("interval", currentInterval).Msg("Failed to reconnect to gateway")
+
+				// 达到最大重连次数则放弃
+				if maxAttempts > 0 && attempt >= maxAttempts {
+					log.Error().Int("attempt", attempt).Int("max_attempts", maxAttempts).Msg("Max reconnect attempts reached, giving up")
+					a.status = tunnel.StatusDisconnected
+					return
+				}
+
+				// 指数退避：每次失败后间隔翻倍
+				currentInterval *= 2
+				if currentInterval > maxInterval {
+					currentInterval = maxInterval
+				}
+			} else {
+				// 重连成功，重置退避计时器和尝试次数
+				log.Info().Int("attempt", attempt).Msg("Successfully reconnected to gateway")
+				currentInterval = baseInterval
+				attempt = 0
 			}
 		}
 	}
