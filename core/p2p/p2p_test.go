@@ -10,8 +10,8 @@ import (
 	"github.com/pubgo/lava/v2/core/p2p/ice"
 	"github.com/pubgo/lava/v2/core/p2p/quicconn"
 	"github.com/pubgo/lava/v2/core/p2p/signaling"
-	"github.com/pubgo/lava/v2/core/tunnel"
 	_ "github.com/pubgo/lava/v2/core/p2p/transport"
+	"github.com/pubgo/lava/v2/core/tunnel"
 )
 
 func TestICEThenQUIC(t *testing.T) {
@@ -156,8 +156,8 @@ func TestCoordinatorP2PQUIC(t *testing.T) {
 		t.Fatal(dr.err)
 	}
 	peerA := dr.pc
-	defer peerA.Close()
-	defer peerB.Close()
+	defer func() { _ = peerA.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	if peerA.RemotePeerID() != "node-b" || peerB.RemotePeerID() != "node-a" {
 		t.Fatalf("peer ids: a->%s b->%s", peerA.RemotePeerID(), peerB.RemotePeerID())
@@ -238,8 +238,8 @@ func TestCoordinatorDialWhileListening(t *testing.T) {
 	if dr.err != nil {
 		t.Fatal(dr.err)
 	}
-	defer dr.pc.Close()
-	defer peerB.Close()
+	defer func() { _ = dr.pc.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	// node-a 在 Dial 后仍可保持 Listen 状态
 	if st := coordA.Stats(); !st.Listening {

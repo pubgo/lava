@@ -209,10 +209,10 @@ func (f *wsFrontend) matchRESTPath(r *http.Request) (*MatchOperation, url.Values
 }
 
 func resolveWSEncoding(r *http.Request, subprotocol string) wsEncoding {
-	switch {
-	case subprotocol == "grpc-ws-proto":
+	switch subprotocol {
+	case "grpc-ws-proto":
 		return wsEncodingProto
-	case subprotocol == "grpc-ws-json":
+	case "grpc-ws-json":
 		return wsEncodingJSON
 	}
 

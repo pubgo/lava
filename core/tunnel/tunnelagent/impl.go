@@ -93,8 +93,8 @@ type tunnelAgent struct {
 	statsMu   sync.Mutex
 
 	mu           sync.RWMutex
-	connectMu    sync.Mutex   // 串行化重连，避免并发 connect 产生多个 session
-	reconnecting atomic.Bool  // 防止立即重连 goroutine 堆积
+	connectMu    sync.Mutex  // 串行化重连，避免并发 connect 产生多个 session
+	reconnecting atomic.Bool // 防止立即重连 goroutine 堆积
 	stopCh       chan struct{}
 	stopOnce     sync.Once
 	wg           sync.WaitGroup

@@ -122,7 +122,7 @@ func (t *triggerImpl) Description() string {
 	return t.trigger.Description()
 }
 
-func (t *triggerImpl) Snapshot() (prev int64, next int64, err error) {
+func (t *triggerImpl) Snapshot() (prev, next int64, err error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 

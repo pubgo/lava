@@ -18,8 +18,8 @@ func TestClientPoolReuse(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -36,7 +36,7 @@ func TestClientPoolReuse(t *testing.T) {
 	}()
 
 	client := p2p.NewClient(coordA)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	pc1, err := client.Conn(ctx, "node-b")
 	if err != nil {
@@ -46,7 +46,7 @@ func TestClientPoolReuse(t *testing.T) {
 	if peerB == nil {
 		t.Fatal("accept")
 	}
-	defer peerB.Close()
+	defer func() { _ = peerB.Close() }()
 
 	pc2, err := client.Conn(ctx, "node-b")
 	if err != nil {
@@ -72,8 +72,8 @@ func TestClientOpenStreamAfterClose(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -92,7 +92,7 @@ func TestClientOpenStreamAfterClose(t *testing.T) {
 	}()
 
 	client := p2p.NewClient(coordA)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	pc, err := client.Conn(ctx, "node-b")
 	if err != nil {
@@ -116,7 +116,7 @@ func TestClientOpenStreamAfterClose(t *testing.T) {
 			readCh <- "accept failed"
 			return
 		}
-		defer peerB2.Close()
+		defer func() { _ = peerB2.Close() }()
 		st, err := peerB2.Accept()
 		if err != nil {
 			readCh <- err.Error()
@@ -152,8 +152,8 @@ func TestClientNetDialer(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -170,20 +170,20 @@ func TestClientNetDialer(t *testing.T) {
 	}()
 
 	client := p2p.NewClient(coordA)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	dialer := client.NetDialer()
 	conn, err := dialer(ctx, "node-b")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	peerB := <-acceptCh
 	if peerB == nil {
 		t.Fatal("accept")
 	}
-	defer peerB.Close()
+	defer func() { _ = peerB.Close() }()
 
 	readCh := make(chan string, 1)
 	go func() {

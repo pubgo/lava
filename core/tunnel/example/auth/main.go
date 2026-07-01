@@ -50,7 +50,7 @@ func main() {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("gateway: %v", err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	// Agent：注册时携带同一 token
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("agent: %v", err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 	time.Sleep(500 * time.Millisecond)
 
 	proxyBase := fmt.Sprintf("http://127.0.0.1:%d", httpPort)
@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("no-token request: %v", err)
 	}
-	noTokenResp.Body.Close()
+	_ = noTokenResp.Body.Close()
 	fmt.Printf("[无 token]  status=%d (期望 401)\n", noTokenResp.StatusCode)
 
 	// 2) 带 token → 200
@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("token request: %v", err)
 	}
-	defer okResp.Body.Close()
+	defer func() { _ = okResp.Body.Close() }()
 	body, _ := io.ReadAll(okResp.Body)
 	fmt.Printf("[带 token]  status=%d body=%q (期望 200)\n", okResp.StatusCode, body)
 

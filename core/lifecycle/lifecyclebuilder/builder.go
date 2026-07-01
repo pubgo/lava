@@ -39,6 +39,7 @@ func (t *lifecycleImpl) GetAfterStops() []lifecycle.Executor   { return t.afterS
 func (t *lifecycleImpl) GetBeforeStops() []lifecycle.Executor  { return t.beforeStops }
 func (t *lifecycleImpl) GetAfterStarts() []lifecycle.Executor  { return t.afterStarts }
 func (t *lifecycleImpl) GetBeforeStarts() []lifecycle.Executor { return t.beforeStarts }
+
 // BeforeStart 追加注册（FIFO）：启动前按注册顺序执行。
 func (t *lifecycleImpl) BeforeStart(f lifecycle.ExecFunc) {
 	t.beforeStarts = append(t.beforeStarts, lifecycle.Executor{Exec: f})

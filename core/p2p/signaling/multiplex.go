@@ -10,13 +10,13 @@ type Multiplex struct {
 	inner  Broker
 	selfID string
 
-	mu      sync.Mutex
-	subs    map[uint64]chan Message
-	nextID  uint64
-	started bool
-	stopCh  chan struct{}
+	mu       sync.Mutex
+	subs     map[uint64]chan Message
+	nextID   uint64
+	started  bool
+	stopCh   chan struct{}
 	stopOnce sync.Once
-	wg      sync.WaitGroup
+	wg       sync.WaitGroup
 }
 
 // NewMultiplex 包装底层 Broker；每个 ICE 会话通过 Session 获得独立 Recv 通道。
@@ -142,6 +142,4 @@ func (s *SessionBroker) Close() error {
 	return nil
 }
 
-var (
-	_ Broker = (*SessionBroker)(nil)
-)
+var _ Broker = (*SessionBroker)(nil)

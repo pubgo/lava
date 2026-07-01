@@ -39,7 +39,7 @@ func verifyWebSocketUnary() {
 	if err != nil {
 		log.Fatalf("ws unary dial: %v", err)
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 
 	if err = conn.Write(ctx, websocket.MessageText, []byte(`{"name":"WS"}`)); err != nil {
 		log.Fatalf("ws unary write: %v", err)
@@ -81,7 +81,7 @@ func verifyWebSocketRESTPath() {
 	if err != nil {
 		log.Fatalf("ws REST path dial: %v", err)
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 
 	if err = conn.Write(ctx, websocket.MessageText, []byte(`{"name":"REST-WS"}`)); err != nil {
 		log.Fatalf("ws REST path write: %v", err)
@@ -105,7 +105,7 @@ func verifyWebSocketServerStream() {
 	if err != nil {
 		log.Fatalf("ws server-stream dial: %v", err)
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 
 	if err = conn.Write(ctx, websocket.MessageText, []byte(`{"name":"WS","count":3}`)); err != nil {
 		log.Fatalf("ws server-stream write: %v", err)
@@ -131,7 +131,7 @@ func verifyWebSocketBidi() {
 	if err != nil {
 		log.Fatalf("ws bidi dial: %v", err)
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 
 	for _, text := range []string{"hi", "there"} {
 		if err = conn.Write(ctx, websocket.MessageText, []byte(`{"text":"`+text+`"}`)); err != nil {
@@ -151,7 +151,7 @@ func verifyNativeGRPC() {
 	if err != nil {
 		log.Fatalf("native gRPC dial: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	cli := greeterpb.NewGreeterServiceClient(conn)
 

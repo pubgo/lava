@@ -67,14 +67,14 @@ func TestGRPCContextDialer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	go func() {
 		conn, err := ln.Accept()
 		if err != nil {
 			return
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		buf := make([]byte, 64)
 		n, _ := conn.Read(buf)
 		if string(buf[:n]) != tunnel.GRPCRouteLine("echo") {
@@ -91,7 +91,7 @@ func TestGRPCContextDialer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	buf := make([]byte, 8)
 	n, err := conn.Read(buf)

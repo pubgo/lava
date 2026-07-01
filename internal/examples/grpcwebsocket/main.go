@@ -10,14 +10,16 @@
 // 测试:
 //
 //  1. 浏览器打开 http://localhost:8080/
+//
 //  2. 点击 SayHello / SayGoodbye 按钮，WebSocket 连接 ws://localhost:8081/...
+//
 //  3. curl 无法直接测试 WS，请使用浏览器或 wscat
 //
 //  4. 原生 gRPC 客户端连接 localhost:50051（与 HTTP/WS 共享同一套 handler）
 //
 //  5. 自动化验证（需先启动本服务）:
 //
-//	go run ./internal/examples/grpcwebsocket/verify/
+//     go run ./internal/examples/grpcwebsocket/verify/
 package main
 
 import (
@@ -33,10 +35,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"google.golang.org/grpc"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
+	"google.golang.org/grpc"
 
 	greeterpb "github.com/pubgo/lava/v2/internal/examples/grpcweb/proto"
 	"github.com/pubgo/lava/v2/pkg/gateway"

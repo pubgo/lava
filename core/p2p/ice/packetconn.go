@@ -72,6 +72,6 @@ func (p *packetConn) Close() error {
 func (p *packetConn) LocalAddr() net.Addr  { return p.local }
 func (p *packetConn) RemoteAddr() net.Addr { return p.remote }
 
-func (p *packetConn) SetDeadline(t time.Time) error        { return p.conn.SetDeadline(t) }
-func (p *packetConn) SetReadDeadline(t time.Time) error    { return p.conn.SetReadDeadline(t) }
-func (p *packetConn) SetWriteDeadline(t time.Time) error   { return p.conn.SetWriteDeadline(t) }
+func (p *packetConn) SetDeadline(t time.Time) error      { return p.conn.SetDeadline(t) }
+func (p *packetConn) SetReadDeadline(t time.Time) error  { return p.conn.SetReadDeadline(t) }
+func (p *packetConn) SetWriteDeadline(t time.Time) error { return p.conn.SetWriteDeadline(t) }

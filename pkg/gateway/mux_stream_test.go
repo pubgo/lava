@@ -212,4 +212,3 @@ func TestInvokeResponseStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
 		t.Fatalf("expected 1 request message sent, got=%d", len(fakeStream.sentReqs))
 	}
 }
-

@@ -27,7 +27,7 @@ func TestServerTLSAndQUIC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	sessCh := make(chan error, 1)
 	go func() {
@@ -43,7 +43,7 @@ func TestServerTLSAndQUIC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.CloseWithError(0, "done")
+	defer func() { _ = client.CloseWithError(0, "done") }()
 
 	if err := <-sessCh; err != nil {
 		t.Fatal(err)

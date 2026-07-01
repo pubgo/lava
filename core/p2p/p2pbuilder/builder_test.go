@@ -129,8 +129,8 @@ func TestP2PEndToEndViaTunnel(t *testing.T) {
 	case err := <-errCh:
 		t.Fatal(err)
 	case peerA := <-dialCh:
-		defer peerA.Close()
-		defer peerB.Close()
+		defer func() { _ = peerA.Close() }()
+		defer func() { _ = peerB.Close() }()
 
 		if peerA.RemotePeerID() != "node-b" || peerB.RemotePeerID() != "node-a" {
 			t.Fatalf("peer ids: a->%s b->%s", peerA.RemotePeerID(), peerB.RemotePeerID())

@@ -19,8 +19,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/log"
 
-	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/p2p/signaling"
+	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/ratelimit"
 )
 
@@ -89,22 +89,22 @@ type registeredPeer struct {
 }
 
 type tunnelGateway struct {
-	cfg          *tunnel.GatewayConfig
-	transport    tunnel.Transport
-	listener     tunnel.Listener
-	services     map[string]*registeredService
-	peers        map[string]*registeredPeer
-	peerByAgent  map[string]string
-	status       tunnel.GatewayStatus
-	authProvider tunnel.AuthProvider
-	metrics      *tunnel.MetricsRecorder
-	rateLimiter  *ratelimit.Limiter
+	cfg                *tunnel.GatewayConfig
+	transport          tunnel.Transport
+	listener           tunnel.Listener
+	services           map[string]*registeredService
+	peers              map[string]*registeredPeer
+	peerByAgent        map[string]string
+	status             tunnel.GatewayStatus
+	authProvider       tunnel.AuthProvider
+	metrics            *tunnel.MetricsRecorder
+	rateLimiter        *ratelimit.Limiter
 	p2pSignalLimiter   *ratelimit.Limiter
 	p2pRegisterLimiter *ratelimit.Limiter
 
 	// 对外代理服务器
-	httpServer  *http.Server
-	debugServer *http.Server
+	httpServer   *http.Server
+	debugServer  *http.Server
 	grpcListener net.Listener
 
 	mu       sync.RWMutex
@@ -253,6 +253,11 @@ func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) htt
 			subPath = "/" + parts[1]
 		}
 
+		if err := g.authorizeClient(serviceName, tunnel.ClientTokenFromRequest(r)); err != nil {
+			writeAuthError(w)
+			return
+		}
+
 		// 查找服务
 		g.mu.RLock()
 		svc, ok := g.services[serviceName]
@@ -265,11 +270,6 @@ func (g *tunnelGateway) createProxyHandler(endpointType tunnel.EndpointType) htt
 
 		if svc.session == nil || svc.session.IsClosed() {
 			http.Error(w, fmt.Sprintf("service unavailable: %s", serviceName), http.StatusServiceUnavailable)
-			return
-		}
-
-		if err := g.authorizeClient(serviceName, tunnel.ClientTokenFromRequest(r)); err != nil {
-			writeAuthError(w)
 			return
 		}
 
@@ -992,7 +992,11 @@ func (g *tunnelGateway) handleP2PSignal(agentID string, session tunnel.Session, 
 		log.Warn().Str("to", sig.To).Msg("P2P signal: peer not found")
 		return
 	}
-	if g.authProvider != nil && sig.AuthToken != "" {
+	if g.authProvider != nil {
+		if sig.AuthToken == "" {
+			log.Warn().Str("from", sig.From).Msg("P2P signal: missing auth_token")
+			return
+		}
 		if _, err := g.authProvider.ValidateToken(sig.AuthToken); err != nil {
 			log.Warn().Err(err).Str("from", sig.From).Msg("P2P signal: auth failed")
 			return

@@ -17,8 +17,8 @@ func TestCoordinatorStatsFields(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -39,13 +39,13 @@ func TestCoordinatorStatsFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer pcB.Close()
+	defer func() { _ = pcB.Close() }()
 
 	pcA := <-dialCh
 	if pcA == nil {
 		t.Fatal("dial failed")
 	}
-	defer pcA.Close()
+	defer func() { _ = pcA.Close() }()
 
 	st := coordA.Stats()
 	if st.ActiveConnections != 1 {

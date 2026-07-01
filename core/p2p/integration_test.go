@@ -21,8 +21,8 @@ func TestClientHTTPIntegration(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -34,27 +34,27 @@ func TestClientHTTPIntegration(t *testing.T) {
 		if err != nil {
 			return
 		}
-		defer pc.Close()
+		defer func() { _ = pc.Close() }()
 		for {
 			st, err := pc.Accept()
 			if err != nil {
 				return
 			}
 			go func(s io.ReadWriteCloser) {
-				defer s.Close()
+				defer func() { _ = s.Close() }()
 				_, _ = io.WriteString(s, "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
 			}(st)
 		}
 	}()
 
 	client := p2p.NewClient(coordA)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	resp, err := client.HTTPClient().Get("http://node-b/healthz")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status=%d", resp.StatusCode)
 	}
@@ -72,8 +72,8 @@ func TestClientRawStreamIntegration(t *testing.T) {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -87,13 +87,13 @@ func TestClientRawStreamIntegration(t *testing.T) {
 			readCh <- err.Error()
 			return
 		}
-		defer pc.Close()
+		defer func() { _ = pc.Close() }()
 		st, err := pc.Accept()
 		if err != nil {
 			readCh <- err.Error()
 			return
 		}
-		defer st.Close()
+		defer func() { _ = st.Close() }()
 		line, err := bufio.NewReader(st).ReadString('\n')
 		if err != nil {
 			readCh <- err.Error()
@@ -103,13 +103,13 @@ func TestClientRawStreamIntegration(t *testing.T) {
 	}()
 
 	client := p2p.NewClient(coordA)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	conn, err := client.OpenStream(ctx, "node-b")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 	if _, err := io.WriteString(conn, "ping\n"); err != nil {
 		t.Fatal(err)
 	}

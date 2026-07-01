@@ -41,6 +41,7 @@ func (s *stubRegistry) String() string { return s.name }
 func (s *stubRegistry) Register(_ context.Context, _ *service.Service, _ ...RegOpt) error {
 	return nil
 }
+
 func (s *stubRegistry) Deregister(_ context.Context, _ *service.Service, _ ...DeregOpt) error {
 	return nil
 }

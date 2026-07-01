@@ -244,7 +244,7 @@ func (c *coordinator) Close() error {
 
 func (c *coordinator) iceConnect(ctx context.Context, peerID string, role ice.Role) (*ice.Connection, error) {
 	sess := c.sigMux.Session()
-	defer sess.Close()
+	defer func() { _ = sess.Close() }()
 	iceCfg, err := toICEConfig(c.cfg, c.selfID)
 	if err != nil {
 		return nil, err
@@ -317,12 +317,12 @@ func (t *trackedConn) Close() error {
 	}
 	return err
 }
-func (t *trackedConn) IsClosed() bool                    { return t.peerConn.IsClosed() }
-func (t *trackedConn) NumStreams() int                   { return t.peerConn.NumStreams() }
-func (t *trackedConn) LocalAddr() net.Addr               { return t.peerConn.LocalAddr() }
-func (t *trackedConn) RemoteAddr() net.Addr              { return t.peerConn.RemoteAddr() }
-func (t *trackedConn) RemotePeerID() string              { return t.peerConn.RemotePeerID() }
-func (t *trackedConn) LocalPeerID() string               { return t.peerConn.LocalPeerID() }
+func (t *trackedConn) IsClosed() bool                  { return t.peerConn.IsClosed() }
+func (t *trackedConn) NumStreams() int                 { return t.peerConn.NumStreams() }
+func (t *trackedConn) LocalAddr() net.Addr             { return t.peerConn.LocalAddr() }
+func (t *trackedConn) RemoteAddr() net.Addr            { return t.peerConn.RemoteAddr() }
+func (t *trackedConn) RemotePeerID() string            { return t.peerConn.RemotePeerID() }
+func (t *trackedConn) LocalPeerID() string             { return t.peerConn.LocalPeerID() }
 func (t *trackedConn) SelectedPair() CandidatePairInfo { return t.peerConn.SelectedPair() }
 
 func (c *coordinator) quicDial(ctx context.Context, iceRes *ice.Connection) (*peerConn, error) {
@@ -459,12 +459,12 @@ func (p *peerConn) Close() error {
 	}
 	return nil
 }
-func (p *peerConn) IsClosed() bool                    { return p.session != nil && p.session.IsClosed() }
-func (p *peerConn) NumStreams() int                   { return p.session.NumStreams() }
-func (p *peerConn) LocalAddr() net.Addr               { return p.session.LocalAddr() }
-func (p *peerConn) RemoteAddr() net.Addr              { return p.session.RemoteAddr() }
-func (p *peerConn) RemotePeerID() string              { return p.remotePeerID }
-func (p *peerConn) LocalPeerID() string               { return p.localPeerID }
+func (p *peerConn) IsClosed() bool                  { return p.session != nil && p.session.IsClosed() }
+func (p *peerConn) NumStreams() int                 { return p.session.NumStreams() }
+func (p *peerConn) LocalAddr() net.Addr             { return p.session.LocalAddr() }
+func (p *peerConn) RemoteAddr() net.Addr            { return p.session.RemoteAddr() }
+func (p *peerConn) RemotePeerID() string            { return p.remotePeerID }
+func (p *peerConn) LocalPeerID() string             { return p.localPeerID }
 func (p *peerConn) SelectedPair() CandidatePairInfo { return p.pair }
 
 var (

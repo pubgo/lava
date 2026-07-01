@@ -1,7 +1,7 @@
 // Package debug 注册 Supervisor 的 debug UI 与 REST 控制 API。
 //
 // 路由挂载在 /debug/supervisor 下，鉴权由 core/debug 全局中间件统一处理
-//（非 localhost 访问需 token，详见 core/debug 包文档）。
+// （非 localhost 访问需 token，详见 core/debug 包文档）。
 package debug
 
 import (

@@ -19,7 +19,10 @@ func TestConnectHostOnly(t *testing.T) {
 	cfg := ice.Config{ICETimeout: 10 * time.Second}
 
 	errCh := make(chan error, 2)
-	var connA interface{ Write([]byte) (int, error); Close() error }
+	var connA interface {
+		Write([]byte) (int, error)
+		Close() error
+	}
 
 	go func() {
 		c, err := ice.Connect(ctx, cfg, brokerA, "a", "b", ice.RoleDialer)

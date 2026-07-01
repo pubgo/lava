@@ -8,8 +8,11 @@ import (
 
 func TestLimiterDefaultAllow(t *testing.T) {
 	rl := ratelimit.New(2)
-	if !rl.Allow("a") || !rl.Allow("a") {
-		t.Fatal("expected first two allows")
+	if !rl.Allow("a") {
+		t.Fatal("expected first allow")
+	}
+	if !rl.Allow("a") {
+		t.Fatal("expected second allow")
 	}
 	if rl.Allow("a") {
 		t.Fatal("expected third denied without refill")

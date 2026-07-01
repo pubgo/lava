@@ -52,7 +52,7 @@ func main() {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("gateway: %v", err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	// 3) Agent：注册 grpc 端点
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
@@ -63,7 +63,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("agent: %v", err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 	time.Sleep(500 * time.Millisecond)
 
 	// 4) gRPC 客户端经网关代理拨号（addr 即 service 名）
@@ -77,7 +77,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("grpc client: %v", err)
 	}
-	defer cc.Close()
+	defer func() { _ = cc.Close() }()
 
 	resp, err := grpc_health_v1.NewHealthClient(cc).Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 	if err != nil {

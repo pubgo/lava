@@ -26,8 +26,8 @@ func TestCoordinatorReconnect(t *testing.T) {
 
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -67,12 +67,12 @@ func TestCoordinatorReconnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer pc2.Close()
+	defer func() { _ = pc2.Close() }()
 	peerB2 := <-acceptCh
 	if peerB2 == nil {
 		t.Fatal("accept peerB2")
 	}
-	defer peerB2.Close()
+	defer func() { _ = peerB2.Close() }()
 
 	readCh := make(chan string, 1)
 	go func() {

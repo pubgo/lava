@@ -591,7 +591,7 @@ func TestProxyAuth_HTTP(t *testing.T) {
 	})
 	backend := &http.Server{Addr: backendAddr, Handler: mux}
 	go func() { _ = backend.ListenAndServe() }()
-	defer backend.Close()
+	defer func() { _ = backend.Close() }()
 	time.Sleep(100 * time.Millisecond)
 
 	gw := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
@@ -605,7 +605,7 @@ func TestProxyAuth_HTTP(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
 		GatewayAddr: gatewayAddr,
@@ -616,7 +616,7 @@ func TestProxyAuth_HTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 	time.Sleep(500 * time.Millisecond)
 
 	proxyBase := fmt.Sprintf("http://127.0.0.1:%d", proxyPort)
@@ -624,7 +624,7 @@ func TestProxyAuth_HTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusUnauthorized {
 		t.Fatalf("no token: status=%d want 401", resp.StatusCode)
 	}
@@ -633,7 +633,7 @@ func TestProxyAuth_HTTP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK || string(body) != "authed" {
 		t.Fatalf("status=%d body=%q", resp.StatusCode, body)
@@ -664,7 +664,7 @@ func TestGRPCProxy_HealthCheck(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
 		GatewayAddr: gatewayTunnel,
@@ -675,14 +675,14 @@ func TestGRPCProxy_HealthCheck(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 	time.Sleep(500 * time.Millisecond)
 
 	cc, client, err := grpcHealthDial(ctx, fmt.Sprintf("127.0.0.1:%d", grpcProxyPort), "grpc-health", token)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cc.Close()
+	defer func() { _ = cc.Close() }()
 
 	resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 	if err != nil {
@@ -692,4 +692,3 @@ func TestGRPCProxy_HealthCheck(t *testing.T) {
 		t.Fatalf("status=%v", resp.GetStatus())
 	}
 }
-

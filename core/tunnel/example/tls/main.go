@@ -65,7 +65,7 @@ func main() {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("gateway: %v", err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	// Agent：客户端 TLS（demo 用 Insecure 跳过证书校验；生产配 CAFile）
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
@@ -79,7 +79,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("agent: %v", err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 	time.Sleep(500 * time.Millisecond)
 
 	proxyBase := fmt.Sprintf("http://127.0.0.1:%d", httpPort)
@@ -87,7 +87,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 
 	fmt.Println("----------------------------------------")

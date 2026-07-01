@@ -122,7 +122,7 @@ func (c *Client) NetDialer() func(context.Context, string) (net.Conn, error) {
 // HTTPTransport 返回经 P2P 拨号的 http.Transport（URL host 即 peerID）。
 func (c *Client) HTTPTransport() *http.Transport {
 	return &http.Transport{
-		DialContext: func(ctx context.Context, _ string, addr string) (net.Conn, error) {
+		DialContext: func(ctx context.Context, _, addr string) (net.Conn, error) {
 			return c.OpenStream(ctx, peerIDFromAddr(addr))
 		},
 		// P2P 已是单条 QUIC 多路复用，禁用 http 自带的连接池压缩握手抖动。

@@ -36,16 +36,7 @@ func Connect(
 		return nil, err
 	}
 
-	agentCfg := &pionice.AgentConfig{
-		Urls:         urls,
-		NetworkTypes: []pionice.NetworkType{pionice.NetworkTypeUDP4},
-	}
-	if lvl := os.Getenv("P2P_ICE_DEBUG"); lvl != "" {
-		lf := logging.NewDefaultLoggerFactory()
-		lf.DefaultLogLevel = logging.LogLevelTrace
-		agentCfg.LoggerFactory = lf
-	}
-	agent, err := pionice.NewAgent(agentCfg)
+	agent, err := pionice.NewAgentWithOptions(buildAgentOptions(urls)...)
 	if err != nil {
 		return nil, fmt.Errorf("ice agent: %w", err)
 	}
@@ -282,4 +273,17 @@ func parseURLs(cfg Config) ([]*stun.URI, error) {
 		urls = append(urls, u)
 	}
 	return urls, nil
+}
+
+func buildAgentOptions(urls []*stun.URI) []pionice.AgentOption {
+	opts := []pionice.AgentOption{
+		pionice.WithUrls(urls),
+		pionice.WithNetworkTypes([]pionice.NetworkType{pionice.NetworkTypeUDP4}),
+	}
+	if lvl := os.Getenv("P2P_ICE_DEBUG"); lvl != "" {
+		lf := logging.NewDefaultLoggerFactory()
+		lf.DefaultLogLevel = logging.LogLevelTrace
+		opts = append(opts, pionice.WithLoggerFactory(lf))
+	}
+	return opts
 }

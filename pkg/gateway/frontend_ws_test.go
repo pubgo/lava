@@ -50,7 +50,7 @@ func TestStreamWS_RoundTripJSON(t *testing.T) {
 			t.Errorf("accept: %v", err)
 			return
 		}
-		defer conn.CloseNow()
+		defer func() { _ = conn.CloseNow() }()
 
 		s := &streamWS{conn: conn, ctx: r.Context(), encoding: wsEncodingJSON}
 
@@ -64,7 +64,7 @@ func TestStreamWS_RoundTripJSON(t *testing.T) {
 			t.Errorf("server SendMsg: %v", err)
 			return
 		}
-		conn.Close(websocket.StatusNormalClosure, "")
+		_ = conn.Close(websocket.StatusNormalClosure, "")
 	}))
 	defer srv.Close()
 
@@ -76,7 +76,7 @@ func TestStreamWS_RoundTripJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 
 	want := &structpb.Struct{Fields: map[string]*structpb.Value{
 		"msg": structpb.NewStringValue("hello-ws"),
@@ -146,7 +146,7 @@ func TestCloseWithStatus(t *testing.T) {
 			if err != nil {
 				t.Fatalf("dial: %v", err)
 			}
-			defer conn.CloseNow()
+			defer func() { _ = conn.CloseNow() }()
 
 			_, _, readErr := conn.Read(ctx)
 			var ce websocket.CloseError
@@ -173,4 +173,3 @@ func TestCloseWithStatus(t *testing.T) {
 		})
 	}
 }
-

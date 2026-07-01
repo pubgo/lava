@@ -10,8 +10,9 @@ import (
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
-	"github.com/pubgo/lava/v2/pkg/httputil"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 type httpFrontend struct {

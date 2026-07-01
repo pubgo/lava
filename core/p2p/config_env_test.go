@@ -54,7 +54,7 @@ func TestConfigFromEnvTURNDisabled(t *testing.T) {
 }
 
 func TestAuthTokenFromEnvFallback(t *testing.T) {
-	os.Unsetenv("P2P_AUTH_TOKEN")
+	_ = os.Unsetenv("P2P_AUTH_TOKEN")
 	t.Setenv("TUNNEL_AUTH_TOKEN", "tunnel-tok")
 	if got := p2p.AuthTokenFromEnv(); got != "tunnel-tok" {
 		t.Fatalf("got %q", got)

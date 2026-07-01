@@ -47,7 +47,7 @@ func main() {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatalf("gateway: %v", err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	// 3) Agent：一行启动 + 注册服务
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("agent: %v", err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 
 	time.Sleep(500 * time.Millisecond) // 等注册完成
 
@@ -70,7 +70,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 
 	fmt.Println("----------------------------------------")

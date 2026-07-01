@@ -110,8 +110,8 @@ func runLocal(ctx context.Context) error {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "node-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "node-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "node-b")
 	if err != nil {
@@ -133,8 +133,8 @@ func runLocal(ctx context.Context) error {
 	if err := <-dialCh; err != nil {
 		return err
 	}
-	defer peerA.Close()
-	defer peerB.Close()
+	defer func() { _ = peerA.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	msg, err := exchangeStream(ctx, peerA, peerB, []byte("hello-local-p2p"))
 	if err != nil {
@@ -161,7 +161,7 @@ func runAll(ctx context.Context) error {
 	if err := gw.Start(ctx); err != nil {
 		return err
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	coordA, stopA, err := startPeerStack(ctx, gwAddr, "node-a", true)
 	if err != nil {
@@ -197,8 +197,8 @@ func runAll(ctx context.Context) error {
 	if err := <-dialCh; err != nil {
 		return err
 	}
-	defer peerA.Close()
-	defer peerB.Close()
+	defer func() { _ = peerA.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	msg, err := exchangeStream(ctx, peerA, peerB, []byte("hello-tunnel-p2p"))
 	if err != nil {
@@ -226,8 +226,8 @@ func runDev(ctx context.Context) error {
 	brokerA, brokerB := signaling.Pair()
 	coordA := p2p.NewCoordinator(cfg, brokerA, "dev-a")
 	coordB := p2p.NewCoordinator(cfg, brokerB, "dev-b")
-	defer coordA.Close()
-	defer coordB.Close()
+	defer func() { _ = coordA.Close() }()
+	defer func() { _ = coordB.Close() }()
 
 	ln, err := coordB.Listen(ctx, "dev-b")
 	if err != nil {
@@ -249,8 +249,8 @@ func runDev(ctx context.Context) error {
 	if err := <-dialCh; err != nil {
 		return err
 	}
-	defer peerA.Close()
-	defer peerB.Close()
+	defer func() { _ = peerA.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	msg, err := exchangeStream(ctx, peerA, peerB, []byte("hello-dev-coturn"))
 	if err != nil {
@@ -273,7 +273,7 @@ func runGateway(ctx context.Context) {
 	if err := gw.Start(ctx); err != nil {
 		log.Fatal(err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	fmt.Printf("Gateway listening on %s (auth enabled)\n", *gatewayAddr)
 	fmt.Println("Start peers in other terminals:")
@@ -308,7 +308,7 @@ func runPeer(ctx context.Context, id, remote string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer peer.Close()
+	defer func() { _ = peer.Close() }()
 
 	st, err := peer.Open(dialCtx)
 	if err != nil {

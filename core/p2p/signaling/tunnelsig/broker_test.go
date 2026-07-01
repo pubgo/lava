@@ -10,8 +10,8 @@ import (
 	"github.com/pubgo/lava/v2/core/p2p/signaling/tunnelsig"
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
-	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
+	_ "github.com/pubgo/lava/v2/core/tunnel/yamux"
 )
 
 const testToken = "p2p-test-token"

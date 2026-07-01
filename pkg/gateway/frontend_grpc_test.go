@@ -59,7 +59,7 @@ func TestMux_GRPCPassthroughUnary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new client: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	out := &structpb.Struct{}
 	if err = conn.Invoke(ctx, "/test.v1.Echo/Ping", &emptypb.Empty{}, out); err != nil {
@@ -89,7 +89,7 @@ func TestMux_GRPCPassthroughUnknownMethod(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new client: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	err = conn.Invoke(ctx, "/unknown.Service/Method", &emptypb.Empty{}, &emptypb.Empty{})
 	if err == nil {
@@ -104,7 +104,7 @@ type fakeBackendConn struct {
 	response proto.Message
 }
 
-func (f *fakeBackendConn) Invoke(_ context.Context, _ string, _ any, reply any, _ ...grpc.CallOption) error {
+func (f *fakeBackendConn) Invoke(_ context.Context, _ string, _, reply any, _ ...grpc.CallOption) error {
 	if pm, ok := reply.(proto.Message); ok {
 		proto.Merge(pm, f.response)
 	}
@@ -121,10 +121,10 @@ type fakeBackendStream struct {
 }
 
 func (f *fakeBackendStream) Header() (metadata.MD, error) { return nil, nil }
-func (f *fakeBackendStream) Trailer() metadata.MD       { return nil }
-func (f *fakeBackendStream) CloseSend() error           { return nil }
-func (f *fakeBackendStream) Context() context.Context   { return context.Background() }
-func (f *fakeBackendStream) SendMsg(any) error          { return nil }
+func (f *fakeBackendStream) Trailer() metadata.MD         { return nil }
+func (f *fakeBackendStream) CloseSend() error             { return nil }
+func (f *fakeBackendStream) Context() context.Context     { return context.Background() }
+func (f *fakeBackendStream) SendMsg(any) error            { return nil }
 
 func (f *fakeBackendStream) RecvMsg(m any) error {
 	if f.sentReply {

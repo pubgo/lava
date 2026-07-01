@@ -54,8 +54,8 @@ func TestDevSTUNCoordinatorQUIC(t *testing.T) {
 		t.Fatal(dr.err)
 	}
 	peerA := dr.pc
-	defer peerA.Close()
-	defer peerB.Close()
+	defer func() { _ = peerA.Close() }()
+	defer func() { _ = peerB.Close() }()
 
 	pair := peerA.SelectedPair()
 	t.Logf("ICE pair: local=%s/%s remote=%s/%s", pair.LocalType, pair.LocalAddr, pair.RemoteType, pair.RemoteAddr)

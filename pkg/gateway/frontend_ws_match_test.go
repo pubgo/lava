@@ -7,7 +7,9 @@ import (
 
 func TestWSFrontend_matchRESTPath_POSTFallback(t *testing.T) {
 	mux := NewMux()
-	mux.routerTree.Add("POST", "/v1/greeter/hello", "/grpcweb.example.v1.GreeterService/SayHello", nil)
+	if err := mux.routerTree.Add("POST", "/v1/greeter/hello", "/grpcweb.example.v1.GreeterService/SayHello", nil); err != nil {
+		t.Fatal(err)
+	}
 	mux.opts.handlers["/grpcweb.example.v1.GreeterService/SayHello"] = &methodWrapper{
 		grpcFullMethod: "/grpcweb.example.v1.GreeterService/SayHello",
 	}
@@ -29,7 +31,9 @@ func TestWSFrontend_matchRESTPath_POSTFallback(t *testing.T) {
 
 func TestWSFrontend_matchRESTPath_httpMethodOverride(t *testing.T) {
 	mux := NewMux()
-	mux.routerTree.Add("PUT", "/v1/items/{id}", "/example.v1.Service/Update", nil)
+	if err := mux.routerTree.Add("PUT", "/v1/items/{id}", "/example.v1.Service/Update", nil); err != nil {
+		t.Fatal(err)
+	}
 	mux.opts.handlers["/example.v1.Service/Update"] = &methodWrapper{
 		grpcFullMethod: "/example.v1.Service/Update",
 	}

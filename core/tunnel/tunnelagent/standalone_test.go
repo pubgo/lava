@@ -23,7 +23,7 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 		}),
 	}
 	go func() { _ = backend.ListenAndServe() }()
-	defer backend.Close()
+	defer func() { _ = backend.Close() }()
 	time.Sleep(100 * time.Millisecond)
 
 	gwAddr := "127.0.0.1:27280"
@@ -35,7 +35,7 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	agent, err := tunnelagent.Standalone(ctx, tunnelagent.StandaloneOptions{
 		GatewayAddr: gwAddr,
@@ -45,7 +45,7 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer agent.Stop(context.Background())
+	defer func() { _ = agent.Stop(context.Background()) }()
 
 	time.Sleep(500 * time.Millisecond)
 
@@ -53,7 +53,7 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 	if string(body) != "standalone-ok" {
 		t.Fatalf("body=%q", body)

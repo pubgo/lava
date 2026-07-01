@@ -21,7 +21,7 @@ func TestTunnelQUICListenAddr(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 
 	sessCh := make(chan error, 1)
 	go func() {
@@ -34,7 +34,7 @@ func TestTunnelQUICListenAddr(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	if err := <-sessCh; err != nil {
 		t.Fatal(err)

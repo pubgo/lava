@@ -140,7 +140,7 @@ func AcceptOne(
 	if err != nil {
 		return nil, err
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 	conn, err := ln.Accept(ctx)
 	if err != nil {
 		return nil, err

@@ -27,7 +27,7 @@ func TestStandaloneLocalPair(t *testing.T) {
 	if err := gw.Start(ctx); err != nil {
 		t.Fatal(err)
 	}
-	defer gw.Stop(context.Background())
+	defer func() { _ = gw.Stop(context.Background()) }()
 
 	cfg := p2p.Config{ICETimeout: 15 * time.Second, Insecure: true}
 	nodeB, err := p2pbuilder.Standalone(ctx, p2pbuilder.StandaloneOptions{
@@ -40,7 +40,7 @@ func TestStandaloneLocalPair(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer nodeB.Close()
+	defer func() { _ = nodeB.Close() }()
 
 	nodeA, err := p2pbuilder.Standalone(ctx, p2pbuilder.StandaloneOptions{
 		GatewayAddr: gwAddr,
@@ -51,7 +51,7 @@ func TestStandaloneLocalPair(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer nodeA.Close()
+	defer func() { _ = nodeA.Close() }()
 
 	time.Sleep(200 * time.Millisecond)
 
@@ -67,7 +67,7 @@ func TestStandaloneLocalPair(t *testing.T) {
 			acceptCh <- err
 			return
 		}
-		defer pc.Close()
+		defer func() { _ = pc.Close() }()
 		st, err := pc.Accept()
 		if err != nil {
 			acceptCh <- err

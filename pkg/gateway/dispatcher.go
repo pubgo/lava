@@ -20,7 +20,7 @@ func (d *Dispatcher) DispatchFrontend(
 	backend Backend,
 	frontend FrontendStream,
 	op *Operation,
-) (header metadata.MD, trailer metadata.MD, err error) {
+) (header, trailer metadata.MD, err error) {
 	if op == nil {
 		return nil, nil, errors.New("operation is nil")
 	}
@@ -49,7 +49,7 @@ func (d *Dispatcher) Dispatch(
 	frontend FrontendStream,
 	op *Operation,
 	in any,
-) (header metadata.MD, trailer metadata.MD, err error) {
+) (header, trailer metadata.MD, err error) {
 	if op == nil {
 		return nil, nil, errors.New("operation is nil")
 	}

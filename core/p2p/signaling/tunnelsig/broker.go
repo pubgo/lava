@@ -74,7 +74,7 @@ func (b *Broker) Send(ctx context.Context, msg signaling.Message) error {
 	if err != nil {
 		return err
 	}
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	return tunnel.WriteMessage(stream, &tunnel.Message{
 		Type:    tunnel.MessageTypeP2PSignal,
@@ -115,7 +115,7 @@ func (b *Broker) register(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	return tunnel.WriteMessage(stream, &tunnel.Message{
 		Type:    tunnel.MessageTypeP2PRegister,
@@ -155,7 +155,7 @@ func (b *Broker) acceptLoop() {
 }
 
 func (b *Broker) handleInboundStream(stream tunnel.Stream) {
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	msg, err := tunnel.ReadMessage(stream)
 	if err != nil {
