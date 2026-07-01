@@ -12,15 +12,15 @@ import (
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
-	"github.com/pubgo/lava/v2/servers/grpcs"
+	"github.com/pubgo/lava/v2/servers/gatewayserver"
 )
 
 func New(di *dix.Dix) *redant.Command {
 	return &redant.Command{
 		Use:   "grpc",
-		Short: cliutil.UsageDesc("grpc service %s(%s)", version.Project(), version.Version()),
+		Short: cliutil.UsageDesc("gateway server %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
-			di.Provide(grpcs.New)
+			di.Provide(gatewayserver.New)
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Getter
 				Services []supervisor.Service

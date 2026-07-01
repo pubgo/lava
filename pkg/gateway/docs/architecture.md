@@ -23,7 +23,6 @@ flowchart TB
         F2[gRPC-Web<br/>httpFrontend]
         F3[WebSocket<br/>wsFrontend]
         F4[Native gRPC<br/>grpcPassthrough]
-        F5[NATS/zrpc<br/>RegisterZrpc]
     end
 
     subgraph CORE[核心调度层 Core]
@@ -38,8 +37,8 @@ flowchart TB
         PROXY[remoteProxyCli<br/>远程代理]
     end
 
-    F1 & F2 & F3 & F4 & F5 -->|实现 grpc.ServerStream| SS[FrontendStream]
-    F1 & F2 & F3 & F4 & F5 --> REG
+    F1 & F2 & F3 & F4 -->|实现 grpc.ServerStream| SS[FrontendStream]
+    F1 & F2 & F3 & F4 --> REG
     SS --> PUMP
     PUMP --> INV
     INV --> INPROC
@@ -57,7 +56,7 @@ flowchart TB
 
 | 层 | 类型/文件 | 职责 |
 | --- | --- | --- |
-| 前端协议层 | `httpFrontend`、`wsFrontend`、`GRPCPassthroughStreamHandler`、`RegisterZrpc` | 协议解帧/编帧、路由或透传、构建流或转发 |
+| 前端协议层 | `httpFrontend`、`wsFrontend`、`GRPCPassthroughStreamHandler` | 协议解帧/编帧、路由或透传、构建流或转发 |
 | 核心调度层 | `Dispatcher`(`dispatcher.go`)、`Operation`(`core.go`) | 统一处理四种流模式，对接前端流与后端连接 |
 | 后端 gRPC 层 | `Mux`(`mux.go`) 实现 `grpc.ClientConnInterface` | `Invoke`/`NewStream` 分发到 `inprocgrpc` 本地 handler 或远程代理 |
 
@@ -103,8 +102,6 @@ pkg/gateway/
 ├── frontend_http.go    # HTTP/REST + gRPC-Web 前端（Fiber/fasthttp）
 ├── frontend_ws.go      # WebSocket 前端（coder/websocket, net/http）
 ├── frontend_grpc.go    # Native gRPC 透传（UnknownServiceHandler）
-├── frontend_zrpc.go    # NATS/zrpc 前端（RegisterZrpc）
-├── stream.zrpc.go      # zrpc 流适配（streamZrpc）
 ├── routertree/         # 路由树实现，负责路径匹配
 │   ├── router.go       # 路由树核心逻辑
 │   ├── parser.go       # HTTP Rule 路径模板解析器

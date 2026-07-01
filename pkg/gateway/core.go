@@ -12,8 +12,14 @@ import (
 type Backend = grpc.ClientConnInterface
 
 // FrontendStream is the protocol-neutral request/response surface exposed by
-// each gateway frontend (HTTP, gRPC-Web, WebSocket, NATS, etc.).
+// each gateway frontend (HTTP, gRPC-Web, WebSocket, native gRPC).
 type FrontendStream = grpc.ServerStream
+
+// MethodRoute describes a registered gRPC method for external protocol bridges.
+type MethodRoute struct {
+	FullMethod string
+	Operation  *Operation
+}
 
 // Operation describes a registered RPC method and its schema.
 type Operation struct {

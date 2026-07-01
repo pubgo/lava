@@ -1,4 +1,4 @@
-package grpcs
+package gatewayserver
 
 import (
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
@@ -9,10 +9,17 @@ const (
 	defaultContentType = "application/grpc"
 )
 
+// ConfigLoader loads gateway server settings from gateway_server YAML key.
+type ConfigLoader struct {
+	GatewayServer *Config `yaml:"gateway_server"`
+}
+
+// GrpcServerConfigLoader is a legacy alias for grpc_server YAML key.
 type GrpcServerConfigLoader struct {
 	GrpcServer *Config `yaml:"grpc_server"`
 }
 
+// Config holds HTTP/REST, WebSocket, and native gRPC gateway server settings.
 type Config struct {
 	Http              *fiberbuilder.Config `yaml:"http"`
 	GrpcConfig        *grpcbuilder.Config  `yaml:"grpc"`
@@ -31,14 +38,6 @@ type Config struct {
 	// Default is false for backward compatibility with existing deployments that
 	// register services on both Mux and grpc.Server.
 	GRPCPassthrough bool `yaml:"grpc_passthrough"`
-	// ZrpcURL enables the gateway NATS/zrpc frontend when non-empty (requires ZrpcQueue).
-	// Example: nats://127.0.0.1:4222
-	ZrpcURL string `yaml:"zrpc_url"`
-	// ZrpcQueue is the NATS queue group for all gateway zrpc method bindings.
-	ZrpcQueue string `yaml:"zrpc_queue"`
-	// ZrpcSubjectPrefix is prepended to each gRPC full method for the NATS subject.
-	// Default when empty: "svc." — "/pkg.v1.Service/Method" → "svc.pkg.v1.Service/Method".
-	ZrpcSubjectPrefix string `yaml:"zrpc_subject_prefix"`
 }
 
 func defaultCfg() *Config {

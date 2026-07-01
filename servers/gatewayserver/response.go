@@ -1,4 +1,4 @@
-package grpcs
+package gatewayserver
 
 import (
 	"github.com/gofiber/fiber/v3"

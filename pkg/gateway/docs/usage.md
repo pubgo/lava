@@ -119,9 +119,7 @@ go http.ListenAndServe(":8081", mux.WebSocketHandler())
 // 前端 3：Native gRPC 透传
 grpcServer := grpc.NewServer(mux.GRPCServerOptions()...)
 
-// 前端 4：NATS/zrpc
-zrpcSrv := zrpc.NewServer(nc)
-_ = mux.RegisterZrpc(zrpcSrv, gateway.ZrpcConfig{Queue: "my-service"})
+// NATS/zrpc 见 pkg/zrpcbridge（非 gateway 前端）
 ```
 
 | 前端 | 入口 | 运行栈 | 说明 |
@@ -130,7 +128,6 @@ _ = mux.RegisterZrpc(zrpcSrv, gateway.ZrpcConfig{Queue: "my-service"})
 | gRPC-Web | `mux.Handler` | Fiber/fasthttp | 浏览器 gRPC，详见 [gRPC Web](grpcweb.md) |
 | WebSocket | `mux.WebSocketHandler()` | net/http | 双向流，详见 [WebSocket](websocket.md) |
 | Native gRPC | `mux.GRPCServerOptions()` | grpc.Server | 透传，详见 [Native gRPC](grpcnative.md) |
-| NATS/zrpc | `mux.RegisterZrpc()` | NATS | subject 默认 `svc.{Service}/{Method}` |
 
 ## 服务注册
 

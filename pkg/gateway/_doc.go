@@ -1,5 +1,5 @@
 // Package gateway 提供多协议 gRPC Gateway 功能，实现 HTTP/JSON、gRPC-Web、
-// WebSocket、原生 gRPC、NATS/zrpc 等上层协议到底层 gRPC handler 的统一调度。
+// WebSocket、原生 gRPC 等上层协议到底层 gRPC handler 的统一调度。
 //
 // # 分层架构
 //
@@ -7,7 +7,7 @@
 //
 //   - 前端协议层 Frontend：httpFrontend（HTTP/REST + gRPC-Web，基于 Fiber）、
 //     wsFrontend（WebSocket，基于 coder/websocket + net/http）、
-//     GRPCPassthroughStreamHandler（原生 gRPC 透传）、RegisterZrpc（NATS/zrpc）。
+//     GRPCPassthroughStreamHandler（原生 gRPC 透传）。
 //     每个前端把请求归一化为 grpc.ServerStream。
 //   - 核心调度层 Dispatcher：统一处理 unary / server-stream / client-stream /
 //     bidi 四种流模式，对接前端流与后端连接。各前端经统一入口
@@ -16,17 +16,11 @@
 //     进程内通道调用本地 handler，或经 remoteProxyCli 转发到远程服务。
 //
 // 底层 gRPC handler 注册一次（RegisterService / RegisterProxy），即可被多种
-// 上层协议前端复用。
+// 上层协议前端复用。NATS/zrpc 桥接见 pkg/zrpcbridge。
 //
-// # 能力
+// # 对外服务宿主
 //
-//   - HTTP Rule 解析：支持 google.api.http 注解，自动解析 RESTful 路径模板
-//   - 协议转换：HTTP/JSON ↔ gRPC/Protobuf 双向自动转换
-//   - 路由匹配：支持精确匹配、* 单段通配符、** 多段通配符、动词 (:verb)
-//   - 服务注册：支持本地服务 (RegisterService) 和代理服务 (RegisterProxy)
-//   - 中间件：Unary 和 Stream 拦截器
-//   - 多协议前端：HTTP/REST、gRPC-Web、WebSocket、原生 gRPC、NATS/zrpc
-//   - gRPC Web 支持：支持 application/grpc-web 和 application/grpc-web-text 内容类型
+// servers/gatewayserver 负责监听端口并装配 HTTP/WS/gRPC 前端。
 //
 // # 基本用法
 //
@@ -47,14 +41,9 @@
 //
 //	grpcServer := grpc.NewServer(mux.GRPCServerOptions()...)
 //
-// # NATS/zrpc 用法
+// # NATS/zrpc
 //
-// 将已注册方法绑定到 NATS 队列订阅（subject 默认 svc.{Service}/{Method}）：
-//
-//	srv := zrpc.NewServer(nc)
-//	_ = mux.RegisterZrpc(srv, gateway.ZrpcConfig{Queue: "my-service"})
-//
-// # 参考资料
+// 见 pkg/zrpcbridge 与 servers/zrpcs。
 //
 //   - https://github.com/connectrpc/vanguard-go
 //   - https://cloud.google.com/service-infrastructure/docs/service-management/reference/rpc/google.api

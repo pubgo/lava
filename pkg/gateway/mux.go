@@ -386,3 +386,24 @@ func handleOperation(opt *methodWrapper) *GrpcMethod {
 		Meta:           opt.meta,
 	}
 }
+
+// Routes returns registered gRPC full methods for external bridges (e.g. zrpc).
+func (m *Mux) Routes() []MethodRoute {
+	routes := make([]MethodRoute, 0, len(m.opts.handlers))
+	for fullMethod, mth := range m.opts.handlers {
+		if op := operationFromMethod(mth); op != nil {
+			routes = append(routes, MethodRoute{FullMethod: fullMethod, Operation: op})
+		}
+	}
+	return routes
+}
+
+// Dispatch routes a frontend stream to the Mux backend.
+func (m *Mux) Dispatch(ctx context.Context, frontend FrontendStream, op *Operation, in any) (metadata.MD, metadata.MD, error) {
+	return m.dispatcher.Dispatch(ctx, m, frontend, op, in)
+}
+
+// DispatchFrontend drives a frontend stream end-to-end through the dispatcher.
+func (m *Mux) DispatchFrontend(ctx context.Context, frontend FrontendStream, op *Operation) (metadata.MD, metadata.MD, error) {
+	return m.dispatcher.DispatchFrontend(ctx, m, frontend, op)
+}

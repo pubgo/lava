@@ -1,4 +1,4 @@
-package grpcs
+package gatewayserver
 
 import (
 	"google.golang.org/grpc/encoding"
