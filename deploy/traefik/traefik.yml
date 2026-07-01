@@ -1,7 +1,8 @@
 # Traefik 静态配置（traefik.yml）
 #
-# TLS 在 Traefik 边缘终止，回源到 lava gateway 全程明文（http / h2c）。
-# 框架本身不处理 HTTPS/TLS，见 deploy/traefik/README.md。
+# 客户端经 HTTP/3（QUIC）或 HTTP/2 访问 Traefik :443，TLS 在边缘终止；
+# 回源到 lava gateway 全程明文（http / h2c）。框架本身不处理 TLS，见 README.md。
+# HTTP/3 需要同时暴露 TCP/UDP 443（见 docker-compose.yml）。
 
 entryPoints:
   web:
@@ -14,6 +15,8 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
+    # HTTP/3（QUIC）在边缘终止；回源仍用 dynamic.yml 中的 http / h2c
+    http3: {}
 
 providers:
   # 动态路由/服务定义（routers、services、middlewares）

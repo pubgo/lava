@@ -1,7 +1,7 @@
 # 部署与 TLS
 
-Gateway **不内置 HTTPS/TLS**。框架内全程明文（`http` / `h2c`），TLS 在边缘代理终止。
-这样做的原因：
+Gateway **不内置 HTTPS/TLS**。框架内全程明文（`http` / `h2c`），TLS 与 HTTP/3（QUIC）
+在边缘代理终止。这样做的原因：
 
 - 证书签发/续期、SNI、ALPN 等是边缘代理（Traefik / Nginx / Envoy）的强项；
 - 网关专注协议转换与调度，避免重复实现 TLS；
@@ -26,7 +26,7 @@ Gateway 是多协议网关，三类入站协议在 L7 上性质不同，**必须
 
 | 文件 | 作用 |
 | --- | --- |
-| `traefik.yml` | 静态配置：80/443 entrypoints、ACME 自动证书、长连接超时 |
+| `traefik.yml` | 静态配置：80/443 entrypoints、HTTP/3、ACME 自动证书、长连接超时 |
 | `dynamic.yml` | 三类协议的 routers / services（含 `h2c://` 示例） |
 | `acme.json` | Let's Encrypt 证书存储（初始 `{}`，签发后由 Traefik 写入） |
 | `docker-compose.yml` | Traefik + gateway 一体化示例 |
@@ -39,6 +39,9 @@ cd deploy/traefik
 # 改 dynamic.yml 的 Host() 与后端 url，改 traefik.yml 的 ACME email
 docker compose up -d
 ```
+
+HTTP/3 在 Traefik `websecure` 启用（`http3: {}`），需暴露 UDP 443；回源规则不变，gateway 无需改动。
+详见 [`deploy/traefik/README.md`](../../../deploy/traefik/README.md#http3quic)。
 
 ## X-Forwarded-* 头
 

@@ -1,13 +1,13 @@
 # lava gateway + Traefik
 
-框架本身**不处理 HTTPS/TLS**，全程明文（`http` / `h2c`）。TLS 在边缘的 Traefik 终止，
-回源到 lava gateway 用内网明文。本目录给出可直接套用的 Traefik 配置。
+框架本身**不处理 HTTPS/TLS**，全程明文（`http` / `h2c`）。TLS 与 **HTTP/3（QUIC）**
+在边缘的 Traefik 终止，回源到 lava gateway 用内网明文。本目录给出可直接套用的 Traefik 配置。
 
 ## 文件
 
 | 文件 | 作用 |
 | --- | --- |
-| `traefik.yml` | 静态配置：entrypoints（80/443）、ACME 自动证书、长连接超时 |
+| `traefik.yml` | 静态配置：entrypoints（80/443 + HTTP/3）、ACME 自动证书、长连接超时 |
 | `dynamic.yml` | 动态配置：三类协议的 routers / services |
 | `acme.json` | Let's Encrypt 证书存储（初始 `{}`，Traefik 签发后自动写入） |
 | `docker-compose.yml` | Traefik + gateway 一体化示例 |
@@ -24,6 +24,25 @@ lava gateway 是多协议网关，三类入站协议在 L7 上性质不同，**�
 
 > 关键点：原生 gRPC 回源**必须**用 `h2c://`（明文 HTTP/2）。若写成 `http://`，
 > Traefik 会按 HTTP/1.1 回源，gRPC 直接失败。
+
+## HTTP/3（QUIC）
+
+`traefik.yml` 已在 `websecure`（`:443`）启用 `http3`。客户端经 QUIC 接入后，
+Traefik 终止 TLS，再按上表回源到 gateway；**`dynamic.yml` 与 gateway 配置无需改动**。
+
+```
+客户端 --[HTTP/3 QUIC, TLS]--> Traefik :443
+                                  |-- http://gateway:8080   REST + gRPC-Web
+                                  |-- http://gateway:8081   WebSocket
+                                  `-- h2c://gateway:50051   原生 gRPC
+```
+
+注意：
+
+- Docker 部署须映射 **UDP 443**（见 `docker-compose.yml` 的 `443:443/udp`）。
+- 防火墙 / 安全组需放行 TCP 443 与 UDP 443。
+- REST / gRPC-Web 受益最大；WebSocket 回源仍是 HTTP/1.1 Upgrade；原生 gRPC 入口仍是 h2，回源 `h2c` 不变。
+- 验证：浏览器 DevTools → Network → Protocol 列应出现 `h3`；或 `curl --http3-only -I https://api.example.com`。
 
 ## 使用
 
