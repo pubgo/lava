@@ -7,15 +7,27 @@ Gateway **不内置 HTTPS/TLS**。框架内全程明文（`http` / `h2c`），TL
 - 网关专注协议转换与调度，避免重复实现 TLS；
 - 内网回源明文，性能更好，也便于灰度与多副本负载均衡。
 
+## 配置键
+
+`servers/gatewayserver` 从 YAML 加载配置：
+
+| YAML 键 | 说明 |
+| --- | --- |
+| `gateway_server` | **推荐**，见 `internal/configs/components/gateway_server.yaml` |
+| `grpc_server` | Legacy 别名，与 `gateway_server` 字段相同 |
+
+新部署建议显式设置 `grpc_passthrough: true`，使 handler 仅在 `gateway.Mux` 注册一次，
+原生 gRPC 与 HTTP/WS 前端共享同一套实现。
+
 ## 三类协议的回源规则
 
 Gateway 是多协议网关，三类入站协议在 L7 上性质不同，**必须分别路由**：
 
 | 协议 | 默认端口 | 配置项 | 回源 scheme | 说明 |
 | --- | --- | --- | --- | --- |
-| HTTP/REST + gRPC-Web | 8080 | `grpc_server.http_port` | `http` | REST 挂在 `/api` 前缀；gRPC-Web 是普通 POST |
-| WebSocket | 8081 | `grpc_server.websocket_port` | `http` | HTTP/1.1 `Upgrade`，代理需透传 Upgrade 头 |
-| 原生 gRPC | 50051 | `grpc_server.grpc_port` | **`h2c`** | 明文 HTTP/2，必须用 h2c |
+| HTTP/REST + gRPC-Web | 8080 | `gateway_server.http` / `running.HttpPort` | `http` | REST 挂在 `/api` 前缀；gRPC-Web 是普通 POST |
+| WebSocket | 8081 | `gateway_server.websocket_port` | `http` | HTTP/1.1 `Upgrade`，代理需透传 Upgrade 头 |
+| 原生 gRPC | 50051 | `gateway_server.grpc` / `running.GrpcPort` | **`h2c`** | 明文 HTTP/2，必须用 h2c |
 
 > 最常见的坑：原生 gRPC 回源写成 `http://` 会被代理按 HTTP/1.1 处理，导致 gRPC 失败。
 > 必须用 `h2c://`（明文 HTTP/2）。
@@ -57,6 +69,6 @@ gRPC streaming 与 WebSocket 是长连接，代理的空闲超时（如 Traefik 
 
 - 关闭或鉴权保护代理 dashboard。
 - `acme.json` 签发后含私钥，勿提交到 git。
-- WebSocket 在 `grpc_server.websocket_origin_patterns` 配置允许来源，不要依赖开发期默认的跳过校验，
+- WebSocket 在 `gateway_server.websocket_origin_patterns` 配置允许来源，不要依赖开发期默认的跳过校验，
   详见 [WebSocket 文档](websocket.md)。
 - 证书存储文件权限 `600` 并持久化。

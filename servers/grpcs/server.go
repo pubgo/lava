@@ -12,9 +12,7 @@ type Config = gatewayserver.Config
 type Params = gatewayserver.Params
 
 // GrpcServerConfigLoader loads grpc_server YAML configuration (legacy).
-type GrpcServerConfigLoader struct {
-	GrpcServer *Config `yaml:"grpc_server"`
-}
+type GrpcServerConfigLoader = gatewayserver.GrpcServerConfigLoader
 
 // New creates a grpc-server supervisor service (legacy name for gatewayserver).
 //
