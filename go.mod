@@ -3,7 +3,7 @@ module github.com/pubgo/lava/v2
 go 1.25.0
 
 require (
-	github.com/gofiber/fiber/v3 v3.1.0
+	github.com/gofiber/fiber/v3 v3.3.0
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -19,10 +19,10 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.50.0
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/crypto v0.51.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.54.0
+	golang.org/x/sys v0.44.0 // indirect
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -48,7 +48,7 @@ require (
 	github.com/fullstorydev/grpchan v1.1.2
 	github.com/go-logr/logr v1.4.3
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/gofiber/utils/v2 v2.0.2
+	github.com/gofiber/utils/v2 v2.0.6
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/google/gops v0.3.28
 	github.com/gorilla/websocket v1.5.3
@@ -73,7 +73,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/uber-go/tally/v4 v4.1.17
 	github.com/ulikunitz/xz v0.5.15
-	github.com/valyala/fasthttp v1.69.0
+	github.com/valyala/fasthttp v1.71.0
 	github.com/valyala/fasttemplate v1.2.2
 	github.com/xtaci/kcp-go/v5 v5.6.64
 	github.com/xtaci/smux v1.5.53
@@ -86,7 +86,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0
 	go.opentelemetry.io/otel/sdk v1.39.0
 	go.opentelemetry.io/otel/sdk/metric v1.39.0
-	golang.org/x/tools v0.41.0
+	golang.org/x/tools v0.44.0
 	golang.org/x/vuln v1.1.3
 	google.golang.org/genproto/googleapis/api v0.0.0-20251222181119-0a764e51fe1b
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -125,7 +125,7 @@ require (
 	github.com/alexkohler/nakedret/v2 v2.0.4 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
-	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/ashanbrown/forbidigo v1.6.0 // indirect
 	github.com/ashanbrown/makezero v1.1.1 // indirect
@@ -176,7 +176,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.1.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofiber/schema v1.7.0 // indirect
+	github.com/gofiber/schema v1.7.1 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
@@ -233,7 +233,7 @@ require (
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-runewidth v0.0.20 // indirect
 	github.com/mgechev/revive v1.3.9 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -295,7 +295,7 @@ require (
 	github.com/tetafro/godot v1.4.17 // indirect
 	github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 // indirect
 	github.com/timonwong/loggercheck v0.9.4 // indirect
-	github.com/tinylib/msgp v1.6.3 // indirect
+	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
 	github.com/tklauser/numcpus v0.11.0 // indirect
@@ -320,10 +320,10 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260109210033-bd525da824e2 // indirect
-	golang.org/x/term v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa // indirect
+	golang.org/x/term v0.43.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
