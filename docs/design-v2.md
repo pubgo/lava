@@ -11,7 +11,7 @@ Lava 在设计上聚焦三件事：
 当前在传输层上，Lava 已覆盖：
 
 - HTTP（`servers/https` / `clients/resty`）
-- gRPC（`servers/grpcs` / `clients/grpcc`）
+- gRPC Gateway（`servers/gatewayserver` / `pkg/gateway`；`servers/grpcs` 为废弃别名）
 - zrpc（`servers/zrpcs` / `clients/zrpcc`，protobuf unary over NATS）
 
 ## 2. 核心抽象
@@ -92,16 +92,13 @@ $$
 
 ### 3.2 Gateway 与 gRPC 服务同源注册
 
-`servers/grpcs` 同时：
+`servers/gatewayserver` 装配 `pkg/gateway.Mux`，将同一套 `ServiceDesc` 暴露为 HTTP/REST、gRPC-Web、WebSocket 与原生 gRPC（可选 `grpc_passthrough`）。这使多种前端协议共享同一套 handler，减少重复维护。
 
-- 向 `grpc.Server` 注册 `ServiceDesc`
-- 向 `pkg/gateway.Mux` 注册 `ServiceDesc`
-
-这使 HTTP/JSON 与 gRPC 共享同一套服务定义，减少重复维护。
+NATS/zrpc 不属于 gateway 前端；若需把 Mux handler 额外暴露到 NATS，在 DI 中调用 `pkg/zrpcbridge.RegisterMux`。
 
 ### 3.3 Debug 能力内建
 
-- `servers/https` 与 `servers/grpcs` 默认挂载 `/debug`
+- `servers/https` 与 `servers/gatewayserver` 默认挂载 `/debug`
 - `vars.Register(...)` 暴露配置、路由、服务信息
 
 ### 3.4 zrpc 作为内部 RPC 通道

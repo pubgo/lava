@@ -17,10 +17,13 @@
 
 ## 文档地图
 
-- 架构：`architecture-v2.md`
+- 架构：`architecture-v2.md`（分层、四条数据通路、gatewayserver / zrpcbridge / 部署）
 - 设计：`design-v2.md`
+- P2P：`design-p2p.md`
 - zrpc：`zrpc.md`
 - 命令：`lava-command.md`
+- Gateway 部署（TLS / HTTP/3）：`../pkg/gateway/docs/deploy.md`
+- Traefik 示例：`../deploy/traefik/README.md`
 - 模块：`modules/README.md`
   - `modules/core.md`
   - `modules/servers.md`

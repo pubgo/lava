@@ -18,6 +18,7 @@
 | `pkg/k8sutil`      | K8s 环境探测工具          | `pkg/k8sutil/util.go`            |
 | `pkg/proto`        | protobuf 生成代码产物     | `pkg/proto/lavapbv1/*.pb.go`     |
 | `pkg/zrpc`         | zrpc Go runtime           | `pkg/zrpc/*.go`                  |
+| `pkg/zrpcbridge`   | 将 NATS/zrpc 桥接到 `gateway.Mux` | `pkg/zrpcbridge/register.go` |
 
 ## Gateway 位置说明
 
@@ -50,3 +51,23 @@ flowchart LR
 - `servers/zrpcs`
 - `clients/zrpcc`
 - `protoc-gen-zrpc-go` 生成代码
+
+## zrpcbridge 位置说明
+
+`pkg/zrpcbridge` 把 **NATS/zrpc** 订阅桥接到 `gateway.Mux` 已注册的 gRPC handler。
+zrpc 是消息总线传输，**不是** gateway 的前端协议。
+
+```
+zrpc Client → NATS → zrpc.Server → zrpcbridge → gateway.Mux → handler
+```
+
+与 `servers` 的分工：
+
+| 组件 | 职责 |
+| --- | --- |
+| `pkg/gateway` | 协议转换（HTTP/gRPC-Web/WS/native gRPC） |
+| `servers/gatewayserver` | 对外监听并装配 Mux |
+| `servers/zrpcs` | 纯 NATS 微服务宿主 |
+| `pkg/zrpcbridge` | 可选：把 Mux handler 额外暴露到 NATS |
+
+用法见 `pkg/zrpcbridge/README.md`；此前 `Mux.RegisterZrpc` 与 `grpc_server.zrpc_url` 已移除。

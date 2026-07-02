@@ -2,6 +2,9 @@
 
 本文档详细介绍 Gateway 模块的架构设计、核心组件和数据结构。
 
+> **框架集成**：对外监听由 `servers/gatewayserver` 装配；NATS/zrpc 桥接见 `pkg/zrpcbridge`（非 gateway 前端）。
+> 全局架构见 [`docs/architecture-v2.md`](../../../docs/architecture-v2.md)；部署/TLS/HTTP/3 见 [deploy.md](deploy.md)。
+
 ## 设计理念
 
 Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/REST 到 gRPC 的透明转换。其设计遵循以下原则：
