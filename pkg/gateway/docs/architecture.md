@@ -2,6 +2,9 @@
 
 本文档详细介绍 Gateway 模块的架构设计、核心组件和数据结构。
 
+> **框架集成**：对外监听由 `servers/gatewayserver` 装配；NATS/zrpc 桥接见 `pkg/zrpcbridge`（非 gateway 前端）。
+> 全局架构见 [`docs/architecture-v2.md`](../../../docs/architecture-v2.md)；部署/TLS/HTTP/3 见 [deploy.md](deploy.md)。
+
 ## 设计理念
 
 Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/REST 到 gRPC 的透明转换。其设计遵循以下原则：
@@ -10,27 +13,112 @@ Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/R
 2. **协议透明**：客户端使用标准的 HTTP/JSON，后端使用 gRPC，Gateway 自动处理转换
 3. **类型安全**：基于 Protobuf 的类型系统，保证请求/响应的类型安全
 4. **可扩展性**：支持自定义编解码器、拦截器、压缩器等扩展点
+5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议（HTTP/REST、gRPC-Web、WebSocket 等）共享同一套调度与后端
+
+## 分层架构
+
+Gateway 借鉴 [connectrpc/vanguard-go](https://github.com/connectrpc/vanguard-go) 的核心思想，将请求处理拆分为三层。所有前端协议最终都被归一化为 gRPC 语义的 `grpc.ServerStream`，由统一的 `Dispatcher` 对接后端，从而实现「一套后端 handler 服务多种协议」。
+
+```mermaid
+flowchart TB
+    subgraph FE[前端协议层 Frontend]
+        F1[HTTP/REST<br/>httpFrontend]
+        F2[gRPC-Web<br/>httpFrontend]
+        F3[WebSocket<br/>wsFrontend]
+        F4[Native gRPC<br/>grpcPassthrough]
+    end
+
+    subgraph CORE[核心调度层 Core]
+        REG[Registry<br/>routerTree + handlers]
+        PUMP[Dispatcher 泵<br/>unary/server/client/bidi]
+        CODEC[Codec<br/>proto/json/...]
+    end
+
+    subgraph BE[后端 gRPC 层 Backend]
+        INV["Mux<br/>grpc.ClientConnInterface"]
+        INPROC[inprocgrpc.Channel<br/>本地 handler]
+        PROXY[remoteProxyCli<br/>远程代理]
+    end
+
+    F1 & F2 & F3 & F4 -->|实现 grpc.ServerStream| SS[FrontendStream]
+    F1 & F2 & F3 & F4 --> REG
+    SS --> PUMP
+    PUMP --> INV
+    INV --> INPROC
+    INV --> PROXY
+
+    classDef fe fill:#E8F4FF,stroke:#4A90E2,color:#0B3D91;
+    classDef core fill:#FFF7E8,stroke:#C87B00,color:#7A4A00;
+    classDef be fill:#EAFBF1,stroke:#2E8B57,color:#165B33;
+    class F1,F2,F3,F4,SS fe;
+    class REG,PUMP,CODEC core;
+    class INV,INPROC,PROXY be;
+```
+
+### 三层职责
+
+| 层 | 类型/文件 | 职责 |
+| --- | --- | --- |
+| 前端协议层 | `httpFrontend`、`wsFrontend`、`GRPCPassthroughStreamHandler` | 协议解帧/编帧、路由或透传、构建流或转发 |
+| 核心调度层 | `Dispatcher`(`dispatcher.go`)、`Operation`(`core.go`) | 统一处理四种流模式，对接前端流与后端连接 |
+| 后端 gRPC 层 | `Mux`(`mux.go`) 实现 `grpc.ClientConnInterface` | `Invoke`/`NewStream` 分发到 `inprocgrpc` 本地 handler 或远程代理 |
+
+### 核心抽象（core.go）
+
+```go
+// Backend：后端统一调度目标，Mux 实现它（Invoke + NewStream）
+type Backend = grpc.ClientConnInterface
+
+// FrontendStream：各协议前端归一化后的流，本质是 grpc.ServerStream
+type FrontendStream = grpc.ServerStream
+
+// Operation：一个已注册 RPC 方法的元信息
+type Operation struct {
+    FullMethod string
+    InputType  protoreflect.MessageType
+    OutputType protoreflect.MessageType
+    StreamDesc *grpc.StreamDesc // nil 表示 unary
+    Meta       *lavapbv1.RpcMeta
+}
+```
+
+### Dispatcher 四种流模式
+
+`Dispatcher.Dispatch` 根据 `Operation.StreamDesc` 自动选择流模式：
+
+| 模式 | 判定 | 处理方式 |
+| --- | --- | --- |
+| Unary | `StreamDesc == nil` | `Invoke` → `SendMsg` |
+| Server-Stream | `ServerStreams && !ClientStreams` | `NewStream` → 循环 `RecvMsg`/`SendMsg` |
+| Client-Stream | `ClientStreams && !ServerStreams` | 循环 `RecvMsg`/`SendMsg` → 单次响应 |
+| Bidi | `ClientStreams && ServerStreams` | 双向泵 `pumpFrontendToBackend` / `pumpBackendToFrontend`（`dispatcher.go`） |
+
+> 对于 Unary 与 Server-Stream，请求消息由前端预先 `RecvMsg` 读入后传给 `Dispatch`；Client-Stream 与 Bidi 则在泵内部读取。
 
 ## 模块结构
 
 ```
 pkg/gateway/
-├── mux.go              # 核心路由器 Mux，实现 Gateway 接口
+├── mux.go              # 核心路由器 Mux，实现 Gateway 接口与 Backend
+├── core.go             # 核心抽象：Backend / FrontendStream / Operation / Dispatcher
+├── dispatcher.go       # 统一调度泵：DispatchFrontend 入口 + unary/server/client/bidi 四种流模式 + bidi 双向泵
+├── frontend_http.go    # HTTP/REST + gRPC-Web 前端（Fiber/fasthttp）
+├── frontend_ws.go      # WebSocket 前端（coder/websocket, net/http）
+├── frontend_grpc.go    # Native gRPC 透传（UnknownServiceHandler）
 ├── routertree/         # 路由树实现，负责路径匹配
 │   ├── router.go       # 路由树核心逻辑
 │   ├── parser.go       # HTTP Rule 路径模板解析器
 │   └── lex.go          # 词法分析器
 ├── codec.go            # 编解码器接口和实现（JSON、Protobuf）
-├── stream.go           # Stream 接口定义
-├── stream.http.go      # HTTP 流实现
-├── stream.grpcweb.go   # gRPC Web 流实现
-├── stream.websocket.go # WebSocket 流实现
-├── stream.inprocess.go # 进程内流实现
-├── stream.proxy.go     # 代理流实现
+├── stream.go           # ServerTransportStream 等流上下文支持
+├── stream.http.go      # HTTP / gRPC-Web 流实现（streamHTTP）
+├── stream.grpcweb.go   # gRPC Web 帧写入器（fiberWebWriter）
+├── stream.websocket.go # WebSocket 流实现（streamWS，实现 grpc.ServerStream）
+├── stream.proxy.go     # 透明代理泵 TransparentHandler（独立代理场景；bidi 调度已改用 dispatcher.go 的 pump）
 ├── context.go          # 上下文和元数据管理
 ├── util.go             # 工具函数（HTTP Rule 解析、元数据转换等）
 ├── fieldmask.go        # FieldMask 支持
-├── wrapper.go          # 服务和方法包装器
+├── wrapper.go          # 服务和方法包装器（serviceWrapper/methodWrapper）
 ├── grpccodes.go        # gRPC 错误码到 HTTP 状态码映射
 ├── gatewayutils/       # Gateway 工具函数
 │   ├── query_params.go # 查询参数处理

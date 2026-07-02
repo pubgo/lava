@@ -3,6 +3,8 @@ package tunnel
 import (
 	"os"
 	"strings"
+
+	"github.com/pubgo/lava/v2/core/metrics"
 )
 
 // MergeTransportOptions 将 TLS 配置合并进 TransportOptions，供传输层使用。
@@ -34,6 +36,18 @@ func MergeTransportOptions(opts *TransportOptions, tls TLSConfig) *TransportOpti
 	}
 	if tls.Insecure {
 		opts.Insecure = true
+	}
+	if tls.MinVersion != "" && opts.MinVersion == "" {
+		opts.MinVersion = tls.MinVersion
+	}
+	if len(tls.CipherSuites) > 0 && len(opts.CipherSuites) == 0 {
+		opts.CipherSuites = append([]string(nil), tls.CipherSuites...)
+	}
+	if tls.ClientAuth != "" && opts.ClientAuth == "" {
+		opts.ClientAuth = tls.ClientAuth
+	}
+	if tls.SessionCacheSize > 0 && opts.SessionCacheSize == 0 {
+		opts.SessionCacheSize = tls.SessionCacheSize
 	}
 
 	return opts
@@ -78,6 +92,16 @@ func ConfigureGatewayAuth(gw Gateway, token string) error {
 	}
 	gw.SetAuthProvider(provider)
 	return nil
+}
+
+// SetGatewayMetrics 为 Gateway 绑定 metrics（实现 SetMetricsRecorder 时生效）。
+func SetGatewayMetrics(gw Gateway, scope metrics.Metric) {
+	type setter interface {
+		SetMetricsRecorder(*MetricsRecorder)
+	}
+	if s, ok := gw.(setter); ok {
+		s.SetMetricsRecorder(NewMetricsRecorder(scope))
+	}
 }
 
 // ApplyTLSFromEnv 从环境变量填充 TLS 配置，未设置的环境变量会被忽略。

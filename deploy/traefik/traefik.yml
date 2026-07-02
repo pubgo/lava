@@ -1,0 +1,46 @@
+# Traefik 静态配置（traefik.yml）
+#
+# 客户端经 HTTP/3（QUIC）或 HTTP/2 访问 Traefik :443，TLS 在边缘终止；
+# 回源到 lava gateway 全程明文（http / h2c）。框架本身不处理 TLS，见 README.md。
+# HTTP/3 需要同时暴露 TCP/UDP 443（见 docker-compose.yml）。
+
+entryPoints:
+  web:
+    address: ":80"
+    # 全站 HTTP 跳转 HTTPS
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+    # HTTP/3（QUIC）在边缘终止；回源仍用 dynamic.yml 中的 http / h2c
+    http3: {}
+
+providers:
+  # 动态路由/服务定义（routers、services、middlewares）
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+# Let's Encrypt 自动证书（替换 email；证书写入 acme.json）
+certificatesResolvers:
+  le:
+    acme:
+      email: ops@example.com
+      storage: /etc/traefik/acme.json
+      tlsChallenge: {}
+
+# 长连接超时：gRPC streaming / WebSocket 需要较长的空闲容忍
+serversTransport:
+  forwardingTimeouts:
+    dialTimeout: "30s"
+    # idleConnTimeout 不宜过小，否则 bidi/WS 空闲会被掐断
+    idleConnTimeout: "300s"
+
+api:
+  dashboard: true
+
+log:
+  level: INFO

@@ -22,8 +22,11 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
+	"io"
 	"io/fs"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -65,6 +68,46 @@ func (s *greeterService) SayGoodbye(ctx context.Context, req *greeterpb.GoodbyeR
 		Message:   "Goodbye, " + name + "! See you next time.",
 		Timestamp: time.Now().Unix(),
 	}, nil
+}
+
+func (s *greeterService) WatchHello(req *greeterpb.WatchHelloRequest, stream greeterpb.GreeterService_WatchHelloServer) error {
+	name := req.GetName()
+	if name == "" {
+		name = "Anonymous"
+	}
+	count := req.GetCount()
+	if count <= 0 {
+		count = 3
+	}
+	for i := int32(1); i <= count; i++ {
+		if err := stream.Send(&greeterpb.HelloResponse{
+			Message:   fmt.Sprintf("Hello, %s! stream #%d", name, i),
+			Timestamp: time.Now().Unix(),
+		}); err != nil {
+			return err
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	return nil
+}
+
+func (s *greeterService) Chat(stream greeterpb.GreeterService_ChatServer) error {
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		text := strings.TrimSpace(msg.GetText())
+		if strings.EqualFold(text, "bye") {
+			return stream.Send(&greeterpb.ChatMessage{Text: "bye (server closing)"})
+		}
+		if err = stream.Send(&greeterpb.ChatMessage{Text: "echo: " + text}); err != nil {
+			return err
+		}
+	}
 }
 
 func main() {

@@ -25,7 +25,7 @@
 // 1) 启动 Gateway（监听 Agent 连接端口 + 对外 HTTP 代理端口）：
 //
 //	gw := tunnelgateway.New(&tunnelgateway.Config{
-//		ListenAddr: ":7000", // Agent 连接端口
+//		ListenAddr: ":7007", // Agent 连接端口
 //		Transport:  "yamux",
 //		HTTPPort:   8080,    // 对外 HTTP 代理端口
 //	})

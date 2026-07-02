@@ -10,6 +10,7 @@
 | `core/debug`       | 调试路由聚合与挂载         | `core/debug/mux.go`           |
 | `core/scheduler`   | 任务调度能力               | `core/scheduler/scheduler.go` |
 | `core/tunnel`      | 反向连接隧道与代理         | `core/tunnel/doc.go`          |
+| `core/p2p`         | ICE + QUIC 点对点穿透      | `core/p2p/coordinator.go`     |
 | `core/logging`     | 日志工厂与 logger 扩展     | `core/logging/factory.go`     |
 | `core/metrics`     | 指标驱动与指标工厂         | `core/metrics/factory.go`     |
 | `core/tracing`     | OpenTelemetry 初始化与追踪 | `core/tracing/telemetry.go`   |
@@ -25,10 +26,11 @@
 flowchart TD
     Entry[main/lavabuilder] --> Sup[supervisor.Manager]
     Sup --> SvcA[https service]
-    Sup --> SvcB[grpcs service]
+    Sup --> SvcB[gatewayserver]
     Sup --> SvcC[tunnel gateway]
     SvcA --> Debug["/debug"]
     SvcB --> Debug
+    SvcC --> Debug
     SvcA --> Obs[logging/metrics/tracing]
     SvcB --> Obs
 ```

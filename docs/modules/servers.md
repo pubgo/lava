@@ -1,14 +1,63 @@
 # Servers 模块文档
 
-`servers/*` 提供对外服务能力，当前主要包含 HTTP 与 gRPC 两类服务。
+`servers/*` 提供对外服务能力，由 `core/supervisor` 托管生命周期。
 
 ## 模块清单
 
-| 模块            | 说明                                             | 关键入口                       |
-| --------------- | ------------------------------------------------ | ------------------------------ |
-| `servers/https` | Fiber HTTP 服务封装，默认接入 debug 与基础中间件 | `servers/https/server.go::New` |
-| `servers/grpcs` | gRPC + Gateway 一体化服务，支持 gRPC/HTTP 双栈   | `servers/grpcs/server.go::New` |
-| `servers/zrpcs` | zrpc 服务宿主，基于 NATS 托管 protobuf unary/streaming RPC | `servers/zrpcs/server.go::New` |
+| 模块 | 说明 | 关键入口 |
+| --- | --- | --- |
+| `servers/gatewayserver` | 对外 Gateway：HTTP/REST、gRPC-Web、WebSocket、原生 gRPC | `gatewayserver.New` |
+| `servers/grpcs` | **已废弃别名**，等同 `gatewayserver`（supervisor 名仍为 `grpc-server`） | `grpcs.New` |
+| `servers/https` | Fiber HTTP 服务，默认接入 debug 与基础中间件 | `https.New` |
+| `servers/zrpcs` | zrpc 服务宿主，基于 NATS 托管 protobuf unary/streaming RPC | `zrpcs.New` |
+
+## `servers/gatewayserver` 要点
+
+对外多协议网关宿主，装配 `pkg/gateway.Mux` 并监听多个端口。
+
+### 监听与协议
+
+| 协议 | 默认端口 | 配置项 | 实现 |
+| --- | --- | --- | --- |
+| HTTP/REST + gRPC-Web | 8080 | `grpc_server.http_port` / `running.HttpPort` | Fiber，`/api` 前缀 |
+| WebSocket | 8081（可选） | `websocket_port` | `net/http` |
+| 原生 gRPC | 50051 | `grpc_server.grpc_port` / `running.GrpcPort` | `grpc.Server` 或 passthrough |
+
+### 装配流程
+
+1. 收集 `GrpcRouter` / `GrpcHttpRouter` → 注册到 `gateway.Mux`
+2. Fiber 挂 `/api` → `mux.Handler`
+3. 可选 `WebSocketPort` → 独立 `http.Server`
+4. gRPC：legacy 双注册，或 `grpc_passthrough` 仅在 Mux 注册
+5. 全局中间件：serviceinfo / metric / accesslog / recovery
+6. `vars.Register` 路由信息（`gateway-server-info`，兼容 `grpc-server-info`）
+
+### 配置
+
+YAML 键：`gateway_server`（推荐）或 legacy `grpc_server`。
+
+```yaml
+gateway_server:
+  enable_print_router: true
+  websocket_port: 8081
+  grpc_passthrough: false
+  http: {}
+  grpc: {}
+```
+
+### 不包含
+
+- NATS/zrpc（见 `pkg/zrpcbridge` 或 `servers/zrpcs`）
+- TLS/HTTPS（见 `deploy/traefik`、`pkg/gateway/docs/deploy.md`）
+
+### 命令入口
+
+`lava grpc` → `cmds/grpcservercmd` → `gatewayserver.New`
+
+## `servers/grpcs`（废弃）
+
+类型别名 + `New()` 包装，supervisor 服务名仍为 `grpc-server`，便于老项目兼容。
+新代码请使用 `gatewayserver.New`。
 
 ## `servers/https` 要点
 
@@ -16,33 +65,51 @@
 - 默认中间件：serviceinfo / metric / accesslog / recovery
 - 默认挂载：`/debug`
 - 通过 `lava.HttpRouter` 进行路由装配
-
-## `servers/grpcs` 要点
-
-- 基于 `grpc.Server` 注册服务
-- 同步注册到 `pkg/gateway.Mux`，支持 HTTP/JSON 调用
-- 支持 `GrpcRouter` 与 `GrpcHttpRouter`
-- 通过 `vars.Register` 暴露路由与服务信息
+- 适合纯 REST/页面，不需要 gRPC 协议转换
 
 ## `servers/zrpcs` 要点
 
 - 基于 `pkg/zrpc.Server` 管理 NATS queue subscription
-- 默认挂载 serviceinfo/metric/accesslog/recovery 中间件
 - 通过 `RegisterFunc` 装配生成的 `Register...ZrpcRoutes(...)`
-- 启动/停止输出 info 日志（`url`、`registers`）
-- 适合作为内部 RPC 服务宿主
+- 适合纯 NATS 微服务
+- 若需复用 Gateway 上已注册的 handler，在 DI 中调用 `pkg/zrpcbridge.RegisterMux`
+
+## 与部署边缘的关系
+
+生产环境推荐 Traefik 在 `:443` 终止 TLS 并启用 HTTP/3，回源到 gatewayserver 明文端口：
+
+```
+Traefik :443 (HTTP/3) → http://gateway:8080   REST + gRPC-Web
+                      → http://gateway:8081   WebSocket
+                      → h2c://gateway:50051   原生 gRPC
+```
+
+配置见 `deploy/traefik/README.md`。
 
 ## 处理流程
 
 ```mermaid
 flowchart LR
-    Req1[HTTP Request] --> HTTPS[servers/https]
-    Req2[gRPC Request] --> GRPCS[servers/grpcs]
-    Req4[zrpc Request] --> ZRPCS[servers/zrpcs]
-    Req3[HTTP JSON] --> GW[pkg/gateway]
-    GW --> GRPCS
-    HTTPS --> Mid[Middlewares]
-    GRPCS --> Mid
-    ZRPCS --> Mid
-    Mid --> Biz[Business Handler]
+    subgraph Edge[可选 Traefik]
+        TRAEFIK[TLS + HTTP/3]
+    end
+
+    subgraph GW[servers/gatewayserver]
+        HTTP[Fiber :8080]
+        WS[WS :8081]
+        GRPC[gRPC :50051]
+    end
+
+    TRAEFIK --> HTTP
+    TRAEFIK --> WS
+    TRAEFIK --> GRPC
+
+    HTTP & WS & GRPC --> Mux[pkg/gateway.Mux]
+    Mux --> Biz[Business Handler]
+
+    NATS[zrpc via NATS] --> ZRPCS[servers/zrpcs]
+    ZRPCS --> Biz2[Business Handler]
+
+    Bridge[pkg/zrpcbridge] -.->|可选| Mux
+    Bridge -.-> NATS
 ```

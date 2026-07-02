@@ -16,8 +16,8 @@ tunnel:
     # 是否启用网关
     enabled: false
     # 监听地址 - Agent 主动连接此端口
-    listen_addr: ":7000"
-    # 传输协议: yamux, quic, http, kcp
+    listen_addr: ":7007"
+    # 传输协议: yamux, quic, kcp
     transport: yamux
     # 传输层选项
     transport_options:
@@ -50,7 +50,7 @@ tunnel:
     # 是否启用代理客户端
     enabled: false
     # Gateway 地址 - Agent 主动连接此地址
-    gateway_addr: "gateway.example.com:7000"
+    gateway_addr: "gateway.example.com:7007"
     # 传输协议
     transport: yamux
     # 传输层选项

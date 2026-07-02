@@ -212,38 +212,3 @@ func TestInvokeResponseStream_AllowsPreSentHeaderAndStreamsJSON(t *testing.T) {
 		t.Fatalf("expected 1 request message sent, got=%d", len(fakeStream.sentReqs))
 	}
 }
-
-func TestInvokeResponseStream_RejectsClientStreamingMode(t *testing.T) {
-	mux := NewMux()
-
-	inType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Empty")
-	if err != nil {
-		t.Fatalf("find input type: %v", err)
-	}
-	outType, err := protoregistry.GlobalTypes.FindMessageByName("google.protobuf.Struct")
-	if err != nil {
-		t.Fatalf("find output type: %v", err)
-	}
-
-	method := &methodWrapper{
-		srv:            &serviceWrapper{opts: mux.opts, remoteProxyCli: &fakeClientConn{stream: &fakeClientStream{}}},
-		grpcStreamDesc: &grpc.StreamDesc{ServerStreams: true, ClientStreams: true},
-		grpcFullMethod: "/test.v1.StreamService/Bidi",
-		inputType:      inType,
-		outputType:     outType,
-	}
-
-	app := fiber.New()
-	fctx := &fasthttp.RequestCtx{}
-	ctx := app.AcquireCtx(fctx)
-	defer app.ReleaseCtx(ctx)
-
-	stream := &streamHTTP{handler: ctx, ctx: context.Background(), method: method}
-	err = mux.invokeResponseStream(stream, &emptypb.Empty{})
-	if err == nil {
-		t.Fatal("expected error for client-streaming mode, got nil")
-	}
-	if !strings.Contains(err.Error(), "client-streaming") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}

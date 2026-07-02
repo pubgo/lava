@@ -14,6 +14,8 @@ const (
 	TransportQUIC = "quic"
 	// TransportKCP KCP 传输协议
 	TransportKCP = "kcp"
+	// TransportP2P P2P（ICE + QUIC）传输协议
+	TransportP2P = "p2p"
 )
 
 var (

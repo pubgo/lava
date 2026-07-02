@@ -61,7 +61,7 @@
 //     │  │    service-b ──> Session2                    │               │
 //     │  └──────────────────────────────────────────────┘               │
 //     │                         │                                       │
-//     │              Listener :7000  <- 接受 Agent 连接 (被动)         │
+//     │              Listener :7007  <- 接受 Agent 连接 (被动)         │
 //     └─────────────────────────────────────────────────────────────────┘
 //     ▲
 //     ┌──────────────┼──────────────┐
@@ -88,8 +88,8 @@
 //
 // # 工作流程
 //
-//  1. Gateway 启动，监听 :7000 等待 Agent 连接
-//  2. Agent 启动，主动连接到 Gateway:7000 (TCP + yamux)
+//  1. Gateway 启动，监听 :7007 等待 Agent 连接
+//  2. Agent 启动，主动连接到 Gateway:7007 (TCP + yamux)
 //  3. Agent 发送 Register 消息，注册自己的服务信息和端点
 //  4. Agent 定期发送 Heartbeat 保持连接
 //  5. 外部请求到达 Gateway:8080
@@ -221,7 +221,7 @@
 // ## GatewayConfig - 网关配置
 //
 //	Enabled             bool               - 是否启用
-//	ListenAddr          string             - 监听地址 (默认 :7000)
+//	ListenAddr          string             - 监听地址 (默认 :7007)
 //	Transport           string             - 传输协议 (默认 yamux)
 //	TransportOptions    *TransportOptions  - 传输层选项
 //	HTTPPort            int                - HTTP 代理端口 (默认 8080)
@@ -274,7 +274,7 @@
 //
 //	// 方式一：直接创建
 //	gw := tunnelgateway.New(&tunnelgateway.Config{
-//	    ListenAddr: ":7000",  // Agent 连接端口
+//	    ListenAddr: ":7007",  // Agent 连接端口
 //	    Transport:  "yamux",
 //	    HTTPPort:   8080,     // 对外暴露的 HTTP 端口
 //	    GRPCPort:   9090,     // 对外暴露的 gRPC 端口
@@ -283,7 +283,7 @@
 //
 //	// 方式二：使用 Builder 模式
 //	gw, err := tunnelgateway.NewBuilder().
-//	    WithListenAddr(":7000").
+//	    WithListenAddr(":7007").
 //	    WithTransport("yamux").
 //	    WithHTTPPort(8080).
 //	    WithDebugPort(6060).
@@ -310,7 +310,7 @@
 //
 //	// 方式一：直接创建
 //	agent := tunnelagent.New(&tunnelagent.Config{
-//	    GatewayAddr:    "gateway.example.com:7000",
+//	    GatewayAddr:    "gateway.example.com:7007",
 //	    Transport:      "yamux",
 //	    ServiceName:    "my-service",
 //	    ServiceVersion: "1.0.0",
@@ -322,7 +322,7 @@
 //
 //	// 方式二：使用 Builder 模式
 //	agent, err := tunnelagent.NewBuilder().
-//	    WithGatewayAddr("gateway.example.com:7000").
+//	    WithGatewayAddr("gateway.example.com:7007").
 //	    WithServiceName("my-service").
 //	    WithServiceVersion("1.0.0").
 //	    AddEndpoint("http", "localhost:8080", "/api").
@@ -368,7 +368,7 @@
 // ## 4. TLS 配置
 //
 //	agent, _ := tunnelagent.NewBuilder().
-//	    WithGatewayAddr("gateway.example.com:7000").
+//	    WithGatewayAddr("gateway.example.com:7007").
 //	    WithTLS(tunnel.TLSConfig{
 //	        Enabled:  true,
 //	        CertFile: "/path/to/client.crt",

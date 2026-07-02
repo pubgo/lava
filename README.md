@@ -62,13 +62,13 @@ flowchart TD
 
 		CLI --> CMDS[cmds/*]
 		HTTP --> SHTTP[servers/https]
-		GRPC --> SGRPC[servers/grpcs]
+		GRPC --> SGWS[servers/gatewayserver]
 
 		SHTTP --> CORE[core/*]
-		SGRPC --> CORE
+		SGWS --> CORE
+		SGWS --> GW[pkg/gateway]
 		CMDS --> CORE
 
-		CORE --> GW[pkg/gateway]
 		CORE --> DEBUG["/debug routes"]
 		CORE --> OBS[logging/metrics/tracing]
 		CORE --> TUNNEL[core/tunnel]

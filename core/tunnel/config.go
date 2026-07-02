@@ -21,6 +21,10 @@ type GatewayConfig struct {
 	HeartbeatTimeout int `yaml:"heartbeat_timeout"`
 	// HealthCheckInterval 健康检查间隔（秒）
 	HealthCheckInterval int `yaml:"health_check_interval"`
+	// P2PSignalRateLimit 每 peer 每秒最大 P2P 信令条数（0 表示默认 60）
+	P2PSignalRateLimit int `yaml:"p2p_signal_rate_limit"`
+	// P2PRegisterRateLimit 每 agent 每秒最大 P2P 注册次数（0 表示默认 10）
+	P2PRegisterRateLimit int `yaml:"p2p_register_rate_limit"`
 	// TLS TLS 配置
 	TLS TLSConfig `yaml:"tls"`
 }
@@ -51,6 +55,8 @@ type AgentConfig struct {
 	MaxReconnectAttempts int `yaml:"max_reconnect_attempts"`
 	// TLS TLS 配置
 	TLS TLSConfig `yaml:"tls"`
+	// P2PSignalHandler 收到 gateway 转发的 P2P 信令时回调（JSON 为 signaling.Message）。
+	P2PSignalHandler func(payload []byte)
 }
 
 // EndpointConfig 端点配置
@@ -109,6 +115,14 @@ type TransportOptions struct {
 	ConnectionWriteTimeout int
 	// StreamOpenTimeout 流打开超时（秒）
 	StreamOpenTimeout int
+	// MinVersion 最小 TLS 版本 (TLS12, TLS13)
+	MinVersion string
+	// CipherSuites TLS 密码套件名列表
+	CipherSuites []string
+	// ClientAuth 服务端 mTLS 模式（见 TLSConfig.ClientAuth）
+	ClientAuth string
+	// SessionCacheSize TLS 会话缓存大小
+	SessionCacheSize int
 }
 
 // DefaultTransportOptions 默认传输层选项

@@ -39,6 +39,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/arl/statsviz v0.8.0
 	github.com/bmatcuk/doublestar/v4 v4.10.0
+	github.com/coder/websocket v1.8.15
 	github.com/ecordell/optgen v0.0.9
 	github.com/expr-lang/expr v1.17.7
 	github.com/fasthttp/websocket v1.5.12
@@ -56,6 +57,9 @@ require (
 	github.com/libp2p/go-yamux/v5 v5.1.0
 	github.com/maruel/panicparse/v2 v2.5.0
 	github.com/miekg/dns v1.1.66
+	github.com/pion/ice/v4 v4.2.7
+	github.com/pion/logging v0.2.4
+	github.com/pion/stun/v3 v3.1.6
 	github.com/projectdiscovery/machineid v0.0.0-20250715113114-c77eb3567582
 	github.com/pubgo/dix/v2 v2.0.1
 	github.com/pubgo/funk/v2 v2.0.4
@@ -93,6 +97,12 @@ require (
 require (
 	github.com/nats-io/nkeys v0.4.12 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/pion/dtls/v3 v3.1.4 // indirect
+	github.com/pion/mdns/v2 v2.1.0 // indirect
+	github.com/pion/randutil v0.1.0 // indirect
+	github.com/pion/transport/v4 v4.0.2 // indirect
+	github.com/pion/turn/v5 v5.0.7 // indirect
+	github.com/wlynxg/anet v0.0.5 // indirect
 )
 
 require (

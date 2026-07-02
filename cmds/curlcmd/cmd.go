@@ -381,9 +381,14 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 		}
 	}
 	if varName == "" {
-		for _, v := range varsResp {
-			if strings.Contains(strings.ToLower(v.Name), "grpc-server-info") {
-				varName = v.Name
+		for _, name := range []string{"gateway-server-info", "grpc-server-info"} {
+			for _, v := range varsResp {
+				if strings.Contains(strings.ToLower(v.Name), name) {
+					varName = v.Name
+					break
+				}
+			}
+			if varName != "" {
 				break
 			}
 		}

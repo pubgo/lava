@@ -12,7 +12,7 @@ func TestNoopDiscoveryGetServiceReturnsEmpty(t *testing.T) {
 	if r.IsErr() {
 		t.Fatalf("noop GetService should succeed: %v", r.GetErr())
 	}
-	if svcs := r.Expect("get services"); svcs != nil && len(svcs) > 0 {
+	if svcs := r.Expect("get services"); len(svcs) > 0 {
 		t.Fatalf("expected empty service list, got %v", svcs)
 	}
 }

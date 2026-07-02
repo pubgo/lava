@@ -23,6 +23,22 @@ service GreeterService {
       body: "*"
     };
   }
+
+  // WatchHello 服务端流式返回多条问候（用于 WebSocket / server-stream 演示）
+  rpc WatchHello(WatchHelloRequest) returns (stream HelloResponse) {
+    option (google.api.http) = {
+      post: "/v1/greeter/watch"
+      body: "*"
+    };
+  }
+
+  // Chat 双向流式对话（用于 WebSocket / bidi 演示）
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage) {
+    option (google.api.http) = {
+      post: "/v1/greeter/chat"
+      body: "*"
+    };
+  }
 }
 
 // HelloRequest 是 SayHello 的请求消息
@@ -51,4 +67,17 @@ message GoodbyeResponse {
   string message = 1;
   // 服务器时间戳
   int64 timestamp = 2;
+}
+
+// WatchHelloRequest 是 WatchHello 的请求消息
+message WatchHelloRequest {
+  // 用户名称
+  string name = 1;
+  // 推送消息条数，默认 3
+  int32 count = 2;
+}
+
+// ChatMessage 是 Chat 双向流的消息
+message ChatMessage {
+  string text = 1;
 }

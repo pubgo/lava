@@ -352,6 +352,10 @@ const (
 	MessageTypeGRPCRequest
 	// MessageTypeDebugRequest Debug请求转发
 	MessageTypeDebugRequest
+	// MessageTypeP2PRegister P2P 节点注册 peerID（经 gateway 路由信令）
+	MessageTypeP2PRegister
+	// MessageTypeP2PSignal P2P ICE 信令（Offer/Answer/Candidate）
+	MessageTypeP2PSignal
 )
 
 // RequestMeta 请求元数据

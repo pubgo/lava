@@ -1,0 +1,39 @@
+# Traefik + lava gateway 一体化示例
+#
+# 客户端 -> Traefik :443（HTTP/3 QUIC + HTTP/2 TLS），TLS 在 Traefik 终止；
+# 回源全程明文：
+#   HTTP/REST + gRPC-Web -> http://gateway:8080
+#   WebSocket            -> http://gateway:8081
+#   原生 gRPC            -> h2c://gateway:50051
+#
+# 起步：把 *.example.com 换成你的域名，确保 DNS 解析到本机 80/443（含 UDP 443），然后
+#   docker compose up -d
+
+services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "443:443"       # HTTPS / HTTP/2
+      - "443:443/udp"   # HTTP/3（QUIC）
+      - "8080:8080"     # dashboard（生产请关闭或加鉴权）
+    volumes:
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "./dynamic.yml:/etc/traefik/dynamic.yml:ro"
+      - "./acme.json:/etc/traefik/acme.json"
+    restart: unless-stopped
+
+  # 你的 lava gateway 服务。这里用占位镜像示意端口映射关系，
+  # 实际换成自己构建的镜像，并确保监听以下端口：
+  #   8080  = grpc_server.http_port（REST 挂在 /api 前缀 + gRPC-Web）
+  #   8081  = grpc_server.websocket_port
+  #   50051 = grpc_server.grpc_port（原生 gRPC，明文 h2c）
+  gateway:
+    image: your-org/lava-gateway:latest
+    expose:
+      - "8080"
+      - "8081"
+      - "50051"
+    restart: unless-stopped

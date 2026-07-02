@@ -93,8 +93,8 @@ type tunnelAgent struct {
 	statsMu   sync.Mutex
 
 	mu           sync.RWMutex
-	connectMu    sync.Mutex   // 串行化重连，避免并发 connect 产生多个 session
-	reconnecting atomic.Bool  // 防止立即重连 goroutine 堆积
+	connectMu    sync.Mutex  // 串行化重连，避免并发 connect 产生多个 session
+	reconnecting atomic.Bool // 防止立即重连 goroutine 堆积
 	stopCh       chan struct{}
 	stopOnce     sync.Once
 	wg           sync.WaitGroup
@@ -224,6 +224,13 @@ func (a *tunnelAgent) Info() *tunnel.AgentInfo {
 	}
 
 	return info
+}
+
+// Session 返回当前与 gateway 的隧道连接（已连接时非 nil）。
+func (a *tunnelAgent) Session() tunnel.Session {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.session
 }
 
 func (a *tunnelAgent) connect(ctx context.Context) error {
@@ -564,6 +571,11 @@ func (a *tunnelAgent) handleStream(stream tunnel.Stream) {
 		a.handleGRPCRequest(stream, &msg)
 	case tunnel.MessageTypeDebugRequest:
 		a.handleDebugRequest(stream, &msg)
+	case tunnel.MessageTypeP2PSignal:
+		a.handleP2PSignal(&msg)
+		if err := stream.Close(); err != nil {
+			log.Warn().Err(err).Msg("Agent: failed to close P2P signal stream")
+		}
 	default:
 		if err := stream.Close(); err != nil {
 			log.Warn().Err(err).Msg("Agent: failed to close stream for unknown message")
@@ -664,6 +676,14 @@ func (a *tunnelAgent) handleDebugRequest(stream tunnel.Stream, msg *tunnel.Messa
 	address := normalizeAddress(debugEndpoint.Address)
 	log.Debug().Str("address", address).Str("path", meta.Path).Msg("Proxying debug request to local service")
 	proxyStreamToTCP(stream, address)
+}
+
+func (a *tunnelAgent) handleP2PSignal(msg *tunnel.Message) {
+	if a.cfg.P2PSignalHandler == nil {
+		log.Warn().Msg("Agent: P2P signal received but no handler configured")
+		return
+	}
+	a.cfg.P2PSignalHandler(msg.Payload)
 }
 
 func (a *tunnelAgent) reconnectLoop(ctx context.Context) {

@@ -1,3 +1,5 @@
+# Legacy grpc_server YAML key (alias of gateway_server settings).
+# Prefer gateway_server.yaml for new projects.
 grpc_server:
   base_url: /welogin
   enable_print_router: true

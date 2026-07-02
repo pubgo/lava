@@ -65,5 +65,5 @@ CI reference is `.github/workflows/lint-test.yml` (lint + gotestsum-based tests)
 - Service lifecycle and management: `core/supervisor/`
 - DI registration patterns: `core/lavabuilder/`
 - HTTP server composition: `servers/https/server.go`
-- gRPC + gateway composition: `servers/grpcs/server.go`
+- gRPC + gateway composition: `servers/gatewayserver/server.go`（`servers/grpcs` 为废弃别名）
 - Gateway behavior and routing: `pkg/gateway/`
