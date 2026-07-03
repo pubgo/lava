@@ -13,7 +13,6 @@ import (
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/errors"
-	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
 	"google.golang.org/grpc"
@@ -73,6 +72,16 @@ type Mux struct {
 	routerTree   *routertree.RouteTree
 	dispatcher   *Dispatcher
 	httpFrontend *httpFrontend
+	regErr       error
+}
+
+// Err returns the first service registration error, if any.
+func (m *Mux) Err() error { return m.regErr }
+
+func (m *Mux) setRegErr(err error) {
+	if err != nil && m.regErr == nil {
+		m.regErr = err
+	}
 }
 
 func (m *Mux) GetRouteMethods() []RouteOperation { return m.routerTree.List() }
@@ -251,7 +260,7 @@ func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 func (m *Mux) RegisterProxy(sd *grpc.ServiceDesc, proxy lava.GrpcRouter, cli grpc.ClientConnInterface) {
 	assert.If(cli == nil, "cli is nil")
 	if err := m.registerService(sd, proxy, cli); err != nil {
-		log.Fatal().Err(err).Msgf("gateway: RegisterProxy error: %v", err)
+		m.setRegErr(errors.Wrapf(err, "gateway: RegisterProxy %s", sd.ServiceName))
 	}
 }
 
@@ -264,11 +273,12 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss any) {
 	ht := reflect.TypeOf(sd.HandlerType).Elem()
 	st := reflect.TypeOf(ss)
 	if !st.Implements(ht) {
-		log.Fatal().Msgf("gateway: RegisterService found the handler of type %v that does not satisfy %v", st, ht)
+		m.setRegErr(errors.Errorf("gateway: RegisterService handler type %v does not satisfy %v", st, ht))
+		return
 	}
 
 	if err := m.registerService(sd, ss, nil); err != nil {
-		log.Fatal().Err(err).Msgf("gateway: RegisterService error: %v", err)
+		m.setRegErr(errors.Wrapf(err, "gateway: RegisterService %s", sd.ServiceName))
 	}
 }
 

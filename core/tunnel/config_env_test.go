@@ -26,6 +26,24 @@ func TestGatewayConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestDebugListenAddr(t *testing.T) {
+	t.Setenv("DEBUG_ADDR", "")
+	t.Setenv("TUNNEL_DEBUG_PORT", "")
+	if got := tunnel.DebugListenAddr(); got != ":6060" {
+		t.Fatalf("default=%q want :6060", got)
+	}
+
+	t.Setenv("TUNNEL_DEBUG_PORT", "7070")
+	if got := tunnel.DebugListenAddr(); got != ":7070" {
+		t.Fatalf("port env=%q", got)
+	}
+
+	t.Setenv("DEBUG_ADDR", "127.0.0.1:6060")
+	if got := tunnel.DebugListenAddr(); got != "127.0.0.1:6060" {
+		t.Fatalf("DEBUG_ADDR=%q", got)
+	}
+}
+
 func TestAgentConfigFromEnv(t *testing.T) {
 	t.Setenv("TUNNEL_GATEWAY_ADDR", "gw:7007")
 	t.Setenv("SERVICE_NAME", "worker-a")

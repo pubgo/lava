@@ -52,10 +52,7 @@ func New(di *dix.Dix) *redant.Command {
 			if httpAddr == "" {
 				httpAddr = ":" + running.HttpPort.String()
 			}
-			debugAddr := os.Getenv("DEBUG_ADDR")
-			if debugAddr == "" {
-				debugAddr = ":" + running.HttpPort.String()
-			}
+			debugAddr := tunnel.DebugListenAddr()
 
 			// 获取服务名，优先使用环境变量，其次使用 buildinfo，最后使用默认值
 			serviceName := os.Getenv("SERVICE_NAME")

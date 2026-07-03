@@ -260,7 +260,7 @@ func parseField(fieldDescriptor protoreflect.FieldDescriptor, value string) (pro
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		return parseMessage(fieldDescriptor.Message(), value)
 	default:
-		panic(fmt.Sprintf("unknown field kind: %v", fieldDescriptor.Kind()))
+		return protoreflect.Value{}, errors.Errorf("unknown field kind: %v", fieldDescriptor.Kind())
 	}
 }
 

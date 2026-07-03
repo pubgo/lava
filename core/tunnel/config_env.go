@@ -17,6 +17,22 @@ func AdminTokenFromEnv() string {
 	return strings.TrimSpace(os.Getenv("TUNNEL_ADMIN_TOKEN"))
 }
 
+// DebugListenAddr returns the local bind address for tunnel agent /debug endpoints.
+// DEBUG_ADDR overrides; otherwise TUNNEL_DEBUG_PORT (default 6060) is used.
+func DebugListenAddr() string {
+	if v := strings.TrimSpace(os.Getenv("DEBUG_ADDR")); v != "" {
+		return v
+	}
+	port := strings.TrimSpace(os.Getenv("TUNNEL_DEBUG_PORT"))
+	if port == "" {
+		return ":6060"
+	}
+	if strings.HasPrefix(port, ":") {
+		return port
+	}
+	return ":" + port
+}
+
 // GatewayConfigFromEnv 从环境变量加载 Gateway 配置（在 DefaultGatewayConfig 基础上覆盖）。
 //
 // 环境变量：
