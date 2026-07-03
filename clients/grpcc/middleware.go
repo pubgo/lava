@@ -84,6 +84,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 		// set the timeout if we have it
 		if len(to) != 0 {
 			if dur, err := time.ParseDuration(to[0]); err == nil {
+				dur = grpcutil.CapRequestTimeout(dur)
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
 				defer cancel()
@@ -163,6 +164,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 		// set the timeout if we have it
 		if len(to) != 0 {
 			if dur, err := time.ParseDuration(to[0]); err == nil {
+				dur = grpcutil.CapRequestTimeout(dur)
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
 				defer cancel()

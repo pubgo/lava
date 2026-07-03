@@ -8,7 +8,6 @@ import (
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/convert"
-	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
@@ -75,6 +74,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		// set the timeout if we have it
 		if len(to) != 0 && to[0] != "" {
 			if dur, err := time.ParseDuration(to[0]); err == nil {
+				dur = grpcutil.CapRequestTimeout(dur)
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
 				defer cancel()
@@ -137,7 +137,6 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 		rsp, err := lava.Chain(middlewares[srvName]...).Middleware(unaryWrapper)(ctx, rpcReq)
 		if err != nil {
 			pb := errcode.ParseError(err)
-			pb.Details = append(pb.Details, errcode.MustTagsToAny(errors.Tags{"reqHeader": string(rpcReq.Header().Header())})...)
 
 			if pb.Message == "" {
 				pb.Message = err.Error()
@@ -193,6 +192,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		// set the timeout if we have it
 		if len(to) != 0 {
 			if dur, err := time.ParseDuration(to[0]); err == nil {
+				dur = grpcutil.CapRequestTimeout(dur)
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, dur)
 				defer cancel()
