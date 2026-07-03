@@ -100,10 +100,7 @@ func ErrHandler(ctx fiber.Ctx, err error) error {
 }
 
 func Cors() fiber.Handler {
-	return cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool {
-			return true
-		},
+	cfg := cors.Config{
 		AllowMethods: []string{
 			fiber.MethodGet,
 			fiber.MethodPost,
@@ -113,9 +110,19 @@ func Cors() fiber.Handler {
 			fiber.MethodHead,
 			fiber.MethodOptions,
 		},
-		// AllowHeaders:     "",
-		AllowCredentials: true,
-		// ExposeHeaders:    "",
 		MaxAge: 0,
-	})
+	}
+
+	// In dev/test, allow cross-origin without credentials. Production requires explicit config.
+	if running.IsNonProd() || running.Debug.Value() {
+		cfg.AllowOriginsFunc = func(origin string) bool {
+			return origin != ""
+		}
+	} else {
+		cfg.AllowOriginsFunc = func(origin string) bool {
+			return false
+		}
+	}
+
+	return cors.New(cfg)
 }

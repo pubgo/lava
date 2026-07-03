@@ -4,9 +4,8 @@
 // 向全局 App 注册路由；主 HTTP/gRPC 服务器通过 app.Use("/debug", debug.App()) 挂载。
 //
 // 鉴权由 debug/debug 子包的全局中间件负责：
-//   - localhost / 127.0.0.1 / ::1 访问免鉴权
-//   - 非本地访问需携带 token（query/header/cookie），默认密码为 InstanceID，
-//     可在配置文件的 debug.password 字段覆盖
+//   - 来自 loopback 地址（127.0.0.1 / ::1）的请求免 token（基于客户端 IP）
+//   - 非本地访问需携带 token（query/header/cookie），可在配置 debug.password 中设置
 package debug
 
 import (
