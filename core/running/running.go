@@ -27,8 +27,8 @@ import (
 )
 
 var (
-	// Env 是当前运行环境，默认 "dev"。
-	Env = redant.StringOf(lo.ToPtr("dev"))
+	// Env 是当前运行环境，默认 EnvDev（dev/test/stage/prod，见 EnvNames）。
+	Env = redant.StringOf(lo.ToPtr(EnvDev))
 	// Debug 是否启用 debug 模式。
 	Debug = redant.BoolOf(lo.ToPtr(false))
 	// HttpPort 是默认 HTTP 监听端口。
@@ -87,7 +87,7 @@ var (
 
 	EnvFlag = redant.Option{
 		Flag:        "runenv",
-		Description: "running env, dev,test,stage,prod",
+		Description: "running env: dev, test, stage (staging), prod",
 		Value:       Env,
 		Default:     Env.String(),
 		Envs:        []string{env.Key("env"), env.Key("runenv")},

@@ -217,15 +217,17 @@ func (s *serviceImpl) init(
 	if conf.WebSocketPort > 0 {
 		wsInsecure := conf.WebSocketInsecureSkipVerify
 		if len(conf.WebSocketOriginPatterns) == 0 && !conf.WebSocketInsecureSkipVerify {
-			if running.Env.String() == "dev" {
+			if running.IsDev() || running.IsTest() {
 				wsInsecure = true
 				log.Warn().
 					Int64("port", conf.WebSocketPort).
-					Msg("gateway websocket: no origin_patterns configured, skipping origin verification (dev only; set websocket_origin_patterns in production)")
+					Str("env", running.EnvName()).
+					Msg("gateway websocket: no origin_patterns configured, skipping origin verification (dev/test only; set websocket_origin_patterns in stage/prod)")
 			} else {
 				log.Error().
 					Int64("port", conf.WebSocketPort).
-					Msg("gateway websocket: websocket_origin_patterns required in non-dev environments; origin verification enabled")
+					Str("env", running.EnvName()).
+					Msg("gateway websocket: websocket_origin_patterns required in stage/prod; origin verification enabled")
 			}
 		}
 		wsOpts := gateway.WSOptionsFromConfig(gateway.WSConfig{

@@ -67,7 +67,7 @@ func ensurePassword() {
 	}
 	passwd = hex.EncodeToString(b)
 	log.Warn().
-		Str("env", running.Env.String()).
+		Str("env", running.EnvName()).
 		Msg("debug: no debug.password configured; set debug.password in config (auto-generated password active)")
 }
 

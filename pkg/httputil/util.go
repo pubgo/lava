@@ -113,9 +113,8 @@ func Cors() fiber.Handler {
 		MaxAge: 0,
 	}
 
-	// Cross-origin with credentials requires an explicit origin allow-list.
-	// In dev, allow any origin but disable credentials to avoid credentialed CSRF.
-	if running.Env.String() == "dev" || running.Debug.Value() {
+	// In dev/test, allow cross-origin without credentials. Production requires explicit config.
+	if running.IsNonProd() || running.Debug.Value() {
 		cfg.AllowOriginsFunc = func(origin string) bool {
 			return origin != ""
 		}
