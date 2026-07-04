@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/encoding/protojson"
 	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )

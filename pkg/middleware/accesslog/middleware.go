@@ -14,9 +14,9 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 
-	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
+	"github.com/pubgo/lava/v2/pkg/lavacontexts"
 )
 
 const Name = "accesslog"

@@ -8,11 +8,11 @@ import (
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
 
-	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
+	"github.com/pubgo/lava/v2/pkg/lavacontexts"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 

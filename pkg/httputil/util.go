@@ -7,6 +7,8 @@ import (
 	"dario.cat/mergo"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/pubgo/funk/v2/buildinfo/version"
+	"github.com/pubgo/funk/v2/env"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/proto/errorpb"
@@ -14,11 +16,14 @@ import (
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
-	"github.com/pubgo/lava/v2/core/registry"
-	"github.com/pubgo/lava/v2/core/running"
+	"github.com/pubgo/lava/v2/pkg/encoding/protojson"
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
+
+// DefaultBodyLimit is the default max HTTP request body size (4 MiB).
+const DefaultBodyLimit = 4 << 20
+
+const defaultHTTPPort = 8080
 
 type Config struct {
 	Http              *fiberbuilder.Config `yaml:"http"`
@@ -33,10 +38,10 @@ func DefaultCfg(config ...*Config) Config {
 			EnableIPValidation: true,
 			ETag:               true,
 			ErrorHandler:       ErrHandler,
-			BodyLimit:          registry.DefaultMaxMsgSize,
+			BodyLimit:          DefaultBodyLimit,
 		},
 		EnablePrintRouter: true,
-		HttpPort:          lo.ToPtr(int(running.HttpPort.Value())),
+		HttpPort:          lo.ToPtr(defaultHTTPPort),
 	}
 
 	for _, t := range config {
@@ -78,8 +83,8 @@ func ErrHandler(ctx fiber.Ctx, err error) error {
 			Message:    fiberErr.Message,
 			Details: errcode.MustTagsToAny(errors.Tags{
 				"path":     ctx.Route().Path,
-				"version":  running.Version(),
-				"instance": running.InstanceID,
+				"version":  version.Version(),
+				"instance": env.Get("HOSTNAME"),
 			}),
 		}
 	} else {
@@ -115,7 +120,7 @@ func Cors() fiber.Handler {
 	}
 
 	// In dev/test, allow cross-origin without credentials. Production requires explicit config.
-	if running.IsNonProd() || running.Debug.Value() {
+	if isNonProdRuntime() || debugEnabled() {
 		cfg.AllowOriginsFunc = func(origin string) bool {
 			return origin != ""
 		}
@@ -126,4 +131,32 @@ func Cors() fiber.Handler {
 	}
 
 	return cors.New(cfg)
+}
+
+func isNonProdRuntime() bool {
+	switch strings.ToLower(firstEnv("runenv", "env")) {
+	case "", "dev", "test", "stage", "staging":
+		return true
+	default:
+		return false
+	}
+}
+
+func debugEnabled() bool {
+	for _, key := range []string{"debug", "enable_debug"} {
+		switch strings.ToLower(env.Get(key)) {
+		case "true", "1":
+			return true
+		}
+	}
+	return false
+}
+
+func firstEnv(keys ...string) string {
+	for _, key := range keys {
+		if val := env.Get(key); val != "" {
+			return val
+		}
+	}
+	return ""
 }

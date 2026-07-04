@@ -13,8 +13,7 @@ import (
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/scheduler/schedulerbuilder"
-	"github.com/pubgo/lava/v2/core/supervisor"
-	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
+	"github.com/pubgo/lava/v2/core/supervisor/bootstrap"
 	"github.com/pubgo/lava/v2/core/tunnel"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunneldebug"
@@ -35,8 +34,7 @@ func New(di *dix.Dix) *redant.Command {
 				HTTPParams https.Params
 			}))
 
-			manager := supervisor.Default(params.LC)
-			supervisordebug.Register(manager)
+			manager := bootstrap.Prepare(params.LC)
 			assert.Exit(manager.Add(params.Scheduler.Service))
 			assert.Exit(manager.Add(https.New(params.HTTPParams)))
 
@@ -90,7 +88,7 @@ func New(di *dix.Dix) *redant.Command {
 				Str("service", serviceName).
 				Msg("Tunnel Agent integrated")
 
-			return manager.Run(ctx)
+			return bootstrap.Run(ctx, manager)
 		},
 	}
 }

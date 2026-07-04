@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/encoding/protojson"
 )
 
 func TestResolveWSEncoding(t *testing.T) {

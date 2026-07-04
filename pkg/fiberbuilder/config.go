@@ -9,7 +9,7 @@ import (
 	"github.com/pubgo/funk/v2/result"
 	"github.com/samber/lo"
 
-	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/pkg/encoding/protojson"
 )
 
 type Config struct {
