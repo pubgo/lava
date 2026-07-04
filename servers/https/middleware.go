@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3/binder"
 
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
 func init() {
@@ -26,13 +27,13 @@ func RegParser(parsers []binder.ParserType) {
 
 func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		reqCtx := req.(*httpRequest).ctx
-		return &httpResponse{ctx: reqCtx}, reqCtx.Next()
+		reqCtx := req.(*serverhttp.Request).Ctx
+		return serverhttp.NewResponse(reqCtx), reqCtx.Next()
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)
 	return func(ctx fiber.Ctx) error {
-		_, err := h(ctx, &httpRequest{ctx: ctx})
+		_, err := h(ctx, serverhttp.NewRequest(ctx))
 		return err
 	}
 }
