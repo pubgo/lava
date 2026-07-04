@@ -48,14 +48,8 @@ func New(di *dix.Dix) *redant.Command {
 			}
 
 			// 获取本地服务地址（通过环境变量配置）
-			httpAddr := os.Getenv("HTTP_ADDR")
-			if httpAddr == "" {
-				httpAddr = ":" + running.HttpPort.String()
-			}
-			debugAddr := os.Getenv("DEBUG_ADDR")
-			if debugAddr == "" {
-				debugAddr = ":" + running.HttpPort.String()
-			}
+			httpAddr := running.HttpListenAddr()
+			debugAddr := running.DebugListenAddr()
 
 			// 获取服务名，优先使用环境变量，其次使用 buildinfo，最后使用默认值
 			serviceName := os.Getenv("SERVICE_NAME")

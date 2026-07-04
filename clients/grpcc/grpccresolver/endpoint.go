@@ -15,7 +15,6 @@
 package grpccresolver
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"path"
@@ -54,14 +53,13 @@ func extractHostFromPath(pathStr string) string {
 	return extractHostFromHostPort(path.Base(pathStr))
 }
 
-// mustSplit2 returns the values from strings.SplitN(s, sep, 2).
-// If sep is not found, it returns ("", "", false) instead.
-func mustSplit2(s, sep string) (string, string) {
+// split2 splits s on the first sep.
+func split2(s, sep string) (before, after string, ok bool) {
 	spl := strings.SplitN(s, sep, 2)
 	if len(spl) < 2 {
-		panic(fmt.Errorf("token '%v' expected to have separator sep: `%v`", s, sep))
+		return "", "", false
 	}
-	return spl[0], spl[1]
+	return spl[0], spl[1], true
 }
 
 func schemeToCredsRequirement(schema string) CredsRequirement {
@@ -103,17 +101,16 @@ func schemeToCredsRequirement(schema string) CredsRequirement {
 func translateEndpoint(ep string) (addr, serverName string, requireCreds CredsRequirement) {
 	if hasPrefix(ep, "unix:", "unixs:") {
 		if hasPrefix(ep, "unix:///", "unixs:///") {
-			// absolute path case
-			schema, absolutePath := mustSplit2(ep, "://")
-			return "unix://" + absolutePath, extractHostFromPath(absolutePath), schemeToCredsRequirement(schema)
-		}
-		if hasPrefix(ep, "unix://", "unixs://") {
-			// legacy etcd local path
-			schema, localPath := mustSplit2(ep, "://")
+			if schema, absolutePath, ok := split2(ep, "://"); ok {
+				return "unix://" + absolutePath, extractHostFromPath(absolutePath), schemeToCredsRequirement(schema)
+			}
+		} else if hasPrefix(ep, "unix://", "unixs://") {
+			if schema, localPath, ok := split2(ep, "://"); ok {
+				return "unix:" + localPath, extractHostFromPath(localPath), schemeToCredsRequirement(schema)
+			}
+		} else if schema, localPath, ok := split2(ep, ":"); ok {
 			return "unix:" + localPath, extractHostFromPath(localPath), schemeToCredsRequirement(schema)
 		}
-		schema, localPath := mustSplit2(ep, ":")
-		return "unix:" + localPath, extractHostFromPath(localPath), schemeToCredsRequirement(schema)
 	}
 
 	if strings.Contains(ep, "://") {

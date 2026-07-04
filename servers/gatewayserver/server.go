@@ -167,6 +167,7 @@ func (s *serviceImpl) init(
 
 		mux.RegisterService(desc, h)
 	}
+	assert.If(mux.Err() != nil, "gateway mux registration failed: %v", mux.Err())
 
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
@@ -262,14 +263,20 @@ func (s *serviceImpl) init(
 }
 
 func (s *serviceImpl) start(context.Context) error {
-	defer recovery.Exit()
-
 	s.log.Info().
 		Int64("grpc-port", running.GrpcPort.Value()).
 		Int64("http-port", running.HttpPort.Value()).
 		Msg("create network listener")
-	grpcLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort.Value())))
-	httpLn := assert.Exit1(net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort.Value())))
+
+	grpcLn, err := net.Listen("tcp", fmt.Sprintf(":%d", running.GrpcPort.Value()))
+	if err != nil {
+		return fmt.Errorf("gateway grpc listen: %w", err)
+	}
+	httpLn, err := net.Listen("tcp", fmt.Sprintf(":%d", running.HttpPort.Value()))
+	if err != nil {
+		_ = grpcLn.Close()
+		return fmt.Errorf("gateway http listen: %w", err)
+	}
 
 	async.GoDelay(func() error {
 		s.log.Info().Msg("grpc server starting")
@@ -292,7 +299,12 @@ func (s *serviceImpl) start(context.Context) error {
 	})
 
 	if s.wsServer != nil {
-		wsLn := assert.Exit1(net.Listen("tcp", s.wsServer.Addr))
+		wsLn, err := net.Listen("tcp", s.wsServer.Addr)
+		if err != nil {
+			_ = grpcLn.Close()
+			_ = httpLn.Close()
+			return fmt.Errorf("gateway websocket listen: %w", err)
+		}
 		async.GoDelay(func() error {
 			s.log.Info().Str("addr", s.wsServer.Addr).Msg("websocket server starting")
 			defer recovery.DebugPrint()

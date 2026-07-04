@@ -112,7 +112,17 @@ func (g *tunnelGateway) handleGRPCConnection(conn net.Conn) {
 	}
 
 	wrapped := &bufferedConn{Conn: conn, r: reader}
-	if err := g.Forward(context.Background(), serviceName, tunnel.EndpointTypeGRPC, wrapped); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		select {
+		case <-g.stopCh:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	if err := g.Forward(ctx, serviceName, tunnel.EndpointTypeGRPC, wrapped); err != nil {
 		log.Warn().Err(err).Str("service", serviceName).Msg("GRPC proxy: forward failed")
 	}
 }
