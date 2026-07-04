@@ -87,28 +87,39 @@ func (h *FastHTTPResponseHeader) header() *fasthttp.ResponseHeader {
 	return h.H
 }
 
-func (h *FastHTTPRequestHeader) Peek(key string) []byte              { return h.header().Peek(key) }
-func (h *FastHTTPRequestHeader) PeekAll(key string) [][]byte         { return h.header().PeekAll(key) }
-func (h *FastHTTPRequestHeader) Set(key, value string)               { h.header().Set(key, value) }
-func (h *FastHTTPRequestHeader) Add(key, value string)               { h.header().Add(key, value) }
-func (h *FastHTTPRequestHeader) Method() []byte                      { return h.header().Method() }
-func (h *FastHTTPRequestHeader) SetMethod(method string)               { h.header().SetMethod(method) }
-func (h *FastHTTPRequestHeader) SetMethodBytes(method []byte)          { h.header().SetMethodBytes(method) }
-func (h *FastHTTPRequestHeader) RequestURI() []byte                  { return h.header().RequestURI() }
-func (h *FastHTTPRequestHeader) SetRequestURI(uri string)            { h.header().SetRequestURI(uri) }
-func (h *FastHTTPRequestHeader) SetRequestURIBytes(uri []byte)       { h.header().SetRequestURIBytes(uri) }
-func (h *FastHTTPRequestHeader) ContentType() []byte                 { return h.header().ContentType() }
-func (h *FastHTTPRequestHeader) SetContentType(ct string)              { h.header().SetContentType(ct) }
-func (h *FastHTTPRequestHeader) SetContentTypeBytes(ct []byte)       { h.header().SetContentTypeBytes(ct) }
-func (h *FastHTTPRequestHeader) Referer() []byte                       { return h.header().Referer() }
-func (h *FastHTTPRequestHeader) UserAgent() []byte                     { return h.header().UserAgent() }
-func (h *FastHTTPRequestHeader) SetCookieBytesKV(key, value []byte)    { h.header().SetCookieBytesKV(key, value) }
-func (h *FastHTTPRequestHeader) VisitAll(fn func(key, value []byte)) { h.header().VisitAll(fn) }
-func (h *FastHTTPRequestHeader) String() string                      { return h.header().String() }
+func (h *FastHTTPRequestHeader) Peek(key string) []byte        { return h.header().Peek(key) }
+func (h *FastHTTPRequestHeader) PeekAll(key string) [][]byte   { return h.header().PeekAll(key) }
+func (h *FastHTTPRequestHeader) Set(key, value string)         { h.header().Set(key, value) }
+func (h *FastHTTPRequestHeader) Add(key, value string)         { h.header().Add(key, value) }
+func (h *FastHTTPRequestHeader) Method() []byte                { return h.header().Method() }
+func (h *FastHTTPRequestHeader) SetMethod(method string)       { h.header().SetMethod(method) }
+func (h *FastHTTPRequestHeader) SetMethodBytes(method []byte)  { h.header().SetMethodBytes(method) }
+func (h *FastHTTPRequestHeader) RequestURI() []byte            { return h.header().RequestURI() }
+func (h *FastHTTPRequestHeader) SetRequestURI(uri string)      { h.header().SetRequestURI(uri) }
+func (h *FastHTTPRequestHeader) SetRequestURIBytes(uri []byte) { h.header().SetRequestURIBytes(uri) }
+func (h *FastHTTPRequestHeader) ContentType() []byte           { return h.header().ContentType() }
+func (h *FastHTTPRequestHeader) SetContentType(ct string)      { h.header().SetContentType(ct) }
+func (h *FastHTTPRequestHeader) SetContentTypeBytes(ct []byte) { h.header().SetContentTypeBytes(ct) }
+func (h *FastHTTPRequestHeader) Referer() []byte               { return h.header().Referer() }
+func (h *FastHTTPRequestHeader) UserAgent() []byte             { return h.header().UserAgent() }
+func (h *FastHTTPRequestHeader) SetCookieBytesKV(key, value []byte) {
+	h.header().SetCookieBytesKV(key, value)
+}
 
-func (h *FastHTTPResponseHeader) Peek(key string) []byte              { return h.header().Peek(key) }
-func (h *FastHTTPResponseHeader) PeekAll(key string) [][]byte         { return h.header().PeekAll(key) }
-func (h *FastHTTPResponseHeader) Set(key, value string)               { h.header().Set(key, value) }
-func (h *FastHTTPResponseHeader) Add(key, value string)               { h.header().Add(key, value) }
-func (h *FastHTTPResponseHeader) VisitAll(fn func(key, value []byte)) { h.header().VisitAll(fn) }
-func (h *FastHTTPResponseHeader) String() string                      { return h.header().String() }
+func (h *FastHTTPRequestHeader) VisitAll(fn func(key, value []byte)) {
+	for key, value := range h.header().All() {
+		fn(key, value)
+	}
+}
+func (h *FastHTTPRequestHeader) String() string { return h.header().String() }
+
+func (h *FastHTTPResponseHeader) Peek(key string) []byte      { return h.header().Peek(key) }
+func (h *FastHTTPResponseHeader) PeekAll(key string) [][]byte { return h.header().PeekAll(key) }
+func (h *FastHTTPResponseHeader) Set(key, value string)       { h.header().Set(key, value) }
+func (h *FastHTTPResponseHeader) Add(key, value string)       { h.header().Add(key, value) }
+func (h *FastHTTPResponseHeader) VisitAll(fn func(key, value []byte)) {
+	for key, value := range h.header().All() {
+		fn(key, value)
+	}
+}
+func (h *FastHTTPResponseHeader) String() string { return h.header().String() }
