@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
@@ -33,7 +32,7 @@ func head2md(header lava.RequestHeader, md metadata.MD) {
 		return
 	}
 	header.VisitAll(func(key, value []byte) {
-		md.Append(convert.BtoS(key), convert.BtoS(value))
+		md.Append(string(key), string(value))
 	})
 }
 

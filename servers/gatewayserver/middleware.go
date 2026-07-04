@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
@@ -123,7 +122,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			reqMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 			reqMetadata.Set(httputil.HeaderXRequestOperation, info.FullMethod)
 			rpcReq.rspHeader.VisitAll(func(key, value []byte) {
-				reqMetadata.Set(convert.BtoS(key), convert.BtoS(value))
+				reqMetadata.Set(string(key), string(value))
 			})
 
 			if err := grpc.SendHeader(ctx, reqMetadata); err != nil {
@@ -248,7 +247,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 		h := rsp.Header()
 		md = make(metadata.MD)
 		h.VisitAll(func(key, value []byte) {
-			md.Append(convert.BtoS(key), convert.BtoS(value))
+			md.Append(string(key), string(value))
 		})
 		if len(md) == 0 {
 			return nil
