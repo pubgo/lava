@@ -5,11 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -29,10 +27,13 @@ func md2Head(md metadata.MD, header interface{ Add(key, value string) }) {
 	}
 }
 
-func head2md(header *lava.RequestHeader, md metadata.MD) {
-	for key, value := range header.All() {
-		md.Append(convert.BtoS(key), convert.BtoS(value))
+func head2md(header lava.RequestHeader, md metadata.MD) {
+	if header == nil {
+		return
 	}
+	header.VisitAll(func(key, value []byte) {
+		md.Append(string(key), string(value))
+	})
 }
 
 func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor {
@@ -48,7 +49,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			return nil, err
 		}
 
-		rsp := &response{header: new(lava.ResponseHeader)}
+		rsp := &response{header: httputil.NewResponseHeader()}
 		md2Head(header, rsp.header)
 		md2Head(trailer, rsp.header)
 		return rsp, nil
@@ -91,7 +92,7 @@ func unaryInterceptor(middlewares []lava.Middleware) grpc.UnaryClientInterceptor
 			}
 		}
 
-		header := &fasthttp.RequestHeader{}
+		header := httputil.NewRequestHeader()
 		md2Head(md, header)
 
 		rpcReq := &request{
@@ -131,7 +132,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 			return nil, err
 		}
 
-		return &response{header: new(lava.ResponseHeader), stream: stream}, nil
+		return &response{header: httputil.NewResponseHeader(), stream: stream}, nil
 	}
 
 	wrapperStream = lava.Chain(middlewares...).Middleware(wrapperStream)
@@ -171,7 +172,7 @@ func streamInterceptor(middlewares []lava.Middleware) grpc.StreamClientIntercept
 			}
 		}
 
-		header := &fasthttp.RequestHeader{}
+		header := httputil.NewRequestHeader()
 		md2Head(md, header)
 
 		reqId := strutil.FirstFnNotEmpty(

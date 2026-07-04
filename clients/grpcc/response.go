@@ -9,11 +9,11 @@ import (
 var _ lava.Response = (*response)(nil)
 
 type response struct {
-	header *lava.ResponseHeader
+	header lava.ResponseHeader
 	stream grpc.ClientStream
 	resp   any
 }
 
-func (r *response) Stream() bool                 { return r.stream != nil }
-func (r *response) Header() *lava.ResponseHeader { return r.header }
+func (r *response) Stream() bool                  { return r.stream != nil }
+func (r *response) Header() lava.ResponseHeader { return r.header }
 func (r *response) Payload() any                 { return r.resp }

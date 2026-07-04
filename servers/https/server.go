@@ -17,10 +17,10 @@ import (
 	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/internal/logutil"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
+	"github.com/pubgo/lava/v2/pkg/middleware/metric"
+	mwrecovery "github.com/pubgo/lava/v2/pkg/middleware/recovery"
+	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
@@ -67,10 +67,10 @@ func (s *serviceImpl) init(params Params) {
 
 	defaultMiddlewares := make([]lava.Middleware, 0, 4+len(params.Middlewares))
 	defaultMiddlewares = append(defaultMiddlewares,
-		middleware_serviceinfo.New(),
-		middleware_metric.New(params.M),
-		middleware_accesslog.New(s.log),
-		middleware_recovery.New(),
+		serviceinfo.New(),
+		metric.New(params.M),
+		accesslog.New(s.log),
+		mwrecovery.New(),
 	)
 	middlewares := append(defaultMiddlewares, params.Middlewares...)
 

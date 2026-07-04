@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 func NewJar(log log.Logger) *Jar {
@@ -46,7 +47,7 @@ func (j *Jar) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 
 		j.mu.Lock()
 		defer j.mu.Unlock()
-		for _, value := range rsp.Header().All() {
+		for _, value := range rsp.Header().PeekAll(httputil.HeaderSetCookie) {
 			acquireCookie := fasthttp.AcquireCookie()
 			if err := acquireCookie.ParseBytes(value); err != nil {
 				j.log.Err(err, ctx).Msg("failed to parse cookie")

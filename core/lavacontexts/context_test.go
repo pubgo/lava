@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 
@@ -59,8 +59,8 @@ func TestHeadersMissingDoesNotPanic(t *testing.T) {
 func TestHeadersRoundTrip(t *testing.T) {
 	ctx := context.Background()
 
-	reqH := &lava.RequestHeader{}
-	rspH := &lava.ResponseHeader{}
+	reqH := httputil.NewRequestHeader()
+	rspH := httputil.NewResponseHeader()
 	ctx = CreateReqHeader(ctx, reqH)
 	ctx = CreateRspHeader(ctx, rspH)
 

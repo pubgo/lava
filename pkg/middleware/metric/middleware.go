@@ -1,4 +1,4 @@
-package middleware_metric
+package metric
 
 import (
 	"context"

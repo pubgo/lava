@@ -3,7 +3,7 @@
 // 它在 context 中存取以下几类与单次 RPC/HTTP 请求绑定的数据：
 //   - 请求 ID（reqId）：用于全链路日志追踪
 //   - 客户端/服务端 ServiceInfo：调用双方的服务元信息
-//   - 请求/响应 Header：底层 fasthttp 的 header 引用
+//   - 请求/响应 Header：lava 抽象 header 引用
 //
 // 所有 Getter 在 context 中不存在对应值时均安全返回零值（"" 或 nil），
 // 不会 panic，调用方无需额外的 recover 保护。
@@ -75,13 +75,13 @@ var (
 )
 
 // CreateReqHeader 返回携带请求 Header 的新 context。
-func CreateReqHeader(ctx context.Context, header *lava.RequestHeader) context.Context {
+func CreateReqHeader(ctx context.Context, header lava.RequestHeader) context.Context {
 	return context.WithValue(ctx, reqHeader, header)
 }
 
 // ReqHeader 返回 context 中的请求 Header，不存在时返回 nil。
-func ReqHeader(ctx context.Context) *lava.RequestHeader {
-	header, ok := ctx.Value(reqHeader).(*lava.RequestHeader)
+func ReqHeader(ctx context.Context) lava.RequestHeader {
+	header, ok := ctx.Value(reqHeader).(lava.RequestHeader)
 	if ok {
 		return header
 	}
@@ -89,13 +89,13 @@ func ReqHeader(ctx context.Context) *lava.RequestHeader {
 }
 
 // CreateRspHeader 返回携带响应 Header 的新 context。
-func CreateRspHeader(ctx context.Context, header *lava.ResponseHeader) context.Context {
+func CreateRspHeader(ctx context.Context, header lava.ResponseHeader) context.Context {
 	return context.WithValue(ctx, rspHeader, header)
 }
 
 // RspHeader 返回 context 中的响应 Header，不存在时返回 nil。
-func RspHeader(ctx context.Context) *lava.ResponseHeader {
-	header, ok := ctx.Value(rspHeader).(*lava.ResponseHeader)
+func RspHeader(ctx context.Context) lava.ResponseHeader {
+	header, ok := ctx.Value(rspHeader).(lava.ResponseHeader)
 	if ok {
 		return header
 	}

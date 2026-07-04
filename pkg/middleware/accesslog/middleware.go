@@ -1,4 +1,4 @@
-package middleware_accesslog
+package accesslog
 
 import (
 	"context"
@@ -127,7 +127,7 @@ func (l LogMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	}
 }
 
-func handleLogOption(header *lava.RequestHeader) *logOption {
+func handleLogOption(header lava.RequestHeader) *logOption {
 	data := header.PeekAll("X-Log-Option")
 	val := make(map[string]bool, len(data))
 	for i := range data {

@@ -25,13 +25,17 @@ import (
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
+	"github.com/pubgo/lava/v2/cmds/curlcmd"
 	"github.com/pubgo/lava/v2/cmds/depcmd"
+	"github.com/pubgo/lava/v2/cmds/devproxycmd"
+	"github.com/pubgo/lava/v2/cmds/fileservercmd"
 	"github.com/pubgo/lava/v2/cmds/grpcservercmd"
 	"github.com/pubgo/lava/v2/cmds/healthcmd"
 	"github.com/pubgo/lava/v2/cmds/httpservercmd"
 	"github.com/pubgo/lava/v2/cmds/schedulercmd"
 	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
+	"github.com/pubgo/lava/v2/cmds/watchcmd"
 	_ "github.com/pubgo/lava/v2/core/debug/configview"
 	_ "github.com/pubgo/lava/v2/core/debug/debug"
 	"github.com/pubgo/lava/v2/core/debug/dixdebug"
@@ -103,6 +107,10 @@ func Run(di *dix.Dix) {
 	dix.Provide(di, httpservercmd.New)
 	dix.Provide(di, schedulercmd.New)
 	dix.Provide(di, tunnelcmd.New)
+	dix.Provide(di, watchcmd.New)
+	dix.Provide(di, curlcmd.New)
+	dix.Provide(di, fileservercmd.New)
+	dix.Provide(di, devproxycmd.New)
 	dix.Inject(di, func(commands []*redant.Command) {
 		app := &redant.Command{
 			Use:      version.Project(),

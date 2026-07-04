@@ -10,7 +10,7 @@ type request struct {
 	subject     string
 	service     string
 	contentType string
-	header      *lava.RequestHeader
+	header      lava.RequestHeader
 	payload     any
 }
 
@@ -21,5 +21,5 @@ func (r *request) Service() string             { return r.service }
 func (r *request) Operation() string           { return r.subject }
 func (r *request) Endpoint() string            { return r.subject }
 func (r *request) ContentType() string         { return r.contentType }
-func (r *request) Header() *lava.RequestHeader { return r.header }
+func (r *request) Header() lava.RequestHeader { return r.header }
 func (r *request) Payload() any                { return r.payload }

@@ -7,13 +7,11 @@ import (
 	"github.com/gofiber/fiber/v3"
 	grpcMiddle "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pubgo/funk/v2/buildinfo/version"
-	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/errors/errcode"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/proto/errorpb"
 	"github.com/pubgo/funk/v2/strutil"
 	"github.com/rs/xid"
-	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -88,12 +86,13 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			url = _url[0]
 		}
 
-		reqHeader := &fasthttp.RequestHeader{}
+		reqHeader := httputil.NewRequestHeader()
 		for k, v := range reqMetadata {
 			for i := range v {
 				reqHeader.Add(k, v[i])
 			}
 		}
+		rspHeader := httputil.NewResponseHeader()
 
 		srvName := serviceFromMethod(info.FullMethod)
 		rpcReq := &rpcRequest{
@@ -104,7 +103,7 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			contentType: ct,
 			payload:     req,
 			header:      reqHeader,
-			rspHeader:   new(fasthttp.ResponseHeader),
+			rspHeader:   rspHeader,
 		}
 
 		reqId := strutil.FirstFnNotEmpty(
@@ -122,9 +121,9 @@ func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServ
 			reqMetadata.Set(httputil.HeaderXRequestID, reqId)
 			reqMetadata.Set(httputil.HeaderXRequestVersion, version.Version())
 			reqMetadata.Set(httputil.HeaderXRequestOperation, info.FullMethod)
-			for key, value := range rpcReq.rspHeader.All() {
-				reqMetadata.Set(convert.BtoS(key), convert.BtoS(value))
-			}
+			rpcReq.rspHeader.VisitAll(func(key, value []byte) {
+				reqMetadata.Set(string(key), string(value))
+			})
 
 			if err := grpc.SendHeader(ctx, reqMetadata); err != nil {
 				log.Err(err, ctx).
@@ -163,7 +162,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			return nil, err
 		}
 
-		return &rpcResponse{stream: reqCtx.stream, header: new(lava.ResponseHeader)}, nil
+		return &rpcResponse{stream: reqCtx.stream, header: httputil.NewResponseHeader()}, nil
 	}
 
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -200,12 +199,13 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			}
 		}
 
-		header := new(fasthttp.RequestHeader)
+		header := httputil.NewRequestHeader()
 		for k, v := range md {
 			for i := range v {
 				header.Add(k, v[i])
 			}
 		}
+		rspHeader := httputil.NewResponseHeader()
 
 		srvName := serviceFromMethod(info.FullMethod)
 		rpcReq := &rpcRequest{
@@ -213,6 +213,7 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 			srv:           srv,
 			handlerStream: handler,
 			header:        header,
+			rspHeader:     rspHeader,
 			method:        info.FullMethod,
 			service:       srvName,
 			contentType:   ct,
@@ -245,9 +246,9 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 
 		h := rsp.Header()
 		md = make(metadata.MD)
-		for key, value := range h.All() {
-			md.Append(convert.BtoS(key), convert.BtoS(value))
-		}
+		h.VisitAll(func(key, value []byte) {
+			md.Append(string(key), string(value))
+		})
 		if len(md) == 0 {
 			return nil
 		}
