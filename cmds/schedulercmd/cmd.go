@@ -84,7 +84,7 @@ func New(di *dix.Dix) *redant.Command {
 			// 注册到 tunneldebug，可以在 /debug/tunnel 查看 Agent 状态
 			// 实际启动交由 supervisor 生命周期统一管理，避免重复 Start
 			tunneldebug.SetAgent(agent)
-			assert.Exit(manager.Add(&tunnelAgentService{agent: agent}))
+			assert.Exit(manager.Add(tunnelagent.NewSupervisorService(agent)))
 			log.Info().
 				Str("gateway", gatewayAddr).
 				Str("service", serviceName).
@@ -93,55 +93,4 @@ func New(di *dix.Dix) *redant.Command {
 			return manager.Run(ctx)
 		},
 	}
-}
-
-// tunnelAgentService 包装 Agent 为 supervisor.Service
-type tunnelAgentService struct {
-	agent tunnel.Agent
-	err   error
-}
-
-func (s *tunnelAgentService) Name() string {
-	return "tunnel-agent"
-}
-
-func (s *tunnelAgentService) Error() error {
-	return s.err
-}
-
-func (s *tunnelAgentService) String() string {
-	return "Tunnel Agent Service - connects to gateway and exposes local services"
-}
-
-func (s *tunnelAgentService) Serve(ctx context.Context) error {
-	log.Info().Msg("Starting Tunnel Agent...")
-	if err := s.agent.Start(ctx); err != nil {
-		s.err = err
-		return err
-	}
-
-	// 等待上下文取消
-	<-ctx.Done()
-
-	log.Info().Msg("Stopping Tunnel Agent...")
-	return s.agent.Stop(context.Background())
-}
-
-func (s *tunnelAgentService) Metric() *supervisor.Metric {
-	m := &supervisor.Metric{Name: s.Name()}
-	if s.err != nil {
-		m.Status = supervisor.StatusError
-		m.LastError = s.err.Error()
-		return m
-	}
-
-	switch s.agent.Status() {
-	case tunnel.StatusConnected:
-		m.Status = supervisor.StatusRunning
-	case tunnel.StatusConnecting, tunnel.StatusReconnecting:
-		m.Status = supervisor.StatusCrashing
-	default:
-		m.Status = supervisor.StatusStopped
-	}
-	return m
 }

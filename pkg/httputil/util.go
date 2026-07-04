@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/pubgo/lava/v2/core/encoding/protojson"
+	"github.com/pubgo/lava/v2/core/registry"
 	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/pkg/fiberbuilder"
 )
@@ -32,7 +33,7 @@ func DefaultCfg(config ...*Config) Config {
 			EnableIPValidation: true,
 			ETag:               true,
 			ErrorHandler:       ErrHandler,
-			BodyLimit:          1024 * 1024 * 500,
+			BodyLimit:          registry.DefaultMaxMsgSize,
 		},
 		EnablePrintRouter: true,
 		HttpPort:          lo.ToPtr(int(running.HttpPort.Value())),
