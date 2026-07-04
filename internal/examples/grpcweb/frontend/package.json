@@ -13,7 +13,7 @@
     "@protobuf-ts/plugin": "^2.11.1",
     "protoc": "^1.0.0",
     "typescript": "^5.8.3",
-    "vite": "^6.0.7"
+    "vite": "^6.4.3"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "^2.11.1",
