@@ -17,6 +17,7 @@ import (
 
 	"github.com/pubgo/lava/v2/core/debug"
 	"github.com/pubgo/lava/v2/core/lifecycle"
+	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
 	"github.com/pubgo/lava/v2/core/tunnel"
@@ -205,9 +206,10 @@ func newGatewayCommand(di *dix.Dix) *redant.Command {
 
 			gateway := tunnelgateway.NewGateway(&gwCfg)
 			authToken := tunnel.AuthTokenFromEnv()
-			if authToken == "" {
-				log.Warn().Msg("TUNNEL_AUTH_TOKEN not set: any agent may register; HTTP/gRPC/debug proxies remain unauthenticated")
-			} else {
+			if err := validateGatewayAuth(authToken); err != nil {
+				return err
+			}
+			if authToken != "" {
 				log.Info().Msg("Proxy authentication enabled: clients must send Authorization: Bearer or X-Tunnel-Token")
 			}
 			if err := tunnel.ConfigureGatewayAuth(gateway, authToken); err != nil {
@@ -261,4 +263,19 @@ func parsePort(s string) (int, error) {
 	var port int
 	_, err := fmt.Sscanf(s, "%d", &port)
 	return port, err
+}
+
+func validateGatewayAuth(authToken string) error {
+	if authToken != "" {
+		return nil
+	}
+	if running.IsStage() || running.IsProd() {
+		if !tunnel.InsecureFromEnv() {
+			return fmt.Errorf("TUNNEL_AUTH_TOKEN is required in %s; set TUNNEL_INSECURE=1 to allow unauthenticated mode (not recommended)", running.EnvName())
+		}
+		log.Warn().Str("env", running.EnvName()).Msg("TUNNEL_INSECURE: gateway running without auth token in stage/prod")
+		return nil
+	}
+	log.Warn().Msg("TUNNEL_AUTH_TOKEN not set: any agent may register; HTTP/gRPC/debug proxies remain unauthenticated")
+	return nil
 }

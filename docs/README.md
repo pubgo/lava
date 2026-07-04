@@ -9,19 +9,25 @@
 
 ## 推荐阅读顺序
 
-1. `architecture-v2.md`：先建立全局认知
-2. `design-v2.md`：理解抽象与设计取舍
-3. `modules/README.md`：按目录快速定位模块
-4. `lava-command.md`：查命令参数与示例
-5. `zrpc.md`：查看 NATS + protobuf unary RPC 用法
+1. `quickstart.md`：分步入门（推荐新同学从这里开始）
+2. `development.md`：Taskfile、测试与 FAQ
+3. `configuration.md`：resources / patch / envs 配置模型
+4. `architecture-v2.md`：全局架构认知
+5. `design-v2.md`：抽象与设计取舍
+6. `modules/README.md`：按目录定位模块
+7. `lava-command.md`：查命令参数与示例
+8. `zrpc.md`：NATS + protobuf unary RPC
 
 ## 文档地图
 
+- 入门：`quickstart.md`、`development.md`、`configuration.md`
 - 架构：`architecture-v2.md`（分层、四条数据通路、gatewayserver / zrpcbridge / 部署）
 - 设计：`design-v2.md`
 - P2P：`design-p2p.md`
 - zrpc：`zrpc.md`
 - 命令：`lava-command.md`
+- Supervisor：`supervisor.md`
+- Copilot：`copilot-skills.md`
 - Gateway 部署（TLS / HTTP/3）：`../pkg/gateway/docs/deploy.md`
 - Traefik 示例：`../deploy/traefik/README.md`
 - 模块：`modules/README.md`

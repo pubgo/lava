@@ -68,7 +68,7 @@ func New() *redant.Command {
 									"!.DS_Store",
 								},
 								Commands: []string{
-									"protobuild gen",
+									"task proto:gen",
 									"go build ./...",
 								},
 								RunOnStartup: false,
@@ -98,7 +98,7 @@ func New() *redant.Command {
 							"!.DS_Store",
 						},
 						Commands: []string{
-							"protobuild gen",
+							"task proto:gen",
 							"go build ./...",
 						},
 						RunOnStartup: false,

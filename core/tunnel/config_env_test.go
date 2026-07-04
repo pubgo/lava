@@ -26,6 +26,17 @@ func TestGatewayConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestInsecureFromEnv(t *testing.T) {
+	t.Setenv("TUNNEL_INSECURE", "1")
+	if !tunnel.InsecureFromEnv() {
+		t.Fatal("expected insecure")
+	}
+	t.Setenv("TUNNEL_INSECURE", "0")
+	if tunnel.InsecureFromEnv() {
+		t.Fatal("expected not insecure")
+	}
+}
+
 func TestAgentConfigFromEnv(t *testing.T) {
 	t.Setenv("TUNNEL_GATEWAY_ADDR", "gw:7007")
 	t.Setenv("SERVICE_NAME", "worker-a")

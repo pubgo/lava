@@ -79,14 +79,16 @@ func (m *Multiplex) dispatchLoop() {
 }
 
 func (m *Multiplex) broadcast(msg Message) {
-	m.mu.Lock()
-	subs := make([]chan Message, 0, len(m.subs))
-	for _, ch := range m.subs {
-		subs = append(subs, ch)
+	select {
+	case <-m.stopCh:
+		return
+	default:
 	}
-	m.mu.Unlock()
 
-	for _, ch := range subs {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for _, ch := range m.subs {
 		select {
 		case ch <- msg:
 		default:
@@ -96,8 +98,7 @@ func (m *Multiplex) broadcast(msg Message) {
 			}
 			select {
 			case ch <- msg:
-			case <-m.stopCh:
-				return
+			default:
 			}
 		}
 	}
@@ -105,11 +106,11 @@ func (m *Multiplex) broadcast(msg Message) {
 
 func (m *Multiplex) unsubscribe(id uint64) {
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	if ch, ok := m.subs[id]; ok {
 		delete(m.subs, id)
 		close(ch)
 	}
-	m.mu.Unlock()
 }
 
 // SessionBroker 是单条 ICE 协商使用的 Broker 视图。

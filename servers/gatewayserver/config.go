@@ -32,14 +32,13 @@ type Config struct {
 	WebSocketOriginPatterns []string `yaml:"websocket_origin_patterns"`
 	// WebSocketInsecureSkipVerify disables WS origin checks (development only).
 	WebSocketInsecureSkipVerify bool `yaml:"websocket_insecure_skip_verify"`
-	// GRPCPassthrough enables native gRPC passthrough via Mux.UnknownServiceHandler.
-	// When true, register services only on gateway.Mux; the outer grpc.Server
-	// forwards all RPCs to the same backend used by HTTP/WebSocket frontends.
-	// Default is false for backward compatibility with existing deployments that
-	// register services on both Mux and grpc.Server.
+	// Default is true: register handlers on Mux only; native gRPC uses passthrough.
+	// Set false for legacy dual registration on Mux and grpc.Server.
 	GRPCPassthrough bool `yaml:"grpc_passthrough"`
 }
 
 func defaultCfg() *Config {
-	return &Config{}
+	return &Config{
+		GRPCPassthrough: true,
+	}
 }

@@ -12,6 +12,13 @@ func AuthTokenFromEnv() string {
 	return strings.TrimSpace(os.Getenv("TUNNEL_AUTH_TOKEN"))
 }
 
+// InsecureFromEnv reports whether tunnel auth may be skipped (development escape hatch).
+// Set TUNNEL_INSECURE=1 to allow gateway without TUNNEL_AUTH_TOKEN in stage/prod.
+func InsecureFromEnv() bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("TUNNEL_INSECURE")))
+	return v == "1" || v == "true" || v == "yes"
+}
+
 // AdminTokenFromEnv 读取 Admin UI 鉴权 token（TUNNEL_ADMIN_TOKEN）。
 func AdminTokenFromEnv() string {
 	return strings.TrimSpace(os.Getenv("TUNNEL_ADMIN_TOKEN"))

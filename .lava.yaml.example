@@ -3,6 +3,8 @@
 # 1. .lava/lava.yaml
 # 2. .lava.yaml
 # 3. lava.yaml
+#
+# 注意：`lava curl` 仅支持命令行 flags，不读取本文件。见 docs/lava-command.md。
 
 # watch 命令配置
 watch:
@@ -14,7 +16,7 @@ watch:
       patterns:
         - "*.proto"
       commands:
-        - "protobuild gen"
+        - "task proto:gen"
       ignore:
         - ".git"
         - "vendor"
@@ -55,30 +57,3 @@ watch:
         - ".git"
       run_on_startup: false
       timeout: 10
-
-# curl 命令配置
-curl:
-  # 网关地址
-  addr: "http://127.0.0.1:8080"
-  
-  # 网关前缀
-  prefix: "/api"
-  
-  # 请求超时时间
-  timeout: "15s"
-  
-  # 是否跳过 TLS 校验
-  insecure: false
-  
-  # 是否对 JSON 响应进行格式化
-  pretty: true
-  
-  # gateway 路由信息的 expvar 名称
-  vars_name: "grpc-server-info"
-  
-  # 默认的请求头
-  headers:
-    - "Content-Type: application/json"
-  
-  # 默认的查询参数
-  queries: {}
