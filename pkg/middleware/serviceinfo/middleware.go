@@ -1,4 +1,4 @@
-package middleware_serviceinfo
+package serviceinfo
 
 import (
 	"context"

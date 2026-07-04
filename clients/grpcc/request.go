@@ -20,7 +20,7 @@ type request struct {
 	invoker  grpc.UnaryInvoker
 	streamer grpc.Streamer
 	desc     *grpc.StreamDesc
-	header   *lava.RequestHeader
+	header   lava.RequestHeader
 }
 
 func (r *request) Operation() string           { return r.method }
@@ -29,6 +29,6 @@ func (r *request) Client() bool                { return true }
 func (r *request) Service() string             { return r.service }
 func (r *request) Endpoint() string            { return r.method }
 func (r *request) ContentType() string         { return r.ct }
-func (r *request) Header() *lava.RequestHeader { return r.header }
+func (r *request) Header() lava.RequestHeader { return r.header }
 func (r *request) Payload() any                { return r.req }
 func (r *request) Stream() bool                { return r.desc != nil }

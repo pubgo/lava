@@ -10,10 +10,10 @@ import (
 
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
+	"github.com/pubgo/lava/v2/pkg/middleware/metric"
+	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
+	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/zrpc"
 )
@@ -59,10 +59,10 @@ func (s *serviceImpl) init(params Params) {
 
 	s.mw = make(lava.Middlewares, 0, 4+len(params.Middlewares))
 	s.mw = append(s.mw,
-		middleware_serviceinfo.New(),
-		middleware_metric.New(params.Metric),
-		middleware_accesslog.New(s.log),
-		middleware_recovery.New(),
+		serviceinfo.New(),
+		metric.New(params.Metric),
+		accesslog.New(s.log),
+		recovery.New(),
 	)
 	s.mw = append(s.mw, params.Middlewares...)
 

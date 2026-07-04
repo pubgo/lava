@@ -9,6 +9,7 @@ import (
 
 	"github.com/pubgo/lava/v2/core/lavacontexts"
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 const (
@@ -50,18 +51,18 @@ func serviceFromSubject(subject string) string {
 	return strings.TrimPrefix(service, "svc.")
 }
 
-func requestHeaderFromContext(ctx context.Context) *lava.RequestHeader {
+func requestHeaderFromContext(ctx context.Context) lava.RequestHeader {
 	if header := contextRequestHeader(ctx); header != nil {
-		dup := new(lava.RequestHeader)
+		dup := httputil.NewRequestHeader()
 		copyRequestHeader(dup, header)
 		return dup
 	}
 
-	return new(lava.RequestHeader)
+	return httputil.NewRequestHeader()
 }
 
-func requestHeaderFromNATS(subject string, header nats.Header) *lava.RequestHeader {
-	reqHeader := new(lava.RequestHeader)
+func requestHeaderFromNATS(subject string, header nats.Header) lava.RequestHeader {
+	reqHeader := httputil.NewRequestHeader()
 	reqHeader.SetMethod(MethodNATS)
 	reqHeader.SetRequestURI(subject)
 	reqHeader.SetContentType(DefaultContentType)
@@ -74,8 +75,8 @@ func requestHeaderFromNATS(subject string, header nats.Header) *lava.RequestHead
 	return reqHeader
 }
 
-func responseHeaderFromNATS(header nats.Header) *lava.ResponseHeader {
-	rspHeader := new(lava.ResponseHeader)
+func responseHeaderFromNATS(header nats.Header) lava.ResponseHeader {
+	rspHeader := httputil.NewResponseHeader()
 	for key, values := range header {
 		for _, value := range values {
 			rspHeader.Add(key, value)
@@ -85,53 +86,53 @@ func responseHeaderFromNATS(header nats.Header) *lava.ResponseHeader {
 	return rspHeader
 }
 
-func requestHeaderToNATS(header *lava.RequestHeader) nats.Header {
+func requestHeaderToNATS(header lava.RequestHeader) nats.Header {
 	result := nats.Header{}
 	if header == nil {
 		return result
 	}
 
-	for key, value := range header.All() {
+	header.VisitAll(func(key, value []byte) {
 		result.Add(string(key), string(value))
-	}
+	})
 
 	return result
 }
 
-func responseHeaderToNATS(header *lava.ResponseHeader) nats.Header {
+func responseHeaderToNATS(header lava.ResponseHeader) nats.Header {
 	result := nats.Header{}
 	if header == nil {
 		return result
 	}
 
-	for key, value := range header.All() {
+	header.VisitAll(func(key, value []byte) {
 		result.Add(string(key), string(value))
-	}
+	})
 
 	return result
 }
 
-func copyRequestHeader(dst, src *lava.RequestHeader) {
+func copyRequestHeader(dst, src lava.RequestHeader) {
 	if dst == nil || src == nil {
 		return
 	}
 
-	for key, value := range src.All() {
+	src.VisitAll(func(key, value []byte) {
 		dst.Add(string(key), string(value))
-	}
+	})
 	dst.SetMethodBytes(src.Method())
 	dst.SetRequestURIBytes(src.RequestURI())
 	dst.SetContentTypeBytes(src.ContentType())
 }
 
-func copyResponseHeader(dst, src *lava.ResponseHeader) {
+func copyResponseHeader(dst, src lava.ResponseHeader) {
 	if dst == nil || src == nil {
 		return
 	}
 
-	for key, value := range src.All() {
+	src.VisitAll(func(key, value []byte) {
 		dst.Add(string(key), string(value))
-	}
+	})
 }
 
 func cloneHeader(header nats.Header) nats.Header {
@@ -147,12 +148,12 @@ func cloneHeader(header nats.Header) nats.Header {
 
 // contextRequestHeader 返回 context 中的请求 Header，不存在时返回 nil。
 // lavacontexts.ReqHeader 已保证不会 panic，这里直接透传。
-func contextRequestHeader(ctx context.Context) *lava.RequestHeader {
+func contextRequestHeader(ctx context.Context) lava.RequestHeader {
 	return lavacontexts.ReqHeader(ctx)
 }
 
 // contextResponseHeader 返回 context 中的响应 Header，不存在时返回 nil。
 // lavacontexts.RspHeader 已保证不会 panic，这里直接透传。
-func contextResponseHeader(ctx context.Context) *lava.ResponseHeader {
+func contextResponseHeader(ctx context.Context) lava.ResponseHeader {
 	return lavacontexts.RspHeader(ctx)
 }

@@ -1,4 +1,4 @@
-package middleware_recovery
+package recovery
 
 import (
 	"context"

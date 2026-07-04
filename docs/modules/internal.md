@@ -9,7 +9,7 @@
 | `internal/configs`     | 内部配置结构与默认值                               |
 | `internal/consts`      | 内部常量                                           |
 | `internal/logutil`     | 日志辅助函数                                       |
-| `internal/middlewares` | 内建中间件实现                                     |
+| `pkg/middleware`       | 内建中间件实现（accesslog、metric、recovery、serviceinfo） |
 | `internal/examples`    | 示例工程（scheduler/tunnel/grpcweb/fileserver 等） |
 
 ## 使用建议

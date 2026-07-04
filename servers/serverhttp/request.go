@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 var (
@@ -32,7 +33,7 @@ func (r *Request) Operation() string {
 }
 
 func (r *Request) Client() bool                { return false }
-func (r *Request) Header() *lava.RequestHeader { return &r.Ctx.Request().Header }
+func (r *Request) Header() lava.RequestHeader { return httputil.WrapRequestHeader(&r.Ctx.Request().Header) }
 func (r *Request) Payload() any                { return r.Ctx.Body() }
 func (r *Request) ContentType() string         { return string(r.Ctx.Request().Header.ContentType()) }
 func (r *Request) Service() string             { return r.Ctx.Route().Path }
@@ -49,6 +50,6 @@ func NewResponse(ctx fiber.Ctx) lava.Response {
 	return &Response{Ctx: ctx}
 }
 
-func (h *Response) Header() *lava.ResponseHeader { return &h.Ctx.Response().Header }
+func (h *Response) Header() lava.ResponseHeader { return httputil.WrapResponseHeader(&h.Ctx.Response().Header) }
 func (h *Response) Payload() any                 { return h.Ctx.Response().Body() }
 func (h *Response) Stream() bool                 { return h.Ctx.Response().IsBodyStream() }

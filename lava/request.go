@@ -1,9 +1,5 @@
 package lava
 
-import (
-	"github.com/valyala/fasthttp"
-)
-
 type RequestKind = string
 
 const (
@@ -11,8 +7,6 @@ const (
 	RequestKindGrpc RequestKind = "grpc"
 	RequestKindZrpc RequestKind = "zrpc"
 )
-
-type RequestHeader = fasthttp.RequestHeader
 
 // Request is a synchronous request interface
 type Request interface {
@@ -38,7 +32,7 @@ type Request interface {
 	ContentType() string
 
 	// Header of the request
-	Header() *RequestHeader
+	Header() RequestHeader
 
 	// Payload is the decoded value, []byte or proto message
 	Payload() any

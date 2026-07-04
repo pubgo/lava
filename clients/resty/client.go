@@ -12,10 +12,10 @@ import (
 	"github.com/pubgo/funk/v2/retry"
 
 	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
+	"github.com/pubgo/lava/v2/pkg/middleware/metric"
+	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
+	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
 )
 
@@ -36,10 +36,10 @@ func New(cfg *Config, p Params, mm ...lava.Middleware) *Client {
 	cfg = config.MergeR(DefaultCfg(), cfg).Unwrap()
 	middlewares := make(lava.Middlewares, 0, 4+len(mm))
 	middlewares = append(middlewares,
-		middleware_serviceinfo.New(),
-		middleware_metric.New(p.Metric),
-		middleware_accesslog.New(p.Log.WithFields(log.Fields{"service": cfg.ServiceName})),
-		middleware_recovery.New(),
+		serviceinfo.New(),
+		metric.New(p.Metric),
+		accesslog.New(p.Log.WithFields(log.Fields{"service": cfg.ServiceName})),
+		recovery.New(),
 	)
 	middlewares = append(middlewares, mm...)
 

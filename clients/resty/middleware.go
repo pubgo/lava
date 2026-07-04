@@ -8,6 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 var _ lava.Request = (*requestImpl)(nil)
@@ -26,7 +27,7 @@ func (r *requestImpl) Client() bool                { return true }
 func (r *requestImpl) Service() string             { return r.service }
 func (r *requestImpl) Endpoint() string            { return utils.UnsafeString(r.req.req.URI().Path()) }
 func (r *requestImpl) ContentType() string         { return convert.B2S(r.req.req.Header.ContentType()) }
-func (r *requestImpl) Header() *lava.RequestHeader { return &r.req.req.Header }
+func (r *requestImpl) Header() lava.RequestHeader { return httputil.WrapRequestHeader(&r.req.req.Header) }
 func (r *requestImpl) Payload() any                { return r.req.req.Body() }
 func (r *requestImpl) Stream() bool                { return false }
 
@@ -36,6 +37,6 @@ type responseImpl struct {
 	resp *fasthttp.Response
 }
 
-func (r *responseImpl) Header() *lava.ResponseHeader { return &r.resp.Header }
+func (r *responseImpl) Header() lava.ResponseHeader { return httputil.WrapResponseHeader(&r.resp.Header) }
 func (r *responseImpl) Payload() any                 { return r.resp.Body() }
 func (r *responseImpl) Stream() bool                 { return false }

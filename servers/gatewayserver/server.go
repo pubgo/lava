@@ -24,10 +24,10 @@ import (
 	"github.com/pubgo/lava/v2/core/running"
 	"github.com/pubgo/lava/v2/core/supervisor"
 	"github.com/pubgo/lava/v2/internal/logutil"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
+	mwmetric "github.com/pubgo/lava/v2/pkg/middleware/metric"
+	mwrecovery "github.com/pubgo/lava/v2/pkg/middleware/recovery"
+	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
@@ -112,12 +112,12 @@ func (s *serviceImpl) init(
 	s.conf = config.MergeR(defaultCfg(), conf).Unwrap()
 
 	globalMiddlewares := lava.Middlewares{
-		middleware_serviceinfo.New(),
-		middleware_metric.New(metric),
-		middleware_accesslog.New(log),
+		serviceinfo.New(),
+		mwmetric.New(metric),
+		accesslog.New(log),
 	}
 	globalMiddlewares = append(globalMiddlewares, dixMiddlewares...)
-	globalMiddlewares = append(globalMiddlewares, middleware_recovery.New())
+	globalMiddlewares = append(globalMiddlewares, mwrecovery.New())
 
 	log = log.WithName(s.String())
 

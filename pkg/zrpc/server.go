@@ -79,7 +79,7 @@ func HandleUnary[Req, Resp proto.Message](
 	}
 
 	reqHeader := requestHeaderFromNATS(subject, msg.Header)
-	rspHeader := new(lava.ResponseHeader)
+	rspHeader := httputil.NewResponseHeader()
 	reqID := firstNotEmpty(
 		msg.Header.Get(httputil.HeaderXRequestID),
 		string(reqHeader.Peek(httputil.HeaderXRequestID)),
@@ -141,8 +141,8 @@ func HandleUnary[Req, Resp proto.Message](
 type ServerStream struct {
 	nc          *nats.Conn
 	reqSub      *nats.Subscription
-	reqHeader   *lava.RequestHeader
-	rspHeader   *lava.ResponseHeader
+	reqHeader   lava.RequestHeader
+	rspHeader   lava.ResponseHeader
 	requestSubj string
 	responseSub string
 	ctx         context.Context
@@ -198,7 +198,7 @@ func HandleStream(
 	}
 
 	reqHeader := requestHeaderFromNATS(subject, msg.Header)
-	rspHeader := new(lava.ResponseHeader)
+	rspHeader := httputil.NewResponseHeader()
 	reqID := firstNotEmpty(
 		msg.Header.Get(httputil.HeaderXRequestID),
 		string(reqHeader.Peek(httputil.HeaderXRequestID)),

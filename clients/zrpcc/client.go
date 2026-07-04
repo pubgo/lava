@@ -12,10 +12,10 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_accesslog"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_metric"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_recovery"
-	"github.com/pubgo/lava/v2/internal/middlewares/middleware_serviceinfo"
+	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
+	"github.com/pubgo/lava/v2/pkg/middleware/metric"
+	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
+	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
 	"github.com/pubgo/lava/v2/lava"
 	"github.com/pubgo/lava/v2/pkg/zrpc"
 )
@@ -30,10 +30,10 @@ func New(cfg *Config, p Params, middlewares ...lava.Middleware) Client {
 
 	mm := make(lava.Middlewares, 0, 4+len(middlewares))
 	mm = append(mm,
-		middleware_serviceinfo.New(),
-		middleware_metric.New(p.Metric),
-		middleware_accesslog.New(p.Log.WithFields(log.Fields{"service": Name})),
-		middleware_recovery.New(),
+		serviceinfo.New(),
+		metric.New(p.Metric),
+		accesslog.New(p.Log.WithFields(log.Fields{"service": Name})),
+		recovery.New(),
 	)
 	mm = append(mm, middlewares...)
 
