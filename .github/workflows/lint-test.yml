@@ -48,7 +48,7 @@ jobs:
           go install gotest.tools/gotestsum@latest
 
       - name: Run unit tests
-        run: gotestsum --junitfile unit-tests.xml -- -gcflags=-l ./...
+        run: gotestsum --junitfile unit-tests.xml -- -race -gcflags=-l ./...
 
       - name: Test report
         uses: dorny/test-reporter@v2

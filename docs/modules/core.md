@@ -37,6 +37,6 @@ flowchart TD
 
 ## 维护建议
 
-- 任何服务型组件都尽量实现 `supervisor.Service`，避免自管生命周期。
+- 任何服务型组件都尽量实现 `supervisor.Service`，避免自管生命周期。详见 [supervisor.md](../supervisor.md)。
 - 调试端点统一走 `core/debug`，避免分散挂载。
 - 新模块若涉及跨服务观测，优先接入 `metrics` / `tracing`。

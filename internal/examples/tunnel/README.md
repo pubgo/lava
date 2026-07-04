@@ -60,7 +60,7 @@ Gateway 将监听以下端口：
 
 ```bash
 # 在另一个终端
-TUNNEL_GATEWAY_ADDR=localhost:7007 ./bin/scheduler scheduler -c ./internal/configs/scheduler.yaml
+TUNNEL_GATEWAY_ADDR=localhost:7007 ./bin/scheduler cron -c ./internal/configs/scheduler.yaml
 ```
 
 Scheduler 服务会通过 Agent 连接到 Gateway，注册自己。
@@ -109,7 +109,7 @@ tunnel:
 
 | 环境变量 | 说明 | 默认值 |
 |---------|------|--------|
-| `TUNNEL_GATEWAY_ADDR` | Gateway 地址 | `localhost:7000` |
+| `TUNNEL_GATEWAY_ADDR` | Gateway 地址 | `localhost:7007` |
 | `HTTP_ADDR` | 本地 HTTP 服务地址 | `localhost:8080` |
 | `DEBUG_ADDR` | 本地 Debug 服务地址 | `localhost:6060` |
 

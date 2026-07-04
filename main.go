@@ -31,10 +31,11 @@ func main() {
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
 			fmt.Println("Usage: lava [command] [arguments]")
 			fmt.Println("Available commands:")
-			fmt.Println("  watch     Watch files for changes and run commands automatically")
-			fmt.Println("  curl      Make HTTP requests to gRPC services")
-			fmt.Println("  tunnel    Tunnel gateway commands")
-			fmt.Println("  devproxy  Local development proxy tool")
+			fmt.Println("  watch      Watch files for changes and run commands automatically")
+			fmt.Println("  curl       Make HTTP requests to gRPC services")
+			fmt.Println("  tunnel     Tunnel gateway commands")
+			fmt.Println("  fileserver Serve a local directory over HTTP")
+			fmt.Println("  devproxy   Local development proxy tool")
 			return nil
 		},
 		// 添加子命令

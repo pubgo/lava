@@ -52,6 +52,8 @@ go build -o lava .
 | `lava fileserver <dir>` | 本地目录静态文件服务                            |
 | `lava devproxy`         | 本地开发代理（DNS + HTTP 反向代理）             |
 
+> **双入口说明**：根目录 `main.go` 仅注册上表中的开发工具命令。HTTP/gRPC/Cron 等服务需通过 `core/lavabuilder` 装配独立二进制（见 `internal/examples/*`、`docs/architecture-v2.md`）。不要在文档中假设 `./lava grpc` 等命令存在于根二进制。
+
 ## 架构速览
 
 ```mermaid
@@ -76,6 +78,9 @@ flowchart TD
 
 ## 文档导航
 
+- 快速入门：`docs/quickstart.md`
+- 开发工作流：`docs/development.md`
+- 配置模型：`docs/configuration.md`
 - 文档总览：`docs/README.md`
 - 架构文档（含流程图）：`docs/architecture-v2.md`
 - 设计文档（含关键抽象）：`docs/design-v2.md`
