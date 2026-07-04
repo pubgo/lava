@@ -21,6 +21,7 @@
 ## 文档地图
 
 - 入门：`quickstart.md`、`development.md`、`configuration.md`
+- 维护：`legacy-removal.md`（legacy API 移除计划）
 - 架构：`architecture-v2.md`（分层、四条数据通路、gatewayserver / zrpcbridge / 部署）
 - 设计：`design-v2.md`
 - P2P：`design-p2p.md`

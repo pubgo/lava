@@ -31,9 +31,9 @@ type p2cPicker struct {
 }
 
 func (p2c *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
-	// TODO 负载策略
-	// info 可以根据具体的method做负载
-	// 可以根据context的value(可以是userID等, 或者权重)做负载
+	// P2C currently uses loadAggregate round-robin across ready SubConns.
+	// Method- or context-based affinity (userID, weights) is intentionally
+	// deferred; see issue #89 for future work.
 
 	item, done := p2c.pickerAgl.Next(info)
 	if item == nil {

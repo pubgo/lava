@@ -24,6 +24,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
+	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
 func handlerUnaryMiddle(middlewares map[string][]lava.Middleware) grpc.UnaryServerInterceptor {
@@ -263,13 +264,13 @@ func handlerStreamMiddle(middlewares map[string][]lava.Middleware) grpc.StreamSe
 
 func handlerHttpMiddle(middlewares []lava.Middleware) func(fbCtx fiber.Ctx) error {
 	h := func(ctx context.Context, req lava.Request) (lava.Response, error) {
-		reqCtx := req.(*httpRequest).ctx
-		return &httpResponse{ctx: reqCtx}, reqCtx.Next()
+		reqCtx := req.(*serverhttp.Request).Ctx
+		return serverhttp.NewResponse(reqCtx), reqCtx.Next()
 	}
 
 	h = lava.Chain(middlewares...).Middleware(h)
 	return func(ctx fiber.Ctx) error {
-		_, err := h(ctx, &httpRequest{ctx: ctx})
+		_, err := h(ctx, serverhttp.NewRequest(ctx))
 		return err
 	}
 }
