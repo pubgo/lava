@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pubgo/lava/v2/core/tunnel"
+	"github.com/pubgo/lava/v2/core/tunnel/testhelper"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelagent"
 	"github.com/pubgo/lava/v2/core/tunnel/tunnelgateway"
 )
@@ -24,7 +25,9 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 	}
 	go func() { _ = backend.ListenAndServe() }()
 	defer func() { _ = backend.Close() }()
-	time.Sleep(100 * time.Millisecond)
+	if err := testhelper.WaitTCP(ctx, backend.Addr); err != nil {
+		t.Fatal(err)
+	}
 
 	gwAddr := "127.0.0.1:27280"
 	gw := tunnelgateway.NewGateway(&tunnel.GatewayConfig{
@@ -47,7 +50,9 @@ func TestStandaloneHTTPProxy(t *testing.T) {
 	}
 	defer func() { _ = agent.Stop(context.Background()) }()
 
-	time.Sleep(500 * time.Millisecond)
+	if err := testhelper.WaitServiceCount(ctx, 1, func() int { return len(gw.Services()) }); err != nil {
+		t.Fatal(err)
+	}
 
 	resp, err := tunnel.GetService(nil, "http://127.0.0.1:27282", "standalone-svc", "/", "")
 	if err != nil {
