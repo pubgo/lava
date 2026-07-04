@@ -64,7 +64,7 @@ require (
 	github.com/pubgo/dix/v2 v2.0.1
 	github.com/pubgo/funk/v2 v2.0.4
 	github.com/pubgo/redant v0.4.0
-	github.com/quic-go/quic-go v0.59.0
+	github.com/quic-go/quic-go v0.59.1
 	github.com/rs/xid v1.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/samber/lo v1.52.0
