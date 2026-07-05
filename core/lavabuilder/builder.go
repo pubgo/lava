@@ -51,6 +51,7 @@ import (
 	_ "github.com/pubgo/lava/v2/core/metrics/drivers/prometheus"
 	"github.com/pubgo/lava/v2/core/metrics/metricbuilder"
 	"github.com/pubgo/lava/v2/core/signals"
+	"github.com/pubgo/lava/v2/core/tracing/tracingbuilder"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 )
 
@@ -62,6 +63,7 @@ var defaultProviders = []any{
 
 	logbuilder.New,
 	metricbuilder.New,
+	tracingbuilder.New,
 
 	lifecyclebuilder.New,
 }

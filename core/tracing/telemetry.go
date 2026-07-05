@@ -2,44 +2,35 @@ package tracing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/goccy/go-json"
-	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/log"
 	"github.com/pubgo/funk/v2/recovery"
 	"github.com/pubgo/funk/v2/result"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	otlpTraceGrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	otelmetric "go.opentelemetry.io/otel/metric"
+	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/grpc/encoding/gzip"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 )
 
 var logs = log.GetLogger("tracing")
-
-const (
-	DefaultStdout = "stdout"
-
-	grpcHealthyMethod   = "/healthy.HealthService/Health"
-	healthHost          = "127.0.0.1"
-	instrumentationName = "github.com/gowins/dionysus/opentelemetry"
-)
 
 type Provider struct {
 	TracerProvider oteltrace.TracerProvider
@@ -48,73 +39,96 @@ type Provider struct {
 	Meter          otelmetric.Meter
 }
 
-func New(cfg *Config, lc lifecycle.Lifecycle) Provider {
-	config := &Config{
-		traceExporter:      &Exporter{},
-		metricExporter:     &Exporter{},
-		metricReportPeriod: "",
-		serviceInfo:        &ServiceInfo{},
-		attributes:         map[string]string{},
-		headers:            map[string]string{},
-		idGenerator:        nil,
-		otelErrorHandler:   errorHandler{},
-		traceBatchOptions:  []sdktrace.BatchSpanProcessorOption{},
-		sampleRatio:        1,
+// NewProvider initializes OpenTelemetry globals and registers lifecycle shutdown hooks.
+// When tracing is disabled (no exporter endpoint), a noop provider is returned.
+func NewProvider(cfg *Config, lc lifecycle.Lifecycle) Provider {
+	defer recovery.Exit()
+
+	config := normalizeConfig(cfg)
+	if !config.enabled() {
+		return noopProvider()
 	}
 
 	otel.SetErrorHandler(errorHandler{})
 
-	tracerProvider := NewTracer(config)
-	otel.SetTracerProvider(tracerProvider)
-	otel.SetTextMapPropagator(
-		propagation.NewCompositeTextMapPropagator(
-			propagation.TraceContext{},
-			propagation.Baggage{},
-		),
+	tracerProvider := newTracerProvider(&config).Unwrap()
+	meterProvider := newMeterProvider(&config).Unwrap()
+	propagator := propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
 	)
-	meterProvider, err := NewPrometheusMeterProvider(config)
-	assert.Exit(err)
 
-	lc.AfterStop(func(ctx context.Context) (gErr error) {
-		defer recovery.Err(&gErr)
-		assert.Must(tracerProvider.Shutdown(context.Background()))
-		assert.Must(meterProvider.Shutdown(context.Background()))
-		return nil
-	})
+	otel.SetTracerProvider(tracerProvider)
+	otel.SetMeterProvider(meterProvider)
+	otel.SetTextMapPropagator(propagator)
 
-	// name := instrumentationName + "/" + config.serviceInfo.Namespace + "/" + config.serviceInfo.Name
-	//	defaultTracer = otel.GetTracerProvider().Tracer(name, oteltrace.WithInstrumentationVersion("v1.1.0"))
+	if lc != nil {
+		lc.AfterStop(func(ctx context.Context) error {
+			return errors.Join(
+				tracerProvider.Shutdown(ctx),
+				meterProvider.Shutdown(ctx),
+			)
+		})
+	}
 
 	return Provider{
 		TracerProvider: tracerProvider,
-		MeterProvider:  meterProvider,
+		Tracer: otel.Tracer(
+			version.Project(),
+			oteltrace.WithInstrumentationVersion(version.Version()),
+		),
+		MeterProvider: meterProvider,
+		Meter: otel.Meter(
+			version.Project(),
+			otelmetric.WithInstrumentationVersion(version.Version()),
+		),
 	}
 }
 
-// merge config resource with default resource
-func mergeResource(config *Config) *resource.Resource {
+func noopProvider() Provider {
+	tp := tracenoop.NewTracerProvider()
+	mp := metricnoop.NewMeterProvider()
+	return Provider{
+		TracerProvider: tp,
+		Tracer:         tp.Tracer(version.Project()),
+		MeterProvider:  mp,
+		Meter:          mp.Meter(version.Project()),
+	}
+}
+
+func mergeResource(config *Config) (r result.Result[*resource.Resource]) {
+	defer result.Recovery(&r)
+	res := result.Wrap(resource.New(context.Background(),
+		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithOSType(),
+		resource.WithProcessCommandArgs(),
+	)).Unwrap()
+	res = result.Wrap(resource.Merge(resource.Default(), res)).Unwrap()
+
 	hostname, _ := os.Hostname()
-	defaultResource := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String(config.serviceInfo.Name),
+	serviceResource := resource.NewSchemaless(
+		semconv.ServiceNameKey.String(config.Service.Name),
 		semconv.HostNameKey.String(hostname),
-		semconv.ServiceNamespaceKey.String(config.serviceInfo.Namespace),
-		semconv.ServiceVersionKey.String(config.serviceInfo.Version),
+		semconv.ServiceNamespaceKey.String(config.Service.Namespace),
+		semconv.ServiceVersionKey.String(config.Service.Version),
 		semconv.ProcessPIDKey.Int(os.Getpid()),
 		semconv.ProcessCommandKey.String(os.Args[0]),
 	)
+	res = result.Wrap(resource.Merge(serviceResource, res)).Log().Unwrap()
 
-	return assert.Exit1(resource.Merge(resource.Default(), defaultResource))
+	return r.WithValue(res)
 }
 
-func NewTracer(config *Config) *sdktrace.TracerProvider {
-	res := mergeResource(config)
+func newTracerProvider(config *Config) (r result.Result[*sdktrace.TracerProvider]) {
+	defer result.Recovery(&r)
+	res := mergeResource(config).Unwrap()
 
-	traceExporter := assert.Must1(initTracerExporter(config))
-	sampler := sdktrace.AlwaysSample()
-	if config.sampleRatio < 1 && config.sampleRatio >= 0 {
-		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.sampleRatio))
-		log.Info().Msgf("set sample ratio %v", config.sampleRatio)
+	traceExporter := result.Wrap(newTraceExporter(config)).Unwrap()
+	sampler := sdktrace.ParentBased(sdktrace.AlwaysSample())
+	if config.SampleRatio < 1 && config.SampleRatio >= 0 {
+		sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(config.SampleRatio))
+		log.Info().Msgf("set sample ratio %v", config.SampleRatio)
 	}
 
 	traceProvider := sdktrace.NewTracerProvider(
@@ -136,46 +150,44 @@ func NewTracer(config *Config) *sdktrace.TracerProvider {
 		}),
 	)
 
-	return traceProvider
+	return r.WithValue(traceProvider)
 }
 
-func initTracerExporter(config *Config) (sdktrace.SpanExporter, error) {
-	if config.traceExporter.ExporterEndpoint == DefaultStdout {
+func newTraceExporter(config *Config) (sdktrace.SpanExporter, error) {
+	endpoint := config.TraceExporter.ExporterEndpoint
+	if endpoint == DefaultStdout {
 		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
-
-	if config.traceExporter.ExporterEndpoint != "" {
-		traceSecureOption := otlpTraceGrpc.WithTLSCredentials(config.traceExporter.Creds)
-		if config.traceExporter.Insecure {
-			traceSecureOption = otlpTraceGrpc.WithInsecure()
-		}
-
-		return otlptrace.New(
-			context.Background(),
-			otlpTraceGrpc.NewClient(
-				otlpTraceGrpc.WithEndpoint(config.traceExporter.ExporterEndpoint),
-				traceSecureOption,
-				otlpTraceGrpc.WithHeaders(config.headers),
-				otlpTraceGrpc.WithCompressor(gzip.Name),
-			),
-		)
+	if endpoint == "" {
+		return nil, fmt.Errorf("trace exporter endpoint is empty")
 	}
 
-	return nil, fmt.Errorf("tracer exporter endpoint is nil, no exporter is inited")
+	traceSecureOption := otlptracegrpc.WithTLSCredentials(config.TraceExporter.Creds)
+	if config.TraceExporter.Insecure {
+		traceSecureOption = otlptracegrpc.WithInsecure()
+	}
+
+	return otlptrace.New(
+		context.Background(),
+		otlptracegrpc.NewClient(
+			otlptracegrpc.WithEndpoint(endpoint),
+			traceSecureOption,
+			otlptracegrpc.WithHeaders(config.Headers),
+			otlptracegrpc.WithCompressor(gzip.Name),
+		),
+	)
 }
 
-func NewPrometheusMeterProvider(config *Config, opts ...otelprom.Option) (_ *sdkmetric.MeterProvider, gErr error) {
-	exporter, err := otelprom.New(opts...)
-	if result.ThrowErr(&gErr, err) {
-		return
-	}
+func newMeterProvider(config *Config) (r result.Result[*sdkmetric.MeterProvider]) {
+	defer result.Recovery(&r)
 
-	res := mergeResource(config)
+	exporter := result.Wrap(otelprom.New()).Unwrap()
+	res := mergeResource(config).Unwrap()
 	provider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(exporter),
 		sdkmetric.WithResource(res),
 	)
-	return provider, nil
+	return r.WithValue(provider)
 }
 
 func TraceID(span oteltrace.Span) string {
@@ -206,29 +218,6 @@ func CheckHasTraceID(ctx context.Context) bool {
 	return oteltrace.SpanFromContext(ctx).SpanContext().HasTraceID()
 }
 
-// GetTraceId return trace id in context
 func GetTraceId(ctx context.Context) string {
 	return oteltrace.SpanContextFromContext(ctx).TraceID().String()
-}
-
-func initMetricExporter(config *Config) (sdkmetric.Exporter, error) {
-	if config.metricExporter.ExporterEndpoint == DefaultStdout {
-		encoder := json.NewEncoder(os.Stdout)
-		return stdoutmetric.New(stdoutmetric.WithEncoder(encoder))
-	}
-
-	if config.metricExporter.ExporterEndpoint != "" {
-		metricSecureOption := otlpmetricgrpc.WithTLSCredentials(config.metricExporter.Creds)
-		if config.metricExporter.Insecure {
-			metricSecureOption = otlpmetricgrpc.WithInsecure()
-		}
-
-		return otlpmetricgrpc.New(
-			context.Background(),
-			otlpmetricgrpc.WithEndpoint(config.metricExporter.ExporterEndpoint),
-			metricSecureOption,
-			otlpmetricgrpc.WithHeaders(config.headers),
-			otlpmetricgrpc.WithCompressor(gzip.Name))
-	}
-	return nil, fmt.Errorf("metric exporter endpoint is nil, no exporter is inited")
 }
