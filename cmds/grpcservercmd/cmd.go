@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/pubgo/dix/v2"
-	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/redant"
 
 	"github.com/pubgo/lava/v2/core/lifecycle"
 	"github.com/pubgo/lava/v2/core/supervisor"
-	supervisordebug "github.com/pubgo/lava/v2/core/supervisor/debug"
+	"github.com/pubgo/lava/v2/core/supervisor/bootstrap"
 	"github.com/pubgo/lava/v2/pkg/cliutil"
 	"github.com/pubgo/lava/v2/servers/gatewayserver"
 )
@@ -26,13 +25,7 @@ func New(di *dix.Dix) *redant.Command {
 				Services []supervisor.Service
 			}))
 
-			manager := supervisor.Default(params.LC)
-			supervisordebug.Register(manager)
-			for _, svc := range params.Services {
-				assert.Exit(manager.Add(svc))
-			}
-
-			return manager.Run(ctx)
+			return bootstrap.RunServices(ctx, params.LC, params.Services)
 		},
 	}
 }
