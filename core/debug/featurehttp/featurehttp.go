@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
-func init() {
+func Register() {
 	srv := featurehttp.NewServer("").WithPrefix("/debug/features")
 	debug.App().All("/features", debug.Wrap(srv.Handler()))
 	debug.App().All("/features/*", debug.Wrap(srv.Handler()))

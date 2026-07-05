@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug/ui"
 )
 
-func init() {
+func Register() {
 	defer recovery.Exit()
 
 	debug.Route("/vars", func(r fiber.Router) {

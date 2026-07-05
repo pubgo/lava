@@ -10,7 +10,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
-func init() {
+func Register() {
 	debug.Get("/gprof/", debug.Wrap(fgprof.Handler()))
 	debug.Route("/pprof/", func(r fiber.Router) {
 		r.Get("", debug.WrapFunc(pprof.Index))

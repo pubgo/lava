@@ -2,7 +2,7 @@
 //
 // 它负责：
 //   - 创建 dix 容器并注册默认 Provider（日志、指标、生命周期、服务发现等）
-//   - 通过 blank import 加载编解码器、debug 端点、日志扩展等 side-effect 模块
+//   - 通过 debug.RegisterAll() 加载编解码器、debug 端点、日志扩展等 side-effect 模块
 //   - 注册所有子命令（grpc/http/scheduler/tunnel 等）并挂载全局 CLI flag
 //   - 绑定 signals.Context() 作为根 context，实现优雅关停
 //
@@ -36,22 +36,8 @@ import (
 	"github.com/pubgo/lava/v2/cmds/tunnelcmd"
 	"github.com/pubgo/lava/v2/cmds/versioncmd"
 	"github.com/pubgo/lava/v2/cmds/watchcmd"
-	_ "github.com/pubgo/lava/v2/core/debug/configview"
-	_ "github.com/pubgo/lava/v2/core/debug/debug"
+	debugbootstrap "github.com/pubgo/lava/v2/core/debug/bootstrap"
 	"github.com/pubgo/lava/v2/core/debug/dixdebug"
-	_ "github.com/pubgo/lava/v2/core/debug/featurehttp"
-	_ "github.com/pubgo/lava/v2/core/debug/goroutine"
-	_ "github.com/pubgo/lava/v2/core/debug/healthy"
-	_ "github.com/pubgo/lava/v2/core/debug/loglevel"
-	_ "github.com/pubgo/lava/v2/core/debug/pprof"
-	_ "github.com/pubgo/lava/v2/core/debug/process"
-	_ "github.com/pubgo/lava/v2/core/debug/ratelimit"
-	_ "github.com/pubgo/lava/v2/core/debug/runtime"
-	_ "github.com/pubgo/lava/v2/core/debug/statsviz"
-	_ "github.com/pubgo/lava/v2/core/debug/sysinfo"
-	_ "github.com/pubgo/lava/v2/core/debug/trace"
-	_ "github.com/pubgo/lava/v2/core/debug/vars"
-	_ "github.com/pubgo/lava/v2/core/debug/version"
 	"github.com/pubgo/lava/v2/core/discovery"
 	_ "github.com/pubgo/lava/v2/core/encoding/protobuf"
 	_ "github.com/pubgo/lava/v2/core/encoding/protojson"
@@ -88,6 +74,7 @@ func New(opts ...dix.Option) *dix.Dix {
 	}
 
 	dixdebug.Init(di)
+	debugbootstrap.RegisterAll()
 	return di
 }
 

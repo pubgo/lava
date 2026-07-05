@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/lava/v2/core/running"
 )
 
-func init() {
+func Register() {
 	debug.Get("env", adaptor.HTTPHandlerFunc(envHandle))
 	debug.Get("version", adaptor.HTTPHandlerFunc(versionHandle))
 	debug.Get("dep", adaptor.HTTPHandlerFunc(depHandle))

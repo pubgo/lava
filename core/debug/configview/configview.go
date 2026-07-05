@@ -28,7 +28,7 @@ var sensitivePatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)connection[_-]?string`),
 }
 
-func init() {
+func Register() {
 	debug.Get("/config", func(ctx fiber.Ctx) error {
 		configPath := config.GetConfigPath()
 

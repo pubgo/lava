@@ -23,7 +23,7 @@ import (
 
 var sysStartTime = time.Now()
 
-func init() {
+func Register() {
 	// 系统信息仪表板 HTML 页面
 	debug.Get("/sys", func(ctx fiber.Ctx) error {
 		vmem, _ := mem.VirtualMemory()

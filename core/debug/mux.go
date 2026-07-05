@@ -1,7 +1,7 @@
 // Package debug 提供全局 debug HTTP 路由聚合器（基于 Fiber）。
 //
-// 各子模块（pprof、vars、healthy 等）通过 blank import 在 init() 中
-// 向全局 App 注册路由；主 HTTP/gRPC 服务器通过 app.Use("/debug", debug.App()) 挂载。
+// 各子模块通过 debug/bootstrap.RegisterAll() 向全局 App 注册路由；
+// 主 HTTP/gRPC 服务器通过 app.Use("/debug", debug.App()) 挂载。
 //
 // 鉴权由 debug/debug 子包的全局中间件负责：
 //   - 来自 loopback 地址（127.0.0.1 / ::1）的请求免 token（基于客户端 IP）

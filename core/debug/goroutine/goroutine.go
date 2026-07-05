@@ -28,7 +28,7 @@ type goroutineStat struct {
 	Count     int       `json:"count"`
 }
 
-func init() {
+func Register() {
 	// Goroutine 仪表板 HTML 页面
 	debug.Get("/goroutine", func(ctx fiber.Ctx) error {
 		if ctx.Get("Accept") == "application/json" || ctx.Query("format") == "json" {

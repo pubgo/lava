@@ -17,7 +17,7 @@ import (
 
 var runtimeStartTime = time.Now()
 
-func init() {
+func Register() {
 	// Runtime 仪表板 HTML 页面
 	debug.Get("/runtime", func(ctx fiber.Ctx) error {
 		// 如果请求 JSON 格式
