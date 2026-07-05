@@ -27,9 +27,9 @@ services:
 
   # 你的 lava gateway 服务。这里用占位镜像示意端口映射关系，
   # 实际换成自己构建的镜像，并确保监听以下端口：
-  #   8080  = grpc_server.http_port（REST 挂在 /api 前缀 + gRPC-Web）
-  #   8081  = grpc_server.websocket_port
-  #   50051 = grpc_server.grpc_port（原生 gRPC，明文 h2c）
+  #   8080  = gateway_server.http（REST 挂在 /api 前缀 + gRPC-Web）
+  #   8081  = gateway_server.websocket_port
+  #   50051 = gateway_server.grpc（原生 gRPC，明文 h2c）
   gateway:
     image: your-org/lava-gateway:latest
     expose:

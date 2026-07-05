@@ -11,12 +11,12 @@ Lava 在设计上聚焦三件事：
 当前在传输层上，Lava 已覆盖：
 
 - HTTP（`servers/https` / `clients/resty`）
-- gRPC Gateway（`servers/gatewayserver` / `pkg/gateway`；`servers/grpcs` 为废弃别名）
+- gRPC Gateway（`servers/gatewayserver` / `pkg/gateway`）
 - zrpc（`servers/zrpcs` / `clients/zrpcc`，protobuf unary over NATS）
 
 ## 2. 核心抽象
 
-### 2.1 中间件抽象（`lava/middleware.go`）
+### 2.1 中间件抽象（`pkg/lava/middleware.go`）
 
 ```go
 type HandlerFunc func(ctx context.Context, req Request) (Response, error)
@@ -29,7 +29,7 @@ type Middleware interface {
 
 这是一种“函数包裹函数”的链式模型，支持同一语义在 HTTP/gRPC/Client 场景复用。
 
-### 2.2 路由抽象（`lava/router.go`）
+### 2.2 路由抽象（`pkg/lava/router.go`）
 
 ```go
 type HttpRouter interface {
@@ -60,7 +60,7 @@ type Service interface {
 
 `supervisor.Manager` 基于该接口实现生命周期托管、重启策略和状态观测。
 
-### 2.4 统一请求抽象（`lava/request.go` / `lava/response.go`）
+### 2.4 统一请求抽象（`pkg/lava/request.go` / `pkg/lava/response.go`）
 
 当前 `lava.RequestKind` 已覆盖：
 
@@ -165,5 +165,5 @@ stateDiagram-v2
 ## 7. 文档与实现的一致性建议
 
 1. 命令文档以 `main.go` 作为根入口真值。
-2. 接口文档优先引用 `lava/*.go` 与 `core/supervisor/types.go`。
+2. 接口文档优先引用 `pkg/lava/*.go` 与 `core/supervisor/types.go`。
 3. 流程图更新时，必须同步标注对应实现路径。

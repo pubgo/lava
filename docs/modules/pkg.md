@@ -70,4 +70,4 @@ zrpc Client → NATS → zrpc.Server → zrpcbridge → gateway.Mux → handler
 | `servers/zrpcs` | 纯 NATS 微服务宿主 |
 | `pkg/zrpcbridge` | 可选：把 Mux handler 额外暴露到 NATS |
 
-用法见 `pkg/zrpcbridge/README.md`；此前 `Mux.RegisterZrpc` 与 `grpc_server.zrpc_url` 已移除。
+用法见 `pkg/zrpcbridge/README.md`；此前 `Mux.RegisterZrpc` 与 `gateway_server.zrpc_url`（旧 `grpc_server.zrpc_url`）已移除。

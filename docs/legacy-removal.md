@@ -66,6 +66,6 @@ gateway_server:
 - [x] HTTP 中间件链统一到 `servers/serverhttp.HandlerMiddleware`（#107）
 - [x] `internal/configs/components/grpc_server.yaml` 已移除，统一 `gateway_server.yaml`
 - [x] `lavabuilder grpc` 通过 `gatewayserver.LoadConfig` 加载 YAML 并对 `grpc_server` 打废弃警告
-- [ ] 架构文档仅描述 `gateway_server`
+- [x] 架构文档仅描述 `gateway_server`（主文档统一 `gatewayserver`；legacy 见本文档）
 - [ ] `task test` 不依赖 legacy 路径（或单独 `task test:legacy`）
 - [ ] v3 里程碑前开 PR 删除 `grpcs` 包

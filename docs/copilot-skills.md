@@ -216,7 +216,7 @@ func NewUserConfig() *UserConfig {
 // Create a gRPC service for user management
 // Includes:
 //   - UserService with GetUser and ListUsers methods
-//   - Service registration with grpcs server
+//   - Service registration with gatewayserver
 func NewUserGrpcService() lava.GrpcRouter {
     // Copilot 会生成完整的 gRPC 服务实现
 }

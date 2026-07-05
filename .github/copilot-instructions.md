@@ -6,15 +6,15 @@ These instructions are project-wide defaults for this repository. Keep changes f
 
 ## Architecture
 
-- `lava/`: core public interfaces and contracts (`Middleware`, routers, request/response abstractions).
+- `pkg/lava/`: core public interfaces and contracts (`Middleware`, routers, request/response abstractions). Root `lava/` is a deprecated type-alias shim.
 - `core/`: runtime capabilities (supervisor, scheduler, tunnel, logging/metrics/tracing, debug, DI builder).
-- `servers/`: service hosts (`https` on Fiber, `grpcs` with gateway integration).
+- `servers/`: service hosts (`gatewayserver` multi-protocol gateway, `https` on Fiber, `zrpcs` on NATS).
 - `clients/`: outbound client implementations (`grpcc`, `resty`).
 - `pkg/`: reusable public utilities/components (including gateway and helpers).
 - `internal/`: repository-internal implementation details/examples; avoid exposing as public API.
 
 Place new code by responsibility:
-- Cross-protocol abstractions -> `lava/`
+- Cross-protocol abstractions -> `pkg/lava/`（根 `lava/` 仅为 deprecated shim）
 - Runtime framework capability -> `core/<module>/`
 - HTTP/gRPC serving behavior -> `servers/`
 - Reusable public helper/component -> `pkg/`
@@ -65,5 +65,5 @@ CI reference is `.github/workflows/lint-test.yml` (lint + gotestsum-based tests)
 - Service lifecycle and management: `core/supervisor/`
 - DI registration patterns: `core/lavabuilder/`
 - HTTP server composition: `servers/https/server.go`
-- gRPC + gateway composition: `servers/gatewayserver/server.go`（`servers/grpcs` 为废弃别名）
+- gRPC + gateway composition: `servers/gatewayserver/server.go`
 - Gateway behavior and routing: `pkg/gateway/`
