@@ -19,6 +19,7 @@ func New(di *dix.Dix) *redant.Command {
 		Use:   "grpc",
 		Short: cliutil.UsageDesc("gateway server %s(%s)", version.Project(), version.Version()),
 		Handler: func(ctx context.Context, i *redant.Invocation) error {
+			di.Provide(gatewayserver.LoadConfig)
 			di.Provide(gatewayserver.New)
 			params := dix.Inject(di, new(struct {
 				LC       lifecycle.Getter

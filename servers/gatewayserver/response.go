@@ -15,5 +15,5 @@ type rpcResponse struct {
 }
 
 func (h *rpcResponse) Header() lava.ResponseHeader { return h.header }
-func (h *rpcResponse) Payload() any                 { return h.dt }
-func (h *rpcResponse) Stream() bool                 { return h.stream != nil }
+func (h *rpcResponse) Payload() any                { return h.dt }
+func (h *rpcResponse) Stream() bool                { return h.stream != nil }

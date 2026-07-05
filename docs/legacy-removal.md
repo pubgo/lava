@@ -34,7 +34,7 @@
 | `grpc_server` | `gateway_server` |
 | `grpc_server.yaml` 组件 | `gateway_server.yaml` |
 
-迁移：将 YAML 顶层键 `grpc_server` 重命名为 `gateway_server`；`GrpcServerConfigLoader` 仍解析旧键但会打废弃日志。
+迁移：将 YAML 顶层键 `grpc_server` 重命名为 `gateway_server`；`ResolveConfig` 仍解析旧键并在启动时打 `Warn`（`lavabuilder grpc` 经 `gatewayserver.LoadConfig`）。
 
 ### API
 
@@ -64,6 +64,8 @@ gateway_server:
 
 - [x] 新示例不再引用 `servers/grpcs`
 - [x] HTTP 中间件链统一到 `servers/serverhttp.HandlerMiddleware`（#107）
+- [x] `internal/configs/components/grpc_server.yaml` 已移除，统一 `gateway_server.yaml`
+- [x] `lavabuilder grpc` 通过 `gatewayserver.LoadConfig` 加载 YAML 并对 `grpc_server` 打废弃警告
 - [ ] 架构文档仅描述 `gateway_server`
 - [ ] `task test` 不依赖 legacy 路径（或单独 `task test:legacy`）
 - [ ] v3 里程碑前开 PR 删除 `grpcs` 包
