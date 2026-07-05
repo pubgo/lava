@@ -23,7 +23,7 @@ type requestCounter struct {
 	ResetTime time.Time
 }
 
-func init() {
+func Register() {
 	debug.App().Use(rateLimitMiddleware)
 
 	debug.Get("/ratelimit", func(ctx fiber.Ctx) error {

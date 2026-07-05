@@ -15,7 +15,7 @@ import (
 	"github.com/pubgo/lava/v2/core/healthy"
 )
 
-func init() {
+func Register() {
 	debug.Get("/health", func(ctx fiber.Ctx) error {
 		dt := make(map[string]*health)
 		allHealthy := true

@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
-func init() {
+func Register() {
 	debug.Get("/process", func(ctx fiber.Ctx) (gErr error) {
 		defer result.RecoveryErr(&gErr)
 		processes := assert.Must1(ps.Processes())

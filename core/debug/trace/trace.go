@@ -7,7 +7,7 @@ import (
 	"github.com/pubgo/lava/v2/core/debug"
 )
 
-func init() {
+func Register() {
 	debug.Get("/requests", adaptor.HTTPHandlerFunc(trace.Traces))
 	debug.Get("/events", adaptor.HTTPHandlerFunc(trace.Events))
 }

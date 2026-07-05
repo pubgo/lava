@@ -14,7 +14,7 @@ import (
 
 // github.com/go-echarts/statsview
 
-func init() {
+func Register() {
 	srv := assert.Exit1(statsviz.NewServer(statsviz.Root("/debug/statsviz")))
 	debug.Route("/statsviz", func(router fiber.Router) {
 		router.Use(func(ctx fiber.Ctx) error {

@@ -16,7 +16,7 @@ import (
 
 var currentLevel atomic.Value
 
-func init() {
+func Register() {
 	currentLevel.Store(zerolog.GlobalLevel().String())
 
 	debug.Get("/log/level", func(ctx fiber.Ctx) error {

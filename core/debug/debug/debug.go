@@ -16,11 +16,12 @@ import (
 
 var debugStartTime = time.Now()
 
-func init() {
-	initDebug()
+func Register() {
+	RegisterMiddleware()
+	registerDashboard()
 }
 
-func initDebug() {
+func registerDashboard() {
 	// 主页 - 仪表盘
 	debug.Get("/", func(ctx fiber.Ctx) error {
 		var m runtime.MemStats

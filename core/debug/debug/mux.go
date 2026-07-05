@@ -103,7 +103,7 @@ func loadConfig() {
 	})
 }
 
-func init() {
+func RegisterMiddleware() {
 	debug.App().Use(func(c fiber.Ctx) (gErr error) {
 		defer recovery.Recovery(func(err error) {
 			err = errors.WrapTags(err, errors.Tags{
