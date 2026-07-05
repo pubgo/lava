@@ -23,9 +23,14 @@
 
 | 项 | 位置 | 替代方案 |
 |----|------|----------|
-| `servers/grpcs` | 整个包 | `servers/gatewayserver` + `grpc_passthrough: true` |
 | `pkg/wsproxy` 废弃构造函数 | `pkg/wsproxy` | `pkg/gateway` WebSocket 前端 |
 | legacy gRPC 双注册 | `gatewayserver` `grpc_passthrough: false` | 默认 `true`，仅在 Mux 注册 |
+
+### 已移除（v2）
+
+| 项 | 替代方案 |
+|----|----------|
+| `servers/grpcs` 包 | `servers/gatewayserver` + `grpc_passthrough: true` |
 
 ### 配置键
 
@@ -66,6 +71,6 @@ gateway_server:
 - [x] HTTP 中间件链统一到 `servers/serverhttp.HandlerMiddleware`（#107）
 - [x] `internal/configs/components/grpc_server.yaml` 已移除，统一 `gateway_server.yaml`
 - [x] `lavabuilder grpc` 通过 `gatewayserver.LoadConfig` 加载 YAML 并对 `grpc_server` 打废弃警告
-- [ ] 架构文档仅描述 `gateway_server`
+- [x] 架构文档仅描述 `gateway_server`
 - [ ] `task test` 不依赖 legacy 路径（或单独 `task test:legacy`）
-- [ ] v3 里程碑前开 PR 删除 `grpcs` 包
+- [x] 删除 `grpcs` 包（v2，不再等待 v3）

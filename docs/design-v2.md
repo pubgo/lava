@@ -11,7 +11,7 @@ Lava 在设计上聚焦三件事：
 当前在传输层上，Lava 已覆盖：
 
 - HTTP（`servers/https` / `clients/resty`）
-- gRPC Gateway（`servers/gatewayserver` / `pkg/gateway`；`servers/grpcs` 为废弃别名）
+- gRPC Gateway（`servers/gatewayserver` / `pkg/gateway`）
 - zrpc（`servers/zrpcs` / `clients/zrpcc`，protobuf unary over NATS）
 
 ## 2. 核心抽象

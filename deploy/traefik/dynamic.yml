@@ -14,7 +14,7 @@
 http:
   routers:
     # ---- HTTP/REST + gRPC-Web ----
-    # grpcs 默认把 REST 挂在 /api 前缀（StripPrefix("/api", mux.Handler)）；
+    # gatewayserver 默认把 REST 挂在 /api 前缀（StripPrefix("/api", mux.Handler)）；
     # gRPC-Web 走 /<package>.<service>/<method> 形式的路径。
     gw-http:
       rule: "Host(`api.example.com`)"
@@ -60,7 +60,7 @@ http:
           - url: "h2c://gateway:50051"
 
   # 可选中间件示例：如果后端 REST 不想要 /api 前缀，可在边缘 strip。
-  # 注意：不要和 grpcs 里的 StripPrefix("/api") 重复 strip，二选一。
+  # 注意：不要和 gatewayserver 里的 StripPrefix("/api") 重复 strip，二选一。
   middlewares:
     strip-api:
       stripPrefix:
