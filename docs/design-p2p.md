@@ -117,7 +117,7 @@ graph LR
 
 ```
 core/p2p/
-  aaa.go              # 核心接口与类型（Coordinator、Listener、PeerConn、Stats）
+  client.go           # P2P client 入口
   config.go           # STUN/coturn 默认值、ICE 超时、TransportOptions 转换
   config_env.go       # ConfigFromEnv / PeerIDFromEnv / AuthTokenFromEnv
   coordinator.go      # Dial/Listen 编排：ICE → QUIC，连接跟踪与 Stats

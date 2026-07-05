@@ -10,6 +10,7 @@ import (
 	tally "github.com/uber-go/tally/v4"
 
 	"github.com/pubgo/lava/v2/pkg/lava"
+	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
 type testHTTPMiddleware struct {
@@ -56,7 +57,7 @@ func TestHandlerHttpMiddleInvokesMiddleware(t *testing.T) {
 
 	app := fiber.New()
 	mw := &testHTTPMiddleware{}
-	app.Get("/ping", handlerHttpMiddle([]lava.Middleware{mw}))
+	app.Get("/ping", serverhttp.HandlerMiddleware([]lava.Middleware{mw}))
 
 	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/ping", nil))
 	if err != nil {
