@@ -17,7 +17,7 @@ import (
 
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 type Params struct {

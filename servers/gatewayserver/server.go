@@ -28,7 +28,7 @@ import (
 	mwmetric "github.com/pubgo/lava/v2/pkg/middleware/metric"
 	mwrecovery "github.com/pubgo/lava/v2/pkg/middleware/recovery"
 	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"

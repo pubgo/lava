@@ -13,7 +13,7 @@ import (
 	"github.com/pubgo/lava/v2/core/logging"
 	_ "github.com/pubgo/lava/v2/core/logging/logext/slog"
 	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/servers/https"
 )
 

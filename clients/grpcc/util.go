@@ -12,7 +12,7 @@ import (
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccconfig"
 	"github.com/pubgo/lava/v2/clients/grpcc/grpccresolver"
 	"github.com/pubgo/lava/v2/core/logging/logkey"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 func buildTarget(cfg *grpccconfig.ServiceCfg) string {

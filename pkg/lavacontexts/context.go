@@ -14,7 +14,7 @@ import (
 
 	"github.com/rs/xid"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/proto/lavapbv1"
 )
 

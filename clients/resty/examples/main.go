@@ -11,7 +11,7 @@ import (
 
 	"github.com/pubgo/lava/v2/clients/resty"
 	"github.com/pubgo/lava/v2/core/metrics"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 func main() {
