@@ -16,7 +16,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/middleware/metric"
 	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
 	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 // Params 客户端参数结构

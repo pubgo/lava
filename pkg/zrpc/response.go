@@ -1,6 +1,6 @@
 package zrpc
 
-import "github.com/pubgo/lava/v2/lava"
+import "github.com/pubgo/lava/v2/pkg/lava"
 
 var _ lava.Response = (*response)(nil)
 

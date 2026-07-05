@@ -66,7 +66,7 @@ import (
     "context"
     "github.com/pubgo/funk/v2/log"
     "github.com/pubgo/funk/v2/metrics"
-    "github.com/pubgo/lava/v2/lava"
+    "github.com/pubgo/lava/v2/pkg/lava"
     "github.com/pubgo/lava/v2/clients/resty"
 )
 

@@ -3,7 +3,7 @@ package gatewayserver
 import (
 	"google.golang.org/grpc"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 var _ lava.Response = (*rpcResponse)(nil)

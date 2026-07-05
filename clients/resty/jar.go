@@ -11,7 +11,7 @@ import (
 	"github.com/pubgo/funk/v2/log"
 	"github.com/valyala/fasthttp"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 

@@ -6,7 +6,7 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/errors/errparser"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 func New() lava.Middleware {

@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 
-	"github.com/pubgo/lava/v2/lava"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/grpcutil"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/lavacontexts"
