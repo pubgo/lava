@@ -32,6 +32,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/gateway"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
+	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
 // Params configures the external gateway server (HTTP/REST, gRPC-Web, WS, native gRPC).
@@ -149,7 +150,7 @@ func (s *serviceImpl) init(
 	httpApp := fiber.New()
 	for _, h := range httpRouters {
 		assert.If(h.Prefix() == "", "http router prefix required")
-		h.Router(httpApp.Group(h.Prefix(), handlerHttpMiddle(append(globalMiddlewares, h.Middlewares()...))))
+		h.Router(httpApp.Group(h.Prefix(), serverhttp.HandlerMiddleware(append(globalMiddlewares, h.Middlewares()...))))
 	}
 
 	mux := gateway.NewMux()
@@ -182,7 +183,7 @@ func (s *serviceImpl) init(
 			grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
 			grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
 		}
-		log.Debug().Msg("gateway grpc passthrough disabled: services registered on both Mux and grpc.Server (legacy mode)")
+		log.Warn().Msg("gateway grpc passthrough disabled: services registered on both Mux and grpc.Server (legacy mode; set grpc_passthrough: true)")
 	}
 
 	grpcServer := conf.GrpcConfig.Build(grpcServerOpts...).Expect("failed to build grpc server")

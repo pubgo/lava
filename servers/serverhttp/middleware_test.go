@@ -1,4 +1,4 @@
-package gatewayserver
+package serverhttp
 
 import (
 	"context"
@@ -8,35 +8,33 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/pubgo/lava/v2/pkg/lava"
-	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
-type testHTTPMiddleware struct {
+type testMiddleware struct {
 	called bool
 }
 
-func (m *testHTTPMiddleware) String() string { return "test-http-mw" }
+func (m *testMiddleware) String() string { return "test-mw" }
 
-func (m *testHTTPMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
+func (m *testMiddleware) Middleware(next lava.HandlerFunc) lava.HandlerFunc {
 	return func(ctx context.Context, req lava.Request) (lava.Response, error) {
 		m.called = true
 		return next(ctx, req)
 	}
 }
 
-func TestHandlerHttpMiddleRunsMiddleware(t *testing.T) {
+func TestHandlerMiddlewareRunsChain(t *testing.T) {
 	t.Parallel()
 
 	app := fiber.New()
-	mw := &testHTTPMiddleware{}
-	app.Get("/ping", serverhttp.HandlerMiddleware([]lava.Middleware{mw}))
+	mw := &testMiddleware{}
+	app.Get("/ping", HandlerMiddleware([]lava.Middleware{mw}))
 
 	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/ping", nil))
 	if err != nil {
 		t.Fatalf("handler: %v", err)
 	}
 	if resp.StatusCode != fiber.StatusNotFound && resp.StatusCode != fiber.StatusOK {
-		// middleware chain runs before route miss; either OK or 404 is fine
 		t.Logf("status=%d", resp.StatusCode)
 	}
 	if !mw.called {

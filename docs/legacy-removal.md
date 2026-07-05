@@ -62,7 +62,8 @@ gateway_server:
 
 ## 维护者检查清单
 
-- [ ] 新示例不再引用 `servers/grpcs`
+- [x] 新示例不再引用 `servers/grpcs`
+- [x] HTTP 中间件链统一到 `servers/serverhttp.HandlerMiddleware`（#107）
 - [ ] 架构文档仅描述 `gateway_server`
 - [ ] `task test` 不依赖 legacy 路径（或单独 `task test:legacy`）
 - [ ] v3 里程碑前开 PR 删除 `grpcs` 包

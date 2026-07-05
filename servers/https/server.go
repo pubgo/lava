@@ -24,6 +24,7 @@ import (
 	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/httputil"
 	"github.com/pubgo/lava/v2/pkg/netutil"
+	"github.com/pubgo/lava/v2/servers/serverhttp"
 )
 
 type Params struct {
@@ -75,7 +76,7 @@ func (s *serviceImpl) init(params Params) {
 	middlewares := append(defaultMiddlewares, params.Middlewares...)
 
 	for _, h := range params.Handlers {
-		h.Router(s.httpServer.Group(h.Prefix(), handlerHttpMiddle(append(middlewares, h.Middlewares()...))))
+		h.Router(s.httpServer.Group(h.Prefix(), serverhttp.HandlerMiddleware(append(middlewares, h.Middlewares()...))))
 	}
 
 	vars.Register(vars.UniqueName(running.Project(), "http_server_info"), func() any {
