@@ -18,9 +18,9 @@ lava gateway 是多协议网关，三类入站协议在 L7 上性质不同，**�
 
 | 协议 | 默认端口 | 配置项 | 回源 scheme | 备注 |
 | --- | --- | --- | --- | --- |
-| HTTP/REST + gRPC-Web | 8080 | `grpc_server.http_port` | `http` | REST 挂在 `/api` 前缀；gRPC-Web 是普通 POST |
-| WebSocket | 8081 | `grpc_server.websocket_port` | `http` | HTTP/1.1 `Upgrade`，Traefik 自动透传 |
-| 原生 gRPC | 50051 | `grpc_server.grpc_port` | **`h2c`** | 明文 HTTP/2，必须用 h2c |
+| HTTP/REST + gRPC-Web | 8080 | `gateway_server.http` / `running.HttpPort` | `http` | REST 挂在 `/api` 前缀；gRPC-Web 是普通 POST |
+| WebSocket | 8081 | `gateway_server.websocket_port` | `http` | HTTP/1.1 `Upgrade`，Traefik 自动透传 |
+| 原生 gRPC | 50051 | `gateway_server.grpc` / `running.GrpcPort` | **`h2c`** | 明文 HTTP/2，必须用 h2c |
 
 > 关键点：原生 gRPC 回源**必须**用 `h2c://`（明文 HTTP/2）。若写成 `http://`，
 > Traefik 会按 HTTP/1.1 回源，gRPC 直接失败。
@@ -82,6 +82,6 @@ gRPC streaming 与 WebSocket 是长连接，`traefik.yml` 中 `idleConnTimeout` 
 
 - 关闭或鉴权保护 Traefik dashboard（`api.dashboard`）。
 - `acme.json` 含真实证书后勿提交到 git（本地/服务器持久化即可）。
-- WebSocket 务必在 `grpc_server.websocket_origin_patterns` 配置允许的来源，
+- WebSocket 务必在 `gateway_server.websocket_origin_patterns` 配置允许的来源，
   不要依赖开发期默认的「跳过校验」。
 - `acme.json` 权限 `600`，并纳入持久化卷。

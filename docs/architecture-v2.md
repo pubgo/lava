@@ -94,9 +94,9 @@ flowchart TD
 ```
 
 - **命令**：`lava grpc` → `gatewayserver.New`（`cmds/grpcservercmd`）
-- **配置**：`gateway_server`（推荐）或 legacy `grpc_server`
+- **配置**：`gateway_server`（`gatewayserver.LoadConfig`）
 - **TLS**：框架内不处理；Traefik 边缘终止，回源 `http` / `h2c`
-- **调试**：`/debug/vars` 暴露 `gateway-server-info`（兼容 `grpc-server-info`）
+- **调试**：`/debug/vars` 暴露 `gateway-server-info`（兼容旧名 `grpc-server-info`）
 
 ### 通路 B：NATS 微服务（zrpc）
 
@@ -111,7 +111,7 @@ zrpc Client → NATS (subject + queue) → zrpc.Server → 业务 Handler
 | `servers/zrpcs` | 纯 NATS 微服务宿主，代码生成 `Register...ZrpcRoutes` |
 | `pkg/zrpcbridge.RegisterMux` | 把已在 `gateway.Mux` 注册的 handler **额外**暴露到 NATS |
 
-> 重构后：zrpc **不是** gateway 前端，而是可选桥接。`grpc_server.zrpc_url` 已移除。
+> 重构后：zrpc **不是** gateway 前端，而是可选桥接。`gateway_server.zrpc_url`（旧 `grpc_server.zrpc_url`）已移除。
 
 ### 通路 C：反向隧道（tunnel）
 
@@ -360,7 +360,7 @@ lava/
 | --- | --- |
 | `servers/grpcs` 包 | 已删除；使用 `gatewayserver` |
 | `Mux.RegisterZrpc` | `pkg/zrpcbridge.RegisterMux`（DI 显式调用） |
-| `grpc_server.zrpc_url` 配置 | 已移除 |
+| `gateway_server.zrpc_url`（旧 `grpc_server.zrpc_url`） | 已移除 |
 | 原生 gRPC 空占位 `stream.grpc.go` | 已删除（直接用 `grpc.ServerStream`） |
 
 设计原则：

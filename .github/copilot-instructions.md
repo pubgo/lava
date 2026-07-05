@@ -6,7 +6,7 @@ These instructions are project-wide defaults for this repository. Keep changes f
 
 ## Architecture
 
-- `lava/`: core public interfaces and contracts (`Middleware`, routers, request/response abstractions).
+- `pkg/lava/`: core public interfaces and contracts (`Middleware`, routers, request/response abstractions). Root `lava/` is a deprecated type-alias shim.
 - `core/`: runtime capabilities (supervisor, scheduler, tunnel, logging/metrics/tracing, debug, DI builder).
 - `servers/`: service hosts (`gatewayserver` multi-protocol gateway, `https` on Fiber, `zrpcs` on NATS).
 - `clients/`: outbound client implementations (`grpcc`, `resty`).
@@ -14,7 +14,7 @@ These instructions are project-wide defaults for this repository. Keep changes f
 - `internal/`: repository-internal implementation details/examples; avoid exposing as public API.
 
 Place new code by responsibility:
-- Cross-protocol abstractions -> `lava/`
+- Cross-protocol abstractions -> `pkg/lava/`（根 `lava/` 仅为 deprecated shim）
 - Runtime framework capability -> `core/<module>/`
 - HTTP/gRPC serving behavior -> `servers/`
 - Reusable public helper/component -> `pkg/`

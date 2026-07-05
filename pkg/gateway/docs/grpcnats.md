@@ -13,4 +13,4 @@ import "github.com/pubgo/lava/v2/pkg/zrpcbridge"
 _ = zrpcbridge.RegisterMux(zrpcSrv, mux, zrpcbridge.Config{Queue: "my-service"})
 ```
 
-原先 `grpc_server.zrpc_url` 配置项已移除；请在应用 DI 中显式连接 NATS 并调用 `RegisterMux`。
+原先 `gateway_server.zrpc_url`（旧 `grpc_server.zrpc_url`）配置项已移除；请在应用 DI 中显式连接 NATS 并调用 `RegisterMux`。

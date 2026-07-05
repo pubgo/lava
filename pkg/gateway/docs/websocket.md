@@ -130,12 +130,12 @@ HTTP 握手请求头会被转换为 gRPC 的 incoming metadata，供服务端通
 - 通过 REST 注解路径访问时，`streamWS` 会带上匹配到的 `MatchOperation`，因此 `body:"field"` / `response_body` 字段映射对 WebSocket 同样生效；直查 gRPC 全方法名时整条消息即请求/响应体。
 - 结束时通过 WebSocket Close 帧回传结构化 gRPC 状态：close code 由 gRPC code 映射，reason 为 JSON `{"grpcStatus":N,"grpcMessage":"..."}`，客户端可解析 `event.reason` 获取状态。
 
-## 在 grpc-server 中启用
+## 在 gateway 中启用
 
-在 `grpc_server` 配置里设置 `websocket_port` 即可在独立端口启动 WebSocket 前端（与 Fiber HTTP 端口分离）：
+在 `gateway_server` 配置里设置 `websocket_port` 即可在独立端口启动 WebSocket 前端（与 Fiber HTTP 端口分离）：
 
 ```yaml
-grpc_server:
+gateway_server:
   websocket_port: 8081
   # 生产环境建议配置 Origin 白名单
   websocket_origin_patterns:
@@ -168,7 +168,7 @@ mux.WebSocketHandler(gateway.WSOptionsFromConfig(gateway.WSConfig{
 生产环境务必配置 `websocket_origin_patterns`，例如：
 
 ```yaml
-grpc_server:
+gateway_server:
   websocket_port: 8081
   websocket_origin_patterns:
     - "example.com"
