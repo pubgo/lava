@@ -19,5 +19,8 @@
     "@protobuf-ts/runtime": "^2.11.1",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "@protobuf-ts/grpcweb-transport": "^2.11.1"
+  },
+  "overrides": {
+    "uuid": "^11.1.0"
   }
 }
