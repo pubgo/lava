@@ -32,25 +32,25 @@
 |----|----------|
 | `servers/grpcs` 包 | `servers/gatewayserver` + `grpc_passthrough: true` |
 
-### 配置键
+### 配置键（已移除）
 
-| Legacy 键 | 替代键 |
+| 已删除键 | 替代键 |
 |-----------|--------|
 | `grpc_server` | `gateway_server` |
 | `grpc_server.yaml` 组件 | `gateway_server.yaml` |
 
-迁移：将 YAML 顶层键 `grpc_server` 重命名为 `gateway_server`；`ResolveConfig` 仍解析旧键并在启动时打 `Warn`（`lavabuilder grpc` 经 `gatewayserver.LoadConfig`）。
+迁移：YAML 顶层键统一为 `gateway_server`；`gatewayserver.LoadConfig` 不再解析 `grpc_server`。
 
 ### API
 
 | 项 | 位置 | 替代 |
 |----|------|------|
-| `IsLocalIPAdd`（拼写错误） | `pkg/netutil/ip.go` | `IsLocalIPAddr`（保留旧名至 v3 前） |
+| `HasLocalIPddr`（拼写错误） | `pkg/netutil/ip.go` | `HasLocalIPAddr` |
 
 ## 配置迁移示例
 
 ```yaml
-# 旧 (deprecated)
+# 旧 (removed)
 grpc_server:
   enable_print_router: true
 
@@ -70,7 +70,7 @@ gateway_server:
 - [x] 新示例不再引用 `servers/grpcs`
 - [x] HTTP 中间件链统一到 `servers/serverhttp.HandlerMiddleware`（#107）
 - [x] `internal/configs/components/grpc_server.yaml` 已移除，统一 `gateway_server.yaml`
-- [x] `lavabuilder grpc` 通过 `gatewayserver.LoadConfig` 加载 YAML 并对 `grpc_server` 打废弃警告
+- [x] `gatewayserver.LoadConfig` 仅加载 `gateway_server`（不再解析 `grpc_server`）
 - [x] 架构文档仅描述 `gateway_server`
 - [ ] `task test` 不依赖 legacy 路径（或单独 `task test:legacy`）
 - [x] 删除 `grpcs` 包（v2，不再等待 v3）

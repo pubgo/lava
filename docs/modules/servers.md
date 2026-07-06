@@ -35,8 +35,6 @@
 
 YAML 键：**`gateway_server`**（见 `internal/configs/components/gateway_server.yaml`）。
 
-旧键 `grpc_server` 仍可解析，启动时会打废弃警告；详见 `docs/legacy-removal.md`。
-
 ```yaml
 gateway_server:
   enable_print_router: true
@@ -114,7 +112,7 @@ flowchart LR
 
 | 项 | 替代 |
 | --- | --- |
-| YAML 键 `grpc_server` | `gateway_server` |
+| YAML 键 `grpc_server` | 已删除；请改为 `gateway_server` |
 | `grpc_passthrough: false` | 默认 `true` |
 | `servers/grpcs` 包 | 已在 v2 删除，请用 `servers/gatewayserver` |
 
