@@ -173,29 +173,11 @@ func (s *serviceImpl) init(
 	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
 	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
 
-	var grpcServerOpts []grpc.ServerOption
-	if conf.GRPCPassthrough {
-		// Middleware runs on Mux (SetUnaryInterceptor); outer grpc.Server only passthroughs.
-		grpcServerOpts = mux.GRPCServerOptions()
-		log.Info().Msg("gateway grpc passthrough enabled: register services on Mux only")
-	} else {
-		grpcServerOpts = []grpc.ServerOption{
-			grpc.ChainUnaryInterceptor(handlerUnaryMiddle(srvMidMap)),
-			grpc.ChainStreamInterceptor(handlerStreamMiddle(srvMidMap)),
-		}
-		log.Warn().Msg("gateway grpc passthrough disabled: services registered on both Mux and grpc.Server (legacy mode; set grpc_passthrough: true)")
-	}
+	// Middleware runs on Mux (SetUnaryInterceptor); outer grpc.Server only passthroughs.
+	grpcServerOpts := mux.GRPCServerOptions()
+	log.Info().Msg("gateway grpc passthrough: register services on Mux only")
 
 	grpcServer := conf.GrpcConfig.Build(grpcServerOpts...).Expect("failed to build grpc server")
-
-	if !conf.GRPCPassthrough {
-		for _, h := range grpcRouters {
-			grpcServer.RegisterService(h.ServiceDesc(), h)
-		}
-		for _, h := range grpcHttpRouters {
-			grpcServer.RegisterService(h.ServiceDesc(), h)
-		}
-	}
 
 	gatewayAPIPrefix := "/api"
 	log.Info().Str("prefix", gatewayAPIPrefix).Msg("gateway HTTP base path")

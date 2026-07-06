@@ -27,7 +27,7 @@
 1. 收集 `GrpcRouter` / `GrpcHttpRouter` → 注册到 `gateway.Mux`
 2. Fiber 挂 `/api` → `mux.Handler`
 3. 可选 `websocket_port` → 独立 `http.Server`
-4. gRPC：默认 `grpc_passthrough: true`（仅在 Mux 注册）；`false` 为 legacy 双注册
+4. gRPC：handler 仅在 `gateway.Mux` 注册，原生 gRPC 通过透传接入
 5. 全局中间件：serviceinfo / metric / accesslog / recovery
 6. `vars.Register` 路由信息（`gateway-server-info`，兼容 `grpc-server-info`）
 
@@ -35,12 +35,9 @@
 
 YAML 键：**`gateway_server`**（见 `internal/configs/components/gateway_server.yaml`）。
 
-旧键 `grpc_server` 仍可解析，启动时会打废弃警告；详见 `docs/legacy-removal.md`。
-
 ```yaml
 gateway_server:
   enable_print_router: true
-  grpc_passthrough: true
   websocket_port: 8081
   http: {}
   grpc: {}
@@ -110,12 +107,12 @@ flowchart LR
     Bridge -.-> NATS
 ```
 
-## Legacy（v3 移除）
+## 已移除兼容项
 
-| 项 | 替代 |
+| 项 | 说明 |
 | --- | --- |
-| YAML 键 `grpc_server` | `gateway_server` |
-| `grpc_passthrough: false` | 默认 `true` |
-| `servers/grpcs` 包 | 已在 v2 删除，请用 `servers/gatewayserver` |
+| YAML 键 `grpc_server` | 请使用 `gateway_server` |
+| `grpc_passthrough: false` | 双注册模式已删除 |
+| `servers/grpcs` 包 | 请使用 `servers/gatewayserver` |
 
 详见 `docs/legacy-removal.md`。

@@ -1,9 +1,6 @@
 # Gateway server settings (servers/gatewayserver).
-# Legacy YAML key grpc_server is still parsed with a deprecation warning; use gateway_server only.
 gateway_server:
   enable_print_router: true
-  # New deployments: register handlers on Mux only; native gRPC uses passthrough.
-  grpc_passthrough: true
   # websocket_port: 8081
   # websocket_origin_patterns:
   #   - "https://*.example.com"

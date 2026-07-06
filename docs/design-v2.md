@@ -92,7 +92,7 @@ $$
 
 ### 3.2 Gateway 与 gRPC 服务同源注册
 
-`servers/gatewayserver` 装配 `pkg/gateway.Mux`，将同一套 `ServiceDesc` 暴露为 HTTP/REST、gRPC-Web、WebSocket 与原生 gRPC（可选 `grpc_passthrough`）。这使多种前端协议共享同一套 handler，减少重复维护。
+`servers/gatewayserver` 装配 `pkg/gateway.Mux`，将同一套 `ServiceDesc` 暴露为 HTTP/REST、gRPC-Web、WebSocket 与原生 gRPC 透传。这使多种前端协议共享同一套 handler，减少重复维护。
 
 NATS/zrpc 不属于 gateway 前端；若需把 Mux handler 额外暴露到 NATS，在 DI 中调用 `pkg/zrpcbridge.RegisterMux`。
 

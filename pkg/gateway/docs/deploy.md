@@ -13,11 +13,9 @@ Gateway **不内置 HTTPS/TLS**。框架内全程明文（`http` / `h2c`），TL
 
 | YAML 键 | 说明 |
 | --- | --- |
-| `gateway_server` | **推荐**，见 `internal/configs/components/gateway_server.yaml` |
-| `grpc_server` | Legacy 别名，与 `gateway_server` 字段相同 |
+| `gateway_server` | 见 `internal/configs/components/gateway_server.yaml` |
 
-新部署建议显式设置 `grpc_passthrough: true`，使 handler 仅在 `gateway.Mux` 注册一次，
-原生 gRPC 与 HTTP/WS 前端共享同一套实现。
+Handler 仅在 `gateway.Mux` 注册一次，原生 gRPC 与 HTTP/WS 前端共享同一套实现。
 
 ## 三类协议的回源规则
 
