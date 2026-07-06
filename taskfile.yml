@@ -66,8 +66,13 @@ tasks:
     cmds:
       - go vet ./...
   test:
+    desc: "run default test suite (without legacy-tagged compatibility tests)"
     cmds:
       - go test -short -race -v ./... -cover
+  test:legacy:
+    desc: "run legacy compatibility tests"
+    cmds:
+      - go test -short -race -v -tags legacy ./servers/gatewayserver -run TestResolveConfigLegacyGrpcServer
   lint:
     cmds:
       - golangci-lint run --verbose ./...

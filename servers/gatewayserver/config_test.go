@@ -2,8 +2,6 @@ package gatewayserver
 
 import (
 	"testing"
-
-	"github.com/pubgo/funk/v2/log"
 )
 
 func TestResolveConfigPrefersGatewayServer(t *testing.T) {
@@ -15,17 +13,6 @@ func TestResolveConfigPrefersGatewayServer(t *testing.T) {
 	}, nil)
 	if !cfg.EnablePrintRouter {
 		t.Fatal("expected gateway_server to win")
-	}
-}
-
-func TestResolveConfigLegacyGrpcServer(t *testing.T) {
-	t.Parallel()
-
-	cfg := ResolveConfig(CombinedConfigLoader{
-		GrpcServer: &Config{EnablePrintRouter: true},
-	}, log.GetLogger("test"))
-	if !cfg.EnablePrintRouter {
-		t.Fatal("expected legacy grpc_server config to apply")
 	}
 }
 
