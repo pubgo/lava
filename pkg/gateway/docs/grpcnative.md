@@ -32,17 +32,17 @@ grpcServer := grpc.NewServer(grpc.UnknownServiceHandler(handler))
 
 **注意**：启用透传后，不要再对同一个 `grpc.Server` 调用 `RegisterService`，否则会与 `UnknownServiceHandler` 冲突。
 
-### grpc-server 配置
+### gateway_server 配置
 
 ```yaml
-grpc_server:
+gateway_server:
   grpc_passthrough: true
   websocket_port: 8081
 ```
 
 开启后，`servers/gatewayserver` 仅在 `Mux` 上注册服务，gRPC 端口上的原生客户端与 HTTP/WS 前端共享同一套 handler。
 
-> **默认值**：`grpc_passthrough` 默认为 `false`，保持与现有部署兼容（服务同时注册在 Mux 与外层 `grpc.Server`）。新部署若希望「RegisterService 一次、多协议复用」，建议显式设为 `true`。
+> **默认值**：`grpc_passthrough` 默认为 `true`（handler 仅在 Mux 注册）。若需 legacy 双注册（同时挂在外层 `grpc.Server`），显式设为 `false`。
 
 ## 与其他前端的关系
 
