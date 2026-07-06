@@ -7,7 +7,6 @@
 | 模块 | 说明 | 关键入口 |
 | --- | --- | --- |
 | `servers/gatewayserver` | 对外 Gateway：HTTP/REST、gRPC-Web、WebSocket、原生 gRPC | `gatewayserver.New` |
-| `servers/grpcs` | **已废弃别名**，等同 `gatewayserver`（supervisor 名仍为 `grpc-server`） | `grpcs.New` |
 | `servers/https` | Fiber HTTP 服务，默认接入 debug 与基础中间件 | `https.New` |
 | `servers/zrpcs` | zrpc 服务宿主，基于 NATS 托管 protobuf unary/streaming RPC | `zrpcs.New` |
 
@@ -19,28 +18,30 @@
 
 | 协议 | 默认端口 | 配置项 | 实现 |
 | --- | --- | --- | --- |
-| HTTP/REST + gRPC-Web | 8080 | `grpc_server.http_port` / `running.HttpPort` | Fiber，`/api` 前缀 |
-| WebSocket | 8081（可选） | `websocket_port` | `net/http` |
-| 原生 gRPC | 50051 | `grpc_server.grpc_port` / `running.GrpcPort` | `grpc.Server` 或 passthrough |
+| HTTP/REST + gRPC-Web | 8080 | `gateway_server.http` / `running.HttpPort` | Fiber，`/api` 前缀 |
+| WebSocket | 8081（可选） | `gateway_server.websocket_port` | `net/http` |
+| 原生 gRPC | 50051 | `gateway_server.grpc` / `running.GrpcPort` | `grpc.Server` 或 passthrough |
 
 ### 装配流程
 
 1. 收集 `GrpcRouter` / `GrpcHttpRouter` → 注册到 `gateway.Mux`
 2. Fiber 挂 `/api` → `mux.Handler`
-3. 可选 `WebSocketPort` → 独立 `http.Server`
-4. gRPC：legacy 双注册，或 `grpc_passthrough` 仅在 Mux 注册
+3. 可选 `websocket_port` → 独立 `http.Server`
+4. gRPC：默认 `grpc_passthrough: true`（仅在 Mux 注册）；`false` 为 legacy 双注册
 5. 全局中间件：serviceinfo / metric / accesslog / recovery
 6. `vars.Register` 路由信息（`gateway-server-info`，兼容 `grpc-server-info`）
 
 ### 配置
 
-YAML 键：`gateway_server`（推荐）或 legacy `grpc_server`。
+YAML 键：**`gateway_server`**（见 `internal/configs/components/gateway_server.yaml`）。
+
+旧键 `grpc_server` 仍可解析，启动时会打废弃警告；详见 `docs/legacy-removal.md`。
 
 ```yaml
 gateway_server:
   enable_print_router: true
+  grpc_passthrough: true
   websocket_port: 8081
-  grpc_passthrough: false
   http: {}
   grpc: {}
 ```
@@ -52,12 +53,7 @@ gateway_server:
 
 ### 命令入口
 
-`lava grpc` → `cmds/grpcservercmd` → `gatewayserver.New`
-
-## `servers/grpcs`（废弃）
-
-类型别名 + `New()` 包装，supervisor 服务名仍为 `grpc-server`，便于老项目兼容。
-新代码请使用 `gatewayserver.New`。
+`lava grpc` → `cmds/grpcservercmd` → `gatewayserver.New` + `gatewayserver.LoadConfig`
 
 ## `servers/https` 要点
 
@@ -113,3 +109,13 @@ flowchart LR
     Bridge[pkg/zrpcbridge] -.->|可选| Mux
     Bridge -.-> NATS
 ```
+
+## Legacy（v3 移除）
+
+| 项 | 替代 |
+| --- | --- |
+| YAML 键 `grpc_server` | `gateway_server` |
+| `grpc_passthrough: false` | 默认 `true` |
+| `servers/grpcs` 包 | 已在 v2 删除，请用 `servers/gatewayserver` |
+
+详见 `docs/legacy-removal.md`。

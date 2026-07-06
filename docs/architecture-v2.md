@@ -18,7 +18,6 @@ flowchart TD
 
     subgraph Service[服务宿主 servers/*]
         GWS[servers/gatewayserver]
-        GRPCS[servers/grpcs 废弃别名]
         HTTPS[servers/https]
         ZRPCS[servers/zrpcs]
     end
@@ -232,8 +231,6 @@ sequenceDiagram
     Handler-->>Client: 响应
 ```
 
-`servers/grpcs` 是 **废弃别名**，内部调用 `gatewayserver.NewWithName(..., "grpc-server")`。
-
 ### 5.2 zrpc（`servers/zrpcs` + `clients/zrpcc`）
 
 ```mermaid
@@ -341,7 +338,6 @@ lava/
 ├── cmds/                 # CLI 命令
 ├── servers/
 │   ├── gatewayserver/    # ★ 对外多协议网关
-│   ├── grpcs/            # 废弃别名
 │   ├── https/            # 纯 HTTP
 │   └── zrpcs/            # NATS 微服务
 ├── pkg/
@@ -362,7 +358,7 @@ lava/
 
 | 之前 | 现在 |
 | --- | --- |
-| `servers/grpcs` 同时承载网关与 zrpc | `gatewayserver` 纯网关；zrpc 外置 |
+| `servers/grpcs` 包 | 已删除；使用 `gatewayserver` |
 | `Mux.RegisterZrpc` | `pkg/zrpcbridge.RegisterMux`（DI 显式调用） |
 | `grpc_server.zrpc_url` 配置 | 已移除 |
 | 原生 gRPC 空占位 `stream.grpc.go` | 已删除（直接用 `grpc.ServerStream`） |
