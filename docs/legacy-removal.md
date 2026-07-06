@@ -45,7 +45,7 @@
 
 | 项 | 位置 | 替代 |
 |----|------|------|
-| `IsLocalIPAdd`（拼写错误） | `pkg/netutil/ip.go` | `IsLocalIPAddr`（保留旧名至 v3 前） |
+| `HasLocalIPddr`（拼写错误） | `pkg/netutil/ip.go` | `HasLocalIPAddr` |
 
 ## 配置迁移示例
 
