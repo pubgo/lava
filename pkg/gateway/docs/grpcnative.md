@@ -36,13 +36,10 @@ grpcServer := grpc.NewServer(grpc.UnknownServiceHandler(handler))
 
 ```yaml
 gateway_server:
-  grpc_passthrough: true
   websocket_port: 8081
 ```
 
-开启后，`servers/gatewayserver` 仅在 `Mux` 上注册服务，gRPC 端口上的原生客户端与 HTTP/WS 前端共享同一套 handler。
-
-> **默认值**：`grpc_passthrough` 默认为 `true`（handler 仅在 Mux 注册）。若需 legacy 双注册（同时挂在外层 `grpc.Server`），显式设为 `false`。
+`servers/gatewayserver` 仅在 `Mux` 上注册服务，gRPC 端口上的原生客户端与 HTTP/WS 前端共享同一套 handler。
 
 ## 与其他前端的关系
 

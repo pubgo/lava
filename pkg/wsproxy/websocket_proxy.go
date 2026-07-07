@@ -20,6 +20,9 @@ import (
 )
 
 const (
+	defaultMethodOverrideParam = "method"
+	defaultTokenCookieName     = "token"
+
 	// Time allowed to read write a message to the peer.
 	timeWait = 15 * time.Second
 
@@ -37,16 +40,6 @@ var (
 	pingPayload = []byte("ping")
 	pongPayload = []byte("pong")
 )
-
-// MethodOverrideParam defines the special URL parameter that is translated into the subsequent proxied streaming http request's method.
-//
-// Deprecated: it is preferable to use the Options parameters to WebSocketProxy to supply parameters.
-var MethodOverrideParam = "method"
-
-// TokenCookieName defines the cookie name that is translated to an 'Authorization: Bearer' header in the streaming http request's headers.
-//
-// Deprecated: it is preferable to use the Options parameters to WebSocketProxy to supply parameters.
-var TokenCookieName = "token"
 
 // RequestMutatorFunc can supply an alternate outgoing request.
 type RequestMutatorFunc func(incoming, outgoing *http.Request) *http.Request
@@ -116,7 +109,7 @@ func WithTimeWait(t int32) Option {
 // JSON as the content encoding.
 //
 // The HTTP Authorization header is either populated from the Sec-Websocket-Protocol field or by a cookie.
-// The cookie name is specified by the TokenCookieName value.
+// The cookie name defaults to "token" and can be overridden with WithTokenCookieName.
 //
 // example:
 //
@@ -126,12 +119,12 @@ func WithTimeWait(t int32) Option {
 //
 //	Authorization: Bearer foobar
 //
-// Method can be overwritten with the MethodOverrideParam get parameter in the requested URL
+// Method can be overwritten with the method query parameter (default "method") in the requested URL.
 func WebsocketProxy(h http.Handler, opts ...Option) http.Handler {
 	p := &Proxy{
 		h:                   h,
-		methodOverrideParam: MethodOverrideParam,
-		tokenCookieName:     TokenCookieName,
+		methodOverrideParam: defaultMethodOverrideParam,
+		tokenCookieName:     defaultTokenCookieName,
 	}
 	for _, o := range opts {
 		o(p)
