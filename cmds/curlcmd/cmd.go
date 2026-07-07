@@ -107,7 +107,7 @@ func New() *redant.Command {
 		dataFile       string
 		readStdin      bool
 		listOnly       bool
-		varName        = "grpc-server-info"
+		varName        = "gateway-server-info"
 		timeout        = 15 * time.Second
 		insecure       bool
 		noPretty       bool
@@ -381,14 +381,9 @@ func fetchGatewayRoutes(ctx context.Context, client *http.Client, addr, prefer s
 		}
 	}
 	if varName == "" {
-		for _, name := range []string{"gateway-server-info", "grpc-server-info"} {
-			for _, v := range varsResp {
-				if strings.Contains(strings.ToLower(v.Name), name) {
-					varName = v.Name
-					break
-				}
-			}
-			if varName != "" {
+		for _, v := range varsResp {
+			if strings.Contains(strings.ToLower(v.Name), "gateway-server-info") {
+				varName = v.Name
 				break
 			}
 		}

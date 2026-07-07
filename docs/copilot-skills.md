@@ -507,7 +507,7 @@ func GetUser(id string) (*User, error) {
 ├── core/           # Core modules
 ├── docs/           # Documentation
 ├── internal/       # Internal implementation
-├── lava/           # Public interfaces
+├── pkg/lava/       # Public interfaces
 ├── pkg/            # Public packages
 ├── proto/          # Protobuf definitions
 ├── servers/        # Server implementations

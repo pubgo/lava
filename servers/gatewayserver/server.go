@@ -243,8 +243,6 @@ func (s *serviceImpl) init(
 		}
 	}
 	vars.Register(vars.UniqueName(version.Project(), "gateway-server-info"), serverInfo)
-	// Legacy name used by lava curl and existing deployments.
-	vars.Register(vars.UniqueName(version.Project(), "grpc-server-info"), serverInfo)
 }
 
 func (s *serviceImpl) start(context.Context) error {

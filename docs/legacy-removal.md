@@ -1,6 +1,6 @@
 # Legacy 代码移除计划
 
-本文档描述 Lava v2 发版前已清理的 legacy 表面，以及仍保留的兼容项。
+本文档描述 Lava v2 发版前已清理的 legacy 表面。
 
 ## 原则
 
@@ -15,6 +15,7 @@ v2 尚未正式发布，发版前优先删除历史兼容层，避免首次发�
 | `servers/grpcs` 包 | `servers/gatewayserver` |
 | legacy gRPC 双注册（`grpc_passthrough: false`） | 固定 Mux-only 注册 + 原生 gRPC 透传 |
 | `pkg/wsproxy` 包级 `MethodOverrideParam` / `TokenCookieName` | `WithMethodParamOverride` / `WithTokenCookieName` |
+| 根目录 `lava/` 类型别名 shim | `github.com/pubgo/lava/v2/pkg/lava` |
 
 ### 配置键
 
@@ -24,19 +25,13 @@ v2 尚未正式发布，发版前优先删除历史兼容层，避免首次发�
 | `grpc_server.yaml` 组件 | `gateway_server.yaml` |
 | `grpc_passthrough` | 已内置，无需配置 |
 
-### API
+### API / 运行时名
 
 | 项 | 替代 |
 |----|------|
 | `HasLocalIPddr`（拼写错误） | `HasLocalIPAddr` |
-
-## 仍保留的兼容项
-
-| 项 | 说明 |
-|----|------|
-| 根目录 `lava/` 类型别名 shim | 指向 `pkg/lava`，发版后视情况移除 |
-| `grpc-server-info` debug vars 名 | 兼容 `lava curl` 与旧部署 |
-| metric 名 `grpc_server_rpc_*` | 观测指标名，非配置/API |
+| `grpc-server-info` debug vars | `gateway-server-info` |
+| metric 名 `grpc_server_rpc_*` | `gateway_server_rpc_*` |
 
 ## 配置示例
 
@@ -64,3 +59,5 @@ gateway_server:
 - [x] 删除 `grpc_server` YAML 键与 `grpc_passthrough: false` 双注册模式
 - [x] 删除 `pkg/wsproxy` 废弃包级变量
 - [x] 删除 `HasLocalIPddr` 拼写错误 API
+- [x] 删除根目录 `lava/` shim 与 `grpc-server-info` 别名
+- [x] metric 命名统一为 `gateway_server_rpc_*`

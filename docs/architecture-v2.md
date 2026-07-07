@@ -96,7 +96,7 @@ flowchart TD
 - **命令**：`lava grpc` → `gatewayserver.New`（`cmds/grpcservercmd`）
 - **配置**：`gateway_server`（`gatewayserver.LoadConfig`）
 - **TLS**：框架内不处理；Traefik 边缘终止，回源 `http` / `h2c`
-- **调试**：`/debug/vars` 暴露 `gateway-server-info`（兼容旧名 `grpc-server-info`）
+- **调试**：`/debug/vars` 暴露 `gateway-server-info`
 
 ### 通路 B：NATS 微服务（zrpc）
 
