@@ -188,8 +188,8 @@ func TestFetchGatewayRoutes(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/debug/vars/api/list":
-			_ = json.NewEncoder(w).Encode([]gatewayVarInfo{{Name: "grpc-server-info", Value: "x"}})
-		case "/debug/vars/api/get/grpc-server-info":
+			_ = json.NewEncoder(w).Encode([]gatewayVarInfo{{Name: "gateway-server-info", Value: "x"}})
+		case "/debug/vars/api/get/gateway-server-info":
 			_, _ = w.Write(info)
 		default:
 			http.NotFound(w, r)
@@ -197,7 +197,7 @@ func TestFetchGatewayRoutes(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	routes, err := fetchGatewayRoutes(context.Background(), srv.Client(), srv.URL, "grpc-server-info")
+	routes, err := fetchGatewayRoutes(context.Background(), srv.Client(), srv.URL, "gateway-server-info")
 	if err != nil {
 		t.Fatal(err)
 	}

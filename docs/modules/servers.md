@@ -29,7 +29,7 @@
 3. 可选 `websocket_port` → 独立 `http.Server`
 4. gRPC：handler 仅在 `gateway.Mux` 注册，原生 gRPC 通过透传接入
 5. 全局中间件：serviceinfo / metric / accesslog / recovery
-6. `vars.Register` 路由信息（`gateway-server-info`，兼容 `grpc-server-info`）
+6. `vars.Register` 路由信息（`gateway-server-info`）
 
 ### 配置
 
@@ -114,5 +114,7 @@ flowchart LR
 | YAML 键 `grpc_server` | 请使用 `gateway_server` |
 | `grpc_passthrough: false` | 双注册模式已删除 |
 | `servers/grpcs` 包 | 请使用 `servers/gatewayserver` |
+| `grpc-server-info` debug vars | 请使用 `gateway-server-info` |
+| 根目录 `lava/` shim | 请使用 `pkg/lava` |
 
 详见 `docs/legacy-removal.md`。

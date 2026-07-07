@@ -74,7 +74,7 @@ func TestMetricMiddlewareRecordsGRPCCall(t *testing.T) {
 		t.Fatalf("handler: %v", err)
 	}
 
-	if counterValue(scope.Snapshot(), "grpc_server_rpc_total") != 1 {
+	if counterValue(scope.Snapshot(), "gateway_server_rpc_total") != 1 {
 		t.Fatalf("rpc total counter missing, counters=%+v", scope.Snapshot().Counters())
 	}
 }
@@ -93,7 +93,7 @@ func TestMetricMiddlewareRecordsError(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	if counterValue(scope.Snapshot(), "grpc_server_rpc_failed_total") != 1 {
+	if counterValue(scope.Snapshot(), "gateway_server_rpc_failed_total") != 1 {
 		t.Fatalf("failed counter missing, counters=%+v", scope.Snapshot().Counters())
 	}
 }
