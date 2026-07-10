@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.43.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.51.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.55.0
 	golang.org/x/sys v0.45.0 // indirect
@@ -77,11 +77,9 @@ require (
 	github.com/xtaci/kcp-go/v5 v5.6.64
 	github.com/xtaci/smux v1.5.53
 	go.opentelemetry.io/contrib/zpages v0.62.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.59.0
-	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.43.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/sdk/metric v1.43.0
