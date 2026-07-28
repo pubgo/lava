@@ -77,11 +77,9 @@ require (
 	github.com/xtaci/kcp-go/v5 v5.6.64
 	github.com/xtaci/smux v1.5.53
 	go.opentelemetry.io/contrib/zpages v0.62.0
-	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.43.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.59.0
-	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.43.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/sdk/metric v1.43.0
@@ -102,13 +100,14 @@ require (
 	github.com/pion/transport/v4 v4.0.2 // indirect
 	github.com/pion/turn/v5 v5.0.7 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
 )
 
 require (
 	cel.dev/expr v0.25.1 // indirect
 	github.com/a8m/envsubst v1.4.3 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
-	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
+	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bufbuild/protocompile v0.14.1 // indirect
@@ -129,7 +128,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gofiber/schema v1.7.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/google/cel-go v0.26.1 // indirect
+	github.com/google/cel-go v0.29.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -168,7 +167,6 @@ require (
 	github.com/savsgio/gotils v0.0.0-20250408102913-196191ec6287 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
