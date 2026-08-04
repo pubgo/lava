@@ -12,11 +12,11 @@ import (
 	"github.com/pubgo/funk/v2/retry"
 
 	"github.com/pubgo/lava/v2/core/metrics"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
 	"github.com/pubgo/lava/v2/pkg/middleware/metric"
 	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
 	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
-	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 // Params 客户端参数结构

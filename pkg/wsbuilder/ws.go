@@ -13,10 +13,6 @@ import (
 
 // Config ...
 type Config struct {
-	// Filter defines a function to skip middleware.
-	// Optional. Default: nil
-	Filter func(fiber.Ctx) bool
-
 	// HandshakeTimeout specifies the duration for the handshake to complete.
 	HandshakeTimeout time.Duration
 

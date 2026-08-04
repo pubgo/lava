@@ -13,7 +13,7 @@ import (
 func TestHandleGRPCConnection_InvalidRoute(t *testing.T) {
 	g := NewGateway(&tunnel.GatewayConfig{}).(*tunnelGateway)
 	client, server := net.Pipe()
-	defer client.Close()
+	t.Cleanup(func() { _ = client.Close() })
 
 	done := make(chan struct{})
 	go func() {
@@ -36,7 +36,7 @@ func TestHandleGRPCConnection_InvalidRoute(t *testing.T) {
 func TestHandleGRPCConnection_MissingService(t *testing.T) {
 	g := NewGateway(&tunnel.GatewayConfig{}).(*tunnelGateway)
 	client, server := net.Pipe()
-	defer client.Close()
+	t.Cleanup(func() { _ = client.Close() })
 
 	done := make(chan struct{})
 	go func() {
@@ -64,7 +64,7 @@ func TestHandleGRPCConnection_AuthRequired(t *testing.T) {
 	g := NewGateway(&tunnel.GatewayConfig{}).(*tunnelGateway)
 	g.authProvider = &fakeAuth{}
 	client, server := net.Pipe()
-	defer client.Close()
+	t.Cleanup(func() { _ = client.Close() })
 
 	done := make(chan struct{})
 	go func() {
@@ -93,7 +93,7 @@ func TestHandleGRPCConnection_RateLimited(t *testing.T) {
 	// next Allow("svc") should fail
 
 	client, server := net.Pipe()
-	defer client.Close()
+	t.Cleanup(func() { _ = client.Close() })
 
 	done := make(chan struct{})
 	go func() {

@@ -25,6 +25,7 @@ func (s *fakeSession) Open(context.Context) (tunnel.Stream, error) {
 	}
 	return s.open, nil
 }
+
 func (s *fakeSession) OpenWithPriority(ctx context.Context, _ int) (tunnel.Stream, error) {
 	return s.Open(ctx)
 }
@@ -45,6 +46,7 @@ func (a *fakeAuth) Authorize(string, string) error         { return a.authorizeE
 func (a *fakeAuth) GenerateToken(*tunnel.ServiceInfo) (string, error) {
 	return "tok", nil
 }
+
 func (a *fakeAuth) ValidateToken(string) (*tunnel.ServiceInfo, error) {
 	if a.validateErr != nil {
 		return nil, a.validateErr
@@ -52,5 +54,7 @@ func (a *fakeAuth) ValidateToken(string) (*tunnel.ServiceInfo, error) {
 	return &tunnel.ServiceInfo{Name: "svc"}, nil
 }
 
-var _ tunnel.Session = (*fakeSession)(nil)
-var _ tunnel.AuthProvider = (*fakeAuth)(nil)
+var (
+	_ tunnel.Session      = (*fakeSession)(nil)
+	_ tunnel.AuthProvider = (*fakeAuth)(nil)
+)

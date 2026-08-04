@@ -10,11 +10,11 @@ import (
 
 	"github.com/pubgo/lava/v2/core/metrics"
 	"github.com/pubgo/lava/v2/core/supervisor"
+	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/middleware/accesslog"
 	"github.com/pubgo/lava/v2/pkg/middleware/metric"
 	"github.com/pubgo/lava/v2/pkg/middleware/recovery"
 	"github.com/pubgo/lava/v2/pkg/middleware/serviceinfo"
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/zrpc"
 )
 

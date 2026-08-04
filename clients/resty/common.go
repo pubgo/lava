@@ -5,27 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/pubgo/funk/v2/convert"
 	"github.com/pubgo/funk/v2/result"
 	"github.com/valyala/fasttemplate"
-	"golang.org/x/net/http/httpguts"
 )
-
-// IsRedirect 检查状态码是否为重定向
-func IsRedirect(statusCode int) bool {
-	return statusCode == http.StatusMovedPermanently ||
-		statusCode == http.StatusFound ||
-		statusCode == http.StatusSeeOther ||
-		statusCode == http.StatusTemporaryRedirect ||
-		statusCode == http.StatusPermanentRedirect
-}
 
 // FilterFlags 过滤内容中的标志
 func FilterFlags(content string) string {
@@ -76,60 +64,6 @@ func PathTemplateRun(tpl *fasttemplate.Template, params map[string]any) (string,
 	})
 }
 
-// HeaderGet 获取 HTTP 头
-func HeaderGet(h http.Header, key string) string {
-	if v := h[key]; len(v) > 0 {
-		return v[0]
-	}
-	return ""
-}
-
-// HeaderHas 检查 HTTP 头是否存在
-func HeaderHas(h http.Header, key string) bool {
-	_, ok := h[key]
-	return ok
-}
-
-// HasPort 检查字符串是否包含端口
-func HasPort(s string) bool {
-	return strings.LastIndex(s, ":") > strings.LastIndex(s, "]")
-}
-
-// RemoveEmptyPort 移除空端口
-func RemoveEmptyPort(host string) string {
-	if HasPort(host) {
-		return strings.TrimSuffix(host, ":")
-	}
-	return host
-}
-
-// IsNotToken 检查字符是否不是有效的 HTTP token
-func IsNotToken(r rune) bool {
-	return !httpguts.IsTokenRune(r)
-}
-
-// ValidMethod 检查 HTTP 方法是否有效
-func ValidMethod(method string) bool {
-	return len(method) > 0 && strings.IndexFunc(method, IsNotToken) == -1
-}
-
-// ValueOrDefault 返回非空值，否则返回默认值
-func ValueOrDefault(value, def string) string {
-	if value != "" {
-		return value
-	}
-	return def
-}
-
-// RequestMethodUsuallyLacksBody 检查 HTTP 方法是否通常不需要请求体
-func RequestMethodUsuallyLacksBody(method string) bool {
-	switch method {
-	case "GET", "HEAD", "DELETE", "OPTIONS", "PROPFIND", "SEARCH":
-		return true
-	}
-	return false
-}
-
 // GetBodyReader 获取请求体读取器
 func GetBodyReader(rawBody any) (r result.Result[[]byte]) {
 	switch body := rawBody.(type) {
@@ -176,26 +110,6 @@ func GetBodyReader(rawBody any) (r result.Result[[]byte]) {
 	default:
 		return result.Wrap(json.Marshal(rawBody))
 	}
-}
-
-// CloseBody 关闭请求体
-func CloseBody(r *http.Request) error {
-	if r.Body == nil {
-		return nil
-	}
-	return r.Body.Close()
-}
-
-// ErrMissingHost 当请求中没有 Host 或 URL 时返回的错误
-var ErrMissingHost = errors.New("http: Request.Write on Request with no Host or URL set")
-
-// ReqWriteExcludeHeader Request.Write 自己处理的头，应该被跳过
-var ReqWriteExcludeHeader = map[string]bool{
-	"Host":              true, // not in Header map anyway
-	"User-Agent":        true,
-	"Content-Length":    true,
-	"Transfer-Encoding": true,
-	"Trailer":           true,
 }
 
 // HandleContentType 处理内容类型

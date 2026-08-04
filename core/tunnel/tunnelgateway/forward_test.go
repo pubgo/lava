@@ -9,11 +9,16 @@ import (
 	"github.com/pubgo/lava/v2/core/tunnel"
 )
 
+func closePipe(t *testing.T, c net.Conn) {
+	t.Helper()
+	t.Cleanup(func() { _ = c.Close() })
+}
+
 func TestForward_ServiceNotFound(t *testing.T) {
 	g := NewGateway(&tunnel.GatewayConfig{}).(*tunnelGateway)
 	client, server := net.Pipe()
-	defer client.Close()
-	defer server.Close()
+	closePipe(t, client)
+	closePipe(t, server)
 
 	err := g.Forward(context.Background(), "missing", tunnel.EndpointTypeHTTP, client)
 	if !errors.Is(err, tunnel.ErrServiceNotFound) {
@@ -29,8 +34,8 @@ func TestForward_SessionClosed(t *testing.T) {
 		agent:   "a1",
 	}
 	client, server := net.Pipe()
-	defer client.Close()
-	defer server.Close()
+	closePipe(t, client)
+	closePipe(t, server)
 
 	err := g.Forward(context.Background(), "demo", tunnel.EndpointTypeGRPC, client)
 	if !errors.Is(err, tunnel.ErrSessionClosed) {
@@ -45,8 +50,8 @@ func TestForward_NilSession(t *testing.T) {
 		agent: "a1",
 	}
 	client, server := net.Pipe()
-	defer client.Close()
-	defer server.Close()
+	closePipe(t, client)
+	closePipe(t, server)
 
 	err := g.Forward(context.Background(), "demo", tunnel.EndpointTypeDebug, client)
 	if !errors.Is(err, tunnel.ErrSessionClosed) {
