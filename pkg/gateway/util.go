@@ -11,6 +11,7 @@ import (
 
 	"github.com/pubgo/funk/v2/assert"
 	"github.com/pubgo/funk/v2/errors"
+	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
@@ -166,13 +167,14 @@ func newIncomingContext(ctx context.Context, header http.Header) (context.Contex
 			continue
 		}
 		if strings.HasSuffix(k, binHdrSuffix) {
-			dst := make([]string, len(vs))
-			for i, v := range vs {
-				v, err := decodeBinHeader(v)
+			dst := make([]string, 0, len(vs))
+			for _, v := range vs {
+				decoded, err := decodeBinHeader(v)
 				if err != nil {
-					continue // TODO: log error?
+					log.Warn().Err(err).Str("header", k).Msg("failed to decode binary metadata header")
+					continue
 				}
-				dst[i] = v
+				dst = append(dst, decoded)
 			}
 			vs = dst
 		}

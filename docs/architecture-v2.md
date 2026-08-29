@@ -88,7 +88,7 @@ flowchart TD
   → servers/gatewayserver
        ├─ :8080  HTTP/REST + gRPC-Web（Fiber，/api 前缀）
        ├─ :8081  WebSocket（net/http，可选）
-       └─ :50051 原生 gRPC（h2c 或 grpc_passthrough）
+       └─ :50051 原生 gRPC（h2c 透传，Mux-only）
   → pkg/gateway.Mux
   → 业务 Handler（本地 inproc 或远程代理）
 ```

@@ -25,7 +25,7 @@ flowchart TB
         F1[HTTP/REST<br/>httpFrontend]
         F2[gRPC-Web<br/>httpFrontend]
         F3[WebSocket<br/>wsFrontend]
-        F4[Native gRPC<br/>grpcPassthrough]
+        F4[Native gRPC<br/>h2c passthrough]
     end
 
     subgraph CORE[核心调度层 Core]
