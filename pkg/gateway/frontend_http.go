@@ -168,7 +168,7 @@ func (f *httpFrontend) match(ctx fiber.Ctx) (*MatchOperation, *methodWrapper, ur
 
 	values := mergePathAndQuery(ctx, matchOperation)
 
-	mth := f.mux.opts.handlers[matchOperation.Operation]
+	mth := f.mux.findMethod(matchOperation.Operation)
 	if mth == nil {
 		log.Error().
 			Str("method", ctx.Method()).

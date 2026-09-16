@@ -32,7 +32,7 @@ flowchart TB
     end
 
     subgraph CORE[核心调度层 Core]
-        REG[Registry<br/>routerTree + handlers]
+        REG[Registry<br/>Operation by FullMethod<br/>+ routerTree HTTP index]
         PUMP[Dispatcher 泵<br/>unary/server/client/bidi]
         CODEC[Codec<br/>proto/json/...]
     end
@@ -77,7 +77,8 @@ type Backend = grpc.ClientConnInterface
 // FrontendStream：各协议前端归一化后的流，本质是 grpc.ServerStream
 type FrontendStream = grpc.ServerStream
 
-// Operation：一个已注册 RPC 方法的元信息
+// Operation：已注册 RPC 的调度 SSOT（full method / 消息类型 / 流模式 / meta）
+// routerTree 只存 HTTP 路径 → FullMethod 索引，不复制 schema
 type Operation struct {
     FullMethod string
     InputType  protoreflect.MessageType
@@ -268,7 +269,7 @@ flowchart TD
     F -- No --> Fx["返回 match operation failed"]
     F -- Yes --> G["提取 path vars + 合并 query"]
 
-    G --> H["handlers operation 查找 methodWrapper"]
+    G --> H["LookupOperation / findMethod"]
     H --> I{"methodWrapper 存在?"}
     I -- No --> Ix["返回 method operation not found"]
     I -- Yes --> J["构建 metadata.MD"]

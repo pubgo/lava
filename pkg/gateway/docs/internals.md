@@ -13,10 +13,16 @@ func (d *Dispatcher) Dispatch(
     ctx context.Context,
     backend Backend,          // = grpc.ClientConnInterface（Mux）
     frontend FrontendStream,  // = grpc.ServerStream（streamHTTP/streamWS/...）
-    op *Operation,            // 方法元信息
+    op *Operation,            // 调度 SSOT（注册时固化；LookupOperation / findMethod）
     in any,                   // unary/server-stream 的预读请求；client/bidi 为 nil
 ) (header, trailer metadata.MD, err error)
 ```
+
+### 注册表
+
+- **`Operation`**：调度单一事实来源（FullMethod / 消息类型 / StreamDesc / Meta），在 `registerRouter` 时写入 `methodWrapper.op`。
+- **`handlers` / `customOperationNames`**：按 FullMethod（及 RpcMeta.Name）索引到内部 `methodWrapper`（含 codec/proxy 绑定）。
+- **`routerTree`**：仅 HTTP 路径 → FullMethod 索引，不复制 schema。
 
 ### 四种流模式
 

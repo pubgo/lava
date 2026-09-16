@@ -95,8 +95,8 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 
 - [x] Dispatcher 级 stream/RPC 中间件：`Mux.UseRPCMiddleware` + `IncomingPayload`；`gatewayserver` 经 `handlerRPCMiddle` 挂载；前端统一走 `Mux.DispatchFrontend`  
 - [x] gRPC-Web：成功路径保证 trailer 帧（默认 `grpc-status=0`）；`applyGRPCWebMetadata` 允许 `grpc-*`  
+- [x] 注册模型：`Operation` 为调度 SSOT（注册时固化）；`routerTree` 仅作 HTTP 路径 → `FullMethod` 索引；查找走 `LookupOperation` / `findMethod`  
 - [ ] gRPC-Web：压缩帧协商  
-- [ ] 注册模型：以 `Operation` 为单一事实来源重构 `handlers` + `routerTree`  
 - [ ] HTTP framed client-stream（若产品需要）单独设计，不假装 REST body 可表示多消息  
 
 ## 明确不做

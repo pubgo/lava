@@ -146,7 +146,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	path := r.URL.Path
 
 	// Direct gRPC full-method lookup: /pkg.Service/Method
-	if mth := f.mux.opts.handlers[path]; mth != nil {
+	if mth := f.mux.findMethod(path); mth != nil {
 		return operationFromMethod(mth), mth, nil, nil
 	}
 
@@ -154,7 +154,7 @@ func (f *wsFrontend) resolveOperation(r *http.Request) (*Operation, *methodWrapp
 	// WebSocket handshakes use GET, but google.api.http routes are often POST;
 	// try the request method first, then common HTTP verbs.
 	if match, values, ok := f.matchRESTPath(r); ok {
-		if mth := f.mux.opts.handlers[match.Operation]; mth != nil {
+		if mth := f.mux.findMethod(match.Operation); mth != nil {
 			return operationFromMethod(mth), mth, match, values
 		}
 	}
@@ -182,7 +182,7 @@ func (f *wsFrontend) matchRESTPath(r *http.Request) (*MatchOperation, url.Values
 		if err != nil {
 			continue
 		}
-		if f.mux.opts.handlers[match.Operation] == nil {
+		if f.mux.findMethod(match.Operation) == nil {
 			continue
 		}
 

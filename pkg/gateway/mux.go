@@ -123,7 +123,7 @@ func (m *Mux) MatchOperation(method, path string) (r result.Result[*MatchOperati
 }
 
 func (m *Mux) GetOperationByName(name string) *GrpcMethod {
-	act := m.opts.customOperationNames[name]
+	act := m.findMethodByName(name)
 	if act == nil {
 		return nil
 	}
@@ -132,12 +132,34 @@ func (m *Mux) GetOperationByName(name string) *GrpcMethod {
 }
 
 func (m *Mux) GetOperation(operation string) *GrpcMethod {
-	opt := m.opts.handlers[operation]
+	opt := m.findMethod(operation)
 	if opt == nil {
 		return nil
 	}
 
 	return handleOperation(opt)
+}
+
+// LookupOperation returns the registered Operation for a gRPC full method, or nil.
+func (m *Mux) LookupOperation(fullMethod string) *Operation {
+	return operationFromMethod(m.findMethod(fullMethod))
+}
+
+// findMethod returns the registration record for a gRPC full method.
+// Prefer LookupOperation for dispatch; this stays package-private for codec /
+// proxy binding that still needs methodWrapper.
+func (m *Mux) findMethod(fullMethod string) *methodWrapper {
+	if m == nil || m.opts == nil {
+		return nil
+	}
+	return m.opts.handlers[fullMethod]
+}
+
+func (m *Mux) findMethodByName(name string) *methodWrapper {
+	if m == nil || m.opts == nil {
+		return nil
+	}
+	return m.opts.customOperationNames[name]
 }
 
 func (m *Mux) Handler(ctx fiber.Ctx) error {
@@ -317,7 +339,15 @@ func (m *Mux) registerRouter(rule *methodWrapper) {
 
 	rule.inputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Input().FullName()))
 	rule.outputType = assert.Must1(protoregistry.GlobalTypes.FindMessageByName(rule.grpcMethodProtoDesc.Output().FullName()))
+	rule.op = &Operation{
+		FullMethod: rule.grpcFullMethod,
+		InputType:  rule.inputType,
+		OutputType: rule.outputType,
+		StreamDesc: rule.grpcStreamDesc,
+		Meta:       rule.meta,
+	}
 
+	// HTTP index only: path → FullMethod. Schema lives on Operation.
 	assert.Exit(m.routerTree.Add(
 		http.MethodPost,
 		rule.grpcFullMethod,
@@ -426,7 +456,7 @@ func handleOperation(opt *methodWrapper) *GrpcMethod {
 	}
 }
 
-// Routes returns registered gRPC full methods for external bridges (e.g. zrpc).
+// Routes returns registered Operations for external bridges (e.g. zrpc).
 func (m *Mux) Routes() []MethodRoute {
 	routes := make([]MethodRoute, 0, len(m.opts.handlers))
 	for fullMethod, mth := range m.opts.handlers {

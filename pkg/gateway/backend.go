@@ -44,14 +44,14 @@ func (m *Mux) UseBackendStreamInterceptor(interceptor BackendStreamInterceptor) 
 }
 
 func (m *Mux) invokeBackend(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
-	if mth := m.opts.handlers[method]; mth != nil && mth.srv.remoteProxyCli != nil {
+	if mth := m.findMethod(method); mth != nil && mth.srv.remoteProxyCli != nil {
 		return mth.srv.remoteProxyCli.Invoke(ctx, method, args, reply, opts...)
 	}
 	return m.localClient.Invoke(ctx, method, args, reply, opts...)
 }
 
 func (m *Mux) newBackendStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	if mth := m.opts.handlers[method]; mth != nil && mth.srv.remoteProxyCli != nil {
+	if mth := m.findMethod(method); mth != nil && mth.srv.remoteProxyCli != nil {
 		return mth.srv.remoteProxyCli.NewStream(ctx, desc, method, opts...)
 	}
 	return m.localClient.NewStream(ctx, desc, method, opts...)
