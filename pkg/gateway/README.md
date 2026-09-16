@@ -157,9 +157,9 @@ curl -X POST http://localhost:8080/v1/users \
 
 ## 示例
 
-- [gRPC Web 示例](../../internal/examples/grpcweb/) - HTTP/gRPC-Web 前后端示例
-- [多协议示例](../../internal/examples/grpcwebsocket/) - 同一套 handler 同时暴露 HTTP/gRPC-Web(:8080)、WebSocket(:8081)、原生 gRPC(:50051)
-  - `internal/examples/grpcwebsocket/verify/` 提供自动化验证（先启动 main，再运行 verify）
+- [gRPC Web 示例](../../internal/examples/grpcweb/) - HTTP/gRPC-Web 前后端示例（含 `UseRPCMiddleware`）
+- [多协议示例](../../internal/examples/grpcwebsocket/) - `NewGatewaySurface`：HTTP/gRPC-Web(:8080)、WebSocket(:8081)、原生 gRPC(:50051)
+  - `internal/examples/grpcwebsocket/verify/` 自动化验证（HTTP/JSON、gRPC-Web trailer/gzip、WS、native）
 
 ## 部署与 TLS
 

@@ -1,25 +1,13 @@
-// Package main 提供 Gateway WebSocket 示例服务。
-//
-// 本示例演示如何通过 coder/websocket 前端调用已注册的 gRPC handler。
-// WebSocket 前端运行在标准 net/http 栈上，与 Fiber 上的 HTTP/gRPC-Web 前端并存。
+// Package main 提供 Gateway 多协议示例：同一套 gRPC handler 同时暴露
+// HTTP/REST + gRPC-Web、WebSocket、Native gRPC。
 //
 // 运行:
 //
 //	go run ./internal/examples/grpcwebsocket
 //
-// 测试:
+// 验证（需先启动本服务）:
 //
-//  1. 浏览器打开 http://localhost:8080/
-//
-//  2. 点击 SayHello / SayGoodbye 按钮，WebSocket 连接 ws://localhost:8081/...
-//
-//  3. curl 无法直接测试 WS，请使用浏览器或 wscat
-//
-//  4. 原生 gRPC 客户端连接 localhost:50051（与 HTTP/WS 共享同一套 handler）
-//
-//  5. 自动化验证（需先启动本服务）:
-//
-//     go run ./internal/examples/grpcwebsocket/verify/
+//	go run ./internal/examples/grpcwebsocket/verify/
 package main
 
 import (
@@ -39,9 +27,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
 	greeterpb "github.com/pubgo/lava/v2/internal/examples/grpcweb/proto"
 	"github.com/pubgo/lava/v2/pkg/gateway"
+	"github.com/pubgo/lava/v2/servers/gatewayserver"
 )
 
 //go:embed static/*
@@ -57,7 +47,7 @@ func (s *greeterService) SayHello(_ context.Context, req *greeterpb.HelloRequest
 		name = "Anonymous"
 	}
 	return &greeterpb.HelloResponse{
-		Message:   "Hello, " + name + "! (via WebSocket)",
+		Message:   "Hello, " + name + "!",
 		Timestamp: time.Now().Unix(),
 	}, nil
 }
@@ -68,7 +58,7 @@ func (s *greeterService) SayGoodbye(_ context.Context, req *greeterpb.GoodbyeReq
 		name = "Anonymous"
 	}
 	return &greeterpb.GoodbyeResponse{
-		Message:   "Goodbye, " + name + "! (via WebSocket)",
+		Message:   "Goodbye, " + name + "!",
 		Timestamp: time.Now().Unix(),
 	}, nil
 }
@@ -84,7 +74,7 @@ func (s *greeterService) WatchHello(req *greeterpb.WatchHelloRequest, stream gre
 	}
 	for i := int32(1); i <= count; i++ {
 		if err := stream.Send(&greeterpb.HelloResponse{
-			Message:   fmt.Sprintf("Hello, %s! stream #%d (via WebSocket)", name, i),
+			Message:   fmt.Sprintf("Hello, %s! stream #%d", name, i),
 			Timestamp: time.Now().Unix(),
 		}); err != nil {
 			return err
@@ -117,12 +107,31 @@ func main() {
 	mux := gateway.NewMux()
 	mux.RegisterService(&greeterpb.GreeterService_ServiceDesc, &greeterService{})
 
-	// Native gRPC 前端：透传到 Mux（RegisterService 一次，多协议复用）
+	// RPC middleware wraps the full Dispatch for every frontend (local + proxy).
+	mux.UseRPCMiddleware(func(ctx context.Context, op *gateway.Operation, next gateway.RPCHandler) (metadata.MD, metadata.MD, error) {
+		h, t, err := next(ctx)
+		if err != nil {
+			return h, t, err
+		}
+		if h == nil {
+			h = metadata.MD{}
+		}
+		h.Set("x-example-mw", "1")
+		if op != nil {
+			h.Set("x-example-op", op.FullMethod)
+		}
+		return h, t, nil
+	})
+
+	surface := gatewayserver.NewGatewaySurface(mux, gateway.WSOptionsFromConfig(gateway.WSConfig{
+		InsecureSkipVerify: true,
+	})...)
+
 	grpcLis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal(err)
 	}
-	grpcServer := grpc.NewServer(mux.GRPCServerOptions()...)
+	grpcServer := grpc.NewServer(surface.GRPCServerOptions...)
 	go func() {
 		log.Println("Native gRPC server listening on :50051")
 		if err := grpcServer.Serve(grpcLis); err != nil {
@@ -130,13 +139,9 @@ func main() {
 		}
 	}()
 
-	// WebSocket 前端：独立 net/http 端口
-	wsHandler := mux.WebSocketHandler(gateway.WSOptionsFromConfig(gateway.WSConfig{
-		InsecureSkipVerify: true,
-	})...)
 	wsServer := &http.Server{
 		Addr:              ":8081",
-		Handler:           wsHandler,
+		Handler:           surface.WebSocketHandler,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	go func() {
@@ -146,12 +151,20 @@ func main() {
 		}
 	}()
 
-	// HTTP/REST + gRPC-Web：Fiber 端口
-	app := fiber.New(fiber.Config{AppName: "Gateway WebSocket Example"})
+	app := fiber.New(fiber.Config{AppName: "Gateway Multi-Protocol Example"})
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders: []string{
+			"Content-Type", "X-Grpc-Web", "X-User-Agent",
+			"Grpc-Encoding", "Grpc-Accept-Encoding",
+		},
+		ExposeHeaders: []string{
+			"Grpc-Status", "Grpc-Message",
+			"Grpc-Encoding", "Grpc-Accept-Encoding",
+			"X-Example-Mw", "X-Example-Op",
+		},
 	}))
 
 	staticFS, err := fs.Sub(staticFiles, "static")
@@ -159,16 +172,15 @@ func main() {
 		log.Fatal(err)
 	}
 	app.Use("/", static.New("", static.Config{FS: staticFS, Browse: true}))
-	app.All("/v1/*", mux.Handler)
-	app.Post("/grpcweb.example.v1.GreeterService/*", mux.Handler)
+	app.All("/v1/*", surface.FiberHandler)
+	app.Post("/grpcweb.example.v1.GreeterService/*", surface.FiberHandler)
 
-	log.Println("HTTP server listening on :8080")
-	log.Println("Open http://localhost:8080/ to test WebSocket gateway")
-	log.Println("WebSocket endpoint example:")
-	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/SayHello")
-	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/WatchHello  (server-stream)")
-	log.Println("  ws://localhost:8081/grpcweb.example.v1.GreeterService/Chat       (bidi)")
-	log.Println("Native gRPC endpoint: localhost:50051")
+	log.Println("HTTP/gRPC-Web listening on :8080")
+	log.Println("  REST:     POST /v1/greeter/hello")
+	log.Println("  gRPC-Web: POST /grpcweb.example.v1.GreeterService/SayHello")
+	log.Println("  WS:       ws://localhost:8081/grpcweb.example.v1.GreeterService/SayHello")
+	log.Println("  Native:   localhost:50051")
+	log.Println("Verify: go run ./internal/examples/grpcwebsocket/verify/")
 
 	if err := app.Listen(":8080"); err != nil {
 		log.Fatal(err)
