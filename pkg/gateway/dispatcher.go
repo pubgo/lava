@@ -110,12 +110,15 @@ func (d *Dispatcher) dispatchUnary(
 	op *Operation,
 	in any,
 ) (metadata.MD, metadata.MD, error) {
+	ctx, bag := withMDBag(ctx)
 	out := op.OutputType.New().Interface()
 	var header metadata.MD
 	var trailer metadata.MD
 	if err := backend.Invoke(ctx, op.FullMethod, in, out, grpc.Header(&header), grpc.Trailer(&trailer)); err != nil {
 		return nil, nil, err
 	}
+	header = mergeMD(header, bag.header)
+	trailer = mergeMD(trailer, bag.trailer)
 	if err := frontend.SendMsg(out); err != nil {
 		return header, trailer, errors.WrapCaller(err)
 	}
@@ -129,6 +132,7 @@ func (d *Dispatcher) dispatchServerStream(
 	op *Operation,
 	in any,
 ) error {
+	ctx, bag := withMDBag(ctx)
 	localStream, err := backend.NewStream(ctx, op.StreamDesc, op.FullMethod)
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -157,11 +161,11 @@ func (d *Dispatcher) dispatchServerStream(
 		}
 
 		if !headerSent {
-			if hdr, headerErr := localStream.Header(); headerErr == nil {
-				if sendErr := frontend.SendHeader(hdr); sendErr != nil {
-					if !isDuplicateHeaderError(sendErr) {
-						return errors.WrapCaller(sendErr)
-					}
+			hdr, _ := localStream.Header()
+			hdr = mergeMD(hdr, bag.header)
+			if sendErr := frontend.SendHeader(hdr); sendErr != nil {
+				if !isDuplicateHeaderError(sendErr) {
+					return errors.WrapCaller(sendErr)
 				}
 			}
 			headerSent = true
@@ -173,16 +177,16 @@ func (d *Dispatcher) dispatchServerStream(
 	}
 
 	if !headerSent {
-		if hdr, headerErr := localStream.Header(); headerErr == nil {
-			if sendErr := frontend.SendHeader(hdr); sendErr != nil {
-				if !isDuplicateHeaderError(sendErr) {
-					return errors.WrapCaller(sendErr)
-				}
+		hdr, _ := localStream.Header()
+		hdr = mergeMD(hdr, bag.header)
+		if sendErr := frontend.SendHeader(hdr); sendErr != nil {
+			if !isDuplicateHeaderError(sendErr) {
+				return errors.WrapCaller(sendErr)
 			}
 		}
 	}
 
-	frontend.SetTrailer(localStream.Trailer())
+	frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
 	return nil
 }
 
@@ -192,6 +196,7 @@ func (d *Dispatcher) dispatchClientStream(
 	frontend FrontendStream,
 	op *Operation,
 ) error {
+	ctx, bag := withMDBag(ctx)
 	localStream, err := backend.NewStream(ctx, op.StreamDesc, op.FullMethod)
 	if err != nil {
 		return errors.WrapCaller(err)
@@ -219,7 +224,8 @@ func (d *Dispatcher) dispatchClientStream(
 		return errors.WrapCaller(err)
 	}
 
-	if hdr, headerErr := localStream.Header(); headerErr == nil {
+	if hdr, headerErr := localStream.Header(); headerErr == nil || len(bag.header) > 0 {
+		hdr = mergeMD(hdr, bag.header)
 		if sendErr := frontend.SendHeader(hdr); sendErr != nil && !isDuplicateHeaderError(sendErr) {
 			return errors.WrapCaller(sendErr)
 		}
@@ -229,7 +235,7 @@ func (d *Dispatcher) dispatchClientStream(
 		return errors.WrapCaller(err)
 	}
 
-	frontend.SetTrailer(localStream.Trailer())
+	frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
 	return nil
 }
 
@@ -240,6 +246,7 @@ func (d *Dispatcher) dispatchBidi(
 	op *Operation,
 	cfg dispatchConfig,
 ) error {
+	ctx, bag := withMDBag(ctx)
 	clientCtx, clientCancel := context.WithCancel(ctx)
 	defer clientCancel()
 
@@ -263,7 +270,7 @@ func (d *Dispatcher) dispatchBidi(
 				return errors.WrapCaller(s2cErr)
 			}
 		case c2sErr := <-c2sErrChan:
-			frontend.SetTrailer(localStream.Trailer())
+			frontend.SetTrailer(mergeMD(localStream.Trailer(), bag.trailer))
 			if c2sErr != io.EOF && c2sErr != nil {
 				return c2sErr
 			}

@@ -57,13 +57,15 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 
 | API | 作用范围 | 用途 |
 | --- | --- | --- |
-| `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor` | **所有** `Invoke`/`NewStream`（本地 + proxy） | 网关级日志、鉴权、指标、超时 |
-| `SetUnaryInterceptor` / `SetStreamInterceptor` | 仅 `RegisterService` 的 inproc **server** 拦截器 | 兼容现有 `gatewayserver` lava Middleware 适配；长期由 Backend 链承接横切 |
+| `UseRPCMiddleware` | 整段 `Dispatch` / `DispatchFrontend`（所有流模式，本地 + proxy） | lava Middleware 等需观察完整 RPC 生命周期的横切 |
+| `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor` | **所有** `Invoke`/`NewStream`（本地 + proxy） | 调用边界日志、鉴权、指标、超时 |
+| `SetUnaryInterceptor` / `SetStreamInterceptor` | 仅 `RegisterService` 的 inproc **server** 拦截器 | 兼容层；新横切优先 `UseRPCMiddleware` / `UseBackend*` |
 
 规则：
 
-- 宣称「Mux 中间件」时，默认指 **Backend 链**（本地与 proxy 一致）。  
+- 宣称「Mux 中间件」时，默认指 **RPC / Backend 链**（本地与 proxy 一致）。  
 - inproc server 拦截器是实现细节/兼容层，不应当作「统一后端」的唯一挂点。  
+- Unary / server-stream 的请求体经 `IncomingPayload(ctx)` 对 RPC 中间件可见。  
 
 ## 元数据契约（目标）
 
@@ -82,17 +84,20 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 - [x] **`TransparentHandler` 并入 `Dispatcher`**：删除并行 `forward*` 泵；远程场景 `WithPropagateBackendHeaders`  
 - [x] 设计文档（本文）落地并链到 README / architecture  
 
-### Phase 2 — 接入面整理
+### Phase 2 — 接入面整理（已完成）
 
-- `gatewayserver` 单一装配对象；横切优先挂 Backend 链（评估 lava Middleware → client interceptor 适配，避免本地双重包装）  
-- 明确 `ServeHTTP` 仅 REST/gRPC-Web，不暗示覆盖 WS  
-- 元数据白名单与 `-bin` 测试覆盖  
+- [x] `gatewayserver` 装配面：`NewGatewaySurface`；横切统一到 RPC 中间件（见 Phase 3）  
+- [x] 明确 `ServeHTTP` 仅 REST/gRPC-Web  
+- [x] 元数据白名单 / `-bin`：HTTP+WS 入口走 `newIncomingContext`；响应 `applyResponseMetadata` 过滤 reserved 并编码 `-bin`  
+- [x] Stream lava Middleware 完整迁到 Dispatcher 级钩子（`UseRPCMiddleware`，proxy 流式与本地对齐）
 
-### Phase 3 — 协议完整度（按需）
+### Phase 3 — 协议完整度（进行中）
 
-- gRPC-Web：成功 trailer、压缩帧协商  
-- 注册模型：以 `Operation` 为单一事实来源重构 `handlers` + `routerTree`  
-- HTTP framed client-stream（若产品需要）单独设计，不假装 REST body 可表示多消息  
+- [x] Dispatcher 级 stream/RPC 中间件：`Mux.UseRPCMiddleware` + `IncomingPayload`；`gatewayserver` 经 `handlerRPCMiddle` 挂载；前端统一走 `Mux.DispatchFrontend`  
+- [x] gRPC-Web：成功路径保证 trailer 帧（默认 `grpc-status=0`）；`applyGRPCWebMetadata` 允许 `grpc-*`  
+- [ ] gRPC-Web：压缩帧协商  
+- [ ] 注册模型：以 `Operation` 为单一事实来源重构 `handlers` + `routerTree`  
+- [ ] HTTP framed client-stream（若产品需要）单独设计，不假装 REST body 可表示多消息  
 
 ## 明确不做
 

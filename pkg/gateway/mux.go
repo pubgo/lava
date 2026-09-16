@@ -89,6 +89,9 @@ type Mux struct {
 	// in-process and proxy backends (see UseBackend*).
 	backendUnaryInts  []BackendUnaryInterceptor
 	backendStreamInts []BackendStreamInterceptor
+
+	// rpcMiddleware wraps full Dispatch / DispatchFrontend (see UseRPCMiddleware).
+	rpcMiddleware []RPCMiddleware
 }
 
 // Err returns the first service registration error, if any.
@@ -142,10 +145,33 @@ func (m *Mux) Handler(ctx fiber.Ctx) error {
 }
 
 func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
+	applyResponseMetadataOpts(ctx, md, false)
+}
+
+// applyGRPCWebMetadata writes metadata into the Fiber response, including
+// grpc-* keys so fiberWebWriter can emit them as a gRPC-Web trailer frame.
+func applyGRPCWebMetadata(ctx fiber.Ctx, md metadata.MD) {
+	applyResponseMetadataOpts(ctx, md, true)
+}
+
+func applyResponseMetadataOpts(ctx fiber.Ctx, md metadata.MD, allowGRPCKeys bool) {
 	for k, v := range md {
+		kLower := strings.ToLower(k)
+		if isReservedHeader(kLower) && !isWhitelistedHeader(kLower) {
+			if !(allowGRPCKeys && strings.HasPrefix(kLower, "grpc-")) {
+				continue
+			}
+		}
 		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
 		if len(v) == 0 {
 			continue
+		}
+		if strings.HasSuffix(kLower, binHdrSuffix) {
+			encoded := make([]string, len(v))
+			for i, item := range v {
+				encoded[i] = encodeBinHeader([]byte(item))
+			}
+			v = encoded
 		}
 		ctx.Response().Header.Set(k, v[0])
 		for i := 1; i < len(v); i++ {
@@ -176,8 +202,9 @@ func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method strin
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	// ServeHTTP acts as a thin wrapper only.
-	// All protocol/business handling is centralized in Handler.
+	// ServeHTTP exposes only the HTTP/REST + gRPC-Web frontend (Fiber Handler).
+	// WebSocket requires Mux.WebSocketHandler on a dedicated net/http server;
+	// native gRPC requires GRPCServerOptions / UnknownServiceHandler.
 	adaptor.FiberHandler(m.Handler).ServeHTTP(writer, request)
 }
 
@@ -410,12 +437,35 @@ func (m *Mux) Routes() []MethodRoute {
 	return routes
 }
 
-// Dispatch routes a frontend stream to the Mux backend.
+// Dispatch routes a frontend stream to the Mux backend (through RPC middleware).
 func (m *Mux) Dispatch(ctx context.Context, frontend FrontendStream, op *Operation, in any, opts ...DispatchOption) (metadata.MD, metadata.MD, error) {
-	return m.dispatcher.Dispatch(ctx, m, frontend, op, in, opts...)
+	if in != nil {
+		ctx = context.WithValue(ctx, rpcIncomingPayloadKey{}, in)
+	}
+	return m.runRPC(ctx, op, func(ctx context.Context) (metadata.MD, metadata.MD, error) {
+		return m.dispatcher.Dispatch(ctx, m, frontend, op, in, opts...)
+	})
 }
 
-// DispatchFrontend drives a frontend stream end-to-end through the dispatcher.
+// DispatchFrontend drives a frontend stream end-to-end. It pre-reads the request
+// for unary/server-stream, then runs RPC middleware around Dispatch so middleware
+// sees the payload and the full stream lifetime for all modes.
 func (m *Mux) DispatchFrontend(ctx context.Context, frontend FrontendStream, op *Operation, opts ...DispatchOption) (metadata.MD, metadata.MD, error) {
-	return m.dispatcher.DispatchFrontend(ctx, m, frontend, op, opts...)
+	if op == nil {
+		return m.dispatcher.DispatchFrontend(ctx, m, frontend, op, opts...)
+	}
+
+	preReadRequest := op.StreamDesc == nil ||
+		(op.StreamDesc.ServerStreams && !op.StreamDesc.ClientStreams)
+
+	var in any
+	if preReadRequest {
+		req := op.InputType.New().Interface()
+		if err := frontend.RecvMsg(req); err != nil {
+			return nil, nil, err
+		}
+		in = req
+	}
+
+	return m.Dispatch(ctx, frontend, op, in, opts...)
 }

@@ -27,7 +27,7 @@ func (m *Mux) GRPCPassthroughStreamHandler() grpc.StreamHandler {
 		}
 
 		op := operationFromMethod(mth)
-		header, trailer, err := m.dispatcher.DispatchFrontend(stream.Context(), m, stream, op)
+		header, trailer, err := m.DispatchFrontend(stream.Context(), stream, op)
 		if len(header) > 0 {
 			_ = stream.SetHeader(header)
 		}

@@ -170,12 +170,12 @@ func (s *serviceImpl) init(
 	}
 	assert.If(mux.Err() != nil, "gateway mux registration failed: %v", mux.Err())
 
-	mux.SetUnaryInterceptor(handlerUnaryMiddle(srvMidMap))
-	mux.SetStreamInterceptor(handlerStreamMiddle(srvMidMap))
+	// One RPC middleware chain covers unary + all stream modes for local and proxy.
+	mux.UseRPCMiddleware(handlerRPCMiddle(srvMidMap))
 
-	// Middleware runs on Mux (SetUnaryInterceptor); outer grpc.Server only passthroughs.
+	// Outer grpc.Server only passthroughs; services are registered on Mux.
 	grpcServerOpts := mux.GRPCServerOptions()
-	log.Info().Msg("gateway grpc passthrough: register services on Mux only")
+	log.Info().Msg("gateway grpc passthrough: register services on Mux only; lava middleware on UseRPCMiddleware")
 
 	grpcServer := conf.GrpcConfig.Build(grpcServerOpts...).Expect("failed to build grpc server")
 

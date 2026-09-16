@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -13,22 +14,17 @@ import (
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
 
 type httpFrontend struct {
-	mux        *Mux
-	dispatcher *Dispatcher
+	mux *Mux
 }
 
 func newHTTPFrontend(mux *Mux) *httpFrontend {
-	return &httpFrontend{
-		mux:        mux,
-		dispatcher: mux.dispatcher,
-	}
+	return &httpFrontend{mux: mux}
 }
 
 func (f *httpFrontend) handle(ctx fiber.Ctx) error {
@@ -56,7 +52,7 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 	ctx.Set(httputil.HeaderXRequestVersion, version.Version())
 	ctx.Set(httputil.HeaderXRequestOperation, match.Operation)
 
-	header, trailer, err := f.dispatcher.DispatchFrontend(stream.Context(), f.mux, stream, op)
+	header, trailer, err := f.mux.DispatchFrontend(stream.Context(), stream, op)
 	if err != nil {
 		log.Error().
 			Str("method", ctx.Method()).
@@ -65,11 +61,15 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 		return f.writeHTTPError(ctx, webWriter, err)
 	}
 
-	applyResponseMetadata(ctx, header)
-	applyResponseMetadata(ctx, trailer)
-	applyResponseMetadata(ctx, stream.trailer)
-
-	if webWriter == nil {
+	if webWriter != nil {
+		applyGRPCWebMetadata(ctx, header)
+		applyGRPCWebMetadata(ctx, trailer)
+		applyGRPCWebMetadata(ctx, stream.trailer)
+		webWriter.ensureTrailer()
+	} else {
+		applyResponseMetadata(ctx, header)
+		applyResponseMetadata(ctx, trailer)
+		applyResponseMetadata(ctx, stream.trailer)
 		ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
 	}
 	return nil
@@ -198,14 +198,15 @@ func (f *httpFrontend) buildStream(
 	params url.Values,
 	writer *fiberWebWriter,
 ) *streamHTTP {
-	md := metadata.MD{}
+	h := make(http.Header, len(ctx.GetReqHeaders()))
 	for k, v := range ctx.GetReqHeaders() {
-		md.Append(k, v...)
+		h[k] = append([]string(nil), v...)
 	}
+	reqCtx, _ := newIncomingContext(ctx.Context(), h)
 
 	stream := &streamHTTP{
 		handler: ctx,
-		ctx:     metadata.NewIncomingContext(ctx.Context(), md),
+		ctx:     reqCtx,
 		method:  mth,
 		params:  params,
 		path:    match,

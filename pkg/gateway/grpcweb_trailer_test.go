@@ -1,0 +1,134 @@
+package gateway
+
+import (
+	"bytes"
+	"context"
+	"encoding/binary"
+	"strings"
+	"sync/atomic"
+	"testing"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/emptypb"
+)
+
+func TestApplyGRPCWebMetadata_AllowsGRPCStatus(t *testing.T) {
+	app := fiber.New()
+	fctx := &fasthttp.RequestCtx{}
+	ctx := app.AcquireCtx(fctx)
+	defer app.ReleaseCtx(ctx)
+
+	applyGRPCWebMetadata(ctx, metadata.MD{
+		"grpc-status":  {"0"},
+		"grpc-message": {"ok"},
+		"x-custom":     {"v"},
+	})
+
+	if got := string(ctx.Response().Header.Peek("grpc-status")); got != "0" {
+		t.Fatalf("grpc-status=%q", got)
+	}
+	if got := string(ctx.Response().Header.Peek("grpc-message")); got != "ok" {
+		t.Fatalf("grpc-message=%q", got)
+	}
+	if got := string(ctx.Response().Header.Peek("x-custom")); got != "v" {
+		t.Fatalf("x-custom=%q", got)
+	}
+}
+
+func TestFiberWebWriter_SuccessTrailerDefaultsStatusZero(t *testing.T) {
+	app := fiber.New()
+	fctx := &fasthttp.RequestCtx{}
+	ctx := app.AcquireCtx(fctx)
+	defer app.ReleaseCtx(ctx)
+
+	var buf bytes.Buffer
+	w := &fiberWebWriter{
+		ctx:  ctx,
+		typ:  grpcWeb,
+		enc:  "proto",
+		resp: &buf,
+	}
+	w.ensureTrailer()
+	w.flushWithTrailer()
+
+	if buf.Len() < 5 {
+		t.Fatalf("expected trailer frame, got %d bytes", buf.Len())
+	}
+	if buf.Bytes()[0]&0x80 == 0 {
+		t.Fatal("MSB should mark trailer frame")
+	}
+	n := binary.BigEndian.Uint32(buf.Bytes()[1:5])
+	body := string(buf.Bytes()[5 : 5+n])
+	if !strings.Contains(strings.ToLower(body), "grpc-status: 0") {
+		t.Fatalf("trailer body=%q, want grpc-status: 0", body)
+	}
+	if ct := string(ctx.Response().Header.Peek("Content-Type")); ct != "application/grpc-web+proto" {
+		t.Fatalf("content-type=%q", ct)
+	}
+}
+
+func TestFiberWebWriter_SuccessTrailerKeepsAppliedStatus(t *testing.T) {
+	app := fiber.New()
+	fctx := &fasthttp.RequestCtx{}
+	ctx := app.AcquireCtx(fctx)
+	defer app.ReleaseCtx(ctx)
+
+	applyGRPCWebMetadata(ctx, metadata.Pairs("grpc-status", "0", "grpc-message", "done"))
+
+	var buf bytes.Buffer
+	w := &fiberWebWriter{
+		ctx:  ctx,
+		typ:  grpcWeb,
+		enc:  "proto",
+		resp: &buf,
+	}
+	// Simulate a response body already written.
+	if _, err := w.Write([]byte{0, 0, 0, 0, 0}); err != nil {
+		t.Fatal(err)
+	}
+	w.flushWithTrailer()
+
+	raw := buf.Bytes()
+	// Skip the 5-byte data frame header + empty payload, then read trailer.
+	if len(raw) < 10 {
+		t.Fatalf("short response: %d", len(raw))
+	}
+	off := 5 + int(binary.BigEndian.Uint32(raw[1:5]))
+	if off+5 > len(raw) || raw[off]&0x80 == 0 {
+		t.Fatalf("missing trailer frame at %d: %v", off, raw)
+	}
+	n := binary.BigEndian.Uint32(raw[off+1 : off+5])
+	body := string(raw[off+5 : off+5+int(n)])
+	if !strings.Contains(strings.ToLower(body), "grpc-status: 0") {
+		t.Fatalf("trailer=%q", body)
+	}
+	if !strings.Contains(strings.ToLower(body), "grpc-message: done") {
+		t.Fatalf("trailer missing message: %q", body)
+	}
+}
+
+func TestMuxRPCMiddleware_WrapsDispatch(t *testing.T) {
+	var hits atomic.Int32
+	mux := NewMux()
+	mux.UseRPCMiddleware(func(ctx context.Context, op *Operation, next RPCHandler) (metadata.MD, metadata.MD, error) {
+		hits.Add(1)
+		h, tr, err := next(ctx)
+		if h == nil {
+			h = metadata.MD{}
+		}
+		h.Set("x-rpc-mw", "1")
+		return h, tr, err
+	})
+
+	// Dispatch with nil frontend/op should still enter runRPC then fail inside dispatcher.
+	_, _, err := mux.Dispatch(context.Background(), nil, &Operation{
+		FullMethod: "/x.Y/Z",
+		InputType:  (&emptypb.Empty{}).ProtoReflect().Type(),
+		OutputType: (&emptypb.Empty{}).ProtoReflect().Type(),
+	}, &emptypb.Empty{})
+	if hits.Load() != 1 {
+		t.Fatalf("rpc middleware hits=%d want 1 (err=%v)", hits.Load(), err)
+	}
+}

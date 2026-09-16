@@ -120,14 +120,14 @@ curl -X POST http://localhost:8080/v1/users \
 
 ## 支持的协议
 
-| 协议             | Content-Type / 入口               | 说明                         |
-| ---------------- | --------------------------------- | ---------------------------- |
-| HTTP/JSON        | `application/json`                | RESTful API                  |
-| HTTP/JSON (别名) | `application/grpc-web-json`       | 前端命名兼容（按 JSON 处理） |
-| gRPC Web         | `application/grpc-web+proto`      | 浏览器 gRPC (二进制)         |
-| gRPC Web Text    | `application/grpc-web-text+proto` | 浏览器 gRPC (Base64)         |
-| WebSocket        | `Mux.WebSocketHandler()`          | net/http 监听，支持双向流    |
-| Native gRPC      | `Mux.GRPCServerOptions()`         | 标准 grpc.Server 透传        |
+| 支持的协议             | Content-Type / 入口               | 说明                         |
+| ---------------------- | --------------------------------- | ---------------------------- |
+| HTTP/JSON              | `application/json`                | RESTful API（`Mux.Handler` / `ServeHTTP`） |
+| HTTP/JSON (别名)       | `application/grpc-web-json`       | 前端命名兼容（按 JSON 处理） |
+| gRPC Web               | `application/grpc-web+proto`      | 浏览器 gRPC (二进制)         |
+| gRPC Web Text          | `application/grpc-web-text+proto` | 浏览器 gRPC (Base64)         |
+| WebSocket              | `Mux.WebSocketHandler()`          | **必须** net/http；`ServeHTTP` 不覆盖 |
+| Native gRPC            | `Mux.GRPCServerOptions()`         | 标准 grpc.Server 透传        |
 
 > NATS/zrpc 不属于 gateway 前端，见 `pkg/zrpcbridge`。
 

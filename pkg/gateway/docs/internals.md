@@ -40,6 +40,7 @@ func (d *Dispatcher) Dispatch(
 
 ### 拦截器
 
+- `UseRPCMiddleware`：包装整段 `Mux.Dispatch` / `DispatchFrontend`（所有流模式，本地与 proxy 一致）；unary/server-stream 请求体见 `IncomingPayload`。
 - `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`：挂在 Backend 边界，本地与 proxy 共用（见 `backend.go`）。
 - `SetUnaryInterceptor` / `SetStreamInterceptor`：挂在 `inprocgrpc.Channel`，只影响 `RegisterService` 本地实现（兼容层）。
 

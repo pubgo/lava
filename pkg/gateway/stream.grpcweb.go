@@ -39,14 +39,13 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
 // It writes headers directly to Fiber response headers.
 type fiberWebWriter struct {
-	ctx          fiber.Ctx
-	resp         io.Writer
-	flushWriter  http.Flusher
-	typ          string // grpcWeb or grpcWebText
-	enc          string // proto or json
-	wroteHeader  bool
-	wroteResp    bool
-	forceTrailer bool // write trailer even when no response body (error path)
+	ctx         fiber.Ctx
+	resp        io.Writer
+	flushWriter http.Flusher
+	typ         string // grpcWeb or grpcWebText
+	enc         string // proto or json
+	wroteHeader bool
+	wroteResp   bool
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
@@ -107,19 +106,22 @@ func (w *fiberWebWriter) writeTrailer() error {
 	return nil
 }
 
-func (w *fiberWebWriter) markErrorTrailer() {
-	w.forceTrailer = true
-}
+// markErrorTrailer is kept for call-site clarity on the error path.
+// flushWithTrailer always emits a trailer frame.
+func (w *fiberWebWriter) markErrorTrailer() {}
+
+// ensureTrailer is kept for call-site clarity on the success path.
+// flushWithTrailer always emits a trailer frame.
+func (w *fiberWebWriter) ensureTrailer() {}
 
 func (w *fiberWebWriter) flushWithTrailer() {
-	if w.wroteHeader || w.wroteResp || w.forceTrailer {
-		if !w.wroteHeader {
-			w.wroteHeader = true
-			w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
-		}
-		if err := w.writeTrailer(); err != nil {
-			return
-		}
+	// gRPC-Web clients always expect a trailer frame (success defaults to grpc-status=0).
+	if !w.wroteHeader {
+		w.wroteHeader = true
+		w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
+	}
+	if err := w.writeTrailer(); err != nil {
+		return
 	}
 	w.Flush()
 }

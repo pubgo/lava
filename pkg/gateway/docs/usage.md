@@ -327,14 +327,15 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 
 ### 拦截器作用范围
 
-- **`UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`**：包装 `Mux.Invoke` / `NewStream`，**本地与 `RegisterProxy` 都会经过**。网关级横切逻辑应挂这里。
-- **`SetUnaryInterceptor` / `SetStreamInterceptor`**：仅作用于 `RegisterService` 的进程内 handler（`inprocgrpc` server interceptor），保留给现有 `gatewayserver` lava Middleware 适配；长期横切迁到 Backend 链（见 [design-evolution.md](design-evolution.md)）。
+- **`UseRPCMiddleware`**：包装整段 `Dispatch` / `DispatchFrontend`（unary + 全部流模式，本地与 proxy 一致）。需要完整 RPC 生命周期（如 lava Middleware）挂这里；请求体见 `IncomingPayload`。
+- **`UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`**：包装 `Mux.Invoke` / `NewStream`，**本地与 `RegisterProxy` 都会经过**。调用边界横切挂这里。
+- **`SetUnaryInterceptor` / `SetStreamInterceptor`**：仅作用于 `RegisterService` 的进程内 handler（`inprocgrpc` server interceptor），兼容层；新横切优先 RPC / Backend 链（见 [design-evolution.md](design-evolution.md)）。
 
 ## 最佳实践
 
 1. **使用 HTTP Rule 注解**：在 Protobuf 中定义路由，而不是手动注册
 2. **合理使用 body 映射**：只映射需要的字段，减少数据传输
-3. **使用拦截器**：网关级逻辑用 `UseBackend*`；本地 handler 细节可用 `SetUnary/StreamInterceptor`
+3. **使用拦截器**：完整 RPC 横切用 `UseRPCMiddleware`；调用边界用 `UseBackend*`；本地 handler 细节可用 `SetUnary/StreamInterceptor`
 4. **错误处理**：使用标准的 gRPC 错误码，HTTP/JSON 前端会自动映射状态码
 5. **进程内调用**：优先使用本地服务注册，避免网络开销
 6. **流式 RPC**：client/bidi 请走 WebSocket 或 Native gRPC，不要依赖 HTTP/REST
