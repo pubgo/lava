@@ -2,15 +2,19 @@ package gateway
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/pubgo/funk/v2/buildinfo/version"
 	"github.com/pubgo/funk/v2/errors"
 	"github.com/pubgo/funk/v2/log"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/pubgo/lava/v2/pkg/httputil"
 )
@@ -23,14 +27,14 @@ type httpFrontend struct {
 func newHTTPFrontend(mux *Mux) *httpFrontend {
 	return &httpFrontend{
 		mux:        mux,
-		dispatcher: NewDispatcher(),
+		dispatcher: mux.dispatcher,
 	}
 }
 
 func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 	webWriter, handled, err := f.prepareGRPCWeb(ctx)
 	if err != nil {
-		return err
+		return f.writeHTTPError(ctx, nil, err)
 	}
 	if handled {
 		defer webWriter.flushWithTrailer()
@@ -38,29 +42,27 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 
 	match, mth, params, err := f.match(ctx)
 	if err != nil {
-		return err
+		return f.writeHTTPError(ctx, webWriter, err)
+	}
+
+	op := operationFromMethod(mth)
+	if op.StreamDesc != nil && op.StreamDesc.ClientStreams {
+		return f.writeHTTPError(ctx, webWriter, status.Error(codes.Unimplemented,
+			"HTTP/gRPC-Web frontend does not support client-streaming or bidi RPCs; use WebSocket or native gRPC"))
 	}
 
 	stream := f.buildStream(ctx, mth, match, params, webWriter)
-	in := mth.inputType.New().Interface()
-	if err = stream.RecvMsg(in); err != nil {
-		log.Error().
-			Str("method", ctx.Method()).
-			Str("path", string(ctx.Request().URI().Path())).
-			Msg("unmarshal request failed")
-		return errors.Errorf("unmarshal request failed, method=%s", match.Operation)
-	}
 
 	ctx.Set(httputil.HeaderXRequestVersion, version.Version())
 	ctx.Set(httputil.HeaderXRequestOperation, match.Operation)
 
-	header, trailer, err := f.dispatcher.Dispatch(stream.Context(), f.mux, stream, operationFromMethod(mth), in)
+	header, trailer, err := f.dispatcher.DispatchFrontend(stream.Context(), f.mux, stream, op)
 	if err != nil {
 		log.Error().
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("invoke failed")
-		return errors.WrapCaller(err)
+		return f.writeHTTPError(ctx, webWriter, err)
 	}
 
 	applyResponseMetadata(ctx, header)
@@ -71,6 +73,38 @@ func (f *httpFrontend) handle(ctx fiber.Ctx) error {
 		ctx.Response().Header.SetContentTypeBytes(ctx.Request().Header.ContentType())
 	}
 	return nil
+}
+
+// writeHTTPError maps a gRPC status to the HTTP/gRPC-Web response surface.
+// Plain HTTP/JSON gets an HTTP status from HTTPStatusFromCode; gRPC-Web gets
+// grpc-status / grpc-message headers that flushWithTrailer emits as a trailer frame.
+func (f *httpFrontend) writeHTTPError(ctx fiber.Ctx, ww *fiberWebWriter, err error) error {
+	if err == nil {
+		return nil
+	}
+	st := status.Convert(err)
+	if ww != nil {
+		ctx.Response().Header.Set("Grpc-Status", strconv.FormatUint(uint64(st.Code()), 10))
+		ctx.Response().Header.Set("Grpc-Message", encodeGRPCMessage(st.Message()))
+		ww.markErrorTrailer()
+		return nil
+	}
+
+	httpStatus := HTTPStatusFromCode(st.Code())
+	ctx.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	payload, mErr := json.Marshal(map[string]any{
+		"code":    uint32(st.Code()),
+		"message": st.Message(),
+	})
+	if mErr != nil {
+		return ctx.Status(httpStatus).SendString(st.Message())
+	}
+	return ctx.Status(httpStatus).Send(payload)
+}
+
+// encodeGRPCMessage percent-encodes a grpc-message header value per gRPC-Web.
+func encodeGRPCMessage(msg string) string {
+	return strings.ReplaceAll(url.PathEscape(msg), "+", "%20")
 }
 
 func (f *httpFrontend) prepareGRPCWeb(ctx fiber.Ctx) (ww *fiberWebWriter, handled bool, err error) {
@@ -129,7 +163,7 @@ func (f *httpFrontend) match(ctx fiber.Ctx) (*MatchOperation, *methodWrapper, ur
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("match operation failed")
-		return nil, nil, nil, errors.Errorf("match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
+		return nil, nil, nil, status.Errorf(codes.NotFound, "match operation failed, method=%s path=%s", ctx.Method(), string(ctx.Request().URI().Path()))
 	}
 
 	values := mergePathAndQuery(ctx, matchOperation)
@@ -140,7 +174,7 @@ func (f *httpFrontend) match(ctx fiber.Ctx) (*MatchOperation, *methodWrapper, ur
 			Str("method", ctx.Method()).
 			Str("path", string(ctx.Request().URI().Path())).
 			Msg("method operation not found")
-		return nil, nil, nil, errors.Errorf("method operation not found, method=%s", matchOperation.Operation)
+		return nil, nil, nil, status.Errorf(codes.NotFound, "method operation not found, method=%s", matchOperation.Operation)
 	}
 
 	return matchOperation, mth, values, nil

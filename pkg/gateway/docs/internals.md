@@ -27,14 +27,23 @@ func (d *Dispatcher) Dispatch(
 | Client-Stream | `ClientStreams && !ServerStreams` | 循环 `frontend.RecvMsg` → `localStream.SendMsg`，`CloseSend` 后取单次响应 |
 | Bidi | `ClientStreams && ServerStreams` | 启动 `pumpFrontendToBackend` 与 `pumpBackendToFrontend` 双向泵（`dispatcher.go`），`select` 等待任一方向结束 |
 
-> Bidi 泵刻意**不调用** `ClientStream.Header()`：inprocgrpc 后端可能不发送显式 header 帧，此时 `Header()` 会阻塞等待一个永不到来的帧。各前端在首次 `SendMsg` 时会自行发送响应 header，因此无需在泵内转发后端 header。`stream.proxy.go` 中的 `TransparentHandler` / `forwardClientToServer` 仍保留给独立的透明代理场景与单测使用。
+> Bidi 泵默认**不调用** `ClientStream.Header()`：inprocgrpc 后端可能不发送显式 header 帧，此时 `Header()` 会阻塞。各前端在首次 `SendMsg` 时自行发送响应 header。远程透明代理（`TransparentHandler`）通过 `WithPropagateBackendHeaders` 开启首帧 header 转发；已并入 `Dispatcher`，不再维护独立 `forward*` 泵。
 
 ### 入口与请求预读约定
 
-`Dispatcher.DispatchFrontend` 是各前端的统一入口（native gRPC / WebSocket / zrpc 均使用）：它根据流模式自动决定是否预读请求，再委托给 `Dispatch`。
+`Dispatcher.DispatchFrontend` 是各前端的统一入口（HTTP/gRPC-Web / native gRPC / WebSocket / zrpc 均使用）：它根据流模式自动决定是否预读请求，再委托给 `Dispatch`。
 
 - **Unary / Server-Stream**：先 `RecvMsg` 读入请求消息，作为 `in` 传给 `Dispatch`。
 - **Client-Stream / Bidi**：`in` 传 `nil`，由泵内部通过 `frontend.RecvMsg` 持续读取，直到返回 `io.EOF`。
+
+> HTTP/gRPC-Web 前端（`httpFrontend`）在进入调度前会拒绝 `ClientStreams` 方法（返回 `codes.Unimplemented`），因为单次 HTTP 请求体无法可靠表达 client/bidi 多消息语义；请改用 WebSocket 或 Native gRPC。
+
+### 拦截器
+
+- `UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`：挂在 Backend 边界，本地与 proxy 共用（见 `backend.go`）。
+- `SetUnaryInterceptor` / `SetStreamInterceptor`：挂在 `inprocgrpc.Channel`，只影响 `RegisterService` 本地实现（兼容层）。
+
+目标契约与演进见 [design-evolution.md](design-evolution.md)。
 
 各前端只需实现 `grpc.ServerStream`（编解码/帧处理），即可复用以上全部流模式，这是「底层 handler 注册一次、多协议复用」的关键。
 
@@ -126,6 +135,9 @@ localClient.RegisterService(sd, ss)  // 注册服务到进程内通道
 - `grpc-*` 相关的头
 
 ## 错误码映射
+
+HTTP/JSON 前端通过 `HTTPStatusFromCode`（`grpccodes.go`）将 gRPC status 写成对应 HTTP 状态码，响应体为 `{"code":N,"message":"..."}`。
+gRPC-Web 前端则设置 `Grpc-Status` / `Grpc-Message`，由 `fiberWebWriter` 以 trailer 帧返回（无响应体时也会强制写出 trailer）。
 
 完整的 gRPC 错误码到 HTTP 状态码映射：
 

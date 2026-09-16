@@ -288,26 +288,17 @@ mux.SetResponseEncoder(
 
 ```go
 mux := gateway.NewMux(
-    // 最大接收消息大小（默认 4MB）
-    gateway.MaxReceiveMessageSizeOption(4 * 1024 * 1024),
-    
-    // 最大发送消息大小
-    gateway.MaxSendMessageSizeOption(4 * 1024 * 1024),
-    
-    // 连接超时（默认 120s）
-    gateway.ConnectionTimeoutOption(120 * time.Second),
-    
-    // 自定义编解码器
-    gateway.CodecOption("application/xml", xmlCodec),
-    
-    // 自定义压缩器
-    gateway.CompressorOption("gzip", gzipCompressor),
+    // 按 Content-Type 覆盖/注册编解码器（默认已含 application/json、application/protobuf）
+    gateway.WithCodec("application/json", gateway.CodecJSON{}),
 )
 ```
 
+> 消息压缩（`grpc-encoding`）类型已预留注册，HTTP 前端尚未在链路上协商/应用压缩。
+
 ## 错误处理
 
-Gateway 自动将 gRPC 错误码映射为 HTTP 状态码：
+HTTP/JSON 前端将 gRPC 错误码映射为 HTTP 状态码，并返回 JSON：`{"code":N,"message":"..."}`。
+gRPC-Web 则写入 `grpc-status` / `grpc-message` 并由 trailer 帧带回客户端。
 
 | gRPC Code | HTTP Status |
 |-----------|-------------|
@@ -334,10 +325,16 @@ func (s *userService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 }
 ```
 
+### 拦截器作用范围
+
+- **`UseBackendUnaryInterceptor` / `UseBackendStreamInterceptor`**：包装 `Mux.Invoke` / `NewStream`，**本地与 `RegisterProxy` 都会经过**。网关级横切逻辑应挂这里。
+- **`SetUnaryInterceptor` / `SetStreamInterceptor`**：仅作用于 `RegisterService` 的进程内 handler（`inprocgrpc` server interceptor），保留给现有 `gatewayserver` lava Middleware 适配；长期横切迁到 Backend 链（见 [design-evolution.md](design-evolution.md)）。
+
 ## 最佳实践
 
 1. **使用 HTTP Rule 注解**：在 Protobuf 中定义路由，而不是手动注册
 2. **合理使用 body 映射**：只映射需要的字段，减少数据传输
-3. **使用拦截器**：统一处理日志、认证、监控等横切关注点
-4. **错误处理**：使用标准的 gRPC 错误码，Gateway 会自动映射
+3. **使用拦截器**：网关级逻辑用 `UseBackend*`；本地 handler 细节可用 `SetUnary/StreamInterceptor`
+4. **错误处理**：使用标准的 gRPC 错误码，HTTP/JSON 前端会自动映射状态码
 5. **进程内调用**：优先使用本地服务注册，避免网络开销
+6. **流式 RPC**：client/bidi 请走 WebSocket 或 Native gRPC，不要依赖 HTTP/REST

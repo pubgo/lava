@@ -4,6 +4,7 @@
 
 > **框架集成**：对外监听由 `servers/gatewayserver` 装配；NATS/zrpc 桥接见 `pkg/zrpcbridge`（非 gateway 前端）。
 > 全局架构见 [`docs/architecture-v2.md`](../../../docs/architecture-v2.md)；部署/TLS/HTTP/3 见 [deploy.md](deploy.md)。
+> **目标设计与演进计划**见 [design-evolution.md](design-evolution.md)。
 
 ## 设计理念
 
@@ -12,8 +13,10 @@ Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/R
 1. **声明式路由**：通过 Protobuf 注解定义 HTTP 路由，无需手动编写路由代码
 2. **协议透明**：客户端使用标准的 HTTP/JSON，后端使用 gRPC，Gateway 自动处理转换
 3. **类型安全**：基于 Protobuf 的类型系统，保证请求/响应的类型安全
-4. **可扩展性**：支持自定义编解码器、拦截器、压缩器等扩展点
-5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议（HTTP/REST、gRPC-Web、WebSocket 等）共享同一套调度与后端
+4. **可扩展性**：支持按 Content-Type 注册 Codec（`WithCodec`）；Backend 拦截器链覆盖本地与 proxy；消息压缩类型已预留但 HTTP 链路尚未启用
+5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议共享同一套调度与后端。HTTP 前端仅覆盖 unary / server-stream；client/bidi 请用 WebSocket 或 Native gRPC。
+
+完整目标契约与分阶段计划见 [design-evolution.md](design-evolution.md)。
 
 ## 分层架构
 
@@ -35,6 +38,7 @@ flowchart TB
     end
 
     subgraph BE[后端 gRPC 层 Backend]
+        MW[Backend interceptor chain<br/>本地+proxy 共用]
         INV["Mux<br/>grpc.ClientConnInterface"]
         INPROC[inprocgrpc.Channel<br/>本地 handler]
         PROXY[remoteProxyCli<br/>远程代理]
@@ -44,8 +48,9 @@ flowchart TB
     F1 & F2 & F3 & F4 --> REG
     SS --> PUMP
     PUMP --> INV
-    INV --> INPROC
-    INV --> PROXY
+    INV --> MW
+    MW --> INPROC
+    MW --> PROXY
 
     classDef fe fill:#E8F4FF,stroke:#4A90E2,color:#0B3D91;
     classDef core fill:#FFF7E8,stroke:#C87B00,color:#7A4A00;
@@ -61,7 +66,7 @@ flowchart TB
 | --- | --- | --- |
 | 前端协议层 | `httpFrontend`、`wsFrontend`、`GRPCPassthroughStreamHandler` | 协议解帧/编帧、路由或透传、构建流或转发 |
 | 核心调度层 | `Dispatcher`(`dispatcher.go`)、`Operation`(`core.go`) | 统一处理四种流模式，对接前端流与后端连接 |
-| 后端 gRPC 层 | `Mux`(`mux.go`) 实现 `grpc.ClientConnInterface` | `Invoke`/`NewStream` 分发到 `inprocgrpc` 本地 handler 或远程代理 |
+| 后端 gRPC 层 | `Mux` + `UseBackend*`（`backend.go`） | `Invoke`/`NewStream`；Backend 拦截器链后分发到 inproc 或 remote proxy |
 
 ### 核心抽象（core.go）
 
@@ -114,7 +119,8 @@ pkg/gateway/
 ├── stream.http.go      # HTTP / gRPC-Web 流实现（streamHTTP）
 ├── stream.grpcweb.go   # gRPC Web 帧写入器（fiberWebWriter）
 ├── stream.websocket.go # WebSocket 流实现（streamWS，实现 grpc.ServerStream）
-├── stream.proxy.go     # 透明代理泵 TransparentHandler（独立代理场景；bidi 调度已改用 dispatcher.go 的 pump）
+├── stream.proxy.go     # TransparentHandler：Dispatcher bidi + WithPropagateBackendHeaders
+├── backend.go          # Backend 拦截器链（本地 + proxy）
 ├── context.go          # 上下文和元数据管理
 ├── util.go             # 工具函数（HTTP Rule 解析、元数据转换等）
 ├── fieldmask.go        # FieldMask 支持
@@ -268,21 +274,20 @@ flowchart TD
     I -- Yes --> J["构建 metadata.MD"]
     J --> K["构建 streamHTTP"]
 
-    K --> L["stream.RecvMsg(in)"]
-    L --> M{"反序列化成功?"}
-    M -- No --> Mx["返回 unmarshal request failed"]
-    M -- Yes --> N["invokeWithStream"]
+    K --> O{"ClientStreams?"}
+    O -- Yes --> Ox["返回 Unimplemented"]
+    O -- No --> N["DispatchFrontend（内部 RecvMsg + Dispatch）"]
 
-    N --> O{"grpcStreamDesc != nil?"}
-    O -- No --> P["Unary: Invoke + SendMsg"]
-    O -- Yes --> Q["Server Stream: NewStream/Recv loop/SendHeader/SendMsg/Trailer"]
+    N --> P{"grpcStreamDesc == nil?"}
+    P -- Yes --> Q["Unary: Invoke + SendMsg"]
+    P -- No --> R["Server Stream: NewStream/Recv loop/SendHeader/SendMsg/Trailer"]
 
-    P --> R["写响应头 version/operation"]
-    Q --> R
-    R --> S{"gRPC-Web 分支?"}
-    S -- Yes --> T["flushWithTrailer"]
-    S -- No --> U["结束"]
-    T --> U
+    Q --> S["写响应头 version/operation"]
+    R --> S
+    S --> T{"gRPC-Web 分支?"}
+    T -- Yes --> U["flushWithTrailer"]
+    T -- No --> V["结束"]
+    U --> V
 
     classDef entry fill:#E8F4FF,stroke:#4A90E2,stroke-width:1.2px,color:#0B3D91;
     classDef decision fill:#F4EEFF,stroke:#7A5AF8,stroke-width:1.2px,color:#4C33B6;
@@ -291,11 +296,13 @@ flowchart TD
     classDef error fill:#FFECEC,stroke:#D14343,stroke-width:1.2px,color:#7D1F1F;
 
     class A entry;
-    class B,C1,C3,F,I,M,O,S decision;
-    class C,D,C2,C4,C5,C6,E,G,H,J,K,L,N,P,Q,R,T process;
-    class U success;
-    class Cx,Fx,Ix,Mx error;
+    class B,C1,C3,F,I,O,P,T decision;
+    class C,D,C2,C4,C5,C6,E,G,H,J,K,N,Q,R,S,U process;
+    class V success;
+    class Cx,Fx,Ix,Ox error;
 ```
+
+> 说明：HTTP/gRPC-Web 前端对 **client-stream / bidi** 返回 `Unimplemented`，请改用 WebSocket 或 Native gRPC。Unary / Server-Stream 经 `DispatchFrontend` 统一调度。
 
 ### RouterTree.Match 路由匹配流程图
 
@@ -347,7 +354,7 @@ flowchart TD
     E --> F["构建 streamHTTP 并 RecvMsg"]
     F --> G["isGRPCContentType(application/grpc-web-json) = false"]
     G --> H["按 JSON 反序列化请求体"]
-    H --> I["invokeWithStream 调用后端 gRPC"]
+    H --> I["DispatchFrontend 调用后端 gRPC"]
     I --> J["SendMsg 时按 JSON 序列化响应"]
     J --> K["fiberWebWriter 写出 grpc-web 响应并 flush trailer"]
 

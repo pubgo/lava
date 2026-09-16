@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,10 +13,11 @@ import (
 	"github.com/pubgo/funk/v2"
 	"github.com/pubgo/funk/v2/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/pubgo/lava/v2/pkg/encoding/protojson"
 	"github.com/pubgo/lava/v2/pkg/gateway/gatewayutils"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
 )
@@ -31,6 +31,9 @@ type streamHTTP struct {
 	trailer    metadata.MD
 	params     url.Values
 	sentHeader bool
+	// recvDone is set after a successful RecvMsg so subsequent reads return EOF.
+	// HTTP/gRPC-Web request bodies are single-shot for unary and server-stream.
+	recvDone bool
 	// responseStream indicates this stream writes multiple response messages.
 	// For JSON transport we emit NDJSON (one JSON object per line).
 	responseStream bool
@@ -125,11 +128,12 @@ func (s *streamHTTP) SendMsg(m any) error {
 
 	ct := string(s.handler.Request().Header.ContentType())
 	isGRPC := isGRPCContentType(ct)
+	codec := s.lookupCodec(ct)
 
 	var b []byte
 	var err error
 	if isGRPC {
-		b, err = proto.Marshal(msg)
+		b, err = codec.Marshal(msg)
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal response by protobuf")
 		}
@@ -139,9 +143,9 @@ func (s *streamHTTP) SendMsg(m any) error {
 		copy(frame[5:], b)
 		b = frame
 	} else {
-		b, err = protojson.Default.Marshal(msg)
+		b, err = codec.Marshal(msg)
 		if err != nil {
-			return errors.Wrap(err, "failed to marshal response by protojson")
+			return errors.Wrap(err, "failed to marshal response by codec")
 		}
 	}
 
@@ -175,6 +179,10 @@ func (s *streamHTTP) SendMsg(m any) error {
 }
 
 func (s *streamHTTP) RecvMsg(m any) error {
+	if s.recvDone {
+		return io.EOF
+	}
+
 	if funk.IsNil(m) {
 		return errors.New("stream http recv msg got nil")
 	}
@@ -203,10 +211,11 @@ func (s *streamHTTP) RecvMsg(m any) error {
 
 		ct := string(s.handler.Request().Header.ContentType())
 		isGRPC := isGRPCContentType(ct)
+		codec := s.lookupCodec(ct)
 
 		// PUT/POST/PATCH 必须有 body (gRPC 请求除外，因为需要先解析帧)
 		if hasBody && !isGRPC && len(s.handler.Body()) == 0 {
-			return errors.WrapCaller(fmt.Errorf("request body is nil, operation=%s", reqName))
+			return status.Errorf(codes.InvalidArgument, "request body is nil, operation=%s", reqName)
 		}
 
 		if s.handler.Request().IsBodyStream() {
@@ -215,24 +224,24 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				// Read gRPC frame header: 1 byte flags + 4 bytes length
 				header := make([]byte, 5)
 				if _, err := io.ReadFull(reader, header); err != nil {
-					return errors.WrapCaller(err)
+					return status.Errorf(codes.InvalidArgument, "read grpc frame header: %v", err)
 				}
 				length := binary.BigEndian.Uint32(header[1:5])
 				data := make([]byte, length)
 				if _, err := io.ReadFull(reader, data); err != nil {
-					return errors.WrapCaller(err)
+					return status.Errorf(codes.InvalidArgument, "read grpc frame body: %v", err)
 				}
-				if err := proto.Unmarshal(data, msg); err != nil {
-					return errors.Wrapf(err, "failed to unmarshal body by protobuf, msg=%#v", msg)
+				if err := codec.Unmarshal(data, msg); err != nil {
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}
 			} else {
 				var b json.RawMessage
 				if err := json.NewDecoder(reader).Decode(&b); err != nil {
-					return errors.WrapCaller(err)
+					return status.Errorf(codes.InvalidArgument, "decode json body: %v", err)
 				}
 
-				if err := protojson.Default.Unmarshal(b, msg); err != nil {
-					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+				if err := codec.Unmarshal(b, msg); err != nil {
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}
 			}
 		} else {
@@ -240,19 +249,19 @@ func (s *streamHTTP) RecvMsg(m any) error {
 			if isGRPC {
 				// gRPC frame: 1 byte flags + 4 bytes length + message
 				if len(body) < 5 {
-					return errors.New("invalid gRPC frame: too short")
+					return status.Error(codes.InvalidArgument, "invalid gRPC frame: too short")
 				}
 				length := binary.BigEndian.Uint32(body[1:5])
 				if len(body) < int(5+length) {
-					return errors.Errorf("invalid gRPC frame: expected %d bytes, got %d", 5+length, len(body))
+					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", 5+length, len(body))
 				}
 				data := body[5 : 5+length]
-				if err := proto.Unmarshal(data, msg); err != nil {
-					return errors.Wrapf(err, "failed to unmarshal body by protobuf, msg=%#v", msg)
+				if err := codec.Unmarshal(data, msg); err != nil {
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}
 			} else if len(body) > 0 {
-				if err := protojson.Default.Unmarshal(body, msg); err != nil {
-					return errors.Wrapf(err, "failed to unmarshal body by proto-json, msg=%#v", msg)
+				if err := codec.Unmarshal(body, msg); err != nil {
+					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}
 			}
 		}
@@ -264,5 +273,30 @@ func (s *streamHTTP) RecvMsg(m any) error {
 		}
 	}
 
+	s.recvDone = true
 	return nil
+}
+
+// lookupCodec resolves a Codec from the mux registry by Content-Type.
+// Falls back to Protobuf for gRPC framed types and JSON otherwise.
+func (s *streamHTTP) lookupCodec(contentType string) Codec {
+	ct := strings.ToLower(strings.TrimSpace(contentType))
+	if i := strings.Index(ct, ";"); i >= 0 {
+		ct = strings.TrimSpace(ct[:i])
+	}
+	if s.method != nil && s.method.srv != nil && s.method.srv.opts != nil {
+		if c, ok := s.method.srv.opts.codecs[ct]; ok && c != nil {
+			return c
+		}
+		// application/grpc+json → try json codec by name
+		if _, enc, ok := strings.Cut(ct, "+"); ok {
+			if c, ok := s.method.srv.opts.codecsByName[enc]; ok && c != nil {
+				return c
+			}
+		}
+	}
+	if isGRPCContentType(ct) {
+		return CodecProto{}
+	}
+	return CodecJSON{}
 }

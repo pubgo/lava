@@ -10,6 +10,32 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+type dispatchConfig struct {
+	// propagateBackendHeaders asks the backend→frontend pump to call
+	// ClientStream.Header() before the first response message. Safe for remote
+	// proxies; must stay false for inprocgrpc (Header can block forever).
+	propagateBackendHeaders bool
+}
+
+// DispatchOption configures Dispatch / DispatchFrontend behavior.
+type DispatchOption func(*dispatchConfig)
+
+// WithPropagateBackendHeaders enables forwarding backend response headers on
+// the first streamed message. Use for remote ClientConn backends only.
+func WithPropagateBackendHeaders() DispatchOption {
+	return func(c *dispatchConfig) { c.propagateBackendHeaders = true }
+}
+
+func applyDispatchOptions(opts []DispatchOption) dispatchConfig {
+	var cfg dispatchConfig
+	for _, opt := range opts {
+		if opt != nil {
+			opt(&cfg)
+		}
+	}
+	return cfg
+}
+
 // DispatchFrontend drives a frontend grpc.ServerStream end-to-end. For unary and
 // server-streaming RPCs it pre-reads the request message via RecvMsg before
 // dispatching; client-streaming and bidi read inside the pump. This is the
@@ -20,6 +46,7 @@ func (d *Dispatcher) DispatchFrontend(
 	backend Backend,
 	frontend FrontendStream,
 	op *Operation,
+	opts ...DispatchOption,
 ) (header, trailer metadata.MD, err error) {
 	if op == nil {
 		return nil, nil, errors.New("operation is nil")
@@ -37,7 +64,7 @@ func (d *Dispatcher) DispatchFrontend(
 		in = req
 	}
 
-	return d.Dispatch(ctx, backend, frontend, op, in)
+	return d.Dispatch(ctx, backend, frontend, op, in, opts...)
 }
 
 // Dispatch connects a frontend stream to the backend for the given operation.
@@ -49,10 +76,12 @@ func (d *Dispatcher) Dispatch(
 	frontend FrontendStream,
 	op *Operation,
 	in any,
+	opts ...DispatchOption,
 ) (header, trailer metadata.MD, err error) {
 	if op == nil {
 		return nil, nil, errors.New("operation is nil")
 	}
+	cfg := applyDispatchOptions(opts)
 	if op.StreamDesc == nil {
 		header, trailer, err = d.dispatchUnary(ctx, backend, frontend, op, in)
 		return header, trailer, err
@@ -67,7 +96,7 @@ func (d *Dispatcher) Dispatch(
 		err = d.dispatchClientStream(ctx, backend, frontend, op)
 		return nil, nil, err
 	case desc.ClientStreams && desc.ServerStreams:
-		err = d.dispatchBidi(ctx, backend, frontend, op)
+		err = d.dispatchBidi(ctx, backend, frontend, op, cfg)
 		return nil, nil, err
 	default:
 		return nil, nil, errors.Errorf("unsupported stream mode: %s", op.FullMethod)
@@ -209,6 +238,7 @@ func (d *Dispatcher) dispatchBidi(
 	backend Backend,
 	frontend FrontendStream,
 	op *Operation,
+	cfg dispatchConfig,
 ) error {
 	clientCtx, clientCancel := context.WithCancel(ctx)
 	defer clientCancel()
@@ -219,7 +249,7 @@ func (d *Dispatcher) dispatchBidi(
 	}
 
 	s2cErrChan := pumpFrontendToBackend(op.InputType, frontend, localStream)
-	c2sErrChan := pumpBackendToFrontend(op.OutputType, localStream, frontend)
+	c2sErrChan := pumpBackendToFrontend(op.OutputType, localStream, frontend, cfg.propagateBackendHeaders)
 
 	for i := 0; i < 2; i++ {
 		select {
@@ -265,19 +295,33 @@ func pumpFrontendToBackend(in protoreflect.MessageType, src FrontendStream, dst 
 }
 
 // pumpBackendToFrontend forwards response messages from the backend client
-// stream to the frontend server stream. Unlike the proxy forwarder it never
-// calls ClientStream.Header(): the inprocgrpc backend may deliver data frames
-// without an explicit header frame, which would make Header() block waiting for
-// a frame that never arrives. Frontends emit their own response headers on the
-// first SendMsg, so backend header propagation is not required here.
-func pumpBackendToFrontend(out protoreflect.MessageType, src grpc.ClientStream, dst FrontendStream) chan error {
+// stream to the frontend server stream.
+//
+// When propagateHeader is false (default for Mux/inproc), Header() is never
+// called: inprocgrpc may deliver data without an explicit header frame, and
+// Header() would block. Frontends emit their own headers on first SendMsg.
+//
+// When propagateHeader is true (remote TransparentHandler), the first response
+// message triggers Header()+SendHeader before SendMsg.
+func pumpBackendToFrontend(out protoreflect.MessageType, src grpc.ClientStream, dst FrontendStream, propagateHeader bool) chan error {
 	ret := make(chan error, 1)
 	go func() {
-		for {
+		for i := 0; ; i++ {
 			msg := out.New().Interface()
 			if err := src.RecvMsg(msg); err != nil {
 				ret <- err
 				return
+			}
+			if propagateHeader && i == 0 {
+				if md, err := src.Header(); err == nil {
+					if sendErr := dst.SendHeader(md); sendErr != nil && !isDuplicateHeaderError(sendErr) {
+						ret <- sendErr
+						return
+					}
+				} else {
+					ret <- err
+					return
+				}
 			}
 			if err := dst.SendMsg(msg); err != nil {
 				ret <- err

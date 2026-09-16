@@ -11,9 +11,19 @@ Gateway 是一个 gRPC Gateway 实现，提供 HTTP/JSON 到 gRPC 的协议转�
 - **协议转换**：自动处理 HTTP/JSON 与 gRPC/Protobuf 之间的双向转换
 - **gRPC Web 支持**：允许浏览器直接调用 gRPC 服务
 - **服务注册**：支持本地服务和代理服务的注册
-- **中间件支持**：提供 Unary 和 Stream 拦截器
-- **自定义编解码**：支持 JSON、Protobuf 等多种编码格式
-- **错误映射**：自动将 gRPC 错误码映射为 HTTP 状态码
+- **中间件支持**：`UseBackend*` 覆盖本地与 proxy；`SetUnary/StreamInterceptor` 仅 inproc（兼容）
+- **编解码**：内置 JSON / Protobuf，可通过 `WithCodec` 按 Content-Type 覆盖
+- **错误映射**：HTTP/JSON 将 gRPC 错误码映射为 HTTP 状态码；gRPC-Web 写入 `grpc-status` trailer
+
+## 协议 × 流模式
+
+| 前端 | Unary | Server-Stream | Client-Stream | Bidi |
+| ---- | ----- | ------------- | ------------- | ---- |
+| HTTP/REST + gRPC-Web | ✅ | ✅ | ❌（`Unimplemented`，请用 WS / Native gRPC） | ❌ |
+| WebSocket | ✅ | ✅ | ✅ | ✅ |
+| Native gRPC | ✅ | ✅ | ✅ | ✅ |
+
+> Dispatcher 本身支持四种流；HTTP 单次请求体无法可靠表达 client/bidi 多消息语义，故在前端入口拒绝。
 
 ## 分层架构概览
 
@@ -27,7 +37,7 @@ Gateway 是一个 gRPC Gateway 实现，提供 HTTP/JSON 到 gRPC 的协议转�
 
 对外监听由 `servers/gatewayserver` 装配。NATS/zrpc 见 `pkg/zrpcbridge`。
 
-设计灵感来自 [connectrpc/vanguard-go](https://github.com/connectrpc/vanguard-go)：所有前端协议最终归一化为 gRPC 语义的 `ServerStream`，由统一的 `Dispatcher` 对接后端，从而让「底层注册一次的 gRPC handler」服务于多种上层协议。详见 [架构设计](docs/architecture.md)。
+设计灵感来自 [connectrpc/vanguard-go](https://github.com/connectrpc/vanguard-go)：所有前端协议最终归一化为 gRPC 语义的 `ServerStream`，由统一的 `Dispatcher` 对接后端，从而让「底层注册一次的 gRPC handler」服务于多种上层协议。详见 [架构设计](docs/architecture.md)、[目标设计与演进](docs/design-evolution.md)。
 
 ## 快速开始
 
@@ -104,6 +114,7 @@ curl -X POST http://localhost:8080/v1/users \
 | [Native gRPC](docs/grpcnative.md) | 原生 gRPC 透传，RegisterService 一次多协议复用 |
 | [NATS/zrpc 桥接](../../zrpcbridge/README.md) | 可选：NATS 订阅桥接到 Mux（非 gateway 前端） |
 | [架构设计](docs/architecture.md) | 分层架构、核心组件、调度流程           |
+| [目标设计与演进](docs/design-evolution.md) | 目标契约、中间件模型、分阶段计划 |
 | [实现细节](docs/internals.md)    | 路径解析、调度器、元数据转换、流式处理 |
 | [部署/TLS](docs/deploy.md)       | 边缘 TLS 终止与 Traefik 多协议路由     |
 

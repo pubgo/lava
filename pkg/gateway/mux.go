@@ -21,9 +21,9 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
-	"github.com/pubgo/lava/v2/pkg/lava"
 	"github.com/pubgo/lava/v2/pkg/gateway/internal"
 	"github.com/pubgo/lava/v2/pkg/gateway/routertree"
+	"github.com/pubgo/lava/v2/pkg/lava"
 )
 
 type muxOptions struct {
@@ -40,6 +40,17 @@ type muxOptions struct {
 
 // MuxOption is an option for a mux.
 type MuxOption func(*muxOptions)
+
+// WithCodec registers or overrides a Codec for the given Content-Type
+// (e.g. "application/json"). Built-in defaults cover JSON and Protobuf.
+func WithCodec(contentType string, c Codec) MuxOption {
+	return func(o *muxOptions) {
+		if o.codecs == nil {
+			o.codecs = make(map[string]Codec)
+		}
+		o.codecs[contentType] = c
+	}
+}
 
 var (
 	defaultMuxOptions = muxOptions{
@@ -73,6 +84,11 @@ type Mux struct {
 	dispatcher   *Dispatcher
 	httpFrontend *httpFrontend
 	regErr       error
+
+	// backendUnaryInts / backendStreamInts wrap Invoke/NewStream for both
+	// in-process and proxy backends (see UseBackend*).
+	backendUnaryInts  []BackendUnaryInterceptor
+	backendStreamInts []BackendStreamInterceptor
 }
 
 // Err returns the first service registration error, if any.
@@ -125,21 +141,6 @@ func (m *Mux) Handler(ctx fiber.Ctx) error {
 	return m.httpFrontend.handle(ctx)
 }
 
-func (m *Mux) invokeWithStream(stream *streamHTTP, in any) error {
-	header, trailer, err := m.dispatcher.Dispatch(stream.Context(), m, stream, operationFromMethod(stream.method), in)
-	if err != nil {
-		return err
-	}
-	applyResponseMetadata(stream.handler, header)
-	applyResponseMetadata(stream.handler, trailer)
-	applyResponseMetadata(stream.handler, stream.trailer)
-	return nil
-}
-
-func (m *Mux) invokeResponseStream(remoteStream *streamHTTP, in any) error {
-	return m.invokeWithStream(remoteStream, in)
-}
-
 func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
 	for k, v := range md {
 		v = lo.Filter(v, func(item string, index int) bool { return item != "" })
@@ -147,6 +148,9 @@ func applyResponseMetadata(ctx fiber.Ctx, md metadata.MD) {
 			continue
 		}
 		ctx.Response().Header.Set(k, v[0])
+		for i := 1; i < len(v); i++ {
+			ctx.Response().Header.Add(k, v[i])
+		}
 	}
 }
 
@@ -162,23 +166,13 @@ func isDuplicateHeaderError(err error) bool {
 }
 
 func (m *Mux) Invoke(ctx context.Context, method string, args, reply any, opts ...grpc.CallOption) error {
-	if mth := m.opts.handlers[method]; mth != nil {
-		if mth.srv.remoteProxyCli != nil {
-			return mth.srv.remoteProxyCli.Invoke(ctx, method, args, reply, opts...)
-		}
-	}
-
-	return m.localClient.Invoke(ctx, method, args, reply, opts...)
+	invoker := chainBackendUnary(m.backendUnaryInts, m.invokeBackend)
+	return invoker(ctx, method, args, reply, opts...)
 }
 
 func (m *Mux) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	if mth := m.opts.handlers[method]; mth != nil {
-		if mth.srv.remoteProxyCli != nil {
-			return mth.srv.remoteProxyCli.NewStream(ctx, desc, method, opts...)
-		}
-	}
-
-	return m.localClient.NewStream(ctx, desc, method, opts...)
+	streamer := chainBackendStream(m.backendStreamInts, m.newBackendStream)
+	return streamer(ctx, desc, method, opts...)
 }
 
 func (m *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -226,6 +220,8 @@ func NewMux(opts ...MuxOption) *Mux {
 	}
 
 	// Ensure compressors are set.
+	// NOTE: compressors are registered for future grpc-encoding support; the HTTP
+	// frontend does not yet negotiate or apply message compression on the wire.
 	if muxOpts.compressors == nil {
 		muxOpts.compressors = make(map[string]Compressor)
 	}
@@ -248,11 +244,14 @@ func NewMux(opts ...MuxOption) *Mux {
 }
 
 func (m *Mux) SetUnaryInterceptor(interceptor grpc.UnaryServerInterceptor) {
+	// Compatibility: wraps RegisterService handlers inside inprocgrpc only.
+	// Prefer UseBackendUnaryInterceptor for middleware that must also cover RegisterProxy.
 	m.localClient.WithServerUnaryInterceptor(interceptor)
 }
 
 // SetStreamInterceptor configures the in-process channel to use the
 // given server interceptor for streaming RPCs when dispatching.
+// Prefer UseBackendStreamInterceptor for middleware that must also cover RegisterProxy.
 func (m *Mux) SetStreamInterceptor(interceptor grpc.StreamServerInterceptor) {
 	m.localClient.WithServerStreamInterceptor(interceptor)
 }
@@ -285,7 +284,7 @@ func (m *Mux) RegisterService(sd *grpc.ServiceDesc, ss any) {
 func (m *Mux) registerRouter(rule *methodWrapper) {
 	m.opts.handlers[rule.grpcFullMethod] = rule
 	if rule.meta != nil {
-		assert.If(m.opts.customOperationNames[rule.meta.Name] != nil, "rpc custome name:%s already exists", rule.meta.Name)
+		assert.If(m.opts.customOperationNames[rule.meta.Name] != nil, "rpc custom name:%s already exists", rule.meta.Name)
 		m.opts.customOperationNames[rule.meta.Name] = rule
 	}
 
@@ -368,18 +367,21 @@ func (m *Mux) registerService(gsd *grpc.ServiceDesc, ss any, cli grpc.ClientConn
 	return nil
 }
 
-func GetRouterTarget(mux *Mux, kind, path string) (*MatchOperation, error) {
+// GetRouterTarget matches an HTTP method and path against the mux route tree.
+// method defaults to POST when empty (the method used for auto-registered gRPC
+// full-method routes).
+func GetRouterTarget(mux *Mux, method, path string) (*MatchOperation, error) {
 	if path == "" {
 		return nil, errors.New("path is null")
 	}
 
-	if kind == "" {
-		kind = "ws"
+	if method == "" {
+		method = http.MethodPost
 	}
 
-	restTarget, err := mux.routerTree.Match(path, kind)
+	restTarget, err := mux.routerTree.Match(method, path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "path not found, kind=%s path=%s", kind, path)
+		return nil, errors.Wrapf(err, "path not found, method=%s path=%s", method, path)
 	}
 
 	return restTarget, nil
@@ -409,11 +411,11 @@ func (m *Mux) Routes() []MethodRoute {
 }
 
 // Dispatch routes a frontend stream to the Mux backend.
-func (m *Mux) Dispatch(ctx context.Context, frontend FrontendStream, op *Operation, in any) (metadata.MD, metadata.MD, error) {
-	return m.dispatcher.Dispatch(ctx, m, frontend, op, in)
+func (m *Mux) Dispatch(ctx context.Context, frontend FrontendStream, op *Operation, in any, opts ...DispatchOption) (metadata.MD, metadata.MD, error) {
+	return m.dispatcher.Dispatch(ctx, m, frontend, op, in, opts...)
 }
 
 // DispatchFrontend drives a frontend stream end-to-end through the dispatcher.
-func (m *Mux) DispatchFrontend(ctx context.Context, frontend FrontendStream, op *Operation) (metadata.MD, metadata.MD, error) {
-	return m.dispatcher.DispatchFrontend(ctx, m, frontend, op)
+func (m *Mux) DispatchFrontend(ctx context.Context, frontend FrontendStream, op *Operation, opts ...DispatchOption) (metadata.MD, metadata.MD, error) {
+	return m.dispatcher.DispatchFrontend(ctx, m, frontend, op, opts...)
 }

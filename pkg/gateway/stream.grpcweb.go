@@ -39,13 +39,14 @@ func isWebRequestFromContentType(ct, method string) (typ, enc string, ok bool) {
 // fiberWebWriter is a gRPC Web writer specifically for Fiber framework.
 // It writes headers directly to Fiber response headers.
 type fiberWebWriter struct {
-	ctx         fiber.Ctx
-	resp        io.Writer
-	flushWriter http.Flusher
-	typ         string // grpcWeb or grpcWebText
-	enc         string // proto or json
-	wroteHeader bool
-	wroteResp   bool
+	ctx          fiber.Ctx
+	resp         io.Writer
+	flushWriter  http.Flusher
+	typ          string // grpcWeb or grpcWebText
+	enc          string // proto or json
+	wroteHeader  bool
+	wroteResp    bool
+	forceTrailer bool // write trailer even when no response body (error path)
 }
 
 func newFiberWebWriter(ctx fiber.Ctx, typ, enc string) *fiberWebWriter {
@@ -78,10 +79,6 @@ func (w *fiberWebWriter) Write(data []byte) (int, error) {
 }
 
 func (w *fiberWebWriter) writeTrailer() error {
-	// Write trailers only if message has been sent.
-	if !w.wroteResp {
-		return nil
-	}
 	tr := make(http.Header)
 	// Collect grpc-* headers for trailer
 	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
@@ -110,11 +107,18 @@ func (w *fiberWebWriter) writeTrailer() error {
 	return nil
 }
 
+func (w *fiberWebWriter) markErrorTrailer() {
+	w.forceTrailer = true
+}
+
 func (w *fiberWebWriter) flushWithTrailer() {
-	// Write trailers only if message has been sent.
-	if w.wroteHeader || w.wroteResp {
+	if w.wroteHeader || w.wroteResp || w.forceTrailer {
+		if !w.wroteHeader {
+			w.wroteHeader = true
+			w.ctx.Set("Content-Type", w.typ+"+"+w.enc)
+		}
 		if err := w.writeTrailer(); err != nil {
-			return // nothing
+			return
 		}
 	}
 	w.Flush()
