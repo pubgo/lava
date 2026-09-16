@@ -31,19 +31,21 @@ Client ────────►├─ wsFrontend     (net/http)   四流
                  └─ zrpc bridge                 四流
                               │
                               ▼
-                     DispatchFrontend
+                     Mux.DispatchFrontend
+                              │
+                     UseRPCMiddleware（整段 RPC）
                               │
                               ▼
                     Backend (Mux)
-                     ├─ Backend interceptor chain  ← 本地与 proxy 共用
+                     ├─ UseBackend* interceptor  ← 本地与 proxy 共用
                      ├─ local inproc
                      └─ remote proxy
 ```
 
-**装配（目标）**：`gatewayserver` 提供单一装配面——一次 Register，吐出 HTTP / WS / gRPC 入口，中间件与错误映射一处注入。  
+**装配**：`gatewayserver` 一次 Register 后挂 `UseRPCMiddleware`；`NewGatewaySurface` 可从已注册 Mux 取出 HTTP / WS / gRPC 入口。  
 **双栈**：接受 HTTP 用 Fiber、WS 用 net/http；不在 fasthttp 上强行跑 websocket。
 
-**单一事实来源（目标）**：注册产出 `Operation`（full method、流模式、HTTP rules、codec hints）；`handlers` / `routerTree` / `Routes()` 均由其派生。
+**调度单一事实来源**：注册时固化 `Operation`（FullMethod / 消息类型 / 流模式 / Meta）。`routerTree` 只做 HTTP 路径 → FullMethod 索引；`methodWrapper` 仍持有 srv/codec/proxy 等实现绑定（非 schema 副本）。HTTP rule 的 body 映射细节留在路由 extras。
 
 ## 协议 × 流模式（契约）
 
@@ -91,7 +93,7 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 - [x] 元数据白名单 / `-bin`：HTTP+WS 入口走 `newIncomingContext`；响应 `applyResponseMetadata` 过滤 reserved 并编码 `-bin`  
 - [x] Stream lava Middleware 完整迁到 Dispatcher 级钩子（`UseRPCMiddleware`，proxy 流式与本地对齐）
 
-### Phase 3 — 协议完整度（进行中）
+### Phase 3 — 协议完整度（已完成核心项）
 
 - [x] Dispatcher 级 stream/RPC 中间件：`Mux.UseRPCMiddleware` + `IncomingPayload`；`gatewayserver` 经 `handlerRPCMiddle` 挂载；前端统一走 `Mux.DispatchFrontend`  
 - [x] gRPC-Web：成功路径保证 trailer 帧（默认 `grpc-status=0`）；`applyGRPCWebMetadata` 允许 `grpc-*`  

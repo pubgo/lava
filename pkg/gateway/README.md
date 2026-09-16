@@ -11,8 +11,8 @@ Gateway 是一个 gRPC Gateway 实现，提供 HTTP/JSON 到 gRPC 的协议转�
 - **协议转换**：自动处理 HTTP/JSON 与 gRPC/Protobuf 之间的双向转换
 - **gRPC Web 支持**：允许浏览器直接调用 gRPC 服务
 - **服务注册**：支持本地服务和代理服务的注册
-- **中间件支持**：`UseBackend*` 覆盖本地与 proxy；`SetUnary/StreamInterceptor` 仅 inproc（兼容）
-- **编解码**：内置 JSON / Protobuf，可通过 `WithCodec` 按 Content-Type 覆盖
+- **中间件支持**：`UseRPCMiddleware` 覆盖整段 RPC（本地 + proxy）；`UseBackend*` 覆盖 Invoke/NewStream；`SetUnary/StreamInterceptor` 仅 inproc（兼容）
+- **编解码 / 压缩**：内置 JSON / Protobuf（`WithCodec`）；HTTP/gRPC-Web 帧路径支持 `grpc-encoding` 协商（默认 gzip）
 - **错误映射**：HTTP/JSON 将 gRPC 错误码映射为 HTTP 状态码；gRPC-Web 写入 `grpc-status` trailer
 
 ## 协议 × 流模式
