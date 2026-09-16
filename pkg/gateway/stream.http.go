@@ -38,6 +38,10 @@ type streamHTTP struct {
 	// For JSON transport we emit NDJSON (one JSON object per line).
 	responseStream bool
 	writer         io.Writer // optional custom writer
+
+	compNegotiated bool
+	respCompressor Compressor
+	respEncoding   string
 }
 
 var _ grpc.ServerStream = (*streamHTTP)(nil)
@@ -133,12 +137,22 @@ func (s *streamHTTP) SendMsg(m any) error {
 	var b []byte
 	var err error
 	if isGRPC {
+		s.ensureResponseCompression()
 		b, err = codec.Marshal(msg)
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal response by protobuf")
 		}
-		// Add gRPC frame header: compression(0) + message type(0) + length
+		flags := byte(0)
+		if s.respCompressor != nil {
+			b, err = compressMessage(s.respCompressor, b)
+			if err != nil {
+				return errors.Wrap(err, "failed to compress gRPC response frame")
+			}
+			flags = grpcFrameCompressed
+		}
+		// gRPC frame header: compression flag + length + message
 		frame := make([]byte, 5+len(b))
+		frame[0] = flags
 		binary.BigEndian.PutUint32(frame[1:5], uint32(len(b)))
 		copy(frame[5:], b)
 		b = frame
@@ -231,6 +245,10 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				if _, err := io.ReadFull(reader, data); err != nil {
 					return status.Errorf(codes.InvalidArgument, "read grpc frame body: %v", err)
 				}
+				data, err := s.decodeGRPCFramePayload(header[0], data)
+				if err != nil {
+					return err
+				}
 				if err := codec.Unmarshal(data, msg); err != nil {
 					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}
@@ -255,7 +273,10 @@ func (s *streamHTTP) RecvMsg(m any) error {
 				if len(body) < int(5+length) {
 					return status.Errorf(codes.InvalidArgument, "invalid gRPC frame: expected %d bytes, got %d", 5+length, len(body))
 				}
-				data := body[5 : 5+length]
+				data, err := s.decodeGRPCFramePayload(body[0], body[5:5+length])
+				if err != nil {
+					return err
+				}
 				if err := codec.Unmarshal(data, msg); err != nil {
 					return status.Errorf(codes.InvalidArgument, "failed to unmarshal body by codec: %v", err)
 				}

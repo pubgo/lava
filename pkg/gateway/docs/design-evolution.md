@@ -19,7 +19,7 @@
 1. **Mux 只做方法表 + 调度目标**：协议细节留在 Frontend，不渗进核心。  
 2. **横切逻辑挂在 Backend 边界**：本地（inproc）与 proxy 必须能套同一套「调用前/后」语义。  
 3. **能力矩阵写进行为与文档**：HTTP/gRPC-Web 仅 unary / server-stream；client/bidi 走 WS / Native gRPC。  
-4. **扩展点要么接线，要么不对外承诺**：Codec 已接线；Compressor 在 HTTP 链路启用前不得宣称为可用能力。  
+4. **扩展点要么接线，要么不对外承诺**：Codec 与 Compressor（HTTP/gRPC-Web 帧路径）已接线。  
 5. **包内只保留一条泵实现**：禁止与 `Dispatcher` 并行的第二套 bidi 转发逻辑。  
 
 ## 目标结构
@@ -96,7 +96,7 @@ Client ────────►├─ wsFrontend     (net/http)   四流
 - [x] Dispatcher 级 stream/RPC 中间件：`Mux.UseRPCMiddleware` + `IncomingPayload`；`gatewayserver` 经 `handlerRPCMiddle` 挂载；前端统一走 `Mux.DispatchFrontend`  
 - [x] gRPC-Web：成功路径保证 trailer 帧（默认 `grpc-status=0`）；`applyGRPCWebMetadata` 允许 `grpc-*`  
 - [x] 注册模型：`Operation` 为调度 SSOT（注册时固化）；`routerTree` 仅作 HTTP 路径 → `FullMethod` 索引；查找走 `LookupOperation` / `findMethod`  
-- [ ] gRPC-Web：压缩帧协商  
+- [x] gRPC-Web：压缩帧协商（`grpc-encoding` / `grpc-accept-encoding` + 帧压缩标志；默认 gzip）  
 - [ ] HTTP framed client-stream（若产品需要）单独设计，不假装 REST body 可表示多消息  
 
 ## 明确不做

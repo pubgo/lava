@@ -13,7 +13,7 @@ Gateway 模块基于 **Google API HTTP Annotation** 规范，实现了从 HTTP/R
 1. **声明式路由**：通过 Protobuf 注解定义 HTTP 路由，无需手动编写路由代码
 2. **协议透明**：客户端使用标准的 HTTP/JSON，后端使用 gRPC，Gateway 自动处理转换
 3. **类型安全**：基于 Protobuf 的类型系统，保证请求/响应的类型安全
-4. **可扩展性**：支持按 Content-Type 注册 Codec（`WithCodec`）；Backend 拦截器链覆盖本地与 proxy；消息压缩类型已预留但 HTTP 链路尚未启用
+4. **可扩展性**：支持按 Content-Type 注册 Codec（`WithCodec`）；Backend 拦截器链覆盖本地与 proxy；HTTP/gRPC-Web 消息压缩经 `grpc-encoding` 协商（默认 gzip）
 5. **多协议前端复用**：底层 gRPC handler 注册一次，多种上层协议共享同一套调度与后端。HTTP 前端仅覆盖 unary / server-stream；client/bidi 请用 WebSocket 或 Native gRPC。
 
 完整目标契约与分阶段计划见 [design-evolution.md](design-evolution.md)。

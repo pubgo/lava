@@ -140,9 +140,17 @@ Gateway 通过 `Content-Type` 头判断请求类型：
 [1 byte: compression flag] [4 bytes: message length (big-endian)] [message bytes]
 ```
 
-- Compression flag: `0x00` = 无压缩
+- Compression flag: `0x00` = 无压缩，`0x01` = 压缩（算法见请求头 `grpc-encoding`）
 - Message length: 4 字节大端整数
-- Message: Protobuf 编码的消息
+- Message: Protobuf（或协商编码）消息字节
+
+请求压缩需同时设置：
+- 帧标志 `0x01`
+- `grpc-encoding: gzip`（或其它已注册 Compressor）
+
+响应侧：
+- 网关声明 `grpc-accept-encoding: gzip,identity`
+- 若请求带 `grpc-accept-encoding` 且命中已注册算法，则响应帧压缩并设置 `Grpc-Encoding`
 
 ### 响应格式
 

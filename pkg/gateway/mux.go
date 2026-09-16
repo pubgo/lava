@@ -268,9 +268,8 @@ func NewMux(opts ...MuxOption) *Mux {
 		muxOpts.codecsByName[v.Name()] = v
 	}
 
-	// Ensure compressors are set.
-	// NOTE: compressors are registered for future grpc-encoding support; the HTTP
-	// frontend does not yet negotiate or apply message compression on the wire.
+	// Compressors are registered and applied on the HTTP/gRPC-Web framed path
+	// (grpc-encoding / grpc-accept-encoding + per-frame compression flag).
 	if muxOpts.compressors == nil {
 		muxOpts.compressors = make(map[string]Compressor)
 	}

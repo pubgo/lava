@@ -79,13 +79,15 @@ func (w *fiberWebWriter) Write(data []byte) (int, error) {
 
 func (w *fiberWebWriter) writeTrailer() error {
 	tr := make(http.Header)
-	// Collect grpc-* headers for trailer
+	// Collect trailer keys only. grpc-encoding / grpc-accept-encoding are
+	// response headers and must not be re-emitted in the trailer frame.
 	//lint:ignore SA1019 VisitAll is the only available API in this fasthttp version.
 	for key, value := range w.ctx.Response().Header.All() {
 		k := string(key)
-		if strings.HasPrefix(strings.ToLower(k), "grpc-") {
-			tr[strings.ToLower(k)] = []string{string(value)}
+		if !isGRPCWebTrailerHeader(k) {
+			continue
 		}
+		tr[strings.ToLower(k)] = []string{string(value)}
 	}
 	// Add default grpc-status if not present
 	if tr.Get("grpc-status") == "" {
@@ -104,6 +106,16 @@ func (w *fiberWebWriter) writeTrailer() error {
 		return err
 	}
 	return nil
+}
+
+func isGRPCWebTrailerHeader(k string) bool {
+	k = strings.ToLower(k)
+	switch k {
+	case "grpc-encoding", "grpc-accept-encoding", "grpc-timeout", "grpc-message-type":
+		return false
+	default:
+		return strings.HasPrefix(k, "grpc-")
+	}
 }
 
 // markErrorTrailer is kept for call-site clarity on the error path.

@@ -293,7 +293,7 @@ mux := gateway.NewMux(
 )
 ```
 
-> 消息压缩（`grpc-encoding`）类型已预留注册，HTTP 前端尚未在链路上协商/应用压缩。
+> 消息压缩：HTTP/gRPC-Web 帧路径支持 `grpc-encoding` / `grpc-accept-encoding` 协商（默认注册 `gzip`）。请求帧压缩标志为 `0x01` 时按请求编码解压；响应在客户端接受时压缩并回写 `Grpc-Encoding`。
 
 ## 错误处理
 
