@@ -61,7 +61,7 @@ func assertHTTPRejectsClientStreams(t *testing.T, serverStreams bool, path, full
 	if err != nil {
 		t.Fatalf("app.Test: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != fiber.StatusNotImplemented {
@@ -92,7 +92,7 @@ func TestHTTPFrontend_MapsNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("app.Test: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != fiber.StatusNotFound {
@@ -145,7 +145,7 @@ func TestHTTPFrontend_MapsInvalidArgumentFromHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("app.Test: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != fiber.StatusBadRequest {

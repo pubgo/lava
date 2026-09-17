@@ -36,7 +36,7 @@ func TransparentHandler(cli grpc.ClientConnInterface, inType, outType protorefle
 	if cli == nil {
 		panic("gateway: TransparentHandler cli is nil")
 	}
-	backend := Backend(cli)
+	backend := cli
 	if len(opts) > 0 {
 		backend = &callOptionsBackend{cli: cli, opts: opts}
 	}

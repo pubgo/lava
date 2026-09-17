@@ -52,7 +52,7 @@ func verifyHTTPJSON() {
 	if err != nil {
 		log.Fatalf("http json: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		log.Fatalf("http json status=%d body=%s", resp.StatusCode, body)
@@ -76,7 +76,7 @@ func verifyHTTPClientStreamRejected() {
 	if err != nil {
 		log.Fatalf("http chat: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode == http.StatusOK {
 		log.Fatalf("http chat should be rejected, body=%s", body)
@@ -114,7 +114,7 @@ func verifyGRPCWebUnary() {
 	if err != nil {
 		log.Fatalf("grpc-web unary: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, _ := io.ReadAll(resp.Body)
 	msgs, trailer, _ := parseGRPCWeb(raw)
 	if len(msgs) != 1 {
@@ -156,7 +156,7 @@ func verifyGRPCWebCompressed() {
 	if err != nil {
 		log.Fatalf("grpc-web gzip: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, _ := io.ReadAll(resp.Body)
 
 	if enc := resp.Header.Get("Grpc-Encoding"); enc != "gzip" {
@@ -207,7 +207,7 @@ func verifyGRPCWebServerStream() {
 	if err != nil {
 		log.Fatalf("grpc-web stream: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, _ := io.ReadAll(resp.Body)
 	msgs, trailer, _ := parseGRPCWeb(raw)
 	if len(msgs) != 2 {
@@ -440,6 +440,6 @@ func gunzipBytes(in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	return io.ReadAll(r)
 }
