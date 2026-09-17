@@ -1,4 +1,14 @@
-export { GatewayError, GrpcCode } from "./errors.js";
+export {
+  GatewayError,
+  GrpcCode,
+  GRPC_CODE_NAMES,
+  statusName,
+  statusCodeFromName,
+  parseBackendError,
+  rpcCodeFromBackendError,
+  toRpcError,
+  type BackendError,
+} from "./errors.js";
 export {
   createHttpJsonClient,
   type HttpJsonClient,
@@ -18,6 +28,16 @@ export {
   createGrpcWebTransport,
   type GrpcWebTransportOptions,
 } from "./protobuf-ts-transport.js";
+export {
+  createJsonRpcTransport,
+  JsonRpcTransport,
+  type JsonRpcTransportOptions,
+} from "./json-rpc-transport.js";
+export {
+  createGatewayTransport,
+  type CreateGatewayTransportOptions,
+  type GatewayTransportFormat,
+} from "./transport.js";
 export {
   encodeFrame,
   decodeFrames,

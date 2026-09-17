@@ -1,53 +1,38 @@
 import type {
   MethodInfo,
+  RpcMetadata,
   RpcOptions,
+  RpcStatus,
   RpcTransport,
-  UnaryCall,
-  ServerStreamingCall,
+  UnaryCall as UnaryCallType,
+  ServerStreamingCall as ServerStreamingCallType,
   ClientStreamingCall,
   DuplexStreamingCall,
 } from "@protobuf-ts/runtime-rpc";
-import { RpcError } from "@protobuf-ts/runtime-rpc";
+import {
+  Deferred,
+  mergeRpcOptions,
+  RpcError,
+  RpcOutputStreamController,
+  ServerStreamingCall,
+  UnaryCall,
+} from "@protobuf-ts/runtime-rpc";
 
-import { GatewayError } from "./errors.js";
+import { statusName, toRpcError } from "./errors.js";
 import { createGrpcWebClient, type GrpcWebClientOptions } from "./grpc-web.js";
 
-export type GrpcWebTransportOptions = GrpcWebClientOptions & {
+export type GrpcWebTransportOptions = GrpcWebClientOptions & RpcOptions & {
   /** Default RpcOptions merged into every call. */
   defaultOptions?: RpcOptions;
 };
 
-const GRPC_CODE_NAMES = [
-  "OK",
-  "CANCELLED",
-  "UNKNOWN",
-  "INVALID_ARGUMENT",
-  "DEADLINE_EXCEEDED",
-  "NOT_FOUND",
-  "ALREADY_EXISTS",
-  "PERMISSION_DENIED",
-  "RESOURCE_EXHAUSTED",
-  "FAILED_PRECONDITION",
-  "ABORTED",
-  "OUT_OF_RANGE",
-  "UNIMPLEMENTED",
-  "INTERNAL",
-  "UNAVAILABLE",
-  "DATA_LOSS",
-  "UNAUTHENTICATED",
-] as const;
-
-function statusName(code: number): string {
-  return GRPC_CODE_NAMES[code] ?? "UNKNOWN";
-}
-
-function toRpcError(err: unknown): RpcError {
-  if (err instanceof GatewayError) {
-    return new RpcError(err.grpcMessage || err.message, statusName(err.code));
+function appendMeta(headers: Headers, meta: RpcOptions["meta"]) {
+  if (!meta) return;
+  for (const [k, v] of Object.entries(meta)) {
+    if (v == null) continue;
+    if (Array.isArray(v)) v.forEach((x) => headers.append(k, String(x)));
+    else headers.set(k, String(v));
   }
-  if (err instanceof RpcError) return err;
-  if (err instanceof Error) return new RpcError(err.message, "INTERNAL");
-  return new RpcError(String(err), "INTERNAL");
 }
 
 function headersToMeta(h: Headers): Record<string, string> {
@@ -58,157 +43,117 @@ function headersToMeta(h: Headers): Record<string, string> {
   return out;
 }
 
-function metaToHeaders(meta: RpcOptions["meta"]): Headers {
-  const headers = new Headers();
-  if (!meta) return headers;
-  for (const [k, v] of Object.entries(meta)) {
-    if (v == null) continue;
-    if (Array.isArray(v)) v.forEach((x) => headers.append(k, String(x)));
-    else headers.set(k, String(v));
-  }
-  return headers;
-}
-
-class Deferred<T> {
-  readonly promise: Promise<T>;
-  private _resolve!: (v: T) => void;
-  private _reject!: (e: unknown) => void;
-  constructor() {
-    this.promise = new Promise<T>((resolve, reject) => {
-      this._resolve = resolve;
-      this._reject = reject;
-    });
-  }
-  resolve(v: T) {
-    this._resolve(v);
-  }
-  reject(e: unknown) {
-    this._reject(e);
-  }
-}
-
 /**
- * protobuf-ts {@link RpcTransport} backed by lava gateway gRPC-Web framing.
+ * protobuf-ts {@link RpcTransport} for binary (or text) gRPC-Web framing.
  */
 export function createGrpcWebTransport(opts: GrpcWebTransportOptions): RpcTransport {
   const client = createGrpcWebClient(opts);
+  const defaults: RpcOptions = { ...(opts.defaultOptions ?? {}), ...opts };
 
   return {
-    mergeOptions(options?: RpcOptions): RpcOptions {
-      return { ...(opts.defaultOptions ?? {}), ...(options ?? {}) };
+    mergeOptions(options?: Partial<RpcOptions>): RpcOptions {
+      return mergeRpcOptions(defaults, options);
     },
 
     unary<I extends object, O extends object>(
       method: MethodInfo<I, O>,
       input: I,
       options: RpcOptions,
-    ): UnaryCall<I, O> {
+    ): UnaryCallType<I, O> {
+      const opt = mergeRpcOptions(defaults, options);
       const fullMethod = `/${method.service.typeName}/${method.name}`;
-      const headersDef = new Deferred<Record<string, string>>();
-      const trailersDef = new Deferred<Record<string, string>>();
-      const statusDef = new Deferred<{ code: string; detail: string }>();
-      const responseDef = new Deferred<O>();
+      const headers = new Headers();
+      appendMeta(headers, opt.meta);
+
+      const defHeader = new Deferred<Record<string, string>>();
+      const defMessage = new Deferred<O>();
+      const defStatus = new Deferred<{ code: string; detail: string }>();
+      const defTrailer = new Deferred<Record<string, string>>();
 
       void (async () => {
         try {
           const result = await client.unary(fullMethod, method.I.toBinary(input), {
-            headers: metaToHeaders(options.meta),
+            headers,
             signal: options.abort,
             compress: opts.acceptCompression,
           });
-          headersDef.resolve(headersToMeta(result.headers));
-          trailersDef.resolve(headersToMeta(result.trailers));
-          statusDef.resolve({ code: statusName(result.grpcStatus), detail: result.grpcMessage });
-          responseDef.resolve(method.O.fromBinary(result.message));
+          defHeader.resolve(headersToMeta(result.headers));
+          defTrailer.resolve(headersToMeta(result.trailers));
+          defStatus.resolve({ code: statusName(result.grpcStatus), detail: result.grpcMessage });
+          defMessage.resolve(method.O.fromBinary(result.message));
         } catch (err) {
-          const rpcErr = toRpcError(err);
-          headersDef.reject(rpcErr);
-          trailersDef.reject(rpcErr);
-          statusDef.reject(rpcErr);
-          responseDef.reject(rpcErr);
+          const rpcErr = toRpcError(err, {
+            name: method.name,
+            service: method.service.typeName,
+          });
+          defHeader.rejectPending(rpcErr);
+          defMessage.rejectPending(rpcErr);
+          defStatus.rejectPending(rpcErr);
+          defTrailer.rejectPending(rpcErr);
         }
       })();
 
-      const call = {
+      return new UnaryCall<I, O>(
         method,
-        requestHeaders: Promise.resolve(options.meta ?? {}),
-        request: Promise.resolve(input),
-        headers: headersDef.promise,
-        response: responseDef.promise,
-        status: statusDef.promise,
-        trailers: trailersDef.promise,
-      };
-      return call as unknown as UnaryCall<I, O>;
+        opt.meta ?? {},
+        input,
+        defHeader.promise as Promise<RpcMetadata>,
+        defMessage.promise,
+        defStatus.promise as Promise<RpcStatus>,
+        defTrailer.promise as Promise<RpcMetadata>,
+      );
     },
 
     serverStreaming<I extends object, O extends object>(
       method: MethodInfo<I, O>,
       input: I,
       options: RpcOptions,
-    ): ServerStreamingCall<I, O> {
+    ): ServerStreamingCallType<I, O> {
+      const opt = mergeRpcOptions(defaults, options);
       const fullMethod = `/${method.service.typeName}/${method.name}`;
-      const headersDef = new Deferred<Record<string, string>>();
-      const trailersDef = new Deferred<Record<string, string>>();
-      const statusDef = new Deferred<{ code: string; detail: string }>();
-      const buffer: O[] = [];
-      let ended = false;
-      let failed: unknown;
-      let wake: (() => void) | undefined;
+      const headers = new Headers();
+      appendMeta(headers, opt.meta);
+
+      const defHeader = new Deferred<Record<string, string>>();
+      const defStatus = new Deferred<{ code: string; detail: string }>();
+      const defTrailer = new Deferred<Record<string, string>>();
+      const responses = new RpcOutputStreamController<O>();
 
       void (async () => {
         try {
           const result = await client.serverStream(fullMethod, method.I.toBinary(input), {
-            headers: metaToHeaders(options.meta),
+            headers,
             signal: options.abort,
             compress: opts.acceptCompression,
           });
-          headersDef.resolve(headersToMeta(result.headers));
+          defHeader.resolve(headersToMeta(result.headers));
           for (const msg of result.messages) {
-            buffer.push(method.O.fromBinary(msg));
-            wake?.();
+            responses.notifyMessage(method.O.fromBinary(msg));
           }
-          trailersDef.resolve(headersToMeta(result.trailers));
-          statusDef.resolve({ code: statusName(result.grpcStatus), detail: result.grpcMessage });
+          responses.notifyComplete();
+          defTrailer.resolve(headersToMeta(result.trailers));
+          defStatus.resolve({ code: statusName(result.grpcStatus), detail: result.grpcMessage });
         } catch (err) {
-          failed = toRpcError(err);
-          headersDef.reject(failed);
-          trailersDef.reject(failed);
-          statusDef.reject(failed);
-        } finally {
-          ended = true;
-          wake?.();
+          const rpcErr = toRpcError(err, {
+            name: method.name,
+            service: method.service.typeName,
+          });
+          if (!responses.closed) responses.notifyError(rpcErr);
+          defHeader.rejectPending(rpcErr);
+          defStatus.rejectPending(rpcErr);
+          defTrailer.rejectPending(rpcErr);
         }
       })();
 
-      const responses: AsyncIterable<O> = {
-        [Symbol.asyncIterator]() {
-          let i = 0;
-          return {
-            async next(): Promise<IteratorResult<O>> {
-              for (;;) {
-                if (i < buffer.length) {
-                  return { value: buffer[i++]!, done: false };
-                }
-                if (failed) throw failed;
-                if (ended) return { value: undefined as unknown as O, done: true };
-                await new Promise<void>((r) => {
-                  wake = r;
-                });
-              }
-            },
-          };
-        },
-      };
-
-      return {
+      return new ServerStreamingCall<I, O>(
         method,
-        requestHeaders: Promise.resolve(options.meta ?? {}),
-        request: Promise.resolve(input),
-        headers: headersDef.promise,
+        opt.meta ?? {},
+        input,
+        defHeader.promise as Promise<RpcMetadata>,
         responses,
-        status: statusDef.promise,
-        trailers: trailersDef.promise,
-      } as unknown as ServerStreamingCall<I, O>;
+        defStatus.promise as Promise<RpcStatus>,
+        defTrailer.promise as Promise<RpcMetadata>,
+      );
     },
 
     clientStreaming<I extends object, O extends object>(): ClientStreamingCall<I, O> {

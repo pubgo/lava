@@ -1,7 +1,7 @@
 {
   "name": "@pubgo/lava-gateway-client",
-  "version": "0.1.0",
-  "description": "Browser/Node client for lava gateway: HTTP/JSON and gRPC-Web (trailers + optional gzip)",
+  "version": "0.2.0",
+  "description": "Browser/Node client for lava gateway: JSON-RPC, HTTP/REST, and gRPC-Web",
   "type": "module",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -22,14 +22,19 @@
     "prepare": "npm run build"
   },
   "peerDependencies": {
+    "@protobuf-ts/runtime": "^2.9.0",
     "@protobuf-ts/runtime-rpc": "^2.9.0"
   },
   "peerDependenciesMeta": {
+    "@protobuf-ts/runtime": {
+      "optional": true
+    },
     "@protobuf-ts/runtime-rpc": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@protobuf-ts/runtime": "^2.11.1",
     "@protobuf-ts/runtime-rpc": "^2.11.1",
     "typescript": "^5.8.3"
   },

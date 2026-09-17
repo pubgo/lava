@@ -131,11 +131,20 @@
     <h1>lava gateway client 示例 <span class="badge badge-ts">@pubgo/lava-gateway-client</span></h1>
     
     <div class="info">
-        <strong>说明：</strong> 本页面通过可对外发布的 SDK <code>@pubgo/lava-gateway-client</code> 调用 lava gateway。
+        <strong>说明：</strong> 本页面通过可对外发布的 SDK <code>@pubgo/lava-gateway-client</code> 调用 lava gateway
+        （用法对齐 agentrun <code>src/lib/rpc.ts</code>）。
         <br><br>
-        <strong>HTTP/JSON：</strong> <code>createHttpJsonClient</code> → REST（<code>google.api.http</code>）
+        <strong>HTTP REST：</strong> <code>createHttpJsonClient</code> → <code>/v1/greeter/*</code>
         <br>
-        <strong>gRPC-Web：</strong> <code>createGrpcWebTransport</code> + protobuf-ts 生成客户端（含 gzip accept）
+        <strong>RPC facade：</strong> <code>createGatewayTransport({ format })</code> + protobuf-ts 客户端
+        （<code>json</code> / <code>binary</code> / <code>text</code>，可用下方下拉切换）
+        <br><br>
+        <label for="transportFormat"><strong>RPC transport：</strong></label>
+        <select id="transportFormat">
+            <option value="json">json（开发推荐，Network 明文）</option>
+            <option value="binary">binary（grpc-web+proto）</option>
+            <option value="text">text（grpc-web-text+proto）</option>
+        </select>
     </div>
 
     <div class="container">
@@ -143,8 +152,8 @@
             <h2>👋 SayHello 测试</h2>
             <label for="helloName">名称:</label>
             <input type="text" id="helloName" placeholder="输入名称" value="World">
-            <button class="btn-json" id="helloJsonBtn">发送 HTTP/JSON 请求</button>
-            <button class="btn-grpcweb" id="helloGrpcBtn">发送 gRPC-Web 请求 (SDK transport)</button>
+            <button class="btn-json" id="helloJsonBtn">发送 HTTP REST 请求</button>
+            <button class="btn-grpcweb" id="helloGrpcBtn">发送 RPC 请求 (rpc.greeter)</button>
             <div id="helloResult" class="result">等待测试...</div>
         </div>
         
@@ -152,8 +161,8 @@
             <h2>👋 SayGoodbye 测试</h2>
             <label for="goodbyeName">名称:</label>
             <input type="text" id="goodbyeName" placeholder="输入名称" value="Friend">
-            <button class="btn-json" id="goodbyeJsonBtn">发送 HTTP/JSON 请求</button>
-            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 gRPC-Web 请求 (SDK transport)</button>
+            <button class="btn-json" id="goodbyeJsonBtn">发送 HTTP REST 请求</button>
+            <button class="btn-grpcweb" id="goodbyeGrpcBtn">发送 RPC 请求 (rpc.greeter)</button>
             <div id="goodbyeResult" class="result">等待测试...</div>
         </div>
 
